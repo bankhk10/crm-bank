@@ -15,7 +15,9 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { Type6PlanCard } from "../shared/type6-plan-card";
 import GalleryUpload from "@/components/custom/gallery-upload";
+
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   convertToFileMetadata,
@@ -174,71 +176,7 @@ export function ActualType6Issue({
       </div>
 
       {/* Target Card from Plan */}
-      {planType !== "UNPLANNED" && target && (
-        hasMultipleItems ? (
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-rose-600" />
-                รายการเป้าหมายตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (
-                {target.items?.length} รายการ):
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">
-                จากฟอร์มสร้างแผน
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-              {target.items?.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5"
-                >
-                  <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-100 pb-1.5">
-                    <span className="flex items-center gap-1.5 text-xs text-rose-900">
-                      <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center text-[10px] font-extrabold">
-                        {idx + 1}
-                      </span>
-                      ลูกค้า: {item.customer || "-"}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-[11px]">
-                    <div>
-                      <span className="text-slate-400 block text-[10px]">
-                        ประเภทปัญหา:
-                      </span>
-                      <span className="font-semibold text-slate-800">
-                        {item.issueType || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[10px]">
-                        รายละเอียดเพิ่มเติม:
-                      </span>
-                      <span className="font-medium text-slate-700 block break-words whitespace-pre-wrap">
-                        {item.detail || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <ActualTargetCard
-            iconColorClass="text-rose-600"
-            badgeColorClass="bg-rose-100 text-rose-800"
-            gridColsClass="grid-cols-1 sm:grid-cols-3"
-            items={[
-              { label: "ลูกค้า/ร้านค้า:", value: target.customer || "-" },
-              { label: "ประเภทปัญหา:", value: target.issueType || "-" },
-              {
-                label: "รายละเอียดเพิ่มเติม:",
-                value: target.detail || "-",
-              },
-            ]}
-          />
-        )
-      )}
+      <Type6PlanCard planType={planType} target={target} />
 
       {/* Actual Form Fields */}
       <div className="space-y-4 pt-1">

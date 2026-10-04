@@ -4,6 +4,11 @@ export type {
   StockCheckItem,
   ProductOption,
 } from "./shared/types";
+export {
+  Type11PlanCard,
+  type Type11PlanCardProps,
+  type Type11PlanTarget,
+} from "./shared/type11-plan-card";
 
 export { Type11Stock } from "./create/type11-stock";
 export type { Type11StockProps } from "./create/types";

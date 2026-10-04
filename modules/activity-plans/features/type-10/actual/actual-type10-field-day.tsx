@@ -21,6 +21,7 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
+import { Type10PlanCard } from "../shared/type10-plan-card";
 import {
   Type10SoldProductItem,
   SoldProductItem,
@@ -483,23 +484,7 @@ export function ActualType10FieldDay({
         </div>
       </div>
 
-      {planType !== "UNPLANNED" && (
-        <ActualTargetCard
-          iconColorClass="text-orange-600"
-          badgeColorClass="bg-orange-100 text-orange-800"
-          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-          items={[
-            { label: "แปลงสาธิตจัดงาน:", value: target?.plot || "-" },
-            { label: "สถานที่แปลง:", value: target?.location || "-" },
-            { label: "เป้าหมายผู้เข้าร่วม:", value: target?.targetAttendees || "-" },
-            {
-              label: "เป้ายอดขาย/จอง:",
-              value: target?.targetSales || "-",
-              highlight: true,
-            },
-          ]}
-        />
-      )}
+      <Type10PlanCard target={target} planType={planType} />
 
       {/* Primary General Metrics: Attendees & Actual Sales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">

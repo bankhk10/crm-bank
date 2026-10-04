@@ -29,3 +29,10 @@ export {
   type UseType4FormOptions,
   type UseType4FormResult,
 } from "./hooks/use-type4-form";
+export {
+  Type4PlanCard,
+  type Type4PlanCardProps,
+  type Type4PlanCardTarget,
+  type Type4PlanCardTargetItem,
+} from "./shared/type4-plan-card";
+

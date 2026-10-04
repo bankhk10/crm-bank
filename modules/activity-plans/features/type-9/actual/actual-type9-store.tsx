@@ -13,6 +13,7 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
+import { Type9PlanCard } from "../shared/type9-plan-card";
 import {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
@@ -138,32 +139,11 @@ export function ActualType9Store({
         </div>
       </div>
 
-      {planType !== "UNPLANNED" && (
-        <ActualTargetCard
-          iconColorClass="text-blue-600"
-          badgeColorClass="bg-blue-100 text-blue-800"
-          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-          items={[
-            { label: "ร้านค้าเป้าหมาย:", value: target.store || "-" },
-            ...(target.subDealerStore
-              ? [{ label: "ร้านค้าซับดีลเลอร์:", value: target.subDealerStore }]
-              : []),
-            { label: "สินค้าเป้าหมาย:", value: target.product || "-" },
-            {
-              label: "เป้ายอดขาย:",
-              value: target.targetSales ? `฿${target.targetSales}` : "-",
-            },
-            ...(target.targetAttendees
-              ? [
-                  {
-                    label: "เป้าหมายผู้เข้าร่วม:",
-                    value: `${target.targetAttendees} คน`,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
+      <Type9PlanCard
+        target={target}
+        planType={planType}
+        hideItemsTable
+      />
 
       {/* MULTI-PRODUCT ACTUAL SALES TABLE (FROM TARGET ITEMS) */}
       {hasMultipleProducts ? (

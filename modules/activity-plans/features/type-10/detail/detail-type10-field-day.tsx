@@ -19,6 +19,7 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
+import { Type10PlanCard } from "../shared/type10-plan-card";
 import {
   Type10SoldProductDetail,
   DetailType10FieldDayProps,
@@ -119,26 +120,7 @@ export function DetailType10FieldDay({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-orange-600"
-        badgeColorClass="bg-orange-50 text-orange-800 border border-orange-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
-        items={[
-          { label: "แปลงสาธิต:", value: target.plot || "-" },
-          { label: "สถานที่จัดงาน:", value: target.location || "-" },
-          { label: "จุดเด่นแปลง:", value: target.showcase || "-" },
-          {
-            label: "เป้าหมายผู้เข้าร่วม:",
-            value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",
-            highlight: true,
-          },
-          {
-            label: "เป้ายอดขาย/จอง:",
-            value: target.targetSales ? `฿${target.targetSales}` : "-",
-            highlight: true,
-          },
-        ]}
-      />
+      <Type10PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

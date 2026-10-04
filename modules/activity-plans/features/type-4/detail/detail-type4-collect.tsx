@@ -4,6 +4,8 @@ import React from "react";
 import { Building2, Receipt, ImageIcon } from "lucide-react";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { Type4PlanCard } from "../shared/type4-plan-card";
+
 
 function parseCleanAmount(val: unknown): number | null {
   if (val === null || val === undefined) return null;
@@ -87,55 +89,7 @@ export function DetailType4Collect({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      {hasMultipleCompanies ? (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <span className="text-xs font-bold text-slate-800">
-              เป้าหมายการวางบิล/เก็บเงิน ({target.items!.length}{" "}
-              บริษัท/ร้านค้า):
-            </span>
-            <span className="text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-md">
-              เป้ายอดเก็บเงินรวม {target.targetCollect || "-"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {target.items!.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between font-bold text-slate-900"
-              >
-                <span className="flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-[10px]">
-                    {idx + 1}
-                  </span>
-                  {item.companyName}
-                </span>
-                <span className="text-indigo-700 font-bold">
-                  {item.targetCollect}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <ActualTargetCard
-          iconColorClass="text-indigo-600"
-          badgeColorClass="bg-indigo-100 text-indigo-800"
-          gridColsClass="grid-cols-1 sm:grid-cols-2"
-          items={[
-            { label: "ลูกค้า/ร้านค้า:", value: target.customer || "-" },
-            {
-              label: "เป้ายอดเก็บเงิน:",
-              value:
-                totalTarget > 0
-                  ? `${totalTarget.toLocaleString()} ฿`
-                  : target.targetCollect || "-",
-              highlight: true,
-            },
-          ]}
-        />
-      )}
+      <Type4PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">

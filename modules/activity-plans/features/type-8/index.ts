@@ -7,6 +7,11 @@ export type {
   CustomerOption,
   ProductOption,
 } from "./shared/types";
+export {
+  Type8PlanCard,
+  type Type8PlanCardProps,
+  type Type8PlanTarget,
+} from "./shared/type8-plan-card";
 
 export { Type8Meeting } from "./create/type8-meeting";
 export type { Type8MeetingProps } from "./create/types";

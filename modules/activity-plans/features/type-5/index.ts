@@ -31,3 +31,10 @@ export {
   type UseType5FormOptions,
   type UseType5FormResult,
 } from "./hooks/use-type5-form";
+export {
+  Type5PlanCard,
+  type Type5PlanCardProps,
+  type Type5PlanCardTarget,
+  type Type5PlanCardTargetItem,
+} from "./shared/type5-plan-card";
+

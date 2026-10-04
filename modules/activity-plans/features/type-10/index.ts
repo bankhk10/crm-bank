@@ -2,6 +2,11 @@ export type {
   Type10SoldProductItem,
   ProductOption,
 } from "./shared/types";
+export {
+  Type10PlanCard,
+  type Type10PlanCardProps,
+  type Type10PlanTarget,
+} from "./shared/type10-plan-card";
 
 export { Type10FieldDay } from "./create/type10-field-day";
 export type { Type10FieldDayProps } from "./create/types";

@@ -31,3 +31,10 @@ export {
   type UseType6FormOptions,
   type UseType6FormResult,
 } from "./hooks/use-type6-form";
+export {
+  Type6PlanCard,
+  type Type6PlanCardProps,
+  type Type6PlanCardTarget,
+  type Type6PlanCardTargetItem,
+} from "./shared/type6-plan-card";
+

@@ -9,6 +9,7 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
+import { Type9PlanCard } from "../shared/type9-plan-card";
 import {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
@@ -102,31 +103,7 @@ export function DetailType9Store({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-teal-600"
-        badgeColorClass="bg-teal-50 text-teal-800 border border-teal-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
-        items={[
-          { label: "ร้านค้าเป้าหมาย:", value: target.store || "-" },
-          ...(target.subDealerStore
-            ? [{ label: "ร้านค้าซับดีลเลอร์:", value: target.subDealerStore }]
-            : []),
-          { label: "สินค้าเป้าหมาย:", value: target.product || "-" },
-          {
-            label: "เป้ายอดขาย:",
-            value: target.targetSales ? `฿${target.targetSales}` : "-",
-            highlight: true,
-          },
-          ...(target.targetAttendees
-            ? [
-                {
-                  label: "เป้าหมายผู้เข้าร่วม:",
-                  value: `${target.targetAttendees} คน`,
-                },
-              ]
-            : []),
-        ]}
-      />
+      <Type9PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">

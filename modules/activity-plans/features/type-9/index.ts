@@ -3,6 +3,11 @@ export type {
   CustomerOption,
   ProductOption,
 } from "./shared/types";
+export {
+  Type9PlanCard,
+  type Type9PlanCardProps,
+  type Type9PlanTarget,
+} from "./shared/type9-plan-card";
 
 export { Type9Store } from "./create/type9-store";
 export type { Type9StoreProps } from "./create/types";

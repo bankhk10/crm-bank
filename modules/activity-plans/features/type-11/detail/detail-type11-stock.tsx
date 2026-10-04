@@ -8,6 +8,7 @@ import GalleryUpload from "@/components/custom/gallery-upload";
 import { convertToFileMetadata } from "@/modules/activity-plans/features/shared/actual-view/utils";
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
+import { Type11PlanCard } from "../shared/type11-plan-card";
 import {
   StockCheckItem,
   DetailType11StockProps,
@@ -71,14 +72,7 @@ export function DetailType11Stock({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-slate-600"
-        badgeColorClass="bg-slate-100 text-slate-800 border border-slate-200"
-        gridColsClass="grid-cols-1"
-        items={[
-          { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target.store || "-" },
-        ]}
-      />
+      <Type11PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

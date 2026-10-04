@@ -17,6 +17,7 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
+import { Type8PlanCard } from "../shared/type8-plan-card";
 import {
   ProductSaleDetail,
   DetailType8MeetingProps,
@@ -97,79 +98,7 @@ export function DetailType8Meeting({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <ActualTargetCard
-        iconColorClass="text-purple-600"
-        badgeColorClass="bg-purple-50 text-purple-800 border border-purple-200"
-        gridColsClass="grid-cols-1 sm:grid-cols-3"
-        items={[
-          { label: "หัวข้อการประชุม:", value: target.topic || "-" },
-          ...(target.customer
-            ? [{ label: "ร้านค้า / ตัวแทนจำหน่าย:", value: target.customer }]
-            : []),
-          {
-            label: "สินค้าเป้าหมาย:",
-            value: targetProductsList.join(", ") || target.products || "-",
-          },
-          ...(target.detail
-            ? [{ label: "รายละเอียดเพิ่มเติม:", value: target.detail }]
-            : []),
-          {
-            label: "เป้าหมายผู้เข้าร่วม:",
-            value: target.targetAttendees ? `${target.targetAttendees} คน` : "-",
-            highlight: true,
-          },
-        ]}
-      />
-
-      {/* PROMOTIONAL PRODUCTS (PLANNED) */}
-      {promotionalProducts.length > 0 && (
-        <div className="space-y-2 pt-1 border-t border-purple-100/60">
-          <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
-            รายการสินค้าโปรโมชันที่วางแผนไว้ ({promotionalProducts.length} รายการ)
-          </span>
-          <div className="overflow-x-auto border border-purple-100 rounded-xl">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-purple-50/50 text-purple-950 font-bold border-b border-purple-100">
-                <tr>
-                  <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                  <th className="py-2 px-3">ชื่อสินค้า</th>
-                  <th className="py-2 px-3 text-center w-20">จำนวน</th>
-                  <th className="py-2 px-3 text-right w-24">ราคา</th>
-                  <th className="py-2 px-3 text-right w-28">รวม</th>
-                  <th className="py-2 px-3">รายละเอียด</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-purple-50">
-                {promotionalProducts.map((p, idx) => (
-                  <tr key={idx} className="hover:bg-purple-50/20">
-                    <td className="py-2 px-3 text-center text-slate-500">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2 px-3 font-semibold text-slate-800">
-                      {p.productName}
-                    </td>
-                    <td className="py-2 px-3 text-center text-slate-700">
-                      {p.quantity}
-                    </td>
-                    <td className="py-2 px-3 text-right text-slate-700">
-                      {p.unitPrice ? `฿${p.unitPrice.toLocaleString()}` : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-purple-900">
-                      {p.totalAmount
-                        ? `฿${p.totalAmount.toLocaleString()}`
-                        : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-slate-600">
-                      {p.notes || "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      <Type8PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

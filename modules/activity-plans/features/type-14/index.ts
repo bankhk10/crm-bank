@@ -1,5 +1,9 @@
-// Shared Types
+// Shared Types & Components
 export * from "./shared/types";
+export {
+  Type14PlanCard,
+  type Type14PlanCardProps,
+} from "./shared/type14-plan-card";
 
 // Create
 export { Type14Create } from "./create/type14-create";

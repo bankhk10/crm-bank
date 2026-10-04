@@ -5,6 +5,11 @@ export type {
   ChemicalGroupOption,
   Type7DemoProductLine,
 } from "./shared/types";
+export {
+  Type7aPlanCard,
+  type Type7aPlanCardProps,
+  type Type7aPlanTarget,
+} from "./shared/type7a-plan-card";
 export { Type7NewDemo } from "./create/type7-new-demo";
 export type { Type7NewDemoProps } from "./create/types";
 export {

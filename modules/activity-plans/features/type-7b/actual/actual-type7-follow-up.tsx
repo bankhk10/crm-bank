@@ -55,6 +55,7 @@ import {
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
+import { Type7bPlanCard } from "../shared/type7b-plan-card";
 import type {
   DemoPlotVisitHistoryItem,
   ActualType7FollowUpProps,
@@ -480,20 +481,8 @@ export function ActualType7FollowUp({
         </div>
       </div>
 
-      {/* SECTION 1: PLANNED TARGET CARD (Problem 3.2 Fix: Selected Plot + Planned Detail only) */}
-      {planType !== "UNPLANNED" && (
-        <ActualTargetCard
-          iconColorClass="text-blue-700"
-          badgeColorClass="bg-blue-50 text-blue-800 border border-blue-200"
-          gridColsClass="grid-cols-1 sm:grid-cols-2 md:grid-cols-1"
-          items={[
-            {
-              label: "สิ่งที่ตั้งใจไปติดตาม:",
-              value: target?.followUpObjective || target?.detail || "-",
-            },
-          ]}
-        />
-      )}
+      {/* SECTION 1: PLANNED TARGET CARD */}
+      <Type7bPlanCard target={target} planType={planType} />
 
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (

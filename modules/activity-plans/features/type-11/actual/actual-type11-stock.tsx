@@ -19,6 +19,7 @@ import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actua
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
+import { Type11PlanCard } from "../shared/type11-plan-card";
 import {
   StockCheckItem,
   ActualType11StockProps,
@@ -272,16 +273,7 @@ export function ActualType11Stock({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      {planType !== "UNPLANNED" && (
-        <ActualTargetCard
-          iconColorClass="text-slate-600"
-          badgeColorClass="bg-slate-200 text-slate-800"
-          gridColsClass="grid-cols-1"
-          items={[
-            { label: "ร้านค้าที่ตรวจเช็กสต็อก:", value: target?.store || "-" },
-          ]}
-        />
-      )}
+      <Type11PlanCard target={target} planType={planType} />
 
       {/* PER-STORE STOCK CHECK SECTIONS */}
       <div className="space-y-5 pt-1">

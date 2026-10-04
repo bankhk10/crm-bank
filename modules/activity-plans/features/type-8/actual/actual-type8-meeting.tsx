@@ -14,6 +14,7 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
+import { Type8PlanCard } from "../shared/type8-plan-card";
 import { Type8PromotionProductItem } from "../shared/types";
 import {
   ProductSaleDetail,
@@ -194,23 +195,11 @@ export function ActualType8Meeting({
       </div>
 
       {/* Target Plan Information Card */}
-      {planType !== "UNPLANNED" && (
-        <ActualTargetCard
-          iconColorClass="text-purple-600"
-          badgeColorClass="bg-purple-100 text-purple-800"
-          gridColsClass="grid-cols-1 sm:grid-cols-3"
-          items={[
-            { label: "หัวข้อการประชุม:", value: target?.topic || "-" },
-            { label: "สินค้าแนะนำ:", value: target?.products || "-" },
-            {
-              label: "เป้าหมายผู้เข้าร่วม:",
-              value: target?.targetAttendees
-                ? `${target.targetAttendees} คน`
-                : "-",
-            },
-          ]}
-        />
-      )}
+      <Type8PlanCard
+        target={target}
+        planType={planType}
+        hidePromotionsTable
+      />
 
       {/* Promotional Products Section */}
       <div className="space-y-2.5 pt-1 border-t border-purple-100/60">

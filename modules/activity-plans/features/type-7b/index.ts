@@ -3,6 +3,11 @@ export type {
   ProductOption,
   UserDemoPlotOption,
 } from "./shared/types";
+export {
+  Type7bPlanCard,
+  type Type7bPlanCardProps,
+  type Type7bPlanTarget,
+} from "./shared/type7b-plan-card";
 export { Type7FollowUp } from "./create/type7-follow-up";
 export type { Type7FollowUpProps } from "./create/types";
 export {

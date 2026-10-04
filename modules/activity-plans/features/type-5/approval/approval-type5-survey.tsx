@@ -20,6 +20,8 @@ import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import { Type5PlanCard } from "../shared/type5-plan-card";
+
 
 export interface ApprovalType5SurveyProps {
   isVisible: boolean;
@@ -119,46 +121,8 @@ export function ApprovalType5Survey({
         </Badge>
       </div>
 
-      {/* Plan Targets Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div className="bg-purple-50/40 p-3 rounded-xl border border-purple-100/80 sm:col-span-1">
-          <span className="text-purple-700 block text-[11px] font-bold mb-1">
-            วัตถุประสงค์ของประเภทงาน
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            สำรวจตลาดและเปรียบเทียบราคาสินค้าคู่แข่ง
-          </span>
-        </div>
-
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            ร้านค้าที่สำรวจ (เป้าหมาย)
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.store || "-"}
-          </span>
-        </div>
-
-        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
-          <span className="text-slate-500 block text-[11px] font-medium mb-1">
-            สินค้าคู่แข่งที่เปรียบเทียบ (เป้าหมาย)
-          </span>
-          <span className="font-bold text-slate-800 block text-xs sm:text-sm">
-            {target.product || "-"}
-          </span>
-        </div>
-
-        {target.detail && (
-          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-3">
-            <span className="text-slate-500 block text-[11px] font-medium mb-1">
-              รายละเอียดจากแผน
-            </span>
-            <span className="text-slate-700 block text-xs whitespace-pre-line">
-              {target.detail}
-            </span>
-          </div>
-        )}
-      </div>
+      {/* Plan Targets Card */}
+      <Type5PlanCard target={target} />
 
       {/* Actual Survey Results Section (if available) */}
       {hasSurveyResults && (
