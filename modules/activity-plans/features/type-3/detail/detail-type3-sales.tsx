@@ -11,7 +11,11 @@ import type {
   DetailType3SalesProps,
 } from "../actual/types";
 
-export type { TargetProductItem, Type3ProductSaleDetail, DetailType3SalesProps };
+export type {
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  DetailType3SalesProps,
+};
 
 function parseProductQty(
   actualQuantityText: string | undefined,
@@ -118,8 +122,7 @@ export function DetailType3Sales({
       saved?.actualQty ?? (fallbackQty !== "" ? fallbackQty : item.actualQty);
     const rawActualSales = saved?.actualSales ?? item.actualSales;
     const displayReason =
-      saved?.unclosedReason ??
-      (fallbackReason || item.unclosedReason || "-");
+      saved?.unclosedReason ?? (fallbackReason || item.unclosedReason || "-");
 
     const qtyNum =
       rawActualQty !== undefined && rawActualQty !== ""
@@ -173,9 +176,9 @@ export function DetailType3Sales({
 
   const hasActualRecord = Boolean(
     (productSalesDetails && productSalesDetails.length > 0) ||
-      actualQuantity ||
-      actualSales ||
-      unclosedReason,
+    actualQuantity ||
+    actualSales ||
+    unclosedReason,
   );
 
   return (
@@ -231,123 +234,137 @@ export function DetailType3Sales({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {/* 1. PLANNED ITEMS */}
-                {processedPlanned.map(({ item, rawActualQty, displayReason }, idx) => {
-                  const targetQtyVal =
-                    item.qty !== "" && item.qty != null ? `${item.qty} หน่วย` : "-";
-                  const detailVal = item.notes || item.detail || "-";
-                  const displayActualQty =
-                    rawActualQty !== undefined && rawActualQty !== ""
-                      ? `${rawActualQty} หน่วย`
-                      : "-";
+                {processedPlanned.map(
+                  ({ item, rawActualQty, displayReason }, idx) => {
+                    const targetQtyVal =
+                      item.qty !== "" && item.qty != null
+                        ? `${item.qty} หน่วย`
+                        : "-";
+                    const detailVal = item.notes || item.detail || "-";
+                    const displayActualQty =
+                      rawActualQty !== undefined && rawActualQty !== ""
+                        ? `${rawActualQty} หน่วย`
+                        : "-";
 
-                  const isSub = Boolean(item.isSubDealer || item.subDealerStore);
+                    const isSub = Boolean(
+                      item.isSubDealer || item.subDealerStore,
+                    );
 
-                  return (
-                    <tr key={item.id || `plan-${idx}`} className="hover:bg-slate-50/50">
-                      <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                        {idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <Badge
-                          variant="outline"
-                          className="bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-bold"
-                        >
-                          ตามแผน
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-800">
-                        {item.productName}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-700">
-                        {isSub ? (
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                    return (
+                      <tr
+                        key={item.id || `plan-${idx}`}
+                        className="hover:bg-slate-50/50"
+                      >
+                        <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <Badge
+                            variant="outline"
+                            className="bg-emerald-50 text-emerald-800 border-emerald-300 text-[10px] font-bold"
+                          >
+                            ตามแผน
+                          </Badge>
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-800">
+                          {item.productName}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-700">
+                          {isSub ? (
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
+                                >
+                                  Subdealer
+                                </Badge>
+                                <span>{item.subDealerStore}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-500">
+                                Dealer:{" "}
+                                {item.dealerName || item.customer || "-"}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 font-medium text-slate-800">
                               <Badge
                                 variant="outline"
-                                className="bg-amber-50 text-amber-800 border-amber-300 text-[10px] font-bold"
+                                className="bg-blue-50 text-blue-800 border-blue-300 text-[10px] font-bold"
                               >
-                                Subdealer
+                                Dealer
                               </Badge>
-                              <span>{item.subDealerStore}</span>
+                              <span>
+                                {item.customer || target.customer || "-"}
+                              </span>
                             </div>
-                            <div className="text-[11px] text-slate-500">
-                              Dealer: {item.dealerName || item.customer || "-"}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 font-medium text-slate-800">
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-50 text-blue-800 border-blue-300 text-[10px] font-bold"
-                            >
-                              Dealer
-                            </Badge>
-                            <span>{item.customer || target.customer || "-"}</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-medium text-slate-800">
-                        {targetQtyVal}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600 font-medium whitespace-pre-wrap max-w-xs">
-                        {detailVal}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-bold text-blue-900 bg-blue-50/30">
-                        {displayActualQty}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-500 whitespace-pre-wrap">
-                        {displayReason}
-                      </td>
-                    </tr>
-                  );
-                })}
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-medium text-slate-800">
+                          {targetQtyVal}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600 font-medium whitespace-pre-wrap max-w-xs">
+                          {detailVal}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-bold text-blue-900 bg-blue-50/30">
+                          {displayActualQty}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-500 whitespace-pre-wrap">
+                          {displayReason}
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
 
                 {/* 2. ADDITIONAL ITEMS (สินค้านอกแผน) */}
-                {processedAdditional.map(({ item, rawActualQty, displayReason }, idx) => {
-                  const displayActualQty =
-                    rawActualQty !== undefined && rawActualQty !== ""
-                      ? `${rawActualQty} หน่วย`
-                      : "-";
+                {processedAdditional.map(
+                  ({ item, rawActualQty, displayReason }, idx) => {
+                    const displayActualQty =
+                      rawActualQty !== undefined && rawActualQty !== ""
+                        ? `${rawActualQty} หน่วย`
+                        : "-";
 
-                  return (
-                    <tr
-                      key={item.id || `add-${idx}`}
-                      className="bg-purple-50/20 hover:bg-purple-50/40 transition-colors"
-                    >
-                      <td className="py-2.5 px-3 text-center text-purple-700 font-bold">
-                        +{idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <Badge
-                          variant="outline"
-                          className="bg-purple-100 text-purple-800 border-purple-300 text-[10px] font-bold"
-                        >
-                          + สินค้านอกแผน
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 px-3 font-bold text-purple-950">
-                        {item.productName}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-700">
-                        <span className="text-slate-600">
-                          {item.customer || target.customer || "-"}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-slate-400 font-medium">
-                        -
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-400 font-medium">
-                        -
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/40">
-                        {displayActualQty}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-600 whitespace-pre-wrap">
-                        {displayReason}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    return (
+                      <tr
+                        key={item.id || `add-${idx}`}
+                        className="bg-purple-50/20 hover:bg-purple-50/40 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 text-center text-purple-700 font-bold">
+                          +{idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <Badge
+                            variant="outline"
+                            className="bg-purple-100 text-purple-800 border-purple-300 text-[10px] font-bold"
+                          >
+                            + สินค้านอกแผน
+                          </Badge>
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-purple-950">
+                          {item.productName}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-700">
+                          <span className="text-slate-600">
+                            {item.customer || target.customer || "-"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-slate-400 font-medium">
+                          -
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-400 font-medium">
+                          -
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/40">
+                          {displayActualQty}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600 whitespace-pre-wrap">
+                          {displayReason}
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
               </tbody>
               <tfoot className="bg-slate-50/95 border-t-2 border-slate-200 text-xs font-bold">
                 <tr>
@@ -355,7 +372,8 @@ export function DetailType3Sales({
                     colSpan={4}
                     className="py-2.5 px-3 text-left text-slate-700 font-bold"
                   >
-                    รวมทั้งสิ้น ({plannedItems.length + additionalItems.length} รายการ):
+                    รวมทั้งสิ้น ({plannedItems.length + additionalItems.length}{" "}
+                    รายการ):
                   </td>
                   <td className="py-2.5 px-3 text-center text-slate-900 font-bold">
                     {totalTargetQtySum > 0
@@ -364,44 +382,14 @@ export function DetailType3Sales({
                   </td>
                   <td></td>
                   <td className="py-2.5 px-3 text-center text-blue-900 font-extrabold bg-blue-50/60">
-                    {hasActualRecord ? `${totalActualQtySum.toLocaleString()} หน่วย` : "-"}
+                    {hasActualRecord
+                      ? `${totalActualQtySum.toLocaleString()} หน่วย`
+                      : "-"}
                   </td>
                   <td></td>
                 </tr>
               </tfoot>
             </table>
-          </div>
-
-          {/* SUMMARY STAT CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
-              <span className="text-[11px] text-slate-500 font-semibold block">
-                เป้าจำนวนรวม (ตามแผน)
-              </span>
-              <span className="text-sm font-bold text-slate-900 block">
-                {totalTargetQtySum > 0
-                  ? `${totalTargetQtySum.toLocaleString()} หน่วย`
-                  : "-"}
-              </span>
-            </div>
-
-            <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-blue-700 font-semibold block">
-                  ขายได้จริงรวม (จำนวน)
-                </span>
-                {additionalItems.length > 0 && (
-                  <span className="text-[10px] text-purple-700 font-bold bg-purple-100/80 px-1.5 py-0.5 rounded">
-                    +นอกแผน {additionalItems.length}
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-bold text-blue-900 block">
-                {hasActualRecord
-                  ? `${totalActualQtySum.toLocaleString()} หน่วย`
-                  : "-"}
-              </span>
-            </div>
           </div>
         </div>
       ) : (
