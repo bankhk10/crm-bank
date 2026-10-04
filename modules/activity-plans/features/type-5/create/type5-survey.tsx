@@ -5,6 +5,7 @@ import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import type {
   Type5SurveyItem,
   CustomerOption,
@@ -23,11 +24,6 @@ export function Type5Survey({
   customers = [],
   products = [],
 }: Type5SurveyProps) {
-  const customerOptions = (customers || []).map((c) => ({
-    value: c.name,
-    label: c.name,
-  }));
-
   const boxProducts = products.filter(
     (p) => !p.unit || p.unit.trim() === "กล่อง",
   );
@@ -93,22 +89,20 @@ export function Type5Survey({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <FormCombobox
+                <ActivityCustomerSelect
                   id={`store-combobox-${item.id}`}
+                  type="STORE"
                   label="ร้านค้า"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
-                  value={item.storeName}
-                  onChange={(val) => {
-                    const cust = customers.find(
-                      (c) => c.name === val || c.id === val,
-                    );
+                  value={item.storeId || item.storeName || ""}
+                  onChange={(val, cust) => {
                     updateType5Row(item.id, "storeName", cust?.name || val);
                     if (cust?.id) {
                       updateType5Row(item.id, "storeId", cust.id);
                     }
                   }}
-                  options={customerOptions}
+                  customers={customers as any}
                   placeholder="เลือกร้านค้า..."
                   searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
                   emptyText="ไม่พบร้านค้า"

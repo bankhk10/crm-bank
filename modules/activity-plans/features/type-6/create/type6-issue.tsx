@@ -5,6 +5,7 @@ import { HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import type { Type6IssueItem, CustomerOption } from "../shared/types";
 import { ISSUE_TYPES } from "../shared/types";
 import type { Type6IssueProps } from "./types";
@@ -19,11 +20,6 @@ export function Type6Issue({
   deleteType6Row,
   customers = [],
 }: Type6IssueProps) {
-  const customerOptions = (customers || []).map((c) => ({
-    value: c.name,
-    label: c.name,
-  }));
-
   const issueTypeOptions = ISSUE_TYPES.map((t) => ({
     value: t,
     label: t,
@@ -96,16 +92,14 @@ export function Type6Issue({
               {/* Customer Master Section (เมื่อไม่เลือกกรอกเอง แบบเดียวกับ TYPE_1) */}
               {!item.isManualCustomer && (
                 <div>
-                  <FormCombobox
+                  <ActivityCustomerSelect
                     id={`customer-combobox-${item.id}`}
+                    type="STORE"
                     label="รายชื่อลูกค้า / ร้านค้า"
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500 disabled:bg-slate-100 disabled:text-slate-400"
-                    value={item.customerName}
-                    onChange={(val) => {
-                      const cust = customers.find(
-                        (c) => c.name === val || c.id === val,
-                      );
+                    value={item.storeId || item.customerName || ""}
+                    onChange={(val, cust) => {
                       updateType6Row(
                         item.id,
                         "customerName",
@@ -113,7 +107,7 @@ export function Type6Issue({
                       );
                       updateType6Row(item.id, "storeId", cust?.id || null);
                     }}
-                    options={customerOptions}
+                    customers={customers as any}
                     placeholder="เลือกร้านค้า / Key Farmer (Customer Master)"
                     searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
                     emptyText="ไม่พบลูกค้า"
