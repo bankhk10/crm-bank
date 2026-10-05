@@ -12,6 +12,14 @@ import {
   FileText,
 } from "lucide-react";
 import { FormCombobox } from "@/components/custom/form-components";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
+import {
+  ActivityCustomerSelect,
+  type ActivityCustomerItem,
+} from "@/components/activity/activity-customer-select";
 import { cn } from "@/lib/utils";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
@@ -121,24 +129,10 @@ export function ActualType6Issue({
     return dbProducts;
   }, [products, dbProducts]);
 
-  const productOptions = useMemo(() => {
-    return activeProducts.map((p) => ({
-      value: p.id,
-      label: p.productCode ? `[${p.productCode}] ${p.name}` : p.name,
-    }));
-  }, [activeProducts]);
-
   const activeCustomers = useMemo(() => {
     if (customers && customers.length > 0) return customers;
     return dbCustomers;
   }, [customers, dbCustomers]);
-
-  const customerOptions = useMemo(() => {
-    return activeCustomers.map((c) => ({
-      value: c.id,
-      label: c.customerCode ? `[${c.customerCode}] ${c.name}` : c.name,
-    }));
-  }, [activeCustomers]);
 
   if (!isVisible) return null;
 
@@ -229,18 +223,19 @@ export function ActualType6Issue({
         {/* Row 2: เลือกร้านค้า (เฉพาะเมื่อเลือก ร้านค้าตัวแทนจำหน่าย) */}
         {purchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && (
           <div className="bg-rose-50/30 border border-rose-100 rounded-xl p-3.5 space-y-1.5">
-            <FormCombobox
+            <ActivityCustomerSelect
               id="type6-store-combobox"
+              type="STORE"
               label="เลือกร้านค้าตัวแทนจำหน่าย"
               labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
               triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
               value={storeId || ""}
-              onChange={(val) => {
-                const found = activeCustomers.find((c) => c.id === val);
+              valueKey="id"
+              customers={activeCustomers}
+              onChange={(val: string, customer?: ActivityCustomerItem) => {
                 if (setStoreId) setStoreId(val || null);
-                if (setStoreName) setStoreName(found?.name || "");
+                if (setStoreName) setStoreName(customer?.name || "");
               }}
-              options={customerOptions}
               placeholder="ค้นหาร้านค้าตัวแทนจำหน่ายจาก Customer Master..."
               searchPlaceholder="พิมพ์ชื่อหรือรหัสร้านค้า..."
               emptyText="ไม่พบร้านค้า"
@@ -253,21 +248,22 @@ export function ActualType6Issue({
         {/* Row 3: ข้อมูลสินค้า: ชื่อสินค้า & เลข Lot */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div className="space-y-1.5">
-            <FormCombobox
+            <ActivityProductSelect
               id="type6-product-combobox"
               label="ชื่อสินค้า"
               labelClassName="block text-xs font-semibold text-slate-800 mb-1 mx-0"
               triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
               value={productId || ""}
-              onChange={(val) => {
-                const found = activeProducts.find((p) => p.id === val);
+              valueKey="id"
+              products={activeProducts}
+              onChange={(val: string, product?: ActivityProductItem) => {
                 if (setProductId) setProductId(val || null);
-                if (setProductName) setProductName(found?.name || "");
+                if (setProductName) setProductName(product?.name || "");
               }}
-              options={productOptions}
               placeholder="เลือกสินค้าจาก Product Master..."
               searchPlaceholder="พิมพ์ชื่อหรือรหัสสินค้า..."
               emptyText="ไม่พบสินค้า"
+              subLabelType="code"
               disabled={readonly}
               required
             />
