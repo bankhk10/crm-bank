@@ -4333,6 +4333,18 @@ export async function findHattackFollowUpDemoPlots() {
       deletedAt: null,
       plotType: "HATTACK",
       status: { not: DemoPlotStatus.CANCELLED },
+      visits: {
+        some: {
+          workTypeCode: "TYPE_13",
+          activityPlan: {
+            deletedAt: null,
+            OR: [
+              { activityType: { code: "TYPE_13" } },
+              { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
+            ],
+          },
+        },
+      },
     },
     include: {
       customer: { select: { id: true, name: true } },
@@ -4341,6 +4353,11 @@ export async function findHattackFollowUpDemoPlots() {
         orderBy: { sortOrder: "asc" },
       },
       visits: {
+        where: {
+          activityPlan: {
+            deletedAt: null,
+          },
+        },
         include: {
           activityPlan: {
             select: { id: true, title: true, code: true },
