@@ -109,7 +109,7 @@ export function useType13Form({
           demoPlotId: plot?.id || null,
           name: plotName,
           storeId: plot?.customerId || "",
-          ownerName: plot?.customer?.name || plot?.ownerName || "",
+          ownerName: plot?.ownerName || "",
           province: plot?.province || "",
           district: plot?.district || "",
           products: [],

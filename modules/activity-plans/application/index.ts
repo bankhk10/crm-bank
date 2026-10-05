@@ -460,6 +460,58 @@ export async function duplicateActivityPlanUseCase(
     (h) => h.employeeId,
   );
 
+  // TYPE13 Plots
+  const t13Visits = (originalPlan.demoPlotVisits || []).filter(
+    (v) =>
+      v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
+  );
+
+  const existingDwItems = (originalPlan as any).drugWithdrawal?.items || [];
+
+  const type13Plots =
+    t13Visits.length > 0
+      ? t13Visits.map((v, idx) => {
+          const plot = v.demoPlot;
+          const plotName = plot?.name || `แปลงที่ ${idx + 1}`;
+          const plotId = plot?.id;
+
+          const matchedDw = existingDwItems.filter((item: any) => {
+            if (plotId && item.demoPlotId && item.demoPlotId === plotId) return true;
+            if (
+              plotName &&
+              item.plotIdentifier &&
+              item.plotIdentifier.trim() === plotName.trim()
+            )
+              return true;
+            if (
+              item.plotIdentifier &&
+              item.plotIdentifier.trim() === `แปลงที่ ${idx + 1}`
+            )
+              return true;
+            return false;
+          });
+
+          return {
+            id: `plot-${idx + 1}`,
+            demoPlotId: null,
+            name: plotName,
+            storeId: plot?.customerId || "",
+            ownerName: plot?.ownerName || null,
+            province: plot?.province || "",
+            district: plot?.district || "",
+            hasDrugWithdrawal: matchedDw.length > 0,
+            withdrawalItems: matchedDw.map((item: any, dwIdx: number) => ({
+              id: `w-${idx + 1}-${dwIdx + 1}`,
+              productId: item.productId,
+              productName: item.productName || item.product?.name || null,
+              quantity: Number(item.quantity) || 1,
+              unit: item.unit || item.product?.unit || null,
+              sortOrder: item.sortOrder ?? dwIdx,
+            })),
+          };
+        })
+      : undefined;
+
   const titlePrefix = "(สำเนา) ";
   const newTitle = originalPlan.title.startsWith(titlePrefix)
     ? originalPlan.title
@@ -500,13 +552,14 @@ export async function duplicateActivityPlanUseCase(
     marketingItems,
     promotionItems,
     helperEmployeeIds,
+    type13Plots,
     drugWithdrawal: (originalPlan as any).drugWithdrawal
       ? {
           hasDrugWithdrawal: true,
           notes: (originalPlan as any).drugWithdrawal.notes ?? null,
           items: ((originalPlan as any).drugWithdrawal.items || []).map(
             (it: any) => ({
-              demoPlotId: it.demoPlotId ?? null,
+              demoPlotId: null,
               plotIdentifier: it.plotIdentifier,
               productId: it.productId,
               productName: it.productName ?? null,
