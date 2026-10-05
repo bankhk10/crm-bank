@@ -27,11 +27,18 @@ export function Type14Create({
       setLoadingPlots(true);
       try {
         const res = await getHattackFollowUpDemoPlotsAction();
-        if (isMounted && res.success && res.demoPlots) {
-          setExistingPlots(res.demoPlots);
+        if (isMounted) {
+          if (res?.success && Array.isArray(res.demoPlots)) {
+            setExistingPlots(res.demoPlots);
+          } else {
+            setExistingPlots([]);
+          }
         }
       } catch (err) {
         console.error("Failed to load Hattack demo plots:", err);
+        if (isMounted) {
+          setExistingPlots([]);
+        }
       } finally {
         if (isMounted) setLoadingPlots(false);
       }

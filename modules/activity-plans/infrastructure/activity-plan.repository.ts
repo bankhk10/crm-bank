@@ -2272,19 +2272,62 @@ export async function updateActivityPlan(
 }
 
 /**
- * Soft delete activity plan and its helpers
+ * Soft delete activity plan, its helpers, and orphan HATTACK demo plots
  */
 export async function softDeleteActivityPlan(id: string) {
   return db.$transaction(async (tx) => {
     const now = new Date();
+
+    // 1. Fetch demo plot visits associated with this plan
+    const visits = await tx.demoPlotVisit.findMany({
+      where: { activityPlanId: id },
+      select: { id: true, demoPlotId: true, workTypeCode: true },
+    });
+
+    const demoPlotIds = Array.from(new Set(visits.map((v) => v.demoPlotId)));
+
+    // 2. Soft-delete the activity plan
     await tx.activityPlan.update({
       where: { id },
       data: { deletedAt: now },
     });
+
+    // 3. Soft-delete activity helpers
     await tx.activityHelper.updateMany({
       where: { activityPlanId: id, deletedAt: null },
       data: { deletedAt: now },
     });
+
+    // 4. Cancel and soft-delete HATTACK demo plots that have no other active activity plans
+    for (const plotId of demoPlotIds) {
+      const plot = await tx.demoPlot.findUnique({
+        where: { id: plotId },
+        select: { id: true, plotType: true, status: true },
+      });
+
+      // Only clean up HATTACK plots (GENERAL_DEMO plots are master data assets)
+      if (plot && plot.plotType === "HATTACK") {
+        const otherActiveVisitsCount = await tx.demoPlotVisit.count({
+          where: {
+            demoPlotId: plotId,
+            activityPlanId: { not: id },
+            activityPlan: {
+              deletedAt: null,
+            },
+          },
+        });
+
+        if (otherActiveVisitsCount === 0) {
+          await tx.demoPlot.update({
+            where: { id: plotId },
+            data: {
+              status: DemoPlotStatus.CANCELLED,
+              deletedAt: now,
+            },
+          });
+        }
+      }
+    }
   });
 }
 
