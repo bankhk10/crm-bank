@@ -32,9 +32,7 @@ import {
 import DatePicker from "@/components/custom/DatePicker";
 import { FormCombobox } from "@/components/custom/form-components";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
-import type {
-  useType13ActualState,
-} from "./use-type13-actual-state";
+import type { useType13ActualState } from "./use-type13-actual-state";
 import type { Type13PlotActualState, Type13ActualProps } from "./types";
 
 export type { Type13ActualProps };
@@ -539,12 +537,15 @@ export function Type13Actual({
                               </span>
                               {plot.province && (
                                 <span className="text-slate-500 text-[11px] shrink-0">
-                                  ({plot.district ? `${plot.district}, ` : ""}{plot.province})
+                                  ({plot.district ? `${plot.district}, ` : ""}
+                                  {plot.province})
                                 </span>
                               )}
                             </>
                           ) : (
-                            <span className="text-slate-400">ไม่ระบุร้านค้า</span>
+                            <span className="text-slate-400">
+                              ไม่ระบุร้านค้า
+                            </span>
                           )}
                         </div>
                       </div>
@@ -591,7 +592,7 @@ export function Type13Actual({
                       ละติจูด (Latitude) <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       value={plot.latitude}
                       onChange={(e) =>
                         updatePlotCoordinates(
@@ -612,7 +613,7 @@ export function Type13Actual({
                       <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       value={plot.longitude}
                       onChange={(e) =>
                         updatePlotCoordinates(
@@ -686,7 +687,8 @@ export function Type13Actual({
                         ยังไม่มีรอบการฉีดพ่น
                       </p>
                       <p className="text-[11px] text-slate-500">
-                        คลิกปุ่ม &quot;+ เพิ่มรอบฉีดพ่น&quot; ด้านบนเพื่อบันทึกผลการฉีดพ่นในแปลงนี้
+                        คลิกปุ่ม &quot;+ เพิ่มรอบฉีดพ่น&quot;
+                        ด้านบนเพื่อบันทึกผลการฉีดพ่นในแปลงนี้
                       </p>
                     </div>
                   )}
@@ -696,37 +698,36 @@ export function Type13Actual({
                       key={rIdx}
                       className="bg-white rounded-xl border border-slate-200 p-4 space-y-4 shadow-2xs"
                     >
-                        {/* Round Header */}
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                              {round.roundNumber}
-                            </span>
-                            <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                              รอบที่ {round.roundNumber}
-                            </span>
-                          </div>
-
-                          {!readonly && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeSprayingRound(plotIdx, rIdx)
-                              }
-                              className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>ลบรอบนี้</span>
-                            </button>
-                          )}
+                      {/* Round Header */}
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
+                            {round.roundNumber}
+                          </span>
+                          <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                            รอบที่ {round.roundNumber}
+                          </span>
                         </div>
+
+                        {!readonly && (
+                          <button
+                            type="button"
+                            onClick={() => removeSprayingRound(plotIdx, rIdx)}
+                            className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>ลบรอบนี้</span>
+                          </button>
+                        )}
+                      </div>
 
                       {/* Round Metadata Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {/* วันที่ปฏิบัติงานจริง */}
                         <div className="space-y-1.5">
                           <label className="block text-xs font-bold text-slate-700">
-                            วันที่ปฏิบัติงานจริง <span className="text-rose-500">*</span>
+                            วันที่ปฏิบัติงานจริง{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <DatePicker
                             value={round.sprayDate}
@@ -913,7 +914,8 @@ export function Type13Actual({
                                     1. สินค้าจากรายการเบิก
                                   </span>
                                   <span className="text-[11px] text-slate-500">
-                                    (แสดงเฉพาะ Product จาก Drug Withdrawal • {withdrawnProducts.length} รายการ)
+                                    (แสดงเฉพาะ Product จาก Drug Withdrawal •{" "}
+                                    {withdrawnProducts.length} รายการ)
                                   </span>
                                 </div>
                               </div>
@@ -927,24 +929,40 @@ export function Type13Actual({
                                   <table className="w-full text-xs text-left border-collapse min-w-[700px]">
                                     <thead>
                                       <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold">
-                                        <th className="py-2.5 px-3 w-[28%]">สินค้า</th>
-                                        <th className="py-2.5 px-3 w-[16%]">จำนวนที่เบิก (READ-ONLY)</th>
-                                        <th className="py-2.5 px-3 w-[18%]">
-                                          จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                                        <th className="py-2.5 px-3 w-[28%]">
+                                          สินค้า
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[16%]">
+                                          จำนวนที่เบิก (READ-ONLY)
                                         </th>
                                         <th className="py-2.5 px-3 w-[18%]">
-                                          อัตราการใช้ <span className="text-red-500">*</span>
+                                          จำนวนที่ใช้จริง{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
                                         </th>
-                                        <th className="py-2.5 px-3 w-[20%]">รายละเอียด</th>
+                                        <th className="py-2.5 px-3 w-[18%]">
+                                          อัตราการใช้{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[20%]">
+                                          รายละเอียด
+                                        </th>
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                       {withdrawnProducts.map((prod) => (
-                                        <tr key={`withdrawn-${prod.originalIndex}`} className="hover:bg-slate-50/50">
+                                        <tr
+                                          key={`withdrawn-${prod.originalIndex}`}
+                                          className="hover:bg-slate-50/50"
+                                        >
                                           {/* สินค้า */}
                                           <td className="py-2.5 px-3 font-medium text-slate-800 align-top">
                                             <div className="font-semibold text-slate-900">
-                                              {prod.productName || "สินค้าไม่ระบุชื่อ"}
+                                              {prod.productName ||
+                                                "สินค้าไม่ระบุชื่อ"}
                                             </div>
                                             <div className="text-[10px] text-emerald-700 font-medium">
                                               [จากรายการเบิก]
@@ -954,7 +972,10 @@ export function Type13Actual({
                                           {/* จำนวนที่เบิก (READ-ONLY) */}
                                           <td className="py-2.5 px-3 align-top">
                                             <div className="inline-flex items-center px-2 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs">
-                                              {prod.withdrawnQuantity != null ? prod.withdrawnQuantity : "-"} {prod.unit || ""}
+                                              {prod.withdrawnQuantity != null
+                                                ? prod.withdrawnQuantity
+                                                : "-"}{" "}
+                                              {prod.unit || ""}
                                             </div>
                                           </td>
 
@@ -974,7 +995,9 @@ export function Type13Actual({
                                                     "quantityUsed",
                                                     e.target.value === ""
                                                       ? ""
-                                                      : parseFloat(e.target.value) || 0,
+                                                      : parseFloat(
+                                                          e.target.value,
+                                                        ) || 0,
                                                   )
                                                 }
                                                 disabled={readonly}
@@ -1042,7 +1065,8 @@ export function Type13Actual({
                                     2. สินค้าเพิ่มเติมที่ใช้จริง
                                   </span>
                                   <span className="text-[11px] text-slate-500">
-                                    (แสดงเฉพาะ Product ที่ไม่ได้มาจาก Drug Withdrawal)
+                                    (แสดงเฉพาะ Product ที่ไม่ได้มาจาก Drug
+                                    Withdrawal)
                                   </span>
                                 </div>
                                 {!readonly && (
@@ -1050,7 +1074,9 @@ export function Type13Actual({
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => addRoundProduct(plotIdx, rIdx)}
+                                    onClick={() =>
+                                      addRoundProduct(plotIdx, rIdx)
+                                    }
                                     className="h-7 px-2.5 text-xs text-amber-800 border-dashed border-amber-300 bg-amber-50 hover:bg-amber-100 rounded-lg flex items-center gap-1"
                                   >
                                     <Plus className="w-3 h-3" />
@@ -1061,33 +1087,53 @@ export function Type13Actual({
 
                               {additionalProducts.length === 0 ? (
                                 <div className="text-center py-4 px-3 rounded-lg border border-dashed border-amber-200/80 bg-amber-50/30 text-xs text-slate-400">
-                                  ไม่มีสินค้าเพิ่มเติมที่ใช้จริง (สามารถกดปุ่ม "+ เพิ่มสินค้าเพิ่มเติม" ด้านบน หากมีการใช้ยานอกเหนือจากรายการเบิก)
+                                  ไม่มีสินค้าเพิ่มเติมที่ใช้จริง (สามารถกดปุ่ม
+                                  "+ เพิ่มสินค้าเพิ่มเติม" ด้านบน
+                                  หากมีการใช้ยานอกเหนือจากรายการเบิก)
                                 </div>
                               ) : (
                                 <div className="overflow-x-auto rounded-lg border border-amber-200/80 bg-white">
                                   <table className="w-full text-xs text-left border-collapse min-w-[700px]">
                                     <thead>
                                       <tr className="bg-amber-50/60 border-b border-amber-200 text-slate-700 font-semibold">
-                                        <th className="py-2.5 px-3 w-[32%]">สินค้า</th>
-                                        <th className="py-2.5 px-3 w-[20%]">
-                                          จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                                        <th className="py-2.5 px-3 w-[32%]">
+                                          สินค้า
                                         </th>
                                         <th className="py-2.5 px-3 w-[20%]">
-                                          อัตราการใช้ <span className="text-red-500">*</span>
+                                          จำนวนที่ใช้จริง{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
                                         </th>
-                                        <th className="py-2.5 px-3 w-[22%]">รายละเอียด</th>
-                                        {!readonly && <th className="py-2.5 px-3 w-[6%] text-center">จัดการ</th>}
+                                        <th className="py-2.5 px-3 w-[20%]">
+                                          อัตราการใช้{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
+                                        </th>
+                                        <th className="py-2.5 px-3 w-[22%]">
+                                          รายละเอียด
+                                        </th>
+                                        {!readonly && (
+                                          <th className="py-2.5 px-3 w-[6%] text-center">
+                                            จัดการ
+                                          </th>
+                                        )}
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-amber-100/60">
                                       {additionalProducts.map((prod) => (
-                                        <tr key={`additional-${prod.originalIndex}`} className="hover:bg-amber-50/20">
+                                        <tr
+                                          key={`additional-${prod.originalIndex}`}
+                                          className="hover:bg-amber-50/20"
+                                        >
                                           {/* สินค้า */}
                                           <td className="py-2.5 px-3 align-top">
                                             {readonly ? (
                                               <div>
                                                 <span className="font-semibold text-slate-800">
-                                                  {prod.productName || "สินค้าเพิ่มเติม (ไม่ระบุ)"}
+                                                  {prod.productName ||
+                                                    "สินค้าเพิ่มเติม (ไม่ระบุ)"}
                                                 </span>
                                                 <div className="text-[10px] text-amber-700 font-medium">
                                                   [เพิ่มเติม / ไม่ได้เบิก]
@@ -1100,7 +1146,10 @@ export function Type13Actual({
                                                   label=""
                                                   value={prod.productId || ""}
                                                   onChange={(val) => {
-                                                    const selected = products.find((p) => p.id === val);
+                                                    const selected =
+                                                      products.find(
+                                                        (p) => p.id === val,
+                                                      );
                                                     updateRoundProduct(
                                                       plotIdx,
                                                       rIdx,
@@ -1157,7 +1206,9 @@ export function Type13Actual({
                                                     "quantityUsed",
                                                     e.target.value === ""
                                                       ? ""
-                                                      : parseFloat(e.target.value) || 0,
+                                                      : parseFloat(
+                                                          e.target.value,
+                                                        ) || 0,
                                                   )
                                                 }
                                                 disabled={readonly}
@@ -1241,254 +1292,258 @@ export function Type13Actual({
                       })()}
 
                       {/* สารเคมีภายนอกเมื่อเลือก TANK_MIXED */}
-                      {round.sprayMethod === "TANK_MIXED" && (() => {
-                        const hasExternalChemicals =
-                          (round as any).hasExternalChemicals !== undefined
-                            ? Boolean((round as any).hasExternalChemicals)
-                            : (round.externalProducts &&
-                                round.externalProducts.length > 0);
+                      {round.sprayMethod === "TANK_MIXED" &&
+                        (() => {
+                          const hasExternalChemicals =
+                            (round as any).hasExternalChemicals !== undefined
+                              ? Boolean((round as any).hasExternalChemicals)
+                              : round.externalProducts &&
+                                round.externalProducts.length > 0;
 
-                        return (
-                          <div className="mt-3 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  id={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
-                                  checked={Boolean(hasExternalChemicals)}
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    updateRoundField(
-                                      plotIdx,
-                                      rIdx,
-                                      "hasExternalChemicals",
-                                      checked,
-                                    );
-                                    if (
-                                      checked &&
-                                      (!round.externalProducts ||
-                                        round.externalProducts.length === 0)
-                                    ) {
-                                      addExternalProduct(plotIdx, rIdx);
-                                    }
-                                  }}
-                                  disabled={readonly}
-                                  className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
-                                />
-                                <label
-                                  htmlFor={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
-                                  className="text-xs font-bold text-amber-950 cursor-pointer select-none"
-                                >
-                                  มีสารเคมีภายนอกร่วมด้วย (External Chemicals)
-                                </label>
+                          return (
+                            <div className="mt-3 p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
+                                    checked={Boolean(hasExternalChemicals)}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      updateRoundField(
+                                        plotIdx,
+                                        rIdx,
+                                        "hasExternalChemicals",
+                                        checked,
+                                      );
+                                      if (
+                                        checked &&
+                                        (!round.externalProducts ||
+                                          round.externalProducts.length === 0)
+                                      ) {
+                                        addExternalProduct(plotIdx, rIdx);
+                                      }
+                                    }}
+                                    disabled={readonly}
+                                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                                  />
+                                  <label
+                                    htmlFor={`plot-${plotIdx}-round-${round.roundNumber}-external-toggle`}
+                                    className="text-xs font-bold text-amber-950 cursor-pointer select-none"
+                                  >
+                                    มีสารเคมีภายนอกร่วมด้วย (External Chemicals)
+                                  </label>
+                                </div>
+
+                                {hasExternalChemicals &&
+                                  (round.externalProducts?.length || 0) < 4 &&
+                                  !readonly && (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      onClick={() =>
+                                        addExternalProduct(plotIdx, rIdx)
+                                      }
+                                      className="h-7 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg shadow-xs"
+                                    >
+                                      <Plus className="w-3.5 h-3.5 mr-1" />
+                                      เพิ่มสารเคมี (
+                                      {round.externalProducts?.length || 0}/4)
+                                    </Button>
+                                  )}
                               </div>
 
-                              {hasExternalChemicals &&
-                                (round.externalProducts?.length || 0) < 4 &&
-                                !readonly && (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={() =>
-                                      addExternalProduct(plotIdx, rIdx)
-                                    }
-                                    className="h-7 text-xs bg-amber-700 hover:bg-amber-800 text-white rounded-lg shadow-xs"
-                                  >
-                                    <Plus className="w-3.5 h-3.5 mr-1" />
-                                    เพิ่มสารเคมี (
-                                    {round.externalProducts?.length || 0}/4)
-                                  </Button>
-                                )}
-                            </div>
-
-                            {hasExternalChemicals && (
-                              <div className="space-y-2.5">
-                                {(round.externalProducts || []).map(
-                                  (ep, eIdx) => (
-                                    <div
-                                      key={eIdx}
-                                      className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
-                                    >
-                                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                                        <span className="text-xs font-bold text-slate-800">
-                                          สารเคมีภายนอก #{eIdx + 1}
-                                        </span>
-                                        {!readonly && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              removeExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                              );
-                                              if (
-                                                (round.externalProducts || [])
-                                                  .length <= 1
-                                              ) {
-                                                updateRoundField(
+                              {hasExternalChemicals && (
+                                <div className="space-y-2.5">
+                                  {(round.externalProducts || []).map(
+                                    (ep, eIdx) => (
+                                      <div
+                                        key={eIdx}
+                                        className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
+                                      >
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                          <span className="text-xs font-bold text-slate-800">
+                                            สารเคมีภายนอก #{eIdx + 1}
+                                          </span>
+                                          {!readonly && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                removeExternalProduct(
                                                   plotIdx,
                                                   rIdx,
-                                                  "hasExternalChemicals",
-                                                  false,
+                                                  eIdx,
                                                 );
-                                              }
-                                            }}
-                                            className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                            ลบ
-                                          </button>
-                                        )}
-                                      </div>
+                                                if (
+                                                  (round.externalProducts || [])
+                                                    .length <= 1
+                                                ) {
+                                                  updateRoundField(
+                                                    plotIdx,
+                                                    rIdx,
+                                                    "hasExternalChemicals",
+                                                    false,
+                                                  );
+                                                }
+                                              }}
+                                              className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                              ลบ
+                                            </button>
+                                          )}
+                                        </div>
 
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                                        <div>
-                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                            บริษัท *
-                                          </label>
-                                          <Input
-                                            value={ep.company}
-                                            onChange={(e) =>
-                                              updateExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                                "company",
-                                                e.target.value,
-                                              )
-                                            }
-                                            disabled={readonly}
-                                            placeholder="เช่น บริษัท ไบเออร์..."
-                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                            required
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                            ชื่อสินค้า *
-                                          </label>
-                                          <Input
-                                            value={ep.productName}
-                                            onChange={(e) =>
-                                              updateExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                                "productName",
-                                                e.target.value,
-                                              )
-                                            }
-                                            disabled={readonly}
-                                            placeholder="เช่น คอนฟิดอร์..."
-                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                            required
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                            สารออกฤทธิ์
-                                          </label>
-                                          <Input
-                                            value={ep.activeIngredient || ""}
-                                            onChange={(e) =>
-                                              updateExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                                "activeIngredient",
-                                                e.target.value,
-                                              )
-                                            }
-                                            disabled={readonly}
-                                            placeholder="เช่น อิมิดาโคลพริด..."
-                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                            สูตร *
-                                          </label>
-                                          <Select
-                                            value={ep.formula}
-                                            onValueChange={(val) =>
-                                              updateExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                                "formula",
-                                                val,
-                                              )
-                                            }
-                                            disabled={readonly}
-                                          >
-                                            <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
-                                              <SelectValue placeholder="เลือกสูตรยา..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {EXTERNAL_CHEMICAL_FORMULAS.map(
-                                                (f) => (
-                                                  <SelectItem key={f} value={f}>
-                                                    {f}
-                                                  </SelectItem>
-                                                ),
-                                              )}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        {ep.formula === "อื่นๆ" && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                                           <div>
                                             <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                              ระบุสูตรยา *
+                                              บริษัท *
                                             </label>
                                             <Input
-                                              value={ep.customFormula || ""}
+                                              value={ep.company}
                                               onChange={(e) =>
                                                 updateExternalProduct(
                                                   plotIdx,
                                                   rIdx,
                                                   eIdx,
-                                                  "customFormula",
+                                                  "company",
                                                   e.target.value,
                                                 )
                                               }
                                               disabled={readonly}
-                                              placeholder="ระบุสูตรยา..."
+                                              placeholder="เช่น บริษัท ไบเออร์..."
                                               className="h-8 text-xs bg-white border-slate-200 rounded-lg"
                                               required
                                             />
                                           </div>
-                                        )}
-                                        <div>
-                                          <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                            อัตราการใช้ *
-                                          </label>
-                                          <Input
-                                            value={ep.applicationRate}
-                                            onChange={(e) =>
-                                              updateExternalProduct(
-                                                plotIdx,
-                                                rIdx,
-                                                eIdx,
-                                                "applicationRate",
-                                                e.target.value,
-                                              )
-                                            }
-                                            disabled={readonly}
-                                            placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
-                                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                            required
-                                          />
+                                          <div>
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                              ชื่อสินค้า *
+                                            </label>
+                                            <Input
+                                              value={ep.productName}
+                                              onChange={(e) =>
+                                                updateExternalProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  eIdx,
+                                                  "productName",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="เช่น คอนฟิดอร์..."
+                                              className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                              required
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                              สารออกฤทธิ์
+                                            </label>
+                                            <Input
+                                              value={ep.activeIngredient || ""}
+                                              onChange={(e) =>
+                                                updateExternalProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  eIdx,
+                                                  "activeIngredient",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="เช่น อิมิดาโคลพริด..."
+                                              className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                              สูตร *
+                                            </label>
+                                            <Select
+                                              value={ep.formula}
+                                              onValueChange={(val) =>
+                                                updateExternalProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  eIdx,
+                                                  "formula",
+                                                  val,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                            >
+                                              <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
+                                                <SelectValue placeholder="เลือกสูตรยา..." />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {EXTERNAL_CHEMICAL_FORMULAS.map(
+                                                  (f) => (
+                                                    <SelectItem
+                                                      key={f}
+                                                      value={f}
+                                                    >
+                                                      {f}
+                                                    </SelectItem>
+                                                  ),
+                                                )}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          {ep.formula === "อื่นๆ" && (
+                                            <div>
+                                              <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                                ระบุสูตรยา *
+                                              </label>
+                                              <Input
+                                                value={ep.customFormula || ""}
+                                                onChange={(e) =>
+                                                  updateExternalProduct(
+                                                    plotIdx,
+                                                    rIdx,
+                                                    eIdx,
+                                                    "customFormula",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                disabled={readonly}
+                                                placeholder="ระบุสูตรยา..."
+                                                className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                                required
+                                              />
+                                            </div>
+                                          )}
+                                          <div>
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                              อัตราการใช้ *
+                                            </label>
+                                            <Input
+                                              value={ep.applicationRate}
+                                              onChange={(e) =>
+                                                updateExternalProduct(
+                                                  plotIdx,
+                                                  rIdx,
+                                                  eIdx,
+                                                  "applicationRate",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              disabled={readonly}
+                                              placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
+                                              className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                              required
+                                            />
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  ),
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                                    ),
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                       {/* Before-spray Photos (Max 2 per round) */}
                       <div className="pt-3 border-t border-slate-100 space-y-2">
@@ -1540,11 +1595,7 @@ export function Type13Actual({
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      removeRoundAttachment(
-                                        plotIdx,
-                                        rIdx,
-                                        aIdx,
-                                      )
+                                      removeRoundAttachment(plotIdx, rIdx, aIdx)
                                     }
                                     className="absolute top-1.5 right-1.5 p-1 bg-rose-600 text-white rounded-md opacity-90 hover:opacity-100 transition-opacity shadow-xs"
                                     title="ลบรูปนี้"
