@@ -108,9 +108,9 @@ export function Type6Issue({
                       updateType6Row(item.id, "storeId", cust?.id || null);
                     }}
                     customers={customers as any}
-                    placeholder="เลือกร้านค้า / Key Farmer (Customer Master)"
-                    searchPlaceholder="ค้นหาร้านค้า / Key Farmer..."
-                    emptyText="ไม่พบลูกค้า"
+                    placeholder="เลือก"
+                    searchPlaceholder="ค้นหา"
+                    emptyText="ไม่พบข้อมูล"
                     disabled={readonly}
                     required
                   />

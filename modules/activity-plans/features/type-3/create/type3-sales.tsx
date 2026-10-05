@@ -216,7 +216,7 @@ export function Type3Sales({
                         disabled={readonly}
                         className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
                       />
-                      <span>Dealer (ร้านค้าหลัก)</span>
+                      <span>ตัวแทนจำหน่าย (Dealer)</span>
                     </label>
 
                     <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
@@ -230,7 +230,7 @@ export function Type3Sales({
                         disabled={readonly}
                         className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
                       />
-                      <span>Subdealer (ร้านค้าย่อย)</span>
+                      <span>ร้านค้าย่อย (Subdealer)</span>
                     </label>
                   </div>
                 </div>

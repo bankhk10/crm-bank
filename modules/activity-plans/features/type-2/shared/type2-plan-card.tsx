@@ -244,12 +244,12 @@ export function Type2PlanCard({
       )}
 
       {/* ───────────────────────────────────────────────────────────── */}
-      {/* SECTION: รายละเอียดเพิ่มเติม (ภาพรวมการติดตาม) */}
+      {/* SECTION: รายละเอียดเพิ่มเติม */}
       {/* ───────────────────────────────────────────────────────────── */}
       {target.detail && !isDetailDuplicate && (
         <div className="space-y-1.5 text-xs">
           <span className="text-slate-500 font-semibold block text-[11px]">
-            รายละเอียดเพิ่มเติม (ภาพรวมการติดตาม)
+            รายละเอียดเพิ่มเติม
           </span>
           <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/80 text-slate-700 whitespace-pre-wrap">
             {target.detail}
