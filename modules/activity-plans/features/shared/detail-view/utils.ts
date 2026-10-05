@@ -1,5 +1,6 @@
 import type { ActivityPlanWithRelations } from "../../../types";
 import { WORK_TYPES } from "../../../constants";
+import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -242,12 +243,14 @@ export function extractWorkTypeSections(
     (pr) => pr.workTypeCode === "TYPE_8_PROMOTION",
   );
   const type8Stores = stores.filter((s) => s.workTypeCode === "TYPE_8");
+  const decodedT8Notes = decodeType8StoreNotes(type8Stores[0]?.notes);
   const t8Line = objectiveLines.find(
     (l) => l.includes("[จัดประชุม") || l.includes("ประชุม"),
   );
   if (
     type8Products.length > 0 ||
     type8PromoProducts.length > 0 ||
+    decodedT8Notes.promotions.length > 0 ||
     type8Stores.length > 0 ||
     plan.targetAttendeesCount ||
     t8Line
@@ -281,7 +284,12 @@ export function extractWorkTypeSections(
         value: type8Products.map((p) => p.productName).join(", "),
       });
     }
-    if (type8PromoProducts.length > 0) {
+    if (decodedT8Notes.promotions.length > 0) {
+      extraFields.push({
+        label: "รายละเอียดโปรโมชัน",
+        value: decodedT8Notes.promotions.join(", "),
+      });
+    } else if (type8PromoProducts.length > 0) {
       extraFields.push({
         label: "รายการสินค้าโปรโมชัน",
         value: type8PromoProducts
@@ -292,6 +300,12 @@ export function extractWorkTypeSections(
               })`,
           )
           .join(", "),
+      });
+    }
+    if (decodedT8Notes.detail) {
+      extraFields.push({
+        label: "รายละเอียดการประชุม",
+        value: decodedT8Notes.detail,
       });
     }
     sections.push({

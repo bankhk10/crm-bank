@@ -8,6 +8,10 @@ import type {
   Type8VenueType,
 } from "../shared/types";
 import { validateType8FormItems } from "../create/validation";
+import {
+  encodeType8StoreNotes,
+  decodeType8StoreNotes,
+} from "../shared/type8-notes";
 
 export interface UseType8FormOptions {
   initial?: any;
@@ -87,14 +91,20 @@ export function useType8Form({
     const primaryStore =
       existingStores && existingStores.length > 0 ? existingStores[0] : null;
 
-    // Separate Target Products vs Promotional Products by workTypeCode
+    // Separate Target Products vs Promotional Products / Items
     const allProds = (initial as any)?.products || [];
     const targetProds = allProds.filter((p: any) => p.workTypeCode === "TYPE_8");
     const promoProds = allProds.filter(
       (p: any) => p.workTypeCode === "TYPE_8_PROMOTION",
     );
+    const decodedStoreNotes = decodeType8StoreNotes(primaryStore?.notes);
 
-    if (primaryStore || targetProds.length > 0 || promoProds.length > 0) {
+    if (
+      primaryStore ||
+      targetProds.length > 0 ||
+      promoProds.length > 0 ||
+      decodedStoreNotes.promotions.length > 0
+    ) {
       // Find customer in Customer Master (or from primaryStore.store relation)
       const matchedCustomer =
         (customersList || []).find((c: any) => c.id === primaryStore?.storeId) ||
@@ -161,16 +171,24 @@ export function useType8Form({
         }
       }
 
-      const promotionProducts: Type8PromotionProductItem[] = promoProds.map(
-        (p: any, idx: number) => ({
-          id: p.id || `promo-${idx + 1}`,
-          productId: p.productId,
-          productName: p.product?.name || p.productName || "",
-          quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
-          pricePerCase: p.unitPrice != null ? Number(p.unitPrice) : 0,
-          notes: p.notes || "",
-        }),
-      );
+      const promotionProducts: Type8PromotionProductItem[] =
+        decodedStoreNotes.promotions.length > 0
+          ? decodedStoreNotes.promotions.map((p, idx) => ({
+              id: `promo-${idx + 1}`,
+              productId: "",
+              productName: "",
+              quantityCases: 0,
+              pricePerCase: 0,
+              notes: p,
+            }))
+          : promoProds.map((p: any, idx: number) => ({
+              id: p.id || `promo-${idx + 1}`,
+              productId: p.productId,
+              productName: p.product?.name || p.productName || "",
+              quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
+              pricePerCase: p.unitPrice != null ? Number(p.unitPrice) : 0,
+              notes: p.notes || "",
+            }));
 
       const venueType: Type8VenueType =
         primaryStore?.storeId &&
@@ -202,8 +220,12 @@ export function useType8Form({
             (initial as any)?.targetAttendeesCount != null
               ? Number((initial as any).targetAttendeesCount)
               : 1,
-          // SSoT for Detail: ActivityPlanStore.notes, with READ fallback to initial.description
-          detail: primaryStore?.notes || (initial as any)?.description || "",
+          // SSoT for Detail: Decoded detail from ActivityPlanStore.notes, with READ fallback to initial.description
+          detail:
+            decodedStoreNotes.detail ||
+            primaryStore?.notes ||
+            (initial as any)?.description ||
+            "",
           promotionProducts,
           venueType,
         },
@@ -421,8 +443,12 @@ export function useType8Form({
       }
 
       // 1. Map ActivityPlanStore for TYPE_8
-      // SSoT: remarks = topic, notes = detail
+      // SSoT: remarks = topic, notes = encodeType8StoreNotes(detail, promoNotes)
       if (storeId || subDealerStore) {
+        const promoNotes = (item.promotionProducts || [])
+          .map((p) => p.notes?.trim() || "")
+          .filter(Boolean);
+
         planStores.push({
           workTypeCode: "TYPE_8",
           storeId,
@@ -430,7 +456,7 @@ export function useType8Form({
           subDealerStore,
           visitPurpose: item.meetingTarget === "FARMER" ? "FARMER" : "STORE",
           remarks: item.topic?.trim() || null,
-          notes: item.detail?.trim() || null,
+          notes: encodeType8StoreNotes(item.detail, promoNotes),
         });
       }
 
@@ -463,31 +489,6 @@ export function useType8Form({
           notes: null,
         });
       });
-
-      // 3. Map Promotional Products (workTypeCode: "TYPE_8_PROMOTION")
-      (item.promotionProducts || [])
-        .filter((promo) => promo.productName && promo.productName.trim() !== "")
-        .forEach((promo) => {
-          const matchedP = (products || []).find(
-            (p) => p.id === promo.productId || p.name === promo.productName,
-          );
-          const pId = promo.productId || matchedP?.id;
-          if (pId) {
-            const qty = Number(promo.quantityCases) || 0;
-            const price = Number(promo.pricePerCase) || 0;
-            planProducts.push({
-              workTypeCode: "TYPE_8_PROMOTION",
-              storeId,
-              productId: pId,
-              productName: matchedP?.name || promo.productName || null,
-              targetQuantity: qty,
-              unitPrice: price,
-              totalAmount: qty * price,
-              isPriceOverridden: false,
-              notes: promo.notes ? promo.notes.trim() : null,
-            });
-          }
-        });
     });
 
     return { targetAttendees, planStores, planProducts };
