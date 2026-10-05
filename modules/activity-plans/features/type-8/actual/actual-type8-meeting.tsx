@@ -16,12 +16,13 @@ import {
 
 import { Type8PlanCard } from "../shared/type8-plan-card";
 import { Type8PromotionProductItem } from "../shared/types";
-import {
+import { ProductSaleDetail, ActualType8MeetingProps } from "./types";
+
+export type {
+  Type8PromotionProductItem,
   ProductSaleDetail,
   ActualType8MeetingProps,
-} from "./types";
-
-export type { Type8PromotionProductItem, ProductSaleDetail, ActualType8MeetingProps };
+};
 
 export interface LocalPromoItem {
   id?: string;
@@ -55,27 +56,29 @@ export function ActualType8Meeting({
 }: ActualType8MeetingProps) {
   const plannedPromoProducts = target?.promotionalProducts || [];
 
-  const [localPromoItems, setLocalPromoItems] = useState<LocalPromoItem[]>(() => {
-    if (plannedPromoProducts.length > 0) {
-      return plannedPromoProducts.map((item, idx) => {
-        // Match with previously saved actual results by productId as primary key
-        const saved =
-          productSalesDetails?.find(
-            (d) =>
-              (item.productId && d.productId === item.productId) ||
-              (item.id && d.id === item.id) ||
-              d.productName === item.productName,
-          ) || productSalesDetails?.[idx];
+  const [localPromoItems, setLocalPromoItems] = useState<LocalPromoItem[]>(
+    () => {
+      if (plannedPromoProducts.length > 0) {
+        return plannedPromoProducts.map((item, idx) => {
+          // Match with previously saved actual results by productId as primary key
+          const saved =
+            productSalesDetails?.find(
+              (d) =>
+                (item.productId && d.productId === item.productId) ||
+                (item.id && d.id === item.id) ||
+                d.productName === item.productName,
+            ) || productSalesDetails?.[idx];
 
-        return {
-          ...item,
-          actualQty: saved?.actualQty ?? "",
-          actualSales: saved?.actualSales ?? "",
-        };
-      });
-    }
-    return [];
-  });
+          return {
+            ...item,
+            actualQty: saved?.actualQty ?? "",
+            actualSales: saved?.actualSales ?? "",
+          };
+        });
+      }
+      return [];
+    },
+  );
 
   // Keep local items synchronized on asynchronous hydration
   useEffect(() => {
@@ -97,10 +100,8 @@ export function ActualType8Meeting({
           const existing = prev[idx];
           return {
             ...item,
-            actualQty:
-              saved?.actualQty ?? existing?.actualQty ?? "",
-            actualSales:
-              saved?.actualSales ?? existing?.actualSales ?? "",
+            actualQty: saved?.actualQty ?? existing?.actualQty ?? "",
+            actualSales: saved?.actualSales ?? existing?.actualSales ?? "",
           };
         }),
       );
@@ -195,11 +196,7 @@ export function ActualType8Meeting({
       </div>
 
       {/* Target Plan Information Card */}
-      <Type8PlanCard
-        target={target}
-        planType={planType}
-        hidePromotionsTable
-      />
+      <Type8PlanCard target={target} planType={planType} hidePromotionsTable />
 
       {/* Promotional Products Section */}
       <div className="space-y-2.5 pt-1 border-t border-purple-100/60">
@@ -244,7 +241,10 @@ export function ActualType8Meeting({
               </thead>
               <tbody className="divide-y divide-purple-50 bg-white">
                 {localPromoItems.map((item, idx) => (
-                  <tr key={item.id || item.productId || idx} className="hover:bg-purple-50/30">
+                  <tr
+                    key={item.id || item.productId || idx}
+                    className="hover:bg-purple-50/30"
+                  >
                     <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
                       {idx + 1}
                     </td>
@@ -276,7 +276,11 @@ export function ActualType8Meeting({
                         min="0"
                         value={item.actualQty ?? ""}
                         onChange={(e) =>
-                          handlePromoItemChange(idx, "actualQty", e.target.value)
+                          handlePromoItemChange(
+                            idx,
+                            "actualQty",
+                            e.target.value,
+                          )
                         }
                         placeholder="0"
                         className="h-8 text-center bg-white border-purple-200 text-xs w-24 mx-auto font-medium focus-visible:ring-purple-400"
@@ -287,7 +291,11 @@ export function ActualType8Meeting({
                         type="text"
                         value={item.actualSales ?? ""}
                         onChange={(e) =>
-                          handlePromoItemChange(idx, "actualSales", e.target.value)
+                          handlePromoItemChange(
+                            idx,
+                            "actualSales",
+                            e.target.value,
+                          )
                         }
                         placeholder="0.00"
                         className="h-8 text-right bg-white border-purple-200 text-xs w-28 mx-auto font-bold text-purple-950 focus-visible:ring-purple-400"
@@ -302,17 +310,25 @@ export function ActualType8Meeting({
                     รวมทั้งสิ้น
                   </td>
                   <td className="py-2.5 px-3 text-center">
-                    {totalPlannedQty > 0 ? `${totalPlannedQty.toLocaleString()} ลัง` : "-"}
+                    {totalPlannedQty > 0
+                      ? `${totalPlannedQty.toLocaleString()} ลัง`
+                      : "-"}
                   </td>
                   <td className="py-2.5 px-3 text-right text-purple-900">
-                    {totalPlannedSales > 0 ? `฿${totalPlannedSales.toLocaleString()}` : "-"}
+                    {totalPlannedSales > 0
+                      ? `฿${totalPlannedSales.toLocaleString()}`
+                      : "-"}
                   </td>
                   <td></td>
                   <td className="py-2.5 px-3 text-center text-purple-900 bg-purple-100/50">
-                    {totalActualQty > 0 ? `${totalActualQty.toLocaleString()} ลัง` : "-"}
+                    {totalActualQty > 0
+                      ? `${totalActualQty.toLocaleString()} ลัง`
+                      : "-"}
                   </td>
                   <td className="py-2.5 px-3 text-right text-purple-900 font-extrabold bg-purple-100/50">
-                    {totalActualSales > 0 ? `฿${totalActualSales.toLocaleString()}` : "-"}
+                    {totalActualSales > 0
+                      ? `฿${totalActualSales.toLocaleString()}`
+                      : "-"}
                   </td>
                 </tr>
               </tfoot>
@@ -370,7 +386,8 @@ export function ActualType8Meeting({
                 <span className="text-rose-500 font-bold">*</span>
               </div>
               <p className="text-[11px] text-purple-700/80">
-                แนบรูปถ่ายใบลงทะเบียนผู้เข้าร่วมประชุม (จำเป็นต้องมี 1–5 รูป)
+                แนบรูปถ่ายใบลงทะเบียนผู้เข้าร่วมประชุม (จำเป็นต้องมีอย่างน้อย 1
+                รูป)
               </p>
             </div>
           </div>
@@ -400,7 +417,8 @@ export function ActualType8Meeting({
                 รูปภาพบรรยากาศการประชุม
               </h4>
               <p className="text-[11px] text-purple-700/80">
-                อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด 10 รูป)
+                อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด
+                10 รูป)
               </p>
             </div>
           </div>
