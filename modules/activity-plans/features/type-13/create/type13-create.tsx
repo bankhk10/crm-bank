@@ -57,18 +57,18 @@ export function Type13Create({
     const target = { ...updated[index], [field]: value };
 
     // Auto-fill ownerName, province & district if dealer selected and dealer has location info
-    if (field === "storeId" && value) {
-      const selectedDealer = customerItem || (dealers || []).find((d) => d.id === value);
-      if (selectedDealer) {
-        if (selectedDealer.name && !target.ownerName) {
-          target.ownerName = selectedDealer.name;
+    if (field === "storeId") {
+      if (value) {
+        const selectedDealer = customerItem || (dealers || []).find((d) => d.id === value);
+        if (selectedDealer) {
+          target.ownerName = selectedDealer.name || "";
+          target.province = selectedDealer.province || "";
+          target.district = selectedDealer.district || "";
         }
-        if (selectedDealer.province && !target.province) {
-          target.province = selectedDealer.province;
-        }
-        if (selectedDealer.district && !target.district) {
-          target.district = selectedDealer.district;
-        }
+      } else {
+        target.ownerName = "";
+        target.province = "";
+        target.district = "";
       }
     }
 
