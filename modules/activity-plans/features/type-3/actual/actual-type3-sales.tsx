@@ -25,12 +25,16 @@ import type {
   ActualType3SalesProps,
 } from "./types";
 
-export type { TargetProductItem, Type3ProductSaleDetail, ActualType3SalesProps };
+export type {
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  ActualType3SalesProps,
+};
 
 function extractUnit(qtyStr?: string): string {
-  if (!qtyStr) return "ชิ้น";
+  if (!qtyStr) return "";
   const match = qtyStr.match(/([^\d\s]+)$/);
-  return match ? match[1] : "ชิ้น";
+  return match ? match[1] : "";
 }
 
 function parseProductQty(
@@ -135,8 +139,7 @@ export function ActualType3Sales({
               ((item.id && d.id === item.id) ||
                 (item.productId && d.productId === item.productId) ||
                 d.productName === item.productName),
-          ) ||
-          productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
+          ) || productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
 
         const fallbackQty = parseProductQty(actualQuantity, item.productName);
         const fallbackReason = parseProductReason(
@@ -147,8 +150,7 @@ export function ActualType3Sales({
         return {
           ...item,
           productId: item.productId,
-          actualQty:
-            saved?.actualQty ?? (fallbackQty || item.actualQty || ""),
+          actualQty: saved?.actualQty ?? (fallbackQty || item.actualQty || ""),
           actualSales:
             saved?.actualSales ??
             (target.items!.length === 1 && actualSales
@@ -189,7 +191,13 @@ export function ActualType3Sales({
     }
 
     return [];
-  }, [target, productSalesDetails, actualQuantity, actualSales, unclosedReason]);
+  }, [
+    target,
+    productSalesDetails,
+    actualQuantity,
+    actualSales,
+    unclosedReason,
+  ]);
 
   // State: Planned items (สินค้าตามแผน)
   const [plannedItems, setPlannedItems] = useState<TargetProductItem[]>(() => {
@@ -367,11 +375,7 @@ export function ActualType3Sales({
 
   const handleAdditionalChange = (
     index: number,
-    field:
-      | "productId"
-      | "productName"
-      | "actualQty"
-      | "unclosedReason",
+    field: "productId" | "productName" | "actualQty" | "unclosedReason",
     value: string,
   ) => {
     const updated = [...additionalItems];
@@ -473,7 +477,7 @@ export function ActualType3Sales({
                         variant="outline"
                         className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-semibold"
                       >
-                        เป้าหมาย: {prod.qty ? `${prod.qty} หน่วย` : "-"}
+                        เป้าหมาย: {prod.qty ? `${prod.qty}` : "-"}
                       </Badge>
                     </div>
                   </div>
@@ -490,11 +494,7 @@ export function ActualType3Sales({
                         min="0"
                         value={prod.actualQty || ""}
                         onChange={(e) =>
-                          handlePlannedChange(
-                            idx,
-                            "actualQty",
-                            e.target.value,
-                          )
+                          handlePlannedChange(idx, "actualQty", e.target.value)
                         }
                         placeholder="0"
                         className="bg-white border-slate-300 pr-12 text-sm"
@@ -508,7 +508,7 @@ export function ActualType3Sales({
                   {/* Reason / Note */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-800">
-                      รายละเอียด / เหตุผล (กรณีปิดการขายไม่ได้ตามเป้า)
+                      รายละเอียด
                     </label>
                     <Textarea
                       rows={2}
@@ -571,7 +571,8 @@ export function ActualType3Sales({
                 ยังไม่มีการบันทึกสินค้านอกแผน
               </p>
               <p className="text-[11px] text-slate-500">
-                หากมีการเสนอขายสินค้าอื่นๆ เพิ่มเติมจากแผนงานเดิม สามารถกดปุ่ม &quot;+ เพิ่มรายการขายสินค้า&quot; ได้
+                หากมีการเสนอขายสินค้าอื่นๆ เพิ่มเติมจากแผนงานเดิม สามารถกดปุ่ม
+                &quot;+ เพิ่มรายการขายสินค้า&quot; ได้
               </p>
             </div>
             <Button
@@ -646,25 +647,18 @@ export function ActualType3Sales({
                       min="0"
                       value={prod.actualQty || ""}
                       onChange={(e) =>
-                        handleAdditionalChange(
-                          idx,
-                          "actualQty",
-                          e.target.value,
-                        )
+                        handleAdditionalChange(idx, "actualQty", e.target.value)
                       }
                       placeholder="0"
                       className="bg-white border-slate-300 pr-12 text-sm"
                     />
-                    <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                      ชิ้น
-                    </span>
                   </div>
                 </div>
 
                 {/* Reason / Note */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800">
-                    รายละเอียด / ข้อเสนอ / เหตุผล
+                    รายละเอียดเพิ่มเติม
                   </label>
                   <Textarea
                     rows={2}
