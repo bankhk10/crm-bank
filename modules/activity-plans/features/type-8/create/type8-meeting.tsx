@@ -252,39 +252,8 @@ export function Type8Meeting({
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="block text-xs font-medium text-slate-700">
-                                ชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
-                              </label>
-                              <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={Boolean(
-                                    item.isUnregisteredSubdealer,
-                                  )}
-                                  onChange={(e) => {
-                                    const isChecked = e.target.checked;
-                                    updateType8Row(
-                                      item.id,
-                                      "isUnregisteredSubdealer",
-                                      isChecked,
-                                    );
-                                    if (isChecked) {
-                                      updateType8Row(
-                                        item.id,
-                                        "subdealerId",
-                                        "",
-                                      );
-                                    } else {
-                                      updateType8Row(
-                                        item.id,
-                                        "subDealerStore",
-                                        "",
-                                      );
-                                    }
-                                  }}
-                                  disabled={readonly}
-                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
-                                />
-                                <span>ไม่มีในระบบ</span>
+                                ชื่อร้านค้า Subdealer{" "}
+                                <span className="text-red-500">*</span>
                               </label>
                             </div>
                             <input
@@ -301,6 +270,41 @@ export function Type8Meeting({
                               placeholder="ระบุชื่อร้านค้า Subdealer..."
                               className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
                             />
+                            {!readonly && (
+                              <div className="mt-2 flex items-center justify-start">
+                                <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(
+                                      item.isUnregisteredSubdealer,
+                                    )}
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      updateType8Row(
+                                        item.id,
+                                        "isUnregisteredSubdealer",
+                                        isChecked,
+                                      );
+                                      if (isChecked) {
+                                        updateType8Row(
+                                          item.id,
+                                          "subdealerId",
+                                          "",
+                                        );
+                                      } else {
+                                        updateType8Row(
+                                          item.id,
+                                          "subDealerStore",
+                                          "",
+                                        );
+                                      }
+                                    }}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                  />
+                                  <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                                </label>
+                              </div>
+                            )}
                           </div>
                           <div>
                             <ActivityCustomerSelect
@@ -343,39 +347,8 @@ export function Type8Meeting({
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-slate-700">
-                              เลือกร้านค้า Subdealer จาก Customer Master <span className="text-red-500">*</span>
-                            </label>
-                            <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={Boolean(
-                                  item.isUnregisteredSubdealer,
-                                )}
-                                onChange={(e) => {
-                                  const isChecked = e.target.checked;
-                                  updateType8Row(
-                                    item.id,
-                                    "isUnregisteredSubdealer",
-                                    isChecked,
-                                  );
-                                  if (isChecked) {
-                                    updateType8Row(
-                                      item.id,
-                                      "subdealerId",
-                                      "",
-                                    );
-                                  } else {
-                                    updateType8Row(
-                                      item.id,
-                                      "subDealerStore",
-                                      "",
-                                    );
-                                  }
-                                }}
-                                disabled={readonly}
-                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
-                              />
-                              <span>ไม่มีในระบบ</span>
+                              เลือกร้านค้า Subdealer จาก Customer Master{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                           </div>
                           <ActivityCustomerSelect
@@ -387,11 +360,7 @@ export function Type8Meeting({
                             value={item.subdealerId || ""}
                             onChange={(val, cust) => {
                               if (cust) {
-                                updateType8Row(
-                                  item.id,
-                                  "subdealerId",
-                                  cust.id,
-                                );
+                                updateType8Row(item.id, "subdealerId", cust.id);
                                 if (cust.parentDealerId) {
                                   const parent = customers.find(
                                     (c) => c.id === cust.parentDealerId,
@@ -407,8 +376,7 @@ export function Type8Meeting({
                                       "dealerName",
                                       parent.name,
                                     );
-                                    if (onDealerSelect)
-                                      onDealerSelect(parent);
+                                    if (onDealerSelect) onDealerSelect(parent);
                                   }
                                 }
                               } else {
@@ -422,6 +390,41 @@ export function Type8Meeting({
                             disabled={readonly}
                             required
                           />
+                          {!readonly && (
+                            <div className="mt-2.5 flex items-center justify-start">
+                              <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(
+                                    item.isUnregisteredSubdealer,
+                                  )}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    updateType8Row(
+                                      item.id,
+                                      "isUnregisteredSubdealer",
+                                      isChecked,
+                                    );
+                                    if (isChecked) {
+                                      updateType8Row(
+                                        item.id,
+                                        "subdealerId",
+                                        "",
+                                      );
+                                    } else {
+                                      updateType8Row(
+                                        item.id,
+                                        "subDealerStore",
+                                        "",
+                                      );
+                                    }
+                                  }}
+                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                />
+                                <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                              </label>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -470,7 +473,8 @@ export function Type8Meeting({
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="block text-xs font-medium text-slate-700">
-                                ชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
+                                ชื่อร้านค้า Subdealer{" "}
+                                <span className="text-red-500">*</span>
                               </label>
                             </div>
                             <input
@@ -492,7 +496,9 @@ export function Type8Meeting({
                                 <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
                                   <input
                                     type="checkbox"
-                                    checked={Boolean(item.isUnregisteredSubdealer)}
+                                    checked={Boolean(
+                                      item.isUnregisteredSubdealer,
+                                    )}
                                     onChange={(e) => {
                                       const isChecked = e.target.checked;
                                       updateType8Row(
@@ -501,7 +507,11 @@ export function Type8Meeting({
                                         isChecked,
                                       );
                                       if (isChecked) {
-                                        updateType8Row(item.id, "subdealerId", "");
+                                        updateType8Row(
+                                          item.id,
+                                          "subdealerId",
+                                          "",
+                                        );
                                       } else {
                                         updateType8Row(
                                           item.id,
@@ -531,12 +541,17 @@ export function Type8Meeting({
                                   "dealerName",
                                   cust?.name || "",
                                 );
-                                updateType8Row(item.id, "dealerId", cust?.id || "");
+                                updateType8Row(
+                                  item.id,
+                                  "dealerId",
+                                  cust?.id || "",
+                                );
                                 if (onDealerSelect)
                                   onDealerSelect(
                                     cust
-                                      ? customers.find((c) => c.id === cust.id) ||
-                                          null
+                                      ? customers.find(
+                                          (c) => c.id === cust.id,
+                                        ) || null
                                       : null,
                                   );
                               }}
@@ -553,7 +568,8 @@ export function Type8Meeting({
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-slate-700">
-                              เลือกร้านค้า Subdealer จาก Customer Master <span className="text-red-500">*</span>
+                              เลือกร้านค้า Subdealer จาก Customer Master{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                           </div>
                           <ActivityCustomerSelect
@@ -600,7 +616,9 @@ export function Type8Meeting({
                               <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
                                 <input
                                   type="checkbox"
-                                  checked={Boolean(item.isUnregisteredSubdealer)}
+                                  checked={Boolean(
+                                    item.isUnregisteredSubdealer,
+                                  )}
                                   onChange={(e) => {
                                     const isChecked = e.target.checked;
                                     updateType8Row(
@@ -609,7 +627,11 @@ export function Type8Meeting({
                                       isChecked,
                                     );
                                     if (isChecked) {
-                                      updateType8Row(item.id, "subdealerId", "");
+                                      updateType8Row(
+                                        item.id,
+                                        "subdealerId",
+                                        "",
+                                      );
                                     } else {
                                       updateType8Row(
                                         item.id,
@@ -792,7 +814,9 @@ export function Type8Meeting({
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                         <tr>
-                          <th className="py-2 px-2.5 text-center w-12">ลำดับ</th>
+                          <th className="py-2 px-2.5 text-center w-12">
+                            ลำดับ
+                          </th>
                           <th className="py-2 px-2.5 min-w-[240px]">
                             รายละเอียด (โปรโมชัน)
                           </th>
