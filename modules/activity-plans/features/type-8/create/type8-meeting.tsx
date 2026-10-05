@@ -33,7 +33,6 @@ export function Type8Meeting({
   products = [],
   onDealerSelect,
 }: Type8MeetingProps) {
-
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
@@ -127,7 +126,11 @@ export function Type8Meeting({
                             updateType8Row(item.id, "meetingTarget", "DEALER");
                             updateType8Row(item.id, "subDealerStore", "");
                             updateType8Row(item.id, "subdealerId", "");
-                            updateType8Row(item.id, "isUnregisteredSubdealer", false);
+                            updateType8Row(
+                              item.id,
+                              "isUnregisteredSubdealer",
+                              false,
+                            );
                           }}
                           disabled={readonly}
                           className="text-blue-600 focus:ring-blue-500 h-4 w-4"
@@ -142,7 +145,11 @@ export function Type8Meeting({
                           value="SUBDEALER"
                           checked={meetingTarget === "SUBDEALER"}
                           onChange={() => {
-                            updateType8Row(item.id, "meetingTarget", "SUBDEALER");
+                            updateType8Row(
+                              item.id,
+                              "meetingTarget",
+                              "SUBDEALER",
+                            );
                           }}
                           disabled={readonly}
                           className="text-blue-600 focus:ring-blue-500 h-4 w-4"
@@ -166,10 +173,18 @@ export function Type8Meeting({
                             value="DEALER"
                             checked={farmerChannel === "DEALER"}
                             onChange={() => {
-                              updateType8Row(item.id, "farmerChannel", "DEALER");
+                              updateType8Row(
+                                item.id,
+                                "farmerChannel",
+                                "DEALER",
+                              );
                               updateType8Row(item.id, "subDealerStore", "");
                               updateType8Row(item.id, "subdealerId", "");
-                              updateType8Row(item.id, "isUnregisteredSubdealer", false);
+                              updateType8Row(
+                                item.id,
+                                "isUnregisteredSubdealer",
+                                false,
+                              );
                             }}
                             disabled={readonly}
                             className="text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
@@ -183,7 +198,11 @@ export function Type8Meeting({
                             value="SUBDEALER"
                             checked={farmerChannel === "SUBDEALER"}
                             onChange={() => {
-                              updateType8Row(item.id, "farmerChannel", "SUBDEALER");
+                              updateType8Row(
+                                item.id,
+                                "farmerChannel",
+                                "SUBDEALER",
+                              );
                             }}
                             disabled={readonly}
                             className="text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
@@ -202,9 +221,23 @@ export function Type8Meeting({
                             triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                             value={item.dealerId || ""}
                             onChange={(val, cust) => {
-                              updateType8Row(item.id, "dealerName", cust?.name || "");
-                              updateType8Row(item.id, "dealerId", cust?.id || "");
-                              if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
+                              updateType8Row(
+                                item.id,
+                                "dealerName",
+                                cust?.name || "",
+                              );
+                              updateType8Row(
+                                item.id,
+                                "dealerId",
+                                cust?.id || "",
+                              );
+                              if (onDealerSelect)
+                                onDealerSelect(
+                                  cust
+                                    ? customers.find((c) => c.id === cust.id) ||
+                                        null
+                                    : null,
+                                );
                             }}
                             customers={customers}
                             placeholder="เลือกร้านค้า Dealer..."
@@ -227,7 +260,9 @@ export function Type8Meeting({
                               <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
                                 <input
                                   type="checkbox"
-                                  checked={Boolean(item.isUnregisteredSubdealer)}
+                                  checked={Boolean(
+                                    item.isUnregisteredSubdealer,
+                                  )}
                                   onChange={(e) => {
                                     const isChecked = e.target.checked;
                                     updateType8Row(
@@ -236,9 +271,17 @@ export function Type8Meeting({
                                       isChecked,
                                     );
                                     if (isChecked) {
-                                      updateType8Row(item.id, "subdealerId", "");
+                                      updateType8Row(
+                                        item.id,
+                                        "subdealerId",
+                                        "",
+                                      );
                                     } else {
-                                      updateType8Row(item.id, "subDealerStore", "");
+                                      updateType8Row(
+                                        item.id,
+                                        "subDealerStore",
+                                        "",
+                                      );
                                     }
                                   }}
                                   disabled={readonly}
@@ -252,7 +295,11 @@ export function Type8Meeting({
                                 type="text"
                                 value={item.subDealerStore || ""}
                                 onChange={(e) =>
-                                  updateType8Row(item.id, "subDealerStore", e.target.value)
+                                  updateType8Row(
+                                    item.id,
+                                    "subDealerStore",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="ระบุชื่อร้านค้า Subdealer..."
@@ -268,15 +315,28 @@ export function Type8Meeting({
                                 value={item.subdealerId || ""}
                                 onChange={(val, cust) => {
                                   if (cust) {
-                                    updateType8Row(item.id, "subdealerId", cust.id);
+                                    updateType8Row(
+                                      item.id,
+                                      "subdealerId",
+                                      cust.id,
+                                    );
                                     if (cust.parentDealerId) {
                                       const parent = customers.find(
                                         (c) => c.id === cust.parentDealerId,
                                       );
                                       if (parent) {
-                                        updateType8Row(item.id, "dealerId", parent.id);
-                                        updateType8Row(item.id, "dealerName", parent.name);
-                                        if (onDealerSelect) onDealerSelect(parent);
+                                        updateType8Row(
+                                          item.id,
+                                          "dealerId",
+                                          parent.id,
+                                        );
+                                        updateType8Row(
+                                          item.id,
+                                          "dealerName",
+                                          parent.name,
+                                        );
+                                        if (onDealerSelect)
+                                          onDealerSelect(parent);
                                       }
                                     }
                                   } else {
@@ -301,9 +361,24 @@ export function Type8Meeting({
                               triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                               value={item.dealerId || ""}
                               onChange={(val, cust) => {
-                                updateType8Row(item.id, "dealerName", cust?.name || "");
-                                updateType8Row(item.id, "dealerId", cust?.id || "");
-                                if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
+                                updateType8Row(
+                                  item.id,
+                                  "dealerName",
+                                  cust?.name || "",
+                                );
+                                updateType8Row(
+                                  item.id,
+                                  "dealerId",
+                                  cust?.id || "",
+                                );
+                                if (onDealerSelect)
+                                  onDealerSelect(
+                                    cust
+                                      ? customers.find(
+                                          (c) => c.id === cust.id,
+                                        ) || null
+                                      : null,
+                                  );
                               }}
                               customers={customers}
                               placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
@@ -329,9 +404,19 @@ export function Type8Meeting({
                         triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                         value={item.dealerId || ""}
                         onChange={(val, cust) => {
-                          updateType8Row(item.id, "dealerName", cust?.name || "");
+                          updateType8Row(
+                            item.id,
+                            "dealerName",
+                            cust?.name || "",
+                          );
                           updateType8Row(item.id, "dealerId", cust?.id || "");
-                          if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
+                          if (onDealerSelect)
+                            onDealerSelect(
+                              cust
+                                ? customers.find((c) => c.id === cust.id) ||
+                                    null
+                                : null,
+                            );
                         }}
                         customers={customers}
                         placeholder="เลือกร้านค้า Dealer..."
@@ -354,35 +439,17 @@ export function Type8Meeting({
                               : "เลือกร้านค้า Subdealer จาก Customer Master"}{" "}
                             <span className="text-red-500">*</span>
                           </label>
-                          <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(item.isUnregisteredSubdealer)}
-                              onChange={(e) => {
-                                const isChecked = e.target.checked;
-                                updateType8Row(
-                                  item.id,
-                                  "isUnregisteredSubdealer",
-                                  isChecked,
-                                );
-                                if (isChecked) {
-                                  updateType8Row(item.id, "subdealerId", "");
-                                } else {
-                                  updateType8Row(item.id, "subDealerStore", "");
-                                }
-                              }}
-                              disabled={readonly}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
-                            />
-                            <span>ไม่มีในระบบ</span>
-                          </label>
                         </div>
                         {item.isUnregisteredSubdealer ? (
                           <input
                             type="text"
                             value={item.subDealerStore || ""}
                             onChange={(e) =>
-                              updateType8Row(item.id, "subDealerStore", e.target.value)
+                              updateType8Row(
+                                item.id,
+                                "subDealerStore",
+                                e.target.value,
+                              )
                             }
                             disabled={readonly}
                             placeholder="ระบุชื่อร้านค้า Subdealer..."
@@ -404,8 +471,16 @@ export function Type8Meeting({
                                     (c) => c.id === cust.parentDealerId,
                                   );
                                   if (parent) {
-                                    updateType8Row(item.id, "dealerId", parent.id);
-                                    updateType8Row(item.id, "dealerName", parent.name);
+                                    updateType8Row(
+                                      item.id,
+                                      "dealerId",
+                                      parent.id,
+                                    );
+                                    updateType8Row(
+                                      item.id,
+                                      "dealerName",
+                                      parent.name,
+                                    );
                                     if (onDealerSelect) onDealerSelect(parent);
                                   }
                                 }
@@ -421,6 +496,35 @@ export function Type8Meeting({
                             required
                           />
                         )}
+                        {!readonly && (
+                          <div className="mt-3 flex items-center justify-start">
+                            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(item.isUnregisteredSubdealer)}
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  updateType8Row(
+                                    item.id,
+                                    "isUnregisteredSubdealer",
+                                    isChecked,
+                                  );
+                                  if (isChecked) {
+                                    updateType8Row(item.id, "subdealerId", "");
+                                  } else {
+                                    updateType8Row(
+                                      item.id,
+                                      "subDealerStore",
+                                      "",
+                                    );
+                                  }
+                                }}
+                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                              />
+                              <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                            </label>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <ActivityCustomerSelect
@@ -431,9 +535,19 @@ export function Type8Meeting({
                           triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
                           value={item.dealerId || ""}
                           onChange={(val, cust) => {
-                            updateType8Row(item.id, "dealerName", cust?.name || "");
+                            updateType8Row(
+                              item.id,
+                              "dealerName",
+                              cust?.name || "",
+                            );
                             updateType8Row(item.id, "dealerId", cust?.id || "");
-                            if (onDealerSelect) onDealerSelect(cust ? (customers.find((c) => c.id === cust.id) || null) : null);
+                            if (onDealerSelect)
+                              onDealerSelect(
+                                cust
+                                  ? customers.find((c) => c.id === cust.id) ||
+                                      null
+                                  : null,
+                              );
                           }}
                           customers={customers}
                           placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
@@ -467,7 +581,8 @@ export function Type8Meeting({
 
                   <div className="md:col-span-4">
                     <label className="block text-xs font-medium text-slate-700 mb-1">
-                      เป้าหมายผู้เข้าร่วม (คน) <span className="text-red-500">*</span>
+                      เป้าหมายผู้เข้าร่วม (คน){" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -618,9 +733,14 @@ export function Type8Meeting({
                           <th className="py-2 px-2.5 w-28 text-center">
                             ราคาต่อลัง (บาท)
                           </th>
-                          <th className="py-2 px-2.5 w-28 text-right">รวม (บาท)</th>
+                          <th className="py-2 px-2.5 w-28 text-right">
+                            รวม (บาท)
+                          </th>
                           <th className="py-2 px-2.5 min-w-[160px]">
-                            รายละเอียด <span className="text-slate-400 font-normal">(โปรโมชัน)</span>
+                            รายละเอียด{" "}
+                            <span className="text-slate-400 font-normal">
+                              (โปรโมชัน)
+                            </span>
                           </th>
                           {!readonly && (
                             <th className="py-2 px-2 text-center w-10">ลบ</th>
@@ -640,7 +760,8 @@ export function Type8Meeting({
                         ) : (
                           promoItems.map((promo, pIdx) => {
                             const totalAmount =
-                              (promo.quantityCases || 0) * (promo.pricePerCase || 0);
+                              (promo.quantityCases || 0) *
+                              (promo.pricePerCase || 0);
 
                             return (
                               <tr
@@ -739,7 +860,10 @@ export function Type8Meeting({
                                     <button
                                       type="button"
                                       onClick={() =>
-                                        deletePromotionProduct(item.id, promo.id)
+                                        deletePromotionProduct(
+                                          item.id,
+                                          promo.id,
+                                        )
                                       }
                                       className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
                                       title="ลบรายการสินค้า"
