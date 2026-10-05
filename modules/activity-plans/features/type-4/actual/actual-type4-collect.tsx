@@ -29,6 +29,8 @@ export function ActualType4Collect({
   setReceivedAmount,
   billingStatus = "",
   setBillingStatus,
+  billingDetail = "",
+  setBillingDetail,
   collectDetail = "",
   setCollectDetail,
 }: ActualType4CollectProps) {
@@ -36,31 +38,130 @@ export function ActualType4Collect({
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
     () => {
       if (target?.items && target.items.length > 0) {
-        return target.items.map((item, idx) => ({
-          ...item,
-          collectType: item.collectType || target?.collectType || "COLLECT",
-          receivedAmount:
-            item.receivedAmount ||
-            (idx === 0 && receivedAmount ? receivedAmount : ""),
-          billingStatus:
-            item.billingStatus ||
-            (idx === 0 && billingStatus
-              ? (billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ")
-              : "วางบิลสำเร็จ"),
-          detail:
-            item.detail || (idx === 0 && collectDetail ? collectDetail : ""),
-        }));
+        return target.items.map((item) => {
+          const isBilling = (item.collectType || target?.collectType) === "BILLING";
+          return {
+            ...item,
+            collectType: item.collectType || target?.collectType || "COLLECT",
+            receivedAmount:
+              item.receivedAmount ||
+              (!isBilling && receivedAmount ? receivedAmount : ""),
+            billingStatus:
+              item.billingStatus ||
+              (isBilling && billingStatus
+                ? (billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ")
+                : isBilling
+                  ? "วางบิลสำเร็จ"
+                  : ""),
+            billingDetail:
+              item.billingDetail ||
+              (isBilling && billingDetail
+                ? billingDetail
+                : isBilling && item.detail
+                  ? item.detail
+                  : ""),
+            collectDetail:
+              item.collectDetail ||
+              (!isBilling && collectDetail
+                ? collectDetail
+                : !isBilling && item.detail
+                  ? item.detail
+                  : ""),
+            detail:
+              item.detail || (isBilling ? billingDetail : collectDetail) || "",
+          };
+        });
       }
       return [];
     },
   );
 
-  // Sync initial single fallback billingStatus if not set
+  // Sync incoming hydrated props into companyItems based on item collectType
   useEffect(() => {
-    if (!billingStatus && setBillingStatus) {
-      setBillingStatus("วางบิลสำเร็จ");
-    }
-  }, [billingStatus, setBillingStatus]);
+    if (!target?.items || target.items.length === 0) return;
+
+    setCompanyItems((prev) => {
+      if (!prev || prev.length === 0 || prev.length !== target.items!.length) {
+        return target.items!.map((item) => {
+          const isBilling = (item.collectType || target?.collectType) === "BILLING";
+          return {
+            ...item,
+            collectType: item.collectType || target?.collectType || "COLLECT",
+            receivedAmount:
+              item.receivedAmount ||
+              (!isBilling && receivedAmount ? receivedAmount : ""),
+            billingStatus:
+              item.billingStatus ||
+              (isBilling && billingStatus
+                ? (billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ")
+                : isBilling
+                  ? "วางบิลสำเร็จ"
+                  : ""),
+            billingDetail:
+              item.billingDetail ||
+              (isBilling && billingDetail
+                ? billingDetail
+                : isBilling && item.detail
+                  ? item.detail
+                  : ""),
+            collectDetail:
+              item.collectDetail ||
+              (!isBilling && collectDetail
+                ? collectDetail
+                : !isBilling && item.detail
+                  ? item.detail
+                  : ""),
+            detail:
+              item.detail || (isBilling ? billingDetail : collectDetail) || "",
+          };
+        });
+      }
+
+      let hasChanges = false;
+      const updated = prev.map((item) => {
+        const isBilling = item.collectType === "BILLING";
+        let itemUpdated = false;
+        let newStatus = item.billingStatus;
+        let newBillingDetail = item.billingDetail;
+        let newCollectDetail = item.collectDetail;
+        let newRec = item.receivedAmount;
+
+        if (isBilling) {
+          if (billingStatus && item.billingStatus !== billingStatus) {
+            newStatus = billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ";
+            itemUpdated = true;
+          }
+          if (billingDetail !== undefined && billingDetail !== "" && item.billingDetail !== billingDetail) {
+            newBillingDetail = billingDetail;
+            itemUpdated = true;
+          }
+        } else {
+          if (collectDetail !== undefined && collectDetail !== "" && item.collectDetail !== collectDetail) {
+            newCollectDetail = collectDetail;
+            itemUpdated = true;
+          }
+          if (receivedAmount !== undefined && receivedAmount !== "" && item.receivedAmount !== receivedAmount) {
+            newRec = receivedAmount;
+            itemUpdated = true;
+          }
+        }
+
+        if (itemUpdated) {
+          hasChanges = true;
+          return {
+            ...item,
+            billingStatus: newStatus,
+            billingDetail: newBillingDetail,
+            collectDetail: newCollectDetail,
+            receivedAmount: newRec,
+          };
+        }
+        return item;
+      });
+
+      return hasChanges ? updated : prev;
+    });
+  }, [target?.items, target?.collectType, billingStatus, billingDetail, collectDetail, receivedAmount]);
 
   if (!isVisible) return null;
 
@@ -89,9 +190,16 @@ export function ActualType4Collect({
     setBillingStatus?.(status);
   };
 
-  const handleCompanyDetailChange = (index: number, detail: string) => {
+  const handleCompanyBillingDetailChange = (index: number, detail: string) => {
     const updated = [...companyItems];
-    updated[index] = { ...updated[index], detail };
+    updated[index] = { ...updated[index], billingDetail: detail };
+    setCompanyItems(updated);
+    setBillingDetail?.(detail);
+  };
+
+  const handleCompanyCollectDetailChange = (index: number, detail: string) => {
+    const updated = [...companyItems];
+    updated[index] = { ...updated[index], collectDetail: detail };
     setCompanyItems(updated);
     setCollectDetail?.(detail);
   };
@@ -264,9 +372,9 @@ export function ActualType4Collect({
                         </label>
                         <Input
                           type="text"
-                          value={item.detail || ""}
+                          value={item.billingDetail || ""}
                           onChange={(e) =>
-                            handleCompanyDetailChange(idx, e.target.value)
+                            handleCompanyBillingDetailChange(idx, e.target.value)
                           }
                           placeholder="ระบุรายละเอียดเพิ่มเติมการวางบิล เช่น กำหนดรับเช็ค, เอกสารที่ส่งมอบ..."
                           className="bg-white border-slate-300 text-xs h-9"
@@ -327,9 +435,9 @@ export function ActualType4Collect({
                         </label>
                         <Input
                           type="text"
-                          value={item.detail || ""}
+                          value={item.collectDetail || ""}
                           onChange={(e) =>
-                            handleCompanyDetailChange(idx, e.target.value)
+                            handleCompanyCollectDetailChange(idx, e.target.value)
                           }
                           placeholder="ระบุรายละเอียดเพิ่มเติม เช่น ชำระเงินสด, โอนเงิน, เช็ค..."
                           className="bg-white border-slate-300 text-xs h-9"
@@ -451,8 +559,8 @@ export function ActualType4Collect({
                 </label>
                 <Input
                   type="text"
-                  value={collectDetail}
-                  onChange={(e) => setCollectDetail?.(e.target.value)}
+                  value={billingDetail}
+                  onChange={(e) => setBillingDetail?.(e.target.value)}
                   placeholder="ระบุรายละเอียดเพิ่มเติมการวางบิล เช่น กำหนดรับเช็ค..."
                   className="bg-white border-slate-300 text-xs h-9"
                 />

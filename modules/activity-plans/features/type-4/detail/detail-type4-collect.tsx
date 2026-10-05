@@ -36,6 +36,7 @@ export function DetailType4Collect({
   orderNo,
   receivedAmount,
   billingStatus,
+  billingDetail,
   collectDetail,
   paymentImages = [],
 }: DetailType4CollectProps) {
@@ -47,10 +48,12 @@ export function DetailType4Collect({
 
   // Calculate totals
   const totalReceived = hasMultipleCompanies
-    ? target!.items!.reduce((sum, item, idx) => {
+    ? target!.items!.reduce((sum, item) => {
+        const isBilling = item.collectType === "BILLING";
+        if (isBilling) return sum;
         const itemVal =
           parseCleanAmount(item.receivedAmount) ??
-          (idx === 0 ? parseCleanAmount(receivedAmount) : null) ??
+          parseCleanAmount(receivedAmount) ??
           0;
         return sum + itemVal;
       }, 0)
@@ -86,14 +89,12 @@ export function DetailType4Collect({
       : [];
 
   const billingSuccessCount = hasMultipleCompanies
-    ? target!.items!.filter(
-        (item, idx) =>
-          item.collectType === "BILLING" &&
-          (item.billingStatus === "วางบิลสำเร็จ" ||
-            (!item.billingStatus &&
-              idx === 0 &&
-              billingStatus === "วางบิลสำเร็จ")),
-      ).length
+    ? target!.items!.filter((item) => {
+        const isBilling = item.collectType === "BILLING";
+        if (!isBilling) return false;
+        const status = item.billingStatus || billingStatus;
+        return status === "วางบิลสำเร็จ";
+      }).length
     : billingStatus === "วางบิลสำเร็จ"
       ? 1
       : 0;
@@ -138,15 +139,28 @@ export function DetailType4Collect({
                   0;
                 const recVal =
                   parseCleanAmount(item.receivedAmount) ??
-                  (idx === 0 ? parseCleanAmount(receivedAmount) : null) ??
+                  (!isBilling && parseCleanAmount(receivedAmount) != null
+                    ? parseCleanAmount(receivedAmount)
+                    : null) ??
                   0;
                 const remaining = Math.max(0, targetVal - recVal);
                 const itemBillingStatus =
                   item.billingStatus ||
-                  (idx === 0 && billingStatus ? billingStatus : "");
-                const itemDetail =
-                  item.detail ||
-                  (idx === 0 && collectDetail ? collectDetail : "");
+                  (isBilling && billingStatus ? billingStatus : "");
+                const itemBillingDetail =
+                  item.billingDetail ||
+                  (isBilling && billingDetail
+                    ? billingDetail
+                    : isBilling && item.detail
+                      ? item.detail
+                      : "");
+                const itemCollectDetail =
+                  item.collectDetail ||
+                  (!isBilling && collectDetail
+                    ? collectDetail
+                    : !isBilling && item.detail
+                      ? item.detail
+                      : "");
 
                 return (
                   <div
@@ -204,13 +218,13 @@ export function DetailType4Collect({
                           )}
                         </div>
 
-                        {itemDetail && (
+                        {itemBillingDetail && (
                           <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs space-y-1">
                             <span className="text-slate-500 font-medium block">
                               รายละเอียดเพิ่มเติม:
                             </span>
                             <span className="text-slate-800 font-medium block whitespace-pre-wrap">
-                              {itemDetail}
+                              {itemBillingDetail}
                             </span>
                           </div>
                         )}
@@ -253,13 +267,13 @@ export function DetailType4Collect({
                           </div>
                         )}
 
-                        {itemDetail && (
+                        {itemCollectDetail && (
                           <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs space-y-1">
                             <span className="text-slate-500 font-medium block">
                               รายละเอียดเพิ่มเติม:
                             </span>
                             <span className="text-slate-800 font-medium block whitespace-pre-wrap">
-                              {itemDetail}
+                              {itemCollectDetail}
                             </span>
                           </div>
                         )}
@@ -349,13 +363,13 @@ export function DetailType4Collect({
                   )}
                 </div>
 
-                {collectDetail && (
+                {(billingDetail || collectDetail) && (
                   <div className="bg-white p-3 rounded-xl border border-slate-200/80 text-xs space-y-1">
                     <span className="text-slate-500 font-medium block">
                       รายละเอียดเพิ่มเติม:
                     </span>
                     <span className="text-slate-800 font-medium block whitespace-pre-wrap">
-                      {collectDetail}
+                      {billingDetail || collectDetail}
                     </span>
                   </div>
                 )}

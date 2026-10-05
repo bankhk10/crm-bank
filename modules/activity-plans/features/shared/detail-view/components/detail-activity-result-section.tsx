@@ -100,7 +100,8 @@ export function DetailActivityResultSection({
           orderNo={parsedResults.t4OrderNo}
           receivedAmount={parsedResults.t4ReceivedAmount}
           billingStatus={parsedResults.t4BillingStatus}
-          collectDetail={parsedResults.t4Detail}
+          billingDetail={parsedResults.t4BillingDetail}
+          collectDetail={parsedResults.t4CollectDetail || parsedResults.t4Detail}
         />
 
         {/* WORK TYPE 5 */}

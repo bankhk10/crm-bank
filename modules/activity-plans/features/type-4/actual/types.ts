@@ -9,6 +9,8 @@ export interface TargetCollectCompanyItem {
   collectType?: "BILLING" | "COLLECT";
   receivedAmount?: string;
   billingStatus?: "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ" | "";
+  billingDetail?: string;
+  collectDetail?: string;
   detail?: string;
 }
 
@@ -28,6 +30,8 @@ export interface ActualType4CollectProps {
   setReceivedAmount: (v: string) => void;
   billingStatus?: string;
   setBillingStatus?: (v: string) => void;
+  billingDetail?: string;
+  setBillingDetail?: (v: string) => void;
   collectDetail?: string;
   setCollectDetail?: (v: string) => void;
   paymentImages?: ImageFile[];
@@ -50,6 +54,7 @@ export interface DetailType4CollectProps {
   orderNo?: string;
   receivedAmount?: string;
   billingStatus?: string;
+  billingDetail?: string;
   collectDetail?: string;
   paymentImages?: ImageFile[];
 }

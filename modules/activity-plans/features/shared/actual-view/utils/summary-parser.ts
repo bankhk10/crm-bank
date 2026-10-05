@@ -65,8 +65,10 @@ export interface ParsedSummaryValues {
 
   // Type 4
   t4OrderNo?: string;
-  t4BillingStatus?: "วางบิลสำเร็จ" | "รอวางบิล";
+  t4BillingStatus?: "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ" | "รอวางบิล" | string;
   t4ReceivedAmount?: string;
+  t4BillingDetail?: string;
+  t4CollectDetail?: string;
   t4Detail?: string;
   t4CollectActualAmount?: number;
 
@@ -718,11 +720,35 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     } else if (resData.collectResultAmount) {
       result.t4ReceivedAmount = String(resData.collectResultAmount);
     }
+    // Parse Billing Detail
+    const billingDetailMatch = summaryText.match(
+      /(?:รายละเอียดเพิ่มเติม\s*\(วางบิล\)|รายละเอียดการวางบิล):\s*(.+)/,
+    );
+    if (billingDetailMatch && billingDetailMatch[1]) {
+      result.t4BillingDetail = billingDetailMatch[1].split("\n")[0].trim();
+    }
+
+    // Parse Collect Detail
+    const collectDetailMatch = summaryText.match(
+      /(?:รายละเอียดเพิ่มเติม\s*\(เก็บเงิน\)|รายละเอียดการเก็บเงิน):\s*(.+)/,
+    );
+    if (collectDetailMatch && collectDetailMatch[1]) {
+      result.t4CollectDetail = collectDetailMatch[1].split("\n")[0].trim();
+    }
+
+    // Backward compatibility for legacy format
     const t4DetailMatch = summaryText.match(
       /(?:รายละเอียดเพิ่มเติม\s*\(วางบิล\/เก็บเงิน\)|รายละเอียดเพิ่มเติม):\s*(.+)/,
     );
     if (t4DetailMatch && t4DetailMatch[1]) {
-      result.t4Detail = t4DetailMatch[1].split("\n")[0].trim();
+      const legacyVal = t4DetailMatch[1].split("\n")[0].trim();
+      result.t4Detail = legacyVal;
+      if (!result.t4BillingDetail && result.t4BillingStatus) {
+        result.t4BillingDetail = legacyVal;
+      }
+      if (!result.t4CollectDetail && (result.t4ReceivedAmount || !result.t4BillingStatus)) {
+        result.t4CollectDetail = legacyVal;
+      }
     }
 
     // Type 5

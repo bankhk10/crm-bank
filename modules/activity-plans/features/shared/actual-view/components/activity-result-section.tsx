@@ -176,6 +176,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT4ReceivedAmount = t4 ? t4.setT4ReceivedAmount : (props.setT4ReceivedAmount || (() => {}));
   const t4BillingStatus = t4 ? t4.t4BillingStatus : (props.t4BillingStatus ?? "");
   const setT4BillingStatus = t4 ? t4.setT4BillingStatus : (props.setT4BillingStatus || (() => {}));
+  const t4BillingDetail = t4 ? t4.t4BillingDetail : (props.t4BillingDetail ?? "");
+  const setT4BillingDetail = t4 ? t4.setT4BillingDetail : (props.setT4BillingDetail || (() => {}));
+  const t4CollectDetail = t4 ? t4.t4CollectDetail : (props.t4CollectDetail ?? "");
+  const setT4CollectDetail = t4 ? t4.setT4CollectDetail : (props.setT4CollectDetail || (() => {}));
   const t4Detail = t4 ? t4.t4Detail : (props.t4Detail ?? "");
   const setT4Detail = t4 ? t4.setT4Detail : (props.setT4Detail || (() => {}));
   const t4PaymentImages = t4 ? t4.t4PaymentImages : (props.t4PaymentImages ?? []);
@@ -542,8 +546,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             setReceivedAmount={setT4ReceivedAmount}
             billingStatus={t4BillingStatus}
             setBillingStatus={setT4BillingStatus}
-            collectDetail={t4Detail}
-            setCollectDetail={setT4Detail}
+            billingDetail={t4BillingDetail}
+            setBillingDetail={setT4BillingDetail}
+            collectDetail={t4CollectDetail}
+            setCollectDetail={setT4CollectDetail}
             paymentImages={t4PaymentImages}
             onUploadImages={createUploadHandler(setT4PaymentImages)}
             onRemoveImage={(id) => removeImage(setT4PaymentImages, id)}

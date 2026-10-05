@@ -59,6 +59,8 @@ export interface BuildSummaryInput {
   t4OrderNo?: string;
   t4ReceivedAmount?: string;
   t4BillingStatus?: string;
+  t4BillingDetail?: string;
+  t4CollectDetail?: string;
   t4Detail?: string;
 
   // Type 5
@@ -254,6 +256,8 @@ export function buildResultSummary(
     t4OrderNo,
     t4ReceivedAmount,
     t4BillingStatus,
+    t4BillingDetail,
+    t4CollectDetail,
     t4Detail,
     t5CompetitorBrand,
     t5CompetitorProduct,
@@ -497,8 +501,16 @@ export function buildResultSummary(
     // Type 4
     t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
     t4BillingStatus ? `สถานะการวางบิล: ${t4BillingStatus}` : null,
+    t4BillingDetail
+      ? `รายละเอียดเพิ่มเติม (วางบิล): ${t4BillingDetail}`
+      : null,
     t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
-    t4Detail ? `รายละเอียดเพิ่มเติม (วางบิล/เก็บเงิน): ${t4Detail}` : null,
+    t4CollectDetail
+      ? `รายละเอียดเพิ่มเติม (เก็บเงิน): ${t4CollectDetail}`
+      : null,
+    !t4BillingDetail && !t4CollectDetail && t4Detail
+      ? `รายละเอียดเพิ่มเติม (วางบิล/เก็บเงิน): ${t4Detail}`
+      : null,
 
     // Type 5
     t5SurveyDetails &&

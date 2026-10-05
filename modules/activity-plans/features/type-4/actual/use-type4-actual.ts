@@ -7,6 +7,8 @@ export function useType4Actual() {
   const [t4OrderNo, setT4OrderNo] = useState("");
   const [t4ReceivedAmount, setT4ReceivedAmount] = useState("");
   const [t4BillingStatus, setT4BillingStatus] = useState("");
+  const [t4BillingDetail, setT4BillingDetail] = useState("");
+  const [t4CollectDetail, setT4CollectDetail] = useState("");
   const [t4Detail, setT4Detail] = useState("");
   const [t4PaymentImages, setT4PaymentImages] = useState<ImageFile[]>([]);
 
@@ -19,6 +21,18 @@ export function useType4Actual() {
     if (parsed.t4BillingStatus) {
       setT4BillingStatus(parsed.t4BillingStatus);
     }
+    if (parsed.t4BillingDetail !== undefined) {
+      setT4BillingDetail(parsed.t4BillingDetail);
+    } else if (parsed.t4Detail && parsed.t4BillingStatus) {
+      setT4BillingDetail(parsed.t4Detail);
+    }
+
+    if (parsed.t4CollectDetail !== undefined) {
+      setT4CollectDetail(parsed.t4CollectDetail);
+    } else if (parsed.t4Detail && !parsed.t4BillingStatus) {
+      setT4CollectDetail(parsed.t4Detail);
+    }
+
     if (parsed.t4Detail) {
       setT4Detail(parsed.t4Detail);
     }
@@ -29,9 +43,18 @@ export function useType4Actual() {
       t4OrderNo,
       t4ReceivedAmount,
       t4BillingStatus,
-      t4Detail,
+      t4BillingDetail,
+      t4CollectDetail,
+      t4Detail: t4CollectDetail || t4BillingDetail || t4Detail,
     };
-  }, [t4OrderNo, t4ReceivedAmount, t4BillingStatus, t4Detail]);
+  }, [
+    t4OrderNo,
+    t4ReceivedAmount,
+    t4BillingStatus,
+    t4BillingDetail,
+    t4CollectDetail,
+    t4Detail,
+  ]);
 
   return {
     t4OrderNo,
@@ -40,6 +63,10 @@ export function useType4Actual() {
     setT4ReceivedAmount,
     t4BillingStatus,
     setT4BillingStatus,
+    t4BillingDetail,
+    setT4BillingDetail,
+    t4CollectDetail,
+    setT4CollectDetail,
     t4Detail,
     setT4Detail,
     t4PaymentImages,
