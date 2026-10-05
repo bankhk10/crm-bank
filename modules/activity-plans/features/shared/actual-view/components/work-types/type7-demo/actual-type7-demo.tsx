@@ -339,6 +339,10 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       setDemoProducts={props.setDemoProducts}
       sprayMethod={props.sprayMethod}
       setSprayMethod={props.setSprayMethod}
+      sprayEquipment={props.sprayEquipment}
+      setSprayEquipment={props.setSprayEquipment}
+      otherEquipment={props.otherEquipment}
+      setOtherEquipment={props.setOtherEquipment}
       hasExternalChemicals={props.hasExternalChemicals}
       setHasExternalChemicals={props.setHasExternalChemicals}
       externalProducts={props.externalProducts}
