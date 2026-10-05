@@ -113,6 +113,10 @@ export interface ActualType7NewDemoProps {
   setDemoProducts?: (v: any) => void;
   sprayMethod?: "SINGLE" | "TANK_MIXED" | string;
   setSprayMethod?: (v: any) => void;
+  sprayEquipment?: string;
+  setSprayEquipment?: (v: any) => void;
+  otherEquipment?: string;
+  setOtherEquipment?: (v: any) => void;
   hasExternalChemicals?: boolean;
   setHasExternalChemicals?: (v: any) => void;
   externalProducts?: DemoPlotExternalProductItem[];

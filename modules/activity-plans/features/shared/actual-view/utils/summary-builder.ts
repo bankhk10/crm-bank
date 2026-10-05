@@ -574,6 +574,11 @@ export function buildResultSummary(
           input.t7SprayMethod
             ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
             : null,
+          input.t7SprayEquipment
+            ? input.t7SprayEquipment === "อื่นๆ ระบุ.." && input.t7OtherEquipment
+              ? `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment} (${input.t7OtherEquipment})`
+              : `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment}`
+            : null,
           input.t7DemoProducts && input.t7DemoProducts.length > 0
             ? `สินค้าสาธิต: ${input.t7DemoProducts
                 .map((dp) => {
@@ -1311,6 +1316,8 @@ export function buildResultSummary(
       growthStage: input.t7GrowthStage?.trim() || null,
       cropCondition: input.t7CropCondition || null,
       productResponse: input.t7ProductResponse || null,
+      sprayEquipment: input.t7SprayEquipment || "เป้สะพายหลัง",
+      otherEquipment: input.t7OtherEquipment || null,
     };
   }
 

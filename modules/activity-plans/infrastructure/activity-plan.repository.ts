@@ -2703,6 +2703,8 @@ export type CreateActivityResultInput = {
     growthStage?: string | null;
     cropCondition?: string | null;
     productResponse?: string | null;
+    sprayEquipment?: string | null;
+    otherEquipment?: string | null;
   } | null;
   attachments?: Array<{
     workTypeCode?: string | null;
@@ -3494,6 +3496,9 @@ export async function upsertActivityResult(
             productResponse: demoData.productResponse ?? null,
             usageMethod: demoData.usageMethod ?? null,
             notes: demoData.notes ?? null,
+            sprayMethod: demoData.sprayMethod ?? null,
+            sprayEquipment: demoData.sprayEquipment ?? null,
+            otherEquipment: demoData.otherEquipment ?? null,
           },
         });
       } else {
@@ -3511,6 +3516,9 @@ export async function upsertActivityResult(
             productResponse: demoData.productResponse ?? null,
             usageMethod: demoData.usageMethod ?? null,
             notes: demoData.notes ?? null,
+            sprayMethod: demoData.sprayMethod ?? null,
+            sprayEquipment: demoData.sprayEquipment ?? null,
+            otherEquipment: demoData.otherEquipment ?? null,
           },
         });
       }

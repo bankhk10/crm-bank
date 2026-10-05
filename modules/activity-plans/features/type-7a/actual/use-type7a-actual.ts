@@ -46,6 +46,8 @@ export function useType7aActual() {
   >("");
   const [t7DemoProducts, setT7DemoProducts] = useState<DemoPlotProductItem[]>([]);
   const [t7SprayMethod, setT7SprayMethod] = useState<"SINGLE" | "TANK_MIXED">("SINGLE");
+  const [t7SprayEquipment, setT7SprayEquipment] = useState<string>("เป้สะพายหลัง");
+  const [t7OtherEquipment, setT7OtherEquipment] = useState<string>("");
   const [t7HasExternalChemicals, setT7HasExternalChemicals] = useState(false);
   const [t7ExternalProducts, setT7ExternalProducts] = useState<DemoPlotExternalProductItem[]>([]);
   const [t7InitialPhotos, setT7InitialPhotos] = useState<ImageFile[]>([]);
@@ -129,6 +131,8 @@ export function useType7aActual() {
         );
       }
       if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
+      if (dp.sprayEquipment) setT7SprayEquipment(dp.sprayEquipment);
+      if (dp.otherEquipment) setT7OtherEquipment(dp.otherEquipment);
       if (dp.hasExternalChemicals != null)
         setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
       if (dp.externalProducts && dp.externalProducts.length > 0) {
@@ -157,6 +161,8 @@ export function useType7aActual() {
         if (visit1.growthStage) setT7GrowthStage(visit1.growthStage);
         if (visit1.cropCondition) setT7CropCondition(visit1.cropCondition);
         if (visit1.productResponse) setT7ProductResponse(visit1.productResponse);
+        if (visit1.sprayEquipment) setT7SprayEquipment(visit1.sprayEquipment);
+        if (visit1.otherEquipment) setT7OtherEquipment(visit1.otherEquipment);
       }
       if (dp.demoProducts && dp.demoProducts.length > 0) {
         const planT7aProducts = (
@@ -353,6 +359,8 @@ export function useType7aActual() {
       if (parsed.t7CropCondition) setT7CropCondition(parsed.t7CropCondition);
       if (parsed.t7ProductResponse) setT7ProductResponse(parsed.t7ProductResponse);
       if (parsed.t7SprayMethod) setT7SprayMethod(parsed.t7SprayMethod);
+      if (parsed.t7SprayEquipment) setT7SprayEquipment(parsed.t7SprayEquipment);
+      if (parsed.t7OtherEquipment) setT7OtherEquipment(parsed.t7OtherEquipment);
       if (parsed.t7HasExternalChemicals != null)
         setT7HasExternalChemicals(Boolean(parsed.t7HasExternalChemicals));
       if (parsed.t7ExternalProducts && parsed.t7ExternalProducts.length > 0)
@@ -409,6 +417,8 @@ export function useType7aActual() {
         if (dp.cropCondition) setT7CropCondition(dp.cropCondition);
         if (dp.productResponse) setT7ProductResponse(dp.productResponse);
         if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
+        if (dp.sprayEquipment) setT7SprayEquipment(dp.sprayEquipment);
+        if (dp.otherEquipment) setT7OtherEquipment(dp.otherEquipment);
         if (dp.hasExternalChemicals != null)
           setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
         if (dp.externalProducts) setT7ExternalProducts(dp.externalProducts);
@@ -525,6 +535,8 @@ export function useType7aActual() {
         t7FinalSummaryNotes: "",
         t7DemoProducts,
         t7SprayMethod,
+        t7SprayEquipment: t7SprayEquipment || "เป้สะพายหลัง",
+        t7OtherEquipment: t7OtherEquipment || "",
         t7HasExternalChemicals,
         t7ExternalProducts,
         t7InitialPhotos: cleanPhotos,
@@ -565,6 +577,8 @@ export function useType7aActual() {
       t7ProductResponse,
       t7DemoProducts,
       t7SprayMethod,
+      t7SprayEquipment,
+      t7OtherEquipment,
       t7HasExternalChemicals,
       t7ExternalProducts,
       t7InitialPhotos,
@@ -632,6 +646,10 @@ export function useType7aActual() {
     setT7DemoProducts,
     t7SprayMethod,
     setT7SprayMethod,
+    t7SprayEquipment,
+    setT7SprayEquipment,
+    t7OtherEquipment,
+    setT7OtherEquipment,
     t7HasExternalChemicals,
     setT7HasExternalChemicals,
     t7ExternalProducts,

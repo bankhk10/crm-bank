@@ -361,10 +361,19 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
   const setT7DaysAfterSpray = t7b ? t7b.setT7DaysAfterSpray : (props.setT7DaysAfterSpray || props.setDaysAfterSpray || (() => {}));
   const t7bProductRates = t7b ? t7b.t7bProductRates : (props.t7bProductRates ?? []);
   const setT7bProductRates = t7b ? t7b.setT7bProductRates : (props.setT7bProductRates || props.setBProductRates || (() => {}));
-  const t7SprayEquipment = t7b ? t7b.t7SprayEquipment : (props.t7SprayEquipment ?? "");
-  const setT7SprayEquipment = t7b ? t7b.setT7SprayEquipment : (props.setT7SprayEquipment || props.setSprayEquipment || (() => {}));
-  const t7OtherEquipment = t7b ? t7b.t7OtherEquipment : (props.t7OtherEquipment ?? "");
-  const setOtherEquipment = t7b ? t7b.setT7OtherEquipment : (props.setOtherEquipment || (() => {}));
+  const t7SprayEquipment = t7a?.t7SprayEquipment || t7b?.t7SprayEquipment || (props.t7SprayEquipment ?? "เป้สะพายหลัง");
+  const setT7SprayEquipment = (val: string) => {
+    if (t7a?.setT7SprayEquipment) t7a.setT7SprayEquipment(val);
+    if (t7b?.setT7SprayEquipment) t7b.setT7SprayEquipment(val);
+    if (props.setT7SprayEquipment) props.setT7SprayEquipment(val);
+    if (props.setSprayEquipment) props.setSprayEquipment(val);
+  };
+  const t7OtherEquipment = t7a?.t7OtherEquipment || t7b?.t7OtherEquipment || (props.t7OtherEquipment ?? "");
+  const setOtherEquipment = (val: string) => {
+    if (t7a?.setT7OtherEquipment) t7a.setT7OtherEquipment(val);
+    if (t7b?.setT7OtherEquipment) t7b.setT7OtherEquipment(val);
+    if (props.setOtherEquipment) props.setOtherEquipment(val);
+  };
   const t7bSprayingRounds = t7b ? t7b.t7bSprayingRounds : (props.t7bSprayingRounds ?? []);
   const setT7bSprayingRounds = t7b ? t7b.setT7bSprayingRounds : (props.setT7bSprayingRounds || (() => {}));
 
@@ -652,6 +661,10 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             setDemoProducts={setT7DemoProducts}
             sprayMethod={t7aSprayMethod}
             setSprayMethod={setT7aSprayMethod}
+            sprayEquipment={t7SprayEquipment}
+            setSprayEquipment={setT7SprayEquipment}
+            otherEquipment={t7OtherEquipment}
+            setOtherEquipment={setOtherEquipment}
             hasExternalChemicals={t7aHasExternalChemicals}
             setHasExternalChemicals={setT7aHasExternalChemicals}
             externalProducts={t7aExternalProducts}

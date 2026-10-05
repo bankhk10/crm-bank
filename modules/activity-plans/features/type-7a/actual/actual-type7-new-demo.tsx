@@ -48,6 +48,7 @@ import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
   DEMO_PLOT_SPRAY_METHODS,
+  DEMO_PLOT_SPRAY_EQUIPMENTS,
   EXTERNAL_CHEMICAL_FORMULAS,
   DEMO_PLOT_IRRIGATION_METHODS,
   UserDemoPlotOption,
@@ -137,6 +138,10 @@ export function ActualType7NewDemo({
   // 6. Spray Method & External Chemicals
   sprayMethod = "SINGLE",
   setSprayMethod,
+  sprayEquipment = "เป้สะพายหลัง",
+  setSprayEquipment,
+  otherEquipment = "",
+  setOtherEquipment,
   hasExternalChemicals = false,
   setHasExternalChemicals,
   externalProducts = [],
@@ -357,8 +362,7 @@ export function ActualType7NewDemo({
     const item = { ...current };
 
     if (field === "productId") {
-      const matched =
-        selectedProduct || products.find((p) => p.id === val);
+      const matched = selectedProduct || products.find((p) => p.id === val);
       item.productId = val;
       item.productName = matched?.name || "";
       item.unit =
@@ -851,7 +855,7 @@ export function ActualType7NewDemo({
           {/* อายุพืช (วันหลังปลูก) */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-700">
-              อายุพืช
+              อายุพืช(วันหลังปลูก)
             </label>
             <div className="flex gap-2">
               <Input
@@ -1165,7 +1169,10 @@ export function ActualType7NewDemo({
                           value={item.productId}
                           valueKey="id"
                           products={products}
-                          onChange={(val: string, selectedProduct?: ActivityProductItem) =>
+                          onChange={(
+                            val: string,
+                            selectedProduct?: ActivityProductItem,
+                          ) =>
                             handleUpdateProductByIdx(
                               origIdx,
                               "productId",
@@ -1472,6 +1479,52 @@ export function ActualType7NewDemo({
             )}
           </div>
         )}
+
+        {/* อุปกรณ์ที่ใช้ฉีดพ่น */}
+        <div className="space-y-2 pt-3 border-t border-slate-200/80">
+          <label className="block text-xs font-bold text-slate-700">
+            อุปกรณ์ที่ใช้ฉีดพ่น <span className="text-rose-500">*</span>
+          </label>
+          <div className="flex flex-wrap gap-2.5 items-center">
+            {DEMO_PLOT_SPRAY_EQUIPMENTS.map((eq) => (
+              <label
+                key={eq}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-colors ${
+                  sprayEquipment === eq
+                    ? "bg-emerald-100/80 border-emerald-500 text-emerald-950 font-bold shadow-2xs"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="type7a-spray-equipment"
+                  value={eq}
+                  checked={sprayEquipment === eq}
+                  onChange={() => {
+                    setSprayEquipment?.(eq);
+                    if (eq !== "อื่นๆ ระบุ..") {
+                      setOtherEquipment?.("");
+                    }
+                  }}
+                  className="w-3.5 h-3.5 text-emerald-600 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span>{eq}</span>
+              </label>
+            ))}
+          </div>
+
+          {sprayEquipment === "อื่นๆ ระบุ.." && (
+            <div className="pt-2 sm:w-80">
+              <Input
+                value={otherEquipment || ""}
+                onChange={(e) => setOtherEquipment?.(e.target.value)}
+                placeholder="ระบุอุปกรณ์ที่ใช้..."
+                className="h-9 text-xs bg-white border-slate-200 rounded-lg"
+                required
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
