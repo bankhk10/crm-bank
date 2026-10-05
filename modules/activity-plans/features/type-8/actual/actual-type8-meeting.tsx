@@ -508,11 +508,11 @@ export function ActualType8Meeting({
                         value={item.productName}
                         products={activeProducts as ActivityProductItem[]}
                         placeholder="ค้นหาหรือเลือกสินค้า..."
-                        onSelect={(prod) => {
+                        onChange={(val, prod) => {
                           handleUpdateAdditionalRow(
                             idx,
                             "productName",
-                            prod.name,
+                            prod?.name || val,
                           );
                         }}
                       />
