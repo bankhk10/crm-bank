@@ -80,10 +80,6 @@ export function Type7Demo({
   const existingPlotOptions = plotList.map((plot) => ({
     value: plot.name,
     label: plot.name,
-    subLabel:
-      plot.productName || plot.showcase
-        ? `สินค้า: ${plot.productName || plot.showcase}`
-        : undefined,
   }));
 
   const isModeA = mode === "TYPE_7A";
