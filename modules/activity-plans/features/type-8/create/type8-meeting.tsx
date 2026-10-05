@@ -247,15 +247,12 @@ export function Type8Meeting({
                             required
                           />
                         </div>
-                      ) : (
+                      ) : item.isUnregisteredSubdealer ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
                             <div className="flex items-center justify-between mb-1">
                               <label className="block text-xs font-medium text-slate-700">
-                                {item.isUnregisteredSubdealer
-                                  ? "ชื่อร้านค้า Subdealer"
-                                  : "เลือกร้านค้า Subdealer จาก Customer Master"}{" "}
-                                <span className="text-red-500">*</span>
+                                ชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
                               </label>
                               <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
                                 <input
@@ -290,67 +287,20 @@ export function Type8Meeting({
                                 <span>ไม่มีในระบบ</span>
                               </label>
                             </div>
-                            {item.isUnregisteredSubdealer ? (
-                              <input
-                                type="text"
-                                value={item.subDealerStore || ""}
-                                onChange={(e) =>
-                                  updateType8Row(
-                                    item.id,
-                                    "subDealerStore",
-                                    e.target.value,
-                                  )
-                                }
-                                disabled={readonly}
-                                placeholder="ระบุชื่อร้านค้า Subdealer..."
-                                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
-                              />
-                            ) : (
-                              <ActivityCustomerSelect
-                                id={`farmer-subdealer-combobox-${item.id}`}
-                                type="SUBDEALER"
-                                label=""
-                                labelClassName="hidden"
-                                triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                                value={item.subdealerId || ""}
-                                onChange={(val, cust) => {
-                                  if (cust) {
-                                    updateType8Row(
-                                      item.id,
-                                      "subdealerId",
-                                      cust.id,
-                                    );
-                                    if (cust.parentDealerId) {
-                                      const parent = customers.find(
-                                        (c) => c.id === cust.parentDealerId,
-                                      );
-                                      if (parent) {
-                                        updateType8Row(
-                                          item.id,
-                                          "dealerId",
-                                          parent.id,
-                                        );
-                                        updateType8Row(
-                                          item.id,
-                                          "dealerName",
-                                          parent.name,
-                                        );
-                                        if (onDealerSelect)
-                                          onDealerSelect(parent);
-                                      }
-                                    }
-                                  } else {
-                                    updateType8Row(item.id, "subdealerId", "");
-                                  }
-                                }}
-                                customers={customers}
-                                placeholder="เลือกร้านค้า Subdealer..."
-                                searchPlaceholder="ค้นหาร้านค้า Subdealer..."
-                                emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
-                                disabled={readonly}
-                                required
-                              />
-                            )}
+                            <input
+                              type="text"
+                              value={item.subDealerStore || ""}
+                              onChange={(e) =>
+                                updateType8Row(
+                                  item.id,
+                                  "subDealerStore",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุชื่อร้านค้า Subdealer..."
+                              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                            />
                           </div>
                           <div>
                             <ActivityCustomerSelect
@@ -388,6 +338,90 @@ export function Type8Meeting({
                               required
                             />
                           </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-slate-700">
+                              เลือกร้านค้า Subdealer จาก Customer Master <span className="text-red-500">*</span>
+                            </label>
+                            <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(
+                                  item.isUnregisteredSubdealer,
+                                )}
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  updateType8Row(
+                                    item.id,
+                                    "isUnregisteredSubdealer",
+                                    isChecked,
+                                  );
+                                  if (isChecked) {
+                                    updateType8Row(
+                                      item.id,
+                                      "subdealerId",
+                                      "",
+                                    );
+                                  } else {
+                                    updateType8Row(
+                                      item.id,
+                                      "subDealerStore",
+                                      "",
+                                    );
+                                  }
+                                }}
+                                disabled={readonly}
+                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                              />
+                              <span>ไม่มีในระบบ</span>
+                            </label>
+                          </div>
+                          <ActivityCustomerSelect
+                            id={`farmer-subdealer-combobox-${item.id}`}
+                            type="SUBDEALER"
+                            label=""
+                            labelClassName="hidden"
+                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
+                            value={item.subdealerId || ""}
+                            onChange={(val, cust) => {
+                              if (cust) {
+                                updateType8Row(
+                                  item.id,
+                                  "subdealerId",
+                                  cust.id,
+                                );
+                                if (cust.parentDealerId) {
+                                  const parent = customers.find(
+                                    (c) => c.id === cust.parentDealerId,
+                                  );
+                                  if (parent) {
+                                    updateType8Row(
+                                      item.id,
+                                      "dealerId",
+                                      parent.id,
+                                    );
+                                    updateType8Row(
+                                      item.id,
+                                      "dealerName",
+                                      parent.name,
+                                    );
+                                    if (onDealerSelect)
+                                      onDealerSelect(parent);
+                                  }
+                                }
+                              } else {
+                                updateType8Row(item.id, "subdealerId", "");
+                              }
+                            }}
+                            customers={customers}
+                            placeholder="เลือกร้านค้า Subdealer..."
+                            searchPlaceholder="ค้นหาร้านค้า Subdealer..."
+                            emptyText="ไม่พบร้านค้า Subdealer ในระบบ"
+                            disabled={readonly}
+                            required
+                          />
                         </div>
                       )}
                     </div>
@@ -430,32 +464,98 @@ export function Type8Meeting({
 
                   {/* Case 3: ซับดีลเลอร์ */}
                   {meetingTarget === "SUBDEALER" && (
-                    <div className="pt-2 border-t border-slate-200/60 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-xs font-medium text-slate-700">
-                            {item.isUnregisteredSubdealer
-                              ? "ชื่อร้านค้า Subdealer"
-                              : "เลือกร้านค้า Subdealer จาก Customer Master"}{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      {item.isUnregisteredSubdealer ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-xs font-medium text-slate-700">
+                                ชื่อร้านค้า Subdealer <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <input
+                              type="text"
+                              value={item.subDealerStore || ""}
+                              onChange={(e) =>
+                                updateType8Row(
+                                  item.id,
+                                  "subDealerStore",
+                                  e.target.value,
+                                )
+                              }
+                              disabled={readonly}
+                              placeholder="ระบุชื่อร้านค้า Subdealer..."
+                              className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                            />
+                            {!readonly && (
+                              <div className="mt-2 flex items-center justify-start">
+                                <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(item.isUnregisteredSubdealer)}
+                                    onChange={(e) => {
+                                      const isChecked = e.target.checked;
+                                      updateType8Row(
+                                        item.id,
+                                        "isUnregisteredSubdealer",
+                                        isChecked,
+                                      );
+                                      if (isChecked) {
+                                        updateType8Row(item.id, "subdealerId", "");
+                                      } else {
+                                        updateType8Row(
+                                          item.id,
+                                          "subDealerStore",
+                                          "",
+                                        );
+                                      }
+                                    }}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                  />
+                                  <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                                </label>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <ActivityCustomerSelect
+                              id={`subdealer-parent-dealer-combobox-${item.id}`}
+                              type="DEALER"
+                              label="เลือก Dealer ต้นสังกัด จาก Customer Master"
+                              labelClassName="block text-xs font-medium text-slate-700 mb-1"
+                              triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
+                              value={item.dealerId || ""}
+                              onChange={(val, cust) => {
+                                updateType8Row(
+                                  item.id,
+                                  "dealerName",
+                                  cust?.name || "",
+                                );
+                                updateType8Row(item.id, "dealerId", cust?.id || "");
+                                if (onDealerSelect)
+                                  onDealerSelect(
+                                    cust
+                                      ? customers.find((c) => c.id === cust.id) ||
+                                          null
+                                      : null,
+                                  );
+                              }}
+                              customers={customers}
+                              placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
+                              searchPlaceholder="ค้นหา Dealer..."
+                              emptyText="ไม่พบร้านค้า Dealer ในระบบ"
+                              disabled={readonly}
+                              required
+                            />
+                          </div>
                         </div>
-                        {item.isUnregisteredSubdealer ? (
-                          <input
-                            type="text"
-                            value={item.subDealerStore || ""}
-                            onChange={(e) =>
-                              updateType8Row(
-                                item.id,
-                                "subDealerStore",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="ระบุชื่อร้านค้า Subdealer..."
-                            className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
-                          />
-                        ) : (
+                      ) : (
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-slate-700">
+                              เลือกร้านค้า Subdealer จาก Customer Master <span className="text-red-500">*</span>
+                            </label>
+                          </div>
                           <ActivityCustomerSelect
                             id={`subdealer-target-combobox-${item.id}`}
                             type="SUBDEALER"
@@ -495,68 +595,37 @@ export function Type8Meeting({
                             disabled={readonly}
                             required
                           />
-                        )}
-                        {!readonly && (
-                          <div className="mt-3 flex items-center justify-start">
-                            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={Boolean(item.isUnregisteredSubdealer)}
-                                onChange={(e) => {
-                                  const isChecked = e.target.checked;
-                                  updateType8Row(
-                                    item.id,
-                                    "isUnregisteredSubdealer",
-                                    isChecked,
-                                  );
-                                  if (isChecked) {
-                                    updateType8Row(item.id, "subdealerId", "");
-                                  } else {
+                          {!readonly && (
+                            <div className="mt-2.5 flex items-center justify-start">
+                              <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(item.isUnregisteredSubdealer)}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
                                     updateType8Row(
                                       item.id,
-                                      "subDealerStore",
-                                      "",
+                                      "isUnregisteredSubdealer",
+                                      isChecked,
                                     );
-                                  }
-                                }}
-                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
-                              />
-                              <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <ActivityCustomerSelect
-                          id={`subdealer-parent-dealer-combobox-${item.id}`}
-                          type="DEALER"
-                          label="เลือก Dealer ต้นสังกัด จาก Customer Master"
-                          labelClassName="block text-xs font-medium text-slate-700 mb-1"
-                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500"
-                          value={item.dealerId || ""}
-                          onChange={(val, cust) => {
-                            updateType8Row(
-                              item.id,
-                              "dealerName",
-                              cust?.name || "",
-                            );
-                            updateType8Row(item.id, "dealerId", cust?.id || "");
-                            if (onDealerSelect)
-                              onDealerSelect(
-                                cust
-                                  ? customers.find((c) => c.id === cust.id) ||
-                                      null
-                                  : null,
-                              );
-                          }}
-                          customers={customers}
-                          placeholder="เลือกร้านค้า Dealer ต้นสังกัด..."
-                          searchPlaceholder="ค้นหา Dealer..."
-                          emptyText="ไม่พบร้านค้า Dealer ในระบบ"
-                          disabled={readonly}
-                          required
-                        />
-                      </div>
+                                    if (isChecked) {
+                                      updateType8Row(item.id, "subdealerId", "");
+                                    } else {
+                                      updateType8Row(
+                                        item.id,
+                                        "subDealerStore",
+                                        "",
+                                      );
+                                    }
+                                  }}
+                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5"
+                                />
+                                <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -698,7 +767,7 @@ export function Type8Meeting({
                   </div>
                 </div>
 
-                {/* 4. รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน (ตารางแบบ TYPE_9 + รายละเอียด) */}
+                {/* 4. รายการสินค้าที่เสนอขาย / โปรโมชันหน้าร้าน */}
                 <div className="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
@@ -714,7 +783,7 @@ export function Type8Meeting({
                         className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
                       >
                         <Plus className="h-3.5 w-3.5 mr-1" />
-                        เพิ่มสินค้าเสนอขาย
+                        เพิ่มรายการ
                       </Button>
                     )}
                   </div>
@@ -723,27 +792,12 @@ export function Type8Meeting({
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                         <tr>
-                          <th className="py-2 px-2.5 text-center w-8">ลำดับ</th>
-                          <th className="py-2 px-2.5 min-w-[170px]">
-                            เลือกสินค้า <span className="text-red-500">*</span>
-                          </th>
-                          <th className="py-2 px-2.5 w-24 text-center">
-                            จำนวน (ลัง)
-                          </th>
-                          <th className="py-2 px-2.5 w-28 text-center">
-                            ราคาต่อลัง (บาท)
-                          </th>
-                          <th className="py-2 px-2.5 w-28 text-right">
-                            รวม (บาท)
-                          </th>
-                          <th className="py-2 px-2.5 min-w-[160px]">
-                            รายละเอียด{" "}
-                            <span className="text-slate-400 font-normal">
-                              (โปรโมชัน)
-                            </span>
+                          <th className="py-2 px-2.5 text-center w-12">ลำดับ</th>
+                          <th className="py-2 px-2.5 min-w-[240px]">
+                            รายละเอียด (โปรโมชัน)
                           </th>
                           {!readonly && (
-                            <th className="py-2 px-2 text-center w-10">ลบ</th>
+                            <th className="py-2 px-2 text-center w-12">ลบ</th>
                           )}
                         </tr>
                       </thead>
@@ -751,18 +805,14 @@ export function Type8Meeting({
                         {promoItems.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={readonly ? 6 : 7}
+                              colSpan={readonly ? 2 : 3}
                               className="py-4 text-center text-slate-400 italic"
                             >
-                              ยังไม่มีรายการสินค้าเสนอขาย / โปรโมชัน
+                              ยังไม่มีรายการโปรโมชัน
                             </td>
                           </tr>
                         ) : (
                           promoItems.map((promo, pIdx) => {
-                            const totalAmount =
-                              (promo.quantityCases || 0) *
-                              (promo.pricePerCase || 0);
-
                             return (
                               <tr
                                 key={promo.id}
@@ -770,71 +820,6 @@ export function Type8Meeting({
                               >
                                 <td className="py-2 px-2.5 text-center font-medium text-slate-500">
                                   {pIdx + 1}
-                                </td>
-                                <td className="py-1.5 px-2.5">
-                                  <ActivityProductSelect
-                                    id={`t8-promo-product-${item.id}-${promo.id}`}
-                                    triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-teal-500"
-                                    value={promo.productName}
-                                    valueKey="name"
-                                    onChange={(val) => {
-                                      if (updatePromotionProduct) {
-                                        updatePromotionProduct(
-                                          item.id,
-                                          promo.id,
-                                          "productName",
-                                          val,
-                                        );
-                                      }
-                                    }}
-                                    products={products}
-                                    placeholder="เลือกสินค้า..."
-                                    searchPlaceholder="ค้นหาสินค้า..."
-                                    emptyText="ไม่พบสินค้า"
-                                    disabled={readonly}
-                                  />
-                                </td>
-                                <td className="py-1.5 px-2.5">
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    value={promo.quantityCases}
-                                    onChange={(e) => {
-                                      if (updatePromotionProduct) {
-                                        updatePromotionProduct(
-                                          item.id,
-                                          promo.id,
-                                          "quantityCases",
-                                          parseInt(e.target.value) || 0,
-                                        );
-                                      }
-                                    }}
-                                    disabled={readonly}
-                                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                  />
-                                </td>
-                                <td className="py-1.5 px-2.5">
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    step="any"
-                                    value={promo.pricePerCase ?? 0}
-                                    onChange={(e) => {
-                                      if (updatePromotionProduct) {
-                                        updatePromotionProduct(
-                                          item.id,
-                                          promo.id,
-                                          "pricePerCase",
-                                          parseFloat(e.target.value) || 0,
-                                        );
-                                      }
-                                    }}
-                                    disabled={readonly}
-                                    className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
-                                  />
-                                </td>
-                                <td className="py-1.5 px-2.5 text-right font-bold text-teal-700">
-                                  ฿{totalAmount.toLocaleString()}
                                 </td>
                                 <td className="py-1.5 px-2.5">
                                   <input
@@ -866,9 +851,9 @@ export function Type8Meeting({
                                         )
                                       }
                                       className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
-                                      title="ลบรายการสินค้า"
+                                      title="ลบรายการ"
                                     >
-                                      <Trash2 className="h-3.5 w-3.5" />
+                                      <Trash2 className="h-3.5 w-3.5 mx-auto" />
                                     </button>
                                   </td>
                                 )}

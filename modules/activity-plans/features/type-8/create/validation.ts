@@ -57,12 +57,6 @@ export function validateType8FormItems({
             error: `กรุณาเลือกร้านค้า Subdealer จาก Customer Master (รายการที่ ${rowNum})`,
           };
         }
-        if (!item.dealerId) {
-          return {
-            isValid: false,
-            error: `กรุณาเลือก Dealer ต้นสังกัดของร้านค้า Subdealer (รายการที่ ${rowNum})`,
-          };
-        }
       }
     } else {
       // FARMER
@@ -85,12 +79,6 @@ export function validateType8FormItems({
             return {
               isValid: false,
               error: `กรุณาเลือกร้านค้า Subdealer จาก Customer Master สำหรับการจัดประชุมฟาร์มเมอร์ (รายการที่ ${rowNum})`,
-            };
-          }
-          if (!item.dealerId) {
-            return {
-              isValid: false,
-              error: `กรุณาเลือก Dealer ต้นสังกัดของร้าน Subdealer (รายการที่ ${rowNum})`,
             };
           }
         }
@@ -133,16 +121,10 @@ export function validateType8FormItems({
     if (item.promotionProducts && item.promotionProducts.length > 0) {
       for (let pIdx = 0; pIdx < item.promotionProducts.length; pIdx++) {
         const promo = item.promotionProducts[pIdx];
-        if (!promo.productName || !promo.productName.trim()) {
+        if (!promo.notes || !promo.notes.trim()) {
           return {
             isValid: false,
-            error: `กรุณาเลือกสินค้าในรายการสินค้าเสนอขาย/โปรโมชัน ลำดับที่ ${pIdx + 1} (รายการที่ ${rowNum})`,
-          };
-        }
-        if (promo.quantityCases == null || Number(promo.quantityCases) < 0) {
-          return {
-            isValid: false,
-            error: `จำนวน (ลัง) ของสินค้าเสนอขายต้องไม่ติดลบ ลำดับที่ ${pIdx + 1} (รายการที่ ${rowNum})`,
+            error: `กรุณาระบุรายละเอียดโปรโมชัน ลำดับที่ ${pIdx + 1} (รายการที่ ${rowNum})`,
           };
         }
       }
