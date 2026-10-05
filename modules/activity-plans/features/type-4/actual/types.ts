@@ -37,16 +37,20 @@ export interface ActualType4CollectProps {
 
 export interface DetailType4CollectProps {
   isVisible: boolean;
-  target: {
-    customer: string;
-    orderNo: string;
-    targetCollect: string;
+  target?: {
+    customer?: string;
+    orderNo?: string;
+    targetCollect?: string;
     targetAmountNum?: number;
     collectAmount?: number;
+    collectType?: "BILLING" | "COLLECT";
     items?: TargetCollectCompanyItem[];
+    [key: string]: any;
   };
   orderNo?: string;
   receivedAmount?: string;
+  billingStatus?: string;
+  collectDetail?: string;
   paymentImages?: ImageFile[];
 }
 

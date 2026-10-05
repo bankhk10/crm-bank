@@ -99,6 +99,8 @@ export function DetailActivityResultSection({
           target={targets.t4}
           orderNo={parsedResults.t4OrderNo}
           receivedAmount={parsedResults.t4ReceivedAmount}
+          billingStatus={parsedResults.t4BillingStatus}
+          collectDetail={parsedResults.t4Detail}
         />
 
         {/* WORK TYPE 5 */}
