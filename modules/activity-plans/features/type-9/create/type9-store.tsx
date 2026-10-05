@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import { ActivityProductSelect } from "@/components/activity/activity-product-select";
@@ -124,37 +123,13 @@ export function Type9Store({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {/* Left Column: Sub Dealer Section */}
           <div className="space-y-3">
-            {/* Header with Checkbox: ไม่มีข้อมูลในระบบ */}
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 {activeIsUnregistered
                   ? "ชื่อร้านค้า Sub Dealer"
                   : "ร้านค้า Sub Dealer (จาก Customer Master)"}{" "}
                 <span className="text-red-500">*</span>
               </label>
-
-              {!readonly && (
-                <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer select-none">
-                  <Checkbox
-                    id="type9-unregistered-subdealer-checkbox"
-                    checked={activeIsUnregistered}
-                    onCheckedChange={(checked) => {
-                      const isChecked = !!checked;
-                      activeSetIsUnregistered(isChecked);
-                      if (isChecked) {
-                        // Switch to unregistered: clear registered subdealer selection
-                        activeSetSubdealerId("");
-                        activeSetSubdealerName("");
-                      } else {
-                        // Switch to registered: clear manual inputs
-                        activeSetSubDealerStore("");
-                      }
-                    }}
-                    className="rounded border-slate-300 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                  />
-                  <span>ไม่มีข้อมูลในระบบ</span>
-                </label>
-              )}
             </div>
 
             {/* Case A: Registered Sub Dealer */}
@@ -195,6 +170,32 @@ export function Type9Store({
                   disabled={readonly}
                   required
                 />
+
+                {!readonly && (
+                  <div className="flex items-center justify-start">
+                    <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        id="type9-unregistered-subdealer-checkbox"
+                        checked={Boolean(activeIsUnregistered)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          activeSetIsUnregistered(isChecked);
+                          if (isChecked) {
+                            // Switch to unregistered: clear registered subdealer selection
+                            activeSetSubdealerId("");
+                            activeSetSubdealerName("");
+                          } else {
+                            // Switch to registered: clear manual inputs
+                            activeSetSubDealerStore("");
+                          }
+                        }}
+                        className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-3.5 w-3.5"
+                      />
+                      <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                    </label>
+                  </div>
+                )}
 
                 {/* READ-ONLY Card for Customer Master Details */}
                 {selectedSubdealerCustomer && (
@@ -248,6 +249,30 @@ export function Type9Store({
                     className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-slate-400"
                     required
                   />
+                  {!readonly && (
+                    <div className="mt-2 flex items-center justify-start">
+                      <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(activeIsUnregistered)}
+                          onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            activeSetIsUnregistered(isChecked);
+                            if (isChecked) {
+                              // Switch to unregistered: clear registered subdealer selection
+                              activeSetSubdealerId("");
+                              activeSetSubdealerName("");
+                            } else {
+                              // Switch to registered: clear manual inputs
+                              activeSetSubDealerStore("");
+                            }
+                          }}
+                          className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-3.5 w-3.5"
+                        />
+                        <span>ร้านค้านี้ไม่มีในระบบ (ระบุเอง)</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 <div>
