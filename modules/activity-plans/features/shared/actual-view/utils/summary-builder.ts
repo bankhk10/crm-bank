@@ -616,13 +616,16 @@ export function buildResultSummary(
 
     // Type 8
     t8ActualAttendees
-      ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees}`
+      ? `จำนวนผู้เข้าร่วมประชุมจริง: ${t8ActualAttendees} คน`
       : null,
     t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
     t8ProductSalesDetails &&
     t8ProductSalesDetails.length > 0 &&
-    t8ProductSalesDetails.some((d) => d.actualQty || d.actualSales)
-      ? `ยอดขายแยกสินค้าประชุม: มีบันทึก ${t8ProductSalesDetails.length} รายการ`
+    t8ProductSalesDetails.some((d) => (d.productName && d.productName.trim() !== "") || d.actualQty || d.notes)
+      ? `ผลการขายแยกสินค้าประชุม: ${t8ProductSalesDetails
+          .filter((d) => (d.productName && d.productName.trim() !== "") || d.actualQty || d.notes)
+          .map((d) => `${d.productName || "สินค้า"}${d.isAdditional ? " [นอกแผน]" : ""} (${d.actualQty ? `${d.actualQty} ลัง` : "0 ลัง"}${d.notes ? ` - ${d.notes}` : ""})`)
+          .join(", ")}`
       : null,
     t8Images && t8Images.length > 0
       ? `รูปภาพบรรยากาศการประชุม: มีแนบ ${t8Images.length} รูป`
@@ -862,20 +865,29 @@ export function buildResultSummary(
     Array.isArray(input.t8ProductSalesDetails)
   ) {
     input.t8ProductSalesDetails.forEach((d) => {
-      const pId = d.productId || d.id;
+      const pId =
+        d.productId ||
+        (input.products || []).find(
+          (p: any) =>
+            p.name?.trim().toLowerCase() ===
+            (d.productName || "").trim().toLowerCase(),
+        )?.id ||
+        d.id;
       const qty = Math.round(parseCleanNumber(d.actualQty) ?? 0);
-      const uPrice = parseCleanNumber(d.unitPrice) ?? 0;
-      const parsedSales = parseCleanNumber(d.actualSales);
-      const total = parsedSales != null ? parsedSales : qty * uPrice;
-      if (pId && (qty > 0 || total > 0)) {
+      const notes = d.notes?.trim() || null;
+      const isAdditional = Boolean(d.isAdditional);
+
+      if (pId && (qty > 0 || notes || (d.productName && d.productName.trim() !== ""))) {
         saleResults.push({
-          workTypeCode: "TYPE_8_PROMOTION",
+          workTypeCode: "TYPE_8",
           storeId: d.storeId || null,
           productId: pId,
           productName: d.productName || null,
           actualQuantity: isNaN(qty) ? 0 : Math.max(0, qty),
-          actualUnitPrice: isNaN(uPrice) ? 0 : Math.max(0, uPrice),
-          actualTotal: isNaN(total) ? 0 : Math.max(0, total),
+          actualUnitPrice: 0,
+          actualTotal: 0,
+          unclosedReason: notes,
+          isAdditional,
         });
       }
     });

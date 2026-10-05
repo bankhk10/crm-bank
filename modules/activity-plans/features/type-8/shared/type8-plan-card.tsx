@@ -151,7 +151,7 @@ export function Type8PlanCard({
           <div className="flex items-center justify-between">
             <span className="text-slate-800 text-xs font-bold flex items-center gap-1.5">
               <ShoppingBag className="w-3.5 h-3.5 text-indigo-600" />
-              รายการสินค้าโปรโมชัน ({promotionalProducts.length} รายการ)
+              รายการโปรโมชันจากแผนงาน ({promotionalProducts.length} รายการ)
             </span>
           </div>
 
@@ -159,12 +159,8 @@ export function Type8PlanCard({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-100/75 border-b border-slate-200 text-[11px] font-bold text-slate-600">
-                  <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                  <th className="py-2 px-3">ชื่อสินค้า</th>
-                  <th className="py-2 px-3 text-center w-24">จำนวน</th>
-                  <th className="py-2 px-3 text-right w-28">ราคาต่อหน่วย</th>
-                  <th className="py-2 px-3 text-right w-32">รวม (บาท)</th>
-                  <th className="py-2 px-3">รายละเอียด</th>
+                  <th className="py-2 px-3 text-center w-12">ลำดับ</th>
+                  <th className="py-2 px-3">รายละเอียด (โปรโมชัน)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -173,24 +169,8 @@ export function Type8PlanCard({
                     <td className="py-2 px-3 text-center text-slate-400 font-medium">
                       {idx + 1}
                     </td>
-                    <td className="py-2 px-3 font-semibold text-slate-800">
-                      {item.productName}
-                    </td>
-                    <td className="py-2 px-3 text-center text-slate-700 font-medium">
-                      {item.quantity ?? item.quantityCases ?? "-"}
-                    </td>
-                    <td className="py-2 px-3 text-right text-slate-700">
-                      {item.unitPrice || item.pricePerCase
-                        ? `฿${(item.unitPrice || item.pricePerCase || 0).toLocaleString()}`
-                        : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-indigo-900">
-                      {item.totalAmount
-                        ? `฿${item.totalAmount.toLocaleString()}`
-                        : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-slate-600">
-                      {item.notes || "-"}
+                    <td className="py-2 px-3 text-slate-800 font-medium whitespace-pre-wrap">
+                      {item.notes || item.productName || "-"}
                     </td>
                   </tr>
                 ))}

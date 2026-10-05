@@ -299,8 +299,8 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         productId: s.productId,
         productName: s.productName || s.product?.name || "",
         actualQty: String(s.actualQuantity ?? ""),
-        unitPrice: Number(s.actualUnitPrice || 0),
-        actualSales: String(s.actualTotal ?? ""),
+        notes: s.unclosedReason || s.notes || "",
+        isAdditional: Boolean(s.isAdditional),
       }));
     }
     const t10Sales = resData.saleResults.filter(

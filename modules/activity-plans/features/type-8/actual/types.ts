@@ -9,8 +9,10 @@ export interface ProductSaleDetail {
   productId?: string;
   productName: string;
   actualQty: string;
-  actualSales: string;
+  actualSales?: string;
   unitPrice?: number;
+  notes?: string;
+  isAdditional?: boolean;
 }
 
 export interface ActualType8MeetingProps {
@@ -25,18 +27,33 @@ export interface ActualType8MeetingProps {
     subDealerStore?: string;
     detail?: string;
     targetProducts?: string[];
+    targetProductItems?: Array<{
+      id?: string;
+      productId?: string;
+      productName: string;
+      [key: string]: any;
+    }>;
     promotionalProducts?: Array<{
       id?: string;
-      productId: string;
-      productName: string;
-      quantity: number;
-      unitPrice: number;
-      totalAmount: number;
+      productId?: string;
+      productName?: string;
+      quantity?: number;
+      unitPrice?: number;
+      totalAmount?: number;
       notes?: string;
       storeId?: string | null;
+      [key: string]: any;
     }>;
     items?: { productName: string; targetQty?: string }[];
   };
+  products?: Array<{
+    id: string;
+    name: string;
+    productCode?: string | null;
+    price?: number | null;
+    unit?: string | null;
+    [key: string]: any;
+  }>;
   actualAttendees: string;
   setActualAttendees: (v: string) => void;
   feedbackQnA: string;
@@ -62,13 +79,19 @@ export interface DetailType8MeetingProps {
     subDealerStore?: string;
     detail?: string;
     targetProducts?: string[];
-    promotionalProducts?: Array<{
+    targetProductItems?: Array<{
       id?: string;
       productId?: string;
       productName: string;
-      quantity: number;
-      unitPrice: number;
-      totalAmount: number;
+      [key: string]: any;
+    }>;
+    promotionalProducts?: Array<{
+      id?: string;
+      productId?: string;
+      productName?: string;
+      quantity?: number;
+      unitPrice?: number;
+      totalAmount?: number;
       notes?: string;
     }>;
     items?: { productName: string; targetQty?: string }[];

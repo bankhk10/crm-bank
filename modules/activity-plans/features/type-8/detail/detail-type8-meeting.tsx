@@ -9,8 +9,9 @@ import {
   Eye,
   ClipboardCheck,
   Package,
+  Target,
+  Sparkles,
 } from "lucide-react";
-import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
@@ -70,19 +71,12 @@ export function DetailType8Meeting({
 
   if (!isVisible) return null;
 
-  const totalSales = productSalesDetails.reduce(
-    (sum, item) => sum + (Number(item.actualSales?.replace(/,/g, "")) || 0),
-    0,
-  );
-
-  const targetProductsList =
-    target.targetProducts && target.targetProducts.length > 0
-      ? target.targetProducts
-      : target.products
-        ? target.products.split(", ").filter(Boolean)
-        : [];
-
   const promotionalProducts = target.promotionalProducts || [];
+
+  const targetProductsSales = productSalesDetails.filter((d) => !d.isAdditional);
+  const additionalProductsSales = productSalesDetails.filter(
+    (d) => d.isAdditional,
+  );
 
   return (
     <div className="border border-purple-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-4 shadow-xs">
@@ -98,7 +92,7 @@ export function DetailType8Meeting({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type8PlanCard target={target} />
+      <Type8PlanCard target={target} hidePromotionsTable />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">
@@ -108,7 +102,7 @@ export function DetailType8Meeting({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2">
             <span className="text-xs text-slate-500 font-medium block">
               จำนวนผู้เข้าร่วมจริง
             </span>
@@ -117,117 +111,126 @@ export function DetailType8Meeting({
             </span>
           </div>
 
-          <div className="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-1">
-            <span className="text-xs text-purple-600 font-medium block">
-              ยอดขายรวมในงาน
-            </span>
-            <span className="text-sm sm:text-base font-extrabold text-purple-900 block">
-              {totalSales > 0 ? `฿${totalSales.toLocaleString()} บาท` : "-"}
-            </span>
-          </div>
-
-          {/* PROMOTION ACTUAL SALES BREAKDOWN TABLE */}
-          {(promotionalProducts.length > 0 ||
-            productSalesDetails.length > 0) && (
+          {/* PROMOTION LIST (READ-ONLY) */}
+          {promotionalProducts.length > 0 && (
             <div className="sm:col-span-2 space-y-2">
               <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
-                สรุปผลการขายสินค้าโปรโมชัน (เป้าหมาย vs ขายจริง)
+                รายการโปรโมชันจากแผนงาน ({promotionalProducts.length} รายการ)
               </span>
               <div className="overflow-x-auto border border-slate-200 rounded-xl">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
-                      <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
-                      <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                      <th className="py-2.5 px-3 text-center w-24">
-                        เป้าจำนวน (ลัง)
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3">รายละเอียด (โปรโมชัน)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {promotionalProducts.map((p, idx) => (
+                      <tr key={p.id || idx} className="hover:bg-slate-50/40">
+                        <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-800 font-medium whitespace-pre-wrap">
+                          {p.notes || p.productName || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TARGET PRODUCTS ACTUAL SALES TABLE */}
+          {targetProductsSales.length > 0 && (
+            <div className="sm:col-span-2 space-y-2">
+              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-purple-600" />
+                สรุปผลการขายสินค้าเป้าหมาย (ตามแผนงาน)
+              </span>
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">ชื่อสินค้าเป้าหมาย</th>
+                      <th className="py-2.5 px-3 text-center w-36 bg-purple-50/50">
+                        จำนวนที่ขายได้ (ลัง)
                       </th>
-                      <th className="py-2.5 px-3 text-right w-28">
-                        เป้ายอดขาย (บาท)
-                      </th>
-                      <th className="py-2.5 px-3 text-center w-28 bg-purple-50/50">
-                        ขายได้จริง (ลัง)
-                      </th>
-                      <th className="py-2.5 px-3 text-right w-36 bg-purple-50/50">
-                        ยอดขายจริง (บาท)
+                      <th className="py-2.5 px-3 min-w-[200px]">
+                        รายละเอียดเพิ่มเติม
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
-                    {promotionalProducts.length > 0
-                      ? promotionalProducts.map((p, idx) => {
-                          const actual =
-                            productSalesDetails.find(
-                              (d) =>
-                                (p.productId &&
-                                  (d as any).productId === p.productId) ||
-                                (p.id && (d as any).id === p.id) ||
-                                d.productName === p.productName,
-                            ) || productSalesDetails[idx];
+                    {targetProductsSales.map((item, idx) => (
+                      <tr key={item.id || idx} className="hover:bg-slate-50/40">
+                        <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-800">
+                          <div className="flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                            <span>{item.productName}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
+                          {item.actualQty ? `${item.actualQty} ลัง` : "-"}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {item.notes || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-                          return (
-                            <tr key={p.id || idx} className="hover:bg-slate-50/40">
-                              <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                                {idx + 1}
-                              </td>
-                              <td className="py-2.5 px-3 font-semibold text-slate-800">
-                                <div className="flex items-center gap-1.5">
-                                  <Package className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                                  <span>{p.productName}</span>
-                                </div>
-                                {p.unitPrice ? (
-                                  <span className="text-[10px] text-slate-400 font-normal block pl-5">
-                                    ฿{p.unitPrice.toLocaleString()} / ลัง
-                                  </span>
-                                ) : null}
-                              </td>
-                              <td className="py-2.5 px-3 text-center text-slate-600 font-medium">
-                                {p.quantity != null ? `${p.quantity} ลัง` : "-"}
-                              </td>
-                              <td className="py-2.5 px-3 text-right text-slate-600 font-semibold">
-                                {p.totalAmount != null
-                                  ? `฿${p.totalAmount.toLocaleString()}`
-                                  : "-"}
-                              </td>
-                              <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
-                                {actual?.actualQty
-                                  ? `${actual.actualQty} ลัง`
-                                  : "-"}
-                              </td>
-                              <td className="py-2.5 px-3 text-right font-extrabold text-purple-900 bg-purple-50/20">
-                                {actual?.actualSales &&
-                                Number(actual.actualSales.replace(/,/g, "")) > 0
-                                  ? `฿${Number(actual.actualSales.replace(/,/g, "")).toLocaleString()}`
-                                  : "-"}
-                              </td>
-                            </tr>
-                          );
-                        })
-                      : productSalesDetails.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/40">
-                            <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
-                              {idx + 1}
-                            </td>
-                            <td className="py-2.5 px-3 font-semibold text-slate-800">
-                              {item.productName}
-                            </td>
-                            <td className="py-2.5 px-3 text-center text-slate-500">
-                              -
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-slate-500">
-                              -
-                            </td>
-                            <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
-                              {item.actualQty || "-"}
-                            </td>
-                            <td className="py-2.5 px-3 text-right font-extrabold text-purple-900 bg-purple-50/20">
-                              {item.actualSales
-                                ? `฿${Number(item.actualSales.replace(/,/g, "")).toLocaleString()}`
-                                : "-"}
-                            </td>
-                          </tr>
-                        ))}
+          {/* ADDITIONAL PRODUCTS ACTUAL SALES TABLE */}
+          {additionalProductsSales.length > 0 && (
+            <div className="sm:col-span-2 space-y-2">
+              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                สรุปผลการขายสินค้านอกเหนือจากสินค้าเป้าหมาย ({additionalProductsSales.length} รายการ)
+              </span>
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3 text-center w-12">ลำดับ</th>
+                      <th className="py-2.5 px-3 min-w-[180px]">ชื่อสินค้า</th>
+                      <th className="py-2.5 px-3 text-center w-36 bg-purple-50/50">
+                        จำนวนที่ขายได้ (ลัง)
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[200px]">
+                        รายละเอียดเพิ่มเติม
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {additionalProductsSales.map((item, idx) => (
+                      <tr key={item.id || idx} className="hover:bg-slate-50/40">
+                        <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-800">
+                          <div className="flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                            <span>{item.productName}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-bold text-purple-900 bg-purple-50/20">
+                          {item.actualQty ? `${item.actualQty} ลัง` : "-"}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {item.notes || "-"}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
