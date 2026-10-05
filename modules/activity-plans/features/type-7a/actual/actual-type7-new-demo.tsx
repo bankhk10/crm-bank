@@ -58,13 +58,9 @@ import {
 
 import { Type7aPlanCard } from "../shared/type7a-plan-card";
 import type { CustomerOption } from "../shared/types";
-import type {
-  TargetDemoItem,
-  ActualType7NewDemoProps,
-} from "./types";
+import type { TargetDemoItem, ActualType7NewDemoProps } from "./types";
 
 export type { TargetDemoItem, CustomerOption, ActualType7NewDemoProps };
-
 
 export function ActualType7NewDemo({
   planType,
@@ -498,9 +494,7 @@ export function ActualType7NewDemo({
             district,
             objective: plotObjective,
             cropCategory,
-            crop: isCustomCropName
-              ? customCropName || cropName
-              : cropName,
+            crop: isCustomCropName ? customCropName || cropName : cropName,
             areaRai: isRaiUnit ? areaRai : null,
             treeCount: !isRaiUnit ? treeCount : null,
             demoProducts: plannedProducts,
@@ -567,9 +561,7 @@ export function ActualType7NewDemo({
                 labelClassName="block text-xs font-bold text-slate-700 mb-1"
                 triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
                 placeholder={
-                  !farmerProvince
-                    ? "กรุณาเลือกจังหวัดก่อน"
-                    : "เลือกเกษตรกร..."
+                  !farmerProvince ? "กรุณาเลือกจังหวัดก่อน" : "เลือกเกษตรกร..."
                 }
                 searchPlaceholder="ค้นหาชื่อ หรือรหัสเกษตรกร..."
                 emptyText={
@@ -618,15 +610,11 @@ export function ActualType7NewDemo({
                   onChange={(val) => setFarmerDistrict?.(val)}
                   options={farmerDistrictOptions}
                   placeholder={
-                    !farmerProvince
-                      ? "กรุณาเลือกจังหวัดก่อน"
-                      : "เลือกอำเภอ..."
+                    !farmerProvince ? "กรุณาเลือกจังหวัดก่อน" : "เลือกอำเภอ..."
                   }
                   searchPlaceholder="ค้นหาอำเภอ..."
                   emptyText={
-                    !farmerProvince
-                      ? "กรุณาเลือกจังหวัดก่อน"
-                      : "ไม่พบอำเภอ"
+                    !farmerProvince ? "กรุณาเลือกจังหวัดก่อน" : "ไม่พบอำเภอ"
                   }
                   disabled={!farmerProvince}
                   required
@@ -653,7 +641,7 @@ export function ActualType7NewDemo({
                   เบอร์โทรศัพท์ <span className="text-rose-500">*</span>
                 </label>
                 <Input
-                  type="tel"
+                  type="number"
                   value={farmerPhone}
                   onChange={(e) => setFarmerPhone?.(e.target.value)}
                   placeholder="เช่น 081-xxx-xxxx"
