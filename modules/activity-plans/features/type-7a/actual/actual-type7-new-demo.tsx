@@ -41,6 +41,10 @@ import {
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
+import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
   DEMO_PLOT_SPRAY_METHODS,
@@ -305,17 +309,6 @@ export function ActualType7NewDemo({
     }
   };
 
-  // Product Master options for Combobox
-  const productOptions = useMemo(
-    () =>
-      (products || []).map((p) => ({
-        value: p.id,
-        label: p.productCode ? `${p.name} (${p.productCode})` : p.name,
-        unit: p.unit || p.packageSizeUnit || "",
-      })),
-    [products],
-  );
-
   // Irrigation toggle handler
   const handleToggleIrrigation = (method: string) => {
     if (!setIrrigations) return;
@@ -345,6 +338,7 @@ export function ActualType7NewDemo({
     originalIndex: number,
     field: keyof DemoPlotProductItem,
     val: any,
+    selectedProduct?: ActivityProductItem,
   ) => {
     if (!setDemoProducts) return;
     const current = demoProducts[originalIndex];
@@ -363,10 +357,12 @@ export function ActualType7NewDemo({
     const item = { ...current };
 
     if (field === "productId") {
-      const matched = products.find((p) => p.id === val);
+      const matched =
+        selectedProduct || products.find((p) => p.id === val);
       item.productId = val;
       item.productName = matched?.name || "";
-      item.unit = matched?.unit || matched?.packageSizeUnit || "";
+      item.unit =
+        (matched as any)?.unit || (matched as any)?.packageSizeUnit || "";
     } else if (field === "quantity") {
       item.quantity = val;
       if (item.plannedQuantity != null) {
@@ -1161,19 +1157,26 @@ export function ActualType7NewDemo({
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                       {/* เลือกสินค้าสำหรับรายการเพิ่มเติม */}
                       <div className="sm:col-span-12 md:col-span-6">
-                        <FormCombobox
+                        <ActivityProductSelect
                           id={`add-demo-product-${origIdx}`}
                           label="เลือกสินค้าจากระบบ"
-                          labelClassName="block text-xs font-bold text-slate-700"
-                          triggerClassName="text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                          labelClassName="block text-xs font-bold text-slate-700 mb-1"
+                          triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                           value={item.productId}
-                          onChange={(val) =>
-                            handleUpdateProductByIdx(origIdx, "productId", val)
+                          valueKey="id"
+                          products={products}
+                          onChange={(val: string, selectedProduct?: ActivityProductItem) =>
+                            handleUpdateProductByIdx(
+                              origIdx,
+                              "productId",
+                              val,
+                              selectedProduct,
+                            )
                           }
-                          options={productOptions}
                           placeholder="เลือกสินค้าที่ใช้เพิ่มเติม..."
                           searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
                           emptyText="ไม่พบสินค้า"
+                          subLabelType="code"
                           required
                         />
                       </div>
