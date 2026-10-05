@@ -44,7 +44,8 @@ export function ActualType9Store({
           productSalesDetails?.find(
             (d) =>
               (item.id && d.id === item.id) ||
-              (item.productId && (d.productId === item.productId || d.id === item.productId)) ||
+              (item.productId &&
+                (d.productId === item.productId || d.id === item.productId)) ||
               d.productName === item.productName,
           ) || productSalesDetails?.[idx];
 
@@ -139,11 +140,7 @@ export function ActualType9Store({
         </div>
       </div>
 
-      <Type9PlanCard
-        target={target}
-        planType={planType}
-        hideItemsTable
-      />
+      <Type9PlanCard target={target} planType={planType} hideItemsTable />
 
       {/* MULTI-PRODUCT ACTUAL SALES TABLE (FROM TARGET ITEMS) */}
       {hasMultipleProducts ? (
@@ -221,7 +218,7 @@ export function ActualType9Store({
                     </td>
                     <td className="py-2 px-3 text-center bg-blue-50/30">
                       <Input
-                        type="text"
+                        type="number"
                         value={item.actualSales ?? ""}
                         onChange={(e) =>
                           handleItemChange(idx, "actualSales", e.target.value)
