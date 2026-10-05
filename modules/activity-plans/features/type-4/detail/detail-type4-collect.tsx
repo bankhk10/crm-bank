@@ -6,7 +6,6 @@ import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actua
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { Type4PlanCard } from "../shared/type4-plan-card";
 
-
 function parseCleanAmount(val: unknown): number | null {
   if (val === null || val === undefined) return null;
   if (typeof val === "number") return isNaN(val) ? null : val;
@@ -87,9 +86,6 @@ export function DetailType4Collect({
           </span>
         )}
       </div>
-
-      {/* PLANNED TARGET CARD */}
-      <Type4PlanCard target={target} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">
