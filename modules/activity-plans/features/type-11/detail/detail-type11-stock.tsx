@@ -9,10 +9,7 @@ import { convertToFileMetadata } from "@/modules/activity-plans/features/shared/
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 import { Type11PlanCard } from "../shared/type11-plan-card";
-import {
-  StockCheckItem,
-  DetailType11StockProps,
-} from "../actual/types";
+import { StockCheckItem, DetailType11StockProps } from "../actual/types";
 
 export type { StockCheckItem, DetailType11StockProps };
 
@@ -71,9 +68,6 @@ export function DetailType11Stock({
         </div>
       </div>
 
-      {/* PLANNED TARGET CARD */}
-      <Type11PlanCard target={target} />
-
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
@@ -112,7 +106,10 @@ export function DetailType11Stock({
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {group.items.map((item, idx) => (
-                        <tr key={item.id || idx} className="hover:bg-slate-50/40">
+                        <tr
+                          key={item.id || idx}
+                          className="hover:bg-slate-50/40"
+                        >
                           <td className="py-2.5 px-3 text-center text-slate-500 font-medium">
                             {idx + 1}
                           </td>
@@ -125,7 +122,9 @@ export function DetailType11Stock({
                             )}
                           </td>
                           <td className="py-2.5 px-3 text-center font-bold text-slate-800">
-                            {item.remainingQty ? `${item.remainingQty} ลัง` : "-"}
+                            {item.remainingQty
+                              ? `${item.remainingQty} ลัง`
+                              : "-"}
                           </td>
                           <td className="py-2.5 px-3 text-center">
                             {item.reorderOpportunity ? (
@@ -142,7 +141,9 @@ export function DetailType11Stock({
                                 {item.reorderOpportunity}
                               </Badge>
                             ) : (
-                              <span className="text-slate-400 font-normal">-</span>
+                              <span className="text-slate-400 font-normal">
+                                -
+                              </span>
                             )}
                           </td>
                           <td className="py-2.5 px-3 text-slate-600">
