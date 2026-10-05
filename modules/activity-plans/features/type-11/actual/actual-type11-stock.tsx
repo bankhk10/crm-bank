@@ -20,10 +20,7 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 
 import { Type11PlanCard } from "../shared/type11-plan-card";
-import {
-  StockCheckItem,
-  ActualType11StockProps,
-} from "./types";
+import { StockCheckItem, ActualType11StockProps } from "./types";
 
 export type { StockCheckItem, ActualType11StockProps };
 
@@ -192,10 +189,7 @@ export function ActualType11Stock({
     }
   };
 
-  const handleAddProductToStore = (
-    storeName: string,
-    productName: string,
-  ) => {
+  const handleAddProductToStore = (storeName: string, productName: string) => {
     if (!productName.trim()) return;
 
     // Prevent duplicate product in the same store
@@ -331,7 +325,8 @@ export function ActualType11Stock({
               {/* Items List for THIS store */}
               {storeItems.length === 0 ? (
                 <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200 text-xs">
-                  ยังไม่มีรายการสินค้าที่ตรวจเช็กสำหรับร้านนี้ (ค้นหาและเลือกสินค้าจากช่องด้านบน)
+                  ยังไม่มีรายการสินค้าที่ตรวจเช็กสำหรับร้านนี้
+                  (ค้นหาและเลือกสินค้าจากช่องด้านบน)
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -371,7 +366,8 @@ export function ActualType11Stock({
                         {/* Remaining Qty */}
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-slate-700">
-                            จำนวนคงเหลือ <span className="text-rose-500">*</span>
+                            จำนวนคงเหลือ{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <div className="relative">
                             <Input
@@ -385,44 +381,45 @@ export function ActualType11Stock({
                               }
                               placeholder="ระบุจำนวนคงเหลือ"
                               className="bg-white border-slate-300 text-xs h-9 pr-12"
+                              type="number"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">
-                              ลัง
-                            </span>
                           </div>
                         </div>
 
                         {/* Reorder Opportunity (Per Item) */}
                         <div className="space-y-1.5">
                           <label className="text-xs font-semibold text-slate-700">
-                            โอกาสการสั่งซื้อรอบใหม่ <span className="text-rose-500">*</span>
+                            โอกาสการสั่งซื้อรอบใหม่{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <div className="grid grid-cols-3 gap-1.5">
-                            {(["สูง", "ยังไม่แน่ใจ", "ต่ำ"] as const).map((opp) => (
-                              <button
-                                key={opp}
-                                type="button"
-                                onClick={() =>
-                                  handleItemChange(
-                                    item.id!,
-                                    "reorderOpportunity",
-                                    opp,
-                                  )
-                                }
-                                className={cn(
-                                  "py-1.5 px-1 rounded-lg border text-xs font-semibold cursor-pointer transition-all",
-                                  item.reorderOpportunity === opp
-                                    ? opp === "สูง"
-                                      ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
-                                      : opp === "ยังไม่แน่ใจ"
-                                        ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
-                                        : "bg-slate-100 border-slate-400 text-slate-800 font-bold"
-                                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
-                                )}
-                              >
-                                {opp}
-                              </button>
-                            ))}
+                            {(["สูง", "ยังไม่แน่ใจ", "ต่ำ"] as const).map(
+                              (opp) => (
+                                <button
+                                  key={opp}
+                                  type="button"
+                                  onClick={() =>
+                                    handleItemChange(
+                                      item.id!,
+                                      "reorderOpportunity",
+                                      opp,
+                                    )
+                                  }
+                                  className={cn(
+                                    "py-1.5 px-1 rounded-lg border text-xs font-semibold cursor-pointer transition-all",
+                                    item.reorderOpportunity === opp
+                                      ? opp === "สูง"
+                                        ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20"
+                                        : opp === "ยังไม่แน่ใจ"
+                                          ? "bg-amber-50 border-amber-500 text-amber-800 ring-2 ring-amber-500/20"
+                                          : "bg-slate-100 border-slate-400 text-slate-800 font-bold"
+                                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
+                                  )}
+                                >
+                                  {opp}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
                       </div>
