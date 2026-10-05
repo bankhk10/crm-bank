@@ -14,9 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
-import { FormCombobox } from "@/components/custom/FormCombobox";
 import { listProductsAction } from "@/modules/products/server/actions";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
 import { Type3PlanCard } from "../shared/type3-plan-card";
 
 import type {
@@ -117,14 +119,6 @@ export function ActualType3Sales({
     if (products && products.length > 0) return products;
     return dbProducts;
   }, [products, dbProducts]);
-
-  const productComboboxOptions = useMemo(() => {
-    return masterProductList.map((p) => ({
-      value: p.name,
-      label: p.name,
-      subLabel: p.productCode || undefined,
-    }));
-  }, [masterProductList]);
 
   // 1. Initial Planned items from target
   const initialPlannedItems: TargetProductItem[] = useMemo(() => {
@@ -377,16 +371,20 @@ export function ActualType3Sales({
     index: number,
     field: "productId" | "productName" | "actualQty" | "unclosedReason",
     value: string,
+    selectedProduct?: ActivityProductItem,
   ) => {
     const updated = [...additionalItems];
     if (field === "productName") {
-      const foundProduct = masterProductList.find(
-        (p) => p.name.trim().toLowerCase() === value.trim().toLowerCase(),
-      );
+      const foundProduct =
+        selectedProduct ||
+        masterProductList.find(
+          (p) => p.name.trim().toLowerCase() === value.trim().toLowerCase(),
+        );
       updated[index] = {
         ...updated[index],
         productName: value,
         productId: foundProduct?.id || updated[index].productId || "",
+        unit: (foundProduct as any)?.unit || updated[index].unit || "ชิ้น",
       };
     } else {
       updated[index] = { ...updated[index], [field]: value };
@@ -619,19 +617,26 @@ export function ActualType3Sales({
                   </Button>
                 </div>
 
-                {/* Product Combobox Selection from Master */}
+                {/* Product Selection from Master */}
                 <div className="space-y-1.5">
-                  <FormCombobox
+                  <ActivityProductSelect
                     label="เลือกสินค้าจาก Product Master"
                     required
                     value={prod.productName}
-                    onChange={(val: string) =>
-                      handleAdditionalChange(idx, "productName", val)
+                    valueKey="name"
+                    products={masterProductList}
+                    onChange={(val: string, selectedProduct?: ActivityProductItem) =>
+                      handleAdditionalChange(
+                        idx,
+                        "productName",
+                        val,
+                        selectedProduct,
+                      )
                     }
-                    options={productComboboxOptions}
                     placeholder="ค้นหาหรือเลือกสินค้าจากคลังสินค้า..."
-                    searchPlaceholder="พิมพ์ชื่อสินค้า..."
+                    searchPlaceholder="พิมพ์ชื่อ หรือรหัสสินค้า..."
                     emptyText="ไม่พบสินค้าในระบบ"
+                    subLabelType="code"
                     className="w-full bg-white text-sm"
                   />
                 </div>
