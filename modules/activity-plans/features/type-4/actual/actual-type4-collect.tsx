@@ -172,11 +172,13 @@ export function ActualType4Collect({
     updated[index] = { ...updated[index], receivedAmount: value };
     setCompanyItems(updated);
 
-    // Sync total sum of received amounts to parent
-    const totalSum = updated.reduce(
-      (sum, item) => sum + (Number(item.receivedAmount) || 0),
-      0,
-    );
+    // Sync total sum of received amounts for collect items to parent
+    const totalSum = updated
+      .filter((it) => it.collectType !== "BILLING")
+      .reduce(
+        (sum, item) => sum + (Number(item.receivedAmount) || 0),
+        0,
+      );
     setReceivedAmount(totalSum > 0 ? String(totalSum) : "");
   };
 
@@ -204,12 +206,13 @@ export function ActualType4Collect({
     setCollectDetail?.(detail);
   };
 
-  // Summaries
-  const totalReceived = companyItems.reduce(
+  // Summaries (Calculated only for COLLECT items)
+  const collectItems = companyItems.filter((it) => it.collectType !== "BILLING");
+  const totalReceived = collectItems.reduce(
     (sum, item) => sum + (Number(item.receivedAmount) || 0),
     0,
   );
-  const totalTarget = companyItems.reduce(
+  const totalTarget = collectItems.reduce(
     (sum, item) =>
       sum +
       (item.targetAmountNum ??

@@ -46,7 +46,7 @@ export function DetailType4Collect({
     target?.items && target.items.length > 0,
   );
 
-  // Calculate totals
+  // Calculate totals (Only for COLLECT items)
   const totalReceived = hasMultipleCompanies
     ? target!.items!.reduce((sum, item) => {
         const isBilling = item.collectType === "BILLING";
@@ -57,26 +57,31 @@ export function DetailType4Collect({
           0;
         return sum + itemVal;
       }, 0)
-    : parseCleanAmount(receivedAmount) || 0;
+    : target?.collectType !== "BILLING"
+      ? parseCleanAmount(receivedAmount) || 0
+      : 0;
 
   const totalTarget = hasMultipleCompanies
-    ? target!.items!.reduce(
-        (sum, item) =>
-          sum +
-          (item.targetAmountNum ??
-            (item as any).collectAmount ??
-            parseCleanAmount(item.targetCollect) ??
-            0),
-        0,
-      )
-    : ((target as any)?.targetAmountNum ??
-      (target as any)?.collectAmount ??
-      parseCleanAmount(target?.targetCollect) ??
-      0);
+    ? target!.items!.reduce((sum, item) => {
+        const isBilling = item.collectType === "BILLING";
+        if (isBilling) return sum;
+        const amt =
+          item.targetAmountNum ??
+          (item as any).collectAmount ??
+          parseCleanAmount(item.targetCollect) ??
+          0;
+        return sum + amt;
+      }, 0)
+    : target?.collectType !== "BILLING"
+      ? ((target as any)?.targetAmountNum ??
+        (target as any)?.collectAmount ??
+        parseCleanAmount(target?.targetCollect) ??
+        0)
+      : 0;
 
   const hasActual = hasMultipleCompanies
     ? totalReceived > 0
-    : parseCleanAmount(receivedAmount) != null;
+    : target?.collectType !== "BILLING" && parseCleanAmount(receivedAmount) != null;
 
   const totalRemaining = hasActual
     ? Math.max(0, totalTarget - totalReceived)
