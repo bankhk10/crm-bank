@@ -70,7 +70,10 @@ export function useType7aForm({
       const fallbackPlotId = dp?.id || (initial as any)?.demoPlotId || "";
 
       const type7aProds: Type7DemoProductLine[] = ((initial as any)?.products || [])
-        .filter((p: any) => p.workTypeCode === "TYPE_7A")
+        .filter(
+          (p: any) =>
+            p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
+        )
         .map((p: any, idx: number) => ({
           id: p.id || String(idx + 1),
           productId: p.productId,
@@ -79,9 +82,12 @@ export function useType7aForm({
           unit: p.product?.unit || "",
         }));
 
+      const has7aWithdrawal = isInitialType7A && type7aProds.length > 0;
+
       const derivedCategoryId =
         ((initial as any)?.products || []).find(
-          (p: any) => p.workTypeCode === "TYPE_7A",
+          (p: any) =>
+            p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
         )?.product?.categoryId ||
         dp?.categoryId ||
         dp?.chemicalGroupId ||
@@ -92,6 +98,7 @@ export function useType7aForm({
           id: fallbackPlotId || "1",
           plotActivityType: "CREATE",
           demoPlotId: fallbackPlotId,
+          hasProductWithdrawal: has7aWithdrawal,
           plotName: dp?.name || "",
           storeId: dp?.customerId || "",
           ownerName: dp?.customer?.name || dp?.ownerName || "",
@@ -150,6 +157,7 @@ export function useType7aForm({
       {
         id: "1",
         plotActivityType: "CREATE",
+        hasProductWithdrawal: false,
         plotName: "",
         storeId: "",
         ownerName: "",
@@ -187,6 +195,7 @@ export function useType7aForm({
       {
         id: Date.now().toString(),
         plotActivityType: "CREATE",
+        hasProductWithdrawal: false,
         plotName: "",
         storeId: "",
         ownerName: "",
@@ -289,24 +298,26 @@ export function useType7aForm({
       isPriceOverridden: boolean;
     }> = [];
 
-    const prods = (item.demoProducts || []).filter(
-      (p: any) => p.productId || p.productName,
-    );
-    prods.forEach((dp: any) => {
-      const pId =
-        dp.productId ||
-        products.find((p) => p.name === dp.productName)?.id;
-      if (pId) {
-        const matchedProd = products.find((p) => p.id === pId);
-        planProducts.push({
-          workTypeCode: "TYPE_7A",
-          productId: pId,
-          productName: matchedProd?.name || dp.productName || null,
-          targetQuantity: dp.quantity ? Number(dp.quantity) : 1,
-          isPriceOverridden: false,
-        });
-      }
-    });
+    if (item.hasProductWithdrawal) {
+      const prods = (item.demoProducts || []).filter(
+        (p: any) => p.productId || p.productName,
+      );
+      prods.forEach((dp: any) => {
+        const pId =
+          dp.productId ||
+          products.find((p) => p.name === dp.productName)?.id;
+        if (pId) {
+          const matchedProd = products.find((p) => p.id === pId);
+          planProducts.push({
+            workTypeCode: "TYPE_7A",
+            productId: pId,
+            productName: matchedProd?.name || dp.productName || null,
+            targetQuantity: dp.quantity ? Number(dp.quantity) : 1,
+            isPriceOverridden: false,
+          });
+        }
+      });
+    }
 
     return { submittedDemoPlotData, planProducts };
   };

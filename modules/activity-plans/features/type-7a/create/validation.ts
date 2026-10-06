@@ -119,14 +119,6 @@ export function validateType7aFormItems({
     };
   }
 
-  const selectedCatId = item.categoryId || item.chemicalGroupId;
-  if (!selectedCatId?.trim()) {
-    return {
-      isValid: false,
-      error: "กรุณาเลือกหมวดสินค้า",
-    };
-  }
-
   if (!item.objective?.trim()) {
     return {
       isValid: false,
@@ -134,38 +126,48 @@ export function validateType7aFormItems({
     };
   }
 
-  const prods = (item.demoProducts || []).filter(
-    (p) => p.productId || p.productName,
-  );
-  if (prods.length === 0) {
-    return {
-      isValid: false,
-      error: "กรุณาระบุสินค้าที่จะสาธิตอย่างน้อย 1 รายการ",
-    };
-  }
-
-  for (let i = 0; i < prods.length; i++) {
-    const p = prods[i];
-    if (!p.quantity || p.quantity <= 0) {
+  if (item.hasProductWithdrawal) {
+    const selectedCatId = item.categoryId || item.chemicalGroupId;
+    if (!selectedCatId?.trim()) {
       return {
         isValid: false,
-        error: `จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0 (รายการที่ ${i + 1})`,
+        error: "กรุณาเลือกหมวดสินค้า",
       };
     }
-    const matchedProd = productsList.find(
-      (prod) => prod.id === p.productId || prod.name === p.productName,
+
+    const prods = (item.demoProducts || []).filter(
+      (p) => p.productId || p.productName,
     );
-    if (
-      matchedProd &&
-      matchedProd.categoryId &&
-      matchedProd.categoryId !== selectedCatId &&
-      matchedProd.productGroupId &&
-      matchedProd.productGroupId !== selectedCatId
-    ) {
+    if (prods.length === 0) {
       return {
         isValid: false,
-        error: `สินค้า "${p.productName}" ไม่อยู่ในหมวดสินค้าที่เลือก (รายการที่ ${i + 1})`,
+        error: "กรุณาระบุสินค้าที่จะสาธิตอย่างน้อย 1 รายการ",
       };
+    }
+
+    for (let i = 0; i < prods.length; i++) {
+      const p = prods[i];
+      if (!p.quantity || p.quantity <= 0) {
+        return {
+          isValid: false,
+          error: `จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0 (รายการที่ ${i + 1})`,
+        };
+      }
+      const matchedProd = productsList.find(
+        (prod) => prod.id === p.productId || prod.name === p.productName,
+      );
+      if (
+        matchedProd &&
+        matchedProd.categoryId &&
+        matchedProd.categoryId !== selectedCatId &&
+        matchedProd.productGroupId &&
+        matchedProd.productGroupId !== selectedCatId
+      ) {
+        return {
+          isValid: false,
+          error: `สินค้า "${p.productName}" ไม่อยู่ในหมวดสินค้าที่เลือก (รายการที่ ${i + 1})`,
+        };
+      }
     }
   }
 

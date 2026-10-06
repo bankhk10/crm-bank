@@ -137,10 +137,6 @@ export async function validateType7aPlan(
     return { valid: false, error: "กรุณาเลือกอำเภอ" };
   }
 
-  if (!demoPlotData.categoryId || !demoPlotData.categoryId.trim()) {
-    return { valid: false, error: "กรุณาเลือกหมวดสินค้า" };
-  }
-
   if (!demoPlotData.cropCategory || !demoPlotData.cropCategory.trim()) {
     return { valid: false, error: "กรุณาเลือกหมวดพืช" };
   }
@@ -153,42 +149,41 @@ export async function validateType7aPlan(
     return { valid: false, error: "กรุณาระบุวัตถุประสงค์การทำแปลง" };
   }
 
-  // Check demo products
+  // Check demo products if provided
   const type7aProducts = (planProducts || []).filter(
     (p) => p.workTypeCode === "TYPE_7A",
   );
-  if (type7aProducts.length === 0) {
-    return {
-      valid: false,
-      error: "กรุณาระบุสินค้าที่จะสาธิตอย่างน้อย 1 รายการ",
-    };
-  }
-
-  for (const p of type7aProducts) {
-    if (!p.productId) {
-      return { valid: false, error: "กรุณาเลือกสินค้าที่จะสาธิต" };
+  if (type7aProducts.length > 0) {
+    if (!demoPlotData.categoryId || !demoPlotData.categoryId.trim()) {
+      return { valid: false, error: "กรุณาเลือกหมวดสินค้า" };
     }
-    if (!p.targetQuantity || p.targetQuantity <= 0) {
-      return {
-        valid: false,
-        error: "จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0",
-      };
+
+    for (const p of type7aProducts) {
+      if (!p.productId) {
+        return { valid: false, error: "กรุณาเลือกสินค้าที่จะสาธิต" };
+      }
+      if (!p.targetQuantity || p.targetQuantity <= 0) {
+        return {
+          valid: false,
+          error: "จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0",
+        };
+      }
     }
-  }
 
-  // Validate that all selected products belong to the selected category
-  const productIds = type7aProducts.map((p) => p.productId);
-  const products = await db.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true, name: true, categoryId: true },
-  });
+    // Validate that all selected products belong to the selected category
+    const productIds = type7aProducts.map((p) => p.productId);
+    const products = await db.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, categoryId: true },
+    });
 
-  for (const p of products) {
-    if (p.categoryId !== demoPlotData.categoryId) {
-      return {
-        valid: false,
-        error: `สินค้า "${p.name}" ไม่ได้อยู่ในหมวดสินค้าที่เลือก กรุณาเลือกสินค้าให้ตรงกับหมวดสินค้า`,
-      };
+    for (const p of products) {
+      if (p.categoryId !== demoPlotData.categoryId) {
+        return {
+          valid: false,
+          error: `สินค้า "${p.name}" ไม่ได้อยู่ในหมวดสินค้าที่เลือก กรุณาเลือกสินค้าให้ตรงกับหมวดสินค้า`,
+        };
+      }
     }
   }
 
