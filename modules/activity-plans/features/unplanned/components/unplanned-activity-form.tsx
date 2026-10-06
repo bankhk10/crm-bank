@@ -434,6 +434,14 @@ export function UnplannedActivityForm({
     });
   }, [selectedWorkTypes]);
 
+  const activeDrugWithdrawalWorkTypeCode = useMemo(() => {
+    const activeDwType = selectedWorkTypes.find((t) => {
+      const code = getWorkTypeCode(t);
+      return isDrugWithdrawalSupported(code) && code !== "TYPE_13";
+    });
+    return activeDwType ? getWorkTypeCode(activeDwType) : undefined;
+  }, [selectedWorkTypes]);
+
   const availableWithdrawalPlots = useMemo<DrugWithdrawalPlotOption[]>(() => {
     const plots: DrugWithdrawalPlotOption[] = [];
     const seenKeys = new Set<string>();
@@ -855,6 +863,7 @@ export function UnplannedActivityForm({
                 onChange={setDrugWithdrawal}
                 products={productsList}
                 availablePlots={availableWithdrawalPlots}
+                workTypeCode={activeDrugWithdrawalWorkTypeCode}
               />
             )}
 

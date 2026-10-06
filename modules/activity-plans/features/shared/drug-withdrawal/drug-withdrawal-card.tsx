@@ -25,6 +25,7 @@ import {
   generateClientKey,
 } from "./utils";
 import { validateDrugWithdrawal } from "../../../application/validations";
+import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
 export function DrugWithdrawalCard({
   value,
@@ -40,7 +41,7 @@ export function DrugWithdrawalCard({
   className,
 }: DrugWithdrawalCardProps) {
   const isReadOnly = readonly !== undefined ? readonly : !editable || disabled;
-  const isType14 = workTypeCode === "TYPE_14";
+  const isType14 = getWorkTypeCode(workTypeCode || "") === "TYPE_14";
 
   // Flat items state for TYPE_14 (direct product withdrawal without plot selection)
   const [flatItems, setFlatItems] = useState<DrugWithdrawalItemRowState[]>(
