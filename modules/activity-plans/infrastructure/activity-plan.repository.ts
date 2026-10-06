@@ -3374,16 +3374,24 @@ export async function upsertActivityResult(
             district: demoData.district ?? null,
             latitude: new Prisma.Decimal(demoData.latitude),
             longitude: new Prisma.Decimal(demoData.longitude),
-            cropCategory: demoData.cropCategory,
-            cropName: demoData.cropName,
-            customCropName: demoData.customCropName ?? null,
+            cropCategory:
+              demoData.cropCategory && demoData.cropCategory !== "พืชทั่วไป"
+                ? demoData.cropCategory
+                : existingPlot.cropCategory || demoData.cropCategory,
+            cropName:
+              demoData.cropName && demoData.cropName !== "พืชทั่วไป"
+                ? demoData.cropName
+                : existingPlot.cropName || demoData.cropName,
+            customCropName:
+              demoData.customCropName ?? existingPlot.customCropName ?? null,
             areaRai:
               demoData.areaRai != null
                 ? new Prisma.Decimal(demoData.areaRai)
-                : null,
-            treeCount: demoData.treeCount ?? null,
-            objective: demoData.objective ?? null,
-            experimentDetail: demoData.experimentDetail ?? null,
+                : existingPlot.areaRai ?? null,
+            treeCount: demoData.treeCount ?? existingPlot.treeCount ?? null,
+            objective: demoData.objective || existingPlot.objective || null,
+            experimentDetail:
+              demoData.experimentDetail || existingPlot.experimentDetail || null,
             mainCropInfo: demoData.mainCropInfo ?? null,
             plantingDate: demoData.plantingDate ?? null,
             initialSprayDate: demoData.initialSprayDate ?? null,

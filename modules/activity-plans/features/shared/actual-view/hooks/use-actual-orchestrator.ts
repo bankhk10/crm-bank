@@ -164,28 +164,38 @@ export function useActualOrchestrator({
         currentHooks.type4.hydrate(effectiveParsed);
         currentHooks.type5.hydrate(effectiveParsed, activeTargets);
         currentHooks.type6.hydrate(effectiveParsed);
-        currentHooks.type7a.hydrate(
-          targetPlan,
-          effectiveParsed,
-          activeTargets,
-        );
-        currentHooks.type7b.hydrate(
-          targetPlan,
-          effectiveParsed,
-          activeTargets,
-        );
         currentHooks.type8.hydrate(effectiveParsed);
         currentHooks.type9.hydrate(effectiveParsed);
         currentHooks.type10.hydrate(effectiveParsed);
         currentHooks.type11.hydrate(effectiveParsed);
-        currentHooks.type13.hydrate(
+      }
+
+      // Always hydrate plan-aware hooks from targetPlan even if effectiveParsed is null/empty
+      if (currentHooks.type7a) {
+        currentHooks.type7a.hydrate(
           targetPlan,
-          effectiveParsed,
+          effectiveParsed || {},
           activeTargets,
         );
+      }
+      if (currentHooks.type7b) {
+        currentHooks.type7b.hydrate(
+          targetPlan,
+          effectiveParsed || {},
+          activeTargets,
+        );
+      }
+      if (currentHooks.type13) {
+        currentHooks.type13.hydrate(
+          targetPlan,
+          effectiveParsed || {},
+          activeTargets,
+        );
+      }
+      if (currentHooks.type14) {
         currentHooks.type14.hydrate(
           targetPlan,
-          effectiveParsed,
+          effectiveParsed || {},
           activeTargets,
         );
       }

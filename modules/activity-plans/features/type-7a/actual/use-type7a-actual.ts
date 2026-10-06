@@ -77,7 +77,25 @@ export function useType7aActual() {
       } else if (dp.ownerDistrict) {
         setT7FarmerDistrict(dp.ownerDistrict);
       }
-      if (dp.district) setT7District(dp.district);
+
+      const resolvedDistrict =
+        dp?.district ||
+        dp?.customer?.district ||
+        dp?.farmerCustomer?.district ||
+        dp?.ownerDistrict ||
+        plan?.district ||
+        "";
+      if (resolvedDistrict) setT7District(resolvedDistrict);
+
+      const resolvedProvince =
+        dp?.province ||
+        dp?.customer?.province ||
+        dp?.farmerCustomer?.province ||
+        dp?.ownerProvince ||
+        plan?.province ||
+        "";
+      if (resolvedProvince) setT7FarmerProvince((prev) => prev || resolvedProvince);
+
       if (dp.farmerCustomerId) {
         setT7FarmerCustomerId(dp.farmerCustomerId);
         setT7IsUnregisteredFarmer(false);
@@ -103,8 +121,24 @@ export function useType7aActual() {
       if (dp.longitude != null) setT7Longitude(String(dp.longitude));
       const resolvedPlotName = dp.name || dp.plotName;
       if (resolvedPlotName) setT7PlotName(resolvedPlotName);
-      if (dp.cropCategory) setT7CropCategory(dp.cropCategory);
-      if (dp.cropName) setT7CropName(dp.cropName);
+
+      const cropCategory =
+        parsed?.cropCategory ||
+        parsed?.t7CropCategory ||
+        dp?.cropCategory ||
+        plan?.cropCategory ||
+        (extractedTargets?.t7a as any)?.cropCategory ||
+        "";
+      if (cropCategory) setT7CropCategory(cropCategory);
+
+      const cropName =
+        parsed?.cropName ||
+        parsed?.t7CropName ||
+        dp?.cropName ||
+        plan?.cropName ||
+        (extractedTargets?.t7a as any)?.crop ||
+        "";
+      if (cropName) setT7CropName(cropName);
       if (dp.customCropName) setT7CustomCropName(dp.customCropName);
       if (dp.areaRai != null) setT7AreaRai(String(dp.areaRai));
       if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));

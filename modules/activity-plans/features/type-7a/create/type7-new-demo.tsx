@@ -55,6 +55,28 @@ export function Type7NewDemo({
     updateType7Row(item.id, "district", dealer?.district || "");
   };
 
+  // Auto-sync province and district from dealer customer when storeId exists but district/province is missing
+  useEffect(() => {
+    if (
+      item.storeId &&
+      (!item.district || !item.province) &&
+      customers &&
+      customers.length > 0
+    ) {
+      const foundDealer = customers.find(
+        (c: any) => c.id === item.storeId || c.name === item.ownerName,
+      );
+      if (foundDealer) {
+        if (!item.district && foundDealer.district) {
+          updateType7Row(item.id, "district", foundDealer.district);
+        }
+        if (!item.province && foundDealer.province) {
+          updateType7Row(item.id, "province", foundDealer.province);
+        }
+      }
+    }
+  }, [item.storeId, item.district, item.province, item.ownerName, customers, item.id, updateType7Row]);
+
   // 3. Crop options
   const availableCropOptions = (CROPS_BY_CATEGORY[item.cropCategory] || []).map(
     (crop: string) => ({

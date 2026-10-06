@@ -202,6 +202,7 @@ export interface BuildSummaryInput {
   t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ" | "";
   t11NextAction?: string;
   t11Images?: ImageFile[];
+  targets?: any;
 }
 
 export interface BuildSummaryResult {
@@ -1265,14 +1266,45 @@ export function buildResultSummary(
       district: input.t7District?.trim() || input.planSummary?.district || null,
       latitude: latNum ?? 0,
       longitude: lngNum ?? 0,
-      plotName: input.t7PlotName?.trim() || `แปลงสาธิต ${farmerName}`,
-      dealerName: input.t7DealerName?.trim() || null,
-      cropCategory: input.t7CropCategory?.trim() || "พืชทั่วไป",
-      cropName: input.t7CropName?.trim() || "พืชทั่วไป",
-      customCropName: input.t7CustomCropName?.trim() || null,
-      areaRai: parseCleanNumber(input.t7AreaRai),
-      treeCount: parseCleanNumber(input.t7TreeCount),
-      objective: input.t7PlotObjective?.trim() || null,
+      plotName:
+        input.t7PlotName?.trim() ||
+        (input.targets?.t7a as any)?.name ||
+        (input.targets?.t7a as any)?.plotName ||
+        `แปลงสาธิต ${farmerName}`,
+      dealerName:
+        input.t7DealerName?.trim() ||
+        (input.targets?.t7a as any)?.dealerName ||
+        (input.targets?.t7a as any)?.ownerName ||
+        null,
+      cropCategory:
+        input.t7CropCategory?.trim() && input.t7CropCategory.trim() !== "พืชทั่วไป"
+          ? input.t7CropCategory.trim()
+          : (input.targets?.t7a as any)?.cropCategory ||
+            (input.targets?.t7 as any)?.cropCategory ||
+            (input.t7CropCategory?.trim() ? input.t7CropCategory.trim() : "ผักและพืชล้มลุก"),
+      cropName:
+        input.t7CropName?.trim() && input.t7CropName.trim() !== "พืชทั่วไป"
+          ? input.t7CropName.trim()
+          : (input.targets?.t7a as any)?.cropName ||
+            (input.targets?.t7a as any)?.crop ||
+            (input.targets?.t7 as any)?.cropName ||
+            input.t7CropName?.trim() ||
+            "",
+      customCropName:
+        input.t7CustomCropName?.trim() ||
+        (input.targets?.t7a as any)?.customCropName ||
+        null,
+      areaRai:
+        parseCleanNumber(input.t7AreaRai) ??
+        parseCleanNumber((input.targets?.t7a as any)?.areaRai),
+      treeCount:
+        parseCleanNumber(input.t7TreeCount) ??
+        parseCleanNumber((input.targets?.t7a as any)?.treeCount),
+      objective:
+        input.t7PlotObjective?.trim() ||
+        (input.targets?.t7a as any)?.objective ||
+        (input.targets?.t7 as any)?.objective ||
+        null,
       experimentDetail: input.t7ExperimentDetail?.trim() || null,
       mainCropInfo: input.t7MainCropInfo?.trim() || null,
       plantingDate: input.t7PlantingDate ? new Date(input.t7PlantingDate) : null,

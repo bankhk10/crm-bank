@@ -356,11 +356,13 @@ export function UnplannedActivityForm({
 
   // Hydrate actual hooks when editing an Unplanned draft
   useEffect(() => {
-    if (existingResult) {
-      statusState.hydrateStatus(existingResult);
+    if (initial) {
+      if (existingResult) {
+        statusState.hydrateStatus(existingResult);
+      }
       actualOrchestrator.hydrate(initial, existingResult, {});
     }
-  }, [existingResult, initial]);
+  }, [initial, existingResult]);
 
   // Drug Withdrawal State & Logic
   const [drugWithdrawal, setDrugWithdrawal] = useState<DrugWithdrawalInput>(
@@ -581,6 +583,24 @@ export function UnplannedActivityForm({
       return;
     }
 
+    const {
+      planStores,
+      planProducts,
+      tourData,
+      submittedDemoPlotData,
+      submittedDemoPlotId,
+      submittedDemoPlotIds,
+      t7bObjective,
+      submittedTargetAttendees,
+      submittedTargetBookingSales,
+      type13Payload,
+      type14Payload,
+    } = typeForms.collectPlanPayloads();
+
+    if (t7bObjective) {
+      cleanObjective = t7bObjective;
+    }
+
     // 5. Build Actual Data Payload via useActualOrchestrator.buildActualData
     const { validationError, actualData } =
       actualOrchestrator.buildActualData({
@@ -592,10 +612,16 @@ export function UnplannedActivityForm({
           activityTime: `${format(startDateTime, "HH:mm")} - ${format(endDateTime, "HH:mm")}`,
           ownerName: initial?.employeeName || "-",
           activityTypeTitle: selectedWorkTypes.join(", "),
+          district: submittedDemoPlotData?.district || district,
+          province: submittedDemoPlotData?.province || province,
         },
         planWorkTypes: selectedWorkTypes,
         productsList,
         selectedWorkTypes,
+        targets: {
+          t7a: submittedDemoPlotData,
+          t7: submittedDemoPlotData,
+        },
       });
 
     if (validationError) {
@@ -611,24 +637,6 @@ export function UnplannedActivityForm({
     try {
       const firstType = selectedWorkTypes[0] || WORK_TYPES[0];
       const activityTypeId = getWorkTypeCode(firstType) || "TYPE_1";
-
-      const {
-        planStores,
-        planProducts,
-        tourData,
-        submittedDemoPlotData,
-        submittedDemoPlotId,
-        submittedDemoPlotIds,
-        t7bObjective,
-        submittedTargetAttendees,
-        submittedTargetBookingSales,
-        type13Payload,
-        type14Payload,
-      } = typeForms.collectPlanPayloads();
-
-      if (t7bObjective) {
-        cleanObjective = t7bObjective;
-      }
 
       const {
         marketingItems,

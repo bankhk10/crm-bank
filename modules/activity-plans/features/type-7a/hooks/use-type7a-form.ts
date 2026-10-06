@@ -102,16 +102,33 @@ export function useType7aForm({
           plotName: dp?.name || "",
           storeId: dp?.customerId || "",
           ownerName: dp?.customer?.name || dp?.ownerName || "",
-          cropCategory: dp?.cropCategory || "",
-          cropName: dp?.cropName || "",
-          customCropName: dp?.customCropName || "",
-          areaRai: dp?.areaRai ? Number(dp.areaRai) : 0,
-          treeCount: dp?.treeCount ?? 0,
-          province: dp?.province || "",
-          district: dp?.district || "",
+          cropCategory:
+            dp?.cropCategory && dp.cropCategory !== "พืชทั่วไป"
+              ? dp.cropCategory
+              : (initial as any)?.cropCategory ||
+                (initial as any)?.demoPlotData?.cropCategory ||
+                dp?.cropCategory ||
+                "",
+          cropName:
+            dp?.cropName && dp.cropName !== "พืชทั่วไป"
+              ? dp.cropName
+              : (initial as any)?.cropName ||
+                (initial as any)?.demoPlotData?.cropName ||
+                dp?.cropName ||
+                "",
+          customCropName: dp?.customCropName || (initial as any)?.customCropName || "",
+          areaRai: dp?.areaRai ? Number(dp.areaRai) : (initial as any)?.areaRai ? Number((initial as any).areaRai) : 0,
+          treeCount: dp?.treeCount ?? (initial as any)?.treeCount ?? 0,
+          province: dp?.province || dp?.customer?.province || (initial as any)?.province || "",
+          district: dp?.district || dp?.customer?.district || (initial as any)?.district || "",
           categoryId: derivedCategoryId,
           chemicalGroupId: derivedCategoryId,
-          objective: dp?.objective || "",
+          objective:
+            dp?.objective ||
+            (initial as any)?.objective ||
+            (initial as any)?.demoPlotData?.objective ||
+            (initial as any)?.description ||
+            "",
           demoProducts:
             type7aProds.length > 0
               ? type7aProds
@@ -129,7 +146,12 @@ export function useType7aForm({
             "yyyy-MM-dd",
           ),
           followUpDate: format(new Date(), "yyyy-MM-dd"),
-          detail: dp?.objective || "",
+          detail:
+            dp?.objective ||
+            (initial as any)?.objective ||
+            (initial as any)?.demoPlotData?.objective ||
+            (initial as any)?.description ||
+            "",
         },
       ];
     }
