@@ -11,6 +11,7 @@ export interface PlanWorkTypeSelectorProps {
   setSelectedWorkTypes: React.Dispatch<React.SetStateAction<string[]>>;
   activeWorkTypeOptions: Array<any & { displayName: string }>;
   readonly?: boolean;
+  isSingleSelect?: boolean;
 }
 
 export function PlanWorkTypeSelector({
@@ -18,6 +19,7 @@ export function PlanWorkTypeSelector({
   setSelectedWorkTypes,
   activeWorkTypeOptions,
   readonly = false,
+  isSingleSelect = false,
 }: PlanWorkTypeSelectorProps) {
   const [isWorkTypesDropdownOpen, setIsWorkTypesDropdownOpen] = useState(false);
   const [tempSelectedWorkTypes, setTempSelectedWorkTypes] =
@@ -65,6 +67,14 @@ export function PlanWorkTypeSelector({
     }
   };
 
+  const selectSingleWorkType = (typeStr: string) => {
+    const code = getWorkTypeCode(typeStr);
+    const canonicalName = getWorkTypeName(code) || typeStr;
+    setSelectedWorkTypes([canonicalName]);
+    setTempSelectedWorkTypes([canonicalName]);
+    setIsWorkTypesDropdownOpen(false);
+  };
+
   const removeWorkType = (typeStr: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const canonicalName = getWorkTypeName(getWorkTypeCode(typeStr)) || typeStr;
@@ -82,9 +92,11 @@ export function PlanWorkTypeSelector({
     <div className="relative" ref={workTypesDropdownRef}>
       <label className="block text-sm font-medium text-slate-700 mb-1.5">
         ประเภทงาน{" "}
-        <span className="text-slate-400 text-[11px]">
-          (เลือกได้มากกว่า 1)
-        </span>{" "}
+        {!isSingleSelect && (
+          <span className="text-slate-400 text-[11px]">
+            (เลือกได้มากกว่า 1)
+          </span>
+        )}{" "}
         <span className="text-red-500">*</span>
       </label>
 
@@ -129,7 +141,7 @@ export function PlanWorkTypeSelector({
         <ChevronDown className="h-4 w-4 text-slate-400 ml-auto flex-shrink-0" />
       </div>
 
-      {/* Work types multi-select checkbox dropdown popup */}
+      {/* Work types dropdown popup */}
       {isWorkTypesDropdownOpen && (
         <div className="absolute left-0 sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
           <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
@@ -143,7 +155,10 @@ export function PlanWorkTypeSelector({
                   (typeItem as any).displayName ||
                   getWorkTypeName(typeItem.code) ||
                   typeItem.name;
-                const isChecked = tempSelectedWorkTypes.some(
+                const activeList = isSingleSelect
+                  ? selectedWorkTypes
+                  : tempSelectedWorkTypes;
+                const isChecked = activeList.some(
                   (t) =>
                     t === displayName ||
                     t === typeItem.name ||
@@ -152,7 +167,13 @@ export function PlanWorkTypeSelector({
                 return (
                   <label
                     key={typeItem.code}
-                    onClick={() => toggleWorkType(displayName)}
+                    onClick={() => {
+                      if (isSingleSelect) {
+                        selectSingleWorkType(displayName);
+                      } else {
+                        toggleWorkType(displayName);
+                      }
+                    }}
                     className={cn(
                       "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors select-none",
                       isChecked
@@ -160,18 +181,33 @@ export function PlanWorkTypeSelector({
                         : "hover:bg-slate-50 text-slate-700",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
-                        isChecked
-                          ? "bg-blue-600 border-blue-600 text-white"
-                          : "border-slate-300 bg-white",
-                      )}
-                    >
-                      {isChecked && (
-                        <Check className="h-3 w-3 stroke-[3]" />
-                      )}
-                    </div>
+                    {isSingleSelect ? (
+                      <div
+                        className={cn(
+                          "w-4 h-4 rounded-full border flex items-center justify-center transition-colors flex-shrink-0",
+                          isChecked
+                            ? "border-blue-600 bg-blue-600 text-white"
+                            : "border-slate-300 bg-white",
+                        )}
+                      >
+                        {isChecked && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        className={cn(
+                          "w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0",
+                          isChecked
+                            ? "bg-blue-600 border-blue-600 text-white"
+                            : "border-slate-300 bg-white",
+                        )}
+                      >
+                        {isChecked && (
+                          <Check className="h-3 w-3 stroke-[3]" />
+                        )}
+                      </div>
+                    )}
                     <span>{displayName}</span>
                   </label>
                 );
@@ -179,25 +215,27 @@ export function PlanWorkTypeSelector({
             )}
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => setIsWorkTypesDropdownOpen(false)}
-              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedWorkTypes(tempSelectedWorkTypes);
-                setIsWorkTypesDropdownOpen(false);
-              }}
-              className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-600 hover:bg-green-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
-            >
-              ตกลง
-            </button>
-          </div>
+          {!isSingleSelect && (
+            <div className="pt-2.5 border-t border-slate-100 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsWorkTypesDropdownOpen(false)}
+                className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedWorkTypes(tempSelectedWorkTypes);
+                  setIsWorkTypesDropdownOpen(false);
+                }}
+                className="px-4 py-1.5 rounded-xl border border-slate-300 bg-green-600 hover:bg-green-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
+              >
+                ตกลง
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

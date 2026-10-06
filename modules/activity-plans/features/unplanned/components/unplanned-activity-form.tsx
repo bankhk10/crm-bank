@@ -242,10 +242,11 @@ export function UnplannedActivityForm({
     );
   }, [activeWorkTypeOptions]);
 
-  // Work types selection state
+  // Work types selection state (Single Selection for Unplanned)
   const initialTypes = useMemo(() => {
     const types = hydrateWorkTypesFromPlan(initial, initialActivityTypes);
-    return types.filter((t) => isWorkTypeAllowedForUnplanned(t));
+    const filtered = types.filter((t) => isWorkTypeAllowedForUnplanned(t));
+    return filtered.length > 0 ? [filtered[0]] : [];
   }, [initial, initialActivityTypes]);
 
   const [selectedWorkTypes, setSelectedWorkTypes] =
@@ -814,6 +815,7 @@ export function UnplannedActivityForm({
                   setSelectedWorkTypes={setSelectedWorkTypes}
                   activeWorkTypeOptions={unplannedWorkTypeOptions}
                   readonly={readonly}
+                  isSingleSelect={true}
                 />
               }
             />
