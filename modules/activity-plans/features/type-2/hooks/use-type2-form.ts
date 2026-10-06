@@ -53,6 +53,121 @@ export interface UseType2FormResult {
   };
 }
 
+function matchProductsToStores(
+  stores: any[],
+  products: any[],
+): Type2FollowupProductLine[][] {
+  if (!stores || stores.length === 0) return [];
+  if (!products || products.length === 0) {
+    return stores.map(() => []);
+  }
+  if (stores.length === 1) {
+    return [
+      products.map((p, pIdx) => ({
+        id: p.id || `p-0-${pIdx}`,
+        productId: p.productId,
+        productName: p.product?.name || p.productName || "",
+        notes: p.notes || "",
+      })),
+    ];
+  }
+
+  // Count how many stores have each non-null storeId
+  const storeIdCounts = new Map<string, number>();
+  stores.forEach((s) => {
+    if (s.storeId) {
+      storeIdCounts.set(s.storeId, (storeIdCounts.get(s.storeId) || 0) + 1);
+    }
+  });
+
+  // Track assigned products
+  const assigned = new Set<any>();
+  const storeProducts: any[][] = stores.map(() => []);
+
+  // 1st pass: For stores with distinct non-null storeId
+  stores.forEach((s, sIdx) => {
+    if (s.storeId && storeIdCounts.get(s.storeId) === 1) {
+      const matched = products.filter(
+        (p) => !assigned.has(p) && p.storeId === s.storeId,
+      );
+      matched.forEach((p) => assigned.add(p));
+      storeProducts[sIdx] = matched;
+    }
+  });
+
+  // 2nd pass: For stores with duplicate non-null storeId
+  // Distribute matched products sequentially among those stores
+  storeIdCounts.forEach((count, sId) => {
+    if (count > 1) {
+      const matchedForId = products.filter(
+        (p) => !assigned.has(p) && p.storeId === sId,
+      );
+      const targetStoreIndices = stores
+        .map((s, idx) => (s.storeId === sId ? idx : -1))
+        .filter((idx) => idx !== -1);
+
+      const prodsPerStore = Math.max(
+        1,
+        Math.floor(matchedForId.length / targetStoreIndices.length),
+      );
+      let currentProdIdx = 0;
+
+      targetStoreIndices.forEach((storeIdx, i) => {
+        const isLast = i === targetStoreIndices.length - 1;
+        const takeCount = isLast
+          ? matchedForId.length - currentProdIdx
+          : prodsPerStore;
+        const slice = matchedForId.slice(
+          currentProdIdx,
+          currentProdIdx + takeCount,
+        );
+        slice.forEach((p) => assigned.add(p));
+        storeProducts[storeIdx] = slice;
+        currentProdIdx += takeCount;
+      });
+    }
+  });
+
+  // 3rd pass: Stores that have no products assigned yet (e.g. unregistered farmers or stores where storeId didn't match)
+  const unassignedStoresIndices = stores
+    .map((s, idx) => (storeProducts[idx].length === 0 ? idx : -1))
+    .filter((idx) => idx !== -1);
+
+  const remainingProducts = products.filter((p) => !assigned.has(p));
+
+  if (unassignedStoresIndices.length > 0 && remainingProducts.length > 0) {
+    const prodsPerStore = Math.max(
+      1,
+      Math.floor(remainingProducts.length / unassignedStoresIndices.length),
+    );
+    let currentProdIdx = 0;
+
+    unassignedStoresIndices.forEach((storeIdx, i) => {
+      const isLast = i === unassignedStoresIndices.length - 1;
+      const takeCount = isLast
+        ? remainingProducts.length - currentProdIdx
+        : prodsPerStore;
+      const slice = remainingProducts.slice(
+        currentProdIdx,
+        currentProdIdx + takeCount,
+      );
+      slice.forEach((p) => assigned.add(p));
+      storeProducts[storeIdx] = slice;
+      currentProdIdx += takeCount;
+    });
+  }
+
+  // Convert to Type2FollowupProductLine[][]
+  return storeProducts.map((prods, sIdx) =>
+    prods.map((p, pIdx) => ({
+      id: p.id || `p-${sIdx}-${pIdx}`,
+      productId: p.productId,
+      productName: p.product?.name || p.productName || "",
+      notes: p.notes || "",
+    })),
+  );
+}
+
 export function useType2Form({
   initial = {},
   initDetails,
@@ -80,6 +195,10 @@ export function useType2Form({
         (type2Stores && type2Stores.length > 0)
       ) {
         if (type2Stores && type2Stores.length > 0) {
+          const allMatchedProds = matchProductsToStores(
+            type2Stores,
+            type2Prods || [],
+          );
           return type2Stores.map((s: any, idx: number) => {
             const inferredPurpose: "FARMER" | "STORE" =
               s?.visitPurpose === "STORE"
@@ -90,25 +209,7 @@ export function useType2Form({
                     ? "STORE"
                     : "FARMER";
 
-            let matchingProds = (type2Prods || []).filter(
-              (p: any) => s.storeId && p.storeId && p.storeId === s.storeId,
-            );
-            if (matchingProds.length === 0 && type2Stores.length === 1) {
-              matchingProds = type2Prods || [];
-            }
-            if (matchingProds.length === 0 && type2Prods && type2Prods[idx]) {
-              matchingProds = [type2Prods[idx]];
-            }
-
-            const prodLines: Type2FollowupProductLine[] = matchingProds.map(
-              (p: any, pIdx: number) => ({
-                id: p.id || `p-${idx}-${pIdx}`,
-                productId: p.productId,
-                productName: p.product?.name || p.productName || "",
-                notes: p.notes || "",
-              }),
-            );
-
+            const prodLines = allMatchedProds[idx] || [];
             const firstProd = prodLines[0];
 
             return {
