@@ -1127,7 +1127,11 @@ export function buildResultSummary(
   const t6StatusVal = t6Record?.status || input.t6Status || "เสร็จสิ้น";
 
   if (t6PurchaseChannel && t6IssueType) {
-    const issueItemId = t6Record?.id || "issue-item-1";
+    const issueItemId =
+      t6Record?.id ||
+      (typeof crypto !== "undefined" && crypto.randomUUID
+        ? `temp-issue-${crypto.randomUUID()}`
+        : `temp-issue-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
     const resolvedStoreId =
       t6PurchaseChannel === "ร้านค้าตัวแทนจำหน่าย"
         ? t6Record?.storeId || input.t6StoreId || null

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 import {
   Prisma,
@@ -2981,14 +2982,19 @@ export async function upsertActivityResult(
     }
 
     // 6. Sync Issue Results (TYPE_6)
+    const clientIssueMap = new Map<string, string>();
     if (input.issueResults !== undefined) {
       await tx.activityResultIssueItem.deleteMany({
         where: { activityResultId: result.id },
       });
       if (input.issueResults.length > 0) {
-        await tx.activityResultIssueItem.createMany({
-          data: input.issueResults.map((item) => ({
-            id: item.id || undefined,
+        const issueItemsToCreate = input.issueResults.map((item) => {
+          const dbId = randomUUID();
+          if (item.id) {
+            clientIssueMap.set(item.id, dbId);
+          }
+          return {
+            id: dbId,
             activityResultId: result.id,
             productId: item.productId ?? null,
             productName: item.productName ?? null,
@@ -2999,7 +3005,11 @@ export async function upsertActivityResult(
             issueType: item.issueType,
             detail: item.detail ?? null,
             status: item.status || "เสร็จสิ้น",
-          })),
+          };
+        });
+
+        await tx.activityResultIssueItem.createMany({
+          data: issueItemsToCreate,
         });
       }
     }
@@ -3560,10 +3570,15 @@ export async function upsertActivityResult(
               att.surveyItemId && validSurveyItemIds.has(att.surveyItemId)
                 ? att.surveyItemId
                 : null,
-            issueItemId:
-              att.issueItemId && validIssueItemIds.has(att.issueItemId)
-                ? att.issueItemId
-                : null,
+            issueItemId: (() => {
+              let issueId = att.issueItemId;
+              if (issueId && clientIssueMap.has(issueId)) {
+                issueId = clientIssueMap.get(issueId);
+              }
+              return issueId && validIssueItemIds.has(issueId)
+                ? issueId
+                : null;
+            })(),
             demoPlotId: (() => {
               let plotId = att.demoPlotId;
               if (plotId && clientPlotMap.has(plotId)) {
