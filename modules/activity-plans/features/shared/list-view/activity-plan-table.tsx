@@ -34,7 +34,10 @@ import {
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
-import { MultiSelect, type MultiSelectOption } from "@/components/custom/multi-select";
+import {
+  MultiSelect,
+  type MultiSelectOption,
+} from "@/components/custom/multi-select";
 
 interface ActivityPlanTableProps {
   data: ActivityPlanWithRelations[];
@@ -293,8 +296,9 @@ export function ActivityPlanTable({
                   item.activityType?.name !== "ทัวร์";
 
           const isCreator = Boolean(
-            (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
-            (currentUserId && item.createdById === currentUserId)
+            (currentUserEmployeeId &&
+              item.employeeId === currentUserEmployeeId) ||
+            (currentUserId && item.createdById === currentUserId),
           );
 
           const editHref = isUnplanned
@@ -330,7 +334,8 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {editable && isCreator &&
+              {editable &&
+                isCreator &&
                 (submitLoadingId === item.id ? (
                   <span className="text-xs text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
                     กำลังส่ง...
@@ -453,7 +458,10 @@ export function ActivityPlanTable({
       <div className="flex flex-wrap items-center justify-end gap-3">
         {canCreate ? (
           <>
-            <Link href="/activity-plans/unplanned/new" className="w-full sm:w-auto">
+            <Link
+              href="/activity-plans/unplanned/new"
+              className="w-full sm:w-auto"
+            >
               <Button className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2 font-semibold shadow-xs">
                 <PlusCircle className="h-4 w-4" />
                 บันทึกกิจกรรมนอกแผน
@@ -533,7 +541,9 @@ export function ActivityPlanTable({
         <div className="text-center py-14 text-slate-400">
           <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm font-medium">ไม่พบรายการ Trip Plan</p>
-          <p className="text-xs mt-1">ลองปรับเงื่อนไขการค้นหา หรือสร้าง Trip Plan ใหม่</p>
+          <p className="text-xs mt-1">
+            ลองปรับเงื่อนไขการค้นหา หรือสร้าง Trip Plan ใหม่
+          </p>
         </div>
       );
     }
@@ -568,16 +578,18 @@ export function ActivityPlanTable({
                     "";
                   const code = getWorkTypeCode(raw);
                   return code
-                    ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]?.hasActual
+                    ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]
+                        ?.hasActual
                     : true;
                 })
               : (item as any).tour
-              ? false
-              : item.activityType?.code !== "TYPE_12" &&
-                item.activityType?.name !== "ทัวร์";
+                ? false
+                : item.activityType?.code !== "TYPE_12" &&
+                  item.activityType?.name !== "ทัวร์";
 
           const isCreator = Boolean(
-            (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
+            (currentUserEmployeeId &&
+              item.employeeId === currentUserEmployeeId) ||
             (currentUserId && item.createdById === currentUserId),
           );
 
@@ -604,7 +616,8 @@ export function ActivityPlanTable({
             workTypeNames.push("ทัวร์");
           } else {
             const raw: any = item.activityType;
-            if (raw && typeof raw === "object") workTypeNames.push(raw.name || raw.code || "-");
+            if (raw && typeof raw === "object")
+              workTypeNames.push(raw.name || raw.code || "-");
             else if (typeof raw === "string") workTypeNames.push(raw);
           }
 
@@ -642,7 +655,10 @@ export function ActivityPlanTable({
                   </div>
                   {/* Status */}
                   <div className="shrink-0 mt-0.5">
-                    <ActivityStatusWithOperator plan={item} resultStatus={resultStatus} />
+                    <ActivityStatusWithOperator
+                      plan={item}
+                      resultStatus={resultStatus}
+                    />
                   </div>
                 </div>
 
@@ -686,18 +702,21 @@ export function ActivityPlanTable({
                   </Button>
                 </Link>
 
-                {!isUnplanned && isApproved && hasActualWorkType && isCreator && (
-                  <Link href={`/activity-plans/${item.id}/actual`}>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-[11px] font-semibold text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-lg gap-1 px-2.5"
-                    >
-                      <ClipboardList className="w-3.5 h-3.5" />
-                      บันทึกผล
-                    </Button>
-                  </Link>
-                )}
+                {!isUnplanned &&
+                  isApproved &&
+                  hasActualWorkType &&
+                  isCreator && (
+                    <Link href={`/activity-plans/${item.id}/actual`}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-[11px] font-semibold text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-lg gap-1 px-2.5"
+                      >
+                        <ClipboardList className="w-3.5 h-3.5" />
+                        บันทึกผล
+                      </Button>
+                    </Link>
+                  )}
 
                 {canApprove && isPending && (
                   <Link href="/activity-plans/approvals">
@@ -712,8 +731,9 @@ export function ActivityPlanTable({
                   </Link>
                 )}
 
-                {editable && isCreator && (
-                  submitLoadingId === item.id ? (
+                {editable &&
+                  isCreator &&
+                  (submitLoadingId === item.id ? (
                     <span className="text-[11px] text-slate-400 animate-pulse font-medium px-2 py-1 select-none">
                       กำลังส่ง...
                     </span>
@@ -727,8 +747,7 @@ export function ActivityPlanTable({
                       <Send className="w-3.5 h-3.5" />
                       {isUnplanned ? "ส่งตรวจสอบ" : "ส่งขออนุมัติ"}
                     </Button>
-                  )
-                )}
+                  ))}
 
                 {canEdit && editable && isCreator && (
                   <Link href={editHref}>
@@ -784,13 +803,17 @@ export function ActivityPlanTable({
               ก่อนหน้า
             </Button>
             <span className="text-xs text-slate-500">
-              หน้า {pagination.page} / {Math.ceil(pagination.total / pagination.perPage)}
+              หน้า {pagination.page} /{" "}
+              {Math.ceil(pagination.total / pagination.perPage)}
             </span>
             <Button
               variant="outline"
               size="sm"
               className="text-xs h-8 rounded-lg"
-              disabled={pagination.page >= Math.ceil(pagination.total / pagination.perPage)}
+              disabled={
+                pagination.page >=
+                Math.ceil(pagination.total / pagination.perPage)
+              }
               onClick={() => pagination.onPageChange(pagination.page + 1)}
             >
               ถัดไป
@@ -806,9 +829,7 @@ export function ActivityPlanTable({
     <div className="space-y-4">
       {toolbar}
       {/* Mobile card view */}
-      <div className="md:hidden">
-        {renderMobileCards()}
-      </div>
+      <div className="md:hidden">{renderMobileCards()}</div>
       {/* Desktop / tablet table view */}
       <div className="hidden md:block w-full">
         <CustomTable
