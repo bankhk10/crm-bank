@@ -2,10 +2,9 @@
 
 import React from "react";
 import { Plane, Building2, Globe2 } from "lucide-react";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { STORES_LIST } from "@/modules/activity-plans/constants";
 
 import type { CustomerOption } from "../shared/types";
 import type { Type12TourProps } from "./types";
@@ -27,19 +26,6 @@ export function Type12Tour({
   setType12Destination,
   customers = [],
 }: Props) {
-  const customerOptions = (
-    customers && customers.length > 0
-      ? customers
-      : STORES_LIST.map((store) => ({
-          id: store,
-          name: store,
-          customerCode: null,
-        }))
-  ).map((c) => ({
-    value: c.name,
-    label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
-  }));
-
   return (
     <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 md:p-5 space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
@@ -131,14 +117,16 @@ export function Type12Tour({
         <div className="space-y-4 pt-2 border-t border-slate-200/60 animate-in fade-in-50 duration-200">
           {/* ร้านค้า */}
           <div className="space-y-1.5">
-            <FormCombobox
+            <ActivityCustomerSelect
               id="type12-store-combobox"
+              type="STORE"
               label="ร้านค้า"
               labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-              triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-slate-500 shadow-2xs"
+              triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-sky-500 shadow-2xs"
               value={type12Store}
-              onChange={(val) => setType12Store(val)}
-              options={customerOptions}
+              valueKey="name"
+              onChange={(val, cust) => setType12Store(cust?.name || val)}
+              customers={customers as any}
               placeholder="เลือกร้านค้า..."
               searchPlaceholder="ค้นหาร้านค้า / ลูกค้า..."
               emptyText="ไม่พบร้านค้า"
