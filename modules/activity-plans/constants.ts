@@ -198,10 +198,12 @@ export function getWorkTypeCode(nameOrCode: string): string {
  * Activity / Work Type codes that are disallowed for Unplanned Activity:
  * - TYPE_7A: ทำแปลงสาธิต
  * - TYPE_10: จัดงาน Field Day
+ * - TYPE_12: ทัวร์
  */
 export const UNPLANNED_DISALLOWED_WORK_TYPE_CODES = new Set([
   "TYPE_7A",
   "TYPE_10",
+  "TYPE_12",
 ]);
 
 /**

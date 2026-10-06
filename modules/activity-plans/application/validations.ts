@@ -524,7 +524,7 @@ export const activityPlanSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE7A) หรือ จัดงาน Field Day (TYPE10)",
+            "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE_7A), จัดงาน Field Day (TYPE_10) หรือ ทัวร์ (TYPE_12)",
           path: ["workTypeCodes"],
         });
       }
