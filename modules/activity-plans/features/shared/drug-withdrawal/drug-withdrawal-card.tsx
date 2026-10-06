@@ -628,19 +628,6 @@ export function DrugWithdrawalCard({
 
               {/* Bottom Actions & Summary for TYPE_14 */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100">
-                {!isReadOnly && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddFlatProduct}
-                    className="h-9 px-3.5 text-xs font-semibold text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/80 border-emerald-200 rounded-xl flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+ เพิ่มสินค้า</span>
-                  </Button>
-                )}
-
                 <div className="text-xs text-slate-500 font-medium ml-auto">
                   สรุป: รวม{" "}
                   <span className="font-bold text-slate-800">
