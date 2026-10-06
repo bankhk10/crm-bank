@@ -15,7 +15,6 @@ import type { Type7FollowUpProps } from "./types";
 
 export type { ProductOption, Type7FollowUpProps };
 
-
 export function Type7FollowUp({
   item,
   updateType7Row,
@@ -39,11 +38,20 @@ export function Type7FollowUp({
       );
     }
     return undefined;
-  }, [item.selectedPlanId, item.selectedPlotIds, item.existingPlotId, item.demoPlotId, followUpPlans]);
+  }, [
+    item.selectedPlanId,
+    item.selectedPlotIds,
+    item.existingPlotId,
+    item.demoPlotId,
+    followUpPlans,
+  ]);
 
   // Selected plot IDs
   const selectedPlotIds: string[] = useMemo(() => {
-    if (Array.isArray(item.selectedPlotIds) && item.selectedPlotIds.length > 0) {
+    if (
+      Array.isArray(item.selectedPlotIds) &&
+      item.selectedPlotIds.length > 0
+    ) {
       return item.selectedPlotIds;
     }
     if (item.existingPlotId || item.demoPlotId) {
@@ -248,7 +256,8 @@ export function Type7FollowUp({
                   เลือกแปลงสาธิตที่ต้องการติดตาม
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
-                  เลือกแล้ว {selectedPlotIds.length} / {selectedPlan.plots.length} แปลง
+                  เลือกแล้ว {selectedPlotIds.length} /{" "}
+                  {selectedPlan.plots.length} แปลง
                 </span>
               </div>
 
@@ -279,7 +288,9 @@ export function Type7FollowUp({
             {/* Validation warning if no plots selected */}
             {selectedPlotIds.length === 0 && (
               <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
-                <span>⚠️ กรุณาติ๊กเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง</span>
+                <span>
+                  ⚠️ กรุณาติ๊กเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง
+                </span>
               </div>
             )}
 
@@ -340,13 +351,18 @@ export function Type7FollowUp({
                         <div>
                           <span className="text-slate-400">จังหวัด: </span>
                           <span className="text-slate-700">
-                            {[plot.province, plot.district].filter(Boolean).join(" / ") || "-"}
+                            {[plot.province, plot.district]
+                              .filter(Boolean)
+                              .join(" / ") || "-"}
                           </span>
                         </div>
                       </div>
                       {plot.dealerName && (
                         <div className="text-[10.5px] text-slate-500 pt-0.5 border-t border-slate-200/50">
-                          ร้าน Dealer: <span className="font-medium text-slate-700">{plot.dealerName}</span>
+                          ร้าน Dealer:{" "}
+                          <span className="font-medium text-slate-700">
+                            {plot.dealerName}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -357,8 +373,8 @@ export function Type7FollowUp({
           </div>
         )}
 
-        {/* Fallback direct plot selection if no plan matches or legacy mode */}
-        {!selectedPlan && existingPlotOptions.length > 0 && (
+        {/* Fallback direct plot selection if no plan matches or legacy mode * ปิดไว้ก่อนเดียวมาเปิดเอง/}
+        {/* {!selectedPlan && existingPlotOptions.length > 0 && (
           <div className="pt-1">
             <FormCombobox
               id={`legacy-plot-combobox-${item.id}`}
@@ -378,7 +394,7 @@ export function Type7FollowUp({
               disabled={readonly}
             />
           </div>
-        )}
+        )} */}
       </div>
 
       {/* 2. การเบิกสินค้าสำหรับรอบติดตามนี้ (TYPE_7B Product Withdrawal) */}
