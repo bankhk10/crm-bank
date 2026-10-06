@@ -526,7 +526,7 @@ export function UnplannedActivityForm({
     );
     if (invalidUnplannedTypes.length > 0) {
       setError(
-        "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน ทำแปลงสาธิต (TYPE_7A), จัดงาน Field Day (TYPE_10) หรือ ทัวร์ (TYPE_12)",
+        "ในกิจกรรมนอกแผน ห้ามเลือกประเภทงาน จัดงาน Field Day (TYPE_10) หรือ ทัวร์ (TYPE_12)",
       );
       return;
     }
