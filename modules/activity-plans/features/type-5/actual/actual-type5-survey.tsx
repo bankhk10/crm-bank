@@ -6,17 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { ImageFile, Type5SurveyRecord } from "@/modules/activity-plans/features/shared/actual-view/types";
+import {
+  ImageFile,
+  Type5SurveyRecord,
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import type {
-  TargetSurveyItem,
-  ActualType5SurveyProps,
-} from "./types";
+import type { TargetSurveyItem, ActualType5SurveyProps } from "./types";
 
 export type { TargetSurveyItem, ActualType5SurveyProps };
 
@@ -274,7 +274,7 @@ export function ActualType5Survey({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        โครงสร้างราคา 4 ระดับ (บาท)
+                        ราคาขาย (บาท)
                       </span>
                       <span className="text-[11px] text-amber-700/70">
                         กรอกข้อมูลราคาที่สำรวจได้
@@ -287,7 +287,7 @@ export function ActualType5Survey({
                           ราคา ณ จุดขาย (POS)
                         </label>
                         <Input
-                          type="text"
+                          type="number"
                           value={
                             record.posPrice != null
                               ? String(record.posPrice)
@@ -306,7 +306,7 @@ export function ActualType5Survey({
                           ราคา Dealer
                         </label>
                         <Input
-                          type="text"
+                          type="number"
                           value={
                             record.dealerPrice != null
                               ? String(record.dealerPrice)
@@ -329,7 +329,7 @@ export function ActualType5Survey({
                           ราคา Subdealer
                         </label>
                         <Input
-                          type="text"
+                          type="number"
                           value={
                             record.subdealerPrice != null
                               ? String(record.subdealerPrice)
@@ -352,7 +352,7 @@ export function ActualType5Survey({
                           ราคา Farmers
                         </label>
                         <Input
-                          type="text"
+                          type="number"
                           value={
                             record.farmerPrice != null
                               ? String(record.farmerPrice)
