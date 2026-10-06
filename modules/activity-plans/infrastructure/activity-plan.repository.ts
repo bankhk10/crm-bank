@@ -1112,11 +1112,15 @@ export async function createActivityPlan(
             workTypeCodes.includes("TYPE_10") || primaryCode === "TYPE_10";
           const isType7B =
             workTypeCodes.includes("TYPE_7B") || primaryCode === "TYPE_7B";
+          const isType14 =
+            workTypeCodes.includes("TYPE_14") || primaryCode === "TYPE_14";
           const visitWorkType = isType10
             ? "TYPE_10"
             : isType7B
               ? "TYPE_7B"
-              : workTypeCodes[0] || null;
+              : isType14
+                ? "TYPE_14"
+                : workTypeCodes[0] || null;
 
           for (const pid of plotIdsToVisit) {
             const existingPlot = await tx.demoPlot.findUnique({
@@ -1819,7 +1823,7 @@ export async function updateActivityPlan(
       await tx.demoPlotVisit.deleteMany({
         where: {
           activityPlanId: id,
-          workTypeCode: { in: ["TYPE_7B", "TYPE_10"] },
+          workTypeCode: { in: ["TYPE_7B", "TYPE_10", "TYPE_14"] },
         },
       });
       const plotIdsToVisit =
@@ -1833,11 +1837,14 @@ export async function updateActivityPlan(
         const currentCodes = workTypeCodes?.map(getWorkTypeCode) ?? [];
         const isType10 = currentCodes.includes("TYPE_10");
         const isType7B = currentCodes.includes("TYPE_7B");
+        const isType14 = currentCodes.includes("TYPE_14");
         const visitWorkType = isType10
           ? "TYPE_10"
           : isType7B
             ? "TYPE_7B"
-            : currentCodes[0] || null;
+            : isType14
+              ? "TYPE_14"
+              : currentCodes[0] || null;
 
         for (const pid of plotIdsToVisit) {
           const existingPlot = await tx.demoPlot.findUnique({

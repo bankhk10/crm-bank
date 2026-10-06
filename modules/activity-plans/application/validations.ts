@@ -287,6 +287,8 @@ export const type14PlanInputSchema = z.object({
   mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]).optional().default("EXISTING_PLOT"),
   selectedPlanId: z.string().optional().nullable(),
   demoPlotId: z.string().optional().nullable(),
+  demoPlotIds: z.array(z.string()).optional().default([]),
+  selectedPlotIds: z.array(z.string()).optional().default([]),
   name: z.string().optional().default(""),
   storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
   ownerName: z.string().optional().nullable(),

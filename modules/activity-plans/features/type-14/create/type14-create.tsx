@@ -79,22 +79,36 @@ export function Type14Create({
     return internalPlans;
   }, [hattackFollowUpPlans, internalPlans]);
 
-  // Auto-hydrate selectedPlanId if demoPlotId is provided from saved data
+  // Current selected plot IDs (multi-select)
+  const selectedPlotIds: string[] = useMemo(() => {
+    if (value.selectedPlotIds && value.selectedPlotIds.length > 0) {
+      return value.selectedPlotIds;
+    }
+    if (value.demoPlotIds && value.demoPlotIds.length > 0) {
+      return value.demoPlotIds;
+    }
+    return value.demoPlotId ? [value.demoPlotId] : [];
+  }, [value.selectedPlotIds, value.demoPlotIds, value.demoPlotId]);
+
+  // Auto-hydrate selectedPlanId if demoPlotId or selectedPlotIds are provided from saved data
   useEffect(() => {
     if (!availablePlans || availablePlans.length === 0) return;
     if (value.selectedPlanId) return;
 
-    if (value.demoPlotId) {
+    const targetPlotId = selectedPlotIds[0] || value.demoPlotId;
+    if (targetPlotId) {
       const parentPlan = availablePlans.find((plan) =>
-        plan.plots.some((p) => p.id === value.demoPlotId),
+        plan.plots.some((p) => p.id === targetPlotId),
       );
       if (parentPlan) {
         const matchedPlot = parentPlan.plots.find(
-          (p) => p.id === value.demoPlotId,
+          (p) => p.id === targetPlotId,
         );
         onChange({
           ...value,
           selectedPlanId: parentPlan.planId,
+          selectedPlotIds: selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
+          demoPlotIds: selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
           cropCategory: value.cropCategory || matchedPlot?.cropCategory || null,
           cropName: value.cropName || matchedPlot?.cropName || null,
           areaRai: value.areaRai ?? (matchedPlot?.areaRai ?? null),
@@ -104,7 +118,7 @@ export function Type14Create({
         });
       }
     }
-  }, [availablePlans, value, onChange]);
+  }, [availablePlans, selectedPlotIds, value, onChange]);
 
   // Combobox options: Source Plans (Approved & Completed)
   const planComboboxOptions = useMemo(() => {
@@ -127,60 +141,62 @@ export function Type14Create({
     return availablePlans.find((p) => p.planId === value.selectedPlanId);
   }, [availablePlans, value.selectedPlanId]);
 
-  // Plots in selected plan
-  const availablePlotsInPlan = useMemo(() => {
-    return selectedPlan ? selectedPlan.plots : [];
-  }, [selectedPlan]);
+  // Sync plot details helper
+  const syncPlotData = (firstPlotId: string, allPlotIds: string[]) => {
+    const matchedPlot = selectedPlan?.plots.find((p) => p.id === firstPlotId);
 
-  // Combobox options: Plots in selected plan
-  const plotComboboxOptions = useMemo(() => {
-    if (!selectedPlan) return [];
-    return selectedPlan.plots.map((plot) => {
-      const cropInfo = [plot.cropCategory, plot.cropName]
-        .filter(Boolean)
-        .join(" - ");
-      const locationInfo = [plot.district, plot.province]
-        .filter(Boolean)
-        .join(", ");
-      return {
-        value: plot.id,
-        label: `${plot.name}${plot.code ? ` (${plot.code})` : ""}`,
-        subLabel: [
-          plot.ownerName ? `เกษตรกร: ${plot.ownerName}` : null,
-          cropInfo,
-          locationInfo,
-        ]
-          .filter(Boolean)
-          .join(" • "),
-      };
-    });
-  }, [selectedPlan]);
-
-  // Currently selected plot item
-  const selectedPlotItem = useMemo(() => {
-    if (!value.demoPlotId) return undefined;
-    return availablePlotsInPlan.find((p) => p.id === value.demoPlotId);
-  }, [availablePlotsInPlan, value.demoPlotId]);
-
-  // Display name for dealer customer
-  const dealerDisplayName = useMemo(() => {
-    if (value.dealerName) return value.dealerName;
-    if (selectedPlotItem?.dealerName) return selectedPlotItem.dealerName;
-    if (value.storeId) {
-      const match = dealerCustomers.find((d) => d.id === value.storeId);
-      if (match) return match.name;
+    if (matchedPlot) {
+      onChange({
+        ...value,
+        mode: "EXISTING_PLOT",
+        demoPlotId: firstPlotId || null,
+        demoPlotIds: allPlotIds,
+        selectedPlotIds: allPlotIds,
+        name: matchedPlot.name || "แปลงแฮตแทค",
+        storeId: matchedPlot.dealerId || value.storeId || "",
+        dealerName: matchedPlot.dealerName || value.dealerName || "",
+        ownerName: matchedPlot.ownerName || "",
+        cropCategory: matchedPlot.cropCategory || null,
+        cropName: matchedPlot.cropName || null,
+        areaRai: matchedPlot.areaRai ?? null,
+        treeCount: matchedPlot.treeCount ?? null,
+        province: matchedPlot.province || defaultProvince || "",
+        district: matchedPlot.district || defaultDistrict || "",
+        latitude: "",
+        longitude: "",
+      });
+    } else {
+      onChange({
+        ...value,
+        demoPlotId: null,
+        demoPlotIds: allPlotIds,
+        selectedPlotIds: allPlotIds,
+        name: allPlotIds.length > 0 ? "แปลงแฮตแทค" : "",
+        storeId: allPlotIds.length > 0 ? value.storeId : "",
+        dealerName: allPlotIds.length > 0 ? value.dealerName : "",
+        ownerName: "",
+        cropCategory: null,
+        cropName: null,
+        areaRai: null,
+        treeCount: null,
+        province: allPlotIds.length > 0 ? value.province : "",
+        district: allPlotIds.length > 0 ? value.district : "",
+        latitude: "",
+        longitude: "",
+      });
     }
-    return value.storeId || "-";
-  }, [value.dealerName, selectedPlotItem, value.storeId, dealerCustomers]);
+  };
 
   // Handle source plan change
   const handlePlanChange = (planId: string) => {
     const plan = availablePlans.find((p) => p.planId === planId);
-    if (!plan) {
+    if (!plan || plan.plots.length === 0) {
       onChange({
         ...value,
-        selectedPlanId: null,
+        selectedPlanId: planId || null,
         demoPlotId: null,
+        demoPlotIds: [],
+        selectedPlotIds: [],
         name: "",
         storeId: "",
         dealerName: "",
@@ -198,7 +214,7 @@ export function Type14Create({
       return;
     }
 
-    // Auto-select immediately if the plan has exactly 1 plot
+    // Auto-select single plot
     if (plan.plots.length === 1) {
       const singlePlot = plan.plots[0];
       onChange({
@@ -206,6 +222,8 @@ export function Type14Create({
         mode: "EXISTING_PLOT",
         selectedPlanId: plan.planId,
         demoPlotId: singlePlot.id,
+        demoPlotIds: [singlePlot.id],
+        selectedPlotIds: [singlePlot.id],
         name: singlePlot.name,
         storeId: singlePlot.dealerId || "",
         dealerName: singlePlot.dealerName || "",
@@ -229,6 +247,8 @@ export function Type14Create({
       mode: "EXISTING_PLOT",
       selectedPlanId: plan.planId,
       demoPlotId: null,
+      demoPlotIds: [],
+      selectedPlotIds: [],
       name: "",
       storeId: "",
       dealerName: "",
@@ -245,49 +265,47 @@ export function Type14Create({
     });
   };
 
-  // Handle plot change
-  const handlePlotChange = (plotId: string) => {
-    const plot = availablePlotsInPlan.find((p) => p.id === plotId);
-    if (!plot) {
-      onChange({
-        ...value,
-        demoPlotId: null,
-        name: "",
-        storeId: "",
-        dealerName: "",
-        ownerName: "",
-        cropCategory: null,
-        cropName: null,
-        areaRai: null,
-        treeCount: null,
-        province: "",
-        district: "",
-        latitude: "",
-        longitude: "",
-        trackings: [],
-      });
-      return;
+  // Toggle single plot checkbox
+  const handleTogglePlot = (plotId: string) => {
+    let updated: string[];
+    if (selectedPlotIds.includes(plotId)) {
+      updated = selectedPlotIds.filter((id) => id !== plotId);
+    } else {
+      updated = [...selectedPlotIds, plotId];
     }
-
-    onChange({
-      ...value,
-      mode: "EXISTING_PLOT",
-      demoPlotId: plot.id,
-      name: plot.name,
-      storeId: plot.dealerId || "",
-      dealerName: plot.dealerName || "",
-      ownerName: plot.ownerName || "",
-      cropCategory: plot.cropCategory || null,
-      cropName: plot.cropName || null,
-      areaRai: plot.areaRai ?? null,
-      treeCount: plot.treeCount ?? null,
-      province: plot.province || defaultProvince || "",
-      district: plot.district || defaultDistrict || "",
-      latitude: "",
-      longitude: "",
-      trackings: [],
-    });
+    syncPlotData(updated[0] || "", updated);
   };
+
+  // Select all plots in current plan
+  const handleSelectAllPlots = () => {
+    if (!selectedPlan) return;
+    const allIds = selectedPlan.plots.map((p) => p.id);
+    syncPlotData(allIds[0] || "", allIds);
+  };
+
+  // Deselect all plots in current plan
+  const handleDeselectAllPlots = () => {
+    syncPlotData("", []);
+  };
+
+  // Selected plot objects for summary
+  const selectedPlotItems = useMemo(() => {
+    if (!selectedPlan || selectedPlotIds.length === 0) return [];
+    return selectedPlan.plots.filter((p) => selectedPlotIds.includes(p.id));
+  }, [selectedPlan, selectedPlotIds]);
+
+  // Display name for dealer customer
+  const dealerDisplayName = useMemo(() => {
+    if (value.dealerName) return value.dealerName;
+    if (selectedPlotItems.length > 0 && selectedPlotItems[0].dealerName) {
+      return selectedPlotItems[0].dealerName;
+    }
+    if (value.storeId) {
+      const match = dealerCustomers.find((d) => d.id === value.storeId);
+      if (match) return match.name;
+    }
+    return value.storeId || "-";
+  }, [value.dealerName, selectedPlotItems, value.storeId, dealerCustomers]);
 
   // Product withdrawal options & state
   const productOptions = useMemo(() => {
@@ -402,7 +420,7 @@ export function Type14Create({
         </div>
       </div>
 
-      {/* Dependent Selector: 1. แผนกิจกรรมต้นทาง -> 2. แปลงแฮตแทค */}
+      {/* Dependent Selector: 1. แผนกิจกรรมต้นทาง -> 2. รายการแปลงแฮตแทค (Multi-Select) */}
       <div className="space-y-4">
         {/* Combobox 1: เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง */}
         <div>
@@ -434,114 +452,239 @@ export function Type14Create({
           )}
         </div>
 
-        {/* Combobox 2: เลือกแปลงแฮตแทคที่ต้องการติดตาม */}
-        <div>
-          <FormCombobox
-            id="type14-plot-combobox"
-            label="เลือกแปลงแฮตแทคที่ต้องการติดตาม"
-            required
-            value={value.demoPlotId || ""}
-            onChange={handlePlotChange}
-            options={plotComboboxOptions}
-            placeholder={
-              !value.selectedPlanId
-                ? "กรุณาเลือกแผนกิจกรรมต้นทางก่อน..."
-                : plotComboboxOptions.length > 0
-                  ? "เลือกแปลงแฮตแทคที่ต้องการติดตาม..."
-                  : "ไม่พบแปลงแฮตแทคในแผนนี้"
-            }
-            searchPlaceholder="ค้นหาแปลงแฮตแทค..."
-            emptyText="ไม่พบแปลงแฮตแทคในรายการ"
-            disabled={readonly || !value.selectedPlanId}
-            showSubLabelInTrigger={true}
-            labelClassName="text-xs font-semibold text-slate-700 mb-1 mx-0"
-            triggerClassName="h-auto min-h-[44px] py-1.5 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-purple-500 disabled:bg-slate-50 disabled:text-slate-400"
-          />
-        </div>
-
-        {/* Rich Plot Details Card: เกษตรกร, ร้านค้า, พืช/หมวดพืช, พื้นที่, อำเภอ/จังหวัด */}
-        {value.demoPlotId && (
-          <div className="bg-purple-50/50 rounded-xl border border-purple-200/80 p-3.5 sm:p-4 space-y-3 transition-all animate-fadeIn">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 border-b border-purple-100 pb-2">
-              <Info className="w-4 h-4 text-purple-600" />
-              <span>รายละเอียดแปลงแฮตแทคที่เลือก</span>
-              {value.name && (
-                <span className="text-purple-700 font-medium ml-1">
-                  ({value.name})
+        {/* 2. รายการแปลงแฮตแทคในแผน (Multi-Select Checkbox Cards - Matching Type 7B) */}
+        {selectedPlan && selectedPlan.plots.length > 0 && (
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 space-y-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                  <Info className="h-3.5 w-3.5 text-purple-600" />
+                  เลือกแปลงแฮตแทคที่ต้องการติดตาม
                 </span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-semibold text-[11px]">
+                  เลือกแล้ว {selectedPlotIds.length} / {selectedPlan.plots.length} แปลง
+                </span>
+              </div>
+
+              {!readonly && selectedPlan.plots.length > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllPlots}
+                    className="h-6 px-2 text-[11px] text-purple-700 hover:text-purple-800 border-purple-300 hover:bg-purple-50"
+                  >
+                    เลือกทั้งหมด
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeselectAllPlots}
+                    className="h-6 px-2 text-[11px] text-slate-600 hover:text-slate-800 border-slate-300 hover:bg-slate-100"
+                  >
+                    ยกเลิกทั้งหมด
+                  </Button>
+                </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-              {/* เกษตรกรเจ้าของแปลง */}
-              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-purple-600" />
-                  เกษตรกรเจ้าของแปลง
+            {/* Validation warning if no plots selected */}
+            {selectedPlotIds.length === 0 && (
+              <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
+                <span>
+                  ⚠️ กรุณาติ๊กเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง
                 </span>
-                <p className="font-semibold text-slate-800 truncate">
-                  {value.ownerName || selectedPlotItem?.ownerName || "-"}
-                </p>
               </div>
+            )}
 
-              {/* ร้านค้าตัวแทนจำหน่าย (Dealer) */}
-              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Store className="w-3.5 h-3.5 text-purple-600" />
-                  ร้านค้าตัวแทนจำหน่าย (Dealer)
-                </span>
-                <p className="font-semibold text-slate-800 truncate">
-                  {dealerDisplayName}
-                </p>
-              </div>
+            {/* Plots Checkbox Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {selectedPlan.plots.map((plot) => {
+                const isSelected = selectedPlotIds.includes(plot.id);
+                return (
+                  <label
+                    key={plot.id}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border transition-all cursor-pointer select-none ${
+                      isSelected
+                        ? "bg-purple-50/70 border-purple-300 shadow-2xs"
+                        : "bg-white border-slate-200/90 hover:border-slate-300 opacity-80"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleTogglePlot(plot.id)}
+                      disabled={readonly}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <span className="font-bold text-slate-900 truncate">
+                          {plot.name}
+                        </span>
+                        {plot.code && (
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] shrink-0">
+                            {plot.code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-slate-600">
+                        <div>
+                          <span className="text-slate-400">พืช: </span>
+                          <span className="font-semibold text-slate-800">
+                            {plot.cropName || "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">เจ้าของ: </span>
+                          <span className="font-medium text-slate-700 truncate">
+                            {plot.ownerName || "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">พื้นที่: </span>
+                          <span className="text-slate-700">
+                            {plot.areaRai
+                              ? `${plot.areaRai} ไร่`
+                              : plot.treeCount
+                                ? `${plot.treeCount} ต้น`
+                                : "-"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">จังหวัด: </span>
+                          <span className="text-slate-700">
+                            {[plot.province, plot.district]
+                              .filter(Boolean)
+                              .join(" / ") || "-"}
+                          </span>
+                        </div>
+                      </div>
+                      {plot.dealerName && (
+                        <div className="text-[10.5px] text-slate-500 pt-0.5 border-t border-slate-200/50">
+                          ร้าน Dealer:{" "}
+                          <span className="font-medium text-slate-700">
+                            {plot.dealerName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-              {/* พืชและหมวดพืช */}
-              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Sprout className="w-3.5 h-3.5 text-purple-600" />
-                  ชนิดพืช / หมวดพืช
-                </span>
-                <p className="font-semibold text-slate-800 truncate">
-                  {[
-                    value.cropName || selectedPlotItem?.cropName,
-                    value.cropCategory || selectedPlotItem?.cropCategory,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ") || "-"}
-                </p>
-              </div>
-
-              {/* ขนาดแปลง / จำนวนต้น */}
-              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-purple-600" />
-                  ขนาดแปลง / จำนวนต้น
-                </span>
-                <p className="font-semibold text-slate-800">
-                  {value.areaRai ?? selectedPlotItem?.areaRai
-                    ? `${value.areaRai ?? selectedPlotItem?.areaRai} ไร่`
-                    : value.treeCount ?? selectedPlotItem?.treeCount
-                      ? `${value.treeCount ?? selectedPlotItem?.treeCount} ต้น`
-                      : "-"}
-                </p>
-              </div>
-
-              {/* ที่ตั้งแปลง (อำเภอ / จังหวัด) */}
-              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5 sm:col-span-2">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-purple-600" />
-                  ที่ตั้งแปลง (อำเภอ / จังหวัด)
-                </span>
-                <p className="font-semibold text-slate-800 truncate">
-                  {[
-                    value.district || selectedPlotItem?.district,
-                    value.province || selectedPlotItem?.province,
-                  ]
-                    .filter(Boolean)
-                    .join(" / ") || "-"}
-                </p>
+        {/* Selected Plots Summary Card */}
+        {selectedPlotItems.length > 0 && (
+          <div className="bg-purple-50/50 rounded-xl border border-purple-200/80 p-3.5 sm:p-4 space-y-3 transition-all animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-purple-100 pb-2 text-xs font-bold text-purple-900">
+              <div className="flex items-center gap-1.5">
+                <Info className="w-4 h-4 text-purple-600" />
+                <span>สรุปรายละเอียดแปลงแฮตแทคที่เลือกติดตาม ({selectedPlotItems.length} แปลง)</span>
               </div>
             </div>
+
+            {selectedPlotItems.length === 1 ? (
+              // Single plot detailed view
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-purple-600" />
+                    เกษตรกรเจ้าของแปลง
+                  </span>
+                  <p className="font-semibold text-slate-800 truncate">
+                    {selectedPlotItems[0].ownerName || "-"}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <Store className="w-3.5 h-3.5 text-purple-600" />
+                    ร้านค้าตัวแทนจำหน่าย (Dealer)
+                  </span>
+                  <p className="font-semibold text-slate-800 truncate">
+                    {dealerDisplayName}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <Sprout className="w-3.5 h-3.5 text-purple-600" />
+                    ชนิดพืช / หมวดพืช
+                  </span>
+                  <p className="font-semibold text-slate-800 truncate">
+                    {[selectedPlotItems[0].cropName, selectedPlotItems[0].cropCategory]
+                      .filter(Boolean)
+                      .join(" • ") || "-"}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-purple-600" />
+                    ขนาดแปลง / จำนวนต้น
+                  </span>
+                  <p className="font-semibold text-slate-800">
+                    {selectedPlotItems[0].areaRai
+                      ? `${selectedPlotItems[0].areaRai} ไร่`
+                      : selectedPlotItems[0].treeCount
+                        ? `${selectedPlotItems[0].treeCount} ต้น`
+                        : "-"}
+                  </p>
+                </div>
+
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5 sm:col-span-2">
+                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                    ที่ตั้งแปลง (อำเภอ / จังหวัด)
+                  </span>
+                  <p className="font-semibold text-slate-800 truncate">
+                    {[selectedPlotItems[0].district, selectedPlotItems[0].province]
+                      .filter(Boolean)
+                      .join(" / ") || "-"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              // Multi-plot compact summary chips & list
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {selectedPlotItems.map((p, idx) => (
+                    <div
+                      key={p.id}
+                      className="bg-white/90 border border-purple-200 rounded-lg px-2.5 py-1.5 flex items-center gap-2 text-xs"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-[10px]">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <span className="font-bold text-slate-800">{p.name}</span>
+                        <span className="text-slate-500 ml-1 text-[11px]">
+                          ({p.cropName || "พืช"} • {p.ownerName || "เกษตรกร"})
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2 border-t border-purple-100">
+                  <div className="flex items-center gap-1.5 text-slate-600">
+                    <Store className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span>ร้าน Dealer: <strong className="text-slate-800">{dealerDisplayName}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-600">
+                    <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span>พื้นที่: <strong className="text-slate-800">
+                      {[value.district, value.province].filter(Boolean).join(" / ") || selectedPlotItems[0]?.province || "-"}
+                    </strong></span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -17,16 +17,23 @@ export function validateType14FormValues({
     return { isValid: true };
   }
 
-  if (!type14Data.selectedPlanId?.trim() && !type14Data.demoPlotId?.trim()) {
+  if (
+    !type14Data.selectedPlanId?.trim() &&
+    !type14Data.demoPlotId?.trim() &&
+    (!type14Data.selectedPlotIds || type14Data.selectedPlotIds.length === 0)
+  ) {
     return {
       isValid: false,
       error: "กรุณาเลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (TYPE_14)",
     };
   }
-  if (!type14Data.demoPlotId?.trim()) {
+  const hasPlotSelected =
+    type14Data.demoPlotId?.trim() ||
+    (type14Data.selectedPlotIds && type14Data.selectedPlotIds.length > 0);
+  if (!hasPlotSelected) {
     return {
       isValid: false,
-      error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตาม (TYPE_14)",
+      error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตามอย่างน้อย 1 แปลง (TYPE_14)",
     };
   }
   if (!type14Data.storeId?.trim()) {

@@ -381,6 +381,27 @@ export function useAllTypeForms({
     planStores.push(...type14Payload.planStores);
     planProducts.push(...type14Payload.planProducts);
 
+    const hasType14Plan = selectedWorkTypes.some(
+      (t) => getWorkTypeCode(t) === "TYPE_14",
+    );
+    if (
+      hasType14Plan &&
+      type14Payload.submittedDemoPlotIds &&
+      type14Payload.submittedDemoPlotIds.length > 0
+    ) {
+      if (!submittedDemoPlotIds) {
+        submittedDemoPlotIds = [];
+      }
+      type14Payload.submittedDemoPlotIds.forEach((pid) => {
+        if (!submittedDemoPlotIds!.includes(pid)) {
+          submittedDemoPlotIds!.push(pid);
+        }
+      });
+      if (!submittedDemoPlotId) {
+        submittedDemoPlotId = type14Payload.submittedDemoPlotId || null;
+      }
+    }
+
     return {
       planStores,
       planProducts,

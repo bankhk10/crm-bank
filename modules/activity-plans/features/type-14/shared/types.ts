@@ -26,6 +26,8 @@ export interface Type14PlanInput {
   mode: "EXISTING_PLOT" | "NEW_PLOT";
   selectedPlanId?: string | null;
   demoPlotId?: string | null;
+  selectedPlotIds?: string[];
+  demoPlotIds?: string[];
   name?: string;
   storeId?: string;
   dealerName?: string | null;

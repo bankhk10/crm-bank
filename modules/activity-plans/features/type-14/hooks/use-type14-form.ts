@@ -25,6 +25,8 @@ export interface UseType14FormResult {
     products?: any[],
   ) => {
     type14Data: Type14PlanInput | undefined;
+    submittedDemoPlotId?: string | null;
+    submittedDemoPlotIds?: string[];
     planStores: Array<{
       workTypeCode: string;
       visitPurpose?: "FARMER" | "STORE" | null;
@@ -85,15 +87,20 @@ function resolveInitialType14Data(
     initial?.demoPlotId ||
     null;
 
+  const initialPlotIds: string[] = t14Visits.length > 0
+    ? t14Visits.map((v: any) => v.demoPlotId).filter(Boolean)
+    : [resolvedPlotId].filter(Boolean);
+
   const matchedPlan = (fetchedHattackPlansWithPlots || []).find((plan) =>
     plan.plots.some(
-      (p) => p.id === resolvedPlotId || (plot?.id && p.id === plot.id),
+      (p) => initialPlotIds.includes(p.id) || p.id === resolvedPlotId || (plot?.id && p.id === plot.id),
     ),
   );
 
-  if (resolvedPlotId || plot) {
+  if (resolvedPlotId || plot || initialPlotIds.length > 0) {
+    const primaryPlotId = resolvedPlotId || initialPlotIds[0] || plot?.id || null;
     const matchedPlotItem = matchedPlan?.plots.find(
-      (p) => p.id === resolvedPlotId || (plot?.id && p.id === plot.id),
+      (p) => p.id === primaryPlotId || (plot?.id && p.id === plot.id),
     );
 
     return {
@@ -102,7 +109,9 @@ function resolveInitialType14Data(
         | "NEW_PLOT",
       selectedPlanId:
         initial?.type14Data?.selectedPlanId || matchedPlan?.planId || null,
-      demoPlotId: resolvedPlotId,
+      demoPlotId: primaryPlotId,
+      selectedPlotIds: initial?.type14Data?.selectedPlotIds || initialPlotIds,
+      demoPlotIds: initial?.type14Data?.demoPlotIds || initialPlotIds,
       name: plot?.name || matchedPlotItem?.name || "แปลงแฮตแทค",
       storeId:
         plot?.customerId ||
@@ -317,11 +326,24 @@ export function useType14Form({
       notes: `ติดตามแปลงแฮทแทค: ${type14Data.name || ""}`,
     });
 
+    const resolvedPlotIds: string[] = [];
+    if (type14Data.selectedPlotIds && type14Data.selectedPlotIds.length > 0) {
+      type14Data.selectedPlotIds.forEach((pid) => {
+        if (!resolvedPlotIds.includes(pid)) resolvedPlotIds.push(pid);
+      });
+    } else if (type14Data.demoPlotId) {
+      resolvedPlotIds.push(type14Data.demoPlotId);
+    }
+
+    const firstPlotId = resolvedPlotIds[0] || null;
+
     return {
       type14Data: {
         mode: "EXISTING_PLOT" as const,
         selectedPlanId: type14Data.selectedPlanId || null,
-        demoPlotId: type14Data.demoPlotId || null,
+        demoPlotId: firstPlotId,
+        demoPlotIds: resolvedPlotIds,
+        selectedPlotIds: resolvedPlotIds,
         name: type14Data.name || "",
         storeId: type14Data.storeId || "",
         ownerName: type14Data.ownerName || null,
@@ -331,6 +353,8 @@ export function useType14Form({
         longitude: type14Data.longitude || "",
         trackings: [],
       },
+      submittedDemoPlotId: firstPlotId,
+      submittedDemoPlotIds: resolvedPlotIds,
       planStores,
       planProducts,
     };
