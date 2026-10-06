@@ -430,7 +430,7 @@ export function validateDrugWithdrawal(
     return {
       isValid: false,
       errors: [
-        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)`,
+        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13)`,
       ],
       data: result.data,
     };

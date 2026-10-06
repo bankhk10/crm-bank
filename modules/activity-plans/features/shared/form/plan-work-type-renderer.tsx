@@ -398,6 +398,7 @@ export function PlanWorkTypeRenderer({
             value={typeForms.type14.type14Data}
             onChange={typeForms.type14.setType14Data}
             dealerCustomers={customersList}
+            products={productsList}
             planDate={startDate}
             defaultProvince={defaultProvince}
             defaultDistrict={defaultDistrict}

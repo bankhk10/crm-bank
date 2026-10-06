@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type14PlanInput as FormType14PlanInput } from "../shared/types";
+import type {
+  Type14PlanInput as FormType14PlanInput,
+  Type14WithdrawnProductLine,
+} from "../shared/types";
 import type { Type14PlanInput } from "@/modules/activity-plans/application/validations";
 import { validateType14FormValues } from "../create/validation";
 
@@ -16,7 +19,10 @@ export interface UseType14FormResult {
   type14Data: FormType14PlanInput;
   setType14Data: React.Dispatch<React.SetStateAction<FormType14PlanInput>>;
   validateType14: () => { isValid: boolean; error?: string };
-  mapType14Payload: (customers: any[]) => {
+  mapType14Payload: (
+    customers: any[],
+    products?: any[],
+  ) => {
     type14Data: Type14PlanInput | undefined;
     planStores: Array<{
       workTypeCode: string;
@@ -26,6 +32,14 @@ export interface UseType14FormResult {
       province: string | null;
       remarks: string;
       notes: string;
+    }>;
+    planProducts: Array<{
+      workTypeCode: string;
+      productId: string;
+      productName: string | null;
+      targetQuantity: number;
+      isPriceOverridden: boolean;
+      storeId?: string | null;
     }>;
   };
 }
@@ -38,6 +52,22 @@ function resolveInitialType14Data(
   if (initial?.type14Data) {
     return initial.type14Data;
   }
+
+  // Hydrate withdrawn products for TYPE_14
+  const t14Products: Type14WithdrawnProductLine[] = (
+    (initial as any)?.products || []
+  )
+    .filter((p: any) => p.workTypeCode === "TYPE_14")
+    .map((p: any, idx: number) => ({
+      id: p.id || String(idx + 1),
+      productId: p.productId,
+      productName: p.productName || p.product?.name || "",
+      quantity: p.targetQuantity || 1,
+      unit: p.product?.unit || "ขวด",
+    }));
+
+  const hasT14Withdrawal = t14Products.length > 0;
+
   const visits = initial?.demoPlotVisits || [];
   const t14Visits = visits.filter(
     (v: any) =>
@@ -80,6 +110,8 @@ function resolveInitialType14Data(
           mimeType: att.mimeType,
         })),
       })),
+      hasProductWithdrawal: hasT14Withdrawal,
+      withdrawnProducts: hasT14Withdrawal ? t14Products : [],
     };
   }
 
@@ -92,6 +124,8 @@ function resolveInitialType14Data(
     province: initial?.province || defaultProvince || "",
     district: initial?.district || defaultDistrict || "",
     trackings: [],
+    hasProductWithdrawal: hasT14Withdrawal,
+    withdrawnProducts: hasT14Withdrawal ? t14Products : [],
   };
 }
 
@@ -112,7 +146,10 @@ export function useType14Form({
         defaultProvince,
         defaultDistrict,
       );
-      if (resolved.demoPlotId) {
+      if (
+        resolved.demoPlotId ||
+        (resolved.withdrawnProducts && resolved.withdrawnProducts.length > 0)
+      ) {
         setType14Data(resolved);
       }
     }
@@ -125,12 +162,12 @@ export function useType14Form({
     });
   };
 
-  const mapType14Payload = (customers: any[]) => {
+  const mapType14Payload = (customers: any[], products: any[] = []) => {
     const hasType14Selected = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_14",
     );
     if (!hasType14Selected || !type14Data.storeId) {
-      return { type14Data: undefined, planStores: [] };
+      return { type14Data: undefined, planStores: [], planProducts: [] };
     }
 
     const planStores: Array<{
@@ -142,6 +179,37 @@ export function useType14Form({
       remarks: string;
       notes: string;
     }> = [];
+
+    const planProducts: Array<{
+      workTypeCode: string;
+      productId: string;
+      productName: string | null;
+      targetQuantity: number;
+      isPriceOverridden: boolean;
+      storeId?: string | null;
+    }> = [];
+
+    if (
+      type14Data.hasProductWithdrawal &&
+      type14Data.withdrawnProducts &&
+      type14Data.withdrawnProducts.length > 0
+    ) {
+      type14Data.withdrawnProducts.forEach((wp) => {
+        const pId =
+          wp.productId || products.find((p) => p.name === wp.productName)?.id;
+        if (pId) {
+          const matchedP = products.find((p) => p.id === pId);
+          planProducts.push({
+            workTypeCode: "TYPE_14",
+            productId: pId,
+            productName: wp.productName || matchedP?.name || null,
+            targetQuantity: wp.quantity ? Number(wp.quantity) : 1,
+            isPriceOverridden: false,
+            storeId: type14Data.storeId || null,
+          });
+        }
+      });
+    }
 
     const dealer = customers.find((c) => c.id === type14Data.storeId);
     planStores.push({
@@ -168,6 +236,7 @@ export function useType14Form({
         trackings: [],
       },
       planStores,
+      planProducts,
     };
   };
 

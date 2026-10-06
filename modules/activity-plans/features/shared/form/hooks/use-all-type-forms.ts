@@ -374,8 +374,9 @@ export function useAllTypeForms({
     planStores.push(...type13Payload.planStores);
 
     // 14. TYPE_14
-    const type14Payload = type14.mapType14Payload(customersList);
+    const type14Payload = type14.mapType14Payload(customersList, productsList);
     planStores.push(...type14Payload.planStores);
+    planProducts.push(...type14Payload.planProducts);
 
     return {
       planStores,

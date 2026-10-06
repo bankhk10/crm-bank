@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Beaker,
   Package,
+  PackageCheck,
   History,
   Loader2,
   Droplets,
@@ -57,6 +58,13 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   // Historical spray history for this demo plot (Read-Only Reference from TYPE13)
   const [sprayHistory, setSprayHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Withdrawn products for TYPE_14 (General Plan Requisition)
+  const withdrawnProducts = useMemo(() => {
+    return (plan?.products || []).filter(
+      (p: any) => p.workTypeCode === "TYPE_14",
+    );
+  }, [plan?.products]);
 
   const demoPlotId =
     data?.demoPlotId ||
@@ -354,6 +362,84 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          1.2 รายการสินค้าที่ขอเบิก (TYPE_14 Requested Products)
+      ───────────────────────────────────────────────────────────── */}
+      <div className="space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+              <PackageCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                <span>รายการสินค้าที่ขอเบิก</span>
+                <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                  {withdrawnProducts.length} รายการ
+                </span>
+              </h5>
+              <p className="text-2xs text-slate-500">
+                รายการสินค้าสาธิตที่ขอเบิกสำหรับงานติดตามแปลงแฮทแทคในแผนงานนี้
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {withdrawnProducts.length === 0 ? (
+          <div className="p-3.5 bg-slate-50/70 border border-slate-200/60 rounded-xl text-xs text-slate-400 italic text-center">
+            ไม่มีการขอเบิกสินค้าสำหรับแผนงานนี้
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-600 font-semibold">
+                <tr>
+                  <th className="py-2.5 px-3 w-12 text-center">ลำดับ</th>
+                  <th className="py-2.5 px-3">รายการสินค้า</th>
+                  <th className="py-2.5 px-3 w-28 text-center">รหัสสินค้า</th>
+                  <th className="py-2.5 px-3 w-36 text-center">จำนวนที่ขอเบิก</th>
+                  <th className="py-2.5 px-3 w-28 text-center">หน่วยบรรจุ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {withdrawnProducts.map((p: any, idx: number) => {
+                  const pName = p.productName || p.product?.name || "สินค้า";
+                  const pCode = p.product?.productCode || "-";
+                  const qty = p.targetQuantity != null ? p.targetQuantity : "-";
+                  const unit =
+                    p.product?.unit || p.product?.packageSizeUnit || "ขวด";
+
+                  return (
+                    <tr
+                      key={p.id || idx}
+                      className="hover:bg-slate-50/60 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 text-center text-slate-400 font-medium">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">
+                        {pName}
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-500">
+                        {pCode}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <span className="font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md text-xs border border-purple-200/70">
+                          {qty}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-center text-slate-600 font-medium">
+                        {unit}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* ─────────────────────────────────────────────────────────────

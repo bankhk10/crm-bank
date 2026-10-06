@@ -14,6 +14,14 @@ export interface Type14TrackingItem {
   attachments?: Type14TrackingAttachment[];
 }
 
+export interface Type14WithdrawnProductLine {
+  id: string;
+  productId: string;
+  productName?: string;
+  quantity: number;
+  unit?: string;
+}
+
 export interface Type14PlanInput {
   mode: "EXISTING_PLOT" | "NEW_PLOT";
   demoPlotId?: string | null;
@@ -25,6 +33,8 @@ export interface Type14PlanInput {
   latitude?: string | null;
   longitude?: string | null;
   trackings?: Type14TrackingItem[];
+  hasProductWithdrawal?: boolean;
+  withdrawnProducts?: Type14WithdrawnProductLine[];
 }
 
 export interface DealerCustomerOption {

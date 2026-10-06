@@ -42,5 +42,31 @@ export function validateType14FormValues({
     };
   }
 
+  if (type14Data.hasProductWithdrawal) {
+    const prods = type14Data.withdrawnProducts || [];
+    if (prods.length === 0) {
+      return {
+        isValid: false,
+        error: "กรุณาเพิ่มรายการสินค้าที่ต้องการเบิกอย่างน้อย 1 รายการ",
+      };
+    }
+
+    for (let i = 0; i < prods.length; i++) {
+      const p = prods[i];
+      if (!p.productId?.trim()) {
+        return {
+          isValid: false,
+          error: `กรุณาเลือกสินค้าสำหรับรายการที่ ${i + 1}`,
+        };
+      }
+      if (!p.quantity || Number(p.quantity) <= 0) {
+        return {
+          isValid: false,
+          error: `กรุณาระบุจำนวนสินค้าที่มากกว่า 0 สำหรับรายการที่ ${i + 1}`,
+        };
+      }
+    }
+  }
+
   return { isValid: true };
 }

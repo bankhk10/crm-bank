@@ -402,45 +402,8 @@ export function PlannedActivityForm({
       plots.push(p);
     };
 
-    const hasType14 = selectedWorkTypes.some(
-      (t) => getWorkTypeCode(t) === "TYPE_14",
-    );
-
-    if (hasType14) {
-      if (typeForms.type14.type14Data?.name?.trim()) {
-        addPlot({
-          id:
-            typeForms.type14.type14Data.demoPlotId ||
-            `type14-${typeForms.type14.type14Data.name}`,
-          name: typeForms.type14.type14Data.name.trim(),
-          subLabel:
-            [
-              typeForms.type14.type14Data.ownerName,
-              typeForms.type14.type14Data.province,
-            ]
-              .filter(Boolean)
-              .join(" - ") || undefined,
-          plotIdentifier: typeForms.type14.type14Data.name.trim(),
-          demoPlotId: typeForms.type14.type14Data.demoPlotId || null,
-        });
-      }
-      if (Array.isArray(fetchedHattackDemoPlots)) {
-        fetchedHattackDemoPlots.forEach((plot) => {
-          addPlot({
-            id: plot.id,
-            name: plot.name,
-            subLabel:
-              [plot.ownerName, plot.location].filter(Boolean).join(" - ") ||
-              undefined,
-            plotIdentifier: plot.name,
-            demoPlotId: plot.id,
-          });
-        });
-      }
-    }
-
     return plots;
-  }, [selectedWorkTypes, typeForms.type14.type14Data, fetchedHattackDemoPlots]);
+  }, []);
 
   // Section 6: Notes State
   const [notes, setNotes] = useState(initial.notes ?? "");
