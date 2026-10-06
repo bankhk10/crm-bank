@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type { Type14PlanInput as FormType14PlanInput } from "../shared/types";
@@ -30,63 +30,93 @@ export interface UseType14FormResult {
   };
 }
 
+function resolveInitialType14Data(
+  initial: any = {},
+  defaultProvince = "",
+  defaultDistrict = "",
+): FormType14PlanInput {
+  if (initial?.type14Data) {
+    return initial.type14Data;
+  }
+  const visits = initial?.demoPlotVisits || [];
+  const t14Visits = visits.filter(
+    (v: any) =>
+      v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
+  );
+  const plot =
+    t14Visits[0]?.demoPlot ||
+    initial?.demoPlot ||
+    null;
+  const resolvedPlotId =
+    t14Visits[0]?.demoPlotId ||
+    plot?.id ||
+    initial?.demoPlotId ||
+    null;
+
+  if (resolvedPlotId || plot) {
+    return {
+      mode: (plot?.id ? "EXISTING_PLOT" : "NEW_PLOT") as
+        | "EXISTING_PLOT"
+        | "NEW_PLOT",
+      demoPlotId: resolvedPlotId,
+      name: plot?.name || "แปลงแฮตแทค",
+      storeId: plot?.customerId || initial?.stores?.[0]?.storeId || "",
+      ownerName: plot?.ownerName || plot?.farmerCustomer?.name || "",
+      province: plot?.province || initial?.province || defaultProvince || "",
+      district: plot?.district || initial?.district || defaultDistrict || "",
+      latitude: plot?.latitude ? String(plot.latitude) : "",
+      longitude: plot?.longitude ? String(plot.longitude) : "",
+      trackings: t14Visits.map((v: any) => ({
+        id: v.id,
+        visitDate: v.visitDate
+          ? new Date(v.visitDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        daysSinceStart: v.daysSinceStart ?? 0,
+        notes: v.notes || "",
+        attachments: (v.attachments || []).map((att: any) => ({
+          fileUrl: att.fileUrl,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+          mimeType: att.mimeType,
+        })),
+      })),
+    };
+  }
+
+  return {
+    mode: "EXISTING_PLOT",
+    demoPlotId: null,
+    name: "",
+    storeId: "",
+    ownerName: "",
+    province: initial?.province || defaultProvince || "",
+    district: initial?.district || defaultDistrict || "",
+    trackings: [],
+  };
+}
+
 export function useType14Form({
   initial = {},
   selectedWorkTypes = [],
   defaultProvince = "",
   defaultDistrict = "",
 }: UseType14FormOptions): UseType14FormResult {
-  const [type14Data, setType14Data] = useState<FormType14PlanInput>(() => {
-    if ((initial as any)?.type14Data) {
-      return (initial as any).type14Data;
+  const [type14Data, setType14Data] = useState<FormType14PlanInput>(() =>
+    resolveInitialType14Data(initial, defaultProvince, defaultDistrict),
+  );
+
+  useEffect(() => {
+    if (initial && Object.keys(initial).length > 0) {
+      const resolved = resolveInitialType14Data(
+        initial,
+        defaultProvince,
+        defaultDistrict,
+      );
+      if (resolved.demoPlotId) {
+        setType14Data(resolved);
+      }
     }
-    const visits = (initial as any)?.demoPlotVisits || [];
-    const t14Visits = visits.filter(
-      (v: any) =>
-        v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
-    );
-    if (t14Visits.length > 0) {
-      const firstVisit = t14Visits[0];
-      const plot = firstVisit.demoPlot;
-      return {
-        mode: (plot?.id ? "EXISTING_PLOT" : "NEW_PLOT") as
-          | "EXISTING_PLOT"
-          | "NEW_PLOT",
-        demoPlotId: plot?.id || null,
-        name: plot?.name || "แปลงแฮตแทค",
-        storeId: plot?.customerId || "",
-        ownerName: plot?.ownerName || plot?.farmerCustomer?.name || "",
-        province: plot?.province || (initial as any)?.province || defaultProvince || "",
-        district: plot?.district || (initial as any)?.district || defaultDistrict || "",
-        latitude: plot?.latitude ? String(plot.latitude) : "",
-        longitude: plot?.longitude ? String(plot.longitude) : "",
-        trackings: t14Visits.map((v: any) => ({
-          id: v.id,
-          visitDate: v.visitDate
-            ? new Date(v.visitDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
-          daysSinceStart: v.daysSinceStart ?? 0,
-          notes: v.notes || "",
-          attachments: (v.attachments || []).map((att: any) => ({
-            fileUrl: att.fileUrl,
-            fileName: att.fileName,
-            fileSize: att.fileSize,
-            mimeType: att.mimeType,
-          })),
-        })),
-      };
-    }
-    return {
-      mode: "EXISTING_PLOT",
-      demoPlotId: null,
-      name: "",
-      storeId: "",
-      ownerName: "",
-      province: (initial as any)?.province || defaultProvince || "",
-      district: (initial as any)?.district || defaultDistrict || "",
-      trackings: [],
-    };
-  });
+  }, [initial, defaultProvince, defaultDistrict]);
 
   const validateType14 = (): { isValid: boolean; error?: string } => {
     return validateType14FormValues({

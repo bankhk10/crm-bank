@@ -2056,6 +2056,17 @@ export async function updateActivityPlan(
               });
             }
           }
+        } else if (targetPlotId) {
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: targetPlotId,
+              activityPlanId: id,
+              workTypeCode: "TYPE_14",
+              visitNumber: 1,
+              visitDate: updatedPlan.startDate,
+              daysSinceStart: 0,
+            },
+          });
         }
       }
     }

@@ -51,12 +51,20 @@ export function Type14Create({
 
   // FormCombobox options for selecting existing Hattack activity
   const plotComboboxOptions = useMemo(() => {
-    return existingPlots.map((plot) => ({
+    const opts = existingPlots.map((plot) => ({
       value: plot.id,
       label: `ชื่อกิจกรรม: ${plot.activityName || plot.name}`,
       subLabel: "ฉีดแปลงแฮตแทค",
     }));
-  }, [existingPlots]);
+    if (value.demoPlotId && !opts.some((o) => o.value === value.demoPlotId)) {
+      opts.unshift({
+        value: value.demoPlotId,
+        label: `ชื่อกิจกรรม: ${value.name || "แปลงแฮตแทค"}`,
+        subLabel: "ฉีดแปลงแฮตแทค",
+      });
+    }
+    return opts;
+  }, [existingPlots, value.demoPlotId, value.name]);
 
   // Selected plot object for lookup
   const selectedPlot = useMemo(() => {
