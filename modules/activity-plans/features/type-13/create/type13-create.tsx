@@ -1,13 +1,34 @@
 "use client";
 
 import React from "react";
-import { Plus, Trash2, MapPin, Package, Store, AlertCircle, Info, Layers, Pill } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  MapPin,
+  Package,
+  Store,
+  AlertCircle,
+  Info,
+  Layers,
+  Pill,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ActivityCustomerSelect, type ActivityCustomerItem } from "@/components/activity/activity-customer-select";
+import {
+  ActivityCustomerSelect,
+  type ActivityCustomerItem,
+} from "@/components/activity/activity-customer-select";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityProductSelect, type ActivityProductItem } from "@/components/activity/activity-product-select";
-import type { Type13PlotItem, Type13WithdrawalItem, DealerOption, ProductOption } from "../shared/types";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
+import type {
+  Type13PlotItem,
+  Type13WithdrawalItem,
+  DealerOption,
+  ProductOption,
+} from "../shared/types";
 import type { Type13CreateProps } from "./types";
 
 export type { Type13CreateProps };
@@ -19,7 +40,6 @@ export function Type13Create({
   products,
   readonly = false,
 }: Type13CreateProps) {
-
   // Handler: Add new plot (max 10)
   const handleAddPlot = () => {
     if (plots.length >= 10 || readonly) return;
@@ -59,7 +79,8 @@ export function Type13Create({
     // Auto-fill ownerName, province & district if dealer selected and dealer has location info
     if (field === "storeId") {
       if (value) {
-        const selectedDealer = customerItem || (dealers || []).find((d) => d.id === value);
+        const selectedDealer =
+          customerItem || (dealers || []).find((d) => d.id === value);
         if (selectedDealer) {
           target.ownerName = selectedDealer.name || "";
           target.province = selectedDealer.province || "";
@@ -158,19 +179,24 @@ export function Type13Create({
   const handleRemoveWithdrawalItem = (plotIndex: number, itemIndex: number) => {
     if (readonly) return;
     const updated = [...plots];
-    const items = (updated[plotIndex].withdrawalItems || []).filter((_, idx) => idx !== itemIndex);
+    const items = (updated[plotIndex].withdrawalItems || []).filter(
+      (_, idx) => idx !== itemIndex,
+    );
     updated[plotIndex] = {
       ...updated[plotIndex],
-      withdrawalItems: items.length > 0 ? items : [
-        {
-          id: `w-${Date.now()}-1`,
-          productId: "",
-          productName: "",
-          quantity: 1,
-          unit: "",
-          sortOrder: 0,
-        },
-      ],
+      withdrawalItems:
+        items.length > 0
+          ? items
+          : [
+              {
+                id: `w-${Date.now()}-1`,
+                productId: "",
+                productName: "",
+                quantity: 1,
+                unit: "",
+                sortOrder: 0,
+              },
+            ],
     };
     onChange(updated);
   };
@@ -190,7 +216,8 @@ export function Type13Create({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกยาแยกตามแต่ละแปลง (สูงสุด 10 แปลง)
+            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกยาแยกตามแต่ละแปลง
+            (สูงสุด 10 แปลง)
           </p>
         </div>
 
@@ -254,7 +281,9 @@ export function Type13Create({
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
                     value={plot.storeId || ""}
-                    onChange={(val, cust) => handleUpdatePlot(plotIdx, "storeId", val, cust)}
+                    onChange={(val, cust) =>
+                      handleUpdatePlot(plotIdx, "storeId", val, cust)
+                    }
                     customers={dealers}
                     placeholder="เลือกร้านค้า Dealer..."
                     searchPlaceholder="ค้นหาร้านค้า Dealer..."
@@ -327,9 +356,11 @@ export function Type13Create({
                   <div className="space-y-2 pt-1">
                     {/* Header Row for MD+ */}
                     <div className="hidden sm:grid grid-cols-12 gap-2 px-3 py-1.5 bg-slate-100/80 rounded-lg text-[11px] font-bold text-slate-600">
-                      <div className="col-span-1 text-center">#</div>
-                      <div className="col-span-6">สินค้า (Product Master) *</div>
-                      <div className="col-span-2 text-right">จำนวนที่เบิก *</div>
+                      <div className="col-span-1 text-center">ลำดับ</div>
+                      <div className="col-span-6">สินค้า *</div>
+                      <div className="col-span-2 text-center">
+                        จำนวนที่เบิก *
+                      </div>
                       <div className="col-span-2 text-center">หน่วย</div>
                       <div className="col-span-1 text-center">ลบ</div>
                     </div>
@@ -376,8 +407,16 @@ export function Type13Create({
                             min={0.01}
                             value={item.quantity ?? ""}
                             onChange={(e) => {
-                              const val = e.target.value === "" ? "" : parseFloat(e.target.value);
-                              handleUpdateWithdrawalItem(plotIdx, itemIdx, "quantity", val);
+                              const val =
+                                e.target.value === ""
+                                  ? ""
+                                  : parseFloat(e.target.value);
+                              handleUpdateWithdrawalItem(
+                                plotIdx,
+                                itemIdx,
+                                "quantity",
+                                val,
+                              );
                             }}
                             disabled={readonly}
                             placeholder="จำนวน"
@@ -391,18 +430,21 @@ export function Type13Create({
                         </div>
 
                         {/* Remove button */}
-                        {!readonly && (plot.withdrawalItems || []).length > 1 && (
-                          <div className="col-span-1 flex justify-center">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveWithdrawalItem(plotIdx, itemIdx)}
-                              className="p-1 text-slate-400 hover:text-rose-500 hover:bg-white rounded-md transition-colors"
-                              title="ลบตัวยานี้"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
+                        {!readonly &&
+                          (plot.withdrawalItems || []).length > 1 && (
+                            <div className="col-span-1 flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveWithdrawalItem(plotIdx, itemIdx)
+                                }
+                                className="p-1 text-slate-400 hover:text-rose-500 hover:bg-white rounded-md transition-colors"
+                                title="ลบตัวยานี้"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
