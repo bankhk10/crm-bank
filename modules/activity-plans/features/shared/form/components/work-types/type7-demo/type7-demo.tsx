@@ -112,7 +112,8 @@ export function Type7Demo({
           <span>{cardTitle}</span>
         </div>
 
-        {!readonly && (
+        {/* ปิด เพิ่มรายการ ไว้ยังไม่ใช้ */}
+        {/* {!readonly && (
           <Button
             type="button"
             size="sm"
@@ -127,7 +128,7 @@ export function Type7Demo({
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มรายการ
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* List of Demo Plot Cards */}
@@ -181,7 +182,8 @@ export function Type7Demo({
                     </span>
                     {itemLabel}
                   </span>
-                  {!readonly && (
+                  {/* ปิด ลบรายการ ไว้ยังไม่ใช้ */}
+                  {/* {!readonly && (
                     <button
                       type="button"
                       onClick={() => deleteType7Row(item.id)}
@@ -190,7 +192,7 @@ export function Type7Demo({
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>ลบรายการ</span>
                     </button>
-                  )}
+                  )} */}
                 </div>
 
                 {/* 1. Toggle Segmented Control (only if mode is not specified) */}
