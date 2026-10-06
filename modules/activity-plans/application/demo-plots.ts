@@ -278,6 +278,22 @@ export async function getHattackFollowUpPlansWithPlotsUseCase() {
           })
         : "";
 
+      // Find plan-level dealer from stores or from any plot in this plan
+      const planStore = (plan as any).stores?.find((s: any) => s.storeId)?.store;
+      const planStoreId = (plan as any).stores?.find((s: any) => s.storeId)?.storeId;
+      const anyPlotWithDealer = plan.demoPlotVisits.find(
+        (v: any) => v.demoPlot?.customer?.id || v.demoPlot?.customerId,
+      )?.demoPlot;
+      const fallbackDealerId =
+        planStoreId ||
+        anyPlotWithDealer?.customerId ||
+        anyPlotWithDealer?.customer?.id ||
+        undefined;
+      const fallbackDealerName =
+        planStore?.name ||
+        anyPlotWithDealer?.customer?.name ||
+        undefined;
+
       const plots: FollowUpPlotItem[] = plan.demoPlotVisits
         .filter((v) => v.demoPlot)
         .map((v) => {
@@ -293,8 +309,8 @@ export async function getHattackFollowUpPlansWithPlotsUseCase() {
             district: p.district || plan.district || "",
             areaRai: p.areaRai ? Number(p.areaRai) : undefined,
             treeCount: p.treeCount ?? undefined,
-            dealerName: p.customer?.name || undefined,
-            dealerId: p.customer?.id || p.customerId || undefined,
+            dealerName: p.customer?.name || fallbackDealerName,
+            dealerId: p.customer?.id || p.customerId || fallbackDealerId,
           };
         });
 

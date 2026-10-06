@@ -36,12 +36,7 @@ export function validateType14FormValues({
       error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตามอย่างน้อย 1 แปลง (TYPE_14)",
     };
   }
-  if (!type14Data.storeId?.trim()) {
-    return {
-      isValid: false,
-      error: "กรุณาเลือกร้านค้าตัวแทนจำหน่าย (Dealer) สำหรับแปลงแฮตแทค",
-    };
-  }
+
   if (!type14Data.province?.trim()) {
     return {
       isValid: false,

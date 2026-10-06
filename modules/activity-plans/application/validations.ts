@@ -290,7 +290,7 @@ export const type14PlanInputSchema = z.object({
   demoPlotIds: z.array(z.string()).optional().default([]),
   selectedPlotIds: z.array(z.string()).optional().default([]),
   name: z.string().optional().default(""),
-  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  storeId: z.string().optional().nullable().default(""),
   ownerName: z.string().optional().nullable(),
   province: z.string().min(1, "กรุณาเลือกจังหวัด"),
   district: z.string().min(1, "กรุณาเลือกอำเภอ"),

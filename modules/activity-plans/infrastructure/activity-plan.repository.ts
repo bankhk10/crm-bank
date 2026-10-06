@@ -4502,6 +4502,13 @@ export async function findHattackFollowUpActivityPlans() {
       ],
     },
     include: {
+      stores: {
+        include: {
+          store: {
+            select: { id: true, name: true, customerCode: true },
+          },
+        },
+      },
       demoPlotVisits: {
         where: {
           demoPlot: {

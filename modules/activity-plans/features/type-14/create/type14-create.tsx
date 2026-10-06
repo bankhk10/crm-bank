@@ -144,6 +144,17 @@ export function Type14Create({
   // Sync plot details helper
   const syncPlotData = (firstPlotId: string, allPlotIds: string[]) => {
     const matchedPlot = selectedPlan?.plots.find((p) => p.id === firstPlotId);
+    const planFallbackPlot = selectedPlan?.plots.find((p) => p.dealerId);
+    const resolvedDealerId =
+      matchedPlot?.dealerId ||
+      planFallbackPlot?.dealerId ||
+      value.storeId ||
+      "";
+    const resolvedDealerName =
+      matchedPlot?.dealerName ||
+      planFallbackPlot?.dealerName ||
+      value.dealerName ||
+      "";
 
     if (matchedPlot) {
       onChange({
@@ -153,8 +164,8 @@ export function Type14Create({
         demoPlotIds: allPlotIds,
         selectedPlotIds: allPlotIds,
         name: matchedPlot.name || "แปลงแฮตแทค",
-        storeId: matchedPlot.dealerId || value.storeId || "",
-        dealerName: matchedPlot.dealerName || value.dealerName || "",
+        storeId: resolvedDealerId,
+        dealerName: resolvedDealerName,
         ownerName: matchedPlot.ownerName || "",
         cropCategory: matchedPlot.cropCategory || null,
         cropName: matchedPlot.cropName || null,
@@ -172,8 +183,8 @@ export function Type14Create({
         demoPlotIds: allPlotIds,
         selectedPlotIds: allPlotIds,
         name: allPlotIds.length > 0 ? "แปลงแฮตแทค" : "",
-        storeId: allPlotIds.length > 0 ? value.storeId : "",
-        dealerName: allPlotIds.length > 0 ? value.dealerName : "",
+        storeId: allPlotIds.length > 0 ? resolvedDealerId : "",
+        dealerName: allPlotIds.length > 0 ? resolvedDealerName : "",
         ownerName: "",
         cropCategory: null,
         cropName: null,
@@ -214,6 +225,10 @@ export function Type14Create({
       return;
     }
 
+    const defaultDealerPlot = plan.plots.find((p) => p.dealerId);
+    const defaultDealerId = defaultDealerPlot?.dealerId || "";
+    const defaultDealerName = defaultDealerPlot?.dealerName || "";
+
     // Auto-select single plot
     if (plan.plots.length === 1) {
       const singlePlot = plan.plots[0];
@@ -225,8 +240,8 @@ export function Type14Create({
         demoPlotIds: [singlePlot.id],
         selectedPlotIds: [singlePlot.id],
         name: singlePlot.name,
-        storeId: singlePlot.dealerId || "",
-        dealerName: singlePlot.dealerName || "",
+        storeId: singlePlot.dealerId || defaultDealerId,
+        dealerName: singlePlot.dealerName || defaultDealerName,
         ownerName: singlePlot.ownerName || "",
         cropCategory: singlePlot.cropCategory || null,
         cropName: singlePlot.cropName || null,
@@ -241,7 +256,7 @@ export function Type14Create({
       return;
     }
 
-    // Multiple plots: reset plot selection for user to choose
+    // Multiple plots: reset plot selection for user to choose, but preserve default dealer
     onChange({
       ...value,
       mode: "EXISTING_PLOT",
@@ -250,15 +265,15 @@ export function Type14Create({
       demoPlotIds: [],
       selectedPlotIds: [],
       name: "",
-      storeId: "",
-      dealerName: "",
+      storeId: defaultDealerId,
+      dealerName: defaultDealerName,
       ownerName: "",
       cropCategory: null,
       cropName: null,
       areaRai: null,
       treeCount: null,
-      province: "",
-      district: "",
+      province: plan.plots[0]?.province || defaultProvince || "",
+      district: plan.plots[0]?.district || defaultDistrict || "",
       latitude: "",
       longitude: "",
       trackings: [],
@@ -306,6 +321,23 @@ export function Type14Create({
     }
     return value.storeId || "-";
   }, [value.dealerName, selectedPlotItems, value.storeId, dealerCustomers]);
+
+  // Dealer options for manual override/selection
+  const dealerOptions = useMemo(() => {
+    const list = (dealerCustomers || []).map((d) => ({
+      value: d.id,
+      label: d.name,
+      subLabel: d.customerCode ? `รหัส: ${d.customerCode}` : undefined,
+    }));
+    if (value.storeId && !list.some((o) => o.value === value.storeId)) {
+      list.unshift({
+        value: value.storeId,
+        label: value.dealerName || value.storeId,
+        subLabel: undefined,
+      });
+    }
+    return list;
+  }, [dealerCustomers, value.storeId, value.dealerName]);
 
   // Product withdrawal options & state
   const productOptions = useMemo(() => {
@@ -601,14 +633,35 @@ export function Type14Create({
                   </p>
                 </div>
 
-                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-1">
                   <span className="text-[11px] text-slate-500 flex items-center gap-1">
                     <Store className="w-3.5 h-3.5 text-purple-600" />
                     ร้านค้าตัวแทนจำหน่าย (Dealer)
                   </span>
-                  <p className="font-semibold text-slate-800 truncate">
-                    {dealerDisplayName}
-                  </p>
+                  {readonly ? (
+                    <p className="font-semibold text-slate-800 truncate text-xs">
+                      {dealerDisplayName}
+                    </p>
+                  ) : (
+                    <FormCombobox
+                      id="type14-dealer-select-single"
+                      value={value.storeId || ""}
+                      onChange={(val) => {
+                        const matchedDealer = dealerCustomers.find((d) => d.id === val);
+                        onChange({
+                          ...value,
+                          storeId: val,
+                          dealerName: matchedDealer?.name || "",
+                        });
+                      }}
+                      options={dealerOptions}
+                      placeholder={dealerDisplayName !== "-" ? dealerDisplayName : "เลือกร้านค้าตัวแทนจำหน่าย..."}
+                      searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                      emptyText="ไม่พบร้านค้าตัวแทนจำหน่าย"
+                      labelClassName="hidden"
+                      triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
+                    />
+                  )}
                 </div>
 
                 <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
@@ -671,10 +724,34 @@ export function Type14Create({
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2 border-t border-purple-100">
-                  <div className="flex items-center gap-1.5 text-slate-600">
-                    <Store className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                    <span>ร้าน Dealer: <strong className="text-slate-800">{dealerDisplayName}</strong></span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2 border-t border-purple-100 items-center">
+                  <div className="flex flex-col gap-1 text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <Store className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                      <span>ร้านค้าตัวแทนจำหน่าย (Dealer):</span>
+                    </div>
+                    {readonly ? (
+                      <strong className="text-slate-800">{dealerDisplayName}</strong>
+                    ) : (
+                      <FormCombobox
+                        id="type14-dealer-select-multi"
+                        value={value.storeId || ""}
+                        onChange={(val) => {
+                          const matchedDealer = dealerCustomers.find((d) => d.id === val);
+                          onChange({
+                            ...value,
+                            storeId: val,
+                            dealerName: matchedDealer?.name || "",
+                          });
+                        }}
+                        options={dealerOptions}
+                        placeholder={dealerDisplayName !== "-" ? dealerDisplayName : "เลือกร้านค้าตัวแทนจำหน่าย..."}
+                        searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                        emptyText="ไม่พบร้านค้าตัวแทนจำหน่าย"
+                        labelClassName="hidden"
+                        triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
+                      />
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-600">
                     <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />

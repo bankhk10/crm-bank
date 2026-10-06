@@ -244,6 +244,7 @@ export function useType14Form({
             (prev.demoPlotId && p.id === prev.demoPlotId) ||
             (prev.name && p.name === prev.name),
         );
+        const fallbackPlot = matched.plots.find((p) => p.dealerId);
         return {
           ...prev,
           selectedPlanId: matched.planId,
@@ -251,7 +252,8 @@ export function useType14Form({
           cropName: prev.cropName || plotMatch?.cropName || null,
           areaRai: prev.areaRai ?? (plotMatch?.areaRai ?? null),
           treeCount: prev.treeCount ?? (plotMatch?.treeCount ?? null),
-          dealerName: prev.dealerName || plotMatch?.dealerName || null,
+          storeId: prev.storeId || plotMatch?.dealerId || fallbackPlot?.dealerId || "",
+          dealerName: prev.dealerName || plotMatch?.dealerName || fallbackPlot?.dealerName || null,
           ownerName: prev.ownerName || plotMatch?.ownerName || null,
         };
       }
@@ -270,7 +272,7 @@ export function useType14Form({
     const hasType14Selected = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_14",
     );
-    if (!hasType14Selected || !type14Data.storeId) {
+    if (!hasType14Selected) {
       return { type14Data: undefined, planStores: [], planProducts: [] };
     }
 
@@ -315,16 +317,18 @@ export function useType14Form({
       });
     }
 
-    const dealer = customers.find((c) => c.id === type14Data.storeId);
-    planStores.push({
-      workTypeCode: "TYPE_14",
-      visitPurpose: "STORE",
-      storeId: type14Data.storeId,
-      storeName: dealer?.name || type14Data.storeId,
-      province: type14Data.province || null,
-      remarks: type14Data.name || "ติดตามแปลงแฮทแทค",
-      notes: `ติดตามแปลงแฮทแทค: ${type14Data.name || ""}`,
-    });
+    if (type14Data.storeId?.trim()) {
+      const dealer = customers.find((c) => c.id === type14Data.storeId);
+      planStores.push({
+        workTypeCode: "TYPE_14",
+        visitPurpose: "STORE",
+        storeId: type14Data.storeId,
+        storeName: dealer?.name || type14Data.storeId,
+        province: type14Data.province || null,
+        remarks: type14Data.name || "ติดตามแปลงแฮทแทค",
+        notes: `ติดตามแปลงแฮทแทค: ${type14Data.name || ""}`,
+      });
+    }
 
     const resolvedPlotIds: string[] = [];
     if (type14Data.selectedPlotIds && type14Data.selectedPlotIds.length > 0) {
