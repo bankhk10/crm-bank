@@ -1097,8 +1097,9 @@ export async function createActivityPlan(
             },
           });
         } else if (
-          (input.demoPlotIds && input.demoPlotIds.length > 0) ||
-          input.demoPlotId
+          ((input.demoPlotIds && input.demoPlotIds.length > 0) ||
+            input.demoPlotId) &&
+          !(input.type13Plots && input.type13Plots.length > 0)
         ) {
           const plotIdsToVisit =
             input.demoPlotIds && input.demoPlotIds.length > 0

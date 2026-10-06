@@ -514,9 +514,15 @@ export async function duplicateActivityPlanUseCase(
     ? originalPlan.title
     : `${titlePrefix}${originalPlan.title}`;
 
-  // Check if plan contains TYPE_7A (ทำแปลงสาธิต - Create Demo Plot)
+  // Check if plan contains TYPE_7A (ทำแปลงสาธิต), TYPE_7B (ติดตามแปลง), TYPE_10 (Field Day)
   const isType7A = workTypeCodes.some(
     (wt) => getWorkTypeCode(wt) === "TYPE_7A" || wt === "TYPE_7A",
+  );
+  const isType7B = workTypeCodes.some(
+    (wt) => getWorkTypeCode(wt) === "TYPE_7B" || wt === "TYPE_7B",
+  );
+  const isType10 = workTypeCodes.some(
+    (wt) => getWorkTypeCode(wt) === "TYPE_10" || wt === "TYPE_10",
   );
 
   const originalDemoPlot =
@@ -557,12 +563,15 @@ export async function duplicateActivityPlanUseCase(
       objective: originalDemoPlot.objective || null,
     };
     demoPlotId = null;
-  } else {
-    // For TYPE_7B (ติดตามแปลง), TYPE_10 (Field Day) or others: keep existing demoPlotId reference
+  } else if (isType7B || isType10) {
+    // For TYPE_7B (ติดตามแปลง) or TYPE_10 (Field Day): keep existing demoPlotId reference
     demoPlotId =
       (originalPlan.demoPlotVisits &&
         originalPlan.demoPlotVisits[0]?.demoPlotId) ||
       null;
+  } else {
+    // For TYPE_13 (ฉีดแปลงแฮตแทค) and other types: demo plots are managed separately via type13Plots
+    demoPlotId = null;
   }
 
   const data = {
