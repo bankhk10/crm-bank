@@ -845,6 +845,8 @@ export function ActivityPlanTable({
           className="w-full"
         />
       </div>
+      <br></br>
+      <br></br>
     </div>
   );
 }
