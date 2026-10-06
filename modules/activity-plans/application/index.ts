@@ -22,6 +22,7 @@ import {
   deleteSupplementalDrugWithdrawal,
   type ListActivityPlansParams,
   type CreateActivityResultInput,
+  type CreateActivityPlanInput,
 } from "../infrastructure/activity-plan.repository";
 import {
   ActivityPlanType,
@@ -499,6 +500,7 @@ export async function duplicateActivityPlanUseCase(
             ownerName: plot?.ownerName || null,
             province: plot?.province || "",
             district: plot?.district || "",
+            products: [],
             hasDrugWithdrawal: matchedDw.length > 0,
             withdrawalItems: matchedDw.map((item: any, dwIdx: number) => ({
               id: `w-${idx + 1}-${dwIdx + 1}`,
@@ -516,6 +518,57 @@ export async function duplicateActivityPlanUseCase(
   const newTitle = originalPlan.title.startsWith(titlePrefix)
     ? originalPlan.title
     : `${titlePrefix}${originalPlan.title}`;
+
+  // Check if plan contains TYPE_7A (ทำแปลงสาธิต - Create Demo Plot)
+  const isType7A = workTypeCodes.some(
+    (wt) => getWorkTypeCode(wt) === "TYPE_7A" || wt === "TYPE_7A",
+  );
+
+  const originalDemoPlot =
+    originalPlan.demoPlotVisits && originalPlan.demoPlotVisits.length > 0
+      ? originalPlan.demoPlotVisits[0]?.demoPlot
+      : null;
+
+  let demoPlotData: CreateActivityPlanInput["demoPlotData"] = null;
+  let demoPlotId: string | null = null;
+
+  if (isType7A && originalDemoPlot) {
+    // For TYPE_7A: Deep clone demo plot data with new code/id so it does NOT share the original demo_plots record
+    const rawPlotName =
+      originalDemoPlot.name || originalPlan.title || "แปลงสาธิต";
+    const plotTitlePrefix = "(สำเนา) ";
+    const newPlotName = rawPlotName.startsWith(plotTitlePrefix)
+      ? rawPlotName
+      : `${plotTitlePrefix}${rawPlotName}`;
+
+    demoPlotData = {
+      name: newPlotName,
+      ownerName: originalDemoPlot.ownerName || "",
+      customerId: originalDemoPlot.customerId || null,
+      cropCategory: originalDemoPlot.cropCategory || "",
+      cropName: originalDemoPlot.cropName || "",
+      customCropName: originalDemoPlot.customCropName || null,
+      areaRai: originalDemoPlot.areaRai
+        ? Number(originalDemoPlot.areaRai)
+        : null,
+      treeCount: originalDemoPlot.treeCount ?? null,
+      location: originalDemoPlot.location || null,
+      province: originalDemoPlot.province || null,
+      district: originalDemoPlot.district || null,
+      categoryId:
+        (originalDemoPlot as any).categoryId ||
+        (originalDemoPlot as any).chemicalGroupId ||
+        null,
+      objective: originalDemoPlot.objective || null,
+    };
+    demoPlotId = null;
+  } else {
+    // For TYPE_7B (ติดตามแปลง), TYPE_10 (Field Day) or others: keep existing demoPlotId reference
+    demoPlotId =
+      (originalPlan.demoPlotVisits &&
+        originalPlan.demoPlotVisits[0]?.demoPlotId) ||
+      null;
+  }
 
   const data = {
     title: newTitle,
@@ -537,10 +590,8 @@ export async function duplicateActivityPlanUseCase(
     targetBookingSales: originalPlan.targetBookingSales
       ? Number(originalPlan.targetBookingSales)
       : null,
-    demoPlotId:
-      (originalPlan.demoPlotVisits &&
-        originalPlan.demoPlotVisits[0]?.demoPlotId) ||
-      null,
+    demoPlotId,
+    demoPlotData,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
