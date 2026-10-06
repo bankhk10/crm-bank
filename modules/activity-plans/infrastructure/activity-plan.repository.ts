@@ -3351,7 +3351,13 @@ export async function upsertActivityResult(
       }
 
       let plotId: string;
-      const primaryProduct = demoData.demoProducts[0];
+      const validDemoProducts = (demoData.demoProducts || []).filter(
+        (p) =>
+          p.productId &&
+          p.productId.trim() &&
+          p.productId !== "prod-default",
+      );
+      const primaryProduct = validDemoProducts[0];
       if (existingPlot) {
         plotId = existingPlot.id;
         await tx.demoPlot.update({
@@ -3448,9 +3454,9 @@ export async function upsertActivityResult(
 
       // Save DemoPlotProduct (Single Source of Truth for applicationRate)
       await tx.demoPlotProduct.deleteMany({ where: { demoPlotId: plotId } });
-      if (demoData.demoProducts && demoData.demoProducts.length > 0) {
+      if (validDemoProducts.length > 0) {
         await tx.demoPlotProduct.createMany({
-          data: demoData.demoProducts.map((p, idx) => ({
+          data: validDemoProducts.map((p, idx) => ({
             demoPlotId: plotId,
             productId: p.productId,
             productName: p.productName ?? null,

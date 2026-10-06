@@ -1284,42 +1284,36 @@ export function buildResultSummary(
         : null,
       sprayMethod: input.t7SprayMethod || "SINGLE",
       hasExternalChemicals: Boolean(input.t7HasExternalChemicals),
-      demoProducts: (input.t7DemoProducts && input.t7DemoProducts.length > 0
-        ? input.t7DemoProducts
-        : [
-            {
-              productId: input.t7ActualProductId || input.t7PlannedProductId || "prod-default",
-              productName: input.t7ActualProductName || input.t7PlannedProductName || "สินค้าสาธิต",
-              plannedQuantity: null,
-              quantity: 1,
-              remainingQuantity: null,
-              unit: "",
-              applicationRate: input.t7UsageMethod || "-",
-            },
-          ]
-      ).map((p) => {
-        const planned =
-          p.plannedQuantity != null && p.plannedQuantity !== ""
-            ? Number(p.plannedQuantity)
-            : null;
-        const used = Number(p.quantity) || 0;
-        const remaining =
-          planned != null
-            ? Math.max(0, planned - used)
-            : p.remainingQuantity != null && p.remainingQuantity !== ""
-              ? Number(p.remainingQuantity)
+      demoProducts: (input.t7DemoProducts || [])
+        .filter(
+          (p) =>
+            p.productId &&
+            p.productId.trim() &&
+            p.productId !== "prod-default",
+        )
+        .map((p) => {
+          const planned =
+            p.plannedQuantity != null && p.plannedQuantity !== ""
+              ? Number(p.plannedQuantity)
               : null;
+          const used = Number(p.quantity) || 0;
+          const remaining =
+            planned != null
+              ? Math.max(0, planned - used)
+              : p.remainingQuantity != null && p.remainingQuantity !== ""
+                ? Number(p.remainingQuantity)
+                : null;
 
-        return {
-          productId: p.productId,
-          productName: p.productName || null,
-          plannedQuantity: planned,
-          quantity: used,
-          remainingQuantity: remaining,
-          unit: p.unit || null,
-          applicationRate: p.applicationRate || "-",
-        };
-      }),
+          return {
+            productId: p.productId,
+            productName: p.productName || null,
+            plannedQuantity: planned,
+            quantity: used,
+            remainingQuantity: remaining,
+            unit: p.unit || null,
+            applicationRate: p.applicationRate || "-",
+          };
+        }),
       externalProducts: (input.t7ExternalProducts || []).map((ep) => ({
         company: ep.company,
         productName: ep.productName,
