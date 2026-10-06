@@ -950,28 +950,38 @@ export function useType13ActualState() {
             p.longitude.trim() !== "" ||
             (p.sprayRounds && p.sprayRounds.length > 0),
         )
-        .map((p) => ({
-          clientPlotId: p.clientPlotId || p.demoPlotId || `client-plot-${Date.now()}`,
-          plotName: p.plotName.trim() || `แปลงแฮตแทค`,
-          storeId: p.storeId || null,
-          province: p.province || null,
-          district: p.district || null,
-          latitude: p.latitude.trim(),
-          longitude: p.longitude.trim(),
-        }));
+        .map((p) => {
+          const clientPlotId =
+            p.clientPlotId ||
+            (p.demoPlotId?.startsWith("temp-") ? p.demoPlotId : null) ||
+            `client-plot-${Date.now()}`;
+          return {
+            clientPlotId,
+            plotName: p.plotName.trim() || `แปลงแฮตแทค`,
+            storeId: p.storeId || null,
+            province: p.province || null,
+            district: p.district || null,
+            latitude: p.latitude.trim(),
+            longitude: p.longitude.trim(),
+          };
+        });
 
       // 3. Flatten all spray rounds across all plots
       const sprayRounds: any[] = [];
       targetPlots.forEach((plot) => {
+        const effectiveClientPlotId =
+          plot.clientPlotId ||
+          (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
+          `client-plot-${Date.now()}`;
+        const effectiveDemoPlotId =
+          plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
+            ? plot.demoPlotId
+            : effectiveClientPlotId;
+
         (plot.sprayRounds || []).forEach((round) => {
           sprayRounds.push({
-            demoPlotId:
-              plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
-                ? plot.demoPlotId
-                : null,
-            clientPlotId:
-              plot.clientPlotId ||
-              (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null),
+            demoPlotId: effectiveDemoPlotId,
+            clientPlotId: effectiveClientPlotId,
             roundNumber: round.roundNumber,
             sprayDate: round.sprayDate,
             sprayMethod: round.sprayMethod,
@@ -1016,21 +1026,25 @@ export function useType13ActualState() {
       const attachments: any[] = [];
       const seenAttachmentKeys = new Set<string>();
       targetPlots.forEach((plot) => {
+        const effectiveClientPlotId =
+          plot.clientPlotId ||
+          (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
+          `client-plot-${Date.now()}`;
+        const effectiveDemoPlotId =
+          plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
+            ? plot.demoPlotId
+            : effectiveClientPlotId;
+
         (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
           if (!img.url) return;
-          const plotKey = plot.clientPlotId || plot.demoPlotId || "plot";
+          const plotKey = effectiveClientPlotId || effectiveDemoPlotId || "plot";
           const compositeKey = `${plotKey}_${img.url}`;
           if (seenAttachmentKeys.has(compositeKey)) return;
           seenAttachmentKeys.add(compositeKey);
           attachments.push({
             workTypeCode: "TYPE_13",
-            demoPlotId:
-              plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
-                ? plot.demoPlotId
-                : null,
-            clientPlotId:
-              plot.clientPlotId ||
-              (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null),
+            demoPlotId: effectiveDemoPlotId,
+            clientPlotId: effectiveClientPlotId,
             category: "PLOT",
             fileUrl: img.url,
             fileName: img.name || "after-spray.jpg",

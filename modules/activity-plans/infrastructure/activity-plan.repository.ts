@@ -3172,7 +3172,7 @@ export async function upsertActivityResult(
       });
       if (input.sprayRounds.length > 0) {
         for (const round of input.sprayRounds) {
-          let targetPlotId = round.demoPlotId;
+          let targetPlotId = round.demoPlotId || (round as any).clientPlotId;
           if (targetPlotId && clientPlotMap.has(targetPlotId)) {
             targetPlotId = clientPlotMap.get(targetPlotId)!;
           } else if (
@@ -3616,7 +3616,7 @@ export async function upsertActivityResult(
                 : null;
             })(),
             demoPlotId: (() => {
-              let plotId = att.demoPlotId;
+              let plotId = att.demoPlotId || (att as any).clientPlotId;
               if (plotId && clientPlotMap.has(plotId)) {
                 plotId = clientPlotMap.get(plotId);
               } else if (
