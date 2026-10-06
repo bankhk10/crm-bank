@@ -510,6 +510,73 @@ export function useType13ActualState() {
       const nextPlotNum = prev.length + 1;
       const tempId = `temp-draft-${Date.now()}-${nextPlotNum}`;
 
+      // 1. Resolve withdrawal products for the new plot:
+      // Try extracting from planRef.current first, or inherit from existing plots in state
+      let resolvedWithdrawalProducts: any[] = [];
+      if (
+        planRef.current?.drugWithdrawal?.items &&
+        Array.isArray(planRef.current.drugWithdrawal.items)
+      ) {
+        const allWithdrawalItems = planRef.current.drugWithdrawal.items;
+        const seenProdIds = new Set<string>();
+        const matched = allWithdrawalItems.filter((item: any) => {
+          const key = item.productId || item.id;
+          if (!seenProdIds.has(key)) {
+            seenProdIds.add(key);
+            return true;
+          }
+          return false;
+        });
+        resolvedWithdrawalProducts = matched.map((item: any) => ({
+          drugWithdrawalItemId: item.id,
+          productId: item.productId,
+          productName: item.productName || item.product?.name || "",
+          withdrawnQuantity: Number(item.quantity) || 0,
+          unit: item.unit || item.product?.unit || "",
+        }));
+      }
+
+      if (resolvedWithdrawalProducts.length === 0) {
+        const existingWithPlot = prev.find(
+          (p) => p.withdrawalProducts && p.withdrawalProducts.length > 0,
+        );
+        if (existingWithPlot?.withdrawalProducts) {
+          resolvedWithdrawalProducts = JSON.parse(
+            JSON.stringify(existingWithPlot.withdrawalProducts),
+          );
+        }
+      }
+
+      // 2. Build default Round 1 products from resolved withdrawal products
+      const initialRoundProducts: Type13ActualProductState[] =
+        resolvedWithdrawalProducts.map((wp) => ({
+          productId: wp.productId,
+          productName: wp.productName,
+          actualRate: "",
+          quantityUsed: "",
+          unit: wp.unit,
+          drugWithdrawalItemId: wp.drugWithdrawalItemId,
+          withdrawnQuantity: wp.withdrawnQuantity,
+          detail: "",
+          isAdditional: false,
+        }));
+
+      // 3. Initialize default Round 1
+      const initialRound = {
+        demoPlotId: null,
+        clientPlotId: tempId,
+        roundNumber: 1,
+        sprayDate: new Date().toISOString().split("T")[0],
+        sprayMethod: "SINGLE" as const,
+        sprayEquipment: "เครื่องยนต์พ่นยา",
+        otherEquipment: null,
+        productResponse: "ปกติ",
+        problemDetail: null,
+        products: initialRoundProducts,
+        externalProducts: [],
+        attachments: [],
+      };
+
       const newPlot: Type13PlotActualState = {
         clientPlotId: tempId,
         demoPlotId: null,
@@ -517,9 +584,9 @@ export function useType13ActualState() {
         isNew: true,
         latitude: "",
         longitude: "",
-        withdrawalProducts: [],
+        withdrawalProducts: resolvedWithdrawalProducts,
         afterSprayImages: [],
-        sprayRounds: [],
+        sprayRounds: [initialRound],
       };
       return [...prev, newPlot];
     });
