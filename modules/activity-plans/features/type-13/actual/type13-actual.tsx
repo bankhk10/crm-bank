@@ -503,7 +503,7 @@ export function Type13Actual({
                     {plot.isNew ? (
                       <>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          หมายเหตุ / จุดสังเกต{" "}
+                          ที่ตั้งแปลง{" "}
                           <span className="text-slate-400 font-normal">
                             (ถ้ามี)
                           </span>
