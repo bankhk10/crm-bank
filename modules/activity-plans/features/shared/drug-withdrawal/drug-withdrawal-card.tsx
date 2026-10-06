@@ -39,33 +39,35 @@ export function DrugWithdrawalCard({
   errors,
   className,
 }: DrugWithdrawalCardProps) {
-  const isReadOnly = readonly !== undefined ? readonly : (!editable || disabled);
+  const isReadOnly = readonly !== undefined ? readonly : !editable || disabled;
   const isType14 = workTypeCode === "TYPE_14";
 
   // Flat items state for TYPE_14 (direct product withdrawal without plot selection)
-  const [flatItems, setFlatItems] = useState<DrugWithdrawalItemRowState[]>(() => {
-    if (value?.items && value.items.length > 0) {
-      return value.items.map((it, idx) => ({
-        key: it.id || generateClientKey("item"),
-        id: it.id,
-        productId: it.productId,
-        productName: it.productName || "",
-        quantity: it.quantity,
-        unit: it.unit || "",
-        sortOrder: it.sortOrder ?? idx,
-      }));
-    }
-    return [
-      {
-        key: generateClientKey("item"),
-        productId: "",
-        productName: "",
-        quantity: 1,
-        unit: "",
-        sortOrder: 0,
-      },
-    ];
-  });
+  const [flatItems, setFlatItems] = useState<DrugWithdrawalItemRowState[]>(
+    () => {
+      if (value?.items && value.items.length > 0) {
+        return value.items.map((it, idx) => ({
+          key: it.id || generateClientKey("item"),
+          id: it.id,
+          productId: it.productId,
+          productName: it.productName || "",
+          quantity: it.quantity,
+          unit: it.unit || "",
+          sortOrder: it.sortOrder ?? idx,
+        }));
+      }
+      return [
+        {
+          key: generateClientKey("item"),
+          productId: "",
+          productName: "",
+          quantity: 1,
+          unit: "",
+          sortOrder: 0,
+        },
+      ];
+    },
+  );
 
   // Local state for plot groups to maintain responsive editing (e.g. typing decimals) for TYPE_7A / TYPE_7B
   const [plotGroups, setPlotGroups] = useState<DrugWithdrawalPlotGroupState[]>(
@@ -98,12 +100,13 @@ export function DrugWithdrawalCard({
     return products.map((p) => ({
       value: p.id,
       label: p.name,
-      subLabel: [
-        p.productCode ? `รหัส: ${p.productCode}` : null,
-        p.unit ? `หน่วย: ${p.unit}` : null,
-      ]
-        .filter(Boolean)
-        .join(" | ") || undefined,
+      subLabel:
+        [
+          p.productCode ? `รหัส: ${p.productCode}` : null,
+          p.unit ? `หน่วย: ${p.unit}` : null,
+        ]
+          .filter(Boolean)
+          .join(" | ") || undefined,
     }));
   }, [products]);
 
@@ -303,7 +306,10 @@ export function DrugWithdrawalCard({
   };
 
   // Handler: Update plot selection / identifier
-  const handleUpdatePlotIdentifier = (plotIndex: number, selectedIdOrName: string) => {
+  const handleUpdatePlotIdentifier = (
+    plotIndex: number,
+    selectedIdOrName: string,
+  ) => {
     if (isReadOnly) return;
     const updated = [...plotGroups];
     const matchedPlot = availablePlots.find(
@@ -394,7 +400,9 @@ export function DrugWithdrawalCard({
   const handleDeleteProduct = (plotIndex: number, itemIndex: number) => {
     if (isReadOnly) return;
     const updated = [...plotGroups];
-    const currentItems = updated[plotIndex].items.filter((_, idx) => idx !== itemIndex);
+    const currentItems = updated[plotIndex].items.filter(
+      (_, idx) => idx !== itemIndex,
+    );
 
     updated[plotIndex] = {
       ...updated[plotIndex],
@@ -470,7 +478,9 @@ export function DrugWithdrawalCard({
           <Checkbox
             id="has-drug-withdrawal-toggle"
             checked={Boolean(value?.hasDrugWithdrawal)}
-            onCheckedChange={(checked) => handleToggleWithdrawal(Boolean(checked))}
+            onCheckedChange={(checked) =>
+              handleToggleWithdrawal(Boolean(checked))
+            }
             disabled={isReadOnly}
             className="border-slate-400 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
           />
@@ -490,32 +500,6 @@ export function DrugWithdrawalCard({
       {/* ── Collapsible Body ──────────────────────────────────────── */}
       {value?.hasDrugWithdrawal && (
         <div className="p-4 sm:p-6 space-y-6">
-          {/* Information Notice */}
-          <div className="flex items-start gap-2.5 p-3 sm:p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-emerald-900 text-xs sm:text-sm leading-relaxed">
-            <Info className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-            <div>
-              <span className="font-semibold">ข้อกำหนดการเบิกยา:</span>{" "}
-              {isType14
-                ? "ระบุรายการตัวยาและจำนวนที่ต้องการขอเบิก สินค้าจะถูกดึงจาก Product Master และแสดงหน่วยนับอัตโนมัติ (การผูกยาเข้ากับแปลงจะดำเนินการในขั้นตอนบันทึกผลจริง / Actual)"
-                : "ระบุรายการตัวยา/สารเคมีที่ต้องการขอเบิก โดยเลือกตามแปลงที่ใช้งาน สินค้าจะถูกดึงจาก Product Master และแสดงหน่วยนับอัตโนมัติ (อนุญาตระบุจำนวนทศนิยมได้)"}
-            </div>
-          </div>
-
-          {/* Error Message Box */}
-          {errorMessages.length > 0 && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs sm:text-sm space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-rose-900">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>กรุณาตรวจสอบข้อมูลการเบิกยา:</span>
-              </div>
-              <ul className="list-disc list-inside space-y-0.5 pl-1 text-rose-700">
-                {errorMessages.map((msg, idx) => (
-                  <li key={idx}>{msg}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {/* ── TYPE_14: Direct Product List (No Plot Selection) ────── */}
           {isType14 ? (
             <div className="space-y-4">
@@ -523,7 +507,8 @@ export function DrugWithdrawalCard({
                 <div className="flex items-center gap-1.5">
                   <Package className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="text-xs sm:text-sm font-bold text-slate-800">
-                    รายการตัวยาและเคมีภัณฑ์ที่ต้องการเบิก <span className="text-rose-500">*</span>
+                    รายการตัวยาและเคมีภัณฑ์ที่ต้องการเบิก{" "}
+                    <span className="text-rose-500">*</span>
                   </span>
                 </div>
 
@@ -543,8 +528,13 @@ export function DrugWithdrawalCard({
               {/* Header Row for MD+ screens */}
               <div className="hidden md:grid grid-cols-12 gap-2 px-3 py-1.5 bg-slate-200/60 rounded-lg text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                 <div className="col-span-1 text-center">#</div>
-                <div className="col-span-6">สินค้า (Product Master) <span className="text-rose-500">*</span></div>
-                <div className="col-span-2 text-right">จำนวนที่เบิก <span className="text-rose-500">*</span></div>
+                <div className="col-span-6">
+                  สินค้า (Product Master){" "}
+                  <span className="text-rose-500">*</span>
+                </div>
+                <div className="col-span-2 text-right">
+                  จำนวนที่เบิก <span className="text-rose-500">*</span>
+                </div>
                 <div className="col-span-2 text-center">หน่วย</div>
                 <div className="col-span-1 text-center">ลบ</div>
               </div>
@@ -564,7 +554,8 @@ export function DrugWithdrawalCard({
                     {/* Product Master Combobox */}
                     <div className="col-span-1 md:col-span-6">
                       <label className="block md:hidden text-[11px] font-semibold text-slate-600 mb-1">
-                        สินค้า (Product Master) <span className="text-rose-500">*</span>
+                        สินค้า (Product Master){" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <FormCombobox
                         id={`flat-prod-select-${itemIdx}`}
@@ -593,7 +584,11 @@ export function DrugWithdrawalCard({
                         min="0.01"
                         value={item.quantity ?? ""}
                         onChange={(e) =>
-                          handleUpdateFlatProduct(itemIdx, "quantity", e.target.value)
+                          handleUpdateFlatProduct(
+                            itemIdx,
+                            "quantity",
+                            e.target.value,
+                          )
                         }
                         placeholder="ระบุจำนวน (เช่น 5.5)"
                         disabled={isReadOnly}
@@ -646,7 +641,11 @@ export function DrugWithdrawalCard({
                 )}
 
                 <div className="text-xs text-slate-500 font-medium ml-auto">
-                  สรุป: รวม <span className="font-bold text-slate-800">{flatItems.length}</span> รายการเบิกยา
+                  สรุป: รวม{" "}
+                  <span className="font-bold text-slate-800">
+                    {flatItems.length}
+                  </span>{" "}
+                  รายการเบิกยา
                 </div>
               </div>
             </div>
@@ -698,7 +697,9 @@ export function DrugWithdrawalCard({
                             id={`plot-select-${plotIdx}`}
                             label=""
                             value={plot.demoPlotId || plot.plotIdentifier}
-                            onChange={(val) => handleUpdatePlotIdentifier(plotIdx, val)}
+                            onChange={(val) =>
+                              handleUpdatePlotIdentifier(plotIdx, val)
+                            }
                             options={plotComboboxOptions}
                             placeholder="เลือกแปลงที่ต้องการเบิกยา..."
                             searchPlaceholder="ค้นหาแปลง..."
@@ -710,7 +711,12 @@ export function DrugWithdrawalCard({
                           <input
                             type="text"
                             value={plot.plotIdentifier}
-                            onChange={(e) => handleUpdatePlotIdentifier(plotIdx, e.target.value)}
+                            onChange={(e) =>
+                              handleUpdatePlotIdentifier(
+                                plotIdx,
+                                e.target.value,
+                              )
+                            }
                             placeholder="ระบุชื่อแปลงหรือหมายเลขแปลง (เช่น แปลง A, แปลงสาธิต 1)..."
                             disabled={isReadOnly}
                             className="w-full h-9 px-3 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
@@ -729,7 +735,8 @@ export function DrugWithdrawalCard({
                         <div className="flex items-center gap-1.5">
                           <Package className="w-3.5 h-3.5 text-emerald-600" />
                           <span className="text-xs font-bold text-slate-700">
-                            รายการสินค้า / ตัวยาสำหรับแปลงนี้ <span className="text-rose-500">*</span>
+                            รายการสินค้า / ตัวยาสำหรับแปลงนี้{" "}
+                            <span className="text-rose-500">*</span>
                           </span>
                         </div>
 
@@ -749,8 +756,12 @@ export function DrugWithdrawalCard({
                       {/* Header Row for MD+ screens */}
                       <div className="hidden md:grid grid-cols-12 gap-2 px-3 py-1.5 bg-slate-200/60 rounded-lg text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                         <div className="col-span-1 text-center">#</div>
-                        <div className="col-span-6">สินค้า (Product Master)</div>
-                        <div className="col-span-2 text-right">จำนวนที่เบิก</div>
+                        <div className="col-span-6">
+                          สินค้า (Product Master)
+                        </div>
+                        <div className="col-span-2 text-right">
+                          จำนวนที่เบิก
+                        </div>
                         <div className="col-span-2 text-center">หน่วย</div>
                         <div className="col-span-1 text-center">ลบ</div>
                       </div>
@@ -770,13 +781,21 @@ export function DrugWithdrawalCard({
                             {/* Product Master Combobox */}
                             <div className="col-span-1 md:col-span-6">
                               <label className="block md:hidden text-[11px] font-semibold text-slate-600 mb-1">
-                                สินค้า (Product Master) <span className="text-rose-500">*</span>
+                                สินค้า (Product Master){" "}
+                                <span className="text-rose-500">*</span>
                               </label>
                               <FormCombobox
                                 id={`prod-select-${plotIdx}-${itemIdx}`}
                                 label=""
                                 value={item.productId || ""}
-                                onChange={(val) => handleUpdateProduct(plotIdx, itemIdx, "productId", val)}
+                                onChange={(val) =>
+                                  handleUpdateProduct(
+                                    plotIdx,
+                                    itemIdx,
+                                    "productId",
+                                    val,
+                                  )
+                                }
                                 options={productOptions}
                                 placeholder="เลือกตัวยา/สินค้าจาก Master..."
                                 searchPlaceholder="ค้นหาชื่อหรือรหัสสินค้า..."
@@ -789,7 +808,8 @@ export function DrugWithdrawalCard({
                             {/* Quantity Input */}
                             <div className="col-span-1 md:col-span-2">
                               <label className="block md:hidden text-[11px] font-semibold text-slate-600 mb-1">
-                                จำนวนที่เบิก <span className="text-rose-500">*</span>
+                                จำนวนที่เบิก{" "}
+                                <span className="text-rose-500">*</span>
                               </label>
                               <input
                                 type="number"
@@ -797,7 +817,12 @@ export function DrugWithdrawalCard({
                                 min="0.01"
                                 value={item.quantity ?? ""}
                                 onChange={(e) =>
-                                  handleUpdateProduct(plotIdx, itemIdx, "quantity", e.target.value)
+                                  handleUpdateProduct(
+                                    plotIdx,
+                                    itemIdx,
+                                    "quantity",
+                                    e.target.value,
+                                  )
                                 }
                                 placeholder="ระบุจำนวน (เช่น 5.5)"
                                 disabled={isReadOnly}
@@ -822,7 +847,9 @@ export function DrugWithdrawalCard({
                                   type="button"
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleDeleteProduct(plotIdx, itemIdx)}
+                                  onClick={() =>
+                                    handleDeleteProduct(plotIdx, itemIdx)
+                                  }
                                   className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
                                   title="ลบรายการนี้"
                                 >
@@ -855,8 +882,15 @@ export function DrugWithdrawalCard({
 
                 {/* Summary Indicator */}
                 <div className="text-xs text-slate-500 font-medium ml-auto">
-                  สรุป: <span className="font-bold text-slate-800">{plotGroups.length}</span> แปลง, รวม{" "}
-                  <span className="font-bold text-slate-800">{totalItemCount}</span> รายการเบิกยา
+                  สรุป:{" "}
+                  <span className="font-bold text-slate-800">
+                    {plotGroups.length}
+                  </span>{" "}
+                  แปลง, รวม{" "}
+                  <span className="font-bold text-slate-800">
+                    {totalItemCount}
+                  </span>{" "}
+                  รายการเบิกยา
                 </div>
               </div>
             </>
