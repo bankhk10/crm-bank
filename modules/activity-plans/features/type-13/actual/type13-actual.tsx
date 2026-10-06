@@ -155,11 +155,6 @@ function PlotAfterSpraySection({
             </div>
           </div>
 
-          <span className="h-8 px-3.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 font-medium transition-colors shadow-2xs shrink-0 pointer-events-none">
-            <Plus className="w-3.5 h-3.5" />
-            <span>เลือกไฟล์รูปภาพ</span>
-          </span>
-
           <input
             ref={fileInputRef}
             type="file"
