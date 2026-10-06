@@ -112,8 +112,8 @@ export function Type8PlanCard({
             </span>
           </div>
         ) : null}
-
-        {target.detail ? (
+        {/* ยังไม่ต้องแสดง รายละเอียดเพิ่มเติม*/}
+        {/* {target.detail ? (
           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-2 md:col-span-3">
             <span className="text-slate-500 block text-[11px] font-medium mb-1">
               รายละเอียดเพิ่มเติม
@@ -122,7 +122,7 @@ export function Type8PlanCard({
               {target.detail}
             </span>
           </div>
-        ) : null}
+        ) : null} */}
       </div>
 
       {/* Target Products (สินค้าเป้าหมาย) */}
@@ -165,7 +165,10 @@ export function Type8PlanCard({
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {promotionalProducts.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                  <tr
+                    key={idx}
+                    className="hover:bg-slate-50/60 transition-colors"
+                  >
                     <td className="py-2 px-3 text-center text-slate-400 font-medium">
                       {idx + 1}
                     </td>
