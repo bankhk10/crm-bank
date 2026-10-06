@@ -875,9 +875,10 @@ export function ActualType7NewDemo({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="วัน">วัน</SelectItem>
-                  <SelectItem value="สัปดาห์">สัปดาห์</SelectItem>
+                  {/* ปิดไว้ก่อนยังไม่ต้องเปิด */}
+                  {/* <SelectItem value="สัปดาห์">สัปดาห์</SelectItem>
                   <SelectItem value="เดือน">เดือน</SelectItem>
-                  <SelectItem value="ปี">ปี</SelectItem>
+                  <SelectItem value="ปี">ปี</SelectItem> */}
                 </SelectContent>
               </Select>
             </div>
