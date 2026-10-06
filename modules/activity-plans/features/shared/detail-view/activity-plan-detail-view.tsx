@@ -806,7 +806,10 @@ export default function ActivityPlanDetailView({
             isVisible={
               isTypeActive("TYPE_8", "จัดประชุม") ||
               isTypeActive("TYPE_8", "จัดประชุมการเกษตร") ||
-              isTypeActive("TYPE_8", "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+              isTypeActive(
+                "TYPE_8",
+                "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+              )
             }
             target={targets.t8}
           />
@@ -1141,6 +1144,8 @@ export default function ActivityPlanDetailView({
           onBack={handleBack}
           backLabel="กลับหน้ารายการแผนงาน"
         />
+        <br></br>
+        <br></br>
       </div>
     </section>
   );
