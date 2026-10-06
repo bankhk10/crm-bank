@@ -361,7 +361,6 @@ export function Type13Create({
                       <div className="col-span-2 text-center">
                         จำนวนที่เบิก *
                       </div>
-                      <div className="col-span-2 text-center">หน่วย</div>
                       <div className="col-span-1 text-center">ลบ</div>
                     </div>
 
@@ -422,11 +421,6 @@ export function Type13Create({
                             placeholder="จำนวน"
                             className="w-full h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
                           />
-                        </div>
-
-                        {/* Unit (read-only auto-filled from Master) */}
-                        <div className="col-span-2 sm:col-span-2 text-center text-xs text-slate-600 font-medium">
-                          {item.unit || "-"}
                         </div>
 
                         {/* Remove button */}
