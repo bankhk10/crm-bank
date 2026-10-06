@@ -17,10 +17,16 @@ export function validateType14FormValues({
     return { isValid: true };
   }
 
+  if (!type14Data.selectedPlanId?.trim() && !type14Data.demoPlotId?.trim()) {
+    return {
+      isValid: false,
+      error: "กรุณาเลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (TYPE_14)",
+    };
+  }
   if (!type14Data.demoPlotId?.trim()) {
     return {
       isValid: false,
-      error: "กรุณาเลือกแปลงแฮตแทคเดิม (TYPE_14)",
+      error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตาม (TYPE_14)",
     };
   }
   if (!type14Data.storeId?.trim()) {

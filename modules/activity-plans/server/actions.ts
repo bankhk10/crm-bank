@@ -648,6 +648,25 @@ export async function getHattackFollowUpDemoPlotsAction() {
 }
 
 /**
+ * Action: Get follow-up activity plans (TYPE_13 Approved + Completed) with Hattack plots for TYPE_14
+ */
+export async function getHattackFollowUpPlansWithPlotsAction() {
+  try {
+    const { getHattackFollowUpPlansWithPlotsUseCase } = await import(
+      "../application/demo-plots"
+    );
+    const result = await getHattackFollowUpPlansWithPlotsUseCase();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get Hattack follow-up plans with plots", err);
+    return serialize({
+      success: false,
+      plans: [],
+    });
+  }
+}
+
+/**
  * Action: Get dedicated plot context for TYPE_14 Actual
  * Returns plot info, original TYPE_13 withdrawal items (Group A source of truth), and previous actual spray history
  */

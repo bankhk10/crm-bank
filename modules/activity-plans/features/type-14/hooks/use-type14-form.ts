@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+import { getWorkTypeCode, type FollowUpPlanOption } from "@/modules/activity-plans/constants";
 import type {
   Type14PlanInput as FormType14PlanInput,
   Type14WithdrawnProductLine,
@@ -13,6 +13,7 @@ export interface UseType14FormOptions {
   selectedWorkTypes?: string[];
   defaultProvince?: string;
   defaultDistrict?: string;
+  fetchedHattackPlansWithPlots?: FollowUpPlanOption[];
 }
 
 export interface UseType14FormResult {
@@ -48,6 +49,7 @@ function resolveInitialType14Data(
   initial: any = {},
   defaultProvince = "",
   defaultDistrict = "",
+  fetchedHattackPlansWithPlots: FollowUpPlanOption[] = [],
 ): FormType14PlanInput {
   if (initial?.type14Data) {
     return initial.type14Data;
@@ -83,17 +85,63 @@ function resolveInitialType14Data(
     initial?.demoPlotId ||
     null;
 
+  const matchedPlan = (fetchedHattackPlansWithPlots || []).find((plan) =>
+    plan.plots.some(
+      (p) => p.id === resolvedPlotId || (plot?.id && p.id === plot.id),
+    ),
+  );
+
   if (resolvedPlotId || plot) {
+    const matchedPlotItem = matchedPlan?.plots.find(
+      (p) => p.id === resolvedPlotId || (plot?.id && p.id === plot.id),
+    );
+
     return {
       mode: (plot?.id ? "EXISTING_PLOT" : "NEW_PLOT") as
         | "EXISTING_PLOT"
         | "NEW_PLOT",
+      selectedPlanId:
+        initial?.type14Data?.selectedPlanId || matchedPlan?.planId || null,
       demoPlotId: resolvedPlotId,
-      name: plot?.name || "แปลงแฮตแทค",
-      storeId: plot?.customerId || initial?.stores?.[0]?.storeId || "",
-      ownerName: plot?.ownerName || plot?.farmerCustomer?.name || "",
-      province: plot?.province || initial?.province || defaultProvince || "",
-      district: plot?.district || initial?.district || defaultDistrict || "",
+      name: plot?.name || matchedPlotItem?.name || "แปลงแฮตแทค",
+      storeId:
+        plot?.customerId ||
+        matchedPlotItem?.dealerId ||
+        initial?.stores?.[0]?.storeId ||
+        "",
+      dealerName:
+        plot?.customer?.name ||
+        matchedPlotItem?.dealerName ||
+        initial?.stores?.[0]?.storeName ||
+        "",
+      ownerName:
+        plot?.ownerName ||
+        plot?.farmerCustomer?.name ||
+        matchedPlotItem?.ownerName ||
+        "",
+      cropCategory:
+        plot?.cropCategory || matchedPlotItem?.cropCategory || null,
+      cropName:
+        plot?.customCropName ||
+        plot?.cropName ||
+        matchedPlotItem?.cropName ||
+        null,
+      areaRai: plot?.areaRai
+        ? Number(plot.areaRai)
+        : matchedPlotItem?.areaRai ?? null,
+      treeCount: plot?.treeCount ?? (matchedPlotItem?.treeCount ?? null),
+      province:
+        plot?.province ||
+        matchedPlotItem?.province ||
+        initial?.province ||
+        defaultProvince ||
+        "",
+      district:
+        plot?.district ||
+        matchedPlotItem?.district ||
+        initial?.district ||
+        defaultDistrict ||
+        "",
       latitude: plot?.latitude ? String(plot.latitude) : "",
       longitude: plot?.longitude ? String(plot.longitude) : "",
       trackings: t14Visits.map((v: any) => ({
@@ -117,10 +165,16 @@ function resolveInitialType14Data(
 
   return {
     mode: "EXISTING_PLOT",
+    selectedPlanId: null,
     demoPlotId: null,
     name: "",
     storeId: "",
+    dealerName: "",
     ownerName: "",
+    cropCategory: null,
+    cropName: null,
+    areaRai: null,
+    treeCount: null,
     province: initial?.province || defaultProvince || "",
     district: initial?.district || defaultDistrict || "",
     trackings: [],
@@ -134,9 +188,15 @@ export function useType14Form({
   selectedWorkTypes = [],
   defaultProvince = "",
   defaultDistrict = "",
+  fetchedHattackPlansWithPlots = [],
 }: UseType14FormOptions): UseType14FormResult {
   const [type14Data, setType14Data] = useState<FormType14PlanInput>(() =>
-    resolveInitialType14Data(initial, defaultProvince, defaultDistrict),
+    resolveInitialType14Data(
+      initial,
+      defaultProvince,
+      defaultDistrict,
+      fetchedHattackPlansWithPlots,
+    ),
   );
 
   useEffect(() => {
@@ -145,6 +205,7 @@ export function useType14Form({
         initial,
         defaultProvince,
         defaultDistrict,
+        fetchedHattackPlansWithPlots,
       );
       if (
         resolved.demoPlotId ||
@@ -154,6 +215,40 @@ export function useType14Form({
       }
     }
   }, [initial, defaultProvince, defaultDistrict]);
+
+  // Sync selectedPlanId once fetchedHattackPlansWithPlots are loaded if not yet resolved
+  useEffect(() => {
+    if (!fetchedHattackPlansWithPlots || fetchedHattackPlansWithPlots.length === 0) return;
+    setType14Data((prev) => {
+      if (prev.selectedPlanId) return prev;
+      if (!prev.demoPlotId && !prev.name) return prev;
+      const matched = fetchedHattackPlansWithPlots.find((plan) =>
+        plan.plots.some(
+          (p) =>
+            (prev.demoPlotId && p.id === prev.demoPlotId) ||
+            (prev.name && p.name === prev.name),
+        ),
+      );
+      if (matched) {
+        const plotMatch = matched.plots.find(
+          (p) =>
+            (prev.demoPlotId && p.id === prev.demoPlotId) ||
+            (prev.name && p.name === prev.name),
+        );
+        return {
+          ...prev,
+          selectedPlanId: matched.planId,
+          cropCategory: prev.cropCategory || plotMatch?.cropCategory || null,
+          cropName: prev.cropName || plotMatch?.cropName || null,
+          areaRai: prev.areaRai ?? (plotMatch?.areaRai ?? null),
+          treeCount: prev.treeCount ?? (plotMatch?.treeCount ?? null),
+          dealerName: prev.dealerName || plotMatch?.dealerName || null,
+          ownerName: prev.ownerName || plotMatch?.ownerName || null,
+        };
+      }
+      return prev;
+    });
+  }, [fetchedHattackPlansWithPlots]);
 
   const validateType14 = (): { isValid: boolean; error?: string } => {
     return validateType14FormValues({
@@ -225,6 +320,7 @@ export function useType14Form({
     return {
       type14Data: {
         mode: "EXISTING_PLOT" as const,
+        selectedPlanId: type14Data.selectedPlanId || null,
         demoPlotId: type14Data.demoPlotId || null,
         name: type14Data.name || "",
         storeId: type14Data.storeId || "",

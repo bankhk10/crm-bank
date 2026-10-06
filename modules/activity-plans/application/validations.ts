@@ -285,6 +285,7 @@ export const type14TrackingItemSchema = z.object({
 
 export const type14PlanInputSchema = z.object({
   mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]).optional().default("EXISTING_PLOT"),
+  selectedPlanId: z.string().optional().nullable(),
   demoPlotId: z.string().optional().nullable(),
   name: z.string().optional().default(""),
   storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),

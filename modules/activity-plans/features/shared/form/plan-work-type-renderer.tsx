@@ -34,6 +34,7 @@ export interface PlanWorkTypeRendererProps {
   demoPlotsList?: any[];
   followUpPlotsForType7B?: any[];
   followUpPlansWithPlots?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
+  hattackFollowUpPlans?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
   combinedType10DemoPlots?: any[];
   defaultProvince?: string;
   defaultDistrict?: string;
@@ -52,6 +53,7 @@ export function PlanWorkTypeRenderer({
   demoPlotsList = [],
   followUpPlotsForType7B = [],
   followUpPlansWithPlots = [],
+  hattackFollowUpPlans = [],
   combinedType10DemoPlots,
   defaultProvince = "",
   defaultDistrict = "",
@@ -397,6 +399,7 @@ export function PlanWorkTypeRenderer({
           <Type14Create
             value={typeForms.type14.type14Data}
             onChange={typeForms.type14.setType14Data}
+            hattackFollowUpPlans={hattackFollowUpPlans}
             dealerCustomers={customersList}
             products={productsList}
             planDate={startDate}

@@ -24,10 +24,16 @@ export interface Type14WithdrawnProductLine {
 
 export interface Type14PlanInput {
   mode: "EXISTING_PLOT" | "NEW_PLOT";
+  selectedPlanId?: string | null;
   demoPlotId?: string | null;
   name?: string;
   storeId?: string;
+  dealerName?: string | null;
   ownerName?: string | null;
+  cropCategory?: string | null;
+  cropName?: string | null;
+  areaRai?: number | null;
+  treeCount?: number | null;
   province?: string;
   district?: string;
   latitude?: string | null;

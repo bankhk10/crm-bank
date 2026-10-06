@@ -141,6 +141,7 @@ export function PlannedActivityForm({
     fetchedFollowUpDemoPlots,
     fetchedFollowUpPlansWithPlots,
     fetchedHattackDemoPlots,
+    fetchedHattackFollowUpPlansWithPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,
   } = useActivityPlanMasterData({
@@ -270,6 +271,7 @@ export function PlannedActivityForm({
     demoPlotsList,
     fetchedFollowUpDemoPlots,
     fetchedFollowUpPlansWithPlots,
+    fetchedHattackFollowUpPlansWithPlots,
     startDate,
     defaultProvince: province,
     defaultDistrict: district,
@@ -721,6 +723,7 @@ export function PlannedActivityForm({
               demoPlotsList={demoPlotsList}
               followUpPlotsForType7B={fetchedFollowUpDemoPlots}
               followUpPlansWithPlots={fetchedFollowUpPlansWithPlots}
+              hattackFollowUpPlans={fetchedHattackFollowUpPlansWithPlots}
               combinedType10DemoPlots={typeForms.combinedType10DemoPlots}
               defaultProvince={province}
               defaultDistrict={district}

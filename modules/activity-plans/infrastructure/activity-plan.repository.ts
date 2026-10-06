@@ -4478,6 +4478,50 @@ export async function findFollowUpActivityPlans() {
 }
 
 /**
+ * Fetch approved TYPE_13 Activity Plans with completed results and their Hattack demo plots
+ * Strictly for TYPE_14 ("ติดตามแปลงแฮทแทค")
+ */
+export async function findHattackFollowUpActivityPlans() {
+  return db.activityPlan.findMany({
+    where: {
+      deletedAt: null,
+      status: ActivityStatus.APPROVED,
+      result: {
+        resultStatus: ActivityResultStatus.COMPLETED,
+      },
+      OR: [
+        { activityType: { code: "TYPE_13" } },
+        { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
+      ],
+    },
+    include: {
+      demoPlotVisits: {
+        where: {
+          demoPlot: {
+            plotType: "HATTACK",
+            deletedAt: null,
+            status: { not: DemoPlotStatus.CANCELLED },
+          },
+        },
+        include: {
+          demoPlot: {
+            include: {
+              customer: {
+                select: { id: true, name: true, customerCode: true },
+              },
+              farmerCustomer: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { startDate: "desc" },
+  });
+}
+
+/**
  * Fetch HATTACK demo plots for TYPE_14 "ติดตามแปลงแฮทแทค"
  * Returns plots with plotType = "HATTACK" (excluding CANCELLED and deleted)
  */

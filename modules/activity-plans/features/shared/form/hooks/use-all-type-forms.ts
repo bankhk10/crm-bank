@@ -30,6 +30,7 @@ export interface UseAllTypeFormsProps {
   demoPlotsList?: any[];
   fetchedFollowUpDemoPlots?: any[];
   fetchedFollowUpPlansWithPlots?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
+  fetchedHattackFollowUpPlansWithPlots?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
   startDate?: string;
   defaultProvince?: string;
   defaultDistrict?: string;
@@ -46,6 +47,7 @@ export function useAllTypeForms({
   demoPlotsList = [],
   fetchedFollowUpDemoPlots = [],
   fetchedFollowUpPlansWithPlots = [],
+  fetchedHattackFollowUpPlansWithPlots = [],
   startDate = "",
   defaultProvince = "",
   defaultDistrict = "",
@@ -185,6 +187,7 @@ export function useAllTypeForms({
     selectedWorkTypes,
     defaultProvince,
     defaultDistrict,
+    fetchedHattackPlansWithPlots: fetchedHattackFollowUpPlansWithPlots,
   });
 
   // 2. Validate all active work types

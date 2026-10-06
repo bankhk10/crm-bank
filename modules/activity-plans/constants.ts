@@ -489,6 +489,7 @@ export interface FollowUpPlotItem {
   areaRai?: number;
   treeCount?: number;
   dealerName?: string;
+  dealerId?: string;
 }
 
 export interface FollowUpPlanOption {

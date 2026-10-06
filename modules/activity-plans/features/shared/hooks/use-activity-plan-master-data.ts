@@ -31,6 +31,7 @@ export interface UseActivityPlanMasterDataResult {
   fetchedFollowUpDemoPlots: UserDemoPlotOption[];
   fetchedFollowUpPlansWithPlots: FollowUpPlanOption[];
   fetchedHattackDemoPlots: UserDemoPlotOption[];
+  fetchedHattackFollowUpPlansWithPlots: FollowUpPlanOption[];
   activeWorkTypeOptions: Array<any & { displayName: string }>;
   fetchedMaterialsByCategory:
     | Record<string, Array<{ name: string; price: number; unit?: string }>>
@@ -59,6 +60,9 @@ export function useActivityPlanMasterData({
   >([]);
   const [fetchedHattackDemoPlots, setFetchedHattackDemoPlots] = useState<
     UserDemoPlotOption[]
+  >([]);
+  const [fetchedHattackFollowUpPlansWithPlots, setFetchedHattackFollowUpPlansWithPlots] = useState<
+    FollowUpPlanOption[]
   >([]);
   const [fetchedMaterialsByCategory, setFetchedMaterialsByCategory] = useState<
     Record<string, Array<{ name: string; price: number; unit?: string }>> | undefined
@@ -268,6 +272,31 @@ export function useActivityPlanMasterData({
     };
   }, []);
 
+  // 6d. Follow-up Activity Plans with sub-plots for TYPE_14
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHattackFollowUpPlansWithPlots() {
+      try {
+        const { getHattackFollowUpPlansWithPlotsAction } = await import(
+          "@/modules/activity-plans/server/actions"
+        );
+        const res = await getHattackFollowUpPlansWithPlotsAction();
+        if (isMounted && res.success && res.plans) {
+          setFetchedHattackFollowUpPlansWithPlots(res.plans);
+        }
+      } catch (err) {
+        console.error(
+          "Failed to load Hattack follow-up plans with plots for Trip Plan:",
+          err,
+        );
+      }
+    }
+    loadHattackFollowUpPlansWithPlots();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // 7. Activity Types
   useEffect(() => {
     if (initialActivityTypes !== undefined) return;
@@ -319,6 +348,7 @@ export function useActivityPlanMasterData({
     fetchedFollowUpDemoPlots,
     fetchedFollowUpPlansWithPlots,
     fetchedHattackDemoPlots,
+    fetchedHattackFollowUpPlansWithPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,
   };

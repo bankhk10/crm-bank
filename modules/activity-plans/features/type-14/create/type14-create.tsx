@@ -9,107 +9,257 @@ import {
   PackageCheck,
   Plus,
   Trash2,
+  User,
+  Sprout,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import type {
   Type14PlanInput,
-  DealerCustomerOption,
-  ProductOption,
   Type14WithdrawnProductLine,
 } from "../shared/types";
-import { getHattackFollowUpDemoPlotsAction } from "../../../server/actions";
+import { getHattackFollowUpPlansWithPlotsAction } from "../../../server/actions";
 import type { Type14CreateProps } from "./types";
+import type { FollowUpPlanOption } from "@/modules/activity-plans/constants";
 
 export type { Type14CreateProps };
 
 export function Type14Create({
   value,
   onChange,
+  hattackFollowUpPlans = [],
   dealerCustomers = [],
   products = [],
   defaultProvince = "",
   defaultDistrict = "",
   readonly = false,
 }: Type14CreateProps) {
-  const [existingPlots, setExistingPlots] = useState<any[]>([]);
-  const [loadingPlots, setLoadingPlots] = useState(false);
+  const [internalPlans, setInternalPlans] = useState<FollowUpPlanOption[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
-  // Load existing Hattack demo plots strictly for TYPE_14
+  // Load Hattack follow-up plans if not supplied by parent
   useEffect(() => {
+    if (hattackFollowUpPlans && hattackFollowUpPlans.length > 0) {
+      return;
+    }
+
     let isMounted = true;
-    async function loadHattackPlots() {
-      setLoadingPlots(true);
+    async function loadPlans() {
+      setLoadingPlans(true);
       try {
-        const res = await getHattackFollowUpDemoPlotsAction();
+        const res = await getHattackFollowUpPlansWithPlotsAction();
         if (isMounted) {
-          if (res?.success && Array.isArray(res.demoPlots)) {
-            setExistingPlots(res.demoPlots);
+          if (res?.success && Array.isArray(res.plans)) {
+            setInternalPlans(res.plans);
           } else {
-            setExistingPlots([]);
+            setInternalPlans([]);
           }
         }
       } catch (err) {
-        console.error("Failed to load Hattack demo plots:", err);
+        console.error("Failed to load Hattack follow-up plans:", err);
         if (isMounted) {
-          setExistingPlots([]);
+          setInternalPlans([]);
         }
       } finally {
-        if (isMounted) setLoadingPlots(false);
+        if (isMounted) setLoadingPlans(false);
       }
     }
-    loadHattackPlots();
+    loadPlans();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [hattackFollowUpPlans]);
 
-  // FormCombobox options for selecting existing Hattack activity
-  const plotComboboxOptions = useMemo(() => {
-    const opts = existingPlots.map((plot) => ({
-      value: plot.id,
-      label: `ชื่อกิจกรรม: ${plot.activityName || plot.name}`,
-      subLabel: "ฉีดแปลงแฮตแทค",
-    }));
-    if (value.demoPlotId && !opts.some((o) => o.value === value.demoPlotId)) {
-      opts.unshift({
-        value: value.demoPlotId,
-        label: `ชื่อกิจกรรม: ${value.name || "แปลงแฮตแทค"}`,
-        subLabel: "ฉีดแปลงแฮตแทค",
-      });
+  // Combined source plans
+  const availablePlans: FollowUpPlanOption[] = useMemo(() => {
+    if (hattackFollowUpPlans && hattackFollowUpPlans.length > 0) {
+      return hattackFollowUpPlans;
     }
-    return opts;
-  }, [existingPlots, value.demoPlotId, value.name]);
+    return internalPlans;
+  }, [hattackFollowUpPlans, internalPlans]);
 
-  // Selected plot object for lookup
-  const selectedPlot = useMemo(() => {
-    return existingPlots.find((p) => p.id === value.demoPlotId);
-  }, [existingPlots, value.demoPlotId]);
+  // Auto-hydrate selectedPlanId if demoPlotId is provided from saved data
+  useEffect(() => {
+    if (!availablePlans || availablePlans.length === 0) return;
+    if (value.selectedPlanId) return;
 
-  // Display name for the Dealer customer
+    if (value.demoPlotId) {
+      const parentPlan = availablePlans.find((plan) =>
+        plan.plots.some((p) => p.id === value.demoPlotId),
+      );
+      if (parentPlan) {
+        const matchedPlot = parentPlan.plots.find(
+          (p) => p.id === value.demoPlotId,
+        );
+        onChange({
+          ...value,
+          selectedPlanId: parentPlan.planId,
+          cropCategory: value.cropCategory || matchedPlot?.cropCategory || null,
+          cropName: value.cropName || matchedPlot?.cropName || null,
+          areaRai: value.areaRai ?? (matchedPlot?.areaRai ?? null),
+          treeCount: value.treeCount ?? (matchedPlot?.treeCount ?? null),
+          dealerName: value.dealerName || matchedPlot?.dealerName || null,
+          ownerName: value.ownerName || matchedPlot?.ownerName || null,
+        });
+      }
+    }
+  }, [availablePlans, value, onChange]);
+
+  // Combobox options: Source Plans (Approved & Completed)
+  const planComboboxOptions = useMemo(() => {
+    return availablePlans.map((plan) => {
+      const plotCount = plan.plots.length;
+      const firstPlotCrop = plan.plots[0]?.cropName
+        ? ` - ${plan.plots[0].cropName}`
+        : "";
+      return {
+        value: plan.planId,
+        label: `[${plan.planCode || "แผนงาน"}] ${plan.planTitle || "แผนฉีดแปลงแฮตแทค"}${firstPlotCrop}`,
+        subLabel: `${plan.planDate ? `วันที่: ${plan.planDate} • ` : ""}${plotCount} แปลง`,
+      };
+    });
+  }, [availablePlans]);
+
+  // Current selected plan
+  const selectedPlan = useMemo(() => {
+    if (!value.selectedPlanId) return undefined;
+    return availablePlans.find((p) => p.planId === value.selectedPlanId);
+  }, [availablePlans, value.selectedPlanId]);
+
+  // Plots in selected plan
+  const availablePlotsInPlan = useMemo(() => {
+    return selectedPlan ? selectedPlan.plots : [];
+  }, [selectedPlan]);
+
+  // Combobox options: Plots in selected plan
+  const plotComboboxOptions = useMemo(() => {
+    if (!selectedPlan) return [];
+    return selectedPlan.plots.map((plot) => {
+      const cropInfo = [plot.cropCategory, plot.cropName]
+        .filter(Boolean)
+        .join(" - ");
+      const locationInfo = [plot.district, plot.province]
+        .filter(Boolean)
+        .join(", ");
+      return {
+        value: plot.id,
+        label: `${plot.name}${plot.code ? ` (${plot.code})` : ""}`,
+        subLabel: [
+          plot.ownerName ? `เกษตรกร: ${plot.ownerName}` : null,
+          cropInfo,
+          locationInfo,
+        ]
+          .filter(Boolean)
+          .join(" • "),
+      };
+    });
+  }, [selectedPlan]);
+
+  // Currently selected plot item
+  const selectedPlotItem = useMemo(() => {
+    if (!value.demoPlotId) return undefined;
+    return availablePlotsInPlan.find((p) => p.id === value.demoPlotId);
+  }, [availablePlotsInPlan, value.demoPlotId]);
+
+  // Display name for dealer customer
   const dealerDisplayName = useMemo(() => {
-    if (!value.storeId && !selectedPlot) return "";
-    const fromDealerList = dealerCustomers.find((d) => d.id === value.storeId);
-    if (fromDealerList) return fromDealerList.name;
-    return (
-      selectedPlot?.dealerName ||
-      selectedPlot?.customer?.name ||
-      value.storeId ||
-      ""
-    );
-  }, [dealerCustomers, value.storeId, selectedPlot]);
+    if (value.dealerName) return value.dealerName;
+    if (selectedPlotItem?.dealerName) return selectedPlotItem.dealerName;
+    if (value.storeId) {
+      const match = dealerCustomers.find((d) => d.id === value.storeId);
+      if (match) return match.name;
+    }
+    return value.storeId || "-";
+  }, [value.dealerName, selectedPlotItem, value.storeId, dealerCustomers]);
 
-  // Select existing plot handler
-  const handleSelectExistingPlot = (plotId: string) => {
-    const selected = existingPlots.find((p) => p.id === plotId);
-    if (!selected) {
+  // Handle source plan change
+  const handlePlanChange = (planId: string) => {
+    const plan = availablePlans.find((p) => p.planId === planId);
+    if (!plan) {
       onChange({
         ...value,
-        mode: "EXISTING_PLOT",
+        selectedPlanId: null,
         demoPlotId: null,
         name: "",
         storeId: "",
+        dealerName: "",
         ownerName: "",
+        cropCategory: null,
+        cropName: null,
+        areaRai: null,
+        treeCount: null,
+        province: "",
+        district: "",
+        latitude: "",
+        longitude: "",
+        trackings: [],
+      });
+      return;
+    }
+
+    // Auto-select immediately if the plan has exactly 1 plot
+    if (plan.plots.length === 1) {
+      const singlePlot = plan.plots[0];
+      onChange({
+        ...value,
+        mode: "EXISTING_PLOT",
+        selectedPlanId: plan.planId,
+        demoPlotId: singlePlot.id,
+        name: singlePlot.name,
+        storeId: singlePlot.dealerId || "",
+        dealerName: singlePlot.dealerName || "",
+        ownerName: singlePlot.ownerName || "",
+        cropCategory: singlePlot.cropCategory || null,
+        cropName: singlePlot.cropName || null,
+        areaRai: singlePlot.areaRai ?? null,
+        treeCount: singlePlot.treeCount ?? null,
+        province: singlePlot.province || defaultProvince || "",
+        district: singlePlot.district || defaultDistrict || "",
+        latitude: "",
+        longitude: "",
+        trackings: [],
+      });
+      return;
+    }
+
+    // Multiple plots: reset plot selection for user to choose
+    onChange({
+      ...value,
+      mode: "EXISTING_PLOT",
+      selectedPlanId: plan.planId,
+      demoPlotId: null,
+      name: "",
+      storeId: "",
+      dealerName: "",
+      ownerName: "",
+      cropCategory: null,
+      cropName: null,
+      areaRai: null,
+      treeCount: null,
+      province: "",
+      district: "",
+      latitude: "",
+      longitude: "",
+      trackings: [],
+    });
+  };
+
+  // Handle plot change
+  const handlePlotChange = (plotId: string) => {
+    const plot = availablePlotsInPlan.find((p) => p.id === plotId);
+    if (!plot) {
+      onChange({
+        ...value,
+        demoPlotId: null,
+        name: "",
+        storeId: "",
+        dealerName: "",
+        ownerName: "",
+        cropCategory: null,
+        cropName: null,
+        areaRai: null,
+        treeCount: null,
         province: "",
         district: "",
         latitude: "",
@@ -122,13 +272,17 @@ export function Type14Create({
     onChange({
       ...value,
       mode: "EXISTING_PLOT",
-      demoPlotId: selected.id,
-      name: selected.name || selected.activityName || "แปลงแฮตแทค",
-      storeId:
-        selected.dealerId || selected.customerId || selected.customer?.id || "",
-      ownerName: selected.ownerName || selected.farmerName || "",
-      province: selected.province || defaultProvince || "",
-      district: selected.district || defaultDistrict || "",
+      demoPlotId: plot.id,
+      name: plot.name,
+      storeId: plot.dealerId || "",
+      dealerName: plot.dealerName || "",
+      ownerName: plot.ownerName || "",
+      cropCategory: plot.cropCategory || null,
+      cropName: plot.cropName || null,
+      areaRai: plot.areaRai ?? null,
+      treeCount: plot.treeCount ?? null,
+      province: plot.province || defaultProvince || "",
+      district: plot.district || defaultDistrict || "",
       latitude: "",
       longitude: "",
       trackings: [],
@@ -171,7 +325,7 @@ export function Type14Create({
   };
 
   const addWithdrawnProductRow = () => {
-    const newRow: Type14WithdrawnProductLine = {
+    const newLine: Type14WithdrawnProductLine = {
       id: Date.now().toString(),
       productId: "",
       productName: "",
@@ -180,7 +334,7 @@ export function Type14Create({
     };
     onChange({
       ...value,
-      withdrawnProducts: [...withdrawnProducts, newRow],
+      withdrawnProducts: [...withdrawnProducts, newLine],
     });
   };
 
@@ -192,7 +346,7 @@ export function Type14Create({
     const updated = withdrawnProducts.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
-        const matched = products?.find((prod) => prod.id === val);
+        const matched = products.find((prod) => prod.id === val);
         return {
           ...p,
           productId: val,
@@ -243,91 +397,153 @@ export function Type14Create({
             ติดตามแปลงแฮทแทค (TYPE_14)
           </h4>
           <p className="text-xs text-slate-500">
-            เลือกกิจกรรมฉีดแปลงแฮตแทคต้นทางสำหรับติดตามผล
+            เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (Approved &amp; Completed) และเลือกแปลงที่ต้องการติดตามผล
           </p>
         </div>
       </div>
 
-      {/* Combobox: เลือกแปลงแฮตแทคเดิม */}
+      {/* Dependent Selector: 1. แผนกิจกรรมต้นทาง -> 2. แปลงแฮตแทค */}
       <div className="space-y-4">
+        {/* Combobox 1: เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง */}
         <div>
-          {loadingPlots ? (
+          {loadingPlans ? (
             <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
               <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-              <span>กำลังโหลดแปลงแฮตแทค...</span>
+              <span>กำลังโหลดแผนกิจกรรมต้นทาง...</span>
             </div>
           ) : (
             <FormCombobox
-              id="type14-plot-combobox"
-              label="เลือกแปลงแฮตแทคเดิม"
+              id="type14-source-plan-combobox"
+              label="เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (Approved & Completed)"
               required
-              value={value.demoPlotId || ""}
-              onChange={handleSelectExistingPlot}
-              options={plotComboboxOptions}
-              placeholder="เลือกแปลงแฮตแทคเดิม..."
-              searchPlaceholder="ค้นหาแปลงแฮตแทคเดิม..."
-              emptyText="ไม่พบแปลงแฮตแทคในรายการ"
+              value={value.selectedPlanId || ""}
+              onChange={handlePlanChange}
+              options={planComboboxOptions}
+              placeholder={
+                planComboboxOptions.length > 0
+                  ? "เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง..."
+                  : "ไม่พบแผนกิจกรรมฉีดแปลงแฮตแทคที่ปฏิบัติงานแล้วเสร็จ"
+              }
+              searchPlaceholder="ค้นหาแผนกิจกรรมฉีดแปลงแฮตแทค (รหัส หรือ ชื่อแผน)..."
+              emptyText="ไม่พบแผนกิจกรรมฉีดแปลงแฮตแทคที่ตรงกับเงื่อนไข"
               disabled={readonly}
               showSubLabelInTrigger={true}
               labelClassName="text-xs font-semibold text-slate-700 mb-1 mx-0"
-              triggerClassName="h-auto min-h-[44px] py-1.5 text-xs bg-white border-slate-200 rounded-xl text-slate-800 focus:ring-2 focus:ring-purple-500"
+              triggerClassName="h-auto min-h-[44px] py-1.5 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
             />
           )}
         </div>
 
-        {/* Read-Only Details: Dealer, Province, District */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          {/* Dealer Customer */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-              <Store className="w-3.5 h-3.5 text-purple-600" />
-              <span>ร้านค้าตัวแทนจำหน่าย (Dealer)</span>
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              readOnly
-              disabled
-              value={dealerDisplayName}
-              placeholder="แสดงตามข้อมูลกิจกรรมต้นทาง"
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-700 bg-slate-100/90 cursor-not-allowed font-medium"
-            />
-          </div>
-
-          {/* Province */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-purple-600" />
-              <span>จังหวัด</span>
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              readOnly
-              disabled
-              value={value.province || ""}
-              placeholder="แสดงตามข้อมูลกิจกรรมต้นทาง"
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-700 bg-slate-100/90 cursor-not-allowed font-medium"
-            />
-          </div>
-
-          {/* District */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-purple-600" />
-              <span>อำเภอ</span>
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              readOnly
-              disabled
-              value={value.district || ""}
-              placeholder="แสดงตามข้อมูลกิจกรรมต้นทาง"
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-700 bg-slate-100/90 cursor-not-allowed font-medium"
-            />
-          </div>
+        {/* Combobox 2: เลือกแปลงแฮตแทคที่ต้องการติดตาม */}
+        <div>
+          <FormCombobox
+            id="type14-plot-combobox"
+            label="เลือกแปลงแฮตแทคที่ต้องการติดตาม"
+            required
+            value={value.demoPlotId || ""}
+            onChange={handlePlotChange}
+            options={plotComboboxOptions}
+            placeholder={
+              !value.selectedPlanId
+                ? "กรุณาเลือกแผนกิจกรรมต้นทางก่อน..."
+                : plotComboboxOptions.length > 0
+                  ? "เลือกแปลงแฮตแทคที่ต้องการติดตาม..."
+                  : "ไม่พบแปลงแฮตแทคในแผนนี้"
+            }
+            searchPlaceholder="ค้นหาแปลงแฮตแทค..."
+            emptyText="ไม่พบแปลงแฮตแทคในรายการ"
+            disabled={readonly || !value.selectedPlanId}
+            showSubLabelInTrigger={true}
+            labelClassName="text-xs font-semibold text-slate-700 mb-1 mx-0"
+            triggerClassName="h-auto min-h-[44px] py-1.5 text-xs bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-purple-500 disabled:bg-slate-50 disabled:text-slate-400"
+          />
         </div>
+
+        {/* Rich Plot Details Card: เกษตรกร, ร้านค้า, พืช/หมวดพืช, พื้นที่, อำเภอ/จังหวัด */}
+        {value.demoPlotId && (
+          <div className="bg-purple-50/50 rounded-xl border border-purple-200/80 p-3.5 sm:p-4 space-y-3 transition-all animate-fadeIn">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 border-b border-purple-100 pb-2">
+              <Info className="w-4 h-4 text-purple-600" />
+              <span>รายละเอียดแปลงแฮตแทคที่เลือก</span>
+              {value.name && (
+                <span className="text-purple-700 font-medium ml-1">
+                  ({value.name})
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              {/* เกษตรกรเจ้าของแปลง */}
+              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-purple-600" />
+                  เกษตรกรเจ้าของแปลง
+                </span>
+                <p className="font-semibold text-slate-800 truncate">
+                  {value.ownerName || selectedPlotItem?.ownerName || "-"}
+                </p>
+              </div>
+
+              {/* ร้านค้าตัวแทนจำหน่าย (Dealer) */}
+              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <Store className="w-3.5 h-3.5 text-purple-600" />
+                  ร้านค้าตัวแทนจำหน่าย (Dealer)
+                </span>
+                <p className="font-semibold text-slate-800 truncate">
+                  {dealerDisplayName}
+                </p>
+              </div>
+
+              {/* พืชและหมวดพืช */}
+              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <Sprout className="w-3.5 h-3.5 text-purple-600" />
+                  ชนิดพืช / หมวดพืช
+                </span>
+                <p className="font-semibold text-slate-800 truncate">
+                  {[
+                    value.cropName || selectedPlotItem?.cropName,
+                    value.cropCategory || selectedPlotItem?.cropCategory,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ") || "-"}
+                </p>
+              </div>
+
+              {/* ขนาดแปลง / จำนวนต้น */}
+              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <Layers className="w-3.5 h-3.5 text-purple-600" />
+                  ขนาดแปลง / จำนวนต้น
+                </span>
+                <p className="font-semibold text-slate-800">
+                  {value.areaRai ?? selectedPlotItem?.areaRai
+                    ? `${value.areaRai ?? selectedPlotItem?.areaRai} ไร่`
+                    : value.treeCount ?? selectedPlotItem?.treeCount
+                      ? `${value.treeCount ?? selectedPlotItem?.treeCount} ต้น`
+                      : "-"}
+                </p>
+              </div>
+
+              {/* ที่ตั้งแปลง (อำเภอ / จังหวัด) */}
+              <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5 sm:col-span-2">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                  ที่ตั้งแปลง (อำเภอ / จังหวัด)
+                </span>
+                <p className="font-semibold text-slate-800 truncate">
+                  {[
+                    value.district || selectedPlotItem?.district,
+                    value.province || selectedPlotItem?.province,
+                  ]
+                    .filter(Boolean)
+                    .join(" / ") || "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* การเบิกสินค้าสำหรับรอบติดตามแปลงแฮทแทค (TYPE_14 Product Withdrawal) */}

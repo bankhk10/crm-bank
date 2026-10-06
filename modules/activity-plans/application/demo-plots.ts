@@ -3,6 +3,7 @@ import {
   findMasterDemoPlots,
   findFollowUpDemoPlots,
   findFollowUpActivityPlans,
+  findHattackFollowUpActivityPlans,
   findHattackFollowUpDemoPlots,
   findHattackPlotContext,
   findFarmerCustomerOptions,
@@ -247,6 +248,60 @@ export async function getFollowUpPlansWithPlotsUseCase() {
         planId: plan.id,
         planCode: plan.code || "",
         planTitle: plan.title || "แผนทำแปลงสาธิต",
+        planDate,
+        plots,
+      };
+    })
+    .filter((opt) => opt.plots.length > 0);
+
+  return {
+    success: true as const,
+    plans: options,
+  };
+}
+
+/**
+ * Use Case: Get follow-up Activity Plans (TYPE_13 Approved + Completed) with their Hattack Demo Plots
+ * Used by TYPE_14 ("ติดตามแปลงแฮทแทค") to select originating plan and choose sub-plot.
+ */
+export async function getHattackFollowUpPlansWithPlotsUseCase() {
+  const plans = await findHattackFollowUpActivityPlans();
+
+  const options: FollowUpPlanOption[] = plans
+    .filter((plan) => plan.demoPlotVisits && plan.demoPlotVisits.length > 0)
+    .map((plan) => {
+      const planDate = plan.startDate
+        ? new Date(plan.startDate).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "";
+
+      const plots: FollowUpPlotItem[] = plan.demoPlotVisits
+        .filter((v) => v.demoPlot)
+        .map((v) => {
+          const p = v.demoPlot;
+          return {
+            id: p.id,
+            code: p.code || "",
+            name: p.name,
+            cropName: p.customCropName || p.cropName || "",
+            cropCategory: p.cropCategory || undefined,
+            ownerName: p.farmerCustomer?.name || p.ownerName || "",
+            province: p.province || plan.province || "",
+            district: p.district || plan.district || "",
+            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+            treeCount: p.treeCount ?? undefined,
+            dealerName: p.customer?.name || undefined,
+            dealerId: p.customer?.id || p.customerId || undefined,
+          };
+        });
+
+      return {
+        planId: plan.id,
+        planCode: plan.code || "",
+        planTitle: plan.title || "แผนฉีดแปลงแฮตแทค",
         planDate,
         plots,
       };

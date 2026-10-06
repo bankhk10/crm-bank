@@ -1037,7 +1037,9 @@ export {
 export {
   getDemoPlotsUseCase,
   getFollowUpDemoPlotsUseCase,
+  getFollowUpPlansWithPlotsUseCase,
   getHattackFollowUpDemoPlotsUseCase,
+  getHattackFollowUpPlansWithPlotsUseCase,
   getHattackPlotContextUseCase,
   getFarmerCustomersUseCase,
   getDemoPlotHistoryUseCase,
