@@ -19,10 +19,7 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-import type {
-  TargetSurveyItem,
-  DetailType5SurveyProps,
-} from "../actual/types";
+import type { TargetSurveyItem, DetailType5SurveyProps } from "../actual/types";
 
 export type { TargetSurveyItem, DetailType5SurveyProps };
 
@@ -158,7 +155,7 @@ export function DetailType5Survey({
               สำรวจตลาดของคู่แข่ง
             </h2>
             <p className="text-xs text-amber-700/80">
-              ผลการสำรวจตลาดเปรียบเทียบแบรนด์ โครงสร้างราคา 4 ระดับ
+              ผลการสำรวจตลาดเปรียบเทียบแบรนด์ ราคาขายแต่ละระดับ
               และสื่อส่งเสริมการขาย
             </p>
           </div>
@@ -254,7 +251,7 @@ export function DetailType5Survey({
                   {/* Normalized 4-Tier Pricing Grid */}
                   <div className="space-y-2">
                     <span className="text-xs font-bold text-slate-700 block">
-                      โครงสร้างราคา 4 ระดับ
+                      ราคาขายแต่ละระดับ
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-2.5 sm:p-3 space-y-1 text-center">

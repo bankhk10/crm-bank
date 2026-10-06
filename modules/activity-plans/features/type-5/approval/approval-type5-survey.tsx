@@ -22,7 +22,6 @@ import {
 } from "@/components/custom/image-lightbox-modal";
 import { Type5PlanCard } from "../shared/type5-plan-card";
 
-
 export interface ApprovalType5SurveyProps {
   isVisible: boolean;
   target: ActualTargetsState["t5"];
@@ -188,7 +187,7 @@ export function ApprovalType5Survey({
                 {/* 4-Tier Price Breakdown */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-bold text-slate-700 block">
-                    โครงสร้างราคา 4 ระดับ
+                    ราคาขายแต่ละระดับ
                   </span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-2 text-center">

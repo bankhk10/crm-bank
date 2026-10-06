@@ -274,7 +274,7 @@ export function ActualType5Survey({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        ราคาขาย (บาท)
+                        ราคาขายแต่ละระดับ (บาท)
                       </span>
                       <span className="text-[11px] text-amber-700/70">
                         กรอกข้อมูลราคาที่สำรวจได้
