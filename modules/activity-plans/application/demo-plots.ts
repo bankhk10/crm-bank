@@ -2,6 +2,7 @@ import {
   findFarmerCustomersForPlots,
   findMasterDemoPlots,
   findFollowUpDemoPlots,
+  findFollowUpActivityPlans,
   findHattackFollowUpDemoPlots,
   findHattackPlotContext,
   findFarmerCustomerOptions,
@@ -10,7 +11,11 @@ import {
   findDemoPlotByOwnerAndCrop,
   recordDemoPlotVisit,
 } from "../infrastructure/activity-plan.repository";
-import type { UserDemoPlotOption } from "../constants";
+import type {
+  UserDemoPlotOption,
+  FollowUpPlanOption,
+  FollowUpPlotItem,
+} from "../constants";
 
 function mapDemoPlotToOption(
   p: any,
@@ -198,6 +203,59 @@ export async function getFollowUpDemoPlotsUseCase() {
   return {
     success: true as const,
     demoPlots,
+  };
+}
+
+/**
+ * Use Case: Get follow-up Activity Plans (TYPE_7A Approved + Completed) with their Demo Plots
+ * Used by TYPE_7B ("ติดตามแปลงสาธิต") to select originating plan and choose 1 or more sub-plots.
+ */
+export async function getFollowUpPlansWithPlotsUseCase() {
+  const plans = await findFollowUpActivityPlans();
+
+  const options: FollowUpPlanOption[] = plans
+    .filter((plan) => plan.demoPlotVisits && plan.demoPlotVisits.length > 0)
+    .map((plan) => {
+      const planDate = plan.startDate
+        ? new Date(plan.startDate).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "";
+
+      const plots: FollowUpPlotItem[] = plan.demoPlotVisits
+        .filter((v) => v.demoPlot)
+        .map((v) => {
+          const p = v.demoPlot;
+          return {
+            id: p.id,
+            code: p.code || "",
+            name: p.name,
+            cropName: p.customCropName || p.cropName || "",
+            cropCategory: p.cropCategory || undefined,
+            ownerName: p.ownerName || "",
+            province: p.province || plan.province || "",
+            district: p.district || plan.district || "",
+            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+            treeCount: p.treeCount ?? undefined,
+            dealerName: p.customer?.name || undefined,
+          };
+        });
+
+      return {
+        planId: plan.id,
+        planCode: plan.code || "",
+        planTitle: plan.title || "แผนทำแปลงสาธิต",
+        planDate,
+        plots,
+      };
+    })
+    .filter((opt) => opt.plots.length > 0);
+
+  return {
+    success: true as const,
+    plans: options,
   };
 }
 

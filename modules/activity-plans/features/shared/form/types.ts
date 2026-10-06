@@ -41,6 +41,8 @@ export interface Type7DemoPlotItem {
   detail: string;
 
   // Fields for FOLLOW_UP (ติดตามแปลงสาธิต)
+  selectedPlanId?: string;
+  selectedPlotIds?: string[];
   existingPlotId?: string;
   existingPlotName?: string;
   hasProductWithdrawal?: boolean;

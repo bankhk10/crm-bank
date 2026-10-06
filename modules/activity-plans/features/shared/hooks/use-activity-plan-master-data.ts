@@ -2,10 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import {
   getWorkTypeName,
   type UserDemoPlotOption,
+  type FollowUpPlanOption,
 } from "@/modules/activity-plans/constants";
 import {
   getDemoPlotsAction,
   getFollowUpDemoPlotsAction,
+  getFollowUpPlansWithPlotsAction,
 } from "@/modules/activity-plans/server/actions";
 
 export interface UseActivityPlanMasterDataOptions {
@@ -27,6 +29,7 @@ export interface UseActivityPlanMasterDataResult {
   productCategoriesList: any[];
   demoPlotsList: UserDemoPlotOption[];
   fetchedFollowUpDemoPlots: UserDemoPlotOption[];
+  fetchedFollowUpPlansWithPlots: FollowUpPlanOption[];
   fetchedHattackDemoPlots: UserDemoPlotOption[];
   activeWorkTypeOptions: Array<any & { displayName: string }>;
   fetchedMaterialsByCategory:
@@ -50,6 +53,9 @@ export function useActivityPlanMasterData({
   const [fetchedDemoPlots, setFetchedDemoPlots] = useState<UserDemoPlotOption[]>([]);
   const [fetchedFollowUpDemoPlots, setFetchedFollowUpDemoPlots] = useState<
     UserDemoPlotOption[]
+  >([]);
+  const [fetchedFollowUpPlansWithPlots, setFetchedFollowUpPlansWithPlots] = useState<
+    FollowUpPlanOption[]
   >([]);
   const [fetchedHattackDemoPlots, setFetchedHattackDemoPlots] = useState<
     UserDemoPlotOption[]
@@ -240,6 +246,28 @@ export function useActivityPlanMasterData({
     };
   }, []);
 
+  // 6c. Follow-up Activity Plans with sub-plots for TYPE_7B
+  useEffect(() => {
+    let isMounted = true;
+    async function loadFollowUpPlansWithPlots() {
+      try {
+        const res = await getFollowUpPlansWithPlotsAction();
+        if (isMounted && res.success && res.plans) {
+          setFetchedFollowUpPlansWithPlots(res.plans);
+        }
+      } catch (err) {
+        console.error(
+          "Failed to load follow-up plans with plots for Trip Plan:",
+          err,
+        );
+      }
+    }
+    loadFollowUpPlansWithPlots();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // 7. Activity Types
   useEffect(() => {
     if (initialActivityTypes !== undefined) return;
@@ -289,6 +317,7 @@ export function useActivityPlanMasterData({
     productCategoriesList,
     demoPlotsList,
     fetchedFollowUpDemoPlots,
+    fetchedFollowUpPlansWithPlots,
     fetchedHattackDemoPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,

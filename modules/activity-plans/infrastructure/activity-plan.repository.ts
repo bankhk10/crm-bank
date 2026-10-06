@@ -715,6 +715,7 @@ export type CreateActivityPlanInput = {
   targetAttendeesCount?: number | null;
   targetBookingSales?: number | null;
   demoPlotId?: string | null;
+  demoPlotIds?: string[] | null;
   demoPlotData?: {
     id?: string | null;
     name: string;
@@ -1095,32 +1096,43 @@ export async function createActivityPlan(
               visitDate: input.startDate,
             },
           });
-        } else if (input.demoPlotId) {
-          // Check if demoPlot actually exists in database to prevent FK constraint violation
-          const existingPlot = await tx.demoPlot.findUnique({
-            where: { id: input.demoPlotId },
-            select: { id: true },
-          });
+        } else if (
+          (input.demoPlotIds && input.demoPlotIds.length > 0) ||
+          input.demoPlotId
+        ) {
+          const plotIdsToVisit =
+            input.demoPlotIds && input.demoPlotIds.length > 0
+              ? input.demoPlotIds
+              : input.demoPlotId
+                ? [input.demoPlotId]
+                : [];
 
-          if (existingPlot) {
-            const isType10 =
-              workTypeCodes.includes("TYPE_10") || primaryCode === "TYPE_10";
-            const isType7B =
-              workTypeCodes.includes("TYPE_7B") || primaryCode === "TYPE_7B";
-            const visitWorkType = isType10
-              ? "TYPE_10"
-              : isType7B
-                ? "TYPE_7B"
-                : workTypeCodes[0] || null;
+          const isType10 =
+            workTypeCodes.includes("TYPE_10") || primaryCode === "TYPE_10";
+          const isType7B =
+            workTypeCodes.includes("TYPE_7B") || primaryCode === "TYPE_7B";
+          const visitWorkType = isType10
+            ? "TYPE_10"
+            : isType7B
+              ? "TYPE_7B"
+              : workTypeCodes[0] || null;
 
-            await tx.demoPlotVisit.create({
-              data: {
-                demoPlotId: existingPlot.id,
-                activityPlanId: plan.id,
-                workTypeCode: visitWorkType,
-                visitDate: input.startDate,
-              },
+          for (const pid of plotIdsToVisit) {
+            const existingPlot = await tx.demoPlot.findUnique({
+              where: { id: pid },
+              select: { id: true },
             });
+
+            if (existingPlot) {
+              await tx.demoPlotVisit.create({
+                data: {
+                  demoPlotId: existingPlot.id,
+                  activityPlanId: plan.id,
+                  workTypeCode: visitWorkType,
+                  visitDate: input.startDate,
+                },
+              });
+            }
           }
         }
 
@@ -1485,6 +1497,7 @@ export async function updateActivityPlan(
       targetAttendeesCount,
       targetBookingSales,
       demoPlotId,
+      demoPlotIds,
     } = planData;
     const updateFields: any = { ...planData };
     delete updateFields.updatedUserId;
@@ -1496,6 +1509,7 @@ export async function updateActivityPlan(
     delete updateFields.planStores;
     delete updateFields.planProducts;
     delete updateFields.demoPlotId;
+    delete updateFields.demoPlotIds;
     delete updateFields.demoPlotData;
     delete updateFields.drugWithdrawal;
 
@@ -1800,37 +1814,45 @@ export async function updateActivityPlan(
           },
         });
       }
-    } else if (demoPlotId !== undefined) {
+    } else if (demoPlotId !== undefined || demoPlotIds !== undefined) {
       await tx.demoPlotVisit.deleteMany({
         where: {
           activityPlanId: id,
           workTypeCode: { in: ["TYPE_7B", "TYPE_10"] },
         },
       });
-      if (demoPlotId) {
-        // Check if demoPlot actually exists in database to prevent FK constraint violation
-        const existingPlot = await tx.demoPlot.findUnique({
-          where: { id: demoPlotId },
-          select: { id: true },
-        });
-        if (existingPlot) {
-          const currentCodes = workTypeCodes?.map(getWorkTypeCode) ?? [];
-          const isType10 = currentCodes.includes("TYPE_10");
-          const isType7B = currentCodes.includes("TYPE_7B");
-          const visitWorkType = isType10
-            ? "TYPE_10"
-            : isType7B
-              ? "TYPE_7B"
-              : currentCodes[0] || null;
+      const plotIdsToVisit =
+        demoPlotIds && demoPlotIds.length > 0
+          ? demoPlotIds
+          : demoPlotId
+            ? [demoPlotId]
+            : [];
 
-          await tx.demoPlotVisit.create({
-            data: {
-              demoPlotId: existingPlot.id,
-              activityPlanId: id,
-              workTypeCode: visitWorkType,
-              visitDate: updatedPlan.startDate,
-            },
+      if (plotIdsToVisit.length > 0) {
+        const currentCodes = workTypeCodes?.map(getWorkTypeCode) ?? [];
+        const isType10 = currentCodes.includes("TYPE_10");
+        const isType7B = currentCodes.includes("TYPE_7B");
+        const visitWorkType = isType10
+          ? "TYPE_10"
+          : isType7B
+            ? "TYPE_7B"
+            : currentCodes[0] || null;
+
+        for (const pid of plotIdsToVisit) {
+          const existingPlot = await tx.demoPlot.findUnique({
+            where: { id: pid },
+            select: { id: true },
           });
+          if (existingPlot) {
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: existingPlot.id,
+                activityPlanId: id,
+                workTypeCode: visitWorkType,
+                visitDate: updatedPlan.startDate,
+              },
+            });
+          }
         }
       }
     } else if (planData.demoPlotData === null) {
@@ -4386,6 +4408,46 @@ export async function findFollowUpDemoPlots() {
       },
     },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+/**
+ * Fetch approved TYPE_7A Activity Plans with completed results and their demo plots
+ * Strictly for TYPE_7B ("ติดตามแปลงสาธิต")
+ */
+export async function findFollowUpActivityPlans() {
+  return db.activityPlan.findMany({
+    where: {
+      deletedAt: null,
+      status: ActivityStatus.APPROVED,
+      result: {
+        resultStatus: ActivityResultStatus.COMPLETED,
+      },
+      OR: [
+        { activityType: { code: "TYPE_7A" } },
+        { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
+      ],
+    },
+    include: {
+      demoPlotVisits: {
+        where: {
+          demoPlot: {
+            deletedAt: null,
+            status: { not: DemoPlotStatus.CANCELLED },
+          },
+        },
+        include: {
+          demoPlot: {
+            include: {
+              customer: {
+                select: { id: true, name: true, customerCode: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { startDate: "desc" },
   });
 }
 

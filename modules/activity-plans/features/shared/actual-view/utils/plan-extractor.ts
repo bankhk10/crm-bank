@@ -876,7 +876,7 @@ export function extractPlanData(
       decodedStoreNotes.promotions.length > 0
         ? decodedStoreNotes.promotions.map((p, idx) => ({
             id: `promo-${idx + 1}`,
-            productId: null,
+            productId: "",
             productName: "",
             quantity: 1,
             unitPrice: 0,

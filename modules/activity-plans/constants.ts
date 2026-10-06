@@ -479,6 +479,28 @@ export interface UserDemoPlotOption {
   irrigations?: any[];
 }
 
+export interface FollowUpPlotItem {
+  id: string; // demoPlotId
+  code: string; // e.g. "DP26090001"
+  name: string; // ชื่อแปลง
+  cropName: string; // ชนิดพืช
+  cropCategory?: string;
+  ownerName: string; // เจ้าของแปลง
+  province: string;
+  district: string;
+  areaRai?: number;
+  treeCount?: number;
+  dealerName?: string;
+}
+
+export interface FollowUpPlanOption {
+  planId: string;
+  planCode: string; // e.g. "TP26090001"
+  planTitle: string; // e.g. "แผนทำแปลงสาธิตทุเรียน"
+  planDate: string;
+  plots: FollowUpPlotItem[];
+}
+
 export const USER_DEMO_PLOTS: UserDemoPlotOption[] = [
   {
     id: "plot-1",

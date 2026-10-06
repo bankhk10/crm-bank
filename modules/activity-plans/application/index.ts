@@ -1360,3 +1360,5 @@ export async function deleteSupplementalDrugWithdrawalUseCase(
   return { success: true as const };
 }
 
+export * from "./demo-plots";
+

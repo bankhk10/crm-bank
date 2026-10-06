@@ -37,6 +37,7 @@ export interface NormalizedPlanData {
   targetAttendeesCount: number | null;
   targetBookingSales: number | null;
   demoPlotId: string | null;
+  demoPlotIds?: string[] | null;
   salesPromotionBudgetRequested: number | null;
   marketingBudgetRequested: number | null;
   totalBudgetRequested: number;
@@ -359,6 +360,7 @@ export function normalizePlanInput(
     targetAttendeesCount: targetAttendees,
     targetBookingSales: targetBooking,
     demoPlotId: demoPlot,
+    demoPlotIds: rawInput.demoPlotIds || undefined,
     salesPromotionBudgetRequested:
       rawInput.salesPromotionBudgetRequested ??
       (promotionBudget > 0 ? promotionBudget : null),

@@ -1,18 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
-import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+import {
+  getWorkTypeCode,
+  type FollowUpPlanOption,
+} from "@/modules/activity-plans/constants";
 import type {
   Type7DemoPlotItem,
   Type7DemoProductLine,
 } from "../shared/types";
 import { validateType7bFormItems } from "../create/validation";
 
-
 export interface UseType7bFormOptions {
   initial?: any;
   initDetails?: any;
   initialTypes?: string[];
   fetchedFollowUpDemoPlots?: any[];
+  fetchedFollowUpPlansWithPlots?: FollowUpPlanOption[];
   demoPlotsList?: any[];
   productsList?: any[];
   selectedWorkTypes?: string[];
@@ -23,6 +26,7 @@ export interface UseType7bFormResult {
   type7bItems: Type7DemoPlotItem[];
   setType7bItems: React.Dispatch<React.SetStateAction<Type7DemoPlotItem[]>>;
   followUpPlotsForType7B: any[];
+  fetchedFollowUpPlansWithPlots: FollowUpPlanOption[];
   addType7bRow: () => void;
   updateType7bRow: (
     id: string,
@@ -33,6 +37,7 @@ export interface UseType7bFormResult {
   validateType7b: () => { isValid: boolean; error?: string };
   mapType7bPayload: (products: any[]) => {
     submittedDemoPlotId: string | null;
+    submittedDemoPlotIds: string[];
     t7bObjective: string | null;
     planProducts: Array<{
       workTypeCode: string;
@@ -49,6 +54,7 @@ export function useType7bForm({
   initDetails,
   initialTypes = [],
   fetchedFollowUpDemoPlots = [],
+  fetchedFollowUpPlansWithPlots = [],
   demoPlotsList = [],
   productsList = [],
   selectedWorkTypes = [],
@@ -64,9 +70,20 @@ export function useType7bForm({
           wt === "TYPE_7B",
       );
 
-    if (isInitialType7B && ((initial as any)?.demoPlot || (initial as any)?.demoPlotId)) {
-      const dp = (initial as any)?.demoPlot;
-      const fallbackPlotId = dp?.id || (initial as any)?.demoPlotId || "";
+    if (
+      isInitialType7B &&
+      ((initial as any)?.demoPlotVisits?.length > 0 ||
+        (initial as any)?.demoPlot ||
+        (initial as any)?.demoPlotId)
+    ) {
+      const visits = (initial as any)?.demoPlotVisits || [];
+      const dp = visits[0]?.demoPlot || (initial as any)?.demoPlot;
+      const initialPlotIds: string[] = visits.length > 0
+        ? visits.map((v: any) => v.demoPlotId).filter(Boolean)
+        : [dp?.id || (initial as any)?.demoPlotId || ""].filter(Boolean);
+
+      const fallbackPlotId =
+        initialPlotIds[0] || dp?.id || (initial as any)?.demoPlotId || "";
 
       const type7bProds: Type7DemoProductLine[] = ((initial as any)?.products || [])
         .filter((p: any) => p.workTypeCode === "TYPE_7B")
@@ -80,10 +97,16 @@ export function useType7bForm({
 
       const has7bWithdrawal = isInitialType7B && type7bProds.length > 0;
 
+      const matchedPlan = (fetchedFollowUpPlansWithPlots || []).find((plan) =>
+        plan.plots.some((p) => initialPlotIds.includes(p.id)),
+      );
+
       return [
         {
           id: fallbackPlotId || "1",
           plotActivityType: "FOLLOW_UP",
+          selectedPlanId: matchedPlan?.planId || "",
+          selectedPlotIds: initialPlotIds,
           demoPlotId: fallbackPlotId,
           existingPlotId: fallbackPlotId,
           existingPlotName: dp?.name || "",
@@ -253,6 +276,43 @@ export function useType7bForm({
     return list;
   }, [fetchedFollowUpDemoPlots, type7bItems, demoPlotsList, initial]);
 
+  // Sync selectedPlanId once followUpPlans are fetched if not yet resolved
+  useEffect(() => {
+    if (
+      !fetchedFollowUpPlansWithPlots ||
+      fetchedFollowUpPlansWithPlots.length === 0
+    )
+      return;
+
+    setType7bItems((prev) =>
+      prev.map((item) => {
+        if (item.selectedPlanId) return item;
+        const targetIds =
+          item.selectedPlotIds && item.selectedPlotIds.length > 0
+            ? item.selectedPlotIds
+            : [item.existingPlotId || item.demoPlotId || ""].filter(Boolean);
+
+        if (targetIds.length === 0) return item;
+
+        const matchedPlan = fetchedFollowUpPlansWithPlots.find((plan) =>
+          plan.plots.some((p) => targetIds.includes(p.id)),
+        );
+
+        if (matchedPlan) {
+          return {
+            ...item,
+            selectedPlanId: matchedPlan.planId,
+            selectedPlotIds:
+              item.selectedPlotIds && item.selectedPlotIds.length > 0
+                ? item.selectedPlotIds
+                : targetIds,
+          };
+        }
+        return item;
+      }),
+    );
+  }, [fetchedFollowUpPlansWithPlots]);
+
   const addType7bRow = () => {
     setType7bItems((prev) => [
       ...prev,
@@ -305,16 +365,21 @@ export function useType7bForm({
     });
   };
 
-
   const mapType7bPayload = (products: any[]) => {
     const hasType7BPlan = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_7B",
     );
     if (!hasType7BPlan) {
-      return { submittedDemoPlotId: null, t7bObjective: null, planProducts: [] };
+      return {
+        submittedDemoPlotId: null,
+        submittedDemoPlotIds: [],
+        t7bObjective: null,
+        planProducts: [],
+      };
     }
 
     let submittedDemoPlotId: string | null = null;
+    const submittedDemoPlotIds: string[] = [];
     const planProducts: Array<{
       workTypeCode: string;
       productId: string;
@@ -345,16 +410,30 @@ export function useType7bForm({
           }
         });
       }
-      if (item.existingPlotId || item.demoPlotId) {
-        submittedDemoPlotId =
-          item.existingPlotId || item.demoPlotId || null;
+
+      if (item.selectedPlotIds && item.selectedPlotIds.length > 0) {
+        item.selectedPlotIds.forEach((pid) => {
+          if (!submittedDemoPlotIds.includes(pid)) {
+            submittedDemoPlotIds.push(pid);
+          }
+        });
+      } else if (item.existingPlotId || item.demoPlotId) {
+        const pid = item.existingPlotId || item.demoPlotId;
+        if (pid && !submittedDemoPlotIds.includes(pid)) {
+          submittedDemoPlotIds.push(pid);
+        }
       }
     });
+
+    if (submittedDemoPlotIds.length > 0) {
+      submittedDemoPlotId = submittedDemoPlotIds[0];
+    }
 
     const t7bDetail = type7bItems[0]?.detail?.trim() || null;
 
     return {
       submittedDemoPlotId,
+      submittedDemoPlotIds,
       t7bObjective: t7bDetail,
       planProducts,
     };
@@ -364,6 +443,7 @@ export function useType7bForm({
     type7bItems,
     setType7bItems,
     followUpPlotsForType7B,
+    fetchedFollowUpPlansWithPlots,
     addType7bRow,
     updateType7bRow,
     deleteType7bRow,

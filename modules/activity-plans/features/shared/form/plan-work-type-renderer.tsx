@@ -33,6 +33,7 @@ export interface PlanWorkTypeRendererProps {
   chemicalGroups?: any[];
   demoPlotsList?: any[];
   followUpPlotsForType7B?: any[];
+  followUpPlansWithPlots?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
   combinedType10DemoPlots?: any[];
   defaultProvince?: string;
   defaultDistrict?: string;
@@ -50,6 +51,7 @@ export function PlanWorkTypeRenderer({
   chemicalGroups = [],
   demoPlotsList = [],
   followUpPlotsForType7B = [],
+  followUpPlansWithPlots = [],
   combinedType10DemoPlots,
   defaultProvince = "",
   defaultDistrict = "",
@@ -270,6 +272,11 @@ export function PlanWorkTypeRenderer({
             productCategories={productCategoriesList}
             chemicalGroups={chemicalGroups.length > 0 ? chemicalGroups : productCategoriesList}
             demoPlots={followUpPlotsForType7B}
+            followUpPlans={
+              followUpPlansWithPlots && followUpPlansWithPlots.length > 0
+                ? followUpPlansWithPlots
+                : typeForms.type7b.fetchedFollowUpPlansWithPlots
+            }
             parentStartDate={startDate}
           />
         )}

@@ -613,6 +613,25 @@ export async function getFollowUpDemoPlotsAction() {
 }
 
 /**
+ * Action: Get follow-up plans with plots for TYPE_7B ("ติดตามแปลงสาธิต")
+ */
+export async function getFollowUpPlansWithPlotsAction() {
+  try {
+    const { getFollowUpPlansWithPlotsUseCase } = await import(
+      "../application/demo-plots"
+    );
+    const result = await getFollowUpPlansWithPlotsUseCase();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get follow-up plans with plots", err);
+    return serialize({
+      success: false,
+      plans: [],
+    });
+  }
+}
+
+/**
  * Action: Get follow-up demo plots strictly for TYPE_14 (HATTACK plots only)
  */
 export async function getHattackFollowUpDemoPlotsAction() {

@@ -29,6 +29,7 @@ export interface UseAllTypeFormsProps {
   productCategoriesList?: any[];
   demoPlotsList?: any[];
   fetchedFollowUpDemoPlots?: any[];
+  fetchedFollowUpPlansWithPlots?: import("@/modules/activity-plans/constants").FollowUpPlanOption[];
   startDate?: string;
   defaultProvince?: string;
   defaultDistrict?: string;
@@ -44,6 +45,7 @@ export function useAllTypeForms({
   productCategoriesList = [],
   demoPlotsList = [],
   fetchedFollowUpDemoPlots = [],
+  fetchedFollowUpPlansWithPlots = [],
   startDate = "",
   defaultProvince = "",
   defaultDistrict = "",
@@ -110,6 +112,7 @@ export function useAllTypeForms({
     initDetails,
     initialTypes,
     fetchedFollowUpDemoPlots,
+    fetchedFollowUpPlansWithPlots,
     demoPlotsList,
     productsList,
     selectedWorkTypes,
@@ -310,6 +313,7 @@ export function useAllTypeForms({
 
     let submittedDemoPlotData: any = null;
     let submittedDemoPlotId: string | null = null;
+    let submittedDemoPlotIds: string[] | undefined = undefined;
     let t7bObjective: string | null = null;
 
     if (hasType7APlan) {
@@ -322,6 +326,7 @@ export function useAllTypeForms({
     } else if (hasType7BPlan) {
       const type7bPayload = type7b.mapType7bPayload(productsList);
       submittedDemoPlotId = type7bPayload.submittedDemoPlotId;
+      submittedDemoPlotIds = type7bPayload.submittedDemoPlotIds;
       if (type7bPayload.t7bObjective) {
         t7bObjective = type7bPayload.t7bObjective;
       }
@@ -378,6 +383,7 @@ export function useAllTypeForms({
       tourData,
       submittedDemoPlotData,
       submittedDemoPlotId,
+      submittedDemoPlotIds,
       t7bObjective,
       submittedTargetAttendees,
       submittedTargetBookingSales,

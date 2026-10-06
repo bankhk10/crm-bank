@@ -8,6 +8,7 @@ import type { Type7DemoPlotItem } from "@/modules/activity-plans/features/shared
 import {
   CROP_CATEGORIES,
   type UserDemoPlotOption,
+  type FollowUpPlanOption,
 } from "@/modules/activity-plans/constants";
 import {
   Type7NewDemo,
@@ -41,6 +42,7 @@ interface Props {
   productCategories?: ProductCategoryOption[];
   chemicalGroups?: ChemicalGroupOption[];
   demoPlots?: UserDemoPlotOption[];
+  followUpPlans?: FollowUpPlanOption[];
   parentStartDate?: string;
 }
 
@@ -56,6 +58,7 @@ export function Type7Demo({
   productCategories = [],
   chemicalGroups = [],
   demoPlots = [],
+  followUpPlans = [],
 }: Props) {
   const plotList = (demoPlots || []).filter(
     (plot) => plot.status !== "CANCELLED",
@@ -244,6 +247,7 @@ export function Type7Demo({
                     updateType7Row={updateType7Row}
                     existingPlotOptions={existingPlotOptions}
                     plotList={plotList}
+                    followUpPlans={followUpPlans}
                     products={products}
                     readonly={readonly}
                   />

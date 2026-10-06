@@ -152,6 +152,7 @@ export function UnplannedActivityForm({
     productCategoriesList,
     demoPlotsList,
     fetchedFollowUpDemoPlots,
+    fetchedFollowUpPlansWithPlots,
     fetchedHattackDemoPlots,
     activeWorkTypeOptions,
     fetchedMaterialsByCategory,
@@ -288,6 +289,7 @@ export function UnplannedActivityForm({
     productCategoriesList,
     demoPlotsList,
     fetchedFollowUpDemoPlots,
+    fetchedFollowUpPlansWithPlots,
     startDate,
     defaultProvince: province,
     defaultDistrict: district,
@@ -615,6 +617,7 @@ export function UnplannedActivityForm({
         tourData,
         submittedDemoPlotData,
         submittedDemoPlotId,
+        submittedDemoPlotIds,
         t7bObjective,
         submittedTargetAttendees,
         submittedTargetBookingSales,
@@ -688,6 +691,7 @@ export function UnplannedActivityForm({
         targetAttendeesCount: submittedTargetAttendees,
         targetBookingSales: submittedTargetBookingSales,
         demoPlotId: submittedDemoPlotId,
+        demoPlotIds: submittedDemoPlotIds,
         province: (() => {
           const isType9Active = selectedWorkTypes.includes(
             "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
@@ -827,6 +831,7 @@ export function UnplannedActivityForm({
               chemicalGroups={productCategoriesList}
               demoPlotsList={demoPlotsList}
               followUpPlotsForType7B={fetchedFollowUpDemoPlots}
+              followUpPlansWithPlots={fetchedFollowUpPlansWithPlots}
               combinedType10DemoPlots={typeForms.combinedType10DemoPlots}
               defaultProvince={province}
               defaultDistrict={district}

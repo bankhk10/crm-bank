@@ -33,5 +33,17 @@ export function validateType7bFormItems({
     };
   }
 
+  for (const item of items) {
+    const hasPlots =
+      (item.selectedPlotIds && item.selectedPlotIds.length > 0) ||
+      Boolean(item.existingPlotId || item.demoPlotId);
+    if (!hasPlots) {
+      return {
+        isValid: false,
+        error: "กรุณาเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง",
+      };
+    }
+  }
+
   return { isValid: true };
 }

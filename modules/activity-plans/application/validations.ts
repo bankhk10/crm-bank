@@ -473,6 +473,7 @@ export const activityPlanSchema = z
     targetAttendeesCount: z.number().int().optional().nullable(),
     targetBookingSales: z.number().optional().nullable(),
     demoPlotId: z.string().optional().nullable(),
+    demoPlotIds: z.array(z.string()).optional().nullable(),
     demoPlotData: demoPlotDataInputSchema.optional().nullable(),
     // งบประมาณ (ที่ขอ)
     salesPromotionBudgetRequested: z

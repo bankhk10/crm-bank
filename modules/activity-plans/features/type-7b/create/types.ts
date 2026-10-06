@@ -1,5 +1,8 @@
 import type { Type7DemoPlotItem } from "@/modules/activity-plans/features/shared/form/types";
-import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
+import type {
+  UserDemoPlotOption,
+  FollowUpPlanOption,
+} from "@/modules/activity-plans/constants";
 import type { ProductOption } from "@/modules/activity-plans/features/type-7a/shared/types";
 
 export interface Type7FollowUpProps {
@@ -15,6 +18,7 @@ export interface Type7FollowUpProps {
     subLabel?: string;
   }>;
   plotList: UserDemoPlotOption[];
+  followUpPlans?: FollowUpPlanOption[];
   products?: ProductOption[];
   readonly?: boolean;
 }
