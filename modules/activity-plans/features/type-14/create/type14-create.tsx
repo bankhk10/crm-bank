@@ -53,8 +53,8 @@ export function Type14Create({
   const plotComboboxOptions = useMemo(() => {
     return existingPlots.map((plot) => ({
       value: plot.id,
-      label: "ฉีดแปลงแฮตแทค",
-      subLabel: `ชื่อกิจกรรม: ${plot.activityName || plot.name}`,
+      label: `ชื่อกิจกรรม: ${plot.activityName || plot.name}`,
+      subLabel: "ฉีดแปลงแฮตแทค",
     }));
   }, [existingPlots]);
 
@@ -68,7 +68,12 @@ export function Type14Create({
     if (!value.storeId && !selectedPlot) return "";
     const fromDealerList = dealerCustomers.find((d) => d.id === value.storeId);
     if (fromDealerList) return fromDealerList.name;
-    return selectedPlot?.dealerName || selectedPlot?.customer?.name || value.storeId || "";
+    return (
+      selectedPlot?.dealerName ||
+      selectedPlot?.customer?.name ||
+      value.storeId ||
+      ""
+    );
   }, [dealerCustomers, value.storeId, selectedPlot]);
 
   // Select existing plot handler
@@ -96,7 +101,8 @@ export function Type14Create({
       mode: "EXISTING_PLOT",
       demoPlotId: selected.id,
       name: selected.name || selected.activityName || "แปลงแฮตแทค",
-      storeId: selected.dealerId || selected.customerId || selected.customer?.id || "",
+      storeId:
+        selected.dealerId || selected.customerId || selected.customer?.id || "",
       ownerName: selected.ownerName || selected.farmerName || "",
       province: selected.province || defaultProvince || "",
       district: selected.district || defaultDistrict || "",
