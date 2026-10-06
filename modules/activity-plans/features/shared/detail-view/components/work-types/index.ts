@@ -10,3 +10,4 @@ export * from "@/modules/activity-plans/features/type-9/detail/detail-type9-stor
 export * from "@/modules/activity-plans/features/type-10/detail/detail-type10-field-day";
 export * from "@/modules/activity-plans/features/type-11/detail/detail-type11-stock";
 export * from "@/modules/activity-plans/features/type-12/detail/detail-type12-tour";
+export * from "@/modules/activity-plans/features/type-13/detail/detail-type13-attack";

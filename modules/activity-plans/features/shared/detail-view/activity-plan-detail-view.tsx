@@ -863,7 +863,6 @@ export default function ActivityPlanDetailView({
                 province: plan.province,
                 district: plan.district,
               }}
-              actualData={type13ActualData}
             />
           )}
 
@@ -969,7 +968,7 @@ export default function ActivityPlanDetailView({
           </div>
         )}
 
-        {/* ─── 6. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
+        {/* ─── 6. SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 14) (READ-ONLY) - Only displayed when Actual Result exists in DB ─── */}
         {hasActualResult && !isTourOnly && (
           <DetailActivityResultSection
             isTypeVisible={isTypeVisible}
@@ -986,6 +985,8 @@ export default function ActivityPlanDetailView({
               t7VisitHistory?.find((v: any) => v.activityPlanId === plan?.id) ||
               t7VisitHistory?.[0]
             }
+            type13Plots={type13Plots}
+            type13ActualData={type13ActualData}
           />
         )}
 

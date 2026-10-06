@@ -1,27 +1,18 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
-  Layers,
   MapPin,
   Package,
-  Beaker,
-  CheckCircle2,
-  Calendar,
   ExternalLink,
-  Camera,
-  Eye,
-  X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { Type13PlotItem } from "../shared/types";
 import type { Type13DetailProps } from "./types";
 
 export type { Type13DetailProps };
 
-export function Type13Detail({ plots = [], planSummary, actualData }: Type13DetailProps) {
+export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
   const [activePlotIdx, setActivePlotIdx] = useState(0);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   if (!plots || plots.length === 0) {
     return (
@@ -33,20 +24,10 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
 
   const currentPlot = plots[activePlotIdx] || plots[0];
 
-  // Check if this plot has actual coordinates
-  const plotCoord = actualData?.type13PlotsActual?.find(
-    (c) => c.demoPlotId === currentPlot.id,
-  );
-
-  // Check if this plot has spray rounds
-  const plotRounds = (actualData?.sprayRounds || []).filter(
-    (r) => r.demoPlotId === currentPlot.id,
-  );
-
-  // Check if this plot has after-spray photos
-  const afterSprayAttachments = (actualData?.attachments || []).filter(
-    (att) => att.demoPlotId === currentPlot.id && !att.sprayRoundId,
-  );
+  const plotCoord =
+    currentPlot.latitude && currentPlot.longitude
+      ? { latitude: currentPlot.latitude, longitude: currentPlot.longitude }
+      : null;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-6 shadow-xs">
@@ -64,7 +45,7 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              รายละเอียดแปลงและผลการฉีดพ่นสารเคมี
+              รายละเอียดแปลงและรายการเบิกยาสำหรับกิจกรรม
             </p>
           </div>
         </div>
@@ -205,254 +186,7 @@ export function Type13Detail({ plots = [], planSummary, actualData }: Type13Deta
             </p>
           )}
         </div>
-
-        {/* Actual Spraying Rounds (if recorded) */}
-        {plotRounds.length > 0 && (
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2">
-              <Beaker className="w-4 h-4 text-emerald-600" />
-              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
-                ประวัติการฉีดพ่นจริง ({plotRounds.length} รอบ)
-              </h6>
-            </div>
-
-            <div className="space-y-3">
-              {plotRounds.map((round, rIdx) => (
-                <div
-                  key={rIdx}
-                  className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-2xs"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                        {round.roundNumber}
-                      </span>
-                      <span className="font-bold text-xs text-slate-800">
-                        รอบที่ {round.roundNumber}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          round.sprayMethod === "TANK_MIXED"
-                            ? "bg-indigo-100 text-indigo-800"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {round.sprayMethod === "TANK_MIXED" ? "ผสมถัง" : "ฉีดเดี่ยว"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>
-                        {round.sprayDate
-                          ? new Date(round.sprayDate).toLocaleDateString("th-TH")
-                          : "-"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">อุปกรณ์</span>
-                      <span className="font-medium text-slate-700">
-                        {round.sprayEquipment}
-                        {round.otherEquipment ? ` (${round.otherEquipment})` : ""}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">ผลหลังฉีด</span>
-                      <span className="font-semibold text-emerald-600">
-                        {round.productResponse}
-                      </span>
-                    </div>
-                    {round.problemDetail && (
-                      <div className="col-span-2 sm:col-span-1">
-                        <span className="text-slate-400 block text-[11px]">ปัญหาที่พบ</span>
-                        <span className="font-medium text-rose-600">
-                          {round.problemDetail}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Spray Products */}
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] font-semibold text-slate-500 block">
-                      สินค้าที่ใช้จริง:
-                    </span>
-                    <div className="space-y-1">
-                      {round.products.map((p, pIdx) => {
-                        const isWithdrawn = Boolean(p.drugWithdrawalItemId || p.drugWithdrawalItem);
-                        const withdrawnQty = p.drugWithdrawalItem?.quantity != null ? Number(p.drugWithdrawalItem.quantity) : null;
-
-                        return (
-                          <div
-                            key={pIdx}
-                            className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 space-y-1 text-xs"
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-semibold text-slate-800">
-                                  {p.productName || "สินค้าไม่ระบุชื่อ"}
-                                </span>
-                                {isWithdrawn ? (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                                    จากรายการเบิก
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
-                                    เพิ่มเติม / ไม่ได้เบิก
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-slate-600">
-                                {isWithdrawn && withdrawnQty != null && (
-                                  <span className="text-[11px] text-slate-500">
-                                    เบิก: <strong className="text-emerald-700">{withdrawnQty}</strong> {p.unit || ""}
-                                  </span>
-                                )}
-                                <span className="text-slate-500">
-                                  อัตรา: {p.actualRate || "-"}
-                                </span>
-                                <span className="font-bold text-emerald-600">
-                                  ใช้จริง: {Number(p.quantityUsed).toLocaleString()} {p.unit || "หน่วย"}
-                                </span>
-                              </div>
-                            </div>
-                            {p.detail && (
-                              <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
-                                <span className="text-slate-400 font-medium">รายละเอียด: </span>
-                                <span>{p.detail}</span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Tank-mixed External Chemicals */}
-                  {round.sprayMethod === "TANK_MIXED" &&
-                    round.externalProducts &&
-                    round.externalProducts.length > 0 && (
-                      <div className="space-y-1 pt-2 border-t border-slate-100">
-                        <span className="text-[11px] font-semibold text-indigo-700 block">
-                          สารเคมีภายนอกที่นำมาผสมถัง:
-                        </span>
-                        <div className="space-y-1">
-                          {round.externalProducts.map((ep, epIdx) => (
-                            <div
-                              key={epIdx}
-                              className="flex items-center justify-between text-xs py-1 px-2.5 bg-indigo-50/50 rounded border border-indigo-100"
-                            >
-                              <div>
-                                <span className="font-semibold text-indigo-900">
-                                  {ep.productName}
-                                </span>
-                                {ep.company && (
-                                  <span className="text-[11px] text-slate-500 ml-1.5">
-                                    ({ep.company})
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <span>สูตร: {ep.formula}</span>
-                                <span>• อัตรา: {ep.applicationRate}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Before Spray Photos */}
-                  {round.attachments && round.attachments.length > 0 && (
-                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                      <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
-                        <Camera className="w-3 h-3 text-emerald-600" />
-                        <span>รูปภาพก่อนฉีดพ่น ({round.attachments.length} รูป):</span>
-                      </span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {round.attachments.map((att, aIdx) => (
-                          <div
-                            key={aIdx}
-                            onClick={() => setPreviewImage(att.fileUrl)}
-                            className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100 cursor-pointer"
-                          >
-                            <img
-                              src={att.fileUrl}
-                              alt={att.fileName || `before-spray-${aIdx + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <Eye className="w-4 h-4 text-white" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* After Spray Photos */}
-        {afterSprayAttachments.length > 0 && (
-          <div className="bg-slate-50/70 rounded-xl border border-slate-200/80 p-4 space-y-3">
-            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Camera className="w-4 h-4 text-emerald-600" />
-              <span>รูปหลังฉีดพ่น ({afterSprayAttachments.length} รูป)</span>
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {afterSprayAttachments.map((att, aIdx) => (
-                <div
-                  key={aIdx}
-                  onClick={() => setPreviewImage(att.fileUrl)}
-                  className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 cursor-pointer shadow-2xs"
-                >
-                  <img
-                    src={att.fileUrl}
-                    alt={att.fileName || `after-spray-${aIdx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Eye className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-white truncate pointer-events-none">
-                    รูป {aIdx + 1}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Image Preview Modal */}
-      {previewImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div className="relative max-w-3xl max-h-[90vh]">
-            <img
-              src={previewImage}
-              alt="Preview"
-              className="max-w-full max-h-[85vh] rounded-xl object-contain"
-            />
-            <button
-              type="button"
-              onClick={() => setPreviewImage(null)}
-              className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

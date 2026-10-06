@@ -17,7 +17,9 @@ import {
   DetailType9Store,
   DetailType10FieldDay,
   DetailType11Stock,
+  DetailType13Attack,
 } from "./work-types";
+import type { Type13PlotItem, Type13DetailData } from "@/modules/activity-plans/features/type-13";
 
 interface DetailActivityResultSectionProps {
   isTypeVisible: (typeTitle: string) => boolean;
@@ -26,6 +28,8 @@ interface DetailActivityResultSectionProps {
   demoPlotData?: any;
   visitHistory?: any[];
   currentVisit?: any;
+  type13Plots?: Type13PlotItem[];
+  type13ActualData?: Type13DetailData;
 }
 
 export function DetailActivityResultSection({
@@ -35,6 +39,8 @@ export function DetailActivityResultSection({
   demoPlotData,
   visitHistory = [],
   currentVisit,
+  type13Plots,
+  type13ActualData,
 }: DetailActivityResultSectionProps) {
   const hasAnyActualWorkType = WORK_TYPES.some((wt) =>
     isTypeVisible(wt),
@@ -272,6 +278,16 @@ export function DetailActivityResultSection({
           remarks={parsedResults.t11Remarks}
           nextAction={parsedResults.t11NextAction || parsedResults.nextAction}
           images={parsedResults.t11Images}
+        />
+
+        {/* WORK TYPE 13 */}
+        <DetailType13Attack
+          isVisible={
+            isTypeVisible("ฉีดแปลงแฮตแทค") ||
+            isTypeVisible("TYPE_13")
+          }
+          plots={type13Plots}
+          actualData={type13ActualData}
         />
       </div>
     </div>

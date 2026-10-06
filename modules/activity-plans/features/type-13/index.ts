@@ -16,6 +16,7 @@ export type { Type13EditProps } from "./edit/types";
 
 // Detail
 export { Type13Detail } from "./detail/type13-detail";
+export { DetailType13Attack, type DetailType13AttackProps } from "./detail/detail-type13-attack";
 export type { Type13DetailProps, Type13DetailData, Type13DetailSprayRound, Type13DetailActualProduct, Type13DetailExternalProduct } from "./detail/types";
 
 // Approval

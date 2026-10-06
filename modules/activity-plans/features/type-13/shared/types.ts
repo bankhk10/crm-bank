@@ -23,6 +23,8 @@ export interface Type13PlotItem {
   ownerName?: string | null;
   province: string;
   district: string;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
   products?: Type13PlotProduct[];
   hasDrugWithdrawal?: boolean;
   withdrawalItems?: Type13WithdrawalItem[];
