@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { isFieldDayItem, DEMO_PRODUCT_PRICES } from "@/modules/activity-plans/constants";
+import { isFieldDayItem } from "@/modules/activity-plans/constants";
 import type { Type9ProductItem } from "../shared/types";
 import { validateType9FormItems } from "../create/validation";
 
@@ -329,18 +329,7 @@ export function useType9Form({
     setType9ProductItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-        const updated = { ...item, [field]: val };
-        if (field === "productName") {
-          const foundProd = productsList.find((p) => p.name === val);
-          if (foundProd && foundProd.price != null) {
-            updated.pricePerCase = Number(foundProd.price);
-          } else if (DEMO_PRODUCT_PRICES[val] !== undefined) {
-            updated.pricePerCase = DEMO_PRODUCT_PRICES[val];
-          } else {
-            updated.pricePerCase = 0;
-          }
-        }
-        return updated;
+        return { ...item, [field]: val };
       }),
     );
   };

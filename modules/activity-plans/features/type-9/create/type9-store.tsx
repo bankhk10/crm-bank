@@ -424,19 +424,6 @@ export function Type9Store({
                                 found.id,
                               );
                             }
-                            if (found && found.price != null) {
-                              updateType9ProductItem(
-                                item.id,
-                                "pricePerCase",
-                                found.price,
-                              );
-                            } else {
-                              updateType9ProductItem(
-                                item.id,
-                                "pricePerCase",
-                                0,
-                              );
-                            }
                           }}
                           products={products}
                           placeholder="เลือกสินค้า..."
@@ -470,7 +457,7 @@ export function Type9Store({
                             type="number"
                             min={0}
                             step="any"
-                            value={item.pricePerCase ?? 0}
+                            value={item.pricePerCase || ""}
                             onChange={(e) =>
                               updateType9ProductItem(
                                 item.id,
