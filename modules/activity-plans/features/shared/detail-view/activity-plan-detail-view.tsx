@@ -338,6 +338,16 @@ export default function ActivityPlanDetailView({
         actualRate: p.actualRate || "",
         quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
         unit: p.unit || p.product?.unit || "",
+        drugWithdrawalItemId:
+          p.drugWithdrawalItemId || p.drugWithdrawalItem?.id || null,
+        drugWithdrawalItem: p.drugWithdrawalItem
+          ? {
+              id: p.drugWithdrawalItem.id,
+              quantity: p.drugWithdrawalItem.quantity,
+              unit: p.drugWithdrawalItem.unit || p.unit,
+            }
+          : null,
+        detail: p.detail || null,
       })),
       externalProducts: (sr.externalProducts || []).map((ep: any) => ({
         company: ep.company || "",
