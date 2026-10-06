@@ -16,7 +16,7 @@ import { useType11Actual } from "@/modules/activity-plans/features/type-11";
 import { useType13ActualState } from "@/modules/activity-plans/features/type-13";
 import { useType14ActualState } from "@/modules/activity-plans/features/type-14";
 import { buildResultSummary, extractPlanData, parseResultSummary } from "../utils";
-import { initialTargets } from "../constants";
+import { initialTargets, isNonStrictOutcome } from "../constants";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type { useActualStatusState } from "./use-actual-status-state";
 
@@ -306,10 +306,21 @@ export function useActualOrchestrator({
               attachments: [],
             };
 
-      const t14Payload =
-        isType14 && type14 && type14.buildType14ActualPayload
-          ? type14.buildType14ActualPayload(type14.afterSprayImages)
-          : { sprayRounds: [], attachments: [] };
+      let t14Payload: any = { sprayRounds: [], attachments: [] };
+      if (isType14 && type14 && type14.buildType14ActualPayload) {
+        try {
+          t14Payload = type14.buildType14ActualPayload(type14.afterSprayImages);
+        } catch (err: any) {
+          if (!isNonStrictOutcome(activeStatus.activityResultStatus)) {
+            return {
+              validationError:
+                err.message || "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล TYPE14",
+              actualData: undefined,
+            };
+          }
+          t14Payload = { sprayRounds: [], attachments: [] };
+        }
+      }
 
       const activeType7Payload = isType7A ? t7aPayload : t7bPayload;
 

@@ -11,6 +11,7 @@ import {
   getActivityResultStatusLabel,
   getWorkTypeCode,
 } from "@/modules/activity-plans/constants";
+import { isNonStrictOutcome } from "../constants";
 import { validateType7aActual } from "@/modules/activity-plans/features/type-7a/actual/validation";
 import { validateType7bActual } from "@/modules/activity-plans/features/type-7b/actual/validation";
 import { validateType8Actual } from "@/modules/activity-plans/features/type-8/actual/validation";
@@ -344,30 +345,6 @@ export function buildResultSummary(
     }
   }
 
-  // Validate TYPE_8 Registration Images
-  const isType8Active =
-    (input.planWorkTypes || []).some(
-      (wt: any) =>
-        wt === "TYPE_8" ||
-        wt?.code === "TYPE_8" ||
-        wt?.name === "จัดประชุม" ||
-        wt?.name === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
-    ) || Boolean(t8ActualAttendees);
-
-  if (isType8Active) {
-    const t8Validation = validateType8Actual({
-      activityResultStatus,
-      t8RegistrationImages,
-    });
-    if (!t8Validation.isValid) {
-      return {
-        validationError: t8Validation.error,
-        summaryParts: [],
-        payload: null,
-      };
-    }
-  }
-
   const isType7B = (input.planWorkTypes || []).some(
     (wt) => wt === "ติดตามแปลงสาธิต" || getWorkTypeCode(wt) === "TYPE_7B",
   );
@@ -385,37 +362,64 @@ export function buildResultSummary(
     input.t7ChangeReason?.trim(),
   );
 
-  // Validate TYPE_7A fields if COMPLETED
-  if (isType7A && !isType7B) {
-    const t7aValidation = validateType7aActual(input);
-    if (!t7aValidation.isValid) {
+  // Validate Work Types only for Strict Outcomes (e.g. COMPLETED)
+  if (!isNonStrictOutcome(activityResultStatus)) {
+    // Validate TYPE_8 Registration Images
+    const isType8Active =
+      (input.planWorkTypes || []).some(
+        (wt: any) =>
+          wt === "TYPE_8" ||
+          wt?.code === "TYPE_8" ||
+          wt?.name === "จัดประชุม" ||
+          wt?.name === "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+      ) || Boolean(t8ActualAttendees);
+
+    if (isType8Active) {
+      const t8Validation = validateType8Actual({
+        activityResultStatus,
+        t8RegistrationImages,
+      });
+      if (!t8Validation.isValid) {
+        return {
+          validationError: t8Validation.error,
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    }
+
+    // Validate TYPE_7A fields if COMPLETED
+    if (isType7A && !isType7B) {
+      const t7aValidation = validateType7aActual(input);
+      if (!t7aValidation.isValid) {
+        return {
+          validationError: t7aValidation.error,
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    }
+
+    // Validate TYPE_7B fields
+    if (isType7B) {
+      const t7bValidation = validateType7bActual(input);
+      if (!t7bValidation.isValid) {
+        return {
+          validationError: t7bValidation.error,
+          summaryParts: [],
+          payload: null,
+        };
+      }
+    }
+
+    // Validate Type 1 Plot Images (Max 5 files)
+    if (input.t1PlotImages && input.t1PlotImages.length > 5) {
       return {
-        validationError: t7aValidation.error,
+        validationError: "รูปแปลงสามารถแนบได้สูงสุด 5 รูป (Work Type 1)",
         summaryParts: [],
         payload: null,
       };
     }
-  }
-
-  // Validate TYPE_7B fields
-  if (isType7B) {
-    const t7bValidation = validateType7bActual(input);
-    if (!t7bValidation.isValid) {
-      return {
-        validationError: t7bValidation.error,
-        summaryParts: [],
-        payload: null,
-      };
-    }
-  }
-
-  // Validate Type 1 Plot Images (Max 5 files)
-  if (input.t1PlotImages && input.t1PlotImages.length > 5) {
-    return {
-      validationError: "รูปแปลงสามารถแนบได้สูงสุด 5 รูป (Work Type 1)",
-      summaryParts: [],
-      payload: null,
-    };
   }
 
   const statusLabel = getActivityResultStatusLabel(activityResultStatus);

@@ -1,5 +1,17 @@
 import type { ActualTargetsState, PlanSummaryData } from "./types";
 
+export const NON_STRICT_OUTCOMES = [
+  "PARTIAL",
+  "POSTPONED",
+  "CANCELLED",
+] as const;
+export type NonStrictOutcome = (typeof NON_STRICT_OUTCOMES)[number];
+
+export function isNonStrictOutcome(status?: string | null): boolean {
+  if (!status) return false;
+  return NON_STRICT_OUTCOMES.includes(status as any);
+}
+
 export const initialTargets: ActualTargetsState = {
   t1: {
     customer: "",

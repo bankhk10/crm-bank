@@ -9,6 +9,7 @@ import {
   buildResultSummary,
   deleteActivityPlanImagePaths,
 } from "../utils";
+import { isNonStrictOutcome } from "../constants";
 import { validateType13Actual } from "@/modules/activity-plans/features/type-13/actual/validation";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 import type { useActualStatusState } from "./use-actual-status-state";
@@ -94,8 +95,10 @@ export function useActualSubmit({
             cleanT5SurveyDetails = await type5.uploadImages(id, allNewlyUploadedUrls);
           }
 
+          const isNonStrict = isNonStrictOutcome(statusState.activityResultStatus);
+
           // Validate TYPE-6 if visible
-          if (isTypeVisible("TYPE_6")) {
+          if (isTypeVisible("TYPE_6") && !isNonStrict) {
             const t6ValidationError = type6.validate();
             if (t6ValidationError) {
               setFormError(t6ValidationError);
@@ -161,11 +164,13 @@ export function useActualSubmit({
 
           let cleanT11Images = type11.t11Images;
           if (isTypeVisible("TYPE_11")) {
-            const t11ValidationError = type11.validate();
-            if (t11ValidationError) {
-              setFormError(t11ValidationError);
-              setIsSubmitting(false);
-              return;
+            if (!isNonStrict) {
+              const t11ValidationError = type11.validate();
+              if (t11ValidationError) {
+                setFormError(t11ValidationError);
+                setIsSubmitting(false);
+                return;
+              }
             }
             cleanT11Images = await type11.uploadImages(id, allNewlyUploadedUrls);
           }
@@ -248,14 +253,16 @@ export function useActualSubmit({
           let t13Payload: any = {};
           if (isType13 && typeHooks.type13) {
             const currentPlots = cleanT13Plots || typeHooks.type13.plotsActual;
-            const t13Validation = validateType13Actual(currentPlots);
-            if (!t13Validation.isValid) {
-              if (allNewlyUploadedUrls.length > 0) {
-                await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
+            if (!isNonStrict) {
+              const t13Validation = validateType13Actual(currentPlots);
+              if (!t13Validation.isValid) {
+                if (allNewlyUploadedUrls.length > 0) {
+                  await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
+                }
+                setFormError(t13Validation.error || "ข้อมูลแปลงไม่ถูกต้อง");
+                setIsSubmitting(false);
+                return;
               }
-              setFormError(t13Validation.error || "ข้อมูลแปลงไม่ถูกต้อง");
-              setIsSubmitting(false);
-              return;
             }
             t13Payload = typeHooks.type13.buildType13ActualPayload(currentPlots);
           }
@@ -266,12 +273,16 @@ export function useActualSubmit({
             try {
               t14Payload = typeHooks.type14.buildType14ActualPayload(cleanT14Images);
             } catch (err: any) {
-              if (allNewlyUploadedUrls.length > 0) {
-                await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
+              if (isNonStrict) {
+                t14Payload = { sprayRounds: [], attachments: [] };
+              } else {
+                if (allNewlyUploadedUrls.length > 0) {
+                  await deleteActivityPlanImagePaths(id, allNewlyUploadedUrls);
+                }
+                setFormError(err.message || "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล TYPE14");
+                setIsSubmitting(false);
+                return;
               }
-              setFormError(err.message || "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล TYPE14");
-              setIsSubmitting(false);
-              return;
             }
           }
 
