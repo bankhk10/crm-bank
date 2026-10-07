@@ -27,10 +27,12 @@ export interface FormattedFollowUpRound {
 }
 
 export interface Type14DetailProps {
-  data: Type14PlanInput;
+  data?: Type14PlanInput;
+  plots?: any[];
   planSummary?: {
     province?: string | null;
     district?: string | null;
   };
   plan?: any;
 }
+

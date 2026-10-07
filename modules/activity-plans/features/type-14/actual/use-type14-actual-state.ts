@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import {
   uploadActivityPlanImageGroup,
   collectPermanentUrls,
@@ -63,16 +63,58 @@ function createDefaultRound(
   };
 }
 
+function hasPlotActualData(rounds: Type14SprayRoundState[]): boolean {
+  if (!rounds || rounds.length === 0) return false;
+  if (rounds.length > 1) return true;
+  const r = rounds[0];
+  if (!r) return false;
+  if (r.trackingResult && r.trackingResult.trim() !== "") return true;
+  if (
+    r.products &&
+    r.products.length > 0 &&
+    r.products.some(
+      (p) =>
+        (p.productId && p.productId.trim() !== "") ||
+        (p.quantityUsed !== "" && p.quantityUsed != null) ||
+        (p.actualRate && p.actualRate.trim() !== "") ||
+        (p.detail && p.detail.trim() !== ""),
+    )
+  )
+    return true;
+  if (r.afterSprayImages && r.afterSprayImages.length > 0) return true;
+  if (r.additionalNotes && r.additionalNotes.trim() !== "") return true;
+  if (
+    r.daysAfterSpray !== "" &&
+    r.daysAfterSpray != null &&
+    String(r.daysAfterSpray).trim() !== "" &&
+    String(r.daysAfterSpray).trim() !== "0"
+  )
+    return true;
+  return false;
+}
+
 export function useType14ActualState() {
   const [demoPlotId, setDemoPlotId] = useState<string>("");
   const [dealerName, setDealerName] = useState<string>("");
   const [province, setProvince] = useState<string>("");
   const [district, setDistrict] = useState<string>("");
 
-  // Multiple Spray Rounds state
-  const [rounds, setRounds] = useState<Type14SprayRoundState[]>([
-    createDefaultRound(1),
-  ]);
+  // Per-plot Spray Rounds map: { [plotId: string]: Type14SprayRoundState[] }
+  const [plotRoundsMap, setPlotRoundsMap] = useState<
+    Record<string, Type14SprayRoundState[]>
+  >({
+    default: [createDefaultRound(1)],
+  });
+  const plotRoundsMapRef = useRef<Record<string, Type14SprayRoundState[]>>({
+    default: [createDefaultRound(1)],
+  });
+  plotRoundsMapRef.current = plotRoundsMap;
+
+  // Active rounds for currently selected demoPlotId
+  const rounds = useMemo(() => {
+    const key = demoPlotId || "default";
+    return plotRoundsMap[key] || [createDefaultRound(1)];
+  }, [demoPlotId, plotRoundsMap]);
 
   // Available plots under this Activity & Read-only Spray History
   const [availablePlots, setAvailablePlots] = useState<any[]>([]);
@@ -86,6 +128,25 @@ export function useType14ActualState() {
   const handleSelectPlot = useCallback(
     async (plotId: string, plotObj?: any) => {
       setDemoPlotId(plotId);
+
+      // Ensure rounds exist for this plot in plotRoundsMap
+      if (plotId) {
+        setPlotRoundsMap((prev) => {
+          if (prev[plotId] && prev[plotId].length > 0) return prev;
+          const refRounds = plotRoundsMapRef.current[plotId];
+          if (refRounds && refRounds.length > 0) {
+            return {
+              ...prev,
+              [plotId]: refRounds,
+            };
+          }
+          return {
+            ...prev,
+            [plotId]: prev["default"] || [createDefaultRound(1)],
+          };
+        });
+      }
+
       if (plotObj) {
         setDealerName(
           plotObj.dealerName ||
@@ -133,25 +194,44 @@ export function useType14ActualState() {
     [],
   );
 
+  // Helper to update rounds for the currently active plot
+  const setRoundsForCurrentPlot = useCallback(
+    (updater: (prev: Type14SprayRoundState[]) => Type14SprayRoundState[]) => {
+      const key = demoPlotId || "default";
+      setPlotRoundsMap((prev) => {
+        const currentPlotRounds = prev[key] || [createDefaultRound(1)];
+        const nextPlotRounds = updater(currentPlotRounds);
+        return {
+          ...prev,
+          [key]: nextPlotRounds,
+        };
+      });
+    },
+    [demoPlotId],
+  );
+
   // ── Round Management ──
   const addSprayRound = useCallback(() => {
-    setRounds((prev) => {
+    setRoundsForCurrentPlot((prev) => {
       const nextNum = prev.length + 1;
       const newRound = createDefaultRound(nextNum, []);
       return [...prev, newRound];
     });
-  }, []);
+  }, [setRoundsForCurrentPlot]);
 
-  const removeSprayRound = useCallback((roundIndex: number) => {
-    setRounds((prev) => {
-      if (prev.length <= 1) return prev;
-      const next = prev.filter((_, idx) => idx !== roundIndex);
-      return next.map((r, idx) => ({
-        ...r,
-        roundNumber: idx + 1,
-      }));
-    });
-  }, []);
+  const removeSprayRound = useCallback(
+    (roundIndex: number) => {
+      setRoundsForCurrentPlot((prev) => {
+        if (prev.length <= 1) return prev;
+        const next = prev.filter((_, idx) => idx !== roundIndex);
+        return next.map((r, idx) => ({
+          ...r,
+          roundNumber: idx + 1,
+        }));
+      });
+    },
+    [setRoundsForCurrentPlot],
+  );
 
   const updateRoundField = useCallback(
     (
@@ -159,14 +239,14 @@ export function useType14ActualState() {
       field: "actualVisitDate" | "daysAfterSpray" | "trackingResult" | "additionalNotes",
       value: any,
     ) => {
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         if (!next[roundIndex]) return prev;
         next[roundIndex] = { ...next[roundIndex], [field]: value };
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   // Product Management per Round
@@ -175,7 +255,7 @@ export function useType14ActualState() {
       roundIndex: number,
       product?: { productId?: string; productName?: string; unit?: string },
     ) => {
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         const round = next[roundIndex];
         if (!round) return prev;
@@ -194,7 +274,7 @@ export function useType14ActualState() {
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   const updateRoundProduct = useCallback(
@@ -204,7 +284,7 @@ export function useType14ActualState() {
       field: keyof Type14ActualProductState,
       value: any,
     ) => {
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         const round = next[roundIndex];
         if (!round || !round.products[productIndex]) return prev;
@@ -217,12 +297,12 @@ export function useType14ActualState() {
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   const removeRoundProduct = useCallback(
     (roundIndex: number, productIndex: number) => {
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         const round = next[roundIndex];
         if (!round) return prev;
@@ -233,7 +313,7 @@ export function useType14ActualState() {
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   // Round-specific Image Management
@@ -247,7 +327,7 @@ export function useType14ActualState() {
         size: file.size,
         type: file.type,
       }));
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         const round = next[roundIndex];
         if (!round) return prev;
@@ -259,12 +339,12 @@ export function useType14ActualState() {
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   const removeRoundAfterSprayImage = useCallback(
     (roundIndex: number, imgIndex: number) => {
-      setRounds((prev) => {
+      setRoundsForCurrentPlot((prev) => {
         const next = [...prev];
         const round = next[roundIndex];
         if (!round) return prev;
@@ -275,7 +355,7 @@ export function useType14ActualState() {
         return next;
       });
     },
-    [],
+    [setRoundsForCurrentPlot],
   );
 
   // ── Hydration logic ──
@@ -318,7 +398,10 @@ export function useType14ActualState() {
             code: tp.demoPlot.code,
             name: tp.demoPlot.name,
             dealerName:
-              tp.demoPlot.customer?.name || tp.demoPlot.dealerName || tp.dealerName || "",
+              tp.demoPlot.customer?.name ||
+              tp.demoPlot.dealerName ||
+              tp.dealerName ||
+              "",
             province: tp.demoPlot.province || tp.province || "",
             district: tp.demoPlot.district || tp.district || "",
             customer: tp.demoPlot.customer,
@@ -384,175 +467,216 @@ export function useType14ActualState() {
         .slice()
         .sort((a: any, b: any) => (a.roundNumber || 1) - (b.roundNumber || 1));
 
-      // Resolve demoPlotId
-      const firstRound = type14Rounds[0];
       const type14Visits = (plan.demoPlotVisits || [])
         .filter((v: any) => !v.workTypeCode || v.workTypeCode === "TYPE_14")
         .sort((a: any, b: any) => (a.visitNumber || 1) - (b.visitNumber || 1));
-      const type14Visit = type14Visits[0] || plan.demoPlotVisits?.[0];
 
-      let plotId = "";
-      if (firstRound?.demoPlotId) {
-        plotId = firstRound.demoPlotId;
-      } else if (type14Visit?.demoPlot?.id || type14Visit?.demoPlotId) {
-        plotId = type14Visit.demoPlot?.id || type14Visit.demoPlotId;
-      } else if (plan.demoPlot?.id || plan.demoPlotId) {
-        plotId = plan.demoPlot?.id || plan.demoPlotId;
-      } else if (plan.type14?.plots?.[0]?.demoPlotId) {
-        plotId = plan.type14.plots[0].demoPlotId;
-      } else if (plan.payload?.type14Data?.demoPlotId) {
-        plotId = plan.payload.type14Data.demoPlotId;
-      } else if (resolvedPlots.length === 1) {
-        plotId = resolvedPlots[0].id;
-      }
-
+      // 3. Build Per-Plot Rounds Map
+      const newPlotRoundsMap: Record<string, Type14SprayRoundState[]> = {};
       const allLoadedImages: Type14ImageState[] = [];
-      let hydratedRounds: Type14SprayRoundState[] = [];
 
-      if (type14Rounds.length > 0) {
-        hydratedRounds = type14Rounds.map((r: any, idx: number) => {
-          const rNum = r.roundNumber || idx + 1;
-          const rProducts: any[] = r.products || [];
+      const targetPlotsList =
+        resolvedPlots.length > 0
+          ? resolvedPlots
+          : [{ id: "default", name: "แปลงแฮตแทค" }];
 
-          // Visit matching for fallback daysSinceStart
-          const matchingVisit = (plan.demoPlotVisits || []).find(
-            (v: any) => v.visitNumber === rNum,
-          );
+      for (const plot of targetPlotsList) {
+        const plotId = plot.id;
+        const matchingRounds = type14Rounds.filter(
+          (r: any) =>
+            r.demoPlotId === plotId ||
+            (targetPlotsList.length === 1 && (!r.demoPlotId || r.demoPlotId === "default")),
+        );
+        const matchingVisits = type14Visits.filter(
+          (v: any) =>
+            v.demoPlotId === plotId ||
+            (!v.demoPlotId && targetPlotsList.length === 1),
+        );
 
-          let resolvedDays = "";
-          if (r.daysSinceStart != null && r.daysSinceStart !== "") {
-            resolvedDays = String(r.daysSinceStart);
-          } else if (
-            matchingVisit &&
-            matchingVisit.daysSinceStart != null &&
-            matchingVisit.daysSinceStart !== ""
-          ) {
-            resolvedDays = String(matchingVisit.daysSinceStart);
-          }
+        let hydratedRounds: Type14SprayRoundState[] = [];
 
-          // Images for this round
-          const roundAttachments: any[] = [
-            ...(r.attachments || []),
-            ...(rNum === 1
-              ? (resultObj?.attachments || []).filter(
-                  (a: any) =>
-                    a.workTypeCode === "TYPE_14" &&
-                    (!a.sprayRoundId || a.sprayRoundId === r.id),
-                )
-              : []),
-          ];
+        if (matchingRounds.length > 0) {
+          hydratedRounds = matchingRounds.map((r: any, idx: number) => {
+            const rNum = r.roundNumber || idx + 1;
+            const rProducts: any[] = r.products || [];
+            const matchingVisit = matchingVisits.find(
+              (v: any) => v.visitNumber === rNum,
+            );
 
-          const uniqueUrls = new Set<string>();
-          const roundImgs: Type14ImageState[] = [];
-          roundAttachments.forEach((att: any) => {
-            if (att.fileUrl && !uniqueUrls.has(att.fileUrl)) {
-              uniqueUrls.add(att.fileUrl);
-              const imgState: Type14ImageState = {
-                id: att.id || att.fileUrl,
-                url: att.fileUrl,
-                name: att.fileName || `type14-round${rNum}-photo.jpg`,
-                size: att.fileSize,
-                type: att.mimeType,
-              };
-              roundImgs.push(imgState);
-              allLoadedImages.push(imgState);
+            let resolvedDays = "";
+            if (r.daysSinceStart != null && r.daysSinceStart !== "") {
+              resolvedDays = String(r.daysSinceStart);
+            } else if (
+              matchingVisit &&
+              matchingVisit.daysSinceStart != null &&
+              matchingVisit.daysSinceStart !== ""
+            ) {
+              resolvedDays = String(matchingVisit.daysSinceStart);
             }
+
+            // Images for this round
+            const roundAttachments: any[] = [
+              ...(r.attachments || []),
+              ...(rNum === 1
+                ? (resultObj?.attachments || []).filter(
+                    (a: any) =>
+                      a.workTypeCode === "TYPE_14" &&
+                      (!a.sprayRoundId || a.sprayRoundId === r.id) &&
+                      (!a.demoPlotId ||
+                        targetPlotsList.length <= 1 ||
+                        a.demoPlotId === plotId),
+                  )
+                : []),
+            ];
+
+            const uniqueUrls = new Set<string>();
+            const roundImgs: Type14ImageState[] = [];
+            roundAttachments.forEach((att: any) => {
+              if (att.fileUrl && !uniqueUrls.has(att.fileUrl)) {
+                uniqueUrls.add(att.fileUrl);
+                const imgState: Type14ImageState = {
+                  id: att.id || att.fileUrl,
+                  url: att.fileUrl,
+                  name: att.fileName || `type14-round${rNum}-photo.jpg`,
+                  size: att.fileSize,
+                  type: att.mimeType,
+                };
+                roundImgs.push(imgState);
+                allLoadedImages.push(imgState);
+              }
+            });
+
+            const productsList: Type14ActualProductState[] = rProducts.map(
+              (p: any) => ({
+                productId: p.productId,
+                productName: p.productName || p.product?.name || "สินค้า",
+                unit: p.unit || p.product?.unit || "ขวด",
+                quantityUsed:
+                  p.quantityUsed != null ? String(p.quantityUsed) : "",
+                actualRate: p.actualRate ?? "",
+                detail: p.detail ?? "",
+              }),
+            );
+
+            return {
+              id: r.id,
+              roundNumber: rNum,
+              actualVisitDate: r.sprayDate
+                ? formatToYMD(r.sprayDate)
+                : formatToYMD(matchingVisit?.visitDate) ||
+                  formatToYMD(new Date()),
+              daysAfterSpray: resolvedDays,
+              trackingResult:
+                r.productResponse || matchingVisit?.productResponse || "",
+              additionalNotes: r.notes || matchingVisit?.notes || "",
+              afterSprayImages: roundImgs.slice(0, 5),
+              products: productsList,
+            };
           });
+        } else if (matchingVisits.length > 0) {
+          hydratedRounds = matchingVisits.map((v: any, idx: number) => {
+            const vNum = v.visitNumber || idx + 1;
+            const visitAttachments = v.attachments || [];
+            const roundImgs: Type14ImageState[] = [];
+            visitAttachments.forEach((att: any) => {
+              if (att.fileUrl) {
+                const imgState: Type14ImageState = {
+                  id: att.id || att.fileUrl,
+                  url: att.fileUrl,
+                  name: att.fileName || `type14-round${vNum}-photo.jpg`,
+                  size: att.fileSize,
+                  type: att.mimeType,
+                };
+                roundImgs.push(imgState);
+                allLoadedImages.push(imgState);
+              }
+            });
 
-          const productsList: Type14ActualProductState[] = rProducts.map(
-            (p: any) => ({
-              productId: p.productId,
-              productName: p.productName || p.product?.name || "สินค้า",
-              unit: p.unit || p.product?.unit || "ขวด",
-              quantityUsed:
-                p.quantityUsed != null ? String(p.quantityUsed) : "",
-              actualRate: p.actualRate ?? "",
-              detail: p.detail ?? "",
-            }),
-          );
-
-          return {
-            id: r.id,
-            roundNumber: rNum,
-            actualVisitDate: r.sprayDate
-              ? formatToYMD(r.sprayDate)
-              : formatToYMD(matchingVisit?.visitDate) ||
-                formatToYMD(new Date()),
-            daysAfterSpray: resolvedDays,
-            trackingResult:
-              r.productResponse || matchingVisit?.productResponse || "",
-            additionalNotes: r.notes || matchingVisit?.notes || "",
-            afterSprayImages: roundImgs.slice(0, 5),
-            products: productsList,
-          };
-        });
-      } else if (type14Visits.length > 0) {
-        hydratedRounds = type14Visits.map((v: any, idx: number) => {
-          const vNum = v.visitNumber || idx + 1;
-          const visitAttachments = v.attachments || [];
-          const roundImgs: Type14ImageState[] = [];
-          visitAttachments.forEach((att: any) => {
-            if (att.fileUrl) {
-              const imgState: Type14ImageState = {
-                id: att.id || att.fileUrl,
-                url: att.fileUrl,
-                name: att.fileName || `type14-round${vNum}-photo.jpg`,
-                size: att.fileSize,
-                type: att.mimeType,
-              };
-              roundImgs.push(imgState);
-              allLoadedImages.push(imgState);
-            }
+            return {
+              id: v.id,
+              roundNumber: vNum,
+              actualVisitDate: v.visitDate
+                ? formatToYMD(v.visitDate)
+                : formatToYMD(new Date()),
+              daysAfterSpray:
+                v.daysSinceStart != null && v.daysSinceStart !== ""
+                  ? String(v.daysSinceStart)
+                  : "",
+              trackingResult: v.productResponse || "",
+              additionalNotes: v.notes || "",
+              afterSprayImages: roundImgs.slice(0, 5),
+              products: [],
+            };
           });
+        } else {
+          hydratedRounds = [createDefaultRound(1)];
+        }
 
-          return {
-            id: v.id,
-            roundNumber: vNum,
-            actualVisitDate: v.visitDate
-              ? formatToYMD(v.visitDate)
-              : formatToYMD(new Date()),
-            daysAfterSpray:
-              v.daysSinceStart != null && v.daysSinceStart !== ""
-                ? String(v.daysSinceStart)
-                : "",
-            trackingResult: v.productResponse || "",
-            additionalNotes: v.notes || "",
-            afterSprayImages: roundImgs.slice(0, 5),
-            products: [],
-          };
-        });
-      } else {
-        const initVisit = type14Visit;
-        const initialRound1: Type14SprayRoundState = {
-          roundNumber: 1,
-          actualVisitDate: initVisit?.visitDate
-            ? formatToYMD(initVisit.visitDate)
-            : formatToYMD(new Date()),
-          daysAfterSpray:
-            initVisit?.daysSinceStart != null &&
-            initVisit.daysSinceStart !== ""
-              ? String(initVisit.daysSinceStart)
-              : "",
-          trackingResult: initVisit?.productResponse || "",
-          additionalNotes: initVisit?.notes || "",
-          afterSprayImages: [],
-          products: [],
-        };
-        hydratedRounds = [initialRound1];
+        newPlotRoundsMap[plotId] = hydratedRounds;
       }
 
-      setRounds(hydratedRounds);
+      if (Object.keys(newPlotRoundsMap).length === 0) {
+        newPlotRoundsMap["default"] = [createDefaultRound(1)];
+      }
+
+      plotRoundsMapRef.current = newPlotRoundsMap;
+      setPlotRoundsMap(newPlotRoundsMap);
       initialImagesRef.current = JSON.parse(JSON.stringify(allLoadedImages));
 
-      if (plotId) {
-        setDemoPlotId(plotId);
+      // Resolve initial active plot
+      let initialPlotId = "";
+      const firstRound = type14Rounds[0];
+      const type14Visit = type14Visits[0] || plan.demoPlotVisits?.[0];
+
+      if (firstRound?.demoPlotId && plotsMap.has(firstRound.demoPlotId)) {
+        initialPlotId = firstRound.demoPlotId;
+      } else if (type14Visit?.demoPlot?.id && plotsMap.has(type14Visit.demoPlot.id)) {
+        initialPlotId = type14Visit.demoPlot.id;
+      } else if (plan.demoPlot?.id && plotsMap.has(plan.demoPlot.id)) {
+        initialPlotId = plan.demoPlot.id;
+      } else if (plan.type14?.plots?.[0]?.demoPlotId && plotsMap.has(plan.type14.plots[0].demoPlotId)) {
+        initialPlotId = plan.type14.plots[0].demoPlotId;
+      } else if (resolvedPlots.length > 0) {
+        initialPlotId = resolvedPlots[0].id;
+      }
+
+      if (initialPlotId) {
+        setDemoPlotId(initialPlotId);
         const selectedPlotObj =
-          plotsMap.get(plotId) ||
-          resolvedPlots.find((p) => p.id === plotId);
-        handleSelectPlot(plotId, selectedPlotObj);
+          plotsMap.get(initialPlotId) ||
+          resolvedPlots.find((p) => p.id === initialPlotId);
+        if (selectedPlotObj) {
+          setDealerName(
+            selectedPlotObj.dealerName ||
+              selectedPlotObj.customer?.name ||
+              "",
+          );
+          setProvince(selectedPlotObj.province || "");
+          setDistrict(selectedPlotObj.district || "");
+        }
+        setLoadingPlotContext(true);
+        getHattackPlotContextAction(initialPlotId, plan.id)
+          .then((res) => {
+            if (res.success) {
+              if (res.plot) {
+                if (!selectedPlotObj?.dealerName && res.plot.dealerName) {
+                  setDealerName(res.plot.dealerName);
+                }
+                if (!selectedPlotObj?.province && res.plot.province) {
+                  setProvince(res.plot.province);
+                }
+                if (!selectedPlotObj?.district && res.plot.district) {
+                  setDistrict(res.plot.district);
+                }
+              }
+              setSprayHistory(res.sprayHistory || []);
+            }
+          })
+          .catch((err) => console.error("Failed to load plot context:", err))
+          .finally(() => setLoadingPlotContext(false));
       }
     },
-    [handleSelectPlot],
+    [],
   );
 
   // ── Upload Images ──
@@ -561,46 +685,53 @@ export function useType14ActualState() {
       planId: string,
       newlyUploadedUrls: string[],
     ): Promise<Type14ImageState[]> => {
-      const updatedRounds = await Promise.all(
-        rounds.map(async (round, idx) => {
-          if (!round.afterSprayImages || round.afterSprayImages.length === 0) {
-            return round;
-          }
-          const imagesToUpload: ImageFile[] = round.afterSprayImages.map(
-            (img) => ({
-              id: img.id,
-              url: img.url,
-              name: img.name || `type14-image-${img.id}`,
-              size: img.size,
-              type: img.type,
-              rawFile: img.file,
-            }),
-          );
-          const res = await uploadActivityPlanImageGroup(
-            planId,
-            imagesToUpload,
-            `type14-round-${round.roundNumber || idx + 1}`,
-            demoPlotId || "type14-plot",
-          );
-          newlyUploadedUrls.push(...res.newlyUploadedUrls);
-          return {
-            ...round,
-            afterSprayImages: res.updatedImages.map((img) => ({
-              id: img.id,
-              url: img.url,
-              name: img.name,
-              size: img.size,
-              type: img.type,
-              file: img.rawFile,
-            })),
-          };
-        }),
-      );
-      setRounds(updatedRounds);
-      const allImages = updatedRounds.flatMap((r) => r.afterSprayImages);
+      const currentMap = { ...plotRoundsMapRef.current };
+      const allImages: Type14ImageState[] = [];
+
+      for (const [pId, pRounds] of Object.entries(currentMap)) {
+        const updatedRounds = await Promise.all(
+          pRounds.map(async (round, idx) => {
+            if (!round.afterSprayImages || round.afterSprayImages.length === 0) {
+              return round;
+            }
+            const imagesToUpload: ImageFile[] = round.afterSprayImages.map(
+              (img) => ({
+                id: img.id,
+                url: img.url,
+                name: img.name || `type14-image-${img.id}`,
+                size: img.size,
+                type: img.type,
+                rawFile: img.file,
+              }),
+            );
+            const res = await uploadActivityPlanImageGroup(
+              planId,
+              imagesToUpload,
+              `type14-round-${round.roundNumber || idx + 1}`,
+              pId && pId !== "default" ? pId : demoPlotId || "type14-plot",
+            );
+            newlyUploadedUrls.push(...res.newlyUploadedUrls);
+            return {
+              ...round,
+              afterSprayImages: res.updatedImages.map((img) => ({
+                id: img.id,
+                url: img.url,
+                name: img.name,
+                size: img.size,
+                type: img.type,
+                file: img.rawFile,
+              })),
+            };
+          }),
+        );
+        currentMap[pId] = updatedRounds;
+        allImages.push(...updatedRounds.flatMap((r) => r.afterSprayImages));
+      }
+
+      setPlotRoundsMap(currentMap);
       return allImages;
     },
-    [rounds, demoPlotId],
+    [demoPlotId],
   );
 
   // Collect Old URLs to delete
@@ -617,7 +748,10 @@ export function useType14ActualState() {
       );
       const initialUrls = collectPermanentUrls(initialImages);
       const currentImages =
-        allCurrentImages || rounds.flatMap((r) => r.afterSprayImages);
+        allCurrentImages ||
+        Object.values(plotRoundsMapRef.current).flatMap((pRounds) =>
+          pRounds.flatMap((r) => r.afterSprayImages),
+        );
       const currentImageFiles: ImageFile[] = (currentImages || []).map(
         (img) => ({
           id: img.id,
@@ -630,78 +764,130 @@ export function useType14ActualState() {
       const currentUrls = new Set(collectPermanentUrls(currentImageFiles));
       return initialUrls.filter((u) => !currentUrls.has(u));
     },
-    [rounds],
+    [],
   );
 
   // Commit saved state to initial ref
   const commitSavedImages = useCallback(
     (savedImages?: Type14ImageState[]) => {
-      const imgs = savedImages || rounds.flatMap((r) => r.afterSprayImages);
+      const imgs =
+        savedImages ||
+        Object.values(plotRoundsMapRef.current).flatMap((pRounds) =>
+          pRounds.flatMap((r) => r.afterSprayImages),
+        );
       initialImagesRef.current = JSON.parse(JSON.stringify(imgs));
     },
-    [rounds],
+    [],
   );
 
-  // ── Build Payload for Submission ──
+  // ── Build Payload for Submission (ALL PLOTS) ──
   const buildType14ActualPayload = useCallback(
     (_cleanImages?: Type14ImageState[]) => {
-      const validationRes = validateType14Actual({ demoPlotId, rounds });
-      if (!validationRes.isValid) {
-        throw new Error(validationRes.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง");
+      const currentMap = plotRoundsMapRef.current;
+      const targetPlots =
+        availablePlots.length > 0
+          ? availablePlots
+          : demoPlotId
+            ? [{ id: demoPlotId, name: "แปลงแฮตแทค" }]
+            : [];
+
+      if (targetPlots.length === 0 && !demoPlotId) {
+        throw new Error("กรุณาเลือกแปลงที่ต้องการติดตาม");
       }
 
       const sprayRoundsPayload: any[] = [];
 
-      for (const round of rounds) {
-        const rNum = round.roundNumber;
-        if (!round.actualVisitDate) {
-          throw new Error(`กรุณาระบุวันที่ติดตามจริง ในรอบที่ ${rNum}`);
+      for (const plot of targetPlots) {
+        const plotId = plot.id;
+        const plotRounds = currentMap[plotId] || currentMap["default"] || [];
+        if (!hasPlotActualData(plotRounds)) {
+          continue;
         }
-        if (
-          round.daysAfterSpray === "" ||
-          isNaN(Number(round.daysAfterSpray)) ||
-          Number(round.daysAfterSpray) < 0
-        ) {
+
+        const validationRes = validateType14Actual({
+          demoPlotId: plotId,
+          rounds: plotRounds,
+        });
+        if (!validationRes.isValid) {
           throw new Error(
-            `กรุณาระบุจำนวนวันหลังฉีดพ่น (ตัวเลขตั้งแต่ 0 ขึ้นไป) ในรอบที่ ${rNum}`,
+            `แปลง "${plot.name || plotId}": ${validationRes.error || "ข้อมูลการติดตามไม่ถูกต้อง"}`,
           );
         }
-        if (!round.trackingResult || !round.trackingResult.trim()) {
-          throw new Error(`กรุณากรอกผลการติดตาม ในรอบที่ ${rNum}`);
+
+        for (const round of plotRounds) {
+          const rNum = round.roundNumber;
+          if (!round.actualVisitDate) {
+            throw new Error(
+              `แปลง "${plot.name}": กรุณาระบุวันที่ติดตามจริง ในรอบที่ ${rNum}`,
+            );
+          }
+          if (
+            round.daysAfterSpray === "" ||
+            isNaN(Number(round.daysAfterSpray)) ||
+            Number(round.daysAfterSpray) < 0
+          ) {
+            throw new Error(
+              `แปลง "${plot.name}": กรุณาระบุจำนวนวันหลังฉีดพ่น (ตัวเลขตั้งแต่ 0 ขึ้นไป) ในรอบที่ ${rNum}`,
+            );
+          }
+          if (!round.trackingResult || !round.trackingResult.trim()) {
+            throw new Error(
+              `แปลง "${plot.name}": กรุณากรอกผลการติดตาม ในรอบที่ ${rNum}`,
+            );
+          }
+
+          const roundProductsPayload = (round.products || [])
+            .filter((p) => p.productId && p.productId.trim() !== "")
+            .map((p) => ({
+              productId: p.productId,
+              productName: p.productName,
+              actualRate: p.actualRate || "-",
+              quantityUsed: Number(p.quantityUsed) || 0,
+              unit: p.unit,
+              detail: p.detail || null,
+            }));
+
+          const roundAttachments = (round.afterSprayImages || []).map(
+            (img) => ({
+              fileUrl: img.url,
+              fileName: img.name || `type14-round${rNum}-photo.jpg`,
+              fileSize: img.size || null,
+              mimeType: img.type || null,
+            }),
+          );
+
+          sprayRoundsPayload.push({
+            demoPlotId: plotId,
+            roundNumber: rNum,
+            sprayDate: new Date(round.actualVisitDate),
+            sprayMethod: "FOLLOW_UP",
+            sprayEquipment: "NONE",
+            productResponse: round.trackingResult.trim(),
+            daysSinceStart: Number(round.daysAfterSpray),
+            notes: round.additionalNotes
+              ? round.additionalNotes.trim()
+              : null,
+            workTypeCode: "TYPE_14",
+            products: roundProductsPayload,
+            externalProducts: [],
+            attachments: roundAttachments,
+          });
         }
+      }
 
-        const roundProductsPayload = (round.products || [])
-          .filter((p) => p.productId && p.productId.trim() !== "")
-          .map((p) => ({
-            productId: p.productId,
-            productName: p.productName,
-            actualRate: p.actualRate || "-",
-            quantityUsed: Number(p.quantityUsed) || 0,
-            unit: p.unit,
-            detail: p.detail || null,
-          }));
-
-        const roundAttachments = (round.afterSprayImages || []).map((img) => ({
-          fileUrl: img.url,
-          fileName: img.name || `type14-round${rNum}-photo.jpg`,
-          fileSize: img.size || null,
-          mimeType: img.type || null,
-        }));
-
-        sprayRoundsPayload.push({
-          demoPlotId,
-          roundNumber: rNum,
-          sprayDate: new Date(round.actualVisitDate),
-          sprayMethod: "FOLLOW_UP",
-          sprayEquipment: "NONE",
-          productResponse: round.trackingResult.trim(),
-          daysSinceStart: Number(round.daysAfterSpray),
-          notes: round.additionalNotes ? round.additionalNotes.trim() : null,
-          workTypeCode: "TYPE_14",
-          products: roundProductsPayload,
-          externalProducts: [],
-          attachments: roundAttachments,
-        });
+      if (sprayRoundsPayload.length === 0 && demoPlotId) {
+        const plotRounds = currentMap[demoPlotId] || currentMap["default"] || [];
+        if (hasPlotActualData(plotRounds)) {
+          const validationRes = validateType14Actual({
+            demoPlotId,
+            rounds: plotRounds,
+          });
+          if (!validationRes.isValid) {
+            throw new Error(
+              validationRes.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง",
+            );
+          }
+        }
       }
 
       return {
@@ -709,12 +895,13 @@ export function useType14ActualState() {
         attachments: [],
       };
     },
-    [demoPlotId, rounds],
+    [availablePlots, demoPlotId],
   );
 
   return {
     // Multi-round state & methods
     rounds,
+    plotRoundsMap,
     addSprayRound,
     removeSprayRound,
     updateRoundField,
@@ -741,18 +928,33 @@ export function useType14ActualState() {
     commitSavedImages,
     buildType14ActualPayload,
     validate: useCallback((): string | null => {
-      const res = validateType14Actual({ demoPlotId, rounds });
-      return res.isValid ? null : (res.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง");
-    }, [demoPlotId, rounds]),
+      const currentMap = plotRoundsMapRef.current;
+      const targetPlots =
+        availablePlots.length > 0
+          ? availablePlots
+          : demoPlotId
+            ? [{ id: demoPlotId, name: "แปลงแฮตแทค" }]
+            : [];
+      for (const p of targetPlots) {
+        const pRounds = currentMap[p.id] || currentMap["default"] || [];
+        if (!hasPlotActualData(pRounds)) continue;
+        const res = validateType14Actual({ demoPlotId: p.id, rounds: pRounds });
+        if (!res.isValid) {
+          return `แปลง "${p.name || p.id}": ${res.error || "ข้อมูลการติดตามแปลงไม่ถูกต้อง"}`;
+        }
+      }
+      return null;
+    }, [availablePlots, demoPlotId]),
 
     // Backwards-compatible aliases for single-round queries
     actualVisitDate: rounds[0]?.actualVisitDate || "",
     daysAfterSpray: rounds[0]?.daysAfterSpray || "",
     trackingResult: rounds[0]?.trackingResult || "",
     additionalNotes: rounds[0]?.additionalNotes || "",
-    afterSprayImages: rounds.flatMap((r) => r.afterSprayImages || []),
+    afterSprayImages: rounds.flatMap((r: Type14SprayRoundState) => r.afterSprayImages || []),
     products: rounds[0]?.products || [],
   };
 }
 
 export default useType14ActualState;
+

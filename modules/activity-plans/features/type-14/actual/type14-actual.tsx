@@ -112,6 +112,41 @@ export function Type14Actual({
         </div>
 
         <div className="space-y-3">
+          {actualState.availablePlots.length > 1 && (
+            <div className="flex flex-wrap gap-2 pb-1 border-b border-slate-100">
+              {actualState.availablePlots.map((p: any, idx: number) => {
+                const isSelected = actualState.demoPlotId === p.id;
+                return (
+                  <button
+                    key={p.id || idx}
+                    type="button"
+                    onClick={() => handleSelectPlotChange(p.id)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-1.5",
+                      isSelected
+                        ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                        : "bg-purple-50/60 text-purple-700 hover:bg-purple-100 border-purple-200/70",
+                    )}
+                  >
+                    <span>
+                      {p.name || `แปลงแฮตแทค #${p.code || p.id.slice(-4)}`}
+                    </span>
+                    {p.dealerName && (
+                      <span
+                        className={cn(
+                          "text-2xs opacity-80",
+                          isSelected ? "text-purple-100" : "text-purple-600",
+                        )}
+                      >
+                        ({p.dealerName})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               แปลงแฮตแทค <span className="text-rose-500">*</span>
@@ -297,7 +332,7 @@ export function Type14Actual({
           2. ผลการติดตามรายรอบ (Tracking Rounds)
       ───────────────────────────────────────────────────────────── */}
       <div className="space-y-6">
-        {actualState.rounds.map((round, rIdx) => (
+        {actualState.rounds.map((round: any, rIdx: number) => (
           <div
             key={round.id || rIdx}
             className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-5 shadow-xs"
@@ -423,7 +458,7 @@ export function Type14Actual({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {round.products.map((prod, pIdx) => (
+                      {round.products.map((prod: any, pIdx: number) => (
                         <tr key={pIdx} className="hover:bg-slate-50/50">
                           {/* สินค้า */}
                           <td className="py-2.5 px-3 align-top">
@@ -662,7 +697,7 @@ export function Type14Actual({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
-                  {round.afterSprayImages.map((img, imgIdx) => (
+                  {round.afterSprayImages.map((img: any, imgIdx: number) => (
                     <div
                       key={img.id || imgIdx}
                       className="group relative rounded-xl border border-slate-200 bg-slate-50 overflow-hidden aspect-square flex items-center justify-center shadow-2xs"

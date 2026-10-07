@@ -530,7 +530,98 @@ export default function ActivityPlanDetailView({
         })),
       })),
     };
-  }, [plan?.demoPlotVisits, plan?.province, plan?.district]);
+  }, [plan?.type14, plan?.demoPlotVisits, plan?.province, plan?.district]);
+
+  // All Type 14 Plots for multi-plot support
+  const type14Plots = useMemo(() => {
+    const t14 = plan?.type14;
+    if (t14?.plots && t14.plots.length > 0) {
+      return t14.plots.map((p: any, idx: number) => ({
+        id: p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`,
+        demoPlotId: p.demoPlotId || p.demoPlot?.id,
+        name:
+          p.plotName ||
+          p.name ||
+          p.demoPlot?.name ||
+          `แปลงแฮตแทค #${idx + 1}`,
+        storeId: p.dealerName || p.demoPlot?.customer?.name || "",
+        dealerName: p.dealerName || p.demoPlot?.customer?.name || "",
+        ownerName: p.ownerName || p.demoPlot?.ownerName || "",
+        cropCategory: p.cropCategory || p.demoPlot?.cropCategory || "",
+        cropName: p.cropName || p.demoPlot?.cropName || "",
+        province: p.province || p.demoPlot?.province || plan?.province || "",
+        district: p.district || p.demoPlot?.district || plan?.district || "",
+        latitude: p.latitude
+          ? String(p.latitude)
+          : p.demoPlot?.latitude
+            ? String(p.demoPlot.latitude)
+            : "",
+        longitude: p.longitude
+          ? String(p.longitude)
+          : p.demoPlot?.longitude
+            ? String(p.demoPlot.longitude)
+            : "",
+        mode: t14.mode || "EXISTING_PLOT",
+      }));
+    }
+    if (plan?.demoPlotVisits && plan.demoPlotVisits.length > 0) {
+      const seen = new Set<string>();
+      const visits = plan.demoPlotVisits.filter(
+        (v: any) =>
+          v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
+      );
+      const list: any[] = [];
+      visits.forEach((v: any, idx: number) => {
+        const pId = v.demoPlot?.id || v.demoPlotId;
+        if (pId && !seen.has(pId)) {
+          seen.add(pId);
+          list.push({
+            id: pId,
+            demoPlotId: pId,
+            name: v.demoPlot?.name || `แปลงแฮตแทค #${idx + 1}`,
+            storeId:
+              v.demoPlot?.customer?.name || v.demoPlot?.dealerName || "",
+            dealerName:
+              v.demoPlot?.customer?.name || v.demoPlot?.dealerName || "",
+            ownerName: v.demoPlot?.ownerName || "",
+            cropCategory: v.demoPlot?.cropCategory || "",
+            cropName: v.demoPlot?.cropName || "",
+            province: v.demoPlot?.province || plan?.province || "",
+            district: v.demoPlot?.district || plan?.district || "",
+            latitude: v.demoPlot?.latitude ? String(v.demoPlot.latitude) : "",
+            longitude: v.demoPlot?.longitude
+              ? String(v.demoPlot.longitude)
+              : "",
+            mode: "EXISTING_PLOT",
+          });
+        }
+      });
+      if (list.length > 0) return list;
+    }
+    const planAny = plan as any;
+    if (planAny?.demoPlot) {
+      return [
+        {
+          id: planAny.demoPlot.id,
+          demoPlotId: planAny.demoPlot.id,
+          name: planAny.demoPlot.name || "แปลงแฮตแทค",
+          storeId: planAny.demoPlot.customer?.name || "",
+          dealerName: planAny.demoPlot.customer?.name || "",
+          ownerName: planAny.demoPlot.ownerName || "",
+          cropCategory: planAny.demoPlot.cropCategory || "",
+          cropName: planAny.demoPlot.cropName || "",
+          province: planAny.demoPlot.province || plan?.province || "",
+          district: planAny.demoPlot.district || plan?.district || "",
+          latitude: planAny.demoPlot.latitude ? String(planAny.demoPlot.latitude) : "",
+          longitude: planAny.demoPlot.longitude
+            ? String(planAny.demoPlot.longitude)
+            : "",
+          mode: "EXISTING_PLOT",
+        },
+      ];
+    }
+    return [];
+  }, [plan]);
 
   const handleBack = () => {
     if (onBack) {
@@ -982,16 +1073,18 @@ export default function ActivityPlanDetailView({
           )}
 
           {/* TYPE_14: ติดตามแปลงแฮทแทค */}
-          {isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") && type14Data && (
-            <Type14Detail
-              data={type14Data}
-              planSummary={{
-                province: plan.province,
-                district: plan.district,
-              }}
-              plan={plan}
-            />
-          )}
+          {isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") &&
+            (type14Data || type14Plots.length > 0) && (
+              <Type14Detail
+                data={type14Data || undefined}
+                plots={type14Plots}
+                planSummary={{
+                  province: plan.province,
+                  district: plan.district,
+                }}
+                plan={plan}
+              />
+            )}
         </div>
 
         {/* Card 5: สถานที่จัดงาน */}

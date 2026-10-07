@@ -45,7 +45,13 @@ function formatThaiDate(d?: string | Date | null): string {
   }
 }
 
-export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
+export function Type14Detail({
+  data,
+  plots,
+  planSummary,
+  plan,
+}: Type14DetailProps) {
+  const [activePlotIdx, setActivePlotIdx] = useState(0);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Expand / Collapse state per round (Default is Collapse)
@@ -57,17 +63,78 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   const [sprayHistory, setSprayHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const demoPlotId =
+  // Resolve all available plots
+  const resolvedPlots: any[] = useMemo(() => {
+    if (plots && plots.length > 0) return plots;
+    if (plan?.type14?.plots && plan.type14.plots.length > 0) {
+      return plan.type14.plots.map((p: any, idx: number) => ({
+        id: p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`,
+        demoPlotId: p.demoPlotId || p.demoPlot?.id,
+        name:
+          p.plotName ||
+          p.name ||
+          p.demoPlot?.name ||
+          `แปลงแฮตแทค #${idx + 1}`,
+        storeId: p.dealerName || p.demoPlot?.customer?.name || "",
+        dealerName: p.dealerName || p.demoPlot?.customer?.name || "",
+        ownerName: p.ownerName || p.demoPlot?.ownerName || "",
+        cropCategory: p.cropCategory || p.demoPlot?.cropCategory || "",
+        cropName: p.cropName || p.demoPlot?.cropName || "",
+        province: p.province || p.demoPlot?.province || plan?.province || "",
+        district: p.district || p.demoPlot?.district || plan?.district || "",
+        latitude: p.latitude
+          ? String(p.latitude)
+          : p.demoPlot?.latitude
+            ? String(p.demoPlot.latitude)
+            : "",
+        longitude: p.longitude
+          ? String(p.longitude)
+          : p.demoPlot?.longitude
+            ? String(p.demoPlot.longitude)
+            : "",
+        mode: plan.type14?.mode || "EXISTING_PLOT",
+      }));
+    }
+    if (data) {
+      return [data];
+    }
+    if (plan?.demoPlot) {
+      return [
+        {
+          id: plan.demoPlot.id,
+          demoPlotId: plan.demoPlot.id,
+          name: plan.demoPlot.name || "แปลงแฮตแทค",
+          storeId: plan.demoPlot.customer?.name || "",
+          dealerName: plan.demoPlot.customer?.name || "",
+          ownerName: plan.demoPlot.ownerName || "",
+          province: plan.demoPlot.province || plan?.province || "",
+          district: plan.demoPlot.district || plan?.district || "",
+          latitude: plan.demoPlot.latitude ? String(plan.demoPlot.latitude) : "",
+          longitude: plan.demoPlot.longitude
+            ? String(plan.demoPlot.longitude)
+            : "",
+          mode: "EXISTING_PLOT",
+        },
+      ];
+    }
+    return [];
+  }, [plots, plan, data]);
+
+  const currentPlot = resolvedPlots[activePlotIdx] || resolvedPlots[0] || data;
+
+  const currentDemoPlotId =
+    currentPlot?.demoPlotId ||
+    currentPlot?.id ||
     data?.demoPlotId ||
     plan?.demoPlot?.id ||
     plan?.demoPlotVisits?.[0]?.demoPlotId;
 
-  // Load Historical Spray History (Reference from TYPE13)
+  // Load Historical Spray History (Reference from TYPE13) for current active plot
   useEffect(() => {
-    if (!demoPlotId) return;
+    if (!currentDemoPlotId) return;
     let active = true;
     setLoadingHistory(true);
-    getHattackPlotContextAction(demoPlotId, plan?.id)
+    getHattackPlotContextAction(currentDemoPlotId, plan?.id)
       .then((res) => {
         if (active && res.success && res.sprayHistory) {
           setSprayHistory(res.sprayHistory);
@@ -82,19 +149,33 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
     return () => {
       active = false;
     };
-  }, [demoPlotId, plan?.id]);
+  }, [currentDemoPlotId, plan?.id]);
 
-  // Extract Actual Follow-Up Rounds
+  // Extract Actual Follow-Up Rounds for current active plot
   const actualRounds: FormattedFollowUpRound[] = useMemo(() => {
     const rawRounds = (plan?.result?.sprayRounds || [])
-      .filter((r: any) => r.workTypeCode === "TYPE_14" || !r.workTypeCode)
+      .filter(
+        (r: any) =>
+          (r.workTypeCode === "TYPE_14" || !r.workTypeCode) &&
+          (!r.demoPlotId ||
+            resolvedPlots.length <= 1 ||
+            r.demoPlotId === currentDemoPlotId ||
+            (currentPlot?.demoPlotId &&
+              r.demoPlotId === currentPlot.demoPlotId) ||
+            r.demoPlotId === currentPlot?.id),
+      )
       .sort((a: any, b: any) => (a.roundNumber || 1) - (b.roundNumber || 1));
 
     if (rawRounds.length > 0) {
       return rawRounds.map((r: any, idx: number) => {
         const rNum = r.roundNumber || idx + 1;
         const matchingVisit = (plan?.demoPlotVisits || []).find(
-          (v: any) => v.visitNumber === rNum,
+          (v: any) =>
+            v.visitNumber === rNum &&
+            (!v.demoPlotId ||
+              resolvedPlots.length <= 1 ||
+              v.demoPlotId === currentDemoPlotId ||
+              v.demoPlotId === currentPlot?.id),
         );
 
         const daysSinceStart =
@@ -121,7 +202,11 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
             ? (plan?.result?.attachments || []).filter(
                 (a: any) =>
                   a.workTypeCode === "TYPE_14" &&
-                  (!a.sprayRoundId || a.sprayRoundId === r.id),
+                  (!a.sprayRoundId || a.sprayRoundId === r.id) &&
+                  (!a.demoPlotId ||
+                    resolvedPlots.length <= 1 ||
+                    a.demoPlotId === currentDemoPlotId ||
+                    a.demoPlotId === currentPlot?.id),
               )
             : []),
         ];
@@ -140,8 +225,8 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
       });
     }
 
-    if (data?.trackings && data.trackings.length > 0) {
-      return data.trackings.map((t: any, idx: number) => ({
+    if (currentPlot?.trackings && currentPlot.trackings.length > 0) {
+      return currentPlot.trackings.map((t: any, idx: number) => ({
         id: t.id,
         roundNumber: idx + 1,
         visitDate: t.visitDate,
@@ -158,10 +243,12 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
     plan?.result?.sprayRounds,
     plan?.result?.attachments,
     plan?.demoPlotVisits,
-    data?.trackings,
+    currentPlot,
+    currentDemoPlotId,
+    resolvedPlots.length,
   ]);
 
-  if (!data) {
+  if (!currentPlot && !data) {
     return (
       <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
         ไม่มีข้อมูลการติดตามแปลงแฮตแทค
@@ -169,7 +256,9 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
     );
   }
 
-  const hasCoords = Boolean(data.latitude?.trim() && data.longitude?.trim());
+  const hasCoords = Boolean(
+    currentPlot?.latitude?.trim() && currentPlot?.longitude?.trim(),
+  );
 
   const toggleRound = (roundNumber: number) => {
     setExpandedRounds((prev) => ({
@@ -200,8 +289,13 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
             14
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 text-sm sm:text-base">
-              ติดตามแปลงแฮทแทค (TYPE_14)
+            <h4 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+              <span>ติดตามแปลงแฮทแทค (TYPE_14)</span>
+              {resolvedPlots.length > 1 && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-800">
+                  ทั้งหมด {resolvedPlots.length} แปลง
+                </span>
+              )}
             </h4>
             <p className="text-xs text-slate-500">
               รายละเอียดแปลงแฮตแทคและประวัติการตรวจติดตามผลจริง
@@ -213,11 +307,43 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           variant="outline"
           className="text-xs px-2.5 py-1 font-semibold rounded-lg bg-purple-50 text-purple-700 border-purple-200 self-start sm:self-auto"
         >
-          {data.mode === "EXISTING_PLOT"
+          {currentPlot?.mode === "EXISTING_PLOT"
             ? "แปลงเดิม (Existing Plot)"
             : "แปลงใหม่ (New Plot)"}
         </Badge>
       </div>
+
+      {/* Plot Tabs (if multiple plots) */}
+      {resolvedPlots.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {resolvedPlots.map((plot: any, pIdx: number) => {
+            const isActive = pIdx === activePlotIdx;
+            return (
+              <button
+                key={plot.id || pIdx}
+                type="button"
+                onClick={() => setActivePlotIdx(pIdx)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 border ${
+                  isActive
+                    ? "bg-purple-600 text-white border-purple-600 shadow-xs"
+                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>{plot.name || `แปลงที่ ${pIdx + 1}`}</span>
+                {plot.dealerName && (
+                  <span
+                    className={`text-[10px] ${
+                      isActive ? "text-purple-200" : "text-slate-400"
+                    }`}
+                  >
+                    ({plot.dealerName})
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Plot Overview Card */}
       <div className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3">
@@ -225,13 +351,13 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-purple-600" />
             <h5 className="font-bold text-sm text-slate-800">
-              {data.name || "แปลงแฮตแทค"}
+              {currentPlot?.name || "แปลงแฮตแทค"}
             </h5>
           </div>
 
           {hasCoords && (
             <a
-              href={`https://www.google.com/maps?q=${data.latitude},${data.longitude}`}
+              href={`https://www.google.com/maps?q=${currentPlot.latitude},${currentPlot.longitude}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-semibold px-2 py-1 rounded-lg hover:bg-purple-50 transition-colors"
@@ -250,7 +376,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
               ร้านค้าตัวแทนจำหน่าย (Dealer):
             </span>
             <span className="font-bold text-slate-800 truncate block">
-              {data.storeId || "-"}
+              {currentPlot?.storeId || currentPlot?.dealerName || "-"}
             </span>
           </div>
 
@@ -261,7 +387,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
               เกษตรกรเจ้าของแปลง:
             </span>
             <span className="font-bold text-slate-800 truncate block">
-              {data.ownerName || "-"}
+              {currentPlot?.ownerName || "-"}
             </span>
           </div>
 
@@ -272,8 +398,8 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
               พื้นที่ (อำเภอ, จังหวัด):
             </span>
             <span className="font-bold text-slate-800 truncate block">
-              {data.district || planSummary?.district || "-"},{" "}
-              {data.province || planSummary?.province || "-"}
+              {currentPlot?.district || planSummary?.district || "-"},{" "}
+              {currentPlot?.province || planSummary?.province || "-"}
             </span>
           </div>
 
@@ -285,7 +411,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
             </span>
             <span className="font-bold text-purple-700 truncate block">
               {hasCoords
-                ? `${data.latitude}, ${data.longitude}`
+                ? `${currentPlot.latitude}, ${currentPlot.longitude}`
                 : "ยังไม่ได้ระบุพิกัด"}
             </span>
           </div>
@@ -315,7 +441,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           )}
         </div>
 
-        {!demoPlotId ? (
+        {!currentDemoPlotId ? (
           <p className="text-xs text-slate-400 italic py-1">
             ไม่มีข้อมูลแปลงเพื่อแสดงประวัติการฉีดพ่นจริง
           </p>
