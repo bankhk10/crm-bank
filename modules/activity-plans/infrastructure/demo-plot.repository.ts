@@ -222,7 +222,7 @@ export async function recordDemoPlotVisit(data: {
         imageUrls: data.imageUrls || data.plotImageUrls || [],
         productUsedQty:
           data.productUsedQty != null
-            ? new Prisma.Decimal(data.productUsedQty)
+            ? Math.round(Number(data.productUsedQty))
             : null,
         productUnitPrice:
           data.productUnitPrice != null
