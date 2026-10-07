@@ -186,13 +186,7 @@ export function Type14Actual({
             <div>
               <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
                 <span>ประวัติการฉีดพ่นจริง</span>
-                <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  Read-Only (ประวัติย้อนหลัง)
-                </span>
               </h4>
-              <p className="text-2xs text-slate-500">
-                ข้อมูลผลการฉีดพ่นจริงจากกิจกรรมก่อนหน้าของแปลงนี้ (อ้างอิงเพื่อการติดตามผล)
-              </p>
             </div>
           </div>
 
@@ -272,13 +266,17 @@ export function Type14Actual({
                             <div className="mt-1 pt-1 border-t border-slate-100 text-2xs text-slate-500 space-y-0.5">
                               {p.actualRate && (
                                 <div>
-                                  <span className="text-slate-400">อัตรา: </span>
+                                  <span className="text-slate-400">
+                                    อัตรา:{" "}
+                                  </span>
                                   {p.actualRate}
                                 </div>
                               )}
                               {p.detail && (
                                 <div>
-                                  <span className="text-slate-400">รายละเอียด: </span>
+                                  <span className="text-slate-400">
+                                    รายละเอียด:{" "}
+                                  </span>
                                   {p.detail}
                                 </div>
                               )}
@@ -351,7 +349,8 @@ export function Type14Actual({
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 block">
-                  จำนวนวันหลังฉีดพ่น (วัน) <span className="text-rose-500">*</span>
+                  จำนวนวันหลังฉีดพ่น (วัน){" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   type="number"
@@ -397,7 +396,8 @@ export function Type14Actual({
 
               {round.products.length === 0 ? (
                 <div className="p-4 rounded-lg bg-white text-center text-xs text-slate-400 border border-dashed border-slate-200">
-                  ไม่มีรายการยาที่ใช้ในรอบนี้ (คลิกปุ่ม &quot;+ เพิ่มสินค้า&quot; หากมีการใช้ยาเพิ่มเติม)
+                  ไม่มีรายการยาที่ใช้ในรอบนี้ (คลิกปุ่ม &quot;+
+                  เพิ่มสินค้า&quot; หากมีการใช้ยาเพิ่มเติม)
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
@@ -408,14 +408,17 @@ export function Type14Actual({
                           สินค้า <span className="text-red-500">*</span>
                         </th>
                         <th className="py-2.5 px-3 w-[20%]">
-                          จำนวนที่ใช้จริง <span className="text-red-500">*</span>
+                          จำนวนที่ใช้จริง{" "}
+                          <span className="text-red-500">*</span>
                         </th>
                         <th className="py-2.5 px-3 w-[20%]">
                           อัตราการใช้ <span className="text-red-500">*</span>
                         </th>
                         <th className="py-2.5 px-3 w-[20%]">รายละเอียด</th>
                         {!readonly && (
-                          <th className="py-2.5 px-3 w-[5%] text-center">จัดการ</th>
+                          <th className="py-2.5 px-3 w-[5%] text-center">
+                            จัดการ
+                          </th>
                         )}
                       </tr>
                     </thead>
@@ -434,12 +437,29 @@ export function Type14Actual({
                                 label=""
                                 value={prod.productId || ""}
                                 onChange={(val) => {
-                                  const selected = products.find((p) => p.id === val);
-                                  actualState.updateRoundProduct(rIdx, pIdx, "productId", val);
+                                  const selected = products.find(
+                                    (p) => p.id === val,
+                                  );
+                                  actualState.updateRoundProduct(
+                                    rIdx,
+                                    pIdx,
+                                    "productId",
+                                    val,
+                                  );
                                   if (selected) {
-                                    actualState.updateRoundProduct(rIdx, pIdx, "productName", selected.name);
+                                    actualState.updateRoundProduct(
+                                      rIdx,
+                                      pIdx,
+                                      "productName",
+                                      selected.name,
+                                    );
                                     if (selected.unit) {
-                                      actualState.updateRoundProduct(rIdx, pIdx, "unit", selected.unit);
+                                      actualState.updateRoundProduct(
+                                        rIdx,
+                                        pIdx,
+                                        "unit",
+                                        selected.unit,
+                                      );
                                     }
                                   }
                                 }}
@@ -524,7 +544,9 @@ export function Type14Actual({
                             <td className="py-2.5 px-3 align-top text-center">
                               <button
                                 type="button"
-                                onClick={() => actualState.removeRoundProduct(rIdx, pIdx)}
+                                onClick={() =>
+                                  actualState.removeRoundProduct(rIdx, pIdx)
+                                }
                                 className="text-slate-400 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition-colors"
                                 title="ลบสินค้ารายการนี้"
                               >

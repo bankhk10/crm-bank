@@ -49,7 +49,9 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Expand / Collapse state per round (Default is Collapse)
-  const [expandedRounds, setExpandedRounds] = useState<Record<number, boolean>>({});
+  const [expandedRounds, setExpandedRounds] = useState<Record<number, boolean>>(
+    {},
+  );
 
   // Historical spray history for this demo plot (Read-Only Reference from TYPE13)
   const [sprayHistory, setSprayHistory] = useState<any[]>([]);
@@ -98,7 +100,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
         const daysSinceStart =
           r.daysSinceStart != null
             ? r.daysSinceStart
-            : matchingVisit?.daysSinceStart ?? 0;
+            : (matchingVisit?.daysSinceStart ?? 0);
 
         const rawProducts: any[] = r.products || [];
         const productsList: FormattedProduct[] = rawProducts.map((p: any) => ({
@@ -302,13 +304,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
             <div>
               <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
                 <span>ประวัติการฉีดพ่นจริง</span>
-                <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  Read-Only (ประวัติย้อนหลัง)
-                </span>
               </h5>
-              <p className="text-2xs text-slate-500">
-                ข้อมูลผลการฉีดพ่นจริงจากกิจกรรมก่อนหน้าของแปลงนี้ (อ้างอิงเพื่อการติดตามผล)
-              </p>
             </div>
           </div>
           {loadingHistory && (
@@ -556,7 +552,9 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
                             <table className="w-full text-xs">
                               <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
                                 <tr>
-                                  <th className="py-2 px-3 text-left">สินค้า</th>
+                                  <th className="py-2 px-3 text-left">
+                                    สินค้า
+                                  </th>
                                   <th className="py-2 px-3 text-center w-32">
                                     ใช้จริงในรอบนี้
                                   </th>
@@ -628,7 +626,10 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
                               >
                                 <img
                                   src={att.fileUrl}
-                                  alt={att.fileName || `round-${round.roundNumber}-photo-${aIdx + 1}`}
+                                  alt={
+                                    att.fileName ||
+                                    `round-${round.roundNumber}-photo-${aIdx + 1}`
+                                  }
                                   className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200"
                                 />
                                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
