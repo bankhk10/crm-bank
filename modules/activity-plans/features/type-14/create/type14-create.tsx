@@ -81,13 +81,15 @@ export function Type14Create({
 
   // Current selected plot IDs (multi-select)
   const selectedPlotIds: string[] = useMemo(() => {
+    let ids: string[] = [];
     if (value.selectedPlotIds && value.selectedPlotIds.length > 0) {
-      return value.selectedPlotIds;
+      ids = value.selectedPlotIds;
+    } else if (value.demoPlotIds && value.demoPlotIds.length > 0) {
+      ids = value.demoPlotIds;
+    } else if (value.demoPlotId) {
+      ids = [value.demoPlotId];
     }
-    if (value.demoPlotIds && value.demoPlotIds.length > 0) {
-      return value.demoPlotIds;
-    }
-    return value.demoPlotId ? [value.demoPlotId] : [];
+    return Array.from(new Set(ids.filter(Boolean)));
   }, [value.selectedPlotIds, value.demoPlotIds, value.demoPlotId]);
 
   // Auto-hydrate selectedPlanId if demoPlotId or selectedPlotIds are provided from saved data
@@ -313,7 +315,7 @@ export function Type14Create({
     if (selectedPlotIds.includes(plotId)) {
       updated = selectedPlotIds.filter((id) => id !== plotId);
     } else {
-      updated = [...selectedPlotIds, plotId];
+      updated = Array.from(new Set([...selectedPlotIds, plotId]));
     }
     syncPlotData(updated[0] || "", updated);
   };
@@ -321,7 +323,7 @@ export function Type14Create({
   // Select all plots in current plan
   const handleSelectAllPlots = () => {
     if (!selectedPlan) return;
-    const allIds = selectedPlan.plots.map((p) => p.id);
+    const allIds = Array.from(new Set(selectedPlan.plots.map((p) => p.id)));
     syncPlotData(allIds[0] || "", allIds);
   };
 

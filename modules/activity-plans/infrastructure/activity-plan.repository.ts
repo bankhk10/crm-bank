@@ -805,6 +805,8 @@ export type CreateActivityPlanInput = {
   type14Data?: {
     mode: "EXISTING_PLOT" | "NEW_PLOT";
     demoPlotId?: string | null;
+    demoPlotIds?: string[] | null;
+    selectedPlotIds?: string[] | null;
     name: string;
     storeId: string;
     ownerName?: string | null;
@@ -1292,16 +1294,37 @@ export async function createActivityPlan(
                 }
               }
             } else {
-              await tx.demoPlotVisit.create({
-                data: {
-                  demoPlotId: targetPlotId,
-                  activityPlanId: plan.id,
-                  workTypeCode: "TYPE_14",
-                  visitNumber: 1,
-                  visitDate: input.startDate,
-                  daysSinceStart: 0,
-                },
-              });
+              // Only create demoPlotVisit if it wasn't already handled by the general demoPlotVisits block above
+              const isAlreadyCreated =
+                ((input.demoPlotIds && input.demoPlotIds.length > 0) ||
+                  input.demoPlotId) &&
+                !(input.type13Plots && input.type13Plots.length > 0) &&
+                (workTypeCodes.includes("TYPE_14") || primaryCode === "TYPE_14");
+
+              if (!isAlreadyCreated) {
+                const plotsToCreate =
+                  t14.demoPlotIds && t14.demoPlotIds.length > 0
+                    ? t14.demoPlotIds
+                    : [targetPlotId];
+                for (const pid of plotsToCreate) {
+                  const existingPlot = await tx.demoPlot.findUnique({
+                    where: { id: pid },
+                    select: { id: true },
+                  });
+                  if (existingPlot) {
+                    await tx.demoPlotVisit.create({
+                      data: {
+                        demoPlotId: existingPlot.id,
+                        activityPlanId: plan.id,
+                        workTypeCode: "TYPE_14",
+                        visitNumber: 1,
+                        visitDate: input.startDate,
+                        daysSinceStart: 0,
+                      },
+                    });
+                  }
+                }
+              }
             }
           }
         }
@@ -2028,52 +2051,73 @@ export async function updateActivityPlan(
           targetPlotId = newPlot.id;
         }
 
-        await tx.demoPlotVisit.deleteMany({
-          where: { activityPlanId: id, workTypeCode: "TYPE_14" },
-        });
+        const hasTrackings = Boolean(t14.trackings && t14.trackings.length > 0);
+        const alreadySyncedInGeneralSection =
+          (demoPlotId !== undefined || demoPlotIds !== undefined) && !hasTrackings;
 
-        if (targetPlotId && t14.trackings && t14.trackings.length > 0) {
-          for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
-            const tracking = t14.trackings[tIdx];
-            const visit = await tx.demoPlotVisit.create({
-              data: {
-                demoPlotId: targetPlotId,
-                activityPlanId: id,
-                workTypeCode: "TYPE_14",
-                visitNumber: tIdx + 1,
-                visitDate: new Date(tracking.visitDate),
-                daysSinceStart: Number(tracking.daysSinceStart) || 0,
-                notes: tracking.notes ?? null,
-              },
-            });
+        if (!alreadySyncedInGeneralSection) {
+          await tx.demoPlotVisit.deleteMany({
+            where: { activityPlanId: id, workTypeCode: "TYPE_14" },
+          });
 
-            if (tracking.attachments && tracking.attachments.length > 0) {
-              await tx.activityAttachment.createMany({
-                data: tracking.attachments.slice(0, 5).map((att) => ({
-                  activityPlanId: id,
+          if (targetPlotId && hasTrackings) {
+            for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
+              const tracking = t14.trackings[tIdx];
+              const visit = await tx.demoPlotVisit.create({
+                data: {
                   demoPlotId: targetPlotId,
-                  demoPlotVisitId: visit.id,
+                  activityPlanId: id,
                   workTypeCode: "TYPE_14",
-                  category: AttachmentCategory.PLOT,
-                  fileUrl: att.fileUrl,
-                  fileName: att.fileName || "hattack-result-photo.jpg",
-                  fileSize: att.fileSize ?? null,
-                  mimeType: att.mimeType ?? null,
-                })),
+                  visitNumber: tIdx + 1,
+                  visitDate: new Date(tracking.visitDate),
+                  daysSinceStart: Number(tracking.daysSinceStart) || 0,
+                  notes: tracking.notes ?? null,
+                },
               });
+
+              if (tracking.attachments && tracking.attachments.length > 0) {
+                await tx.activityAttachment.createMany({
+                  data: tracking.attachments.slice(0, 5).map((att) => ({
+                    activityPlanId: id,
+                    demoPlotId: targetPlotId,
+                    demoPlotVisitId: visit.id,
+                    workTypeCode: "TYPE_14",
+                    category: AttachmentCategory.PLOT,
+                    fileUrl: att.fileUrl,
+                    fileName: att.fileName || "hattack-result-photo.jpg",
+                    fileSize: att.fileSize ?? null,
+                    mimeType: att.mimeType ?? null,
+                  })),
+                });
+              }
+            }
+          } else {
+            const plotIdsToSync =
+              t14.demoPlotIds && t14.demoPlotIds.length > 0
+                ? t14.demoPlotIds
+                : targetPlotId
+                  ? [targetPlotId]
+                  : [];
+
+            for (const pid of plotIdsToSync) {
+              const existingPlot = await tx.demoPlot.findUnique({
+                where: { id: pid },
+                select: { id: true },
+              });
+              if (existingPlot) {
+                await tx.demoPlotVisit.create({
+                  data: {
+                    demoPlotId: existingPlot.id,
+                    activityPlanId: id,
+                    workTypeCode: "TYPE_14",
+                    visitNumber: 1,
+                    visitDate: updatedPlan.startDate,
+                    daysSinceStart: 0,
+                  },
+                });
+              }
             }
           }
-        } else if (targetPlotId) {
-          await tx.demoPlotVisit.create({
-            data: {
-              demoPlotId: targetPlotId,
-              activityPlanId: id,
-              workTypeCode: "TYPE_14",
-              visitNumber: 1,
-              visitDate: updatedPlan.startDate,
-              daysSinceStart: 0,
-            },
-          });
         }
       }
     }

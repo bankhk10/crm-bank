@@ -87,9 +87,10 @@ function resolveInitialType14Data(
     initial?.demoPlotId ||
     null;
 
-  const initialPlotIds: string[] = t14Visits.length > 0
+  const rawInitialPlotIds: string[] = t14Visits.length > 0
     ? t14Visits.map((v: any) => v.demoPlotId).filter(Boolean)
     : [resolvedPlotId].filter(Boolean);
+  const initialPlotIds: string[] = Array.from(new Set(rawInitialPlotIds));
 
   const matchedPlan = (fetchedHattackPlansWithPlots || []).find((plan) =>
     plan.plots.some(
@@ -110,8 +111,12 @@ function resolveInitialType14Data(
       selectedPlanId:
         initial?.type14Data?.selectedPlanId || matchedPlan?.planId || null,
       demoPlotId: primaryPlotId,
-      selectedPlotIds: initial?.type14Data?.selectedPlotIds || initialPlotIds,
-      demoPlotIds: initial?.type14Data?.demoPlotIds || initialPlotIds,
+      selectedPlotIds: Array.from(
+        new Set(initial?.type14Data?.selectedPlotIds || initialPlotIds),
+      ),
+      demoPlotIds: Array.from(
+        new Set(initial?.type14Data?.demoPlotIds || initialPlotIds),
+      ),
       name: plot?.name || matchedPlotItem?.name || "แปลงแฮตแทค",
       storeId:
         plot?.customerId ||
