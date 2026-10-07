@@ -22,13 +22,32 @@ export type {
 };
 export { validateType14Actual };
 
+function formatToYMD(d?: string | Date | null): string {
+  if (!d) return "";
+  if (typeof d === "string") {
+    const trimmed = d.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    if (trimmed.includes("T")) {
+      return trimmed.split("T")[0];
+    }
+  }
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function createDefaultRound(
   roundNumber: number,
   initialProducts: any[] = [],
 ): Type14SprayRoundState {
   return {
     roundNumber,
-    actualVisitDate: new Date().toISOString().split("T")[0],
+    actualVisitDate: formatToYMD(new Date()),
     daysAfterSpray: "",
     trackingResult: "",
     additionalNotes: "",
@@ -292,21 +311,71 @@ export function useType14ActualState() {
           customer: plan.demoPlot.customer,
         });
       }
+      (plan.type14?.plots || plan.type14Plots || []).forEach((tp: any) => {
+        if (tp.demoPlot) {
+          plotsMap.set(tp.demoPlot.id, {
+            id: tp.demoPlot.id,
+            code: tp.demoPlot.code,
+            name: tp.demoPlot.name,
+            dealerName:
+              tp.demoPlot.customer?.name || tp.demoPlot.dealerName || tp.dealerName || "",
+            province: tp.demoPlot.province || tp.province || "",
+            district: tp.demoPlot.district || tp.district || "",
+            customer: tp.demoPlot.customer,
+          });
+        } else if (tp.demoPlotId) {
+          plotsMap.set(tp.demoPlotId, {
+            id: tp.demoPlotId,
+            code: tp.code || "",
+            name: tp.plotName || tp.name || "แปลงแฮตแทค",
+            dealerName: tp.dealerName || "",
+            province: tp.province || "",
+            district: tp.district || "",
+          });
+        }
+      });
+      (
+        plan.result?.sprayRounds ||
+        plan.activityResult?.sprayRounds ||
+        parsedResult?.sprayRounds ||
+        []
+      ).forEach((r: any) => {
+        if (r.demoPlot) {
+          plotsMap.set(r.demoPlot.id, {
+            id: r.demoPlot.id,
+            code: r.demoPlot.code,
+            name: r.demoPlot.name,
+            dealerName:
+              r.demoPlot.customer?.name || r.demoPlot.dealerName || "",
+            province: r.demoPlot.province || "",
+            district: r.demoPlot.district || "",
+            customer: r.demoPlot.customer,
+          });
+        }
+      });
       const resolvedPlots = Array.from(plotsMap.values());
       setAvailablePlots(resolvedPlots);
 
       // 2. Existing Result & Multiple Spray Rounds
-      const resultObj = plan?.result || parsedResult;
+      const resultObj =
+        plan?.result ||
+        plan?.activityResult ||
+        plan?.details?.activityResult ||
+        parsedResult;
       const rawRounds =
-        plan?.result?.sprayRounds &&
-        Array.isArray(plan.result.sprayRounds) &&
-        plan.result.sprayRounds.length > 0
-          ? plan.result.sprayRounds
-          : parsedResult?.sprayRounds &&
-              Array.isArray(parsedResult.sprayRounds) &&
-              parsedResult.sprayRounds.length > 0
-            ? parsedResult.sprayRounds
-            : [];
+        resultObj?.sprayRounds &&
+        Array.isArray(resultObj.sprayRounds) &&
+        resultObj.sprayRounds.length > 0
+          ? resultObj.sprayRounds
+          : plan?.sprayRounds &&
+              Array.isArray(plan.sprayRounds) &&
+              plan.sprayRounds.length > 0
+            ? plan.sprayRounds
+            : parsedResult?.sprayRounds &&
+                Array.isArray(parsedResult.sprayRounds) &&
+                parsedResult.sprayRounds.length > 0
+              ? parsedResult.sprayRounds
+              : [];
 
       const allResultRounds = rawRounds.filter(
         (r: any) => !r.workTypeCode || r.workTypeCode === "TYPE_14",
@@ -317,18 +386,20 @@ export function useType14ActualState() {
 
       // Resolve demoPlotId
       const firstRound = type14Rounds[0];
-      const type14Visit =
-        (plan.demoPlotVisits || []).find(
-          (v: any) => v.workTypeCode === "TYPE_14",
-        ) || plan.demoPlotVisits?.[0];
+      const type14Visits = (plan.demoPlotVisits || [])
+        .filter((v: any) => !v.workTypeCode || v.workTypeCode === "TYPE_14")
+        .sort((a: any, b: any) => (a.visitNumber || 1) - (b.visitNumber || 1));
+      const type14Visit = type14Visits[0] || plan.demoPlotVisits?.[0];
 
       let plotId = "";
       if (firstRound?.demoPlotId) {
         plotId = firstRound.demoPlotId;
-      } else if (type14Visit?.demoPlot?.id) {
-        plotId = type14Visit.demoPlot.id;
-      } else if (plan.demoPlot?.id) {
-        plotId = plan.demoPlot.id;
+      } else if (type14Visit?.demoPlot?.id || type14Visit?.demoPlotId) {
+        plotId = type14Visit.demoPlot?.id || type14Visit.demoPlotId;
+      } else if (plan.demoPlot?.id || plan.demoPlotId) {
+        plotId = plan.demoPlot?.id || plan.demoPlotId;
+      } else if (plan.type14?.plots?.[0]?.demoPlotId) {
+        plotId = plan.type14.plots[0].demoPlotId;
       } else if (plan.payload?.type14Data?.demoPlotId) {
         plotId = plan.payload.type14Data.demoPlotId;
       } else if (resolvedPlots.length === 1) {
@@ -349,9 +420,13 @@ export function useType14ActualState() {
           );
 
           let resolvedDays = "";
-          if (r.daysSinceStart != null) {
+          if (r.daysSinceStart != null && r.daysSinceStart !== "") {
             resolvedDays = String(r.daysSinceStart);
-          } else if (matchingVisit && matchingVisit.daysSinceStart != null) {
+          } else if (
+            matchingVisit &&
+            matchingVisit.daysSinceStart != null &&
+            matchingVisit.daysSinceStart !== ""
+          ) {
             resolvedDays = String(matchingVisit.daysSinceStart);
           }
 
@@ -384,26 +459,66 @@ export function useType14ActualState() {
             }
           });
 
-          const productsList: Type14ActualProductState[] = rProducts.map((p: any) => ({
-            productId: p.productId,
-            productName: p.productName || p.product?.name || "สินค้า",
-            unit: p.unit || p.product?.unit || "ขวด",
-            quantityUsed: p.quantityUsed != null ? String(p.quantityUsed) : "",
-            actualRate: p.actualRate ?? "",
-            detail: p.detail ?? "",
-          }));
+          const productsList: Type14ActualProductState[] = rProducts.map(
+            (p: any) => ({
+              productId: p.productId,
+              productName: p.productName || p.product?.name || "สินค้า",
+              unit: p.unit || p.product?.unit || "ขวด",
+              quantityUsed:
+                p.quantityUsed != null ? String(p.quantityUsed) : "",
+              actualRate: p.actualRate ?? "",
+              detail: p.detail ?? "",
+            }),
+          );
 
           return {
             id: r.id,
             roundNumber: rNum,
             actualVisitDate: r.sprayDate
-              ? new Date(r.sprayDate).toISOString().split("T")[0]
-              : new Date().toISOString().split("T")[0],
+              ? formatToYMD(r.sprayDate)
+              : formatToYMD(matchingVisit?.visitDate) ||
+                formatToYMD(new Date()),
             daysAfterSpray: resolvedDays,
-            trackingResult: r.productResponse || matchingVisit?.productResponse || "",
+            trackingResult:
+              r.productResponse || matchingVisit?.productResponse || "",
             additionalNotes: r.notes || matchingVisit?.notes || "",
             afterSprayImages: roundImgs.slice(0, 5),
             products: productsList,
+          };
+        });
+      } else if (type14Visits.length > 0) {
+        hydratedRounds = type14Visits.map((v: any, idx: number) => {
+          const vNum = v.visitNumber || idx + 1;
+          const visitAttachments = v.attachments || [];
+          const roundImgs: Type14ImageState[] = [];
+          visitAttachments.forEach((att: any) => {
+            if (att.fileUrl) {
+              const imgState: Type14ImageState = {
+                id: att.id || att.fileUrl,
+                url: att.fileUrl,
+                name: att.fileName || `type14-round${vNum}-photo.jpg`,
+                size: att.fileSize,
+                type: att.mimeType,
+              };
+              roundImgs.push(imgState);
+              allLoadedImages.push(imgState);
+            }
+          });
+
+          return {
+            id: v.id,
+            roundNumber: vNum,
+            actualVisitDate: v.visitDate
+              ? formatToYMD(v.visitDate)
+              : formatToYMD(new Date()),
+            daysAfterSpray:
+              v.daysSinceStart != null && v.daysSinceStart !== ""
+                ? String(v.daysSinceStart)
+                : "",
+            trackingResult: v.productResponse || "",
+            additionalNotes: v.notes || "",
+            afterSprayImages: roundImgs.slice(0, 5),
+            products: [],
           };
         });
       } else {
@@ -411,10 +526,11 @@ export function useType14ActualState() {
         const initialRound1: Type14SprayRoundState = {
           roundNumber: 1,
           actualVisitDate: initVisit?.visitDate
-            ? new Date(initVisit.visitDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
+            ? formatToYMD(initVisit.visitDate)
+            : formatToYMD(new Date()),
           daysAfterSpray:
-            initVisit?.daysSinceStart != null
+            initVisit?.daysSinceStart != null &&
+            initVisit.daysSinceStart !== ""
               ? String(initVisit.daysSinceStart)
               : "",
           trackingResult: initVisit?.productResponse || "",
@@ -429,6 +545,7 @@ export function useType14ActualState() {
       initialImagesRef.current = JSON.parse(JSON.stringify(allLoadedImages));
 
       if (plotId) {
+        setDemoPlotId(plotId);
         const selectedPlotObj =
           plotsMap.get(plotId) ||
           resolvedPlots.find((p) => p.id === plotId);
