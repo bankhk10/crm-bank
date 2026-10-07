@@ -3453,6 +3453,72 @@ export async function findApprovalQueueData() {
     promotionItems: {
       orderBy: { createdAt: "asc" as const },
     },
+    type13: {
+      include: {
+        plots: {
+          include: {
+            store: {
+              select: {
+                id: true,
+                name: true,
+                customerCode: true,
+                customerType: true,
+                province: true,
+                district: true,
+              },
+            },
+            demoPlot: true,
+          },
+          orderBy: { plotIndex: "asc" as const },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+                unit: true,
+                packageSizeUnit: true,
+              },
+            },
+          },
+          orderBy: { sortOrder: "asc" as const },
+        },
+      },
+    },
+    type14: {
+      include: {
+        sourceActivityPlan: {
+          select: {
+            id: true,
+            code: true,
+            title: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+        plots: {
+          include: {
+            demoPlot: true,
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+                unit: true,
+                packageSizeUnit: true,
+              },
+            },
+          },
+          orderBy: { sortOrder: "asc" as const },
+        },
+      },
+    },
     demoPlotVisits: {
       include: {
         demoPlot: true,

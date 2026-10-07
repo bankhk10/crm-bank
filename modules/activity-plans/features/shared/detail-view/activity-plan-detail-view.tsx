@@ -242,57 +242,114 @@ export default function ActivityPlanDetailView({
   }, [plan?.approvalLogs, (plan as any)?.result?.logs]);
 
   const type13Plots: Type13PlotItem[] = useMemo(() => {
+    const plotMap = new Map<string, Type13PlotItem>();
+
+    // 1. From planned type13.plots
     if ((plan as any)?.type13?.plots && (plan as any).type13.plots.length > 0) {
-      return (plan as any).type13.plots.map((p: any) => ({
-        id: p.id,
-        demoPlotId: p.demoPlotId || null,
-        name: p.plotName || p.name || "",
-        storeId: p.storeId || "",
-        dealerName: p.dealerName || p.store?.name || "",
-        ownerName: p.ownerName || "",
-        province: p.province || "",
-        district: p.district || "",
-        latitude: p.latitude != null ? String(p.latitude) : "",
-        longitude: p.longitude != null ? String(p.longitude) : "",
-        products: [],
+      const type13Products = ((plan as any).type13.products || []).map((prod: any) => ({
+        productId: prod.productId,
+        productName: prod.product?.name || prod.productName || "",
+        quantity: Number(prod.quantity) || 1,
+        unit:
+          prod.unit ||
+          prod.product?.unit ||
+          prod.product?.packageSizeUnit ||
+          "ขวด",
       }));
+
+      (plan as any).type13.plots.forEach((p: any, idx: number) => {
+        const key = p.demoPlotId || p.id || `plot-${idx}`;
+        plotMap.set(key, {
+          id: p.id,
+          demoPlotId: p.demoPlotId || p.id,
+          name: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
+          storeId: p.storeId || p.store?.id || "",
+          dealerName: p.dealerName || p.store?.name || p.ownerName || "",
+          ownerName: p.ownerName || p.dealerName || p.store?.name || "",
+          province: p.province || p.store?.province || "",
+          district: p.district || p.store?.district || "",
+          latitude: p.latitude != null ? String(p.latitude) : "",
+          longitude: p.longitude != null ? String(p.longitude) : "",
+          products: type13Products,
+        });
+      });
     }
 
-    if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
-    const visits = plan.demoPlotVisits.filter(
-      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
-    );
-    if (visits.length === 0) return [];
+    // 2. From demoPlotVisits (including new plots created during actual)
+    (plan?.demoPlotVisits || [])
+      .filter(
+        (v: any) =>
+          v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
+      )
+      .forEach((v: any, idx: number) => {
+        const dp = v.demoPlot;
+        const key = dp?.id || v.demoPlotId || `visit-${idx}`;
+        const existing = plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
 
-    const plotMap = new Map<string, Type13PlotItem>();
-    visits.forEach((v) => {
-      const dp = v.demoPlot;
-      if (!dp || plotMap.has(dp.id)) return;
+        const storeName = dp?.customer?.name || dp?.dealerName || "";
+        const ownerName = dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
+        const lat = dp?.latitude != null ? String(dp.latitude) : "";
+        const lng = dp?.longitude != null ? String(dp.longitude) : "";
 
-      plotMap.set(dp.id, {
-        id: dp.id,
-        demoPlotId: dp.id,
-        name: dp.name || `แปลง #${v.visitNumber || 1}`,
-        storeId: dp.customerId || "",
-        dealerName: dp.customer?.name || "",
-        ownerName: dp.customer?.name || dp.ownerName || dp.farmerCustomer?.name || "",
-        province: dp.province || dp.customer?.province || "",
-        district: dp.district || dp.customer?.district || "",
-        products: (dp.demoProducts || []).map((prod) => ({
-          productId: prod.productId,
-          productName: prod.productName || prod.product?.name || "",
-          quantity: Number(prod.quantity) || 1,
-          unit:
-            prod.unit ||
-            prod.product?.unit ||
-            prod.product?.packageSizeUnit ||
-            "ขวด",
-        })),
+        if (existing) {
+          if (!existing.dealerName && storeName) existing.dealerName = storeName;
+          if (!existing.ownerName && ownerName) existing.ownerName = ownerName;
+          if (!existing.latitude && lat) existing.latitude = lat;
+          if (!existing.longitude && lng) existing.longitude = lng;
+          if (!existing.province && dp?.province) existing.province = dp.province;
+          if (!existing.district && dp?.district) existing.district = dp.district;
+          if (dp?.name && !existing.name) existing.name = dp.name;
+        } else {
+          plotMap.set(key, {
+            id: key,
+            demoPlotId: dp?.id || v.demoPlotId || key,
+            name: dp?.name || `แปลงที่ ${plotMap.size + 1}`,
+            storeId: dp?.customerId || "",
+            dealerName: storeName,
+            ownerName: ownerName,
+            province: dp?.province || dp?.customer?.province || "",
+            district: dp?.district || dp?.customer?.district || "",
+            latitude: lat,
+            longitude: lng,
+            products: (dp?.demoProducts || []).map((prod: any) => ({
+              productId: prod.productId,
+              productName: prod.productName || prod.product?.name || "",
+              quantity: Number(prod.quantity) || 1,
+              unit:
+                prod.unit ||
+                prod.product?.unit ||
+                prod.product?.packageSizeUnit ||
+                "ขวด",
+            })),
+          });
+        }
       });
+
+    // 3. From sprayRounds
+    const sprayRounds = (plan?.result as any)?.sprayRounds || [];
+    sprayRounds.forEach((sr: any) => {
+      if (sr.demoPlotId && !plotMap.has(sr.demoPlotId)) {
+        const match = Array.from(plotMap.values()).find(
+          (p) => p.demoPlotId === sr.demoPlotId || p.id === sr.demoPlotId,
+        );
+        if (!match) {
+          plotMap.set(sr.demoPlotId, {
+            id: sr.demoPlotId,
+            demoPlotId: sr.demoPlotId,
+            name: `แปลงที่ ${plotMap.size + 1}`,
+            storeId: "",
+            dealerName: "",
+            ownerName: "",
+            province: "",
+            district: "",
+            products: [],
+          });
+        }
+      }
     });
 
     return Array.from(plotMap.values());
-  }, [(plan as any)?.type13, plan?.demoPlotVisits]);
+  }, [(plan as any)?.type13, plan?.demoPlotVisits, (plan as any)?.result]);
 
   const type13ActualData = useMemo(() => {
     if (!plan?.result) return undefined;
@@ -300,23 +357,43 @@ export default function ActivityPlanDetailView({
     const rawRounds = (plan.result as any)?.sprayRounds || [];
 
     const seenCoordPlotIds = new Set<string>();
-    const type13PlotsActual = (plan.demoPlotVisits || [])
+    const type13PlotsActual: Array<{ demoPlotId: string; latitude: any; longitude: any }> = [];
+
+    // 1. From type13.plots
+    if ((plan as any)?.type13?.plots) {
+      (plan as any).type13.plots.forEach((p: any) => {
+        const plotId = p.demoPlotId || p.id;
+        if (plotId && (p.latitude || p.longitude) && !seenCoordPlotIds.has(plotId)) {
+          seenCoordPlotIds.add(plotId);
+          type13PlotsActual.push({
+            demoPlotId: plotId,
+            latitude: String(p.latitude || ""),
+            longitude: String(p.longitude || ""),
+          });
+        }
+      });
+    }
+
+    // 2. From demoPlotVisits
+    (plan.demoPlotVisits || [])
       .filter(
         (v: any) =>
           v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
       )
-      .map((v: any) => ({
-        demoPlotId: v.demoPlotId || v.demoPlot?.id,
-        latitude:
-          v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "",
-        longitude:
-          v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "",
-      }))
-      .filter((c: any) => {
-        if (!c.latitude && !c.longitude) return false;
-        if (seenCoordPlotIds.has(c.demoPlotId)) return false;
-        seenCoordPlotIds.add(c.demoPlotId);
-        return true;
+      .forEach((v: any) => {
+        const plotId = v.demoPlotId || v.demoPlot?.id;
+        if (plotId && !seenCoordPlotIds.has(plotId)) {
+          const lat = v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "";
+          const lng = v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "";
+          if (lat || lng) {
+            seenCoordPlotIds.add(plotId);
+            type13PlotsActual.push({
+              demoPlotId: plotId,
+              latitude: lat,
+              longitude: lng,
+            });
+          }
+        }
       });
 
     const sprayRounds = rawRounds.map((sr: any) => ({
@@ -368,7 +445,7 @@ export default function ActivityPlanDetailView({
       sprayRounds,
       attachments,
     };
-  }, [plan?.result, plan?.demoPlotVisits]);
+  }, [plan?.result, plan?.demoPlotVisits, (plan as any)?.type13]);
 
   const type14Data: Type14PlanInput | null = useMemo(() => {
     if ((plan as any)?.type14) {
@@ -900,6 +977,7 @@ export default function ActivityPlanDetailView({
                 province: plan.province,
                 district: plan.district,
               }}
+              actualData={type13ActualData}
             />
           )}
 

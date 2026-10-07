@@ -336,6 +336,14 @@ export function extractPlanData(
     detectedWorkTypes.add("ทัวร์");
   }
 
+  if ((p as any).type13) {
+    detectedWorkTypes.add("ฉีดแปลงแฮตแทค");
+  }
+
+  if ((p as any).type14) {
+    detectedWorkTypes.add("ติดตามแปลงแฮทแทค");
+  }
+
   // Fallback: only if no work types were resolved from normalized relations
   if (
     detectedWorkTypes.size === 0 ||

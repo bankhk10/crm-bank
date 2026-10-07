@@ -82,6 +82,24 @@ export function useType13ActualState() {
           sprayRounds: [],
         };
       });
+    } else if (plan.type13?.plots && Array.isArray(plan.type13.plots) && plan.type13.plots.length > 0) {
+      basePlots = plan.type13.plots.map((p: any, idx: number) => {
+        const plotId = p.demoPlotId || p.id || `plot-${idx}`;
+        const plotName = p.plotName || p.name || `แปลงที่ ${idx + 1}`;
+
+        return {
+          demoPlotId: plotId,
+          plotName,
+          dealerName: p.dealerName || p.store?.name || undefined,
+          storeId: p.storeId || p.store?.id || undefined,
+          province: p.province || p.store?.province || undefined,
+          district: p.district || p.store?.district || undefined,
+          latitude: p.latitude ? String(p.latitude) : "",
+          longitude: p.longitude ? String(p.longitude) : "",
+          isNew: false,
+          sprayRounds: [],
+        };
+      });
     } else if (plan.type13Plots && Array.isArray(plan.type13Plots)) {
       basePlots = plan.type13Plots.map((p: any, idx: number) => {
         const plotId = p.demoPlotId || p.id || `plot-${idx}`;
@@ -165,7 +183,11 @@ export function useType13ActualState() {
 
         // Rounds
         const plotRounds = existingRounds
-          .filter((r: any) => r.demoPlotId === plot.demoPlotId)
+          .filter(
+            (r: any) =>
+              r.demoPlotId === plot.demoPlotId ||
+              (!r.demoPlotId && basePlots.length <= 1),
+          )
           .map((r: any) => {
             const rawProds: any[] = r.products || [];
 

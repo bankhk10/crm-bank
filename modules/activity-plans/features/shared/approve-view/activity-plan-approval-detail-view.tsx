@@ -228,40 +228,114 @@ export default function ActivityPlanApprovalDetailView({
   }, [loadData]);
 
   const type13Plots: Type13PlotItem[] = useMemo(() => {
-    if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
-    const visits = plan.demoPlotVisits.filter(
-      (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
-    );
-    if (visits.length === 0) return [];
-
     const plotMap = new Map<string, Type13PlotItem>();
-    visits.forEach((v) => {
-      const dp = v.demoPlot;
-      if (!dp || plotMap.has(dp.id)) return;
 
-      plotMap.set(dp.id, {
-        id: dp.id,
-        demoPlotId: dp.id,
-        name: dp.name || `แปลง #${v.visitNumber || 1}`,
-        storeId: dp.customerId || "",
-        ownerName: dp.ownerName || dp.farmerCustomer?.name || "",
-        province: dp.province || "",
-        district: dp.district || "",
-        products: (dp.demoProducts || []).map((prod) => ({
-          productId: prod.productId,
-          productName: prod.productName || prod.product?.name || "",
-          quantity: Number(prod.quantity) || 1,
-          unit:
-            prod.unit ||
-            prod.product?.unit ||
-            prod.product?.packageSizeUnit ||
-            "ขวด",
-        })),
+    // 1. From planned type13.plots
+    if ((plan as any)?.type13?.plots && (plan as any).type13.plots.length > 0) {
+      const type13Products = ((plan as any).type13.products || []).map((prod: any) => ({
+        productId: prod.productId,
+        productName: prod.product?.name || prod.productName || "",
+        quantity: Number(prod.quantity) || 1,
+        unit:
+          prod.unit ||
+          prod.product?.unit ||
+          prod.product?.packageSizeUnit ||
+          "ขวด",
+      }));
+
+      (plan as any).type13.plots.forEach((p: any, idx: number) => {
+        const key = p.demoPlotId || p.id || `plot-${idx}`;
+        plotMap.set(key, {
+          id: p.id,
+          demoPlotId: p.demoPlotId || p.id,
+          name: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
+          storeId: p.storeId || p.store?.id || "",
+          dealerName: p.dealerName || p.store?.name || p.ownerName || "",
+          ownerName: p.ownerName || p.dealerName || p.store?.name || "",
+          province: p.province || p.store?.province || "",
+          district: p.district || p.store?.district || "",
+          latitude: p.latitude != null ? String(p.latitude) : "",
+          longitude: p.longitude != null ? String(p.longitude) : "",
+          products: type13Products,
+        });
       });
+    }
+
+    // 2. From demoPlotVisits (including new plots created during actual)
+    (plan?.demoPlotVisits || [])
+      .filter(
+        (v: any) =>
+          v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
+      )
+      .forEach((v: any, idx: number) => {
+        const dp = v.demoPlot;
+        const key = dp?.id || v.demoPlotId || `visit-${idx}`;
+        const existing = plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
+
+        const storeName = dp?.customer?.name || dp?.dealerName || "";
+        const ownerName = dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
+        const lat = dp?.latitude != null ? String(dp.latitude) : "";
+        const lng = dp?.longitude != null ? String(dp.longitude) : "";
+
+        if (existing) {
+          if (!existing.dealerName && storeName) existing.dealerName = storeName;
+          if (!existing.ownerName && ownerName) existing.ownerName = ownerName;
+          if (!existing.latitude && lat) existing.latitude = lat;
+          if (!existing.longitude && lng) existing.longitude = lng;
+          if (!existing.province && dp?.province) existing.province = dp.province;
+          if (!existing.district && dp?.district) existing.district = dp.district;
+          if (dp?.name && !existing.name) existing.name = dp.name;
+        } else {
+          plotMap.set(key, {
+            id: key,
+            demoPlotId: dp?.id || v.demoPlotId || key,
+            name: dp?.name || `แปลงที่ ${plotMap.size + 1}`,
+            storeId: dp?.customerId || "",
+            dealerName: storeName,
+            ownerName: ownerName,
+            province: dp?.province || dp?.customer?.province || "",
+            district: dp?.district || dp?.customer?.district || "",
+            latitude: lat,
+            longitude: lng,
+            products: (dp?.demoProducts || []).map((prod: any) => ({
+              productId: prod.productId,
+              productName: prod.productName || prod.product?.name || "",
+              quantity: Number(prod.quantity) || 1,
+              unit:
+                prod.unit ||
+                prod.product?.unit ||
+                prod.product?.packageSizeUnit ||
+                "ขวด",
+            })),
+          });
+        }
+      });
+
+    // 3. From sprayRounds
+    const sprayRounds = (plan?.result as any)?.sprayRounds || [];
+    sprayRounds.forEach((sr: any) => {
+      if (sr.demoPlotId && !plotMap.has(sr.demoPlotId)) {
+        const match = Array.from(plotMap.values()).find(
+          (p) => p.demoPlotId === sr.demoPlotId || p.id === sr.demoPlotId,
+        );
+        if (!match) {
+          plotMap.set(sr.demoPlotId, {
+            id: sr.demoPlotId,
+            demoPlotId: sr.demoPlotId,
+            name: `แปลงที่ ${plotMap.size + 1}`,
+            storeId: "",
+            dealerName: "",
+            ownerName: "",
+            province: "",
+            district: "",
+            products: [],
+          });
+        }
+      }
     });
 
     return Array.from(plotMap.values());
-  }, [plan?.demoPlotVisits]);
+  }, [(plan as any)?.type13, plan?.demoPlotVisits, (plan as any)?.result]);
 
   const type14Data: Type14PlanInput | null = useMemo(() => {
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;

@@ -65,18 +65,33 @@ export function DetailType13Attack({
   const currentPlot = effectivePlots[activePlotIdx] || effectivePlots[0];
 
   // Coordinates for current plot
-  const plotCoord = actualData?.type13PlotsActual?.find(
-    (c) => c.demoPlotId === currentPlot.id,
-  );
+  const plotCoord =
+    actualData?.type13PlotsActual?.find(
+      (c) =>
+        c.demoPlotId === currentPlot.id ||
+        (currentPlot.demoPlotId && c.demoPlotId === currentPlot.demoPlotId),
+    ) ||
+    (currentPlot.latitude && currentPlot.longitude
+      ? { latitude: currentPlot.latitude, longitude: currentPlot.longitude }
+      : null);
 
   // Spray rounds for current plot
   const plotRounds = sprayRoundsList.filter(
-    (r) => r.demoPlotId === currentPlot.id,
+    (r) =>
+      !r.demoPlotId ||
+      effectivePlots.length <= 1 ||
+      r.demoPlotId === currentPlot.id ||
+      (currentPlot.demoPlotId && r.demoPlotId === currentPlot.demoPlotId),
   );
 
   // After-spray attachments for current plot
   const afterSprayAttachments = (actualData?.attachments || []).filter(
-    (att) => att.demoPlotId === currentPlot.id && !att.sprayRoundId,
+    (att) =>
+      !att.sprayRoundId &&
+      (!att.demoPlotId ||
+        effectivePlots.length <= 1 ||
+        att.demoPlotId === currentPlot.id ||
+        (currentPlot.demoPlotId && att.demoPlotId === currentPlot.demoPlotId)),
   );
 
   return (
