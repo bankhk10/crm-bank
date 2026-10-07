@@ -2776,6 +2776,43 @@ export async function upsertActivityResult(
           });
           targetPlotId = createdPlot.id;
 
+          // If ActivityPlanType13 exists, also link to ActivityPlanType13Plot
+          const t13 = await tx.activityPlanType13.findUnique({
+            where: { activityPlanId: input.activityPlanId },
+            include: { plots: { select: { id: true, plotIndex: true } } },
+          });
+          if (t13) {
+            const maxIndex = t13.plots.reduce(
+              (max, p) => Math.max(max, p.plotIndex),
+              0,
+            );
+            await tx.activityPlanType13Plot.create({
+              data: {
+                type13Id: t13.id,
+                plotIndex: maxIndex + 1,
+                plotName:
+                  item.plotName && item.plotName.trim()
+                    ? item.plotName.trim()
+                    : `แปลงแฮตแทค ${maxIndex + 1}`,
+                storeId:
+                  item.storeId && item.storeId.trim()
+                    ? item.storeId.trim()
+                    : null,
+                province:
+                  item.province && item.province.trim()
+                    ? item.province.trim()
+                    : null,
+                district:
+                  item.district && item.district.trim()
+                    ? item.district.trim()
+                    : null,
+                latitude: new Prisma.Decimal(item.latitude),
+                longitude: new Prisma.Decimal(item.longitude),
+                demoPlotId: targetPlotId,
+              },
+            });
+          }
+
           const existingVisit = await tx.demoPlotVisit.findFirst({
             where: {
               demoPlotId: targetPlotId,
@@ -2829,6 +2866,18 @@ export async function upsertActivityResult(
             await tx.demoPlot.update({
               where: { id: plotItem.demoPlotId },
               data: updateData,
+            });
+
+            await tx.activityPlanType13Plot.updateMany({
+              where: { demoPlotId: plotItem.demoPlotId },
+              data: {
+                ...(updateData.latitude ? { latitude: updateData.latitude } : {}),
+                ...(updateData.longitude ? { longitude: updateData.longitude } : {}),
+                ...(plotItem.plotName && plotItem.plotName.trim() ? { plotName: plotItem.plotName.trim() } : {}),
+                ...(plotItem.storeId && plotItem.storeId.trim() ? { storeId: plotItem.storeId.trim() } : {}),
+                ...(plotItem.province && plotItem.province.trim() ? { province: plotItem.province.trim() } : {}),
+                ...(plotItem.district && plotItem.district.trim() ? { district: plotItem.district.trim() } : {}),
+              },
             });
           }
         }

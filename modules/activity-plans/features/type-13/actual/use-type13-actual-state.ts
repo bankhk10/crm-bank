@@ -68,29 +68,35 @@ export function useType13ActualState() {
     ) {
       basePlots = plan.type13.plots.map((p: any, idx: number) => {
         const plotId = p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`;
-        const plotName = p.plotName || p.name || p.demoPlot?.name || `แปลงที่ ${idx + 1}`;
+        const plotName =
+          p.plotName || p.name || p.demoPlot?.name || `แปลงที่ ${idx + 1}`;
+        const matchedStore =
+          p.store ||
+          p.demoPlot?.customer ||
+          (p.storeId && plan.stores?.find((s: any) => s.storeId === p.storeId)?.store) ||
+          (p.demoPlot?.customerId && plan.stores?.find((s: any) => s.storeId === p.demoPlot.customerId)?.store);
 
         return {
           demoPlotId: plotId,
           plotName,
           dealerName:
             p.dealerName ||
-            p.store?.name ||
+            matchedStore?.name ||
             p.demoPlot?.customer?.name ||
             undefined,
           storeId:
             p.storeId ||
-            p.store?.id ||
+            matchedStore?.id ||
             p.demoPlot?.customerId ||
             undefined,
           province:
             p.province ||
-            p.store?.province ||
+            matchedStore?.province ||
             p.demoPlot?.province ||
             undefined,
           district:
             p.district ||
-            p.store?.district ||
+            matchedStore?.district ||
             p.demoPlot?.district ||
             undefined,
           latitude:
@@ -105,9 +111,61 @@ export function useType13ActualState() {
               : p.demoPlot?.longitude != null
                 ? String(p.demoPlot.longitude)
                 : "",
-          isNew: false,
+          isNew: Boolean(p.isNew),
           sprayRounds: [],
         };
+      });
+
+      // Also include any extra demoPlotVisits not covered in type13.plots
+      const basePlotIds = new Set(basePlots.map((p) => p.demoPlotId).filter(Boolean));
+      const extraVisits = (plan?.demoPlotVisits || []).filter((v: any) => {
+        const pId = v.demoPlot?.id || v.demoPlotId;
+        return (
+          (v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK") &&
+          pId &&
+          !basePlotIds.has(pId)
+        );
+      });
+
+      extraVisits.forEach((v: any) => {
+        const plot = v.demoPlot;
+        const plotId = plot?.id || v.demoPlotId;
+        const plotName = plot?.name || `แปลงที่ ${basePlots.length + 1}`;
+        const plotCustomer =
+          plot?.customer ||
+          (plot?.customerId &&
+            plan.stores?.find((s: any) => s.storeId === plot.customerId)?.store);
+        const fallbackStore = plan.stores?.[0]?.store;
+
+        basePlots.push({
+          demoPlotId: plotId,
+          plotName,
+          dealerName:
+            plotCustomer?.name ||
+            plot?.dealerName ||
+            fallbackStore?.name ||
+            undefined,
+          storeId:
+            plot?.customerId ||
+            plotCustomer?.id ||
+            fallbackStore?.id ||
+            undefined,
+          province:
+            plot?.province ||
+            plotCustomer?.province ||
+            fallbackStore?.province ||
+            undefined,
+          district:
+            plot?.district ||
+            plotCustomer?.district ||
+            fallbackStore?.district ||
+            undefined,
+          latitude: plot?.latitude != null ? String(plot.latitude) : "",
+          longitude: plot?.longitude != null ? String(plot.longitude) : "",
+          isNew: true,
+          sprayRounds: [],
+        });
+        basePlotIds.add(plotId);
       });
     } else if (uniqueHattackVisits.length > 0) {
       basePlots = uniqueHattackVisits.map((v: any, idx: number) => {
@@ -177,9 +235,9 @@ export function useType13ActualState() {
           ? parsedResult.sprayRounds
           : (plan as any)?.result?.sprayRounds || [];
 
-      // Account for any plots that exist in rounds but weren't in visits
+      // Account for any plots that exist in rounds but weren't in basePlots
       if (existingRounds.length > 0) {
-        const existingPlotIdsInBase = new Set(basePlots.map((p) => p.demoPlotId));
+        const existingPlotIdsInBase = new Set(basePlots.map((p) => p.demoPlotId).filter(Boolean));
         const orphanPlotIds = Array.from(
           new Set(
             existingRounds
@@ -189,15 +247,29 @@ export function useType13ActualState() {
         );
 
         orphanPlotIds.forEach((pId) => {
-          const plotName = `แปลงที่ ${basePlots.length + 1}`;
+          const visitMatch = (plan?.demoPlotVisits || []).find(
+            (v: any) => v.demoPlotId === pId || v.demoPlot?.id === pId,
+          );
+          const plot = visitMatch?.demoPlot;
+          const plotCustomer =
+            plot?.customer ||
+            (plot?.customerId &&
+              plan.stores?.find((s: any) => s.storeId === plot.customerId)?.store);
+
           basePlots.push({
             demoPlotId: pId,
-            plotName,
-            isNew: false,
-            latitude: "",
-            longitude: "",
+            plotName: plot?.name || `แปลงที่ ${basePlots.length + 1}`,
+            dealerName:
+              plotCustomer?.name || plot?.dealerName || undefined,
+            storeId: plot?.customerId || plotCustomer?.id || undefined,
+            province: plot?.province || plotCustomer?.province || undefined,
+            district: plot?.district || plotCustomer?.district || undefined,
+            latitude: plot?.latitude != null ? String(plot.latitude) : "",
+            longitude: plot?.longitude != null ? String(plot.longitude) : "",
+            isNew: true,
             sprayRounds: [],
           });
+          existingPlotIdsInBase.add(pId);
         });
       }
 
