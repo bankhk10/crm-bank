@@ -95,6 +95,9 @@ function hasPlotActualData(rounds: Type14SprayRoundState[]): boolean {
 
 export function useType14ActualState() {
   const [demoPlotId, setDemoPlotId] = useState<string>("");
+  const demoPlotIdRef = useRef<string>("");
+  demoPlotIdRef.current = demoPlotId;
+
   const [dealerName, setDealerName] = useState<string>("");
   const [province, setProvince] = useState<string>("");
   const [district, setDistrict] = useState<string>("");
@@ -118,6 +121,9 @@ export function useType14ActualState() {
 
   // Available plots under this Activity & Read-only Spray History
   const [availablePlots, setAvailablePlots] = useState<any[]>([]);
+  const availablePlotsRef = useRef<any[]>([]);
+  availablePlotsRef.current = availablePlots;
+
   const [sprayHistory, setSprayHistory] = useState<any[]>([]);
   const [loadingPlotContext, setLoadingPlotContext] = useState<boolean>(false);
 
@@ -128,6 +134,7 @@ export function useType14ActualState() {
   const handleSelectPlot = useCallback(
     async (plotId: string, plotObj?: any) => {
       setDemoPlotId(plotId);
+      demoPlotIdRef.current = plotId;
 
       // Ensure rounds exist for this plot in plotRoundsMap
       if (plotId) {
@@ -898,6 +905,67 @@ export function useType14ActualState() {
     [availablePlots, demoPlotId],
   );
 
+  // Sync available plots dynamically (for Unplanned real-time synchronization)
+  const syncAvailablePlots = useCallback(
+    (plots: any[]) => {
+      const validPlots = plots || [];
+      const prevIds = (availablePlotsRef.current || [])
+        .map((p) => p.id)
+        .sort()
+        .join(",");
+      const nextIds = validPlots
+        .map((p) => p.id)
+        .sort()
+        .join(",");
+
+      if (prevIds === nextIds) {
+        return;
+      }
+
+      availablePlotsRef.current = validPlots;
+      setAvailablePlots(validPlots);
+
+      if (validPlots.length > 0) {
+        setPlotRoundsMap((prev) => {
+          const next = { ...prev };
+          let hasChanges = false;
+          validPlots.forEach((p) => {
+            if (!next[p.id] || next[p.id].length === 0) {
+              next[p.id] = [createDefaultRound(1)];
+              hasChanges = true;
+            }
+          });
+          if (hasChanges) {
+            plotRoundsMapRef.current = next;
+            return next;
+          }
+          return prev;
+        });
+
+        const currentId = demoPlotIdRef.current;
+        const isValidCurrent = Boolean(
+          currentId && validPlots.some((p) => p.id === currentId),
+        );
+        const targetPlot = isValidCurrent
+          ? validPlots.find((p) => p.id === currentId)
+          : validPlots[0];
+
+        if (targetPlot) {
+          if (targetPlot.id !== currentId) {
+            handleSelectPlot(targetPlot.id, targetPlot);
+          }
+        } else {
+          setDemoPlotId("");
+          demoPlotIdRef.current = "";
+        }
+      } else {
+        setDemoPlotId("");
+        demoPlotIdRef.current = "";
+      }
+    },
+    [handleSelectPlot],
+  );
+
   return {
     // Multi-round state & methods
     rounds,
@@ -917,6 +985,8 @@ export function useType14ActualState() {
     province,
     district,
     availablePlots,
+    setAvailablePlots,
+    syncAvailablePlots,
     sprayHistory,
     loadingPlotContext,
     handleSelectPlot,

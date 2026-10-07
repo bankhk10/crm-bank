@@ -357,6 +357,75 @@ export function UnplannedActivityForm({
     }
   }, [initial, existingResult]);
 
+  // Real-time synchronization of TYPE_14 selected plots to actual results hook (Unplanned)
+  const t14SyncPlotsFn = (actualOrchestrator.typeHooks as any)?.type14?.syncAvailablePlots;
+  const t14SelectedPlanId = typeForms.type14?.type14Data?.selectedPlanId || "";
+  const t14SelectedPlotIdsStr = (
+    Array.isArray(typeForms.type14?.type14Data?.selectedPlotIds) &&
+    typeForms.type14.type14Data.selectedPlotIds.length > 0
+      ? typeForms.type14.type14Data.selectedPlotIds
+      : Array.isArray(typeForms.type14?.type14Data?.demoPlotIds) &&
+          typeForms.type14.type14Data.demoPlotIds.length > 0
+        ? typeForms.type14.type14Data.demoPlotIds
+        : typeForms.type14?.type14Data?.demoPlotId
+          ? [typeForms.type14.type14Data.demoPlotId]
+          : []
+  )
+    .slice()
+    .sort()
+    .join(",");
+
+  useEffect(() => {
+    const isType14Active = selectedWorkTypes.some(
+      (wt) => getWorkTypeCode(wt) === "TYPE_14" || wt === "ติดตามแปลงแฮทแทค",
+    );
+    if (!isType14Active || !t14SyncPlotsFn) return;
+
+    const plotIds = t14SelectedPlotIdsStr
+      ? t14SelectedPlotIdsStr.split(",").filter(Boolean)
+      : [];
+
+    if (t14SelectedPlanId && plotIds.length > 0) {
+      const foundPlan = (fetchedHattackFollowUpPlansWithPlots || []).find(
+        (p) => p.planId === t14SelectedPlanId,
+      );
+
+      if (foundPlan && Array.isArray(foundPlan.plots)) {
+        const resolvedPlots = foundPlan.plots
+          .filter((p: any) => plotIds.includes(p.id))
+          .map((p: any) => ({
+            id: p.id,
+            code: p.code || p.plotCode || "",
+            name:
+              p.name ||
+              p.plotName ||
+              `แปลงแฮตแทค #${p.code || p.id.slice(-4)}`,
+            dealerName: p.dealerName || "",
+            ownerName: p.ownerName || "",
+            province: p.province || "",
+            district: p.district || "",
+            latitude: p.latitude != null ? String(p.latitude) : "",
+            longitude: p.longitude != null ? String(p.longitude) : "",
+          }));
+
+        if (resolvedPlots.length > 0) {
+          t14SyncPlotsFn(resolvedPlots);
+          return;
+        }
+      }
+    }
+
+    if (plotIds.length === 0) {
+      t14SyncPlotsFn([]);
+    }
+  }, [
+    selectedWorkTypes,
+    t14SyncPlotsFn,
+    t14SelectedPlanId,
+    t14SelectedPlotIdsStr,
+    fetchedHattackFollowUpPlansWithPlots,
+  ]);
+
   // Section 6: Notes State
   const [notes, setNotes] = useState(initial.notes ?? "");
 
