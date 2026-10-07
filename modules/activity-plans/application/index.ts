@@ -621,9 +621,10 @@ export async function duplicateActivityPlanUseCase(
           categoryId: plot.categoryId || null,
           products: (plot.products || []).map((p) => ({
             productId: p.productId,
+            productName: p.product?.name || (p as any).productName || null,
             quantity: Number(p.quantity) || 1,
             targetQuantity: Number(p.quantity) || 1,
-            unit: p.unit || null,
+            unit: p.unit || p.product?.unit || null,
             notes: null,
           })),
         };
@@ -681,7 +682,9 @@ export async function duplicateActivityPlanUseCase(
         })),
         products: (originalPlan.type7b.products || []).map((pr) => ({
           productId: pr.productId,
+          productName: pr.product?.name || (pr as any).productName || null,
           quantity: Number(pr.quantity) || 1,
+          unit: pr.unit || pr.product?.unit || null,
           notes: null,
         })),
       };

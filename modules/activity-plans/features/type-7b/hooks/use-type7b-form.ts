@@ -540,11 +540,18 @@ export function useType7bForm({
     });
 
     const productsListToSave = (firstItem?.withdrawnProducts || []).map(
-      (wp) => ({
-        productId: wp.productId,
-        quantity: Number(wp.quantity) || 1,
-        notes: null,
-      }),
+      (wp) => {
+        const matchedP = (products || []).find(
+          (p: any) => p.id === wp.productId || p.name === wp.productName,
+        );
+        return {
+          productId: wp.productId || matchedP?.id,
+          productName: wp.productName || matchedP?.name || null,
+          quantity: Number(wp.quantity) || 1,
+          unit: wp.unit || matchedP?.unit || null,
+          notes: null,
+        };
+      },
     );
 
     const type7bData = {

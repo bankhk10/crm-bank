@@ -1467,20 +1467,35 @@ export async function createActivityPlan(
             });
 
             if (plotItem.products && plotItem.products.length > 0) {
+              const prodIds = plotItem.products
+                .map((p) => p.productId)
+                .filter(Boolean);
+              const dbProducts =
+                prodIds.length > 0
+                  ? await tx.product.findMany({
+                      where: { id: { in: prodIds } },
+                      select: { id: true, name: true, unit: true },
+                    })
+                  : [];
+              const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
               await tx.activityPlanType7aProduct.createMany({
-                data: plotItem.products.map((p, idx) => ({
-                  type7aId: t7a.id,
-                  productId: p.productId,
-                  productName: p.productName || null,
-                  quantity:
-                    p.quantity != null
-                      ? new Prisma.Decimal(p.quantity)
-                      : p.targetQuantity != null
-                        ? new Prisma.Decimal(p.targetQuantity)
-                        : new Prisma.Decimal(1),
-                  unit: p.unit || null,
-                  sortOrder: idx,
-                })),
+                data: plotItem.products.map((p, idx) => {
+                  const dbProd = p.productId ? productMap.get(p.productId) : undefined;
+                  return {
+                    type7aId: t7a.id,
+                    productId: p.productId,
+                    productName: p.productName || dbProd?.name || null,
+                    quantity:
+                      p.quantity != null
+                        ? new Prisma.Decimal(p.quantity)
+                        : p.targetQuantity != null
+                          ? new Prisma.Decimal(p.targetQuantity)
+                          : new Prisma.Decimal(1),
+                    unit: p.unit || dbProd?.unit || null,
+                    sortOrder: idx,
+                  };
+                }),
               });
             }
 
@@ -1548,20 +1563,35 @@ export async function createActivityPlan(
           }
 
           if (t7b.products && t7b.products.length > 0) {
+            const bProdIds = t7b.products
+              .map((p) => p.productId)
+              .filter(Boolean);
+            const dbBProducts =
+              bProdIds.length > 0
+                ? await tx.product.findMany({
+                    where: { id: { in: bProdIds } },
+                    select: { id: true, name: true, unit: true },
+                  })
+                : [];
+            const bProductMap = new Map(dbBProducts.map((p) => [p.id, p]));
+
             await tx.activityPlanType7bProduct.createMany({
-              data: t7b.products.map((p, idx) => ({
-                type7bId: created7b.id,
-                productId: p.productId,
-                productName: p.productName || null,
-                quantity:
-                  p.quantity != null
-                    ? new Prisma.Decimal(p.quantity)
-                    : p.quantityUsed != null
-                      ? new Prisma.Decimal(p.quantityUsed)
-                      : new Prisma.Decimal(1),
-                unit: p.unit || null,
-                sortOrder: idx,
-              })),
+              data: t7b.products.map((p, idx) => {
+                const dbProd = p.productId ? bProductMap.get(p.productId) : undefined;
+                return {
+                  type7bId: created7b.id,
+                  productId: p.productId,
+                  productName: p.productName || dbProd?.name || null,
+                  quantity:
+                    p.quantity != null
+                      ? new Prisma.Decimal(p.quantity)
+                      : p.quantityUsed != null
+                        ? new Prisma.Decimal(p.quantityUsed)
+                        : new Prisma.Decimal(1),
+                  unit: p.unit || dbProd?.unit || null,
+                  sortOrder: idx,
+                };
+              }),
             });
           }
         }
@@ -2374,20 +2404,35 @@ export async function updateActivityPlan(
           });
 
           if (plotItem.products && plotItem.products.length > 0) {
+            const prodIds = plotItem.products
+              .map((p) => p.productId)
+              .filter(Boolean);
+            const dbProducts =
+              prodIds.length > 0
+                ? await tx.product.findMany({
+                    where: { id: { in: prodIds } },
+                    select: { id: true, name: true, unit: true },
+                  })
+                : [];
+            const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
             await tx.activityPlanType7aProduct.createMany({
-              data: plotItem.products.map((p, idx) => ({
-                type7aId: t7a.id,
-                productId: p.productId,
-                productName: p.productName || null,
-                quantity:
-                  p.quantity != null
-                    ? new Prisma.Decimal(p.quantity)
-                    : p.targetQuantity != null
-                      ? new Prisma.Decimal(p.targetQuantity)
-                      : new Prisma.Decimal(1),
-                unit: p.unit || null,
-                sortOrder: idx,
-              })),
+              data: plotItem.products.map((p, idx) => {
+                const dbProd = p.productId ? productMap.get(p.productId) : undefined;
+                return {
+                  type7aId: t7a.id,
+                  productId: p.productId,
+                  productName: p.productName || dbProd?.name || null,
+                  quantity:
+                    p.quantity != null
+                      ? new Prisma.Decimal(p.quantity)
+                      : p.targetQuantity != null
+                        ? new Prisma.Decimal(p.targetQuantity)
+                        : new Prisma.Decimal(1),
+                  unit: p.unit || dbProd?.unit || null,
+                  sortOrder: idx,
+                };
+              }),
             });
           }
 
@@ -2479,20 +2524,35 @@ export async function updateActivityPlan(
         }
 
         if (t7b.products && t7b.products.length > 0) {
+          const bProdIds = t7b.products
+            .map((p) => p.productId)
+            .filter(Boolean);
+          const dbBProducts =
+            bProdIds.length > 0
+              ? await tx.product.findMany({
+                  where: { id: { in: bProdIds } },
+                  select: { id: true, name: true, unit: true },
+                })
+              : [];
+          const bProductMap = new Map(dbBProducts.map((p) => [p.id, p]));
+
           await tx.activityPlanType7bProduct.createMany({
-            data: t7b.products.map((p, idx) => ({
-              type7bId: created7b.id,
-              productId: p.productId,
-              productName: p.productName || null,
-              quantity:
-                p.quantity != null
-                  ? new Prisma.Decimal(p.quantity)
-                  : p.quantityUsed != null
-                    ? new Prisma.Decimal(p.quantityUsed)
-                    : new Prisma.Decimal(1),
-              unit: p.unit || null,
-              sortOrder: idx,
-            })),
+            data: t7b.products.map((p, idx) => {
+              const dbProd = p.productId ? bProductMap.get(p.productId) : undefined;
+              return {
+                type7bId: created7b.id,
+                productId: p.productId,
+                productName: p.productName || dbProd?.name || null,
+                quantity:
+                  p.quantity != null
+                    ? new Prisma.Decimal(p.quantity)
+                    : p.quantityUsed != null
+                      ? new Prisma.Decimal(p.quantityUsed)
+                      : new Prisma.Decimal(1),
+                unit: p.unit || dbProd?.unit || null,
+                sortOrder: idx,
+              };
+            }),
           });
         }
       }
