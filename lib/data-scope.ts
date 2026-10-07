@@ -164,6 +164,27 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
     teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
   },
+  activity_plan: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
+  activity: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
+  activity_plans: {
+    resource: "activity_plan",
+    ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
+    departmentStrategy: "employeeDepartment",
+    fallbackOwnerField: "createdById",
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -172,35 +193,52 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
 
 /**
  * Get all employee IDs in the same team as the current user.
- * "Team" = employees who share the same managerId, plus the manager themselves.
- * If the user IS a manager, the team includes all their direct reports.
+ * "Team" = employees who share the same managerId, plus the manager themselves,
+ * and recursively all direct and indirect subordinates under the user's hierarchy.
  */
-async function getTeamEmployeeIds(session: Session): Promise<string[]> {
+export async function getTeamEmployeeIds(session: Session): Promise<string[]> {
   const employeeId = session.user.employeeId;
   if (!employeeId) return [];
 
   const managerId = session.user.managerId;
 
-  // Find all employees who share the same manager
-  // Also include the manager themselves in the team
-  const teamMembers = await db.employee.findMany({
+  // 1. Find peers (same manager), manager, and self
+  const peersAndManager = await db.employee.findMany({
     where: {
       deletedAt: null,
       OR: [
-        // Employees with the same manager (same team)
         ...(managerId ? [{ managerId: managerId }] : []),
-        // The manager themselves
         ...(managerId ? [{ id: managerId }] : []),
-        // If user IS a manager, include their direct reports
-        { managerId: employeeId },
-        // Always include the user themselves
         { id: employeeId },
       ],
     },
     select: { id: true },
   });
 
-  return [...new Set(teamMembers.map((m) => m.id))];
+  const teamIds = new Set(peersAndManager.map((m) => m.id));
+
+  // 2. Recursively find all direct and indirect subordinates under the user's employeeId
+  let currentManagerIds = [employeeId];
+  while (currentManagerIds.length > 0) {
+    const subordinates = await db.employee.findMany({
+      where: {
+        deletedAt: null,
+        managerId: { in: currentManagerIds },
+      },
+      select: { id: true },
+    });
+
+    const newSubordinateIds = subordinates
+      .map((s) => s.id)
+      .filter((id) => !teamIds.has(id));
+
+    if (newSubordinateIds.length === 0) break;
+
+    newSubordinateIds.forEach((id) => teamIds.add(id));
+    currentManagerIds = newSubordinateIds;
+  }
+
+  return Array.from(teamIds);
 }
 
 // ---------------------------------------------------------------------------
@@ -226,6 +264,15 @@ export async function applyDataScope<T extends Record<string, any>>(
   resourceKey: string,
   configOverride?: Partial<ResourceScopeConfig>,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) {
     console.warn(
@@ -273,6 +320,15 @@ export async function applyEditScope<T extends Record<string, any>>(
   session: Session,
   resourceKey: string,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -310,6 +366,15 @@ export async function applyDeleteScope<T extends Record<string, any>>(
   session: Session,
   resourceKey: string,
 ): Promise<T> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return where;
+  }
+
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -350,6 +415,37 @@ function applyOwnFilter(
   const employeeId = session.user.employeeId;
   const userId = session.user.id;
   const fallback = config.fallbackOwnerField ?? "createdById";
+
+  // Specialized VIEW_OWN filtering for activity_plan:
+  // Includes both own-created plans and approved-helper plans without breaking existing where.OR
+  if (config.resource === "activity_plan") {
+    if (employeeId) {
+      const ownOrHelperFilter = {
+        OR: [
+          { employeeId: employeeId },
+          {
+            helpers: {
+              some: {
+                employeeId: employeeId,
+                status: "APPROVED",
+                deletedAt: null,
+              },
+            },
+          },
+        ],
+      };
+      if (Array.isArray(where.AND)) {
+        where.AND.push(ownOrHelperFilter);
+      } else if (where.AND) {
+        where.AND = [where.AND, ownOrHelperFilter];
+      } else {
+        where.AND = [ownOrHelperFilter];
+      }
+    } else {
+      where[fallback] = userId;
+    }
+    return;
+  }
 
   switch (config.ownStrategy) {
     case "employeeId":
@@ -479,6 +575,7 @@ export interface OwnershipCheckOptions {
   resourceOwnerId?: string | null;
   resourceEmployeeId?: string | null;
   resourceDepartmentId?: string | null;
+  resourceHelpers?: { employeeId: string; status: string; deletedAt?: Date | null }[] | null;
 }
 
 /**
@@ -490,6 +587,32 @@ export async function canAccessRecord(
   resourceKey: string,
   options: OwnershipCheckOptions,
 ): Promise<boolean> {
+  const roles = session.user.roles ?? [];
+  const isSuperAdmin =
+    roles.includes("administrator") ||
+    (session.user as any)?.role === "administrator";
+
+  if (isSuperAdmin) {
+    return true;
+  }
+
+  // Check if current user is an approved helper on activity_plan
+  if (
+    (resourceKey === "activity_plan" || resourceKey === "activity" || resourceKey === "activity_plans") &&
+    session.user.employeeId &&
+    options.resourceHelpers
+  ) {
+    const isApprovedHelper = options.resourceHelpers.some(
+      (h) =>
+        h.employeeId === session.user.employeeId &&
+        h.status === "APPROVED" &&
+        !h.deletedAt,
+    );
+    if (isApprovedHelper) {
+      return true;
+    }
+  }
+
   const config = RESOURCE_CONFIGS[resourceKey];
   if (!config) return false;
 

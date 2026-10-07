@@ -1,147 +1,106 @@
 ---
-description: Refactor a module to follow the employee module's layered architecture (infrastructure → application → server → features)
+description: Refactor an existing module to comply with the project's standard Module Architecture Contract while preserving existing behavior.
 ---
 
-# Refactor Module Structure (Employee Pattern)
+# Refactor Module Structure
 
-ต้องการปรับโครงสร้างของ module `products` ให้เป็นไปตามรูปแบบเดียวกับ `modules/employee`
+ใช้ Workflow นี้เมื่อปรับโครงสร้าง Module ที่มีอยู่แล้ว
+ให้เป็นไปตาม **Module Architecture Contract** ของโปรเจกต์
 
-## โครงสร้างเป้าหมาย
+เป้าหมาย:
 
+- ทำให้ทุก Module ใช้ Architecture เดียวกัน
+- รักษา Business Logic และ Behavior เดิม
+- แยก Layer ให้ถูกต้อง (features, server, application, infrastructure, types, ui)
+- ลด Layer Bypass
+- Reuse Existing Pattern
+- ไม่สร้าง Architecture ใหม่โดยไม่จำเป็น
+- ไม่ผูกมาตรฐานกับ Module ใด Module หนึ่ง
+- ตรวจสอบผลกระทบก่อนและหลัง Refactor
+- ห้ามทำลายการทำงานเดิม
+
+มาตรฐานหลักที่ต้องปฏิบัติตาม:
+
+- `.agents/skills/crm-coding-standards/SKILL.md`
+- `docs/ARCHITECTURE.md`
+- `docs/MODULE_ARCHITECTURE.md` หากมี
+
+---
+
+# 1. Core Rules
+
+ระหว่างการ Refactor MUST ปฏิบัติตามกฎต่อไปนี้:
+
+1. ห้ามเปลี่ยน Business Behavior โดยไม่จำเป็น
+2. ห้ามสร้าง Architecture ใหม่หาก Architecture ปัจจุบันรองรับได้
+3. ต้องตรวจสอบ Existing Pattern ก่อนย้ายหรือสร้างไฟล์
+4. ต้องรักษา Dependency Direction (features $\rightarrow$ server $\rightarrow$ application $\rightarrow$ infrastructure)
+5. ต้องไม่สร้าง Layer ใหม่โดยพลการ
+6. ต้องไม่แก้ไข Code นอก Scope
+7. ต้องตรวจสอบทุก Import ที่ได้รับผลกระทบ
+8. ต้องตรวจสอบ Runtime Behavior หลัง Refactor
+9. ต้อง Update Documentation เมื่อโครงสร้างเปลี่ยน
+10. ต้องทำ Final Validation ก่อนถือว่างานเสร็จ
+
+---
+
+# 2. Database & Migration Rules during Refactoring
+
+1. **Code-Only Refactoring**: การ Refactor โค้ดที่ไม่มีการเปลี่ยนโครงสร้าง Database Schema **ไม่ต้องสร้าง Prisma Migration**
+2. **Schema-Affecting Refactoring**: หากการ Refactor ส่งผลให้เกิด Persistent Schema Change (เช่น การเปลี่ยนชื่อตาราง/คอลัมน์, การเพิ่ม Index, หรือการปรับ Enum) **ต้องสร้าง Prisma Migration ควบคู่ไปด้วยเสมอ**
+3. **Migration Inspection**: ต้องตรวจสอบ `migration.sql` เพื่อป้องกันการเกิด `DROP TABLE` หรือ `DROP COLUMN` ที่ไม่ตั้งใจ
+4. **No Unrelated Bundling**: ห้ามรวบ Schema Change ที่ไม่เกี่ยวข้องกับการ Refactor โมดูลนี้เข้ามาใน Migration
+5. **Separation of Apply**: ห้าม Apply Migration สู่ฐานข้อมูลโดยไม่ได้รับอนุมัติจากผู้ใช้
+6. **Parity Check**: ตรวจสอบความสอดคล้องระหว่าง `schema.prisma` $\leftrightarrow$ `prisma/migrations/` $\leftrightarrow$ Database จริงเมื่อมี Database Change เกี่ยวข้อง
+
+---
+
+# 3. Target Module Architecture
+
+Module ทุกตัวภายใต้ `modules/<module-name>/` ต้องปฏิบัติตามโครงสร้างมาตรฐาน:
+
+```text
+modules/<module-name>/
+├── application/       # Business logic, use cases, validation (Zod)
+├── features/          # User-facing screens & complex UI features
+├── infrastructure/   # Database access & repositories (Prisma)
+├── server/            # Server Actions (Auth, RBAC permission checks, cache revalidation)
+├── types/             # Module TypeScript interfaces & types
+├── ui/                # Shared reusable UI components for this module
+├── constants.ts       # Module-specific constants
+├── index.ts           # Public module API export
+└── README.md          # Module architecture & behavior documentation
 ```
-modules/[MODULE_NAME]/
- ┣ features/                      ← UI screens
- ┃ ┣ detail-view/
- ┃ ┃ ┗ [MODULE]-detail-view.tsx
- ┃ ┣ form/
- ┃ ┃ ┣ [MODULE]-edit-view.tsx
- ┃ ┃ ┣ [MODULE]-form-wrapper.tsx
- ┃ ┃ ┣ [MODULE]-form.tsx
- ┃ ┃ ┗ [MODULE]-new-view.tsx
- ┃ ┗ list-view/
- ┃   ┣ [MODULE]-cards.tsx
- ┃   ┣ [MODULE]-list-view.tsx
- ┃   ┣ [MODULE]-table.tsx          (รวม toolbar inline)
- ┃   ┣ use-[MODULE]-columns.tsx
- ┃   ┗ use-[MODULE]-list.ts        (แยก state / data fetching logic)
- ┃
- ┣ application/                   ← use cases (business logic)
- ┃ ┣ create-[MODULE].ts           (complex use case → แยกไฟล์)
- ┃ ┣ update-[MODULE].ts           (complex use case → แยกไฟล์)
- ┃ ┣ validations.ts               (Zod schemas ใช้ร่วม client/server)
- ┃ ┗ index.ts                     (facade + inline thin use cases)
- ┃
- ┣ server/                        ← transport (server actions only)
- ┃ ┗ actions.ts
- ┃
- ┣ infrastructure/                ← prisma / db access
- ┃ ┗ [MODULE].repository.ts
- ┃
- ┣ ui/                            ← module-specific ui (เช่น status badge)
- ┃ ┗ [MODULE]-status-badge.tsx
- ┃
- ┣ types/
- ┃ ┗ index.ts
- ┃
- ┣ constants.ts
- ┣ index.ts                       (barrel exports)
- ┗ README.md
-```
 
-## กฎสำคัญ
+---
 
-### 1. Infrastructure Layer (`infrastructure/[MODULE].repository.ts`)
+# 4. Refactoring Steps
 
-- **เฉพาะ** Prisma/database operations เท่านั้น
-- ไม่มี business logic, ไม่มี auth check, ไม่มี validation
-- export pure functions เช่น `findXxxById`, `findAllXxx`, `createXxx`, `updateXxx`, `softDeleteXxx`
-- ดูตัวอย่างที่ `modules/employee/infrastructure/employee.repository.ts`
+## Step 1: Pre-Refactor Analysis & Inventory
+- สำรวจไฟล์และโครงสร้างเดิมของโมดูล
+- ระบุจุดที่มี Layer Bypass, Code Duplication, หรือการจัดวางผิด Layer
+- สำรวจผลกระทบของ Import ในโมดูลอื่น
 
-### 2. Application Layer (`application/`)
+## Step 2: Plan Structural Changes & Database Impact Check
+- วางแผนการย้ายโค้ดเข้าสู่ 5 Layers มาตรฐาน
+- ตรวจสอบว่าต้องมีการแตะต้อง `prisma/schema.prisma` หรือไม่ (ถ้าไม่แตะ ให้ทำ Code Refactoring ล้วนโดยไม่สร้าง Migration)
 
-- **Business logic** อยู่ที่นี่: validation, uniqueness checks, data mapping
-- Use case ที่ซับซ้อน (create, update) → แยกไฟล์ (`create-[MODULE].ts`, `update-[MODULE].ts`)
-- Use case ที่บาง (get detail, list) → inline ใน `index.ts`
-- `validations.ts` → Zod schemas ใช้ร่วมระหว่าง client form กับ server
-- `index.ts` → facade รวม exports ทั้งหมด
-- ดูตัวอย่างที่ `modules/employee/application/index.ts`
+## Step 3: Layer-by-Layer Relocation
+- **Infrastructure**: ย้ายการติดต่อ Database เข้า `infrastructure/<module>.repository.ts`
+- **Application**: ย้าย Business Rules, Calculation, และ Validation เข้า `application/`
+- **Server**: สร้าง/จัดระเบียบ Server Actions ใน `server/actions.ts`
+- **UI / Features**: จัดระเบียบ Presentation Components ใน `features/` และ `ui/`
 
-### 3. Server Layer (`server/actions.ts`)
+## Step 4: Import & Dependency Resolution
+- อัปเดต Import Path ทั้งหมดให้ถูกต้อง
+- ตรวจสอบให้แน่ใจว่าไม่มี Circular Dependencies และไม่มีการ Bypass Layer
 
-- **"use server"** directive เท่านั้น
-- ทำแค่ 3 สิ่ง: (1) Auth/Permission check, (2) เรียก use case, (3) revalidatePath
-- **ห้าม** มี business logic ใน actions
-- import use cases จาก `../application`
-- ดูตัวอย่างที่ `modules/employee/server/actions.ts`
+## Step 5: Clean Up Legacy Files
+- ลบไฟล์เดิมที่ถูกย้ายออกไปแล้วอย่างระมัดระวัง
+- อัปเดต `README.md` ของโมดูล
 
-### 4. Features Layer (`features/`)
-
-- UI screens จัดกลุ่มตาม screen: `detail-view/`, `form/`, `list-view/`
-- Toolbar ที่ใช้ที่เดียว → inline ใน table file (ไม่แยกไฟล์)
-- ใช้ shared components จาก `@/components/custom/`:
-  - `TruncatedCell` → `@/components/custom/truncated-cell`
-  - `ActionButton` → `@/components/custom/action-button`
-  - `DetailItem` → `@/components/custom/detail-item`
-- **Smart vs Dumb Components**: 
-  - ให้ `[MODULE]-list-view.tsx` (ตัวแม่) เป็นคนถือ State หลัก (เช่น `deleteTarget`, `actionLoading`) รวมถึง Dialog สำหรับยืนยันการทำ Action ต่างๆ และเป็นคนเรียก Server Action โดยตรง
-  - ให้ `[MODULE]-table.tsx` เป็นแค่ UI (Dumb Component) รับแค่ Callback `onDeleteRequest` ห้ามเอา Dialog หรือ Server Action ไปฝังใน table เด็ดขาด
-
-### 5. Barrel Exports (`index.ts`)
-
-- export ทุกอย่างที่ outsiders ต้องใช้: types, constants, application, ui, features
-
-## ขั้นตอนทำงาน
-
-### Step 1: วิเคราะห์โครงสร้างปัจจุบัน
-
-- สำรวจ directory structure ปัจจุบันของ `modules/[MODULE_NAME]`
-- ระบุไฟล์ทั้งหมดและหน้าที่ของแต่ละไฟล์
-- ค้นหาทุก import path ที่อ้างอิง module นี้ (`grep "@/modules/[MODULE_NAME]"`)
-
-### Step 2: สร้าง Infrastructure Layer
-
-- สร้าง `infrastructure/[MODULE].repository.ts`
-- ย้าย database operations ทั้งหมดจาก server actions/queries มารวมไว้ที่นี่
-- แต่ละ function เป็น pure database operation (ไม่มี auth, validation)
-
-### Step 3: สร้าง Application Layer
-
-- สร้าง `application/validations.ts` ← ย้าย Zod schemas มาจาก server/validations
-- สร้าง `application/create-[MODULE].ts` ← extract create logic (validation + persistence)
-- สร้าง `application/update-[MODULE].ts` ← extract update logic
-- สร้าง `application/index.ts` ← facade + inline thin use cases (get detail, list)
-
-### Step 4: อัปเดต Server Layer
-
-- เขียน `server/actions.ts` ใหม่ให้ thin: auth → use case → revalidate
-- ลบ `server/queries.ts` และ `server/validations.ts` (ถ้ามี)
-- แก้ imports ที่อ้างอิง queries/validations เดิม
-
-### Step 5: จัดระเบียบ Features Layer
-
-- ย้าย UI screens เข้า `features/` จัดกลุ่ม (detail-view, form, list-view)
-- รวม toolbar เข้า table file (ถ้าใช้ที่เดียว)
-- ใช้ shared components แทน inline duplicates:
-  - `TruncatedCell`, `ActionButton`, `DetailItem` → import จาก `@/components/custom/`
-
-### Step 6: Cleanup
-
-- ลบไฟล์ที่ไม่ใช้แล้ว
-- อัปเดต barrel `index.ts`
-- อัปเดต `README.md`
-- ตรวจสอบ imports ทั้งโปรเจค (`grep` หา path เดิม)
-
-### Step 7: Verify
-
-- รัน `npx tsc --noEmit` → 0 errors
-- ทดสอบ CRUD ผ่านหน้าเว็บ
-
-## ตัวอย่าง Reference
-
-ดูโครงสร้างจริงที่ทำเสร็จแล้ว:
-
-- `modules/employee/` — ตัวอย่างเต็ม
-- `modules/employee/README.md` — อธิบาย architecture layers
-- `modules/employee/infrastructure/employee.repository.ts` — ตัวอย่าง repository
-- `modules/employee/application/index.ts` — ตัวอย่าง facade + inline use cases
-- `modules/employee/server/actions.ts` — ตัวอย่าง thin server actions
+## Step 6: Post-Refactor Verification
+- รัน TypeScript Type Check: `pnpm tsc --noEmit`
+- รัน ESLint: `npx eslint <module-path>`
+- ตรวจสอบ Automated Unit/Integration Tests
+- ทดสอบ Runtime และ UI Behavior บน Browser

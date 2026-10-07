@@ -1,0 +1,461 @@
+"use client";
+
+import { ShoppingCart, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import {
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity/activity-product-select";
+import { cn } from "@/lib/utils";
+import type {
+  Type3SalesProductLine,
+  CustomerOption,
+  ProductOption,
+} from "../shared/types";
+import type { Type3SalesProps } from "./types";
+
+export type { CustomerOption, ProductOption };
+
+export function Type3Sales({
+  readonly = false,
+  type3Items,
+  addType3Row,
+  updateType3Row,
+  deleteType3Row,
+  customers = [],
+  products = [],
+}: Type3SalesProps) {
+  // Add a new product line to a specific proposal item
+  const addProductLine = (itemId: string) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productName: currentItem.productName || "",
+              quantity: currentItem.quantity != null ? currentItem.quantity : 1,
+              notes: currentItem.notes || "",
+            },
+          ];
+
+    const newProdLine: Type3SalesProductLine = {
+      id: Date.now().toString(),
+      productName: "",
+      quantity: 1,
+      notes: "",
+    };
+
+    const updatedProducts = [...currentProducts, newProdLine];
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  // Update a field inside a specific product line
+  const updateProductLine = (
+    itemId: string,
+    prodId: string,
+    field: keyof Type3SalesProductLine,
+    val: any,
+    productItem?: ActivityProductItem,
+  ) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [
+            {
+              id: "p-1",
+              productName: currentItem.productName || "",
+              quantity: currentItem.quantity != null ? currentItem.quantity : 1,
+              notes: currentItem.notes || "",
+            },
+          ];
+
+    const updatedProducts = currentProducts.map((p) => {
+      if (p.id !== prodId) return p;
+      const updated = { ...p, [field]: val };
+      if (field === "productName") {
+        if (!val) {
+          updated.productId = undefined;
+        } else {
+          const foundProd =
+            productItem ||
+            (products || []).find(
+              (prod) => prod.name === val || prod.id === val,
+            );
+          if (foundProd) {
+            updated.productId = foundProd.id;
+            updated.productName = foundProd.name;
+          }
+        }
+      }
+      return updated;
+    });
+
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  // Delete a specific product line from a proposal item
+  const deleteProductLine = (itemId: string, prodId: string) => {
+    const currentItem = type3Items.find((i) => i.id === itemId);
+    if (!currentItem) return;
+
+    const currentProducts =
+      currentItem.products && currentItem.products.length > 0
+        ? currentItem.products
+        : [];
+
+    const updatedProducts = currentProducts.filter((p) => p.id !== prodId);
+    updateType3Row(itemId, "products", updatedProducts);
+  };
+
+  const totalAllQuantity = type3Items.reduce((sum, item) => {
+    if (item.products && item.products.length > 0) {
+      return (
+        sum +
+        item.products.reduce((pSum, p) => pSum + (Number(p.quantity) || 0), 0)
+      );
+    }
+    return sum + (Number(item.quantity) || 0);
+  }, 0);
+
+  return (
+    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+          <ShoppingCart className="h-4 w-4 text-slate-600" />
+          <span>เสนอขายสินค้า</span>
+        </div>
+
+        {!readonly && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={addType3Row}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg h-7 px-2.5 shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            เพิ่มรายการ
+          </Button>
+        )}
+      </div>
+
+      {/* List of Sales Proposal Cards */}
+      <div className="space-y-3">
+        {type3Items.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+            ยังไม่มีรายการเสนอขาย
+          </div>
+        ) : (
+          type3Items.map((item, index) => {
+            const isSubDealer = Boolean(item.isSubDealer);
+            const prodListLines: Type3SalesProductLine[] =
+              item.products && item.products.length > 0
+                ? item.products
+                : [
+                    {
+                      id: "p-1",
+                      productName: item.productName || "",
+                      quantity: item.quantity != null ? item.quantity : 1,
+                      notes: item.notes || "",
+                    },
+                  ];
+
+            const cardTotalQty = prodListLines.reduce(
+              (sum, p) => sum + (Number(p.quantity) || 0),
+              0,
+            );
+
+            return (
+              <div
+                key={item.id}
+                className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 transition-all hover:border-emerald-300"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[11px] font-extrabold">
+                      {index + 1}
+                    </span>
+                    รายการเสนอขายที่ {index + 1}
+                  </span>
+                  {!readonly && (
+                    <button
+                      type="button"
+                      onClick={() => deleteType3Row(item.id)}
+                      className="p-1 rounded-md text-red-500 hover:bg-red-50 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>ลบรายการ</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* 1. Customer Type Selector (Dealer vs Subdealer) */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">
+                    ประเภทลูกค้า / ร้านค้า{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name={`customer-type-${item.id}`}
+                        checked={!isSubDealer}
+                        onChange={() => {
+                          updateType3Row(item.id, "isSubDealer", false);
+                          updateType3Row(item.id, "subDealerStore", "");
+                        }}
+                        disabled={readonly}
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
+                      />
+                      <span>ตัวแทนจำหน่าย (Dealer)</span>
+                    </label>
+
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name={`customer-type-${item.id}`}
+                        checked={isSubDealer}
+                        onChange={() => {
+                          updateType3Row(item.id, "isSubDealer", true);
+                        }}
+                        disabled={readonly}
+                        className="text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
+                      />
+                      <span>ร้านค้าย่อย (Subdealer)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. Customer Form Fields */}
+                {!isSubDealer ? (
+                  /* Case DEALER: Select Dealer from Customer Master */
+                  <div>
+                    <ActivityCustomerSelect
+                      id={`customer-combobox-${item.id}`}
+                      type="DEALER"
+                      label="ชื่อร้านค้า (Dealer)"
+                      labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                      value={item.storeId || ""}
+                      onChange={(val, cust) => {
+                        updateType3Row(item.id, "storeId", val || undefined);
+                        updateType3Row(
+                          item.id,
+                          "customerName",
+                          cust?.name || "",
+                        );
+                      }}
+                      customers={customers}
+                      placeholder="เลือกร้านค้า Dealer..."
+                      searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                      emptyText="ไม่พบร้านค้า Dealer ในระบบ"
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
+                ) : (
+                  /* Case SUBDEALER: Input Subdealer name + Select Parent Dealer */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/40 rounded-xl border border-amber-200/70">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        ชื่อร้าน Subdealer{" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <ActivityInput
+                        type="text"
+                        value={item.subDealerStore || ""}
+                        onChange={(e) =>
+                          updateType3Row(
+                            item.id,
+                            "subDealerStore",
+                            e.target.value,
+                          )
+                        }
+                        disabled={readonly}
+                        placeholder="ระบุชื่อร้านค้า Subdealer..."
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <ActivityCustomerSelect
+                        id={`parent-dealer-combobox-${item.id}`}
+                        type="DEALER"
+                        label="Dealer ต้นสังกัด"
+                        labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                        triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                        value={item.storeId || ""}
+                        onChange={(val, cust) => {
+                          updateType3Row(item.id, "storeId", val || undefined);
+                          updateType3Row(
+                            item.id,
+                            "customerName",
+                            cust?.name || "",
+                          );
+                        }}
+                        customers={customers}
+                        placeholder="เลือก Dealer ต้นสังกัด..."
+                        searchPlaceholder="ค้นหา Dealer ต้นสังกัด..."
+                        emptyText="ไม่พบ Dealer ในระบบ"
+                        disabled={readonly}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Product Lines Section */}
+                <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">
+                      รายการสินค้าที่จะเสนอขาย{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    {!readonly && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => addProductLine(item.id)}
+                        className="h-7 text-xs px-2.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 shadow-sm cursor-pointer"
+                      >
+                        <Plus className="h-3 w-3 mr-1 text-emerald-600" />
+                        เพิ่มสินค้า
+                      </Button>
+                    )}
+                  </div>
+
+                  {prodListLines.map((prodLine, pIdx) => {
+                    return (
+                      <div
+                        key={prodLine.id}
+                        className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
+                      >
+                        {/* Product Combobox */}
+                        <div className="md:col-span-5">
+                          <ActivityProductSelect
+                            id={`product-combobox-${item.id}-${prodLine.id}`}
+                            label="สินค้า"
+                            labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
+                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                            value={prodLine.productName}
+                            valueKey="name"
+                            unitFilter="box"
+                            onChange={(val, prod) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "productName",
+                                val,
+                                prod,
+                              )
+                            }
+                            products={products}
+                            placeholder="เลือกสินค้า..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                            required
+                          />
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="md:col-span-2">
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            จำนวน <span className="text-red-500">*</span>
+                          </label>
+                          <ActivityInput
+                            type="number"
+                            min={1}
+                            value={prodLine.quantity}
+                            onChange={(e) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "quantity",
+                                parseInt(e.target.value) || 0,
+                              )
+                            }
+                            disabled={readonly}
+                            className="text-center font-medium"
+                            required
+                          />
+                        </div>
+
+                        {/* Detail / Notes */}
+                        <div className="md:col-span-4">
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            รายละเอียด
+                          </label>
+                          <ActivityInput
+                            type="text"
+                            value={prodLine.notes || ""}
+                            onChange={(e) =>
+                              updateProductLine(
+                                item.id,
+                                prodLine.id,
+                                "notes",
+                                e.target.value,
+                              )
+                            }
+                            disabled={readonly}
+                            placeholder="ระบุข้อเสนอหรือรายละเอียดสินค้า..."
+                          />
+                        </div>
+
+                        {/* Delete Product Line Button */}
+                        {!readonly && (
+                          <div className="md:col-span-1 flex items-center justify-end md:justify-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                deleteProductLine(item.id, prodLine.id)
+                              }
+                              disabled={prodListLines.length <= 1}
+                              title={
+                                prodListLines.length <= 1
+                                  ? "ต้องมีสินค้าอย่างน้อย 1 รายการ"
+                                  : "ลบรายการสินค้า"
+                              }
+                              className={cn(
+                                "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+                                prodListLines.length <= 1
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-red-500 hover:bg-red-50 hover:text-red-600 cursor-pointer",
+                              )}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Card Summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-2 border-t border-slate-100 text-xs text-slate-600 font-medium">
+                  <div>
+                    จำนวนสินค้ารวม:{" "}
+                    <span className="font-bold text-emerald-800 ml-1">
+                      {cardTotalQty.toLocaleString()} หน่วย
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}

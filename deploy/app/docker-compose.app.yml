@@ -65,6 +65,7 @@ services:
       - certbot_data:/var/www/certbot:ro
       - certbot_certs:/etc/letsencrypt:ro
       - /home/bank/crm-data/uploads:/usr/share/nginx/uploads:ro
+      - /home/bank/crm-data-staging/uploads:/usr/share/nginx/uploads-staging:ro
     depends_on:
       app:
         condition: service_healthy

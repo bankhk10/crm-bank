@@ -7,13 +7,16 @@ import type { SidebarChildItem, SidebarNavItem } from "../types";
 
 /**
  * Filter child items based on permission keys (recursive)
+ * If user has administrator role, bypass permission filtering.
  */
 function filterChildItems(
   items: SidebarChildItem[],
   permissionKeys: string[],
+  isSuperAdmin: boolean = false,
 ): SidebarChildItem[] {
   return items
     .filter((item) => {
+      if (isSuperAdmin) return true;
       if (!item.permissionKey) return true;
       return permissionKeys.includes(item.permissionKey);
     })
@@ -21,7 +24,7 @@ function filterChildItems(
       if (item.children && item.children.length > 0) {
         return {
           ...item,
-          children: filterChildItems(item.children, permissionKeys),
+          children: filterChildItems(item.children, permissionKeys, isSuperAdmin),
         };
       }
       return item;
@@ -30,13 +33,18 @@ function filterChildItems(
 
 /**
  * Filter top-level navigation items based on permission keys
+ * If user has administrator role, bypass permission filtering.
  */
 export function filterNavItems(
   items: SidebarNavItem[],
   permissionKeys: string[],
+  roles?: string[],
 ): SidebarNavItem[] {
+  const isSuperAdmin = roles?.includes("administrator") ?? false;
+
   return items
     .filter((item) => {
+      if (isSuperAdmin) return true;
       if (!item.permissionKey) return true;
       return permissionKeys.includes(item.permissionKey);
     })
@@ -44,7 +52,7 @@ export function filterNavItems(
       if (item.children && item.children.length > 0) {
         return {
           ...item,
-          children: filterChildItems(item.children, permissionKeys),
+          children: filterChildItems(item.children, permissionKeys, isSuperAdmin),
         };
       }
       return item;

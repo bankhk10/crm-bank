@@ -8,6 +8,7 @@ interface SectionHeaderProps {
     variant?: "primary" | "dark" | "default";
     /** Hex color or Tailwind class for primary variant (e.g., "#B91C1C") */
     accentColor?: string;
+    color?: string;
     children?: React.ReactNode;
     className?: string;
 }

@@ -120,12 +120,30 @@ export default function Sidebar({
     const pathname = usePathname();
 
     const items = useMemo(() => {
-        const navs = filterNavItems(navigationItems, permissionKeys);
+        const navs = filterNavItems(navigationItems, permissionKeys, roles);
 
         const dashboardHref = getDefaultRouteForRoles(roles);
         const isDashboard = isAdministrator(roles) || isManager(roles);
         const dashboardLabel = isDashboard ? "แดชบอร์ด" : "หน้าแรก";
         const DashboardIcon = isDashboard ? LayoutDashboard : Home;
+
+        // Only include main dashboard item if user has explicit dashboard or show_product menu permission
+        const hasDashboardPermission =
+            permissionKeys.includes("menu.dashboard.admin") ||
+            permissionKeys.includes("menu.dashboard.manager") ||
+            permissionKeys.includes("menu.dashboard.sales") ||
+            permissionKeys.includes("menu.show_product");
+
+        if (
+            !hasDashboardPermission ||
+            roles.includes("sales_promotion") ||
+            roles.includes("sales_promotion_supervisor")
+        ) {
+            // Filter out dashboard routes, but preserve business routes (e.g. /activity-plans)
+            return navs.filter(
+                (nav) => !nav.href.startsWith("/dashboard") && nav.href !== "/show-product"
+            );
+        }
 
         const mainDashboardItem: SidebarNavItem = {
             href: dashboardHref,

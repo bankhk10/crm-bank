@@ -1,308 +1,752 @@
 # Coding Standards - CRM System
 
-> **Version**: 2.0.0 | **Updated**: 2026-02-24  
-> **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
+> **Version**: 3.0.0
+> **Updated**: 2026-08-28
+> **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
 
 ---
 
-## 1. File Naming
+## 1. Core Principles
 
-| Type           | Convention        | Example                                    |
-| -------------- | ----------------- | ------------------------------------------ |
-| Components     | kebab-case        | `employee-form.tsx`, `employee-table.tsx`  |
-| Pages          | kebab-case folder | `app/(main)/customers/page.tsx`            |
-| Repository     | kebab-case        | `employee.repository.ts`                   |
-| Use Cases      | kebab-case        | `create-employee.ts`, `update-employee.ts` |
-| Server Actions | fixed name        | `actions.ts` (in `server/`)                |
-| Validations    | fixed name        | `validations.ts` (in `application/`)       |
-| Types          | kebab-case        | `index.ts` (in `types/`)                   |
-| Utils          | kebab-case        | `date-utils.ts`                            |
+The following principles are mandatory across the project:
 
----
+1. Follow the project-wide architecture.
+2. Reuse existing project patterns before creating new patterns.
+3. Keep all modules architecturally consistent.
+4. Separate UI, server transport, business logic, and data access.
+5. Do not bypass established architectural layers.
+6. Do not introduce new architectural layers without justification.
+7. Do not modify unrelated code.
+8. Prefer simple solutions that follow established conventions.
+9. Preserve existing behavior outside the requested scope.
+10. Validate the implementation before considering the task complete.
 
-## 2. Code Style
+The objective is:
 
-### TypeScript
+> **Same architecture, different domain.**
 
-```typescript
-// ✅ Use explicit types
-function calculateTotal(items: SaleItem[]): number {
-  return items.reduce((sum, item) => sum + item.totalPrice, 0);
-}
-
-// ❌ Avoid 'any'
-function processData(data: any) { ... } // BAD
-
-// ✅ Use interfaces for objects
-interface CreateSaleInput {
-  customerId: string;
-  items: SaleItemInput[];
-}
-
-// ✅ Use enums for fixed values
-enum SaleStatus {
-  PENDING_APPROVAL = 'PENDING_APPROVAL',
-  APPROVED = 'APPROVED'
-}
-```
-
-### React Components
-
-```tsx
-// ✅ Functional components with TypeScript
-interface Props {
-  customerId: string;
-  onSave: (data: Customer) => void;
-}
-
-export function CustomerForm({ customerId, onSave }: Props) {
-  return <form>...</form>;
-}
-
-// ✅ Use 'use client' for client components
-'use client';
-
-export function InteractiveComponent() { ... }
-```
+Modules may contain different business rules and features, but their architectural responsibilities and dependency direction must remain consistent.
 
 ---
 
-## 3. Module Structure
+## 2. Existing Pattern First
 
-> **Primary pattern**: `modules/[MODULE_NAME]/`  
-> **Reference**: `modules/employee/` — ดูตัวอย่างเต็ม
+Before creating or modifying code, inspect the existing project.
 
-```
-modules/[MODULE_NAME]/
-├── infrastructure/              # Database access only
-│   └── [MODULE].repository.ts   # Pure Prisma operations
-│
-├── application/                 # Business logic
-│   ├── create-[MODULE].ts       # Complex use case (separate file)
-│   ├── update-[MODULE].ts       # Complex use case (separate file)
-│   ├── validations.ts           # Zod schemas (shared client/server)
-│   └── index.ts                 # Facade + inline thin use cases
-│
-├── server/                      # Transport layer
-│   └── actions.ts               # "use server" — auth + use case + revalidate
-│
-├── features/                    # UI screens
-│   ├── list-view/               # Table, cards, columns
-│   ├── form/                    # Form + wrapper
-│   └── detail-view/             # Detail page
-│
-├── ui/                          # Module-specific UI (badges, etc.)
-├── types/                       # Type definitions
+MUST:
+
+1. Inspect the target module.
+2. Search for similar existing implementations.
+3. Check existing shared components.
+4. Check existing hooks and utilities.
+5. Check existing Server Action patterns.
+6. Check existing application/business logic patterns.
+7. Check existing repository patterns.
+8. Check similar modules when applicable.
+9. Reuse an existing pattern whenever reasonably possible.
+
+Do NOT create a new implementation when an existing project implementation can reasonably satisfy the requirement.
+
+Do NOT introduce a new architecture simply because it is common in another project.
+
+If the existing pattern cannot satisfy the requirement, explain the reason before introducing a new architectural approach.
+
+---
+
+## 3. Module Architecture Contract
+
+Every module under `modules/` MUST follow the project Module Architecture Contract.
+
+The authoritative module architecture is documented in:
+
+`docs/MODULE_ARCHITECTURE.md`
+
+Standard structure:
+
+```text
+modules/<module-name>/
+├── application/
+├── features/
+├── infrastructure/
+├── server/
+├── types/
+├── ui/
 ├── constants.ts
-├── index.ts                     # Barrel exports
+├── index.ts
 └── README.md
 ```
 
-### Layer Rules
+Not every module needs every folder or file.
 
-| Layer             | Imports from                            | Responsibilities                              |
-| ----------------- | --------------------------------------- | --------------------------------------------- |
-| `infrastructure/` | `@/lib/db`                              | Pure database operations                      |
-| `application/`    | `infrastructure/`                       | Business logic, validation, uniqueness checks |
-| `server/`         | `application/`                          | Auth, permissions, revalidation               |
-| `features/`       | `server/`, `application/validations.ts` | UI rendering                                  |
+Create only what the module actually requires.
 
-### Legacy Paths (ยังมีใช้บางส่วน)
+Do NOT:
 
+- Create empty folders.
+- Create placeholder files without a purpose.
+- Add architectural layers that are not defined by the project.
+- Create a different architecture for each module.
+
+The requirement is **architectural consistency**, not identical file counts.
+
+---
+
+## 4. Module Layer Responsibilities
+
+### 4.1 `features/`
+
+Responsible for user-facing UI and feature-specific presentation behavior.
+
+Typical structure:
+
+```text
+features/
+├── list-view/
+├── form/
+└── detail-view/
 ```
-app/api/          # API Routes — ยังมี products, customers, sales, rbac, etc.
-app/actions/      # Standalone server actions (dashboard, reports, logs)
+
+MUST NOT:
+
+- Access the database directly.
+- Import repositories directly.
+- Contain database queries.
+- Contain infrastructure logic.
+- Bypass established server/application boundaries for mutations.
+
+---
+
+### 4.2 `server/`
+
+Responsible for Server Actions and server-side transport concerns.
+
+Typical structure:
+
+```text
+server/
+└── actions.ts
+```
+
+Server Actions MUST remain thin and follow:
+
+```text
+Authentication
+    ↓
+Permission
+    ↓
+Application Logic
+    ↓
+Revalidation
+```
+
+Server Actions MUST NOT:
+
+- Contain duplicated business logic.
+- Contain direct database queries when repository/application layers are available.
+- Become a second business-logic layer.
+- Contain UI logic.
+
+---
+
+### 4.3 `application/`
+
+Responsible for business logic and use-case orchestration.
+
+Typical structure:
+
+```text
+application/
+├── create-<module>.ts
+├── update-<module>.ts
+├── validations.ts
+└── index.ts
+```
+
+May contain:
+
+- Business rules.
+- Validation.
+- Uniqueness checks.
+- Data mapping.
+- Use-case orchestration.
+
+MUST NOT contain:
+
+- React components.
+- UI presentation.
+- Transport concerns.
+- Authentication/authorization transport logic.
+- Direct database client usage when repository access is available.
+
+---
+
+### 4.4 `infrastructure/`
+
+Responsible for persistence and external data access.
+
+Typical structure:
+
+```text
+infrastructure/
+└── <module>.repository.ts
+```
+
+MUST:
+
+- Handle database operations.
+- Use the project's shared database client.
+- Keep repository operations focused on data access.
+
+MUST NOT:
+
+- Contain authentication.
+- Contain authorization.
+- Contain business rules.
+- Contain UI logic.
+- Depend on presentation concerns.
+
+---
+
+### 4.5 `types/`
+
+Contains module-specific TypeScript types.
+
+Typical structure:
+
+```text
+types/
+└── index.ts
+```
+
+Avoid duplicating equivalent types across multiple locations.
+
+---
+
+### 4.6 `ui/`
+
+Contains reusable UI components that are specific to the module.
+
+Examples:
+
+```text
+ui/
+├── <module>-status-badge.tsx
+└── <module>-type-badge.tsx
+```
+
+Before creating a module-specific reusable component, check:
+
+`@/components/custom/`
+
+for an existing shared component.
+
+---
+
+### 4.7 `constants.ts`
+
+Contains constants that are specific to the module.
+
+Do not put module-specific constants into unrelated global files.
+
+---
+
+### 4.8 `index.ts`
+
+Acts as the module's public export entry point.
+
+Expose only APIs that other parts of the application legitimately need.
+
+Avoid unnecessary exports.
+
+---
+
+### 4.9 `README.md`
+
+Every module MUST have a `README.md`.
+
+The README should document, as appropriate:
+
+- Module purpose.
+- Main features.
+- Architecture overview.
+- Important business behavior.
+- Important implementation notes.
+
+Update the README when module structure, feature set, business behavior, or significant functionality changes.
+
+Do not update it for trivial implementation-only changes that do not affect module behavior or structure.
+
+---
+
+## 5. Module Dependency Rules
+
+The preferred dependency direction is:
+
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
+
+Rules:
+
+- `features/` MUST NOT access the database directly.
+- `features/` MUST NOT import repositories directly.
+- `server/` imports from `application/`.
+- `application/` imports from `infrastructure/`.
+- `infrastructure/` uses the project's shared database client.
+- Infrastructure MUST NOT depend on UI.
+- Application MUST NOT depend on UI.
+- No circular dependencies.
+- No layer bypassing.
+
+Shared types and genuinely shared utilities may be imported where appropriate without breaking architectural boundaries.
+
+---
+
+## 6. No New Architectural Layers
+
+Do not introduce new architectural layers such as:
+
+- `domain/`
+- `services/`
+- `controllers/`
+- `repositories/`
+- `use-cases/`
+- `helpers/`
+- `utils/`
+- `lib/`
+- `hooks/`
+
+inside a module unless that layer is explicitly defined by the project's architecture.
+
+This rule does not prohibit these concepts in general. It prevents each module from inventing its own architecture.
+
+If a new layer appears necessary:
+
+1. Check whether the existing architecture can satisfy the requirement.
+2. Reuse the existing architecture if possible.
+3. Explain why a new layer is necessary if it is genuinely required.
+4. Do not silently introduce a new architectural pattern.
+
+---
+
+## 7. File Naming
+
+Use `kebab-case` for files.
+
+Examples:
+
+```text
+employee-form.tsx
+employee-table.tsx
+employee.repository.ts
+create-employee.ts
+update-employee.ts
+date-utils.ts
+```
+
+Fixed names:
+
+```text
+server/actions.ts
+application/validations.ts
+types/index.ts
+```
+
+Pages use the project's existing Next.js conventions.
+
+---
+
+## 8. Symbol Naming
+
+Use:
+
+- `PascalCase` for classes.
+- `PascalCase` for types and interfaces.
+- `camelCase` for variables.
+- `camelCase` for functions.
+- `SCREAMING_SNAKE_CASE` for constants.
+
+Example:
+
+```ts
+class CompanyRepository {}
+
+interface CompanyInput {}
+
+type CompanyStatus = "ACTIVE" | "INACTIVE";
+
+const companyId = "";
+
+function createCompany() {}
+
+const DEFAULT_PAGE_SIZE = 20;
 ```
 
 ---
 
-## 4. Naming Conventions
+## 9. TypeScript Standards
 
-### Variables & Functions
+Prefer explicit, meaningful types.
 
-```typescript
-// camelCase for variables and functions
-const customerName = "John";
-function calculateDiscount() {}
+Avoid `any`.
 
-// PascalCase for types and interfaces
-interface CustomerData {}
-type SaleStatus = "PENDING_APPROVAL" | "APPROVED";
+Bad:
 
-// SCREAMING_SNAKE_CASE for constants
-const MAX_DELIVERY_UPDATES = 3;
-const DEFAULT_PAGE_SIZE = 10;
+```ts
+function processData(data: any) {
+  return data;
+}
 ```
 
-### Database Fields
+Preferred:
 
-```typescript
-// Prisma uses camelCase in code
-customer.firstName
-customer.createdAt
+```ts
+interface ProcessDataInput {
+  id: string;
+  name: string;
+}
 
-// Maps to snake_case in database
-@map("first_name")
-@map("created_at")
+function processData(data: ProcessDataInput): string {
+  return data.name;
+}
 ```
+
+Use interfaces or types according to the established project convention.
+
+Use enums or union types for fixed values according to the existing project pattern.
 
 ---
 
-## 5. Import Order
+## 10. React Standards
 
-```typescript
-// 1. External packages
-import { NextResponse } from "next/server";
-import { z } from "zod";
+Use functional React components with TypeScript.
 
-// 2. Internal modules (absolute paths)
-import { prisma } from "@/lib/db";
-import { createEmployeeUseCase } from "@/modules/employee/application";
+Example:
 
-// 3. Relative imports
-import { validateInput } from "./utils";
+```tsx
+interface Props {
+  companyId: string;
+}
 
-// 4. Types (at end)
-import type { Employee } from "@prisma/client";
+export function CompanyDetailView({ companyId }: Props) {
+  return <div>{companyId}</div>;
+}
 ```
+
+Use `"use client"` only when client-side behavior requires it.
+
+Do not add `"use client"` unnecessarily.
+
+Keep presentation components focused on presentation.
 
 ---
 
-## 6. Server Action Pattern
+## 11. UI Design - Mobile First
 
-```typescript
-// modules/[MODULE]/server/actions.ts
+Use a Mobile-First approach with Tailwind CSS.
+
+Start with the smallest viewport and progressively add responsive behavior.
+
+Example:
+
+```tsx
+<div className="p-4 md:p-6 lg:p-8">
+```
+
+Grid example:
+
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+```
+
+UI should be:
+
+- Mobile-first.
+- Responsive.
+- Consistent with the project design system.
+- Reusable where appropriate.
+
+---
+
+## 12. Shared Components
+
+Before creating a new reusable component:
+
+1. Search `@/components/custom/`.
+2. Search similar implementations in the project.
+3. Reuse an existing component when appropriate.
+4. Create a new component only when the existing implementation cannot reasonably satisfy the requirement.
+
+Known shared components include:
+
+- `TruncatedCell`
+- `ActionButton`
+- `DetailItem`
+
+Do not create duplicate implementations without a clear reason.
+
+---
+
+## 13. Database Standards
+
+### 13.1 Shared Database Client
+
+Use the project's shared database client from:
+
+```ts
+import { db } from "@/lib/db";
+```
+
+Do not create separate Prisma client instances inside modules.
+
+---
+
+### 13.2 Soft Delete
+
+Entities that support deletion MUST follow the project's soft-delete convention.
+
+Typical field:
+
+```prisma
+deletedAt DateTime?
+```
+
+Meaning:
+
+```text
+deletedAt = null
+    → Active
+
+deletedAt = date
+    → Deleted
+```
+
+Queries for soft-deletable entities should exclude deleted records when appropriate:
+
+```ts
+where: {
+  deletedAt: null,
+}
+```
+
+Permanent deletion is not allowed unless explicitly required by the domain and project architecture.
+
+---
+
+### 13.3 Repository Responsibility
+
+Repositories belong under:
+
+```text
+modules/<module-name>/infrastructure/
+```
+
+Repositories are responsible for database access only.
+
+They MUST NOT contain:
+
+- Authentication.
+- Authorization.
+- Business rules.
+- UI logic.
+
+---
+
+## 14. Query Patterns
+
+For soft-deletable records:
+
+```ts
+await db.customer.findMany({
+  where: {
+    deletedAt: null,
+  },
+});
+```
+
+For pagination:
+
+```ts
+const page = 1;
+const limit = 20;
+
+await db.customer.findMany({
+  where: {
+    deletedAt: null,
+  },
+  skip: (page - 1) * limit,
+  take: limit,
+  orderBy: {
+    createdAt: "desc",
+  },
+});
+```
+
+When including relations, select only the fields required by the use case when practical.
+
+---
+
+## 15. Server Action Pattern
+
+All module Server Actions must follow:
+
+```text
+Auth
+→ Permission
+→ Application
+→ Revalidate
+```
+
+Example:
+
+```ts
 "use server";
 
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { createEmployeeUseCase } from "../application";
+import { createCompanyUseCase } from "../application";
 
-export async function createEmployeeAction(data: CreateEmployeeInput) {
-  // 1. Auth check
+export async function createCompanyAction(data: CompanyInput) {
   const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
 
-  // 2. Permission check
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
   const permissionKeys = session.user.permissionKeys ?? [];
-  if (!permissionKeys.includes("employee.create")) {
+
+  if (!permissionKeys.includes("company.create")) {
     throw new Error("Forbidden");
   }
 
-  // 3. Call use case (business logic)
-  const result = await createEmployeeUseCase(data);
+  const result = await createCompanyUseCase(data);
 
-  // 4. Revalidate
-  revalidatePath("/employee");
+  revalidatePath("/companies");
 
   return result;
 }
 ```
 
+Server Actions must remain transport-focused.
+
 ---
 
-## 7. Repository Pattern
+## 16. Validation
 
-```typescript
-// modules/[MODULE]/infrastructure/[MODULE].repository.ts
-import prisma from "@/lib/db";
+Validate user input on the server.
 
-// ✅ Pure database operations — no auth, no validation
-export async function findEmployeeById(id: string) {
-  return prisma.employee.findFirst({
-    where: { id, deletedAt: null },
-    include: { department: true, position: true },
-  });
-}
+Use the project's established Zod validation pattern.
 
-export async function createEmployee(data: CreateEmployeeData) {
-  return prisma.employee.create({ data });
-}
+Validation may include:
 
-// ✅ Always filter soft deleted records
-export async function findAllEmployees(filters: Filters) {
-  return prisma.employee.findMany({
-    where: { deletedAt: null, ...filters },
-    orderBy: { createdAt: "desc" },
-  });
-}
+- Required fields.
+- Data types.
+- Formats.
+- Length limits.
+- Business constraints.
+- Uniqueness requirements.
+
+Do not rely only on client-side validation.
+
+Shared validation schemas should live in:
+
+```text
+application/validations.ts
 ```
 
+when that is consistent with the module architecture.
+
 ---
 
-## 8. Transaction Handling
+## 17. Transactions
 
-```typescript
-// ✅ Use transactions for multi-step operations
-async function createSaleUseCase(data: CreateSaleInput) {
-  return prisma.$transaction(async (tx) => {
-    const sale = await tx.sale.create({ data: { ... } });
-    await tx.saleItem.createMany({ data: items });
-    // Reserve stock, log audit, etc.
-    return sale;
+Use Prisma transactions for multi-step writes that require atomicity.
+
+Example:
+
+```ts
+await db.$transaction(async (tx) => {
+  const company = await tx.company.create({
+    data: companyData,
   });
-}
-```
 
----
+  await tx.companyContact.createMany({
+    data: contacts,
+  });
 
-## 9. Tailwind CSS (Mobile First)
-
-```tsx
-// ✅ Mobile first - start small, expand up
-<div className="p-4 md:p-6 lg:p-8">
-
-// ✅ Grid responsive
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-// ✅ Common patterns
-// Card
-<div className="rounded-lg border bg-card p-4 shadow-sm">
-
-// Button
-<button className="w-full md:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-```
-
----
-
-## 10. Query Patterns
-
-```typescript
-// ✅ Always filter soft deleted
-await prisma.customer.findMany({
-  where: { deletedAt: null },
-});
-
-// ✅ Pagination
-const page = 1;
-const limit = 20;
-await prisma.customer.findMany({
-  where: { deletedAt: null },
-  skip: (page - 1) * limit,
-  take: limit,
-  orderBy: { createdAt: "desc" },
-});
-
-// ✅ Include relations carefully
-await prisma.sale.findUnique({
-  where: { id },
-  include: {
-    customer: { select: { id: true, name: true } },
-    items: {
-      include: {
-        product: { select: { id: true, name: true } },
-      },
-    },
-  },
+  return company;
 });
 ```
 
+Use transactions when data integrity depends on multiple related operations succeeding together.
+
+Do not use transactions unnecessarily for independent reads.
+
 ---
 
-## 11. Error Handling
+## 18. Data Flow
 
-```typescript
-// Define custom errors
+For data reads/writes, follow the established architectural flow.
+
+### Read
+
+```text
+UI
+ ↓
+Server / Application
+ ↓
+Infrastructure / Repository
+ ↓
+Database
+```
+
+### Write
+
+```text
+UI
+ ↓
+Server Action
+ ↓
+Authentication
+ ↓
+Permission
+ ↓
+Application
+ ↓
+Validation / Business Rules
+ ↓
+Infrastructure / Repository
+ ↓
+Database
+ ↓
+Revalidation
+```
+
+Do not bypass layers for convenience.
+
+---
+
+## 19. Error Handling
+
+Use the project's existing error-handling conventions.
+
+Do not silently swallow errors.
+
+Do not expose sensitive internal implementation details to clients.
+
+Application/business errors should remain meaningful and consistent.
+
+Example:
+
+```ts
 class BusinessError extends Error {
   constructor(
     public code: string,
@@ -312,29 +756,308 @@ class BusinessError extends Error {
     super(message);
   }
 }
-
-// Throw in use case
-throw new BusinessError(
-  "INSUFFICIENT_CREDIT",
-  "Customer does not have enough credit",
-  400,
-);
 ```
+
+Use the existing project error pattern instead of creating a second error architecture.
 
 ---
 
-## 12. Testing Guidelines
+## 20. Import Order
 
-```typescript
-// Unit test naming
-describe("CustomerService", () => {
-  describe("createCustomer", () => {
-    it("should create customer with valid data", async () => {});
-    it("should throw error for duplicate customerCode", async () => {});
-  });
-});
+Use the project's established import ordering.
+
+Preferred order:
+
+```ts
+// 1. External packages
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+
+// 2. Absolute internal imports
+import { db } from "@/lib/db";
+import { createCompanyUseCase } from "@/modules/companies/application";
+
+// 3. Relative imports
+import { validateCompany } from "./validation";
+
+// 4. Type-only imports
+import type { Company } from "@prisma/client";
 ```
+
+Keep import ordering consistent within each file.
 
 ---
 
-**See Also**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DECISIONS.md](./DECISIONS.md)
+## 21. Barrel Exports
+
+Use `index.ts` as the module public API where appropriate.
+
+Export only what external consumers need.
+
+Do not expose internal implementation details unnecessarily.
+
+Avoid importing through a barrel when a direct internal import is required to preserve the intended layer boundary.
+
+---
+
+## 22. Legacy Paths
+
+Some legacy application patterns may remain in the project, such as:
+
+```text
+app/api/
+app/actions/
+```
+
+Existing legacy functionality may continue to use these paths.
+
+However:
+
+- New module development should follow the current Module Architecture Contract.
+- Do not migrate unrelated legacy code during a feature task.
+- Legacy migration should be intentional and scoped.
+
+---
+
+## 23. Documentation Standards
+
+Global project documentation belongs under:
+
+```text
+docs/
+```
+
+Module-specific documentation belongs under:
+
+```text
+modules/<module-name>/
+```
+
+and may use:
+
+```text
+modules/<module-name>/docs/
+```
+
+when detailed documentation is required.
+
+Do not duplicate global standards inside individual modules.
+
+Keep documentation consistent with the implementation.
+
+---
+
+## 24. Testing Standards
+
+When modifying business logic, validation, database behavior, or significant UI behavior:
+
+1. Check existing tests first.
+2. Update or add tests when behavior changes.
+3. Do not remove tests simply to make the implementation pass.
+4. Run the relevant tests.
+5. Run type checking.
+6. Run linting when applicable.
+
+Use the existing project testing conventions.
+
+Do not introduce a new testing framework without justification.
+
+---
+
+## 25. Scope Control
+
+Only modify what is required for the requested task.
+
+Do NOT:
+
+- Refactor unrelated modules.
+- Rename unrelated files.
+- Move unrelated files.
+- Change global architecture without explicit reason.
+- Change unrelated database schema.
+- Add unnecessary dependencies.
+- Perform unrelated cleanup.
+- Rewrite working code without a clear need.
+
+If an unrelated problem is discovered, report it separately instead of silently fixing it.
+
+---
+
+## 26. Module Creation Rules
+
+When creating a new module:
+
+1. Read the project coding standards.
+2. Read the Module Architecture Contract.
+3. Inspect similar existing modules and features.
+4. Identify the required features.
+5. Create only the required folders/files.
+6. Implement using the established architecture.
+7. Validate the module against the standards.
+8. Update documentation when required.
+
+No existing module is the permanent source of architectural truth.
+
+The project standards and Module Architecture Contract define the architecture.
+
+Existing modules are implementation references only.
+
+---
+
+## 27. Module Refactoring Rules
+
+When refactoring an existing module:
+
+1. Read the Module Architecture Contract.
+2. Audit the current module.
+3. Identify architectural deviations.
+4. Preserve existing behavior.
+5. Move responsibilities to the correct layers.
+6. Update imports and exports.
+7. Remove obsolete files only after checking references.
+8. Update documentation.
+9. Validate the result.
+
+The objective is:
+
+> Align the module with the project architecture without unnecessary behavioral changes.
+
+---
+
+## 28. Architecture Consistency
+
+All modules should have the same architectural responsibilities.
+
+Example:
+
+```text
+modules/
+├── employee/
+├── companies/
+├── customers/
+├── products/
+├── activity-plans/
+└── stock/
+```
+
+These modules may differ in domain behavior, but they should follow the same principles:
+
+```text
+features
+server
+application
+infrastructure
+types
+ui
+```
+
+when applicable.
+
+Do not create separate architectures for separate domains.
+
+---
+
+## 29. Final Validation
+
+Before completing ANY coding task, perform a self-check.
+
+### Architecture
+
+- [ ] Correct module.
+- [ ] Correct layer.
+- [ ] Correct dependency direction.
+- [ ] No layer bypass.
+- [ ] No circular dependency.
+- [ ] Existing pattern reused when appropriate.
+- [ ] No unnecessary architectural layer introduced.
+
+### Module Structure
+
+- [ ] Module follows Module Architecture Contract.
+- [ ] Only required folders/files were created.
+- [ ] File naming is correct.
+- [ ] `index.ts` is correct.
+- [ ] `README.md` is updated when required.
+
+### UI
+
+- [ ] Mobile-first.
+- [ ] Responsive.
+- [ ] Existing shared components checked first.
+- [ ] No duplicate components created unnecessarily.
+- [ ] No direct database access from UI.
+
+### Application
+
+- [ ] Business logic is in application.
+- [ ] Validation is in the correct layer.
+- [ ] Uniqueness checks are handled where required.
+- [ ] No duplicated business logic.
+
+### Infrastructure
+
+- [ ] Database access is in infrastructure.
+- [ ] Repository is focused on data access.
+- [ ] Soft delete is handled when applicable.
+- [ ] Transaction is used when required.
+
+### Server
+
+- [ ] Authentication checked.
+- [ ] Permission checked.
+- [ ] Application logic called.
+- [ ] Revalidation handled.
+- [ ] No business logic duplicated.
+
+### Security
+
+- [ ] Authentication enforced.
+- [ ] Authorization enforced.
+- [ ] Input validated.
+- [ ] Sensitive data not exposed.
+
+### Code Quality
+
+- [ ] Naming conventions followed.
+- [ ] No unnecessary abstractions.
+- [ ] No duplicate logic.
+- [ ] No unrelated files changed.
+- [ ] No unnecessary dependency added.
+
+### Documentation
+
+- [ ] Module README updated when required.
+- [ ] Relevant module documentation updated.
+- [ ] Global documentation updated when required.
+- [ ] Documentation remains consistent with the implementation.
+
+### Verification
+
+- [ ] TypeScript/type check passes.
+- [ ] Lint passes.
+- [ ] Relevant tests pass.
+- [ ] No broken imports.
+- [ ] No broken references.
+
+If any required validation fails, fix it before completing the task.
+
+---
+
+## 30. Critical Rules
+
+The following rules are mandatory:
+
+1. Follow the project-wide architecture.
+2. Treat `docs/MODULE_ARCHITECTURE.md` as the module architecture authority.
+3. Treat `docs/CODING_STANDARDS.md` as the coding standards authority.
+4. Reuse existing patterns before creating new ones.
+5. Do not use a specific existing module as the permanent architecture authority.
+6. Do not introduce new architectural layers without justification.
+7. Do not bypass layer boundaries.
+8. Keep Server Actions thin.
+9. Keep business logic in `application/`.
+10. Keep database access in `infrastructure/`.
+11. Keep UI separate from business logic and direct database access.
+12. Preserve behavior during structural refactoring unless behavior change is explicitly required.
+13. Do not modify unrelated code.
+14. Do not consider a task complete until Final Validation has been performed.

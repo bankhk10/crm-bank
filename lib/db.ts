@@ -63,6 +63,10 @@ export {
   CompanyStatus,
   ShippingCompanyStatus,
   PromotionalBudgetType,
+  ActivityStatus,
+  ActivityHelperStatus,
+  ActivityApprovalAction,
+  ActivityApprovalStep,
 } from "@prisma/client";
 
 /**

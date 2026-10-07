@@ -1,277 +1,310 @@
 # Architecture Decisions - CRM System
 
-> **Version**: 2.0.0 | **Updated**: 2026-02-24  
-> **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
+> **Version**: 3.0.0  
+> **Updated**: 2026-08-28  
+> **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md)
 
 ---
 
 ## Overview
 
-เอกสารนี้บันทึกเหตุผลเชิงสถาปัตยกรรมสำหรับการตัดสินใจสำคัญในระบบ CRM (Architecture Decision Records - ADR แบบย่อ)
+เอกสารนี้บันทึกเหตุผลเชิงสถาปัตยกรรมสำหรับการตัดสินใจสำคัญของระบบ CRM ในรูปแบบ Architecture Decision Records (ADR)
+
+ใช้สำหรับบันทึก:
+
+- เหตุผลที่เลือกแนวทางทางเทคนิค
+- ข้อจำกัดที่นำไปสู่การตัดสินใจ
+- ผลกระทบของการตัดสินใจ
+- กฎที่ควรรักษาไว้เมื่อมีการแก้ไขระบบในอนาคต
+
+> **สำคัญ:** ADR เป็นบันทึกเหตุผลของการตัดสินใจ ไม่ใช่คู่มือ Implementation รายละเอียดทั้งหมด  
+> สำหรับมาตรฐาน Module ให้ดู `MODULE_ARCHITECTURE.md`  
+> สำหรับ Coding Standards ให้ดู `CODING_STANDARDS.md`
 
 ---
 
-## ADR-001: Next.js App Router
+# ADR-001: Next.js App Router
 
-### Decision
+## Decision
 
-ใช้ Next.js 16 App Router แทน Pages Router
+ใช้ Next.js App Router แทน Pages Router
 
-### Context
+## Context
 
 - ต้องการ Full-stack framework
 - ต้องการ Server Components
 - ต้องการ API Routes ใน project เดียว
 
-### Rationale
+## Rationale
 
-- **Server Components**: ลด JavaScript bundle size
-- **Streaming**: Better loading experience
-- **Layouts**: Nested layouts สำหรับ main/auth
-- **API Routes**: Co-located กับ pages
+- **Server Components**: ลด JavaScript ที่ส่งไปยัง client เมื่อเหมาะสม
+- **Streaming**: รองรับประสบการณ์การโหลดแบบ streaming
+- **Layouts**: รองรับ nested layouts สำหรับ main/auth
+- **API Routes**: อยู่ใน Next.js project เดียวกัน
 
-### Consequences
+## Consequences
 
 - ✅ Single codebase
-- ✅ Better DX
-- ⚠️ Learning curve for team
-- ⚠️ Some libraries not compatible yet
+- ✅ Better developer experience
+- ⚠️ มี learning curve สำหรับทีม
+- ⚠️ Library บางตัวอาจมีข้อจำกัดด้าน compatibility
 
 ---
 
-## ADR-002: Prisma ORM
+# ADR-002: Prisma ORM
 
-### Decision
+## Decision
 
 ใช้ Prisma เป็น ORM หลัก
 
-### Context
+## Context
 
 - ต้องการ Type-safe database access
 - ต้องการ Schema management
 - ต้องการ Migration support
+- ต้องการจัดการ Relations แบบชัดเจน
 
-### Rationale
+## Rationale
 
-- **Type Safety**: Auto-generated types จาก schema
-- **Schema as Code**: `schema.prisma` = source of truth
-- **Migrations**: Version control สำหรับ database
+- **Type Safety**: มี generated types จาก schema
+- **Schema as Code**: `schema.prisma` เป็น source of truth สำหรับ database structure
+- **Migrations**: รองรับการ version-control database changes
 - **Relations**: Declarative relation definitions
 
-### Consequences
+## Consequences
 
-- ✅ Fewer runtime errors
-- ✅ Better autocomplete
-- ⚠️ Cannot do all complex queries
-- ⚠️ Performance overhead สำหรับบาง operations
+- ✅ Type safety และ autocomplete ดีขึ้น
+- ✅ Database schema ชัดเจน
+- ✅ Relations อยู่ใน schema เดียว
+- ⚠️ Query บางประเภทอาจต้องใช้ Prisma-specific patterns
+- ⚠️ ต้องพิจารณา performance สำหรับ query ที่ซับซ้อน
 
 ---
 
-## ADR-003: Soft Delete Pattern
+# ADR-003: Soft Delete Pattern
 
-### Decision
+## Decision
 
-ใช้ `deletedAt` field แทน hard delete
+ใช้ `deletedAt` แทนการ hard delete สำหรับ Entity ที่รองรับ Soft Delete
 
-### Context
+## Context
 
 - Business ต้องการ audit trail
 - อาจต้อง restore ข้อมูล
-- Relations อาจ break ถ้า hard delete
+- Hard delete อาจทำให้ relations หรือ historical data สูญหาย
 
-### Rationale
+## Rationale
 
 ```prisma
 model Entity {
-  deletedAt DateTime?  // null = active
+  deletedAt DateTime?
 }
 ```
 
-### Implementation
+ความหมาย:
 
-```typescript
-// Always include in queries
+```text
+deletedAt = null
+    → Active
+
+deletedAt = date
+    → Deleted
+```
+
+## Implementation Principle
+
+Repository/query ที่เกี่ยวข้องต้องพิจารณา soft-deleted records และกรองออกเมื่อเหมาะสม:
+
+```ts
 where: {
-  deletedAt: null;
+  deletedAt: null,
 }
-
-// "Delete" = set timestamp
-await prisma.entity.update({
-  where: { id },
-  data: { deletedAt: new Date() },
-});
 ```
 
-### Consequences
+การ hard delete อนุญาตเฉพาะเมื่อ Domain และ Project Architecture กำหนดไว้อย่างชัดเจน
+
+## Consequences
 
 - ✅ Data recoverable
-- ✅ Audit trail intact
-- ⚠️ Must remember to filter
-- ⚠️ Storage grows over time
+- ✅ Historical records preserved
+- ✅ ลดความเสี่ยงจากการลบข้อมูลถาวร
+- ⚠️ ต้องไม่ลืม filter deleted records
+- ⚠️ Storage เติบโตตามจำนวน records
 
 ---
 
-## ADR-004: RBAC with Data Access Levels
+# ADR-004: RBAC with Data Access Levels
 
-### Decision
+## Decision
 
-ใช้ 3-level data access control: VIEW, EDIT, DELETE
+ใช้ RBAC พร้อม Data Access / Edit / Delete Levels เพื่อควบคุมสิทธิ์ตามทรัพยากร
 
-### Context
+## Context
 
 - Manager ต้องเห็นข้อมูลลูกน้อง
-- Sales เห็นแค่ของตัวเอง
-- Admin เห็นทั้งหมด
+- Sales อาจเห็นเฉพาะข้อมูลของตัวเอง
+- Admin สามารถเห็นข้อมูลได้กว้างกว่า
+- ต้องแยกสิทธิ์การ View/Edit/Delete
 
-### Rationale
+## Rationale
+
+ตัวอย่างแนวคิด:
 
 ```prisma
 enum DataAccessLevel {
-  VIEW_OWN         // ตัวเอง
-  VIEW_DEPARTMENT  // แผนก
-  VIEW_ALL         // ทั้งหมด
+  VIEW_OWN
+  VIEW_TEAM
+  VIEW_DEPARTMENT
+  VIEW_ALL
 }
 ```
 
-### Implementation
+ระดับจริงต้องยึดค่าปัจจุบันใน `prisma/schema.prisma`
 
-```typescript
-function getDataFilter(accessLevel: string, userId: string) {
-  switch (accessLevel) {
-    case "VIEW_OWN":
-      return { createdById: userId };
-    case "VIEW_DEPARTMENT":
-      return { employee: { departmentId: user.departmentId } };
-    case "VIEW_ALL":
-      return {};
-  }
-}
+## Implementation Principle
+
+Protected server operations ต้องตรวจสอบ:
+
+```text
+Authentication
+    ↓
+Permission
+    ↓
+Data Access Rules
+    ↓
+Application Logic
 ```
 
-### Consequences
+## Consequences
 
-- ✅ Fine-grained control
-- ✅ Secure by default
-- ⚠️ Complex permission checks
-- ⚠️ Performance impact on queries
+- ✅ Fine-grained access control
+- ✅ Secure server-side boundary
+- ⚠️ Permission logic ซับซ้อนขึ้น
+- ⚠️ Query อาจซับซ้อนและต้องคำนึงถึง performance
 
 ---
 
-## ADR-005: Customer Hierarchy (Self-Reference)
+# ADR-005: Customer Hierarchy (Self-Reference)
 
-### Decision
+## Decision
 
 ใช้ self-referencing relation สำหรับ Customer hierarchy
 
-### Context
+## Context
 
 - Dealer → Subdealer → Farmer
-- แสดงสายอุปถัมภ์ได้
+- ต้องการแสดง parent/child relationships
 
-### Rationale
+## Rationale
+
+แนวคิด:
 
 ```prisma
 model Customer {
   parentDealerId String?
-  parentDealer   Customer? @relation("ParentDealer", fields: [parentDealerId])
-  subDealers     Customer[] @relation("ParentDealer")
 }
 ```
 
-### Consequences
+และมี relation กลับไปยัง children
+
+## Consequences
 
 - ✅ Flexible hierarchy
-- ✅ Query up/down the tree
-- ⚠️ Recursive queries complex
-- ⚠️ Must prevent cycles
+- ✅ รองรับการ query ขึ้น/ลงใน tree
+- ⚠️ Recursive operations ซับซ้อน
+- ⚠️ ต้องป้องกัน invalid cycles
 
 ---
 
-## ADR-006: Employee Point System
+# ADR-006: Employee Point System
 
-### Decision
+## Decision
 
-คำนวณคะแนนต่อ SaleItem ไม่ใช่ต่อ Sale
+คำนวณคะแนนต่อ `SaleItem` ไม่ใช่ต่อ `Sale`
 
-### Context
+## Context
 
-- แต่ละ Product มี pointPerUnit ต่างกัน
-- ต้อง audit ได้ว่าคะแนนมาจากไหน
+- แต่ละ Product มี `pointPerUnit` ต่างกัน
+- ต้องสามารถ trace ที่มาของคะแนนได้
 
-### Rationale
+## Rationale
+
+แนวคิด:
 
 ```prisma
 model EmployeePointHistory {
-  saleItemId String @unique  // 1 item = 1 history
-  quantity   Int
+  saleItemId  String @unique
+  quantity    Int
   pointPerUnit Int
-  totalPoints  Int           // = quantity × pointPerUnit
+  totalPoints Int
 }
 ```
 
-### Implementation
+โดย:
 
-```typescript
-// When sale COMPLETED:
-for (const item of sale.items) {
-  await prisma.employeePointHistory.create({
-    data: {
-      employeeId: sale.employeeId,
-      saleId: sale.id,
-      saleItemId: item.id,
-      productId: item.productId,
-      quantity: item.quantity,
-      pointPerUnit: item.product.pointPerUnit,
-      totalPoints: item.quantity * item.product.pointPerUnit,
-    },
-  });
-}
+```text
+totalPoints = quantity × pointPerUnit
 ```
 
-### Consequences
+และการคำนวณเกิดตาม Business Rule ของ Sale completion
+
+## Consequences
 
 - ✅ Traceable points
-- ✅ Unique constraint prevents duplicates
-- ⚠️ More records to manage
-- ⚠️ Need to sum for totals
+- ✅ ลดโอกาสสร้าง Point History ซ้ำสำหรับ SaleItem เดียวกัน
+- ⚠️ ต้อง aggregate เพื่อคำนวณ total points
+- ⚠️ ต้องรักษาความถูกต้องของ Point History
 
 ---
 
-## ADR-007: Sale Status State Machine
+# ADR-007: Sale Status State Machine
 
-### Decision
+## Decision
 
-ใช้ enum กำหนด status และควบคุม transitions
+ใช้ Enum และกำหนด Valid Transitions สำหรับ Sale Status
 
-### Context
+## Context
 
 - Sale มีหลาย states
 - ต้องป้องกัน invalid transitions
-- ต้อง log ทุก transition
+- ต้องสามารถตรวจสอบประวัติการเปลี่ยนสถานะได้
 
-### Rationale
+## Rationale
 
+ตัวอย่าง Flow:
+
+```text
+PENDING_APPROVAL
+    ↓
+APPROVED
+    ↓
+AWAITING_DELIVERY
+    ↓
+DELIVERY_COMPLETED
+    ↓
+COMPLETED
 ```
-PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → DELIVERY_COMPLETED → COMPLETED
-       ↓                              ↓                  ↓
-    REJECTED                      CANCELLED          CANCELLED
+
+Alternative paths อาจรวม:
+
+```text
+PENDING_APPROVAL → REJECTED
+PENDING_APPROVAL → WAITING_FOR_CORRECTION
+APPROVED / AWAITING_DELIVERY → CANCELLED
 ```
 
-### Implementation
+สถานะและ transitions จริงต้องตรวจสอบจาก schema และ implementation ปัจจุบัน
+
+## Implementation Principle
+
+Business logic ควรตรวจสอบว่า transition จากสถานะหนึ่งไปอีกสถานะหนึ่งถูกต้องก่อนบันทึก
+
+ตัวอย่างแนวคิด:
 
 ```typescript
 const validTransitions: Record<SaleStatus, SaleStatus[]> = {
   PENDING_APPROVAL: ["APPROVED", "REJECTED", "WAITING_FOR_CORRECTION"],
-  APPROVED: ["AWAITING_DELIVERY", "CANCELLED", "OVERDUE"],
-  AWAITING_DELIVERY: ["PAID", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED", "CANCELLED", "OVERDUE"],
-  PAID: ["DELIVERY_COMPLETED", "PARTIALLY_DELIVERED", "CANCELLED"],
-  PARTIALLY_DELIVERED: ["DELIVERY_COMPLETED", "CANCELLED"],
-  DELIVERY_COMPLETED: ["COMPLETED"],
-  REJECTED: [],
-  COMPLETED: [],
-  CANCELLED: [],
-  OVERDUE: [],
-  WAITING_FOR_CORRECTION: ["PENDING_APPROVAL"],
+  // ...
 };
 
 function canTransition(from: SaleStatus, to: SaleStatus): boolean {
@@ -279,247 +312,322 @@ function canTransition(from: SaleStatus, to: SaleStatus): boolean {
 }
 ```
 
-### Consequences
+## Consequences
 
 - ✅ Predictable state changes
-- ✅ Full history in SaleStatusHistory
-- ⚠️ Must update when adding states
-- ⚠️ Complex validation
+- ✅ ตรวจสอบสถานะได้ชัดเจน
+- ✅ รองรับ audit/history
+- ⚠️ ต้อง update transitions เมื่อเพิ่มสถานะ
+- ⚠️ Business rules มีความซับซ้อนขึ้น
 
 ---
 
-## ADR-008: Daily Sales Summary (Denormalization)
+# ADR-008: Daily Sales Summary (Denormalization)
 
-### Decision
+## Decision
 
-Pre-aggregate sales data รายวันสำหรับ reporting
+ใช้การ pre-aggregate ข้อมูลการขายรายวันสำหรับ Reporting เมื่อจำเป็น
 
-### Context
+## Context
 
-- Reports ช้าถ้า query real-time
-- ต้องการ dashboard เร็ว
+- Reporting query จาก transaction tables โดยตรงอาจมีค่าใช้จ่ายสูง
+- Dashboard ต้องการ response ที่รวดเร็ว
+- ข้อมูล summary สามารถลด load ของ reporting queries
 
-### Rationale
+## Rationale
+
+แนวคิด:
 
 ```prisma
 model DailySalesSummary {
-  date        DateTime @db.Date
-  customerId  String
-  employeeId  String
-  productId   String
-  quantity    Int
+  date       DateTime
+  customerId String
+  employeeId String
+  productId  String
+  quantity   Int
   totalAmount Decimal
 
   @@unique([date, customerId, employeeId, productId])
 }
 ```
 
-### Implementation
+## Implementation Principle
 
-- Aggregate เมื่อ Sale COMPLETED
-- Cron job recalculate รายคืน
-- Query summary table for reports
+Summary ต้องสามารถ rebuild/recalculate ได้จาก source transactions
 
-### Consequences
+## Consequences
 
-- ✅ Fast dashboard queries
-- ✅ Reduced load on main tables
-- ⚠️ Data lag (not real-time)
-- ⚠️ Extra storage
+- ✅ Faster reporting queries
+- ✅ ลด load บน transaction tables
+- ⚠️ Summary อาจ lag จาก source data
+- ⚠️ ต้องจัดการ synchronization / recalculation
+- ⚠️ มี storage เพิ่มขึ้น
 
 ---
 
-## ADR-009: Credit System Design
+# ADR-009: Credit System Design
 
-### Decision
+## Decision
 
-แยก CreditLimit และ TemporaryCreditLimit เป็น 2 tables
+แยก `CreditLimit` และ `TemporaryCreditLimit` เป็นคนละ Domain/Data Model
 
-### Context
+## Context
 
-- Credit ถาวรมี workflow ต่างจาก temporary
-- Temporary มี expiry และต้อง revert
+- Credit ถาวรมี workflow แตกต่างจาก temporary credit
+- Temporary credit มี expiry
+- Temporary credit ต้องมี request/approval/revert lifecycle
 
-### Rationale
+## Rationale
 
-```prisma
-model CreditLimit {
-  limitAmount    Decimal  // วงเงินถาวร
-  promoAmount    Decimal? // โปรโมชัน
-  usedAmount     Decimal  // ใช้ไปแล้ว
-  temporaryCreditAmount Decimal? // รวม temp ที่ active
-}
+แยกความรับผิดชอบ:
 
-model TemporaryCreditLimit {
-  requestedAmount Decimal
-  expiryDate     DateTime
-  status         TemporaryCreditStatus // PENDING → APPROVED
-  isReverted     Boolean
-}
+```text
+CreditLimit
+    → วงเงินหลัก
+
+TemporaryCreditLimit
+    → วงเงินชั่วคราว
+    → request
+    → approve
+    → expiry
+    → revert
 ```
 
-### Consequences
+## Consequences
 
-- ✅ Clear separation of concerns
-- ✅ Audit trail for temp credits
-- ⚠️ Must sync temp to main credit
-- ⚠️ Cron job for expiry
+- ✅ Separation of concerns ชัดเจน
+- ✅ Audit lifecycle ของ temporary credit ได้
+- ⚠️ ต้องคำนึงถึงการคำนวณวงเงินรวม
+- ⚠️ ต้องจัดการ expiry/revert อย่างถูกต้อง
 
 ---
 
-## ADR-010: Tailwind Mobile-First
+# ADR-010: Tailwind Mobile-First
 
-### Decision
+## Decision
 
-ใช้ Tailwind CSS แบบ Mobile-First design
+ใช้ Tailwind CSS แบบ Mobile-First
 
-### Context
+## Context
 
-- Sales ใช้งานบน mobile เป็นหลัก
-- ต้องการ responsive UI
+- Sales และผู้ใช้งานภาคสนามใช้ Mobile เป็นหลัก
+- ต้องรองรับ Desktop และ Tablet ด้วย
 
-### Rationale
+## Rationale
+
+เริ่มจาก Mobile และขยายด้วย responsive breakpoints:
 
 ```tsx
-// Start with mobile, expand to larger screens
 <div className="p-4 md:p-6 lg:p-8">
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 ```
 
-### Consequences
+## Consequences
 
-- ✅ Better mobile experience
-- ✅ Consistent with Tailwind defaults
-- ⚠️ Desktop may feel sparse if not careful
-- ⚠️ Must test on all screen sizes
+- ✅ Mobile experience ดีขึ้น
+- ✅ Responsive behavior สอดคล้องกับ Tailwind conventions
+- ⚠️ Desktop layout ต้องได้รับการตรวจสอบด้วย
+- ⚠️ ต้องทดสอบหลาย viewport
 
 ---
 
-## ADR-011: JWT Token Optimization (Permission Keys)
+# ADR-011: JWT Token Optimization (Permission Keys)
 
-### Decision
+## Decision
 
-เก็บ permission keys เป็น array แทน full permission objects ใน JWT token
+เก็บ permission keys แบบ compact แทนการเก็บ full permission objects ใน JWT
 
-### Context
+## Context
 
-- เมื่อเพิ่ม permissions จำนวนมาก (90+ permissions)
-- JWT token ขนาดใหญ่เก็บใน cookie
-- เกิด HTTP 431 "Request Header Fields Too Large" error
+- จำนวน permissions เพิ่มขึ้นได้มาก
+- Full permission objects ทำให้ JWT/cookie ใหญ่
+- เคยมีความเสี่ยง HTTP 431 จาก request headers ที่ใหญ่เกินไป
 
-### Rationale
+## Rationale
+
+รูปแบบที่ต้องการคือข้อมูลที่ compact เช่น:
 
 ```typescript
-// Before (v1.1.0) - ~5KB+
 {
-  permissions: {
-    "sale.create": { key: "...", category: "ACTION", allow: true, dataAccess: "VIEW_ALL", ... },
-    // ... 90+ full objects
-  }
-}
-
-// After (v1.2.0) - ~1KB
-{
-  permissionKeys: ["sale.create", "sale.view", ...],  // Just an array of strings
-  dataAccessByResource: { "sale": "VIEW_ALL" },       // Separate compact maps
-  editAccessByResource: { "sale": "EDIT_ALL" },
-  deleteAccessByResource: { "sale": "DELETE_ALL" }
+  permissionKeys: ["sale.create", "sale.view"],
+  dataAccessByResource: {
+    sale: "VIEW_ALL",
+  },
+  editAccessByResource: {
+    sale: "EDIT_ALL",
+  },
+  deleteAccessByResource: {
+    sale: "DELETE_ALL",
+  },
 }
 ```
 
-### Implementation
+การตรวจ Permission:
 
 ```typescript
-// Permission check: Before
-session.user.permissions?.["sale.create"]?.allow;
-
-// Permission check: After
 session.user.permissionKeys?.includes("sale.create");
 ```
 
-### Consequences
+## Consequences
 
-- ✅ ลดขนาด JWT token ~80%
-- ✅ แก้ไข HTTP 431 error
-- ✅ เร็วขึ้นในการ parse/serialize
-- ⚠️ Breaking change ต้อง migrate code
-- ⚠️ ต้องล้าง session เก่าเมื่อ deploy
+- ✅ JWT ขนาดเล็กลง
+- ✅ ลดความเสี่ยงจาก oversized request headers
+- ✅ Permission lookup ทำได้ง่าย
+- ⚠️ เป็น breaking change เมื่อเปลี่ยนจาก full objects
+- ⚠️ ต้องจัดการ session/token ที่ค้างอยู่เมื่อมีการ deploy schema ใหม่
 
 ---
 
-## ADR-012: Enterprise Module Architecture
+# ADR-012: Project-wide Module Architecture
 
-### Decision
+## Decision
 
-ปรับโครงสร้างจาก `features/` + `src/core/` + `app/api/` เป็น `modules/` ที่มี 4 layers
+ใช้ `modules/` เป็นศูนย์กลางสำหรับ Business Modules และกำหนด Architecture กลางร่วมกันทุก Module
 
-### Context
+## Context
 
-- Business logic กระจายอยู่หลายที่ (API routes, services, components)
-- ไม่มีรูปแบบที่ชัดเจนสำหรับ separation of concerns
-- ทีมเพิ่มฟีเจอร์ใหม่โดยไม่มี standard pattern
-- Server actions ถูกนำมาใช้แทน API routes
+ก่อนกำหนดมาตรฐานกลาง Business Logic และ UI อาจกระจายอยู่หลายที่ เช่น:
 
-### Rationale
+- API Routes
+- Server Actions
+- Components
+- Queries
+- Services
+- Module-specific implementations
 
-```
-modules/[MODULE_NAME]/
-├── infrastructure/    ← Pure database access (repository)
-├── application/       ← Business logic (use cases + validations)
-├── server/            ← Transport (server actions: auth + revalidate)
-├── features/          ← UI screens (list-view, form, detail-view)
-├── ui/                ← Module-specific UI components
-├── types/             ← Type definitions
+เมื่อจำนวน Module เพิ่มขึ้น การมีหลายรูปแบบทำให้:
+
+- AI Agent ทำงานไม่สม่ำเสมอ
+- Developer ต้องเรียนรู้หลาย Pattern
+- Maintenance และ Refactoring ยากขึ้น
+- Layer boundaries ไม่ชัดเจน
+
+## Rationale
+
+กำหนด Module Architecture กลาง:
+
+```text
+modules/<module-name>/
+├── application/
+├── features/
+├── infrastructure/
+├── server/
+├── types/
+├── ui/
 ├── constants.ts
-├── index.ts           ← Barrel exports
+├── index.ts
 └── README.md
 ```
 
-### Layer Rules
+ไม่จำเป็นต้องมีทุก Folder/File
 
-| Layer          | Does                                        | Does NOT                         |
-| -------------- | ------------------------------------------- | -------------------------------- |
-| Infrastructure | Prisma queries                              | Auth, Validation, Business logic |
-| Application    | Validation, Uniqueness checks, Data mapping | Auth, HTTP, DB queries           |
-| Server         | Auth, Permission check, revalidatePath      | Business logic, DB queries       |
-| Features       | UI rendering, Form handling                 | Business logic, DB queries       |
+สร้างเฉพาะสิ่งที่ Module ต้องใช้จริง
 
-### Implementation
+### Layer Responsibilities
 
-- **Reference**: `modules/employee/` เป็น reference implementation
-- ทุก module ต้องมี 4 layers: infrastructure → application → server → features
-- Server actions ทำแค่ 3 สิ่ง: auth → use case → revalidate
-- Shared components ย้ายไป `components/custom/`: TruncatedCell, ActionButton, DetailItem
-- Barrel export ผ่าน `index.ts`
+```text
+features/
+    ↓
+server/
+    ↓
+application/
+    ↓
+infrastructure/
+    ↓
+database
+```
 
-### Consequences
+```text
+features/
+    UI / user interaction
 
+server/
+    Authentication / authorization / transport / revalidation
+
+application/
+    Business logic / validation / use-case orchestration
+
+infrastructure/
+    Database / persistence access
+```
+
+### Architectural Authority
+
+มาตรฐาน Module อยู่ที่:
+
+```text
+docs/MODULE_ARCHITECTURE.md
+```
+
+Coding rules อยู่ที่:
+
+```text
+docs/CODING_STANDARDS.md
+```
+
+AI execution rules อยู่ที่:
+
+```text
+.agents/skills/crm-coding-standards/SKILL.md
+```
+
+Development procedures อยู่ที่:
+
+```text
+.agents/workflows/
+```
+
+ไม่มี Module ใดเป็น permanent architecture authority
+
+Existing modules เป็น implementation references เท่านั้น
+
+## Consequences
+
+- ✅ Consistent architecture across modules
 - ✅ Clear separation of concerns
-- ✅ Consistent pattern across all modules
-- ✅ Testable layers (each layer can be tested independently)
-- ✅ Easy onboarding (just look at employee module)
-- ⚠️ Migration effort for existing modules
-- ⚠️ Some API routes still exist (products, customers, etc.)
+- ✅ Easier onboarding
+- ✅ Easier AI-assisted development
+- ✅ Easier refactoring
+- ✅ Predictable dependency direction
+- ⚠️ Existing modules require migration over time
+- ⚠️ Legacy paths may continue to exist temporarily
+- ⚠️ Architectural governance is required when introducing new patterns
 
 ---
 
-## Decision Log
+# Decision Log
 
-| ID      | Title                          | Date       | Status   |
-| ------- | ------------------------------ | ---------- | -------- |
-| ADR-001 | Next.js App Router             | 2026-01-28 | Accepted |
-| ADR-002 | Prisma ORM                     | 2026-01-28 | Accepted |
-| ADR-003 | Soft Delete Pattern            | 2026-01-28 | Accepted |
-| ADR-004 | RBAC Data Access Levels        | 2026-01-28 | Accepted |
-| ADR-005 | Customer Hierarchy             | 2026-01-28 | Accepted |
-| ADR-006 | Point System per SaleItem      | 2026-01-28 | Accepted |
-| ADR-007 | Sale Status State Machine      | 2026-01-28 | Accepted |
-| ADR-008 | Daily Sales Summary            | 2026-01-28 | Accepted |
-| ADR-009 | Credit System Design           | 2026-01-28 | Accepted |
-| ADR-010 | Tailwind Mobile-First          | 2026-01-28 | Accepted |
-| ADR-011 | JWT Token Optimization         | 2026-01-28 | Accepted |
-| ADR-012 | Enterprise Module Architecture | 2026-02-24 | Accepted |
+| ID      | Title                            | Date       | Status   |
+| ------- | -------------------------------- | ---------- | -------- |
+| ADR-001 | Next.js App Router               | 2026-01-28 | Accepted |
+| ADR-002 | Prisma ORM                       | 2026-01-28 | Accepted |
+| ADR-003 | Soft Delete Pattern              | 2026-01-28 | Accepted |
+| ADR-004 | RBAC Data Access Levels          | 2026-01-28 | Accepted |
+| ADR-005 | Customer Hierarchy               | 2026-01-28 | Accepted |
+| ADR-006 | Point System per SaleItem        | 2026-01-28 | Accepted |
+| ADR-007 | Sale Status State Machine        | 2026-01-28 | Accepted |
+| ADR-008 | Daily Sales Summary              | 2026-01-28 | Accepted |
+| ADR-009 | Credit System Design             | 2026-01-28 | Accepted |
+| ADR-010 | Tailwind Mobile-First            | 2026-01-28 | Accepted |
+| ADR-011 | JWT Token Optimization           | 2026-01-28 | Accepted |
+| ADR-012 | Project-wide Module Architecture | 2026-08-28 | Accepted |
 
 ---
 
-**See Also**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md) | [RBAC_POLICY.md](./RBAC_POLICY.md)
+# ADR Maintenance Rules
+
+When a future architectural decision changes the system:
+
+1. Add a new ADR rather than silently rewriting an old decision.
+2. Keep accepted historical decisions for traceability.
+3. Mark an ADR as Superseded when a newer decision replaces it.
+4. Update `ARCHITECTURE.md` when the architectural structure changes.
+5. Update `MODULE_ARCHITECTURE.md` when module structure or layer responsibilities change.
+6. Update `CODING_STANDARDS.md` when coding rules change.
+7. Update relevant AI Skill/Workflow files when AI execution behavior must change.
+8. Keep related documentation synchronized.
+
+Do not modify historical ADR rationale merely to make it match the current implementation.
+
+---
+
+**See Also**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | [MODULE_ARCHITECTURE.md](./MODULE_ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md)
