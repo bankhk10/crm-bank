@@ -20,10 +20,14 @@ import {
 } from "../constants";
 import { createType7aPlots, syncType7aPlots } from "./type-7a.repository";
 import { createType7bData, syncType7bData } from "./type-7b.repository";
+import { createType13Data, syncType13Data, Type13DataInput } from "./type-13.repository";
+import { createType14Data, syncType14Data, Type14DataInput } from "./type-14.repository";
 
 export * from "./demo-plot.repository";
 export * from "./type-7a.repository";
 export * from "./type-7b.repository";
+export * from "./type-13.repository";
+export * from "./type-14.repository";
 
 export type ListActivityPlansParams = {
   page?: number;
@@ -247,6 +251,72 @@ export async function findActivityPlanById(id: string) {
                 },
               },
             },
+          },
+        },
+      },
+      type13: {
+        include: {
+          plots: {
+            include: {
+              store: {
+                select: {
+                  id: true,
+                  name: true,
+                  customerCode: true,
+                  customerType: true,
+                  province: true,
+                  district: true,
+                },
+              },
+              demoPlot: true,
+            },
+            orderBy: { plotIndex: "asc" },
+          },
+          products: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      },
+      type14: {
+        include: {
+          sourceActivityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+          plots: {
+            include: {
+              demoPlot: true,
+            },
+          },
+          products: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
           },
         },
       },
@@ -778,6 +848,7 @@ export type CreateActivityPlanInput = {
     detail: string;
     amount?: number | null;
   }>;
+  type13Data?: Type13DataInput;
   type13Plots?: Array<{
     id?: string;
     demoPlotId?: string | null;
@@ -786,38 +857,14 @@ export type CreateActivityPlanInput = {
     ownerName?: string | null;
     province: string;
     district: string;
-    products: Array<{
+    products?: Array<{
       productId: string;
       productName?: string | null;
-      quantity: number;
+      quantity?: number | string | null;
       unit?: string | null;
     }>;
   }>;
-  type14Data?: {
-    mode: "EXISTING_PLOT" | "NEW_PLOT";
-    demoPlotId?: string | null;
-    demoPlotIds?: string[] | null;
-    selectedPlotIds?: string[] | null;
-    name: string;
-    storeId: string;
-    ownerName?: string | null;
-    province: string;
-    district: string;
-    latitude: string | number;
-    longitude: string | number;
-    trackings: Array<{
-      id?: string;
-      visitDate: Date | string;
-      daysSinceStart: number;
-      notes?: string | null;
-      attachments?: Array<{
-        fileUrl: string;
-        fileName?: string;
-        fileSize?: number | null;
-        mimeType?: string | null;
-      }>;
-    }>;
-  };
+  type14Data?: Type14DataInput;
   type7aPlots?: Array<{
     id?: string;
     demoPlotId?: string | null;
@@ -1208,190 +1255,32 @@ export async function createActivityPlan(
           }
         }
 
-        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): Create up to 10 DemoPlots + DemoPlotVisit
-        const createdType13PlotMap = new Map<string, string>();
-        if (input.type13Plots && input.type13Plots.length > 0) {
-          for (let i = 0; i < input.type13Plots.length; i++) {
-            const plotItem = input.type13Plots[i];
-            const code = await generateDemoPlotCode(
-              tx,
-              input.startDate ? new Date(input.startDate) : new Date(),
-              i,
-            );
-
-            const plot = await tx.demoPlot.create({
-              data: {
-                code,
-                name: plotItem.name?.trim() || `แปลงแฮตแทค ${i + 1}`,
-                ownerName: plotItem.ownerName || "",
-                customerId: plotItem.storeId || null,
-                employeeId: input.employeeId,
-                province: plotItem.province,
-                district: plotItem.district,
-                plotType: "HATTACK",
-                startDate: input.startDate,
-                status: DemoPlotStatus.IN_PROGRESS,
-              },
-            });
-
-            if (plotItem.id) {
-              createdType13PlotMap.set(plotItem.id, plot.id);
-            }
-            if (plotItem.name) {
-              createdType13PlotMap.set(plotItem.name, plot.id);
-            }
-            createdType13PlotMap.set(`แปลงที่ ${i + 1}`, plot.id);
-            createdType13PlotMap.set(`แปลงแฮตแทค ${i + 1}`, plot.id);
-
-            await tx.demoPlotVisit.create({
-              data: {
-                demoPlotId: plot.id,
-                activityPlanId: plan.id,
-                workTypeCode: "TYPE_13",
-                visitNumber: 1,
-                visitDate: input.startDate,
-              },
-            });
-
-            // Also record in ActivityPlanStore for dealer filtering
-            if (plotItem.storeId) {
-              await tx.activityPlanStore.create({
-                data: {
-                  activityPlanId: plan.id,
-                  workTypeCode: "TYPE_13",
-                  storeId: plotItem.storeId,
-                  storeName: plotItem.name,
-                  province: plotItem.province,
-                },
-              });
-            }
-          }
+        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): ActivityPlanType13 + ActivityPlanType13Plot + ActivityPlanType13Product
+        if (input.type13Data || (input.type13Plots && input.type13Plots.length > 0)) {
+          const t13Payload: Type13DataInput = input.type13Data || {
+            plots: input.type13Plots?.map((p, idx) => ({
+              ...p,
+              plotIndex: idx + 1,
+            })),
+          };
+          await createType13Data(
+            tx,
+            plan.id,
+            t13Payload,
+            input.startDate,
+            input.employeeId,
+          );
         }
 
-        // 1.9 TYPE_14 ("ติดตามแปลงแฮทแทค"): DemoPlot + DemoPlotVisit + ActivityAttachment
+        // 1.9 TYPE_14 ("ติดตามแปลงแฮทแทค"): ActivityPlanType14 + ActivityPlanType14Plot + ActivityPlanType14Product
         if (input.type14Data) {
-          const t14 = input.type14Data;
-          let targetPlotId = t14.demoPlotId;
-
-          if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
-            const hasLat =
-              t14.latitude != null &&
-              String(t14.latitude).trim() !== "" &&
-              !isNaN(Number(t14.latitude));
-            const hasLng =
-              t14.longitude != null &&
-              String(t14.longitude).trim() !== "" &&
-              !isNaN(Number(t14.longitude));
-            if (hasLat || hasLng) {
-              await tx.demoPlot.update({
-                where: { id: targetPlotId },
-                data: {
-                  latitude: hasLat
-                    ? new Prisma.Decimal(Number(t14.latitude))
-                    : undefined,
-                  longitude: hasLng
-                    ? new Prisma.Decimal(Number(t14.longitude))
-                    : undefined,
-                },
-              });
-            }
-          } else {
-            const code = await generateDemoPlotCode(
-              tx,
-              input.startDate ? new Date(input.startDate) : new Date(),
-            );
-
-            const newPlot = await tx.demoPlot.create({
-              data: {
-                code,
-                name: t14.name,
-                ownerName: t14.ownerName || "",
-                customerId: t14.storeId || null,
-                employeeId: input.employeeId,
-                province: t14.province,
-                district: t14.district,
-                latitude:
-                  t14.latitude != null
-                    ? new Prisma.Decimal(Number(t14.latitude))
-                    : null,
-                longitude:
-                  t14.longitude != null
-                    ? new Prisma.Decimal(Number(t14.longitude))
-                    : null,
-                plotType: "HATTACK",
-                startDate: input.startDate,
-                status: DemoPlotStatus.IN_PROGRESS,
-              },
-            });
-            targetPlotId = newPlot.id;
-          }
-
-          if (targetPlotId) {
-            if (t14.trackings && t14.trackings.length > 0) {
-              for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
-                const tracking = t14.trackings[tIdx];
-                const visit = await tx.demoPlotVisit.create({
-                  data: {
-                    demoPlotId: targetPlotId,
-                    activityPlanId: plan.id,
-                    workTypeCode: "TYPE_14",
-                    visitNumber: tIdx + 1,
-                    visitDate: new Date(tracking.visitDate),
-                    daysSinceStart: Number(tracking.daysSinceStart) || 0,
-                    notes: tracking.notes ?? null,
-                  },
-                });
-
-                if (tracking.attachments && tracking.attachments.length > 0) {
-                  await tx.activityAttachment.createMany({
-                    data: tracking.attachments.slice(0, 5).map((att) => ({
-                      activityPlanId: plan.id,
-                      demoPlotId: targetPlotId,
-                      demoPlotVisitId: visit.id,
-                      workTypeCode: "TYPE_14",
-                      category: AttachmentCategory.PLOT,
-                      fileUrl: att.fileUrl,
-                      fileName: att.fileName || "hattack-result-photo.jpg",
-                      fileSize: att.fileSize ?? null,
-                      mimeType: att.mimeType ?? null,
-                    })),
-                  });
-                }
-              }
-            } else {
-              // Only create demoPlotVisit if it wasn't already handled by the general demoPlotVisits block above
-              const isAlreadyCreated =
-                ((input.demoPlotIds && input.demoPlotIds.length > 0) ||
-                  input.demoPlotId) &&
-                !(input.type13Plots && input.type13Plots.length > 0) &&
-                (workTypeCodes.includes("TYPE_14") || primaryCode === "TYPE_14");
-
-              if (!isAlreadyCreated) {
-                const plotsToCreate =
-                  t14.demoPlotIds && t14.demoPlotIds.length > 0
-                    ? t14.demoPlotIds
-                    : [targetPlotId];
-                for (const pid of plotsToCreate) {
-                  const existingPlot = await tx.demoPlot.findUnique({
-                    where: { id: pid },
-                    select: { id: true },
-                  });
-                  if (existingPlot) {
-                    await tx.demoPlotVisit.create({
-                      data: {
-                        demoPlotId: existingPlot.id,
-                        activityPlanId: plan.id,
-                        workTypeCode: "TYPE_14",
-                        visitNumber: 1,
-                        visitDate: input.startDate,
-                        daysSinceStart: 0,
-                      },
-                    });
-                  }
-                }
-              }
-            }
-          }
+          await createType14Data(
+            tx,
+            plan.id,
+            input.type14Data,
+            input.startDate,
+            input.employeeId,
+          );
         }
 
         // 1.8.1 TYPE_7A ("ทำแปลงสาธิตใหม่"): ActivityPlanType7a + ActivityPlanType7aProduct
@@ -1886,236 +1775,37 @@ export async function updateActivityPlan(
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
     }
 
-    // 1.8 Sync TYPE_13 Plots
-    const resolvedType13PlotMap = new Map<string, string>();
-    if (planData.type13Plots !== undefined) {
-      const existingVisits = await tx.demoPlotVisit.findMany({
-        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
-        include: { demoPlot: true },
-      });
-      const existingPlotIds = existingVisits.map((v) => v.demoPlotId);
-
-      await tx.activityPlanProduct.deleteMany({
-        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
-      });
-      await tx.activityPlanStore.deleteMany({
-        where: { activityPlanId: id, workTypeCode: "TYPE_13" },
-      });
-
-      if (planData.type13Plots && planData.type13Plots.length > 0) {
-        for (let i = 0; i < planData.type13Plots.length; i++) {
-          const plotItem = planData.type13Plots[i];
-          let plotId: string = plotItem.demoPlotId || plotItem.id || "";
-          const isRealPlot = Boolean(
-            plotId && existingPlotIds.includes(plotId),
-          );
-
-          if (isRealPlot) {
-            await tx.demoPlot.update({
-              where: { id: plotId },
-              data: {
-                ...(plotItem.name && plotItem.name.trim() !== ""
-                  ? { name: plotItem.name.trim() }
-                  : {}),
-                ownerName: plotItem.ownerName || "",
-                customerId: plotItem.storeId || null,
-                province: plotItem.province,
-                district: plotItem.district,
-              },
-            });
-          } else {
-            const code = await generateDemoPlotCode(
-              tx,
-              updatedPlan.startDate
-                ? new Date(updatedPlan.startDate)
-                : new Date(),
-              i,
-            );
-
-            const newPlot = await tx.demoPlot.create({
-              data: {
-                code,
-                name: plotItem.name?.trim() || `แปลงแฮตแทค ${i + 1}`,
-                ownerName: plotItem.ownerName || "",
-                customerId: plotItem.storeId || null,
-                employeeId: updatedPlan.employeeId,
-                province: plotItem.province,
-                district: plotItem.district,
-                plotType: "HATTACK",
-                startDate: updatedPlan.startDate,
-                status: DemoPlotStatus.IN_PROGRESS,
-              },
-            });
-            plotId = newPlot.id;
-
-            await tx.demoPlotVisit.create({
-              data: {
-                demoPlotId: plotId,
-                activityPlanId: id,
-                workTypeCode: "TYPE_13",
-                visitNumber: 1,
-                visitDate: updatedPlan.startDate,
-              },
-            });
-          }
-
-          if (plotItem.id) {
-            resolvedType13PlotMap.set(plotItem.id, plotId);
-          }
-          if (plotItem.name) {
-            resolvedType13PlotMap.set(plotItem.name, plotId);
-          }
-
-          // Clean up legacy demoPlotProduct if any exists
-          await tx.demoPlotProduct.deleteMany({
-            where: { demoPlotId: plotId },
-          });
-
-          if (plotItem.storeId) {
-            await tx.activityPlanStore.create({
-              data: {
-                activityPlanId: id,
-                workTypeCode: "TYPE_13",
-                storeId: plotItem.storeId,
-                storeName: plotItem.name,
-                province: plotItem.province,
-              },
-            });
-          }
-        }
-      }
+    // 1.8 Sync TYPE_13 Data
+    if (planData.type13Data !== undefined || planData.type13Plots !== undefined) {
+      const t13Payload: Type13DataInput | null =
+        planData.type13Data !== undefined
+          ? planData.type13Data
+          : planData.type13Plots
+            ? {
+                plots: planData.type13Plots.map((p, idx) => ({
+                  ...p,
+                  plotIndex: idx + 1,
+                })),
+              }
+            : null;
+      await syncType13Data(
+        tx,
+        id,
+        t13Payload,
+        updatedPlan.startDate,
+        updatedPlan.employeeId,
+      );
     }
 
     // 1.9 Sync TYPE_14 Data
     if (planData.type14Data !== undefined) {
-      if (planData.type14Data) {
-        const t14 = planData.type14Data;
-        let targetPlotId = t14.demoPlotId;
-
-        if (t14.mode === "EXISTING_PLOT" && targetPlotId) {
-          const hasLat =
-            t14.latitude != null &&
-            String(t14.latitude).trim() !== "" &&
-            !isNaN(Number(t14.latitude));
-          const hasLng =
-            t14.longitude != null &&
-            String(t14.longitude).trim() !== "" &&
-            !isNaN(Number(t14.longitude));
-          if (hasLat || hasLng) {
-            await tx.demoPlot.update({
-              where: { id: targetPlotId },
-              data: {
-                latitude: hasLat
-                  ? new Prisma.Decimal(Number(t14.latitude))
-                  : undefined,
-                longitude: hasLng
-                  ? new Prisma.Decimal(Number(t14.longitude))
-                  : undefined,
-              },
-            });
-          }
-        } else if (!targetPlotId) {
-          const code = await generateDemoPlotCode(
-            tx,
-            updatedPlan.startDate
-              ? new Date(updatedPlan.startDate)
-              : new Date(),
-          );
-
-          const newPlot = await tx.demoPlot.create({
-            data: {
-              code,
-              name: t14.name,
-              ownerName: t14.ownerName || "",
-              customerId: t14.storeId || null,
-              employeeId: updatedPlan.employeeId,
-              province: t14.province,
-              district: t14.district,
-              latitude:
-                t14.latitude != null
-                  ? new Prisma.Decimal(Number(t14.latitude))
-                  : null,
-              longitude:
-                t14.longitude != null
-                  ? new Prisma.Decimal(Number(t14.longitude))
-                  : null,
-              plotType: "HATTACK",
-              startDate: updatedPlan.startDate,
-              status: DemoPlotStatus.IN_PROGRESS,
-            },
-          });
-          targetPlotId = newPlot.id;
-        }
-
-        const hasTrackings = Boolean(t14.trackings && t14.trackings.length > 0);
-        const alreadySyncedInGeneralSection =
-          (demoPlotId !== undefined || demoPlotIds !== undefined) && !hasTrackings;
-
-        if (!alreadySyncedInGeneralSection) {
-          await tx.demoPlotVisit.deleteMany({
-            where: { activityPlanId: id, workTypeCode: "TYPE_14" },
-          });
-
-          if (targetPlotId && hasTrackings) {
-            for (let tIdx = 0; tIdx < t14.trackings.length; tIdx++) {
-              const tracking = t14.trackings[tIdx];
-              const visit = await tx.demoPlotVisit.create({
-                data: {
-                  demoPlotId: targetPlotId,
-                  activityPlanId: id,
-                  workTypeCode: "TYPE_14",
-                  visitNumber: tIdx + 1,
-                  visitDate: new Date(tracking.visitDate),
-                  daysSinceStart: Number(tracking.daysSinceStart) || 0,
-                  notes: tracking.notes ?? null,
-                },
-              });
-
-              if (tracking.attachments && tracking.attachments.length > 0) {
-                await tx.activityAttachment.createMany({
-                  data: tracking.attachments.slice(0, 5).map((att) => ({
-                    activityPlanId: id,
-                    demoPlotId: targetPlotId,
-                    demoPlotVisitId: visit.id,
-                    workTypeCode: "TYPE_14",
-                    category: AttachmentCategory.PLOT,
-                    fileUrl: att.fileUrl,
-                    fileName: att.fileName || "hattack-result-photo.jpg",
-                    fileSize: att.fileSize ?? null,
-                    mimeType: att.mimeType ?? null,
-                  })),
-                });
-              }
-            }
-          } else {
-            const plotIdsToSync =
-              t14.demoPlotIds && t14.demoPlotIds.length > 0
-                ? t14.demoPlotIds
-                : targetPlotId
-                  ? [targetPlotId]
-                  : [];
-
-            for (const pid of plotIdsToSync) {
-              const existingPlot = await tx.demoPlot.findUnique({
-                where: { id: pid },
-                select: { id: true },
-              });
-              if (existingPlot) {
-                await tx.demoPlotVisit.create({
-                  data: {
-                    demoPlotId: existingPlot.id,
-                    activityPlanId: id,
-                    workTypeCode: "TYPE_14",
-                    visitNumber: 1,
-                    visitDate: updatedPlan.startDate,
-                    daysSinceStart: 0,
-                  },
-                });
-              }
-            }
-          }
-        }
-      }
+      await syncType14Data(
+        tx,
+        id,
+        planData.type14Data,
+        updatedPlan.startDate,
+        updatedPlan.employeeId,
+      );
     }
 
     // 1.9.1 Sync TYPE_7A Plots

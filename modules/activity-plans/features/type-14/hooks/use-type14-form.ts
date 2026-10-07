@@ -53,6 +53,42 @@ function resolveInitialType14Data(
   defaultDistrict = "",
   fetchedHattackPlansWithPlots: FollowUpPlanOption[] = [],
 ): FormType14PlanInput {
+  if (initial?.type14) {
+    const t14 = initial.type14;
+    const plots = t14.plots || [];
+    const primaryPlot = plots[0] || {};
+    const prods: Type14WithdrawnProductLine[] = (t14.products || []).map((p: any, idx: number) => ({
+      id: p.id || String(idx + 1),
+      productId: p.productId,
+      productName: p.productName || p.product?.name || "",
+      quantity: Number(p.quantity) || 1,
+      unit: p.unit || p.product?.unit || "ขวด",
+    }));
+
+    const plotIds = plots.map((p: any) => p.demoPlotId).filter(Boolean);
+
+    return {
+      mode: (t14.mode as "EXISTING_PLOT" | "NEW_PLOT") || "EXISTING_PLOT",
+      selectedPlanId: t14.sourceActivityPlanId || null,
+      demoPlotId: primaryPlot.demoPlotId || null,
+      selectedPlotIds: plotIds,
+      demoPlotIds: plotIds,
+      name: primaryPlot.plotName || primaryPlot.demoPlot?.name || "แปลงแฮตแทค",
+      storeId: primaryPlot.demoPlot?.customerId || "",
+      dealerName: primaryPlot.dealerName || primaryPlot.demoPlot?.customer?.name || "",
+      ownerName: primaryPlot.ownerName || primaryPlot.demoPlot?.ownerName || "",
+      cropCategory: primaryPlot.cropCategory || primaryPlot.demoPlot?.cropCategory || null,
+      cropName: primaryPlot.cropName || primaryPlot.demoPlot?.cropName || null,
+      province: primaryPlot.province || primaryPlot.demoPlot?.province || initial?.province || defaultProvince || "",
+      district: primaryPlot.district || primaryPlot.demoPlot?.district || initial?.district || defaultDistrict || "",
+      latitude: primaryPlot.latitude ? String(primaryPlot.latitude) : primaryPlot.demoPlot?.latitude ? String(primaryPlot.demoPlot.latitude) : "",
+      longitude: primaryPlot.longitude ? String(primaryPlot.longitude) : primaryPlot.demoPlot?.longitude ? String(primaryPlot.demoPlot.longitude) : "",
+      hasProductWithdrawal: Boolean(t14.hasProducts || prods.length > 0),
+      withdrawnProducts: prods,
+      trackings: [],
+    };
+  }
+
   if (initial?.type14Data) {
     return initial.type14Data;
   }

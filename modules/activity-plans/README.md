@@ -167,14 +167,17 @@ PostgreSQL Transaction (activity_results, activity_attachments, demo_plot_visits
 6. **`activity_plan_products`:** สินค้าเป้าหมายในแผนงาน (FK: `product_id` → `Product.id`)
 7. **`activity_plan_tours`:** รายละเอียดทัวร์ของ TYPE 12 (`tour_type`, `tour_size`, `country`, `store_id`, `destination`)
 8. **`activity_helpers`:** พนักงานช่วยงาน
-9. **`drug_withdrawals` / `drug_withdrawal_items`:** การขอเบิกยาสำหรับแปลงสาธิตและแปลงแฮตแทค
+9. **`activity_plan_type_7a` & `activity_plan_type_7a_products`:** ตารางเก็บข้อมูลเฉพาะของ TYPE_7A (ทำแปลงสาธิตใหม่)
+10. **`activity_plan_type_7b`, `activity_plan_type_7b_plots`, `activity_plan_type_7b_products`:** ตารางเก็บข้อมูลเฉพาะของ TYPE_7B (ติดตามแปลงสาธิต)
+11. **`activity_plan_type_13`, `activity_plan_type_13_plots`, `activity_plan_type_13_products`:** ตารางเก็บข้อมูลเฉพาะของ TYPE_13 (ฉีดแปลงแฮตแทค Multi-plot 1–10 แปลง)
+12. **`activity_plan_type_14`, `activity_plan_type_14_plots`, `activity_plan_type_14_products`:** ตารางเก็บข้อมูลเฉพาะของ TYPE_14 (ติดตามแปลงแฮทแทค)
 
 ### GROUP 3: Demo Plot Master & Life Cycle
-10. **`demo_plots`:** Master Entity ของแปลงสาธิตและแปลงแฮตแทค
-11. **`demo_plot_visits`:** ประวัติการเข้าตรวจแปลงแต่ละครั้ง (Timeline Visit History)
+13. **`demo_plots`:** Master Entity ของแปลงสาธิตและแปลงแฮตแทค
+14. **`demo_plot_visits`:** ประวัติการเข้าตรวจแปลงแต่ละครั้ง (Timeline Visit History)
 
 ### GROUP 4: Workflow & Approvals
-12. **`activity_approval_logs`:** ประวัติการอนุมัติ 5-Step Workflow
+15. **`activity_approval_logs`:** ประวัติการอนุมัติ 5-Step Workflow
 13. **`supplemental_drug_withdrawals`:** คำขอเบิกยาเพิ่มเติมหน้างาน (TYPE 14)
 
 ### GROUP 5: Post-Activity Results

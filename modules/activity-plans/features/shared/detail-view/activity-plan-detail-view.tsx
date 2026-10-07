@@ -242,6 +242,22 @@ export default function ActivityPlanDetailView({
   }, [plan?.approvalLogs, (plan as any)?.result?.logs]);
 
   const type13Plots: Type13PlotItem[] = useMemo(() => {
+    if ((plan as any)?.type13?.plots && (plan as any).type13.plots.length > 0) {
+      return (plan as any).type13.plots.map((p: any) => ({
+        id: p.id,
+        demoPlotId: p.demoPlotId || null,
+        name: p.plotName || p.name || "",
+        storeId: p.storeId || "",
+        dealerName: p.dealerName || p.store?.name || "",
+        ownerName: p.ownerName || "",
+        province: p.province || "",
+        district: p.district || "",
+        latitude: p.latitude != null ? String(p.latitude) : "",
+        longitude: p.longitude != null ? String(p.longitude) : "",
+        products: [],
+      }));
+    }
+
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return [];
     const visits = plan.demoPlotVisits.filter(
       (v) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
@@ -276,7 +292,7 @@ export default function ActivityPlanDetailView({
     });
 
     return Array.from(plotMap.values());
-  }, [plan?.demoPlotVisits]);
+  }, [(plan as any)?.type13, plan?.demoPlotVisits]);
 
   const type13ActualData = useMemo(() => {
     if (!plan?.result) return undefined;
@@ -355,6 +371,53 @@ export default function ActivityPlanDetailView({
   }, [plan?.result, plan?.demoPlotVisits]);
 
   const type14Data: Type14PlanInput | null = useMemo(() => {
+    if ((plan as any)?.type14) {
+      const t14 = (plan as any).type14;
+      const plots = t14.plots || [];
+      const firstPlot = plots[0] || {};
+      const prods = (t14.products || []).map((p: any, idx: number) => ({
+        id: p.id || String(idx + 1),
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        quantity: Number(p.quantity) || 1,
+        unit: p.unit || p.product?.unit || "ขวด",
+      }));
+
+      return {
+        mode: (t14.mode as "EXISTING_PLOT" | "NEW_PLOT") || "EXISTING_PLOT",
+        selectedPlanId: t14.sourceActivityPlanId || null,
+        demoPlotId: firstPlot.demoPlotId || null,
+        name: firstPlot.plotName || firstPlot.demoPlot?.name || "แปลงแฮตแทค",
+        storeId: firstPlot.demoPlot?.customerId || "",
+        dealerName: firstPlot.dealerName || firstPlot.demoPlot?.customer?.name || "",
+        ownerName: firstPlot.ownerName || firstPlot.demoPlot?.ownerName || "",
+        cropCategory: firstPlot.cropCategory || firstPlot.demoPlot?.cropCategory || null,
+        cropName: firstPlot.cropName || firstPlot.demoPlot?.cropName || null,
+        province: firstPlot.province || firstPlot.demoPlot?.province || plan?.province || "",
+        district: firstPlot.district || firstPlot.demoPlot?.district || plan?.district || "",
+        latitude: firstPlot.latitude ? String(firstPlot.latitude) : firstPlot.demoPlot?.latitude ? String(firstPlot.demoPlot.latitude) : "",
+        longitude: firstPlot.longitude ? String(firstPlot.longitude) : firstPlot.demoPlot?.longitude ? String(firstPlot.demoPlot.longitude) : "",
+        hasProductWithdrawal: Boolean(t14.hasProducts || prods.length > 0),
+        withdrawnProducts: prods,
+        trackings: (plan?.demoPlotVisits || [])
+          .filter((v: any) => v.workTypeCode === "TYPE_14")
+          .map((v: any) => ({
+            id: v.id,
+            visitDate: v.visitDate
+              ? new Date(v.visitDate).toISOString().split("T")[0]
+              : "",
+            daysSinceStart: v.daysSinceStart ?? 0,
+            notes: v.notes || "",
+            attachments: (v.attachments || []).map((att: any) => ({
+              fileUrl: att.fileUrl,
+              fileName: att.fileName,
+              fileSize: att.fileSize ?? undefined,
+              mimeType: att.mimeType ?? undefined,
+            })),
+          })),
+      };
+    }
+
     if (!plan?.demoPlotVisits || plan.demoPlotVisits.length === 0) return null;
     const visits = plan.demoPlotVisits.filter(
       (v) => v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",

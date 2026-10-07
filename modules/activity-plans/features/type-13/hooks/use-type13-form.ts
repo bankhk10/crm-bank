@@ -53,6 +53,16 @@ export function useType13Form({
 }: UseType13FormOptions): UseType13FormResult {
   // Hydrate withdrawn products for TYPE_13
   const t13Products: Type13WithdrawnProductLine[] = (
+    (initial as any)?.type13?.products || []
+  ).map((p: any, idx: number) => ({
+    id: p.id || String(idx + 1),
+    productId: p.productId,
+    productName: p.productName || p.product?.name || "",
+    quantity: Number(p.quantity) || 1,
+    unit: p.unit || p.product?.unit || "ขวด",
+  }));
+
+  const fallbackProducts: Type13WithdrawnProductLine[] = (
     (initial as any)?.products || []
   )
     .filter((p: any) => p.workTypeCode === "TYPE_13")
@@ -64,34 +74,71 @@ export function useType13Form({
       unit: p.product?.unit || "ขวด",
     }));
 
-  const hasT13Withdrawal = t13Products.length > 0;
+  const resolvedProducts = t13Products.length > 0 ? t13Products : fallbackProducts;
+  const hasT13Withdrawal = Boolean((initial as any)?.type13?.hasProducts || resolvedProducts.length > 0);
 
   const [hasProductWithdrawal, setHasProductWithdrawal] = useState<boolean>(
     () => hasT13Withdrawal,
   );
   const [withdrawnProducts, setWithdrawnProducts] = useState<
     Type13WithdrawnProductLine[]
-  >(() => (hasT13Withdrawal ? t13Products : []));
+  >(() => (hasT13Withdrawal ? resolvedProducts : []));
 
   useEffect(() => {
     if (initial && Object.keys(initial).length > 0) {
-      const prods = ((initial as any)?.products || [])
-        .filter((p: any) => p.workTypeCode === "TYPE_13")
-        .map((p: any, idx: number) => ({
+      if ((initial as any)?.type13?.products && (initial as any).type13.products.length > 0) {
+        const prods = (initial as any).type13.products.map((p: any, idx: number) => ({
           id: p.id || String(idx + 1),
           productId: p.productId,
           productName: p.productName || p.product?.name || "",
-          quantity: p.targetQuantity || 1,
-          unit: p.product?.unit || "ขวด",
+          quantity: Number(p.quantity) || 1,
+          unit: p.unit || p.product?.unit || "ขวด",
         }));
-      if (prods.length > 0) {
         setHasProductWithdrawal(true);
         setWithdrawnProducts(prods);
+      } else {
+        const prods = ((initial as any)?.products || [])
+          .filter((p: any) => p.workTypeCode === "TYPE_13")
+          .map((p: any, idx: number) => ({
+            id: p.id || String(idx + 1),
+            productId: p.productId,
+            productName: p.productName || p.product?.name || "",
+            quantity: p.targetQuantity || 1,
+            unit: p.product?.unit || "ขวด",
+          }));
+        if (prods.length > 0) {
+          setHasProductWithdrawal(true);
+          setWithdrawnProducts(prods);
+        }
       }
     }
   }, [initial]);
 
   const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() => {
+    if (
+      (initial as any)?.type13?.plots &&
+      Array.isArray((initial as any).type13.plots) &&
+      (initial as any).type13.plots.length > 0
+    ) {
+      return (initial as any).type13.plots.map((p: any, idx: number) => {
+        const plotName = p.plotName || p.name || "";
+
+        return {
+          id: p.id || `plot-${idx + 1}`,
+          demoPlotId: p.demoPlotId || null,
+          name: plotName,
+          storeId: p.storeId || "",
+          dealerName: p.dealerName || p.store?.name || null,
+          ownerName: p.ownerName || "",
+          province: p.province || "",
+          district: p.district || "",
+          latitude: p.latitude != null ? String(p.latitude) : "",
+          longitude: p.longitude != null ? String(p.longitude) : "",
+          products: [],
+        };
+      });
+    }
+
     if (
       (initial as any)?.type13Plots &&
       Array.isArray((initial as any).type13Plots)
