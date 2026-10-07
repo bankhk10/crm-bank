@@ -521,6 +521,7 @@ export function UnplannedActivityForm({
         demoPlotData: submittedDemoPlotData,
         type7aPlots,
         type7bData,
+        type13Data: type13Payload.type13Data,
         type13Plots: type13Payload.type13Plots,
         type14Data: type14Payload.type14Data,
         planStores,

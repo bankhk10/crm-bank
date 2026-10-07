@@ -184,11 +184,21 @@ export const type13PlotItemSchema = z.object({
   products: z.array(type13ProductLineSchema).optional().default([]),
 });
 
+export const type13WithdrawnProductInputSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
 export const type13PlanInputSchema = z.object({
-  plots: z
-    .array(type13PlotItemSchema)
-    .min(1, "ต้องมีแปลงอย่างน้อย 1 แปลง")
-    .max(10, "เพิ่มแปลงได้สูงสุดไม่เกิน 10 แปลง"),
+  hasProducts: z.boolean().optional(),
+  hasProductWithdrawal: z.boolean().optional(),
+  notes: z.string().optional().nullable(),
+  plots: z.array(type13PlotItemSchema).optional().default([]),
+  products: z.array(type13WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z.array(type13WithdrawnProductInputSchema).optional().default([]),
 });
 
 export const type13SprayProductSchema = z.object({
@@ -250,6 +260,14 @@ export const type14TrackingItemSchema = z.object({
     .default([]),
 });
 
+export const type14WithdrawnProductInputSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
 export const type14PlanInputSchema = z.object({
   mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]).optional().default("EXISTING_PLOT"),
   selectedPlanId: z.string().optional().nullable(),
@@ -264,6 +282,10 @@ export const type14PlanInputSchema = z.object({
   latitude: z.string().optional().nullable().default(""),
   longitude: z.string().optional().nullable().default(""),
   trackings: z.array(type14TrackingItemSchema).optional().default([]),
+  hasProducts: z.boolean().optional(),
+  hasProductWithdrawal: z.boolean().optional(),
+  products: z.array(type14WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z.array(type14WithdrawnProductInputSchema).optional().default([]),
 });
 
 // ── TYPE_7A ("ทำแปลงสาธิตใหม่") Validations ───────────────────────────
@@ -411,6 +433,7 @@ export const activityPlanSchema = z
     helperEmployeeIds: z.array(z.string()).default([]),
     type7aPlots: z.array(type7aPlotItemSchema).optional(),
     type7bData: type7bPlanInputSchema.optional(),
+    type13Data: type13PlanInputSchema.optional(),
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
     // Unplanned Activity: Optional embedded actual results

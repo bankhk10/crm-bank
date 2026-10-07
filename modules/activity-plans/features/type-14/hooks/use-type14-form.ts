@@ -401,6 +401,17 @@ export function useType14Form({
         latitude: type14Data.latitude || "",
         longitude: type14Data.longitude || "",
         trackings: [],
+        hasProducts: type14Data.hasProductWithdrawal,
+        hasProductWithdrawal: type14Data.hasProductWithdrawal,
+        withdrawnProducts: type14Data.hasProductWithdrawal ? (type14Data.withdrawnProducts || []) : [],
+        products: type14Data.hasProductWithdrawal
+          ? (type14Data.withdrawnProducts || []).map((p) => ({
+              productId: p.productId,
+              productName: p.productName || null,
+              quantity: typeof p.quantity === "number" ? p.quantity : Number(p.quantity) || 1,
+              unit: p.unit || null,
+            }))
+          : [],
       },
       submittedDemoPlotId: firstPlotId,
       submittedDemoPlotIds: resolvedPlotIds,

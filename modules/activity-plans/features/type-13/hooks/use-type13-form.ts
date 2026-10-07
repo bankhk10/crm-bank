@@ -26,6 +26,14 @@ export interface UseType13FormResult {
     customers: any[],
     products?: any[],
   ) => {
+    type13Data?: {
+      hasProducts?: boolean;
+      hasProductWithdrawal?: boolean;
+      notes?: string | null;
+      plots?: any[];
+      products?: any[];
+      withdrawnProducts?: any[];
+    };
     type13Plots: Type13PlotItem[] | undefined;
     planStores: Array<{
       workTypeCode: string;
@@ -308,7 +316,26 @@ export function useType13Form({
       })),
     }));
 
+    const mappedType13Data = {
+      hasProducts: hasProductWithdrawal,
+      hasProductWithdrawal,
+      withdrawnProducts: hasProductWithdrawal ? withdrawnProducts : [],
+      products: hasProductWithdrawal
+        ? withdrawnProducts.map((p) => ({
+            productId: p.productId,
+            productName: p.productName || null,
+            quantity: typeof p.quantity === "number" ? p.quantity : Number(p.quantity) || 1,
+            unit: p.unit || null,
+          }))
+        : [],
+      plots: mappedType13Plots.map((p, idx) => ({
+        ...p,
+        plotIndex: idx + 1,
+      })),
+    };
+
     return {
+      type13Data: mappedType13Data,
       type13Plots: mappedType13Plots,
       planStores,
       planProducts,
