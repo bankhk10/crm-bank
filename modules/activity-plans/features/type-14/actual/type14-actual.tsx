@@ -365,7 +365,7 @@ export function Type14Actual({
                     )
                   }
                   disabled={readonly}
-                  className="h-9 text-xs bg-white font-medium"
+                  className="h-11 bg-white font-medium"
                 />
               </div>
             </div>
