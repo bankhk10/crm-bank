@@ -13,12 +13,10 @@ import {
   TourType,
   TourSize,
   AttachmentCategory,
-  DrugWithdrawalStatus,
 } from "@prisma/client";
 import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
-  isDrugWithdrawalSupported,
 } from "../constants";
 
 export type ListActivityPlansParams = {
@@ -374,24 +372,6 @@ export async function findActivityPlanById(id: string) {
                       packageSizeUnit: true,
                     },
                   },
-                  drugWithdrawalItem: {
-                    select: {
-                      id: true,
-                      quantity: true,
-                      unit: true,
-                      productName: true,
-                      plotIdentifier: true,
-                    },
-                  },
-                  supplementalDrugWithdrawalItem: {
-                    select: {
-                      id: true,
-                      quantity: true,
-                      unit: true,
-                      productName: true,
-                      supplementalDrugWithdrawalId: true,
-                    },
-                  },
                 },
               },
               externalProducts: true,
@@ -403,60 +383,6 @@ export async function findActivityPlanById(id: string) {
         },
       },
       attachments: true,
-      drugWithdrawal: {
-        include: {
-          items: {
-            orderBy: { sortOrder: "asc" },
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  unit: true,
-                },
-              },
-              demoPlot: {
-                select: {
-                  id: true,
-                  name: true,
-                  code: true,
-                },
-              },
-            },
-          },
-          requestedBy: {
-            select: { id: true, name: true, employeeCode: true },
-          },
-          approvedBy: {
-            select: { id: true, name: true, employeeCode: true },
-          },
-        },
-      },
-      supplementalDrugWithdrawals: {
-        orderBy: { createdAt: "asc" },
-        include: {
-          items: {
-            orderBy: { sortOrder: "asc" },
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  unit: true,
-                },
-              },
-            },
-          },
-          requestedBy: {
-            select: { id: true, name: true, employeeCode: true },
-          },
-          approvedBy: {
-            select: { id: true, name: true, employeeCode: true },
-          },
-        },
-      },
     },
   });
 
@@ -827,21 +753,6 @@ export type CreateActivityPlanInput = {
       }>;
     }>;
   };
-  drugWithdrawal?: {
-    hasDrugWithdrawal: boolean;
-    workTypeCode?: string | null;
-    notes?: string | null;
-    items: Array<{
-      id?: string;
-      demoPlotId?: string | null;
-      plotIdentifier: string;
-      productId: string;
-      productName?: string | null;
-      quantity: number | Prisma.Decimal;
-      unit?: string | null;
-      sortOrder?: number;
-    }>;
-  } | null;
   actualData?: any;
 };
 
@@ -1365,103 +1276,7 @@ export async function createActivityPlan(
           },
         });
 
-        // 5. Create Drug Withdrawal if requested
-        if (input.drugWithdrawal && input.drugWithdrawal.hasDrugWithdrawal) {
-          const supported =
-            (input.workTypeCodes &&
-              input.workTypeCodes.some((wt) => isDrugWithdrawalSupported(wt))) ||
-            (input.activityTypeId &&
-              isDrugWithdrawalSupported(input.activityTypeId));
-          if (!supported) {
-            throw new Error(
-              "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
-            );
-          }
-
-          const items = input.drugWithdrawal.items || [];
-          if (items.length === 0) {
-            throw new Error(
-              "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
-            );
-          }
-
-          const productIds = Array.from(
-            new Set(items.map((it) => it.productId).filter(Boolean)),
-          );
-          const existingProducts = await tx.product.findMany({
-            where: { id: { in: productIds } },
-            select: { id: true, name: true, unit: true },
-          });
-          const productMap = new Map<
-            string,
-            { id: string; name: string; unit: string | null }
-          >(existingProducts.map((p) => [p.id, p]));
-          for (const item of items) {
-            if (!productMap.has(item.productId)) {
-              throw new Error(
-                `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
-              );
-            }
-          }
-
-          // Link demoPlotId for TYPE_13 created plots if not yet assigned
-          if (createdType13PlotMap.size > 0 && items.length > 0) {
-            for (const item of items) {
-              if (!item.demoPlotId && createdType13PlotMap.has(item.plotIdentifier)) {
-                item.demoPlotId = createdType13PlotMap.get(item.plotIdentifier);
-              }
-            }
-          }
-
-          const plotIds = Array.from(
-            new Set(
-              items
-                .map((it) => it.demoPlotId)
-                .filter((id): id is string => Boolean(id)),
-            ),
-          );
-          if (plotIds.length > 0) {
-            const existingPlots = await tx.demoPlot.findMany({
-              where: { id: { in: plotIds } },
-              select: { id: true },
-            });
-            const plotIdSet = new Set(existingPlots.map((p) => p.id));
-            for (const item of items) {
-              if (item.demoPlotId && !plotIdSet.has(item.demoPlotId)) {
-                throw new Error(
-                  `ไม่พบข้อมูลแปลงสาธิต (DemoPlot ID: ${item.demoPlotId}) ในระบบ`,
-                );
-              }
-            }
-          }
-
-          const dw = await tx.drugWithdrawal.create({
-            data: {
-              activityPlanId: plan.id,
-              status: DrugWithdrawalStatus.DRAFT,
-              requestedById: input.employeeId,
-              notes: input.drugWithdrawal.notes ?? null,
-            },
-          });
-
-          await tx.drugWithdrawalItem.createMany({
-            data: items.map((item, idx) => {
-              const prod = productMap.get(item.productId)!;
-              return {
-                drugWithdrawalId: dw.id,
-                demoPlotId: item.demoPlotId ?? null,
-                plotIdentifier: item.plotIdentifier || "",
-                productId: item.productId,
-                productName: item.productName || prod.name,
-                quantity: new Prisma.Decimal(item.quantity),
-                unit: item.unit || prod.unit || "หน่วย",
-                sortOrder: item.sortOrder ?? idx,
-              };
-            }),
-          });
-        }
-
-        // 6. If Unplanned Activity provides actualData, upsert ActivityResult atomically
+        // 5. If Unplanned Activity provides actualData, upsert ActivityResult atomically
         if (input.actualData) {
           await upsertActivityResult(
             {
@@ -1539,7 +1354,6 @@ export async function updateActivityPlan(
     delete updateFields.demoPlotId;
     delete updateFields.demoPlotIds;
     delete updateFields.demoPlotData;
-    delete updateFields.drugWithdrawal;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -2171,174 +1985,6 @@ export async function updateActivityPlan(
       }
     }
 
-    // 4. Sync Drug Withdrawal if provided
-    if (planData.drugWithdrawal !== undefined) {
-      if (
-        planData.drugWithdrawal &&
-        planData.drugWithdrawal.hasDrugWithdrawal
-      ) {
-        // Validate work type code support
-        const currentWorkTypes =
-          planData.workTypeCodes ||
-          (
-            await tx.activityPlanWorkType.findMany({
-              where: { activityPlanId: id },
-              include: { activityType: true },
-            })
-          ).map((wt) => wt.activityType.code);
-
-        const supported =
-          currentWorkTypes.some((wt) => isDrugWithdrawalSupported(wt)) ||
-          isDrugWithdrawalSupported(updatedPlan.activityTypeId);
-
-        if (!supported) {
-          throw new Error(
-            "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)",
-          );
-        }
-
-        const items = planData.drugWithdrawal.items || [];
-        if (items.length === 0) {
-          throw new Error(
-            "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
-          );
-        }
-
-        const productIds = Array.from(
-          new Set(items.map((it) => it.productId).filter(Boolean)),
-        );
-        const existingProducts = await tx.product.findMany({
-          where: { id: { in: productIds } },
-          select: { id: true, name: true, unit: true },
-        });
-        const productMap = new Map<
-          string,
-          { id: string; name: string; unit: string | null }
-        >(existingProducts.map((p) => [p.id, p]));
-        for (const item of items) {
-          if (!productMap.has(item.productId)) {
-            throw new Error(
-              `ไม่พบข้อมูลผลิตภัณฑ์ (Product ID: ${item.productId}) ในระบบ`,
-            );
-          }
-        }
-
-        // Link demoPlotId for TYPE_13 plots if not yet assigned or resolved
-        if (resolvedType13PlotMap.size > 0 && items.length > 0) {
-          for (const item of items) {
-            if (!item.demoPlotId) {
-              if (resolvedType13PlotMap.has(item.plotIdentifier)) {
-                item.demoPlotId = resolvedType13PlotMap.get(item.plotIdentifier);
-              }
-            } else if (resolvedType13PlotMap.has(item.demoPlotId)) {
-              item.demoPlotId = resolvedType13PlotMap.get(item.demoPlotId);
-            }
-          }
-        }
-
-        const plotIds = Array.from(
-          new Set(
-            items
-              .map((it) => it.demoPlotId)
-              .filter((pId): pId is string => Boolean(pId)),
-          ),
-        );
-        if (plotIds.length > 0) {
-          const existingPlots = await tx.demoPlot.findMany({
-            where: { id: { in: plotIds } },
-            select: { id: true },
-          });
-          const plotIdSet = new Set(existingPlots.map((p) => p.id));
-          for (const item of items) {
-            if (item.demoPlotId && !plotIdSet.has(item.demoPlotId)) {
-              throw new Error(
-                `ไม่พบข้อมูลแปลงสาธิต (DemoPlot ID: ${item.demoPlotId}) ในระบบ`,
-              );
-            }
-          }
-        }
-
-        const existingDw = await tx.drugWithdrawal.findUnique({
-          where: { activityPlanId: id },
-        });
-
-        let dwId: string;
-        if (existingDw) {
-          // CRITICAL: Preserve existing status! Do NOT overwrite with DRAFT or PENDING_APPROVAL
-          await tx.drugWithdrawal.update({
-            where: { id: existingDw.id },
-            data: {
-              notes: planData.drugWithdrawal.notes ?? existingDw.notes,
-              updatedAt: new Date(),
-            },
-          });
-          dwId = existingDw.id;
-
-          // Delete existing items to replace with synchronized items
-          await tx.drugWithdrawalItem.deleteMany({
-            where: { drugWithdrawalId: dwId },
-          });
-        } else {
-          // New withdrawal on existing plan -> status = DRAFT
-          const createdDw = await tx.drugWithdrawal.create({
-            data: {
-              activityPlanId: id,
-              status: DrugWithdrawalStatus.DRAFT,
-              requestedById: updatedPlan.employeeId,
-              notes: planData.drugWithdrawal.notes ?? null,
-            },
-          });
-          dwId = createdDw.id;
-        }
-
-        await tx.drugWithdrawalItem.createMany({
-          data: items.map((item, idx) => {
-            const prod = productMap.get(item.productId)!;
-            return {
-              drugWithdrawalId: dwId,
-              demoPlotId: item.demoPlotId ?? null,
-              plotIdentifier: item.plotIdentifier || "",
-              productId: item.productId,
-              productName: item.productName || prod.name,
-              quantity: new Prisma.Decimal(item.quantity),
-              unit: item.unit || prod.unit || "หน่วย",
-              sortOrder: item.sortOrder ?? idx,
-            };
-          }),
-        });
-      } else {
-        // User unchecks "มีการเบิกยา" (hasDrugWithdrawal = false or null)
-        const existingDw = await tx.drugWithdrawal.findUnique({
-          where: { activityPlanId: id },
-        });
-
-        if (existingDw) {
-          if (
-            existingDw.status === DrugWithdrawalStatus.DRAFT ||
-            existingDw.status === DrugWithdrawalStatus.RETURNED
-          ) {
-            // Case A & B: Delete DrugWithdrawal and all DrugWithdrawalItems (via cascade)
-            await tx.drugWithdrawal.delete({
-              where: { id: existingDw.id },
-            });
-          } else if (
-            existingDw.status === DrugWithdrawalStatus.PENDING_APPROVAL
-          ) {
-            // Case C: Reject attempt rather than deleting
-            throw new Error(
-              "ไม่สามารถยกเลิกคำขอเบิกยาที่อยู่ในสถานะรออนุมัติ (PENDING_APPROVAL) ได้",
-            );
-          } else if (existingDw.status === DrugWithdrawalStatus.APPROVED) {
-            // Case D: Reject attempt rather than deleting
-            throw new Error(
-              "ไม่สามารถยกเลิกคำขอเบิกยาที่ได้รับการอนุมัติแล้ว (APPROVED) ได้",
-            );
-          }
-        }
-        // Case E: No existing withdrawal + unchecked -> do nothing, remains no withdrawal
-      }
-    }
-
     // Upsert actualData if provided for Unplanned drafts
     if (planData.actualData !== undefined) {
       if (planData.actualData) {
@@ -2684,7 +2330,6 @@ export type CreateActivityResultInput = {
       actualRate: string;
       quantityUsed: number | string;
       unit?: string | null;
-      drugWithdrawalItemId?: string | null;
       detail?: string | null;
     }>;
     externalProducts?: Array<{
@@ -3284,25 +2929,15 @@ export async function upsertActivityResult(
               notes: round.notes ?? null,
               workTypeCode: round.workTypeCode ?? null,
               products: {
-                create: (round.products || []).map((p: any) => {
-                  if (p.drugWithdrawalItemId && p.supplementalDrugWithdrawalItemId) {
-                    throw new Error(
-                      "Cannot set both drugWithdrawalItemId and supplementalDrugWithdrawalItemId simultaneously",
-                    );
-                  }
-                  return {
-                    productId: p.productId,
-                    productName: p.productName ?? null,
-                    baselineRate: p.baselineRate ?? null,
-                    actualRate: p.actualRate,
-                    quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
-                    unit: p.unit ?? null,
-                    drugWithdrawalItemId: p.drugWithdrawalItemId ?? null,
-                    supplementalDrugWithdrawalItemId:
-                      p.supplementalDrugWithdrawalItemId ?? null,
-                    detail: p.detail ?? null,
-                  };
-                }),
+                create: (round.products || []).map((p: any) => ({
+                  productId: p.productId,
+                  productName: p.productName ?? null,
+                  baselineRate: p.baselineRate ?? null,
+                  actualRate: p.actualRate,
+                  quantityUsed: new Prisma.Decimal(Number(p.quantityUsed) || 0),
+                  unit: p.unit ?? null,
+                  detail: p.detail ?? null,
+                })),
               },
               externalProducts: {
                 create: (round.externalProducts || []).map((ep: any) => ({
@@ -3457,7 +3092,7 @@ export async function upsertActivityResult(
             : existingPlot.customCropName ?? null;
 
         let resolvedAreaRai = existingPlot.areaRai ?? null;
-        if (demoData.areaRai != null && demoData.areaRai !== "") {
+        if (demoData.areaRai != null && (typeof demoData.areaRai !== "string" || demoData.areaRai !== "")) {
           const num = Number(demoData.areaRai);
           if (!isNaN(num) && num > 0) {
             resolvedAreaRai = new Prisma.Decimal(num);
@@ -3467,7 +3102,7 @@ export async function upsertActivityResult(
         }
 
         let resolvedTreeCount = existingPlot.treeCount ?? null;
-        if (demoData.treeCount != null && demoData.treeCount !== "") {
+        if (demoData.treeCount != null && (typeof demoData.treeCount !== "string" || demoData.treeCount !== "")) {
           const num = Number(demoData.treeCount);
           if (!isNaN(num) && num > 0) {
             resolvedTreeCount = num;
@@ -3912,11 +3547,6 @@ export async function findApprovalQueueData() {
     demoPlotVisits: {
       include: {
         demoPlot: true,
-      },
-    },
-    drugWithdrawal: {
-      include: {
-        items: true,
       },
     },
     helpers: {
@@ -4708,57 +4338,19 @@ export async function findHattackFollowUpDemoPlots() {
 /**
  * Fetch HATTACK plot context for TYPE_14 Actual:
  * - DemoPlot details (dealer, province, district, etc.)
- * - Original DrugWithdrawalItem records (Group A source of truth)
  * - Previous spray rounds (ประวัติการฉีดพ่นจริง)
  */
 export async function findHattackPlotContext(
   demoPlotId: string,
   currentPlanId?: string,
 ) {
-  const [plot, originalWithdrawalItems, sprayHistoryRounds] = await Promise.all([
+  const [plot, sprayHistoryRounds] = await Promise.all([
     db.demoPlot.findUnique({
       where: { id: demoPlotId },
       include: {
         customer: { select: { id: true, name: true, customerCode: true } },
         farmerCustomer: { select: { id: true, name: true } },
       },
-    }),
-    db.drugWithdrawalItem.findMany({
-      where: {
-        demoPlotId,
-        ...(currentPlanId
-          ? {
-              drugWithdrawal: {
-                activityPlanId: { not: currentPlanId },
-              },
-            }
-          : {}),
-      },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            productCode: true,
-            unit: true,
-          },
-        },
-        drugWithdrawal: {
-          select: {
-            id: true,
-            activityPlanId: true,
-            status: true,
-            activityPlan: {
-              select: {
-                id: true,
-                code: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { sortOrder: "asc" },
     }),
     db.activityResultSprayRound.findMany({
       where: {
@@ -4809,7 +4401,6 @@ export async function findHattackPlotContext(
 
   return {
     plot,
-    originalWithdrawalItems,
     sprayHistoryRounds,
   };
 }
@@ -5044,136 +4635,5 @@ export async function findProductCategories() {
       code: true,
       description: true,
     },
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SUPPLEMENTAL DRUG WITHDRAWAL REPOSITORY
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Create a SupplementalDrugWithdrawal record with its items
- */
-export async function createSupplementalDrugWithdrawal(
-  txOrDb: any,
-  data: {
-    activityPlanId: string;
-    requestedById: string;
-    status?: DrugWithdrawalStatus;
-    notes?: string | null;
-    items: Array<{
-      productId: string;
-      productName?: string | null;
-      quantity: number | Prisma.Decimal;
-      unit?: string | null;
-      sortOrder?: number;
-    }>;
-  },
-) {
-  return txOrDb.supplementalDrugWithdrawal.create({
-    data: {
-      activityPlanId: data.activityPlanId,
-      requestedById: data.requestedById,
-      status: data.status || DrugWithdrawalStatus.DRAFT,
-      notes: data.notes ?? null,
-      items: {
-        create: data.items.map((item, idx) => ({
-          productId: item.productId,
-          productName: item.productName || "",
-          quantity: new Prisma.Decimal(Number(item.quantity) || 0),
-          unit: item.unit || "ขวด",
-          sortOrder: item.sortOrder ?? idx,
-        })),
-      },
-    },
-    include: {
-      items: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true, unit: true },
-          },
-        },
-      },
-      requestedBy: {
-        select: { id: true, name: true, employeeCode: true },
-      },
-    },
-  });
-}
-
-/**
- * Find SupplementalDrugWithdrawal by ID
- */
-export async function findSupplementalDrugWithdrawalById(
-  id: string,
-  txOrDb: any = db,
-) {
-  return txOrDb.supplementalDrugWithdrawal.findUnique({
-    where: { id },
-    include: {
-      items: {
-        orderBy: { sortOrder: "asc" },
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true, unit: true },
-          },
-        },
-      },
-      requestedBy: {
-        select: { id: true, name: true, employeeCode: true },
-      },
-      approvedBy: {
-        select: { id: true, name: true, employeeCode: true },
-      },
-      activityPlan: {
-        select: {
-          id: true,
-          code: true,
-          title: true,
-          status: true,
-          employeeId: true,
-        },
-      },
-    },
-  });
-}
-
-/**
- * Update SupplementalDrugWithdrawal status
- */
-export async function updateSupplementalDrugWithdrawalStatus(
-  txOrDb: any,
-  id: string,
-  data: {
-    status: DrugWithdrawalStatus;
-    approvedById?: string | null;
-    approvedAt?: Date | null;
-    rejectionReason?: string | null;
-  },
-) {
-  return txOrDb.supplementalDrugWithdrawal.update({
-    where: { id },
-    data: {
-      status: data.status,
-      approvedById: data.approvedById,
-      approvedAt: data.approvedAt,
-      rejectionReason: data.rejectionReason,
-    },
-    include: {
-      items: true,
-      activityPlan: true,
-    },
-  });
-}
-
-/**
- * Delete SupplementalDrugWithdrawal (only DRAFT or RETURNED)
- */
-export async function deleteSupplementalDrugWithdrawal(
-  txOrDb: any,
-  id: string,
-) {
-  return txOrDb.supplementalDrugWithdrawal.delete({
-    where: { id },
   });
 }

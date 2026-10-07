@@ -565,7 +565,7 @@ export async function recordDemoPlotVisitUseCase(rawData: any) {
 
 /**
  * Use Case: Get dedicated plot context for TYPE_14 "ติดตามแปลงแฮทแทค"
- * Returns plot info, original TYPE_13 withdrawal items (Group A source of truth), and previous actual spray history
+ * Returns plot info and previous actual spray history
  */
 export async function getHattackPlotContextUseCase(
   demoPlotId: string,
@@ -578,7 +578,7 @@ export async function getHattackPlotContextUseCase(
     };
   }
 
-  const { plot, originalWithdrawalItems, sprayHistoryRounds } =
+  const { plot, sprayHistoryRounds } =
     await findHattackPlotContext(demoPlotId.trim(), currentPlanId);
 
   if (!plot) {
@@ -599,15 +599,6 @@ export async function getHattackPlotContextUseCase(
       province: plot.province || undefined,
       district: plot.district || undefined,
     },
-    originalWithdrawalItems: originalWithdrawalItems.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-      productName: item.productName || item.product?.name || "",
-      unit: item.unit || item.product?.unit || "ขวด",
-      quantity: Number(item.quantity) || 0,
-      sourcePlanCode: item.drugWithdrawal?.activityPlan?.code || undefined,
-      sourcePlanTitle: item.drugWithdrawal?.activityPlan?.title || undefined,
-    })),
     sprayHistory: sprayHistoryRounds.map((sr, idx) => ({
       id: sr.id,
       roundNumber: sr.roundNumber || idx + 1,

@@ -55,8 +55,10 @@ export async function getApproverDirectoryUseCase(): Promise<ApproverDirectory> 
       deletedAt: null,
       OR: [
         { positionTitle: { contains: "ผู้จัดการแผนกการตลาด" } },
+        { positionTitle: { contains: "การตลาด-กิจกรรม" } },
         { positionTitle: { contains: "ผจก.แผนกการตลาด" } },
         { position: { name: { contains: "ผู้จัดการแผนกการตลาด" } } },
+        { position: { name: { contains: "การตลาด-กิจกรรม" } } },
         {
           AND: [
             { department: { code: "MKT" } },

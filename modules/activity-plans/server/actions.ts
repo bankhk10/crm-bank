@@ -30,11 +30,6 @@ import {
   recordDemoPlotVisitUseCase,
   getApproverDirectoryUseCase,
   type ListActivityPlansParams,
-  createSupplementalDrugWithdrawalUseCase,
-  submitSupplementalDrugWithdrawalUseCase,
-  approveSupplementalDrugWithdrawalUseCase,
-  returnSupplementalDrugWithdrawalUseCase,
-  deleteSupplementalDrugWithdrawalUseCase,
 } from "../application";
 
 /**
@@ -668,7 +663,7 @@ export async function getHattackFollowUpPlansWithPlotsAction() {
 
 /**
  * Action: Get dedicated plot context for TYPE_14 Actual
- * Returns plot info, original TYPE_13 withdrawal items (Group A source of truth), and previous actual spray history
+ * Returns plot info and previous actual spray history
  */
 export async function getHattackPlotContextAction(
   demoPlotId: string,
@@ -1164,162 +1159,4 @@ export async function getActivityCalendarEventsAction(
   }
 }
 
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SUPPLEMENTAL DRUG WITHDRAWAL SERVER ACTIONS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Action: Create a Supplemental Drug Withdrawal
- */
-export async function createSupplementalDrugWithdrawalAction(rawData: unknown) {
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  try {
-    const result = await createSupplementalDrugWithdrawalUseCase(
-      session.user.id,
-      rawData,
-    );
-    if (result.success && result.withdrawal?.activityPlanId) {
-      revalidatePath(`/activity-plans/${result.withdrawal.activityPlanId}`);
-      revalidatePath(`/activity-plans/${result.withdrawal.activityPlanId}/actual`);
-      revalidatePath("/activity-plans");
-    }
-    return serialize(result);
-  } catch (err: any) {
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการขอเบิกยาเพิ่มเติม" };
-  }
-}
-
-/**
- * Action: Submit Supplemental Drug Withdrawal for Approval
- */
-export async function submitSupplementalDrugWithdrawalAction(
-  withdrawalId: string,
-  planId?: string,
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  try {
-    const result = await submitSupplementalDrugWithdrawalUseCase(
-      withdrawalId,
-      session.user.id,
-    );
-    if (!result.success) {
-      return serialize(result);
-    }
-    const targetPlanId = planId || result.withdrawal?.activityPlanId;
-    if (targetPlanId) {
-      revalidatePath(`/activity-plans/${targetPlanId}`);
-      revalidatePath(`/activity-plans/${targetPlanId}/actual`);
-      revalidatePath("/activity-plans");
-    }
-    return serialize(result);
-  } catch (err: any) {
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการส่งขออนุมัติรายการเบิกยาเพิ่มเติม" };
-  }
-}
-
-/**
- * Action: Approve Supplemental Drug Withdrawal
- */
-export async function approveSupplementalDrugWithdrawalAction(
-  withdrawalId: string,
-  comment?: string,
-  planId?: string,
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  try {
-    const result = await approveSupplementalDrugWithdrawalUseCase(
-      withdrawalId,
-      session.user.id,
-      comment,
-    );
-    if (!result.success) {
-      return serialize(result);
-    }
-    const targetPlanId = planId || result.withdrawal?.activityPlanId;
-    if (targetPlanId) {
-      revalidatePath(`/activity-plans/${targetPlanId}`);
-      revalidatePath(`/activity-plans/${targetPlanId}/actual`);
-      revalidatePath("/activity-plans");
-    }
-    return serialize(result);
-  } catch (err: any) {
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการอนุมัติรายการเบิกยาเพิ่มเติม" };
-  }
-}
-
-/**
- * Action: Return / Reject Supplemental Drug Withdrawal
- */
-export async function returnSupplementalDrugWithdrawalAction(
-  withdrawalId: string,
-  reason: string,
-  planId?: string,
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  try {
-    const result = await returnSupplementalDrugWithdrawalUseCase(
-      withdrawalId,
-      session.user.id,
-      reason,
-    );
-    if (!result.success) {
-      return serialize(result);
-    }
-    const targetPlanId = planId || result.withdrawal?.activityPlanId;
-    if (targetPlanId) {
-      revalidatePath(`/activity-plans/${targetPlanId}`);
-      revalidatePath(`/activity-plans/${targetPlanId}/actual`);
-      revalidatePath("/activity-plans");
-    }
-    return serialize(result);
-  } catch (err: any) {
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการส่งคืนรายการเบิกยาเพิ่มเติม" };
-  }
-}
-
-/**
- * Action: Delete Supplemental Drug Withdrawal (Draft or Returned only)
- */
-export async function deleteSupplementalDrugWithdrawalAction(
-  withdrawalId: string,
-  planId?: string,
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, error: "Unauthorized" };
-  }
-
-  try {
-    const result = await deleteSupplementalDrugWithdrawalUseCase(
-      withdrawalId,
-      session.user.id,
-    );
-    if (planId) {
-      revalidatePath(`/activity-plans/${planId}`);
-      revalidatePath(`/activity-plans/${planId}/actual`);
-      revalidatePath("/activity-plans");
-    }
-    return serialize(result);
-  } catch (err: any) {
-    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการลบรายการเบิกยาเพิ่มเติม" };
-  }
-}
 

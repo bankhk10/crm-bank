@@ -1,12 +1,3 @@
-export interface Type13WithdrawalItem {
-  id?: string;
-  productId: string;
-  productName?: string | null;
-  quantity: number | string;
-  unit?: string | null;
-  sortOrder?: number;
-}
-
 export interface Type13PlotProduct {
   id?: string;
   productId: string;
@@ -27,8 +18,6 @@ export interface Type13PlotItem {
   latitude?: number | string | null;
   longitude?: number | string | null;
   products?: Type13PlotProduct[];
-  hasDrugWithdrawal?: boolean;
-  withdrawalItems?: Type13WithdrawalItem[];
 }
 
 export interface Type13ExternalProduct {
@@ -46,7 +35,6 @@ export interface Type13SprayingProduct {
   actualRate: string;
   quantityUsed: number | string;
   unit?: string | null;
-  drugWithdrawalItemId?: string | null;
   detail?: string | null;
 }
 

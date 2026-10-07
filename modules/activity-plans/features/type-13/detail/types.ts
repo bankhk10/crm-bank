@@ -6,12 +6,6 @@ export interface Type13DetailActualProduct {
   actualRate: string;
   quantityUsed: any;
   unit?: string | null;
-  drugWithdrawalItemId?: string | null;
-  drugWithdrawalItem?: {
-    id: string;
-    quantity: any;
-    unit?: string | null;
-  } | null;
   detail?: string | null;
 }
 

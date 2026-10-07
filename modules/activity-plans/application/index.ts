@@ -2,8 +2,6 @@ import { db } from "@/lib/db";
 import {
   activityPlanSchema,
   activityResultSchema,
-  createSupplementalDrugWithdrawalSchema,
-  type CreateSupplementalDrugWithdrawalInput,
 } from "./validations";
 import { normalizePlanInput } from "./plan-mapper";
 import {
@@ -16,10 +14,6 @@ import {
   findActivityTypes,
   findProductCategories,
   findOrCreateEmployeeForUser,
-  createSupplementalDrugWithdrawal,
-  findSupplementalDrugWithdrawalById,
-  updateSupplementalDrugWithdrawalStatus,
-  deleteSupplementalDrugWithdrawal,
   type ListActivityPlansParams,
   type CreateActivityResultInput,
   type CreateActivityPlanInput,
@@ -27,11 +21,12 @@ import {
 import {
   ActivityPlanType,
   ActivityStatus,
-  DrugWithdrawalStatus,
   ActivityApprovalAction,
   ActivityApprovalStep,
 } from "@prisma/client";
-import { isDrugWithdrawalSupported, getWorkTypeCode } from "../constants";
+import {
+  getWorkTypeCode,
+} from "../constants";
 import { isActivityPlanTestMode } from "../config";
 import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 import {
@@ -295,19 +290,6 @@ export async function createActivityPlanUseCase(
     return { success: false as const, error: type7aValidation.error };
   }
 
-  if (normalized.drugWithdrawal && normalized.drugWithdrawal.hasDrugWithdrawal) {
-    const isSupported = normalized.workTypeCodes.some((wt) =>
-      isDrugWithdrawalSupported(wt),
-    );
-    if (!isSupported) {
-      return {
-        success: false as const,
-        error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13)",
-      };
-    }
-  }
-
   const {
     helperEmployeeIds,
     items,
@@ -315,7 +297,6 @@ export async function createActivityPlanUseCase(
     planStores,
     planProducts,
     workTypeCodes,
-    drugWithdrawal,
     ...planFields
   } = parsed.data;
 
@@ -344,7 +325,6 @@ export async function createActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
-    drugWithdrawal: normalized.drugWithdrawal,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -462,30 +442,11 @@ export async function duplicateActivityPlanUseCase(
       v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
   );
 
-  const existingDwItems = (originalPlan as any).drugWithdrawal?.items || [];
-
   const type13Plots =
     t13Visits.length > 0
       ? t13Visits.map((v, idx) => {
           const plot = v.demoPlot;
           const plotName = plot?.name || `แปลงที่ ${idx + 1}`;
-          const plotId = plot?.id;
-
-          const matchedDw = existingDwItems.filter((item: any) => {
-            if (plotId && item.demoPlotId && item.demoPlotId === plotId) return true;
-            if (
-              plotName &&
-              item.plotIdentifier &&
-              item.plotIdentifier.trim() === plotName.trim()
-            )
-              return true;
-            if (
-              item.plotIdentifier &&
-              item.plotIdentifier.trim() === `แปลงที่ ${idx + 1}`
-            )
-              return true;
-            return false;
-          });
 
           return {
             id: `plot-${idx + 1}`,
@@ -496,15 +457,6 @@ export async function duplicateActivityPlanUseCase(
             province: plot?.province || "",
             district: plot?.district || "",
             products: [],
-            hasDrugWithdrawal: matchedDw.length > 0,
-            withdrawalItems: matchedDw.map((item: any, dwIdx: number) => ({
-              id: `w-${idx + 1}-${dwIdx + 1}`,
-              productId: item.productId,
-              productName: item.productName || item.product?.name || null,
-              quantity: Number(item.quantity) || 1,
-              unit: item.unit || item.product?.unit || null,
-              sortOrder: item.sortOrder ?? dwIdx,
-            })),
           };
         })
       : undefined;
@@ -608,23 +560,6 @@ export async function duplicateActivityPlanUseCase(
     promotionItems,
     helperEmployeeIds,
     type13Plots,
-    drugWithdrawal: (originalPlan as any).drugWithdrawal
-      ? {
-          hasDrugWithdrawal: true,
-          notes: (originalPlan as any).drugWithdrawal.notes ?? null,
-          items: ((originalPlan as any).drugWithdrawal.items || []).map(
-            (it: any) => ({
-              demoPlotId: null,
-              plotIdentifier: it.plotIdentifier,
-              productId: it.productId,
-              productName: it.productName ?? null,
-              quantity: Number(it.quantity) || 0,
-              unit: it.unit ?? null,
-              sortOrder: it.sortOrder ?? 0,
-            }),
-          ),
-        }
-      : null,
   };
 
   const plan = await createActivityPlan(data);
@@ -708,48 +643,6 @@ export async function updateActivityPlanUseCase(
     return { success: false as const, error: type7aValidation.error };
   }
 
-  if (normalized.drugWithdrawal && normalized.drugWithdrawal.hasDrugWithdrawal) {
-    const isSupported = normalized.workTypeCodes.some((wt) =>
-      isDrugWithdrawalSupported(wt),
-    );
-    if (!isSupported) {
-      return {
-        success: false as const,
-        error:
-          "ประเภทกิจกรรมนี้ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13)",
-      };
-    }
-  }
-
-  const isWithdrawalSupportedForPlan = normalized.workTypeCodes.some((wt) =>
-    isDrugWithdrawalSupported(wt),
-  );
-
-  // Only evaluate withdrawal cancellation if the plan supports drug withdrawal and the field was provided
-  if (
-    isWithdrawalSupportedForPlan &&
-    parsed.data.drugWithdrawal !== undefined &&
-    (!normalized.drugWithdrawal ||
-      !normalized.drugWithdrawal.hasDrugWithdrawal) &&
-    (plan as any).drugWithdrawal
-  ) {
-    const dwStatus = (plan as any).drugWithdrawal.status;
-    if (dwStatus === DrugWithdrawalStatus.PENDING_APPROVAL) {
-      return {
-        success: false as const,
-        error:
-          "ไม่สามารถยกเลิกคำขอเบิกยาที่อยู่ในสถานะรออนุมัติ (PENDING_APPROVAL) ได้",
-      };
-    }
-    if (dwStatus === DrugWithdrawalStatus.APPROVED) {
-      return {
-        success: false as const,
-        error:
-          "ไม่สามารถยกเลิกคำขอเบิกยาที่ได้รับการอนุมัติแล้ว (APPROVED) ได้",
-      };
-    }
-  }
-
   const {
     helperEmployeeIds,
     items,
@@ -757,7 +650,6 @@ export async function updateActivityPlanUseCase(
     planStores,
     planProducts,
     workTypeCodes,
-    drugWithdrawal,
     ...planFields
   } = parsed.data;
 
@@ -786,10 +678,6 @@ export async function updateActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
-    drugWithdrawal:
-      isWithdrawalSupportedForPlan && parsed.data.drugWithdrawal !== undefined
-        ? normalized.drugWithdrawal
-        : undefined,
     updatedUserId: userId,
   };
 
@@ -884,42 +772,6 @@ export async function recordActivityResultUseCase(
         success: false as const,
         error: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
       };
-    }
-  }
-
-  // Business Rule: Validate Supplemental Drug Withdrawal in Actual Results
-  if (parsed.data.sprayRounds && parsed.data.sprayRounds.length > 0) {
-    for (const round of parsed.data.sprayRounds) {
-      for (const prod of round.products || []) {
-        if (prod.drugWithdrawalItemId && prod.supplementalDrugWithdrawalItemId) {
-          return {
-            success: false as const,
-            error:
-              "ไม่สามารถระบุทั้งรายการเบิกเดิมและรายการเบิกใหม่พร้อมกันในสินค้าเดียวได้",
-          };
-        }
-        if (prod.supplementalDrugWithdrawalItemId) {
-          const suppItem = await db.supplementalDrugWithdrawalItem.findUnique({
-            where: { id: prod.supplementalDrugWithdrawalItemId },
-            include: { supplementalDrugWithdrawal: true },
-          });
-          if (!suppItem) {
-            return {
-              success: false as const,
-              error: `ไม่พบรายการเบิกยาเพิ่มเติม (ID: ${prod.supplementalDrugWithdrawalItemId})`,
-            };
-          }
-          if (
-            suppItem.supplementalDrugWithdrawal.status !==
-            DrugWithdrawalStatus.APPROVED
-          ) {
-            return {
-              success: false as const,
-              error: `รายการเบิกยาเพิ่มเติม "${suppItem.productName}" ยังไม่ได้รับการอนุมัติ (APPROVED) ไม่สามารถบันทึกผลการใช้จริงได้`,
-            };
-          }
-        }
-      }
     }
   }
 
@@ -1064,8 +916,6 @@ export {
 
 export { normalizePlanInput, type NormalizedPlanData } from "./plan-mapper";
 
-
-
 export {
   canUserPerformApproval,
   getPlanActionScopes,
@@ -1075,296 +925,6 @@ export {
 } from "./can-approve";
 
 export type { ListActivityPlansParams };
-
-export {
-  drugWithdrawalItemSchema,
-  drugWithdrawalInputSchema,
-  type DrugWithdrawalItemInput,
-  type DrugWithdrawalInput,
-  type ValidateDrugWithdrawalResult,
-  validateDrugWithdrawal,
-} from "./validations";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SUPPLEMENTAL DRUG WITHDRAWAL USE CASES
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function getApproverContextForUser(userId: string): Promise<ApproverUserContext> {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    include: {
-      employeeProfile: {
-        include: {
-          position: true,
-          department: true,
-        },
-      },
-      userRoles: {
-        select: {
-          role: {
-            select: {
-              slug: true,
-              permissions: {
-                select: {
-                  permission: {
-                    select: {
-                      key: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      permissionOverrides: {
-        select: {
-          permission: {
-            select: {
-              key: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const rolePermissionKeys =
-    user?.userRoles?.flatMap(
-      (ur) => ur.role.permissions?.map((p) => p.permission.key) || [],
-    ) || [];
-  const overridePermissionKeys =
-    user?.permissionOverrides?.map((p) => p.permission.key) || [];
-  const allPermissions = Array.from(
-    new Set([...rolePermissionKeys, ...overridePermissionKeys]),
-  );
-
-  return {
-    id: user?.id,
-    employeeId: user?.employeeProfile?.id,
-    roles: user?.userRoles?.map((r) => r.role.slug) || [],
-    permissions: allPermissions,
-    positionTitle:
-      user?.employeeProfile?.position?.name ||
-      user?.employeeProfile?.positionTitle,
-    departmentCode: user?.employeeProfile?.department?.code,
-  };
-}
-
-export async function createSupplementalDrugWithdrawalUseCase(
-  userId: string,
-  rawData: unknown,
-) {
-  const parsed = createSupplementalDrugWithdrawalSchema.safeParse(rawData);
-  if (!parsed.success) {
-    const errorMsg = parsed.error.errors.map((e) => e.message).join(", ");
-    return { success: false as const, error: errorMsg };
-  }
-
-  const plan = await findActivityPlanById(parsed.data.activityPlanId);
-  if (!plan) {
-    return { success: false as const, error: "ไม่พบแผนกิจกรรม" };
-  }
-
-  const isTestMode = isActivityPlanTestMode();
-  if (plan.status !== ActivityStatus.APPROVED && !isTestMode) {
-    return {
-      success: false as const,
-      error: "สามารถขอเบิกยาเพิ่มเติมได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติแล้วเท่านั้น",
-    };
-  }
-
-  const requesterEmployee = await findOrCreateEmployeeForUser(userId);
-  if (!requesterEmployee) {
-    return { success: false as const, error: "ไม่พบข้อมูลพนักงานของผู้ขอเบิก" };
-  }
-
-  const initialStatus = parsed.data.autoSubmit
-    ? DrugWithdrawalStatus.PENDING_APPROVAL
-    : DrugWithdrawalStatus.DRAFT;
-
-  const withdrawal = await createSupplementalDrugWithdrawal(db, {
-    activityPlanId: parsed.data.activityPlanId,
-    requestedById: requesterEmployee.id,
-    status: initialStatus,
-    notes: parsed.data.notes,
-    items: parsed.data.items,
-  });
-
-  return { success: true as const, withdrawal };
-}
-
-export async function submitSupplementalDrugWithdrawalUseCase(
-  withdrawalId: string,
-  userId: string,
-) {
-  const withdrawal = await findSupplementalDrugWithdrawalById(withdrawalId);
-  if (!withdrawal) {
-    return { success: false as const, error: "ไม่พบรายการเบิกยาเพิ่มเติม" };
-  }
-
-  if (
-    withdrawal.status !== DrugWithdrawalStatus.DRAFT &&
-    withdrawal.status !== DrugWithdrawalStatus.RETURNED
-  ) {
-    return {
-      success: false as const,
-      error: `ไม่สามารถส่งขออนุมัติรายการในสถานะ '${withdrawal.status}' ได้`,
-    };
-  }
-
-  const updated = await updateSupplementalDrugWithdrawalStatus(
-    db,
-    withdrawalId,
-    {
-      status: DrugWithdrawalStatus.PENDING_APPROVAL,
-      rejectionReason: null,
-    },
-  );
-
-  return { success: true as const, withdrawal: updated };
-}
-
-export async function approveSupplementalDrugWithdrawalUseCase(
-  withdrawalId: string,
-  userId: string,
-  comment?: string,
-) {
-  const withdrawal = await findSupplementalDrugWithdrawalById(withdrawalId);
-  if (!withdrawal) {
-    return { success: false as const, error: "ไม่พบรายการเบิกยาเพิ่มเติม" };
-  }
-
-  if (withdrawal.status !== DrugWithdrawalStatus.PENDING_APPROVAL) {
-    return {
-      success: false as const,
-      error: `รายการนี้ไม่อยู่ในสถานะรออนุมัติ (สถานะปัจจุบัน: ${withdrawal.status})`,
-    };
-  }
-
-  const approverCtx = await getApproverContextForUser(userId);
-  const canApprove =
-    isUserAdmin(approverCtx) ||
-    isUserMarketingManager(approverCtx) ||
-    isActivityPlanTestMode();
-
-  if (!canApprove) {
-    return {
-      success: false as const,
-      error: "คุณไม่มีสิทธิ์อนุมัติรายการเบิกยาเพิ่มเติม (ต้องเป็น Marketing Manager หรือ Admin)",
-    };
-  }
-
-  return db.$transaction(async (tx) => {
-    const updated = await updateSupplementalDrugWithdrawalStatus(
-      tx,
-      withdrawalId,
-      {
-        status: DrugWithdrawalStatus.APPROVED,
-        approvedById: approverCtx.employeeId || null,
-        approvedAt: new Date(),
-        rejectionReason: null,
-      },
-    );
-
-    // Record approval log according to project pattern
-    await tx.activityApprovalLog.create({
-      data: {
-        activityPlanId: withdrawal.activityPlanId,
-        userId,
-        action: ActivityApprovalAction.APPROVE,
-        step: ActivityApprovalStep.BUDGET_APPROVAL,
-        comment:
-          comment ||
-          "อนุมัติรายการเบิกยาเพิ่มเติมในการติดตามรอบนี้ (Supplemental Drug Withdrawal)",
-      },
-    });
-
-    return { success: true as const, withdrawal: updated };
-  });
-}
-
-export async function returnSupplementalDrugWithdrawalUseCase(
-  withdrawalId: string,
-  userId: string,
-  reason: string,
-) {
-  if (!reason || !reason.trim()) {
-    return { success: false as const, error: "กรุณาระบุเหตุผลการไม่อนุมัติ/ส่งคืน" };
-  }
-
-  const withdrawal = await findSupplementalDrugWithdrawalById(withdrawalId);
-  if (!withdrawal) {
-    return { success: false as const, error: "ไม่พบรายการเบิกยาเพิ่มเติม" };
-  }
-
-  if (withdrawal.status !== DrugWithdrawalStatus.PENDING_APPROVAL) {
-    return {
-      success: false as const,
-      error: `รายการนี้ไม่อยู่ในสถานะรออนุมัติ (สถานะปัจจุบัน: ${withdrawal.status})`,
-    };
-  }
-
-  const approverCtx = await getApproverContextForUser(userId);
-  const canApprove =
-    isUserAdmin(approverCtx) ||
-    isUserMarketingManager(approverCtx) ||
-    isActivityPlanTestMode();
-
-  if (!canApprove) {
-    return {
-      success: false as const,
-      error: "คุณไม่มีสิทธิ์ดำเนินการนี้ (ต้องเป็น Marketing Manager หรือ Admin)",
-    };
-  }
-
-  return db.$transaction(async (tx) => {
-    const updated = await updateSupplementalDrugWithdrawalStatus(
-      tx,
-      withdrawalId,
-      {
-        status: DrugWithdrawalStatus.RETURNED,
-        approvedById: approverCtx.employeeId || null,
-        rejectionReason: reason.trim(),
-      },
-    );
-
-    await tx.activityApprovalLog.create({
-      data: {
-        activityPlanId: withdrawal.activityPlanId,
-        userId,
-        action: ActivityApprovalAction.REJECT,
-        step: ActivityApprovalStep.BUDGET_APPROVAL,
-        comment: reason.trim(),
-      },
-    });
-
-    return { success: true as const, withdrawal: updated };
-  });
-}
-
-export async function deleteSupplementalDrugWithdrawalUseCase(
-  withdrawalId: string,
-  userId: string,
-) {
-  const withdrawal = await findSupplementalDrugWithdrawalById(withdrawalId);
-  if (!withdrawal) {
-    return { success: false as const, error: "ไม่พบรายการเบิกยาเพิ่มเติม" };
-  }
-
-  if (
-    withdrawal.status !== DrugWithdrawalStatus.DRAFT &&
-    withdrawal.status !== DrugWithdrawalStatus.RETURNED
-  ) {
-    return {
-      success: false as const,
-      error: "สามารถลบได้เฉพาะรายการที่อยู่ในสถานะแบบร่าง (DRAFT) หรือส่งคืน (RETURNED) เท่านั้น",
-    };
-  }
-
-  await deleteSupplementalDrugWithdrawal(db, withdrawalId);
-  return { success: true as const };
-}
 
 export * from "./demo-plots";
 

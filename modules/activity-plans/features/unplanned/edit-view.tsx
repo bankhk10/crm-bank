@@ -179,7 +179,6 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
-            drugWithdrawal: (plan as any).drugWithdrawal || null,
             planType: plan.planType || "UNPLANNED",
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,

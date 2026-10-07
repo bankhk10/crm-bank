@@ -59,8 +59,6 @@ export function DetailType13Attack({
             province: "",
             district: "",
             products: [],
-            hasDrugWithdrawal: false,
-            withdrawalItems: [],
           },
         ];
 
@@ -263,66 +261,38 @@ export function DetailType13Attack({
                       สินค้าที่ใช้จริง:
                     </span>
                     <div className="space-y-1">
-                      {round.products.map((p, pIdx) => {
-                        const isWithdrawn = Boolean(
-                          p.drugWithdrawalItemId || p.drugWithdrawalItem,
-                        );
-                        const withdrawnQty =
-                          p.drugWithdrawalItem?.quantity != null
-                            ? Number(p.drugWithdrawalItem.quantity)
-                            : null;
-
-                        return (
-                          <div
-                            key={pIdx}
-                            className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 space-y-1 text-xs"
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-semibold text-slate-800">
-                                  {p.productName || "สินค้าไม่ระบุชื่อ"}
-                                </span>
-                                {isWithdrawn ? (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                                    จากรายการเบิก
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
-                                    เพิ่มเติม / ไม่ได้เบิก
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-slate-600">
-                                {isWithdrawn && withdrawnQty != null && (
-                                  <span className="text-[11px] text-slate-500">
-                                    เบิก:{" "}
-                                    <strong className="text-emerald-700">
-                                      {withdrawnQty}
-                                    </strong>{" "}
-                                    {p.unit || ""}
-                                  </span>
-                                )}
-                                <span className="text-slate-500">
-                                  อัตรา: {p.actualRate || "-"}
-                                </span>
-                                <span className="font-bold text-emerald-600">
-                                  ใช้จริง:{" "}
-                                  {Number(p.quantityUsed).toLocaleString()}{" "}
-                                  {p.unit || "หน่วย"}
-                                </span>
-                              </div>
+                      {round.products.map((p, pIdx) => (
+                        <div
+                          key={pIdx}
+                          className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 space-y-1 text-xs"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-slate-800">
+                                {p.productName || "สินค้าไม่ระบุชื่อ"}
+                              </span>
                             </div>
-                            {p.detail && (
-                              <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
-                                <span className="text-slate-400 font-medium">
-                                  รายละเอียด:{" "}
-                                </span>
-                                <span>{p.detail}</span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-3 text-slate-600">
+                              <span className="text-slate-500">
+                                อัตรา: {p.actualRate || "-"}
+                              </span>
+                              <span className="font-bold text-emerald-600">
+                                ใช้จริง:{" "}
+                                {Number(p.quantityUsed).toLocaleString()}{" "}
+                                {p.unit || "หน่วย"}
+                              </span>
+                            </div>
                           </div>
-                        );
-                      })}
+                          {p.detail && (
+                            <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
+                              <span className="text-slate-400 font-medium">
+                                รายละเอียด:{" "}
+                              </span>
+                              <span>{p.detail}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 

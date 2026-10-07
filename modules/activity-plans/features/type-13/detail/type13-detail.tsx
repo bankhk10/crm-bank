@@ -41,7 +41,7 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              รายละเอียดแปลงและรายการเบิกยาสำหรับกิจกรรม
+              รายละเอียดแปลงและรายการสินค้าสำหรับกิจกรรม
             </p>
           </div>
         </div>
@@ -130,48 +130,28 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
           )}
         </div>
 
-        {/* Drug Withdrawal in this plot */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-          <div className="flex items-center justify-between">
+        {/* Products in this plot if any */}
+        {currentPlot.products && currentPlot.products.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Package className="w-4 h-4 text-emerald-600" />
               <h6 className="font-bold text-xs text-slate-800">
-                รายการเบิกยาสำหรับแปลงนี้
+                รายการสินค้าที่วางแผนสำหรับแปลงนี้
               </h6>
             </div>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                currentPlot.hasDrugWithdrawal &&
-                currentPlot.withdrawalItems &&
-                currentPlot.withdrawalItems.length > 0
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-slate-100 text-slate-500"
-              }`}
-            >
-              {currentPlot.hasDrugWithdrawal &&
-              currentPlot.withdrawalItems &&
-              currentPlot.withdrawalItems.length > 0
-                ? `เบิกยา ${currentPlot.withdrawalItems.length} รายการ`
-                : "ไม่มีการเบิกยาสำหรับแปลงนี้"}
-            </span>
-          </div>
-
-          {currentPlot.hasDrugWithdrawal &&
-          currentPlot.withdrawalItems &&
-          currentPlot.withdrawalItems.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-medium">
                     <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
                     <th className="py-2 px-3">ชื่อสินค้า</th>
-                    <th className="py-2 px-3 text-center">จำนวนเบิก</th>
+                    <th className="py-2 px-3 text-center">จำนวน</th>
                     <th className="py-2 px-3 w-20">หน่วย</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {currentPlot.withdrawalItems.map((item, pIdx) => (
-                    <tr key={item.id || pIdx} className="hover:bg-slate-50/60">
+                  {currentPlot.products.map((item, pIdx) => (
+                    <tr key={item.productId || pIdx} className="hover:bg-slate-50/60">
                       <td className="py-2 px-3 text-center text-slate-400">
                         {pIdx + 1}
                       </td>
@@ -179,7 +159,7 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
                         {item.productName || "สินค้าไม่ระบุชื่อ"}
                       </td>
                       <td className="py-2 px-3 text-center font-bold text-emerald-600">
-                        {Number(item.quantity).toLocaleString()}
+                        {item.quantity ?? "-"}
                       </td>
                       <td className="py-2 px-3 text-slate-500">
                         {item.unit || "-"}
@@ -189,12 +169,8 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <p className="text-xs text-slate-400 py-1 italic">
-              ไม่มีการขอเบิกยาสำหรับแปลงนี้
-            </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

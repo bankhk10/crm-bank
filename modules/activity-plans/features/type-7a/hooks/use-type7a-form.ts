@@ -150,6 +150,8 @@ function parseInitialType7aItems(
           dp?.ownerName ||
           (initial as any)?.demoPlotData?.ownerName ||
           "",
+        productId: type7aProds[0]?.productId || dp?.productId || "",
+        productName: type7aProds[0]?.productName || dp?.productName || "",
         cropCategory,
         cropName,
         customCropName,

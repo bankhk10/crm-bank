@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type { Type13PlotItem as FormType13PlotItem } from "../shared/types";
-import type { DrugWithdrawalInput, Type13PlotItem } from "@/modules/activity-plans/application/validations";
+import type { Type13PlotItem } from "@/modules/activity-plans/application/validations";
 import { validateType13FormValues } from "../create/validation";
 
 export interface UseType13FormOptions {
@@ -24,7 +24,6 @@ export interface UseType13FormResult {
       remarks: string;
       notes: string;
     }>;
-    drugWithdrawal?: DrugWithdrawalInput;
   };
 }
 
@@ -33,48 +32,12 @@ export function useType13Form({
   selectedWorkTypes = [],
 }: UseType13FormOptions): UseType13FormResult {
   const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() => {
-    const rawDw = (initial as any)?.drugWithdrawal;
-    const existingDwItems: any[] = rawDw?.items && Array.isArray(rawDw.items) ? rawDw.items : [];
-
-    // Helper to find withdrawal items for a given plot
-    const findWithdrawalForPlot = (demoPlotId?: string | null, plotName?: string | null) => {
-      const matched = existingDwItems.filter((item) => {
-        if (demoPlotId && item.demoPlotId && item.demoPlotId === demoPlotId) {
-          return true;
-        }
-        if (plotName && item.plotIdentifier && item.plotIdentifier.trim() === plotName.trim()) {
-          return true;
-        }
-        return false;
-      });
-      return matched.map((item, idx) => ({
-        id: item.id,
-        productId: item.productId,
-        productName: item.productName || item.product?.name || null,
-        quantity: Number(item.quantity) || 1,
-        unit: item.unit || item.product?.unit || null,
-        sortOrder: item.sortOrder ?? idx,
-      }));
-    };
-
     if (
       (initial as any)?.type13Plots &&
       Array.isArray((initial as any).type13Plots)
     ) {
       return (initial as any).type13Plots.map((p: any, idx: number) => {
         const plotName = p.name || "";
-        const plotId = p.demoPlotId || p.id || null;
-        let withdrawalItems = p.withdrawalItems || [];
-        let hasDrugWithdrawal = Boolean(p.hasDrugWithdrawal);
-
-        // If not explicitly set in p, check if there are matching existing DW items
-        if (!p.withdrawalItems && existingDwItems.length > 0) {
-          const matched = findWithdrawalForPlot(plotId, plotName || `แปลงที่ ${idx + 1}`);
-          if (matched.length > 0) {
-            hasDrugWithdrawal = true;
-            withdrawalItems = matched;
-          }
-        }
 
         return {
           id: p.id || `plot-${idx + 1}`,
@@ -85,8 +48,6 @@ export function useType13Form({
           province: p.province || "",
           district: p.district || "",
           products: [],
-          hasDrugWithdrawal,
-          withdrawalItems,
         };
       });
     }
@@ -101,8 +62,6 @@ export function useType13Form({
       return hattackPlots.map((v: any, idx: number) => {
         const plot = v.demoPlot;
         const plotName = plot?.name || "";
-        const plotId = plot?.id || null;
-        const matched = findWithdrawalForPlot(plotId, plotName || `แปลงที่ ${idx + 1}`);
 
         return {
           id: plot?.id || `plot-${idx + 1}`,
@@ -113,8 +72,6 @@ export function useType13Form({
           province: plot?.province || "",
           district: plot?.district || "",
           products: [],
-          hasDrugWithdrawal: matched.length > 0,
-          withdrawalItems: matched,
         };
       });
     }
@@ -129,8 +86,6 @@ export function useType13Form({
         province: "",
         district: "",
         products: [],
-        hasDrugWithdrawal: false,
-        withdrawalItems: [],
       },
     ];
   });
@@ -176,40 +131,6 @@ export function useType13Form({
       }
     });
 
-    // Synthesize Drug Withdrawal payload from checked plots
-    const checkedPlots = type13Plots.filter(
-      (p) => p.hasDrugWithdrawal && p.withdrawalItems && p.withdrawalItems.length > 0,
-    );
-
-    let runningSortOrder = 0;
-    const synthesizedDwItems = checkedPlots.flatMap((plot, cpIdx) => {
-      const originalIdx = type13Plots.indexOf(plot);
-      const plotIdentifier =
-        plot.name?.trim() ||
-        `แปลงที่ ${originalIdx >= 0 ? originalIdx + 1 : cpIdx + 1}`;
-      return (plot.withdrawalItems || [])
-        .filter((item) => item.productId && item.productId.trim() !== "")
-        .map((item) => ({
-          id: item.id,
-          demoPlotId: plot.demoPlotId || null,
-          plotIdentifier,
-          productId: item.productId,
-          productName: item.productName || null,
-          quantity:
-            typeof item.quantity === "number"
-              ? item.quantity
-              : parseFloat(String(item.quantity)) || 0,
-          unit: item.unit || null,
-          sortOrder: runningSortOrder++,
-        }));
-    });
-
-    const drugWithdrawal: DrugWithdrawalInput = {
-      hasDrugWithdrawal: synthesizedDwItems.length > 0,
-      notes: (initial as any)?.drugWithdrawal?.notes || null,
-      items: synthesizedDwItems,
-    };
-
     const mappedType13Plots = type13Plots.map((plot) => ({
       id: plot.id,
       demoPlotId: plot.demoPlotId || null,
@@ -218,7 +139,6 @@ export function useType13Form({
       ownerName: plot.ownerName || null,
       province: plot.province,
       district: plot.district,
-      hasDrugWithdrawal: Boolean(plot.hasDrugWithdrawal),
       products: (plot.products || []).map((p) => ({
         id: p.id,
         productId: p.productId,
@@ -226,20 +146,11 @@ export function useType13Form({
         quantity: typeof p.quantity === "number" ? p.quantity : Number(p.quantity) || 1,
         unit: p.unit || null,
       })),
-      withdrawalItems: (plot.withdrawalItems || []).map((w, idx) => ({
-        id: w.id,
-        productId: w.productId,
-        productName: w.productName || null,
-        quantity: typeof w.quantity === "number" ? w.quantity : Number(w.quantity) || 0,
-        unit: w.unit || null,
-        sortOrder: w.sortOrder ?? idx,
-      })),
     }));
 
     return {
       type13Plots: mappedType13Plots,
       planStores,
-      drugWithdrawal,
     };
   };
 
@@ -250,3 +161,4 @@ export function useType13Form({
     mapType13Payload,
   };
 }
+

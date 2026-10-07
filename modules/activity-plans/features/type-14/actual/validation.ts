@@ -6,7 +6,7 @@ export interface Type14ActualValidationInput {
 }
 
 /**
- * Validates TYPE_14 (ติดตามแปลงแฮทแทค) tracking rounds and supplemental drug items
+ * Validates TYPE_14 (ติดตามแปลงแฮทแทค) tracking rounds
  */
 export function validateType14Actual(
   input: Type14ActualValidationInput,
@@ -53,27 +53,14 @@ export function validateType14Actual(
       };
     }
 
-    // Validate Group B Supplemental Products in this round
-    for (const prod of round.supplementalProducts || []) {
-      const used = Number(prod.quantityUsed) || 0;
-      if (used > 0 || (prod.actualRate && prod.actualRate.trim() !== "")) {
-        if (prod.supplementalStatus !== "APPROVED") {
-          return {
-            isValid: false,
-            error: `รายการเบิกยาใหม่ "${prod.productName}" ในรอบที่ ${rNum} ยังไม่ได้รับการอนุมัติ (APPROVED) ไม่สามารถบันทึกการใช้จริงได้`,
-          };
-        }
-      }
-    }
-
-    // Validate Group C Actual-only Products in this round
-    const actualOnly = round.actualOnlyProducts || [];
-    for (let i = 0; i < actualOnly.length; i++) {
-      const prod = actualOnly[i];
+    // Validate Products in this round
+    const roundProducts = round.products || [];
+    for (let i = 0; i < roundProducts.length; i++) {
+      const prod = roundProducts[i];
       if (!prod.productId || !prod.productId.trim()) {
         return {
           isValid: false,
-          error: `กรุณาเลือกตัวยาสำหรับยานอกแผนรายการที่ ${i + 1} ในรอบที่ ${rNum}`,
+          error: `กรุณาเลือกสินค้าสำหรับรายการที่ ${i + 1} ในรอบที่ ${rNum}`,
         };
       }
       if (
@@ -83,7 +70,7 @@ export function validateType14Actual(
       ) {
         return {
           isValid: false,
-          error: `กรุณาระบุจำนวนที่ใช้จริงของยานอกแผน "${prod.productName || "รายการที่ " + (i + 1)}" ในรอบที่ ${rNum}`,
+          error: `กรุณาระบุจำนวนที่ใช้จริงของสินค้า "${prod.productName || "รายการที่ " + (i + 1)}" ในรอบที่ ${rNum}`,
         };
       }
     }

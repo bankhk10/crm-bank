@@ -72,6 +72,7 @@ export function isUserMarketingManager(user?: ApproverUserContext | null): boole
 
   return (
     roles.includes("marketing_manager") ||
+    roles.includes("activity_marketing_manager") ||
     pos.includes("ผู้จัดการแผนกการตลาด") ||
     pos.includes("ผจก.แผนกการตลาด") ||
     (dept === "MKT" && (pos.includes("แผนกการตลาด") || pos.includes("marketing manager")))
@@ -142,10 +143,6 @@ export function canUserPerformApproval(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
-    drugWithdrawal?: {
-      status?: string | null;
-      [key: string]: any;
-    } | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -215,9 +212,6 @@ export function canUserPerformApproval(
   if (plan.status === "PENDING_BUDGET_APPROVAL") {
     const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
-    const hasWithdrawalPending = Boolean(
-      plan.drugWithdrawal && plan.drugWithdrawal.status !== "APPROVED"
-    );
 
     // Unreviewed pending helpers
     const unreviewedHelpers = (plan.helpers || []).filter(
@@ -231,21 +225,18 @@ export function canUserPerformApproval(
       hasPendingSalesHelpers;
     const mktPending =
       (hasMarketing && plan.marketingApproved !== true) ||
-      hasPendingMktHelpers ||
-      hasWithdrawalPending;
+      hasPendingMktHelpers;
 
     const requiredSalesPromotionOk =
       !hasSalesPromotion || plan.salesPromotionApproved === true;
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
-    const requiredWithdrawalOk = !hasWithdrawalPending;
 
-    // Director only acts when Stage 1 (SP + MKT budgets + Withdrawal) is complete, AND there is budget requested
+    // Director only acts when Stage 1 (SP + MKT budgets) is complete, AND there is budget requested
     const directorPending =
       (hasSalesPromotion || hasMarketing) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
-      requiredWithdrawalOk &&
       plan.salesManagerApproved !== true;
 
     // Stage 2: Final Budget Approval (Sales Director)
@@ -314,10 +305,6 @@ export function getPlanActionScopes(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
-    drugWithdrawal?: {
-      status?: string | null;
-      [key: string]: any;
-    } | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -372,14 +359,9 @@ export function getPlanActionScopes(
     const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
     const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
 
-    const hasWithdrawalPending = Boolean(
-      plan.drugWithdrawal && plan.drugWithdrawal.status !== "APPROVED"
-    );
-
     const stage1Complete =
       (sp === 0 || plan.salesPromotionApproved === true) &&
-      (mkt === 0 || plan.marketingApproved === true) &&
-      !hasWithdrawalPending;
+      (mkt === 0 || plan.marketingApproved === true);
 
     const directorTurn = (sp > 0 || mkt > 0) && stage1Complete && plan.salesManagerApproved !== true;
 
@@ -420,13 +402,6 @@ export function getPlanActionScopes(
             variant: "mkt_budget",
           });
         }
-        if (hasWithdrawalPending) {
-          badges.push({
-            id: "withdrawal",
-            label: "รายการเบิกยา",
-            variant: "mkt_budget",
-          });
-        }
         if (mktHelpers.length > 0) {
           badges.push({
             id: "mkt_helper",
@@ -464,13 +439,6 @@ export function getPlanActionScopes(
         badges.push({
           id: "mkt_budget",
           label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
-          variant: "mkt_budget",
-        });
-      }
-      if (hasWithdrawalPending) {
-        badges.push({
-          id: "withdrawal",
-          label: "รายการเบิกยา",
           variant: "mkt_budget",
         });
       }

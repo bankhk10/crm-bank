@@ -6,7 +6,6 @@ import type { ActivityStatus } from "../types";
 import { getApproverDirectoryAction } from "../server/actions";
 import {
   ACTIVITY_RESULT_STATUS_LABELS,
-  isDrugWithdrawalSupported,
 } from "../constants";
 
 const STATUS_STYLES: Record<
@@ -279,10 +278,6 @@ export function resolveCurrentOperator(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
-    drugWithdrawal?: {
-      status?: string | null;
-      [key: string]: any;
-    } | null;
     helpers?: Array<{
       status?: string;
       respondedAt?: Date | string | null;
@@ -352,37 +347,18 @@ export function resolveCurrentOperator(
       Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
 
-    const supportsWithdrawal =
-      Array.isArray((plan as any).workTypes) && (plan as any).workTypes.length > 0
-        ? (plan as any).workTypes.some((wt: any) =>
-            isDrugWithdrawalSupported(wt.activityType?.code || wt.workTypeCode || wt),
-          )
-        : (plan as any).activityType?.code
-          ? isDrugWithdrawalSupported((plan as any).activityType.code)
-          : false;
-
-    const hasWithdrawalPending = Boolean(
-      supportsWithdrawal &&
-        (plan as any).drugWithdrawal &&
-        (plan as any).drugWithdrawal.status !== "APPROVED",
-    );
-
     const spPending = hasSalesPromotion && plan.salesPromotionApproved !== true;
-    const mktPending =
-      (hasMarketing && plan.marketingApproved !== true) ||
-      hasWithdrawalPending;
+    const mktPending = hasMarketing && plan.marketingApproved !== true;
 
     const requiredSalesPromotionOk =
       !hasSalesPromotion || plan.salesPromotionApproved === true;
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
-    const requiredWithdrawalOk = !hasWithdrawalPending;
 
     const directorPending =
       (hasSalesPromotion || hasMarketing) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
-      requiredWithdrawalOk &&
       plan.salesManagerApproved !== true;
 
     if (directorPending) {
@@ -405,9 +381,7 @@ export function resolveCurrentOperator(
         roleTitleTh: "ผู้จัดการแผนกการตลาด",
         displayRole: "Marketing Manager",
         operatorName: precomputedOperatorName || opName || "Marketing Manager",
-        stepDescription: hasMarketing
-          ? (hasWithdrawalPending ? "อนุมัติงบการตลาดและรายการเบิกยา" : "อนุมัติงบการตลาด")
-          : "อนุมัติรายการเบิกยา",
+        stepDescription: "อนุมัติงบการตลาด",
       };
     }
 
@@ -437,9 +411,7 @@ export function resolveCurrentOperator(
           precomputedOperatorName ||
           opName ||
           "Sales Admin Manager, Marketing Manager",
-        stepDescription: hasWithdrawalPending
-          ? "อนุมัติงบส่งเสริมการขาย การตลาด และรายการเบิกยา"
-          : "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
+        stepDescription: "อนุมัติงบส่งเสริมการขายและการตลาดคู่ขนาน",
       };
     }
 

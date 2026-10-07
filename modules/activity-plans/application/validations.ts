@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isDrugWithdrawalSupported, isWorkTypeAllowedForUnplanned } from "../constants";
+import { isWorkTypeAllowedForUnplanned } from "../constants";
 
 export const planStoreInputSchema = z
   .object({
@@ -173,48 +173,16 @@ export const type13ProductLineSchema = z.object({
   unit: z.string().optional().nullable(),
 });
 
-export const type13WithdrawalItemSchema = z.object({
-  id: z.string().optional(),
-  productId: z
-    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
-    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce
-    .number({
-      required_error: "กรุณาระบุจำนวนยาที่ต้องการเบิก",
-      invalid_type_error: "จำนวนยาต้องเป็นตัวเลข",
-    })
-    .refine((val) => !isNaN(val) && val > 0, {
-      message: "จำนวนยาต้องมากกว่า 0",
-    }),
-  unit: z.string().optional().nullable(),
-  sortOrder: z.number().int().optional().default(0),
+export const type13PlotItemSchema = z.object({
+  id: z.string(),
+  demoPlotId: z.string().optional().nullable(),
+  name: z.string().optional().default(""),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  products: z.array(type13ProductLineSchema).optional().default([]),
 });
-
-export const type13PlotItemSchema = z
-  .object({
-    id: z.string(),
-    demoPlotId: z.string().optional().nullable(),
-    name: z.string().optional().default(""),
-    storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
-    ownerName: z.string().optional().nullable(),
-    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
-    district: z.string().min(1, "กรุณาเลือกอำเภอ"),
-    products: z.array(type13ProductLineSchema).optional().default([]),
-    hasDrugWithdrawal: z.boolean().default(false),
-    withdrawalItems: z.array(type13WithdrawalItemSchema).optional().default([]),
-  })
-  .superRefine((data, ctx) => {
-    if (data.hasDrugWithdrawal) {
-      if (!data.withdrawalItems || data.withdrawalItems.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับแปลง "${data.name || "นี้"}"`,
-          path: ["withdrawalItems"],
-        });
-      }
-    }
-  });
 
 export const type13PlanInputSchema = z.object({
   plots: z
@@ -229,7 +197,6 @@ export const type13SprayProductSchema = z.object({
   actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
   quantityUsed: z.coerce.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
   unit: z.string().optional().nullable(),
-  drugWithdrawalItemId: z.string().optional().nullable(),
   detail: z.string().optional().nullable(),
 });
 
@@ -300,152 +267,12 @@ export const type14PlanInputSchema = z.object({
 });
 
 export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
-export type Type13WithdrawalItem = z.infer<typeof type13WithdrawalItemSchema>;
 export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
 export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
 export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
 export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
 export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
 export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
-
-// ── Drug Withdrawal ("การเบิกยา") Validations ─────────────────────────
-
-export const drugWithdrawalItemSchema = z.object({
-  id: z.string().optional(),
-  demoPlotId: z.string().optional().nullable(),
-  plotIdentifier: z.string().optional().default(""),
-  productId: z
-    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
-    .trim()
-    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce
-    .number({
-      required_error: "กรุณาระบุจำนวนยาที่ต้องการเบิก",
-      invalid_type_error: "จำนวนยาต้องเป็นตัวเลข",
-    })
-    .refine((val) => !isNaN(val) && val > 0, {
-      message: "จำนวนยาต้องมากกว่า 0",
-    }),
-  unit: z.string().optional().nullable(),
-  sortOrder: z.number().int().optional().default(0),
-});
-
-export const drugWithdrawalInputSchema = z
-  .object({
-    hasDrugWithdrawal: z.boolean().default(false),
-    workTypeCode: z.string().optional().nullable(),
-    notes: z.string().optional().nullable(),
-    items: z.array(drugWithdrawalItemSchema).optional().default([]),
-  })
-  .superRefine((data, ctx) => {
-    if (data.hasDrugWithdrawal) {
-      if (data.workTypeCode && !isDrugWithdrawalSupported(data.workTypeCode)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `ประเภทกิจกรรม '${data.workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13, TYPE_14)`,
-          path: ["workTypeCode"],
-        });
-      }
-
-      if (!data.items || data.items.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "ต้องระบุรายการเบิกยาอย่างน้อย 1 รายการเมื่อเลือกเบิกยา",
-          path: ["items"],
-        });
-      } else {
-        const requiresPlot =
-          data.workTypeCode === "TYPE_7A" || data.workTypeCode === "TYPE_7B";
-        if (requiresPlot) {
-          data.items.forEach((item, idx) => {
-            if (!item.plotIdentifier || !item.plotIdentifier.trim()) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: `รายการที่ ${idx + 1}: กรุณาระบุแปลงที่ใช้ยา`,
-                path: ["items", idx, "plotIdentifier"],
-              });
-            }
-          });
-        }
-      }
-    }
-  });
-
-export type DrugWithdrawalItemInput = z.infer<typeof drugWithdrawalItemSchema>;
-export type DrugWithdrawalInput = z.infer<typeof drugWithdrawalInputSchema>;
-
-export interface ValidateDrugWithdrawalResult {
-  isValid: boolean;
-  errors: string[];
-  data?: DrugWithdrawalInput;
-}
-
-// ── Supplemental Drug Withdrawal Validations ─────────────────────────
-export const supplementalDrugWithdrawalItemInputSchema = z.object({
-  id: z.string().optional(),
-  productId: z
-    .string({ required_error: "กรุณาเลือกตัวยา/ผลิตภัณฑ์" })
-    .trim()
-    .min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce
-    .number({ required_error: "กรุณาระบุจำนวนที่ต้องการเบิก" })
-    .min(0.01, "จำนวนที่ขอเบิกต้องมากกว่า 0"),
-  unit: z.string().optional().nullable(),
-  sortOrder: z.number().int().optional().default(0),
-});
-
-export const createSupplementalDrugWithdrawalSchema = z.object({
-  activityPlanId: z.string().min(1, "กรุณาระบุ Activity Plan ID"),
-  notes: z.string().optional().nullable(),
-  items: z
-    .array(supplementalDrugWithdrawalItemInputSchema)
-    .min(1, "ต้องมีรายการยาอย่างน้อย 1 รายการ"),
-  autoSubmit: z.boolean().optional().default(false),
-});
-
-export type SupplementalDrugWithdrawalItemInput = z.infer<
-  typeof supplementalDrugWithdrawalItemInputSchema
->;
-export type CreateSupplementalDrugWithdrawalInput = z.infer<
-  typeof createSupplementalDrugWithdrawalSchema
->;
-
-export function validateDrugWithdrawal(
-  input: unknown,
-  workTypeCode?: string | null,
-): ValidateDrugWithdrawalResult {
-  const payload =
-    typeof input === "object" && input !== null
-      ? { workTypeCode: workTypeCode ?? (input as any).workTypeCode, ...input }
-      : input;
-
-  const result = drugWithdrawalInputSchema.safeParse(payload);
-  if (!result.success) {
-    return {
-      isValid: false,
-      errors: result.error.errors.map((e) => e.message),
-    };
-  }
-
-  if (result.data.hasDrugWithdrawal && workTypeCode && !isDrugWithdrawalSupported(workTypeCode)) {
-    return {
-      isValid: false,
-      errors: [
-        `ประเภทกิจกรรม '${workTypeCode}' ไม่รองรับการเบิกยา (รองรับเฉพาะ TYPE_13)`,
-      ],
-      data: result.data,
-    };
-  }
-
-  return {
-    isValid: true,
-    errors: [],
-    data: result.data,
-  };
-}
-
 
 export const activityPlanSchema = z
   .object({
@@ -499,7 +326,6 @@ export const activityPlanSchema = z
     helperEmployeeIds: z.array(z.string()).default([]),
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
-    drugWithdrawal: drugWithdrawalInputSchema.optional().nullable(),
     // Unplanned Activity: Optional embedded actual results
     actualData: z.any().optional().nullable(),
     // For transition: raw form items payload (will be normalized in application mapper)
@@ -913,8 +739,6 @@ export const activityResultSchema = z
               actualRate: z.string(),
               quantityUsed: z.coerce.number(),
               unit: z.string().optional().nullable(),
-              drugWithdrawalItemId: z.string().optional().nullable(),
-              supplementalDrugWithdrawalItemId: z.string().optional().nullable(),
               detail: z.string().optional().nullable(),
             }),
           ),

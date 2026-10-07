@@ -179,7 +179,6 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             helperEmployeeIds,
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
-            drugWithdrawal: (plan as any).drugWithdrawal || null,
             planType: plan.planType || "PLANNED",
           });
         } else {

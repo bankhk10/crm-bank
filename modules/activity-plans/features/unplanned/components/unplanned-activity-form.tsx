@@ -39,15 +39,6 @@ import { initialTargets } from "../../shared/actual-view/constants";
 import { useActualStatusState } from "../../shared/actual-view/hooks/use-actual-status-state";
 import { useActualOrchestrator } from "../../shared/actual-view/hooks/use-actual-orchestrator";
 
-// Drug Withdrawal
-import { DrugWithdrawalCard } from "../../shared/drug-withdrawal/drug-withdrawal-card";
-import { isDrugWithdrawalSupported } from "../../shared/drug-withdrawal";
-import {
-  validateDrugWithdrawal,
-  type DrugWithdrawalInput,
-} from "../../../application/validations";
-import type { DrugWithdrawalPlotOption } from "../../shared/drug-withdrawal/types";
-
 type SubmitResult = {
   success: boolean;
   error?: string;
@@ -366,98 +357,6 @@ export function UnplannedActivityForm({
     }
   }, [initial, existingResult]);
 
-  // Drug Withdrawal State & Logic
-  const [drugWithdrawal, setDrugWithdrawal] = useState<DrugWithdrawalInput>(
-    () => {
-      const rawDw = (initial as any)?.drugWithdrawal;
-      if (!rawDw) {
-        return {
-          hasDrugWithdrawal: false,
-          items: [],
-        };
-      }
-      return {
-        hasDrugWithdrawal: Boolean(
-          rawDw.hasDrugWithdrawal ?? (rawDw.items && rawDw.items.length > 0),
-        ),
-        notes: rawDw.notes ?? undefined,
-        items: (rawDw.items || []).map((it: any, idx: number) => ({
-          id: it.id,
-          demoPlotId: it.demoPlotId ?? undefined,
-          plotIdentifier: it.plotIdentifier || it.demoPlot?.name || "",
-          productId: it.productId,
-          productName: it.productName || it.product?.name || "",
-          quantity:
-            typeof it.quantity === "number"
-              ? it.quantity
-              : parseFloat(String(it.quantity)) || 0,
-          unit: it.unit || it.product?.unit || "",
-          sortOrder: it.sortOrder ?? idx,
-        })),
-      };
-    },
-  );
-
-  useEffect(() => {
-    if ((initial as any)?.drugWithdrawal) {
-      const rawDw = (initial as any).drugWithdrawal;
-      setDrugWithdrawal({
-        hasDrugWithdrawal: Boolean(
-          rawDw.hasDrugWithdrawal ?? (rawDw.items && rawDw.items.length > 0),
-        ),
-        notes: rawDw.notes ?? undefined,
-        items: (rawDw.items || []).map((it: any, idx: number) => ({
-          id: it.id,
-          demoPlotId: it.demoPlotId ?? undefined,
-          plotIdentifier: it.plotIdentifier || it.demoPlot?.name || "",
-          productId: it.productId,
-          productName: it.productName || it.product?.name || "",
-          quantity:
-            typeof it.quantity === "number"
-              ? it.quantity
-              : parseFloat(String(it.quantity)) || 0,
-          unit: it.unit || it.product?.unit || "",
-          sortOrder: it.sortOrder ?? idx,
-        })),
-      });
-    }
-  }, [(initial as any)?.drugWithdrawal]);
-
-  const isDrugWithdrawalEligible = useMemo(() => {
-    return selectedWorkTypes.some((t) =>
-      isDrugWithdrawalSupported(getWorkTypeCode(t)),
-    );
-  }, [selectedWorkTypes]);
-
-  const hasGlobalDrugWithdrawal = useMemo(() => {
-    return selectedWorkTypes.some((t) => {
-      const code = getWorkTypeCode(t);
-      return isDrugWithdrawalSupported(code) && code !== "TYPE_13";
-    });
-  }, [selectedWorkTypes]);
-
-  const activeDrugWithdrawalWorkTypeCode = useMemo(() => {
-    const activeDwType = selectedWorkTypes.find((t) => {
-      const code = getWorkTypeCode(t);
-      return isDrugWithdrawalSupported(code) && code !== "TYPE_13";
-    });
-    return activeDwType ? getWorkTypeCode(activeDwType) : undefined;
-  }, [selectedWorkTypes]);
-
-  const availableWithdrawalPlots = useMemo<DrugWithdrawalPlotOption[]>(() => {
-    const plots: DrugWithdrawalPlotOption[] = [];
-    const seenKeys = new Set<string>();
-
-    const addPlot = (p: DrugWithdrawalPlotOption) => {
-      const key = p.demoPlotId || p.plotIdentifier || p.name;
-      if (!key || seenKeys.has(key)) return;
-      seenKeys.add(key);
-      plots.push(p);
-    };
-
-    return plots;
-  }, []);
-
   // Section 6: Notes State
   const [notes, setNotes] = useState(initial.notes ?? "");
 
@@ -518,21 +417,6 @@ export function UnplannedActivityForm({
       setError(typeValidation.error || "ข้อมูลประเภทงานไม่ถูกต้อง");
       setLoading(false);
       return;
-    }
-
-    // 2. Validate drug withdrawal (Global card)
-    if (hasGlobalDrugWithdrawal && drugWithdrawal.hasDrugWithdrawal) {
-      const activeDwType = selectedWorkTypes.find((t) => {
-        const c = getWorkTypeCode(t);
-        return isDrugWithdrawalSupported(c) && c !== "TYPE_13";
-      });
-      const dwCode = activeDwType ? getWorkTypeCode(activeDwType) : undefined;
-      const dwValidation = validateDrugWithdrawal(drugWithdrawal, dwCode);
-      if (!dwValidation.isValid) {
-        setError(dwValidation.errors[0] || "ข้อมูลการเบิกยาไม่ถูกต้อง");
-        setLoading(false);
-        return;
-      }
     }
 
     let cleanObjective = (initial as any)?.objective ?? "";
@@ -628,44 +512,6 @@ export function UnplannedActivityForm({
         demoPlotData: submittedDemoPlotData,
         type13Plots: type13Payload.type13Plots,
         type14Data: type14Payload.type14Data,
-        drugWithdrawal: (() => {
-          if (!isDrugWithdrawalEligible) {
-            return undefined;
-          }
-
-          const items: any[] = [];
-          let hasDw = false;
-          let notesVal: string | null = null;
-
-          const hasType13Selected = selectedWorkTypes.some(
-            (t) => getWorkTypeCode(t) === "TYPE_13",
-          );
-
-          if (
-            hasType13Selected &&
-            type13Payload.drugWithdrawal?.hasDrugWithdrawal
-          ) {
-            hasDw = true;
-            items.push(...(type13Payload.drugWithdrawal.items || []));
-            notesVal = type13Payload.drugWithdrawal.notes || null;
-          }
-
-          if (hasGlobalDrugWithdrawal && drugWithdrawal.hasDrugWithdrawal) {
-            hasDw = true;
-            items.push(...(drugWithdrawal.items || []));
-            notesVal = notesVal || drugWithdrawal.notes || null;
-          }
-
-          if (hasDw && items.length > 0) {
-            return {
-              hasDrugWithdrawal: true,
-              notes: notesVal,
-              items,
-            };
-          }
-
-          return { hasDrugWithdrawal: false, items: [] };
-        })(),
         planStores,
         planProducts,
         marketingItems,
@@ -821,19 +667,7 @@ export function UnplannedActivityForm({
               defaultDistrict={district}
             />
 
-            {/* SECTION 3: Global Drug Withdrawal Card */}
-            {hasGlobalDrugWithdrawal && (
-              <DrugWithdrawalCard
-                readonly={readonly}
-                value={drugWithdrawal}
-                onChange={setDrugWithdrawal}
-                products={productsList}
-                availablePlots={availableWithdrawalPlots}
-                workTypeCode={activeDrugWithdrawalWorkTypeCode}
-              />
-            )}
-
-            {/* SECTION 4: Location & Team */}
+            {/* SECTION 3: Location & Team */}
             {isLocationTeamVisible && (
               <PlanLocationTeamCard
                 selectedWorkTypes={selectedWorkTypes}

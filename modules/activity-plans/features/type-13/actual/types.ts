@@ -8,10 +8,7 @@ export interface Type13ActualProductState {
   actualRate: string;
   quantityUsed: number | string;
   unit?: string | null;
-  drugWithdrawalItemId?: string | null;
-  withdrawnQuantity?: number | null;
   detail?: string | null;
-  isAdditional?: boolean;
 }
 
 export interface Type13PlotActualState {
@@ -25,13 +22,6 @@ export interface Type13PlotActualState {
   latitude: string;
   longitude: string;
   isNew?: boolean;
-  withdrawalProducts?: Array<{
-    drugWithdrawalItemId: string;
-    productId: string;
-    productName: string;
-    withdrawnQuantity: number;
-    unit: string;
-  }>;
   afterSprayImages?: ImageFile[];
   sprayRounds: Array<
     Omit<Type13SprayingRound, "products" | "demoPlotId"> & {

@@ -194,10 +194,6 @@ model Employee {
   approvedHelpers          ActivityHelper[]           @relation("EmployeeApprovedHelpers")
   createdCalendarEvents    ActivityCalendarEvent[]    @relation("EmployeeCreatedCalendarEvents")
   calendarAttendees        ActivityCalendarAttendee[] @relation("EmployeeCalendarAttendees")
-  drugWithdrawalsRequested             DrugWithdrawal[]               @relation("DrugWithdrawalRequester")
-  drugWithdrawalsApproved              DrugWithdrawal[]               @relation("DrugWithdrawalApprover")
-  supplementalDrugWithdrawalsRequested SupplementalDrugWithdrawal[]   @relation("SupplementalDrugWithdrawalRequester")
-  supplementalDrugWithdrawalsApproved  SupplementalDrugWithdrawal[]   @relation("SupplementalDrugWithdrawalApprover")
 }
 
 model Department {
@@ -704,8 +700,6 @@ model Product {
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
   activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
-  drugWithdrawalItems             DrugWithdrawalItem[]             @relation("DrugWithdrawalItemProductRef")
-  supplementalDrugWithdrawalItems SupplementalDrugWithdrawalItem[] @relation("SupplementalDrugWithdrawalItemProductRef")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1541,13 +1535,6 @@ enum ActivityStatus {
   RETURNED // ส่งกลับให้แก้ไขผลการปฏิบัติงาน (Unplanned)
 }
 
-enum DrugWithdrawalStatus {
-  DRAFT
-  PENDING_APPROVAL
-  APPROVED
-  RETURNED
-}
-
 enum ActivityHelperStatus {
   PENDING // รออนุมัติจาก ผจก. แผนกของคนช่วย
   APPROVED // อนุมัติให้ไปช่วยงานได้
@@ -1732,8 +1719,6 @@ model ActivityPlan {
   demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
-  drugWithdrawal              DrugWithdrawal?
-  supplementalDrugWithdrawals SupplementalDrugWithdrawal[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2187,19 +2172,13 @@ model ActivityResultSprayProduct {
   actualRate                       String                          @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
   quantityUsed                     Decimal                         @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
   unit                             String?                         @map("unit")
-  drugWithdrawalItemId             String?                         @map("drug_withdrawal_item_id")
-  supplementalDrugWithdrawalItemId String?                         @map("supplemental_drug_withdrawal_item_id")
   detail                           String?                         @map("detail")
 
   sprayRound                     ActivityResultSprayRound        @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
   product                        Product                         @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
-  drugWithdrawalItem             DrugWithdrawalItem?             @relation(fields: [drugWithdrawalItemId], references: [id], onDelete: SetNull)
-  supplementalDrugWithdrawalItem SupplementalDrugWithdrawalItem? @relation(fields: [supplementalDrugWithdrawalItemId], references: [id], onDelete: SetNull)
 
   @@index([sprayRoundId])
   @@index([productId])
-  @@index([drugWithdrawalItemId])
-  @@index([supplementalDrugWithdrawalItemId])
   @@map("activity_result_spray_products")
 }
 
@@ -2443,7 +2422,6 @@ model DemoPlot {
   irrigations         DemoPlotIrrigation[]
   attachments         ActivityAttachment[]
   sprayRounds         ActivityResultSprayRound[]
-  drugWithdrawalItems DrugWithdrawalItem[]
 
   @@index([plotType])
   @@index([customerId])
@@ -2553,102 +2531,3 @@ model DemoPlotIrrigation {
   @@map("demo_plot_irrigations")
 }
 
-// ==========================================
-// DRUG WITHDRAWAL FEATURE MODELS
-// ==========================================
-
-model DrugWithdrawal {
-  id              String               @id @default(cuid())
-  activityPlanId  String               @unique @map("activity_plan_id")
-  status          DrugWithdrawalStatus @default(DRAFT) @map("status")
-  requestedById   String               @map("requested_by_id")
-  approvedById    String?              @map("approved_by_id")
-  approvedAt      DateTime?            @map("approved_at")
-  rejectionReason String?              @map("rejection_reason")
-  notes           String?              @map("notes")
-  createdAt       DateTime             @default(now()) @map("created_at")
-  updatedAt       DateTime             @updatedAt @map("updated_at")
-
-  activityPlan ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  requestedBy  Employee             @relation("DrugWithdrawalRequester", fields: [requestedById], references: [id], onDelete: Restrict)
-  approvedBy   Employee?            @relation("DrugWithdrawalApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  items        DrugWithdrawalItem[]
-
-  @@index([activityPlanId])
-  @@index([requestedById])
-  @@index([approvedById])
-  @@index([status])
-  @@map("drug_withdrawals")
-}
-
-model DrugWithdrawalItem {
-  id               String   @id @default(cuid())
-  drugWithdrawalId String   @map("drug_withdrawal_id")
-  demoPlotId       String?  @map("demo_plot_id")
-  plotIdentifier   String   @map("plot_identifier")
-  productId        String   @map("product_id")
-  productName      String   @map("product_name")
-  quantity         Decimal  @map("quantity") @db.Decimal(10, 2)
-  unit             String   @map("unit")
-  sortOrder        Int      @default(0) @map("sort_order")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  drugWithdrawal      DrugWithdrawal               @relation(fields: [drugWithdrawalId], references: [id], onDelete: Cascade)
-  demoPlot            DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-  product             Product                      @relation("DrugWithdrawalItemProductRef", fields: [productId], references: [id], onDelete: Restrict)
-  actualSprayProducts ActivityResultSprayProduct[]
-
-  @@index([drugWithdrawalId])
-  @@index([demoPlotId])
-  @@index([productId])
-  @@map("drug_withdrawal_items")
-}
-
-// ==========================================
-// SUPPLEMENTAL DRUG WITHDRAWAL FEATURE MODELS
-// ==========================================
-
-model SupplementalDrugWithdrawal {
-  id              String               @id @default(cuid())
-  activityPlanId  String               @map("activity_plan_id")
-  status          DrugWithdrawalStatus @default(DRAFT) @map("status")
-  requestedById   String               @map("requested_by_id")
-  approvedById    String?              @map("approved_by_id")
-  approvedAt      DateTime?            @map("approved_at")
-  rejectionReason String?              @map("rejection_reason")
-  notes           String?              @map("notes")
-  createdAt       DateTime             @default(now()) @map("created_at")
-  updatedAt       DateTime             @updatedAt @map("updated_at")
-
-  activityPlan ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  requestedBy  Employee                         @relation("SupplementalDrugWithdrawalRequester", fields: [requestedById], references: [id], onDelete: Restrict)
-  approvedBy   Employee?                        @relation("SupplementalDrugWithdrawalApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  items        SupplementalDrugWithdrawalItem[]
-
-  @@index([activityPlanId])
-  @@index([requestedById])
-  @@index([approvedById])
-  @@index([status])
-  @@map("supplemental_drug_withdrawals")
-}
-
-model SupplementalDrugWithdrawalItem {
-  id                           String   @id @default(cuid())
-  supplementalDrugWithdrawalId String   @map("supplemental_drug_withdrawal_id")
-  productId                    String   @map("product_id")
-  productName                  String   @map("product_name")
-  quantity                     Decimal  @map("quantity") @db.Decimal(10, 2)
-  unit                         String   @map("unit")
-  sortOrder                    Int      @default(0) @map("sort_order")
-  createdAt                    DateTime @default(now()) @map("created_at")
-  updatedAt                    DateTime @updatedAt @map("updated_at")
-
-  supplementalDrugWithdrawal SupplementalDrugWithdrawal   @relation(fields: [supplementalDrugWithdrawalId], references: [id], onDelete: Cascade)
-  product                    Product                      @relation("SupplementalDrugWithdrawalItemProductRef", fields: [productId], references: [id], onDelete: Restrict)
-  actualSprayProducts        ActivityResultSprayProduct[]
-
-  @@index([supplementalDrugWithdrawalId])
-  @@index([productId])
-  @@map("supplemental_drug_withdrawal_items")
-}

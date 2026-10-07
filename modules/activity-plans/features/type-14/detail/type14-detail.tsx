@@ -11,16 +11,12 @@ import {
   Calendar,
   Eye,
   X,
-  FileText,
   Camera,
   ChevronDown,
   ChevronRight,
-  Beaker,
   Package,
-  PackageCheck,
   History,
   Loader2,
-  Droplets,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,13 +55,6 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
   const [sprayHistory, setSprayHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Withdrawn products for TYPE_14 (General Plan Requisition)
-  const withdrawnProducts = useMemo(() => {
-    return (plan?.products || []).filter(
-      (p: any) => p.workTypeCode === "TYPE_14",
-    );
-  }, [plan?.products]);
-
   const demoPlotId =
     data?.demoPlotId ||
     plan?.demoPlot?.id ||
@@ -93,7 +82,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
     };
   }, [demoPlotId, plan?.id]);
 
-  // Extract Actual Follow-Up Rounds (Source of Truth: ActivityPlan TYPE14 -> ActivityResult -> SprayRound)
+  // Extract Actual Follow-Up Rounds
   const actualRounds: FormattedFollowUpRound[] = useMemo(() => {
     const rawRounds = (plan?.result?.sprayRounds || [])
       .filter((r: any) => r.workTypeCode === "TYPE_14" || !r.workTypeCode)
@@ -106,97 +95,24 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           (v: any) => v.visitNumber === rNum,
         );
 
-        // Days since start: prioritize round's daysSinceStart
         const daysSinceStart =
           r.daysSinceStart != null
             ? r.daysSinceStart
             : matchingVisit?.daysSinceStart ?? 0;
 
-        // Group classification (Requirement 4)
         const rawProducts: any[] = r.products || [];
-        const mapProduct = (
-          p: any,
-          group: "ORIGINAL" | "SUPPLEMENTAL" | "ACTUAL_ONLY",
-        ): FormattedProduct => {
-          let withdrawnQty: number | null = null;
-          if (group === "ORIGINAL") {
-            const withdrawalItem =
-              p.drugWithdrawalItem ||
-              plan?.drugWithdrawal?.items?.find(
-                (it: any) => it.id === p.drugWithdrawalItemId,
-              );
-            if (withdrawalItem && withdrawalItem.quantity != null) {
-              withdrawnQty = Number(withdrawalItem.quantity);
-            } else {
-              const matchedPlanProduct = (withdrawnProducts || []).find(
-                (it: any) => it.productId === p.productId,
-              );
-              if (matchedPlanProduct) {
-                withdrawnQty =
-                  Number(
-                    matchedPlanProduct.targetQuantity ??
-                      matchedPlanProduct.quantity,
-                  ) || 0;
-              }
-            }
-          } else if (group === "SUPPLEMENTAL") {
-            const suppItem =
-              p.supplementalDrugWithdrawalItem ||
-              (plan?.supplementalDrugWithdrawals || [])
-                .flatMap((w: any) => w.items || [])
-                .find(
-                  (it: any) => it.id === p.supplementalDrugWithdrawalItemId,
-                );
-            if (suppItem && suppItem.quantity != null) {
-              withdrawnQty = Number(suppItem.quantity);
-            }
-          }
+        const productsList: FormattedProduct[] = rawProducts.map((p: any) => ({
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "สินค้า",
+          quantityUsed:
+            p.quantityUsed != null && p.quantityUsed !== ""
+              ? Number(p.quantityUsed)
+              : "-",
+          unit: p.unit || p.product?.unit || "ขวด",
+          actualRate: p.actualRate || "-",
+          detail: p.detail || "-",
+        }));
 
-          return {
-            productId: p.productId,
-            productName: p.productName || p.product?.name || "สินค้า",
-            withdrawnQuantity: withdrawnQty,
-            quantityUsed:
-              p.quantityUsed != null && p.quantityUsed !== ""
-                ? Number(p.quantityUsed)
-                : "-",
-            unit: p.unit || p.product?.unit || "ขวด",
-            actualRate: p.actualRate || "-",
-            detail: p.detail || "-",
-            sourceGroup: group,
-          };
-        };
-
-        const planProductIds = new Set(
-          (withdrawnProducts || []).map((p: any) => p.productId),
-        );
-
-        // Group A: drugWithdrawalItemId != null OR matches plan-level requisition
-        const groupA = rawProducts
-          .filter(
-            (p: any) =>
-              (p.drugWithdrawalItemId != null ||
-                planProductIds.has(p.productId)) &&
-              p.supplementalDrugWithdrawalItemId == null,
-          )
-          .map((p: any) => mapProduct(p, "ORIGINAL"));
-
-        // Group B: supplementalDrugWithdrawalItemId != null
-        const groupB = rawProducts
-          .filter((p: any) => p.supplementalDrugWithdrawalItemId != null)
-          .map((p: any) => mapProduct(p, "SUPPLEMENTAL"));
-
-        // Group C: drugWithdrawalItemId == null && supplementalDrugWithdrawalItemId == null && not in Group A
-        const groupC = rawProducts
-          .filter(
-            (p: any) =>
-              p.drugWithdrawalItemId == null &&
-              p.supplementalDrugWithdrawalItemId == null &&
-              !planProductIds.has(p.productId),
-          )
-          .map((p: any) => mapProduct(p, "ACTUAL_ONLY"));
-
-        // Attachments for this round
         const roundAttachments = [
           ...(r.attachments || []),
           ...(rNum === 1
@@ -216,15 +132,12 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           productResponse:
             r.productResponse || matchingVisit?.productResponse || "",
           notes: r.notes || matchingVisit?.notes || "",
-          groupA,
-          groupB,
-          groupC,
+          products: productsList,
           attachments: roundAttachments,
         };
       });
     }
 
-    // Fallback: If no actual spray rounds recorded yet, fall back to planned trackings
     if (data?.trackings && data.trackings.length > 0) {
       return data.trackings.map((t: any, idx: number) => ({
         id: t.id,
@@ -233,9 +146,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
         daysSinceStart: t.daysSinceStart ?? 0,
         productResponse: "",
         notes: t.notes || "",
-        groupA: [],
-        groupB: [],
-        groupC: [],
+        products: [],
         attachments: t.attachments || [],
       }));
     }
@@ -245,8 +156,6 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
     plan?.result?.sprayRounds,
     plan?.result?.attachments,
     plan?.demoPlotVisits,
-    plan?.drugWithdrawal,
-    plan?.supplementalDrugWithdrawals,
     data?.trackings,
   ]);
 
@@ -382,84 +291,6 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          1.2 รายการสินค้าที่ขอเบิก (TYPE_14 Requested Products)
-      ───────────────────────────────────────────────────────────── */}
-      <div className="space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
-              <PackageCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <h5 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
-                <span>รายการสินค้าที่ขอเบิก</span>
-                <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
-                  {withdrawnProducts.length} รายการ
-                </span>
-              </h5>
-              <p className="text-2xs text-slate-500">
-                รายการสินค้าสาธิตที่ขอเบิกสำหรับงานติดตามแปลงแฮทแทคในแผนงานนี้
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {withdrawnProducts.length === 0 ? (
-          <div className="p-3.5 bg-slate-50/70 border border-slate-200/60 rounded-xl text-xs text-slate-400 italic text-center">
-            ไม่มีการขอเบิกสินค้าสำหรับแผนงานนี้
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-600 font-semibold">
-                <tr>
-                  <th className="py-2.5 px-3 w-12 text-center">ลำดับ</th>
-                  <th className="py-2.5 px-3">รายการสินค้า</th>
-                  <th className="py-2.5 px-3 w-28 text-center">รหัสสินค้า</th>
-                  <th className="py-2.5 px-3 w-36 text-center">จำนวนที่ขอเบิก</th>
-                  <th className="py-2.5 px-3 w-28 text-center">หน่วยบรรจุ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {withdrawnProducts.map((p: any, idx: number) => {
-                  const pName = p.productName || p.product?.name || "สินค้า";
-                  const pCode = p.product?.productCode || "-";
-                  const qty = p.targetQuantity != null ? p.targetQuantity : "-";
-                  const unit =
-                    p.product?.unit || p.product?.packageSizeUnit || "ขวด";
-
-                  return (
-                    <tr
-                      key={p.id || idx}
-                      className="hover:bg-slate-50/60 transition-colors"
-                    >
-                      <td className="py-2.5 px-3 text-center text-slate-400 font-medium">
-                        {idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3 font-semibold text-slate-800">
-                        {pName}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-500">
-                        {pCode}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <span className="font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md text-xs border border-purple-200/70">
-                          {qty}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-slate-600 font-medium">
-                        {unit}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
           1.5 ประวัติการฉีดพ่นจริง (Read-Only Reference จาก TYPE13)
       ───────────────────────────────────────────────────────────── */}
       <div className="space-y-4">
@@ -577,30 +408,6 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
                     </div>
                   </div>
                 )}
-
-                {/* ผลการฉีดพ่น */}
-                {hist.productResponse && (
-                  <div className="pt-1 text-xs">
-                    <span className="text-2xs font-bold text-slate-700 block mb-0.5 uppercase tracking-wider">
-                      ผลการฉีดพ่น:
-                    </span>
-                    <p className="text-slate-700 bg-white/80 p-2.5 rounded-lg border border-slate-200/60 whitespace-pre-line text-xs">
-                      {hist.productResponse}
-                    </p>
-                  </div>
-                )}
-
-                {/* หมายเหตุ */}
-                {hist.notes && (
-                  <div className="text-xs">
-                    <span className="text-2xs font-bold text-slate-700 block mb-0.5 uppercase tracking-wider">
-                      หมายเหตุ:
-                    </span>
-                    <p className="text-slate-600 bg-white/80 p-2 rounded-lg border border-slate-200/60 text-2xs">
-                      {hist.notes}
-                    </p>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -608,7 +415,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. ประวัติการติดตามผล (TYPE14 Actual Rounds - Source of Truth)
+          2. ประวัติการติดตามผล (TYPE14 Actual Rounds)
       ───────────────────────────────────────────────────────────── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -640,8 +447,7 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           <div className="space-y-4">
             {actualRounds.map((round) => {
               const isExpanded = Boolean(expandedRounds[round.roundNumber]);
-              const totalProducts =
-                round.groupA.length + round.groupB.length + round.groupC.length;
+              const totalProducts = round.products.length;
 
               return (
                 <div
@@ -732,10 +538,10 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
                         </div>
                       </div>
 
-                      {/* Section B: ยาที่ใช้ในการติดตามรอบนี้ (Group A / B / C) */}
+                      {/* Section B: ยาที่ใช้ในการติดตามรอบนี้ */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
-                          <Beaker className="w-4 h-4 text-purple-600" />
+                          <Package className="w-4 h-4 text-purple-600" />
                           <h6 className="font-bold text-slate-800 text-xs sm:text-sm">
                             ยาที่ใช้ในการติดตาม (รอบที่ {round.roundNumber})
                           </h6>
@@ -746,287 +552,103 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
                             ไม่มีการบันทึกการใช้ยาในรอบนี้
                           </p>
                         ) : (
-                          <div className="space-y-3.5">
-                            {/* Group A: ยาจากรายการเบิกเดิม */}
-                            {round.groupA.length > 0 && (
-                              <div className="rounded-xl border border-blue-200/80 bg-blue-50/20 p-3.5 space-y-2.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-2xs font-bold">
-                                    A
-                                  </span>
-                                  <span className="font-bold text-slate-800 text-xs">
-                                    ยาจากรายการเบิกเดิม ({round.groupA.length}{" "}
-                                    รายการ)
-                                  </span>
-                                </div>
-
-                                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-                                  <table className="w-full text-xs">
-                                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
-                                      <tr>
-                                        <th className="py-2 px-3 text-left">
-                                          สินค้า
-                                        </th>
-                                        <th className="py-2 px-3 text-center w-28">
-                                          จำนวนที่เบิก
-                                        </th>
-                                        <th className="py-2 px-3 text-center w-32">
-                                          ใช้จริงในรอบนี้
-                                        </th>
-                                        <th className="py-2 px-3 text-left w-36">
-                                          อัตราการใช้
-                                        </th>
-                                        <th className="py-2 px-3 text-left">
-                                          รายละเอียด
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                      {round.groupA.map((item, pIdx) => (
-                                        <tr
-                                          key={item.productId || pIdx}
-                                          className="hover:bg-slate-50/50"
-                                        >
-                                          <td className="py-2 px-3">
-                                            <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                                              <Package className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                              <span>{item.productName}</span>
-                                            </div>
-                                          </td>
-                                          <td className="py-2 px-3 text-center">
-                                            <Badge
-                                              variant="outline"
-                                              className="font-bold text-blue-700 bg-blue-50 border-blue-200 text-2xs"
-                                            >
-                                              {item.withdrawnQuantity != null
-                                                ? `${item.withdrawnQuantity} ${item.unit}`
-                                                : "-"}
-                                            </Badge>
-                                          </td>
-                                          <td className="py-2 px-3 text-center font-bold text-slate-800">
-                                            {item.quantityUsed !== "-"
-                                              ? `${item.quantityUsed} ${item.unit}`
-                                              : "-"}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.actualRate}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.detail}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Group B: รายการเบิกใหม่ในการติดตามรอบนี้ */}
-                            {round.groupB.length > 0 && (
-                              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/20 p-3.5 space-y-2.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xs font-bold">
-                                    B
-                                  </span>
-                                  <span className="font-bold text-slate-800 text-xs">
-                                    รายการเบิกใหม่ในการติดตามรอบนี้ (
-                                    {round.groupB.length} รายการ)
-                                  </span>
-                                </div>
-
-                                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-                                  <table className="w-full text-xs">
-                                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
-                                      <tr>
-                                        <th className="py-2 px-3 text-left">
-                                          สินค้า
-                                        </th>
-                                        <th className="py-2 px-3 text-center w-28">
-                                          จำนวนที่เบิก
-                                        </th>
-                                        <th className="py-2 px-3 text-center w-32">
-                                          ใช้จริงในรอบนี้
-                                        </th>
-                                        <th className="py-2 px-3 text-left w-36">
-                                          อัตราการใช้
-                                        </th>
-                                        <th className="py-2 px-3 text-left">
-                                          รายละเอียด
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                      {round.groupB.map((item, pIdx) => (
-                                        <tr
-                                          key={item.productId || pIdx}
-                                          className="hover:bg-slate-50/50"
-                                        >
-                                          <td className="py-2 px-3">
-                                            <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                                              <Package className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                              <span>{item.productName}</span>
-                                            </div>
-                                          </td>
-                                          <td className="py-2 px-3 text-center">
-                                            <Badge
-                                              variant="outline"
-                                              className="font-bold text-emerald-700 bg-emerald-50 border-emerald-200 text-2xs"
-                                            >
-                                              {item.withdrawnQuantity != null
-                                                ? `${item.withdrawnQuantity} ${item.unit}`
-                                                : "-"}
-                                            </Badge>
-                                          </td>
-                                          <td className="py-2 px-3 text-center font-bold text-slate-800">
-                                            {item.quantityUsed !== "-"
-                                              ? `${item.quantityUsed} ${item.unit}`
-                                              : "-"}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.actualRate}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.detail}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Group C: ยานอกแผนที่ใช้จริง */}
-                            {round.groupC.length > 0 && (
-                              <div className="rounded-xl border border-amber-200/80 bg-amber-50/20 p-3.5 space-y-2.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-2xs font-bold">
-                                    C
-                                  </span>
-                                  <span className="font-bold text-slate-800 text-xs">
-                                    ยานอกแผนที่ใช้จริง ({round.groupC.length}{" "}
-                                    รายการ)
-                                  </span>
-                                </div>
-
-                                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-                                  <table className="w-full text-xs">
-                                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
-                                      <tr>
-                                        <th className="py-2 px-3 text-left">
-                                          สินค้า
-                                        </th>
-                                        <th className="py-2 px-3 text-center w-32">
-                                          ใช้จริงในรอบนี้
-                                        </th>
-                                        <th className="py-2 px-3 text-left w-36">
-                                          อัตราการใช้
-                                        </th>
-                                        <th className="py-2 px-3 text-left">
-                                          รายละเอียด
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                      {round.groupC.map((item, pIdx) => (
-                                        <tr
-                                          key={item.productId || pIdx}
-                                          className="hover:bg-slate-50/50"
-                                        >
-                                          <td className="py-2 px-3">
-                                            <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                                              <Package className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                              <span>{item.productName}</span>
-                                            </div>
-                                          </td>
-                                          <td className="py-2 px-3 text-center font-bold text-slate-800">
-                                            {item.quantityUsed !== "-"
-                                              ? `${item.quantityUsed} ${item.unit}`
-                                              : "-"}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.actualRate}
-                                          </td>
-                                          <td className="py-2 px-3 text-slate-600">
-                                            {item.detail}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            )}
+                          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                            <table className="w-full text-xs">
+                              <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
+                                <tr>
+                                  <th className="py-2 px-3 text-left">สินค้า</th>
+                                  <th className="py-2 px-3 text-center w-32">
+                                    ใช้จริงในรอบนี้
+                                  </th>
+                                  <th className="py-2 px-3 text-left w-36">
+                                    อัตราการใช้
+                                  </th>
+                                  <th className="py-2 px-3 text-left">
+                                    รายละเอียด
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {round.products.map((item, pIdx) => (
+                                  <tr
+                                    key={item.productId || pIdx}
+                                    className="hover:bg-slate-50/50"
+                                  >
+                                    <td className="py-2 px-3 font-semibold text-slate-800">
+                                      {item.productName}
+                                    </td>
+                                    <td className="py-2 px-3 text-center font-bold text-purple-700">
+                                      {item.quantityUsed} {item.unit}
+                                    </td>
+                                    <td className="py-2 px-3 text-slate-600">
+                                      {item.actualRate}
+                                    </td>
+                                    <td className="py-2 px-3 text-slate-500">
+                                      {item.detail}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
                         )}
                       </div>
 
                       {/* Section C: ผลการติดตาม */}
-                      <div className="space-y-1.5">
-                        <span className="text-2xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                          <FileText className="w-3.5 h-3.5 text-purple-600" />
-                          ผลการติดตาม (รอบที่ {round.roundNumber}):
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-2xs font-bold text-slate-700 block uppercase tracking-wider">
+                          ผลการติดตาม:
                         </span>
-                        {round.productResponse ? (
-                          <p className="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200/80 leading-relaxed whitespace-pre-line shadow-2xs">
-                            {round.productResponse}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic bg-white p-2.5 rounded-xl border border-slate-150">
-                            -
-                          </p>
-                        )}
+                        <div className="p-3 bg-white rounded-xl border border-slate-200/80 text-xs text-slate-800 whitespace-pre-line leading-relaxed">
+                          {round.productResponse || (
+                            <span className="text-slate-400 italic">
+                              ไม่มีบันทึกผลการติดตาม
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Section D: รูปภาพหลังการฉีดพ่น */}
-                      {round.attachments && round.attachments.length > 0 && (
+                      {round.attachments.length > 0 && (
                         <div className="space-y-2 pt-1">
                           <span className="text-2xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
                             <Camera className="w-3.5 h-3.5 text-purple-600" />
-                            รูปภาพหลังการฉีดพ่น ({round.attachments.length} รูป):
+                            <span>
+                              รูปภาพหลังการฉีดพ่น ({round.attachments.length}{" "}
+                              รูป):
+                            </span>
                           </span>
-                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                            {round.attachments.map(
-                              (att: any, aIdx: number) => (
-                                <div
-                                  key={att.id || aIdx}
-                                  className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-2xs"
-                                >
-                                  <img
-                                    src={att.fileUrl}
-                                    alt={att.fileName || `รูปภาพ #${aIdx + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setPreviewImageUrl(att.fileUrl)
-                                      }
-                                      className="p-1.5 rounded-full bg-white/90 text-slate-700 hover:bg-white shadow-xs"
-                                      title="ดูรูปภาพขนาดใหญ่"
-                                    >
-                                      <Eye className="w-4 h-4" />
-                                    </button>
-                                  </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+                            {round.attachments.map((att: any, aIdx: number) => (
+                              <div
+                                key={att.id || aIdx}
+                                className="group relative rounded-xl border border-slate-200 bg-slate-50 overflow-hidden aspect-square flex items-center justify-center cursor-pointer shadow-2xs"
+                                onClick={() => setPreviewImageUrl(att.fileUrl)}
+                              >
+                                <img
+                                  src={att.fileUrl}
+                                  alt={att.fileName || `round-${round.roundNumber}-photo-${aIdx + 1}`}
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200"
+                                />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Eye className="w-5 h-5 text-white" />
                                 </div>
-                              ),
-                            )}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Section E: ข้อมูลเพิ่มเติม */}
-                      {round.notes && round.notes.trim() !== "" && (
-                        <div className="space-y-1.5">
-                          <span className="text-2xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                            <FileText className="w-3.5 h-3.5 text-slate-500" />
-                            ข้อมูลเพิ่มเติม (รอบที่ {round.roundNumber}):
+                      {/* Section E: ข้อสังเกตเพิ่มเติม */}
+                      {round.notes && (
+                        <div className="space-y-1 pt-1">
+                          <span className="text-2xs font-bold text-slate-700 block uppercase tracking-wider">
+                            ข้อสังเกตเพิ่มเติม:
                           </span>
-                          <p className="text-xs text-slate-600 bg-white p-3 rounded-xl border border-slate-200/80 leading-relaxed whitespace-pre-line shadow-2xs">
+                          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-150 text-2xs text-slate-600 leading-relaxed">
                             {round.notes}
-                          </p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1038,28 +660,28 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
         )}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Image Preview Modal */}
       {previewImageUrl && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-xs"
           onClick={() => setPreviewImageUrl(null)}
         >
           <div
-            className="relative max-w-3xl max-h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
+            className="relative max-w-4xl max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
+            <img
+              src={previewImageUrl}
+              alt="Preview"
+              className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl"
+            />
             <button
               type="button"
               onClick={() => setPreviewImageUrl(null)}
-              className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              className="absolute top-3 right-3 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <img
-              src={previewImageUrl}
-              alt="ดูรูปถ่ายเต็มขนาด"
-              className="w-full h-auto max-h-[80vh] object-contain"
-            />
           </div>
         </div>
       )}

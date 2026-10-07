@@ -54,31 +54,6 @@ export function validateType13FormValues({
         error: `กรุณาเลือกอำเภอสำหรับ ${plotLabel}`,
       };
     }
-
-    // If plot has drug withdrawal enabled, validate withdrawal items
-    if (plot.hasDrugWithdrawal) {
-      const validWithdrawalItems = (plot.withdrawalItems || []).filter(
-        (item) => item.productId && item.productId.trim() !== "",
-      );
-
-      if (validWithdrawalItems.length === 0) {
-        return {
-          isValid: false,
-          error: `กรุณาระบุรายการยาที่ต้องการเบิกอย่างน้อย 1 รายการสำหรับ ${plotLabel}`,
-        };
-      }
-
-      for (let j = 0; j < validWithdrawalItems.length; j++) {
-        const item = validWithdrawalItems[j];
-        const qty = Number(item.quantity);
-        if (isNaN(qty) || qty <= 0) {
-          return {
-            isValid: false,
-            error: `จำนวนยาที่ต้องการเบิกต้องมากกว่า 0 สำหรับ ${plotLabel}`,
-          };
-        }
-      }
-    }
   }
 
   return { isValid: true };

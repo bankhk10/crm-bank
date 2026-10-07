@@ -83,48 +83,6 @@ export function Type13PlanCard({
                 </span>
               </div>
             </div>
-
-            {/* Drug Withdrawal for this plot */}
-            {plot.hasDrugWithdrawal &&
-            plot.withdrawalItems &&
-            plot.withdrawalItems.length > 0 ? (
-              <div className="bg-white rounded-lg p-2.5 border border-emerald-100 space-y-1.5">
-                <div className="text-[11px] font-semibold text-emerald-900 flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Package className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>การเบิกยา (Drug Withdrawal):</span>
-                  </span>
-                  <span className="text-[10px] font-medium bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                    {plot.withdrawalItems.length} รายการ
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {plot.withdrawalItems.map((item, pIdx) => (
-                    <div
-                      key={item.id || pIdx}
-                      className="flex items-center justify-between text-xs py-1 px-2.5 bg-slate-50/80 rounded border border-slate-100"
-                    >
-                      <span className="text-slate-800 font-medium">
-                        {item.productName || "สินค้าไม่ระบุชื่อ"}
-                      </span>
-                      <span className="font-bold text-emerald-700">
-                        {Number(item.quantity).toLocaleString()} {item.unit || "หน่วย"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg p-2 border border-slate-100 flex items-center justify-between text-xs">
-                <div className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-slate-400" />
-                  <span>การเบิกยา (Drug Withdrawal):</span>
-                </div>
-                <span className="text-[11px] text-slate-400 italic">
-                  ไม่มีการเบิกยาสำหรับแปลงนี้
-                </span>
-              </div>
-            )}
           </div>
         ))}
       </div>
