@@ -436,6 +436,7 @@ export const activityPlanSchema = z
     type13Data: type13PlanInputSchema.optional(),
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
+    hasProductWithdrawal: z.boolean().optional().nullable(),
     // Unplanned Activity: Optional embedded actual results
     actualData: z.any().optional().nullable(),
     // For transition: raw form items payload (will be normalized in application mapper)
