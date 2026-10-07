@@ -103,6 +103,8 @@ export interface NormalizedPlanData {
     categoryId?: string | null;
     objective?: string | null;
   } | null;
+  type7aPlots?: any[];
+  type7bData?: any;
   type13Plots?: any[];
   type14Data?: any;
   helperEmployeeIds: string[];
@@ -335,6 +337,8 @@ export function normalizePlanInput(
     demoPlotId: demoPlot,
     demoPlotIds: rawInput.demoPlotIds || undefined,
     demoPlotData: (rawInput.demoPlotData as any) || null,
+    type7aPlots: rawInput.type7aPlots || undefined,
+    type7bData: rawInput.type7bData || undefined,
     type13Plots: rawInput.type13Plots || undefined,
     type14Data: rawInput.type14Data || undefined,
     helperEmployeeIds: rawInput.helperEmployeeIds || [],

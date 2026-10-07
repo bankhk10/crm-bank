@@ -34,6 +34,29 @@ export interface UseType7aFormResult {
     customers: any[],
     products: any[],
   ) => {
+    type7aPlots: Array<{
+      id?: string;
+      demoPlotId?: string | null;
+      name: string;
+      storeId: string;
+      ownerName?: string | null;
+      ownerPhone?: string | null;
+      cropCategory: string;
+      cropName: string;
+      customCropName?: string | null;
+      areaRai?: number | null;
+      treeCount?: number | null;
+      objective?: string | null;
+      location?: string | null;
+      province?: string | null;
+      district?: string | null;
+      categoryId?: string | null;
+      products: Array<{
+        productId: string;
+        targetQuantity: number;
+        notes?: string | null;
+      }>;
+    }>;
     submittedDemoPlotData: any;
     planProducts: Array<{
       workTypeCode: string;
@@ -61,6 +84,65 @@ function parseInitialType7aItems(
         wt === "TYPE_7A",
     ) ||
     selectedWorkTypes.some((t) => getWorkTypeCode(t) === "TYPE_7A");
+
+  if (
+    isInitialType7A &&
+    (initial as any)?.type7aPlots &&
+    Array.isArray((initial as any).type7aPlots) &&
+    (initial as any).type7aPlots.length > 0
+  ) {
+    return (initial as any).type7aPlots.map((plot: any, idx: number) => {
+      const type7aProds: Type7DemoProductLine[] = (plot.products || []).map(
+        (p: any, pIdx: number) => ({
+          id: p.id || String(pIdx + 1),
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          quantity: p.targetQuantity || 1,
+          unit: p.product?.unit || "",
+        }),
+      );
+
+      const has7aWithdrawal = type7aProds.length > 0;
+
+      return {
+        id: plot.id || String(idx + 1),
+        plotActivityType: "CREATE",
+        demoPlotId: plot.demoPlotId || "",
+        hasProductWithdrawal: has7aWithdrawal,
+        plotName: plot.name || "",
+        storeId: plot.storeId || "",
+        ownerName: plot.store?.name || plot.ownerName || "",
+        cropCategory: plot.cropCategory || "",
+        cropName: plot.cropName || "",
+        customCropName: plot.customCropName || "",
+        areaRai: plot.areaRai != null ? Number(plot.areaRai) : 0,
+        treeCount: plot.treeCount != null ? Number(plot.treeCount) : 0,
+        province: plot.province || plot.store?.province || "",
+        district: plot.district || plot.store?.district || "",
+        categoryId: plot.categoryId || "",
+        chemicalGroupId: plot.categoryId || "",
+        objective: plot.objective || "",
+        demoProducts:
+          type7aProds.length > 0
+            ? type7aProds
+            : [
+                {
+                  id: "1",
+                  productId: "",
+                  productName: "",
+                  quantity: 1,
+                  unit: "",
+                },
+              ],
+        startDate: format(
+          new Date((initial as any)?.startDate || new Date()),
+          "yyyy-MM-dd",
+        ),
+        followUpDate: format(new Date(), "yyyy-MM-dd"),
+        detail: plot.objective || "",
+      };
+    });
+  }
 
   const dp =
     (initial as any)?.demoPlot ||
@@ -408,12 +490,69 @@ export function useType7aForm({
       (t) => getWorkTypeCode(t) === "TYPE_7A",
     );
     if (!hasType7APlan) {
-      return { submittedDemoPlotData: null, planProducts: [] };
+      return { type7aPlots: [], submittedDemoPlotData: null, planProducts: [] };
     }
+
+    const type7aPlots = type7aItems.map((item) => {
+      const dealerId =
+        item.storeId ||
+        customers.find((c) => c.name === item.ownerName)?.id ||
+        "";
+      const dealerCust = customers.find((c) => c.id === dealerId);
+
+      const prods = item.hasProductWithdrawal
+        ? (item.demoProducts || [])
+            .filter((p: any) => p.productId || p.productName)
+            .map((dp: any, pIdx: number) => {
+              const pId =
+                dp.productId ||
+                products.find((p) => p.name === dp.productName)?.id;
+              const qty = Number(dp.quantity) || 1;
+              return {
+                id: dp.id || undefined,
+                productId: pId,
+                productName: dp.productName || null,
+                quantity: qty,
+                targetQuantity: qty,
+                unit: dp.unit || null,
+                sortOrder: pIdx,
+                notes: null,
+              };
+            })
+            .filter((p: any) => Boolean(p.productId))
+        : [];
+
+      return {
+        id: item.demoPlotId || undefined,
+        demoPlotId: item.demoPlotId || null,
+        plotName: item.plotName || "",
+        name: item.plotName || "",
+        storeId: dealerId,
+        ownerName: dealerCust?.name || item.ownerName || null,
+        ownerPhone: null,
+        cropCategory: item.cropCategory || "",
+        cropName: item.cropName || "",
+        customCropName: item.customCropName || null,
+        areaRai: item.areaRai ? Number(item.areaRai) : null,
+        treeCount: item.treeCount ? Number(item.treeCount) : null,
+        objective: item.objective || null,
+        location:
+          item.province && item.district
+            ? `${item.district}, ${item.province}`
+            : null,
+        province: item.province || null,
+        district: item.district || null,
+        categoryId: item.categoryId || item.chemicalGroupId || null,
+        chemicalGroupId: item.categoryId || item.chemicalGroupId || null,
+        hasProducts: Boolean(item.hasProductWithdrawal),
+        demoProducts: prods,
+        products: prods,
+      };
+    });
 
     const item = type7aItems[0];
     if (!item) {
-      return { submittedDemoPlotData: null, planProducts: [] };
+      return { type7aPlots, submittedDemoPlotData: null, planProducts: [] };
     }
 
     const dealerId =
@@ -471,7 +610,7 @@ export function useType7aForm({
       });
     }
 
-    return { submittedDemoPlotData, planProducts };
+    return { type7aPlots, submittedDemoPlotData, planProducts };
   };
 
   return {

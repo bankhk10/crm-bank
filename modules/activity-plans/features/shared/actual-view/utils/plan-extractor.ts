@@ -727,12 +727,17 @@ export function extractPlanData(
   const isT7Present =
     isWorkTypePresent("TYPE_7A") ||
     isWorkTypePresent("TYPE_7B") ||
-    Boolean(p.demoPlotVisits && p.demoPlotVisits.length > 0);
+    Boolean(p.demoPlotVisits && p.demoPlotVisits.length > 0) ||
+    Boolean((p as any).type7aPlots && (p as any).type7aPlots.length > 0) ||
+    Boolean((p as any).type7b);
 
   let t7StartDate: string | undefined;
   let t7PlotIdentifier: string | undefined;
 
   if (isT7Present) {
+    const t7aPlotsList: any[] = (p as any).type7aPlots || [];
+    const t7bRecord: any = (p as any).type7b;
+
     const t7Visit = p.demoPlotVisits?.[0];
     const t7Plot = t7Visit?.demoPlot || (p as any).demoPlot;
     const t7PlanProduct = products.find(
@@ -746,55 +751,122 @@ export function extractPlanData(
     if (p.startDate) {
       t7StartDate = new Date(p.startDate).toISOString().split("T")[0];
     }
-    t7PlotIdentifier = t7Plot?.id || t7Plot?.ownerName || "";
+    t7PlotIdentifier =
+      t7aPlotsList[0]?.demoPlotId ||
+      t7bRecord?.demoPlotId ||
+      t7Plot?.id ||
+      t7Plot?.ownerName ||
+      "";
 
     const hasT7B =
       isWorkTypePresent("TYPE_7B") ||
-      resolvedWorkTypes.includes("ติดตามแปลงสาธิต");
+      resolvedWorkTypes.includes("ติดตามแปลงสาธิต") ||
+      Boolean(t7bRecord);
+
+    const firstT7aPlot = t7aPlotsList[0];
+    const firstT7bPlot = t7bRecord?.plots?.[0];
 
     const commonT7Data = {
-      owner: t7Plot?.ownerName || p.location || "",
-      product: t7Plot?.primaryProductName || t7PlanProduct?.productName || "",
-      productId: resolvedT7ProductId,
-      plannedProductId: resolvedT7ProductId,
-      crop: t7Plot?.cropName || "",
-      plots: t7Plot?.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
+      owner:
+        firstT7aPlot?.ownerName ||
+        firstT7aPlot?.store?.name ||
+        firstT7bPlot?.farmerName ||
+        t7Plot?.ownerName ||
+        p.location ||
+        "",
+      product:
+        t7Plot?.primaryProductName ||
+        t7PlanProduct?.productName ||
+        firstT7aPlot?.products?.[0]?.product?.name ||
+        firstT7bPlot?.cropName ||
+        "",
+      productId:
+        firstT7aPlot?.products?.[0]?.productId ||
+        resolvedT7ProductId ||
+        undefined,
+      plannedProductId:
+        firstT7aPlot?.products?.[0]?.productId ||
+        resolvedT7ProductId ||
+        undefined,
+      crop:
+        firstT7aPlot?.cropName ||
+        firstT7bPlot?.cropName ||
+        t7Plot?.cropName ||
+        "",
+      plots: firstT7aPlot?.areaRai
+        ? `${Number(firstT7aPlot.areaRai)} ไร่`
+        : firstT7bPlot?.areaRai
+          ? `${Number(firstT7bPlot.areaRai)} ไร่`
+          : t7Plot?.areaRai
+            ? `${Number(t7Plot.areaRai)} ไร่`
+            : "",
       demoProductQuantity:
         t7Visit?.productUsedQty != null ? String(t7Visit.productUsedQty) : "-",
-      objective: t7Plot?.objective || "",
+      objective:
+        firstT7aPlot?.objective ||
+        t7bRecord?.notes ||
+        t7Plot?.objective ||
+        "",
       experimentDetail: t7Plot?.experimentDetail || "",
       detail: "",
       targetCondition: "",
-      items: t7Plot
-        ? [
-            {
-              activityType: hasT7B ? "FOLLOW_UP" : "CREATE",
-              owner: t7Plot.ownerName || "",
-              product: t7Plot.primaryProductName || "",
-              crop: t7Plot.cropName || "",
-              plots: t7Plot.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
-              demoProductQuantity:
-                t7Visit?.productUsedQty != null
-                  ? String(t7Visit.productUsedQty)
-                  : "-",
-              objective: t7Plot.objective || "",
-              experimentDetail: t7Plot.experimentDetail || "",
-              detail: "",
-            },
-          ]
-        : [],
+      items: t7aPlotsList.length > 0
+        ? t7aPlotsList.map((plot) => ({
+            activityType: "CREATE" as const,
+            owner: plot.ownerName || plot.store?.name || "",
+            product: plot.products?.[0]?.product?.name || "",
+            crop: plot.cropName || "",
+            plots: plot.areaRai ? `${Number(plot.areaRai)} ไร่` : "",
+            demoProductQuantity: "-",
+            objective: plot.objective || "",
+            experimentDetail: "",
+            detail: "",
+          }))
+        : t7Plot
+          ? [
+              {
+                activityType: hasT7B ? "FOLLOW_UP" : "CREATE",
+                owner: t7Plot.ownerName || "",
+                product: t7Plot.primaryProductName || "",
+                crop: t7Plot.cropName || "",
+                plots: t7Plot.areaRai ? `${Number(t7Plot.areaRai)} ไร่` : "",
+                demoProductQuantity:
+                  t7Visit?.productUsedQty != null
+                    ? String(t7Visit.productUsedQty)
+                    : "-",
+                objective: t7Plot.objective || "",
+                experimentDetail: t7Plot.experimentDetail || "",
+                detail: "",
+              },
+            ]
+          : [],
     };
 
-    const t7bProducts = products.filter(
-      (pr) => pr.workTypeCode === "TYPE_7B",
-    );
-    const t7aProducts = products.filter(
-      (pr) => pr.workTypeCode === "TYPE_7A" || pr.workTypeCode === "TYPE_7",
-    );
+    const t7bProducts = t7bRecord?.products?.length > 0
+      ? t7bRecord.products.map((p: any) => ({
+          productId: p.productId,
+          productName: p.product?.name || "",
+          targetQuantity: p.quantity,
+          product: p.product,
+        }))
+      : products.filter((pr) => pr.workTypeCode === "TYPE_7B");
+
+    const t7aProducts = firstT7aPlot?.products?.length > 0
+      ? firstT7aPlot.products.map((p: any) => ({
+          productId: p.productId,
+          productName: p.product?.name || "",
+          targetQuantity: p.targetQuantity,
+          product: p.product,
+        }))
+      : products.filter(
+          (pr) => pr.workTypeCode === "TYPE_7A" || pr.workTypeCode === "TYPE_7",
+        );
+
     const firstT7aProduct = t7aProducts[0];
     const t7aCategory = (firstT7aProduct?.product as any)?.category;
 
     const t7bDetail =
+      t7bRecord?.notes ||
       (hasT7B ? (p.objective || p.notes) : "") ||
       prevTargets.t7b?.detail ||
       "";
@@ -804,9 +876,13 @@ export function extractPlanData(
       ...commonT7Data,
       activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
       detail: hasT7B ? t7bDetail : commonT7Data.detail,
-      dealerName: (t7Plot as any)?.customer?.name || "",
+      dealerName:
+        firstT7aPlot?.store?.name ||
+        firstT7bPlot?.dealerStoreName ||
+        (t7Plot as any)?.customer?.name ||
+        "",
       dealerCode: (t7Plot as any)?.customer?.customerCode || "",
-      demoProducts: (hasT7B ? t7bProducts : t7aProducts).map((pr) => ({
+      demoProducts: (hasT7B ? t7bProducts : t7aProducts).map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
         quantity: pr.targetQuantity ?? 1,
@@ -818,18 +894,35 @@ export function extractPlanData(
       ...(prevTargets.t7a || prevTargets.t7),
       ...commonT7Data,
       activityType: "CREATE",
-      plotName: t7Plot?.name || "",
-      dealerName: (t7Plot as any)?.customer?.name || "",
+      plotName: firstT7aPlot?.name || t7Plot?.name || "",
+      dealerName:
+        firstT7aPlot?.store?.name ||
+        (t7Plot as any)?.customer?.name ||
+        "",
       dealerCode: (t7Plot as any)?.customer?.customerCode || "",
-      province: t7Plot?.province || p.province || "",
-      district: t7Plot?.district || p.district || "",
-      cropCategory: t7Plot?.cropCategory || "",
-      areaRai: t7Plot?.areaRai ? Number(t7Plot.areaRai) : null,
-      treeCount: t7Plot?.treeCount ?? null,
+      province:
+        firstT7aPlot?.province ||
+        firstT7aPlot?.store?.province ||
+        t7Plot?.province ||
+        p.province ||
+        "",
+      district:
+        firstT7aPlot?.district ||
+        firstT7aPlot?.store?.district ||
+        t7Plot?.district ||
+        p.district ||
+        "",
+      cropCategory: firstT7aPlot?.cropCategory || t7Plot?.cropCategory || "",
+      areaRai: firstT7aPlot?.areaRai
+        ? Number(firstT7aPlot.areaRai)
+        : t7Plot?.areaRai
+          ? Number(t7Plot.areaRai)
+          : null,
+      treeCount: firstT7aPlot?.treeCount ?? t7Plot?.treeCount ?? null,
       categoryName: t7aCategory?.description || t7aCategory?.name || "",
       categoryCode: t7aCategory?.code || "",
       chemicalGroupName: t7aCategory?.description || "",
-      demoProducts: t7aProducts.map((pr) => ({
+      demoProducts: t7aProducts.map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
         quantity: pr.targetQuantity ?? 1,
@@ -841,12 +934,15 @@ export function extractPlanData(
       ...(prevTargets.t7b || prevTargets.t7),
       ...commonT7Data,
       activityType: "FOLLOW_UP",
-      plotName: t7Plot?.name || "",
+      plotName: firstT7bPlot?.plotName || t7Plot?.name || "",
       plotCode: t7Plot?.code || "",
-      dealerName: (t7Plot as any)?.customer?.name || "",
+      dealerName:
+        firstT7bPlot?.dealerStoreName ||
+        (t7Plot as any)?.customer?.name ||
+        "",
       dealerCode: (t7Plot as any)?.customer?.customerCode || "",
       detail: t7bDetail,
-      demoProducts: t7bProducts.map((pr) => ({
+      demoProducts: t7bProducts.map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
         quantity: pr.targetQuantity ?? 1,

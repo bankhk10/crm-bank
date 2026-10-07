@@ -404,6 +404,7 @@ model Customer {
   activityAttachments         ActivityAttachment[]
   demoPlots                   DemoPlot[]                   @relation("CustomerDemoPlots")
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
+  activityPlanType7aPlots     ActivityPlanType7a[]         @relation("Type7aDealerStore")
 }
 
 model CustomerAddress {
@@ -700,6 +701,8 @@ model Product {
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
   activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
+  activityPlanType7aProducts     ActivityPlanType7aProduct[]
+  activityPlanType7bProducts     ActivityPlanType7bProduct[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1719,6 +1722,9 @@ model ActivityPlan {
   demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
+  type7aPlots    ActivityPlanType7a[]
+  type7b         ActivityPlanType7b?
+  type7bFollowUps ActivityPlanType7b[] @relation("Type7bSourcePlan")
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2422,6 +2428,8 @@ model DemoPlot {
   irrigations         DemoPlotIrrigation[]
   attachments         ActivityAttachment[]
   sprayRounds         ActivityResultSprayRound[]
+  type7aPlots         ActivityPlanType7a[]
+  type7bPlots         ActivityPlanType7bPlot[]
 
   @@index([plotType])
   @@index([customerId])
@@ -2530,4 +2538,131 @@ model DemoPlotIrrigation {
   @@index([demoPlotId])
   @@map("demo_plot_irrigations")
 }
+
+// =============================================================================
+// TYPE-7A: แผนทำแปลงสาธิตใหม่ (New Demo Plot Plan)
+// =============================================================================
+
+model ActivityPlanType7a {
+  id             String    @id @default(cuid())
+  activityPlanId String    @map("activity_plan_id")
+  
+  // 1. ข้อมูลแปลงสาธิต
+  plotName       String    @map("plot_name") // ชื่อแปลง
+  storeId        String?   @map("store_id")  // ร้านค้า Dealer
+  ownerName      String?   @map("owner_name") // ชื่อเจ้าของแปลง / ร้านค้า
+  province       String?   @map("province")   // จังหวัด (Sync ตาม Dealer)
+  district       String?   @map("district")   // อำเภอ (Sync ตาม Dealer)
+  cropCategory   String    @map("crop_category") // หมวดพืช (พืชสวน, พืชไร่, ผัก ฯลฯ)
+  cropName       String    @map("crop_name")     // ชื่อพืช
+  customCropName String?   @map("custom_crop_name") // ระบุชื่อพืชเพิ่มเติม (กรณีเลือก อื่นๆ)
+  areaRai        Decimal?  @map("area_rai") @db.Decimal(10, 2) // พื้นที่ (ไร่)
+  treeCount      Int?      @map("tree_count") // จำนวนต้น
+  
+  // 2. ข้อมูลการทดลองและวัตถุประสงค์
+  objective      String    @map("objective") @db.Text // วัตถุประสงค์การทำแปลง
+  categoryId     String?   @map("category_id") // หมวดสินค้าที่เลือก
+  hasProducts    Boolean   @default(false) @map("has_products") // มีการระบุสินค้า
+  
+  // 3. การเชื่อมโยง Master DemoPlot
+  demoPlotId     String?   @map("demo_plot_id")
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?                   @relation("Type7aDealerStore", fields: [storeId], references: [id], onDelete: SetNull)
+  demoPlot       DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  products       ActivityPlanType7aProduct[]
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([demoPlotId])
+  @@map("activity_plan_type_7a")
+}
+
+model ActivityPlanType7aProduct {
+  id          String             @id @default(cuid())
+  type7aId    String             @map("type_7a_id")
+  productId   String             @map("product_id")
+  productName String?            @map("product_name")
+  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit        String?            @map("unit") // ขวด, กล่อง, ลิตร
+  sortOrder   Int                @default(0) @map("sort_order")
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  type7a      ActivityPlanType7a @relation(fields: [type7aId], references: [id], onDelete: Cascade)
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([type7aId])
+  @@index([productId])
+  @@map("activity_plan_type_7a_products")
+}
+
+// =============================================================================
+// TYPE-7B: แผนติดตามแปลงสาธิต (Demo Plot Follow-up Plan)
+// =============================================================================
+
+model ActivityPlanType7b {
+  id                   String                      @id @default(cuid())
+  activityPlanId       String                      @unique @map("activity_plan_id")
+  sourceActivityPlanId String?                     @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
+  hasProducts          Boolean                     @default(false) @map("has_products")
+  notes                String?                     @map("notes") @db.Text
+
+  createdAt            DateTime                    @default(now()) @map("created_at")
+  updatedAt            DateTime                    @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
+  plots                ActivityPlanType7bPlot[]
+  products             ActivityPlanType7bProduct[]
+
+  @@index([activityPlanId])
+  @@index([sourceActivityPlanId])
+  @@map("activity_plan_type_7b")
+}
+
+model ActivityPlanType7bPlot {
+  id         String             @id @default(cuid())
+  type7bId   String             @map("type_7b_id")
+  demoPlotId String             @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม
+  plotName   String?            @map("plot_name")
+  cropName   String?            @map("crop_name")
+  ownerName  String?            @map("owner_name")
+  province   String?            @map("province")
+  district   String?            @map("district")
+  areaRai    Decimal?           @map("area_rai") @db.Decimal(10, 2)
+  treeCount  Int?               @map("tree_count")
+  dealerName String?            @map("dealer_name")
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  type7b     ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
+  demoPlot   DemoPlot           @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
+
+  @@index([type7bId])
+  @@index([demoPlotId])
+  @@map("activity_plan_type_7b_plots")
+}
+
+model ActivityPlanType7bProduct {
+  id          String             @id @default(cuid())
+  type7bId    String             @map("type_7b_id")
+  productId   String             @map("product_id")
+  productName String?            @map("product_name")
+  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit        String?            @map("unit")
+  sortOrder   Int                @default(0) @map("sort_order")
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  type7b      ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([type7bId])
+  @@index([productId])
+  @@map("activity_plan_type_7b_products")
+}
+
 

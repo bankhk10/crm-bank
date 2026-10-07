@@ -149,19 +149,19 @@ export const tourDataInputSchema = z.object({
 
 export const demoPlotDataInputSchema = z.object({
   id: z.string().optional().nullable(),
-  name: z.string().min(1, "กรุณากรอกชื่อแปลง"),
+  name: z.string().optional().nullable().default(""),
   customerId: z.string().optional().nullable(),
-  ownerName: z.string().default(""),
-  cropCategory: z.string().min(1, "กรุณาเลือกหมวดพืช"),
-  cropName: z.string().min(1, "กรุณาเลือกหรือระบุพืช"),
+  ownerName: z.string().optional().nullable().default(""),
+  cropCategory: z.string().optional().nullable().default(""),
+  cropName: z.string().optional().nullable().default(""),
   customCropName: z.string().optional().nullable(),
-  areaRai: z.number().optional().nullable(),
-  treeCount: z.number().optional().nullable(),
+  areaRai: z.coerce.number().optional().nullable(),
+  treeCount: z.coerce.number().optional().nullable(),
   location: z.string().optional().nullable(),
-  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
-  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  province: z.string().optional().nullable().default(""),
+  district: z.string().optional().nullable().default(""),
   categoryId: z.string().optional().nullable(),
-  objective: z.string().min(1, "กรุณากรอกวัตถุประสงค์"),
+  objective: z.string().optional().nullable().default(""),
 });
 
 // ── TYPE_13 ("ฉีดแปลงแฮตแทค") Validations ─────────────────────────────
@@ -266,6 +266,91 @@ export const type14PlanInputSchema = z.object({
   trackings: z.array(type14TrackingItemSchema).optional().default([]),
 });
 
+// ── TYPE_7A ("ทำแปลงสาธิตใหม่") Validations ───────────────────────────
+export const type7aPlotProductSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().optional().nullable(),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().optional().nullable(),
+  targetQuantity: z.coerce.number().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  sortOrder: z.number().optional().default(0),
+});
+
+export const type7aPlotItemSchema = z.object({
+  id: z.string().optional(),
+  plotName: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  storeId: z.string().optional().nullable(),
+  ownerName: z.string().optional().nullable(),
+  ownerPhone: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  cropCategory: z.string().optional().nullable(),
+  cropName: z.string().optional().nullable(),
+  customCropName: z.string().optional().nullable(),
+  areaRai: z.coerce.number().optional().nullable(),
+  treeCount: z.coerce.number().int().optional().nullable(),
+  objective: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  chemicalGroupId: z.string().optional().nullable(),
+  hasProducts: z.boolean().optional().default(false),
+  demoPlotId: z.string().optional().nullable(),
+  demoProducts: z.array(type7aPlotProductSchema).optional().default([]),
+  products: z.array(type7aPlotProductSchema).optional().default([]),
+});
+
+export type Type7aPlotProduct = z.infer<typeof type7aPlotProductSchema>;
+export type Type7aPlotItem = z.infer<typeof type7aPlotItemSchema>;
+
+// ── TYPE_7B ("ติดตามแปลงสาธิต") Validations ──────────────────────────
+export const type7bProductSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().optional().nullable(),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().optional().nullable(),
+  targetQuantity: z.coerce.number().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  sortOrder: z.number().optional().default(0),
+});
+
+export const type7bPlotSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().optional().nullable(),
+  plotName: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  cropName: z.string().optional().nullable(),
+  ownerName: z.string().optional().nullable(),
+  farmerName: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  areaRai: z.coerce.number().optional().nullable(),
+  treeCount: z.coerce.number().int().optional().nullable(),
+  dealerName: z.string().optional().nullable(),
+  dealerStoreName: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const type7bPlanInputSchema = z.object({
+  sourceActivityPlanId: z.string().optional().nullable(),
+  selectedPlanId: z.string().optional().nullable(),
+  selectedPlotIds: z.array(z.string()).optional().default([]),
+  demoPlotId: z.string().optional().nullable(),
+  hasProducts: z.boolean().optional().default(false),
+  notes: z.string().optional().nullable(),
+  plots: z.array(type7bPlotSchema).optional().default([]),
+  withdrawnProducts: z.array(type7bProductSchema).optional().default([]),
+  products: z.array(type7bProductSchema).optional().default([]),
+});
+
+export type Type7bProduct = z.infer<typeof type7bProductSchema>;
+export type Type7bPlot = z.infer<typeof type7bPlotSchema>;
+export type Type7bPlanInput = z.infer<typeof type7bPlanInputSchema>;
+
 export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
 export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
 export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
@@ -324,6 +409,8 @@ export const activityPlanSchema = z
     promotionItems: z.array(planPromotionItemInputSchema).default([]),
     tourData: tourDataInputSchema.optional().nullable(),
     helperEmployeeIds: z.array(z.string()).default([]),
+    type7aPlots: z.array(type7aPlotItemSchema).optional(),
+    type7bData: type7bPlanInputSchema.optional(),
     type13Plots: z.array(type13PlotItemSchema).optional(),
     type14Data: type14PlanInputSchema.optional(),
     // Unplanned Activity: Optional embedded actual results

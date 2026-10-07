@@ -318,16 +318,20 @@ export function useAllTypeForms({
     let submittedDemoPlotId: string | null = null;
     let submittedDemoPlotIds: string[] | undefined = undefined;
     let t7bObjective: string | null = null;
+    let type7aPlots: any[] | undefined = undefined;
+    let type7bData: any | undefined = undefined;
 
     if (hasType7APlan) {
       const type7aPayload = type7a.mapType7aPayload(
         customersList,
         productsList,
       );
+      type7aPlots = type7aPayload.type7aPlots;
       submittedDemoPlotData = type7aPayload.submittedDemoPlotData;
       planProducts.push(...type7aPayload.planProducts);
     } else if (hasType7BPlan) {
       const type7bPayload = type7b.mapType7bPayload(productsList);
+      type7bData = type7bPayload.type7bData;
       submittedDemoPlotId = type7bPayload.submittedDemoPlotId;
       submittedDemoPlotIds = type7bPayload.submittedDemoPlotIds;
       if (type7bPayload.t7bObjective) {
@@ -410,6 +414,8 @@ export function useAllTypeForms({
       submittedDemoPlotId,
       submittedDemoPlotIds,
       t7bObjective,
+      type7aPlots,
+      type7bData,
       submittedTargetAttendees,
       submittedTargetBookingSales,
       type13Payload,

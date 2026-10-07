@@ -36,6 +36,32 @@ export interface UseType7bFormResult {
   deleteType7bRow: (id: string) => void;
   validateType7b: () => { isValid: boolean; error?: string };
   mapType7bPayload: (products: any[]) => {
+    type7bData?: {
+      sourceActivityPlanId?: string | null;
+      demoPlotId?: string | null;
+      trackingStage?: string | null;
+      plotDetailNotes?: string | null;
+      notes?: string | null;
+      plots?: Array<{
+        demoPlotId?: string | null;
+        plotName: string;
+        farmerName?: string | null;
+        farmerPhone?: string | null;
+        dealerStoreName?: string | null;
+        cropCategory?: string | null;
+        cropName?: string | null;
+        areaRai?: number | null;
+        treeCount?: number | null;
+        location?: string | null;
+        province?: string | null;
+        district?: string | null;
+      }>;
+      products?: Array<{
+        productId: string;
+        quantity: number;
+        notes?: string | null;
+      }>;
+    } | null;
     submittedDemoPlotId: string | null;
     submittedDemoPlotIds: string[];
     t7bObjective: string | null;
@@ -69,6 +95,62 @@ export function useType7bForm({
           wt?.activityType?.code === "TYPE_7B" ||
           wt === "TYPE_7B",
       );
+
+    if (isInitialType7B && (initial as any)?.type7b) {
+      const t7b = (initial as any).type7b;
+      const type7bProds: Type7DemoProductLine[] = (t7b.products || []).map(
+        (p: any, idx: number) => ({
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          quantity: p.quantity || 1,
+          unit: p.product?.unit || "",
+        }),
+      );
+      const has7bWithdrawal = type7bProds.length > 0;
+      const initialPlotIds: string[] = (t7b.plots || [])
+        .map((p: any) => p.demoPlotId)
+        .filter(Boolean);
+      const fallbackPlotId =
+        t7b.demoPlotId || initialPlotIds[0] || "";
+      const firstPlot = t7b.plots?.[0];
+
+      return [
+        {
+          id: t7b.id || fallbackPlotId || "1",
+          plotActivityType: "FOLLOW_UP",
+          selectedPlanId: t7b.sourceActivityPlanId || "",
+          selectedPlotIds: initialPlotIds,
+          demoPlotId: fallbackPlotId,
+          existingPlotId: fallbackPlotId,
+          existingPlotName: firstPlot?.plotName || "",
+          hasProductWithdrawal: has7bWithdrawal,
+          withdrawnProducts: has7bWithdrawal ? type7bProds : [],
+          plotName: firstPlot?.plotName || "",
+          storeId: "",
+          ownerName: firstPlot?.farmerName || "",
+          cropCategory: firstPlot?.cropCategory || "",
+          cropName: firstPlot?.cropName || "",
+          customCropName: "",
+          areaRai: firstPlot?.areaRai != null ? Number(firstPlot.areaRai) : 0,
+          treeCount: firstPlot?.treeCount ?? 0,
+          province: firstPlot?.province || "",
+          district: firstPlot?.district || "",
+          categoryId: "",
+          chemicalGroupId: "",
+          objective: t7b.notes || "",
+          productId: type7bProds[0]?.productId || "",
+          productName: type7bProds[0]?.productName || "",
+          demoProducts: [],
+          startDate: format(
+            new Date((initial as any)?.startDate || new Date()),
+            "yyyy-MM-dd",
+          ),
+          followUpDate: format(new Date(), "yyyy-MM-dd"),
+          detail: t7b.notes || (initial as any)?.objective || "",
+        },
+      ];
+    }
 
     if (
       isInitialType7B &&
@@ -371,6 +453,7 @@ export function useType7bForm({
     );
     if (!hasType7BPlan) {
       return {
+        type7bData: null,
         submittedDemoPlotId: null,
         submittedDemoPlotIds: [],
         t7bObjective: null,
@@ -430,8 +513,52 @@ export function useType7bForm({
     }
 
     const t7bDetail = type7bItems[0]?.detail?.trim() || null;
+    const firstItem = type7bItems[0];
+
+    const selectedPlan = (fetchedFollowUpPlansWithPlots || []).find(
+      (p) => p.planId === firstItem?.selectedPlanId,
+    );
+
+    const plotObjs = (firstItem?.selectedPlotIds || []).map((plotId) => {
+      const matchedPlot =
+        selectedPlan?.plots.find((p) => p.id === plotId) ||
+        followUpPlotsForType7B.find((p) => p.id === plotId);
+      return {
+        demoPlotId: plotId,
+        plotName: matchedPlot?.name || "",
+        farmerName: matchedPlot?.ownerName || null,
+        farmerPhone: null,
+        dealerStoreName: matchedPlot?.dealerName || null,
+        cropCategory: matchedPlot?.cropCategory || null,
+        cropName: matchedPlot?.cropName || null,
+        areaRai: matchedPlot?.areaRai ? Number(matchedPlot.areaRai) : null,
+        treeCount: matchedPlot?.treeCount ?? null,
+        location: matchedPlot?.location || null,
+        province: matchedPlot?.province || null,
+        district: matchedPlot?.district || null,
+      };
+    });
+
+    const productsListToSave = (firstItem?.withdrawnProducts || []).map(
+      (wp) => ({
+        productId: wp.productId,
+        quantity: Number(wp.quantity) || 1,
+        notes: null,
+      }),
+    );
+
+    const type7bData = {
+      sourceActivityPlanId: firstItem?.selectedPlanId || null,
+      demoPlotId: submittedDemoPlotId,
+      trackingStage: null,
+      plotDetailNotes: null,
+      notes: t7bDetail,
+      plots: plotObjs,
+      products: productsListToSave,
+    };
 
     return {
+      type7bData,
       submittedDemoPlotId,
       submittedDemoPlotIds,
       t7bObjective: t7bDetail,

@@ -86,8 +86,114 @@ export async function validateType7aPlan(
     productId: string;
     targetQuantity?: number | null;
   }>,
+  type7aPlots?: Array<{
+    name: string;
+    storeId: string;
+    province?: string | null;
+    district?: string | null;
+    categoryId?: string | null;
+    cropCategory: string;
+    cropName: string;
+    objective?: string | null;
+    products?: Array<{
+      productId: string;
+      targetQuantity?: number | null;
+    }>;
+  }> | null,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   if (!workTypeCodes.includes("TYPE_7A")) {
+    return { valid: true };
+  }
+
+  // If type7aPlots is provided, validate items in type7aPlots
+  if (type7aPlots && type7aPlots.length > 0) {
+    for (let i = 0; i < type7aPlots.length; i++) {
+      const plot = type7aPlots[i] as any;
+      const prefix = type7aPlots.length > 1 ? `แปลงที่ ${i + 1}: ` : "";
+      const plotName = plot.name || plot.plotName || "";
+
+      if (!plotName.trim()) {
+        return { valid: false, error: `${prefix}กรุณากรอกชื่อแปลงสาธิต` };
+      }
+
+      if (!plot.storeId) {
+        return {
+          valid: false,
+          error: `${prefix}กรุณาเลือกร้านค้า Dealer สำหรับแปลงสาธิต`,
+        };
+      }
+
+      const customer = await db.customer.findUnique({
+        where: { id: plot.storeId },
+        select: { id: true, customerType: true },
+      });
+      if (!customer) {
+        return { valid: false, error: `${prefix}ไม่พบข้อมูลร้านค้า Dealer ในระบบ` };
+      }
+      if (customer.customerType !== "DEALER") {
+        return {
+          valid: false,
+          error: `${prefix}ร้านค้าของแปลงสาธิตต้องเป็นประเภทร้านค้าตัวแทนจำหน่าย (DEALER) เท่านั้น`,
+        };
+      }
+
+      if (!plot.province || !plot.province.trim()) {
+        return { valid: false, error: `${prefix}กรุณาเลือกจังหวัด` };
+      }
+
+      if (!plot.district || !plot.district.trim()) {
+        return { valid: false, error: `${prefix}กรุณาเลือกอำเภอ` };
+      }
+
+      if (!plot.cropCategory || !plot.cropCategory.trim()) {
+        return { valid: false, error: `${prefix}กรุณาเลือกหมวดพืช` };
+      }
+
+      if (!plot.cropName || !plot.cropName.trim()) {
+        return { valid: false, error: `${prefix}กรุณาเลือกหรือระบุชื่อพืช` };
+      }
+
+      if (!plot.objective || !plot.objective.trim()) {
+        return { valid: false, error: `${prefix}กรุณาระบุวัตถุประสงค์การทำแปลง` };
+      }
+
+      const plotProducts = plot.products || plot.demoProducts;
+      if (plotProducts && plotProducts.length > 0) {
+        const catId = plot.categoryId || plot.chemicalGroupId;
+        if (!catId || !catId.trim()) {
+          return { valid: false, error: `${prefix}กรุณาเลือกหมวดสินค้า` };
+        }
+
+        for (const p of plotProducts) {
+          if (!p.productId) {
+            return { valid: false, error: `${prefix}กรุณาเลือกสินค้าที่จะสาธิต` };
+          }
+          const qty = p.targetQuantity ?? p.quantity;
+          if (!qty || qty <= 0) {
+            return {
+              valid: false,
+              error: `${prefix}จำนวนสินค้าที่จะสาธิตต้องมากกว่า 0`,
+            };
+          }
+        }
+
+        const productIds = plotProducts.map((p: any) => p.productId).filter(Boolean);
+        const products = await db.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true, categoryId: true },
+        });
+
+        for (const p of products) {
+          if (p.categoryId !== catId) {
+            return {
+              valid: false,
+              error: `${prefix}สินค้า "${p.name}" ไม่ได้อยู่ในหมวดสินค้าที่เลือก กรุณาเลือกสินค้าให้ตรงกับหมวดสินค้า`,
+            };
+          }
+        }
+      }
+    }
+
     return { valid: true };
   }
 
@@ -148,6 +254,7 @@ export async function validateType7aPlan(
   const type7aProducts = (planProducts || []).filter(
     (p) => p.workTypeCode === "TYPE_7A",
   );
+
   if (type7aProducts.length > 0) {
     if (!demoPlotData.categoryId || !demoPlotData.categoryId.trim()) {
       return { valid: false, error: "กรุณาเลือกหมวดสินค้า" };
@@ -285,6 +392,7 @@ export async function createActivityPlanUseCase(
     normalized.workTypeCodes,
     normalized.demoPlotData,
     normalized.planProducts,
+    normalized.type7aPlots,
   );
   if (!type7aValidation.valid) {
     return { success: false as const, error: type7aValidation.error };
@@ -322,6 +430,8 @@ export async function createActivityPlanUseCase(
       ? normalized.demoPlotId
       : null,
     demoPlotData: normalized.demoPlotData,
+    type7aPlots: normalized.type7aPlots,
+    type7bData: normalized.type7bData,
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
@@ -484,45 +594,109 @@ export async function duplicateActivityPlanUseCase(
 
   let demoPlotData: CreateActivityPlanInput["demoPlotData"] = null;
   let demoPlotId: string | null = null;
+  let type7aPlots: CreateActivityPlanInput["type7aPlots"] = undefined;
+  let type7bData: CreateActivityPlanInput["type7bData"] = undefined;
 
-  if (isType7A && originalDemoPlot) {
-    // For TYPE_7A: Deep clone demo plot data with new code/id so it does NOT share the original demo_plots record
-    const rawPlotName =
-      originalDemoPlot.name || originalPlan.title || "แปลงสาธิต";
-    const plotTitlePrefix = "(สำเนา) ";
-    const newPlotName = rawPlotName.startsWith(plotTitlePrefix)
-      ? rawPlotName
-      : `${plotTitlePrefix}${rawPlotName}`;
+  if (isType7A) {
+    if (originalPlan.type7aPlots && originalPlan.type7aPlots.length > 0) {
+      type7aPlots = originalPlan.type7aPlots.map((plot) => {
+        const rawName = plot.plotName || "แปลงสาธิต";
+        const plotName = rawName.startsWith("(สำเนา) ")
+          ? rawName
+          : `(สำเนา) ${rawName}`;
+        return {
+          demoPlotId: null,
+          plotName,
+          name: plotName,
+          storeId: plot.storeId || "",
+          ownerName: plot.ownerName || null,
+          cropCategory: plot.cropCategory,
+          cropName: plot.cropName,
+          customCropName: plot.customCropName || null,
+          areaRai: plot.areaRai ? Number(plot.areaRai) : null,
+          treeCount: plot.treeCount ?? null,
+          objective: plot.objective || null,
+          province: plot.province || null,
+          district: plot.district || null,
+          categoryId: plot.categoryId || null,
+          products: (plot.products || []).map((p) => ({
+            productId: p.productId,
+            quantity: Number(p.quantity) || 1,
+            targetQuantity: Number(p.quantity) || 1,
+            unit: p.unit || null,
+            notes: null,
+          })),
+        };
+      });
+    } else if (originalDemoPlot) {
+      // For legacy TYPE_7A fallback
+      const rawPlotName =
+        originalDemoPlot.name || originalPlan.title || "แปลงสาธิต";
+      const plotTitlePrefix = "(สำเนา) ";
+      const newPlotName = rawPlotName.startsWith(plotTitlePrefix)
+        ? rawPlotName
+        : `${plotTitlePrefix}${rawPlotName}`;
 
-    demoPlotData = {
-      name: newPlotName,
-      ownerName: originalDemoPlot.ownerName || "",
-      customerId: originalDemoPlot.customerId || null,
-      cropCategory: originalDemoPlot.cropCategory || "",
-      cropName: originalDemoPlot.cropName || "",
-      customCropName: originalDemoPlot.customCropName || null,
-      areaRai: originalDemoPlot.areaRai
-        ? Number(originalDemoPlot.areaRai)
-        : null,
-      treeCount: originalDemoPlot.treeCount ?? null,
-      location: originalDemoPlot.location || null,
-      province: originalDemoPlot.province || null,
-      district: originalDemoPlot.district || null,
-      categoryId:
-        (originalDemoPlot as any).categoryId ||
-        (originalDemoPlot as any).chemicalGroupId ||
-        null,
-      objective: originalDemoPlot.objective || null,
-    };
+      demoPlotData = {
+        name: newPlotName,
+        ownerName: originalDemoPlot.ownerName || "",
+        customerId: originalDemoPlot.customerId || null,
+        cropCategory: originalDemoPlot.cropCategory || "",
+        cropName: originalDemoPlot.cropName || "",
+        customCropName: originalDemoPlot.customCropName || null,
+        areaRai: originalDemoPlot.areaRai
+          ? Number(originalDemoPlot.areaRai)
+          : null,
+        treeCount: originalDemoPlot.treeCount ?? null,
+        location: originalDemoPlot.location || null,
+        province: originalDemoPlot.province || null,
+        district: originalDemoPlot.district || null,
+        categoryId:
+          (originalDemoPlot as any).categoryId ||
+          (originalDemoPlot as any).chemicalGroupId ||
+          null,
+        objective: originalDemoPlot.objective || null,
+      };
+    }
     demoPlotId = null;
-  } else if (isType7B || isType10) {
-    // For TYPE_7B (ติดตามแปลง) or TYPE_10 (Field Day): keep existing demoPlotId reference
+  } else if (isType7B) {
+    if (originalPlan.type7b) {
+      type7bData = {
+        sourceActivityPlanId: originalPlan.type7b.sourceActivityPlanId,
+        demoPlotId: originalPlan.type7b.plots?.[0]?.demoPlotId || null,
+        notes: originalPlan.type7b.notes || null,
+        plots: (originalPlan.type7b.plots || []).map((pl) => ({
+          demoPlotId: pl.demoPlotId,
+          plotName: pl.plotName || "",
+          farmerName: pl.ownerName || null,
+          farmerPhone: null,
+          dealerStoreName: pl.dealerName || null,
+          cropCategory: null,
+          cropName: pl.cropName || null,
+          areaRai: pl.areaRai ? Number(pl.areaRai) : null,
+          treeCount: pl.treeCount ?? null,
+          location: null,
+          province: pl.province || null,
+          district: pl.district || null,
+        })),
+        products: (originalPlan.type7b.products || []).map((pr) => ({
+          productId: pr.productId,
+          quantity: Number(pr.quantity) || 1,
+          notes: null,
+        })),
+      };
+    }
+    demoPlotId =
+      originalPlan.type7b?.plots?.[0]?.demoPlotId ||
+      (originalPlan.demoPlotVisits &&
+        originalPlan.demoPlotVisits[0]?.demoPlotId) ||
+      null;
+  } else if (isType10) {
     demoPlotId =
       (originalPlan.demoPlotVisits &&
         originalPlan.demoPlotVisits[0]?.demoPlotId) ||
       null;
   } else {
-    // For TYPE_13 (ฉีดแปลงแฮตแทค) and other types: demo plots are managed separately via type13Plots
     demoPlotId = null;
   }
 
@@ -548,6 +722,8 @@ export async function duplicateActivityPlanUseCase(
       : null,
     demoPlotId,
     demoPlotData,
+    type7aPlots,
+    type7bData,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -638,6 +814,7 @@ export async function updateActivityPlanUseCase(
     normalized.workTypeCodes,
     normalized.demoPlotData,
     normalized.planProducts,
+    normalized.type7aPlots,
   );
   if (!type7aValidation.valid) {
     return { success: false as const, error: type7aValidation.error };
@@ -675,6 +852,8 @@ export async function updateActivityPlanUseCase(
       ? normalized.demoPlotId
       : null,
     demoPlotData: normalized.demoPlotData,
+    type7aPlots: normalized.type7aPlots,
+    type7bData: normalized.type7bData,
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,

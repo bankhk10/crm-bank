@@ -185,6 +185,65 @@ export async function findActivityPlanById(id: string) {
           },
         },
       },
+      type7aPlots: {
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              customerType: true,
+              province: true,
+              district: true,
+            },
+          },
+          demoPlot: true,
+          products: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      type7b: {
+        include: {
+          sourceActivityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+              endDate: true,
+            },
+          },
+          plots: {
+            include: {
+              demoPlot: true,
+            },
+          },
+          products: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
+              },
+            },
+          },
+        },
+      },
       marketingItems: {
         orderBy: { createdAt: "asc" },
       },
@@ -753,6 +812,92 @@ export type CreateActivityPlanInput = {
       }>;
     }>;
   };
+  type7aPlots?: Array<{
+    id?: string;
+    demoPlotId?: string | null;
+    plotName?: string | null;
+    name?: string | null;
+    storeId?: string | null;
+    ownerName?: string | null;
+    farmerName?: string | null;
+    farmerPhone?: string | null;
+    province?: string | null;
+    district?: string | null;
+    subdistrict?: string | null;
+    latitude?: number | Prisma.Decimal | null;
+    longitude?: number | Prisma.Decimal | null;
+    cropCategory?: string | null;
+    cropName?: string | null;
+    customCropName?: string | null;
+    areaRai?: number | null;
+    treeCount?: number | null;
+    plantingDate?: Date | string | null;
+    initialSprayDate?: Date | string | null;
+    nextSprayDate?: Date | string | null;
+    objective?: string | null;
+    notes?: string | null;
+    categoryId?: string | null;
+    products?: Array<{
+      productId: string;
+      productName?: string | null;
+      applicationRate?: string | null;
+      quantity?: number | null;
+      targetQuantity?: number | null;
+      unit?: string | null;
+      notes?: string | null;
+    }>;
+  }>;
+  type7bData?: {
+    sourceActivityPlanId?: string | null;
+    demoPlotId?: string | null;
+    storeId?: string | null;
+    dealerName?: string | null;
+    farmerName?: string | null;
+    farmerPhone?: string | null;
+    province?: string | null;
+    district?: string | null;
+    cropCategory?: string | null;
+    cropName?: string | null;
+    areaRai?: number | null;
+    treeCount?: number | null;
+    sprayRound?: number | null;
+    sprayDate?: Date | string | null;
+    daysSinceStart?: number | null;
+    cropAgeValue?: number | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    cropCondition?: string | null;
+    sprayMethod?: string | null;
+    sprayEquipment?: string | null;
+    otherEquipment?: string | null;
+    notes?: string | null;
+    plots?: Array<{
+      demoPlotId?: string | null;
+      plotName?: string | null;
+      cropName?: string | null;
+      ownerName?: string | null;
+      farmerName?: string | null;
+      province?: string | null;
+      district?: string | null;
+      areaRai?: number | null;
+      treeCount?: number | null;
+      dealerName?: string | null;
+      dealerStoreName?: string | null;
+      latitude?: number | Prisma.Decimal | null;
+      longitude?: number | Prisma.Decimal | null;
+      notes?: string | null;
+    }>;
+    products?: Array<{
+      productId: string;
+      productName?: string | null;
+      plannedRate?: string | null;
+      actualRate?: string | null;
+      quantity?: number | null;
+      quantityUsed?: number | null;
+      unit?: string | null;
+      notes?: string | null;
+    }>;
+  } | null;
   actualData?: any;
 };
 
@@ -1240,6 +1385,187 @@ export async function createActivityPlan(
           }
         }
 
+        // 1.8.1 TYPE_7A ("ทำแปลงสาธิตใหม่"): ActivityPlanType7a + ActivityPlanType7aProduct
+        if (input.type7aPlots && input.type7aPlots.length > 0) {
+          for (let i = 0; i < input.type7aPlots.length; i++) {
+            const plotItem = input.type7aPlots[i];
+            let demoPlotId = plotItem.demoPlotId || null;
+
+            if (!demoPlotId) {
+              const code = await generateDemoPlotCode(
+                tx,
+                input.startDate ? new Date(input.startDate) : new Date(),
+                i,
+              );
+              const demoPlot = await tx.demoPlot.create({
+                data: {
+                  code,
+                  name: plotItem.name || plotItem.plotName || "แปลงสาธิต",
+                  ownerName: plotItem.ownerName || plotItem.farmerName || "",
+                  customerId: plotItem.storeId || null,
+                  employeeId: input.employeeId,
+                  province: plotItem.province || null,
+                  district: plotItem.district || null,
+                  cropCategory: plotItem.cropCategory || "พืชทั่วไป",
+                  cropName: plotItem.cropName || "พืชทั่วไป",
+                  customCropName: plotItem.customCropName || null,
+                  areaRai:
+                    plotItem.areaRai != null
+                      ? new Prisma.Decimal(plotItem.areaRai)
+                      : null,
+                  treeCount: plotItem.treeCount || null,
+                  plantingDate: plotItem.plantingDate
+                    ? new Date(plotItem.plantingDate)
+                    : null,
+                  initialSprayDate: plotItem.initialSprayDate
+                    ? new Date(plotItem.initialSprayDate)
+                    : null,
+                  nextSprayDate: plotItem.nextSprayDate
+                    ? new Date(plotItem.nextSprayDate)
+                    : null,
+                  objective: plotItem.objective || null,
+                  notes: plotItem.notes || null,
+                  latitude:
+                    plotItem.latitude != null
+                      ? new Prisma.Decimal(Number(plotItem.latitude))
+                      : null,
+                  longitude:
+                    plotItem.longitude != null
+                      ? new Prisma.Decimal(Number(plotItem.longitude))
+                      : null,
+                  plotType: "GENERAL_DEMO",
+                  startDate: input.startDate,
+                  status: DemoPlotStatus.IN_PROGRESS,
+                },
+              });
+              demoPlotId = demoPlot.id;
+            }
+
+            const t7a = await tx.activityPlanType7a.create({
+              data: {
+                activityPlanId: plan.id,
+                demoPlotId,
+                plotName: plotItem.plotName || plotItem.name || "แปลงสาธิต",
+                storeId: plotItem.storeId || null,
+                ownerName: plotItem.ownerName || plotItem.farmerName || null,
+                province: plotItem.province || null,
+                district: plotItem.district || null,
+                cropCategory: plotItem.cropCategory || "พืชทั่วไป",
+                cropName: plotItem.cropName || "พืชทั่วไป",
+                customCropName: plotItem.customCropName || null,
+                areaRai:
+                  plotItem.areaRai != null
+                    ? new Prisma.Decimal(plotItem.areaRai)
+                    : null,
+                treeCount: plotItem.treeCount || null,
+                objective: plotItem.objective || "",
+                categoryId: plotItem.categoryId || null,
+                hasProducts: Boolean(
+                  plotItem.products && plotItem.products.length > 0,
+                ),
+              },
+            });
+
+            if (plotItem.products && plotItem.products.length > 0) {
+              await tx.activityPlanType7aProduct.createMany({
+                data: plotItem.products.map((p, idx) => ({
+                  type7aId: t7a.id,
+                  productId: p.productId,
+                  productName: p.productName || null,
+                  quantity:
+                    p.quantity != null
+                      ? new Prisma.Decimal(p.quantity)
+                      : p.targetQuantity != null
+                        ? new Prisma.Decimal(p.targetQuantity)
+                        : new Prisma.Decimal(1),
+                  unit: p.unit || null,
+                  sortOrder: idx,
+                })),
+              });
+            }
+
+            if (demoPlotId) {
+              await tx.demoPlotVisit.create({
+                data: {
+                  demoPlotId,
+                  activityPlanId: plan.id,
+                  workTypeCode: "TYPE_7A",
+                  visitNumber: 1,
+                  visitDate: input.startDate,
+                },
+              });
+            }
+          }
+        }
+
+        // 1.8.2 TYPE_7B ("ติดตามแปลงสาธิต"): ActivityPlanType7b + ActivityPlanType7bPlot + ActivityPlanType7bProduct
+        if (input.type7bData) {
+          const t7b = input.type7bData;
+          const created7b = await tx.activityPlanType7b.create({
+            data: {
+              activityPlanId: plan.id,
+              sourceActivityPlanId: t7b.sourceActivityPlanId || null,
+              hasProducts: Boolean(t7b.products && t7b.products.length > 0),
+              notes: t7b.notes || null,
+            },
+          });
+
+          if (t7b.plots && t7b.plots.length > 0) {
+            await tx.activityPlanType7bPlot.createMany({
+              data: t7b.plots
+                .filter((p) => Boolean(p.demoPlotId))
+                .map((plot) => ({
+                  type7bId: created7b.id,
+                  demoPlotId: plot.demoPlotId!,
+                  plotName: plot.plotName || null,
+                  cropName: plot.cropName || null,
+                  ownerName: plot.farmerName || plot.ownerName || null,
+                  province: plot.province || null,
+                  district: plot.district || null,
+                  areaRai:
+                    plot.areaRai != null
+                      ? new Prisma.Decimal(plot.areaRai)
+                      : null,
+                  treeCount: plot.treeCount || null,
+                  dealerName: plot.dealerStoreName || plot.dealerName || null,
+                })),
+            });
+
+            for (const p of t7b.plots) {
+              if (p.demoPlotId) {
+                await tx.demoPlotVisit.create({
+                  data: {
+                    demoPlotId: p.demoPlotId,
+                    activityPlanId: plan.id,
+                    workTypeCode: "TYPE_7B",
+                    visitNumber: t7b.sprayRound || 1,
+                    visitDate: input.startDate,
+                    daysSinceStart: t7b.daysSinceStart || 0,
+                  },
+                });
+              }
+            }
+          }
+
+          if (t7b.products && t7b.products.length > 0) {
+            await tx.activityPlanType7bProduct.createMany({
+              data: t7b.products.map((p, idx) => ({
+                type7bId: created7b.id,
+                productId: p.productId,
+                productName: p.productName || null,
+                quantity:
+                  p.quantity != null
+                    ? new Prisma.Decimal(p.quantity)
+                    : p.quantityUsed != null
+                      ? new Prisma.Decimal(p.quantityUsed)
+                      : new Prisma.Decimal(1),
+                unit: p.unit || null,
+                sortOrder: idx,
+              })),
+            });
+          }
+        }
+
         // 3. Create Helpers
         if (input.helperEmployeeIds && input.helperEmployeeIds.length > 0) {
           const helperEmployees = await tx.employee.findMany({
@@ -1354,6 +1680,8 @@ export async function updateActivityPlan(
     delete updateFields.demoPlotId;
     delete updateFields.demoPlotIds;
     delete updateFields.demoPlotData;
+    delete updateFields.type7aPlots;
+    delete updateFields.type7bData;
 
     // Build update dataset
     const dataToUpdate: Prisma.ActivityPlanUncheckedUpdateInput = {};
@@ -1932,6 +2260,240 @@ export async function updateActivityPlan(
               }
             }
           }
+        }
+      }
+    }
+
+    // 1.9.1 Sync TYPE_7A Data
+    if (planData.type7aPlots !== undefined) {
+      await tx.activityPlanType7a.deleteMany({
+        where: { activityPlanId: id },
+      });
+
+      if (planData.type7aPlots && planData.type7aPlots.length > 0) {
+        for (let i = 0; i < planData.type7aPlots.length; i++) {
+          const plotItem = planData.type7aPlots[i];
+          let demoPlotId = plotItem.demoPlotId || null;
+
+          if (!demoPlotId) {
+            const code = await generateDemoPlotCode(
+              tx,
+              updatedPlan.startDate
+                ? new Date(updatedPlan.startDate)
+                : new Date(),
+              i,
+            );
+            const demoPlot = await tx.demoPlot.create({
+              data: {
+                code,
+                name: plotItem.name || plotItem.plotName || "แปลงสาธิต",
+                ownerName: plotItem.ownerName || plotItem.farmerName || "",
+                customerId: plotItem.storeId || null,
+                employeeId: updatedPlan.employeeId,
+                province: plotItem.province || null,
+                district: plotItem.district || null,
+                cropCategory: plotItem.cropCategory || "พืชทั่วไป",
+                cropName: plotItem.cropName || "พืชทั่วไป",
+                customCropName: plotItem.customCropName || null,
+                areaRai:
+                  plotItem.areaRai != null
+                    ? new Prisma.Decimal(plotItem.areaRai)
+                    : null,
+                treeCount: plotItem.treeCount || null,
+                plantingDate: plotItem.plantingDate
+                  ? new Date(plotItem.plantingDate)
+                  : null,
+                initialSprayDate: plotItem.initialSprayDate
+                  ? new Date(plotItem.initialSprayDate)
+                  : null,
+                nextSprayDate: plotItem.nextSprayDate
+                  ? new Date(plotItem.nextSprayDate)
+                  : null,
+                objective: plotItem.objective || null,
+                notes: plotItem.notes || null,
+                latitude:
+                  plotItem.latitude != null
+                    ? new Prisma.Decimal(Number(plotItem.latitude))
+                    : null,
+                longitude:
+                  plotItem.longitude != null
+                    ? new Prisma.Decimal(Number(plotItem.longitude))
+                    : null,
+                plotType: "GENERAL_DEMO",
+                startDate: updatedPlan.startDate,
+                status: DemoPlotStatus.IN_PROGRESS,
+              },
+            });
+            demoPlotId = demoPlot.id;
+          } else {
+            await tx.demoPlot.update({
+              where: { id: demoPlotId },
+              data: {
+                name: plotItem.name || plotItem.plotName || undefined,
+                ownerName: plotItem.ownerName || plotItem.farmerName || undefined,
+                customerId: plotItem.storeId || undefined,
+                province: plotItem.province || undefined,
+                district: plotItem.district || undefined,
+                cropCategory: plotItem.cropCategory || undefined,
+                cropName: plotItem.cropName || undefined,
+                customCropName: plotItem.customCropName || undefined,
+                areaRai:
+                  plotItem.areaRai != null
+                    ? new Prisma.Decimal(plotItem.areaRai)
+                    : undefined,
+                treeCount: plotItem.treeCount || undefined,
+                objective: plotItem.objective || undefined,
+                notes: plotItem.notes || null,
+              },
+            });
+          }
+
+          const t7a = await tx.activityPlanType7a.create({
+            data: {
+              activityPlanId: id,
+              demoPlotId,
+              plotName: plotItem.plotName || plotItem.name || "แปลงสาธิต",
+              storeId: plotItem.storeId || null,
+              ownerName: plotItem.ownerName || plotItem.farmerName || null,
+              province: plotItem.province || null,
+              district: plotItem.district || null,
+              cropCategory: plotItem.cropCategory || "พืชทั่วไป",
+              cropName: plotItem.cropName || "พืชทั่วไป",
+              customCropName: plotItem.customCropName || null,
+              areaRai:
+                plotItem.areaRai != null
+                  ? new Prisma.Decimal(plotItem.areaRai)
+                  : null,
+              treeCount: plotItem.treeCount || null,
+              objective: plotItem.objective || "",
+              categoryId: plotItem.categoryId || null,
+              hasProducts: Boolean(
+                plotItem.products && plotItem.products.length > 0,
+              ),
+            },
+          });
+
+          if (plotItem.products && plotItem.products.length > 0) {
+            await tx.activityPlanType7aProduct.createMany({
+              data: plotItem.products.map((p, idx) => ({
+                type7aId: t7a.id,
+                productId: p.productId,
+                productName: p.productName || null,
+                quantity:
+                  p.quantity != null
+                    ? new Prisma.Decimal(p.quantity)
+                    : p.targetQuantity != null
+                      ? new Prisma.Decimal(p.targetQuantity)
+                      : new Prisma.Decimal(1),
+                unit: p.unit || null,
+                sortOrder: idx,
+              })),
+            });
+          }
+
+          if (demoPlotId) {
+            const existingVisit = await tx.demoPlotVisit.findFirst({
+              where: {
+                activityPlanId: id,
+                demoPlotId,
+                workTypeCode: "TYPE_7A",
+              },
+            });
+            if (!existingVisit) {
+              await tx.demoPlotVisit.create({
+                data: {
+                  demoPlotId,
+                  activityPlanId: id,
+                  workTypeCode: "TYPE_7A",
+                  visitNumber: 1,
+                  visitDate: updatedPlan.startDate,
+                },
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // 1.9.2 Sync TYPE_7B Data
+    if (planData.type7bData !== undefined) {
+      await tx.activityPlanType7b.deleteMany({
+        where: { activityPlanId: id },
+      });
+
+      if (planData.type7bData) {
+        const t7b = planData.type7bData;
+        const created7b = await tx.activityPlanType7b.create({
+          data: {
+            activityPlanId: id,
+            sourceActivityPlanId: t7b.sourceActivityPlanId || null,
+            hasProducts: Boolean(t7b.products && t7b.products.length > 0),
+            notes: t7b.notes || null,
+          },
+        });
+
+        if (t7b.plots && t7b.plots.length > 0) {
+          await tx.activityPlanType7bPlot.createMany({
+            data: t7b.plots
+              .filter((p) => Boolean(p.demoPlotId))
+              .map((plot) => ({
+                type7bId: created7b.id,
+                demoPlotId: plot.demoPlotId!,
+                plotName: plot.plotName || null,
+                cropName: plot.cropName || null,
+                ownerName: plot.farmerName || plot.ownerName || null,
+                province: plot.province || null,
+                district: plot.district || null,
+                areaRai:
+                  plot.areaRai != null
+                    ? new Prisma.Decimal(plot.areaRai)
+                    : null,
+                treeCount: plot.treeCount || null,
+                dealerName: plot.dealerStoreName || plot.dealerName || null,
+              })),
+          });
+
+          for (const p of t7b.plots) {
+            if (p.demoPlotId) {
+              const existingVisit = await tx.demoPlotVisit.findFirst({
+                where: {
+                  activityPlanId: id,
+                  demoPlotId: p.demoPlotId,
+                  workTypeCode: "TYPE_7B",
+                },
+              });
+              if (!existingVisit) {
+                await tx.demoPlotVisit.create({
+                  data: {
+                    demoPlotId: p.demoPlotId,
+                    activityPlanId: id,
+                    workTypeCode: "TYPE_7B",
+                    visitNumber: t7b.sprayRound || 1,
+                    visitDate: updatedPlan.startDate,
+                    daysSinceStart: t7b.daysSinceStart || 0,
+                  },
+                });
+              }
+            }
+          }
+        }
+
+        if (t7b.products && t7b.products.length > 0) {
+          await tx.activityPlanType7bProduct.createMany({
+            data: t7b.products.map((p, idx) => ({
+              type7bId: created7b.id,
+              productId: p.productId,
+              productName: p.productName || null,
+              quantity:
+                p.quantity != null
+                  ? new Prisma.Decimal(p.quantity)
+                  : p.quantityUsed != null
+                    ? new Prisma.Decimal(p.quantityUsed)
+                    : new Prisma.Decimal(1),
+              unit: p.unit || null,
+              sortOrder: idx,
+            })),
+          });
         }
       }
     }
