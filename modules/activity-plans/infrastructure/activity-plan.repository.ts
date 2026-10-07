@@ -3435,48 +3435,114 @@ export async function upsertActivityResult(
       const primaryProduct = validDemoProducts[0];
       if (existingPlot) {
         plotId = existingPlot.id;
+
+        // Guards: Do not overwrite existing plot data with empty, null, or undefined values from actualData
+        const resolvedCropCategory =
+          demoData.cropCategory &&
+          demoData.cropCategory.trim() !== "" &&
+          demoData.cropCategory !== "พืชทั่วไป"
+            ? demoData.cropCategory.trim()
+            : existingPlot.cropCategory || null;
+
+        const resolvedCropName =
+          demoData.cropName &&
+          demoData.cropName.trim() !== "" &&
+          demoData.cropName !== "พืชทั่วไป"
+            ? demoData.cropName.trim()
+            : existingPlot.cropName || null;
+
+        const resolvedCustomCropName =
+          demoData.customCropName && demoData.customCropName.trim() !== ""
+            ? demoData.customCropName.trim()
+            : existingPlot.customCropName ?? null;
+
+        let resolvedAreaRai = existingPlot.areaRai ?? null;
+        if (demoData.areaRai != null && demoData.areaRai !== "") {
+          const num = Number(demoData.areaRai);
+          if (!isNaN(num) && num > 0) {
+            resolvedAreaRai = new Prisma.Decimal(num);
+          } else if (existingPlot.areaRai == null && !isNaN(num)) {
+            resolvedAreaRai = new Prisma.Decimal(num);
+          }
+        }
+
+        let resolvedTreeCount = existingPlot.treeCount ?? null;
+        if (demoData.treeCount != null && demoData.treeCount !== "") {
+          const num = Number(demoData.treeCount);
+          if (!isNaN(num) && num > 0) {
+            resolvedTreeCount = num;
+          } else if (existingPlot.treeCount == null && !isNaN(num)) {
+            resolvedTreeCount = num;
+          }
+        }
+
+        const resolvedPlotName =
+          demoData.plotName && demoData.plotName.trim() !== ""
+            ? demoData.plotName.trim()
+            : existingPlot.name;
+
+        const resolvedOwnerName =
+          demoData.ownerName && demoData.ownerName.trim() !== ""
+            ? demoData.ownerName.trim()
+            : existingPlot.ownerName;
+
+        const resolvedProvince =
+          demoData.province && demoData.province.trim() !== ""
+            ? demoData.province.trim()
+            : existingPlot.province;
+
+        const resolvedDistrict =
+          demoData.district && demoData.district.trim() !== ""
+            ? demoData.district.trim()
+            : existingPlot.district ?? null;
+
+        const resolvedObjective =
+          demoData.objective && demoData.objective.trim() !== ""
+            ? demoData.objective.trim()
+            : existingPlot.objective || null;
+
+        const resolvedExperimentDetail =
+          demoData.experimentDetail && demoData.experimentDetail.trim() !== ""
+            ? demoData.experimentDetail.trim()
+            : existingPlot.experimentDetail || null;
+
         await tx.demoPlot.update({
           where: { id: plotId },
           data: {
-            name: demoData.plotName,
-            ownerName: demoData.ownerName,
-            ownerPhone: demoData.ownerPhone ?? null,
-            ownerProvince: demoData.ownerProvince ?? null,
-            ownerDistrict: demoData.ownerDistrict ?? null,
-            isUnregisteredFarmer: demoData.isUnregisteredFarmer,
-            farmerCustomerId: demoData.farmerCustomerId ?? null,
-            province: demoData.province,
-            district: demoData.district ?? null,
-            latitude: new Prisma.Decimal(demoData.latitude),
-            longitude: new Prisma.Decimal(demoData.longitude),
-            cropCategory:
-              demoData.cropCategory && demoData.cropCategory !== "พืชทั่วไป"
-                ? demoData.cropCategory
-                : existingPlot.cropCategory || demoData.cropCategory,
-            cropName:
-              demoData.cropName && demoData.cropName !== "พืชทั่วไป"
-                ? demoData.cropName
-                : existingPlot.cropName || demoData.cropName,
-            customCropName:
-              demoData.customCropName ?? existingPlot.customCropName ?? null,
-            areaRai:
-              demoData.areaRai != null
-                ? new Prisma.Decimal(demoData.areaRai)
-                : existingPlot.areaRai ?? null,
-            treeCount: demoData.treeCount ?? existingPlot.treeCount ?? null,
-            objective: demoData.objective || existingPlot.objective || null,
-            experimentDetail:
-              demoData.experimentDetail || existingPlot.experimentDetail || null,
-            mainCropInfo: demoData.mainCropInfo ?? null,
-            plantingDate: demoData.plantingDate ?? null,
-            initialSprayDate: demoData.initialSprayDate ?? null,
-            nextSprayDate: demoData.nextSprayDate ?? null,
-            sprayMethod: demoData.sprayMethod,
-            hasExternalChemicals: demoData.hasExternalChemicals,
-            usageMethod: demoData.usageMethod ?? null,
-            notes: demoData.notes ?? null,
-            primaryProductName: primaryProduct?.productName || null,
-            primaryProductId: primaryProduct?.productId || null,
+            name: resolvedPlotName,
+            ownerName: resolvedOwnerName,
+            ownerPhone: demoData.ownerPhone ?? existingPlot.ownerPhone ?? null,
+            ownerProvince: demoData.ownerProvince ?? existingPlot.ownerProvince ?? null,
+            ownerDistrict: demoData.ownerDistrict ?? existingPlot.ownerDistrict ?? null,
+            isUnregisteredFarmer: demoData.isUnregisteredFarmer ?? existingPlot.isUnregisteredFarmer,
+            farmerCustomerId: demoData.farmerCustomerId ?? existingPlot.farmerCustomerId ?? null,
+            province: resolvedProvince,
+            district: resolvedDistrict,
+            latitude:
+              demoData.latitude != null && !isNaN(Number(demoData.latitude)) && Number(demoData.latitude) !== 0
+                ? new Prisma.Decimal(demoData.latitude)
+                : existingPlot.latitude ?? new Prisma.Decimal(demoData.latitude ?? 0),
+            longitude:
+              demoData.longitude != null && !isNaN(Number(demoData.longitude)) && Number(demoData.longitude) !== 0
+                ? new Prisma.Decimal(demoData.longitude)
+                : existingPlot.longitude ?? new Prisma.Decimal(demoData.longitude ?? 0),
+            cropCategory: resolvedCropCategory,
+            cropName: resolvedCropName,
+            customCropName: resolvedCustomCropName,
+            areaRai: resolvedAreaRai,
+            treeCount: resolvedTreeCount,
+            objective: resolvedObjective,
+            experimentDetail: resolvedExperimentDetail,
+            mainCropInfo: demoData.mainCropInfo ?? existingPlot.mainCropInfo ?? null,
+            plantingDate: demoData.plantingDate ?? existingPlot.plantingDate ?? null,
+            initialSprayDate: demoData.initialSprayDate ?? existingPlot.initialSprayDate ?? null,
+            nextSprayDate: demoData.nextSprayDate ?? existingPlot.nextSprayDate ?? null,
+            sprayMethod: demoData.sprayMethod ?? existingPlot.sprayMethod,
+            hasExternalChemicals: demoData.hasExternalChemicals ?? existingPlot.hasExternalChemicals,
+            usageMethod: demoData.usageMethod ?? existingPlot.usageMethod ?? null,
+            notes: demoData.notes ?? existingPlot.notes ?? null,
+            primaryProductName: primaryProduct?.productName || existingPlot.primaryProductName || null,
+            primaryProductId: primaryProduct?.productId || existingPlot.primaryProductId || null,
           },
         });
       } else {

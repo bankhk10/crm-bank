@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { isFieldDayItem, getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
@@ -45,6 +45,218 @@ export interface UseType7aFormResult {
   };
 }
 
+function parseInitialType7aItems(
+  initial: any,
+  initDetails: any,
+  initialTypes: string[] = [],
+  selectedWorkTypes: string[] = [],
+  parentStartDate?: string,
+): Type7DemoPlotItem[] {
+  const isInitialType7A =
+    initialTypes.some((t) => getWorkTypeCode(t) === "TYPE_7A") ||
+    (initial as any)?.workTypes?.some(
+      (wt: any) =>
+        getWorkTypeCode(wt) === "TYPE_7A" ||
+        wt?.activityType?.code === "TYPE_7A" ||
+        wt === "TYPE_7A",
+    ) ||
+    selectedWorkTypes.some((t) => getWorkTypeCode(t) === "TYPE_7A");
+
+  const dp =
+    (initial as any)?.demoPlot ||
+    (initial as any)?.demoPlotVisits?.[0]?.demoPlot ||
+    (initial as any)?.demoPlotData;
+  const fallbackPlotId =
+    dp?.id ||
+    (initial as any)?.demoPlotId ||
+    (initial as any)?.demoPlotVisits?.[0]?.demoPlotId ||
+    "";
+
+  if (isInitialType7A && (dp || fallbackPlotId)) {
+    const type7aProds: Type7DemoProductLine[] = ((initial as any)?.products || [])
+      .filter(
+        (p: any) =>
+          p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
+      )
+      .map((p: any, idx: number) => ({
+        id: p.id || String(idx + 1),
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        quantity: p.targetQuantity || 1,
+        unit: p.product?.unit || "",
+      }));
+
+    const has7aWithdrawal = isInitialType7A && type7aProds.length > 0;
+
+    const derivedCategoryId =
+      ((initial as any)?.products || []).find(
+        (p: any) =>
+          p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
+      )?.product?.categoryId ||
+      dp?.categoryId ||
+      dp?.chemicalGroupId ||
+      "";
+
+    const cropCategory =
+      dp?.cropCategory && dp.cropCategory !== "พืชทั่วไป"
+        ? dp.cropCategory
+        : (initial as any)?.cropCategory ||
+          (initial as any)?.demoPlotData?.cropCategory ||
+          dp?.cropCategory ||
+          "";
+
+    const cropName =
+      dp?.cropName && dp.cropName !== "พืชทั่วไป"
+        ? dp.cropName
+        : (initial as any)?.cropName ||
+          (initial as any)?.demoPlotData?.cropName ||
+          dp?.cropName ||
+          "";
+
+    const customCropName =
+      dp?.customCropName ||
+      (initial as any)?.customCropName ||
+      (initial as any)?.demoPlotData?.customCropName ||
+      "";
+
+    const areaRai =
+      dp?.areaRai != null
+        ? Number(dp.areaRai)
+        : (initial as any)?.areaRai != null
+          ? Number((initial as any).areaRai)
+          : (initial as any)?.demoPlotData?.areaRai != null
+            ? Number((initial as any).demoPlotData.areaRai)
+            : 0;
+
+    const treeCount =
+      dp?.treeCount != null
+        ? Number(dp.treeCount)
+        : (initial as any)?.treeCount != null
+          ? Number((initial as any).treeCount)
+          : (initial as any)?.demoPlotData?.treeCount != null
+            ? Number((initial as any).demoPlotData.treeCount)
+            : 0;
+
+    return [
+      {
+        id: fallbackPlotId || "1",
+        plotActivityType: "CREATE",
+        demoPlotId: fallbackPlotId,
+        hasProductWithdrawal: has7aWithdrawal,
+        plotName: dp?.name || (initial as any)?.demoPlotData?.name || "",
+        storeId: dp?.customerId || (initial as any)?.demoPlotData?.customerId || "",
+        ownerName:
+          dp?.customer?.name ||
+          dp?.ownerName ||
+          (initial as any)?.demoPlotData?.ownerName ||
+          "",
+        cropCategory,
+        cropName,
+        customCropName,
+        areaRai,
+        treeCount,
+        province:
+          dp?.province ||
+          dp?.customer?.province ||
+          (initial as any)?.province ||
+          (initial as any)?.demoPlotData?.province ||
+          "",
+        district:
+          dp?.district ||
+          dp?.customer?.district ||
+          (initial as any)?.district ||
+          (initial as any)?.demoPlotData?.district ||
+          "",
+        categoryId: derivedCategoryId,
+        chemicalGroupId: derivedCategoryId,
+        objective:
+          dp?.objective ||
+          (initial as any)?.objective ||
+          (initial as any)?.demoPlotData?.objective ||
+          (initial as any)?.description ||
+          "",
+        demoProducts:
+          type7aProds.length > 0
+            ? type7aProds
+            : [
+                {
+                  id: "1",
+                  productId: "",
+                  productName: "",
+                  quantity: 1,
+                  unit: "",
+                },
+              ],
+        startDate: format(
+          new Date(dp?.startDate || (initial as any)?.startDate || new Date()),
+          "yyyy-MM-dd",
+        ),
+        followUpDate: format(new Date(), "yyyy-MM-dd"),
+        detail:
+          dp?.objective ||
+          (initial as any)?.objective ||
+          (initial as any)?.demoPlotData?.objective ||
+          (initial as any)?.description ||
+          "",
+      },
+    ];
+  }
+
+  if (
+    initDetails?.type7aItems &&
+    Array.isArray(initDetails.type7aItems) &&
+    initDetails.type7aItems.length > 0
+  ) {
+    return initDetails.type7aItems;
+  }
+
+  if (
+    initDetails?.type7Items &&
+    Array.isArray(initDetails.type7Items) &&
+    initDetails.type7Items.length > 0
+  ) {
+    const items = initDetails.type7Items.filter(
+      (item: any) => item.plotActivityType === "CREATE" || !item.existingPlotId,
+    );
+    if (items.length > 0) return items;
+  }
+
+  return [
+    {
+      id: "1",
+      plotActivityType: "CREATE",
+      hasProductWithdrawal: false,
+      plotName: "",
+      storeId: "",
+      ownerName: "",
+      province: "",
+      district: "",
+      categoryId: "",
+      chemicalGroupId: "",
+      productName: "",
+      cropCategory: "",
+      cropName: "",
+      customCropName: "",
+      areaRai: 0,
+      treeCount: 0,
+      startDate: format(new Date(), "yyyy-MM-dd"),
+      followUpDate: parentStartDate || format(new Date(), "yyyy-MM-dd"),
+      objective: "",
+      demoProducts: [
+        {
+          id: "1",
+          productId: "",
+          productName: "",
+          quantity: 1,
+          unit: "",
+        },
+      ],
+      plotsCount: "",
+      detail: "",
+    },
+  ];
+}
+
 export function useType7aForm({
   initial = {},
   initDetails,
@@ -55,163 +267,77 @@ export function useType7aForm({
   selectedWorkTypes = [],
   parentStartDate,
 }: UseType7aFormOptions): UseType7aFormResult {
-  const [type7aItems, setType7aItems] = useState<Type7DemoPlotItem[]>(() => {
-    const isInitialType7A =
+  const [type7aItems, setType7aItems] = useState<Type7DemoPlotItem[]>(() =>
+    parseInitialType7aItems(
+      initial,
+      initDetails,
+      initialTypes,
+      selectedWorkTypes,
+      parentStartDate,
+    ),
+  );
+
+  const isUserEditedRef = useRef(false);
+  const hydratedKeyRef = useRef<string>("");
+  const currentPlanIdRef = useRef<string | undefined>((initial as any)?.id);
+
+  if (currentPlanIdRef.current !== (initial as any)?.id) {
+    currentPlanIdRef.current = (initial as any)?.id;
+    isUserEditedRef.current = false;
+    hydratedKeyRef.current = "";
+  }
+
+  useEffect(() => {
+    if (isUserEditedRef.current) return;
+
+    const dp =
+      (initial as any)?.demoPlot ||
+      (initial as any)?.demoPlotVisits?.[0]?.demoPlot ||
+      (initial as any)?.demoPlotData;
+    const fallbackPlotId =
+      dp?.id ||
+      (initial as any)?.demoPlotId ||
+      (initial as any)?.demoPlotVisits?.[0]?.demoPlotId ||
+      "";
+
+    const isType7A =
       initialTypes.some((t) => getWorkTypeCode(t) === "TYPE_7A") ||
       (initial as any)?.workTypes?.some(
         (wt: any) =>
           getWorkTypeCode(wt) === "TYPE_7A" ||
           wt?.activityType?.code === "TYPE_7A" ||
           wt === "TYPE_7A",
-      );
+      ) ||
+      selectedWorkTypes.some((t) => getWorkTypeCode(t) === "TYPE_7A");
 
-    if (isInitialType7A && ((initial as any)?.demoPlot || (initial as any)?.demoPlotId)) {
-      const dp = (initial as any)?.demoPlot;
-      const fallbackPlotId = dp?.id || (initial as any)?.demoPlotId || "";
-
-      const type7aProds: Type7DemoProductLine[] = ((initial as any)?.products || [])
-        .filter(
-          (p: any) =>
-            p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
-        )
-        .map((p: any, idx: number) => ({
-          id: p.id || String(idx + 1),
-          productId: p.productId,
-          productName: p.productName || p.product?.name || "",
-          quantity: p.targetQuantity || 1,
-          unit: p.product?.unit || "",
-        }));
-
-      const has7aWithdrawal = isInitialType7A && type7aProds.length > 0;
-
-      const derivedCategoryId =
-        ((initial as any)?.products || []).find(
-          (p: any) =>
-            p.workTypeCode === "TYPE_7A" || p.workTypeCode === "ทำแปลงสาธิต",
-        )?.product?.categoryId ||
-        dp?.categoryId ||
-        dp?.chemicalGroupId ||
-        "";
-
-      return [
-        {
-          id: fallbackPlotId || "1",
-          plotActivityType: "CREATE",
-          demoPlotId: fallbackPlotId,
-          hasProductWithdrawal: has7aWithdrawal,
-          plotName: dp?.name || "",
-          storeId: dp?.customerId || "",
-          ownerName: dp?.customer?.name || dp?.ownerName || "",
-          cropCategory:
-            dp?.cropCategory && dp.cropCategory !== "พืชทั่วไป"
-              ? dp.cropCategory
-              : (initial as any)?.cropCategory ||
-                (initial as any)?.demoPlotData?.cropCategory ||
-                dp?.cropCategory ||
-                "",
-          cropName:
-            dp?.cropName && dp.cropName !== "พืชทั่วไป"
-              ? dp.cropName
-              : (initial as any)?.cropName ||
-                (initial as any)?.demoPlotData?.cropName ||
-                dp?.cropName ||
-                "",
-          customCropName: dp?.customCropName || (initial as any)?.customCropName || "",
-          areaRai: dp?.areaRai ? Number(dp.areaRai) : (initial as any)?.areaRai ? Number((initial as any).areaRai) : 0,
-          treeCount: dp?.treeCount ?? (initial as any)?.treeCount ?? 0,
-          province: dp?.province || dp?.customer?.province || (initial as any)?.province || "",
-          district: dp?.district || dp?.customer?.district || (initial as any)?.district || "",
-          categoryId: derivedCategoryId,
-          chemicalGroupId: derivedCategoryId,
-          objective:
-            dp?.objective ||
-            (initial as any)?.objective ||
-            (initial as any)?.demoPlotData?.objective ||
-            (initial as any)?.description ||
-            "",
-          demoProducts:
-            type7aProds.length > 0
-              ? type7aProds
-              : [
-                  {
-                    id: "1",
-                    productId: "",
-                    productName: "",
-                    quantity: 1,
-                    unit: "",
-                  },
-                ],
-          startDate: format(
-            new Date(dp?.startDate || new Date()),
-            "yyyy-MM-dd",
-          ),
-          followUpDate: format(new Date(), "yyyy-MM-dd"),
-          detail:
-            dp?.objective ||
-            (initial as any)?.objective ||
-            (initial as any)?.demoPlotData?.objective ||
-            (initial as any)?.description ||
-            "",
-        },
-      ];
-    }
-
+    if (!isType7A) return;
     if (
-      initDetails?.type7aItems &&
-      Array.isArray(initDetails.type7aItems) &&
-      initDetails.type7aItems.length > 0
+      !dp &&
+      !fallbackPlotId &&
+      !initDetails?.type7aItems &&
+      !initDetails?.type7Items
     ) {
-      return initDetails.type7aItems;
+      return;
     }
 
-    if (
-      initDetails?.type7Items &&
-      Array.isArray(initDetails.type7Items) &&
-      initDetails.type7Items.length > 0
-    ) {
-      const items = initDetails.type7Items.filter(
-        (item: any) => item.plotActivityType === "CREATE" || !item.existingPlotId,
-      );
-      if (items.length > 0) return items;
-    }
+    const hydrationKey = `${(initial as any)?.id || ""}_${fallbackPlotId}_${dp?.updatedAt || ""}_${dp?.cropName || ""}_${dp?.cropCategory || ""}_${dp?.areaRai ?? ""}_${dp?.treeCount ?? ""}`;
+    if (hydrationKey === hydratedKeyRef.current) return;
 
-    return [
-      {
-        id: "1",
-        plotActivityType: "CREATE",
-        hasProductWithdrawal: false,
-        plotName: "",
-        storeId: "",
-        ownerName: "",
-        province: "",
-        district: "",
-        categoryId: "",
-        chemicalGroupId: "",
-        productName: "",
-        cropCategory: "",
-        cropName: "",
-        customCropName: "",
-        areaRai: 0,
-        treeCount: 0,
-        startDate: format(new Date(), "yyyy-MM-dd"),
-        followUpDate: parentStartDate || format(new Date(), "yyyy-MM-dd"),
-        objective: "",
-        demoProducts: [
-          {
-            id: "1",
-            productId: "",
-            productName: "",
-            quantity: 1,
-            unit: "",
-          },
-        ],
-        plotsCount: "",
-        detail: "",
-      },
-    ];
-  });
+    hydratedKeyRef.current = hydrationKey;
+    const parsed = parseInitialType7aItems(
+      initial,
+      initDetails,
+      initialTypes,
+      selectedWorkTypes,
+      parentStartDate,
+    );
+    if (parsed && parsed.length > 0) {
+      setType7aItems(parsed);
+    }
+  }, [initial, initDetails, initialTypes, selectedWorkTypes, parentStartDate]);
 
   const addType7aRow = () => {
+    isUserEditedRef.current = true;
     setType7aItems((prev) => [
       ...prev,
       {
@@ -254,12 +380,14 @@ export function useType7aForm({
     field: keyof Type7DemoPlotItem,
     val: any,
   ) => {
+    isUserEditedRef.current = true;
     setType7aItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
     );
   };
 
   const deleteType7aRow = (id: string) => {
+    isUserEditedRef.current = true;
     setType7aItems((prev) => prev.filter((item) => item.id !== id));
   };
 

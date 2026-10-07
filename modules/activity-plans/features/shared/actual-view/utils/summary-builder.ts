@@ -1281,25 +1281,33 @@ export function buildResultSummary(
           ? input.t7CropCategory.trim()
           : (input.targets?.t7a as any)?.cropCategory ||
             (input.targets?.t7 as any)?.cropCategory ||
-            (input.t7CropCategory?.trim() ? input.t7CropCategory.trim() : "ผักและพืชล้มลุก"),
+            (input.targets?.demoPlot as any)?.cropCategory ||
+            input.t7CropCategory?.trim() ||
+            "",
       cropName:
         input.t7CropName?.trim() && input.t7CropName.trim() !== "พืชทั่วไป"
           ? input.t7CropName.trim()
           : (input.targets?.t7a as any)?.cropName ||
             (input.targets?.t7a as any)?.crop ||
             (input.targets?.t7 as any)?.cropName ||
+            (input.targets?.demoPlot as any)?.cropName ||
             input.t7CropName?.trim() ||
             "",
       customCropName:
         input.t7CustomCropName?.trim() ||
         (input.targets?.t7a as any)?.customCropName ||
+        (input.targets?.demoPlot as any)?.customCropName ||
         null,
       areaRai:
         parseCleanNumber(input.t7AreaRai) ??
-        parseCleanNumber((input.targets?.t7a as any)?.areaRai),
+        parseCleanNumber((input.targets?.t7a as any)?.areaRai) ??
+        parseCleanNumber((input.targets?.t7 as any)?.areaRai) ??
+        parseCleanNumber((input.targets?.demoPlot as any)?.areaRai),
       treeCount:
         parseCleanNumber(input.t7TreeCount) ??
-        parseCleanNumber((input.targets?.t7a as any)?.treeCount),
+        parseCleanNumber((input.targets?.t7a as any)?.treeCount) ??
+        parseCleanNumber((input.targets?.t7 as any)?.treeCount) ??
+        parseCleanNumber((input.targets?.demoPlot as any)?.treeCount),
       objective:
         input.t7PlotObjective?.trim() ||
         (input.targets?.t7a as any)?.objective ||

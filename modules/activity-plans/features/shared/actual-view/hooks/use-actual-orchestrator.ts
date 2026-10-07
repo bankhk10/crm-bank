@@ -344,6 +344,7 @@ export function useActualOrchestrator({
         planSummary,
         planWorkTypes,
         products: productsList,
+        targets: activeTargets,
         ...t1Payload,
         ...t2Payload,
         ...t3Payload,
