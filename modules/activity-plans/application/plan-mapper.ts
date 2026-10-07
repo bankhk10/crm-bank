@@ -41,6 +41,7 @@ export interface NormalizedPlanData {
   salesPromotionBudgetRequested: number | null;
   marketingBudgetRequested: number | null;
   totalBudgetRequested: number;
+  hasProductWithdrawal?: boolean;
   planStores: Array<{
     workTypeCode: string;
     visitPurpose?: "FARMER" | "STORE" | null;
@@ -310,6 +311,44 @@ export function normalizePlanInput(
     rawInput.salesPromotionBudgetRequested ?? promotionBudget,
   );
 
+  const hasWithdrawal =
+    Boolean(rawInput.hasProductWithdrawal) ||
+    Boolean(
+      rawInput.type7aPlots?.some(
+        (p: any) =>
+          (p.products && p.products.length > 0) ||
+          (p.demoProducts && p.demoProducts.length > 0),
+      ),
+    ) ||
+    Boolean(
+      products.some(
+        (p) =>
+          p.workTypeCode === "TYPE_7A" ||
+          p.workTypeCode === "TYPE_7B" ||
+          p.workTypeCode === "TYPE_13" ||
+          p.workTypeCode === "TYPE_14",
+      ),
+    ) ||
+    Boolean(
+      rawInput.type7bData?.hasProducts ||
+        (rawInput.type7bData?.products &&
+          rawInput.type7bData.products.length > 0),
+    ) ||
+    Boolean(
+      rawInput.type13Data?.hasProducts ||
+        (rawInput.type13Data?.products &&
+          rawInput.type13Data.products.length > 0) ||
+        (rawInput.type13Plots &&
+          rawInput.type13Plots.some(
+            (pl: any) => pl.products && pl.products.length > 0,
+          )),
+    ) ||
+    Boolean(
+      rawInput.type14Data?.hasProducts ||
+        (rawInput.type14Data?.products &&
+          rawInput.type14Data.products.length > 0),
+    );
+
   return {
     title: rawInput.title,
     planType: rawInput.planType,
@@ -330,6 +369,7 @@ export function normalizePlanInput(
     salesPromotionBudgetRequested:
       rawInput.salesPromotionBudgetRequested ?? promotionBudget,
     totalBudgetRequested: totalBudget,
+    hasProductWithdrawal: hasWithdrawal,
     planStores: stores,
     planProducts: products,
     marketingItems: marketing,

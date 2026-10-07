@@ -19,6 +19,17 @@ import {
   UserCheck,
   ChevronDown,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +42,7 @@ import {
 import {
   getActivityPlanAction,
   getDemoPlotHistoryAction,
+  requestCancelActivityPlanAction,
 } from "../../../server/actions";
 import { getWorkTypeCode } from "../../../constants";
 import {
@@ -160,6 +172,59 @@ export default function ActivityPlanDetailView({
 
   // Collapsible state for Audit Logs
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Cancellation state & handlers
+  const { data: session } = useSession();
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const userId = session?.user?.id;
+  const userRoles = (session?.user as any)?.roles || [];
+  const isAdmin =
+    userRoles.includes("administrator") ||
+    userRoles.includes("admin") ||
+    userRoles.includes("ceo") ||
+    (session?.user as any)?.role === "administrator";
+  const isOwner = Boolean(
+    plan && (plan.createdById === userId || plan.employee?.userId === userId),
+  );
+  const canRequestCancel =
+    (isOwner || isAdmin) &&
+    plan &&
+    plan.status !== "CANCELLED" &&
+    plan.status !== "REJECTED" &&
+    plan.status !== "PENDING_CANCELLATION";
+
+  const handleCancelSubmit = async () => {
+    if (!plan) return;
+    if (!cancelReason.trim()) {
+      setCancelError("กรุณาระบุเหตุผลในการขอยกเลิกแผนกิจกรรม");
+      return;
+    }
+
+    setCancelLoading(true);
+    setCancelError(null);
+
+    try {
+      const res = await requestCancelActivityPlanAction(
+        plan.id,
+        cancelReason.trim(),
+      );
+      if (res.success) {
+        setCancelDialogOpen(false);
+        setCancelReason("");
+        loadData();
+      } else {
+        setCancelError(res.error || "เกิดข้อผิดพลาดในการขอยกเลิกแผน");
+      }
+    } catch (err: any) {
+      setCancelError(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -832,6 +897,60 @@ export default function ActivityPlanDetailView({
               </div>
             );
           })()}
+
+          {plan.status === "PENDING_CANCELLATION" && (
+            <div className="bg-amber-50/90 border border-amber-300/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
+                  <AlertCircle className="w-5 h-5 text-amber-700" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-amber-950">
+                    แผนงานนี้อยู่ระหว่างขออนุมัติการยกเลิก
+                  </h3>
+                  {plan.cancellationReason && (
+                    <p className="text-xs text-amber-800 mt-0.5">
+                      เหตุผลที่ขอยกเลิก:{" "}
+                      <span className="font-semibold italic">
+                        &quot;{plan.cancellationReason}&quot;
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/80 text-xs">
+                <div className="flex items-center justify-between bg-white/80 px-3.5 py-2 rounded-xl border border-amber-200/60 shadow-2xs">
+                  <span className="text-slate-700 font-medium">1. ผู้อนุมัติตามสายงาน:</span>
+                  <span
+                    className={cn(
+                      "font-bold px-2 py-0.5 rounded-md text-[11px]",
+                      plan.lineCancellationApproved
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-800",
+                    )}
+                  >
+                    {plan.lineCancellationApproved ? "✓ อนุมัติแล้ว" : "⏳ รออนุมัติ"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-white/80 px-3.5 py-2 rounded-xl border border-amber-200/60 shadow-2xs">
+                  <span className="text-slate-700 font-medium">
+                    2. ผู้จัดการตลาด (ตรวจคืนสินค้า):
+                  </span>
+                  <span
+                    className={cn(
+                      "font-bold px-2 py-0.5 rounded-md text-[11px]",
+                      plan.mktCancellationApproved
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-800",
+                    )}
+                  >
+                    {plan.mktCancellationApproved ? "✓ อนุมัติแล้ว" : "⏳ รออนุมัติ"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Card 1: ชื่อแผนงาน / กิจกรรม */}
             <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-2xs">
@@ -1362,10 +1481,101 @@ export default function ActivityPlanDetailView({
         <DetailViewActions
           onBack={handleBack}
           backLabel="กลับหน้ารายการแผนงาน"
-        />
+        >
+          {canRequestCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCancelDialogOpen(true)}
+              className="px-5 py-2.5 h-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <AlertCircle className="w-4 h-4" />
+              <span>ขอยกเลิกแผนงาน</span>
+            </Button>
+          )}
+        </DetailViewActions>
         <br></br>
         <br></br>
       </div>
+
+      {/* Cancellation Request Modal Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              <DialogTitle className="text-lg font-bold">
+                ขอยกเลิกแผนกิจกรรม
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-500">
+              เลขที่แผน:{" "}
+              <span className="font-semibold text-slate-700">
+                {plan.code || planSummary.planNo || plan.id}
+              </span>{" "}
+              — {plan.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          {cancelError && (
+            <Alert variant="destructive" className="py-2 text-xs">
+              <AlertDescription>{cancelError}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-3 py-1">
+            <div className="bg-amber-50 text-amber-800 text-xs p-3 rounded-xl border border-amber-200/80 space-y-1">
+              <p className="font-semibold">⚠️ ข้อมูลขั้นตอนการยกเลิก:</p>
+              <p>
+                หากแผนงานนี้มีการเบิกสินค้าในแปลงสาธิต
+                คำขอนี้จะต้องผ่านการอนุมัติแบบ Dual-Approval
+                จากทั้งหัวหน้างานตามสายงาน และผู้จัดการแผนกการตลาด
+                เพื่อตรวจสอบการคืนสต็อกสินค้า
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="cancel-reason"
+                className="text-xs font-semibold text-slate-700"
+              >
+                เหตุผลในการขอยกเลิก *
+              </Label>
+              <Textarea
+                id="cancel-reason"
+                placeholder="ระบุเหตุผลและรายละเอียดการขอยกเลิกแผนงาน..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="text-sm min-h-[90px]"
+                disabled={cancelLoading}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCancelDialogOpen(false)}
+              disabled={cancelLoading}
+              className="text-xs"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCancelSubmit}
+              disabled={cancelLoading}
+              className="text-xs bg-red-600 hover:bg-red-700 text-white font-bold"
+            >
+              {cancelLoading && (
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+              )}
+              ยืนยันส่งคำขอยกเลิก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

@@ -93,8 +93,10 @@ export async function findHelper(activityPlanId: string, employeeId: string) {
 export async function findApprovalQueueData() {
   const pendingStatuses: ActivityStatus[] = [
     ActivityStatus.PENDING_LINE_APPROVAL,
+    ActivityStatus.PENDING_MARKETING_APPROVAL,
     ActivityStatus.PENDING_BUDGET_APPROVAL,
     ActivityStatus.PENDING_HELPER_APPROVAL,
+    ActivityStatus.PENDING_CANCELLATION,
     ActivityStatus.PENDING_REVIEW,
   ];
 

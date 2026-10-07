@@ -31,9 +31,16 @@ import {
   approveActivityPlanAction,
   rejectActivityPlanAction,
   requestCorrectionPlanAction,
+  approveCancelActivityPlanAction,
+  rejectCancelActivityPlanAction,
 } from "@/modules/activity-plans/server/actions";
 
-export type ApprovalActionType = "APPROVE" | "REJECT" | "REQUEST_CORRECTION";
+export type ApprovalActionType =
+  | "APPROVE"
+  | "REJECT"
+  | "REQUEST_CORRECTION"
+  | "APPROVE_CANCEL"
+  | "REJECT_CANCEL";
 
 interface ApprovalActionDialogProps {
   open: boolean;
@@ -69,6 +76,8 @@ export function ApprovalActionDialog({
   const isApprove = actionType === "APPROVE";
   const isReject = actionType === "REJECT";
   const isCorrection = actionType === "REQUEST_CORRECTION";
+  const isApproveCancel = actionType === "APPROVE_CANCEL";
+  const isRejectCancel = actionType === "REJECT_CANCEL";
 
   // Filter helpers that fall under this approver's scope
   const helpersInScope = useMemo(() => {
@@ -160,12 +169,17 @@ export function ApprovalActionDialog({
   const getTitle = () => {
     if (isApprove) return "ยืนยันการอนุมัติ Trip Plan";
     if (isReject) return "ยืนยันการปฏิเสธ Trip Plan";
-    return "ส่งกลับให้แก้ไข Trip Plan";
+    if (isCorrection) return "ส่งกลับให้แก้ไข Trip Plan";
+    if (isApproveCancel) return "ยืนยันการอนุมัติยกเลิกแผนกิจกรรม";
+    if (isRejectCancel) return "ยืนยันปฏิเสธคำขอยกเลิกแผนกิจกรรม";
+    return "การดำเนินการ";
   };
 
   const getIcon = () => {
-    if (isApprove) return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
-    if (isReject) return <XCircle className="h-5 w-5 text-red-600" />;
+    if (isApprove || isApproveCancel)
+      return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+    if (isReject || isRejectCancel)
+      return <XCircle className="h-5 w-5 text-red-600" />;
     return <RotateCcw className="h-5 w-5 text-amber-600" />;
   };
 
@@ -178,10 +192,10 @@ export function ApprovalActionDialog({
   };
 
   const handleSubmit = async () => {
-    if ((isReject || isCorrection) && !comment.trim()) {
+    if ((isReject || isCorrection || isRejectCancel) && !comment.trim()) {
       setError(
-        isReject
-          ? "กรุณาระบุเหตุผลในการปฏิเสธแผนงาน"
+        isReject || isRejectCancel
+          ? "กรุณาระบุเหตุผลในการปฏิเสธ"
           : "กรุณาระบุจุดที่ต้องการให้พนักงานแก้ไข",
       );
       return;
@@ -200,16 +214,23 @@ export function ApprovalActionDialog({
         );
       } else if (isReject) {
         res = await rejectActivityPlanAction(plan.id, comment.trim());
-      } else {
+      } else if (isCorrection) {
         res = await requestCorrectionPlanAction(plan.id, comment.trim());
+      } else if (isApproveCancel) {
+        res = await approveCancelActivityPlanAction(
+          plan.id,
+          comment.trim() || undefined,
+        );
+      } else if (isRejectCancel) {
+        res = await rejectCancelActivityPlanAction(plan.id, comment.trim());
       }
 
-      if (res.success) {
+      if (res?.success) {
         setComment("");
         onOpenChange(false);
         onSuccess();
       } else {
-        setError(res.error || "เกิดข้อผิดพลาดในการดำเนินการ");
+        setError(res?.error || "เกิดข้อผิดพลาดในการดำเนินการ");
       }
     } catch (err: any) {
       setError(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
@@ -222,6 +243,8 @@ export function ApprovalActionDialog({
   const isLineApprover =
     plan.status === "PENDING_LINE_APPROVAL" &&
     (isAdmin || plan.currentApproverEmployeeId === userEmployeeId);
+  const isProductWithdrawalApprover =
+    plan.status === "PENDING_MARKETING_APPROVAL";
   const hasSP =
     Number(plan.salesPromotionBudgetRequested || 0) > 0 &&
     plan.salesPromotionApproved !== true;
@@ -266,6 +289,11 @@ export function ApprovalActionDialog({
                 <span>การอนุมัติในรอบนี้รวมความรับผิดชอบของคุณ:</span>
               </div>
               <ul className="text-xs text-emerald-800 space-y-1.5 pl-6 list-disc">
+                {isProductWithdrawalApprover && (
+                  <li>
+                    <strong>อนุมัติการเบิกสินค้าในแปลงสาธิต (Marketing Manager)</strong>
+                  </li>
+                )}
                 {isLineApprover && (
                   <li>
                     <strong>อนุมัติตามสายงาน (Line Approval)</strong>
@@ -310,6 +338,25 @@ export function ApprovalActionDialog({
                   </li>
                 )}
               </ul>
+            </div>
+          )}
+
+          {/* Cancellation Info Banner */}
+          {(isApproveCancel || isRejectCancel) && (
+            <div className="bg-amber-50/90 border border-amber-200/90 rounded-xl p-3.5 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>คำขอยกเลิกแผนกิจกรรม</span>
+              </div>
+              {plan.cancellationReason && (
+                <p className="text-xs text-amber-800 bg-white/80 p-2.5 rounded-lg border border-amber-100 italic">
+                  &quot;{plan.cancellationReason}&quot;
+                </p>
+              )}
+              <div className="text-[11px] text-amber-700 space-y-0.5">
+                <div>• ผู้อนุมัติตามสายงาน: {plan.lineCancellationApproved ? "อนุมัติแล้ว ✓" : "รออนุมัติ"}</div>
+                <div>• ผู้จัดการตลาด (ตรวจสอบคืนสต็อกสินค้า): {plan.mktCancellationApproved ? "อนุมัติแล้ว ✓" : "รออนุมัติ"}</div>
+              </div>
             </div>
           )}
 
@@ -416,16 +463,16 @@ export function ApprovalActionDialog({
               htmlFor="approval-comment"
               className="text-xs font-semibold text-slate-700"
             >
-              {isApprove
+              {isApprove || isApproveCancel
                 ? "หมายเหตุ / คำแนะนำ (ถ้ามี)"
                 : "เหตุผล / สิ่งที่ต้องแก้ไข *"}
             </Label>
             <Textarea
               id="approval-comment"
               placeholder={
-                isApprove
+                isApprove || isApproveCancel
                   ? "ระบุความเห็นเพิ่มเติม..."
-                  : isReject
+                  : isReject || isRejectCancel
                     ? "ระบุเหตุผลที่ไม่อนุมัติ..."
                     : "ระบุรายการที่ต้องการให้แก้ไข..."
               }
@@ -453,9 +500,9 @@ export function ApprovalActionDialog({
             onClick={handleSubmit}
             disabled={loading}
             className={`text-xs gap-1.5 ${
-              isApprove
+              isApprove || isApproveCancel
                 ? "bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-                : isReject
+                : isReject || isRejectCancel
                   ? "bg-red-600 hover:bg-red-700 text-white"
                   : "bg-amber-600 hover:bg-amber-700 text-white"
             }`}
@@ -463,9 +510,13 @@ export function ApprovalActionDialog({
             {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isApprove
               ? "ยืนยันการอนุมัติ"
-              : isReject
-                ? "ยืนยันปฏิเสธ"
-                : "ส่งกลับแก้ไข"}
+              : isApproveCancel
+                ? "ยืนยันอนุมัติการยกเลิก"
+                : isRejectCancel
+                  ? "ยืนยันปฏิเสธคำขอยกเลิก"
+                  : isReject
+                    ? "ยืนยันปฏิเสธ"
+                    : "ส่งกลับแก้ไข"}
           </Button>
         </DialogFooter>
       </DialogContent>

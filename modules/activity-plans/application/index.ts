@@ -436,6 +436,7 @@ export async function createActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
+    hasProductWithdrawal: normalized.hasProductWithdrawal ?? false,
     status: ActivityStatus.DRAFT,
     employeeId: employee.id,
     createdById: userId,
@@ -862,6 +863,7 @@ export async function updateActivityPlanUseCase(
     type13Plots: normalized.type13Plots,
     type14Data: normalized.type14Data,
     workTypeCodes: normalized.workTypeCodes,
+    hasProductWithdrawal: normalized.hasProductWithdrawal ?? false,
     updatedUserId: userId,
   };
 
@@ -1059,6 +1061,9 @@ export {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  requestCancelActivityPlanUseCase,
+  approveCancelActivityPlanUseCase,
+  rejectCancelActivityPlanUseCase,
   reviewSingleActivityHelperUseCase,
 } from "./activity-plan-flow";
 

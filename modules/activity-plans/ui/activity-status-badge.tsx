@@ -22,6 +22,11 @@ const STATUS_STYLES: Record<
     className: "bg-yellow-50 text-yellow-700 border-yellow-200",
     dot: "bg-yellow-500",
   },
+  PENDING_MARKETING_APPROVAL: {
+    label: "รออนุมัติการเบิกสินค้า",
+    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    dot: "bg-indigo-500",
+  },
   PENDING_BUDGET_APPROVAL: {
     label: "รออนุมัติงบประมาณ",
     className: "bg-blue-50 text-blue-700 border-blue-200",
@@ -36,6 +41,11 @@ const STATUS_STYLES: Record<
     label: "อนุมัติสำเร็จ",
     className: "bg-green-50 text-green-700 border-green-200",
     dot: "bg-green-500",
+  },
+  PENDING_CANCELLATION: {
+    label: "รออนุมัติการยกเลิก",
+    className: "bg-rose-50 text-rose-800 border-rose-300 font-medium",
+    dot: "bg-rose-500",
   },
   REJECTED: {
     label: "ปฏิเสธ",
@@ -338,6 +348,38 @@ export function resolveCurrentOperator(
       operatorName: precomputedOperatorName || empCleanName || formattedRole,
       employeeName: empCleanName || empRawName,
       stepDescription: "อนุมัติตามสายงาน",
+    };
+  }
+
+  // 3.5 Step 2.5: Product Withdrawal Approval (Marketing Manager)
+  if (plan.status === "PENDING_MARKETING_APPROVAL") {
+    return {
+      roleName: "Marketing Manager",
+      roleTitleTh: "ผู้จัดการแผนกการตลาด",
+      displayRole: "ผู้จัดการแผนกการตลาด",
+      operatorName: precomputedOperatorName || "ผู้จัดการแผนกการตลาด",
+      employeeName: null,
+      stepDescription: "อนุมัติการเบิกสินค้าในแปลงสาธิต",
+    };
+  }
+
+  // 3.6 Cancellation Approval (Dual Approvers: Line Approver + Marketing Manager)
+  if (plan.status === "PENDING_CANCELLATION") {
+    const isLineApproved = (plan as any).lineCancellationApproved === true;
+    const isMktApproved = (plan as any).mktCancellationApproved === true;
+    let desc = "รออนุมัติการยกเลิก (หัวหน้าสายงาน + ผจก.การตลาด)";
+    if (isLineApproved && !isMktApproved) {
+      desc = "รอ ผจก.การตลาด อนุมัติตรวจรับคืนสินค้า";
+    } else if (!isLineApproved && isMktApproved) {
+      desc = "รอหัวหน้าสายงานอนุมัติการยกเลิก";
+    }
+    return {
+      roleName: "Line Approver / Marketing Manager",
+      roleTitleTh: "หัวหน้าสายงาน / ผู้จัดการแผนกการตลาด",
+      displayRole: "ผู้อนุมัติการยกเลิก",
+      operatorName: precomputedOperatorName || "หัวหน้าสายงาน / ผจก.การตลาด",
+      employeeName: null,
+      stepDescription: desc,
     };
   }
 

@@ -143,6 +143,8 @@ export function canUserPerformApproval(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
+    lineCancellationApproved?: boolean | null;
+    mktCancellationApproved?: boolean | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -206,6 +208,26 @@ export function canUserPerformApproval(
         plan.currentApproverEmployeeId &&
         plan.currentApproverEmployeeId === userEmpId,
     );
+  }
+
+  // 3.5 Step 2.5: Product Withdrawal Approval (Marketing Manager)
+  if (plan.status === "PENDING_MARKETING_APPROVAL") {
+    return isUserMarketingManager(user);
+  }
+
+  // 3.6 Cancellation Approval (Dual Approval: Line Approver + Marketing Manager)
+  if (plan.status === "PENDING_CANCELLATION") {
+    const userEmpId = user.employeeId;
+    const isLineApprover = Boolean(
+      userEmpId &&
+        (plan.employee?.managerId === userEmpId ||
+          plan.creator?.employee?.managerId === userEmpId ||
+          plan.currentApproverEmployeeId === userEmpId) &&
+        plan.lineCancellationApproved !== true,
+    );
+    const isMktApprover =
+      isUserMarketingManager(user) && plan.mktCancellationApproved !== true;
+    return isLineApprover || isMktApprover;
   }
 
   // 4. Step 3: Budget Approval (Aggregated with Parallel Helper Review)
@@ -305,6 +327,8 @@ export function getPlanActionScopes(
     salesPromotionApproved?: boolean | null;
     marketingApproved?: boolean | null;
     salesManagerApproved?: boolean | null;
+    lineCancellationApproved?: boolean | null;
+    mktCancellationApproved?: boolean | null;
     helpers?: Array<{
       status?: string;
       approvedById?: string | null;
@@ -344,6 +368,35 @@ export function getPlanActionScopes(
       label: "อนุมัติตามสายงาน",
       variant: "line",
     });
+    return badges;
+  }
+
+  // 1.5 Product Withdrawal Approval
+  if (plan.status === "PENDING_MARKETING_APPROVAL") {
+    badges.push({
+      id: "product_withdrawal",
+      label: "อนุมัติการเบิกสินค้า",
+      variant: "mkt_budget",
+    });
+    return badges;
+  }
+
+  // 1.6 Cancellation Approval
+  if (plan.status === "PENDING_CANCELLATION") {
+    if (plan.lineCancellationApproved !== true) {
+      badges.push({
+        id: "cancel_line",
+        label: "อนุมัติยกเลิก (สายงาน)",
+        variant: "line",
+      });
+    }
+    if (plan.mktCancellationApproved !== true) {
+      badges.push({
+        id: "cancel_mkt",
+        label: "อนุมัติยกเลิก (ตรวจคืนสินค้า)",
+        variant: "mkt_budget",
+      });
+    }
     return badges;
   }
 

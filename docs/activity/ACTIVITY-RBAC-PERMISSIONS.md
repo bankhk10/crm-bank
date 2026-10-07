@@ -28,7 +28,7 @@
 | 3 | **ผู้จัดการภาค-กิจกรรม** | `activity_area_manager` | สร้างแผนงานระดับภาค และอนุมัติตามสายงานให้ผู้ใต้บังคับบัญชา | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ผู้ใต้บังคับบัญชาตาม managerId) | ✅ มีสิทธิ์ | `VIEW_TEAM` (ระดับภาค/ทีม) |
 | 4 | **ผู้จัดการเขต-กิจกรรม** | `activity_district_manager` | สร้างแผนงานระดับเขต และอนุมัติตามสายงานให้ผู้ใต้บังคับบัญชา | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ผู้ใต้บังคับบัญชาตาม managerId) | ✅ มีสิทธิ์ | `VIEW_TEAM` (ระดับเขต/ทีม) |
 | 5 | **ผู้จัดการแผนกบริหารงานขาย-กิจกรรม** | `activity_sales_admin_manager` | สร้างแผนงานตนเอง + อนุมัติงบ SP + ตรวจคนช่วยงานขาย | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบ SP + ผู้ช่วยงานฝ่ายขาย | ✅ มีสิทธิ์ | `VIEW_ALL` / `VIEW_DEPARTMENT` |
-| 6 | **ผู้จัดการแผนกการตลาด-กิจกรรม** | `activity_marketing_manager` | สร้างแผนงานตนเอง + อนุมัติงบ MKT + ตรวจคนช่วยงานตลาด | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบ MKT + ผู้ช่วยงานการตลาด | ✅ มีสิทธิ์ | `VIEW_ALL` / `VIEW_DEPARTMENT` |
+| 6 | **ผู้จัดการแผนกการตลาด-กิจกรรม** | `activity_marketing_manager` | สร้างแผนงานตนเอง + อนุมัติงบ MKT + อนุมัติการเบิกสินค้า (TYPE 7A, 7B, 13, 14) + ตรวจคนช่วยงานตลาด + อนุมัติยกเลิกแผนเบิกสินค้า | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบ MKT + อนุมัติการเบิกสินค้า + ผู้ช่วยงานตลาด + อนุมัติยกเลิก | ✅ มีสิทธิ์ | `VIEW_ALL` / `VIEW_DEPARTMENT` |
 | 7 | **ผู้จัดการฝ่ายขาย-กิจกรรม** | `activity_sales_director` | สร้างแผนงานระดับฝ่าย + อนุมัติงบประมาณรวมขั้นสุดท้าย | ✅ มีสิทธิ์ | ✅ มีสิทธิ์ | Line Approval (ตาม managerId) + งบประมาณรวมทั้งหมด (Final) | ✅ มีสิทธิ์ | `VIEW_ALL` (ทั้งหมดในระบบ) |
 | 8 | **พนักงานการตลาด-กิจกรรม** | `activity_marketing_employee` | สร้าง/ส่งแผนงานกิจกรรมการตลาดของตนเอง และบันทึกผลงานจริง | ✅ มีสิทธิ์ | ❌ ไม่มีสิทธิ์ | - (ไม่มีสิทธิ์ Approval) | ✅ มีสิทธิ์ | `VIEW_OWN` (แผนตนเอง + แผนที่ช่วยงาน) |
 | 9 | **แอดมินการตลาด-กิจกรรม** | `activity_marketing_admin` | ดูแลและจัดการข้อมูลสื่อส่งเสริมการขาย (Promotional Materials) ทั้งหมด | ❌ ไม่มีสิทธิ์* | ❌ ไม่มีสิทธิ์ | - (ห้ามมีสิทธิ์ Activity Approval/Budget) | ❌ ไม่มีสิทธิ์ | `VIEW_ALL` (สื่อส่งเสริมการขาย) |
@@ -37,9 +37,9 @@
 
 ---
 
-## 3. Permission Catalog (พจนานุกรมสิทธิ์ 18 รายการ)
+## 3. Permission Catalog (พจนานุกรมสิทธิ์ 22 รายการ)
 
-รายการ Permission ทั้งหมด 18 รายการที่ใช้ควบคุมการทำงานในโมดูล Activity Plan:
+รายการ Permission ทั้งหมด 22 รายการที่ใช้ควบคุมการทำงานในโมดูล Activity Plan:
 
 ### 3.1 กลุ่มการจัดการแผนงาน (Activity Plan Operations)
 | Permission Key | ชื่อภาษาไทย | หน้าที่และความหมาย | ขั้นตอนใน Workflow ที่ใช้งาน |
@@ -71,14 +71,22 @@
 | `activity_plan.review_sales_helper` | ตรวจสอบผู้ช่วยงานฝ่ายขาย | ตรวจสอบและอนุมัติรายชื่อพนักงานฝ่ายขาย/ส่งเสริมที่มาช่วยงาน | Step 3 / Step 4: Helper Review |
 | `activity_plan.review_marketing_helper` | ตรวจสอบผู้ช่วยงานการตลาด | ตรวจสอบและอนุมัติรายชื่อพนักงานการตลาดที่มาช่วยงาน | Step 3 / Step 4: Helper Review |
 
-### 3.5 กลุ่มปฏิทินและบันทึกผลงานจริง (Calendar & Actual Work)
+### 3.5 กลุ่มการอนุมัติการเบิกสินค้าและการยกเลิกแผนงาน (Product Withdrawal & Cancellation Operations)
+| Permission Key | ชื่อภาษาไทย | หน้าที่และความหมาย | ขั้นตอนใน Workflow ที่ใช้งาน |
+| :--- | :--- | :--- | :--- |
+| `activity_plan.approve_product_withdrawal` | อนุมัติการเบิกสินค้า | ตรวจสอบและอนุมัติรายการสินค้าเบิกในแปลงสาธิต (TYPE 7A, 7B, 13, 14) | Step 2.5: Product Withdrawal Gate (ผจก.แผนกการตลาด) |
+| `activity_plan.request_cancel` | ยื่นขอยกเลิกแผนงาน | สิทธิ์กดปุ่มยื่นคำขอยกเลิกแผนงานพร้อมระบุเหตุผล | ทุกขั้นตอนหลังสร้างแผนงาน |
+| `activity_plan.approve_cancellation_line` | อนุมัติการยกเลิกตามสายงาน | อนุมัติเห็นชอบการขอยกเลิกแผนงานของผู้ใต้บังคับบัญชาตามสายงาน | Cancellation Flow (Line Approver ตาม managerId) |
+| `activity_plan.approve_cancellation_marketing` | อนุมัติการยกเลิกและรับคืนสินค้า | อนุมัติการยกเลิกแผนที่มีการเบิกสินค้าและรับคืนสต็อกสินค้า | Cancellation Flow (ผจก.แผนกการตลาด) |
+
+### 3.6 กลุ่มปฏิทินและบันทึกผลงานจริง (Calendar & Actual Work)
 | Permission Key | ชื่อภาษาไทย | หน้าที่และความหมาย | ขั้นตอนใน Workflow ที่ใช้งาน |
 | :--- | :--- | :--- | :--- |
 | `activity_plan.view_calendar` | เข้าดูปฏิทินแผนงาน | สิทธิ์เปิดดูปฏิทินนัดหมายกิจกรรม (Activity Calendar) | ทุกขั้นตอน |
 | `activity_plan.record_actual` | บันทึกผลการปฏิบัติงานจริง | สิทธิ์เปิดฟอร์มและบันทึกผลลัพธ์หลังเสร็จสิ้นกิจกรรม | หลังแผนงานได้รับอนุมัติ (Approved) |
 | `activity_plan.edit_actual` | แก้ไขผลการปฏิบัติงานจริง | สิทธิ์แก้ไขข้อมูลและรูปภาพผลการปฏิบัติงานจริง | หลังการบันทึกผล |
 
-### 3.6 กลุ่มสื่อส่งเสริมการขาย (Promotional Materials)
+### 3.7 กลุ่มสื่อส่งเสริมการขาย (Promotional Materials)
 | Permission Key | ชื่อภาษาไทย | หน้าที่และความหมาย | ส่วนงานที่เกี่ยวข้อง |
 | :--- | :--- | :--- | :--- |
 | `menu.promotional_materials` | เมนูสื่อส่งเสริมการขาย | สิทธิ์เข้าถึงเมนูสื่อส่งเสริมการขายในแถบเมนูข้าง (`/activity-plans/promotional-materials`) | ฝ่ายการตลาด / แอดมินสื่อ |
@@ -108,6 +116,11 @@
 | `activity_plan.approve` (Line) | ❌ | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ❌ | ❌ |
 | `activity_plan.reject` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | `activity_plan.request_correction` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **การอนุมัติการเบิกสินค้าและยกเลิก** | | | | | | | | | |
+| `activity_plan.approve_product_withdrawal` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (อนุมัติเบิกยา/สินค้า) | ❌ | ❌ | ❌ |
+| `activity_plan.request_cancel` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `activity_plan.approve_cancellation_line` | ❌ | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ✅ (ตาม mgr) | ❌ | ❌ |
+| `activity_plan.approve_cancellation_marketing` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (ตรวจรับคืนสินค้า) | ❌ | ❌ | ❌ |
 | **การอนุมัติงบประมาณ** | | | | | | | | | |
 | `activity_plan.approve_sales_promotion_budget` | ❌ | ❌ | ❌ | ❌ | ✅ (งบ SP) | ❌ | ❌ | ❌ | ❌ |
 | `activity_plan.approve_marketing_budget` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ (งบ MKT) | ❌ | ❌ | ❌ |
@@ -208,10 +221,12 @@
 ---
 
 ### 5.6 ผู้จัดการแผนกการตลาด-กิจกรรม (`activity_marketing_manager`)
-- **บทบาทคู่ขนาน:** **เป็นทั้ง Creator, Line Approver (ตาม managerId), Budget Approver (งบ MKT) และ Helper Reviewer (ช่วยงานตลาด)**
+- **บทบาทคู่ขนาน:** **เป็นทั้ง Creator, Line Approver (ตาม managerId), Budget Approver (งบ MKT), Product Withdrawal Approver (เบิกสินค้า/ยา) และ Helper Reviewer (ช่วยงานตลาด)**
 - **สามารถ:**
   - สร้าง แก้ไข ส่ง และดูแผนงานกิจกรรมทางการตลาดของตนเอง
   - อนุมัติตามสายงานให้พนักงานที่ชี้ `managerId` มายังตนเอง (เช่น ทีมการตลาด)
+  - **ตรวจสอบและอนุมัติการเบิกสินค้า/ยาแปลงสาธิต (`approve_product_withdrawal`)** สำหรับแผนงานประเภท `TYPE_7A` (ทำแปลงสาธิต), `TYPE_7B` (ติดตามแปลงสาธิต), `TYPE_13` (ฉีดแปลงแฮตแทค) และ `TYPE_14` (ติดตามแปลงแฮทแทค) ที่มีการระบุเบิกสินค้า
+  - **ตรวจสอบและอนุมัติการขอยกเลิกแผนงานที่มีการเบิกสินค้า (`approve_cancellation_marketing`)** เพื่อตรวจรับคืนสินค้า/ตัดยอดคืนสต็อก
   - ตรวจสอบและอนุมัติงบประมาณการตลาด (`approve_marketing_budget`) ใน Step 3 Stage 1
   - ตรวจสอบและอนุมัติรายชื่อผู้ช่วยงานการตลาด (`review_marketing_helper`)
   - ปฏิเสธหรือตีกลับแผนงานได้ในขั้นตอนที่ตนเองมีอำนาจรับผิดชอบ
@@ -425,7 +440,7 @@ Creator (ผู้สร้างแผนงาน)
 
 ## 9. Workflow Responsibility (ความรับผิดชอบตามขั้นตอน Workflow)
 
-สรุปกระบวนการไหลของแผนงานตามลำดับขั้นตอนและบทบาทความรับผิดชอบ:
+### 9.1 กระบวนการสร้างและขออนุมัติแผนงาน (Plan Submission & Approval Flow)
 
 ```mermaid
 flowchart TD
@@ -434,12 +449,20 @@ flowchart TD
     Submit --> CheckCreator{ผู้สร้างเป็น<br/>Terminal Manager หรือไม่?}
     
     CheckCreator -->|ไม่ใช่ เช่น มี managerId สายตรง| Step2[Step 2: Line Approval ส่งหา Employee ตาม managerId]
-    CheckCreator -->|ใช่ เช่น SA Mgr / MKT Mgr / Sales Dir| CheckBudget{มีของบประมาณ<br/>หรือไม่?}
+    CheckCreator -->|ใช่ เช่น SA Mgr / MKT Mgr / Sales Dir| CheckWithdrawal{มีการติ๊ก<br/>เบิกสินค้าหรือไม่?}
     
     Step2 --> LineDecision{ผลการพิจารณา<br/>ของ Line Approver}
-    LineDecision -->|อนุมัติ| CheckBudget
+    LineDecision -->|อนุมัติ| CheckWithdrawal
     LineDecision -->|ตีกลับ| Correction[รอแก้ไข Correction] --> Submit
     LineDecision -->|ปฏิเสธ| Rejected([ปฏิเสธ Rejected])
+    
+    CheckWithdrawal -->|มี hasProductWithdrawal ใน TYPE 7A, 7B, 13, 14| Step2_5[Step 2.5: Product Withdrawal Approval<br/>ผู้จัดการแผนกการตลาด-กิจกรรม อนุมัติการเบิกสินค้า]
+    CheckWithdrawal -->|ไม่มีการเบิกสินค้า| CheckBudget{มีของบประมาณ<br/>หรือไม่?}
+    
+    Step2_5 --> MKTWithdrawalDecision{ผลการพิจารณา<br/>ของ ผจก.การตลาด}
+    MKTWithdrawalDecision -->|อนุมัติเบิกสินค้า| CheckBudget
+    MKTWithdrawalDecision -->|ตีกลับ| Correction
+    MKTWithdrawalDecision -->|ปฏิเสธ| Rejected
     
     CheckBudget -->|มีของบ| Step3Stage1[Step 3 Stage 1: อนุมัติงบ SP โดย SA Mgr / งบ MKT โดย MKT Mgr]
     CheckBudget -->|ไม่มีงบ แต่มีคนช่วย| Step4[Step 4: Helper Review ตรวจคนช่วยงาน]
@@ -453,11 +476,45 @@ flowchart TD
     Approved -.-> HelperNotify[Helper ได้รับมอบหมายและเห็นแผนใน Calendar]
 ```
 
+---
+
+### 9.2 กระบวนการขอยกเลิกแผนงานที่มีการเบิกสินค้า (Dual-Approval Cancellation Workflow)
+
+สำหรับแผนงานที่มีการเบิกสินค้า (`hasProductWithdrawal = true`) เช่น `ทำแปลงสาธิต (TYPE_7A)`, `ติดตามแปลงสาธิต (TYPE_7B)`, `ฉีดแปลงแฮตแทค (TYPE_13)`, `ติดตามแปลงแฮทแทค (TYPE_14)` เมื่อยื่นขอยกเลิก จะต้องผ่านการอนุมัติ **2 ด่าน (Dual-Approval)** ก่อนแผนงานจะถูกยกเลิกจริง:
+
+```mermaid
+flowchart TD
+    ApprovedPlan([แผนงานที่มีการเบิกสินค้า สถานะ APPROVED]) --> CancelBtn[เจ้าของแผนกดยื่น 'ขอยกเลิกแผนงาน']
+    
+    CancelBtn --> ModalReason[ระบุเหตุผลความจำเป็นในการขอยกเลิก]
+    ModalReason --> SubmitCancel[ยื่นคำขอยกเลิก]
+    
+    SubmitCancel --> PendingCancelState[สถานะเปลี่ยนเป็น PENDING_CANCELLATION<br/>รอการพิจารณาอนุมัติยกเลิก 2 ฝ่าย]
+    
+    PendingCancelState --> Step1Cancel[ด่านที่ 1: หัวหน้าสายตรง Line Approver<br/>พิจารณาอนุมัติตามสายงาน]
+    PendingCancelState --> Step2Cancel[ด่านที่ 2: ผู้จัดการแผนกการตลาด MKT Manager<br/>พิจารณาอนุมัติและตรวจรับคืนสินค้า/ยา]
+    
+    Step1Cancel --> CheckBoth{ทั้งสองฝ่ายอนุมัติ<br/>การยกเลิกครบแล้วหรือไม่?}
+    Step2Cancel --> CheckBoth
+    
+    CheckBoth -->|ครบทั้ง 2 ฝ่าย| CancelComplete[สถานะเปลี่ยนเป็น CANCELLED<br/>- ปลดนัดหมายใน Calendar<br/>- คืนยอดสินค้าเบิกกลับเข้าสต็อก Master]
+    
+    Step1Cancel -->|มีฝ่ายใดฝ่ายหนึ่ง 'ปฏิเสธ'| RejectCancel[ปฏิเสธคำขอยกเลิก REJECT_CANCEL<br/>สถานะเด้งกลับเป็น APPROVED<br/>ต้องไปปฏิบัติงานตามแผนเดิม]
+    Step2Cancel -->|มีฝ่ายใดฝ่ายหนึ่ง 'ปฏิเสธ'| RejectCancel
+```
+
+#### หลักการควบคุมการยกเลิก:
+1. **ด่านที่ 1: การอนุมัติตามสายงาน (Line Approval for Cancellation):** หัวหน้าสายตรงพิจารณาความสมเหตุสมผลของเหตุผลที่ขอยกเลิก
+2. **ด่านที่ 2: การอนุมัติฝ่ายการตลาด (Marketing Approval for Cancellation):** ผู้จัดการแผนกการตลาดตรวจสอบว่ามีการส่งคืนยา/สินค้าตัวอย่างสาธิตครบถ้วน
+3. **กรณีแผนงานทั่วไปที่ไม่มีการเบิกสินค้า:** เจ้าของแผนสามารถกดยกเลิกได้ทันที (Direct Cancel)
+
+---
+
 ### การจัดการเมื่อ Manager เป็นผู้สร้างแผนงาน:
 1. **กรณีผู้สร้างมี `managerId` ชี้ไปยังผู้บังคับบัญชาเหนือตนเอง:**  
    ระบบจะกำหนดผู้อนุมัติ `currentApproverEmployeeId` ให้เป็นบุคคลตาม `managerId` นั้นเสมอ ผู้สร้างจึงไม่สามารถอนุมัติตนเองใน Line Approval ได้
 2. **กรณีผู้สร้างเป็น Terminal Line Manager (เช่น ผู้จัดการแผนก หรือผู้บริหารระดับสูงที่ไม่มีหัวหน้าสายงานเหนือตนเองในสาย Line):**  
-   ระบบจะถือว่าผ่านการรับรองสายงานระดับบริหารแล้ว และ **ส่งตรงเข้าสู่ขั้นตอนงบประมาณ (Budget Approval) ทันที** โดยจะมีผู้บริหารส่วนกลางและผู้จัดการฝ่ายขาย (Sales Director) เป็นผู้กำกับดูแลความถูกต้องของงบประมาณรวม
+   ระบบจะถือว่าผ่านการรับรองสายงานระดับบริหารแล้ว และ **ส่งตรงเข้าสู่ขั้นตอนการเบิกสินค้า (ถ้ามี) หรืองบประมาณ (Budget Approval) ทันที** โดยจะมีผู้บริหารส่วนกลางและผู้จัดการฝ่ายขาย (Sales Director) เป็นผู้กำกับดูแลความถูกต้องของงบประมาณรวม
 
 ---
 
@@ -497,7 +554,7 @@ flowchart TD
    - ถือ Role ใหม่: `activity_area_manager` (เพื่อสร้างแผนตรวจตลาดภาค และอนุมัติ Trip Plan ของลูกทีม)
 3. **ผู้จัดการแผนกการตลาด (Marketing Manager):**
    - ถือ Role เดิม: `marketing_manager` (เพื่อดูแลงานการตลาด สินค้า และโปรโมชัน)
-   - ถือ Role ใหม่: `activity_marketing_manager` (เพื่อสร้าง Event และอนุมัติงบประมาณการตลาดของกิจกรรม)
+   - ถือ Role ใหม่: `activity_marketing_manager` (เพื่อสร้าง Event, อนุมัติงบการตลาด และอนุมัติการเบิกสินค้าในแปลงสาธิต)
 4. **พนักงานการตลาดมัลติโรล (Marketing Staff — กรณีศึกษา นาย A):**
    - ถือ Role เดิม: `employee_mk` (ปฏิบัติงานการตลาด สินค้า ทั่วไป)
    - ถือ Role กิจกรรม: `activity_marketing_employee` (สร้าง Trip Plan การตลาด, บันทึกผลจริง, เป็น Helper ให้ผู้อื่น)
@@ -539,6 +596,8 @@ flowchart TD
 8. **เอกสารนี้เป็นเกณฑ์มาตรฐานของ Activity Plan:** การสร้าง Seed Script หรือแก้ไขโค้ดต้องยึดตาราง Matrix, Routing Rule และ Helper Access Rule นี้เป็นหลัก
 9. **การเปลี่ยนแปลงสิทธิ์ในอนาคต:** หากมีการเพิ่มลบสิทธิ์หรือปรับ Flow จะต้องอัปเดตเอกสารฉบับนี้ด้วย
 10. **หากพบความไม่สอดคล้องระหว่างเอกสารกับโค้ดจริง:** ให้ทำการตรวจสอบ (Investigate) ก่อนเสมอ และห้ามแก้ระบบโดยพลการ
+11. **แผนงานที่มีการเบิกสินค้าต้องผ่านการอนุมัติจากผู้จัดการแผนกการตลาด-กิจกรรม:** ในแผนงานประเภท `TYPE_7A`, `TYPE_7B`, `TYPE_13`, `TYPE_14` ที่มีการติ๊ก `hasProductWithdrawal` จะต้องผ่านการอนุมัติการเบิกสินค้าจาก Role `activity_marketing_manager` เสมอ
+12. **การยกเลิกแผนงานที่มีการเบิกสินค้าต้องผ่านการอนุมัติ 2 ฝ่าย (Dual-Approval):** จะต้องได้รับอนุมัติจากทั้งหัวหน้าสายตรง (Line Approval) และผู้จัดการแผนกการตลาด-กิจกรรม (Marketing Approval) เพื่อตรวจสอบความถูกต้องของการคืนสต็อกสินค้า
 
 ---
 
@@ -550,3 +609,4 @@ flowchart TD
 | **2026-09-10** | **Line Approval Rule Update** | เพิ่ม Business Rule ชัดเจนว่า Line Approval ให้ยึด `Employee.managerId` ของผู้สร้างแผนงานเป็นหลัก ไม่ Hardcode Position -> Position พร้อมตัวอย่างกรณีศึกษา และแยกนิยามระหว่าง Role, Position, managerId | Antigravity AI |
 | **2026-09-10** | **Helper Access & Data Scope Rule** | เพิ่ม Business Rule ให้ Helper สามารถเข้าดูรายละเอียดและ Calendar ของ Activity Plan ที่ตนเองมีส่วนร่วมได้, ขยายความหมาย `VIEW_OWN` = แผนที่สร้างเอง + แผนที่ช่วยงาน โดยไม่ขยายเป็น VIEW_ALL, พร้อมระบุ Gap ทางเทคนิคใน `data-scope.ts` และ `activity-calendar-view.tsx` | Antigravity AI |
 | **2026-09-10** | **Marketing Roles Expansion (9 Roles)** | เพิ่ม 2 Roles ฝั่งการตลาด: `activity_marketing_employee` (พนักงานการตลาด-กิจกรรม สำหรับสร้าง/ส่งแผนงานของตนเองและบันทึกผลงานจริง โดยไม่มีสิทธิ์อนุมัติ) และ `activity_marketing_admin` (แอดมินการตลาด-กิจกรรม สำหรับจัดการสื่อส่งเสริมการขาย โดยไม่มีสิทธิ์ Activity Approval/Budget), ปรับปรุง Permission Matrix, Data Scope, Coexistence และ Non-replacement Rule ให้ครอบคลุม 9 Roles | Antigravity AI |
+| **2026-10-07** | **Product Withdrawal & Dual-Approval Cancellation** | เพิ่มกฎการอนุมัติการเบิกสินค้าสำหรับแผนงานแปลงสาธิต (`TYPE_7A`, `TYPE_7B`, `TYPE_13`, `TYPE_14`) ส่งให้ผู้จัดการแผนกการตลาด-กิจกรรม (`activity_marketing_manager`) อนุมัติ, และเพิ่ม Flow การขอยกเลิกแผนงานที่มีการเบิกสินค้าแบบ Dual-Approval (ต้องผ่านการอนุมัติจากทั้งหัวหน้าสายตรงตาม `managerId` และผู้จัดการแผนกการตลาด-กิจกรรม ก่อนยกเลิกจริง), เพิ่ม 4 Permission Keys ใหม่ และอัปเดต Matrix ครบ 9 Roles | Antigravity AI |

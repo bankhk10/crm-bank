@@ -800,6 +800,7 @@ export type CreateActivityPlanInput = {
   salesPromotionBudgetRequested?: number | null;
   marketingBudgetRequested?: number | null;
   totalBudgetRequested?: number | null;
+  hasProductWithdrawal?: boolean | null;
   planType?: ActivityPlanType;
   status?: ActivityStatus;
   employeeId: string;
@@ -1017,6 +1018,7 @@ export async function createActivityPlan(
               ? new Prisma.Decimal(input.marketingBudgetRequested)
               : null,
             totalBudgetRequested: new Prisma.Decimal(totalRequested),
+            hasProductWithdrawal: input.hasProductWithdrawal ?? false,
             status: input.status ?? ActivityStatus.DRAFT,
             employeeId: input.employeeId,
             createdById: input.createdById,
@@ -1453,6 +1455,9 @@ export async function updateActivityPlan(
       dataToUpdate.notes = updateFields.notes;
     if (updateFields.status !== undefined)
       dataToUpdate.status = updateFields.status;
+    if (updateFields.hasProductWithdrawal !== undefined) {
+      dataToUpdate.hasProductWithdrawal = updateFields.hasProductWithdrawal ?? false;
+    }
 
     if (targetAttendeesCount !== undefined) {
       dataToUpdate.targetAttendeesCount = targetAttendeesCount ?? null;

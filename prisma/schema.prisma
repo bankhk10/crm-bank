@@ -1530,9 +1530,11 @@ enum ActivityPlanType {
 enum ActivityStatus {
   DRAFT // แผนร่าง
   PENDING_LINE_APPROVAL // รออนุมัติตามสายงาน (Step 2: Line Approval)
+  PENDING_MARKETING_APPROVAL // รออนุมัติการเบิกสินค้า (Step 2.5: Product Withdrawal Approval)
   PENDING_BUDGET_APPROVAL // รออนุมัติงบประมาณ (Step 3: Budget Approval)
   PENDING_HELPER_APPROVAL // รออนุมัติผู้ช่วยงาน (Step 4: Helper Approval)
   APPROVED // อนุมัติสมบูรณ์และบันทึกปฏิทินสำเร็จ (Step 5)
+  PENDING_CANCELLATION // รออนุมัติการยกเลิก (กรณีมีเบิกสินค้า)
   REJECTED // ถูกปฏิเสธ (ปัดตกแผนงาน)
   WAITING_FOR_CORRECTION // ถูกส่งกลับแก้ไข/ขอข้อมูลเพิ่มเติม (ตีกลับ)
   CANCELLED // ยกเลิกแผนงานโดยผู้สร้าง
@@ -1552,13 +1554,18 @@ enum ActivityApprovalAction {
   APPROVE // อนุมัติผ่าน
   REJECT // ปฏิเสธ (ปัดตก)
   REQUEST_CORRECTION // ตีกลับแก้ไข
+  REQUEST_CANCEL // ยื่นขอยกเลิก
+  APPROVE_CANCEL // อนุมัติการยกเลิก
+  REJECT_CANCEL // ปฏิเสธการยกเลิก
   CANCEL // ยกเลิก
 }
 
 enum ActivityApprovalStep {
   LINE_APPROVAL // ตรวจสอบเบื้องต้นตามสายงาน (Step 2)
+  PRODUCT_WITHDRAWAL_APPROVAL // ตรวจสอบและอนุมัติการเบิกสินค้า (Step 2.5)
   BUDGET_APPROVAL // ตรวจสอบเงื่อนไขงบประมาณ (Step 3)
   HELPER_APPROVAL // ตรวจสอบการช่วยงาน (Step 4)
+  CANCELLATION_APPROVAL // ตรวจสอบและอนุมัติการยกเลิกแผนงาน
   POST_ACTIVITY_REVIEW // ตรวจสอบผลการปฏิบัติงานนอกแผนงาน
 }
 
@@ -1690,10 +1697,19 @@ model ActivityPlan {
   status                    ActivityStatus   @default(DRAFT)
   currentApproverEmployeeId String?          @map("current_approver_employee_id")
 
-  // ──── APPROVAL FLAGS (Step 3 parallel tracking) ────────
-  salesPromotionApproved Boolean? @map("sales_promotion_approved")
-  marketingApproved      Boolean? @map("marketing_approved")
-  salesManagerApproved   Boolean? @map("sales_manager_approved")
+  // ──── APPROVAL FLAGS (Parallel & Special Gate Tracking) ────────
+  salesPromotionApproved   Boolean?  @map("sales_promotion_approved")
+  marketingApproved        Boolean?  @map("marketing_approved")
+  salesManagerApproved     Boolean?  @map("sales_manager_approved")
+  hasProductWithdrawal     Boolean?  @default(false) @map("has_product_withdrawal")
+  productWithdrawalApproved Boolean? @map("product_withdrawal_approved")
+
+  // ──── CANCELLATION REQUEST (Dual-Approval Tracking) ──────
+  cancellationReason          String?   @map("cancellation_reason") @db.Text
+  cancellationRequestedAt     DateTime? @map("cancellation_requested_at")
+  cancellationRequestedById   String?   @map("cancellation_requested_by_id")
+  lineCancellationApproved    Boolean?  @map("line_cancellation_approved")
+  mktCancellationApproved     Boolean?  @map("mkt_cancellation_approved")
 
   // ──── TAT TIMESTAMPS (สำหรับ SLA / TAT Analytics) ─────
   submittedAt DateTime? @map("submitted_at") // เวลาที่ส่งขออนุมัติ

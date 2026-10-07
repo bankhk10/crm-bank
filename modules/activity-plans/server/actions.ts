@@ -15,6 +15,9 @@ import {
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
   cancelActivityPlanUseCase,
+  requestCancelActivityPlanUseCase,
+  approveCancelActivityPlanUseCase,
+  rejectCancelActivityPlanUseCase,
   reviewSingleActivityHelperUseCase,
   listActivityCalendarEventsUseCase,
   findOrCreateEmployeeForUser,
@@ -368,16 +371,82 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
 }
 
 /**
- * Action: Cancel an Activity Plan
+ * Action: Cancel an Activity Plan (Direct cancel for drafts, or routed to cancellation request)
  */
-export async function cancelActivityPlanAction(id: string) {
+export async function cancelActivityPlanAction(id: string, reason?: string) {
   const session = await auth();
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
   }
 
   try {
-    const result = await cancelActivityPlanUseCase(id, session.user.id);
+    const result = await cancelActivityPlanUseCase(id, session.user.id, reason);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Request Cancellation of an Activity Plan
+ */
+export async function requestCancelActivityPlanAction(id: string, reason: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await requestCancelActivityPlanUseCase(id, session.user.id, reason);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Approve Cancellation of an Activity Plan
+ */
+export async function approveCancelActivityPlanAction(id: string, comment?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await approveCancelActivityPlanUseCase(id, session.user.id, comment);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
+}
+
+/**
+ * Action: Reject Cancellation of an Activity Plan
+ */
+export async function rejectCancelActivityPlanAction(id: string, reason?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await rejectCancelActivityPlanUseCase(id, session.user.id, reason);
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");

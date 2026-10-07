@@ -1169,7 +1169,29 @@ export default function ActivityPlanApprovalDetailView({
           onBack={handleBack}
           backLabel="กลับหน้ารายการอนุมัติ"
         >
-          {canPerformApproval && (
+          {canPerformApproval && plan.status === "PENDING_CANCELLATION" && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenActionDialog("REJECT_CANCEL")}
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
+              >
+                <XCircle className="h-4 w-4 mr-1.5" />
+                ปฏิเสธคำขอยกเลิก
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleOpenActionDialog("APPROVE_CANCEL")}
+                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6 cursor-pointer"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                อนุมัติการยกเลิก
+              </Button>
+            </>
+          )}
+
+          {canPerformApproval && plan.status !== "PENDING_CANCELLATION" && (
             <>
               <Button
                 variant="outline"
@@ -1195,7 +1217,9 @@ export default function ActivityPlanApprovalDetailView({
                 className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-xs rounded-xl h-10 px-6 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                อนุมัติแผนงาน
+                {plan.status === "PENDING_MARKETING_APPROVAL"
+                  ? "อนุมัติการเบิกสินค้า"
+                  : "อนุมัติแผนงาน"}
               </Button>
             </>
           )}

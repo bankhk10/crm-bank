@@ -1001,9 +1001,11 @@ export type DemoPlotSprayEquipment =
 export const STATUS_OPTIONS = [
   { value: "DRAFT", label: "ร่าง" },
   { value: "PENDING_LINE_APPROVAL", label: "รออนุมัติตามสายงาน" },
+  { value: "PENDING_MARKETING_APPROVAL", label: "รออนุมัติการเบิกสินค้า" },
   { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
   { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
   { value: "APPROVED", label: "อนุมัติสำเร็จ" },
+  { value: "PENDING_CANCELLATION", label: "รออนุมัติการยกเลิก" },
   {
     value: "COMPLETED",
     label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}`,
