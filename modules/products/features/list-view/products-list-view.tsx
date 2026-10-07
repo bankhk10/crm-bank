@@ -19,6 +19,7 @@ import { Package, Upload, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/custom/page-header";
 import { PAGINATION } from "@/lib/constants";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function ProductsListView() {
   const router = useRouter();
@@ -30,6 +31,10 @@ export default function ProductsListView() {
     allowed,
     isLoading: checkingPermission,
   } = usePermission("menu.products");
+  const currentUser = useCurrentUser();
+  const canViewStockByPosition =
+    currentUser?.positionId == "cmnfhk4sv000901ot8oqyu731";
+
   const canCreate = hasPermission("product.create");
   const canView =
     (!checkingPermission && allowed) || hasPermission("product.view");
@@ -37,7 +42,8 @@ export default function ProductsListView() {
   const canDelete = hasPermission("product.delete");
   const canManage = hasPermission("product.manage");
   const canCopy = hasPermission("product.copy");
-  const canViewStock = hasPermission("product.stock.view");
+  const canViewStock =
+    hasPermission("product.stock.view") || canViewStockByPosition;
   const canApprove = hasPermission("product.approve");
 
   const [products, setProducts] = useState<ProductRecord[]>([]);
