@@ -88,16 +88,25 @@ export async function createType7bData(
 
     for (const p of type7bData.plots) {
       if (p.demoPlotId) {
-        await tx.demoPlotVisit.create({
-          data: {
-            demoPlotId: p.demoPlotId,
+        const existingVisit = await tx.demoPlotVisit.findFirst({
+          where: {
             activityPlanId: planId,
+            demoPlotId: p.demoPlotId,
             workTypeCode: "TYPE_7B",
-            visitNumber: type7bData.sprayRound || 1,
-            visitDate: startDate,
-            daysSinceStart: type7bData.daysSinceStart || 0,
           },
         });
+        if (!existingVisit) {
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: p.demoPlotId,
+              activityPlanId: planId,
+              workTypeCode: "TYPE_7B",
+              visitNumber: type7bData.sprayRound || 1,
+              visitDate: startDate,
+              daysSinceStart: type7bData.daysSinceStart || 0,
+            },
+          });
+        }
       }
     }
   }

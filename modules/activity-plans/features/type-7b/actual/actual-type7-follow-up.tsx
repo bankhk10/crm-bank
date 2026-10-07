@@ -52,8 +52,9 @@ import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
+  isType7bCompletedFollowUpVisit,
+  filterCompletedType7bVisits,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
-import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import { Type7bPlanCard } from "../shared/type7b-plan-card";
 import type {
@@ -422,8 +423,8 @@ export function ActualType7FollowUp({
 
   // Past follow-up visits count:
   // Only count completed TYPE_7B follow-up visits
-  const completedVisits = (demoPlotData?.visits || visitHistory || []).filter(
-    isType7bCompletedFollowUpVisit,
+  const completedVisits = filterCompletedType7bVisits(
+    demoPlotData?.visits || visitHistory || [],
   );
   const completedVisitsCount = completedVisits.length;
 

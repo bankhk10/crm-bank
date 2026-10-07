@@ -41,3 +41,26 @@ export function isType7bCompletedFollowUpVisit(v: any): boolean {
 
   return false;
 }
+
+/**
+ * Filters and deduplicates completed TYPE_7B follow-up visits.
+ * Guarantees that at most 1 visit per activityPlanId is returned.
+ */
+export function filterCompletedType7bVisits(visits: any[]): any[] {
+  if (!visits || !Array.isArray(visits)) return [];
+  const filtered = visits.filter(isType7bCompletedFollowUpVisit);
+  const seenPlanIds = new Set<string>();
+  const unique: any[] = [];
+  for (const v of filtered) {
+    const planKey = v.activityPlanId || v.activityPlan?.id || v.id;
+    if (planKey && seenPlanIds.has(planKey)) {
+      continue;
+    }
+    if (planKey) {
+      seenPlanIds.add(planKey);
+    }
+    unique.push(v);
+  }
+  return unique;
+}
+

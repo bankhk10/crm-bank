@@ -1163,7 +1163,10 @@ export async function createActivityPlan(
         } else if (
           ((input.demoPlotIds && input.demoPlotIds.length > 0) ||
             input.demoPlotId) &&
-          !(input.type13Plots && input.type13Plots.length > 0)
+          !(input.type13Plots && input.type13Plots.length > 0) &&
+          !input.type7bData &&
+          !(input.type7aPlots && input.type7aPlots.length > 0) &&
+          !input.type14Data
         ) {
           const plotIdsToVisit =
             input.demoPlotIds && input.demoPlotIds.length > 0
@@ -1830,7 +1833,12 @@ export async function updateActivityPlan(
           },
         });
       }
-    } else if (demoPlotId !== undefined || demoPlotIds !== undefined) {
+    } else if (
+      (demoPlotId !== undefined || demoPlotIds !== undefined) &&
+      planData.type7bData === undefined &&
+      planData.type7aPlots === undefined &&
+      planData.type14Data === undefined
+    ) {
       await tx.demoPlotVisit.deleteMany({
         where: {
           activityPlanId: id,

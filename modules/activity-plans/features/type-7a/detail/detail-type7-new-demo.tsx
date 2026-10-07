@@ -23,7 +23,10 @@ import {
 } from "@/components/custom/image-lightbox-modal";
 import { DemoPlotHistoryModal } from "@/modules/activity-plans/features/type-7b/actual/demo-plot-history-modal";
 import { getDemoPlotHistoryAction } from "@/modules/activity-plans/server/actions";
-import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import {
+  isType7bCompletedFollowUpVisit,
+  filterCompletedType7bVisits,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import type {
   DetailType7NewDemoProps,
@@ -100,7 +103,7 @@ export function DetailType7NewDemo({
 
   const followUpVisits = useMemo(() => {
     const raw = historyPlotData?.visits || demoPlotData?.visits || [];
-    return raw.filter(isType7bCompletedFollowUpVisit);
+    return filterCompletedType7bVisits(raw);
   }, [historyPlotData?.visits, demoPlotData?.visits]);
   const followUpVisitsCount = followUpVisits.length;
   const [lightboxState, setLightboxState] = useState<{

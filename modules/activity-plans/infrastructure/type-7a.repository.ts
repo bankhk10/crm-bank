@@ -173,15 +173,24 @@ export async function createType7aPlots(
     }
 
     if (demoPlotId) {
-      await tx.demoPlotVisit.create({
-        data: {
-          demoPlotId,
+      const existingVisit = await tx.demoPlotVisit.findFirst({
+        where: {
           activityPlanId: planId,
+          demoPlotId,
           workTypeCode: "TYPE_7A",
-          visitNumber: 1,
-          visitDate: startDate,
         },
       });
+      if (!existingVisit) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId,
+            activityPlanId: planId,
+            workTypeCode: "TYPE_7A",
+            visitNumber: 1,
+            visitDate: startDate,
+          },
+        });
+      }
     }
   }
 }

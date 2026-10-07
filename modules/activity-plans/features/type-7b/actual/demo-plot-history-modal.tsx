@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import {
+  isType7bCompletedFollowUpVisit,
+  filterCompletedType7bVisits,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 import {
   X,
   Calendar,
@@ -47,7 +50,7 @@ export function DemoPlotHistoryModal({
 
   const visits = useMemo(() => {
     if (!plot?.visits) return [];
-    return (plot.visits as any[]).filter(isType7bCompletedFollowUpVisit);
+    return filterCompletedType7bVisits(plot.visits as any[]);
   }, [plot?.visits]);
   const totalVisits = visits.length;
 

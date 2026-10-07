@@ -28,7 +28,10 @@ import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
-import { isType7bCompletedFollowUpVisit } from "@/modules/activity-plans/features/shared/actual-view/utils";
+import {
+  isType7bCompletedFollowUpVisit,
+  filterCompletedType7bVisits,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import type { DetailType7FollowUpProps } from "../actual/types";
 
@@ -119,8 +122,8 @@ export function DetailType7FollowUp({
   };
 
   // Completed past follow-up visits count (Problem 3.1 fix)
-  const completedVisits = (demoPlotData?.visits || visitHistory || []).filter(
-    isType7bCompletedFollowUpVisit,
+  const completedVisits = filterCompletedType7bVisits(
+    demoPlotData?.visits || visitHistory || [],
   );
   const completedVisitsCount = completedVisits.length;
 
