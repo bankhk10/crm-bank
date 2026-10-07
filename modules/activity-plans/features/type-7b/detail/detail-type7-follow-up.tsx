@@ -640,7 +640,14 @@ export function DetailType7FollowUp({
                                   {pIdx + 1}
                                 </td>
                                 <td className="p-2.5 font-bold text-slate-900">
-                                  {p.productName || p.product?.name || "-"}
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span>{p.productName || p.product?.name || "-"}</span>
+                                    {(p.isAdditional || p.detail === "ADDITIONAL") && (
+                                      <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                                        สินค้าเพิ่มเติม
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="p-2.5 text-center font-semibold text-slate-800">
                                   {p.quantityUsed != null

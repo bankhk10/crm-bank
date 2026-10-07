@@ -1413,12 +1413,15 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       productResponse: sr.productResponse,
       problemDetail: sr.problemDetail || undefined,
       productRates: (sr.products || []).map((p: any) => ({
+        id: p.id,
         productId: p.productId,
         productName: p.productName || p.product?.name || "",
         baselineRate: p.baselineRate || undefined,
         actualRate: p.actualRate || "",
         quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
         unit: p.unit || p.product?.unit || undefined,
+        detail: p.detail || undefined,
+        isAdditional: p.detail === "ADDITIONAL" || Boolean(p.isAdditional),
       })),
       hasExternalChemicals:
         sr.sprayMethod === "TANK_MIXED" &&

@@ -256,11 +256,18 @@ export function useType7bActual() {
                 const matchedWithdrawn = withdrawnProducts.find(
                   (wp) => wp.productId === pr.productId,
                 );
+                const isAdditional =
+                  pr.isAdditional !== undefined
+                    ? pr.isAdditional
+                    : pr.detail === "ADDITIONAL"
+                      ? true
+                      : !matchedWithdrawn && !pr.baselineRate;
                 return {
                   ...pr,
                   withdrawnQuantity: matchedWithdrawn
                     ? (matchedWithdrawn.quantity ?? null)
                     : (pr.withdrawnQuantity ?? null),
+                  isAdditional,
                 };
               }),
             };

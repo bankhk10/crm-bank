@@ -404,6 +404,7 @@ export interface Type7bSprayProductRateItem {
   actualRate: string;
   quantityUsed: number | string;
   unit?: string;
+  detail?: string;
   isAdditional?: boolean;
 }
 

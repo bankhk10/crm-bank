@@ -773,6 +773,7 @@ export function buildResultSummary(
             actualRate: pr.actualRate,
             quantityUsed: Number(pr.quantityUsed) || 0,
             unit: pr.unit || null,
+            detail: pr.isAdditional ? "ADDITIONAL" : null,
           })),
           externalProducts:
             sr.sprayMethod === "TANK_MIXED" &&

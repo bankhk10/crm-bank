@@ -140,6 +140,7 @@ export function ActualType7FollowUp({
         actualRate: "",
         quantityUsed: 1,
         unit: pUnit,
+        isAdditional: false,
       });
     });
 
@@ -167,6 +168,7 @@ export function ActualType7FollowUp({
           actualRate: "",
           quantityUsed: 0,
           unit: wp.unit || "",
+          isAdditional: false,
         });
       }
     });
