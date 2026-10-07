@@ -29,8 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 import DatePicker from "@/components/custom/DatePicker";
-import { FormCombobox } from "@/components/custom/form-components";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
 import type { useType13ActualState } from "./use-type13-actual-state";
 import type { Type13PlotActualState, Type13ActualProps } from "./types";
@@ -268,6 +268,7 @@ export function Type13Actual({
   isVisible = true,
   actualState,
   products = [],
+  dealers = [],
   readonly = false,
 }: Type13ActualProps) {
   const {
@@ -275,6 +276,7 @@ export function Type13Actual({
     addPlot,
     removePlot,
     updatePlotInfo,
+    updatePlotDealer,
     updatePlotCoordinates,
     addSprayingRound,
     removeSprayingRound,
@@ -290,6 +292,20 @@ export function Type13Actual({
     addPlotAfterSprayImages,
     removePlotAfterSprayImage,
   } = actualState;
+
+  const dealerOptions = React.useMemo(() => {
+    return (dealers || []).map((d: any) => ({
+      value: d.id,
+      label: d.name,
+      subLabel: [
+        d.customerCode ? `รหัส: ${d.customerCode}` : "",
+        d.district,
+        d.province,
+      ]
+        .filter(Boolean)
+        .join(" • "),
+    }));
+  }, [dealers]);
 
   const [gpsLoadingPlotIdx, setGpsLoadingPlotIdx] = useState<number | null>(
     null,
@@ -498,27 +514,35 @@ export function Type13Actual({
                     />
                   </div>
 
-                  {/* ข้อมูลร้านค้า / หมายเหตุ */}
+                  {/* ข้อมูลร้านค้า Dealer */}
                   <div className="sm:col-span-6">
                     {plot.isNew ? (
-                      <>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          ที่ตั้งแปลง{" "}
-                          <span className="text-slate-400 font-normal">
-                            (ถ้ามี)
-                          </span>
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          ร้านค้า Dealer <span className="text-rose-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          value={plot.district || ""}
-                          onChange={(e) =>
-                            updatePlotInfo(plotIdx, "district", e.target.value)
-                          }
-                          placeholder="เช่น ใกล้สะพานไม้, จุดสังเกต"
+                        <FormCombobox
+                          id={`plot-dealer-select-${plotIdx}`}
+                          value={plot.storeId || ""}
+                          onChange={(val) => {
+                            const selectedDealer = (dealers || []).find(
+                              (d: any) => d.id === val,
+                            );
+                            updatePlotDealer(plotIdx, selectedDealer);
+                          }}
+                          options={dealerOptions}
+                          placeholder="ค้นหาและเลือกร้านค้า Dealer..."
+                          searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                          emptyText="ไม่พบร้านค้า Dealer"
                           disabled={readonly}
-                          className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800"
                         />
-                      </>
+                        {plot.district && plot.province && (
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            พื้นที่: {plot.district} / {plot.province}
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -726,7 +750,7 @@ export function Type13Actual({
                           </label>
                           <DatePicker
                             value={round.sprayDate}
-                            onChange={(v) =>
+                            onChange={(v?: string) =>
                               updateRoundField(
                                 plotIdx,
                                 rIdx,
@@ -1633,7 +1657,7 @@ export function Type13Actual({
             className="h-10 px-5 rounded-xl text-xs font-semibold text-emerald-700 border-dashed border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 flex items-center gap-2 transition-all shadow-2xs disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            <span>+ เพิ่มแปลงแฮตแทคใหม่ ({plotsActual.length}/10)</span>
+            <span>เพิ่มแปลงแฮตแทคใหม่ ({plotsActual.length}/10)</span>
           </Button>
         </div>
       )}

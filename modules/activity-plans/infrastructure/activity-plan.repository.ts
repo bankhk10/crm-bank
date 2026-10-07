@@ -2661,6 +2661,9 @@ export type CreateActivityResultInput = {
   type13PlotsActual?: Array<{
     demoPlotId: string;
     plotName?: string | null;
+    storeId?: string | null;
+    province?: string | null;
+    district?: string | null;
     latitude: number | string | Prisma.Decimal;
     longitude: number | string | Prisma.Decimal;
   }>;
@@ -3157,7 +3160,7 @@ export async function upsertActivityResult(
       }
     }
 
-    // 6.1.2. Update Existing TYPE_13 Plots GPS coordinates & Plot Name
+    // 6.1.2. Update Existing TYPE_13 Plots GPS coordinates & Plot Name & Dealer
     if (input.type13PlotsActual && input.type13PlotsActual.length > 0) {
       for (const plotItem of input.type13PlotsActual) {
         if (plotItem.demoPlotId) {
@@ -3173,6 +3176,15 @@ export async function upsertActivityResult(
           }
           if (plotItem.plotName && plotItem.plotName.trim() !== "") {
             updateData.name = plotItem.plotName.trim();
+          }
+          if (plotItem.storeId && plotItem.storeId.trim() !== "") {
+            updateData.customerId = plotItem.storeId.trim();
+          }
+          if (plotItem.province && plotItem.province.trim() !== "") {
+            updateData.province = plotItem.province.trim();
+          }
+          if (plotItem.district && plotItem.district.trim() !== "") {
+            updateData.district = plotItem.district.trim();
           }
           if (Object.keys(updateData).length > 0) {
             await tx.demoPlot.update({

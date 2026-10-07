@@ -19,6 +19,10 @@ const createDefaultInitialPlot = (): Type13PlotActualState => {
     clientPlotId: tempId,
     demoPlotId: null,
     plotName: "",
+    storeId: "",
+    dealerName: "",
+    province: "",
+    district: "",
     isNew: true,
     latitude: "",
     longitude: "",
@@ -106,14 +110,16 @@ export function useType13ActualState() {
         const plotId = plot?.id || v.demoPlotId || `plot-${idx}`;
         const plotName = plot?.name || `แปลงที่ ${idx + 1}`;
         const wProds = getWithdrawalForPlot(plotId, plotName);
+        const plotCustomer = plot?.customer || (plot?.customerId && plan.stores?.find((s: any) => s.storeId === plot.customerId)?.store);
+        const fallbackStore = plan.stores?.[0]?.store;
 
         return {
           demoPlotId: plotId,
           plotName,
-          dealerName: plot?.customer?.name || undefined,
-          storeId: plot?.customerId || undefined,
-          province: plot?.province || undefined,
-          district: plot?.district || undefined,
+          dealerName: plotCustomer?.name || plot?.dealerName || fallbackStore?.name || undefined,
+          storeId: plot?.customerId || plotCustomer?.id || fallbackStore?.id || undefined,
+          province: plot?.province || plotCustomer?.province || fallbackStore?.province || undefined,
+          district: plot?.district || plotCustomer?.district || fallbackStore?.district || undefined,
           latitude: plot?.latitude != null ? String(plot.latitude) : "",
           longitude: plot?.longitude != null ? String(plot.longitude) : "",
           isNew: false,
@@ -581,6 +587,10 @@ export function useType13ActualState() {
         clientPlotId: tempId,
         demoPlotId: null,
         plotName: "",
+        storeId: "",
+        dealerName: "",
+        province: "",
+        district: "",
         isNew: true,
         latitude: "",
         longitude: "",
@@ -607,6 +617,25 @@ export function useType13ActualState() {
         const next = [...prev];
         if (!next[plotIndex]) return prev;
         next[plotIndex] = { ...next[plotIndex], [field]: value };
+        return next;
+      });
+    },
+    [],
+  );
+
+  // Update plot dealer and auto-populate province/district
+  const updatePlotDealer = useCallback(
+    (plotIndex: number, dealer?: any) => {
+      setPlotsActual((prev) => {
+        const next = [...prev];
+        if (!next[plotIndex]) return prev;
+        next[plotIndex] = {
+          ...next[plotIndex],
+          storeId: dealer?.id || "",
+          dealerName: dealer?.name || "",
+          district: dealer?.district || "",
+          province: dealer?.province || "",
+        };
         return next;
       });
     },
@@ -996,12 +1025,15 @@ export function useType13ActualState() {
   // Build payload for submission
   const buildType13ActualPayload = useCallback(
     (targetPlots: Type13PlotActualState[] = plotsActual) => {
-      // 1. Existing plot GPS coordinates and Plot Name (only for real DB demoPlotId)
+      // 1. Existing plot GPS coordinates, Plot Name and Dealer (only for real DB demoPlotId)
       const type13PlotsActual = targetPlots
         .filter((p) => !p.isNew && p.demoPlotId && !p.demoPlotId.startsWith("temp-"))
         .map((p) => ({
           demoPlotId: p.demoPlotId!,
           plotName: p.plotName.trim() || undefined,
+          storeId: p.storeId && p.storeId.trim() ? p.storeId.trim() : null,
+          province: p.province || null,
+          district: p.district || null,
           latitude: p.latitude.trim(),
           longitude: p.longitude.trim(),
         }));
@@ -1015,6 +1047,7 @@ export function useType13ActualState() {
             p.plotName.trim() !== "" ||
             p.latitude.trim() !== "" ||
             p.longitude.trim() !== "" ||
+            Boolean(p.storeId) ||
             (p.sprayRounds && p.sprayRounds.length > 0),
         )
         .map((p) => {
@@ -1025,7 +1058,7 @@ export function useType13ActualState() {
           return {
             clientPlotId,
             plotName: p.plotName.trim() || `แปลงแฮตแทค`,
-            storeId: p.storeId || null,
+            storeId: p.storeId && p.storeId.trim() ? p.storeId.trim() : null,
             province: p.province || null,
             district: p.district || null,
             latitude: p.latitude.trim(),
@@ -1144,6 +1177,7 @@ export function useType13ActualState() {
     addPlot,
     removePlot,
     updatePlotInfo,
+    updatePlotDealer,
     updatePlotCoordinates,
     addSprayingRound,
     removeSprayingRound,

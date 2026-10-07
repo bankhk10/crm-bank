@@ -268,9 +268,10 @@ export default function ActivityPlanDetailView({
         demoPlotId: dp.id,
         name: dp.name || `แปลง #${v.visitNumber || 1}`,
         storeId: dp.customerId || "",
-        ownerName: dp.ownerName || dp.farmerCustomer?.name || "",
-        province: dp.province || "",
-        district: dp.district || "",
+        dealerName: dp.customer?.name || "",
+        ownerName: dp.customer?.name || dp.ownerName || dp.farmerCustomer?.name || "",
+        province: dp.province || dp.customer?.province || "",
+        district: dp.district || dp.customer?.district || "",
         hasDrugWithdrawal: plotWithdrawalItems.length > 0,
         withdrawalItems: plotWithdrawalItems.map((w: any) => ({
           id: w.id,

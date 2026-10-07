@@ -87,9 +87,16 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
             <span className="block text-[11px] text-slate-400 font-medium">
               ร้านค้า Dealer
             </span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-700">
-              {currentPlot.ownerName || currentPlot.storeId || "-"}
+            <span className="text-xs sm:text-sm font-semibold text-slate-800">
+              {currentPlot.dealerName || currentPlot.ownerName || "-"}
             </span>
+            {(currentPlot.district || currentPlot.province) && (
+              <span className="text-[11px] text-slate-500 block truncate">
+                {[currentPlot.district, currentPlot.province]
+                  .filter(Boolean)
+                  .join(" / ")}
+              </span>
+            )}
           </div>
           {/* ยังไม่ได้ใช้งาน ที่ตั้งแปลง */}
           {/* <div>

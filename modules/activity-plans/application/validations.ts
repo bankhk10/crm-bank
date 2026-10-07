@@ -949,6 +949,10 @@ export const activityResultSchema = z
       .array(
         z.object({
           demoPlotId: z.string(),
+          plotName: z.string().optional().nullable(),
+          storeId: z.string().optional().nullable(),
+          province: z.string().optional().nullable(),
+          district: z.string().optional().nullable(),
           latitude: z.union([z.string(), z.number()]),
           longitude: z.union([z.string(), z.number()]),
         }),

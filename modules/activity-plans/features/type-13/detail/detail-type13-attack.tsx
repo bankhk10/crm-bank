@@ -144,8 +144,13 @@ export function DetailType13Attack({
               ร้านค้า Dealer
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-700">
-              {currentPlot.ownerName || currentPlot.storeId || "-"}
+              {currentPlot.dealerName || currentPlot.ownerName || currentPlot.storeId || "-"}
             </span>
+            {(currentPlot.district || currentPlot.province) && (
+              <span className="block text-[11px] text-slate-400 mt-0.5">
+                {[currentPlot.district, currentPlot.province].filter(Boolean).join(" / ")}
+              </span>
+            )}
           </div>
 
           {plotCoord && (

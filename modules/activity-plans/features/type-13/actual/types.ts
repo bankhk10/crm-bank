@@ -46,5 +46,6 @@ export interface Type13ActualProps {
   isVisible?: boolean;
   actualState: ReturnType<typeof useType13ActualState>;
   products: ProductOption[];
+  dealers?: any[];
   readonly?: boolean;
 }

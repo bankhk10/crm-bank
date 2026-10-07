@@ -911,6 +911,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
               isVisible={true}
               actualState={typeHooks.type13}
               products={products}
+              dealers={customers}
             />
           )}
 

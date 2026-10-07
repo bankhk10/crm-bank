@@ -20,6 +20,7 @@ export interface Type13PlotItem {
   demoPlotId?: string | null;
   name: string;
   storeId: string;
+  dealerName?: string | null;
   ownerName?: string | null;
   province: string;
   district: string;
