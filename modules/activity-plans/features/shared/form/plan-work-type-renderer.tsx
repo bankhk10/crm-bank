@@ -388,6 +388,10 @@ export function PlanWorkTypeRenderer({
           <Type13Create
             plots={typeForms.type13.type13Plots}
             onChange={typeForms.type13.setType13Plots}
+            hasProductWithdrawal={typeForms.type13.hasProductWithdrawal}
+            onToggleWithdrawal={typeForms.type13.setHasProductWithdrawal}
+            withdrawnProducts={typeForms.type13.withdrawnProducts}
+            onWithdrawnProductsChange={typeForms.type13.setWithdrawnProducts}
             dealers={customersList}
             products={productsList}
             readonly={readonly}

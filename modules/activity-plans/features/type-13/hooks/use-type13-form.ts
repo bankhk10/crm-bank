@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type13PlotItem as FormType13PlotItem } from "../shared/types";
+import type {
+  Type13PlotItem as FormType13PlotItem,
+  Type13WithdrawnProductLine,
+} from "../shared/types";
 import type { Type13PlotItem } from "@/modules/activity-plans/application/validations";
 import { validateType13FormValues } from "../create/validation";
 
@@ -12,8 +15,17 @@ export interface UseType13FormOptions {
 export interface UseType13FormResult {
   type13Plots: FormType13PlotItem[];
   setType13Plots: React.Dispatch<React.SetStateAction<FormType13PlotItem[]>>;
+  hasProductWithdrawal: boolean;
+  setHasProductWithdrawal: React.Dispatch<React.SetStateAction<boolean>>;
+  withdrawnProducts: Type13WithdrawnProductLine[];
+  setWithdrawnProducts: React.Dispatch<
+    React.SetStateAction<Type13WithdrawnProductLine[]>
+  >;
   validateType13: () => { isValid: boolean; error?: string };
-  mapType13Payload: (customers: any[]) => {
+  mapType13Payload: (
+    customers: any[],
+    products?: any[],
+  ) => {
     type13Plots: Type13PlotItem[] | undefined;
     planStores: Array<{
       workTypeCode: string;
@@ -24,6 +36,14 @@ export interface UseType13FormResult {
       remarks: string;
       notes: string;
     }>;
+    planProducts: Array<{
+      workTypeCode: string;
+      productId: string;
+      productName: string | null;
+      targetQuantity: number;
+      isPriceOverridden: boolean;
+      storeId?: string | null;
+    }>;
   };
 }
 
@@ -31,6 +51,46 @@ export function useType13Form({
   initial = {},
   selectedWorkTypes = [],
 }: UseType13FormOptions): UseType13FormResult {
+  // Hydrate withdrawn products for TYPE_13
+  const t13Products: Type13WithdrawnProductLine[] = (
+    (initial as any)?.products || []
+  )
+    .filter((p: any) => p.workTypeCode === "TYPE_13")
+    .map((p: any, idx: number) => ({
+      id: p.id || String(idx + 1),
+      productId: p.productId,
+      productName: p.productName || p.product?.name || "",
+      quantity: p.targetQuantity || 1,
+      unit: p.product?.unit || "ขวด",
+    }));
+
+  const hasT13Withdrawal = t13Products.length > 0;
+
+  const [hasProductWithdrawal, setHasProductWithdrawal] = useState<boolean>(
+    () => hasT13Withdrawal,
+  );
+  const [withdrawnProducts, setWithdrawnProducts] = useState<
+    Type13WithdrawnProductLine[]
+  >(() => (hasT13Withdrawal ? t13Products : []));
+
+  useEffect(() => {
+    if (initial && Object.keys(initial).length > 0) {
+      const prods = ((initial as any)?.products || [])
+        .filter((p: any) => p.workTypeCode === "TYPE_13")
+        .map((p: any, idx: number) => ({
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          quantity: p.targetQuantity || 1,
+          unit: p.product?.unit || "ขวด",
+        }));
+      if (prods.length > 0) {
+        setHasProductWithdrawal(true);
+        setWithdrawnProducts(prods);
+      }
+    }
+  }, [initial]);
+
   const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() => {
     if (
       (initial as any)?.type13Plots &&
@@ -94,15 +154,17 @@ export function useType13Form({
     return validateType13FormValues({
       selectedWorkTypes,
       type13Plots,
+      hasProductWithdrawal,
+      withdrawnProducts,
     });
   };
 
-  const mapType13Payload = (customers: any[]) => {
+  const mapType13Payload = (customers: any[], products: any[] = []) => {
     const hasType13Selected = selectedWorkTypes.some(
       (t) => getWorkTypeCode(t) === "TYPE_13",
     );
     if (!hasType13Selected || !type13Plots || type13Plots.length === 0) {
-      return { type13Plots: undefined, planStores: [] };
+      return { type13Plots: undefined, planStores: [], planProducts: [] };
     }
 
     const planStores: Array<{
@@ -114,6 +176,37 @@ export function useType13Form({
       remarks: string;
       notes: string;
     }> = [];
+
+    const planProducts: Array<{
+      workTypeCode: string;
+      productId: string;
+      productName: string | null;
+      targetQuantity: number;
+      isPriceOverridden: boolean;
+      storeId?: string | null;
+    }> = [];
+
+    if (
+      hasProductWithdrawal &&
+      withdrawnProducts &&
+      withdrawnProducts.length > 0
+    ) {
+      withdrawnProducts.forEach((wp) => {
+        const pId =
+          wp.productId || products.find((p) => p.name === wp.productName)?.id;
+        if (pId) {
+          const matchedP = products.find((p) => p.id === pId);
+          planProducts.push({
+            workTypeCode: "TYPE_13",
+            productId: pId,
+            productName: wp.productName || matchedP?.name || null,
+            targetQuantity: wp.quantity ? Number(wp.quantity) : 1,
+            isPriceOverridden: false,
+            storeId: type13Plots[0]?.storeId || null,
+          });
+        }
+      });
+    }
 
     type13Plots.forEach((plot, pIdx) => {
       if (plot.storeId) {
@@ -151,14 +244,20 @@ export function useType13Form({
     return {
       type13Plots: mappedType13Plots,
       planStores,
+      planProducts,
     };
   };
 
   return {
     type13Plots,
     setType13Plots,
+    hasProductWithdrawal,
+    setHasProductWithdrawal,
+    withdrawnProducts,
+    setWithdrawnProducts,
     validateType13,
     mapType13Payload,
   };
 }
+
 

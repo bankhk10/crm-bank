@@ -377,8 +377,9 @@ export function useAllTypeForms({
     const { tourData } = type12.mapType12Payload(customersList);
 
     // 13. TYPE_13
-    const type13Payload = type13.mapType13Payload(customersList);
+    const type13Payload = type13.mapType13Payload(customersList, productsList);
     planStores.push(...type13Payload.planStores);
+    planProducts.push(...type13Payload.planProducts);
 
     // 14. TYPE_14
     const type14Payload = type14.mapType14Payload(customersList, productsList);

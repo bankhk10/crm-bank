@@ -6,6 +6,14 @@ export interface Type13PlotProduct {
   unit?: string | null;
 }
 
+export interface Type13WithdrawnProductLine {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+}
+
 export interface Type13PlotItem {
   id: string;
   demoPlotId?: string | null;
