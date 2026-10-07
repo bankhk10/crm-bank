@@ -170,6 +170,7 @@ export interface BuildSummaryInput {
     actualRate: string;
   }>;
   actualStartDate?: string;
+  demoPlotId?: string | null;
   t7bSprayingRounds?: Type7bSprayingRoundItem[];
 
   // Type 8
@@ -739,7 +740,13 @@ export function buildResultSummary(
       ? t7CustomPlotDetail?.trim()
         ? `OTHER:${t7CustomPlotDetail.trim()}`
         : "OTHER"
-      : input.t7DemoPlotId || null;
+      : input.t7DemoPlotId ||
+        input.demoPlotId ||
+        input.targets?.demoPlotId ||
+        input.targets?.t7b?.demoPlotId ||
+        (input.targets?.t7b as any)?.plots?.[0]?.demoPlotId ||
+        (input.targets?.t7b as any)?.demoPlotId ||
+        null;
 
   const hasType7Data =
     Boolean(t7PlotName) ||
@@ -758,7 +765,7 @@ export function buildResultSummary(
   const sprayRounds =
     isType7B && input.t7bSprayingRounds && input.t7bSprayingRounds.length > 0
       ? input.t7bSprayingRounds.map((sr) => ({
-          demoPlotId: effectiveDemoPlotId,
+          demoPlotId: sr.demoPlotId || effectiveDemoPlotId,
           roundNumber: sr.roundNumber,
           sprayDate: sr.sprayDate || input.actualStartDate || new Date(),
           sprayMethod: sr.sprayMethod,

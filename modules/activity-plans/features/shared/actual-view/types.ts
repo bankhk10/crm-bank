@@ -410,6 +410,7 @@ export interface Type7bSprayProductRateItem {
 
 export interface Type7bSprayingRoundItem {
   id?: string;
+  demoPlotId?: string | null;
   roundNumber: number;
   sprayDate?: string;
   sprayMethod: "SINGLE" | "TANK_MIXED";

@@ -3109,6 +3109,22 @@ export async function upsertActivityResult(
           }
 
           if (!targetPlotId || !targetPlotId.trim()) {
+            const planRel = await tx.activityPlan.findUnique({
+              where: { id: input.activityPlanId },
+              select: {
+                demoPlotVisits: { select: { demoPlotId: true }, take: 1 },
+                type7b: {
+                  select: { plots: { select: { demoPlotId: true }, take: 1 } },
+                },
+              },
+            });
+            targetPlotId =
+              planRel?.demoPlotVisits?.[0]?.demoPlotId ||
+              planRel?.type7b?.plots?.[0]?.demoPlotId ||
+              "";
+          }
+
+          if (!targetPlotId || !targetPlotId.trim()) {
             throw new Error("Spray round is missing demoPlotId");
           }
 

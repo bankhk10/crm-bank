@@ -480,6 +480,13 @@ export function UnplannedActivityForm({
         targets: {
           t7a: submittedDemoPlotData,
           t7: submittedDemoPlotData,
+          t7b: {
+            demoPlotId: submittedDemoPlotId,
+            demoPlotIds: submittedDemoPlotIds,
+            plots: type7bData?.plots,
+            ...(type7bData || {}),
+          },
+          demoPlotId: submittedDemoPlotId,
         },
       });
 

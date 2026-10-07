@@ -73,8 +73,23 @@ export function useType7bActual() {
       setT7ActualQuantity(String(extractedTargets.t7.demoProductQuantity));
     }
 
+    const resolvedDemoPlotId =
+      extractedTargets?.t7b?.demoPlotId ||
+      extractedTargets?.demoPlotId ||
+      (extractedTargets?.t7b as any)?.plots?.[0]?.demoPlotId ||
+      plan?.demoPlotVisits?.[0]?.demoPlotId ||
+      plan?.type7b?.plots?.[0]?.demoPlotId ||
+      plan?.demoPlotId ||
+      null;
+
+    if (resolvedDemoPlotId) {
+      setT7DemoPlotId(resolvedDemoPlotId);
+    }
+
     const linkedDemoPlot =
-      plan?.demoPlotVisits?.[0]?.demoPlot || plan?.demoPlot;
+      plan?.demoPlotVisits?.[0]?.demoPlot ||
+      plan?.type7b?.plots?.[0]?.demoPlot ||
+      plan?.demoPlot;
 
     if (linkedDemoPlot) {
       const dp = linkedDemoPlot;
@@ -499,8 +514,15 @@ export function useType7bActual() {
         context.targets?.t7?.product ||
         null;
 
+      const resolvedDemoPlotId =
+        t7DemoPlotId ||
+        context.targets?.t7b?.demoPlotId ||
+        context.targets?.demoPlotId ||
+        (context.targets?.t7b as any)?.plots?.[0]?.demoPlotId ||
+        null;
+
       return {
-        t7DemoPlotId,
+        t7DemoPlotId: resolvedDemoPlotId,
         t7PlannedProductId: plannedProdId,
         t7ActualProductId: actualProdId,
         t7PlannedProductName: plannedProdName,
