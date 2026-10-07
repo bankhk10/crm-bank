@@ -245,6 +245,8 @@ export function useType14Form({
             (prev.name && p.name === prev.name),
         );
         const fallbackPlot = matched.plots.find((p) => p.dealerId);
+        const fallbackProvincePlot = matched.plots.find((p) => p.province);
+        const fallbackDistrictPlot = matched.plots.find((p) => p.district);
         return {
           ...prev,
           selectedPlanId: matched.planId,
@@ -255,6 +257,8 @@ export function useType14Form({
           storeId: prev.storeId || plotMatch?.dealerId || fallbackPlot?.dealerId || "",
           dealerName: prev.dealerName || plotMatch?.dealerName || fallbackPlot?.dealerName || null,
           ownerName: prev.ownerName || plotMatch?.ownerName || null,
+          province: prev.province || plotMatch?.province || fallbackProvincePlot?.province || "",
+          district: prev.district || plotMatch?.district || fallbackDistrictPlot?.district || "",
         };
       }
       return prev;

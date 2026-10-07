@@ -294,6 +294,24 @@ export async function getHattackFollowUpPlansWithPlotsUseCase() {
         anyPlotWithDealer?.customer?.name ||
         undefined;
 
+      // Find plan-level fallback province/district from any plot in this plan, or from plan, or from plan stores
+      const anyPlotWithProvince = plan.demoPlotVisits.find(
+        (v: any) => v.demoPlot?.province,
+      )?.demoPlot;
+      const anyPlotWithDistrict = plan.demoPlotVisits.find(
+        (v: any) => v.demoPlot?.district,
+      )?.demoPlot;
+      const fallbackProvince =
+        plan.province ||
+        anyPlotWithProvince?.province ||
+        planStore?.province ||
+        "";
+      const fallbackDistrict =
+        plan.district ||
+        anyPlotWithDistrict?.district ||
+        planStore?.district ||
+        "";
+
       const plots: FollowUpPlotItem[] = plan.demoPlotVisits
         .filter((v) => v.demoPlot)
         .map((v) => {
@@ -305,8 +323,8 @@ export async function getHattackFollowUpPlansWithPlotsUseCase() {
             cropName: p.customCropName || p.cropName || "",
             cropCategory: p.cropCategory || undefined,
             ownerName: p.farmerCustomer?.name || p.ownerName || "",
-            province: p.province || plan.province || "",
-            district: p.district || plan.district || "",
+            province: p.province || fallbackProvince,
+            district: p.district || fallbackDistrict,
             areaRai: p.areaRai ? Number(p.areaRai) : undefined,
             treeCount: p.treeCount ?? undefined,
             dealerName: p.customer?.name || fallbackDealerName,

@@ -145,6 +145,9 @@ export function Type14Create({
   const syncPlotData = (firstPlotId: string, allPlotIds: string[]) => {
     const matchedPlot = selectedPlan?.plots.find((p) => p.id === firstPlotId);
     const planFallbackPlot = selectedPlan?.plots.find((p) => p.dealerId);
+    const anyPlotWithProvince = selectedPlan?.plots.find((p) => p.province);
+    const anyPlotWithDistrict = selectedPlan?.plots.find((p) => p.district);
+
     const resolvedDealerId =
       matchedPlot?.dealerId ||
       planFallbackPlot?.dealerId ||
@@ -154,6 +157,18 @@ export function Type14Create({
       matchedPlot?.dealerName ||
       planFallbackPlot?.dealerName ||
       value.dealerName ||
+      "";
+    const resolvedProvince =
+      matchedPlot?.province ||
+      anyPlotWithProvince?.province ||
+      defaultProvince ||
+      value.province ||
+      "";
+    const resolvedDistrict =
+      matchedPlot?.district ||
+      anyPlotWithDistrict?.district ||
+      defaultDistrict ||
+      value.district ||
       "";
 
     if (matchedPlot) {
@@ -171,8 +186,8 @@ export function Type14Create({
         cropName: matchedPlot.cropName || null,
         areaRai: matchedPlot.areaRai ?? null,
         treeCount: matchedPlot.treeCount ?? null,
-        province: matchedPlot.province || defaultProvince || "",
-        district: matchedPlot.district || defaultDistrict || "",
+        province: resolvedProvince,
+        district: resolvedDistrict,
         latitude: "",
         longitude: "",
       });
@@ -190,8 +205,8 @@ export function Type14Create({
         cropName: null,
         areaRai: null,
         treeCount: null,
-        province: allPlotIds.length > 0 ? value.province : "",
-        district: allPlotIds.length > 0 ? value.district : "",
+        province: allPlotIds.length > 0 ? resolvedProvince : "",
+        district: allPlotIds.length > 0 ? resolvedDistrict : "",
         latitude: "",
         longitude: "",
       });
@@ -228,6 +243,10 @@ export function Type14Create({
     const defaultDealerPlot = plan.plots.find((p) => p.dealerId);
     const defaultDealerId = defaultDealerPlot?.dealerId || "";
     const defaultDealerName = defaultDealerPlot?.dealerName || "";
+    const defaultProvincePlot = plan.plots.find((p) => p.province);
+    const defaultDistrictPlot = plan.plots.find((p) => p.district);
+    const defaultProvinceVal = defaultProvincePlot?.province || plan.plots[0]?.province || defaultProvince || "";
+    const defaultDistrictVal = defaultDistrictPlot?.district || plan.plots[0]?.district || defaultDistrict || "";
 
     // Auto-select single plot
     if (plan.plots.length === 1) {
@@ -247,8 +266,8 @@ export function Type14Create({
         cropName: singlePlot.cropName || null,
         areaRai: singlePlot.areaRai ?? null,
         treeCount: singlePlot.treeCount ?? null,
-        province: singlePlot.province || defaultProvince || "",
-        district: singlePlot.district || defaultDistrict || "",
+        province: singlePlot.province || defaultProvinceVal,
+        district: singlePlot.district || defaultDistrictVal,
         latitude: "",
         longitude: "",
         trackings: [],
@@ -256,7 +275,7 @@ export function Type14Create({
       return;
     }
 
-    // Multiple plots: reset plot selection for user to choose, but preserve default dealer
+    // Multiple plots: reset plot selection for user to choose, but preserve default dealer & location
     onChange({
       ...value,
       mode: "EXISTING_PLOT",
@@ -272,8 +291,8 @@ export function Type14Create({
       cropName: null,
       areaRai: null,
       treeCount: null,
-      province: plan.plots[0]?.province || defaultProvince || "",
-      district: plan.plots[0]?.district || defaultDistrict || "",
+      province: defaultProvinceVal,
+      district: defaultDistrictVal,
       latitude: "",
       longitude: "",
       trackings: [],

@@ -37,18 +37,6 @@ export function validateType14FormValues({
     };
   }
 
-  if (!type14Data.province?.trim()) {
-    return {
-      isValid: false,
-      error: "กรุณาระบุจังหวัดของแปลงแฮตแทค",
-    };
-  }
-  if (!type14Data.district?.trim()) {
-    return {
-      isValid: false,
-      error: "กรุณาระบุอำเภอของแปลงแฮตแทค",
-    };
-  }
 
   if (type14Data.hasProductWithdrawal) {
     const prods = type14Data.withdrawnProducts || [];
