@@ -70,6 +70,12 @@ export function validateType7bActual(
         };
       }
       for (const pr of sr.productRates) {
+        if (pr.isAdditional && (!pr.productId || !pr.productName)) {
+          return {
+            isValid: false,
+            error: `กรุณาเลือกสินค้าเพิ่มเติมในรอบที่ ${sr.roundNumber}`,
+          };
+        }
         if (!pr.actualRate || !pr.actualRate.trim()) {
           return {
             isValid: false,

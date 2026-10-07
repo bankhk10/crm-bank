@@ -58,6 +58,13 @@ export interface ActualType7FollowUpProps {
       unit?: string;
     }>;
   };
+  products?: Array<{
+    id: string;
+    name: string;
+    productCode?: string | null;
+    unit?: string | null;
+    packageSizeUnit?: string | null;
+  }>;
   demoPlotData?: any;
   demoPlotId?: string | null;
   visitHistory?: any[];

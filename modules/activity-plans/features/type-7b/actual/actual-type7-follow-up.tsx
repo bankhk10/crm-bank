@@ -57,6 +57,7 @@ import {
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import { Type7bPlanCard } from "../shared/type7b-plan-card";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type {
   DemoPlotVisitHistoryItem,
   ActualType7FollowUpProps,
@@ -68,6 +69,7 @@ export type { DemoPlotVisitHistoryItem, ActualType7FollowUpProps };
 export function ActualType7FollowUp({
   planType,
   target,
+  products = [],
   plotName,
   usageMethod,
   setUsageMethod,
@@ -311,18 +313,58 @@ export function ActualType7FollowUp({
     productIdx: number,
     field: keyof Type7bSprayProductRateItem,
     value: any,
+    selectedProduct?: any,
   ) => {
     const currentRounds = [...(t7bSprayingRounds || [])];
     if (currentRounds[roundIdx]) {
-      const products = [...currentRounds[roundIdx].productRates];
-      if (products[productIdx]) {
-        products[productIdx] = {
-          ...products[productIdx],
+      const prods = [...currentRounds[roundIdx].productRates];
+      if (prods[productIdx]) {
+        const updatedItem = {
+          ...prods[productIdx],
           [field]: value,
         };
-        currentRounds[roundIdx].productRates = products;
+        if (field === "productId" && selectedProduct) {
+          updatedItem.productName = selectedProduct.name;
+          updatedItem.unit =
+            selectedProduct.unit || selectedProduct.packageSizeUnit || "";
+        }
+        prods[productIdx] = updatedItem;
+        currentRounds[roundIdx].productRates = prods;
         setT7bSprayingRounds?.(currentRounds);
       }
+    }
+  };
+
+  const handleAddAdditionalProductToRound = (roundIdx: number) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const prods = [...currentRounds[roundIdx].productRates];
+      const newAddition: Type7bSprayProductRateItem = {
+        id: `additional-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        productId: "",
+        productName: "",
+        withdrawnQuantity: null,
+        actualRate: "",
+        quantityUsed: 1,
+        unit: "",
+        isAdditional: true,
+      };
+      currentRounds[roundIdx].productRates = [...prods, newAddition];
+      setT7bSprayingRounds?.(currentRounds);
+    }
+  };
+
+  const handleRemoveAdditionalProductFromRound = (
+    roundIdx: number,
+    productIdx: number,
+  ) => {
+    const currentRounds = [...(t7bSprayingRounds || [])];
+    if (currentRounds[roundIdx]) {
+      const prods = currentRounds[roundIdx].productRates.filter(
+        (_: unknown, i: number) => i !== productIdx,
+      );
+      currentRounds[roundIdx].productRates = prods;
+      setT7bSprayingRounds?.(currentRounds);
     }
   };
 
@@ -925,83 +967,277 @@ export function ActualType7FollowUp({
                 </div>
 
                 {/* 1. ตารางสินค้าสาธิตและอัตราการใช้ในรอบนี้ */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-700">
-                      1. รายการสินค้าสาธิตและอัตราการใช้จริงในรอบนี้{" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
+                <div className="space-y-4">
+                  {/* 1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products) */}
+                  <div className="space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/80 pb-2">
+                      <div>
+                        <h5 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                          <span>
+                            1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products)
+                          </span>
+                          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/60 px-2 py-0.5 rounded-full border border-emerald-300">
+                            {
+                              round.productRates.filter(
+                                (pr: any) => !pr.isAdditional,
+                              ).length
+                            }{" "}
+                            รายการ
+                          </span>
+                        </h5>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          รายการสินค้าที่วางแผนและขอเบิกไว้สำหรับแปลงนี้
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {round.productRates
+                        .filter((pr: any) => !pr.isAdditional)
+                        .map((pr: any, pIdx: number) => {
+                          const origIdx = round.productRates.indexOf(pr);
+                          return (
+                            <div
+                              key={pr.productId || `planned-${origIdx}`}
+                              className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4 shadow-2xs"
+                            >
+                              <div className="sm:w-1/3 space-y-1">
+                                <span className="text-xs font-bold text-slate-900 block">
+                                  {pIdx + 1}. {pr.productName}
+                                </span>
+                                {pr.withdrawnQuantity != null && (
+                                  <div className="text-[11px] text-slate-600 flex items-center gap-1">
+                                    <span className="font-semibold text-slate-500">
+                                      จำนวนที่เบิก:
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold rounded border border-emerald-200 text-[11px]">
+                                      {pr.withdrawnQuantity} {pr.unit || ""}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="sm:w-1/4 space-y-1">
+                                <label className="text-[11px] font-semibold text-slate-600 block">
+                                  จำนวนที่ใช้ในรอบนี้
+                                </label>
+                                <div className="flex items-center gap-1.5">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    step="any"
+                                    value={pr.quantityUsed}
+                                    onChange={(e) =>
+                                      handleUpdateRoundProduct(
+                                        rIdx,
+                                        origIdx,
+                                        "quantityUsed",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="เช่น 1"
+                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg flex-1"
+                                  />
+                                  <span className="text-xs text-slate-500 whitespace-nowrap">
+                                    {pr.unit || ""}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="sm:w-1/3 space-y-1">
+                                <label className="text-[11px] font-semibold text-slate-600 block">
+                                  อัตราการใช้รอบนี้ *
+                                </label>
+                                <Input
+                                  value={pr.actualRate}
+                                  onChange={(e) =>
+                                    handleUpdateRoundProduct(
+                                      rIdx,
+                                      origIdx,
+                                      "actualRate",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
+                                  className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
 
-                  <div className="space-y-2.5">
-                    {round.productRates.map((pr: any, pIdx: number) => (
-                      <div
-                        key={pr.productId || pIdx}
-                        className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4 shadow-2xs"
-                      >
-                        <div className="sm:w-1/3 space-y-1">
-                          <span className="text-xs font-bold text-slate-900 block">
-                            {pIdx + 1}. {pr.productName}
+                  {/* 1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products) */}
+                  <div className="space-y-3 pt-3 border-t border-emerald-200/60">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/80 pb-2">
+                      <div>
+                        <h5 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                          <span>
+                            ➕ 1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional
+                            Products)
                           </span>
-                          {pr.withdrawnQuantity != null && (
-                            <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                              <span className="font-semibold text-slate-500">
-                                จำนวนที่เบิก:
-                              </span>
-                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold rounded border border-emerald-200 text-[11px]">
-                                {pr.withdrawnQuantity} {pr.unit || ""}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="sm:w-1/4 space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-600 block">
-                            จำนวนที่ใช้ในรอบนี้
-                          </label>
-                          <div className="flex items-center gap-1.5">
-                            <Input
-                              type="number"
-                              min={0}
-                              value={pr.quantityUsed}
-                              onChange={(e) =>
-                                handleUpdateRoundProduct(
-                                  rIdx,
-                                  pIdx,
-                                  "quantityUsed",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="เช่น 1"
-                              className="h-8 text-xs bg-white border-slate-200 rounded-lg flex-1"
-                            />
-                            <span className="text-xs text-slate-500 whitespace-nowrap">
-                              {pr.unit || ""}
+                          {round.productRates.filter(
+                            (pr: any) => pr.isAdditional,
+                          ).length > 0 && (
+                            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                              {
+                                round.productRates.filter(
+                                  (pr: any) => pr.isAdditional,
+                                ).length
+                              }{" "}
+                              รายการ
                             </span>
-                          </div>
-                        </div>
-
-                        <div className="sm:w-1/3 space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-600 block">
-                            อัตราการใช้รอบนี้ *
-                          </label>
-                          <Input
-                            value={pr.actualRate}
-                            onChange={(e) =>
-                              handleUpdateRoundProduct(
-                                rIdx,
-                                pIdx,
-                                "actualRate",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
-                            className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                            required
-                          />
-                        </div>
+                          )}
+                        </h5>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          รายการสินค้าที่ใช้เพิ่มเติมในการปฏิบัติงานจริงในรอบนี้
+                          (ไม่กระทบแผนงานเดิม)
+                        </p>
                       </div>
-                    ))}
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleAddAdditionalProductToRound(rIdx)}
+                        className="h-7 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg gap-1 shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        เพิ่มสินค้าสาธิต
+                      </Button>
+                    </div>
+
+                    {round.productRates.filter((pr: any) => pr.isAdditional)
+                      .length === 0 ? (
+                      <div className="p-3 text-center bg-white/80 rounded-xl border border-dashed border-slate-300 space-y-1">
+                        <p className="text-xs text-slate-500">
+                          ยังไม่มีรายการสินค้าเพิ่มเติมในรอบนี้
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          หากมีการนำสินค้าอื่นมาใช้สาธิตเพิ่มเติมในรอบนี้
+                          สามารถกดปุ่ม "+ เพิ่มสินค้าสาธิต" ได้
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {round.productRates
+                          .filter((pr: any) => pr.isAdditional)
+                          .map((item: any, addIdx: number) => {
+                            const origIdx = round.productRates.indexOf(item);
+                            return (
+                              <div
+                                key={
+                                  item.id ||
+                                  `additional-${rIdx}-${origIdx}-${addIdx}`
+                                }
+                                className="p-3.5 bg-white border border-blue-200 rounded-xl space-y-3 shadow-2xs"
+                              >
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-bold">
+                                      +{addIdx + 1}
+                                    </span>
+                                    สินค้าเพิ่มเติม {addIdx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveAdditionalProductFromRound(
+                                        rIdx,
+                                        origIdx,
+                                      )
+                                    }
+                                    className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors font-medium px-2 py-1 rounded-md hover:bg-rose-50"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    ลบ
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                  <div className="sm:col-span-12 md:col-span-6">
+                                    <ActivityProductSelect
+                                      id={`add-demo-product-${rIdx}-${origIdx}`}
+                                      label="เลือกสินค้าจากระบบ"
+                                      labelClassName="block text-xs font-bold text-slate-700 mb-1"
+                                      triggerClassName="h-9 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                                      value={item.productId}
+                                      valueKey="id"
+                                      products={products}
+                                      onChange={(
+                                        val: string,
+                                        selectedProduct?: any,
+                                      ) =>
+                                        handleUpdateRoundProduct(
+                                          rIdx,
+                                          origIdx,
+                                          "productId",
+                                          val,
+                                          selectedProduct,
+                                        )
+                                      }
+                                      placeholder="เลือกสินค้าที่ใช้เพิ่มเติม..."
+                                      searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
+                                      emptyText="ไม่พบสินค้า"
+                                      subLabelType="code"
+                                      required
+                                    />
+                                  </div>
+
+                                  <div className="sm:col-span-6 md:col-span-2">
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                      จำนวนที่ใช้จริง{" "}
+                                      {item.unit ? `(${item.unit})` : ""} *
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      min={0.01}
+                                      step="any"
+                                      value={
+                                        item.quantityUsed !== undefined &&
+                                        item.quantityUsed !== null
+                                          ? item.quantityUsed
+                                          : ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateRoundProduct(
+                                          rIdx,
+                                          origIdx,
+                                          "quantityUsed",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="เช่น 5"
+                                      className="h-9 text-xs bg-white border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 font-medium"
+                                      required
+                                    />
+                                  </div>
+
+                                  <div className="sm:col-span-12 md:col-span-4">
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                      อัตราการใช้รอบนี้ *
+                                    </label>
+                                    <Input
+                                      value={item.actualRate || ""}
+                                      onChange={(e) =>
+                                        handleUpdateRoundProduct(
+                                          rIdx,
+                                          origIdx,
+                                          "actualRate",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
+                                      className="h-9 text-xs bg-white border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
                   </div>
                 </div>
 

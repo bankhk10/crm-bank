@@ -396,6 +396,7 @@ export interface Type7bProductRateItem {
 }
 
 export interface Type7bSprayProductRateItem {
+  id?: string;
   productId: string;
   productName: string;
   baselineRate?: string;
@@ -403,6 +404,7 @@ export interface Type7bSprayProductRateItem {
   actualRate: string;
   quantityUsed: number | string;
   unit?: string;
+  isAdditional?: boolean;
 }
 
 export interface Type7bSprayingRoundItem {
