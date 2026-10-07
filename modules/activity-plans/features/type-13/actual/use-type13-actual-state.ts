@@ -929,7 +929,7 @@ export function useType13ActualState() {
     (targetPlots: Type13PlotActualState[] = plotsActual) => {
       // 1. Existing plot GPS coordinates, Plot Name and Dealer (only for real DB demoPlotId)
       const type13PlotsActual = targetPlots
-        .filter((p) => !p.isNew && p.demoPlotId && !p.demoPlotId.startsWith("temp-"))
+        .filter((p) => Boolean(p.demoPlotId) && !p.demoPlotId!.startsWith("temp-"))
         .map((p) => ({
           demoPlotId: p.demoPlotId!,
           plotName: p.plotName.trim() || undefined,
@@ -940,9 +940,9 @@ export function useType13ActualState() {
           longitude: p.longitude.trim(),
         }));
 
-      // 2. New plots on-the-fly metadata and GPS
+      // 2. New plots on-the-fly metadata and GPS (only for unpersisted / temp plots)
       const type13NewPlots = targetPlots
-        .filter((p) => p.isNew || !p.demoPlotId || p.demoPlotId.startsWith("temp-"))
+        .filter((p) => !p.demoPlotId || p.demoPlotId.startsWith("temp-"))
         .filter(
           (p) =>
             p.plotName.trim() !== "" ||
@@ -951,11 +951,11 @@ export function useType13ActualState() {
             Boolean(p.storeId) ||
             (p.sprayRounds && p.sprayRounds.length > 0),
         )
-        .map((p) => {
+        .map((p, idx) => {
           const clientPlotId =
             p.clientPlotId ||
             (p.demoPlotId?.startsWith("temp-") ? p.demoPlotId : null) ||
-            `client-plot-${Date.now()}`;
+            `client-plot-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`;
           return {
             clientPlotId,
             plotName: p.plotName.trim() || `แปลงแฮตแทค`,
@@ -969,15 +969,14 @@ export function useType13ActualState() {
 
       // 3. Flatten all spray rounds across all plots
       const sprayRounds: any[] = [];
-      targetPlots.forEach((plot) => {
-        const effectiveClientPlotId =
-          plot.clientPlotId ||
-          (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
-          `client-plot-${Date.now()}`;
-        const effectiveDemoPlotId =
-          plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
-            ? plot.demoPlotId
-            : effectiveClientPlotId;
+      targetPlots.forEach((plot, plotIdx) => {
+        const hasDbPlot = Boolean(plot.demoPlotId) && !plot.demoPlotId!.startsWith("temp-");
+        const effectiveClientPlotId = hasDbPlot
+          ? null
+          : plot.clientPlotId ||
+            (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
+            `client-plot-${Date.now()}-${plotIdx}-${Math.random().toString(36).slice(2, 7)}`;
+        const effectiveDemoPlotId = hasDbPlot ? plot.demoPlotId! : null;
 
         (plot.sprayRounds || []).forEach((round) => {
           sprayRounds.push({
@@ -1025,15 +1024,14 @@ export function useType13ActualState() {
       // 4. Attachments (รูปหลังฉีดพ่น - สูงสุด 5 รูปต่อแปลง)
       const attachments: any[] = [];
       const seenAttachmentKeys = new Set<string>();
-      targetPlots.forEach((plot) => {
-        const effectiveClientPlotId =
-          plot.clientPlotId ||
-          (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
-          `client-plot-${Date.now()}`;
-        const effectiveDemoPlotId =
-          plot.demoPlotId && !plot.demoPlotId.startsWith("temp-")
-            ? plot.demoPlotId
-            : effectiveClientPlotId;
+      targetPlots.forEach((plot, plotIdx) => {
+        const hasDbPlot = Boolean(plot.demoPlotId) && !plot.demoPlotId!.startsWith("temp-");
+        const effectiveClientPlotId = hasDbPlot
+          ? null
+          : plot.clientPlotId ||
+            (plot.demoPlotId?.startsWith("temp-") ? plot.demoPlotId : null) ||
+            `client-plot-${Date.now()}-${plotIdx}-${Math.random().toString(36).slice(2, 7)}`;
+        const effectiveDemoPlotId = hasDbPlot ? plot.demoPlotId! : null;
 
         (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
           if (!img.url) return;
