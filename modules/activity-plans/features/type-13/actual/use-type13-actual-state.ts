@@ -61,41 +61,91 @@ export function useType13ActualState() {
 
     let basePlots: Type13PlotActualState[] = [];
 
-    if (uniqueHattackVisits.length > 0) {
+    if (
+      plan.type13?.plots &&
+      Array.isArray(plan.type13.plots) &&
+      plan.type13.plots.length > 0
+    ) {
+      basePlots = plan.type13.plots.map((p: any, idx: number) => {
+        const plotId = p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`;
+        const plotName = p.plotName || p.name || p.demoPlot?.name || `แปลงที่ ${idx + 1}`;
+
+        return {
+          demoPlotId: plotId,
+          plotName,
+          dealerName:
+            p.dealerName ||
+            p.store?.name ||
+            p.demoPlot?.customer?.name ||
+            undefined,
+          storeId:
+            p.storeId ||
+            p.store?.id ||
+            p.demoPlot?.customerId ||
+            undefined,
+          province:
+            p.province ||
+            p.store?.province ||
+            p.demoPlot?.province ||
+            undefined,
+          district:
+            p.district ||
+            p.store?.district ||
+            p.demoPlot?.district ||
+            undefined,
+          latitude:
+            p.latitude != null && String(p.latitude).trim() !== ""
+              ? String(p.latitude)
+              : p.demoPlot?.latitude != null
+                ? String(p.demoPlot.latitude)
+                : "",
+          longitude:
+            p.longitude != null && String(p.longitude).trim() !== ""
+              ? String(p.longitude)
+              : p.demoPlot?.longitude != null
+                ? String(p.demoPlot.longitude)
+                : "",
+          isNew: false,
+          sprayRounds: [],
+        };
+      });
+    } else if (uniqueHattackVisits.length > 0) {
       basePlots = uniqueHattackVisits.map((v: any, idx: number) => {
         const plot = v.demoPlot;
         const plotId = plot?.id || v.demoPlotId || `plot-${idx}`;
         const plotName = plot?.name || `แปลงที่ ${idx + 1}`;
-        const plotCustomer = plot?.customer || (plot?.customerId && plan.stores?.find((s: any) => s.storeId === plot.customerId)?.store);
+        const plotCustomer =
+          plot?.customer ||
+          (plot?.customerId &&
+            plan.stores?.find((s: any) => s.storeId === plot.customerId)
+              ?.store);
         const fallbackStore = plan.stores?.[0]?.store;
 
         return {
           demoPlotId: plotId,
           plotName,
-          dealerName: plotCustomer?.name || plot?.dealerName || fallbackStore?.name || undefined,
-          storeId: plot?.customerId || plotCustomer?.id || fallbackStore?.id || undefined,
-          province: plot?.province || plotCustomer?.province || fallbackStore?.province || undefined,
-          district: plot?.district || plotCustomer?.district || fallbackStore?.district || undefined,
+          dealerName:
+            plotCustomer?.name ||
+            plot?.dealerName ||
+            fallbackStore?.name ||
+            undefined,
+          storeId:
+            plot?.customerId ||
+            plotCustomer?.id ||
+            fallbackStore?.id ||
+            undefined,
+          province:
+            plot?.province ||
+            plotCustomer?.province ||
+            fallbackStore?.province ||
+            undefined,
+          district:
+            plot?.district ||
+            plotCustomer?.district ||
+            fallbackStore?.district ||
+            undefined,
           latitude: plot?.latitude != null ? String(plot.latitude) : "",
           longitude: plot?.longitude != null ? String(plot.longitude) : "",
-          isNew: false,
-          sprayRounds: [],
-        };
-      });
-    } else if (plan.type13?.plots && Array.isArray(plan.type13.plots) && plan.type13.plots.length > 0) {
-      basePlots = plan.type13.plots.map((p: any, idx: number) => {
-        const plotId = p.demoPlotId || p.id || `plot-${idx}`;
-        const plotName = p.plotName || p.name || `แปลงที่ ${idx + 1}`;
-
-        return {
-          demoPlotId: plotId,
-          plotName,
-          dealerName: p.dealerName || p.store?.name || undefined,
-          storeId: p.storeId || p.store?.id || undefined,
-          province: p.province || p.store?.province || undefined,
-          district: p.district || p.store?.district || undefined,
-          latitude: p.latitude ? String(p.latitude) : "",
-          longitude: p.longitude ? String(p.longitude) : "",
           isNew: false,
           sprayRounds: [],
         };

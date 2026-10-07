@@ -71,11 +71,61 @@ export async function createType13Data(
 
   const plots = type13Data.plots || [];
   if (plots.length > 0) {
+    const existingVisits = await tx.demoPlotVisit.findMany({
+      where: {
+        activityPlanId: planId,
+        workTypeCode: "TYPE_13",
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const claimedDemoPlotIds = new Set<string>(
+      plots.map((p) => p.demoPlotId).filter(Boolean) as string[],
+    );
+
+    const unclaimedVisits = existingVisits.filter(
+      (v) => v.demoPlotId && !claimedDemoPlotIds.has(v.demoPlotId),
+    );
+    let unclaimedIdx = 0;
+
     for (let i = 0; i < plots.length; i++) {
       const plotItem = plots[i];
       let demoPlotId = plotItem.demoPlotId || null;
 
-      if (!demoPlotId) {
+      if (!demoPlotId && unclaimedIdx < unclaimedVisits.length) {
+        demoPlotId = unclaimedVisits[unclaimedIdx++].demoPlotId;
+        const updateData: any = {};
+        if (plotItem.name || plotItem.plotName) {
+          updateData.name = plotItem.name || plotItem.plotName;
+        }
+        if (plotItem.storeId) {
+          updateData.customerId = plotItem.storeId;
+        }
+        if (plotItem.province) {
+          updateData.province = plotItem.province;
+        }
+        if (plotItem.district) {
+          updateData.district = plotItem.district;
+        }
+        if (
+          plotItem.latitude != null &&
+          String(plotItem.latitude).trim() !== ""
+        ) {
+          updateData.latitude = new Prisma.Decimal(Number(plotItem.latitude));
+        }
+        if (
+          plotItem.longitude != null &&
+          String(plotItem.longitude).trim() !== ""
+        ) {
+          updateData.longitude = new Prisma.Decimal(Number(plotItem.longitude));
+        }
+        if (Object.keys(updateData).length > 0) {
+          await tx.demoPlot.update({
+            where: { id: demoPlotId },
+            data: updateData,
+          });
+        }
+      } else if (!demoPlotId) {
         const code = await generateDemoPlotCode(
           tx,
           startDate ? new Date(startDate) : new Date(),

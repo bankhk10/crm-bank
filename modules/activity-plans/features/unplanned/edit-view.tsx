@@ -180,6 +180,11 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
             planType: plan.planType || "UNPLANNED",
+            type13: (plan as any).type13 || null,
+            type14: (plan as any).type14 || null,
+            type7aPlots: (plan as any).type7aPlots || [],
+            type7b: (plan as any).type7b || null,
+            type13Plots: (plan as any).type13?.plots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
           });

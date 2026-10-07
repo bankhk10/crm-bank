@@ -2684,61 +2684,118 @@ export async function upsertActivityResult(
         },
       });
 
+      const existingType13Visits = await tx.demoPlotVisit.findMany({
+        where: {
+          activityPlanId: input.activityPlanId,
+          workTypeCode: "TYPE_13",
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      // Filter out visits whose demoPlotId is already claimed by type13PlotsActual
+      const claimedPlotIds = new Set(
+        (input.type13PlotsActual || [])
+          .map((p) => p.demoPlotId)
+          .filter(Boolean),
+      );
+
+      const unclaimedVisits = existingType13Visits.filter(
+        (v) => v.demoPlotId && !claimedPlotIds.has(v.demoPlotId),
+      );
+
       for (let i = 0; i < input.type13NewPlots.length; i++) {
         const item = input.type13NewPlots[i];
-        const code = await generateDemoPlotCode(
-          tx,
-          plan?.startDate ? new Date(plan.startDate) : new Date(),
-          0,
-        );
+        let targetPlotId: string;
 
-        const createdPlot = await tx.demoPlot.create({
-          data: {
-            code,
-            name:
-              item.plotName && item.plotName.trim()
-                ? item.plotName.trim()
-                : "แปลงแฮตแทค",
-            ownerName: "",
-            customerId:
-              item.storeId && item.storeId.trim() ? item.storeId.trim() : null,
-            employeeId: plan?.employeeId || "emp-system",
-            province:
-              item.province && item.province.trim()
-                ? item.province.trim()
-                : null,
-            district:
-              item.district && item.district.trim()
-                ? item.district.trim()
-                : null,
-            plotType: "HATTACK",
-            startDate: plan?.startDate || input.actualStartDate || new Date(),
+        if (i < unclaimedVisits.length && unclaimedVisits[i].demoPlotId) {
+          targetPlotId = unclaimedVisits[i].demoPlotId;
+          const updateData: any = {
             latitude: new Prisma.Decimal(item.latitude),
             longitude: new Prisma.Decimal(item.longitude),
-            status: DemoPlotStatus.IN_PROGRESS,
-          },
-        });
+          };
+          if (item.plotName && item.plotName.trim()) {
+            updateData.name = item.plotName.trim();
+          }
+          if (item.storeId && item.storeId.trim()) {
+            updateData.customerId = item.storeId.trim();
+          }
+          if (item.province && item.province.trim()) {
+            updateData.province = item.province.trim();
+          }
+          if (item.district && item.district.trim()) {
+            updateData.district = item.district.trim();
+          }
+          await tx.demoPlot.update({
+            where: { id: targetPlotId },
+            data: updateData,
+          });
 
-        // DemoPlotVisit creation for new plot
-        const existingVisit = await tx.demoPlotVisit.findFirst({
-          where: {
-            demoPlotId: createdPlot.id,
-            activityPlanId: input.activityPlanId,
-          },
-        });
-        if (!existingVisit) {
-          await tx.demoPlotVisit.create({
+          await tx.activityPlanType13Plot.updateMany({
+            where: { demoPlotId: targetPlotId },
             data: {
-              demoPlotId: createdPlot.id,
-              activityPlanId: input.activityPlanId,
-              workTypeCode: "TYPE_13",
-              visitNumber: 1,
-              visitDate: input.actualStartDate || plan?.startDate || new Date(),
+              latitude: new Prisma.Decimal(item.latitude),
+              longitude: new Prisma.Decimal(item.longitude),
+              ...(item.plotName && item.plotName.trim() ? { plotName: item.plotName.trim() } : {}),
+              ...(item.storeId && item.storeId.trim() ? { storeId: item.storeId.trim() } : {}),
+              ...(item.province && item.province.trim() ? { province: item.province.trim() } : {}),
+              ...(item.district && item.district.trim() ? { district: item.district.trim() } : {}),
             },
           });
+        } else {
+          const code = await generateDemoPlotCode(
+            tx,
+            plan?.startDate ? new Date(plan.startDate) : new Date(),
+            i,
+          );
+
+          const createdPlot = await tx.demoPlot.create({
+            data: {
+              code,
+              name:
+                item.plotName && item.plotName.trim()
+                  ? item.plotName.trim()
+                  : "แปลงแฮตแทค",
+              ownerName: "",
+              customerId:
+                item.storeId && item.storeId.trim() ? item.storeId.trim() : null,
+              employeeId: plan?.employeeId || "emp-system",
+              province:
+                item.province && item.province.trim()
+                  ? item.province.trim()
+                  : null,
+              district:
+                item.district && item.district.trim()
+                  ? item.district.trim()
+                  : null,
+              plotType: "HATTACK",
+              startDate: plan?.startDate || input.actualStartDate || new Date(),
+              latitude: new Prisma.Decimal(item.latitude),
+              longitude: new Prisma.Decimal(item.longitude),
+              status: DemoPlotStatus.IN_PROGRESS,
+            },
+          });
+          targetPlotId = createdPlot.id;
+
+          const existingVisit = await tx.demoPlotVisit.findFirst({
+            where: {
+              demoPlotId: targetPlotId,
+              activityPlanId: input.activityPlanId,
+            },
+          });
+          if (!existingVisit) {
+            await tx.demoPlotVisit.create({
+              data: {
+                demoPlotId: targetPlotId,
+                activityPlanId: input.activityPlanId,
+                workTypeCode: "TYPE_13",
+                visitNumber: 1,
+                visitDate: input.actualStartDate || plan?.startDate || new Date(),
+              },
+            });
+          }
         }
 
-        clientPlotMap.set(item.clientPlotId, createdPlot.id);
+        clientPlotMap.set(item.clientPlotId, targetPlotId);
       }
     }
 

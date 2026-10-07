@@ -47,6 +47,97 @@ export interface UseType13FormResult {
   };
 }
 
+function resolveInitialType13Plots(initial: any = {}): FormType13PlotItem[] {
+  if (
+    (initial as any)?.type13?.plots &&
+    Array.isArray((initial as any).type13.plots) &&
+    (initial as any).type13.plots.length > 0
+  ) {
+    return (initial as any).type13.plots.map((p: any, idx: number) => ({
+      id: p.id || `plot-${idx + 1}`,
+      demoPlotId: p.demoPlotId || p.demoPlot?.id || null,
+      name: p.plotName || p.name || "",
+      storeId: p.storeId || p.store?.id || "",
+      dealerName: p.dealerName || p.store?.name || null,
+      ownerName: p.ownerName || "",
+      province: p.province || p.store?.province || "",
+      district: p.district || p.store?.district || "",
+      latitude: p.latitude != null ? String(p.latitude) : "",
+      longitude: p.longitude != null ? String(p.longitude) : "",
+      products: [],
+    }));
+  }
+
+  if (
+    (initial as any)?.type13Plots &&
+    Array.isArray((initial as any).type13Plots) &&
+    (initial as any).type13Plots.length > 0
+  ) {
+    return (initial as any).type13Plots.map((p: any, idx: number) => ({
+      id: p.id || `plot-${idx + 1}`,
+      demoPlotId: p.demoPlotId || null,
+      name: p.plotName || p.name || "",
+      storeId: p.storeId || "",
+      dealerName: p.dealerName || null,
+      ownerName: p.ownerName || "",
+      province: p.province || "",
+      district: p.district || "",
+      latitude: p.latitude != null ? String(p.latitude) : "",
+      longitude: p.longitude != null ? String(p.longitude) : "",
+      products: [],
+    }));
+  }
+
+  const visits = (initial as any)?.demoPlotVisits || [];
+  const hattackPlots = visits.filter(
+    (v: any) =>
+      v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
+  );
+
+  if (hattackPlots.length > 0) {
+    const seenPlotIds = new Set<string>();
+    const uniquePlots = hattackPlots.filter((v: any) => {
+      const pid = v.demoPlot?.id || v.demoPlotId;
+      if (!pid) return true;
+      if (seenPlotIds.has(pid)) return false;
+      seenPlotIds.add(pid);
+      return true;
+    });
+
+    return uniquePlots.map((v: any, idx: number) => {
+      const plot = v.demoPlot;
+      const plotName = plot?.name || "";
+
+      return {
+        id: plot?.id || `plot-${idx + 1}`,
+        demoPlotId: plot?.id || v.demoPlotId || null,
+        name: plotName,
+        storeId: plot?.customerId || "",
+        dealerName: plot?.customer?.name || plot?.dealerName || null,
+        ownerName: plot?.ownerName || plot?.customer?.name || "",
+        province: plot?.province || plot?.customer?.province || "",
+        district: plot?.district || plot?.customer?.district || "",
+        latitude: plot?.latitude != null ? String(plot.latitude) : "",
+        longitude: plot?.longitude != null ? String(plot.longitude) : "",
+        products: [],
+      };
+    });
+  }
+
+  return [
+    {
+      id: `plot-${Date.now()}-1`,
+      demoPlotId: null,
+      name: "",
+      storeId: "",
+      ownerName: "",
+      province: "",
+      district: "",
+      products: [],
+    },
+  ];
+}
+
 export function useType13Form({
   initial = {},
   selectedWorkTypes = [],
@@ -84,6 +175,10 @@ export function useType13Form({
     Type13WithdrawnProductLine[]
   >(() => (hasT13Withdrawal ? resolvedProducts : []));
 
+  const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() =>
+    resolveInitialType13Plots(initial),
+  );
+
   useEffect(() => {
     if (initial && Object.keys(initial).length > 0) {
       if ((initial as any)?.type13?.products && (initial as any).type13.products.length > 0) {
@@ -111,91 +206,16 @@ export function useType13Form({
           setWithdrawnProducts(prods);
         }
       }
+
+      const plots = resolveInitialType13Plots(initial);
+      const hasAnyRealPlot = plots.some(
+        (p) => Boolean(p.demoPlotId || p.name || p.storeId),
+      );
+      if (hasAnyRealPlot) {
+        setType13Plots(plots);
+      }
     }
   }, [initial]);
-
-  const [type13Plots, setType13Plots] = useState<FormType13PlotItem[]>(() => {
-    if (
-      (initial as any)?.type13?.plots &&
-      Array.isArray((initial as any).type13.plots) &&
-      (initial as any).type13.plots.length > 0
-    ) {
-      return (initial as any).type13.plots.map((p: any, idx: number) => {
-        const plotName = p.plotName || p.name || "";
-
-        return {
-          id: p.id || `plot-${idx + 1}`,
-          demoPlotId: p.demoPlotId || null,
-          name: plotName,
-          storeId: p.storeId || "",
-          dealerName: p.dealerName || p.store?.name || null,
-          ownerName: p.ownerName || "",
-          province: p.province || "",
-          district: p.district || "",
-          latitude: p.latitude != null ? String(p.latitude) : "",
-          longitude: p.longitude != null ? String(p.longitude) : "",
-          products: [],
-        };
-      });
-    }
-
-    if (
-      (initial as any)?.type13Plots &&
-      Array.isArray((initial as any).type13Plots)
-    ) {
-      return (initial as any).type13Plots.map((p: any, idx: number) => {
-        const plotName = p.name || "";
-
-        return {
-          id: p.id || `plot-${idx + 1}`,
-          demoPlotId: p.demoPlotId || null,
-          name: plotName,
-          storeId: p.storeId || "",
-          ownerName: p.ownerName || "",
-          province: p.province || "",
-          district: p.district || "",
-          products: [],
-        };
-      });
-    }
-
-    const visits = (initial as any)?.demoPlotVisits || [];
-    const hattackPlots = visits.filter(
-      (v: any) =>
-        v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
-    );
-
-    if (hattackPlots.length > 0) {
-      return hattackPlots.map((v: any, idx: number) => {
-        const plot = v.demoPlot;
-        const plotName = plot?.name || "";
-
-        return {
-          id: plot?.id || `plot-${idx + 1}`,
-          demoPlotId: plot?.id || null,
-          name: plotName,
-          storeId: plot?.customerId || "",
-          ownerName: plot?.ownerName || "",
-          province: plot?.province || "",
-          district: plot?.district || "",
-          products: [],
-        };
-      });
-    }
-
-    return [
-      {
-        id: `plot-${Date.now()}-1`,
-        demoPlotId: null,
-        name: "",
-        storeId: "",
-        ownerName: "",
-        province: "",
-        district: "",
-        products: [],
-      },
-    ];
-  });
 
   const validateType13 = (): { isValid: boolean; error?: string } => {
     return validateType13FormValues({
