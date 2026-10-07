@@ -200,6 +200,7 @@ export function getWorkTypeCode(nameOrCode: string): string {
  * - TYPE_12: ทัวร์
  */
 export const UNPLANNED_DISALLOWED_WORK_TYPE_CODES = new Set([
+  "TYPE_7A",
   "TYPE_8",
   "TYPE_9",
   "TYPE_10",
