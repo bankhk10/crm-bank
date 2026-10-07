@@ -43,13 +43,13 @@ function createDefaultRound(
     afterSprayImages: [],
     originalProducts: masterOriginal.map((item) => ({
       productId: item.productId,
-      productName: item.productName,
-      unit: item.unit,
-      withdrawnQuantity: Number(item.quantity) || 0,
+      productName: item.productName || item.product?.name || "",
+      unit: item.unit || item.product?.unit || "ขวด",
+      withdrawnQuantity: Number(item.quantity ?? item.withdrawnQuantity) || 0,
       quantityUsed: "",
       actualRate: "",
       detail: "",
-      drugWithdrawalItemId: item.id,
+      drugWithdrawalItemId: item.drugWithdrawalItemId || null,
       supplementalDrugWithdrawalItemId: null,
       sourceGroup: "ORIGINAL" as const,
     })),
@@ -96,6 +96,7 @@ export function useType14ActualState() {
 
   const initialImagesRef = useRef<Type14ImageState[]>([]);
   const planRef = useRef<any>(null);
+  const masterPlanProductsRef = useRef<any[]>([]);
   const masterOriginalItemsRef = useRef<any[]>([]);
   const rawSupplementalWithdrawalsRef = useRef<any[]>([]);
   const savedRoundProductsByRoundRef = useRef<Map<number, any[]>>(new Map());
@@ -117,12 +118,25 @@ export function useType14ActualState() {
 
       if (!plotId) {
         setSprayHistory([]);
-        masterOriginalItemsRef.current = [];
+        masterOriginalItemsRef.current = masterPlanProductsRef.current;
         setRounds((prev) =>
-          prev.map((r) => ({
-            ...r,
-            originalProducts: [],
-          })),
+          prev.map((r) => {
+            const savedProductsForRound = r.originalProducts || [];
+            return {
+              ...r,
+              originalProducts: masterPlanProductsRef.current.map((item) => {
+                const matched = savedProductsForRound.find(
+                  (p: any) => p.productId === item.productId,
+                );
+                return {
+                  ...item,
+                  quantityUsed: matched?.quantityUsed ?? "",
+                  actualRate: matched?.actualRate || "",
+                  detail: matched?.detail || "",
+                };
+              }),
+            };
+          }),
         );
         return;
       }
@@ -149,37 +163,71 @@ export function useType14ActualState() {
           // Set read-only spray history (Section 1.5)
           setSprayHistory(res.sprayHistory || []);
 
-          // Store master items
+          // Store master items: Combine current plan's withdrawn products with previous plot items
           const originalWithdrawalItems = res.originalWithdrawalItems || [];
-          masterOriginalItemsRef.current = originalWithdrawalItems;
+          const combinedItems: any[] = [...masterPlanProductsRef.current];
+          originalWithdrawalItems.forEach((histItem: any) => {
+            if (
+              !combinedItems.some(
+                (p: any) => p.productId === histItem.productId,
+              )
+            ) {
+              combinedItems.push(histItem);
+            }
+          });
+          masterOriginalItemsRef.current = combinedItems;
 
           // Map Group A into every round preserving round-specific saved products
           setRounds((prevRounds) =>
             prevRounds.map((round) => {
+              const savedInRef =
+                savedRoundProductsByRoundRef.current.get(round.roundNumber) || [];
               const savedProductsForRound =
                 round.originalProducts && round.originalProducts.length > 0
                   ? round.originalProducts
-                  : savedRoundProductsByRoundRef.current.get(round.roundNumber) ||
-                    [];
+                  : savedInRef;
               const mappedGroupA: Type14ActualProductState[] =
-                originalWithdrawalItems.map((item: any) => {
-                  const matched = savedProductsForRound.find(
-                    (p: any) => p.drugWithdrawalItemId === item.id,
+                combinedItems.map((item: any) => {
+                  const matched =
+                    savedProductsForRound.find(
+                      (p: any) =>
+                        p.productId === item.productId ||
+                        (item.id && p.drugWithdrawalItemId === item.id),
+                    ) ||
+                    savedInRef.find(
+                      (p: any) =>
+                        p.productId === item.productId ||
+                        (item.id && p.drugWithdrawalItemId === item.id),
+                    );
+                  const matchedDb = savedInRef.find(
+                    (p: any) =>
+                      p.productId === item.productId ||
+                      (item.id && p.drugWithdrawalItemId === item.id),
                   );
                   return {
                     productId: item.productId,
-                    productName: item.productName,
-                    unit: item.unit,
-                    withdrawnQuantity: Number(item.quantity) || 0,
+                    productName: item.productName || item.product?.name || "",
+                    unit: item.unit || item.product?.unit || "ขวด",
+                    withdrawnQuantity:
+                      Number(item.quantity ?? item.withdrawnQuantity) || 0,
                     quantityUsed:
                       matched &&
                       matched.quantityUsed != null &&
                       matched.quantityUsed !== ""
                         ? Number(matched.quantityUsed)
-                        : "",
-                    actualRate: matched?.actualRate || "",
-                    detail: matched?.detail || "",
-                    drugWithdrawalItemId: item.id,
+                        : matchedDb &&
+                            matchedDb.quantityUsed != null &&
+                            matchedDb.quantityUsed !== ""
+                          ? Number(matchedDb.quantityUsed)
+                          : "",
+                    actualRate:
+                      matched?.actualRate || matchedDb?.actualRate || "",
+                    detail: matched?.detail || matchedDb?.detail || "",
+                    drugWithdrawalItemId:
+                      matched?.drugWithdrawalItemId ||
+                      matchedDb?.drugWithdrawalItemId ||
+                      item.drugWithdrawalItemId ||
+                      null,
                     supplementalDrugWithdrawalItemId: null,
                     sourceGroup: "ORIGINAL" as const,
                   };
@@ -204,9 +252,13 @@ export function useType14ActualState() {
   const addSprayRound = useCallback(() => {
     setRounds((prev) => {
       const nextNum = prev.length + 1;
+      const effectiveMaster =
+        masterOriginalItemsRef.current.length > 0
+          ? masterOriginalItemsRef.current
+          : masterPlanProductsRef.current;
       const newRound = createDefaultRound(
         nextNum,
-        masterOriginalItemsRef.current,
+        effectiveMaster,
         rawSupplementalWithdrawalsRef.current,
       );
       return [...prev, newRound];
@@ -672,9 +724,33 @@ export function useType14ActualState() {
       setRawSupplementalWithdrawals(suppWithdrawals);
       rawSupplementalWithdrawalsRef.current = suppWithdrawals;
 
+      // 2.5 Withdrawn Products from Plan (TYPE_14 Requisition)
+      const planProducts = (plan.products || plan.planProducts || []).filter(
+        (p: any) => p.workTypeCode === "TYPE_14",
+      );
+      const mappedPlanProducts: Type14ActualProductState[] = planProducts.map(
+        (p: any) => ({
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          unit: p.product?.unit || p.product?.packageSizeUnit || p.unit || "ขวด",
+          withdrawnQuantity: Number(p.targetQuantity ?? p.quantity) || 0,
+          quantityUsed: "",
+          actualRate: "",
+          detail: "",
+          drugWithdrawalItemId: null,
+          supplementalDrugWithdrawalItemId: null,
+          sourceGroup: "ORIGINAL" as const,
+        }),
+      );
+      masterPlanProductsRef.current = mappedPlanProducts;
+      masterOriginalItemsRef.current = mappedPlanProducts;
+
       // 3. Existing Result & Multiple Spray Rounds
-      const resultObj = parsedResult || plan.result;
-      const allResultRounds: any[] = resultObj?.sprayRounds || [];
+      const resultObj = plan?.result || parsedResult;
+      const allResultRounds: any[] =
+        (plan?.result?.sprayRounds && plan.result.sprayRounds.length > 0)
+          ? plan.result.sprayRounds
+          : (parsedResult?.sprayRounds || []);
       const type14Rounds = allResultRounds
         .filter((r: any) => r.workTypeCode === "TYPE_14" || !r.workTypeCode)
         .sort((a: any, b: any) => (a.roundNumber || 1) - (b.roundNumber || 1));
@@ -754,6 +830,30 @@ export function useType14ActualState() {
             }
           });
 
+          // Group A for this round (Matched against current plan's withdrawn products)
+          const groupA: Type14ActualProductState[] = mappedPlanProducts.map(
+            (item) => {
+              const matched = rProducts.find(
+                (p: any) =>
+                  p.productId === item.productId ||
+                  (item.drugWithdrawalItemId &&
+                    p.drugWithdrawalItemId === item.drugWithdrawalItemId),
+              );
+              return {
+                ...item,
+                quantityUsed:
+                  matched &&
+                  matched.quantityUsed != null &&
+                  matched.quantityUsed !== ""
+                    ? Number(matched.quantityUsed)
+                    : "",
+                actualRate: matched?.actualRate || "",
+                detail: matched?.detail || "",
+                drugWithdrawalItemId: matched?.drugWithdrawalItemId || null,
+              };
+            },
+          );
+
           // Group B for this round
           const groupB: Type14ActualProductState[] = [];
           suppWithdrawals.forEach((dw: any) => {
@@ -781,11 +881,15 @@ export function useType14ActualState() {
             });
           });
 
-          // Group C for this round
+          // Group C for this round (exclude products that already belong to Group A plan products)
           const groupC: Type14ActualProductState[] = rProducts
             .filter(
               (p: any) =>
-                !p.drugWithdrawalItemId && !p.supplementalDrugWithdrawalItemId,
+                !p.drugWithdrawalItemId &&
+                !p.supplementalDrugWithdrawalItemId &&
+                !mappedPlanProducts.some(
+                  (planP) => planP.productId === p.productId,
+                ),
             )
             .map((p: any) => ({
               productId: p.productId,
@@ -813,7 +917,7 @@ export function useType14ActualState() {
             trackingResult: r.productResponse || matchingVisit?.productResponse || "",
             additionalNotes: r.notes || matchingVisit?.notes || "",
             afterSprayImages: roundImgs.slice(0, 5),
-            originalProducts: [], // Populated by handleSelectPlot
+            originalProducts: groupA,
             supplementalProducts: groupB,
             actualOnlyProducts: groupC,
           };
@@ -853,7 +957,7 @@ export function useType14ActualState() {
           trackingResult: initVisit?.productResponse || "",
           additionalNotes: initVisit?.notes || "",
           afterSprayImages: [],
-          originalProducts: [],
+          originalProducts: mappedPlanProducts.map((p) => ({ ...p })),
           supplementalProducts: initGroupB,
           actualOnlyProducts: [],
         };

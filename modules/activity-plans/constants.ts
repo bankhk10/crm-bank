@@ -200,6 +200,8 @@ export function getWorkTypeCode(nameOrCode: string): string {
  * - TYPE_12: ทัวร์
  */
 export const UNPLANNED_DISALLOWED_WORK_TYPE_CODES = new Set([
+  "TYPE_8",
+  "TYPE_9",
   "TYPE_10",
   "TYPE_12",
 ]);
@@ -284,9 +286,7 @@ export const LOCATION_TEAM_WORK_TYPE_CODES = new Set([
  * Note: TYPE_7A, TYPE_7B, and TYPE_14 (ติดตามแปลงแฮทแทค) do not support Drug Withdrawal.
  * Only TYPE_13 supports Drug Withdrawal.
  */
-export const DRUG_WITHDRAWAL_SUPPORTED_TYPES = [
-  "TYPE_13",
-] as const;
+export const DRUG_WITHDRAWAL_SUPPORTED_TYPES = ["TYPE_13"] as const;
 
 export type DrugWithdrawalSupportedType =
   (typeof DRUG_WITHDRAWAL_SUPPORTED_TYPES)[number];
@@ -979,7 +979,8 @@ export const DEMO_PLOT_SPRAY_METHODS = [
   { value: "TANK_MIXED", label: "ผสมถัง (Tank-mixed)" },
 ] as const;
 
-export type DemoPlotSprayMethod = (typeof DEMO_PLOT_SPRAY_METHODS)[number]["value"];
+export type DemoPlotSprayMethod =
+  (typeof DEMO_PLOT_SPRAY_METHODS)[number]["value"];
 
 export const EXTERNAL_CHEMICAL_FORMULAS = [
   "SL",
@@ -993,7 +994,8 @@ export const EXTERNAL_CHEMICAL_FORMULAS = [
   "อื่นๆ",
 ] as const;
 
-export type ExternalChemicalFormula = (typeof EXTERNAL_CHEMICAL_FORMULAS)[number];
+export type ExternalChemicalFormula =
+  (typeof EXTERNAL_CHEMICAL_FORMULAS)[number];
 
 export const DEMO_PLOT_IRRIGATION_METHODS = [
   "น้ำหยด",
@@ -1005,7 +1007,8 @@ export const DEMO_PLOT_IRRIGATION_METHODS = [
   "นาหว่านน้ำตม",
 ] as const;
 
-export type DemoPlotIrrigationMethod = (typeof DEMO_PLOT_IRRIGATION_METHODS)[number];
+export type DemoPlotIrrigationMethod =
+  (typeof DEMO_PLOT_IRRIGATION_METHODS)[number];
 
 export const DEMO_PLOT_SPRAY_EQUIPMENTS = [
   "เป้สะพายหลัง",
@@ -1015,7 +1018,8 @@ export const DEMO_PLOT_SPRAY_EQUIPMENTS = [
   "อื่นๆ ระบุ..",
 ] as const;
 
-export type DemoPlotSprayEquipment = (typeof DEMO_PLOT_SPRAY_EQUIPMENTS)[number];
+export type DemoPlotSprayEquipment =
+  (typeof DEMO_PLOT_SPRAY_EQUIPMENTS)[number];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY STATUS OPTIONS (Single Source of Truth for Filters)
@@ -1026,9 +1030,15 @@ export const STATUS_OPTIONS = [
   { value: "PENDING_BUDGET_APPROVAL", label: "รออนุมัติงบประมาณ" },
   { value: "PENDING_HELPER_APPROVAL", label: "รออนุมัติคนช่วยงาน" },
   { value: "APPROVED", label: "อนุมัติสำเร็จ" },
-  { value: "COMPLETED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}` },
+  {
+    value: "COMPLETED",
+    label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.COMPLETED}`,
+  },
   { value: "PARTIAL", label: "ผลกิจกรรม: สำเร็จบางส่วน" },
-  { value: "POSTPONED", label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}` },
+  {
+    value: "POSTPONED",
+    label: `ผลกิจกรรม: ${ACTIVITY_RESULT_STATUS_LABELS.POSTPONED}`,
+  },
   { value: "WAITING_FOR_CORRECTION", label: "รอแก้ไข/ข้อมูลเพิ่ม" },
   { value: "PENDING_REVIEW", label: "รอตรวจสอบ" },
   { value: "REVIEWED", label: "ตรวจสอบแล้ว" },
@@ -1070,9 +1080,7 @@ export function matchesActivityFilters(
     if (Array.isArray(planWorkTypes)) {
       for (const wt of planWorkTypes) {
         const rawCode =
-          wt.workTypeCode ||
-          wt.activityType?.code ||
-          resolveWorkTypeCode(wt);
+          wt.workTypeCode || wt.activityType?.code || resolveWorkTypeCode(wt);
         if (rawCode) {
           const canonical = getWorkTypeCode(rawCode) || rawCode;
           itemCodes.add(canonical.toUpperCase());
@@ -1139,8 +1147,10 @@ export function matchesActivityFilters(
     if (item.employeeId) itemPersonIds.add(item.employeeId);
     if (item.employee?.id) itemPersonIds.add(item.employee.id);
     if (item.createdById) itemPersonIds.add(item.createdById);
-    if (item.activityPlan?.employeeId) itemPersonIds.add(item.activityPlan.employeeId);
-    if (item.activityPlan?.employee?.id) itemPersonIds.add(item.activityPlan.employee.id);
+    if (item.activityPlan?.employeeId)
+      itemPersonIds.add(item.activityPlan.employeeId);
+    if (item.activityPlan?.employee?.id)
+      itemPersonIds.add(item.activityPlan.employee.id);
 
     // Helpers in ActivityPlan
     const helpers = item.activityPlan?.helpers || item.helpers;
@@ -1248,4 +1258,3 @@ export function matchesActivityFilters(
 
   return true;
 }
-

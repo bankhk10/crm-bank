@@ -586,7 +586,7 @@ export function Type14Actual({
                           <tbody className="divide-y divide-slate-100 bg-white">
                             {round.originalProducts.map((item, pIdx) => (
                               <tr
-                                key={item.drugWithdrawalItemId || pIdx}
+                                key={item.drugWithdrawalItemId || item.productId || pIdx}
                                 className="hover:bg-slate-50/50 transition-colors"
                               >
                                 {/* สินค้า (Read-only) */}
@@ -680,7 +680,7 @@ export function Type14Actual({
                       <div className="md:hidden space-y-3">
                         {round.originalProducts.map((item, pIdx) => (
                           <div
-                            key={item.drugWithdrawalItemId || pIdx}
+                            key={item.drugWithdrawalItemId || item.productId || pIdx}
                             className="p-3 rounded-lg border border-slate-200/80 bg-white space-y-2.5"
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">

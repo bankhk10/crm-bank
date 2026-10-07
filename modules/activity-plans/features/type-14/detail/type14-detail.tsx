@@ -127,6 +127,17 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
               );
             if (withdrawalItem && withdrawalItem.quantity != null) {
               withdrawnQty = Number(withdrawalItem.quantity);
+            } else {
+              const matchedPlanProduct = (withdrawnProducts || []).find(
+                (it: any) => it.productId === p.productId,
+              );
+              if (matchedPlanProduct) {
+                withdrawnQty =
+                  Number(
+                    matchedPlanProduct.targetQuantity ??
+                      matchedPlanProduct.quantity,
+                  ) || 0;
+              }
             }
           } else if (group === "SUPPLEMENTAL") {
             const suppItem =
@@ -156,11 +167,16 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           };
         };
 
-        // Group A: drugWithdrawalItemId != null && supplementalDrugWithdrawalItemId == null
+        const planProductIds = new Set(
+          (withdrawnProducts || []).map((p: any) => p.productId),
+        );
+
+        // Group A: drugWithdrawalItemId != null OR matches plan-level requisition
         const groupA = rawProducts
           .filter(
             (p: any) =>
-              p.drugWithdrawalItemId != null &&
+              (p.drugWithdrawalItemId != null ||
+                planProductIds.has(p.productId)) &&
               p.supplementalDrugWithdrawalItemId == null,
           )
           .map((p: any) => mapProduct(p, "ORIGINAL"));
@@ -170,12 +186,13 @@ export function Type14Detail({ data, planSummary, plan }: Type14DetailProps) {
           .filter((p: any) => p.supplementalDrugWithdrawalItemId != null)
           .map((p: any) => mapProduct(p, "SUPPLEMENTAL"));
 
-        // Group C: drugWithdrawalItemId == null && supplementalDrugWithdrawalItemId == null
+        // Group C: drugWithdrawalItemId == null && supplementalDrugWithdrawalItemId == null && not in Group A
         const groupC = rawProducts
           .filter(
             (p: any) =>
               p.drugWithdrawalItemId == null &&
-              p.supplementalDrugWithdrawalItemId == null,
+              p.supplementalDrugWithdrawalItemId == null &&
+              !planProductIds.has(p.productId),
           )
           .map((p: any) => mapProduct(p, "ACTUAL_ONLY"));
 
