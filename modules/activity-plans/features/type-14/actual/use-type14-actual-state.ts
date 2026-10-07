@@ -186,55 +186,69 @@ export function useType14ActualState() {
                 round.originalProducts && round.originalProducts.length > 0
                   ? round.originalProducts
                   : savedInRef;
+
               const mappedGroupA: Type14ActualProductState[] =
                 combinedItems.map((item: any) => {
-                  const matched =
-                    savedProductsForRound.find(
-                      (p: any) =>
-                        p.productId === item.productId ||
-                        (item.id && p.drugWithdrawalItemId === item.id),
-                    ) ||
-                    savedInRef.find(
-                      (p: any) =>
-                        p.productId === item.productId ||
-                        (item.id && p.drugWithdrawalItemId === item.id),
-                    );
+                  const matchedState = savedProductsForRound.find(
+                    (p: any) =>
+                      p.productId === item.productId ||
+                      (item.id && p.drugWithdrawalItemId === item.id),
+                  );
                   const matchedDb = savedInRef.find(
                     (p: any) =>
                       p.productId === item.productId ||
                       (item.id && p.drugWithdrawalItemId === item.id),
                   );
+
+                  // Safe resolve: Prioritize existing non-empty state, fallback to DB record
+                  const resolvedQty =
+                    matchedState &&
+                    matchedState.quantityUsed != null &&
+                    matchedState.quantityUsed !== ""
+                      ? String(matchedState.quantityUsed)
+                      : matchedDb &&
+                          matchedDb.quantityUsed != null &&
+                          matchedDb.quantityUsed !== ""
+                        ? String(matchedDb.quantityUsed)
+                        : "";
+
+                  const resolvedRate =
+                    matchedState?.actualRate &&
+                    matchedState.actualRate.trim() !== ""
+                      ? matchedState.actualRate
+                      : (matchedDb?.actualRate ?? "");
+
+                  const resolvedDetail =
+                    matchedState?.detail && matchedState.detail.trim() !== ""
+                      ? matchedState.detail
+                      : (matchedDb?.detail ?? "");
+
                   return {
                     productId: item.productId,
                     productName: item.productName || item.product?.name || "",
                     unit: item.unit || item.product?.unit || "ขวด",
                     withdrawnQuantity:
                       Number(item.quantity ?? item.withdrawnQuantity) || 0,
-                    quantityUsed:
-                      matched &&
-                      matched.quantityUsed != null &&
-                      matched.quantityUsed !== ""
-                        ? Number(matched.quantityUsed)
-                        : matchedDb &&
-                            matchedDb.quantityUsed != null &&
-                            matchedDb.quantityUsed !== ""
-                          ? Number(matchedDb.quantityUsed)
-                          : "",
-                    actualRate:
-                      matched?.actualRate || matchedDb?.actualRate || "",
-                    detail: matched?.detail || matchedDb?.detail || "",
+                    quantityUsed: resolvedQty,
+                    actualRate: resolvedRate,
+                    detail: resolvedDetail,
                     drugWithdrawalItemId:
-                      matched?.drugWithdrawalItemId ||
+                      matchedState?.drugWithdrawalItemId ||
                       matchedDb?.drugWithdrawalItemId ||
                       item.drugWithdrawalItemId ||
+                      item.id ||
                       null,
                     supplementalDrugWithdrawalItemId: null,
                     sourceGroup: "ORIGINAL" as const,
                   };
                 });
+
               return {
                 ...round,
                 originalProducts: mappedGroupA,
+                // Ensure actualOnlyProducts and supplementalProducts are preserved untouched
+                actualOnlyProducts: round.actualOnlyProducts || [],
+                supplementalProducts: round.supplementalProducts || [],
               };
             }),
           );
@@ -747,12 +761,22 @@ export function useType14ActualState() {
 
       // 3. Existing Result & Multiple Spray Rounds
       const resultObj = plan?.result || parsedResult;
-      const allResultRounds: any[] =
-        (plan?.result?.sprayRounds && plan.result.sprayRounds.length > 0)
+      const rawRounds =
+        plan?.result?.sprayRounds &&
+        Array.isArray(plan.result.sprayRounds) &&
+        plan.result.sprayRounds.length > 0
           ? plan.result.sprayRounds
-          : (parsedResult?.sprayRounds || []);
+          : parsedResult?.sprayRounds &&
+              Array.isArray(parsedResult.sprayRounds) &&
+              parsedResult.sprayRounds.length > 0
+            ? parsedResult.sprayRounds
+            : [];
+
+      const allResultRounds = rawRounds.filter(
+        (r: any) => !r.workTypeCode || r.workTypeCode === "TYPE_14",
+      );
       const type14Rounds = allResultRounds
-        .filter((r: any) => r.workTypeCode === "TYPE_14" || !r.workTypeCode)
+        .slice()
         .sort((a: any, b: any) => (a.roundNumber || 1) - (b.roundNumber || 1));
 
       // Resolve demoPlotId
@@ -842,14 +866,15 @@ export function useType14ActualState() {
               return {
                 ...item,
                 quantityUsed:
-                  matched &&
-                  matched.quantityUsed != null &&
-                  matched.quantityUsed !== ""
-                    ? Number(matched.quantityUsed)
+                  matched?.quantityUsed != null
+                    ? String(matched.quantityUsed)
                     : "",
-                actualRate: matched?.actualRate || "",
-                detail: matched?.detail || "",
-                drugWithdrawalItemId: matched?.drugWithdrawalItemId || null,
+                actualRate: matched?.actualRate ?? "",
+                detail: matched?.detail ?? "",
+                drugWithdrawalItemId:
+                  matched?.drugWithdrawalItemId ||
+                  item.drugWithdrawalItemId ||
+                  null,
               };
             },
           );
@@ -888,20 +913,19 @@ export function useType14ActualState() {
                 !p.drugWithdrawalItemId &&
                 !p.supplementalDrugWithdrawalItemId &&
                 !mappedPlanProducts.some(
-                  (planP) => planP.productId === p.productId,
+                  (planP: any) => planP.productId === p.productId,
                 ),
             )
             .map((p: any) => ({
               productId: p.productId,
-              productName: p.productName || p.product?.name || "",
-              unit: p.unit || p.product?.unit || "",
+              productName:
+                p.productName || p.product?.name || "ไม่ระบุชื่อสินค้า",
+              unit: p.unit || p.product?.unit || "ขวด",
               withdrawnQuantity: 0,
               quantityUsed:
-                p.quantityUsed != null && p.quantityUsed !== ""
-                  ? Number(p.quantityUsed)
-                  : "",
-              actualRate: p.actualRate || "",
-              detail: p.detail || "",
+                p.quantityUsed != null ? String(p.quantityUsed) : "",
+              actualRate: p.actualRate ?? "",
+              detail: p.detail ?? "",
               drugWithdrawalItemId: null,
               supplementalDrugWithdrawalItemId: null,
               sourceGroup: "ACTUAL_ONLY" as const,
