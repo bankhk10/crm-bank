@@ -591,7 +591,8 @@ export function Type14Create({
                           </span>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-slate-600">
+                      {/* ยังไม่ใช้งาน */}
+                      {/* <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-slate-600">
                         <div>
                           <span className="text-slate-400">พืช: </span>
                           <span className="font-semibold text-slate-800">
@@ -622,7 +623,7 @@ export function Type14Create({
                               .join(" / ") || "-"}
                           </span>
                         </div>
-                      </div>
+                      </div> */}
                       {plot.dealerName && (
                         <div className="text-[10.5px] text-slate-500 pt-0.5 border-t border-slate-200/50">
                           ร้าน Dealer:{" "}
