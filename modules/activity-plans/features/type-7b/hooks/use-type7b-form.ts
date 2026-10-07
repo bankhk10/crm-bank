@@ -143,7 +143,7 @@ export function useType7bForm({
           district: firstPlot?.district || "",
           categoryId: "",
           chemicalGroupId: "",
-          objective: t7b.notes || "",
+          objective: t7b.objective || t7b.notes || "",
           productId: type7bProds[0]?.productId || "",
           productName: type7bProds[0]?.productName || "",
           demoProducts: [],
@@ -152,7 +152,7 @@ export function useType7bForm({
             "yyyy-MM-dd",
           ),
           followUpDate: format(new Date(), "yyyy-MM-dd"),
-          detail: t7b.notes || (initial as any)?.objective || "",
+          detail: t7b.objective || t7b.notes || (initial as any)?.objective || "",
         },
       ];
     }
@@ -564,6 +564,7 @@ export function useType7bForm({
       demoPlotId: submittedDemoPlotId,
       trackingStage: null,
       plotDetailNotes: null,
+      objective: t7bDetail,
       notes: t7bDetail,
       plots: plotObjs,
       products: productsListToSave,

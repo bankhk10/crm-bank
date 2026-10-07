@@ -35,6 +35,7 @@ export interface Type7bProductInput {
 export interface Type7bDataInput {
   sourceActivityPlanId?: string | null;
   demoPlotId?: string | null;
+  objective?: string | null;
   notes?: string | null;
   hasProducts?: boolean;
   sprayRound?: number | null;
@@ -61,7 +62,8 @@ export async function createType7bData(
       hasProducts: Boolean(
         type7bData.products && type7bData.products.length > 0,
       ),
-      notes: type7bData.notes || null,
+      objective: type7bData.objective || type7bData.notes || null,
+      notes: type7bData.objective || type7bData.notes || null,
     },
   });
 
@@ -159,7 +161,8 @@ export async function syncType7bData(
         hasProducts: Boolean(
           type7bData.products && type7bData.products.length > 0,
         ),
-        notes: type7bData.notes || null,
+        objective: type7bData.objective || type7bData.notes || null,
+        notes: type7bData.objective || type7bData.notes || null,
       },
     });
 

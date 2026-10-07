@@ -890,6 +890,7 @@ export function extractPlanData(
     const t7aCategory = (firstT7aProduct?.product as any)?.category;
 
     const t7bDetail =
+      t7bRecord?.objective ||
       t7bRecord?.notes ||
       (hasT7B ? (p.objective || p.notes) : "") ||
       prevTargets.t7b?.detail ||
@@ -900,6 +901,7 @@ export function extractPlanData(
       ...commonT7Data,
       activityType: hasT7B || t7Visit ? "FOLLOW_UP" : "CREATE",
       detail: hasT7B ? t7bDetail : commonT7Data.detail,
+      objective: hasT7B ? t7bDetail : commonT7Data.objective,
       dealerName:
         firstT7aPlot?.store?.name ||
         firstT7bPlot?.dealerStoreName ||
@@ -968,6 +970,7 @@ export function extractPlanData(
         "",
       dealerCode: (t7Plot as any)?.customer?.customerCode || "",
       detail: t7bDetail,
+      objective: t7bDetail,
       demoProducts: t7bProducts.map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",

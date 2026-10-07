@@ -2609,6 +2609,7 @@ model ActivityPlanType7b {
   activityPlanId       String                      @unique @map("activity_plan_id")
   sourceActivityPlanId String?                     @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
   hasProducts          Boolean                     @default(false) @map("has_products")
+  objective            String?                     @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
   notes                String?                     @map("notes") @db.Text
 
   createdAt            DateTime                    @default(now()) @map("created_at")
