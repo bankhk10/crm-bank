@@ -845,8 +845,20 @@ export function extractPlanData(
     const t7bProducts = t7bRecord?.products?.length > 0
       ? t7bRecord.products.map((p: any) => ({
           productId: p.productId,
-          productName: p.product?.name || "",
-          targetQuantity: p.quantity,
+          productName: p.productName || p.product?.name || "",
+          quantity:
+            p.quantity != null
+              ? Number(p.quantity)
+              : p.targetQuantity != null
+                ? Number(p.targetQuantity)
+                : 1,
+          targetQuantity:
+            p.targetQuantity != null
+              ? Number(p.targetQuantity)
+              : p.quantity != null
+                ? Number(p.quantity)
+                : 1,
+          unit: p.unit || p.product?.unit || null,
           product: p.product,
         }))
       : products.filter((pr) => pr.workTypeCode === "TYPE_7B");
@@ -854,8 +866,20 @@ export function extractPlanData(
     const t7aProducts = firstT7aPlot?.products?.length > 0
       ? firstT7aPlot.products.map((p: any) => ({
           productId: p.productId,
-          productName: p.product?.name || "",
-          targetQuantity: p.targetQuantity,
+          productName: p.productName || p.product?.name || "",
+          quantity:
+            p.quantity != null
+              ? Number(p.quantity)
+              : p.targetQuantity != null
+                ? Number(p.targetQuantity)
+                : 1,
+          targetQuantity:
+            p.targetQuantity != null
+              ? Number(p.targetQuantity)
+              : p.quantity != null
+                ? Number(p.quantity)
+                : 1,
+          unit: p.unit || p.product?.unit || null,
           product: p.product,
         }))
       : products.filter(
@@ -885,8 +909,9 @@ export function extractPlanData(
       demoProducts: (hasT7B ? t7bProducts : t7aProducts).map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
-        quantity: pr.targetQuantity ?? 1,
-        unit: (pr.product as any)?.unit || null,
+        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
+        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
+        unit: pr.unit || (pr.product as any)?.unit || null,
       })),
     };
 
@@ -894,7 +919,7 @@ export function extractPlanData(
       ...(prevTargets.t7a || prevTargets.t7),
       ...commonT7Data,
       activityType: "CREATE",
-      plotName: firstT7aPlot?.name || t7Plot?.name || "",
+      plotName: firstT7aPlot?.plotName || firstT7aPlot?.name || t7Plot?.name || "",
       dealerName:
         firstT7aPlot?.store?.name ||
         (t7Plot as any)?.customer?.name ||
@@ -925,8 +950,9 @@ export function extractPlanData(
       demoProducts: t7aProducts.map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
-        quantity: pr.targetQuantity ?? 1,
-        unit: (pr.product as any)?.unit || null,
+        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
+        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
+        unit: pr.unit || (pr.product as any)?.unit || null,
       })),
     };
 
@@ -945,8 +971,9 @@ export function extractPlanData(
       demoProducts: t7bProducts.map((pr: any) => ({
         productId: pr.productId,
         productName: pr.productName || (pr.product as any)?.name || "",
-        quantity: pr.targetQuantity ?? 1,
-        unit: (pr.product as any)?.unit || null,
+        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
+        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
+        unit: pr.unit || (pr.product as any)?.unit || null,
       })),
     };
   }

@@ -103,8 +103,13 @@ export function useType7bForm({
           id: p.id || String(idx + 1),
           productId: p.productId,
           productName: p.product?.name || p.productName || "",
-          quantity: p.quantity || 1,
-          unit: p.product?.unit || "",
+          quantity:
+            p.quantity != null
+              ? Number(p.quantity)
+              : p.targetQuantity != null
+                ? Number(p.targetQuantity)
+                : 1,
+          unit: p.unit || p.product?.unit || "",
         }),
       );
       const has7bWithdrawal = type7bProds.length > 0;

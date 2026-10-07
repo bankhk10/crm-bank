@@ -97,8 +97,13 @@ function parseInitialType7aItems(
           id: p.id || String(pIdx + 1),
           productId: p.productId,
           productName: p.product?.name || p.productName || "",
-          quantity: p.targetQuantity || 1,
-          unit: p.product?.unit || "",
+          quantity:
+            p.quantity != null
+              ? Number(p.quantity)
+              : p.targetQuantity != null
+                ? Number(p.targetQuantity)
+                : 1,
+          unit: p.unit || p.product?.unit || "",
         }),
       );
 
@@ -109,7 +114,7 @@ function parseInitialType7aItems(
         plotActivityType: "CREATE",
         demoPlotId: plot.demoPlotId || "",
         hasProductWithdrawal: has7aWithdrawal,
-        plotName: plot.name || "",
+        plotName: plot.plotName || plot.name || "",
         storeId: plot.storeId || "",
         ownerName: plot.store?.name || plot.ownerName || "",
         cropCategory: plot.cropCategory || "",

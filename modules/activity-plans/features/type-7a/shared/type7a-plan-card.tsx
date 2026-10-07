@@ -24,6 +24,7 @@ export interface Type7aPlanTarget {
   demoProducts?: Array<{
     productName?: string;
     quantity?: number | string;
+    targetQuantity?: number | string;
     unit?: string | null;
     [key: string]: any;
   }>;
@@ -202,7 +203,7 @@ export function Type7aPlanCard({
                       {p.productName || "-"}
                     </td>
                     <td className="py-2 px-3 text-right font-bold text-emerald-700 whitespace-nowrap">
-                      {p.quantity ?? "-"} {p.unit || ""}
+                      {p.quantity ?? p.targetQuantity ?? "-"} {p.unit || ""}
                     </td>
                   </tr>
                 ))}
