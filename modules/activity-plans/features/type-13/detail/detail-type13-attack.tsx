@@ -39,26 +39,30 @@ export function DetailType13Attack({
   const sprayRoundsList = actualData?.sprayRounds || [];
   const hasAnySprayData =
     sprayRoundsList.length > 0 ||
-    (actualData?.type13PlotsActual && actualData.type13PlotsActual.length > 0) ||
+    (actualData?.type13PlotsActual &&
+      actualData.type13PlotsActual.length > 0) ||
     (actualData?.attachments && actualData.attachments.length > 0);
 
   if (!hasAnySprayData && (!plots || plots.length === 0)) {
     return null;
   }
 
-  const effectivePlots = plots.length > 0 ? plots : [
-    {
-      id: "plot-1",
-      name: "แปลงที่ 1",
-      storeId: "",
-      ownerName: "",
-      province: "",
-      district: "",
-      products: [],
-      hasDrugWithdrawal: false,
-      withdrawalItems: [],
-    },
-  ];
+  const effectivePlots =
+    plots.length > 0
+      ? plots
+      : [
+          {
+            id: "plot-1",
+            name: "แปลงที่ 1",
+            storeId: "",
+            ownerName: "",
+            province: "",
+            district: "",
+            products: [],
+            hasDrugWithdrawal: false,
+            withdrawalItems: [],
+          },
+        ];
 
   const currentPlot = effectivePlots[activePlotIdx] || effectivePlots[0];
 
@@ -127,34 +131,28 @@ export function DetailType13Attack({
         {/* Info & GPS Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200">
           <div>
-            <span className="block text-[11px] text-slate-400 font-medium">ชื่อแปลง</span>
+            <span className="block text-[11px] text-slate-400 font-medium">
+              ชื่อแปลง
+            </span>
             <span className="text-xs sm:text-sm font-bold text-slate-800">
               {currentPlot.name || `แปลงที่ ${activePlotIdx + 1}`}
             </span>
           </div>
 
           <div>
-            <span className="block text-[11px] text-slate-400 font-medium">ร้านค้า Dealer</span>
+            <span className="block text-[11px] text-slate-400 font-medium">
+              ร้านค้า Dealer
+            </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-700">
               {currentPlot.ownerName || currentPlot.storeId || "-"}
             </span>
           </div>
 
-          <div>
-            <span className="block text-[11px] text-slate-400 font-medium">ที่ตั้งแปลง</span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              {[currentPlot.district, currentPlot.province].filter(Boolean).join(", ") ||
-                [planSummary?.district, planSummary?.province].filter(Boolean).join(", ") ||
-                "-"}
-            </span>
-          </div>
-
           {plotCoord && (
-            <div className="sm:col-span-2 md:col-span-3 pt-2 border-t border-slate-100 flex items-center gap-3">
+            <div>
               <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                <Crosshair className="w-3.5 h-3.5 text-emerald-600" />
-                <span>พิกัด GPS:</span>
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>ที่ตั้งแปลง</span>
               </span>
               <span className="text-xs font-mono font-bold text-slate-800">
                 {String(plotCoord.latitude)}, {String(plotCoord.longitude)}
@@ -203,7 +201,9 @@ export function DetailType13Attack({
                             : "bg-emerald-100 text-emerald-800"
                         }`}
                       >
-                        {round.sprayMethod === "TANK_MIXED" ? "ผสมถัง" : "ฉีดเดี่ยว"}
+                        {round.sprayMethod === "TANK_MIXED"
+                          ? "ผสมถัง"
+                          : "ฉีดเดี่ยว"}
                       </span>
                     </div>
 
@@ -211,7 +211,9 @@ export function DetailType13Attack({
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       <span>
                         {round.sprayDate
-                          ? new Date(round.sprayDate).toLocaleDateString("th-TH")
+                          ? new Date(round.sprayDate).toLocaleDateString(
+                              "th-TH",
+                            )
                           : "-"}
                       </span>
                     </div>
@@ -220,21 +222,29 @@ export function DetailType13Attack({
                   {/* Metadata */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                     <div>
-                      <span className="text-slate-400 block text-[11px]">อุปกรณ์</span>
+                      <span className="text-slate-400 block text-[11px]">
+                        อุปกรณ์
+                      </span>
                       <span className="font-medium text-slate-700">
                         {round.sprayEquipment}
-                        {round.otherEquipment ? ` (${round.otherEquipment})` : ""}
+                        {round.otherEquipment
+                          ? ` (${round.otherEquipment})`
+                          : ""}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px]">ผลหลังฉีด</span>
+                      <span className="text-slate-400 block text-[11px]">
+                        ผลหลังฉีด
+                      </span>
                       <span className="font-semibold text-emerald-600">
                         {round.productResponse}
                       </span>
                     </div>
                     {round.problemDetail && (
                       <div className="col-span-2 sm:col-span-1">
-                        <span className="text-slate-400 block text-[11px]">ปัญหาที่พบ</span>
+                        <span className="text-slate-400 block text-[11px]">
+                          ปัญหาที่พบ
+                        </span>
                         <span className="font-medium text-rose-600">
                           {round.problemDetail}
                         </span>
@@ -280,20 +290,28 @@ export function DetailType13Attack({
                               <div className="flex items-center gap-3 text-slate-600">
                                 {isWithdrawn && withdrawnQty != null && (
                                   <span className="text-[11px] text-slate-500">
-                                    เบิก: <strong className="text-emerald-700">{withdrawnQty}</strong> {p.unit || ""}
+                                    เบิก:{" "}
+                                    <strong className="text-emerald-700">
+                                      {withdrawnQty}
+                                    </strong>{" "}
+                                    {p.unit || ""}
                                   </span>
                                 )}
                                 <span className="text-slate-500">
                                   อัตรา: {p.actualRate || "-"}
                                 </span>
                                 <span className="font-bold text-emerald-600">
-                                  ใช้จริง: {Number(p.quantityUsed).toLocaleString()} {p.unit || "หน่วย"}
+                                  ใช้จริง:{" "}
+                                  {Number(p.quantityUsed).toLocaleString()}{" "}
+                                  {p.unit || "หน่วย"}
                                 </span>
                               </div>
                             </div>
                             {p.detail && (
                               <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
-                                <span className="text-slate-400 font-medium">รายละเอียด: </span>
+                                <span className="text-slate-400 font-medium">
+                                  รายละเอียด:{" "}
+                                </span>
                                 <span>{p.detail}</span>
                               </div>
                             )}
@@ -342,7 +360,9 @@ export function DetailType13Attack({
                     <div className="pt-2 border-t border-slate-100 space-y-1.5">
                       <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
                         <Camera className="w-3 h-3 text-emerald-600" />
-                        <span>รูปภาพก่อนฉีดพ่น ({round.attachments.length} รูป):</span>
+                        <span>
+                          รูปภาพก่อนฉีดพ่น ({round.attachments.length} รูป):
+                        </span>
                       </span>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {round.attachments.map((att, aIdx) => (

@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  MapPin,
-  Package,
-  ExternalLink,
-} from "lucide-react";
+import { MapPin, Package, ExternalLink } from "lucide-react";
 import type { Type13PlotItem } from "../shared/types";
 import type { Type13DetailProps } from "./types";
 
@@ -79,20 +75,24 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
         {/* Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200">
           <div>
-            <span className="block text-[11px] text-slate-400 font-medium">ชื่อแปลง</span>
+            <span className="block text-[11px] text-slate-400 font-medium">
+              ชื่อแปลง
+            </span>
             <span className="text-xs sm:text-sm font-bold text-slate-800">
               {currentPlot.name}
             </span>
           </div>
 
           <div>
-            <span className="block text-[11px] text-slate-400 font-medium">ร้านค้า Dealer</span>
+            <span className="block text-[11px] text-slate-400 font-medium">
+              ร้านค้า Dealer
+            </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-700">
               {currentPlot.ownerName || currentPlot.storeId || "-"}
             </span>
           </div>
-
-          <div>
+          {/* ยังไม่ได้ใช้งาน ที่ตั้งแปลง */}
+          {/* <div>
             <span className="block text-[11px] text-slate-400 font-medium">ที่ตั้งแปลง</span>
             <span className="text-xs sm:text-sm font-semibold text-slate-700 flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -100,11 +100,13 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
                 [planSummary?.district, planSummary?.province].filter(Boolean).join(", ") ||
                 "-"}
             </span>
-          </div>
+          </div> */}
 
           {plotCoord && (
             <div className="sm:col-span-2 md:col-span-3 pt-2 border-t border-slate-100 flex items-center gap-3">
-              <span className="text-xs text-slate-500 font-medium">พิกัด GPS:</span>
+              <span className="text-xs text-slate-500 font-medium">
+                พิกัด GPS:
+              </span>
               <span className="text-xs font-mono font-bold text-slate-800">
                 {String(plotCoord.latitude)}, {String(plotCoord.longitude)}
               </span>
@@ -155,8 +157,8 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-medium">
                     <th className="py-2 px-3 w-12 text-center">ลำดับ</th>
-                    <th className="py-2 px-3">ชื่อสินค้า/ตัวยา</th>
-                    <th className="py-2 px-3 text-right">จำนวนที่ขอเบิก</th>
+                    <th className="py-2 px-3">ชื่อสินค้า</th>
+                    <th className="py-2 px-3 text-center">จำนวนเบิก</th>
                     <th className="py-2 px-3 w-20">หน่วย</th>
                   </tr>
                 </thead>
@@ -169,7 +171,7 @@ export function Type13Detail({ plots = [], planSummary }: Type13DetailProps) {
                       <td className="py-2 px-3 font-semibold text-slate-700">
                         {item.productName || "สินค้าไม่ระบุชื่อ"}
                       </td>
-                      <td className="py-2 px-3 text-right font-bold text-emerald-600">
+                      <td className="py-2 px-3 text-center font-bold text-emerald-600">
                         {Number(item.quantity).toLocaleString()}
                       </td>
                       <td className="py-2 px-3 text-slate-500">
