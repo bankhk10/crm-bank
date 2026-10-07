@@ -101,18 +101,18 @@ export function Type14Create({
         plan.plots.some((p) => p.id === targetPlotId),
       );
       if (parentPlan) {
-        const matchedPlot = parentPlan.plots.find(
-          (p) => p.id === targetPlotId,
-        );
+        const matchedPlot = parentPlan.plots.find((p) => p.id === targetPlotId);
         onChange({
           ...value,
           selectedPlanId: parentPlan.planId,
-          selectedPlotIds: selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
-          demoPlotIds: selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
+          selectedPlotIds:
+            selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
+          demoPlotIds:
+            selectedPlotIds.length > 0 ? selectedPlotIds : [targetPlotId],
           cropCategory: value.cropCategory || matchedPlot?.cropCategory || null,
           cropName: value.cropName || matchedPlot?.cropName || null,
-          areaRai: value.areaRai ?? (matchedPlot?.areaRai ?? null),
-          treeCount: value.treeCount ?? (matchedPlot?.treeCount ?? null),
+          areaRai: value.areaRai ?? matchedPlot?.areaRai ?? null,
+          treeCount: value.treeCount ?? matchedPlot?.treeCount ?? null,
           dealerName: value.dealerName || matchedPlot?.dealerName || null,
           ownerName: value.ownerName || matchedPlot?.ownerName || null,
         });
@@ -245,8 +245,16 @@ export function Type14Create({
     const defaultDealerName = defaultDealerPlot?.dealerName || "";
     const defaultProvincePlot = plan.plots.find((p) => p.province);
     const defaultDistrictPlot = plan.plots.find((p) => p.district);
-    const defaultProvinceVal = defaultProvincePlot?.province || plan.plots[0]?.province || defaultProvince || "";
-    const defaultDistrictVal = defaultDistrictPlot?.district || plan.plots[0]?.district || defaultDistrict || "";
+    const defaultProvinceVal =
+      defaultProvincePlot?.province ||
+      plan.plots[0]?.province ||
+      defaultProvince ||
+      "";
+    const defaultDistrictVal =
+      defaultDistrictPlot?.district ||
+      plan.plots[0]?.district ||
+      defaultDistrict ||
+      "";
 
     // Auto-select single plot
     if (plan.plots.length === 1) {
@@ -466,7 +474,8 @@ export function Type14Create({
             ติดตามแปลงแฮทแทค (TYPE_14)
           </h4>
           <p className="text-xs text-slate-500">
-            เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (Approved &amp; Completed) และเลือกแปลงที่ต้องการติดตามผล
+            เลือกแผนกิจกรรมฉีดแปลงแฮตแทคต้นทาง (Approved &amp; Completed)
+            และเลือกแปลงที่ต้องการติดตามผล
           </p>
         </div>
       </div>
@@ -513,7 +522,8 @@ export function Type14Create({
                   เลือกแปลงแฮตแทคที่ต้องการติดตาม
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-semibold text-[11px]">
-                  เลือกแล้ว {selectedPlotIds.length} / {selectedPlan.plots.length} แปลง
+                  เลือกแล้ว {selectedPlotIds.length} /{" "}
+                  {selectedPlan.plots.length} แปลง
                 </span>
               </div>
 
@@ -629,8 +639,8 @@ export function Type14Create({
           </div>
         )}
 
-        {/* Selected Plots Summary Card */}
-        {selectedPlotItems.length > 0 && (
+        {/* Selected Plots Summary Card ยังไม่ใช้ สรุปรายละเอียดแปลงแฮตแทคที่เลือกติดตาม*/}
+        {/* {selectedPlotItems.length > 0 && (
           <div className="bg-purple-50/50 rounded-xl border border-purple-200/80 p-3.5 sm:p-4 space-y-3 transition-all animate-fadeIn">
             <div className="flex items-center justify-between border-b border-purple-100 pb-2 text-xs font-bold text-purple-900">
               <div className="flex items-center gap-1.5">
@@ -782,7 +792,7 @@ export function Type14Create({
               </div>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       {/* การเบิกสินค้าสำหรับรอบติดตามแปลงแฮทแทค (TYPE_14 Product Withdrawal) */}
@@ -847,7 +857,8 @@ export function Type14Create({
                         colSpan={readonly ? 3 : 4}
                         className="py-6 text-center text-slate-400 text-xs"
                       >
-                        ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
+                        ยังไม่มีรายการสินค้า กดปุ่ม
+                        &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
                       </td>
                     </tr>
                   ) : (
@@ -921,7 +932,9 @@ export function Type14Create({
                           <td className="py-2 px-3 text-center align-middle">
                             <button
                               type="button"
-                              onClick={() => deleteWithdrawnProductRow(pLine.id)}
+                              onClick={() =>
+                                deleteWithdrawnProductRow(pLine.id)
+                              }
                               className="p-1 text-slate-400 hover:text-red-500 transition-colors inline-flex items-center justify-center rounded"
                               title="ลบแถวสินค้านี้"
                             >
