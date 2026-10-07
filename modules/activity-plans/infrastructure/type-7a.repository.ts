@@ -13,6 +13,7 @@ export interface Type7aPlotInput {
   storeId?: string | null;
   province?: string | null;
   district?: string | null;
+  subdistrict?: string | null;
   cropCategory?: string | null;
   cropName?: string | null;
   customCropName?: string | null;
@@ -23,8 +24,8 @@ export interface Type7aPlotInput {
   nextSprayDate?: Date | string | null;
   objective?: string | null;
   notes?: string | null;
-  latitude?: string | number | null;
-  longitude?: string | number | null;
+  latitude?: string | number | Prisma.Decimal | null;
+  longitude?: string | number | Prisma.Decimal | null;
   categoryId?: string | null;
   chemicalGroupId?: string | null;
   hasProducts?: boolean;
@@ -39,11 +40,24 @@ export interface Type7aPlotInput {
   products?: Array<{
     productId: string;
     productName?: string | null;
+    applicationRate?: string | null;
     quantity?: number | null;
     targetQuantity?: number | null;
     unit?: string | null;
     notes?: string | null;
   }>;
+}
+
+function parseDecimalCoord(
+  val: string | number | Prisma.Decimal | null | undefined,
+): Prisma.Decimal | null {
+  if (val == null) return null;
+  if (val instanceof Prisma.Decimal || Prisma.Decimal.isDecimal(val)) {
+    return val as Prisma.Decimal;
+  }
+  const str = String(val).trim();
+  if (str === "" || isNaN(Number(str))) return null;
+  return new Prisma.Decimal(str);
 }
 
 /**
@@ -96,14 +110,8 @@ export async function createType7aPlots(
             : null,
           objective: plotItem.objective || null,
           notes: plotItem.notes || null,
-          latitude:
-            plotItem.latitude != null
-              ? new Prisma.Decimal(Number(plotItem.latitude))
-              : null,
-          longitude:
-            plotItem.longitude != null
-              ? new Prisma.Decimal(Number(plotItem.longitude))
-              : null,
+          latitude: parseDecimalCoord(plotItem.latitude),
+          longitude: parseDecimalCoord(plotItem.longitude),
           plotType: "GENERAL_DEMO",
           startDate,
           status: DemoPlotStatus.IN_PROGRESS,
@@ -250,14 +258,8 @@ export async function syncType7aPlots(
               : null,
             objective: plotItem.objective || null,
             notes: plotItem.notes || null,
-            latitude:
-              plotItem.latitude != null
-                ? new Prisma.Decimal(Number(plotItem.latitude))
-                : null,
-            longitude:
-              plotItem.longitude != null
-                ? new Prisma.Decimal(Number(plotItem.longitude))
-                : null,
+            latitude: parseDecimalCoord(plotItem.latitude),
+            longitude: parseDecimalCoord(plotItem.longitude),
             plotType: "GENERAL_DEMO",
             startDate,
             status: DemoPlotStatus.IN_PROGRESS,

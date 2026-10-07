@@ -18,7 +18,11 @@ import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
 } from "../constants";
-import { createType7aPlots, syncType7aPlots } from "./type-7a.repository";
+import {
+  createType7aPlots,
+  syncType7aPlots,
+  Type7aPlotInput,
+} from "./type-7a.repository";
 import { createType7bData, syncType7bData } from "./type-7b.repository";
 import { createType13Data, syncType13Data, Type13DataInput } from "./type-13.repository";
 import { createType14Data, syncType14Data, Type14DataInput } from "./type-14.repository";
@@ -870,41 +874,7 @@ export type CreateActivityPlanInput = {
     }>;
   }>;
   type14Data?: Type14DataInput;
-  type7aPlots?: Array<{
-    id?: string;
-    demoPlotId?: string | null;
-    plotName?: string | null;
-    name?: string | null;
-    storeId?: string | null;
-    ownerName?: string | null;
-    farmerName?: string | null;
-    farmerPhone?: string | null;
-    province?: string | null;
-    district?: string | null;
-    subdistrict?: string | null;
-    latitude?: number | Prisma.Decimal | null;
-    longitude?: number | Prisma.Decimal | null;
-    cropCategory?: string | null;
-    cropName?: string | null;
-    customCropName?: string | null;
-    areaRai?: number | null;
-    treeCount?: number | null;
-    plantingDate?: Date | string | null;
-    initialSprayDate?: Date | string | null;
-    nextSprayDate?: Date | string | null;
-    objective?: string | null;
-    notes?: string | null;
-    categoryId?: string | null;
-    products?: Array<{
-      productId: string;
-      productName?: string | null;
-      applicationRate?: string | null;
-      quantity?: number | null;
-      targetQuantity?: number | null;
-      unit?: string | null;
-      notes?: string | null;
-    }>;
-  }>;
+  type7aPlots?: Type7aPlotInput[];
   type7bData?: {
     sourceActivityPlanId?: string | null;
     demoPlotId?: string | null;

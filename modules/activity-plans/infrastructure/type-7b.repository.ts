@@ -19,6 +19,8 @@ export interface Type7bPlotInput {
   treeCount?: number | null;
   dealerName?: string | null;
   dealerStoreName?: string | null;
+  latitude?: string | number | Prisma.Decimal | null;
+  longitude?: string | number | Prisma.Decimal | null;
   notes?: string | null;
 }
 

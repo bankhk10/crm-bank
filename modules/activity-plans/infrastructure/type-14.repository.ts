@@ -13,8 +13,8 @@ export interface Type14PlotInput {
   cropName?: string | null;
   province?: string | null;
   district?: string | null;
-  latitude?: string | number | null;
-  longitude?: string | number | null;
+  latitude?: string | number | Prisma.Decimal | null;
+  longitude?: string | number | Prisma.Decimal | null;
 }
 
 export interface Type14WithdrawnProductInput {

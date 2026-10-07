@@ -21,8 +21,8 @@ export interface Type13PlotInput {
   ownerName?: string | null;
   province?: string | null;
   district?: string | null;
-  latitude?: string | number | null;
-  longitude?: string | number | null;
+  latitude?: string | number | Prisma.Decimal | null;
+  longitude?: string | number | Prisma.Decimal | null;
   products?: Type13PlotProductInput[];
 }
 
