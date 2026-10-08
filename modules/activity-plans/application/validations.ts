@@ -513,11 +513,15 @@ export const actualRecordSchema = z.object({
 // TYPE_7A Demo Plot Input Schemas
 // ────────────────────────────────────────────────────────────────────────────
 export const type7aDemoPlotProductInputSchema = z.object({
+  id: z.string().optional().nullable(),
   productId: z.string().min(1, "กรุณาเลือกสินค้าสาธิต"),
   productName: z.string().optional().nullable(),
   quantity: z.coerce.number().min(0.01, "จำนวนสินค้าต้องมากกว่า 0"),
+  plannedQuantity: z.coerce.number().optional().nullable(),
+  remainingQuantity: z.coerce.number().optional().nullable(),
   unit: z.string().optional().nullable(),
-  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้ (application rate)"),
+  applicationRate: z.string().optional().nullable().default("-"),
+  isAdditional: z.boolean().optional().nullable(),
 });
 
 export const type7aDemoPlotExternalProductInputSchema = z.object({

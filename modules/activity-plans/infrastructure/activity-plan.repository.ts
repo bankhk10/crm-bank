@@ -215,7 +215,53 @@ export async function findActivityPlanById(id: string) {
               district: true,
             },
           },
-          demoPlot: true,
+          demoPlot: {
+            include: {
+              customer: {
+                select: {
+                  id: true,
+                  name: true,
+                  customerCode: true,
+                  customerType: true,
+                  province: true,
+                  district: true,
+                },
+              },
+              farmerCustomer: {
+                select: {
+                  id: true,
+                  name: true,
+                  customerCode: true,
+                  customerType: true,
+                  province: true,
+                  district: true,
+                  phone: true,
+                },
+              },
+              demoProducts: {
+                include: {
+                  product: {
+                    select: {
+                      id: true,
+                      name: true,
+                      productCode: true,
+                      unit: true,
+                      packageSizeUnit: true,
+                    },
+                  },
+                },
+                orderBy: { sortOrder: "asc" },
+              },
+              externalProducts: {
+                orderBy: { sortOrder: "asc" },
+              },
+              irrigations: true,
+              attachments: true,
+              visits: {
+                orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
+              },
+            },
+          },
           products: {
             include: {
               product: {

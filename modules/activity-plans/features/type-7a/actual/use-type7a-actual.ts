@@ -61,7 +61,48 @@ export function useType7aActual() {
   const hydrate = useCallback((plan: any, parsed: any, extractedTargets?: any) => {
     const t7aTarget = extractedTargets?.t7a || extractedTargets?.t7;
     const linkedDemoPlot =
-      plan?.demoPlotVisits?.[0]?.demoPlot || plan?.demoPlot;
+      plan?.demoPlotVisits?.[0]?.demoPlot ||
+      plan?.type7aPlots?.[0]?.demoPlot ||
+      plan?.demoPlot;
+
+    // Resolve planned baseline products for TYPE_7A once for the entire hydration
+    const type7aPlotProducts = (plan?.type7aPlots?.[0]?.products || []).map(
+      (p: any) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        quantity: Number(p.quantity ?? 1),
+        targetQuantity: Number(p.quantity ?? 1),
+        unit: p.unit || p.product?.unit || p.product?.packageSizeUnit || "",
+      }),
+    );
+    const targetDemoProducts = (t7aTarget?.demoProducts || []).map(
+      (pr: any, idx: number) => ({
+        id: String(idx + 1),
+        productId: pr.productId,
+        productName: pr.productName || "",
+        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
+        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
+        unit: pr.unit || "",
+      }),
+    );
+    const planGeneralProducts = (
+      plan?.products ||
+      plan?.planProducts ||
+      []
+    ).filter(
+      (pr: any) =>
+        pr.workTypeCode === "TYPE_7A" ||
+        pr.workTypeCode === "TYPE_7" ||
+        !pr.workTypeCode,
+    );
+
+    const planT7aProducts =
+      type7aPlotProducts.length > 0
+        ? type7aPlotProducts
+        : targetDemoProducts.length > 0
+          ? targetDemoProducts
+          : planGeneralProducts;
 
     if (linkedDemoPlot) {
       const dp = linkedDemoPlot;
@@ -199,21 +240,16 @@ export function useType7aActual() {
         if (visit1.otherEquipment) setT7OtherEquipment(visit1.otherEquipment);
       }
       if (dp.demoProducts && dp.demoProducts.length > 0) {
-        const planT7aProducts = (
-          plan?.products ||
-          plan?.planProducts ||
-          []
-        ).filter(
-          (pr: any) =>
-            pr.workTypeCode === "TYPE_7A" ||
-            pr.workTypeCode === "TYPE_7" ||
-            !pr.workTypeCode,
-        );
+        const matchedPlanIds = new Set<string>();
         setT7DemoProducts(
           dp.demoProducts.map((dpr: any) => {
             const matchedPlan = planT7aProducts.find(
-              (pr: any) => pr.productId === dpr.productId,
+              (pr: any) =>
+                pr.productId === dpr.productId && !matchedPlanIds.has(pr.productId),
             );
+            if (matchedPlan) {
+              matchedPlanIds.add(matchedPlan.productId);
+            }
             const plannedQty =
               matchedPlan?.targetQuantity != null
                 ? matchedPlan.targetQuantity
@@ -242,16 +278,6 @@ export function useType7aActual() {
           }),
         );
       } else {
-        const planT7aProducts = (
-          plan?.products ||
-          plan?.planProducts ||
-          []
-        ).filter(
-          (pr: any) =>
-            pr.workTypeCode === "TYPE_7A" ||
-            pr.workTypeCode === "TYPE_7" ||
-            !pr.workTypeCode,
-        );
         if (planT7aProducts.length > 0) {
           setT7DemoProducts(
             planT7aProducts.map((pr: any, idx: number) => {
@@ -266,23 +292,6 @@ export function useType7aActual() {
                 quantity: usedQty,
                 remainingQuantity: remainingQty,
                 unit: pr.product?.unit || pr.product?.packageSizeUnit || pr.unit || "",
-                applicationRate: "",
-                isAdditional: false,
-              };
-            }),
-          );
-        } else if (t7aTarget?.demoProducts && t7aTarget.demoProducts.length > 0) {
-          setT7DemoProducts(
-            t7aTarget.demoProducts.map((pr: any, idx: number) => {
-              const plannedQty = pr.quantity ?? 1;
-              return {
-                id: String(idx + 1),
-                productId: pr.productId,
-                productName: pr.productName || "",
-                plannedQuantity: plannedQty,
-                quantity: plannedQty,
-                remainingQuantity: 0,
-                unit: pr.unit || "",
                 applicationRate: "",
                 isAdditional: false,
               };
@@ -351,28 +360,23 @@ export function useType7aActual() {
         setT7InitialSprayDate(sDate);
       }
 
-      const planT7aProducts = (
-        plan?.products ||
-        plan?.planProducts ||
-        []
-      ).filter(
-        (pr: any) =>
-          pr.workTypeCode === "TYPE_7A" || !pr.workTypeCode,
-      );
+
       if (planT7aProducts.length > 0) {
         setT7DemoProducts(
-          planT7aProducts.map((pr: any) => {
+          planT7aProducts.map((pr: any, idx: number) => {
             const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
             const usedQty = plannedQty;
             const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
             return {
+              id: pr.id || String(idx + 1),
               productId: pr.productId,
               productName: pr.product?.name || pr.productName || "",
               plannedQuantity: plannedQty,
               quantity: usedQty,
               remainingQuantity: remainingQty,
-              unit: pr.product?.unit || pr.product?.packageSizeUnit || "",
+              unit: pr.product?.unit || pr.product?.packageSizeUnit || pr.unit || "",
               applicationRate: "",
+              isAdditional: false,
             };
           }),
         );
@@ -456,7 +460,35 @@ export function useType7aActual() {
         if (dp.hasExternalChemicals != null)
           setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
         if (dp.externalProducts) setT7ExternalProducts(dp.externalProducts);
-        if (dp.demoProducts) setT7DemoProducts(dp.demoProducts);
+        if (dp.demoProducts && dp.demoProducts.length > 0) {
+          const matchedPlanIds = new Set<string>();
+          setT7DemoProducts(
+            dp.demoProducts.map((dpr: any) => {
+              const matchedPlan = planT7aProducts.find(
+                (pr: any) =>
+                  pr.productId === dpr.productId && !matchedPlanIds.has(pr.productId),
+              );
+              if (matchedPlan) {
+                matchedPlanIds.add(matchedPlan.productId);
+              }
+              const plannedQty =
+                dpr.plannedQuantity !== undefined && dpr.plannedQuantity !== null
+                  ? dpr.plannedQuantity
+                  : matchedPlan?.targetQuantity ?? matchedPlan?.quantity ?? null;
+              return {
+                id: dpr.id,
+                productId: dpr.productId,
+                productName: dpr.productName || dpr.product?.name || "",
+                plannedQuantity: plannedQty,
+                quantity: dpr.quantity ?? (plannedQty != null ? plannedQty : 1),
+                remainingQuantity: dpr.remainingQuantity ?? null,
+                unit: dpr.unit || "",
+                applicationRate: dpr.applicationRate || "",
+                isAdditional: dpr.isAdditional ?? !matchedPlan,
+              };
+            }),
+          );
+        }
       }
 
       const t7aAttachments = (plan?.result?.attachments || []).filter(

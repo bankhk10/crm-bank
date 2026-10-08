@@ -6,6 +6,7 @@ import type {
   FollowupProductItem,
   ImageFile,
   Type7bSprayingRoundItem,
+  DemoPlotProductItem,
 } from "../types";
 import {
   getActivityResultStatusLabel,
@@ -139,15 +140,7 @@ export interface BuildSummaryInput {
   t7MainCropInfo?: string;
   t7InitialSprayDate?: string;
   t7NextSprayDate?: string;
-  t7DemoProducts?: Array<{
-    productId: string;
-    productName?: string;
-    plannedQuantity?: number | string | null;
-    quantity: number | string;
-    remainingQuantity?: number | string | null;
-    unit?: string | null;
-    applicationRate: string;
-  }>;
+  t7DemoProducts?: DemoPlotProductItem[];
   t7SprayMethod?: "SINGLE" | "TANK_MIXED";
   t7HasExternalChemicals?: boolean;
   t7ExternalProducts?: Array<{
@@ -1377,6 +1370,7 @@ export function buildResultSummary(
                 : null;
 
           return {
+            id: p.id || undefined,
             productId: p.productId,
             productName: p.productName || null,
             plannedQuantity: planned,
@@ -1384,6 +1378,7 @@ export function buildResultSummary(
             remainingQuantity: remaining,
             unit: p.unit || null,
             applicationRate: p.applicationRate || "-",
+            isAdditional: p.isAdditional ?? (planned == null),
           };
         }),
       externalProducts: (input.t7ExternalProducts || []).map((ep) => ({

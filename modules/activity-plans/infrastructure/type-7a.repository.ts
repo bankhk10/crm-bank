@@ -369,7 +369,28 @@ export async function findType7aByPlanId(planId: string) {
           district: true,
         },
       },
-      demoPlot: true,
+      demoPlot: {
+        include: {
+          demoProducts: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                  unit: true,
+                  packageSizeUnit: true,
+                },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          externalProducts: {
+            orderBy: { sortOrder: "asc" },
+          },
+          irrigations: true,
+        },
+      },
       products: {
         include: {
           product: {

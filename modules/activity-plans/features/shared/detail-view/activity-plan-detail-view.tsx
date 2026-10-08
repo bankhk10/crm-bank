@@ -1304,6 +1304,7 @@ export default function ActivityPlanDetailView({
             demoPlotData={
               t7DemoPlotData ||
               (plan as any)?.demoPlotVisits?.[0]?.demoPlot ||
+              (plan as any)?.type7aPlots?.[0]?.demoPlot ||
               (plan as any)?.demoPlot
             }
             visitHistory={t7VisitHistory || (plan as any)?.demoPlotVisits || []}

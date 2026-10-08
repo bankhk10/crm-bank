@@ -947,10 +947,17 @@ export async function upsertActivityResult(
             include: { demoPlot: true },
             take: 1,
           },
+          type7aPlots: {
+            include: { demoPlot: true },
+            take: 1,
+          },
         },
       });
 
-      let existingPlot = plan?.demoPlotVisits?.[0]?.demoPlot || null;
+      let existingPlot =
+        plan?.type7aPlots?.[0]?.demoPlot ||
+        plan?.demoPlotVisits?.[0]?.demoPlot ||
+        null;
       if (!existingPlot) {
         const earliestVisit = await tx.demoPlotVisit.findFirst({
           where: { activityPlanId: input.activityPlanId },
@@ -964,6 +971,7 @@ export async function upsertActivityResult(
           where: {
             OR: [
               { visits: { some: { activityPlanId: input.activityPlanId } } },
+              { type7aPlots: { some: { activityPlanId: input.activityPlanId } } },
               {
                 name: demoData.plotName,
                 ownerName: demoData.ownerName,
@@ -1149,6 +1157,12 @@ export async function upsertActivityResult(
         plotId = newPlot.id;
       }
       createdDemoPlotId = plotId;
+
+      // Link DemoPlot to ActivityPlanType7a
+      await tx.activityPlanType7a.updateMany({
+        where: { activityPlanId: input.activityPlanId },
+        data: { demoPlotId: plotId },
+      });
 
       // Save DemoPlotProduct (Single Source of Truth for applicationRate)
       await tx.demoPlotProduct.deleteMany({ where: { demoPlotId: plotId } });

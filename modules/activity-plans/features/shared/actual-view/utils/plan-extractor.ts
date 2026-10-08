@@ -766,6 +766,7 @@ export function extractPlanData(
     }
     t7PlotIdentifier =
       t7aPlotsList[0]?.demoPlotId ||
+      t7aPlotsList[0]?.demoPlot?.id ||
       t7bRecord?.demoPlotId ||
       t7Plot?.id ||
       t7Plot?.ownerName ||
