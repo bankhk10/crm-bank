@@ -165,6 +165,8 @@ export function canUserPerformApproval(
     status?: string;
     currentApproverEmployeeId?: string | null;
     employeeId?: string | null;
+    createdById?: string | null;
+    cancellationRequestedById?: string | null;
     employee?: {
       id?: string;
       managerId?: string | null;
@@ -256,15 +258,57 @@ export function canUserPerformApproval(
   // 3.6 Cancellation Approval (Dual Approval: Line Approver + Marketing Manager)
   if (plan.status === "PENDING_CANCELLATION") {
     const userEmpId = user.employeeId;
+    if (!userEmpId) return false;
+
+    // 1. Creator / Owner cannot approve their own cancellation (unless Admin)
+    const creatorEmployeeId = plan.employeeId || plan.employee?.id;
+    const isOwner =
+      (creatorEmployeeId && userEmpId === creatorEmployeeId) ||
+      (plan.createdById && user.id === plan.createdById) ||
+      ((plan as any).cancellationRequestedById &&
+        user.id === (plan as any).cancellationRequestedById);
+
+    if (isOwner && !isUserAdmin(user)) {
+      return false;
+    }
+
+    // 2. Operational staff (Salesperson, Promoter, Marketing Staff) cannot approve cancellations
+    const posTitle = (user.positionTitle || "").toLowerCase();
+    const isOperationalStaff =
+      posTitle.includes("พนักงานขาย") ||
+      posTitle === "sales" ||
+      posTitle.includes("sales_employee") ||
+      posTitle.includes("พนักงานส่งเสริม") ||
+      posTitle.includes("sales_promotion") ||
+      posTitle.includes("พนักงานการตลาด") ||
+      posTitle.includes("employee_mk");
+
+    if (isOperationalStaff && !isUserAdmin(user)) {
+      return false;
+    }
+
+    const hasWithdrawal =
+      Boolean((plan as any).hasProductWithdrawal) ||
+      ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
+      Boolean((plan as any).type7b?.hasProducts) ||
+      Boolean((plan as any).type13?.hasProducts) ||
+      Boolean((plan as any).type14?.hasProducts);
+
+    const isSalesAdmin = isUserSalesAdminManager(user);
     const isLineApprover = Boolean(
-      userEmpId &&
-        (plan.employee?.managerId === userEmpId ||
-          plan.creator?.employee?.managerId === userEmpId ||
-          plan.currentApproverEmployeeId === userEmpId) &&
+      (isSalesAdmin ||
+        plan.employee?.managerId === userEmpId ||
+        plan.creator?.employee?.managerId === userEmpId ||
+        plan.currentApproverEmployeeId === userEmpId) &&
         plan.lineCancellationApproved !== true,
     );
-    const isMktApprover =
-      canUserApproveProductWithdrawal(user) && plan.mktCancellationApproved !== true;
+
+    const isMktApprover = Boolean(
+      hasWithdrawal &&
+        canUserApproveProductWithdrawal(user) &&
+        plan.mktCancellationApproved !== true,
+    );
+
     return isLineApprover || isMktApprover;
   }
 
@@ -581,6 +625,51 @@ export function getPlanActionScopes(
         id: "mkt_helper",
         label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
         variant: "mkt_helper",
+      });
+    }
+
+    return badges;
+  }
+
+  // 4. Cancellation Approval
+  if (plan.status === "PENDING_CANCELLATION") {
+    const userEmpId = user?.employeeId;
+    const isLineApproved = plan.lineCancellationApproved === true;
+    const isMktApproved = plan.mktCancellationApproved === true;
+
+    const isSalesAdmin = isUserSalesAdminManager(user);
+    const isLineApprover = Boolean(
+      isAdmin ||
+        isSalesAdmin ||
+        (userEmpId &&
+          (plan.currentApproverEmployeeId === userEmpId ||
+            (plan as any).employee?.managerId === userEmpId)),
+    );
+
+    if (isLineApprover && !isLineApproved) {
+      badges.push({
+        id: "cancel_line",
+        label: "อนุมัติยกเลิกตามสายงาน",
+        variant: "line",
+      });
+    }
+
+    const hasWithdrawal =
+      Boolean((plan as any).hasProductWithdrawal) ||
+      ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
+      Boolean((plan as any).type7b?.hasProducts) ||
+      Boolean((plan as any).type13?.hasProducts) ||
+      Boolean((plan as any).type14?.hasProducts);
+
+    if (
+      hasWithdrawal &&
+      (isAdmin || canUserApproveProductWithdrawal(user)) &&
+      !isMktApproved
+    ) {
+      badges.push({
+        id: "cancel_mkt",
+        label: "ตรวจรับคืนสต็อกสินค้า",
+        variant: "mkt_budget",
       });
     }
 

@@ -104,6 +104,52 @@ function isTerminalLineManager(employee: any): boolean {
   );
 }
 
+// Helper to determine if an employee is a managerial approver (Manager level)
+function isManagerialEmployee(employee: any): boolean {
+  if (!employee) return false;
+  if (employee.position?.isManagerial === true) return true;
+  const level = employee.position?.level ?? 0;
+  if (level >= 2) return true;
+
+  const title = (
+    employee.positionTitle ||
+    employee.position?.name ||
+    ""
+  ).toLowerCase();
+
+  return (
+    title.includes("ผู้จัดการ") ||
+    title.includes("ผจก") ||
+    title.includes("หัวหน้า") ||
+    title.includes("manager") ||
+    title.includes("director") ||
+    title.includes("บริหาร")
+  );
+}
+
+// Helper to determine if an employee is strictly operational staff (non-managerial)
+function isOperationalEmployee(employee: any): boolean {
+  if (!employee) return true;
+  if (isManagerialEmployee(employee)) return false;
+
+  const title = (
+    employee.positionTitle ||
+    employee.position?.name ||
+    ""
+  ).toLowerCase();
+
+  return (
+    title.includes("พนักงานขาย") ||
+    title === "sales" ||
+    title.includes("sales_employee") ||
+    title.includes("พนักงานส่งเสริม") ||
+    title.includes("sales_promotion") ||
+    title.includes("พนักงานการตลาด") ||
+    title.includes("employee_mk") ||
+    (employee.position?.level === 1 && !employee.position?.isManagerial)
+  );
+}
+
 // Helper to determine if an approver has authority to approve a specific helper
 function canApproverManageHelper(
   helper: any,
@@ -141,7 +187,10 @@ function canApproverManageHelper(
 }
 
 // Dynamic Approver Lookup Helpers
-async function getAreaManagers(tx: Prisma.TransactionClient, departmentId?: string | null) {
+async function getAreaManagers(
+  tx: Prisma.TransactionClient,
+  departmentId?: string | null,
+) {
   return tx.employee.findMany({
     where: {
       deletedAt: null,
@@ -155,7 +204,10 @@ async function getAreaManagers(tx: Prisma.TransactionClient, departmentId?: stri
   });
 }
 
-async function getSalespersons(tx: Prisma.TransactionClient, departmentId?: string | null) {
+async function getSalespersons(
+  tx: Prisma.TransactionClient,
+  departmentId?: string | null,
+) {
   return tx.employee.findMany({
     where: {
       deletedAt: null,
@@ -351,7 +403,10 @@ async function getSalesAdminManagers(tx: Prisma.TransactionClient) {
       OR: [
         { position: { name: "ผู้จัดการแผนกบริหารงานขาย" } },
         { positionTitle: { contains: "ผู้จัดการแผนกบริหารงานขาย" } },
-        { department: { code: "SA" }, position: { isManagerial: true, level: { gte: 3 } } },
+        {
+          department: { code: "SA" },
+          position: { isManagerial: true, level: { gte: 3 } },
+        },
       ],
     },
     select: { id: true, userId: true },
@@ -390,9 +445,11 @@ async function getSalesDirectors(tx: Prisma.TransactionClient) {
 
 async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
   const hasSalesPromotion =
-    plan.salesPromotionBudgetRequested && plan.salesPromotionBudgetRequested.toNumber() > 0;
+    plan.salesPromotionBudgetRequested &&
+    plan.salesPromotionBudgetRequested.toNumber() > 0;
   const hasMarketing =
-    plan.marketingBudgetRequested && plan.marketingBudgetRequested.toNumber() > 0;
+    plan.marketingBudgetRequested &&
+    plan.marketingBudgetRequested.toNumber() > 0;
 
   if (hasSalesPromotion && plan.salesPromotionApproved !== true) {
     const managers = await getSalesAdminManagers(tx);
@@ -701,7 +758,10 @@ export async function submitActivityPlanUseCase(
 
     // Unplanned Activity: Directly transitions to PENDING_REVIEW (Post-Activity Review)
     if (plan.planType === ActivityPlanType.UNPLANNED) {
-      const reviewerId = (await resolveNextLineApprover(creator, tx)) || creator.managerId || null;
+      const reviewerId =
+        (await resolveNextLineApprover(creator, tx)) ||
+        creator.managerId ||
+        null;
 
       await tx.activityPlan.update({
         where: { id: planId },
@@ -862,12 +922,18 @@ export async function approveActivityPlanUseCase(
     }
 
     const canApproveLine = isAdmin || permissions.has("activity.approve");
-    const canApproveWithdrawal = isAdmin || permissions.has("activity.approve.product_withdrawal");
-    const canApproveSP = isAdmin || permissions.has("activity.approve.sp_budget");
-    const canApproveMKT = isAdmin || permissions.has("activity.approve.mkt_budget");
-    const canApproveDirector = isAdmin || permissions.has("activity.approve.total_budget");
-    const canApproveSalesHelper = isAdmin || permissions.has("activity.approve.sales_helper");
-    const canApproveMKTHelper = isAdmin || permissions.has("activity.approve.mkt_helper");
+    const canApproveWithdrawal =
+      isAdmin || permissions.has("activity.approve.product_withdrawal");
+    const canApproveSP =
+      isAdmin || permissions.has("activity.approve.sp_budget");
+    const canApproveMKT =
+      isAdmin || permissions.has("activity.approve.mkt_budget");
+    const canApproveDirector =
+      isAdmin || permissions.has("activity.approve.total_budget");
+    const canApproveSalesHelper =
+      isAdmin || permissions.has("activity.approve.sales_helper");
+    const canApproveMKTHelper =
+      isAdmin || permissions.has("activity.approve.mkt_helper");
 
     const isTerminal = isAdmin || isTerminalLineManager(approverEmployee);
     const isCurrentLineApprover =
@@ -881,7 +947,9 @@ export async function approveActivityPlanUseCase(
       const isEligibleReviewer =
         isAdmin ||
         plan.currentApproverEmployeeId === approverEmployee?.id ||
-        Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
+        Boolean(
+          approverEmployee && approverEmployee.id === plan.employee?.managerId,
+        );
 
       if (!isEligibleReviewer) {
         return {
@@ -939,7 +1007,10 @@ export async function approveActivityPlanUseCase(
       }
 
       if (!isTerminal) {
-        const nextManagerId = await resolveNextLineApprover(approverEmployee, tx);
+        const nextManagerId = await resolveNextLineApprover(
+          approverEmployee,
+          tx,
+        );
         if (nextManagerId && nextManagerId !== approverEmployee?.id) {
           await tx.activityPlan.update({
             where: { id: planId },
@@ -991,7 +1062,11 @@ export async function approveActivityPlanUseCase(
     }
 
     // 2. Product Withdrawal Approval
-    if (hasWithdrawal && plan.productWithdrawalApproved !== true && canApproveWithdrawal) {
+    if (
+      hasWithdrawal &&
+      plan.productWithdrawalApproved !== true &&
+      canApproveWithdrawal
+    ) {
       didApproveWithdrawal = true;
     }
 
@@ -1006,8 +1081,10 @@ export async function approveActivityPlanUseCase(
     }
 
     // 5. Overall Budget Approval
-    const effectiveSPApproved = !hasSP || plan.salesPromotionApproved === true || didApproveSPBudget;
-    const effectiveMKTApproved = !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
+    const effectiveSPApproved =
+      !hasSP || plan.salesPromotionApproved === true || didApproveSPBudget;
+    const effectiveMKTApproved =
+      !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
 
     if (
       (hasSP || hasMKT) &&
@@ -1028,9 +1105,19 @@ export async function approveActivityPlanUseCase(
       );
 
       for (const helper of pendingHelpers) {
-        if (canApproverManageHelper(helper, isAdmin, canApproveSalesHelper, canApproveMKTHelper)) {
+        if (
+          canApproverManageHelper(
+            helper,
+            isAdmin,
+            canApproveSalesHelper,
+            canApproveMKTHelper,
+          )
+        ) {
           let isSelected = true;
-          if (selectedHelperEmployeeIds && Array.isArray(selectedHelperEmployeeIds)) {
+          if (
+            selectedHelperEmployeeIds &&
+            Array.isArray(selectedHelperEmployeeIds)
+          ) {
             isSelected = selectedHelperEmployeeIds.includes(helper.employeeId);
           }
 
@@ -1055,7 +1142,8 @@ export async function approveActivityPlanUseCase(
     if (!anyActionTaken) {
       return {
         success: false,
-        error: "คุณไม่มีสิทธิ์อนุมัติในขั้นตอนนี้ หรือรายการได้รับการอนุมัติไปแล้ว",
+        error:
+          "คุณไม่มีสิทธิ์อนุมัติในขั้นตอนนี้ หรือรายการได้รับการอนุมัติไปแล้ว",
       };
     }
 
@@ -1112,16 +1200,13 @@ export async function approveActivityPlanUseCase(
           userId,
           action: ActivityApprovalAction.APPROVE,
           step: ActivityApprovalStep.PRODUCT_WITHDRAWAL_APPROVAL,
-          comment: comment || "อนุมัติรายการเบิกสินค้าในแปลงสาธิต (ผจก.แผนกการตลาด)",
+          comment:
+            comment || "อนุมัติรายการเบิกสินค้าในแปลงสาธิต (ผจก.แผนกการตลาด)",
         },
       });
     }
 
-    if (
-      didApproveSPBudget ||
-      didApproveMKTBudget ||
-      didApproveDirectorBudget
-    ) {
+    if (didApproveSPBudget || didApproveMKTBudget || didApproveDirectorBudget) {
       const budgetNotes: string[] = [];
       if (didApproveSPBudget) {
         budgetNotes.push(
@@ -1174,11 +1259,16 @@ export async function approveActivityPlanUseCase(
     }
 
     // 4. Calculate Final State for Plan
-    const newProductWithdrawalApproved =
-      didApproveWithdrawal ? true : plan.productWithdrawalApproved;
-    const newSPApproved = didApproveSPBudget ? true : plan.salesPromotionApproved;
+    const newProductWithdrawalApproved = didApproveWithdrawal
+      ? true
+      : plan.productWithdrawalApproved;
+    const newSPApproved = didApproveSPBudget
+      ? true
+      : plan.salesPromotionApproved;
     const newMKTApproved = didApproveMKTBudget ? true : plan.marketingApproved;
-    const newDirectorApproved = didApproveDirectorBudget ? true : plan.salesManagerApproved;
+    const newDirectorApproved = didApproveDirectorBudget
+      ? true
+      : plan.salesManagerApproved;
 
     const isWithdrawalDone =
       !hasWithdrawal || newProductWithdrawalApproved === true;
@@ -1190,13 +1280,9 @@ export async function approveActivityPlanUseCase(
     const isAllBudgetFinished = isStage1BudgetDone && isDirectorBudgetDone;
 
     const spApprovedAmount =
-      isSPDone && hasSP
-        ? plan.salesPromotionBudgetRequested
-        : null;
+      isSPDone && hasSP ? plan.salesPromotionBudgetRequested : null;
     const mktApprovedAmount =
-      isMKTDone && hasMKT
-        ? plan.marketingBudgetRequested
-        : null;
+      isMKTDone && hasMKT ? plan.marketingBudgetRequested : null;
     const totalApprovedAmount = isAllBudgetFinished
       ? Number(spApprovedAmount || 0) + Number(mktApprovedAmount || 0)
       : null;
@@ -1255,7 +1341,8 @@ export async function approveActivityPlanUseCase(
         totalBudgetApproved: totalApprovedAmount
           ? new Prisma.Decimal(totalApprovedAmount)
           : undefined,
-        approvedAt: nextStatus === ActivityStatus.APPROVED ? new Date() : undefined,
+        approvedAt:
+          nextStatus === ActivityStatus.APPROVED ? new Date() : undefined,
       },
       include: { employee: true },
     });
@@ -1367,7 +1454,10 @@ export async function rejectActivityPlanUseCase(
       if (!isAdmin) {
         hasAuthority =
           plan.currentApproverEmployeeId === approverEmployee?.id ||
-          Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
+          Boolean(
+            approverEmployee &&
+            approverEmployee.id === plan.employee?.managerId,
+          );
       }
       step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }
@@ -1485,8 +1575,10 @@ export async function requestCorrectionPlanUseCase(
       }
       step = ActivityApprovalStep.HELPER_APPROVAL;
 
-      const canRejectSales = isAdmin || permissions.has("activity.approve.sales_helper");
-      const canRejectMkt = isAdmin || permissions.has("activity.approve.mkt_helper");
+      const canRejectSales =
+        isAdmin || permissions.has("activity.approve.sales_helper");
+      const canRejectMkt =
+        isAdmin || permissions.has("activity.approve.mkt_helper");
 
       for (const helper of plan.helpers) {
         if (helper.status === ActivityHelperStatus.PENDING) {
@@ -1496,7 +1588,12 @@ export async function requestCorrectionPlanUseCase(
           });
           const deptCode = emp?.department?.code || "";
           const pos = (emp?.positionTitle || "").toLowerCase();
-          const isSales = deptCode === "SA" || deptCode === "SS" || pos.includes("เซลส์") || pos.includes("ส่งเสริม") || pos.includes("ขาย");
+          const isSales =
+            deptCode === "SA" ||
+            deptCode === "SS" ||
+            pos.includes("เซลส์") ||
+            pos.includes("ส่งเสริม") ||
+            pos.includes("ขาย");
           const isMkt = deptCode === "MKT" || pos.includes("การตลาด");
 
           let match = false;
@@ -1518,7 +1615,10 @@ export async function requestCorrectionPlanUseCase(
       if (!isAdmin) {
         hasAuthority =
           plan.currentApproverEmployeeId === approverEmployee?.id ||
-          Boolean(approverEmployee && approverEmployee.id === plan.employee?.managerId);
+          Boolean(
+            approverEmployee &&
+            approverEmployee.id === plan.employee?.managerId,
+          );
       }
       step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
     }
@@ -1608,7 +1708,8 @@ export async function cancelActivityPlanUseCase(
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
     const isAdmin = await checkIsAdministrator(userId, tx);
-    const isCreator = plan.createdById === userId || plan.employee?.userId === userId;
+    const isCreator =
+      plan.createdById === userId || plan.employee?.userId === userId;
 
     if (!isCreator && !isAdmin) {
       return {
@@ -1691,10 +1792,14 @@ export async function requestCancelActivityPlanUseCase(
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
     const isAdmin = await checkIsAdministrator(userId, tx);
-    const isCreator = plan.createdById === userId || plan.employee?.userId === userId;
+    const isCreator =
+      plan.createdById === userId || plan.employee?.userId === userId;
 
     if (!isCreator && !isAdmin) {
-      return { success: false, error: "คุณไม่ใช่เจ้าของแผนงานนี้ จึงไม่มีสิทธิ์ขอยกเลิก" };
+      return {
+        success: false,
+        error: "คุณไม่ใช่เจ้าของแผนงานนี้ จึงไม่มีสิทธิ์ขอยกเลิก",
+      };
     }
 
     if (
@@ -1705,7 +1810,10 @@ export async function requestCancelActivityPlanUseCase(
     }
 
     if (plan.status === ActivityStatus.PENDING_CANCELLATION) {
-      return { success: false, error: "แผนงานนี้อยู่ระหว่างรออนุมัติการยกเลิกอยู่แล้ว" };
+      return {
+        success: false,
+        error: "แผนงานนี้อยู่ระหว่างรออนุมัติการยกเลิกอยู่แล้ว",
+      };
     }
 
     // Draft / Waiting for correction can be cancelled directly without approval
@@ -1738,6 +1846,19 @@ export async function requestCancelActivityPlanUseCase(
       return { success: true };
     }
 
+    // Determine managerial line approver for cancellation
+    let targetLineApproverId: string | null = plan.employee?.managerId || null;
+    if (targetLineApproverId) {
+      const directMgr = await tx.employee.findUnique({
+        where: { id: targetLineApproverId },
+        include: { position: true },
+      });
+      // If direct manager is operational, escalate to their supervisor
+      if (directMgr && isOperationalEmployee(directMgr)) {
+        targetLineApproverId = directMgr.managerId || null;
+      }
+    }
+
     // Set to PENDING_CANCELLATION
     await tx.activityPlan.update({
       where: { id: planId },
@@ -1746,6 +1867,7 @@ export async function requestCancelActivityPlanUseCase(
         cancellationReason: reason,
         cancellationRequestedAt: new Date(),
         cancellationRequestedById: userId,
+        currentApproverEmployeeId: targetLineApproverId,
         lineCancellationApproved: false,
         mktCancellationApproved: false,
       },
@@ -1791,7 +1913,10 @@ export async function approveCancelActivityPlanUseCase(
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
     if (plan.status !== ActivityStatus.PENDING_CANCELLATION) {
-      return { success: false, error: "แผนกิจกรรมไม่อยู่ในสถานะรออนุมัติการยกเลิก" };
+      return {
+        success: false,
+        error: "แผนกิจกรรมไม่อยู่ในสถานะรออนุมัติการยกเลิก",
+      };
     }
 
     const isAdmin = await checkIsAdministrator(userId, tx);
@@ -1804,14 +1929,41 @@ export async function approveCancelActivityPlanUseCase(
       return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
     }
 
+    // 1. Creator / Owner cannot approve their own cancellation (unless Admin)
+    const isOwner =
+      plan.employee?.userId === userId ||
+      plan.employeeId === approverEmployee?.id ||
+      plan.createdById === userId ||
+      plan.cancellationRequestedById === userId;
+
+    if (isOwner && !isAdmin) {
+      return {
+        success: false,
+        error: "คุณไม่สามารถอนุมัติการขอยกเลิกแผนงานของตนเองได้",
+      };
+    }
+
+    // 2. Operational staff (Salesperson, Promoter, Marketing Staff) cannot approve cancellations
+    const isOperational = isOperationalEmployee(approverEmployee);
+
+    if (isOperational && !isAdmin) {
+      return {
+        success: false,
+        error:
+          "พนักงานระดับปฏิบัติการไม่มีสิทธิ์อนุมัติการยกเลิกแผนงาน (ต้องเป็นระดับผู้จัดการขึ้นไป)",
+      };
+    }
+
     const hasWithdrawal = checkPlanHasProductWithdrawal(plan);
     const isSalesAdmin = isSalesAdminManager(approverEmployee);
     const isMkt = isMarketingManager(approverEmployee);
     const isLineApprover =
       isAdmin ||
       isSalesAdmin ||
-      plan.employee?.managerId === approverEmployee?.id ||
-      plan.currentApproverEmployeeId === approverEmployee?.id;
+      isSalesDirector(approverEmployee) ||
+      (!isOperational &&
+        (plan.employee?.managerId === approverEmployee?.id ||
+          plan.currentApproverEmployeeId === approverEmployee?.id));
 
     let didApproveLineCancel = false;
     let didApproveMktCancel = false;
@@ -1820,31 +1972,38 @@ export async function approveCancelActivityPlanUseCase(
       didApproveLineCancel = true;
     }
 
-    if (hasWithdrawal && (isAdmin || isMkt) && plan.mktCancellationApproved !== true) {
+    if (
+      hasWithdrawal &&
+      (isAdmin || isMkt) &&
+      plan.mktCancellationApproved !== true
+    ) {
       didApproveMktCancel = true;
     }
 
     if (!didApproveLineCancel && !didApproveMktCancel) {
       return {
         success: false,
-        error: "คุณไม่มีสิทธิ์อนุมัติการยกเลิกในส่วนนี้ หรือรายการได้รับการอนุมัติไปแล้ว",
+        error:
+          "คุณไม่มีสิทธิ์อนุมัติการยกเลิกในส่วนนี้ หรือรายการได้รับการอนุมัติไปแล้ว",
       };
     }
 
-    const newLineApproved = didApproveLineCancel ? true : Boolean(plan.lineCancellationApproved);
+    const newLineApproved = didApproveLineCancel
+      ? true
+      : Boolean(plan.lineCancellationApproved);
     const newMktApproved = didApproveMktCancel
       ? true
       : hasWithdrawal
-      ? Boolean(plan.mktCancellationApproved)
-      : true;
+        ? Boolean(plan.mktCancellationApproved)
+        : true;
 
     const isFullyApproved = newLineApproved && newMktApproved;
 
     const logRoleTitle = isMkt
       ? "ผู้จัดการแผนกการตลาด (ตรวจสอบคืนสต็อกสินค้า)"
       : isLineApprover
-      ? "ผู้อนุมัติตามสายงาน"
-      : "Administrator";
+        ? "ผู้อนุมัติตามสายงาน"
+        : "Administrator";
 
     await tx.activityApprovalLog.create({
       data: {
@@ -1929,7 +2088,10 @@ export async function rejectCancelActivityPlanUseCase(
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
     if (plan.status !== ActivityStatus.PENDING_CANCELLATION) {
-      return { success: false, error: "แผนกิจกรรมไม่อยู่ในสถานะรออนุมัติการยกเลิก" };
+      return {
+        success: false,
+        error: "แผนกิจกรรมไม่อยู่ในสถานะรออนุมัติการยกเลิก",
+      };
     }
 
     const isAdmin = await checkIsAdministrator(userId, tx);
@@ -1942,14 +2104,40 @@ export async function rejectCancelActivityPlanUseCase(
       return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
     }
 
+    // 1. Creator / Owner cannot reject their own cancellation (unless Admin)
+    const isOwner =
+      plan.employee?.userId === userId ||
+      plan.employeeId === approverEmployee?.id ||
+      plan.createdById === userId ||
+      plan.cancellationRequestedById === userId;
+
+    if (isOwner && !isAdmin) {
+      return {
+        success: false,
+        error: "คุณไม่สามารถดำเนินการกับคำขอยกเลิกแผนงานของตนเองได้",
+      };
+    }
+
+    // 2. Operational staff cannot reject cancellations
+    const isOperational = isOperationalEmployee(approverEmployee);
+
+    if (isOperational && !isAdmin) {
+      return {
+        success: false,
+        error: "พนักงานระดับปฏิบัติการไม่มีสิทธิ์ดำเนินการกับคำขอยกเลิกแผนงาน",
+      };
+    }
+
     const hasWithdrawal = checkPlanHasProductWithdrawal(plan);
     const isSalesAdmin = isSalesAdminManager(approverEmployee);
     const isMkt = isMarketingManager(approverEmployee);
     const isLineApprover =
       isAdmin ||
       isSalesAdmin ||
-      plan.employee?.managerId === approverEmployee?.id ||
-      plan.currentApproverEmployeeId === approverEmployee?.id;
+      isSalesDirector(approverEmployee) ||
+      (!isOperational &&
+        (plan.employee?.managerId === approverEmployee?.id ||
+          plan.currentApproverEmployeeId === approverEmployee?.id));
 
     const canReject = isAdmin || isLineApprover || (hasWithdrawal && isMkt);
 
@@ -1976,7 +2164,9 @@ export async function rejectCancelActivityPlanUseCase(
         userId,
         action: ActivityApprovalAction.REJECT_CANCEL,
         step: ActivityApprovalStep.CANCELLATION_APPROVAL,
-        comment: reason || "ปฏิเสธคำขอยกเลิกแผนกิจกรรม (กลับสู่สถานะอนุมัติใช้งานตามเดิม)",
+        comment:
+          reason ||
+          "ปฏิเสธคำขอยกเลิกแผนกิจกรรม (กลับสู่สถานะอนุมัติใช้งานตามเดิม)",
       },
     });
 
@@ -2004,10 +2194,8 @@ async function initiateBudgetApproval(
   userId: string,
   logComment: string,
 ) {
-  const hasSalesPromotion =
-    Number(plan.salesPromotionBudgetRequested || 0) > 0;
-  const hasMarketing =
-    Number(plan.marketingBudgetRequested || 0) > 0;
+  const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
+  const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
 
   if (hasSalesPromotion || hasMarketing) {
     const updatedPlan = await tx.activityPlan.update({
@@ -2017,7 +2205,7 @@ async function initiateBudgetApproval(
         currentApproverEmployeeId: null,
         salesPromotionApproved: hasSalesPromotion ? false : null,
         marketingApproved: hasMarketing ? false : null,
-        salesManagerApproved: (hasSalesPromotion || hasMarketing) ? false : null,
+        salesManagerApproved: hasSalesPromotion || hasMarketing ? false : null,
       },
       include: { employee: true },
     });
@@ -2228,8 +2416,7 @@ export async function reviewSingleActivityHelperUseCase(
       hasAuthority = true;
     } else if (
       isMktManager &&
-      (deptCode === "MKT" ||
-        helper.employee.positionTitle?.includes("การตลาด"))
+      (deptCode === "MKT" || helper.employee.positionTitle?.includes("การตลาด"))
     ) {
       hasAuthority = true;
     }

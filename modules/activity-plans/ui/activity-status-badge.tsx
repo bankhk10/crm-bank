@@ -109,7 +109,21 @@ export function ActivityStatusBadge({
   resultStatus?: string;
   className?: string;
 }) {
-  const effectiveKey = (resultStatus || status) as string | undefined;
+  // Priority: If the plan is in pending cancellation, cancelled, rejected, draft, or any workflow state,
+  // the lifecycle status takes precedence over post-activity resultStatus.
+  // resultStatus is only shown when the plan is APPROVED or REVIEWED, or if status is not provided.
+  const isLifecycleWorkflowState =
+    status === "PENDING_CANCELLATION" ||
+    status === "CANCELLED" ||
+    status === "REJECTED" ||
+    status === "DRAFT" ||
+    status === "WAITING_FOR_CORRECTION" ||
+    status === "RETURNED" ||
+    (typeof status === "string" && status.startsWith("PENDING_"));
+
+  const effectiveKey = (
+    isLifecycleWorkflowState ? status || resultStatus : resultStatus || status
+  ) as string | undefined;
   const info = effectiveKey ? STATUS_STYLES[effectiveKey] : null;
 
   if (!info) {
@@ -279,6 +293,12 @@ export function resolveCurrentOperator(
     } | null;
     employee?: {
       name?: string | null;
+      manager?: {
+        id?: string;
+        name?: string | null;
+        positionTitle?: string | null;
+        position?: { name?: string | null } | null;
+      } | null;
     } | null;
     createdBy?: {
       name?: string | null;
@@ -367,20 +387,69 @@ export function resolveCurrentOperator(
 
   // 3.6 Cancellation Approval (Dual Approvers: Line Approver + Marketing Manager)
   if (plan.status === "PENDING_CANCELLATION") {
+    const hasWithdrawal =
+      Boolean((plan as any).hasProductWithdrawal) ||
+      ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
+      Boolean((plan as any).type7b?.hasProducts) ||
+      Boolean((plan as any).type13?.hasProducts) ||
+      Boolean((plan as any).type14?.hasProducts);
+
     const isLineApproved = (plan as any).lineCancellationApproved === true;
     const isMktApproved = (plan as any).mktCancellationApproved === true;
-    let desc = "รออนุมัติการยกเลิก (หัวหน้าสายงาน + ผจก.การตลาด)";
+
+    // Resolve specific Position / Role of the Line Approver
+    const lineApprover =
+      plan.currentApprover ||
+      (plan.employee as any)?.manager ||
+      null;
+
+    const rawLinePos =
+      lineApprover?.positionTitle ||
+      lineApprover?.position?.name;
+
+    const formattedLineRole = rawLinePos
+      ? formatApproverRole(rawLinePos)
+      : "หัวหน้างานสายตรง";
+    const lineTitleTh = rawLinePos || formattedLineRole || "หัวหน้างานสายตรง";
+    const empRawName = lineApprover?.name || null;
+    const empCleanName = formatEmployeeName(empRawName);
+
+    // Case 1: If plan has NO product withdrawal, only Line Approver is needed
+    if (!hasWithdrawal) {
+      return {
+        roleName: formattedLineRole,
+        roleTitleTh: lineTitleTh,
+        displayRole: formattedLineRole,
+        operatorName: precomputedOperatorName || empCleanName || lineTitleTh,
+        employeeName: empCleanName || empRawName,
+        stepDescription: `รอ${lineTitleTh} อนุมัติการยกเลิก`,
+      };
+    }
+
+    // Case 2: Plan has product withdrawal -> Dual approval
+    let desc = `รออนุมัติการยกเลิก (${lineTitleTh} + ผจก.การตลาด)`;
+    let roleTitle = `${lineTitleTh} / ผู้จัดการแผนกการตลาด`;
+    let display = `${formattedLineRole} / Marketing Manager`;
+    let currentEmpName: string | null = null;
+
     if (isLineApproved && !isMktApproved) {
       desc = "รอ ผจก.การตลาด อนุมัติตรวจรับคืนสินค้า";
+      roleTitle = "ผู้จัดการแผนกการตลาด";
+      display = "Marketing Manager";
+      currentEmpName = null;
     } else if (!isLineApproved && isMktApproved) {
-      desc = "รอหัวหน้าสายงานอนุมัติการยกเลิก";
+      desc = `รอ${lineTitleTh} อนุมัติการยกเลิก`;
+      roleTitle = lineTitleTh;
+      display = formattedLineRole;
+      currentEmpName = empCleanName || empRawName;
     }
+
     return {
-      roleName: "Line Approver / Marketing Manager",
-      roleTitleTh: "หัวหน้าสายงาน / ผู้จัดการแผนกการตลาด",
-      displayRole: "ผู้อนุมัติการยกเลิก",
-      operatorName: precomputedOperatorName || "หัวหน้าสายงาน / ผจก.การตลาด",
-      employeeName: null,
+      roleName: display,
+      roleTitleTh: roleTitle,
+      displayRole: display,
+      operatorName: precomputedOperatorName || currentEmpName || roleTitle,
+      employeeName: currentEmpName,
       stepDescription: desc,
     };
   }

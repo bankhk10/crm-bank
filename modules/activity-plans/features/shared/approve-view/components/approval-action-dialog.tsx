@@ -362,7 +362,11 @@ export function ApprovalActionDialog({
               )}
               <div className="text-[11px] text-amber-700 space-y-0.5">
                 <div>• ผู้อนุมัติตามสายงาน: {plan.lineCancellationApproved ? "อนุมัติแล้ว ✓" : "รออนุมัติ"}</div>
-                <div>• ผู้จัดการตลาด (ตรวจสอบคืนสต็อกสินค้า): {plan.mktCancellationApproved ? "อนุมัติแล้ว ✓" : "รออนุมัติ"}</div>
+                {hasWithdrawal ? (
+                  <div>• ผู้จัดการตลาด (ตรวจสอบคืนสต็อกสินค้า): {plan.mktCancellationApproved ? "อนุมัติแล้ว ✓" : "รออนุมัติ"}</div>
+                ) : (
+                  <div className="text-slate-500">• ตรวจสอบคืนสต็อกสินค้า: ไม่ต้องตรวจสอบ (ไม่มีการเบิกสินค้าในแปลงสาธิต)</div>
+                )}
               </div>
             </div>
           )}
