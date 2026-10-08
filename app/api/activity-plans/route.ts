@@ -184,10 +184,21 @@ export async function GET(request: Request) {
         tour: true,
         result: true,
         employee: {
-          select: { id: true, name: true, positionTitle: true, departmentName: true },
+          select: {
+            id: true,
+            name: true,
+            positionTitle: true,
+            departmentName: true,
+            position: { select: { id: true, name: true } },
+          },
         },
         currentApprover: {
-          select: { id: true, name: true, positionTitle: true },
+          select: {
+            id: true,
+            name: true,
+            positionTitle: true,
+            position: { select: { id: true, name: true } },
+          },
         },
         helpers: {
           where: { deletedAt: null },

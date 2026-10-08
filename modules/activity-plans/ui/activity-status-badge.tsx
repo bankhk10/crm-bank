@@ -337,7 +337,9 @@ export function resolveCurrentOperator(
       plan.currentApprover?.positionTitle ||
       plan.currentApprover?.position?.name;
 
-    const formattedRole = formatApproverRole(rawPos);
+    const formattedRole = rawPos
+      ? formatApproverRole(rawPos)
+      : "หัวหน้างานสายตรง";
     const empRawName = plan.currentApprover?.name || null;
     const empCleanName = formatEmployeeName(empRawName);
 
