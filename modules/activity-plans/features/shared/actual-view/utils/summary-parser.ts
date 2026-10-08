@@ -171,6 +171,30 @@ export interface ParsedSummaryValues {
   t7HasExternalChemicals?: boolean;
   t7ExternalProducts?: any[];
 
+  // Type 7A Specific
+  t7FarmerProvince?: string;
+  t7FarmerDistrict?: string;
+  t7FarmerCustomerId?: string | null;
+  t7FarmerName?: string;
+  t7FarmerPhone?: string;
+  t7IsUnregisteredFarmer?: boolean;
+  t7DealerName?: string;
+  t7DealerCode?: string;
+  t7Latitude?: string | number | null;
+  t7Longitude?: string | number | null;
+  t7District?: string;
+  t7CropCategory?: string;
+  t7CropName?: string;
+  t7CustomCropName?: string;
+  t7AreaRai?: string | number;
+  t7TreeCount?: string | number;
+  t7MainCropInfo?: string;
+  t7Irrigations?: string[];
+  t7InitialSprayDate?: string;
+  t7DemoProducts?: any[];
+  t7InitialPhotos?: ImageFile[];
+  type7aDemoPlot?: any;
+
   // Type 8
   t8ActualAttendees?: string;
   t8FeedbackQnA?: string;
@@ -1115,6 +1139,71 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // TYPE_7A Specific Summary Text Parsing
+    const farmerMatch = summaryText.match(/เกษตรกรเจ้าของแปลง:\s*(.+)/);
+    if (farmerMatch && farmerMatch[1]) {
+      let rawFarmer = farmerMatch[1].split("\n")[0].trim();
+      if (rawFarmer.includes("(ไม่มีในระบบ)")) {
+        result.t7IsUnregisteredFarmer = true;
+        rawFarmer = rawFarmer.replace("(ไม่มีในระบบ)", "").trim();
+      }
+      const provMatch = rawFarmer.match(/จ\.([^\s]+)/);
+      if (provMatch && provMatch[1]) {
+        result.t7FarmerProvince = provMatch[1].trim();
+        rawFarmer = rawFarmer.replace(provMatch[0], "").trim();
+      }
+      result.t7FarmerName = rawFarmer;
+    }
+
+    const farmerPhoneMatch = summaryText.match(/เบอร์โทรศัพท์เกษตรกร:\s*(.+)/);
+    if (farmerPhoneMatch && farmerPhoneMatch[1]) {
+      result.t7FarmerPhone = farmerPhoneMatch[1].split("\n")[0].trim();
+    }
+
+    const demoCoordsMatch = summaryText.match(/พิกัดแปลงสาธิต:\s*([-\d.]+),\s*([-\d.]+)/);
+    if (demoCoordsMatch && demoCoordsMatch[1] && demoCoordsMatch[2]) {
+      result.t7Latitude = Number(demoCoordsMatch[1]);
+      result.t7Longitude = Number(demoCoordsMatch[2]);
+    }
+
+    const testCropMatch = summaryText.match(/พืชที่ทดสอบ:\s*(.+)/);
+    if (testCropMatch && testCropMatch[1]) {
+      const cropLine = testCropMatch[1].split("\n")[0].trim();
+      const catMatch = cropLine.match(/\((.+?)\)$/);
+      if (catMatch && catMatch[1]) {
+        result.t7CropCategory = catMatch[1].trim();
+        result.t7CropName = cropLine.replace(catMatch[0], "").trim();
+      } else {
+        result.t7CropName = cropLine;
+      }
+    }
+
+    const areaRaiMatch = summaryText.match(/ขนาดพื้นที่แปลง:\s*([0-9.]+)\s*ไร่/);
+    if (areaRaiMatch && areaRaiMatch[1]) {
+      result.t7AreaRai = areaRaiMatch[1].trim();
+    }
+
+    const treeCountMatch = summaryText.match(/จำนวนต้น:\s*([0-9]+)\s*ต้น/);
+    if (treeCountMatch && treeCountMatch[1]) {
+      result.t7TreeCount = treeCountMatch[1].trim();
+    }
+
+    const mainCropInfoMatch = summaryText.match(/ข้อมูลพืชประธาน:\s*(.+)/);
+    if (mainCropInfoMatch && mainCropInfoMatch[1]) {
+      result.t7MainCropInfo = mainCropInfoMatch[1].split("\n")[0].trim();
+    }
+
+    const initialSprayMatch = summaryText.match(/วันที่ฉีดพ่น:\s*(.+)/);
+    if (initialSprayMatch && initialSprayMatch[1]) {
+      result.t7InitialSprayDate = initialSprayMatch[1].split("\n")[0].trim();
+    }
+
+    const irrigationsMatch = summaryText.match(/ระบบน้ำ:\s*(.+)/);
+    if (irrigationsMatch && irrigationsMatch[1]) {
+      const irrStr = irrigationsMatch[1].split("\n")[0].trim();
+      result.t7Irrigations = irrStr.split(",").map((s: string) => s.trim()).filter(Boolean);
+    }
+
     // Type 8
     const t8AttendeesMatch = summaryText.match(
       /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
@@ -1575,6 +1664,59 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       reorderOpportunity: (sr.reorderOpportunity as any) || "",
       remarks: sr.remarks || "",
     }));
+  }
+
+  // Structured Type 7A Demo Plot Data from DB or Payload
+  if (resData.type7aDemoPlot) {
+    result.type7aDemoPlot = resData.type7aDemoPlot;
+    const dp = resData.type7aDemoPlot;
+    if (dp.ownerProvince) result.t7FarmerProvince = dp.ownerProvince;
+    if (dp.ownerDistrict) result.t7FarmerDistrict = dp.ownerDistrict;
+    if (dp.farmerCustomerId) result.t7FarmerCustomerId = dp.farmerCustomerId;
+    if (dp.ownerName) result.t7FarmerName = dp.ownerName;
+    if (dp.ownerPhone) result.t7FarmerPhone = dp.ownerPhone;
+    if (dp.isUnregisteredFarmer != null)
+      result.t7IsUnregisteredFarmer = Boolean(dp.isUnregisteredFarmer);
+    if (dp.dealerName) result.t7DealerName = dp.dealerName;
+    if (dp.dealerCode) result.t7DealerCode = dp.dealerCode;
+    if (dp.latitude != null) result.t7Latitude = Number(dp.latitude);
+    if (dp.longitude != null) result.t7Longitude = Number(dp.longitude);
+    if (dp.district) result.t7District = dp.district;
+    if (dp.cropCategory) result.t7CropCategory = dp.cropCategory;
+    if (dp.cropName) result.t7CropName = dp.cropName;
+    if (dp.customCropName) result.t7CustomCropName = dp.customCropName;
+    if (dp.areaRai != null) result.t7AreaRai = String(dp.areaRai);
+    if (dp.treeCount != null) result.t7TreeCount = String(dp.treeCount);
+    if (dp.objective) result.t7PlotObjective = dp.objective;
+    if (dp.experimentDetail) result.t7ExperimentDetail = dp.experimentDetail;
+    if (dp.mainCropInfo) result.t7MainCropInfo = dp.mainCropInfo;
+    if (dp.irrigations && dp.irrigations.length > 0)
+      result.t7Irrigations = dp.irrigations;
+    if (dp.plantingDate) {
+      result.t7PlantingDate =
+        typeof dp.plantingDate === "string"
+          ? dp.plantingDate.split("T")[0]
+          : new Date(dp.plantingDate).toISOString().split("T")[0];
+    }
+    if (dp.initialSprayDate) {
+      result.t7InitialSprayDate =
+        typeof dp.initialSprayDate === "string"
+          ? dp.initialSprayDate.split("T")[0]
+          : new Date(dp.initialSprayDate).toISOString().split("T")[0];
+    }
+    if (dp.nextSprayDate) {
+      result.t7NextSprayDate =
+        typeof dp.nextSprayDate === "string"
+          ? dp.nextSprayDate.split("T")[0]
+          : new Date(dp.nextSprayDate).toISOString().split("T")[0];
+    }
+    if (dp.sprayMethod) result.t7SprayMethod = dp.sprayMethod;
+    if (dp.sprayEquipment) result.t7SprayEquipment = dp.sprayEquipment;
+    if (dp.otherEquipment) result.t7OtherEquipment = dp.otherEquipment;
+    if (dp.hasExternalChemicals != null)
+      result.t7HasExternalChemicals = Boolean(dp.hasExternalChemicals);
+    if (dp.externalProducts) result.t7ExternalProducts = dp.externalProducts;
+    if (dp.demoProducts) result.t7DemoProducts = dp.demoProducts;
   }
 
   return result;

@@ -422,9 +422,13 @@ export async function findActivityPlanById(id: string) {
               externalProducts: true,
               irrigations: true,
               attachments: true,
+              visits: {
+                orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
+              },
             },
           },
         },
+        orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
       },
       employee: {
         include: {

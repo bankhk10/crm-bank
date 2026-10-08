@@ -112,11 +112,15 @@ export function useType7aActual() {
         setT7FarmerProvince(dp.ownerProvince);
       } else if (dp.farmerCustomer?.province) {
         setT7FarmerProvince(dp.farmerCustomer.province);
+      } else if (dp.province) {
+        setT7FarmerProvince(dp.province);
       }
       if (dp.farmerCustomer?.district) {
         setT7FarmerDistrict(dp.farmerCustomer.district);
       } else if (dp.ownerDistrict) {
         setT7FarmerDistrict(dp.ownerDistrict);
+      } else if (dp.district) {
+        setT7FarmerDistrict(dp.district);
       }
 
       const resolvedDistrict =
@@ -158,8 +162,8 @@ export function useType7aActual() {
         (t7aTarget as any)?.dealerCode ||
         "";
       if (resolvedDealerCode) setT7DealerCode(resolvedDealerCode);
-      if (dp.latitude != null) setT7Latitude(String(dp.latitude));
-      if (dp.longitude != null) setT7Longitude(String(dp.longitude));
+      if (dp.latitude != null && String(dp.latitude).trim() !== "") setT7Latitude(String(dp.latitude));
+      if (dp.longitude != null && String(dp.longitude).trim() !== "") setT7Longitude(String(dp.longitude));
       const resolvedPlotName = dp.name || dp.plotName;
       if (resolvedPlotName) setT7PlotName(resolvedPlotName);
 
@@ -181,28 +185,34 @@ export function useType7aActual() {
         "";
       if (cropName) setT7CropName(cropName);
       if (dp.customCropName) setT7CustomCropName(dp.customCropName);
-      if (dp.areaRai != null) setT7AreaRai(String(dp.areaRai));
-      if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));
+      if (dp.areaRai != null && String(dp.areaRai).trim() !== "") setT7AreaRai(String(dp.areaRai));
+      if (dp.treeCount != null && String(dp.treeCount).trim() !== "") setT7TreeCount(String(dp.treeCount));
       if (dp.objective) setT7PlotObjective(dp.objective);
       if (dp.experimentDetail) setT7ExperimentDetail(dp.experimentDetail);
       const resolvedMainCropInfo = dp.mainCropInfo || dp.plantingAreaCondition;
       if (resolvedMainCropInfo) setT7MainCropInfo(resolvedMainCropInfo);
       if (dp.irrigations && dp.irrigations.length > 0) {
-        setT7Irrigations(dp.irrigations.map((ir: any) => ir.method || ir.methodName));
+        setT7Irrigations(dp.irrigations.map((ir: any) => (typeof ir === "string" ? ir : ir.method || ir.methodName)).filter(Boolean));
       }
       if (dp.plantingDate) {
         setT7PlantingDate(
-          new Date(dp.plantingDate).toISOString().split("T")[0],
+          typeof dp.plantingDate === "string"
+            ? dp.plantingDate.split("T")[0]
+            : new Date(dp.plantingDate).toISOString().split("T")[0],
         );
       }
       if (dp.initialSprayDate) {
         setT7InitialSprayDate(
-          new Date(dp.initialSprayDate).toISOString().split("T")[0],
+          typeof dp.initialSprayDate === "string"
+            ? dp.initialSprayDate.split("T")[0]
+            : new Date(dp.initialSprayDate).toISOString().split("T")[0],
         );
       }
       if (dp.nextSprayDate) {
         setT7NextSprayDate(
-          new Date(dp.nextSprayDate).toISOString().split("T")[0],
+          typeof dp.nextSprayDate === "string"
+            ? dp.nextSprayDate.split("T")[0]
+            : new Date(dp.nextSprayDate).toISOString().split("T")[0],
         );
       }
       if (dp.sprayMethod) setT7SprayMethod(dp.sprayMethod);
@@ -252,14 +262,14 @@ export function useType7aActual() {
             }
             const plannedQty =
               matchedPlan?.targetQuantity != null
-                ? matchedPlan.targetQuantity
+                ? Number(matchedPlan.targetQuantity)
                 : matchedPlan?.quantity != null
-                  ? matchedPlan.quantity
+                  ? Number(matchedPlan.quantity)
                   : null;
-            const usedQty = dpr.quantity ?? (plannedQty != null ? plannedQty : 1);
+            const usedQty = dpr.quantity != null ? Number(dpr.quantity) : (plannedQty != null ? plannedQty : 1);
             const remainingQty =
               dpr.remainingQuantity !== null && dpr.remainingQuantity !== undefined
-                ? dpr.remainingQuantity
+                ? Number(dpr.remainingQuantity)
                 : plannedQty != null && usedQty != null
                   ? Math.max(0, Number(plannedQty) - Number(usedQty))
                   : null;
@@ -281,7 +291,7 @@ export function useType7aActual() {
         if (planT7aProducts.length > 0) {
           setT7DemoProducts(
             planT7aProducts.map((pr: any, idx: number) => {
-              const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
+              const plannedQty = Number(pr.targetQuantity ?? pr.quantity ?? 1);
               const usedQty = plannedQty;
               const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
               return {
@@ -356,15 +366,14 @@ export function useType7aActual() {
         if (storeNames) setT7DealerName(storeNames);
       }
       if (plan?.startDate) {
-        const sDate = new Date(plan.startDate).toISOString().split("T")[0];
+        const sDate = typeof plan.startDate === "string" ? plan.startDate.split("T")[0] : new Date(plan.startDate).toISOString().split("T")[0];
         setT7InitialSprayDate(sDate);
       }
-
 
       if (planT7aProducts.length > 0) {
         setT7DemoProducts(
           planT7aProducts.map((pr: any, idx: number) => {
-            const plannedQty = pr.targetQuantity ?? pr.quantity ?? 1;
+            const plannedQty = Number(pr.targetQuantity ?? pr.quantity ?? 1);
             const usedQty = plannedQty;
             const remainingQty = Math.max(0, Number(plannedQty) - Number(usedQty));
             return {
@@ -384,25 +393,61 @@ export function useType7aActual() {
     }
 
     if (parsed) {
-      if (parsed.t7PlotName) setT7PlotName(parsed.t7PlotName);
-      if (parsed.t7PlotObjective) setT7PlotObjective(parsed.t7PlotObjective);
-      if (parsed.t7CustomPlotDetail) setT7CustomPlotDetail(parsed.t7CustomPlotDetail);
-      if (parsed.t7DemoPlotId) setT7DemoPlotId(parsed.t7DemoPlotId);
-      if (parsed.t7UsageMethod) setT7UsageMethod(parsed.t7UsageMethod);
-      if (parsed.t7PlantingDate) setT7PlantingDate(parsed.t7PlantingDate);
-      if (parsed.t7NextSprayDate) setT7NextSprayDate(parsed.t7NextSprayDate);
-      if (parsed.t7CropAgeValue) setT7CropAgeValue(parsed.t7CropAgeValue);
-      if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
-      if (parsed.t7GrowthStage) setT7GrowthStage(parsed.t7GrowthStage);
-      if (parsed.t7CropCondition) setT7CropCondition(parsed.t7CropCondition);
-      if (parsed.t7ProductResponse) setT7ProductResponse(parsed.t7ProductResponse);
-      if (parsed.t7SprayMethod) setT7SprayMethod(parsed.t7SprayMethod);
-      if (parsed.t7SprayEquipment) setT7SprayEquipment(parsed.t7SprayEquipment);
-      if (parsed.t7OtherEquipment) setT7OtherEquipment(parsed.t7OtherEquipment);
+      if (parsed.t7PlotName && parsed.t7PlotName.trim()) setT7PlotName(parsed.t7PlotName);
+      if (parsed.t7PlotObjective && parsed.t7PlotObjective.trim()) setT7PlotObjective(parsed.t7PlotObjective);
+      if (parsed.t7CustomPlotDetail && parsed.t7CustomPlotDetail.trim()) setT7CustomPlotDetail(parsed.t7CustomPlotDetail);
+      if (parsed.t7DemoPlotId && parsed.t7DemoPlotId.trim()) setT7DemoPlotId(parsed.t7DemoPlotId);
+      if (parsed.t7UsageMethod && parsed.t7UsageMethod.trim()) setT7UsageMethod(parsed.t7UsageMethod);
+      if (parsed.t7PlantingDate && parsed.t7PlantingDate.trim()) setT7PlantingDate(parsed.t7PlantingDate);
+      if (parsed.t7NextSprayDate && parsed.t7NextSprayDate.trim()) setT7NextSprayDate(parsed.t7NextSprayDate);
+      if (parsed.t7CropAgeValue != null && String(parsed.t7CropAgeValue).trim()) setT7CropAgeValue(String(parsed.t7CropAgeValue));
+      if (parsed.t7CropAgeUnit && parsed.t7CropAgeUnit.trim()) setT7CropAgeUnit(parsed.t7CropAgeUnit);
+      if (parsed.t7GrowthStage && parsed.t7GrowthStage.trim()) setT7GrowthStage(parsed.t7GrowthStage);
+      if (parsed.t7CropCondition && parsed.t7CropCondition.trim()) setT7CropCondition(parsed.t7CropCondition);
+      if (parsed.t7ProductResponse && parsed.t7ProductResponse.trim()) setT7ProductResponse(parsed.t7ProductResponse);
+      if (parsed.t7SprayMethod && parsed.t7SprayMethod.trim()) setT7SprayMethod(parsed.t7SprayMethod);
+      if (parsed.t7SprayEquipment && parsed.t7SprayEquipment.trim()) setT7SprayEquipment(parsed.t7SprayEquipment);
+      if (parsed.t7OtherEquipment && parsed.t7OtherEquipment.trim()) setT7OtherEquipment(parsed.t7OtherEquipment);
       if (parsed.t7HasExternalChemicals != null)
         setT7HasExternalChemicals(Boolean(parsed.t7HasExternalChemicals));
       if (parsed.t7ExternalProducts && parsed.t7ExternalProducts.length > 0)
         setT7ExternalProducts(parsed.t7ExternalProducts);
+      if (parsed.t7FarmerProvince && parsed.t7FarmerProvince.trim())
+        setT7FarmerProvince(parsed.t7FarmerProvince);
+      if (parsed.t7FarmerDistrict && parsed.t7FarmerDistrict.trim())
+        setT7FarmerDistrict(parsed.t7FarmerDistrict);
+      if (parsed.t7FarmerCustomerId)
+        setT7FarmerCustomerId(parsed.t7FarmerCustomerId);
+      if (parsed.t7FarmerName && parsed.t7FarmerName.trim())
+        setT7FarmerName(parsed.t7FarmerName);
+      if (parsed.t7FarmerPhone && parsed.t7FarmerPhone.trim())
+        setT7FarmerPhone(parsed.t7FarmerPhone);
+      if (parsed.t7IsUnregisteredFarmer != null)
+        setT7IsUnregisteredFarmer(Boolean(parsed.t7IsUnregisteredFarmer));
+      if (parsed.t7Latitude != null && String(parsed.t7Latitude).trim() !== "")
+        setT7Latitude(String(parsed.t7Latitude));
+      if (parsed.t7Longitude != null && String(parsed.t7Longitude).trim() !== "")
+        setT7Longitude(String(parsed.t7Longitude));
+      if (parsed.t7District && parsed.t7District.trim())
+        setT7District(parsed.t7District);
+      if (parsed.t7CropCategory && parsed.t7CropCategory.trim())
+        setT7CropCategory(parsed.t7CropCategory);
+      if (parsed.t7CropName && parsed.t7CropName.trim())
+        setT7CropName(parsed.t7CropName);
+      if (parsed.t7CustomCropName && parsed.t7CustomCropName.trim())
+        setT7CustomCropName(parsed.t7CustomCropName);
+      if (parsed.t7AreaRai != null && String(parsed.t7AreaRai).trim() !== "")
+        setT7AreaRai(String(parsed.t7AreaRai));
+      if (parsed.t7TreeCount != null && String(parsed.t7TreeCount).trim() !== "")
+        setT7TreeCount(String(parsed.t7TreeCount));
+      if (parsed.t7MainCropInfo && parsed.t7MainCropInfo.trim())
+        setT7MainCropInfo(parsed.t7MainCropInfo);
+      if (parsed.t7InitialSprayDate && parsed.t7InitialSprayDate.trim())
+        setT7InitialSprayDate(parsed.t7InitialSprayDate);
+      if (parsed.t7Irrigations && parsed.t7Irrigations.length > 0)
+        setT7Irrigations(parsed.t7Irrigations);
+      if (parsed.t7DemoProducts && parsed.t7DemoProducts.length > 0)
+        setT7DemoProducts(parsed.t7DemoProducts);
 
       if ((parsed as any).type7aDemoPlot) {
         const dp = (parsed as any).type7aDemoPlot;
@@ -420,15 +465,15 @@ export function useType7aActual() {
         if (dp.dealerName) {
           setT7DealerName(dp.dealerName);
         }
-        if (dp.latitude != null) setT7Latitude(String(dp.latitude));
-        if (dp.longitude != null) setT7Longitude(String(dp.longitude));
+        if (dp.latitude != null && String(dp.latitude).trim() !== "") setT7Latitude(String(dp.latitude));
+        if (dp.longitude != null && String(dp.longitude).trim() !== "") setT7Longitude(String(dp.longitude));
         const resolvedPlotName = dp.name || dp.plotName;
         if (resolvedPlotName) setT7PlotName(resolvedPlotName);
         if (dp.cropCategory) setT7CropCategory(dp.cropCategory);
         if (dp.cropName) setT7CropName(dp.cropName);
         if (dp.customCropName) setT7CustomCropName(dp.customCropName);
-        if (dp.areaRai != null) setT7AreaRai(String(dp.areaRai));
-        if (dp.treeCount != null) setT7TreeCount(String(dp.treeCount));
+        if (dp.areaRai != null && String(dp.areaRai).trim() !== "") setT7AreaRai(String(dp.areaRai));
+        if (dp.treeCount != null && String(dp.treeCount).trim() !== "") setT7TreeCount(String(dp.treeCount));
         if (dp.objective) setT7PlotObjective(dp.objective);
         if (dp.experimentDetail) setT7ExperimentDetail(dp.experimentDetail);
         if (dp.mainCropInfo) setT7MainCropInfo(dp.mainCropInfo);
@@ -436,17 +481,23 @@ export function useType7aActual() {
           setT7Irrigations(dp.irrigations);
         if (dp.plantingDate) {
           setT7PlantingDate(
-            new Date(dp.plantingDate).toISOString().split("T")[0],
+            typeof dp.plantingDate === "string"
+              ? dp.plantingDate.split("T")[0]
+              : new Date(dp.plantingDate).toISOString().split("T")[0],
           );
         }
         if (dp.initialSprayDate) {
           setT7InitialSprayDate(
-            new Date(dp.initialSprayDate).toISOString().split("T")[0],
+            typeof dp.initialSprayDate === "string"
+              ? dp.initialSprayDate.split("T")[0]
+              : new Date(dp.initialSprayDate).toISOString().split("T")[0],
           );
         }
         if (dp.nextSprayDate) {
           setT7NextSprayDate(
-            new Date(dp.nextSprayDate).toISOString().split("T")[0],
+            typeof dp.nextSprayDate === "string"
+              ? dp.nextSprayDate.split("T")[0]
+              : new Date(dp.nextSprayDate).toISOString().split("T")[0],
           );
         }
         if (dp.cropAgeValue != null) setT7CropAgeValue(String(dp.cropAgeValue));
@@ -473,15 +524,19 @@ export function useType7aActual() {
               }
               const plannedQty =
                 dpr.plannedQuantity !== undefined && dpr.plannedQuantity !== null
-                  ? dpr.plannedQuantity
-                  : matchedPlan?.targetQuantity ?? matchedPlan?.quantity ?? null;
+                  ? Number(dpr.plannedQuantity)
+                  : matchedPlan?.targetQuantity != null
+                    ? Number(matchedPlan.targetQuantity)
+                    : matchedPlan?.quantity != null
+                      ? Number(matchedPlan.quantity)
+                      : null;
               return {
                 id: dpr.id,
                 productId: dpr.productId,
                 productName: dpr.productName || dpr.product?.name || "",
                 plannedQuantity: plannedQty,
-                quantity: dpr.quantity ?? (plannedQty != null ? plannedQty : 1),
-                remainingQuantity: dpr.remainingQuantity ?? null,
+                quantity: dpr.quantity != null ? Number(dpr.quantity) : (plannedQty != null ? plannedQty : 1),
+                remainingQuantity: dpr.remainingQuantity != null ? Number(dpr.remainingQuantity) : null,
                 unit: dpr.unit || "",
                 applicationRate: dpr.applicationRate || "",
                 isAdditional: dpr.isAdditional ?? !matchedPlan,

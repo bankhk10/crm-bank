@@ -291,6 +291,7 @@ export function ActualType7NewDemo({
 
   // Handle Province Change: reset farmer selection & district
   const handleProvinceChange = (newProvince: string) => {
+    if (newProvince === farmerProvince) return;
     setFarmerProvince?.(newProvince);
     setFarmerDistrict?.("");
     setFarmerCustomerId?.(null);
@@ -551,7 +552,7 @@ export function ActualType7NewDemo({
                     if (cust.district && setDistrict && !district) {
                       setDistrict(cust.district);
                     }
-                  } else {
+                  } else if (!val) {
                     setFarmerName?.("");
                     setFarmerPhone?.("");
                   }
