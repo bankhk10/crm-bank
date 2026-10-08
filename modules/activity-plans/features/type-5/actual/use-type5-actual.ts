@@ -98,30 +98,41 @@ export function useType5Actual() {
       }
 
       const savedT5List = parsed.t5SurveyDetails || [];
+      const matchedIndices = new Set<number>();
       const hydratedT5: Type5SurveyRecord[] = defaultT5Records.map(
         (plannedItem, idx) => {
-          const matched =
-            savedT5List.find(
-              (s: any) =>
-                (s.id && plannedItem.id && s.id === plannedItem.id) ||
-                (s.store === plannedItem.store &&
-                  s.product === plannedItem.product),
-            ) || savedT5List[idx];
+          let matchedIdx = savedT5List.findIndex(
+            (s: any) =>
+              (s.id && plannedItem.id && s.id === plannedItem.id) ||
+              (s.store &&
+                plannedItem.store &&
+                s.store === plannedItem.store &&
+                s.product === plannedItem.product),
+          );
+          if (
+            matchedIdx === -1 &&
+            idx < savedT5List.length &&
+            !matchedIndices.has(idx)
+          ) {
+            matchedIdx = idx;
+          }
 
-          if (matched) {
+          if (matchedIdx !== -1) {
+            matchedIndices.add(matchedIdx);
+            const matched = savedT5List[matchedIdx];
             return {
-              id: plannedItem.id || matched.id,
+              id: matched.id || plannedItem.id,
               storeId:
                 (matched as any).storeId ||
                 (plannedItem as any).storeId ||
                 extractedTargets?.t5?.storeId ||
                 undefined,
-              store: plannedItem.store || matched.store || "",
+              store: matched.store || plannedItem.store || "",
               productId:
                 (matched as any).productId ||
                 (plannedItem as any).productId ||
                 undefined,
-              product: plannedItem.product || matched.product || "",
+              product: matched.product || plannedItem.product || "",
               detail: plannedItem.detail || matched.detail || "",
               competitorBrand: matched.competitorBrand || "",
               competitorProduct: matched.competitorProduct || "",
@@ -161,6 +172,43 @@ export function useType5Actual() {
           };
         },
       );
+
+      // Append any unmatched saved records
+      savedT5List.forEach((savedItem: any, sIdx: number) => {
+        if (!matchedIndices.has(sIdx)) {
+          hydratedT5.push({
+            id: savedItem.id,
+            storeId:
+              savedItem.storeId ||
+              extractedTargets?.t5?.storeId ||
+              undefined,
+            store: savedItem.store || "",
+            productId: savedItem.productId || undefined,
+            product: savedItem.product || "",
+            detail: savedItem.detail || "",
+            competitorBrand: savedItem.competitorBrand || "",
+            competitorProduct: savedItem.competitorProduct || "",
+            posPrice:
+              savedItem.posPrice != null ? String(savedItem.posPrice) : "",
+            dealerPrice:
+              savedItem.dealerPrice != null
+                ? String(savedItem.dealerPrice)
+                : "",
+            subdealerPrice:
+              savedItem.subdealerPrice != null
+                ? String(savedItem.subdealerPrice)
+                : "",
+            farmerPrice:
+              savedItem.farmerPrice != null
+                ? String(savedItem.farmerPrice)
+                : "",
+            sellingPoints: savedItem.sellingPoints || "",
+            bottleImages: savedItem.bottleImages || [],
+            promotionalImages: savedItem.promotionalImages || [],
+          });
+        }
+      });
+
       setT5SurveyDetails(hydratedT5);
       initialT5SurveyDetailsRef.current = JSON.parse(
         JSON.stringify(hydratedT5),

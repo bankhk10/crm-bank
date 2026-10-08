@@ -67,6 +67,11 @@ export interface PlanSummaryData {
     positionTitle?: string;
     departmentName?: string;
   }[];
+  stores?: {
+    storeId: string;
+    storeName: string;
+    workTypeCode?: string;
+  }[];
 }
 
 export interface ActualTargetItem {
@@ -275,7 +280,9 @@ export interface ActualTargetsState {
 
 export interface Type5SurveyRecord {
   id?: string;
+  storeId?: string;
   store: string;
+  productId?: string;
   product: string;
   detail?: string;
   competitorBrand: string;

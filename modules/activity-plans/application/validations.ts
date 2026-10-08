@@ -742,10 +742,11 @@ export const activityResultSchema = z
     surveyResults: z
       .array(
         z.object({
+          id: z.string().optional().nullable(),
           storeId: z.string(),
           productId: z.string().optional().nullable(),
-          competitorBrand: z.string(),
-          competitorProduct: z.string(),
+          competitorBrand: z.string().optional().default("-"),
+          competitorProduct: z.string().optional().default("-"),
           // Normalized 4-tier pricing & product highlights (TYPE_5)
           posPrice: z.coerce.number().optional().nullable(),
           dealerPrice: z.coerce.number().optional().nullable(),

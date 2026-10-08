@@ -71,13 +71,13 @@ export function DetailType5Survey({
       if (surveyDetails && surveyDetails.length > 0) {
         return surveyDetails.map((rec, idx) => ({ record: rec, index: idx }));
       }
-      if (target.items && target.items.length > 0) {
+      if (target?.items && target.items.length > 0) {
         return target.items.map((item, idx) => ({
           record: {
             id: item.id,
-            store: item.store || target.store || "",
-            product: item.product || target.product || "",
-            detail: item.detail || target.detail || "",
+            store: item.store || target?.store || "",
+            product: item.product || target?.product || "",
+            detail: item.detail || target?.detail || "",
             competitorBrand: idx === 0 ? competitorBrand || "" : "",
             competitorProduct: idx === 0 ? competitorProduct || "" : "",
             posPrice: null,
@@ -94,9 +94,9 @@ export function DetailType5Survey({
       return [
         {
           record: {
-            store: target.store || "",
-            product: target.product || "",
-            detail: target.detail || "",
+            store: target?.store || "",
+            product: target?.product || "",
+            detail: target?.detail || "",
             competitorBrand: competitorBrand || "",
             competitorProduct: competitorProduct || "",
             posPrice: null,

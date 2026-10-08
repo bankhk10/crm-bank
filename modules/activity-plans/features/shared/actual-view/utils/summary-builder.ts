@@ -521,7 +521,18 @@ export function buildResultSummary(
     // Type 5
     t5SurveyDetails &&
     t5SurveyDetails.length > 0 &&
-    t5SurveyDetails.some((s) => s.competitorBrand || s.competitorProduct)
+    t5SurveyDetails.some(
+      (s) =>
+        s.competitorBrand ||
+        s.competitorProduct ||
+        s.posPrice ||
+        s.dealerPrice ||
+        s.subdealerPrice ||
+        s.farmerPrice ||
+        s.sellingPoints ||
+        (s.bottleImages && s.bottleImages.length > 0) ||
+        (s.promotionalImages && s.promotionalImages.length > 0),
+    )
       ? `รายการสำรวจตลาดคู่แข่ง: มีบันทึก ${t5SurveyDetails.length} รายการ`
       : null,
 
@@ -1047,10 +1058,12 @@ export function buildResultSummary(
   const surveyResults: any[] = [];
   if (input.t5SurveyDetails && Array.isArray(input.t5SurveyDetails)) {
     input.t5SurveyDetails.forEach((item, idx) => {
-      // Resolve valid storeId: must come from item.storeId or plan store (NEVER fallback to item.id)
+      // Resolve valid storeId: must come from item.storeId, targets, or plan store (NEVER fallback to item.id)
       const resolvedStoreId =
         (item as any).storeId ||
         ((item as any).store && (item as any).store.id) ||
+        input.targets?.t5?.storeId ||
+        input.targets?.t5?.items?.[idx]?.storeId ||
         (input.planSummary as any)?.stores?.find(
           (s: any) =>
             s.workTypeCode === "TYPE_5" ||
@@ -1059,15 +1072,26 @@ export function buildResultSummary(
         (input.planSummary as any)?.stores?.[0]?.storeId ||
         null;
 
-      if (resolvedStoreId && (item.competitorBrand || item.competitorProduct)) {
+      const hasAnySurveyContent =
+        Boolean(item.competitorBrand?.trim()) ||
+        Boolean(item.competitorProduct?.trim()) ||
+        Boolean(item.sellingPoints?.trim()) ||
+        item.posPrice != null ||
+        item.dealerPrice != null ||
+        item.subdealerPrice != null ||
+        item.farmerPrice != null ||
+        (Array.isArray(item.bottleImages) && item.bottleImages.length > 0) ||
+        (Array.isArray(item.promotionalImages) && item.promotionalImages.length > 0);
+
+      if (resolvedStoreId && hasAnySurveyContent) {
         const itemId = item.id || `survey-item-${idx + 1}`;
         const pId = (item as any).productId || null;
         surveyResults.push({
           id: itemId,
           storeId: resolvedStoreId,
           productId: pId,
-          competitorBrand: item.competitorBrand || "-",
-          competitorProduct: item.competitorProduct || "-",
+          competitorBrand: item.competitorBrand?.trim() || "-",
+          competitorProduct: item.competitorProduct?.trim() || "-",
           posPrice: parseCleanNumber(item.posPrice),
           dealerPrice: parseCleanNumber(item.dealerPrice),
           subdealerPrice: parseCleanNumber(item.subdealerPrice),

@@ -353,10 +353,26 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     result.t5SurveyDetails = resData.surveyResults.map((sv: any) => {
       // Collect attachments for this survey item: either via sv.attachments relation or resData.attachments matching surveyItemId
-      const itemAttachments =
+      let itemAttachments =
         Array.isArray(sv.attachments) && sv.attachments.length > 0
           ? sv.attachments
           : allAttachments.filter((att: any) => att.surveyItemId === sv.id);
+
+      // Fallback for unlinked survey attachments (e.g. saved prior to mapping fix)
+      if (itemAttachments.length === 0) {
+        itemAttachments = allAttachments.filter((att: any) => {
+          const isSurveyCat =
+            att.category === "SURVEY_BOTTLE" ||
+            att.category === "SURVEY_PROMO_MATERIAL";
+          if (!isSurveyCat) return false;
+          if (att.surveyItemId && att.surveyItemId !== sv.id) return false;
+          if (resData.surveyResults.length === 1) return true;
+          return (
+            (att.storeId && att.storeId === sv.storeId) ||
+            (att.productId && att.productId === sv.productId)
+          );
+        });
+      }
 
       const bottleImages = itemAttachments
         .filter((att: any) => att.category === "SURVEY_BOTTLE")
@@ -399,6 +415,51 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         promotionDetail: sv.promotionDetail || "",
       };
     });
+  } else if (
+    (!result.t5SurveyDetails || result.t5SurveyDetails.length === 0) &&
+    Array.isArray(resData.attachments) &&
+    resData.attachments.some(
+      (att: any) =>
+        att.category === "SURVEY_BOTTLE" ||
+        att.category === "SURVEY_PROMO_MATERIAL",
+    )
+  ) {
+    const bottleImages = resData.attachments
+      .filter((att: any) => att.category === "SURVEY_BOTTLE")
+      .map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName,
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      }));
+    const promotionalImages = resData.attachments
+      .filter((att: any) => att.category === "SURVEY_PROMO_MATERIAL")
+      .map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName,
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      }));
+
+    if (bottleImages.length > 0 || promotionalImages.length > 0) {
+      result.t5SurveyDetails = [
+        {
+          store: "",
+          product: "",
+          competitorBrand: result.t5CompetitorBrand || "",
+          competitorProduct: result.t5CompetitorProduct || "",
+          posPrice: "",
+          dealerPrice: "",
+          subdealerPrice: "",
+          farmerPrice: "",
+          sellingPoints: "",
+          bottleImages,
+          promotionalImages,
+        },
+      ];
+    }
   }
 
   if (

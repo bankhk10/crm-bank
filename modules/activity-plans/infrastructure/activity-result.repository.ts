@@ -400,19 +400,26 @@ export async function upsertActivityResult(
     }
 
     // 3. Sync Survey Results
+    const clientSurveyMap = new Map<string, string>();
     if (input.surveyResults !== undefined) {
       await tx.activityResultSurveyItem.deleteMany({
         where: { activityResultId: result.id },
       });
       if (input.surveyResults.length > 0) {
-        await tx.activityResultSurveyItem.createMany({
-          data: input.surveyResults.map((item) => ({
-            id: item.id || undefined,
+        const surveyItemsToCreate = input.surveyResults.map((item, idx) => {
+          const dbId = randomUUID();
+          if (item.id) {
+            clientSurveyMap.set(item.id, dbId);
+          }
+          clientSurveyMap.set(`survey-item-${idx + 1}`, dbId);
+          clientSurveyMap.set(`item-${idx + 1}`, dbId);
+          return {
+            id: dbId,
             activityResultId: result.id,
             storeId: item.storeId,
             productId: item.productId ?? null,
-            competitorBrand: item.competitorBrand,
-            competitorProduct: item.competitorProduct,
+            competitorBrand: item.competitorBrand || "-",
+            competitorProduct: item.competitorProduct || "-",
             posPrice:
               item.posPrice != null ? new Prisma.Decimal(item.posPrice) : null,
             dealerPrice:
@@ -434,7 +441,11 @@ export async function upsertActivityResult(
                 : null,
             competitorUnit: item.competitorUnit ?? null,
             promotionDetail: item.promotionDetail ?? null,
-          })),
+          };
+        });
+
+        await tx.activityResultSurveyItem.createMany({
+          data: surveyItemsToCreate,
         });
       }
     }
@@ -1281,10 +1292,23 @@ export async function upsertActivityResult(
               : null,
             storeId: att.storeId ?? null,
             productId: att.productId ?? null,
-            surveyItemId:
-              att.surveyItemId && validSurveyItemIds.has(att.surveyItemId)
-                ? att.surveyItemId
-                : null,
+            surveyItemId: (() => {
+              let sId = att.surveyItemId;
+              if (sId && clientSurveyMap.has(sId)) {
+                sId = clientSurveyMap.get(sId);
+              }
+              if (
+                !sId &&
+                clientSurveyMap.size === 1 &&
+                (att.category === AttachmentCategory.SURVEY_BOTTLE ||
+                  att.category === AttachmentCategory.SURVEY_PROMO_MATERIAL)
+              ) {
+                sId = clientSurveyMap.values().next().value;
+              }
+              return sId && validSurveyItemIds.has(sId)
+                ? sId
+                : null;
+            })(),
             issueItemId: (() => {
               let issueId = att.issueItemId;
               if (issueId && clientIssueMap.has(issueId)) {

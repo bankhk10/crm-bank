@@ -313,6 +313,11 @@ export function extractPlanData(
     objective: p.objective || undefined,
     helpers: extractedHelpers.length > 0 ? extractedHelpers : undefined,
     helperEmployeeNames: helperNames,
+    stores: (p.stores || []).map((s: any) => ({
+      storeId: s.storeId,
+      storeName: s.storeName,
+      workTypeCode: s.workTypeCode,
+    })),
   };
 
   // 1. Detect ALL selected work types from normalized relations
