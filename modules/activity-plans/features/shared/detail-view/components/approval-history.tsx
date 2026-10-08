@@ -50,8 +50,11 @@ export function ApprovalHistory({ logs }: ApprovalHistoryProps) {
 
                 let stepText = log.step as string;
                 if (log.step === "LINE_APPROVAL") stepText = "สายงาน";
+                if (log.step === "PRODUCT_WITHDRAWAL_APPROVAL") stepText = "เบิกสินค้า";
                 if (log.step === "BUDGET_APPROVAL") stepText = "งบประมาณ";
                 if (log.step === "HELPER_APPROVAL") stepText = "คนช่วยงาน";
+                if (log.step === "POST_ACTIVITY_REVIEW") stepText = "ตรวจผลงาน";
+                if (log.step === "CANCELLATION_APPROVAL") stepText = "ขอยกเลิก";
 
                 return (
                   <div key={log.id} className="relative text-xs">

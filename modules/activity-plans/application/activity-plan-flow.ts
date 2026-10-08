@@ -853,46 +853,6 @@ export async function approveActivityPlanUseCase(
     }
 
     // ────────────────────────────────────────────────────────
-    // Step 1.5: Product Withdrawal Approval (Marketing Manager)
-    // ────────────────────────────────────────────────────────
-    if (plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL) {
-      if (!isAdmin && !isMkt) {
-        return {
-          success: false,
-          error:
-            "คุณไม่มีสิทธิ์อนุมัติการเบิกสินค้าในแปลงสาธิต (ต้องเป็นผู้จัดการแผนกการตลาด)",
-        };
-      }
-
-      await tx.activityPlan.update({
-        where: { id: planId },
-        data: {
-          productWithdrawalApproved: true,
-        },
-      });
-
-      await tx.activityApprovalLog.create({
-        data: {
-          activityPlanId: planId,
-          userId,
-          action: ActivityApprovalAction.APPROVE,
-          step: ActivityApprovalStep.PRODUCT_WITHDRAWAL_APPROVAL,
-          comment: comment || "อนุมัติรายการเบิกสินค้าในแปลงสาธิต",
-        },
-      });
-
-      // Advance to budget or helper approval
-      await initiateBudgetApproval(
-        plan,
-        tx,
-        userId,
-        "อนุมัติรายการเบิกสินค้าเรียบร้อย ส่งต่อขั้นตอนการตรวจสอบงบประมาณ",
-      );
-
-      return { success: true };
-    }
-
-    // ────────────────────────────────────────────────────────
     // Step 2a: Intermediate Line Approval (e.g. Salesperson, Area Manager)
     // ────────────────────────────────────────────────────────
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
@@ -936,9 +896,11 @@ export async function approveActivityPlanUseCase(
     }
 
     // ────────────────────────────────────────────────────────
-    // Aggregated Approval Evaluation (Terminal Line / Budget / Helper)
+    // Aggregated One-Shot Approval Evaluation (Terminal Line / Product Withdrawal / Budget / Helper)
     // ────────────────────────────────────────────────────────
+    const hasWithdrawal = checkPlanHasProductWithdrawal(plan);
     let didApproveLine = false;
+    let didApproveWithdrawal = false;
     let didApproveSPBudget = false;
     let didApproveMKTBudget = false;
     let didApproveDirectorBudget = false;
@@ -948,63 +910,45 @@ export async function approveActivityPlanUseCase(
     const hasSP = Number(plan.salesPromotionBudgetRequested || 0) > 0;
     const hasMKT = Number(plan.marketingBudgetRequested || 0) > 0;
 
-    // 1. Line Approval
+    // 1. Line Approval (When plan is in PENDING_LINE_APPROVAL)
     if (isCurrentLineApprover) {
       didApproveLine = true;
     }
 
-    // If Line Approval just finished, check if product withdrawal approval is required next
-    const hasWithdrawal = checkPlanHasProductWithdrawal(plan);
-    if (didApproveLine && hasWithdrawal && plan.productWithdrawalApproved !== true) {
-      // Transition to PENDING_MARKETING_APPROVAL
-      await tx.activityApprovalLog.create({
-        data: {
-          activityPlanId: planId,
-          userId,
-          action: ActivityApprovalAction.APPROVE,
-          step: ActivityApprovalStep.LINE_APPROVAL,
-          comment:
-            comment ||
-            (isAdmin
-              ? "อนุมัติตามสายงาน (Administrator)"
-              : "อนุมัติตามสายงานขั้นสุดท้าย"),
-        },
-      });
-
-      const updatedPlan = await tx.activityPlan.update({
-        where: { id: planId },
-        data: {
-          status: ActivityStatus.PENDING_MARKETING_APPROVAL,
-          currentApproverEmployeeId: null,
-        },
-        include: { employee: true },
-      });
-
-      await notifyMarketingProductWithdrawal(updatedPlan, tx);
-      return { success: true };
+    // 2. Product Withdrawal Approval (Marketing Manager or Admin)
+    if (hasWithdrawal && plan.productWithdrawalApproved !== true && (isAdmin || isMkt)) {
+      if (
+        plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL ||
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+        plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL
+      ) {
+        didApproveWithdrawal = true;
+      }
     }
 
-    // 2. Sales Promotion Budget Approval
+    // 3. Sales Promotion Budget Approval (Sales Admin Manager or Admin)
     if (hasSP && plan.salesPromotionApproved !== true && (isAdmin || isSalesAdmin)) {
       if (
         plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
-        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+        plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL
       ) {
         didApproveSPBudget = true;
       }
     }
 
-    // 3. Marketing Budget Approval
+    // 4. Marketing Budget Approval (Marketing Manager or Admin)
     if (hasMKT && plan.marketingApproved !== true && (isAdmin || isMkt)) {
       if (
         plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
-        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+        plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL
       ) {
         didApproveMKTBudget = true;
       }
     }
 
-    // 4. Overall Budget Approval (Sales Director)
+    // 5. Overall Budget Approval (Sales Director or Admin)
     const effectiveSPApproved = !hasSP || plan.salesPromotionApproved === true || didApproveSPBudget;
     const effectiveMKTApproved = !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
 
@@ -1017,16 +961,18 @@ export async function approveActivityPlanUseCase(
     ) {
       if (
         plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL ||
-        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal)
+        (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+        plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL
       ) {
         didApproveDirectorBudget = true;
       }
     }
 
-    // 5. Helpers in Scope
+    // 6. Helpers in Scope
     const canEvaluateHelpers =
       plan.status === ActivityStatus.PENDING_HELPER_APPROVAL ||
       (plan.status === ActivityStatus.PENDING_LINE_APPROVAL && isTerminal) ||
+      plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL ||
       (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL && (isAdmin || isSalesAdmin || isMkt));
 
     if (canEvaluateHelpers) {
@@ -1052,6 +998,7 @@ export async function approveActivityPlanUseCase(
 
     const anyActionTaken =
       didApproveLine ||
+      didApproveWithdrawal ||
       didApproveSPBudget ||
       didApproveMKTBudget ||
       didApproveDirectorBudget ||
@@ -1107,6 +1054,18 @@ export async function approveActivityPlanUseCase(
             (isAdmin
               ? "อนุมัติตามสายงาน (Administrator)"
               : "อนุมัติตามสายงานขั้นสุดท้าย"),
+        },
+      });
+    }
+
+    if (didApproveWithdrawal) {
+      await tx.activityApprovalLog.create({
+        data: {
+          activityPlanId: planId,
+          userId,
+          action: ActivityApprovalAction.APPROVE,
+          step: ActivityApprovalStep.PRODUCT_WITHDRAWAL_APPROVAL,
+          comment: comment || "อนุมัติรายการเบิกสินค้าในแปลงสาธิต (ผจก.แผนกการตลาด)",
         },
       });
     }
@@ -1168,21 +1127,27 @@ export async function approveActivityPlanUseCase(
     }
 
     // 4. Calculate Final State for Plan
+    const newProductWithdrawalApproved =
+      didApproveWithdrawal ? true : plan.productWithdrawalApproved;
     const newSPApproved = didApproveSPBudget ? true : plan.salesPromotionApproved;
     const newMKTApproved = didApproveMKTBudget ? true : plan.marketingApproved;
     const newDirectorApproved = didApproveDirectorBudget ? true : plan.salesManagerApproved;
 
-    const isAllBudgetFinished =
-      (!hasSP || newSPApproved === true) &&
-      (!hasMKT || newMKTApproved === true) &&
-      ((!hasSP && !hasMKT) || newDirectorApproved === true);
+    const isWithdrawalDone =
+      !hasWithdrawal || newProductWithdrawalApproved === true;
+    const isSPDone = !hasSP || newSPApproved === true;
+    const isMKTDone = !hasMKT || newMKTApproved === true;
+    const isStage1BudgetDone = isSPDone && isMKTDone;
+    const isDirectorBudgetDone =
+      (!hasSP && !hasMKT) || newDirectorApproved === true;
+    const isAllBudgetFinished = isStage1BudgetDone && isDirectorBudgetDone;
 
     const spApprovedAmount =
-      (!hasSP || newSPApproved === true) && hasSP
+      isSPDone && hasSP
         ? plan.salesPromotionBudgetRequested
         : null;
     const mktApprovedAmount =
-      (!hasMKT || newMKTApproved === true) && hasMKT
+      isMKTDone && hasMKT
         ? plan.marketingBudgetRequested
         : null;
     const totalApprovedAmount = isAllBudgetFinished
@@ -1202,27 +1167,30 @@ export async function approveActivityPlanUseCase(
     let nextStatus: ActivityStatus;
     let nextApproverId: string | null = null;
 
-    if (hasSP || hasMKT) {
-      if (isAllBudgetFinished) {
-        if (unreviewedHelpers.length > 0) {
-          nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
-          nextApproverId = null;
-        } else {
-          nextStatus = ActivityStatus.APPROVED;
-          nextApproverId = null;
-        }
-      } else {
-        nextStatus = ActivityStatus.PENDING_BUDGET_APPROVAL;
-        nextApproverId = null;
-      }
+    if (!isWithdrawalDone) {
+      nextStatus = ActivityStatus.PENDING_MARKETING_APPROVAL;
+      nextApproverId = null;
+      await notifyMarketingProductWithdrawal(plan, tx);
+    } else if (!isAllBudgetFinished) {
+      nextStatus = ActivityStatus.PENDING_BUDGET_APPROVAL;
+      nextApproverId = null;
+      await notifyBudgetApprovers(
+        {
+          ...plan,
+          salesPromotionApproved: newSPApproved,
+          marketingApproved: newMKTApproved,
+          salesPromotionBudgetRequested: plan.salesPromotionBudgetRequested,
+          marketingBudgetRequested: plan.marketingBudgetRequested,
+        },
+        tx,
+      );
+    } else if (unreviewedHelpers.length > 0) {
+      nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
+      nextApproverId = null;
+      await notifyHelperApprovers(plan, tx);
     } else {
-      if (unreviewedHelpers.length > 0) {
-        nextStatus = ActivityStatus.PENDING_HELPER_APPROVAL;
-        nextApproverId = null;
-      } else {
-        nextStatus = ActivityStatus.APPROVED;
-        nextApproverId = null;
-      }
+      nextStatus = ActivityStatus.APPROVED;
+      nextApproverId = null;
     }
 
     // Update ActivityPlan
@@ -1231,6 +1199,7 @@ export async function approveActivityPlanUseCase(
       data: {
         status: nextStatus,
         currentApproverEmployeeId: nextApproverId,
+        productWithdrawalApproved: newProductWithdrawalApproved,
         salesPromotionApproved: newSPApproved,
         marketingApproved: newMKTApproved,
         salesManagerApproved: newDirectorApproved,
@@ -1246,16 +1215,6 @@ export async function approveActivityPlanUseCase(
 
     // 5. Notifications & Calendar Sync
     if (nextStatus === ActivityStatus.APPROVED) {
-      await tx.activityApprovalLog.create({
-        data: {
-          activityPlanId: planId,
-          userId,
-          action: ActivityApprovalAction.APPROVE,
-          step: ActivityApprovalStep.HELPER_APPROVAL,
-          comment: "อนุมัติแผนกิจกรรมสมบูรณ์และบันทึกลงระบบสำเร็จ 🚀",
-        },
-      });
-
       await sendNotificationHelper(
         updatedPlan.employee.userId,
         "แผนกิจกรรมได้รับการอนุมัติสำเร็จ 🚀",

@@ -99,7 +99,8 @@ export function ApprovalActionDialog({
       userPos.includes("บริหารงานขาย") ||
       userPos.includes("sales admin") ||
       (isCurrentLine &&
-        plan.currentApprover?.positionTitle?.includes("บริหารงานขาย")) ||
+        (plan.currentApprover?.positionTitle?.includes("บริหารงานขาย") ||
+          plan.currentApprover?.position?.name?.includes("บริหารงานขาย"))) ||
       plan.currentApprover?.department?.code === "SA";
 
     const isMkt =
@@ -108,6 +109,7 @@ export function ApprovalActionDialog({
       userPos.includes("การตลาด") ||
       userPos.includes("marketing") ||
       plan.currentApprover?.positionTitle?.includes("การตลาด") ||
+      plan.currentApprover?.position?.name?.includes("การตลาด") ||
       plan.currentApprover?.department?.code === "MKT";
 
     return plan.helpers.filter((h) => {
@@ -249,24 +251,70 @@ export function ApprovalActionDialog({
     }
   };
 
-  // Responsibilities being approved
+  const userDept = (session?.user?.departmentCode || "").toUpperCase();
+  const userPos = (session?.user?.positionTitle || "").toLowerCase();
+
+  const isSalesAdminApprover =
+    isAdmin ||
+    userDept === "SA" ||
+    userPos.includes("บริหารงานขาย") ||
+    userPos.includes("sales admin") ||
+    plan.currentApprover?.positionTitle?.includes("บริหารงานขาย") ||
+    plan.currentApprover?.position?.name?.includes("บริหารงานขาย") ||
+    plan.currentApprover?.department?.code === "SA";
+
+  const isMktApprover =
+    isAdmin ||
+    userDept === "MKT" ||
+    userPos.includes("การตลาด") ||
+    userPos.includes("marketing") ||
+    plan.currentApprover?.positionTitle?.includes("การตลาด") ||
+    plan.currentApprover?.position?.name?.includes("การตลาด") ||
+    plan.currentApprover?.department?.code === "MKT";
+
+  const isDirectorApprover =
+    isAdmin ||
+    userPos.includes("ผู้จัดการฝ่ายขาย") ||
+    userPos.includes("ผจก.ฝ่ายขาย") ||
+    userPos.includes("sales director");
+
+  const hasWithdrawal =
+    Boolean(plan.hasProductWithdrawal) ||
+    (plan.type7aPlots && plan.type7aPlots.length > 0) ||
+    Boolean(plan.type7b?.hasProducts) ||
+    Boolean(plan.type13?.hasProducts) ||
+    Boolean(plan.type14?.hasProducts);
+
+  // Responsibilities being approved in this one-shot turn
   const isLineApprover =
     plan.status === "PENDING_LINE_APPROVAL" &&
     (isAdmin || plan.currentApproverEmployeeId === userEmployeeId);
+
   const isProductWithdrawalApprover =
-    plan.status === "PENDING_MARKETING_APPROVAL";
+    hasWithdrawal &&
+    plan.productWithdrawalApproved !== true &&
+    (isAdmin || isMktApprover);
+
   const hasSP =
     Number(plan.salesPromotionBudgetRequested || 0) > 0 &&
-    plan.salesPromotionApproved !== true;
+    plan.salesPromotionApproved !== true &&
+    (isAdmin || isSalesAdminApprover);
+
   const hasMKT =
     Number(plan.marketingBudgetRequested || 0) > 0 &&
-    plan.marketingApproved !== true;
+    plan.marketingApproved !== true &&
+    (isAdmin || isMktApprover);
+
   const isDirectorPending =
+    (isAdmin || isDirectorApprover) &&
     (Number(plan.salesPromotionBudgetRequested || 0) === 0 ||
-      plan.salesPromotionApproved === true) &&
+      plan.salesPromotionApproved === true ||
+      hasSP) &&
     (Number(plan.marketingBudgetRequested || 0) === 0 ||
-      plan.marketingApproved === true) &&
-    plan.salesManagerApproved !== true;
+      plan.marketingApproved === true ||
+      hasMKT) &&
+    plan.salesManagerApproved !== true &&
+    Number(plan.totalBudgetRequested || 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

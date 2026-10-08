@@ -322,6 +322,8 @@ export function getPlanActionScopes(
   plan?: {
     status?: string;
     currentApproverEmployeeId?: string | null;
+    hasProductWithdrawal?: boolean | null;
+    productWithdrawalApproved?: boolean | null;
     salesPromotionBudgetRequested?: any;
     marketingBudgetRequested?: any;
     salesPromotionApproved?: boolean | null;
@@ -368,6 +370,56 @@ export function getPlanActionScopes(
       label: "อนุมัติตามสายงาน",
       variant: "line",
     });
+
+    const sp = Number(plan.salesPromotionBudgetRequested || 0);
+    const mkt = Number(plan.marketingBudgetRequested || 0);
+    const unreviewedHelpers = (plan.helpers || []).filter(
+      (h) => h.status === "PENDING" && !h.respondedAt,
+    );
+    const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
+    const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
+
+    if (isAdmin || isSalesAdmin) {
+      if (sp > 0 && plan.salesPromotionApproved !== true) {
+        badges.push({
+          id: "sp_budget",
+          label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
+          variant: "sp_budget",
+        });
+      }
+      if (salesHelpers.length > 0) {
+        badges.push({
+          id: "sales_helper",
+          label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
+          variant: "sales_helper",
+        });
+      }
+    }
+
+    if (isAdmin || isMkt) {
+      if (mkt > 0 && plan.marketingApproved !== true) {
+        badges.push({
+          id: "mkt_budget",
+          label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+          variant: "mkt_budget",
+        });
+      }
+      if (mktHelpers.length > 0) {
+        badges.push({
+          id: "mkt_helper",
+          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
+          variant: "mkt_helper",
+        });
+      }
+      if (plan.hasProductWithdrawal && plan.productWithdrawalApproved !== true) {
+        badges.push({
+          id: "product_withdrawal",
+          label: "อนุมัติการเบิกสินค้า",
+          variant: "mkt_budget",
+        });
+      }
+    }
+
     return badges;
   }
 
@@ -378,6 +430,29 @@ export function getPlanActionScopes(
       label: "อนุมัติการเบิกสินค้า",
       variant: "mkt_budget",
     });
+
+    if (isAdmin || isMkt) {
+      const mkt = Number(plan.marketingBudgetRequested || 0);
+      if (mkt > 0 && plan.marketingApproved !== true) {
+        badges.push({
+          id: "mkt_budget",
+          label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+          variant: "mkt_budget",
+        });
+      }
+      const unreviewedHelpers = (plan.helpers || []).filter(
+        (h) => h.status === "PENDING" && !h.respondedAt,
+      );
+      const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
+      if (mktHelpers.length > 0) {
+        badges.push({
+          id: "mkt_helper",
+          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
+          variant: "mkt_helper",
+        });
+      }
+    }
+
     return badges;
   }
 
