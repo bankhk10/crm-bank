@@ -571,7 +571,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t8RegAtt = resData.attachments.filter(
       (a: any) =>
         a.workTypeCode === "TYPE_8" &&
-        (a.surveyItemId === "registration" ||
+        (a.category === "GENERAL" ||
+          a.category === "REGISTRATION" ||
+          a.surveyItemId === "registration" ||
           (a.fileUrl && a.fileUrl.includes("/registration/")) ||
           (a.fileName && a.fileName.toLowerCase().includes("registration"))),
     );
@@ -582,11 +584,14 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     const t8MeetingAtt = resData.attachments.filter(
       (a: any) =>
         a.workTypeCode === "TYPE_8" &&
-        !(
-          a.surveyItemId === "registration" ||
-          (a.fileUrl && a.fileUrl.includes("/registration/")) ||
-          (a.fileName && a.fileName.toLowerCase().includes("registration"))
-        ),
+        (a.category === "ATMOSPHERE" ||
+          !(
+            a.category === "GENERAL" ||
+            a.category === "REGISTRATION" ||
+            a.surveyItemId === "registration" ||
+            (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+            (a.fileName && a.fileName.toLowerCase().includes("registration"))
+          )),
     );
     if (t8MeetingAtt.length > 0) {
       result.t8Images = t8MeetingAtt.map(toImage);
