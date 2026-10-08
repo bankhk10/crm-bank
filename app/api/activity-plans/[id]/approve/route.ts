@@ -25,13 +25,19 @@ export async function POST(request: Request, context: RouteContext) {
     roles.includes("admin") ||
     roles.includes("ceo");
 
-  if (
-    !isSuper &&
-    !permissions.includes("activity.approve") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const hasAnyApprovalPermission =
+    permissions.includes("activity.approve") ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("activity.approve.sp_budget") ||
+    permissions.includes("activity.approve.mkt_budget") ||
+    permissions.includes("activity.approve.total_budget") ||
+    permissions.includes("activity.approve.product_withdrawal") ||
+    permissions.includes("activity.approve.sales_helper") ||
+    permissions.includes("activity.approve.mkt_helper");
+
+  if (!isSuper && !hasAnyApprovalPermission) {
     return NextResponse.json(
-      { error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติแผนงาน (activity.approve)" },
+      { error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติแผนงาน" },
       { status: 403 },
     );
   }

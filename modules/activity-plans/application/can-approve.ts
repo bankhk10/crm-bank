@@ -90,6 +90,44 @@ export function isUserSalesDirector(user?: ApproverUserContext | null): boolean 
   );
 }
 
+// ────────────────────────────────────────────────────────
+// Granular Activity Approval Permission Helpers
+// ────────────────────────────────────────────────────────
+
+export function hasPermission(
+  user?: ApproverUserContext | null,
+  key?: string,
+): boolean {
+  if (!user || !key) return false;
+  if (isUserAdmin(user)) return true;
+  const permissions = user.permissions || user.permissionKeys || [];
+  return permissions.includes(key);
+}
+
+export function canUserApproveSPBudget(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.sp_budget");
+}
+
+export function canUserApproveMKTBudget(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.mkt_budget");
+}
+
+export function canUserApproveTotalBudget(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.total_budget");
+}
+
+export function canUserApproveProductWithdrawal(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.product_withdrawal");
+}
+
+export function canUserApproveSalesHelper(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.sales_helper");
+}
+
+export function canUserApproveMKTHelper(user?: ApproverUserContext | null): boolean {
+  return hasPermission(user, "activity.approve.mkt_helper");
+}
+
 // Helper predicates for helper employees
 function isSalesHelperEmployee(helper: any): boolean {
   const dept = (helper.employee?.department?.code || "").toUpperCase();
@@ -210,9 +248,9 @@ export function canUserPerformApproval(
     );
   }
 
-  // 3.5 Step 2.5: Product Withdrawal Approval (Marketing Manager)
+  // 3.5 Step 2.5: Product Withdrawal Approval
   if (plan.status === "PENDING_MARKETING_APPROVAL") {
-    return isUserMarketingManager(user);
+    return canUserApproveProductWithdrawal(user);
   }
 
   // 3.6 Cancellation Approval (Dual Approval: Line Approver + Marketing Manager)
@@ -226,7 +264,7 @@ export function canUserPerformApproval(
         plan.lineCancellationApproved !== true,
     );
     const isMktApprover =
-      isUserMarketingManager(user) && plan.mktCancellationApproved !== true;
+      canUserApproveProductWithdrawal(user) && plan.mktCancellationApproved !== true;
     return isLineApprover || isMktApprover;
   }
 
@@ -243,46 +281,40 @@ export function canUserPerformApproval(
     const hasPendingMktHelpers = unreviewedHelpers.some(isMarketingHelperEmployee);
 
     const spPending =
-      (hasSalesPromotion && plan.salesPromotionApproved !== true) ||
-      hasPendingSalesHelpers;
+      hasSalesPromotion && plan.salesPromotionApproved !== true;
     const mktPending =
-      (hasMarketing && plan.marketingApproved !== true) ||
-      hasPendingMktHelpers;
+      hasMarketing && plan.marketingApproved !== true;
 
     const requiredSalesPromotionOk =
       !hasSalesPromotion || plan.salesPromotionApproved === true;
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
 
-    // Director only acts when Stage 1 (SP + MKT budgets) is complete, AND there is budget requested
     const directorPending =
       (hasSalesPromotion || hasMarketing) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
       plan.salesManagerApproved !== true;
 
-    // Stage 2: Final Budget Approval (Sales Director)
-    if (directorPending) {
-      return isUserSalesDirector(user);
+    // Stage 2: Final Budget Approval (Sales Director / Total Budget Approver)
+    if (directorPending && canUserApproveTotalBudget(user)) {
+      return true;
     }
 
-    // Stage 1: Parallel Approvals
-    if (spPending && mktPending) {
-      return isUserSalesAdminManager(user) || isUserMarketingManager(user);
+    // Stage 1: Parallel Budget Approvals
+    if (spPending && canUserApproveSPBudget(user)) {
+      return true;
+    }
+    if (mktPending && canUserApproveMKTBudget(user)) {
+      return true;
     }
 
-    // Stage 1: Marketing only (including Withdrawal only!)
-    if (mktPending && !spPending) {
-      return isUserMarketingManager(user);
+    // Parallel Helper Approvals in Budget step
+    if (hasPendingSalesHelpers && canUserApproveSalesHelper(user)) {
+      return true;
     }
-
-    // Stage 1: Sales Promotion only
-    if (spPending && !mktPending) {
-      return isUserSalesAdminManager(user);
-    }
-
-    if (hasSalesPromotion || hasMarketing) {
-      return isUserSalesDirector(user);
+    if (hasPendingMktHelpers && canUserApproveMKTHelper(user)) {
+      return true;
     }
 
     return false;
@@ -298,17 +330,14 @@ export function canUserPerformApproval(
     const hasPendingSalesHelper = pendingHelpers.some(isSalesHelperEmployee);
     const hasPendingMktHelper = pendingHelpers.some(isMarketingHelperEmployee);
 
-    if (hasPendingSalesHelper && hasPendingMktHelper) {
-      return isUserSalesAdminManager(user) || isUserMarketingManager(user);
+    if (hasPendingSalesHelper && canUserApproveSalesHelper(user)) {
+      return true;
     }
-    if (hasPendingSalesHelper) {
-      return isUserSalesAdminManager(user);
-    }
-    if (hasPendingMktHelper) {
-      return isUserMarketingManager(user);
+    if (hasPendingMktHelper && canUserApproveMKTHelper(user)) {
+      return true;
     }
 
-    return pendingHelpers.some((h) => h.approvedById === user.employeeId);
+    return false;
   }
 
   return false;
@@ -379,45 +408,41 @@ export function getPlanActionScopes(
     const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
     const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
 
-    if (isAdmin || isSalesAdmin) {
-      if (sp > 0 && plan.salesPromotionApproved !== true) {
-        badges.push({
-          id: "sp_budget",
-          label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
-          variant: "sp_budget",
-        });
-      }
-      if (salesHelpers.length > 0) {
-        badges.push({
-          id: "sales_helper",
-          label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
-          variant: "sales_helper",
-        });
-      }
+    if (canUserApproveSPBudget(user) && sp > 0 && plan.salesPromotionApproved !== true) {
+      badges.push({
+        id: "sp_budget",
+        label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
+        variant: "sp_budget",
+      });
+    }
+    if (canUserApproveSalesHelper(user) && salesHelpers.length > 0) {
+      badges.push({
+        id: "sales_helper",
+        label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
+        variant: "sales_helper",
+      });
     }
 
-    if (isAdmin || isMkt) {
-      if (mkt > 0 && plan.marketingApproved !== true) {
-        badges.push({
-          id: "mkt_budget",
-          label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
-          variant: "mkt_budget",
-        });
-      }
-      if (mktHelpers.length > 0) {
-        badges.push({
-          id: "mkt_helper",
-          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
-          variant: "mkt_helper",
-        });
-      }
-      if (plan.hasProductWithdrawal && plan.productWithdrawalApproved !== true) {
-        badges.push({
-          id: "product_withdrawal",
-          label: "อนุมัติการเบิกสินค้า",
-          variant: "mkt_budget",
-        });
-      }
+    if (canUserApproveMKTBudget(user) && mkt > 0 && plan.marketingApproved !== true) {
+      badges.push({
+        id: "mkt_budget",
+        label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+        variant: "mkt_budget",
+      });
+    }
+    if (canUserApproveMKTHelper(user) && mktHelpers.length > 0) {
+      badges.push({
+        id: "mkt_helper",
+        label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
+        variant: "mkt_helper",
+      });
+    }
+    if (canUserApproveProductWithdrawal(user) && plan.hasProductWithdrawal && plan.productWithdrawalApproved !== true) {
+      badges.push({
+        id: "product_withdrawal",
+        label: "อนุมัติการเบิกสินค้า",
+        variant: "mkt_budget",
+      });
     }
 
     return badges;
@@ -425,32 +450,32 @@ export function getPlanActionScopes(
 
   // 1.5 Product Withdrawal Approval
   if (plan.status === "PENDING_MARKETING_APPROVAL") {
-    badges.push({
-      id: "product_withdrawal",
-      label: "อนุมัติการเบิกสินค้า",
-      variant: "mkt_budget",
-    });
+    if (canUserApproveProductWithdrawal(user)) {
+      badges.push({
+        id: "product_withdrawal",
+        label: "อนุมัติการเบิกสินค้า",
+        variant: "mkt_budget",
+      });
+    }
 
-    if (isAdmin || isMkt) {
-      const mkt = Number(plan.marketingBudgetRequested || 0);
-      if (mkt > 0 && plan.marketingApproved !== true) {
-        badges.push({
-          id: "mkt_budget",
-          label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
-          variant: "mkt_budget",
-        });
-      }
-      const unreviewedHelpers = (plan.helpers || []).filter(
-        (h) => h.status === "PENDING" && !h.respondedAt,
-      );
-      const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
-      if (mktHelpers.length > 0) {
-        badges.push({
-          id: "mkt_helper",
-          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
-          variant: "mkt_helper",
-        });
-      }
+    const mkt = Number(plan.marketingBudgetRequested || 0);
+    if (canUserApproveMKTBudget(user) && mkt > 0 && plan.marketingApproved !== true) {
+      badges.push({
+        id: "mkt_budget",
+        label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+        variant: "mkt_budget",
+      });
+    }
+    const unreviewedHelpers = (plan.helpers || []).filter(
+      (h) => h.status === "PENDING" && !h.respondedAt,
+    );
+    const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
+    if (canUserApproveMKTHelper(user) && mktHelpers.length > 0) {
+      badges.push({
+        id: "mkt_helper",
+        label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
+        variant: "mkt_helper",
+      });
     }
 
     return badges;
@@ -493,90 +518,44 @@ export function getPlanActionScopes(
 
     const directorTurn = (sp > 0 || mkt > 0) && stage1Complete && plan.salesManagerApproved !== true;
 
-    // Specific user scopes
-    if (!isAdmin && user) {
-      if (isDirector && directorTurn) {
-        badges.push({
-          id: "total_budget",
-          label: `งบประมาณรวม ${total.toLocaleString()} บาท`,
-          variant: "total_budget",
-        });
-        return badges;
-      }
-
-      if (isSalesAdmin) {
-        if (sp > 0 && plan.salesPromotionApproved !== true) {
-          badges.push({
-            id: "sp_budget",
-            label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
-            variant: "sp_budget",
-          });
-        }
-        if (salesHelpers.length > 0) {
-          badges.push({
-            id: "sales_helper",
-            label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
-            variant: "sales_helper",
-          });
-        }
-        return badges;
-      }
-
-      if (isMkt) {
-        if (mkt > 0 && plan.marketingApproved !== true) {
-          badges.push({
-            id: "mkt_budget",
-            label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
-            variant: "mkt_budget",
-          });
-        }
-        if (mktHelpers.length > 0) {
-          badges.push({
-            id: "mkt_helper",
-            label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
-            variant: "mkt_helper",
-          });
-        }
-        return badges;
-      }
-    }
-
-    // Default / Admin / General view (e.g. In All Pending tab)
-    if (directorTurn) {
+    if (canUserApproveTotalBudget(user) && directorTurn) {
       badges.push({
         id: "total_budget",
         label: `งบประมาณรวม ${total.toLocaleString()} บาท`,
         variant: "total_budget",
       });
-    } else {
-      if (sp > 0 && plan.salesPromotionApproved !== true) {
-        badges.push({
-          id: "sp_budget",
-          label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
-          variant: "sp_budget",
-        });
-      }
-      if (salesHelpers.length > 0) {
-        badges.push({
-          id: "sales_helper",
-          label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
-          variant: "sales_helper",
-        });
-      }
-      if (mkt > 0 && plan.marketingApproved !== true) {
-        badges.push({
-          id: "mkt_budget",
-          label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
-          variant: "mkt_budget",
-        });
-      }
-      if (mktHelpers.length > 0) {
-        badges.push({
-          id: "mkt_helper",
-          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
-          variant: "mkt_helper",
-        });
-      }
+    }
+
+    if (canUserApproveSPBudget(user) && sp > 0 && plan.salesPromotionApproved !== true) {
+      badges.push({
+        id: "sp_budget",
+        label: `งบส่งเสริมการขาย ${sp.toLocaleString()} บาท`,
+        variant: "sp_budget",
+      });
+    }
+
+    if (canUserApproveSalesHelper(user) && salesHelpers.length > 0) {
+      badges.push({
+        id: "sales_helper",
+        label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
+        variant: "sales_helper",
+      });
+    }
+
+    if (canUserApproveMKTBudget(user) && mkt > 0 && plan.marketingApproved !== true) {
+      badges.push({
+        id: "mkt_budget",
+        label: `งบการตลาด ${mkt.toLocaleString()} บาท`,
+        variant: "mkt_budget",
+      });
+    }
+
+    if (canUserApproveMKTHelper(user) && mktHelpers.length > 0) {
+      badges.push({
+        id: "mkt_helper",
+        label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
+        variant: "mkt_helper",
+      });
     }
 
     return badges;
@@ -589,48 +568,19 @@ export function getPlanActionScopes(
     );
     const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
     const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
-    const otherHelpers = unreviewedHelpers.filter(
-      (h) => !isSalesHelperEmployee(h) && !isMarketingHelperEmployee(h),
-    );
 
-    if (!isAdmin && user) {
-      if (isSalesAdmin && salesHelpers.length > 0) {
-        badges.push({
-          id: "sales_helper",
-          label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
-          variant: "sales_helper",
-        });
-        return badges;
-      }
-      if (isMkt && mktHelpers.length > 0) {
-        badges.push({
-          id: "mkt_helper",
-          label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
-          variant: "mkt_helper",
-        });
-        return badges;
-      }
-    }
-
-    if (salesHelpers.length > 0) {
+    if (canUserApproveSalesHelper(user) && salesHelpers.length > 0) {
       badges.push({
         id: "sales_helper",
         label: `ผู้ช่วยฝ่ายขาย ${salesHelpers.length} คน`,
         variant: "sales_helper",
       });
     }
-    if (mktHelpers.length > 0) {
+    if (canUserApproveMKTHelper(user) && mktHelpers.length > 0) {
       badges.push({
         id: "mkt_helper",
         label: `ผู้ช่วยฝ่ายการตลาด ${mktHelpers.length} คน`,
         variant: "mkt_helper",
-      });
-    }
-    if (otherHelpers.length > 0) {
-      badges.push({
-        id: "helper",
-        label: `ผู้ช่วยงาน ${otherHelpers.length} คน`,
-        variant: "helper",
       });
     }
 

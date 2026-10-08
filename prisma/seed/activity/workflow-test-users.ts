@@ -298,6 +298,12 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
           "menu.activity_plans",
           "activity.view",
           "activity.approve",
+          "activity.approve.sp_budget",
+          "activity.approve.mkt_budget",
+          "activity.approve.total_budget",
+          "activity.approve.product_withdrawal",
+          "activity.approve.sales_helper",
+          "activity.approve.mkt_helper",
           "activity.create",
           "activity.edit",
           "data.activity_plans",
@@ -337,9 +343,9 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     });
   };
 
-  // Approver permissions: menu + view + approve + data (strictly NO create/edit)
-  const approverKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "activity.approve", "data.activity_plans"];
-  for (const key of approverKeys) {
+  // Base approver permissions: menu + view + approve + data (strictly NO create/edit)
+  const baseApproverKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "activity.approve", "data.activity_plans"];
+  for (const key of baseApproverKeys) {
     await setOverride(uSales.id, key);
     await setOverride(uDistrictMgr.id, key);
     await setOverride(uAreaMgr.id, key);
@@ -347,6 +353,18 @@ export async function seedWorkflowTestUsers(prisma: PrismaClient) {
     await setOverride(uMktMgr.id, key);
     await setOverride(uSalesDir.id, key);
   }
+
+  // Sales Admin Manager: SP Budget + Sales Helpers
+  await setOverride(uSalesAdmin.id, "activity.approve.sp_budget");
+  await setOverride(uSalesAdmin.id, "activity.approve.sales_helper");
+
+  // Marketing Manager: MKT Budget + Product Withdrawal + MKT Helpers
+  await setOverride(uMktMgr.id, "activity.approve.mkt_budget");
+  await setOverride(uMktMgr.id, "activity.approve.product_withdrawal");
+  await setOverride(uMktMgr.id, "activity.approve.mkt_helper");
+
+  // Sales Director: Total Budget
+  await setOverride(uSalesDir.id, "activity.approve.total_budget");
 
   // Marketing Staff (Helper): menu + view + data (NO approve, NO create, NO edit)
   const helperKeys = ["menu.test_activity", "menu.activity_plans", "activity.view", "data.activity_plans"];

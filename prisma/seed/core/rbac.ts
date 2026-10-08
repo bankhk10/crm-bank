@@ -841,9 +841,45 @@ const permissionGroups: Record<string, PermissionGroup> = {
       },
       {
         key: "activity.approve",
-        name: "อนุมัติแผนงาน",
+        name: "อนุมัติตามสายงาน",
         resource: "activity_plan",
         action: "approve",
+      },
+      {
+        key: "activity.approve.sp_budget",
+        name: "อนุมัติงบส่งเสริมการขาย",
+        resource: "activity_plan",
+        action: "approve_sp_budget",
+      },
+      {
+        key: "activity.approve.mkt_budget",
+        name: "อนุมัติงบการตลาด",
+        resource: "activity_plan",
+        action: "approve_mkt_budget",
+      },
+      {
+        key: "activity.approve.total_budget",
+        name: "อนุมัติงบประมาณภาพรวม (ผู้จัดการฝ่าย)",
+        resource: "activity_plan",
+        action: "approve_total_budget",
+      },
+      {
+        key: "activity.approve.product_withdrawal",
+        name: "อนุมัติการเบิกสินค้าในแปลงสาธิต",
+        resource: "activity_plan",
+        action: "approve_product_withdrawal",
+      },
+      {
+        key: "activity.approve.sales_helper",
+        name: "อนุมัติพนักงานช่วยงานฝ่ายขาย",
+        resource: "activity_plan",
+        action: "approve_sales_helper",
+      },
+      {
+        key: "activity.approve.mkt_helper",
+        name: "อนุมัติพนักงานช่วยงานฝ่ายการตลาด",
+        resource: "activity_plan",
+        action: "approve_mkt_helper",
       },
       {
         key: "activity.manage",
@@ -1357,6 +1393,13 @@ const marketingManagerConfig: RolePermItem[] = [
   { key: "report.salesperson" },
   { key: "sales_target.view" },
   { key: "sale.view" },
+  { key: "activity.approve" },
+  { key: "activity.approve.mkt_budget" },
+  { key: "activity.approve.product_withdrawal" },
+  { key: "activity.approve.mkt_helper" },
+  { key: "activity.view" },
+  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.activity_plans" },
 ];
 
 // 6. Sales Admin (ธุรการขาย) Permissions - 65 permissions in DB
@@ -1521,6 +1564,12 @@ const salesManagerConfig: RolePermItem[] = [
   { key: "temporary_creditlimit.delete" },
   { key: "temporary_creditlimit.edit" },
   { key: "temporary_creditlimit.view" },
+  { key: "activity.approve" },
+  { key: "activity.approve.sp_budget" },
+  { key: "activity.approve.sales_helper" },
+  { key: "activity.view" },
+  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_ALL },
+  { key: "menu.activity_plans" },
 ];
 
 // 9. Activity Plan User (ผู้ใช้งานแผนงาน) - 7 permissions
@@ -1534,18 +1583,30 @@ const activityPlanUserConfig: RolePermItem[] = [
   { key: "promotional_material.view" },
 ];
 
-// 10. Activity Plan Approver (ผู้อนุมัติแผนงาน) - 5 permissions
+// 10. Activity Plan Approver (ผู้อนุมัติแผนงาน)
 const activityPlanApproverConfig: RolePermItem[] = [
   { key: "activity.approve" },
+  { key: "activity.approve.sp_budget" },
+  { key: "activity.approve.mkt_budget" },
+  { key: "activity.approve.total_budget" },
+  { key: "activity.approve.product_withdrawal" },
+  { key: "activity.approve.sales_helper" },
+  { key: "activity.approve.mkt_helper" },
   { key: "activity.view" },
   { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_TEAM },
   { key: "menu.activity_plans" },
   { key: "promotional_material.view" },
 ];
 
-// 11. Activity Plan Admin (ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย) - 13 permissions
+// 11. Activity Plan Admin (ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย)
 const activityPlanAdminConfig: RolePermItem[] = [
   { key: "activity.approve" },
+  { key: "activity.approve.sp_budget" },
+  { key: "activity.approve.mkt_budget" },
+  { key: "activity.approve.total_budget" },
+  { key: "activity.approve.product_withdrawal" },
+  { key: "activity.approve.sales_helper" },
+  { key: "activity.approve.mkt_helper" },
   { key: "activity.create" },
   { key: "activity.delete" },
   { key: "activity.edit" },

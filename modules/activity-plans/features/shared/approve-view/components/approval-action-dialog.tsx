@@ -82,35 +82,17 @@ export function ApprovalActionDialog({
   const isReject = actionType === "REJECT" && !isPlanPendingCancel;
   const isCorrection = actionType === "REQUEST_CORRECTION";
 
+  const canApproveLine = isAdmin || permissions.includes("activity.approve");
+  const canApproveWithdrawal = isAdmin || permissions.includes("activity.approve.product_withdrawal");
+  const canApproveSP = isAdmin || permissions.includes("activity.approve.sp_budget");
+  const canApproveMKT = isAdmin || permissions.includes("activity.approve.mkt_budget");
+  const canApproveDirector = isAdmin || permissions.includes("activity.approve.total_budget");
+  const canApproveSalesHelper = isAdmin || permissions.includes("activity.approve.sales_helper");
+  const canApproveMktHelper = isAdmin || permissions.includes("activity.approve.mkt_helper");
+
   // Filter helpers that fall under this approver's scope
   const helpersInScope = useMemo(() => {
     if (!plan || !plan.helpers || plan.helpers.length === 0) return [];
-
-    const isCurrentLine =
-      plan.status === "PENDING_LINE_APPROVAL" &&
-      (isAdmin || plan.currentApproverEmployeeId === userEmployeeId);
-
-    const userDept = (session?.user?.departmentCode || "").toUpperCase();
-    const userPos = (session?.user?.positionTitle || "").toLowerCase();
-
-    const isSalesAdmin =
-      isAdmin ||
-      userDept === "SA" ||
-      userPos.includes("บริหารงานขาย") ||
-      userPos.includes("sales admin") ||
-      (isCurrentLine &&
-        (plan.currentApprover?.positionTitle?.includes("บริหารงานขาย") ||
-          plan.currentApprover?.position?.name?.includes("บริหารงานขาย"))) ||
-      plan.currentApprover?.department?.code === "SA";
-
-    const isMkt =
-      isAdmin ||
-      userDept === "MKT" ||
-      userPos.includes("การตลาด") ||
-      userPos.includes("marketing") ||
-      plan.currentApprover?.positionTitle?.includes("การตลาด") ||
-      plan.currentApprover?.position?.name?.includes("การตลาด") ||
-      plan.currentApprover?.department?.code === "MKT";
 
     return plan.helpers.filter((h) => {
       // Only include pending helpers or unreviewed helpers
@@ -139,23 +121,16 @@ export function ApprovalActionDialog({
 
       const isMktHelper = dept === "MKT" || pos.includes("การตลาด");
 
-      if (isSalesAdmin && isSalesHelper) return true;
-      if (isMkt && isMktHelper) return true;
-
-      // Fallback: If in helper approval phase, show helpers under this user
-      if (plan.status === "PENDING_HELPER_APPROVAL") {
-        if (isSalesHelper) return true;
-        if (isMktHelper) return true;
-      }
+      if (isSalesHelper && canApproveSalesHelper) return true;
+      if (isMktHelper && canApproveMktHelper) return true;
 
       return false;
     });
   }, [
     plan,
     isAdmin,
-    userEmployeeId,
-    session?.user?.departmentCode,
-    session?.user?.positionTitle,
+    canApproveSalesHelper,
+    canApproveMktHelper,
   ]);
 
   // Default: Auto-select all helpers in scope when dialog opens
@@ -251,33 +226,6 @@ export function ApprovalActionDialog({
     }
   };
 
-  const userDept = (session?.user?.departmentCode || "").toUpperCase();
-  const userPos = (session?.user?.positionTitle || "").toLowerCase();
-
-  const isSalesAdminApprover =
-    isAdmin ||
-    userDept === "SA" ||
-    userPos.includes("บริหารงานขาย") ||
-    userPos.includes("sales admin") ||
-    plan.currentApprover?.positionTitle?.includes("บริหารงานขาย") ||
-    plan.currentApprover?.position?.name?.includes("บริหารงานขาย") ||
-    plan.currentApprover?.department?.code === "SA";
-
-  const isMktApprover =
-    isAdmin ||
-    userDept === "MKT" ||
-    userPos.includes("การตลาด") ||
-    userPos.includes("marketing") ||
-    plan.currentApprover?.positionTitle?.includes("การตลาด") ||
-    plan.currentApprover?.position?.name?.includes("การตลาด") ||
-    plan.currentApprover?.department?.code === "MKT";
-
-  const isDirectorApprover =
-    isAdmin ||
-    userPos.includes("ผู้จัดการฝ่ายขาย") ||
-    userPos.includes("ผจก.ฝ่ายขาย") ||
-    userPos.includes("sales director");
-
   const hasWithdrawal =
     Boolean(plan.hasProductWithdrawal) ||
     (plan.type7aPlots && plan.type7aPlots.length > 0) ||
@@ -288,25 +236,26 @@ export function ApprovalActionDialog({
   // Responsibilities being approved in this one-shot turn
   const isLineApprover =
     plan.status === "PENDING_LINE_APPROVAL" &&
-    (isAdmin || plan.currentApproverEmployeeId === userEmployeeId);
+    (isAdmin || plan.currentApproverEmployeeId === userEmployeeId) &&
+    canApproveLine;
 
   const isProductWithdrawalApprover =
     hasWithdrawal &&
     plan.productWithdrawalApproved !== true &&
-    (isAdmin || isMktApprover);
+    canApproveWithdrawal;
 
   const hasSP =
     Number(plan.salesPromotionBudgetRequested || 0) > 0 &&
     plan.salesPromotionApproved !== true &&
-    (isAdmin || isSalesAdminApprover);
+    canApproveSP;
 
   const hasMKT =
     Number(plan.marketingBudgetRequested || 0) > 0 &&
     plan.marketingApproved !== true &&
-    (isAdmin || isMktApprover);
+    canApproveMKT;
 
   const isDirectorPending =
-    (isAdmin || isDirectorApprover) &&
+    canApproveDirector &&
     (Number(plan.salesPromotionBudgetRequested || 0) === 0 ||
       plan.salesPromotionApproved === true ||
       hasSP) &&
