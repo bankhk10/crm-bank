@@ -944,42 +944,77 @@ export default function ActivityPlanApprovalListView() {
                             </Link>
                             {canUserApproveThisPlan && (
                               <>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleOpenActionDialog(
-                                      plan,
-                                      "REQUEST_CORRECTION",
-                                    )
-                                  }
-                                  className="h-8 px-2 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
-                                  title="ส่งกลับแก้ไข"
-                                >
-                                  <RotateCcw className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleOpenActionDialog(plan, "REJECT")
-                                  }
-                                  className="h-8 px-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
-                                  title="ปฏิเสธ"
-                                >
-                                  <XCircle className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleOpenActionDialog(plan, "APPROVE")
-                                  }
-                                  className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs rounded-lg font-bold cursor-pointer"
-                                  title="อนุมัติ"
-                                >
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                  อนุมัติ
-                                </Button>
+                                {plan.status === "PENDING_CANCELLATION" ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOpenActionDialog(
+                                          plan,
+                                          "REJECT_CANCEL",
+                                        )
+                                      }
+                                      className="h-8 px-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                                      title="ปฏิเสธคำขอยกเลิก"
+                                    >
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOpenActionDialog(
+                                          plan,
+                                          "APPROVE_CANCEL",
+                                        )
+                                      }
+                                      className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs rounded-lg font-bold cursor-pointer"
+                                      title="อนุมัติการยกเลิก"
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                      อนุมัติการยกเลิก
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOpenActionDialog(
+                                          plan,
+                                          "REQUEST_CORRECTION",
+                                        )
+                                      }
+                                      className="h-8 px-2 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
+                                      title="ส่งกลับแก้ไข"
+                                    >
+                                      <RotateCcw className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOpenActionDialog(plan, "REJECT")
+                                      }
+                                      className="h-8 px-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                                      title="ปฏิเสธ"
+                                    >
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOpenActionDialog(plan, "APPROVE")
+                                      }
+                                      className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 text-xs rounded-lg font-bold cursor-pointer"
+                                      title="อนุมัติ"
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                      อนุมัติ
+                                    </Button>
+                                  </>
+                                )}
                               </>
                             )}
                           </div>
@@ -1482,37 +1517,64 @@ function PlanCard({
 
         {canApprove && (
           <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onAction("REJECT")}
-              className="flex-1 text-[11px] text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 font-semibold cursor-pointer"
-              title="ปฏิเสธแผนงาน"
-            >
-              <XCircle className="h-3.5 w-3.5 mr-1" />
-              ปฏิเสธ
-            </Button>
+            {plan.status === "PENDING_CANCELLATION" ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onAction("REJECT_CANCEL")}
+                  className="flex-1 text-[11px] text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 font-semibold cursor-pointer"
+                  title="ปฏิเสธคำขอยกเลิก"
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                  ปฏิเสธ
+                </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onAction("REQUEST_CORRECTION")}
-              className="flex-1 text-[11px] text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 font-semibold cursor-pointer"
-              title="ส่งกลับให้แก้ไข"
-            >
-              <RotateCcw className="h-3.5 w-3.5 mr-1" />
-              ตีกลับ
-            </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onAction("APPROVE_CANCEL")}
+                  className="flex-[1.3] text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1 rounded-xl h-10 cursor-pointer"
+                  title="อนุมัติการยกเลิก"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  อนุมัติการยกเลิก
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onAction("REJECT")}
+                  className="flex-1 text-[11px] text-red-600 border-red-200 hover:bg-red-50 rounded-xl h-10 font-semibold cursor-pointer"
+                  title="ปฏิเสธแผนงาน"
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                  ปฏิเสธ
+                </Button>
 
-            <Button
-              size="sm"
-              onClick={() => onAction("APPROVE")}
-              className="flex-[1.3] text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1 rounded-xl h-10 cursor-pointer"
-              title="อนุมัติแผนงาน"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              อนุมัติ
-            </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onAction("REQUEST_CORRECTION")}
+                  className="flex-1 text-[11px] text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 font-semibold cursor-pointer"
+                  title="ส่งกลับให้แก้ไข"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                  ตีกลับ
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={() => onAction("APPROVE")}
+                  className="flex-[1.3] text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1 rounded-xl h-10 cursor-pointer"
+                  title="อนุมัติแผนงาน"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  อนุมัติ
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>

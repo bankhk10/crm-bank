@@ -73,11 +73,14 @@ export function ApprovalActionDialog({
 
   const userEmployeeId = session?.user?.employeeId;
 
-  const isApprove = actionType === "APPROVE";
-  const isReject = actionType === "REJECT";
+  const isPlanPendingCancel = plan?.status === "PENDING_CANCELLATION";
+  const isApproveCancel =
+    actionType === "APPROVE_CANCEL" || (isPlanPendingCancel && actionType === "APPROVE");
+  const isRejectCancel =
+    actionType === "REJECT_CANCEL" || (isPlanPendingCancel && actionType === "REJECT");
+  const isApprove = actionType === "APPROVE" && !isPlanPendingCancel;
+  const isReject = actionType === "REJECT" && !isPlanPendingCancel;
   const isCorrection = actionType === "REQUEST_CORRECTION";
-  const isApproveCancel = actionType === "APPROVE_CANCEL";
-  const isRejectCancel = actionType === "REJECT_CANCEL";
 
   // Filter helpers that fall under this approver's scope
   const helpersInScope = useMemo(() => {
@@ -206,7 +209,21 @@ export function ApprovalActionDialog({
 
     try {
       let res;
-      if (isApprove) {
+      // Defensive Guard: Route PENDING_CANCELLATION actions to cancellation server actions
+      if (
+        isApproveCancel ||
+        (plan.status === "PENDING_CANCELLATION" && actionType === "APPROVE")
+      ) {
+        res = await approveCancelActivityPlanAction(
+          plan.id,
+          comment.trim() || undefined,
+        );
+      } else if (
+        isRejectCancel ||
+        (plan.status === "PENDING_CANCELLATION" && actionType === "REJECT")
+      ) {
+        res = await rejectCancelActivityPlanAction(plan.id, comment.trim());
+      } else if (isApprove) {
         res = await approveActivityPlanAction(
           plan.id,
           comment.trim() || undefined,
@@ -216,13 +233,6 @@ export function ApprovalActionDialog({
         res = await rejectActivityPlanAction(plan.id, comment.trim());
       } else if (isCorrection) {
         res = await requestCorrectionPlanAction(plan.id, comment.trim());
-      } else if (isApproveCancel) {
-        res = await approveCancelActivityPlanAction(
-          plan.id,
-          comment.trim() || undefined,
-        );
-      } else if (isRejectCancel) {
-        res = await rejectCancelActivityPlanAction(plan.id, comment.trim());
       }
 
       if (res?.success) {
