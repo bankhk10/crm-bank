@@ -635,7 +635,7 @@ export function DetailType7FollowUp({
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {rProducts.map((p: any, pIdx: number) => (
-                              <tr key={p.productId || pIdx}>
+                              <tr key={p.id ? `${p.id}-${pIdx}` : `prod-${p.productId || "item"}-${pIdx}`}>
                                 <td className="p-2.5 text-center text-slate-800">
                                   {pIdx + 1}
                                 </td>
