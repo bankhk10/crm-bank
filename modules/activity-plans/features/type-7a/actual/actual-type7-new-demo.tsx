@@ -639,7 +639,7 @@ export function ActualType7NewDemo({
 
               <div>
                 <label className="block text-xs font-bold text-amber-950 mb-1">
-                  เบอร์โทรศัพท์ <span className="text-rose-500">*</span>
+                  เบอร์โทรศัพท์
                 </label>
                 <Input
                   type="number"

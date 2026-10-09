@@ -198,7 +198,10 @@ export const type13PlanInputSchema = z.object({
   notes: z.string().optional().nullable(),
   plots: z.array(type13PlotItemSchema).optional().default([]),
   products: z.array(type13WithdrawnProductInputSchema).optional().default([]),
-  withdrawnProducts: z.array(type13WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z
+    .array(type13WithdrawnProductInputSchema)
+    .optional()
+    .default([]),
 });
 
 export const type13SprayProductSchema = z.object({
@@ -269,7 +272,10 @@ export const type14WithdrawnProductInputSchema = z.object({
 });
 
 export const type14PlanInputSchema = z.object({
-  mode: z.enum(["EXISTING_PLOT", "NEW_PLOT"]).optional().default("EXISTING_PLOT"),
+  mode: z
+    .enum(["EXISTING_PLOT", "NEW_PLOT"])
+    .optional()
+    .default("EXISTING_PLOT"),
   selectedPlanId: z.string().optional().nullable(),
   demoPlotId: z.string().optional().nullable(),
   demoPlotIds: z.array(z.string()).optional().default([]),
@@ -285,7 +291,10 @@ export const type14PlanInputSchema = z.object({
   hasProducts: z.boolean().optional(),
   hasProductWithdrawal: z.boolean().optional(),
   products: z.array(type14WithdrawnProductInputSchema).optional().default([]),
-  withdrawnProducts: z.array(type14WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z
+    .array(type14WithdrawnProductInputSchema)
+    .optional()
+    .default([]),
 });
 
 // ── TYPE_7A ("ทำแปลงสาธิตใหม่") Validations ───────────────────────────
@@ -458,7 +467,9 @@ export const activityPlanSchema = z
       };
 
       const hasInvalidActivityType = checkDisallowed(data.activityTypeId);
-      const hasInvalidWorkTypeCodes = (data.workTypeCodes || []).some(checkDisallowed);
+      const hasInvalidWorkTypeCodes = (data.workTypeCodes || []).some(
+        checkDisallowed,
+      );
 
       if (hasInvalidActivityType || hasInvalidWorkTypeCodes) {
         ctx.addIssue({
@@ -584,8 +595,6 @@ export const type7aDemoPlotInputSchema = z
         return (
           typeof data.ownerName === "string" &&
           data.ownerName.trim().length > 0 &&
-          typeof data.ownerPhone === "string" &&
-          data.ownerPhone.trim().length > 0 &&
           typeof data.ownerProvince === "string" &&
           data.ownerProvince.trim().length > 0 &&
           typeof data.ownerDistrict === "string" &&
@@ -595,7 +604,8 @@ export const type7aDemoPlotInputSchema = z
       return true;
     },
     {
-      message: "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อ เบอร์โทรศัพท์ จังหวัด และอำเภอของเกษตรกร",
+      message:
+        "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อ จังหวัด และอำเภอของเกษตรกร",
       path: ["ownerDistrict"],
     },
   )
@@ -963,8 +973,7 @@ export const activityResultSchema = z
         (items) => {
           const type7aPhotos = items.filter(
             (a) =>
-              a.workTypeCode === "TYPE_7A" ||
-              a.workTypeCode === "ทำแปลงสาธิต",
+              a.workTypeCode === "TYPE_7A" || a.workTypeCode === "ทำแปลงสาธิต",
           );
           return type7aPhotos.length <= 10;
         },
@@ -1035,4 +1044,3 @@ export type ActivityPlanFormValues = z.input<typeof activityPlanSchema>;
 export type ActivityApprovalFormValues = z.infer<typeof activityApprovalSchema>;
 export type ActivityActualFormValues = z.infer<typeof actualRecordSchema>;
 export type ActivityResultFormValues = z.infer<typeof activityResultSchema>;
-

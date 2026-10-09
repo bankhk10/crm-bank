@@ -53,9 +53,10 @@ function parseCleanNumber(val: unknown): number | null {
 /**
  * Validates TYPE_7A (ทำแปลงสาธิต) actual results
  */
-export function validateType7aActual(
-  input: Type7aActualValidationInput,
-): { isValid: boolean; error?: string } {
+export function validateType7aActual(input: Type7aActualValidationInput): {
+  isValid: boolean;
+  error?: string;
+} {
   if (input.activityResultStatus !== "COMPLETED") {
     return { isValid: true };
   }
@@ -72,12 +73,6 @@ export function validateType7aActual(
       return {
         isValid: false,
         error: "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง (Work Type 7A)",
-      };
-    }
-    if (!input.t7FarmerPhone?.trim()) {
-      return {
-        isValid: false,
-        error: "กรุณาระบุเบอร์โทรศัพท์เกษตรกรเจ้าของแปลง (Work Type 7A)",
       };
     }
   } else {
@@ -186,7 +181,8 @@ export function validateType7aActual(
     if (!input.t7ExternalProducts || input.t7ExternalProducts.length === 0) {
       return {
         isValid: false,
-        error: "กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก",
+        error:
+          "กรุณาระบุสารเคมีภายนอกอย่างน้อย 1 รายการ หรือยกเลิกการเลือกมียาภายนอก",
       };
     }
     if (input.t7ExternalProducts.length > 4) {
