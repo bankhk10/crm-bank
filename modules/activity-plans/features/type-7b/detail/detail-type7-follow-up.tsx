@@ -351,8 +351,9 @@ export function DetailType7FollowUp({
             </div>
           </div> */}
 
+          {/* ปิดไว้ก่อนเดียวเปิดเอง  */}
           {/* Baseline Demo Products Table */}
-          {demoPlotData.demoProducts &&
+          {/* {demoPlotData.demoProducts &&
             demoPlotData.demoProducts.length > 0 && (
               <div className="pt-2 border-t border-slate-200/80 space-y-2">
                 <span className="text-xs font-bold text-slate-800 block mt-2">
@@ -399,7 +400,7 @@ export function DetailType7FollowUp({
                   </table>
                 </div>
               </div>
-            )}
+            )} */}
 
           {/* Baseline External Chemicals Table */}
           {demoPlotData.externalProducts &&
