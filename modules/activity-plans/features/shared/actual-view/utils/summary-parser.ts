@@ -1088,6 +1088,41 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         } catch {
           // not json
         }
+      } else {
+        const rawExtItems = extStr.split(/,\s*(?=[^,]+?\s*-\s*[^,]+?\[)/);
+        const parsedExt = rawExtItems
+          .map((itemStr) => {
+            const m = itemStr.trim().match(
+              /^(.+?)\s*-\s*(.+?)\s*\[(.+?)\]\s*\((.+?)\)$/,
+            );
+            if (m) {
+              const company = m[1].trim();
+              const productName = m[2].trim();
+              let formula = m[3].trim();
+              let customFormula = "";
+              if (formula.startsWith("อื่นๆ") || formula.includes("(")) {
+                const cfMatch = formula.match(/อื่นๆ\s*\((.+)\)/);
+                if (cfMatch) {
+                  customFormula = cfMatch[1].trim();
+                  formula = "อื่นๆ";
+                }
+              }
+              const applicationRate = m[4].trim();
+              return {
+                company,
+                productName,
+                activeIngredient: "",
+                formula,
+                customFormula,
+                applicationRate,
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+        if (parsedExt.length > 0) {
+          result.t7ExternalProducts = parsedExt;
+        }
       }
     }
     const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);

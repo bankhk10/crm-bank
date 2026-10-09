@@ -562,7 +562,8 @@ export function useType7aActual() {
         if (dp.otherEquipment) setT7OtherEquipment(dp.otherEquipment);
         if (dp.hasExternalChemicals != null)
           setT7HasExternalChemicals(Boolean(dp.hasExternalChemicals));
-        if (dp.externalProducts) setT7ExternalProducts(dp.externalProducts);
+        if (dp.externalProducts && dp.externalProducts.length > 0)
+          setT7ExternalProducts(dp.externalProducts);
         if (dp.demoProducts && dp.demoProducts.length > 0) {
           const matchedPlanIds = new Set<string>();
           setT7DemoProducts(
