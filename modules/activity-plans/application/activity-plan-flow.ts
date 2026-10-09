@@ -58,39 +58,62 @@ async function sendNotificationToEmployee(
 function isSalesAdminManager(employee: any): boolean {
   if (!employee) return false;
   if (isSalesDirector(employee)) return false;
-  const posName = employee.position?.name || employee.positionTitle || "";
-  const level = employee.position?.level ?? 0;
+  const posName = (
+    employee.position?.name ||
+    employee.positionTitle ||
+    employee.roleTitle ||
+    ""
+  ).toLowerCase();
   return (
     posName.includes("ผู้จัดการแผนกบริหารงานขาย") ||
+    posName.includes("ผจก.แผนกบริหารงานขาย") ||
     posName.includes("บริหารงานขาย") ||
     (employee.department?.code === "SA" &&
-      employee.position?.isManagerial &&
-      level === 3 &&
-      !posName.includes("ภาค"))
+      (posName.includes("admin") || posName.includes("sales admin")) &&
+      !posName.includes("ภาค") &&
+      !posName.includes("เขต"))
   );
 }
 
 // Helper to determine if an employee is the Marketing Manager
 function isMarketingManager(employee: any): boolean {
   if (!employee) return false;
-  const posName = employee.position?.name || employee.positionTitle || "";
+  const posName = (
+    employee.position?.name ||
+    employee.positionTitle ||
+    employee.roleTitle ||
+    ""
+  ).toLowerCase();
   return (
     posName.includes("ผู้จัดการแผนกการตลาด") ||
     posName.includes("ผู้จัดการแผนกการตลาด-กิจกรรม") ||
-    posName.includes("ผจก.แผนก MKT") ||
-    (employee.department?.code === "MKT" && employee.position?.isManagerial)
+    posName.includes("ผจก.แผนกการตลาด") ||
+    posName.includes("การตลาด-กิจกรรม") ||
+    posName.includes("ผจก.แผนก mkt") ||
+    (employee.department?.code === "MKT" &&
+      (employee.position?.isManagerial ||
+        posName.includes("ผู้จัดการ") ||
+        posName.includes("ผจก") ||
+        posName.includes("manager")))
   );
 }
 
 // Helper to determine if an employee is the Sales Manager (Director / Overall Budget Approver)
 function isSalesDirector(employee: any): boolean {
   if (!employee) return false;
-  const posName = employee.position?.name || employee.positionTitle || "";
+  const posName = (
+    employee.position?.name ||
+    employee.positionTitle ||
+    employee.roleTitle ||
+    ""
+  ).toLowerCase();
   const level = employee.position?.level ?? 0;
   return (
     posName.includes("ผู้จัดการฝ่ายขาย") ||
     posName.includes("ผจก.ฝ่ายขาย") ||
-    level >= 4
+    posName.includes("sales director") ||
+    posName.includes("ผู้บริหาร") ||
+    level >= 10
   );
 }
 
@@ -401,12 +424,21 @@ async function getSalesAdminManagers(tx: Prisma.TransactionClient) {
     where: {
       deletedAt: null,
       OR: [
-        { position: { name: "ผู้จัดการแผนกบริหารงานขาย" } },
-        { positionTitle: { contains: "ผู้จัดการแผนกบริหารงานขาย" } },
+        { position: { name: { contains: "บริหารงานขาย" } } },
+        { positionTitle: { contains: "บริหารงานขาย" } },
+        { roleTitle: { contains: "บริหารงานขาย" } },
         {
           department: { code: "SA" },
           position: { isManagerial: true, level: { gte: 3 } },
         },
+      ],
+      NOT: [
+        { position: { name: { contains: "ภาค" } } },
+        { positionTitle: { contains: "ภาค" } },
+        { roleTitle: { contains: "ภาค" } },
+        { position: { name: { contains: "เขต" } } },
+        { positionTitle: { contains: "เขต" } },
+        { roleTitle: { contains: "เขต" } },
       ],
     },
     select: { id: true, userId: true },
@@ -422,6 +454,7 @@ async function getMarketingManagers(tx: Prisma.TransactionClient) {
         { position: { name: { contains: "การตลาด-กิจกรรม" } } },
         { positionTitle: { contains: "ผู้จัดการแผนกการตลาด" } },
         { positionTitle: { contains: "การตลาด-กิจกรรม" } },
+        { roleTitle: { contains: "ผู้จัดการแผนกการตลาด" } },
         { department: { code: "MKT" }, position: { isManagerial: true } },
       ],
     },
@@ -434,9 +467,10 @@ async function getSalesDirectors(tx: Prisma.TransactionClient) {
     where: {
       deletedAt: null,
       OR: [
-        { position: { name: "ผู้จัดการฝ่ายขาย" } },
+        { position: { name: { contains: "ผู้จัดการฝ่ายขาย" } } },
         { positionTitle: { contains: "ผู้จัดการฝ่ายขาย" } },
-        { position: { level: { gte: 4 } } },
+        { roleTitle: { contains: "ผู้จัดการฝ่ายขาย" } },
+        { position: { level: { gte: 10 } } },
       ],
     },
     select: { id: true, userId: true },
