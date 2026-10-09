@@ -276,6 +276,49 @@ export function ActualType7NewDemo({
     };
   }, []);
 
+  // Auto-sync missing product IDs when master products list is loaded
+  useEffect(() => {
+    if (
+      !products ||
+      products.length === 0 ||
+      !setDemoProducts ||
+      !demoProducts ||
+      demoProducts.length === 0
+    )
+      return;
+    let hasChanges = false;
+    const updated = demoProducts.map((item) => {
+      if (
+        (!item.productId ||
+          !products.some((p) => p.id === item.productId)) &&
+        item.productName
+      ) {
+        const matched = products.find(
+          (p) =>
+            p.name?.trim().toLowerCase() ===
+            item.productName?.trim().toLowerCase(),
+        );
+        if (matched && matched.id !== item.productId) {
+          hasChanges = true;
+          return {
+            ...item,
+            productId: matched.id,
+            productName: matched.name,
+            unit:
+              item.unit ||
+              matched.unit ||
+              (matched as any).packageSizeUnit ||
+              "",
+          };
+        }
+      }
+      return item;
+    });
+    if (hasChanges) {
+      setDemoProducts(updated);
+    }
+  }, [products, demoProducts, setDemoProducts]);
+
   // District options filtered by selected farmer province
   const farmerDistrictOptions = useMemo(() => {
     if (!farmerProvince) return [];

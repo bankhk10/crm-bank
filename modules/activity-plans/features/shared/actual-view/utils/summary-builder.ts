@@ -385,6 +385,20 @@ export function buildResultSummary(
 
     // Validate TYPE_7A fields if COMPLETED
     if (isType7A && !isType7B) {
+      if (input.t7DemoProducts && input.products && input.products.length > 0) {
+        for (const dp of input.t7DemoProducts) {
+          if (!dp.productId && dp.productName) {
+            const matched = input.products.find(
+              (mp) =>
+                mp.name?.trim().toLowerCase() ===
+                dp.productName?.trim().toLowerCase(),
+            );
+            if (matched) {
+              dp.productId = matched.id;
+            }
+          }
+        }
+      }
       const t7aValidation = validateType7aActual(input);
       if (!t7aValidation.isValid) {
         return {

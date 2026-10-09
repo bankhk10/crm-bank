@@ -136,7 +136,7 @@ export function validateType7aActual(input: Type7aActualValidationInput): {
     };
   }
   for (const p of input.t7DemoProducts) {
-    if (!p.productId) {
+    if (!p.productId && !p.productName) {
       return {
         isValid: false,
         error: "กรุณาเลือกสินค้าสาธิตจากระบบ (Work Type 7A)",
