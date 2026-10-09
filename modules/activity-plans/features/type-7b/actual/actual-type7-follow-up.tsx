@@ -1050,7 +1050,7 @@ export function ActualType7FollowUp({
 
                               <div className="sm:w-1/3 space-y-1">
                                 <label className="text-[11px] font-semibold text-slate-600 block">
-                                  อัตราการใช้รอบนี้ *
+                                  อัตราการใช้รอบนี้
                                 </label>
                                 <Input
                                   value={pr.actualRate}
@@ -1064,7 +1064,6 @@ export function ActualType7FollowUp({
                                   }
                                   placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
                                   className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                  required
                                 />
                               </div>
                             </div>
@@ -1219,7 +1218,7 @@ export function ActualType7FollowUp({
 
                                   <div className="sm:col-span-12 md:col-span-4">
                                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                                      อัตราการใช้รอบนี้ *
+                                      อัตราการใช้รอบนี้
                                     </label>
                                     <Input
                                       value={item.actualRate || ""}
@@ -1233,7 +1232,6 @@ export function ActualType7FollowUp({
                                       }
                                       placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร..."
                                       className="h-9 text-xs bg-white border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                                      required
                                     />
                                   </div>
                                 </div>

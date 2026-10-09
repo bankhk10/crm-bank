@@ -76,12 +76,6 @@ export function validateType7bActual(
             error: `กรุณาเลือกสินค้าเพิ่มเติมในรอบที่ ${sr.roundNumber}`,
           };
         }
-        if (!pr.actualRate || !pr.actualRate.trim()) {
-          return {
-            isValid: false,
-            error: `กรุณาระบุอัตราการฉีดพ่นจริงของ ${pr.productName || "สินค้า"} ในรอบที่ ${sr.roundNumber}`,
-          };
-        }
         if (
           pr.quantityUsed === undefined ||
           pr.quantityUsed === null ||
