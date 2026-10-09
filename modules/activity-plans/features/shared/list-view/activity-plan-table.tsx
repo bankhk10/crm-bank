@@ -458,6 +458,12 @@ export function ActivityPlanTable({
       <div className="flex flex-wrap items-center justify-end gap-3">
         {canCreate ? (
           <>
+            <Link href="/activity-plans/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold shadow-xs">
+                <PlusCircle className="h-4 w-4" />
+                สร้างแผนงานใหม่
+              </Button>
+            </Link>
             <Link
               href="/activity-plans/unplanned/new"
               className="w-full sm:w-auto"
@@ -465,12 +471,6 @@ export function ActivityPlanTable({
               <Button className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2 font-semibold shadow-xs">
                 <PlusCircle className="h-4 w-4" />
                 บันทึกกิจกรรมนอกแผน
-              </Button>
-            </Link>
-            <Link href="/activity-plans/new" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 font-semibold shadow-xs">
-                <PlusCircle className="h-4 w-4" />
-                สร้างแผนงานใหม่
               </Button>
             </Link>
           </>

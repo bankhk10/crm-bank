@@ -20,7 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MultiSelect, type MultiSelectOption } from "@/components/custom/multi-select";
+import {
+  MultiSelect,
+  type MultiSelectOption,
+} from "@/components/custom/multi-select";
 import {
   getActivityCalendarEventsAction,
   getActivityTypesAction,
@@ -69,7 +72,9 @@ export function ActivityCalendarView() {
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [searchKeyword, setSearchKeyword] = useState<string>("");
 
-  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>([]);
+  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>(
+    [],
+  );
   const [personOptions, setPersonOptions] = useState<MultiSelectOption[]>([]);
 
   // Load Work Type & Employee options
@@ -133,15 +138,26 @@ export function ActivityCalendarView() {
       const existingIds = new Set(prev.map((o) => o.value));
       const newOpts: MultiSelectOption[] = [];
       for (const ev of events) {
-        if (ev.employee?.id && ev.employee?.name && !existingIds.has(ev.employee.id)) {
+        if (
+          ev.employee?.id &&
+          ev.employee?.name &&
+          !existingIds.has(ev.employee.id)
+        ) {
           existingIds.add(ev.employee.id);
           newOpts.push({ value: ev.employee.id, label: ev.employee.name });
         }
         if (Array.isArray(ev.attendees)) {
           for (const att of ev.attendees) {
-            if (att.employee?.id && att.employee?.name && !existingIds.has(att.employee.id)) {
+            if (
+              att.employee?.id &&
+              att.employee?.name &&
+              !existingIds.has(att.employee.id)
+            ) {
               existingIds.add(att.employee.id);
-              newOpts.push({ value: att.employee.id, label: att.employee.name });
+              newOpts.push({
+                value: att.employee.id,
+                label: att.employee.name,
+              });
             }
           }
         }
@@ -194,7 +210,8 @@ export function ActivityCalendarView() {
         const isCreator =
           e.attendees?.some(
             (a: any) => a.role === "CREATOR" && a.employeeId === e.employeeId,
-          ) || (currentEmployeeId && e.employeeId === currentEmployeeId);
+          ) ||
+          (currentEmployeeId && e.employeeId === currentEmployeeId);
         if (!isCreator) return false;
       } else if (filter === "HELPER_EVENTS") {
         const isHelper = e.attendees?.some((a: any) => a.role === "HELPER");
@@ -274,15 +291,6 @@ export function ActivityCalendarView() {
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 ปฏิทินกิจกรรม (Activity Calendar)
               </h1>
-              <Badge
-                variant="outline"
-                className="bg-blue-50 text-blue-700 border-blue-200"
-              >
-                {hasActiveFilters
-                  ? `${filteredEvents.length} / ${events.length}`
-                  : events.length}{" "}
-                กิจกรรม
-              </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               ตารางนัดหมายกิจกรรมที่ได้รับอนุมัติแล้ว
@@ -528,7 +536,8 @@ export function ActivityCalendarView() {
                 {/* Event Tags */}
                 <div className="space-y-1 mt-1 flex-1 overflow-hidden">
                   {dayEvents.slice(0, 3).map((ev) => {
-                    const isUnplanned = ev.activityPlan?.planType === "UNPLANNED";
+                    const isUnplanned =
+                      ev.activityPlan?.planType === "UNPLANNED";
                     return (
                       <div
                         key={ev.id}

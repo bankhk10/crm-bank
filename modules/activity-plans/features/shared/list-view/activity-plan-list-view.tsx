@@ -16,7 +16,8 @@ import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { WORK_TYPE_CONFIG } from "../../../constants";
 import type { MultiSelectOption } from "@/components/custom/multi-select";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Copy } from "lucide-react";
+import { CalendarIcon, Copy, RefreshCw, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function ActivityPlanListView() {
@@ -72,7 +73,9 @@ export default function ActivityPlanListView() {
   const [workTypeFilter, setWorkTypeFilter] = useState<string[]>([]);
   const [personFilter, setPersonFilter] = useState<string[]>([]);
 
-  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>([]);
+  const [workTypeOptions, setWorkTypeOptions] = useState<MultiSelectOption[]>(
+    [],
+  );
   const [personOptions, setPersonOptions] = useState<MultiSelectOption[]>([]);
 
   const [deleteCandidate, setDeleteCandidate] =
@@ -157,9 +160,12 @@ export default function ActivityPlanListView() {
         params.set("page", String(page));
         params.set("perPage", String(perPage));
         if (appliedSearch.trim()) params.set("q", appliedSearch.trim());
-        if (statusFilter.length > 0) params.set("status", statusFilter.join(","));
-        if (workTypeFilter.length > 0) params.set("workTypes", workTypeFilter.join(","));
-        if (personFilter.length > 0) params.set("employeeIds", personFilter.join(","));
+        if (statusFilter.length > 0)
+          params.set("status", statusFilter.join(","));
+        if (workTypeFilter.length > 0)
+          params.set("workTypes", workTypeFilter.join(","));
+        if (personFilter.length > 0)
+          params.set("employeeIds", personFilter.join(","));
 
         const res = await fetch(`/api/activity-plans?${params.toString()}`, {
           signal,
@@ -281,16 +287,35 @@ export default function ActivityPlanListView() {
 
   return (
     <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-      <div className="flex items-center justify-center gap-4 relative z-10 pb-8">
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex-shrink-0">
-          <CalendarIcon className="w-8 h-8" />
-        </div>
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-              แผนงาน (Trip Plan)
-            </h1>
+      <div className="flex items-center justify-between gap-3 relative z-10 pb-6 border-b border-slate-100 mb-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+            <CalendarIcon className="w-6 h-6" />
           </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                แผนงาน (Trip Plan)
+              </h1>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
+              จัดการและติดตามแผนการปฏิบัติงาน
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="rounded-xl h-9 w-9 md:h-10 md:w-10 border-slate-200 cursor-pointer text-slate-600 hover:text-slate-900"
+            title="รีเฟรชข้อมูล"
+            aria-label="รีเฟรชข้อมูล"
+          >
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          </Button>
         </div>
       </div>
 
@@ -361,19 +386,25 @@ export default function ActivityPlanListView() {
               <div className="flex justify-between">
                 <span className="text-slate-500">เลขที่แผนเดิม:</span>
                 <span className="font-mono font-bold text-blue-600">
-                  {(duplicateCandidate as any).code || duplicateCandidate.id.slice(0, 8)}
+                  {(duplicateCandidate as any).code ||
+                    duplicateCandidate.id.slice(0, 8)}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
                 <span className="text-slate-500 shrink-0">ชื่อกิจกรรม:</span>
-                <span className="font-semibold text-slate-800 truncate" title={duplicateCandidate.title}>
+                <span
+                  className="font-semibold text-slate-800 truncate"
+                  title={duplicateCandidate.title}
+                >
                   {duplicateCandidate.title}
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              ระบบจะสร้างแผนงานใหม่ในสถานะ <strong>แบบร่าง (Draft)</strong> โดยคัดลอกข้อมูลทั้งหมดจากแผนงานนี้ (ยกเว้นผลการปฏิบัติงานและประวัติการอนุมัติ)
+              ระบบจะสร้างแผนงานใหม่ในสถานะ <strong>แบบร่าง (Draft)</strong>{" "}
+              โดยคัดลอกข้อมูลทั้งหมดจากแผนงานนี้
+              (ยกเว้นผลการปฏิบัติงานและประวัติการอนุมัติ)
             </p>
 
             <div className="pt-2 flex justify-end gap-2.5">
@@ -428,6 +459,7 @@ export default function ActivityPlanListView() {
         onDuplicate={handleDuplicateRequest}
         onSubmitApproval={handleSubmitApproval}
         submitLoadingId={submitLoadingId}
+        onRefresh={() => fetchData()}
       />
     </div>
   );
