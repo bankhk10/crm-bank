@@ -37,7 +37,6 @@ import type { DetailType7FollowUpProps } from "../actual/types";
 
 export type { DetailType7FollowUpProps };
 
-
 export function DetailType7FollowUp({
   target,
   plotName,
@@ -189,7 +188,8 @@ export function DetailType7FollowUp({
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (
         <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+          {/* ปิดไว้ก่อนเดียวเปิดเอง  */}
+          {/* <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
               <h3 className="text-sm font-bold text-slate-800">
@@ -349,7 +349,7 @@ export function DetailType7FollowUp({
                   : "-"}
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Baseline Demo Products Table */}
           {demoPlotData.demoProducts &&
@@ -503,7 +503,8 @@ export function DetailType7FollowUp({
                   visitDate ||
                   startDate ||
                   (demoPlotData?.visits && demoPlotData.visits.length > 0
-                    ? demoPlotData.visits[demoPlotData.visits.length - 1]?.visitDate
+                    ? demoPlotData.visits[demoPlotData.visits.length - 1]
+                        ?.visitDate
                     : null),
               )}
             </span>
@@ -642,14 +643,23 @@ export function DetailType7FollowUp({
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {rProducts.map((p: any, pIdx: number) => (
-                              <tr key={p.id ? `${p.id}-${pIdx}` : `prod-${p.productId || "item"}-${pIdx}`}>
+                              <tr
+                                key={
+                                  p.id
+                                    ? `${p.id}-${pIdx}`
+                                    : `prod-${p.productId || "item"}-${pIdx}`
+                                }
+                              >
                                 <td className="p-2.5 text-center text-slate-800">
                                   {pIdx + 1}
                                 </td>
                                 <td className="p-2.5 font-bold text-slate-900">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span>{p.productName || p.product?.name || "-"}</span>
-                                    {(p.isAdditional || p.detail === "ADDITIONAL") && (
+                                    <span>
+                                      {p.productName || p.product?.name || "-"}
+                                    </span>
+                                    {(p.isAdditional ||
+                                      p.detail === "ADDITIONAL") && (
                                       <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                                         สินค้าเพิ่มเติม
                                       </span>

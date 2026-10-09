@@ -65,7 +65,6 @@ import type {
 
 export type { DemoPlotVisitHistoryItem, ActualType7FollowUpProps };
 
-
 export function ActualType7FollowUp({
   planType,
   target,
@@ -532,7 +531,8 @@ export function ActualType7FollowUp({
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (
         <div className="bg-green-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 text-xs shadow-2xs">
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+          {/* ปิดไว้ก่อนเดียวเปิดเอง */}
+          {/* <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-700" />
               <h3 className="text-sm font-bold text-slate-800">
@@ -691,7 +691,7 @@ export function ActualType7FollowUp({
                   : "-"}
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Baseline Demo Products Table */}
           {demoPlotData.demoProducts &&
@@ -976,7 +976,8 @@ export function ActualType7FollowUp({
                       <div>
                         <h5 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                           <span>
-                            1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products)
+                            1.1 รายการสินค้าตามแผนงาน (Planned Baseline
+                            Products)
                           </span>
                           <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/60 px-2 py-0.5 rounded-full border border-emerald-300">
                             {
@@ -1336,154 +1337,159 @@ export function ActualType7FollowUp({
 
                       {round.hasExternalChemicals && (
                         <div className="space-y-2.5">
-                          {(round.externalProducts || []).map((ep: any, eIdx: number) => (
-                            <div
-                              key={eIdx}
-                              className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
-                            >
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                                <span className="text-xs font-bold text-slate-800">
-                                  สารเคมีภายนอก #{eIdx + 1}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveRoundExternalProduct(rIdx, eIdx)
-                                  }
-                                  className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  ลบ
-                                </button>
-                              </div>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    บริษัท *
-                                  </label>
-                                  <Input
-                                    value={ep.company}
-                                    onChange={(e) =>
-                                      handleUpdateRoundExternalProduct(
+                          {(round.externalProducts || []).map(
+                            (ep: any, eIdx: number) => (
+                              <div
+                                key={eIdx}
+                                className="p-3 bg-white border border-amber-200 rounded-xl space-y-2 shadow-2xs"
+                              >
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                  <span className="text-xs font-bold text-slate-800">
+                                    สารเคมีภายนอก #{eIdx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveRoundExternalProduct(
                                         rIdx,
                                         eIdx,
-                                        "company",
-                                        e.target.value,
                                       )
                                     }
-                                    placeholder="เช่น บริษัท ไบเออร์..."
-                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    ชื่อสินค้า *
-                                  </label>
-                                  <Input
-                                    value={ep.productName}
-                                    onChange={(e) =>
-                                      handleUpdateRoundExternalProduct(
-                                        rIdx,
-                                        eIdx,
-                                        "productName",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="เช่น คอนฟิดอร์..."
-                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    สารออกฤทธิ์
-                                  </label>
-                                  <Input
-                                    value={ep.activeIngredient || ""}
-                                    onChange={(e) =>
-                                      handleUpdateRoundExternalProduct(
-                                        rIdx,
-                                        eIdx,
-                                        "activeIngredient",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="เช่น อิมิดาโคลพริด..."
-                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    สูตร *
-                                  </label>
-                                  <Select
-                                    value={ep.formula}
-                                    onValueChange={(val) =>
-                                      handleUpdateRoundExternalProduct(
-                                        rIdx,
-                                        eIdx,
-                                        "formula",
-                                        val,
-                                      )
-                                    }
+                                    className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 transition-colors"
                                   >
-                                    <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
-                                      <SelectValue placeholder="เลือกสูตรยา..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {EXTERNAL_CHEMICAL_FORMULAS.map((f) => (
-                                        <SelectItem key={f} value={f}>
-                                          {f}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                    <Trash2 className="w-3 h-3" />
+                                    ลบ
+                                  </button>
                                 </div>
-                                {ep.formula === "อื่นๆ" && (
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                                   <div>
                                     <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                      ระบุสูตรยา *
+                                      บริษัท *
                                     </label>
                                     <Input
-                                      value={ep.customFormula || ""}
+                                      value={ep.company}
                                       onChange={(e) =>
                                         handleUpdateRoundExternalProduct(
                                           rIdx,
                                           eIdx,
-                                          "customFormula",
+                                          "company",
                                           e.target.value,
                                         )
                                       }
-                                      placeholder="ระบุสูตรยา..."
+                                      placeholder="เช่น บริษัท ไบเออร์..."
                                       className="h-8 text-xs bg-white border-slate-200 rounded-lg"
                                       required
                                     />
                                   </div>
-                                )}
-                                <div>
-                                  <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                                    อัตราการใช้ *
-                                  </label>
-                                  <Input
-                                    value={ep.applicationRate}
-                                    onChange={(e) =>
-                                      handleUpdateRoundExternalProduct(
-                                        rIdx,
-                                        eIdx,
-                                        "applicationRate",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
-                                    className="h-8 text-xs bg-white border-slate-200 rounded-lg"
-                                    required
-                                  />
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                      ชื่อสินค้า *
+                                    </label>
+                                    <Input
+                                      value={ep.productName}
+                                      onChange={(e) =>
+                                        handleUpdateRoundExternalProduct(
+                                          rIdx,
+                                          eIdx,
+                                          "productName",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="เช่น คอนฟิดอร์..."
+                                      className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                      สารออกฤทธิ์
+                                    </label>
+                                    <Input
+                                      value={ep.activeIngredient || ""}
+                                      onChange={(e) =>
+                                        handleUpdateRoundExternalProduct(
+                                          rIdx,
+                                          eIdx,
+                                          "activeIngredient",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="เช่น อิมิดาโคลพริด..."
+                                      className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                      สูตร *
+                                    </label>
+                                    <Select
+                                      value={ep.formula}
+                                      onValueChange={(val) =>
+                                        handleUpdateRoundExternalProduct(
+                                          rIdx,
+                                          eIdx,
+                                          "formula",
+                                          val,
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger className="!h-8 text-xs bg-white border-slate-200 rounded-lg w-full">
+                                        <SelectValue placeholder="เลือกสูตรยา..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {EXTERNAL_CHEMICAL_FORMULAS.map((f) => (
+                                          <SelectItem key={f} value={f}>
+                                            {f}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  {ep.formula === "อื่นๆ" && (
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                        ระบุสูตรยา *
+                                      </label>
+                                      <Input
+                                        value={ep.customFormula || ""}
+                                        onChange={(e) =>
+                                          handleUpdateRoundExternalProduct(
+                                            rIdx,
+                                            eIdx,
+                                            "customFormula",
+                                            e.target.value,
+                                          )
+                                        }
+                                        placeholder="ระบุสูตรยา..."
+                                        className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                        required
+                                      />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                                      อัตราการใช้ *
+                                    </label>
+                                    <Input
+                                      value={ep.applicationRate}
+                                      onChange={(e) =>
+                                        handleUpdateRoundExternalProduct(
+                                          rIdx,
+                                          eIdx,
+                                          "applicationRate",
+                                          e.target.value,
+                                        )
+                                      }
+                                      placeholder="เช่น 10 ซีซี / น้ำ 20 ลิตร"
+                                      className="h-8 text-xs bg-white border-slate-200 rounded-lg"
+                                      required
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ),
+                          )}
                         </div>
                       )}
                     </div>
