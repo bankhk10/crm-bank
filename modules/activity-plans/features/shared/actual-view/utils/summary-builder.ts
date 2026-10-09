@@ -637,7 +637,12 @@ export function buildResultSummary(
           input.t7HasExternalChemicals &&
           input.t7ExternalProducts &&
           input.t7ExternalProducts.length > 0
-            ? `ยาภายนอก: ${input.t7ExternalProducts.map((ep) => `${ep.company} - ${ep.productName} [${ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula}] (${ep.applicationRate})`).join(", ")}`
+            ? `ยาภายนอก: ${input.t7ExternalProducts
+                .map(
+                  (ep) =>
+                    `${ep.company} - ${ep.productName}${ep.activeIngredient?.trim() ? ` {${ep.activeIngredient.trim()}}` : ""} [${ep.formula === "อื่นๆ" ? ep.customFormula || "อื่นๆ" : ep.formula}] (${ep.applicationRate})`,
+                )
+                .join(", ")}`
             : null,
           input.t7Irrigations && input.t7Irrigations.length > 0
             ? `ระบบน้ำ: ${input.t7Irrigations.join(", ")}`

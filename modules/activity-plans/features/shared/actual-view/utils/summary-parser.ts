@@ -1093,12 +1093,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         const parsedExt = rawExtItems
           .map((itemStr) => {
             const m = itemStr.trim().match(
-              /^(.+?)\s*-\s*(.+?)\s*\[(.+?)\]\s*\((.+?)\)$/,
+              /^(.+?)\s*-\s*(.+?)(?:\s*\{([^}]+)\})?\s*\[(.+?)\]\s*\((.+?)\)$/,
             );
             if (m) {
               const company = m[1].trim();
               const productName = m[2].trim();
-              let formula = m[3].trim();
+              const activeIngredient = m[3]?.trim() || "";
+              let formula = m[4].trim();
               let customFormula = "";
               if (formula.startsWith("อื่นๆ") || formula.includes("(")) {
                 const cfMatch = formula.match(/อื่นๆ\s*\((.+)\)/);
@@ -1107,11 +1108,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
                   formula = "อื่นๆ";
                 }
               }
-              const applicationRate = m[4].trim();
+              const applicationRate = m[5].trim();
               return {
                 company,
                 productName,
-                activeIngredient: "",
+                activeIngredient,
                 formula,
                 customFormula,
                 applicationRate,
