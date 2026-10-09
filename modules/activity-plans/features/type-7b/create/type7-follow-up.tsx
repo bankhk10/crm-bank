@@ -61,14 +61,63 @@ export function Type7FollowUp({
     return [];
   }, [item.selectedPlotIds, item.existingPlotId, item.demoPlotId]);
 
+  const isPlaceholderOwner = (owner?: string | null) =>
+    !owner ||
+    owner.trim() === "" ||
+    owner.includes("ชื่อ - สกุล") ||
+    owner.includes("ชื่อ-สกุล");
+
   // Plan Combobox Options
   const planOptions = useMemo(() => {
-    return followUpPlans.map((plan) => ({
-      value: plan.planId,
-      label: `[${plan.planCode || "แผน"}] ${plan.planTitle}${plan.planDate ? ` (${plan.planDate})` : ""}`,
-      subLabel: `${plan.plots.length} แปลงสาธิต: ${plan.plots.map((p) => p.name).join(", ")}`,
-    }));
+    return followUpPlans.map((plan) => {
+      const sorted = [...(plan.plots || [])].sort((a, b) => {
+        const aPl = isPlaceholderOwner(a.ownerName);
+        const bPl = isPlaceholderOwner(b.ownerName);
+        if (aPl && !bPl) return 1;
+        if (!aPl && bPl) return -1;
+        return (b.code || b.id).localeCompare(a.code || a.id);
+      });
+      const seenNames = new Set<string>();
+      const seenIds = new Set<string>();
+      const uniquePlots = sorted.filter((p) => {
+        const nameKey = (p.name || "").trim().toLowerCase();
+        if (seenIds.has(p.id) || (nameKey && seenNames.has(nameKey))) {
+          return false;
+        }
+        seenIds.add(p.id);
+        if (nameKey) seenNames.add(nameKey);
+        return true;
+      });
+      return {
+        value: plan.planId,
+        label: `[${plan.planCode || "แผน"}] ${plan.planTitle}${plan.planDate ? ` (${plan.planDate})` : ""}`,
+        subLabel: `${uniquePlots.length} แปลงสาธิต: ${uniquePlots.map((p) => p.name).join(", ")}`,
+      };
+    });
   }, [followUpPlans]);
+
+  // Deduplicated plots from selectedPlan
+  const planPlots = useMemo(() => {
+    if (!selectedPlan?.plots) return [];
+    const sorted = [...selectedPlan.plots].sort((a, b) => {
+      const aPl = isPlaceholderOwner(a.ownerName);
+      const bPl = isPlaceholderOwner(b.ownerName);
+      if (aPl && !bPl) return 1;
+      if (!aPl && bPl) return -1;
+      return (b.code || b.id).localeCompare(a.code || a.id);
+    });
+    const seenNames = new Set<string>();
+    const seenIds = new Set<string>();
+    return sorted.filter((p) => {
+      const nameKey = (p.name || "").trim().toLowerCase();
+      if (seenIds.has(p.id) || (nameKey && seenNames.has(nameKey))) {
+        return false;
+      }
+      seenIds.add(p.id);
+      if (nameKey) seenNames.add(nameKey);
+      return true;
+    });
+  }, [selectedPlan]);
 
   // Sync plot details helper
   const syncPlotData = (firstPlotId: string, allPlotIds: string[]) => {
@@ -77,7 +126,7 @@ export function Type7FollowUp({
     updateType7Row(item.id, "existingPlotId", firstPlotId || "");
 
     const matchedPlot =
-      selectedPlan?.plots.find((p) => p.id === firstPlotId) ||
+      planPlots.find((p) => p.id === firstPlotId) ||
       plotList.find((p) => p.id === firstPlotId);
 
     if (matchedPlot) {
@@ -104,14 +153,23 @@ export function Type7FollowUp({
   const handlePlanChange = (planId: string) => {
     updateType7Row(item.id, "selectedPlanId", planId);
     const targetPlan = followUpPlans.find((p) => p.planId === planId);
-    if (!targetPlan || targetPlan.plots.length === 0) {
+    if (!targetPlan || !targetPlan.plots || targetPlan.plots.length === 0) {
       syncPlotData("", []);
       return;
     }
 
-    if (targetPlan.plots.length === 1) {
+    const seen = new Set<string>();
+    const uniquePlots = targetPlan.plots.filter((p) => {
+      const key = `${p.id}::${p.name?.trim().toLowerCase()}`;
+      if (seen.has(p.id) || seen.has(key)) return false;
+      seen.add(p.id);
+      seen.add(key);
+      return true;
+    });
+
+    if (uniquePlots.length === 1) {
       // Auto-select single plot
-      const singlePlot = targetPlan.plots[0];
+      const singlePlot = uniquePlots[0];
       syncPlotData(singlePlot.id, [singlePlot.id]);
     } else {
       // Multiple plots: reset selection or let user select
@@ -132,8 +190,8 @@ export function Type7FollowUp({
 
   // Select all plots in current plan
   const handleSelectAllPlots = () => {
-    if (!selectedPlan) return;
-    const allIds = selectedPlan.plots.map((p) => p.id);
+    if (planPlots.length === 0) return;
+    const allIds = planPlots.map((p) => p.id);
     syncPlotData(allIds[0] || "", allIds);
   };
 
@@ -247,7 +305,7 @@ export function Type7FollowUp({
         </div>
 
         {/* 2. รายการแปลงย่อยในแผน (Multi-Select Checkbox List) */}
-        {selectedPlan && selectedPlan.plots.length > 0 && (
+        {selectedPlan && planPlots.length > 0 && (
           <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 space-y-3 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
               <div className="flex items-center gap-2">
@@ -257,11 +315,11 @@ export function Type7FollowUp({
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
                   เลือกแล้ว {selectedPlotIds.length} /{" "}
-                  {selectedPlan.plots.length} แปลง
+                  {planPlots.length} แปลง
                 </span>
               </div>
 
-              {!readonly && selectedPlan.plots.length > 1 && (
+              {!readonly && planPlots.length > 1 && (
                 <div className="flex items-center gap-1.5">
                   <Button
                     type="button"
@@ -296,7 +354,7 @@ export function Type7FollowUp({
 
             {/* Plots Checkbox Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-              {selectedPlan.plots.map((plot) => {
+              {planPlots.map((plot) => {
                 const isSelected = selectedPlotIds.includes(plot.id);
                 return (
                   <label

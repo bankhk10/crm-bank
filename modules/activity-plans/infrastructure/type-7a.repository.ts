@@ -225,47 +225,87 @@ export async function syncType7aPlots(
       let demoPlotId = plotItem.demoPlotId || null;
 
       if (!demoPlotId) {
-        const code = await generateDemoPlotCode(
-          tx,
-          startDate ? new Date(startDate) : new Date(),
-          i,
-        );
-        const demoPlot = await tx.demoPlot.create({
-          data: {
-            code,
-            name: plotItem.plotName || plotItem.name || "แปลงสาธิต",
-            ownerName: plotItem.ownerName || plotItem.farmerName || "",
-            customerId: plotItem.storeId || null,
-            employeeId,
-            province: plotItem.province || null,
-            district: plotItem.district || null,
-            cropCategory: plotItem.cropCategory || "พืชทั่วไป",
-            cropName: plotItem.cropName || "พืชทั่วไป",
-            customCropName: plotItem.customCropName || null,
-            areaRai:
-              plotItem.areaRai != null
-                ? new Prisma.Decimal(plotItem.areaRai)
-                : null,
-            treeCount: plotItem.treeCount || null,
-            plantingDate: plotItem.plantingDate
-              ? new Date(plotItem.plantingDate)
-              : null,
-            initialSprayDate: plotItem.initialSprayDate
-              ? new Date(plotItem.initialSprayDate)
-              : null,
-            nextSprayDate: plotItem.nextSprayDate
-              ? new Date(plotItem.nextSprayDate)
-              : null,
-            objective: plotItem.objective || null,
-            notes: plotItem.notes || null,
-            latitude: parseDecimalCoord(plotItem.latitude),
-            longitude: parseDecimalCoord(plotItem.longitude),
-            plotType: "GENERAL_DEMO",
-            startDate,
-            status: DemoPlotStatus.IN_PROGRESS,
+        const existingPlot = await tx.demoPlot.findFirst({
+          where: {
+            visits: { some: { activityPlanId: planId } },
+            deletedAt: null,
           },
         });
-        demoPlotId = demoPlot.id;
+
+        if (existingPlot) {
+          demoPlotId = existingPlot.id;
+          await tx.demoPlot.update({
+            where: { id: demoPlotId },
+            data: {
+              name: plotItem.plotName || plotItem.name || existingPlot.name,
+              ownerName: plotItem.ownerName || plotItem.farmerName || existingPlot.ownerName,
+              customerId: plotItem.storeId || existingPlot.customerId,
+              province: plotItem.province || existingPlot.province,
+              district: plotItem.district || existingPlot.district,
+              cropCategory: plotItem.cropCategory || existingPlot.cropCategory,
+              cropName: plotItem.cropName || existingPlot.cropName,
+              customCropName: plotItem.customCropName || existingPlot.customCropName,
+              areaRai:
+                plotItem.areaRai != null
+                  ? new Prisma.Decimal(plotItem.areaRai)
+                  : existingPlot.areaRai,
+              treeCount: plotItem.treeCount ?? existingPlot.treeCount,
+              plantingDate: plotItem.plantingDate
+                ? new Date(plotItem.plantingDate)
+                : existingPlot.plantingDate,
+              initialSprayDate: plotItem.initialSprayDate
+                ? new Date(plotItem.initialSprayDate)
+                : existingPlot.initialSprayDate,
+              nextSprayDate: plotItem.nextSprayDate
+                ? new Date(plotItem.nextSprayDate)
+                : existingPlot.nextSprayDate,
+              objective: plotItem.objective || existingPlot.objective,
+              notes: plotItem.notes || existingPlot.notes,
+            },
+          });
+        } else {
+          const code = await generateDemoPlotCode(
+            tx,
+            startDate ? new Date(startDate) : new Date(),
+            i,
+          );
+          const demoPlot = await tx.demoPlot.create({
+            data: {
+              code,
+              name: plotItem.plotName || plotItem.name || "แปลงสาธิต",
+              ownerName: plotItem.ownerName || plotItem.farmerName || "",
+              customerId: plotItem.storeId || null,
+              employeeId,
+              province: plotItem.province || null,
+              district: plotItem.district || null,
+              cropCategory: plotItem.cropCategory || "พืชทั่วไป",
+              cropName: plotItem.cropName || "พืชทั่วไป",
+              customCropName: plotItem.customCropName || null,
+              areaRai:
+                plotItem.areaRai != null
+                  ? new Prisma.Decimal(plotItem.areaRai)
+                  : null,
+              treeCount: plotItem.treeCount || null,
+              plantingDate: plotItem.plantingDate
+                ? new Date(plotItem.plantingDate)
+                : null,
+              initialSprayDate: plotItem.initialSprayDate
+                ? new Date(plotItem.initialSprayDate)
+                : null,
+              nextSprayDate: plotItem.nextSprayDate
+                ? new Date(plotItem.nextSprayDate)
+                : null,
+              objective: plotItem.objective || null,
+              notes: plotItem.notes || null,
+              latitude: parseDecimalCoord(plotItem.latitude),
+              longitude: parseDecimalCoord(plotItem.longitude),
+              plotType: "GENERAL_DEMO",
+              startDate,
+              status: DemoPlotStatus.IN_PROGRESS,
+            },
+          });
+          demoPlotId = demoPlot.id;
+        }
       }
 
       const t7a = await tx.activityPlanType7a.create({

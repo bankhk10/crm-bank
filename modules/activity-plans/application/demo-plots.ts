@@ -225,24 +225,51 @@ export async function getFollowUpPlansWithPlotsUseCase() {
           })
         : "";
 
-      const plots: FollowUpPlotItem[] = plan.demoPlotVisits
-        .filter((v) => v.demoPlot)
-        .map((v) => {
-          const p = v.demoPlot;
-          return {
-            id: p.id,
-            code: p.code || "",
-            name: p.name,
-            cropName: p.customCropName || p.cropName || "",
-            cropCategory: p.cropCategory || undefined,
-            ownerName: p.ownerName || "",
-            province: p.province || plan.province || "",
-            district: p.district || plan.district || "",
-            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
-            treeCount: p.treeCount ?? undefined,
-            dealerName: p.customer?.name || undefined,
-          };
+      const isPlaceholderOwner = (owner?: string | null) =>
+        !owner ||
+        owner.trim() === "" ||
+        owner.includes("ชื่อ - สกุล") ||
+        owner.includes("ชื่อ-สกุล");
+
+      const rawPlots = plan.demoPlotVisits
+        .map((v) => v.demoPlot)
+        .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+      // Sort: prioritize plots with real ownerName, then by newest code/ID
+      rawPlots.sort((a, b) => {
+        const aPl = isPlaceholderOwner(a.ownerName);
+        const bPl = isPlaceholderOwner(b.ownerName);
+        if (aPl && !bPl) return 1;
+        if (!aPl && bPl) return -1;
+        return (b.code || b.id).localeCompare(a.code || a.id);
+      });
+
+      const seenIds = new Set<string>();
+      const seenNames = new Set<string>();
+      const plots: FollowUpPlotItem[] = [];
+
+      for (const p of rawPlots) {
+        const nameKey = (p.name || "").trim().toLowerCase();
+        if (seenIds.has(p.id) || (nameKey && seenNames.has(nameKey))) {
+          continue;
+        }
+        seenIds.add(p.id);
+        if (nameKey) seenNames.add(nameKey);
+
+        plots.push({
+          id: p.id,
+          code: p.code || "",
+          name: p.name,
+          cropName: p.customCropName || p.cropName || "",
+          cropCategory: p.cropCategory || undefined,
+          ownerName: p.ownerName || "",
+          province: p.province || plan.province || "",
+          district: p.district || plan.district || "",
+          areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+          treeCount: p.treeCount ?? undefined,
+          dealerName: p.customer?.name || undefined,
         });
+      }
 
       return {
         planId: plan.id,
@@ -312,25 +339,58 @@ export async function getHattackFollowUpPlansWithPlotsUseCase() {
         planStore?.district ||
         "";
 
-      const plots: FollowUpPlotItem[] = plan.demoPlotVisits
-        .filter((v) => v.demoPlot)
-        .map((v) => {
-          const p = v.demoPlot;
-          return {
-            id: p.id,
-            code: p.code || "",
-            name: p.name,
-            cropName: p.customCropName || p.cropName || "",
-            cropCategory: p.cropCategory || undefined,
-            ownerName: p.farmerCustomer?.name || p.ownerName || "",
-            province: p.province || fallbackProvince,
-            district: p.district || fallbackDistrict,
-            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
-            treeCount: p.treeCount ?? undefined,
-            dealerName: p.customer?.name || fallbackDealerName,
-            dealerId: p.customer?.id || p.customerId || fallbackDealerId,
-          };
+      const isPlaceholderOwner = (owner?: string | null) =>
+        !owner ||
+        owner.trim() === "" ||
+        owner.includes("ชื่อ - สกุล") ||
+        owner.includes("ชื่อ-สกุล");
+
+      const rawPlots = plan.demoPlotVisits
+        .map((v) => v.demoPlot)
+        .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+      rawPlots.sort((a, b) => {
+        const aOwner = a.farmerCustomer?.name || a.ownerName;
+        const bOwner = b.farmerCustomer?.name || b.ownerName;
+        const aPl = isPlaceholderOwner(aOwner);
+        const bPl = isPlaceholderOwner(bOwner);
+        if (aPl && !bPl) return 1;
+        if (!aPl && bPl) return -1;
+        return (b.code || b.id).localeCompare(a.code || a.id);
+      });
+
+      const seenIds = new Set<string>();
+      const seenNames = new Set<string>();
+      const plots: FollowUpPlotItem[] = [];
+
+      for (const p of rawPlots) {
+        const nameKey = (p.name || "").trim().toLowerCase();
+        if (seenIds.has(p.id) || (nameKey && seenNames.has(nameKey))) {
+          continue;
+        }
+        seenIds.add(p.id);
+        if (nameKey) seenNames.add(nameKey);
+
+        const dealerName =
+          p.customer?.name ||
+          fallbackDealerName ||
+          undefined;
+
+        plots.push({
+          id: p.id,
+          code: p.code || "",
+          name: p.name,
+          cropName: p.customCropName || p.cropName || "",
+          cropCategory: p.cropCategory || undefined,
+          ownerName: p.farmerCustomer?.name || p.ownerName || "",
+          province: p.province || fallbackProvince,
+          district: p.district || fallbackDistrict,
+          areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+          treeCount: p.treeCount ?? undefined,
+          dealerName: p.customer?.name || fallbackDealerName,
+          dealerId: p.customer?.id || p.customerId || fallbackDealerId,
         });
+      }
 
       return {
         planId: plan.id,

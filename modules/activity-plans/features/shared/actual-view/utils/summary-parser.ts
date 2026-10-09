@@ -1091,7 +1091,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       } else {
         const rawExtItems = extStr.split(/,\s*(?=[^,]+?\s*-\s*[^,]+?\[)/);
         const parsedExt = rawExtItems
-          .map((itemStr) => {
+          .map((itemStr: string) => {
             const m = itemStr.trim().match(
               /^(.+?)\s*-\s*(.+?)(?:\s*\{([^}]+)\})?\s*\[(.+?)\]\s*\((.+?)\)$/,
             );
@@ -1255,7 +1255,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       const prodLine = demoProductsMatch[1].split("\n")[0].trim();
       const rawItems = prodLine.split(/,\s*(?=[^,()]+\s*\(เบิก:)/);
       const parsedItems = rawItems
-        .map((itemStr, idx) => {
+        .map((itemStr: string, idx: number) => {
           const itemMatch = itemStr.trim().match(
             /^(.+?)\s*\(\s*เบิก:\s*([^,]+),\s*ใช้จริง:\s*([0-9.]+)(?:\s+([^,]+?))?(?:,\s*คงเหลือ:\s*([0-9.]+))?\)(?:\s*อัตราใช้:\s*(.*))?$/
           );

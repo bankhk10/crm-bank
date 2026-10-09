@@ -69,6 +69,7 @@ interface ActivityPlanTableProps {
   onSubmitApproval: (item: ActivityPlanWithRelations) => void;
   onDuplicate?: (item: ActivityPlanWithRelations) => void;
   submitLoadingId: string | null;
+  onRefresh?: () => void;
 }
 
 export { STATUS_OPTIONS };
