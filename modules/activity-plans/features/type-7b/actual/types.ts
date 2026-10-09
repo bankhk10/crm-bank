@@ -184,6 +184,8 @@ export interface DetailType7FollowUpProps {
   sprayMethod?: "SINGLE" | "TANK_MIXED" | string;
   visitHistory?: any[];
   visitDate?: string;
+  actualStartDate?: string;
+  startDate?: string;
   demoResults?: any[];
   externalProducts?: any[];
   sprayRounds?: any[];

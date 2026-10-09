@@ -239,6 +239,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // 1. Direct fields from ActivityResult model
   if (resData.resultStatus) result.activityResultStatus = resData.resultStatus;
   if (resData.cancelReason) result.cancelReason = resData.cancelReason;
+  if (resData.actualStartDate) {
+    result.actualStartDate =
+      typeof resData.actualStartDate === "string"
+        ? resData.actualStartDate.split("T")[0]
+        : new Date(resData.actualStartDate).toISOString().split("T")[0];
+    result.t7StartDate = result.actualStartDate;
+  }
   if (resData.postponedDate) {
     result.postponedDate =
       typeof resData.postponedDate === "string"

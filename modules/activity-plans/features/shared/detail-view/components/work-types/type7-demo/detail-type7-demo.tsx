@@ -64,6 +64,7 @@ export interface DetailType7DemoProps {
   visitHistory?: any[];
   demoPlotData?: any;
   visitDate?: string;
+  actualStartDate?: string;
   daysAfterSpray?: string | number;
   daysSinceStart?: string | number;
   sprayMethod?: string;
@@ -84,6 +85,9 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
         (props.target.owner && props.target.owner.startsWith("plot-"))));
 
   if (isFollowUp) {
+    const resolvedActualDate =
+      props.actualStartDate || props.visitDate || props.startDate;
+
     return (
       <DetailType7FollowUp
         target={props.target}
@@ -108,7 +112,9 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
         plotImages={props.plotImages}
         visitHistory={props.visitHistory}
         demoPlotData={props.demoPlotData}
-        visitDate={props.visitDate || props.startDate}
+        visitDate={resolvedActualDate}
+        actualStartDate={resolvedActualDate}
+        startDate={props.startDate}
         daysAfterSpray={props.daysAfterSpray ?? props.daysSinceStart}
         sprayMethod={props.sprayMethod}
         sprayEquipment={props.sprayEquipment}

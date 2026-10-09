@@ -62,6 +62,8 @@ export function DetailType7FollowUp({
   visitHistory = [],
   demoPlotData,
   visitDate,
+  actualStartDate,
+  startDate,
   daysAfterSpray,
   sprayMethod,
   sprayEquipment,
@@ -497,7 +499,12 @@ export function DetailType7FollowUp({
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-800 block">
               {formatThaiDate(
-                visitDate || demoPlotData?.visits?.[0]?.visitDate,
+                actualStartDate ||
+                  visitDate ||
+                  startDate ||
+                  (demoPlotData?.visits && demoPlotData.visits.length > 0
+                    ? demoPlotData.visits[demoPlotData.visits.length - 1]?.visitDate
+                    : null),
               )}
             </span>
           </div>

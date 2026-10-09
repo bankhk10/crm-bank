@@ -187,7 +187,9 @@ export function DetailActivityResultSection({
           sprayEquipment={parsedResults.t7SprayEquipment || currentVisit?.sprayEquipment}
           otherEquipment={parsedResults.t7OtherEquipment || currentVisit?.otherEquipment}
           nextSprayDate={parsedResults.t7NextSprayDate || currentVisit?.nextSprayDate}
-          visitDate={currentVisit?.visitDate}
+          visitDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
+          actualStartDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
+          startDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
           externalProducts={currentVisit?.externalProducts || demoPlotData?.externalProducts}
           sprayRounds={parsedResults.t7bSprayingRounds || (currentVisit as any)?.sprayRounds || demoPlotData?.sprayRounds}
           plannedProductId={parsedResults.t7PlannedProductId}
