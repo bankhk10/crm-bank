@@ -99,7 +99,7 @@ export function FormCombobox({
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
               <span className="truncate">
-                {selectedOption ? selectedOption.label : placeholder}
+                {selectedOption ? selectedOption.label : value || placeholder}
               </span>
               {showSubLabelInTrigger && selectedOption?.subLabel && (
                 <span className="text-xs text-gray-500 truncate">

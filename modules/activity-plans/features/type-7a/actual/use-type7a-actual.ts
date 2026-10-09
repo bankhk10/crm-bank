@@ -446,8 +446,60 @@ export function useType7aActual() {
         setT7InitialSprayDate(parsed.t7InitialSprayDate);
       if (parsed.t7Irrigations && parsed.t7Irrigations.length > 0)
         setT7Irrigations(parsed.t7Irrigations);
-      if (parsed.t7DemoProducts && parsed.t7DemoProducts.length > 0)
-        setT7DemoProducts(parsed.t7DemoProducts);
+      if (parsed.t7ExperimentDetail && parsed.t7ExperimentDetail.trim())
+        setT7ExperimentDetail(parsed.t7ExperimentDetail);
+      if (parsed.t7DemoProducts && parsed.t7DemoProducts.length > 0) {
+        const matchedPlanIds = new Set<string>();
+        setT7DemoProducts(
+          parsed.t7DemoProducts.map((dpr: any, idx: number) => {
+            const matchedPlan = planT7aProducts.find(
+              (pr: any) =>
+                (dpr.productId && pr.productId === dpr.productId && !matchedPlanIds.has(pr.productId)) ||
+                (dpr.productName && pr.productName && pr.productName.trim().toLowerCase() === dpr.productName.trim().toLowerCase() && !matchedPlanIds.has(pr.productId)),
+            );
+            if (matchedPlan) {
+              matchedPlanIds.add(matchedPlan.productId);
+            }
+            const plannedQty =
+              dpr.plannedQuantity !== undefined && dpr.plannedQuantity !== null
+                ? (dpr.plannedQuantity === "-" ? null : Number(dpr.plannedQuantity))
+                : matchedPlan?.targetQuantity != null
+                  ? Number(matchedPlan.targetQuantity)
+                  : matchedPlan?.quantity != null
+                    ? Number(matchedPlan.quantity)
+                    : null;
+            const usedQty =
+              dpr.quantity != null
+                ? Number(dpr.quantity)
+                : plannedQty != null
+                  ? plannedQty
+                  : 1;
+            const remainingQty =
+              dpr.remainingQuantity !== null && dpr.remainingQuantity !== undefined
+                ? Number(dpr.remainingQuantity)
+                : plannedQty != null && usedQty != null
+                  ? Math.max(0, Number(plannedQty) - Number(usedQty))
+                  : null;
+
+            return {
+              id: dpr.id || matchedPlan?.id || `dpr-${idx + 1}`,
+              productId:
+                dpr.productId &&
+                !dpr.productId.startsWith("parsed-") &&
+                !dpr.productId.startsWith("extra-")
+                  ? dpr.productId
+                  : matchedPlan?.productId || "",
+              productName: dpr.productName || matchedPlan?.productName || "",
+              plannedQuantity: plannedQty,
+              quantity: usedQty,
+              remainingQuantity: remainingQty,
+              unit: dpr.unit || matchedPlan?.unit || "",
+              applicationRate: dpr.applicationRate || "",
+              isAdditional: dpr.isAdditional ?? !matchedPlan,
+            };
+          }),
+        );
+      }
 
       if ((parsed as any).type7aDemoPlot) {
         const dp = (parsed as any).type7aDemoPlot;

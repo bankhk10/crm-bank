@@ -1167,21 +1167,63 @@ export async function upsertActivityResult(
       // Save DemoPlotProduct (Single Source of Truth for applicationRate)
       await tx.demoPlotProduct.deleteMany({ where: { demoPlotId: plotId } });
       if (validDemoProducts.length > 0) {
-        await tx.demoPlotProduct.createMany({
-          data: validDemoProducts.map((p, idx) => ({
-            demoPlotId: plotId,
-            productId: p.productId,
-            productName: p.productName ?? null,
-            quantity: new Prisma.Decimal(p.quantity),
-            remainingQuantity:
-              p.remainingQuantity != null
-                ? new Prisma.Decimal(p.remainingQuantity)
-                : null,
-            unit: p.unit ?? null,
-            applicationRate: p.applicationRate,
-            sortOrder: idx,
-          })),
+        // Guard against invalid/non-existent product IDs to satisfy Foreign Key constraints
+        const candidateIds = validDemoProducts
+          .map((p) => p.productId)
+          .filter(Boolean);
+        const existingDbProducts = await tx.product.findMany({
+          where: { id: { in: candidateIds } },
+          select: { id: true, name: true },
         });
+        const existingDbProductMap = new Map(
+          existingDbProducts.map((p) => [p.id, p]),
+        );
+
+        // Also try to resolve products by name if candidate productId was not found in DB
+        const missingProducts = validDemoProducts.filter(
+          (p) => !existingDbProductMap.has(p.productId) && p.productName,
+        );
+        if (missingProducts.length > 0) {
+          const namesToFind = missingProducts
+            .map((p) => p.productName!)
+            .filter(Boolean);
+          if (namesToFind.length > 0) {
+            const matchedByName = await tx.product.findMany({
+              where: { name: { in: namesToFind } },
+              select: { id: true, name: true },
+            });
+            for (const dbp of matchedByName) {
+              existingDbProductMap.set(dbp.id, dbp);
+              for (const vp of validDemoProducts) {
+                if (vp.productName === dbp.name) {
+                  vp.productId = dbp.id;
+                }
+              }
+            }
+          }
+        }
+
+        const insertableProducts = validDemoProducts.filter((p) =>
+          existingDbProductMap.has(p.productId),
+        );
+
+        if (insertableProducts.length > 0) {
+          await tx.demoPlotProduct.createMany({
+            data: insertableProducts.map((p, idx) => ({
+              demoPlotId: plotId,
+              productId: p.productId,
+              productName: p.productName ?? null,
+              quantity: new Prisma.Decimal(p.quantity),
+              remainingQuantity:
+                p.remainingQuantity != null
+                  ? new Prisma.Decimal(p.remainingQuantity)
+                  : null,
+              unit: p.unit ?? null,
+              applicationRate: p.applicationRate,
+              sortOrder: idx,
+            })),
+          });
+        }
       }
 
       // Save DemoPlotExternalProduct

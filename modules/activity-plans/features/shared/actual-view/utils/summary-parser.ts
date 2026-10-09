@@ -1152,6 +1152,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         result.t7FarmerProvince = provMatch[1].trim();
         rawFarmer = rawFarmer.replace(provMatch[0], "").trim();
       }
+      const distMatch = rawFarmer.match(/อ\.([^\s]+)/);
+      if (distMatch && distMatch[1]) {
+        result.t7FarmerDistrict = distMatch[1].trim();
+        rawFarmer = rawFarmer.replace(distMatch[0], "").trim();
+      }
       result.t7FarmerName = rawFarmer;
     }
 
@@ -1202,6 +1207,47 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (irrigationsMatch && irrigationsMatch[1]) {
       const irrStr = irrigationsMatch[1].split("\n")[0].trim();
       result.t7Irrigations = irrStr.split(",").map((s: string) => s.trim()).filter(Boolean);
+    }
+
+    const expDetailMatch = summaryText.match(/วิธีการทดลอง:\s*(.+)/);
+    if (expDetailMatch && expDetailMatch[1]) {
+      result.t7ExperimentDetail = expDetailMatch[1].split("\n")[0].trim();
+    }
+
+    const demoProductsMatch = summaryText.match(/สินค้าสาธิต:\s*(.+)/);
+    if (demoProductsMatch && demoProductsMatch[1]) {
+      const prodLine = demoProductsMatch[1].split("\n")[0].trim();
+      const rawItems = prodLine.split(/,\s*(?=[^,()]+\s*\(เบิก:)/);
+      const parsedItems = rawItems
+        .map((itemStr, idx) => {
+          const itemMatch = itemStr.trim().match(
+            /^(.+?)\s*\(\s*เบิก:\s*([^,]+),\s*ใช้จริง:\s*([0-9.]+)(?:\s+([^,]+?))?(?:,\s*คงเหลือ:\s*([0-9.]+))?\)(?:\s*อัตราใช้:\s*(.*))?$/
+          );
+          if (itemMatch) {
+            const pName = itemMatch[1].trim();
+            const rawPlanQty = itemMatch[2].trim();
+            const plannedQty = rawPlanQty === "-" ? null : Number(rawPlanQty);
+            const usedQty = Number(itemMatch[3].trim()) || 0;
+            const unit = itemMatch[4]?.trim() || "";
+            const remainingQty = itemMatch[5] != null ? Number(itemMatch[5].trim()) : null;
+            const applicationRate = itemMatch[6]?.trim() || "";
+            return {
+              id: `parsed-t7a-${idx + 1}`,
+              productName: pName,
+              plannedQuantity: plannedQty,
+              quantity: usedQty,
+              remainingQuantity: remainingQty,
+              unit,
+              applicationRate,
+              isAdditional: plannedQty == null || rawPlanQty === "-",
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (parsedItems.length > 0) {
+        result.t7DemoProducts = parsedItems;
+      }
     }
 
     // Type 8

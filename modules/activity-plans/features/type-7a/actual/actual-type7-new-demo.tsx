@@ -1163,31 +1163,46 @@ export function ActualType7NewDemo({
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                       {/* เลือกสินค้าสำหรับรายการเพิ่มเติม */}
                       <div className="sm:col-span-12 md:col-span-6">
-                        <ActivityProductSelect
-                          id={`add-demo-product-${origIdx}`}
-                          label="เลือกสินค้าจากระบบ"
-                          labelClassName="block text-xs font-bold text-slate-700 mb-1"
-                          triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                          value={item.productId}
-                          valueKey="id"
-                          products={products}
-                          onChange={(
-                            val: string,
-                            selectedProduct?: ActivityProductItem,
-                          ) =>
-                            handleUpdateProductByIdx(
-                              origIdx,
-                              "productId",
-                              val,
-                              selectedProduct,
-                            )
-                          }
-                          placeholder="เลือกสินค้าที่ใช้เพิ่มเติม..."
-                          searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
-                          emptyText="ไม่พบสินค้า"
-                          subLabelType="code"
-                          required
-                        />
+                        {(() => {
+                          const resolvedVal =
+                            item.productId &&
+                            products.some((p) => p.id === item.productId)
+                              ? item.productId
+                              : item.productName
+                                ? products.find(
+                                    (p) =>
+                                      p.name?.trim().toLowerCase() ===
+                                      item.productName?.trim().toLowerCase(),
+                                  )?.id || item.productId
+                                : item.productId;
+                          return (
+                            <ActivityProductSelect
+                              id={`add-demo-product-${origIdx}`}
+                              label="เลือกสินค้าจากระบบ"
+                              labelClassName="block text-xs font-bold text-slate-700 mb-1"
+                              triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
+                              value={resolvedVal}
+                              valueKey="id"
+                              products={products}
+                              onChange={(
+                                val: string,
+                                selectedProduct?: ActivityProductItem,
+                              ) =>
+                                handleUpdateProductByIdx(
+                                  origIdx,
+                                  "productId",
+                                  val,
+                                  selectedProduct,
+                                )
+                              }
+                              placeholder="เลือกสินค้าที่ใช้เพิ่มเติม..."
+                              searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัส..."
+                              emptyText="ไม่พบสินค้า"
+                              subLabelType="code"
+                              required
+                            />
+                          );
+                        })()}
                       </div>
 
                       {/* จำนวนที่ใช้จริง */}

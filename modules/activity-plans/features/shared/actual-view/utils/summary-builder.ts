@@ -576,7 +576,7 @@ export function buildResultSummary(
           // TYPE_7A Initial Summary (Rule 8 Labels)
           t7PlotName ? `ชื่อแปลงสาธิต: ${t7PlotName}` : null,
           input.t7FarmerName
-            ? `เกษตรกรเจ้าของแปลง: ${input.t7FarmerName}${input.t7IsUnregisteredFarmer ? " (ไม่มีในระบบ)" : ""}${input.t7FarmerProvince ? ` จ.${input.t7FarmerProvince}` : ""}`
+            ? `เกษตรกรเจ้าของแปลง: ${input.t7FarmerName}${input.t7IsUnregisteredFarmer ? " (ไม่มีในระบบ)" : ""}${input.t7FarmerProvince ? ` จ.${input.t7FarmerProvince}` : ""}${input.t7FarmerDistrict ? ` อ.${input.t7FarmerDistrict}` : ""}`
             : null,
           input.t7FarmerPhone ? `เบอร์โทรศัพท์เกษตรกร: ${input.t7FarmerPhone}` : null,
           input.t7Latitude && input.t7Longitude
@@ -1350,11 +1350,38 @@ export function buildResultSummary(
       sprayMethod: input.t7SprayMethod || "SINGLE",
       hasExternalChemicals: Boolean(input.t7HasExternalChemicals),
       demoProducts: (input.t7DemoProducts || [])
+        .map((p) => {
+          let resolvedProductId = p.productId?.trim() || "";
+          if (
+            (!resolvedProductId ||
+              resolvedProductId.startsWith("extra-") ||
+              resolvedProductId.startsWith("parsed-") ||
+              resolvedProductId === "prod-default") &&
+            p.productName &&
+            input.products &&
+            input.products.length > 0
+          ) {
+            const matched = input.products.find(
+              (mp) =>
+                mp.name?.trim().toLowerCase() ===
+                p.productName?.trim().toLowerCase(),
+            );
+            if (matched) {
+              resolvedProductId = matched.id;
+            }
+          }
+          return {
+            ...p,
+            productId: resolvedProductId,
+          };
+        })
         .filter(
           (p) =>
             p.productId &&
             p.productId.trim() &&
-            p.productId !== "prod-default",
+            p.productId !== "prod-default" &&
+            !p.productId.startsWith("extra-") &&
+            !p.productId.startsWith("parsed-"),
         )
         .map((p) => {
           const planned =
