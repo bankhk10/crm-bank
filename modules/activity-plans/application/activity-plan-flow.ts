@@ -790,46 +790,6 @@ export async function submitActivityPlanUseCase(
 
     const creator = plan.employee;
 
-    // Unplanned Activity: Directly transitions to PENDING_REVIEW (Post-Activity Review)
-    if (plan.planType === ActivityPlanType.UNPLANNED) {
-      const reviewerId =
-        (await resolveNextLineApprover(creator, tx)) ||
-        creator.managerId ||
-        null;
-
-      await tx.activityPlan.update({
-        where: { id: planId },
-        data: {
-          status: ActivityStatus.PENDING_REVIEW,
-          currentApproverEmployeeId: reviewerId,
-          submittedAt: new Date(),
-        },
-      });
-
-      await tx.activityApprovalLog.create({
-        data: {
-          activityPlanId: planId,
-          userId,
-          action: ActivityApprovalAction.SUBMIT,
-          step: ActivityApprovalStep.POST_ACTIVITY_REVIEW,
-          comment: "ส่งกิจกรรมนอกแผนเพื่อรอการตรวจสอบผลการปฏิบัติงาน",
-        },
-      });
-
-      if (reviewerId) {
-        await sendNotificationToEmployee(
-          reviewerId,
-          "กิจกรรมนอกแผนรอการตรวจสอบ",
-          `กิจกรรมนอกแผน "${plan.title}" โดย ${plan.employee.name} รอคุณตรวจสอบผลการปฏิบัติงาน`,
-          "INFO",
-          `/activity-plans/approvals/${plan.id}`,
-          tx,
-        );
-      }
-
-      return { success: true };
-    }
-
     const isTerminalCreator = isTerminalLineManager(creator);
 
     if (isTerminalCreator) {
@@ -838,7 +798,9 @@ export async function submitActivityPlanUseCase(
         plan,
         tx,
         userId,
-        "ส่งแผนงานสำเร็จ (ผ่านขั้นตอนอนุมัติตามสายงานโดยอัตโนมัติสำหรับผู้บริหาร)",
+        plan.planType === ActivityPlanType.UNPLANNED
+          ? "ส่งกิจกรรมนอกแผนสำเร็จ (ผ่านขั้นตอนอนุมัติตามสายงานโดยอัตโนมัติสำหรับผู้บริหาร)"
+          : "ส่งแผนงานสำเร็จ (ผ่านขั้นตอนอนุมัติตามสายงานโดยอัตโนมัติสำหรับผู้บริหาร)",
       );
       return { success: true };
     }
@@ -852,7 +814,9 @@ export async function submitActivityPlanUseCase(
         plan,
         tx,
         userId,
-        "ส่งแผนงานสำเร็จ (ข้ามขั้นตอนอนุมัติตามสายงานเนื่องจากไม่พบผู้จัดการตามสายงาน)",
+        plan.planType === ActivityPlanType.UNPLANNED
+          ? "ส่งกิจกรรมนอกแผนสำเร็จ (ข้ามขั้นตอนอนุมัติตามสายงานเนื่องจากไม่พบผู้จัดการตามสายงาน)"
+          : "ส่งแผนงานสำเร็จ (ข้ามขั้นตอนอนุมัติตามสายงานเนื่องจากไม่พบผู้จัดการตามสายงาน)",
       );
       return { success: true };
     }
@@ -879,14 +843,19 @@ export async function submitActivityPlanUseCase(
         userId,
         action: ActivityApprovalAction.SUBMIT,
         step: ActivityApprovalStep.LINE_APPROVAL,
-        comment: "ส่งแผนงานเพื่อขออนุมัติตามสายงาน",
+        comment:
+          plan.planType === ActivityPlanType.UNPLANNED
+            ? "ส่งกิจกรรมนอกแผนเพื่อขออนุมัติตามสายงาน"
+            : "ส่งแผนงานเพื่อขออนุมัติตามสายงาน",
       },
     });
 
     // Notify Manager
     await sendNotificationToEmployee(
       firstApproverId,
-      "แผนกิจกรรมรอการตรวจสอบ",
+      plan.planType === ActivityPlanType.UNPLANNED
+        ? "กิจกรรมนอกแผนรอการตรวจสอบ"
+        : "แผนกิจกรรมรอการตรวจสอบ",
       `แผนกิจกรรม "${plan.title}" โดย ${creator.name} รอคุณตรวจสอบและอนุมัติตามสายงาน`,
       "INFO",
       `/activity-plans/${plan.id}`,
