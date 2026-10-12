@@ -11,3 +11,4 @@ export * from "@/modules/activity-plans/features/type-10/components/type10-detai
 export * from "@/modules/activity-plans/features/type-11/components/type11-detail-view";
 export * from "@/modules/activity-plans/features/type-12/components/type12-detail-view";
 export * from "@/modules/activity-plans/features/type-13/components/type13-detail-view";
+export * from "@/modules/activity-plans/features/type-14/components/type14-detail-view";

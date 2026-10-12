@@ -10,3 +10,5 @@ export * from "@/modules/activity-plans/features/type-9/components/type9-actual-
 export * from "@/modules/activity-plans/features/type-10/components/type10-actual-form";
 export * from "@/modules/activity-plans/features/type-11/components/type11-actual-form";
 export * from "@/modules/activity-plans/features/type-7b/components/demo-plot-history-modal";
+export * from "@/modules/activity-plans/features/type-13/components/type13-actual-form";
+export * from "@/modules/activity-plans/features/type-14/components/type14-actual-form";

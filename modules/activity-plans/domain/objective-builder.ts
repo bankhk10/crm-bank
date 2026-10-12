@@ -22,6 +22,8 @@ const CODE_TO_NAME: Record<string, string> = {
   TYPE_10: "จัดงาน Field Day",
   TYPE_11: "ตรวจเช็กสต็อกหน้าร้าน",
   TYPE_12: "ทัวร์",
+  TYPE_13: "ฉีดแปลงแฮตแทค",
+  TYPE_14: "ติดตามแปลงแฮทแทค",
 };
 
 export interface ObjectiveBuilderInput {

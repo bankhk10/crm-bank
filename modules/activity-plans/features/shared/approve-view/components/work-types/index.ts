@@ -1,4 +1,4 @@
-export * from "@/modules/activity-plans/features/type-1";
+export * from "@/modules/activity-plans/features/type-1/components/type1-approval-card";
 export * from "@/modules/activity-plans/features/type-2/components/type2-approval-card";
 export * from "@/modules/activity-plans/features/type-3/components/type3-approval-card";
 export * from "@/modules/activity-plans/features/type-4/components/type4-approval-card";
@@ -10,3 +10,5 @@ export * from "@/modules/activity-plans/features/type-9/components/type9-approva
 export * from "@/modules/activity-plans/features/type-10/components/type10-approval-card";
 export * from "@/modules/activity-plans/features/type-11/components/type11-approval-card";
 export * from "@/modules/activity-plans/features/type-12/components/type12-approval-card";
+export * from "@/modules/activity-plans/features/type-13/components/type13-approval-card";
+export * from "@/modules/activity-plans/features/type-14/components/type14-approval-card";

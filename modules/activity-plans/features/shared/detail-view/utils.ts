@@ -15,6 +15,7 @@ import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9
 import { mapType10ToSectionItems } from "@/modules/activity-plans/features/type-10";
 import { mapType11ToSectionItems } from "@/modules/activity-plans/features/type-11";
 import { mapType12ToSectionItems } from "@/modules/activity-plans/features/type-12";
+import { mapType13ToSectionItems } from "@/modules/activity-plans/features/type-13";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -291,6 +292,12 @@ export function extractWorkTypeSections(
   const t12Section = mapType12ToSectionItems(plan.tour, objectiveLines);
   if (t12Section) {
     sections.push(t12Section);
+  }
+
+  // ── 13. ฉีดแปลงแฮตแทค ─────────────────────────────────
+  const t13Section = mapType13ToSectionItems((plan as any).type13, objectiveLines);
+  if (t13Section) {
+    sections.push(t13Section);
   }
 
   return sections;

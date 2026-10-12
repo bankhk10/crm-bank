@@ -39,6 +39,8 @@ import type { useType8Actual } from "@/modules/activity-plans/features/type-8";
 import type { useType9Actual } from "@/modules/activity-plans/features/type-9";
 import type { useType10Actual } from "@/modules/activity-plans/features/type-10";
 import type { useType11Actual } from "@/modules/activity-plans/features/type-11";
+import type { useType13ActualState } from "@/modules/activity-plans/features/type-13";
+import type { useType14ActualState } from "@/modules/activity-plans/features/type-14";
 import { Type13Actual } from "@/modules/activity-plans/features/type-13";
 import { Type14Actual } from "@/modules/activity-plans/features/type-14";
 
@@ -55,8 +57,8 @@ export interface ActualTypeHooks {
   type9: ReturnType<typeof useType9Actual>;
   type10: ReturnType<typeof useType10Actual>;
   type11: ReturnType<typeof useType11Actual>;
-  type13?: any;
-  type14?: any;
+  type13?: ReturnType<typeof useType13ActualState>;
+  type14?: ReturnType<typeof useType14ActualState>;
 }
 
 export interface ActivityResultSectionProps {
