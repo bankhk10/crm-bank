@@ -9,8 +9,10 @@ export interface RequisitionItem {
 
 export type PlotActivityType = "CREATE" | "FOLLOW_UP";
 
-export type { Type7DemoProductLine } from "@/modules/activity-plans/features/type-7a/shared/types";
-export type { Type7bWithdrawnProductLine } from "@/modules/activity-plans/features/type-7b/shared/types";
+import type { Type7DemoProductLine } from "@/modules/activity-plans/features/type-7a/types";
+import type { Type7bWithdrawnProductLine } from "@/modules/activity-plans/features/type-7b/types";
+
+export type { Type7DemoProductLine, Type7bWithdrawnProductLine };
 
 export interface Type7DemoPlotItem {
   id: string;
@@ -23,7 +25,7 @@ export interface Type7DemoPlotItem {
   district?: string;
   categoryId?: string;
   chemicalGroupId?: string; // Kept for backwards compatibility
-  demoProducts?: import("@/modules/activity-plans/features/type-7a/shared/types").Type7DemoProductLine[];
+  demoProducts?: Type7DemoProductLine[];
   storeId?: string;
   ownerName: string;
   productId?: string;
@@ -46,7 +48,7 @@ export interface Type7DemoPlotItem {
   existingPlotId?: string;
   existingPlotName?: string;
   hasProductWithdrawal?: boolean;
-  withdrawnProducts?: import("@/modules/activity-plans/features/type-7b/shared/types").Type7bWithdrawnProductLine[];
+  withdrawnProducts?: Type7bWithdrawnProductLine[];
   followUpDate?: string;
   growthStage?: string;
   plotStatus?: string;

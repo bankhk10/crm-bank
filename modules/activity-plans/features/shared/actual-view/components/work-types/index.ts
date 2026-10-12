@@ -3,10 +3,10 @@ export * from "@/modules/activity-plans/features/type-2/components/type2-actual-
 export * from "@/modules/activity-plans/features/type-3/components/type3-actual-form";
 export * from "@/modules/activity-plans/features/type-4/components/type4-actual-form";
 export * from "@/modules/activity-plans/features/type-5/components/type5-actual-form";
-export * from "@/modules/activity-plans/features/type-6/actual/actual-type6-issue";
+export * from "@/modules/activity-plans/features/type-6/components/type6-actual-form";
 export * from "./actual-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/actual/actual-type8-meeting";
 export * from "@/modules/activity-plans/features/type-9/actual/actual-type9-store";
 export * from "@/modules/activity-plans/features/type-10/actual/actual-type10-field-day";
 export * from "@/modules/activity-plans/features/type-11/actual/actual-type11-stock";
-export * from "@/modules/activity-plans/features/type-7b/actual/demo-plot-history-modal";
+export * from "@/modules/activity-plans/features/type-7b/components/demo-plot-history-modal";

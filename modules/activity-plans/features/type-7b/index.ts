@@ -1,8 +1,9 @@
-// Domain Types
+// Domain & Component Types
 export type {
   Type7bWithdrawnProductLine,
   ProductOption,
   UserDemoPlotOption,
+  FollowUpPlanOption,
   Type7DemoProductLine,
   Type7DemoPlotItem,
   Type7bPlotInput,
@@ -11,6 +12,24 @@ export type {
   Type7bTargetItem,
   Type7bActualRecord,
   Type7bPlanItem,
+  Type7bPlanTarget,
+  Type7bPlanCardProps,
+  Type7FollowUpProps,
+  Type7bPlanFormProps,
+  EditProductOption,
+  ActualType7FollowUpProps,
+  Type7bActualFormProps,
+  DemoPlotVisitHistoryItem,
+  DetailType7FollowUpProps,
+  Type7bDetailViewProps,
+  ApprovalType7bDemoProps,
+  Type7bApprovalCardProps,
+  DemoPlotHistoryModalProps,
+  ValidateType7bOptions,
+  Type7bValidationResult,
+  Type7bActualValidationInput,
+  UseType7bFormOptions,
+  UseType7bFormResult,
 } from "./types";
 
 // Application Layer (Pure Mappers - Safe for Client)
@@ -20,37 +39,35 @@ export {
   mapType7bToSectionItems,
 } from "./application/mapper";
 
-// UI Components & Cards
-export {
-  Type7bPlanCard,
-  type Type7bPlanCardProps,
-  type Type7bPlanTarget,
-} from "./shared/type7b-plan-card";
-export { Type7FollowUp } from "./create/type7-follow-up";
-export type { Type7FollowUpProps } from "./create/types";
+// Application Layer (Pure Validation - Safe for Client)
 export {
   validateType7bFormItems,
-  type ValidateType7bOptions,
-  type Type7bValidationResult,
-} from "./create/validation";
+  validateType7bActual,
+} from "./application/validation";
+
+// UI Components (Vertical Slice Standard)
+export { Type7bPlanCard } from "./components/type7b-plan-card";
 export {
-  EditType7bFollowUp,
-  type EditProductOption,
-} from "./edit/edit-type7b";
-export { DetailType7FollowUp } from "./detail/detail-type7-follow-up";
-export type { DetailType7FollowUpProps } from "./actual/types";
-export { ApprovalType7bDemo } from "./approval/approval-type7b-demo";
-export type { ApprovalType7bDemoProps } from "./actual/types";
-export { ActualType7FollowUp } from "./actual/actual-type7-follow-up";
-export type {
-  ActualType7FollowUpProps,
-  DemoPlotVisitHistoryItem,
-} from "./actual/types";
-export { DemoPlotHistoryModal } from "./actual/demo-plot-history-modal";
-export type { DemoPlotHistoryModalProps } from "./actual/types";
-export { useType7bActual } from "./actual/use-type7b-actual";
+  Type7bPlanForm,
+  Type7FollowUp,
+} from "./components/type7b-plan-form";
+export { Type7bPlanForm as EditType7bFollowUp } from "./components/type7b-plan-form";
+export {
+  Type7bActualForm,
+  ActualType7FollowUp,
+} from "./components/type7b-actual-form";
+export {
+  Type7bDetailView,
+  DetailType7FollowUp,
+} from "./components/type7b-detail-view";
+export {
+  Type7bApprovalCard,
+  ApprovalType7bDemo,
+} from "./components/type7b-approval-card";
+export { DemoPlotHistoryModal } from "./components/demo-plot-history-modal";
+
+// React Hooks
 export {
   useType7bForm,
-  type UseType7bFormOptions,
-  type UseType7bFormResult,
 } from "./hooks/use-type7b-form";
+export { useType7bActual } from "./hooks/use-type7b-actual";

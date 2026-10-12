@@ -3,7 +3,7 @@ export * from "@/modules/activity-plans/features/type-2/components/type2-approva
 export * from "@/modules/activity-plans/features/type-3/components/type3-approval-card";
 export * from "@/modules/activity-plans/features/type-4/components/type4-approval-card";
 export * from "@/modules/activity-plans/features/type-5/components/type5-approval-card";
-export * from "@/modules/activity-plans/features/type-6/approval/approval-type6-issue";
+export * from "@/modules/activity-plans/features/type-6/components/type6-approval-card";
 export * from "./approval-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/approval/approval-type8-meeting";
 export * from "@/modules/activity-plans/features/type-9/approval/approval-type9-store";

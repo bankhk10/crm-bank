@@ -3,7 +3,7 @@ export * from "@/modules/activity-plans/features/type-2/components/type2-detail-
 export * from "@/modules/activity-plans/features/type-3/components/type3-detail-view";
 export * from "@/modules/activity-plans/features/type-4/components/type4-detail-view";
 export * from "@/modules/activity-plans/features/type-5/components/type5-detail-view";
-export * from "@/modules/activity-plans/features/type-6/detail/detail-type6-issue";
+export * from "@/modules/activity-plans/features/type-6/components/type6-detail-view";
 export * from "./detail-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/detail/detail-type8-meeting";
 export * from "@/modules/activity-plans/features/type-9/detail/detail-type9-store";

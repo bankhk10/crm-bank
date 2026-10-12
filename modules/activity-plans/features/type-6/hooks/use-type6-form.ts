@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { isFieldDayItem, getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type6IssueItem } from "../shared/types";
-import { validateType6FormItems } from "../create/validation";
+import type { Type6IssueItem } from "../types";
+import { validateType6FormItems } from "../application/validation";
 
 export interface UseType6FormOptions {
   initial?: any;

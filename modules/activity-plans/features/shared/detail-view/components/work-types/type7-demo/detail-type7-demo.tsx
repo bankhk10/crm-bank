@@ -4,9 +4,9 @@ import React from "react";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   DetailType7NewDemo,
-  DemoResultItemData,
-} from "@/modules/activity-plans/features/type-7a/detail/detail-type7-new-demo";
-import { DetailType7FollowUp } from "@/modules/activity-plans/features/type-7b/detail/detail-type7-follow-up";
+  type DemoResultItemData,
+} from "@/modules/activity-plans/features/type-7a";
+import { DetailType7FollowUp } from "@/modules/activity-plans/features/type-7b";
 
 export type { DemoResultItemData };
 

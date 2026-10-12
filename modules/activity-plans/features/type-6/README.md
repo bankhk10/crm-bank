@@ -36,42 +36,27 @@
 
 ```text
 modules/activity-plans/features/type-6/
+├── components/                       # 🖥️ UI Components (Vertical Slice)
+│   ├── type6-plan-form.tsx           # แบบฟอร์มเพิ่มร้านค้า/ลูกค้าเป้าหมายและประเภทเรื่องร้องเรียน (alias: Type6Issue)
+│   ├── type6-actual-form.tsx         # หน้าจอบันทึกผลการตรวจสอบ Lot Number ช่องทางการซื้อ และรูปภาพ (alias: ActualType6Issue)
+│   ├── type6-detail-view.tsx         # แสดงผลรายละเอียดเป้าหมายและผลการตรวจสอบเรื่องร้องเรียนจริง (alias: DetailType6Issue)
+│   ├── type6-approval-card.tsx       # แสดงผลข้อมูลแผนและผลการตรวจสอบในหน้าพิจารณาอนุมัติ (alias: ApprovalType6Issue)
+│   └── type6-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card, hides in UNPLANNED)
+│
+├── hooks/                            # 🪝 React Hooks
+│   ├── use-type6-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการเป้าหมายเรื่องร้องเรียน
+│   └── use-type6-actual.ts           # Hook จัดการ State ของผลการตรวจสอบ
+│
 ├── application/                      # 🧠 Business Logic, Mappers & Strategy
 │   ├── mapper.ts                     # Single Source of Truth สำหรับสกัดและแปลงข้อมูล Form State <-> DB
-│   └── type6.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   ├── type6.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   └── validation.ts                 # Pure Validation Functions (validateType6FormItems, validateType6Actual)
 │
 ├── types/                            # 📐 Type Definitions กลางของ Type 6
 │   └── index.ts                      # Domain Types: Type6IssueItem, Type6TargetItem, TargetIssueItem, Type6IssueRecord, Type6ImageFile
 │
-├── create/                           # 🖥️ UI สำหรับสร้างแผนงาน
-│   ├── type6-issue.tsx               # แบบฟอร์มเพิ่มร้านค้า/ลูกค้าเป้าหมายและประเภทเรื่องร้องเรียน
-│   ├── types.ts                      # Props Interfaces ของ Create Form
-│   └── validation.ts                 # Validation Schemas
-│
-├── edit/                             # 🖥️ UI สำหรับแก้ไขแผนงาน
-│   └── edit-type6.tsx                # คอมโพเนนต์แก้ไขข้อมูลแผนงาน Type 6
-│
-├── detail/                           # 🖥️ UI หน้ารายละเอียดแผนงาน (Read-only)
-│   └── detail-type6-issue.tsx        # แสดงผลรายละเอียดเป้าหมายและผลการตรวจสอบเรื่องร้องเรียนจริง
-│
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type6-issue.tsx      # แสดงผลข้อมูลแผนและผลการตรวจสอบในหน้าพิจารณาอนุมัติ
-│
-├── actual/                           # 🖥️ UI & Hook บันทึกผลจริง
-│   ├── actual-type6-issue.tsx        # หน้าจอบันทึกผลการตรวจสอบ Lot Number ช่องทางการซื้อ และรูปภาพ
-│   ├── types.ts                      # Props ของ Actual Components
-│   ├── use-type6-actual.ts           # Hook จัดการ State ของผลการตรวจสอบ
-│   └── validation.ts                 # Validation ผลการตรวจสอบ
-│
-├── shared/                           # 🧩 คอมโพเนนต์และ Type ที่ใช้ร่วมกันภายใน Type 6
-│   ├── type6-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card)
-│   └── types.ts                      # Re-export จาก types/index.ts เพื่อ Backward Compatibility
-│
-├── hooks/                            # 🪝 Form Hook สำหรับ Plan
-│   └── use-type6-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการเป้าหมายเรื่องร้องเรียน
-│
 ├── README.md                         # 📖 เอกสารกำกับโมดูล Type 6 (ไฟล์นี้)
-└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Client Components
+└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Vertical Slice และ Backward Compatibility
 ```
 
 ---

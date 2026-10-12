@@ -51,20 +51,22 @@ flowchart TD
 ```
 modules/activity-plans/features/type-7b/
 ├── types/
-│   └── index.ts               # Domain types (Type7bTargetItem, Type7bPlanItem, Type7bPlotInput, Type7bDataInput, Type7bActualRecord, etc.)
+│   └── index.ts               # Domain types, UI Props, and form validation interfaces
 ├── application/
 │   ├── mapper.ts              # Pure mappers (extractType7bPlanTargets, parseType7bActualResult, mapType7bToSectionItems)
-│   └── type7b.strategy.ts     # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, saveActual, loadPlan)
-├── shared/
-│   ├── types.ts               # Re-exports from ../types
-│   └── type7b-plan-card.tsx   # Plan detail card component
-├── create/                    # Create form components & validation
-├── edit/                      # Edit form components
-├── actual/                    # Actual outcome execution components & hooks (actual-type7-follow-up, demo-plot-history-modal)
-├── detail/                    # Detail view components (detail-type7-follow-up)
-├── approval/                  # Approval preview components (approval-type7b-demo)
-├── hooks/                     # Custom React hooks (useType7bForm, etc.)
-├── index.ts                   # Public Feature Barrel Export (pure mappers & types, NO server strategies)
+│   ├── validation.ts          # Pure form & actual validation functions
+│   └── type7b.strategy.ts     # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type7b-plan-card.tsx   # Plan detail card component (supports PLANNED/UNPLANNED)
+│   ├── type7b-plan-form.tsx   # Plan create/edit form row
+│   ├── type7b-actual-form.tsx # Actual result execution form
+│   ├── type7b-detail-view.tsx # Readonly detail view
+│   ├── type7b-approval-card.tsx# Approval card component
+│   └── demo-plot-history-modal.tsx# Demo plot history modal dialog
+├── hooks/
+│   ├── use-type7b-form.ts     # Plan form state management hook
+│   └── use-type7b-actual.ts   # Actual form state management hook
+├── index.ts                   # Public Feature Barrel Export (pure components, hooks, mappers & types; NO server strategies)
 └── README.md                  # This documentation
 ```
 

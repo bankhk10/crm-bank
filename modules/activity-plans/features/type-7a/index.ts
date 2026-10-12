@@ -1,59 +1,62 @@
-// Domain Types
-export type {
-  CustomerOption,
-  ProductOption,
-  ProductCategoryOption,
-  ChemicalGroupOption,
-  Type7DemoProductLine,
-  Type7DemoPlotItem,
-  Type7aDemoProductItem,
-  Type7aPlanItem,
-  Type7aTargetItem,
-  Type7aActualRecord,
-} from "./types";
+/**
+ * Type 7A Feature (ทำแปลงสาธิตใหม่ - New Demo Plot Creation)
+ * Vertical Slice Module Entry Point
+ */
 
-// Application Layer (Pure Mappers - Safe for Client)
+// 1. Components (Vertical Slice)
+export {
+  Type7aPlanForm,
+  Type7NewDemo, // Backward-compatible alias
+  EditType7aNewDemo, // Backward-compatible alias
+} from "./components/type7a-plan-form";
+
+export {
+  Type7aActualForm,
+  ActualType7NewDemo, // Backward-compatible alias
+} from "./components/type7a-actual-form";
+
+export {
+  Type7aDetailView,
+  DetailType7NewDemo, // Backward-compatible alias
+} from "./components/type7a-detail-view";
+
+export {
+  Type7aApprovalCard,
+  ApprovalType7aDemo, // Backward-compatible alias
+} from "./components/type7a-approval-card";
+
+export {
+  Type7aPlanCard,
+  type Type7aPlanCardProps,
+  type Type7aPlanTarget,
+} from "./components/type7a-plan-card";
+
+// 2. Hooks
+export {
+  useType7aForm,
+  type UseType7aFormOptions,
+  type UseType7aFormResult,
+} from "./hooks/use-type7a-form";
+
+export { useType7aActual } from "./hooks/use-type7a-actual";
+
+// 3. Application / Domain Logic (Client-Safe)
+export {
+  validateType7aFormItems,
+  validateType7aActual,
+  type ValidateType7aOptions,
+  type Type7aValidationResult,
+  type Type7aActualValidationInput,
+} from "./application/validation";
+
 export {
   extractType7aPlanTargets,
   parseType7aActualResult,
   mapType7aToSectionItems,
 } from "./application/mapper";
 
-// UI Components & Cards
-export {
-  Type7aPlanCard,
-  type Type7aPlanCardProps,
-  type Type7aPlanTarget,
-} from "./shared/type7a-plan-card";
-export { Type7NewDemo } from "./create/type7-new-demo";
-export type { Type7NewDemoProps } from "./create/types";
-export {
-  validateType7aFormItems,
-  type ValidateType7aOptions,
-  type Type7aValidationResult,
-} from "./create/validation";
-export {
-  EditType7aNewDemo,
-  type EditCustomerOption,
-  type EditProductOption,
-  type EditProductCategoryOption,
-  type EditChemicalGroupOption,
-} from "./edit/edit-type7a";
-export { DetailType7NewDemo } from "./detail/detail-type7-new-demo";
-export type {
-  DetailType7NewDemoProps,
-  DemoResultItemData,
-} from "./actual/types";
-export { ApprovalType7aDemo } from "./approval/approval-type7a-demo";
-export type { ApprovalType7aDemoProps } from "./actual/types";
-export { ActualType7NewDemo } from "./actual/actual-type7-new-demo";
-export type {
-  TargetDemoItem,
-  ActualType7NewDemoProps,
-} from "./actual/types";
-export { useType7aActual } from "./actual/use-type7a-actual";
-export {
-  useType7aForm,
-  type UseType7aFormOptions,
-  type UseType7aFormResult,
-} from "./hooks/use-type7a-form";
+// Note: type7aStrategy is deliberately NOT exported here to prevent Prisma Client leakage into client components.
+// Server repositories should import directly from '@/modules/activity-plans/features/type-7a/application/type7a.strategy'
+
+// 4. Types & Props
+export * from "./types";

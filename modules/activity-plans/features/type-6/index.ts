@@ -1,48 +1,65 @@
-export type {
-  Type6IssueItem,
-  CustomerOption,
-  ProductOption,
-  IssueTypeValue,
-  TargetIssueItem,
-  Type6ImageFile,
-  Type6IssueRecord,
-  Type6TargetItem,
-} from "./types";
-export { ISSUE_TYPES } from "./types";
-export { Type6Issue } from "./create/type6-issue";
-export type { Type6IssueProps } from "./create/types";
+/**
+ * Type 6 Feature (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา - Customer Complaint / Issue Resolution)
+ * Vertical Slice Module Entry Point
+ */
+
+// 1. Components (Vertical Slice)
 export {
-  validateType6FormItems,
-  type ValidateType6Options,
-  type Type6ValidationResult,
-} from "./create/validation";
+  Type6PlanForm,
+  Type6Issue, // Backward-compatible alias
+} from "./components/type6-plan-form";
+
 export {
-  EditType6Issue,
-  type EditCustomerOption,
-} from "./edit/edit-type6";
-export { DetailType6Issue } from "./detail/detail-type6-issue";
-export { ApprovalType6Issue } from "./approval/approval-type6-issue";
-export { ActualType6Issue } from "./actual/actual-type6-issue";
-export type {
-  ActualType6IssueProps,
-  DetailType6IssueProps,
-  ApprovalType6IssueProps,
-} from "./actual/types";
-export { useType6Actual } from "./actual/use-type6-actual";
+  Type6ActualForm,
+  ActualType6Issue, // Backward-compatible alias
+} from "./components/type6-actual-form";
+
+export {
+  Type6DetailView,
+  DetailType6Issue, // Backward-compatible alias
+} from "./components/type6-detail-view";
+
+export {
+  Type6ApprovalCard,
+  ApprovalType6Issue, // Backward-compatible alias
+} from "./components/type6-approval-card";
+
+export { Type6PlanCard } from "./components/type6-plan-card";
+
+// Legacy Edit Alias
+export {
+  Type6PlanForm as EditType6Issue,
+} from "./components/type6-plan-form";
+
+// 2. Hooks
 export {
   useType6Form,
   normalizeType6Issue,
   type UseType6FormOptions,
   type UseType6FormResult,
 } from "./hooks/use-type6-form";
+
 export {
-  Type6PlanCard,
-  type Type6PlanCardProps,
-  type Type6PlanCardTarget,
-  type Type6PlanCardTargetItem,
-} from "./shared/type6-plan-card";
+  useType6Actual,
+  validateType6Actual,
+} from "./hooks/use-type6-actual";
+
+// 3. Application / Domain Logic
+export {
+  validateType6FormItems,
+  type ValidateType6Options,
+  type Type6ValidationResult,
+  type Type6ActualValidationInput,
+} from "./application/validation";
+
 export {
   extractType6PlanTargets,
   parseType6ActualResult,
   mapType6ToSectionItems,
 } from "./application/mapper";
+
+export { type6Strategy } from "./application/type6.strategy";
+
+// 4. Types & Constants
+export { ISSUE_TYPES } from "./types";
+export * from "./types";

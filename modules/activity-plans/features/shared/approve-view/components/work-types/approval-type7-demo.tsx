@@ -2,8 +2,8 @@
 
 import React from "react";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
-import { ApprovalType7aDemo } from "@/modules/activity-plans/features/type-7a/approval/approval-type7a-demo";
-import { ApprovalType7bDemo } from "@/modules/activity-plans/features/type-7b/approval/approval-type7b-demo";
+import { ApprovalType7aDemo } from "@/modules/activity-plans/features/type-7a";
+import { ApprovalType7bDemo } from "@/modules/activity-plans/features/type-7b";
 
 export interface ApprovalType7DemoProps {
   isVisible: boolean;

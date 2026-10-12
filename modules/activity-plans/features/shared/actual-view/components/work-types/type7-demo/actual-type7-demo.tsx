@@ -9,11 +9,15 @@ import {
   Type7bProductRateItem,
   Type7bSprayingRoundItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
-import { ActualType7NewDemo, TargetDemoItem, CustomerOption } from "@/modules/activity-plans/features/type-7a/actual/actual-type7-new-demo";
+import {
+  ActualType7NewDemo,
+  type TargetDemoItem,
+  type CustomerOption,
+} from "@/modules/activity-plans/features/type-7a";
 import {
   ActualType7FollowUp,
-  DemoPlotVisitHistoryItem,
-} from "@/modules/activity-plans/features/type-7b/actual/actual-type7-follow-up";
+  type DemoPlotVisitHistoryItem,
+} from "@/modules/activity-plans/features/type-7b";
 
 export type { TargetDemoItem, DemoPlotVisitHistoryItem };
 

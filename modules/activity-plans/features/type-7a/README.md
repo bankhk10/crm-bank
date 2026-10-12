@@ -49,20 +49,21 @@ flowchart TD
 ```
 modules/activity-plans/features/type-7a/
 ├── types/
-│   └── index.ts               # Domain types (Type7aTargetItem, Type7aPlanItem, Type7aActualRecord, etc.)
+│   └── index.ts               # Domain types, UI Props, and form validation interfaces
 ├── application/
 │   ├── mapper.ts              # Pure mappers (extractType7aPlanTargets, parseType7aActualResult, mapType7aToSectionItems)
-│   └── type7a.strategy.ts     # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, saveActual, loadPlan)
-├── shared/
-│   ├── types.ts               # Re-exports from ../types
-│   └── type7a-plan-card.tsx   # Plan detail card component
-├── create/                    # Create form components & validation
-├── edit/                      # Edit form components
-├── actual/                    # Actual outcome execution components & hooks
-├── detail/                    # Detail view components
-├── approval/                  # Approval preview components
-├── hooks/                     # Custom React hooks (useType7aForm, etc.)
-├── index.ts                   # Public Feature Barrel Export (pure mappers & types, NO server strategies)
+│   ├── validation.ts          # Pure form & actual validation functions
+│   └── type7a.strategy.ts     # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type7a-plan-card.tsx   # Plan detail card component (supports PLANNED/UNPLANNED)
+│   ├── type7a-plan-form.tsx   # Plan create/edit form row
+│   ├── type7a-actual-form.tsx # Actual result execution form
+│   ├── type7a-detail-view.tsx # Readonly detail view
+│   └── type7a-approval-card.tsx# Approval card component
+├── hooks/
+│   ├── use-type7a-form.ts     # Plan form state management hook
+│   └── use-type7a-actual.ts   # Actual form state management hook
+├── index.ts                   # Public Feature Barrel Export (pure components, hooks, mappers & types; NO server strategies)
 └── README.md                  # This documentation
 ```
 

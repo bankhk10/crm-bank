@@ -7,8 +7,8 @@ import {
 import type {
   Type7DemoPlotItem,
   Type7DemoProductLine,
-} from "../shared/types";
-import { validateType7bFormItems } from "../create/validation";
+} from "../types";
+import { validateType7bFormItems } from "../application/validation";
 
 export interface UseType7bFormOptions {
   initial?: any;

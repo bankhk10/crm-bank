@@ -13,8 +13,8 @@ import {
   getWorkTypeCode,
 } from "@/modules/activity-plans/constants";
 import { isNonStrictOutcome } from "../constants";
-import { validateType7aActual } from "@/modules/activity-plans/features/type-7a/actual/validation";
-import { validateType7bActual } from "@/modules/activity-plans/features/type-7b/actual/validation";
+import { validateType7aActual } from "@/modules/activity-plans/features/type-7a";
+import { validateType7bActual } from "@/modules/activity-plans/features/type-7b";
 import { validateType8Actual } from "@/modules/activity-plans/features/type-8/actual/validation";
 
 export interface BuildSummaryInput {

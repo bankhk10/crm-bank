@@ -4,8 +4,8 @@ import { isFieldDayItem, getWorkTypeCode } from "@/modules/activity-plans/consta
 import type {
   Type7DemoPlotItem,
   Type7DemoProductLine,
-} from "../shared/types";
-import { validateType7aFormItems } from "../create/validation";
+} from "../types";
+import { validateType7aFormItems } from "../application/validation";
 
 
 export interface UseType7aFormOptions {
