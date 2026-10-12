@@ -1,30 +1,15 @@
-import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type {
+  FollowupProductItem,
+  Type2TargetItem,
+  Type2ImageFile,
+} from "../types";
 
-export interface FollowupProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  expectedResult?: string;
-  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  problemDetail?: string;
-  detail?: string; // รายละเอียดเพิ่มเติมจากแผนงาน
-  followupDetail?: string; // รายละเอียดการติดตามจากการปฏิบัติงานจริง
-  isAdditional?: boolean; // false = สินค้าตามแผน, true = ติดตามผลเพิ่มเติม
-}
+export type { FollowupProductItem, Type2TargetItem, Type2ImageFile };
 
 export interface ActualType2FollowupProps {
   isVisible: boolean;
-  target?: {
-    product: string;
-    customer: string;
-    storeName?: string;
-    keyFarmer?: string;
-    detail: string; // รายละเอียดเพิ่มเติมจากแผนงาน
-    expectedResult: string;
-    items?: FollowupProductItem[];
-  };
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
   planType?: "PLANNED" | "UNPLANNED" | string;
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
   followupResults?: FollowupProductItem[];
@@ -37,9 +22,9 @@ export interface ActualType2FollowupProps {
   followupDetail?: string;
   setFollowupDetail?: (v: string) => void;
   usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  setUsageResult?: (v: "พืชตอบสนองดี" | "พบปัญหา" | "") => void;
+  setUsageResult?: (v: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "") => void;
   problemDetail?: string;
   setProblemDetail?: (v: string) => void;
-  images?: ImageFile[];
-  setImages?: (v: ImageFile[]) => void;
+  images?: Type2ImageFile[];
+  setImages?: (v: Type2ImageFile[]) => void;
 }

@@ -1,20 +1,25 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
-import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { CheckCircle2, Layers } from "lucide-react";
+import type { Type2TargetItem } from "../types";
 import { Type2PlanCard } from "../shared/type2-plan-card";
 
 interface ApprovalType2FollowupProps {
   isVisible: boolean;
-  target: ActualTargetsState["t2"];
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
 }
 
 export function ApprovalType2Followup({
   isVisible,
   target,
+  targets,
 }: ApprovalType2FollowupProps) {
   if (!isVisible) return null;
+
+  const effectiveTargets: Type2TargetItem[] =
+    targets && targets.length > 0 ? targets : target ? [target] : [];
 
   return (
     <div className="border border-teal-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
@@ -27,9 +32,22 @@ export function ApprovalType2Followup({
             ติดตามผลการใช้สินค้า
           </h4>
         </div>
+        {effectiveTargets.length > 1 && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+            <Layers className="w-3.5 h-3.5" />
+            ทั้งหมด {effectiveTargets.length} เป้าหมาย
+          </span>
+        )}
       </div>
 
-      <Type2PlanCard target={target} />
+      <div className="space-y-3">
+        {effectiveTargets.map((t, idx) => (
+          <Type2PlanCard
+            key={t.id || `t2-appr-target-${idx}`}
+            target={t}
+          />
+        ))}
+      </div>
     </div>
   );
 }

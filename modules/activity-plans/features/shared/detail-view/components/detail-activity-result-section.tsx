@@ -80,6 +80,7 @@ export function DetailActivityResultSection({
         <DetailType2Followup
           isVisible={isTypeVisible("ติดตามผลการใช้สินค้า")}
           target={targets.t2}
+          targets={targets.t2List}
           followupResults={parsedResults.t2FollowupResults}
           customerName={parsedResults.t2CustomerName}
           followupDetail={parsedResults.t2FollowupDetail}

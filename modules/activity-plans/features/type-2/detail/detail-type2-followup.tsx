@@ -12,39 +12,29 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Type2PlanCard } from "../shared/type2-plan-card";
-import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import type {
+  Type2TargetItem,
+  Type2ImageFile,
+  FollowupProductItem,
+} from "../types";
 
-import type { FollowupProductItem } from "../actual/types";
-
-export type { FollowupProductItem };
+export type { FollowupProductItem, Type2TargetItem, Type2ImageFile };
 
 interface DetailType2FollowupProps {
   isVisible: boolean;
-  target: {
-    product: string;
-    customer: string;
-    storeName?: string;
-    keyFarmer?: string;
-    province?: string;
-    visitPurpose?: "FARMER" | "STORE";
-    isUnregisteredFarmer?: boolean;
-    unregisteredFarmerName?: string;
-    unregisteredFarmerPhone?: string;
-    detail: string;
-    expectedResult: string;
-    items?: FollowupProductItem[];
-  };
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
   followupResults?: FollowupProductItem[];
   customerName?: string;
   detail?: string;
   followupDetail?: string;
   usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
   problemDetail?: string;
-  images?: ImageFile[];
+  images?: Type2ImageFile[];
 }
 
 // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
@@ -126,6 +116,7 @@ const getParsedUsageResult = (
 export function DetailType2Followup({
   isVisible,
   target,
+  targets,
   followupResults,
   customerName,
   followupDetail,
@@ -147,9 +138,18 @@ export function DetailType2Followup({
 
   if (!isVisible) return null;
 
+  const effectiveTargets =
+    targets && targets.length > 0 ? targets : target ? [target] : [];
+  const primaryTarget: Type2TargetItem = effectiveTargets[0] || {
+    customer: "",
+    detail: "",
+    expectedResult: "พืชตอบสนองดี",
+    items: [],
+  };
+
   const openLightbox = (
     title: string,
-    imgs: ImageFile[] = [],
+    imgs: Type2ImageFile[] = [],
     initialIndex: number = 0,
   ) => {
     if (!imgs || imgs.length === 0) return;
@@ -157,14 +157,32 @@ export function DetailType2Followup({
       isOpen: true,
       title,
       images: imgs.map((img) => ({
-        url: img.url,
+        url: img.url || "",
         title: img.name || title,
       })),
       initialIndex,
     });
   };
 
-  const hasMultiplePlanned = target.items && target.items.length > 0;
+  // Combine planned items across all targets
+  const allPlannedItems: FollowupProductItem[] = effectiveTargets.flatMap((t) =>
+    t.items && t.items.length > 0
+      ? t.items
+      : t.product
+        ? [
+            {
+              id: t.id,
+              productName: t.product,
+              customer: t.customer,
+              storeId: t.storeId,
+              detail: t.detail,
+              expectedResult: t.expectedResult,
+            },
+          ]
+        : [],
+  );
+
+  const hasMultiplePlanned = allPlannedItems.length > 0;
 
   // Split saved normalized followup results (if present) into planned vs additional
   const normalizedPlanned = followupResults
@@ -195,9 +213,14 @@ export function DetailType2Followup({
         </div>
 
         <div className="flex items-center gap-2">
+          {effectiveTargets.length > 1 && (
+            <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full border border-indigo-200 flex items-center gap-1.5">
+              {effectiveTargets.length} เป้าหมาย
+            </span>
+          )}
           {hasMultiplePlanned && (
             <span className="text-xs bg-sky-100 text-sky-800 font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-              เป้าหมายตามแผน {target.items!.length} รายการ
+              เป้าหมายตามแผน {allPlannedItems.length} รายการ
             </span>
           )}
           {hasAdditionalItems && (
@@ -219,7 +242,7 @@ export function DetailType2Followup({
 
         {hasMultiplePlanned ? (
           <div className="space-y-3">
-            {target.items!.map((item, idx) => {
+            {allPlannedItems.map((item, idx) => {
               // Check if normalized result exists
               const normItem = normalizedPlanned.find(
                 (p) =>
@@ -332,7 +355,7 @@ export function DetailType2Followup({
                 ชื่อร้านค้า / ลูกค้า
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {customerName || target.customer || "-"}
+                {customerName || primaryTarget.customer || "-"}
               </span>
             </div>
 
@@ -440,7 +463,7 @@ export function DetailType2Followup({
 
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200 shadow-2xs">
-                        ลูกค้า: {item.customer || target.customer || "-"}
+                        ลูกค้า: {item.customer || primaryTarget.customer || "-"}
                       </span>
                       {item.usageResult ? (
                         <Badge
@@ -519,7 +542,7 @@ export function DetailType2Followup({
                 type="button"
                 onClick={() =>
                   openLightbox(
-                    `รูปภาพการติดตามผล - ${target.customer || customerName || "ลูกค้า"}`,
+                    `รูปภาพการติดตามผล - ${primaryTarget.customer || customerName || "ลูกค้า"}`,
                     images,
                     imgIdx,
                   )

@@ -14,7 +14,7 @@ import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { Type2ImageFile } from "../types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
@@ -28,6 +28,7 @@ export type { FollowupProductItem, ActualType2FollowupProps };
 export function ActualType2Followup({
   isVisible,
   target,
+  targets,
   planType,
   products = [],
   followupResults,
@@ -147,81 +148,86 @@ export function ActualType2Followup({
     return "";
   };
 
-  // 1. Initial Planned items from target
+  const effectiveTargets = useMemo(() => {
+    return targets && targets.length > 0 ? targets : target ? [target] : [];
+  }, [targets, target]);
+
+  // 1. Initial Planned items from effective targets
   const initialPlannedItems: FollowupProductItem[] = useMemo(() => {
-    if (!target) return [];
+    if (effectiveTargets.length === 0) return [];
 
-    if (target.items && target.items.length > 0) {
-      return target.items.map((item, idx) => {
-        const parsedUsage = getParsedUsageResult(
-          usageResult,
-          item.productName,
-          item.usageResult,
-        );
+    const items: FollowupProductItem[] = [];
+
+    effectiveTargets.forEach((t, tIdx) => {
+      if (t.items && t.items.length > 0) {
+        t.items.forEach((item, idx) => {
+          const parsedUsage = getParsedUsageResult(
+            usageResult,
+            item.productName,
+            item.usageResult,
+          );
+          const activeUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา" =
+            parsedUsage === "ลูกค้าพึงพอใจ" || parsedUsage === "พบปัญหา"
+              ? parsedUsage
+              : item.expectedResult === "พบปัญหา"
+                ? "พบปัญหา"
+                : "ลูกค้าพึงพอใจ";
+
+          const parsedProblem =
+            activeUsage === "พบปัญหา"
+              ? item.problemDetail ||
+                getParsedProblemDetail(
+                  problemDetail,
+                  item.productName,
+                  item.problemDetail,
+                )
+              : "";
+
+          const activeFollowup =
+            activeUsage === "พบปัญหา"
+              ? ""
+              : item.followupDetail ||
+                getParsedFollowupDetail(
+                  followupDetail,
+                  item.productName,
+                  item.followupDetail,
+                );
+
+          items.push({
+            id: item.id || `planned-${tIdx}-${idx}`,
+            productId: item.productId,
+            productName: item.productName || t.product || "สินค้าตามแผน",
+            customer: item.customer || t.customer || "",
+            storeId: item.storeId || t.storeId,
+            detail: item.detail || t.detail || "",
+            expectedResult: item.expectedResult || "พืชตอบสนองดี",
+            usageResult: activeUsage,
+            problemDetail: parsedProblem,
+            followupDetail: activeFollowup,
+            isAdditional: false,
+          });
+        });
+      } else if (t.product || t.customer) {
         const activeUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา" =
-          parsedUsage === "ลูกค้าพึงพอใจ" || parsedUsage === "พบปัญหา"
-            ? parsedUsage
-            : item.expectedResult === "พบปัญหา"
-              ? "พบปัญหา"
-              : "ลูกค้าพึงพอใจ";
-
-        const parsedProblem =
-          activeUsage === "พบปัญหา"
-            ? item.problemDetail ||
-              getParsedProblemDetail(
-                problemDetail,
-                item.productName,
-                item.problemDetail,
-              )
-            : "";
-
-        const activeFollowup =
-          activeUsage === "พบปัญหา"
-            ? ""
-            : item.followupDetail ||
-              getParsedFollowupDetail(
-                followupDetail,
-                item.productName,
-                item.followupDetail,
-              );
-
-        return {
-          id: item.id || `planned-${idx}`,
-          productId: item.productId,
-          productName: item.productName || target.product || "สินค้าตามแผน",
-          customer: item.customer || target.customer || "",
-          storeId: item.storeId,
-          detail: item.detail || target.detail || "",
-          expectedResult: item.expectedResult || "พืชตอบสนองดี",
-          usageResult: activeUsage,
-          problemDetail: parsedProblem,
-          followupDetail: activeFollowup,
-          isAdditional: false,
-        };
-      });
-    }
-
-    if (target.product || target.customer) {
-      const activeUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา" =
-        usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
-      return [
-        {
-          id: "planned-single",
-          productName: target.product || "สินค้าตามแผน",
-          customer: target.customer || "",
-          detail: target.detail || "",
-          expectedResult: target.expectedResult || "พืชตอบสนองดี",
+          usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
+        items.push({
+          id: `planned-single-${tIdx}`,
+          productName: t.product || "สินค้าตามแผน",
+          customer: t.customer || "",
+          storeId: t.storeId,
+          detail: t.detail || "",
+          expectedResult: t.expectedResult || "พืชตอบสนองดี",
           usageResult: activeUsage,
           problemDetail: activeUsage === "พบปัญหา" ? problemDetail : "",
           followupDetail:
             activeUsage === "พบปัญหา" ? "" : followupDetail || detail,
           isAdditional: false,
-        },
-      ];
-    }
+        });
+      }
+    });
 
-    return [];
-  }, [target]);
+    return items;
+  }, [effectiveTargets, usageResult, problemDetail, followupDetail, detail]);
 
   // State: Planned items
   const [plannedItems, setPlannedItems] = useState<FollowupProductItem[]>(
@@ -461,7 +467,15 @@ export function ActualType2Followup({
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 1: ข้อมูลตามแผน (PLAN TARGET SUMMARY - READ ONLY) */}
       {/* ───────────────────────────────────────────────────────────── */}
-      <Type2PlanCard planType={planType} target={target} />
+      <div className="space-y-3">
+        {effectiveTargets.map((t, idx) => (
+          <Type2PlanCard
+            key={t.id || `t2-card-${idx}`}
+            planType={planType}
+            target={t}
+          />
+        ))}
+      </div>
 
       {/* ───────────────────────────────────────────────────────────── */}
       {/* SECTION 2: บันทึกผลการติดตามสินค้าตามแผน (PLAN FOLLOW-UP RECORD) */}

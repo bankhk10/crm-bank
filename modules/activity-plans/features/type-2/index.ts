@@ -3,7 +3,11 @@ export type {
   Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
-} from "./shared/types";
+  FollowupProductItem,
+  Type2TargetItem,
+  Type2ImageFile,
+} from "./types";
+
 export { Type2Followup } from "./create/type2-followup";
 export type { Type2FollowupProps } from "./create/types";
 export {
@@ -23,7 +27,7 @@ export {
 export { DetailType2Followup } from "./detail/detail-type2-followup";
 export { ApprovalType2Followup } from "./approval/approval-type2-followup";
 export { ActualType2Followup } from "./actual/actual-type2-followup";
-export type { FollowupProductItem, ActualType2FollowupProps } from "./actual/types";
+export type { ActualType2FollowupProps } from "./actual/types";
 export { useType2Actual } from "./actual/use-type2-actual";
 export {
   useType2Form,
@@ -36,3 +40,8 @@ export {
   type Type2PlanCardTarget,
   type Type2PlanCardTargetItem,
 } from "./shared/type2-plan-card";
+export {
+  extractType2PlanTargets,
+  parseType2ActualResult,
+  mapType2ToSectionItems,
+} from "./application/mapper";

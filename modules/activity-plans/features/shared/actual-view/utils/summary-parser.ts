@@ -1,4 +1,5 @@
 import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1";
+import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -259,6 +260,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 1 Actual Result (Delegated to Type 1 Feature Slice)
   const t1Parsed = parseType1ActualResult(resData);
   Object.assign(result, t1Parsed);
+
+  // Type 2 Actual Result (Delegated to Type 2 Feature Slice)
+  const t2Parsed = parseType2ActualResult(resData);
+  Object.assign(result, t2Parsed);
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&

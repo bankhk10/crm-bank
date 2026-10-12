@@ -1,5 +1,6 @@
 import type { WorkTypeStrategy } from "./work-type-strategy.interface";
 import { type1Strategy } from "@/modules/activity-plans/features/type-1/application/type1.strategy";
+import { type2Strategy } from "@/modules/activity-plans/features/type-2/application/type2.strategy";
 
 const strategyRegistry = new Map<string, WorkTypeStrategy>();
 
@@ -10,6 +11,7 @@ function registerStrategy(strategy: WorkTypeStrategy) {
 
 // Initial Registrations
 registerStrategy(type1Strategy);
+registerStrategy(type2Strategy);
 
 /**
  * Retrieve the Strategy Handler for a given Work Type code

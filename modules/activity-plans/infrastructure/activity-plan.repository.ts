@@ -27,6 +27,7 @@ import { createType7bData, syncType7bData } from "./type-7b.repository";
 import { createType13Data, syncType13Data, Type13DataInput } from "./type-13.repository";
 import { createType14Data, syncType14Data, Type14DataInput } from "./type-14.repository";
 import { type1Strategy } from "../features/type-1/application/type1.strategy";
+import { type2Strategy } from "../features/type-2/application/type2.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -391,6 +392,32 @@ export async function findActivityPlanById(id: string) {
         orderBy: { createdAt: "asc" },
       },
       type1Result: true,
+      type2Targets: {
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              customerType: true,
+              province: true,
+              district: true,
+            },
+          },
+          products: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  productCode: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
       marketingItems: {
         orderBy: { createdAt: "asc" },
       },
@@ -1143,6 +1170,9 @@ export async function createActivityPlan(
         // 1.3.1 Persist dedicated Type 1 store records if present
         await type1Strategy.savePlan(tx, plan.id, input);
 
+        // 1.3.2 Persist dedicated Type 2 records if present
+        await type2Strategy.savePlan(tx, plan.id, input);
+
         // 1.4 Create Products if present
         if (input.planProducts && input.planProducts.length > 0) {
           await tx.activityPlanProduct.createMany({
@@ -1631,6 +1661,7 @@ export async function updateActivityPlan(
         });
       }
       await type1Strategy.savePlan(tx, id, { planStores });
+      await type2Strategy.savePlan(tx, id, { planStores, planProducts });
     }
 
     // 1.4 Sync Products

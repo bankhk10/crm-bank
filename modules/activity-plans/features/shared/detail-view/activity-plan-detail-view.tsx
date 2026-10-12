@@ -1085,6 +1085,7 @@ export default function ActivityPlanDetailView({
           <ApprovalType2Followup
             isVisible={isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า")}
             target={targets.t2}
+            targets={targets.t2List}
           />
 
           {/* TYPE_3: เสนอขายสินค้า */}

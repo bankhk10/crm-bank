@@ -2,6 +2,7 @@ import type { ActivityPlanWithRelations } from "../../../types";
 import { WORK_TYPES } from "../../../constants";
 import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
 import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/type-1";
+import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -47,27 +48,19 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 2. ติดตามผลการใช้สินค้า ────────────────────────────
-  const type2Products = products.filter((pr) => pr.workTypeCode === "TYPE_2");
-  const type2Stores = stores.filter((s) => s.workTypeCode === "TYPE_2");
+  // ── 2. ติดตามผลการใช้สินค้า (Delegated to Type 2 Feature Slice) ──
   const t2Line = objectiveLines.find(
     (l) =>
       l.includes("[ติดตามผลการใช้สินค้า]") ||
       l.includes("ติดตามผลการใช้สินค้า"),
   );
-  if (type2Products.length > 0 || type2Stores.length > 0 || t2Line) {
-    const list = type2Products.map((pr) => ({
-      title: pr.productName || "สินค้า",
-      subtitle: type2Stores[0]?.storeName
-        ? `เกษตรกร/ร้านค้า: ${type2Stores[0].storeName}`
-        : undefined,
-      details: undefined,
-    }));
+  const type2Items = mapType2ToSectionItems(stores, products);
+  if (type2Items.length > 0 || t2Line) {
     sections.push({
       typeIndex: 2,
       title: WORK_TYPES[1],
       badge: "ติดตามผล",
-      items: list,
+      items: type2Items,
       rawSummary: t2Line ? t2Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
   }
