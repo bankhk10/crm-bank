@@ -18,19 +18,23 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { Type1PlanCard } from "../components/type1-plan-card";
-import type { Type1TargetItem, Type1ImageFile } from "../types";
+import { Type1PlanCard } from "./type1-plan-card";
+import type {
+  Type1TargetItem,
+  Type1ImageFile,
+  ProductOption,
+  Type1ActualFormProps,
+  ActualType1VisitProps,
+} from "../types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import type { ProductOption, ActualType1VisitProps } from "./types";
+export type { ProductOption, Type1ActualFormProps, ActualType1VisitProps };
 
-export type { ProductOption, ActualType1VisitProps };
-
-export function ActualType1Visit({
+export function Type1ActualForm({
   isVisible,
   target,
   targets,
@@ -54,7 +58,7 @@ export function ActualType1Visit({
   setPlotLongitude,
   plotImages = [],
   setPlotImages,
-}: ActualType1VisitProps) {
+}: Type1ActualFormProps) {
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
@@ -187,7 +191,7 @@ export function ActualType1Visit({
         )}
       </div>
 
-      {/* PLAN DETAILS SECTION */}
+      {/* PLAN DETAILS SECTION (Hides automatically in UNPLANNED mode) */}
       <Type1PlanCard planType={planType} target={target} targets={targets} />
 
       {/* ACTUAL RESULTS FORM SECTION */}
@@ -376,6 +380,8 @@ export function ActualType1Visit({
                       "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
                       salesOpportunity === opt
                         ? opt === "สูง"
+                          ? "bg-emerald-600 border-emerald-600 text-white shadow-xs"
+                          : "bg-amber-500 border-amber-500 text-white shadow-xs"
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                     )}
                   >
@@ -435,3 +441,6 @@ export function ActualType1Visit({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const ActualType1Visit = Type1ActualForm;

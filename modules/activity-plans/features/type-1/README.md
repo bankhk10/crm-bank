@@ -32,34 +32,22 @@ modules/activity-plans/features/type-1/
 │   ├── mapper.ts                     # Single Source of Truth สำหรับแปลงข้อมูล Form State <-> DB
 │   └── type1.strategy.ts             # WorkTypeStrategy Handler สำหรับ Core Orchestration & Persistence
 │
-├── components/                       # 🖥️ UI Components สำหรับ Plan Stage
-│   ├── type1-visit-form.tsx          # ฟอร์มสร้างและแก้ไขแผนงาน (Unified Form for Create & Edit)
-│   └── type1-plan-card.tsx           # การ์ดแสดงข้อมูลแผนงานเดิม (Reused in Actual, Detail, Approval)
+├── components/                       # 🖥️ Feature UI Components (Vertical Slice)
+│   ├── type1-plan-form.tsx           # ฟอร์มบันทึกแผนงาน (Planned & Unplanned Plan Section)
+│   ├── type1-actual-form.tsx         # ฟอร์มบันทึกผลการปฏิบัติงานจริง (Planned & Unplanned Actual Section)
+│   ├── type1-detail-view.tsx         # หน้าแสดงรายละเอียดผลการปฏิบัติงาน (Read-only Detail View)
+│   ├── type1-approval-card.tsx       # การ์ดแสดงผลในหน้าอนุมัติ (Approval Card)
+│   ├── type1-plan-card.tsx           # การ์ดสรุปเป้าหมายแผนงานเดิม (Auto-hides in Unplanned mode)
+│   └── type1-visit-form.tsx          # Wrapper re-export (Backward-compatible alias)
 │
-├── actual/                           # 🖥️ UI & Hook สำหรับบันทึกผลงานจริง
-│   ├── actual-type1-visit.tsx        # ฟอร์มบันทึกผลจริง (GPS, Address, Photos, Advice, Outcome)
-│   ├── types.ts                      # Props Interfaces ของ Actual
-│   └── use-type1-actual.ts           # Hook จัดการ State, Hydration, Upload รูป และ Payload ผลจริง
+├── hooks/                            # 🪝 Encapsulated Hooks
+│   ├── use-type1-form.ts             # Form Hook สำหรับ Plan Stage
+│   └── use-type1-actual.ts           # Hook สำหรับ Actual Stage (Hydration, Photos, GPS, Payload)
 │
-├── detail/                           # 🖥️ UI รายละเอียด (Read-only)
-│   └── detail-type1-visit.tsx        # หน้ารายละเอียดแผนงานและผลงานจริง
+├── types/                            # 📐 Type Definitions รวมศูนย์
+│   └── index.ts                      # Single Source of Truth สำหรับ Type 1 ทั้งหมด
 │
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type1-visit.tsx      # หน้าแสดงข้อมูลสำหรับผู้อนุมัติ
-│
-├── hooks/                            # 🪝 React Form Hook
-│   └── use-type1-form.ts             # Form Hook จัดการ State, Hydration, Validation, Payload ของ Plan
-│
-├── infrastructure/                   # 🗄️ Data Access / Repository
-│   └── type-1.repository.ts          # Queries สำหรับ Customer Lookups (Farmers, Dealers, Stores)
-│
-├── server/                           # ⚡ Server Actions
-│   └── actions.ts                    # Server Actions สำหรับดึงข้อมูลลูกค้า
-│
-├── types/                            # 📐 Type Definitions กลาง
-│   └── index.ts                      # Single Source of Truth สำหรับ Interfaces ทั้งหมดของ Type 1
-│
-├── index.ts                          # 📦 Public Barrel Export (Backward Compatible)
+├── index.ts                          # 📦 Public Barrel Export (Vertical Slice & Backward Compatible)
 └── README.md                         # 📖 เอกสารกำกับ Type 1 (ไฟล์นี้)
 ```
 

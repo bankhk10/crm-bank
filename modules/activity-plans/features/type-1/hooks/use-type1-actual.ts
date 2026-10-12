@@ -126,6 +126,7 @@ export function useType1Actual() {
     setT1NextMeetingDate,
     t1FarmerHomeAddress,
     setT1FarmerHomeAddress,
+    setFarmerHomeAddress: setT1FarmerHomeAddress,
     t1PlotLatitude,
     setT1PlotLatitude,
     t1PlotLongitude,

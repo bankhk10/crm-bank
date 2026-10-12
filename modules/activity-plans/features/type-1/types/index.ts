@@ -69,9 +69,18 @@ export interface CustomerOption {
 }
 
 /**
- * Props for Type1Visit form component (Create & Edit)
+ * Product lookup option for TYPE 1 Actual
  */
-export interface Type1VisitProps {
+export interface ProductOption {
+  id: string;
+  name: string;
+  productCode?: string | null;
+}
+
+/**
+ * Props for Type 1 Plan Form component (Create & Edit)
+ */
+export interface Type1PlanFormProps {
   readonly?: boolean;
   type1Items: Type1VisitItem[];
   addType1Row?: () => void;
@@ -79,6 +88,78 @@ export interface Type1VisitProps {
   deleteType1Row?: (id: string) => void;
   customers?: CustomerOption[];
 }
+
+// Backward-compatible alias
+export type Type1VisitProps = Type1PlanFormProps;
+
+/**
+ * Props for Type 1 Actual Form component (Actual & Unplanned recording)
+ */
+export interface Type1ActualFormProps {
+  isVisible: boolean;
+  target?: Type1TargetItem;
+  targets?: Type1TargetItem[];
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  productAdvice: string;
+  setProductAdvice: (v: string) => void;
+  detail?: string;
+  setDetail?: (v: string) => void;
+  discussionResult: string;
+  setDiscussionResult: (v: string) => void;
+  salesOpportunity: "สูง" | "ต่ำ" | "";
+  setSalesOpportunity: (v: "สูง" | "ต่ำ" | "") => void;
+  nextAction: string;
+  setNextAction: (v: string) => void;
+  nextMeetingDate: string;
+  setNextMeetingDate: (v: string) => void;
+  products?: ProductOption[];
+
+  // Actual TYPE_1 fields
+  farmerHomeAddress?: string;
+  setFarmerHomeAddress?: (v: string) => void;
+  plotLatitude?: string;
+  setPlotLatitude?: (v: string) => void;
+  plotLongitude?: string;
+  setPlotLongitude?: (v: string) => void;
+  plotImages?: Type1ImageFile[];
+  setPlotImages?: (v: Type1ImageFile[]) => void;
+}
+
+// Backward-compatible alias
+export type ActualType1VisitProps = Type1ActualFormProps;
+
+/**
+ * Props for Type 1 Detail View component
+ */
+export interface Type1DetailViewProps {
+  isVisible: boolean;
+  target?: Type1TargetItem;
+  targets?: Type1TargetItem[];
+  productAdvice?: string;
+  discussionResult?: string;
+  salesOpportunity?: "สูง" | "ต่ำ" | "";
+  nextAction?: string;
+  nextMeetingDate?: string;
+  farmerHomeAddress?: string;
+  plotLatitude?: string | number | null;
+  plotLongitude?: string | number | null;
+  plotImages?: Type1ImageFile[];
+}
+
+// Backward-compatible alias
+export type DetailType1VisitProps = Type1DetailViewProps;
+
+/**
+ * Props for Type 1 Approval View / Card component
+ */
+export interface Type1ApprovalCardProps {
+  isVisible: boolean;
+  target?: Type1TargetItem;
+  targets?: Type1TargetItem[];
+}
+
+// Backward-compatible alias
+export type ApprovalType1VisitProps = Type1ApprovalCardProps;
 
 /**
  * Props for Type1PlanCard summary component
@@ -88,15 +169,6 @@ export interface Type1PlanCardProps {
   target?: Type1TargetItem;
   targets?: Type1TargetItem[];
   className?: string;
-}
-
-/**
- * Product lookup option for TYPE 1 Actual
- */
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
 }
 
 /**

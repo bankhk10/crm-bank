@@ -13,33 +13,22 @@ import {
   ExternalLink,
   Eye,
   ImageIcon,
-  Phone,
-  CheckCircle2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import type { Type1TargetItem, Type1ImageFile } from "../types";
+import type {
+  Type1TargetItem,
+  Type1ImageFile,
+  Type1DetailViewProps,
+  DetailType1VisitProps,
+} from "../types";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-interface DetailType1VisitProps {
-  isVisible: boolean;
-  target?: Type1TargetItem;
-  targets?: Type1TargetItem[];
-  productAdvice?: string;
-  discussionResult?: string;
-  salesOpportunity?: "สูง" | "ต่ำ" | "";
-  nextAction?: string;
-  nextMeetingDate?: string;
-  farmerHomeAddress?: string;
-  plotLatitude?: string | number | null;
-  plotLongitude?: string | number | null;
-  plotImages?: Type1ImageFile[];
-}
+export type { Type1DetailViewProps, DetailType1VisitProps };
 
-export function DetailType1Visit({
+export function Type1DetailView({
   isVisible,
   target,
   targets,
@@ -52,7 +41,7 @@ export function DetailType1Visit({
   plotLatitude,
   plotLongitude,
   plotImages = [],
-}: DetailType1VisitProps) {
+}: Type1DetailViewProps) {
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     title: string;
@@ -405,3 +394,6 @@ export function DetailType1Visit({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const DetailType1Visit = Type1DetailView;

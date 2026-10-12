@@ -3,20 +3,16 @@
 import React from "react";
 import { UserCheck, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type1TargetItem } from "../types";
-import { Type1PlanCard } from "../components/type1-plan-card";
+import type { Type1TargetItem, Type1ApprovalCardProps, ApprovalType1VisitProps } from "../types";
+import { Type1PlanCard } from "./type1-plan-card";
 
-interface ApprovalType1VisitProps {
-  isVisible: boolean;
-  target?: Type1TargetItem;
-  targets?: Type1TargetItem[];
-}
+export type { Type1ApprovalCardProps, ApprovalType1VisitProps };
 
-export function ApprovalType1Visit({
+export function Type1ApprovalCard({
   isVisible,
   target,
   targets,
-}: ApprovalType1VisitProps) {
+}: Type1ApprovalCardProps) {
   if (!isVisible) return null;
 
   const effectiveTargets =
@@ -61,3 +57,5 @@ export function ApprovalType1Visit({
   );
 }
 
+// Backward-compatible alias
+export const ApprovalType1Visit = Type1ApprovalCard;
