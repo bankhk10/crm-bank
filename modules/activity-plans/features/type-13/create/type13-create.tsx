@@ -8,7 +8,9 @@ import {
   PackageCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import { ActivityInput } from "@/components/activity/activity-input";
 import {
   ActivityCustomerSelect,
   type ActivityCustomerItem,
@@ -285,54 +287,109 @@ export function Type13Create({
                 )}
               </div>
 
-              {/* Form Grid: ร้านค้า Dealer, จังหวัด, อำเภอ */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 items-start">
-                {/* ร้านค้า Dealer */}
-                <div>
-                  <ActivityCustomerSelect
-                    id={`type13-dealer-${plotIdx}`}
-                    type="STORE"
-                    label="ร้านค้า Dealer"
-                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                    value={plot.storeId || ""}
-                    onChange={(val, cust) =>
-                      handleUpdatePlot(plotIdx, "storeId", val, cust)
-                    }
-                    customers={dealers}
-                    placeholder="เลือกร้านค้า Dealer..."
-                    searchPlaceholder="ค้นหาร้านค้า Dealer..."
-                    emptyText="ไม่พบร้านค้า Dealer"
-                    disabled={readonly}
-                    required
-                  />
+              {/* Form Grid: ร้านค้า Dealer, ที่อยู่แปลง (จังหวัด, อำเภอ, ตำบล), หมู่บ้าน, จำนวนแปลง */}
+              <div className="space-y-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 items-start">
+                  {/* ร้านค้า Dealer */}
+                  <div>
+                    <ActivityCustomerSelect
+                      id={`type13-dealer-${plotIdx}`}
+                      type="STORE"
+                      label="ร้านค้า Dealer"
+                      labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                      value={plot.storeId || ""}
+                      onChange={(val, cust) =>
+                        handleUpdatePlot(plotIdx, "storeId", val, cust)
+                      }
+                      customers={dealers}
+                      placeholder="เลือกร้านค้า Dealer..."
+                      searchPlaceholder="ค้นหาร้านค้า Dealer..."
+                      emptyText="ไม่พบร้านค้า Dealer"
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
+
+                  {/* ที่อยู่แปลง: จังหวัด, อำเภอ, ตำบล (1.1 เลือก ตำบล) */}
+                  <div className="md:col-span-2">
+                    <ActivityAddressSelect
+                      id={`type13-address-${plotIdx}`}
+                      levels="province-district-subdistrict"
+                      provinceLabel="จังหวัด"
+                      districtLabel="อำเภอ"
+                      subdistrictLabel="ตำบล"
+                      labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                      value={{
+                        province: plot.province || "",
+                        district: plot.district || "",
+                        subdistrict: plot.subdistrict || "",
+                      }}
+                      onChange={(val) => {
+                        if (readonly) return;
+                        const updated = [...plots];
+                        updated[plotIdx] = {
+                          ...updated[plotIdx],
+                          province: val.province || "",
+                          district: val.district || "",
+                          subdistrict: val.subdistrict || "",
+                        };
+                        onChange(updated);
+                      }}
+                      disabled={readonly}
+                      required
+                    />
+                  </div>
                 </div>
 
-                {/* ที่อยู่แปลง: จังหวัด และ อำเภอ */}
-                <div className="md:col-span-2">
-                  <ActivityAddressSelect
-                    id={`type13-address-${plotIdx}`}
-                    levels="province-district"
-                    districtLabel="อำเภอ"
-                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                    value={{
-                      province: plot.province || "",
-                      district: plot.district || "",
-                    }}
-                    onChange={(val) => {
-                      if (readonly) return;
-                      const updated = [...plots];
-                      updated[plotIdx] = {
-                        ...updated[plotIdx],
-                        province: val.province || "",
-                        district: val.district || "",
-                      };
-                      onChange(updated);
-                    }}
-                    disabled={readonly}
-                    required
-                  />
+                {/* แถวข้อมูลเพิ่มเติม: 1.2 ช่องกรอก หมู่บ้าน & 1.3 ช่องกรอกจำนวนแปลงที่ฉีดในหมู่บ้านนั้น */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 border-t border-slate-100">
+                  <div>
+                    <Label className="block text-xs font-semibold text-slate-700 mb-1 mx-0">
+                      หมู่บ้าน
+                    </Label>
+                    <ActivityInput
+                      type="text"
+                      placeholder="ระบุหมู่บ้าน เช่น บ้านหนองบัว หมู่ 3"
+                      value={plot.village || ""}
+                      onChange={(e) => {
+                        if (readonly) return;
+                        const updated = [...plots];
+                        updated[plotIdx] = {
+                          ...updated[plotIdx],
+                          village: e.target.value,
+                        };
+                        onChange(updated);
+                      }}
+                      disabled={readonly}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="block text-xs font-semibold text-slate-700 mb-1 mx-0">
+                      จำนวนแปลงที่ฉีดในหมู่บ้านนั้น (แปลง)
+                    </Label>
+                    <ActivityInput
+                      type="number"
+                      min={1}
+                      placeholder="เช่น 5"
+                      value={plot.plannedPlotsCount ?? ""}
+                      onChange={(e) => {
+                        if (readonly) return;
+                        const updated = [...plots];
+                        const val = e.target.value === "" ? "" : Number(e.target.value);
+                        updated[plotIdx] = {
+                          ...updated[plotIdx],
+                          plannedPlotsCount: val,
+                        };
+                        onChange(updated);
+                      }}
+                      disabled={readonly}
+                      className="h-9 text-xs"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

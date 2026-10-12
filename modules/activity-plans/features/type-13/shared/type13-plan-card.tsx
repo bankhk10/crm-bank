@@ -77,12 +77,35 @@ export function Type13PlanCard({
               <div className="flex items-center gap-1 text-[11px] text-slate-500">
                 <MapPin className="w-3.5 h-3.5 text-slate-400" />
                 <span>
-                  {[plot.district, plot.province].filter(Boolean).join(", ") ||
+                  {[
+                    plot.subdistrict ? `ต.${plot.subdistrict}` : null,
+                    plot.district ? `อ.${plot.district}` : null,
+                    plot.province ? `จ.${plot.province}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") ||
                     [planSummary?.district, planSummary?.province].filter(Boolean).join(", ") ||
                     "-"}
                 </span>
               </div>
             </div>
+
+            {(plot.village || plot.plannedPlotsCount) && (
+              <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
+                {plot.village && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium">
+                    <span className="text-slate-400">หมู่บ้าน:</span>
+                    <span className="font-semibold text-slate-800">{plot.village}</span>
+                  </span>
+                )}
+                {plot.plannedPlotsCount != null && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium">
+                    <span className="text-emerald-600">เป้าหมายตามแผน:</span>
+                    <span className="font-bold">{plot.plannedPlotsCount} แปลง</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

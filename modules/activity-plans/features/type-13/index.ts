@@ -1,3 +1,6 @@
+// Types
+export * from "./types";
+
 // Shared Types & Components
 export * from "./shared/types";
 export {
@@ -41,3 +44,10 @@ export {
   type UseType13FormOptions,
   type UseType13FormResult,
 } from "./hooks/use-type13-form";
+
+// Application Layer
+export {
+  extractType13PlanTargets,
+  mapType13ToSectionItems,
+} from "./application/mapper";
+export { type13Strategy } from "./application/type13.strategy";

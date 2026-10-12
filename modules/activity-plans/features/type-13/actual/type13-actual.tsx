@@ -87,15 +87,15 @@ function PlotAfterSpraySection({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
           <Camera className="w-4 h-4 text-emerald-600" />
-          <h5 className="font-bold text-sm text-slate-800">รูปหลังฉีดพ่น</h5>
+          <h5 className="font-bold text-sm text-slate-800">รูปหลังฉีดพ่น (ต่อหมู่บ้าน)</h5>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            รูป {images.length}/5
+            รูป {images.length}/20
           </span>
         </div>
 
         {!readonly && (
           <div>
-            {images.length < 5 ? (
+            {images.length < 20 ? (
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -106,7 +106,7 @@ function PlotAfterSpraySection({
               </button>
             ) : (
               <span className="text-xs text-amber-700 font-medium bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
-                ครบ 5 รูปแล้ว
+                ครบ 20 รูปแล้ว
               </span>
             )}
           </div>
@@ -114,7 +114,7 @@ function PlotAfterSpraySection({
       </div>
 
       {/* Upload Drop Zone (product-form / GalleryUpload style) */}
-      {!readonly && images.length < 5 && (
+      {!readonly && images.length < 20 && (
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -150,7 +150,7 @@ function PlotAfterSpraySection({
                 คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์มาวางที่นี่
               </p>
               <p className="text-[11px] text-slate-500">
-                รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 20MB (สูงสุด 5 รูปต่อแปลง)
+                รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 20MB (ไม่เกิน 20 รูป ต่อหมู่บ้าน)
               </p>
             </div>
           </div>
@@ -175,7 +175,7 @@ function PlotAfterSpraySection({
       {/* Photo List (Stacked vertically, patterned after type7-demo.tsx) */}
       {images.length === 0 ? (
         <div className="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
-          ยังไม่มีรูปหลังฉีดพ่นสำหรับแปลงนี้ (สามารถอัปโหลดได้สูงสุด 5 รูป)
+          ยังไม่มีรูปหลังฉีดพ่นสำหรับหมู่บ้านนี้ (สามารถอัปโหลดได้ไม่เกิน 20 รูป ต่อหมู่บ้าน)
         </div>
       ) : (
         <div className="space-y-3">
@@ -569,6 +569,79 @@ export function Type13Actual({
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* ข้อมูลแปลงที่ฉีด: ตำบล, หมู่บ้าน, จำนวนแปลงตามแผน vs จำนวนแปลงที่ฉีดจริง, อัตราการใช้ */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-slate-100">
+                  {/* ที่อยู่ / ตำบล / หมู่บ้าน */}
+                  <div className="sm:col-span-12 flex flex-wrap items-center gap-2 text-xs bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
+                    <span className="text-slate-500 font-semibold flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      พื้นที่:
+                    </span>
+                    <span className="font-medium text-slate-800">
+                      {[
+                        plot.subdistrict ? `ต.${plot.subdistrict}` : null,
+                        plot.district ? `อ.${plot.district}` : null,
+                        plot.province ? `จ.${plot.province}` : null,
+                      ].filter(Boolean).join(" ") || "-"}
+                    </span>
+                    {plot.village && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 font-medium ml-1">
+                        <span className="text-slate-400">หมู่บ้าน:</span>
+                        <span className="font-semibold text-slate-800">{plot.village}</span>
+                      </span>
+                    )}
+                    {plot.plannedPlotsCount != null && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium ml-1">
+                        <span className="text-emerald-600">แผนงาน:</span>
+                        <span className="font-bold">{plot.plannedPlotsCount} แปลง</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 2.1 จำนวนแปลงที่ฉีดจริง */}
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      จำนวนแปลงที่ฉีดจริง <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={plot.actualPlotsCount ?? ""}
+                      onChange={(e) =>
+                        updatePlotInfo(
+                          plotIdx,
+                          "actualPlotsCount",
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      placeholder={
+                        plot.plannedPlotsCount
+                          ? `เช่น ${plot.plannedPlotsCount}`
+                          : "ระบุจำนวนแปลงที่ฉีดจริง เช่น 5"
+                      }
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                    />
+                  </div>
+
+                  {/* 2.2 ช่องกรอก อัตราการใช้ */}
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      อัตราการใช้ <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={plot.applicationRate || ""}
+                      onChange={(e) =>
+                        updatePlotInfo(plotIdx, "applicationRate", e.target.value)
+                      }
+                      placeholder="เช่น 20-30 ซีซี ต่อน้ำ 20 ลิตร หรือ 50 ซีซี/ไร่"
+                      disabled={readonly}
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                    />
                   </div>
                 </div>
               </div>

@@ -21,6 +21,9 @@ export interface Type13PlotInput {
   ownerName?: string | null;
   province?: string | null;
   district?: string | null;
+  subdistrict?: string | null;
+  village?: string | null;
+  plannedPlotsCount?: number | string | null;
   latitude?: string | number | Prisma.Decimal | null;
   longitude?: string | number | Prisma.Decimal | null;
   products?: Type13PlotProductInput[];
@@ -141,6 +144,11 @@ export async function createType13Data(
             employeeId,
             province: plotItem.province || null,
             district: plotItem.district || null,
+            location: [
+              plotItem.subdistrict ? `ต.${plotItem.subdistrict}` : null,
+              plotItem.village ? `ม.${plotItem.village}` : null,
+              plotItem.plannedPlotsCount ? `แผน ${plotItem.plannedPlotsCount} แปลง` : null,
+            ].filter(Boolean).join(" ") || null,
             latitude:
               plotItem.latitude != null && String(plotItem.latitude).trim() !== ""
                 ? new Prisma.Decimal(Number(plotItem.latitude))

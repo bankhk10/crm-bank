@@ -37,7 +37,7 @@ export interface ActivityAddressErrors {
 
 export interface ActivityAddressSelectProps {
   id?: string;
-  levels?: "province" | "province-district" | "full";
+  levels?: "province" | "province-district" | "province-district-subdistrict" | "full";
   value?: string | ActivityAddressValue;
   onChange?: (value: any) => void;
   errors?: ActivityAddressErrors;
@@ -248,7 +248,7 @@ export function ActivityAddressSelect({
   }, [isSingleProvinceMode, province, getDistricts]);
 
   const subdistrictOptions = useMemo(() => {
-    if (levels !== "full") return [];
+    if (levels !== "full" && levels !== "province-district-subdistrict") return [];
     return getSubdistricts(province, district).map((s) => ({
       value: s.value,
       label: s.label,
@@ -328,6 +328,7 @@ export function ActivityAddressSelect({
   }
 
   const isFull = levels === "full";
+  const hasSubdistrict = isFull || levels === "province-district-subdistrict";
 
   // Multi-level Mode: Render cascading Grid
   return (
@@ -337,7 +338,9 @@ export function ActivityAddressSelect({
           "grid gap-3",
           isFull
             ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-            : "grid-cols-1 sm:grid-cols-2",
+            : hasSubdistrict
+              ? "grid-cols-1 sm:grid-cols-3"
+              : "grid-cols-1 sm:grid-cols-2",
           gridClassName
         )}
       >
@@ -387,8 +390,8 @@ export function ActivityAddressSelect({
           />
         </div>
 
-        {/* 3. ตำบล / แขวง (Subdistrict) - Full mode only */}
-        {isFull && (
+        {/* 3. ตำบล / แขวง (Subdistrict) */}
+        {hasSubdistrict && (
           <div>
             <ActivityCombobox
               id={id ? `${id}-subdistrict` : undefined}

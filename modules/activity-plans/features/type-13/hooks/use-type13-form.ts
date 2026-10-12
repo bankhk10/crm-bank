@@ -61,89 +61,101 @@ function resolveInitialType13Plots(initial: any = {}): FormType13PlotItem[] {
     Array.isArray((initial as any).type13.plots) &&
     (initial as any).type13.plots.length > 0
   ) {
-    return (initial as any).type13.plots.map((p: any, idx: number) => ({
-      id: p.id || `plot-${idx + 1}`,
-      demoPlotId: p.demoPlotId || p.demoPlot?.id || null,
-      name: p.plotName || p.name || "",
-      storeId: p.storeId || p.store?.id || "",
-      dealerName: p.dealerName || p.store?.name || null,
-      ownerName: p.ownerName || "",
-      province: p.province || p.store?.province || "",
-      district: p.district || p.store?.district || "",
-      latitude: p.latitude != null ? String(p.latitude) : "",
-      longitude: p.longitude != null ? String(p.longitude) : "",
-      products: [],
-    }));
-  }
-
-  if (
-    (initial as any)?.type13Plots &&
-    Array.isArray((initial as any).type13Plots) &&
-    (initial as any).type13Plots.length > 0
-  ) {
-    return (initial as any).type13Plots.map((p: any, idx: number) => ({
-      id: p.id || `plot-${idx + 1}`,
-      demoPlotId: p.demoPlotId || null,
-      name: p.plotName || p.name || "",
-      storeId: p.storeId || "",
-      dealerName: p.dealerName || null,
-      ownerName: p.ownerName || "",
-      province: p.province || "",
-      district: p.district || "",
-      latitude: p.latitude != null ? String(p.latitude) : "",
-      longitude: p.longitude != null ? String(p.longitude) : "",
-      products: [],
-    }));
-  }
-
-  const visits = (initial as any)?.demoPlotVisits || [];
-  const hattackPlots = visits.filter(
-    (v: any) =>
-      v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
-  );
-
-  if (hattackPlots.length > 0) {
-    const seenPlotIds = new Set<string>();
-    const uniquePlots = hattackPlots.filter((v: any) => {
-      const pid = v.demoPlot?.id || v.demoPlotId;
-      if (!pid) return true;
-      if (seenPlotIds.has(pid)) return false;
-      seenPlotIds.add(pid);
-      return true;
-    });
-
-    return uniquePlots.map((v: any, idx: number) => {
-      const plot = v.demoPlot;
-      const plotName = plot?.name || "";
-
-      return {
-        id: plot?.id || `plot-${idx + 1}`,
-        demoPlotId: plot?.id || v.demoPlotId || null,
-        name: plotName,
-        storeId: plot?.customerId || "",
-        dealerName: plot?.customer?.name || plot?.dealerName || null,
-        ownerName: plot?.ownerName || plot?.customer?.name || "",
-        province: plot?.province || plot?.customer?.province || "",
-        district: plot?.district || plot?.customer?.district || "",
-        latitude: plot?.latitude != null ? String(plot.latitude) : "",
-        longitude: plot?.longitude != null ? String(plot.longitude) : "",
+      return (initial as any).type13.plots.map((p: any, idx: number) => ({
+        id: p.id || `plot-${idx + 1}`,
+        demoPlotId: p.demoPlotId || p.demoPlot?.id || null,
+        name: p.plotName || p.name || "",
+        storeId: p.storeId || p.store?.id || "",
+        dealerName: p.dealerName || p.store?.name || null,
+        ownerName: p.ownerName || "",
+        province: p.province || p.store?.province || "",
+        district: p.district || p.store?.district || "",
+        subdistrict: p.subdistrict || p.store?.subdistrict || "",
+        village: p.village || "",
+        plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
+        latitude: p.latitude != null ? String(p.latitude) : "",
+        longitude: p.longitude != null ? String(p.longitude) : "",
         products: [],
-      };
-    });
-  }
+      }));
+    }
 
-  return [
-    {
-      id: `plot-${Date.now()}-1`,
-      demoPlotId: null,
-      name: "",
-      storeId: "",
-      ownerName: "",
-      province: "",
-      district: "",
-      products: [],
-    },
-  ];
+    if (
+      (initial as any)?.type13Plots &&
+      Array.isArray((initial as any).type13Plots) &&
+      (initial as any).type13Plots.length > 0
+    ) {
+      return (initial as any).type13Plots.map((p: any, idx: number) => ({
+        id: p.id || `plot-${idx + 1}`,
+        demoPlotId: p.demoPlotId || null,
+        name: p.plotName || p.name || "",
+        storeId: p.storeId || "",
+        dealerName: p.dealerName || null,
+        ownerName: p.ownerName || "",
+        province: p.province || "",
+        district: p.district || "",
+        subdistrict: p.subdistrict || "",
+        village: p.village || "",
+        plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
+        latitude: p.latitude != null ? String(p.latitude) : "",
+        longitude: p.longitude != null ? String(p.longitude) : "",
+        products: [],
+      }));
+    }
+
+    const visits = (initial as any)?.demoPlotVisits || [];
+    const hattackPlots = visits.filter(
+      (v: any) =>
+        v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
+    );
+
+    if (hattackPlots.length > 0) {
+      const seenPlotIds = new Set<string>();
+      const uniquePlots = hattackPlots.filter((v: any) => {
+        const pid = v.demoPlot?.id || v.demoPlotId;
+        if (!pid) return true;
+        if (seenPlotIds.has(pid)) return false;
+        seenPlotIds.add(pid);
+        return true;
+      });
+
+      return uniquePlots.map((v: any, idx: number) => {
+        const plot = v.demoPlot;
+        const plotName = plot?.name || "";
+
+        return {
+          id: plot?.id || `plot-${idx + 1}`,
+          demoPlotId: plot?.id || v.demoPlotId || null,
+          name: plotName,
+          storeId: plot?.customerId || "",
+          dealerName: plot?.customer?.name || plot?.dealerName || null,
+          ownerName: plot?.ownerName || plot?.customer?.name || "",
+          province: plot?.province || plot?.customer?.province || "",
+          district: plot?.district || plot?.customer?.district || "",
+          subdistrict: plot?.subdistrict || plot?.customer?.subdistrict || "",
+          village: plot?.village || "",
+          plannedPlotsCount: plot?.plannedPlotsCount != null ? plot.plannedPlotsCount : "",
+          latitude: plot?.latitude != null ? String(plot.latitude) : "",
+          longitude: plot?.longitude != null ? String(plot.longitude) : "",
+          products: [],
+        };
+      });
+    }
+
+    return [
+      {
+        id: `plot-${Date.now()}-1`,
+        demoPlotId: null,
+        name: "",
+        storeId: "",
+        ownerName: "",
+        province: "",
+        district: "",
+        subdistrict: "",
+        village: "",
+        plannedPlotsCount: "",
+        products: [],
+      },
+    ];
 }
 
 export function useType13Form({
@@ -283,31 +295,43 @@ export function useType13Form({
       });
     }
 
-    type13Plots.forEach((plot, pIdx) => {
-      if (plot.storeId) {
-        const dealer = customers.find((c) => c.id === plot.storeId);
-        const plotLabel = `แปลงที่ ${pIdx + 1}`;
-        planStores.push({
-          workTypeCode: "TYPE_13",
-          visitPurpose: "STORE",
-          storeId: plot.storeId,
-          storeName: dealer?.name || plot.storeId,
-          province: plot.province || null,
-          remarks: plot.name || plotLabel,
-          notes: `แปลงแฮตแทค: ${plot.name || plotLabel}`,
-        });
-      }
-    });
+      type13Plots.forEach((plot, pIdx) => {
+        if (plot.storeId) {
+          const dealer = customers.find((c) => c.id === plot.storeId);
+          const plotLabel = `แปลงที่ ${pIdx + 1}`;
+          const locationDetails = [
+            plot.subdistrict ? `ต.${plot.subdistrict}` : null,
+            plot.village ? `ม.${plot.village}` : null,
+            plot.plannedPlotsCount ? `(${plot.plannedPlotsCount} แปลง)` : null,
+          ].filter(Boolean).join(" ");
 
-    const mappedType13Plots = type13Plots.map((plot) => ({
-      id: plot.id,
-      demoPlotId: plot.demoPlotId || null,
-      name: plot.name || "",
-      storeId: plot.storeId,
-      ownerName: plot.ownerName || null,
-      province: plot.province,
-      district: plot.district,
-      products: (plot.products || []).map((p) => ({
+          planStores.push({
+            workTypeCode: "TYPE_13",
+            visitPurpose: "STORE",
+            storeId: plot.storeId,
+            storeName: dealer?.name || plot.storeId,
+            province: plot.province || null,
+            remarks: plot.name || plotLabel,
+            notes: `แปลงแฮตแทค: ${plot.name || plotLabel}${locationDetails ? ` [${locationDetails}]` : ""}`,
+          });
+        }
+      });
+
+      const mappedType13Plots = type13Plots.map((plot) => ({
+        id: plot.id,
+        demoPlotId: plot.demoPlotId || null,
+        name: plot.name || "",
+        storeId: plot.storeId,
+        ownerName: plot.ownerName || null,
+        province: plot.province,
+        district: plot.district,
+        subdistrict: plot.subdistrict || null,
+        village: plot.village || null,
+        plannedPlotsCount:
+          plot.plannedPlotsCount != null && plot.plannedPlotsCount !== ""
+            ? Number(plot.plannedPlotsCount)
+            : null,
+        products: (plot.products || []).map((p) => ({
         id: p.id,
         productId: p.productId,
         productName: p.productName || null,

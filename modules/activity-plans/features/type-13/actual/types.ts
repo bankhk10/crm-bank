@@ -1,36 +1,10 @@
-import type { ImageFile } from "../../shared/actual-view/types";
-import type { Type13SprayingRound, ProductOption } from "../shared/types";
+import type { ProductOption } from "../types";
 import type { useType13ActualState } from "./use-type13-actual-state";
 
-export interface Type13ActualProductState {
-  productId: string;
-  productName?: string | null;
-  actualRate: string;
-  quantityUsed: number | string;
-  unit?: string | null;
-  detail?: string | null;
-}
-
-export interface Type13PlotActualState {
-  clientPlotId?: string;
-  demoPlotId?: string | null;
-  plotName: string;
-  storeId?: string;
-  dealerName?: string;
-  province?: string;
-  district?: string;
-  latitude: string;
-  longitude: string;
-  isNew?: boolean;
-  afterSprayImages?: ImageFile[];
-  sprayRounds: Array<
-    Omit<Type13SprayingRound, "products" | "demoPlotId"> & {
-      demoPlotId?: string | null;
-      clientPlotId?: string | null;
-      products: Type13ActualProductState[];
-    }
-  >;
-}
+export type {
+  Type13ActualProductState,
+  Type13PlotActualState,
+} from "../types";
 
 export interface Type13ActualProps {
   isVisible?: boolean;

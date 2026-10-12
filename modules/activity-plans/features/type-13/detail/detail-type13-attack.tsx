@@ -159,12 +159,42 @@ export function DetailType13Attack({
             <span className="text-xs sm:text-sm font-semibold text-slate-700">
               {currentPlot.dealerName || currentPlot.ownerName || currentPlot.storeId || "-"}
             </span>
-            {(currentPlot.district || currentPlot.province) && (
-              <span className="block text-[11px] text-slate-400 mt-0.5">
-                {[currentPlot.district, currentPlot.province].filter(Boolean).join(" / ")}
-              </span>
-            )}
+            <span className="block text-[11px] text-slate-400 mt-0.5">
+              {[
+                currentPlot.subdistrict ? `ต.${currentPlot.subdistrict}` : null,
+                currentPlot.district ? `อ.${currentPlot.district}` : null,
+                currentPlot.province ? `จ.${currentPlot.province}` : null,
+              ].filter(Boolean).join(" ") || "-"}
+              {currentPlot.village ? ` (ม.${currentPlot.village})` : ""}
+            </span>
           </div>
+
+          {(currentPlot.plannedPlotsCount != null || (plotCoord as any)?.actualPlotsCount != null) && (
+            <div>
+              <span className="block text-[11px] text-slate-400 font-medium">
+                จำนวนแปลง (แผน / จริง)
+              </span>
+              <span className="text-xs sm:text-sm font-semibold text-emerald-800">
+                {currentPlot.plannedPlotsCount != null ? `แผน: ${currentPlot.plannedPlotsCount} แปลง` : ""}
+                {(plotCoord as any)?.actualPlotsCount != null && (
+                  <span className="text-emerald-700 ml-1.5 font-bold">
+                    ฉีดจริง: {(plotCoord as any).actualPlotsCount} แปลง
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+
+          {(plotCoord as any)?.applicationRate && (
+            <div>
+              <span className="block text-[11px] text-slate-400 font-medium">
+                อัตราการใช้
+              </span>
+              <span className="text-xs sm:text-sm font-semibold text-slate-800">
+                {(plotCoord as any).applicationRate}
+              </span>
+            </div>
+          )}
 
           {plotCoord && (
             <div>

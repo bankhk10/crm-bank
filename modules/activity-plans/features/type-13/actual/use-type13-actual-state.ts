@@ -23,6 +23,11 @@ const createDefaultInitialPlot = (): Type13PlotActualState => {
     dealerName: "",
     province: "",
     district: "",
+    subdistrict: "",
+    village: "",
+    plannedPlotsCount: "",
+    actualPlotsCount: "",
+    applicationRate: "",
     isNew: true,
     latitude: "",
     longitude: "",
@@ -99,6 +104,24 @@ export function useType13ActualState() {
             matchedStore?.district ||
             p.demoPlot?.district ||
             undefined,
+          subdistrict:
+            p.subdistrict ||
+            p.demoPlot?.subdistrict ||
+            undefined,
+          village:
+            p.village ||
+            p.demoPlot?.village ||
+            undefined,
+          plannedPlotsCount:
+            p.plannedPlotsCount != null
+              ? p.plannedPlotsCount
+              : (p.demoPlot?.plannedPlotsCount ?? undefined),
+          actualPlotsCount:
+            p.actualPlotsCount != null
+              ? p.actualPlotsCount
+              : (p.demoPlot?.actualPlotsCount ?? ""),
+          applicationRate:
+            p.applicationRate || p.demoPlot?.usageMethod || "",
           latitude:
             p.latitude != null && String(p.latitude).trim() !== ""
               ? String(p.latitude)
@@ -376,10 +399,21 @@ export function useType13ActualState() {
                 },
               ];
 
+        const actualPlotsCount =
+          matchedCoord && matchedCoord.actualPlotsCount != null && String(matchedCoord.actualPlotsCount).trim() !== ""
+            ? matchedCoord.actualPlotsCount
+            : plot.actualPlotsCount;
+        const applicationRate =
+          matchedCoord && matchedCoord.applicationRate != null && String(matchedCoord.applicationRate).trim() !== ""
+            ? matchedCoord.applicationRate
+            : plot.applicationRate;
+
         return {
           ...plot,
           latitude: lat,
           longitude: lng,
+          actualPlotsCount,
+          applicationRate,
           sprayRounds: defaultRounds,
         };
       });
@@ -429,7 +463,7 @@ export function useType13ActualState() {
           type: att.mimeType || "image/jpeg",
         });
 
-        if (plotAfterSprayImages.length >= 5) break;
+        if (plotAfterSprayImages.length >= 20) break;
       }
 
       return {
@@ -817,7 +851,7 @@ export function useType13ActualState() {
     [],
   );
 
-  // After-spray photos (Max 5 photos per plot)
+  // After-spray photos (Max 20 photos per plot/village)
   const addPlotAfterSprayImages = useCallback((plotIndex: number, newFiles: File[]) => {
     setPlotsActual((prev) => {
       const next = [...prev];
@@ -830,7 +864,7 @@ export function useType13ActualState() {
       const uniqueNewFiles = newFiles.filter(
         (f) => !existingKeys.has(`${f.name}_${f.size}`),
       );
-      const remaining = 5 - current.length;
+      const remaining = 20 - current.length;
       if (remaining <= 0 || uniqueNewFiles.length === 0) return prev;
 
       const toAdd: ImageFile[] = uniqueNewFiles.slice(0, remaining).map((file, idx) => ({
@@ -936,6 +970,13 @@ export function useType13ActualState() {
           storeId: p.storeId && p.storeId.trim() ? p.storeId.trim() : null,
           province: p.province || null,
           district: p.district || null,
+          subdistrict: p.subdistrict || null,
+          village: p.village || null,
+          actualPlotsCount:
+            p.actualPlotsCount != null && p.actualPlotsCount !== ""
+              ? Number(p.actualPlotsCount)
+              : null,
+          applicationRate: p.applicationRate?.trim() || null,
           latitude: p.latitude.trim(),
           longitude: p.longitude.trim(),
         }));
@@ -962,6 +1003,13 @@ export function useType13ActualState() {
             storeId: p.storeId && p.storeId.trim() ? p.storeId.trim() : null,
             province: p.province || null,
             district: p.district || null,
+            subdistrict: p.subdistrict || null,
+            village: p.village || null,
+            actualPlotsCount:
+              p.actualPlotsCount != null && p.actualPlotsCount !== ""
+                ? Number(p.actualPlotsCount)
+                : null,
+            applicationRate: p.applicationRate?.trim() || null,
             latitude: p.latitude.trim(),
             longitude: p.longitude.trim(),
           };
@@ -1033,7 +1081,8 @@ export function useType13ActualState() {
             `client-plot-${Date.now()}-${plotIdx}-${Math.random().toString(36).slice(2, 7)}`;
         const effectiveDemoPlotId = hasDbPlot ? plot.demoPlotId! : null;
 
-        (plot.afterSprayImages || []).slice(0, 5).forEach((img) => {
+        // 4. Attachments (รูปหลังฉีดพ่น - สูงสุด 20 รูปต่อแปลง/หมู่บ้าน)
+        (plot.afterSprayImages || []).slice(0, 20).forEach((img) => {
           if (!img.url) return;
           const plotKey = effectiveClientPlotId || effectiveDemoPlotId || "plot";
           const compositeKey = `${plotKey}_${img.url}`;

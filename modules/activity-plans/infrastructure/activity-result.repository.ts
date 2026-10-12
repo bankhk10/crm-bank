@@ -711,6 +711,12 @@ export async function upsertActivityResult(
                 item.district && item.district.trim()
                   ? item.district.trim()
                   : null,
+              location: [
+                (item as any).subdistrict ? `ต.${(item as any).subdistrict}` : null,
+                (item as any).village ? `ม.${(item as any).village}` : null,
+                (item as any).actualPlotsCount ? `ฉีดจริง ${(item as any).actualPlotsCount} แปลง` : null,
+              ].filter(Boolean).join(" ") || null,
+              usageMethod: (item as any).applicationRate?.trim() || null,
               plotType: "HATTACK",
               startDate: plan?.startDate || input.actualStartDate || new Date(),
               latitude: new Prisma.Decimal(item.latitude),
@@ -805,6 +811,17 @@ export async function upsertActivityResult(
           }
           if (plotItem.district && plotItem.district.trim() !== "") {
             updateData.district = plotItem.district.trim();
+          }
+          if ((plotItem as any).applicationRate && (plotItem as any).applicationRate.trim() !== "") {
+            updateData.usageMethod = (plotItem as any).applicationRate.trim();
+          }
+          const locDetails = [
+            (plotItem as any).subdistrict ? `ต.${(plotItem as any).subdistrict}` : null,
+            (plotItem as any).village ? `ม.${(plotItem as any).village}` : null,
+            (plotItem as any).actualPlotsCount ? `ฉีดจริง ${(plotItem as any).actualPlotsCount} แปลง` : null,
+          ].filter(Boolean).join(" ");
+          if (locDetails) {
+            updateData.location = locDetails;
           }
           if (Object.keys(updateData).length > 0) {
             await tx.demoPlot.update({
