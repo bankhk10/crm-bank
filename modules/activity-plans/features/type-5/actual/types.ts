@@ -1,29 +1,16 @@
 import type {
-  ActualTargetsState,
+  TargetSurveyItem,
   Type5SurveyRecord,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+  Type5TargetItem,
+} from "../types";
 
-export interface TargetSurveyItem {
-  id?: string;
-  store: string;
-  product: string;
-  detail: string;
-}
+export type { TargetSurveyItem, Type5SurveyRecord, Type5TargetItem };
 
 export interface ActualType5SurveyProps {
   isVisible: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target: {
-    store: string;
-    product: string;
-    detail: string;
-    items?: Array<{
-      id?: string;
-      store?: string;
-      product?: string;
-      detail?: string;
-    }>;
-  };
+  target?: Type5TargetItem;
+  targets?: Type5TargetItem[];
   surveyDetails?: Type5SurveyRecord[];
   onUpdateSurveyItem?: (
     index: number,
@@ -38,12 +25,8 @@ export interface ActualType5SurveyProps {
 
 export interface DetailType5SurveyProps {
   isVisible: boolean;
-  target: {
-    store: string;
-    product: string;
-    detail: string;
-    items?: TargetSurveyItem[];
-  };
+  target?: Type5TargetItem;
+  targets?: Type5TargetItem[];
   surveyDetails?: Type5SurveyRecord[];
   competitorBrand?: string;
   competitorProduct?: string;
@@ -51,7 +34,8 @@ export interface DetailType5SurveyProps {
 
 export interface ApprovalType5SurveyProps {
   isVisible: boolean;
-  target: ActualTargetsState["t5"];
+  target?: Type5TargetItem;
+  targets?: Type5TargetItem[];
   surveyDetails?: Type5SurveyRecord[];
   competitorBrand?: string;
   competitorProduct?: string;

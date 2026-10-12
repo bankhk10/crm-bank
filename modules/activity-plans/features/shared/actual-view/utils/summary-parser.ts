@@ -2,6 +2,7 @@ import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1
 import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2";
 import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3";
 import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4";
+import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -275,6 +276,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 4 Actual Result (Delegated to Type 4 Feature Slice)
   const t4Parsed = parseType4ActualResult(resData);
   Object.assign(result, t4Parsed);
+
+  // Type 5 Actual Result (Delegated to Type 5 Feature Slice)
+  const t5Parsed = parseType5ActualResult(resData);
+  Object.assign(result, t5Parsed);
 
   if (
     resData.sprayRounds &&
@@ -785,57 +790,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 4: Handled by parseType4ActualResult above
 
-    // Type 5
-    const compBrandMatch = summaryText.match(/แบรนด์คู่แข่ง:\s*(.+)/);
-    if (compBrandMatch && compBrandMatch[1]) {
-      result.t5CompetitorBrand = compBrandMatch[1].split("\n")[0].trim();
-    }
-    const compProdMatch = summaryText.match(/สินค้าคู่แข่ง:\s*(.+)/);
-    if (compProdMatch && compProdMatch[1]) {
-      result.t5CompetitorProduct = compProdMatch[1].split("\n")[0].trim();
-    }
-    const compPriceMatch = summaryText.match(/ราคาคู่แข่ง:\s*(.+)/);
-    if (compPriceMatch && compPriceMatch[1]) {
-      result.t5CompetitorPrice = compPriceMatch[1].split("\n")[0].trim();
-    }
-    const compUnitMatch = summaryText.match(
-      /(?:หน่วยนับคู่แข่ง|หน่วยนับ):\s*(.+)/,
-    );
-    if (compUnitMatch && compUnitMatch[1]) {
-      result.t5CompetitorUnit = compUnitMatch[1].split("\n")[0].trim();
-    }
-    const promoMatch = summaryText.match(/โปรโมชันคู่แข่ง:\s*(.+)/);
-    if (promoMatch && promoMatch[1]) {
-      result.t5PromotionDetail = promoMatch[1].split("\n")[0].trim();
-    }
-    const t5SurveyMatch = summaryText.match(
-      /รายการสำรวจตลาดคู่แข่ง:\s*(\[.+\])/,
-    );
-    if (t5SurveyMatch && t5SurveyMatch[1]) {
-      try {
-        result.t5SurveyDetails = JSON.parse(t5SurveyMatch[1]);
-        if (result.t5SurveyDetails && result.t5SurveyDetails.length > 0) {
-          const first = result.t5SurveyDetails[0];
-          if (!result.t5CompetitorBrand && first.competitorBrand) {
-            result.t5CompetitorBrand = first.competitorBrand;
-          }
-          if (!result.t5CompetitorProduct && first.competitorProduct) {
-            result.t5CompetitorProduct = first.competitorProduct;
-          }
-          if (!result.t5CompetitorPrice && first.competitorPrice) {
-            result.t5CompetitorPrice = first.competitorPrice;
-          }
-          if (!result.t5CompetitorUnit && first.competitorUnit) {
-            result.t5CompetitorUnit = first.competitorUnit;
-          }
-          if (!result.t5PromotionDetail && first.promotionDetail) {
-            result.t5PromotionDetail = first.promotionDetail;
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse t5SurveyDetails JSON:", e);
-      }
-    }
+    // Type 5: Handled by parseType5ActualResult above
 
     // Type 6
     const t6ProbMatch = summaryText.match(/ปัญหาลูกค้าร้องเรียน:\s*(.+)/);

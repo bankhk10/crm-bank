@@ -7,6 +7,7 @@ import { extractType1PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType2PlanTargets } from "@/modules/activity-plans/features/type-2";
 import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-3";
 import { extractType4PlanTargets } from "@/modules/activity-plans/features/type-4";
+import { extractType5PlanTargets } from "@/modules/activity-plans/features/type-5";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -449,43 +450,11 @@ export function extractPlanData(
     targets.t4List = list;
   }
 
-  // TYPE 5: Store / Product / Survey
+  // TYPE 5: Store / Product / Survey (Delegated to Type 5 Feature Slice)
   if (isWorkTypePresent("TYPE_5")) {
-    const t5Stores = stores.filter((s) => s.workTypeCode === "TYPE_5");
-    const t5Products = products.filter((pr) => pr.workTypeCode === "TYPE_5");
-    const t5Items = t5Products.map((pr) => {
-      const matchedStore =
-        t5Stores.find(
-          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
-        ) || t5Stores[0];
-      return {
-        id: pr.id,
-        storeId: pr.storeId || matchedStore?.storeId || undefined,
-        store:
-          (pr as any)?.store?.name ||
-          (pr as any)?.storeName ||
-          matchedStore?.storeName ||
-          "",
-        productId: pr.productId || undefined,
-        product: pr.productName || (pr as any)?.product?.name || "",
-        detail: (pr as any)?.notes || matchedStore?.notes || "",
-      };
-    });
-    targets.t5 = {
-      ...prevTargets.t5,
-      storeId: t5Stores[0]?.storeId || undefined,
-      store:
-        t5Stores
-          .map((s) => s.storeName)
-          .filter(Boolean)
-          .join(", ") || "",
-      product: t5Products
-        .map((pr) => pr.productName)
-        .filter(Boolean)
-        .join(", "),
-      detail: "",
-      items: t5Items,
-    } as any;
+    const { primary, list } = extractType5PlanTargets(p, prevTargets.t5);
+    targets.t5 = primary;
+    targets.t5List = list;
   }
 
   // TYPE 6: Store / Issue data

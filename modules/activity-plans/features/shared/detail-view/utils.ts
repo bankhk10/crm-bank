@@ -5,6 +5,7 @@ import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/
 import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2";
 import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3";
 import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4";
+import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -104,24 +105,21 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 5. สำรวจตลาดคู่แข่ง ──────────────────────────────────
-  const type5Products = products.filter((pr) => pr.workTypeCode === "TYPE_5");
-  const type5Stores = stores.filter((s) => s.workTypeCode === "TYPE_5");
+  // ── 5. สำรวจตลาดคู่แข่ง (Delegated to Type 5 Feature Slice) ──
+  const rawType5Targets: any[] =
+    (plan as any).type5Targets && (plan as any).type5Targets.length > 0
+      ? (plan as any).type5Targets
+      : stores.filter((s) => s.workTypeCode === "TYPE_5");
   const t5Line = objectiveLines.find(
     (l) => l.includes("[สำรวจตลาด") || l.includes("สำรวจตลาด"),
   );
-  if (type5Products.length > 0 || type5Stores.length > 0 || t5Line) {
-    const list = type5Products.map((pr) => ({
-      title: pr.productName || "สินค้า",
-      subtitle: type5Stores[0]?.storeName
-        ? `ร้านค้า: ${type5Stores[0].storeName}`
-        : undefined,
-    }));
+  const type5Items = mapType5ToSectionItems(rawType5Targets, products);
+  if (type5Items.length > 0 || t5Line) {
     sections.push({
       typeIndex: 5,
       title: WORK_TYPES[4],
       badge: "สำรวจตลาด",
-      items: list,
+      items: type5Items,
       rawSummary: t5Line ? t5Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
   }

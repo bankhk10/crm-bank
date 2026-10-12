@@ -91,12 +91,14 @@ import type { Type1TargetItem } from "@/modules/activity-plans/features/type-1/t
 import type { Type2TargetItem } from "@/modules/activity-plans/features/type-2/types";
 import type { Type3TargetItem } from "@/modules/activity-plans/features/type-3/types";
 import type { Type4TargetItem } from "@/modules/activity-plans/features/type-4/types";
+import type { Type5TargetItem } from "@/modules/activity-plans/features/type-5/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
 export type Type2TargetStateItem = Type2TargetItem;
 export type Type3TargetStateItem = Type3TargetItem;
 export type Type4TargetStateItem = Type4TargetItem;
+export type Type5TargetStateItem = Type5TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -107,12 +109,8 @@ export interface ActualTargetsState {
   t3List?: Type3TargetItem[];
   t4: Type4TargetItem;
   t4List?: Type4TargetItem[];
-  t5: {
-    store: string;
-    product: string;
-    detail: string;
-    items: any[];
-  };
+  t5: Type5TargetItem;
+  t5List?: Type5TargetItem[];
   t6: {
     customer: string;
     issueType: string;

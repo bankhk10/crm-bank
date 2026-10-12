@@ -839,6 +839,7 @@ export default function ActivityPlanApprovalDetailView({
           <ApprovalType5Survey
             isVisible={isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง")}
             target={targets.t5}
+            targets={targets.t5List}
             surveyDetails={parsedResults.t5SurveyDetails}
             competitorBrand={parsedResults.t5CompetitorBrand}
             competitorProduct={parsedResults.t5CompetitorProduct}

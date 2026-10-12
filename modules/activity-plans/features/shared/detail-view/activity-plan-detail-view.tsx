@@ -1114,6 +1114,7 @@ export default function ActivityPlanDetailView({
           <ApprovalType5Survey
             isVisible={isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง")}
             target={targets.t5}
+            targets={targets.t5List}
           />
 
           {/* TYPE_6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา */}

@@ -16,14 +16,19 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import type { TargetSurveyItem, ActualType5SurveyProps } from "./types";
+import type {
+  TargetSurveyItem,
+  ActualType5SurveyProps,
+  Type5TargetItem,
+} from "./types";
 
-export type { TargetSurveyItem, ActualType5SurveyProps };
+export type { TargetSurveyItem, ActualType5SurveyProps, Type5TargetItem };
 
 export function ActualType5Survey({
   isVisible,
   planType,
   target,
+  targets,
   surveyDetails = [],
   onUpdateSurveyItem,
   competitorBrand = "",
@@ -31,19 +36,50 @@ export function ActualType5Survey({
   competitorProduct = "",
   setCompetitorProduct,
 }: ActualType5SurveyProps) {
+  const resolvedTarget: Type5TargetItem | undefined = useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems: TargetSurveyItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items
+          : [
+              {
+                id: t.id || `t5-item-${idx}`,
+                storeId: t.storeId,
+                store: t.store || t.storeName || "",
+                storeName: t.store || t.storeName || "",
+                productId: t.productId,
+                product: t.product || t.productName || "",
+                productName: t.product || t.productName || "",
+                detail: t.detail || t.notes || "",
+                notes: t.detail || t.notes || "",
+              },
+            ],
+      );
+      return {
+        ...targets[0],
+        store: targets.map((t) => t.store || t.storeName).filter(Boolean).join(", "),
+        product: targets.map((t) => t.product || t.productName).filter(Boolean).join(", "),
+        detail: targets.map((t) => t.detail || t.notes).filter(Boolean).join(" | "),
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
+
   // Normalized records to render: prefer surveyDetails if available, otherwise construct from target or fallback
   const recordsToRender: { record: Type5SurveyRecord; index: number }[] =
     useMemo(() => {
       if (surveyDetails && surveyDetails.length > 0) {
         return surveyDetails.map((rec, idx) => ({ record: rec, index: idx }));
       }
-      if (target?.items && target.items.length > 0) {
-        return target.items.map((item, idx) => ({
+      if (resolvedTarget?.items && resolvedTarget.items.length > 0) {
+        return resolvedTarget.items.map((item: TargetSurveyItem, idx: number) => ({
           record: {
             id: item.id,
-            store: item.store || target?.store || "",
-            product: item.product || target?.product || "",
-            detail: item.detail || target?.detail || "",
+            store: item.store || resolvedTarget?.store || "",
+            product: item.product || resolvedTarget?.product || "",
+            detail: item.detail || resolvedTarget?.detail || "",
             competitorBrand: idx === 0 ? competitorBrand : "",
             competitorProduct: idx === 0 ? competitorProduct : "",
             posPrice: "",
@@ -60,9 +96,9 @@ export function ActualType5Survey({
       return [
         {
           record: {
-            store: target?.store || "",
-            product: target?.product || "",
-            detail: target?.detail || "",
+            store: resolvedTarget?.store || "",
+            product: resolvedTarget?.product || "",
+            detail: resolvedTarget?.detail || "",
             competitorBrand,
             competitorProduct,
             posPrice: "",
@@ -76,7 +112,7 @@ export function ActualType5Survey({
           index: 0,
         },
       ];
-    }, [surveyDetails, target, competitorBrand, competitorProduct]);
+    }, [surveyDetails, resolvedTarget, competitorBrand, competitorProduct]);
 
   // Group records by Store Name
   const groupedByStore = useMemo(() => {

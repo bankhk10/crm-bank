@@ -2,7 +2,11 @@ export type {
   Type5SurveyItem,
   CustomerOption,
   ProductOption,
-} from "./shared/types";
+  TargetSurveyItem,
+  Type5SurveyRecord,
+  Type5TargetItem,
+  Type5ImageFile,
+} from "./types";
 export { Type5Survey } from "./create/type5-survey";
 export type { Type5SurveyProps } from "./create/types";
 export {
@@ -20,7 +24,6 @@ export { DetailType5Survey } from "./detail/detail-type5-survey";
 export { ApprovalType5Survey } from "./approval/approval-type5-survey";
 export { ActualType5Survey } from "./actual/actual-type5-survey";
 export type {
-  TargetSurveyItem,
   ActualType5SurveyProps,
   DetailType5SurveyProps,
   ApprovalType5SurveyProps,
@@ -38,3 +41,8 @@ export {
   type Type5PlanCardTargetItem,
 } from "./shared/type5-plan-card";
 
+export {
+  extractType5PlanTargets,
+  parseType5ActualResult,
+  mapType5ToSectionItems,
+} from "./application/mapper";

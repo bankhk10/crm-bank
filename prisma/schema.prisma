@@ -410,6 +410,7 @@ model Customer {
   activityPlanType2Targets    ActivityPlanType2Target[]
   activityPlanType3Targets    ActivityPlanType3Target[]
   activityPlanType4Targets    ActivityPlanType4Target[]
+  activityPlanType5Targets    ActivityPlanType5Target[]
   activityResultType4Items    ActivityResultType4Item[]
 }
 
@@ -713,6 +714,7 @@ model Product {
   activityPlanType14Products     ActivityPlanType14Product[]
   activityPlanType2Products      ActivityPlanType2Product[]
   activityPlanType3Products      ActivityPlanType3Product[]
+  activityPlanType5Targets       ActivityPlanType5Target[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1762,6 +1764,7 @@ model ActivityPlan {
   type3Products  ActivityPlanType3Product[]
   type4Targets   ActivityPlanType4Target[]
   type4Result    ActivityResultType4?
+  type5Targets   ActivityPlanType5Target[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -3045,5 +3048,30 @@ model ActivityResultType4Item {
   @@index([storeId])
   @@map("activity_result_type_4_items")
 }
+
+// =============================================================================
+// TYPE 5: Dedicated Tables (Competitor Market Survey)
+// =============================================================================
+
+model ActivityPlanType5Target {
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  storeId        String?  @map("store_id")
+  productId      String?  @map("product_id") // สินค้าที่นำไปเปรียบเทียบ
+  detail         String?  @map("detail") @db.Text // รายละเอียดเพิ่มเติมการสำรวจ
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([productId])
+  @@map("activity_plan_type_5_targets")
+}
+
 
 
