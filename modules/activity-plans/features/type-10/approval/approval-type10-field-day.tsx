@@ -9,8 +9,19 @@ export type { ApprovalType10FieldDayProps };
 export function ApprovalType10FieldDay({
   isVisible,
   target,
+  targets,
 }: ApprovalType10FieldDayProps) {
   if (!isVisible) return null;
+
+  if (targets && targets.length > 0) {
+    return (
+      <div className="space-y-4">
+        {targets.map((t, idx) => (
+          <Type10PlanCard key={t.id || t.demoPlotId || idx} target={t} />
+        ))}
+      </div>
+    );
+  }
 
   return <Type10PlanCard target={target} />;
 }

@@ -1171,6 +1171,7 @@ export default function ActivityPlanDetailView({
           <ApprovalType10FieldDay
             isVisible={isTypeActive("TYPE_10", "จัดงาน Field Day")}
             target={targets.t10}
+            targets={targets.t10List}
           />
 
           {/* TYPE_11: ตรวจเช็กสต็อกหน้าร้าน */}

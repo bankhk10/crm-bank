@@ -8,6 +8,7 @@ import { parseType7aActualResult } from "@/modules/activity-plans/features/type-
 import { parseType7bActualResult } from "@/modules/activity-plans/features/type-7b";
 import { parseType8ActualResult } from "@/modules/activity-plans/features/type-8";
 import { parseType9ActualResult } from "@/modules/activity-plans/features/type-9";
+import { parseType10ActualResult } from "@/modules/activity-plans/features/type-10";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -306,6 +307,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   const t9Parsed = parseType9ActualResult(resData);
   Object.assign(result, t9Parsed);
 
+  // Type 10 Actual Result (Delegated to Type 10 Feature Slice)
+  const t10Parsed = parseType10ActualResult(resData);
+  Object.assign(result, t10Parsed);
+
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&
@@ -332,22 +337,6 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         actualQty: String(s.actualQuantity ?? ""),
         notes: s.unclosedReason || s.notes || "",
         isAdditional: Boolean(s.isAdditional),
-      }));
-    }
-    const t10Sales = resData.saleResults.filter(
-      (s: any) => s.workTypeCode === "TYPE_10",
-    );
-    if (t10Sales.length > 0) {
-      result.t10ProductSalesDetails = t10Sales.map((s: any) => ({
-        id: s.id,
-        productId: s.productId,
-        productName: s.productName || s.product?.name || "",
-        productCode: s.product?.productCode || undefined,
-        quantity: String(s.actualQuantity ?? ""),
-        actualQty: String(s.actualQuantity ?? ""),
-        unitPrice: Number(s.actualUnitPrice || 0),
-        actualSales: String(s.actualTotal ?? ""),
-        remarks: s.unclosedReason || "",
       }));
     }
   }
@@ -568,11 +557,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // TYPE_9: Handled by parseType9ActualResult above
-
-    const t10Att = resData.attachments.filter(
-      (a: any) => a.workTypeCode === "TYPE_10",
-    );
-    if (t10Att.length > 0) result.t10Images = t10Att.map(toImage);
+    // TYPE_10: Handled by parseType10ActualResult above
 
     const t11Att = resData.attachments.filter(
       (a: any) => a.workTypeCode === "TYPE_11",
@@ -749,90 +734,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // TYPE_8: Handled by parseType8ActualResult above
     // TYPE_9: Handled by parseType9ActualResult above
-
-    // Type 10
-    const t10AttendeesMatch = summaryText.match(
-      /จำนวนผู้เข้าร่วม Field Day จริง:\s*(.+)/,
-    );
-    if (t10AttendeesMatch && t10AttendeesMatch[1]) {
-      result.t10ActualAttendees = t10AttendeesMatch[1].split("\n")[0].trim();
-    } else if (
-      resData.actualAttendeesCount != null &&
-      Number(resData.actualAttendeesCount) > 0
-    ) {
-      result.t10ActualAttendees = String(resData.actualAttendeesCount);
-    }
-
-    const t10SalesMatch = summaryText.match(
-      /ยอดขายหรือยอดจอง Field Day จริง:\s*(.+)/,
-    );
-    if (t10SalesMatch && t10SalesMatch[1]) {
-      result.t10ActualSalesOrBooking = t10SalesMatch[1].split("\n")[0].trim();
-    } else if (
-      resData.salesResultAmount != null &&
-      Number(resData.salesResultAmount) > 0
-    ) {
-      result.t10ActualSalesOrBooking = String(
-        Number(resData.salesResultAmount),
-      );
-    }
-
-    const t10FeedbackMatch = summaryText.match(/ความสนใจเกษตรกร:\s*(.+)/);
-    if (t10FeedbackMatch && t10FeedbackMatch[1]) {
-      result.t10FarmerFeedback = t10FeedbackMatch[1]
-        .split("\n")[0]
-        .trim() as any;
-    }
-    const t10FarmersMatch = summaryText.match(/รายชื่อเกษตรกรเป้าหมาย:\s*(.+)/);
-    if (t10FarmersMatch && t10FarmersMatch[1]) {
-      result.t10TargetFarmersList = t10FarmersMatch[1].split("\n")[0].trim();
-    }
-    const t10ProductsMatch = summaryText.match(
-      /(?:ยอดขายแยกสินค้า Field Day|t10ProductSalesDetails):\s*(\[.+\])/,
-    );
-    if (t10ProductsMatch && t10ProductsMatch[1]) {
-      try {
-        const trimmed = t10ProductsMatch[1].trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            result.t10ProductSalesDetails = parsed.map(
-              (item: any, idx: number) => {
-                const isCustom = Boolean(
-                  item.isCustomProduct || item.isCustom || !item.productId,
-                );
-                return {
-                  id: item.id || `item-${idx + 1}`,
-                  productId: isCustom ? undefined : item.productId,
-                  productName: item.productName || item.customProductName || "",
-                  productCode: isCustom ? undefined : item.productCode,
-                  quantity: String(item.quantity ?? item.actualQty ?? ""),
-                  actualQty: String(item.quantity ?? item.actualQty ?? ""),
-                  actualSales: String(item.actualSales ?? ""),
-                  remarks:
-                    item.remarks || item.notes || item.unclosedReason || "",
-                  isCustom,
-                  isCustomProduct: isCustom,
-                };
-              },
-            );
-          }
-        }
-      } catch {
-        // Ignore fallback text parse error
-      }
-    }
-    const t10ImagesMatch = summaryText.match(
-      /(?:รูปภาพบรรยากาศงาน Field Day|ภาพถ่ายบรรยากาศงาน Field Day|รูปภาพ Field Day|t10Images):\s*(\[.+\])/,
-    );
-    if (t10ImagesMatch && t10ImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t10ImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t10Images = parsed;
-      } catch (e) {
-        console.error("Failed to parse t10Images JSON:", e);
-      }
-    }
+    // TYPE_10: Handled by parseType10ActualResult above
 
     // Type 11
     if (!result.t11StockItems || result.t11StockItems.length === 0) {

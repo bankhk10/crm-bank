@@ -97,6 +97,7 @@ import type { Type7aTargetItem } from "@/modules/activity-plans/features/type-7a
 import type { Type7bTargetItem } from "@/modules/activity-plans/features/type-7b/types";
 import type { Type8TargetItem } from "@/modules/activity-plans/features/type-8/types";
 import type { Type9TargetItem } from "@/modules/activity-plans/features/type-9/types";
+import type { Type10TargetItem } from "@/modules/activity-plans/features/type-10/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
@@ -109,6 +110,7 @@ export type Type7aTargetStateItem = Type7aTargetItem;
 export type Type7bTargetStateItem = Type7bTargetItem;
 export type Type8TargetStateItem = Type8TargetItem;
 export type Type9TargetStateItem = Type9TargetItem;
+export type Type10TargetStateItem = Type10TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -154,13 +156,8 @@ export interface ActualTargetsState {
   t8List?: Type8TargetItem[];
   t9: Type9TargetItem;
   t9List?: Type9TargetItem[];
-  t10: {
-    plot: string;
-    location: string;
-    showcase: string;
-    targetAttendees: string;
-    targetSales: string;
-  };
+  t10: Type10TargetItem;
+  t10List?: Type10TargetItem[];
   t11: {
     store: string;
     detail: string;

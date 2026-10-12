@@ -33,6 +33,7 @@ export type {
 export function DetailType10FieldDay({
   isVisible,
   target,
+  targets,
   actualAttendees,
   actualSalesOrBooking,
   targetFarmersList,
@@ -120,7 +121,15 @@ export function DetailType10FieldDay({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type10PlanCard target={target} />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type10PlanCard key={t.id || t.demoPlotId || idx} target={t} />
+          ))}
+        </div>
+      ) : (
+        <Type10PlanCard target={target} />
+      )}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

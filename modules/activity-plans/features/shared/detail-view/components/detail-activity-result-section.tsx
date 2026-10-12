@@ -266,6 +266,7 @@ export function DetailActivityResultSection({
         <DetailType10FieldDay
           isVisible={isTypeVisible("จัดงาน Field Day")}
           target={targets.t10}
+          targets={targets.t10List}
           actualAttendees={parsedResults.t10ActualAttendees}
           actualSalesOrBooking={parsedResults.t10ActualSalesOrBooking}
           productSalesDetails={parsedResults.t10ProductSalesDetails}

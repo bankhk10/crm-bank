@@ -41,6 +41,7 @@ export function ActualType10FieldDay({
   isVisible,
   planType,
   target,
+  targets,
   actualAttendees,
   setActualAttendees,
   actualSalesOrBooking,
@@ -484,7 +485,19 @@ export function ActualType10FieldDay({
         </div>
       </div>
 
-      <Type10PlanCard target={target} planType={planType} />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type10PlanCard
+              key={t.id || t.demoPlotId || idx}
+              target={t}
+              planType={planType}
+            />
+          ))}
+        </div>
+      ) : (
+        <Type10PlanCard target={target} planType={planType} />
+      )}
 
       {/* Primary General Metrics: Attendees & Actual Sales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">

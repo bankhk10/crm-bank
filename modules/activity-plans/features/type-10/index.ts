@@ -1,7 +1,22 @@
 export type {
   Type10SoldProductItem,
   ProductOption,
-} from "./shared/types";
+  SoldProductItem,
+  Type10SoldProductDetail,
+  Type10TargetItem,
+  Type10PlanItem,
+  Type10ActualRecord,
+  ActualType10FieldDayProps,
+  DetailType10FieldDayProps,
+  ApprovalType10FieldDayProps,
+} from "./types";
+
+export {
+  extractType10PlanTargets,
+  parseType10ActualResult,
+  mapType10ToSectionItems,
+} from "./application/mapper";
+
 export {
   Type10PlanCard,
   type Type10PlanCardProps,
@@ -21,13 +36,6 @@ export { EditType10FieldDay } from "./edit/edit-type10";
 export { DetailType10FieldDay } from "./detail/detail-type10-field-day";
 export { ApprovalType10FieldDay } from "./approval/approval-type10-field-day";
 export { ActualType10FieldDay } from "./actual/actual-type10-field-day";
-export type {
-  ActualType10FieldDayProps,
-  DetailType10FieldDayProps,
-  ApprovalType10FieldDayProps,
-  SoldProductItem,
-  Type10SoldProductDetail,
-} from "./actual/types";
 export { useType10Actual } from "./actual/use-type10-actual";
 
 export {

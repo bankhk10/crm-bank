@@ -12,6 +12,7 @@ import { extractType7aPlanTargets } from "@/modules/activity-plans/features/type
 import { extractType7bPlanTargets } from "@/modules/activity-plans/features/type-7b";
 import { extractType8PlanTargets } from "@/modules/activity-plans/features/type-8";
 import { extractType9PlanTargets } from "@/modules/activity-plans/features/type-9";
+import { extractType10PlanTargets } from "@/modules/activity-plans/features/type-10";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -707,26 +708,11 @@ export function extractPlanData(
     };
   }
 
-  // TYPE 10: Field Day (Demo plot + Attendees + Booking Sales)
+  // TYPE 10: Field Day (Delegated to Type 10 Feature Slice)
   if (isWorkTypePresent("TYPE_10")) {
-    const t10Plot = p.demoPlotVisits?.[0]?.demoPlot;
-    targets.t10 = {
-      ...prevTargets.t10,
-      plot: t10Plot?.ownerName
-        ? `${t10Plot.ownerName} (${t10Plot.name || ""})`
-        : "",
-      location: p.location || prevTargets.t10.location || "",
-      showcase:
-        t10Plot?.primaryProductName ||
-        products.find((pr) => pr.workTypeCode === "TYPE_10")?.productName ||
-        "",
-      targetAttendees: p.targetAttendeesCount
-        ? `${p.targetAttendeesCount} คน`
-        : "",
-      targetSales: p.targetBookingSales
-        ? `฿${Number(p.targetBookingSales).toLocaleString()}`
-        : "",
-    };
+    const { primary, list } = extractType10PlanTargets(p, prevTargets.t10);
+    targets.t10 = primary;
+    targets.t10List = list;
   }
 
   // TYPE 11: Multiple Stores

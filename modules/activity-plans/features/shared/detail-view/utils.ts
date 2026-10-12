@@ -10,6 +10,7 @@ import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-
 import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-7b";
 import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8";
 import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9";
+import { mapType10ToSectionItems } from "@/modules/activity-plans/features/type-10";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -270,38 +271,9 @@ export function extractWorkTypeSections(
   }
 
   // ── 10. Field Day ───────────────────────────────────────
-  const t10Line = objectiveLines.find(
-    (l) => l.includes("[Field Day") || l.includes("Field Day"),
-  );
-  const isType10 =
-    plan.workTypes?.some((wt) => wt.activityType?.code === "TYPE_10") ||
-    Boolean(t10Line);
-  if (isType10) {
-    const extraFields: Array<{ label: string; value: string }> = [];
-    if (plan.targetAttendeesCount) {
-      extraFields.push({
-        label: "ผู้เข้าร่วมเป้าหมาย",
-        value: `${plan.targetAttendeesCount} คน`,
-      });
-    }
-    if (plan.targetBookingSales) {
-      extraFields.push({
-        label: "เป้ายอดจอง",
-        value: `${Number(plan.targetBookingSales).toLocaleString()} บาท`,
-      });
-    }
-    sections.push({
-      typeIndex: 10,
-      title: WORK_TYPES[9],
-      badge: "Field Day",
-      items: [
-        {
-          title: plan.location || "งาน Field Day",
-          extraFields: extraFields.length > 0 ? extraFields : undefined,
-        },
-      ],
-      rawSummary: t10Line ? t10Line.replace(/^\[.*?\]\s*/, "") : undefined,
-    });
+  const t10Section = mapType10ToSectionItems(plan, objectiveLines);
+  if (t10Section) {
+    sections.push(t10Section);
   }
 
   // ── 11. ตรวจเช็กสต็อกหน้าร้าน ────────────────────────────
