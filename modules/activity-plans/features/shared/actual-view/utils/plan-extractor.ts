@@ -8,6 +8,7 @@ import { extractType2PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-3";
 import { extractType4PlanTargets } from "@/modules/activity-plans/features/type-4";
 import { extractType5PlanTargets } from "@/modules/activity-plans/features/type-5";
+import { extractType6PlanTargets } from "@/modules/activity-plans/features/type-6";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -458,30 +459,10 @@ export function extractPlanData(
   }
 
   // TYPE 6: Store / Issue data
-  if (isWorkTypePresent("TYPE_6")) {
-    const t6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
-    targets.t6 = {
-      ...prevTargets.t6,
-      customer:
-        t6Stores
-          .map((s) => (s as any).store?.name || s.storeName)
-          .filter(Boolean)
-          .join(", ") || "",
-      issueType:
-        t6Stores[0]?.remarks ||
-        prevTargets.t6.issueType ||
-        "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-      detail:
-        t6Stores
-          .map((s) => s.notes)
-          .filter(Boolean)
-          .join(" | ") || "",
-      items: t6Stores.map((s) => ({
-        customer: (s as any).store?.name || s.storeName || "",
-        issueType: s.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-        detail: s.notes || "",
-      })),
-    };
+  if (isWorkTypePresent("TYPE_6") || Boolean((p as any).type6Targets && (p as any).type6Targets.length > 0)) {
+    const { primary, list } = extractType6PlanTargets(p, prevTargets.t6);
+    targets.t6 = primary;
+    targets.t6List = list;
   }
 
   // TYPE 7: Demo Plot (TYPE_7A & TYPE_7B)

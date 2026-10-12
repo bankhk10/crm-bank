@@ -29,6 +29,7 @@ export interface UseType6FormResult {
       remarks?: string | null;
       notes?: string | null;
     }>;
+    type6Items?: Type6IssueItem[];
   };
 }
 
@@ -52,6 +53,27 @@ export function useType6Form({
   selectedWorkTypes = [],
 }: UseType6FormOptions): UseType6FormResult {
   const [type6Items, setType6Items] = useState<Type6IssueItem[]>(() => {
+    const dedicatedTargets =
+      (initial as any)?.type6Targets || (initDetails as any)?.type6Targets;
+    if (
+      dedicatedTargets &&
+      Array.isArray(dedicatedTargets) &&
+      dedicatedTargets.length > 0
+    ) {
+      return dedicatedTargets.map((t: any, idx: number) => {
+        const isManual = Boolean(t.isManualCustomer);
+        return {
+          id: t.id || String(idx + 1),
+          storeId: isManual ? null : t.storeId || null,
+          customerName: isManual ? "" : t.customerName || t.store?.name || "",
+          manualCustomerName: isManual ? t.customerName || "" : "",
+          isManualCustomer: isManual,
+          issueType: normalizeType6Issue(t.issueType),
+          detail: t.detail || "",
+        };
+      });
+    }
+
     if (
       initDetails?.type6Items &&
       Array.isArray(initDetails.type6Items) &&
@@ -173,7 +195,7 @@ export function useType6Form({
       (t) => getWorkTypeCode(t) === "TYPE_6",
     );
     if (!hasType6) {
-      return { planStores: [] };
+      return { planStores: [], type6Items: [] };
     }
 
     const planStores: Array<{
@@ -219,7 +241,7 @@ export function useType6Form({
       }
     });
 
-    return { planStores };
+    return { planStores, type6Items };
   };
 
   return {

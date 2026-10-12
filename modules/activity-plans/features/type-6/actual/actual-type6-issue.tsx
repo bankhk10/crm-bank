@@ -59,6 +59,7 @@ export function ActualType6Issue({
   isVisible,
   planType,
   target,
+  targets,
   products = [],
   customers = [],
   productId = null,
@@ -83,6 +84,31 @@ export function ActualType6Issue({
   setImages,
   readonly = false,
 }: ActualType6IssueProps) {
+  const resolvedTarget = useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems: TargetIssueItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items
+          : [
+              {
+                customer: t.customer || t.customerName || "ลูกค้าทั่วไป",
+                issueType: t.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+                detail: t.detail || "",
+              },
+            ],
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer || t.customerName).filter(Boolean).join(", "),
+        customerName: targets.map((t) => t.customer || t.customerName).filter(Boolean).join(", "),
+        detail: targets.map((t) => t.detail).filter(Boolean).join(" | "),
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
+
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [dbCustomers, setDbCustomers] = useState<any[]>([]);
 
@@ -170,7 +196,7 @@ export function ActualType6Issue({
       </div>
 
       {/* Target Card from Plan */}
-      <Type6PlanCard planType={planType} target={target} />
+      <Type6PlanCard planType={planType} target={resolvedTarget} />
 
       {/* Actual Form Fields */}
       <div className="space-y-4 pt-1">

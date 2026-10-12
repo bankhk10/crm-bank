@@ -2,25 +2,20 @@ import type React from "react";
 import type {
   ActualTargetsState,
   ImageFile,
-  Type6IssueRecord,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type {
+  TargetIssueItem,
+  Type6TargetItem,
+  Type6IssueRecord,
+} from "../types";
 
-export interface TargetIssueItem {
-  customer: string;
-  issueType: string;
-  detail: string;
-}
+export type { TargetIssueItem, Type6TargetItem, Type6IssueRecord };
 
 export interface ActualType6IssueProps {
   isVisible: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    customer?: string;
-    issueType?: string;
-    detail?: string;
-    targetStatus?: string;
-    items?: TargetIssueItem[];
-  };
+  target?: Type6TargetItem;
+  targets?: Type6TargetItem[];
   // Products & Customers options
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
   customers?: Array<{ id: string; name: string; customerCode?: string | null }>;
@@ -59,13 +54,8 @@ export interface ActualType6IssueProps {
 
 export interface DetailType6IssueProps {
   isVisible: boolean;
-  target: {
-    customer: string;
-    issueType: string;
-    detail: string;
-    targetStatus?: string;
-    items?: any[];
-  };
+  target?: Type6TargetItem;
+  targets?: Type6TargetItem[];
   issueRecord?: Type6IssueRecord;
   productName?: string;
   lotNumber?: string;
@@ -83,7 +73,8 @@ export interface DetailType6IssueProps {
 
 export interface ApprovalType6IssueProps {
   isVisible: boolean;
-  target: ActualTargetsState["t6"];
+  target?: Type6TargetItem | ActualTargetsState["t6"];
+  targets?: Type6TargetItem[];
   issueRecord?: Type6IssueRecord;
   productName?: string;
   lotNumber?: string;

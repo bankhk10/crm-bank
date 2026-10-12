@@ -1,9 +1,14 @@
 export type {
   Type6IssueItem,
   CustomerOption,
+  ProductOption,
   IssueTypeValue,
-} from "./shared/types";
-export { ISSUE_TYPES } from "./shared/types";
+  TargetIssueItem,
+  Type6ImageFile,
+  Type6IssueRecord,
+  Type6TargetItem,
+} from "./types";
+export { ISSUE_TYPES } from "./types";
 export { Type6Issue } from "./create/type6-issue";
 export type { Type6IssueProps } from "./create/types";
 export {
@@ -19,7 +24,6 @@ export { DetailType6Issue } from "./detail/detail-type6-issue";
 export { ApprovalType6Issue } from "./approval/approval-type6-issue";
 export { ActualType6Issue } from "./actual/actual-type6-issue";
 export type {
-  TargetIssueItem,
   ActualType6IssueProps,
   DetailType6IssueProps,
   ApprovalType6IssueProps,
@@ -37,4 +41,8 @@ export {
   type Type6PlanCardTarget,
   type Type6PlanCardTargetItem,
 } from "./shared/type6-plan-card";
-
+export {
+  extractType6PlanTargets,
+  parseType6ActualResult,
+  mapType6ToSectionItems,
+} from "./application/mapper";

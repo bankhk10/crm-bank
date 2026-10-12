@@ -3,6 +3,7 @@ import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2
 import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3";
 import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4";
 import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5";
+import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -281,6 +282,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   const t5Parsed = parseType5ActualResult(resData);
   Object.assign(result, t5Parsed);
 
+  // Type 6 Actual Result (Delegated to Type 6 Feature Slice)
+  const t6Parsed = parseType6ActualResult(resData);
+  Object.assign(result, t6Parsed);
+
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&
@@ -479,66 +484,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
   }
 
-  if (
-    resData.issueResults &&
-    Array.isArray(resData.issueResults) &&
-    resData.issueResults.length > 0
-  ) {
-    const allAttachments = Array.isArray(resData.attachments)
-      ? resData.attachments
-      : [];
 
-    result.t6IssueDetails = resData.issueResults.map((iss: any) => {
-      const itemAttachments =
-        Array.isArray(iss.attachments) && iss.attachments.length > 0
-          ? iss.attachments
-          : allAttachments.filter(
-              (att: any) =>
-                att.issueItemId === iss.id ||
-                (att.workTypeCode === "TYPE_6" && att.category === "ISSUE"),
-            );
-
-      const images = itemAttachments.map((att: any) => ({
-        id: att.id,
-        url: att.fileUrl,
-        name: att.fileName,
-        size: att.fileSize || undefined,
-        type: att.mimeType || undefined,
-      }));
-
-      return {
-        id: iss.id,
-        productId: iss.productId || null,
-        productName: iss.product?.name || iss.productName || "",
-        lotNumber: iss.lotNumber || "",
-        purchaseChannel: iss.purchaseChannel || "",
-        storeId: iss.storeId || null,
-        storeName: iss.store?.name || iss.storeName || "",
-        issueType: iss.issueType || "",
-        detail: iss.detail || "",
-        status: iss.status || "เสร็จสิ้น",
-        images,
-      };
-    });
-
-    const firstIssue = result.t6IssueDetails?.[0];
-    if (firstIssue) {
-      result.t6IssueRecord = firstIssue;
-      result.t6ProductId = firstIssue.productId;
-      result.t6ProductName = firstIssue.productName;
-      result.t6LotNumber = firstIssue.lotNumber;
-      result.t6PurchaseChannel = firstIssue.purchaseChannel;
-      result.t6StoreId = firstIssue.storeId;
-      result.t6StoreName = firstIssue.storeName;
-      result.t6IssueType = firstIssue.issueType;
-      result.t6Detail = firstIssue.detail;
-      result.t6Status =
-        firstIssue.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น";
-      if (firstIssue.images && firstIssue.images.length > 0) {
-        result.t6Images = firstIssue.images;
-      }
-    }
-  }
 
   if (
     resData.attachments &&
@@ -792,49 +738,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 5: Handled by parseType5ActualResult above
 
-    // Type 6
-    const t6ProbMatch = summaryText.match(/ปัญหาลูกค้าร้องเรียน:\s*(.+)/);
-    if (t6ProbMatch && t6ProbMatch[1]) {
-      result.t6ProblemDetail = t6ProbMatch[1].split("\n")[0].trim();
-    }
-    const t6SolMatch = summaryText.match(/แนวทางแก้ไขเบื้องต้น:\s*(.+)/);
-    if (t6SolMatch && t6SolMatch[1]) {
-      result.t6InitialSolution = t6SolMatch[1].split("\n")[0].trim();
-    }
-    const t6StatusMatch = summaryText.match(/สถานะการแก้ปัญหา:\s*(.+)/);
-    if (t6StatusMatch && t6StatusMatch[1]) {
-      const sVal = t6StatusMatch[1].split("\n")[0].trim();
-      if (sVal === "เสร็จสิ้น" || sVal === "รอติดตาม") result.t6Status = sVal;
-    }
-    const t6ImagesMatch = summaryText.match(
-      /(?:รูปภาพปัญหา(?:\/การแก้ไข)?|ภาพถ่ายปัญหา|t6Images):\s*(\[.+\])/,
-    );
-    if (t6ImagesMatch && t6ImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t6ImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t6Images = parsed;
-      } catch (e) {
-        console.error("Failed to parse t6Images JSON:", e);
-      }
-    }
-
-    if (
-      !result.t6IssueRecord &&
-      (result.t6ProblemDetail || result.problemFound || result.t6Status)
-    ) {
-      result.t6IssueRecord = {
-        productId: null,
-        productName: null,
-        lotNumber: null,
-        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
-        storeId: null,
-        storeName: null,
-        issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-        detail: result.t6ProblemDetail || result.problemFound || "",
-        status: result.t6Status || "เสร็จสิ้น",
-        images: result.t6Images || [],
-      };
-    }
+    // Type 6: Handled by parseType6ActualResult above
 
     // Type 7
     const t7PlotMatch = summaryText.match(

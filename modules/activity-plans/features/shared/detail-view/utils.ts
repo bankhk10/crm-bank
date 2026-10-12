@@ -125,22 +125,36 @@ export function extractWorkTypeSections(
   }
 
   // ── 6. ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา ─────────────────────
+  const type6Targets: any[] = plan.type6Targets || [];
   const type6Stores = stores.filter((s) => s.workTypeCode === "TYPE_6");
   const t6Line = objectiveLines.find(
     (l) =>
       l.includes("[ตรวจสอบเรื่องร้องเรียน") ||
       l.includes("ตรวจสอบเรื่องร้องเรียน"),
   );
-  if (type6Stores.length > 0 || t6Line) {
-    const list = type6Stores.map((s) => ({
-      title:
-        (s as any).store?.name ||
-        s.storeName ||
-        plan.location ||
-        "ลูกค้า/ร้านค้า",
-      subtitle: s.remarks ? `ประเภทปัญหา: ${s.remarks}` : undefined,
-      details: s.notes || undefined,
-    }));
+  if (type6Targets.length > 0 || type6Stores.length > 0 || t6Line) {
+    let list: any[] = [];
+    if (type6Targets.length > 0) {
+      list = type6Targets.map((t: any) => ({
+        title:
+          t.customerName ||
+          t.store?.name ||
+          t.store?.storeName ||
+          (t.isManualCustomer ? "ลูกค้าทั่วไป / เกษตรกร" : "ร้านค้าตัวแทนจำหน่าย"),
+        subtitle: t.issueType ? `ประเภทปัญหา: ${t.issueType}` : undefined,
+        details: t.detail || undefined,
+      }));
+    } else {
+      list = type6Stores.map((s) => ({
+        title:
+          (s as any).store?.name ||
+          s.storeName ||
+          plan.location ||
+          "ลูกค้า/ร้านค้า",
+        subtitle: s.remarks ? `ประเภทปัญหา: ${s.remarks}` : undefined,
+        details: s.notes || undefined,
+      }));
+    }
     sections.push({
       typeIndex: 6,
       title: WORK_TYPES[5],

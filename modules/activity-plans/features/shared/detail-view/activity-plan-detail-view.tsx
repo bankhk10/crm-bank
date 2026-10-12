@@ -1124,6 +1124,7 @@ export default function ActivityPlanDetailView({
               "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
             )}
             target={targets.t6}
+            targets={targets.t6List}
           />
 
           {/* TYPE_7A: ทำแปลงสาธิต */}

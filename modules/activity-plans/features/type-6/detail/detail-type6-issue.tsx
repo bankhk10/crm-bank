@@ -32,6 +32,7 @@ export type { DetailType6IssueProps };
 export function DetailType6Issue({
   isVisible,
   target,
+  targets,
   issueRecord,
   productName,
   lotNumber,
@@ -44,6 +45,31 @@ export function DetailType6Issue({
   problemDetail,
   initialSolution,
 }: DetailType6IssueProps) {
+  const resolvedTarget = React.useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items
+          : [
+              {
+                customer: t.customer || t.customerName || "ลูกค้าทั่วไป",
+                issueType: t.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+                detail: t.detail || "",
+              },
+            ],
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer || t.customerName).filter(Boolean).join(", "),
+        customerName: targets.map((t) => t.customer || t.customerName).filter(Boolean).join(", "),
+        detail: targets.map((t) => t.detail).filter(Boolean).join(" | "),
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
+
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     title: string;
@@ -65,9 +91,9 @@ export function DetailType6Issue({
     issueRecord?.purchaseChannel || purchaseChannel || "";
   const resolvedStoreName = issueRecord?.storeName || storeName || "";
   const resolvedIssueType =
-    issueRecord?.issueType || issueType || target.issueType || "";
+    issueRecord?.issueType || issueType || resolvedTarget?.issueType || "";
   const resolvedDetail =
-    issueRecord?.detail || detail || problemDetail || target.detail || "";
+    issueRecord?.detail || detail || problemDetail || resolvedTarget?.detail || "";
   const resolvedStatus = issueRecord?.status || status || "";
   const resolvedImages =
     issueRecord?.images && issueRecord.images.length > 0
@@ -76,7 +102,7 @@ export function DetailType6Issue({
 
   const openLightbox = (
     title: string,
-    imgs: ImageFile[] = [],
+    imgs: Array<{ id: string; url: string; name?: string }> = [],
     initialIndex: number = 0,
   ) => {
     if (!imgs || imgs.length === 0) return;
@@ -110,7 +136,7 @@ export function DetailType6Issue({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type6PlanCard target={target} />
+      <Type6PlanCard target={resolvedTarget} />
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3.5 pt-1 border-t border-slate-100">
@@ -257,7 +283,7 @@ export function DetailType6Issue({
                   type="button"
                   onClick={() =>
                     openLightbox(
-                      `ภาพถ่ายปัญหา / การแก้ไข - ${resolvedProductName || target.customer || "สินค้า"}`,
+                      `ภาพถ่ายปัญหา / การแก้ไข - ${resolvedProductName || resolvedTarget?.customer || target?.customer || "สินค้า"}`,
                       resolvedImages.slice(0, 5),
                       imgIdx,
                     )

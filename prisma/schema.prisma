@@ -411,6 +411,7 @@ model Customer {
   activityPlanType3Targets    ActivityPlanType3Target[]
   activityPlanType4Targets    ActivityPlanType4Target[]
   activityPlanType5Targets    ActivityPlanType5Target[]
+  activityPlanType6Targets    ActivityPlanType6Target[]
   activityResultType4Items    ActivityResultType4Item[]
 }
 
@@ -1765,6 +1766,7 @@ model ActivityPlan {
   type4Targets   ActivityPlanType4Target[]
   type4Result    ActivityResultType4?
   type5Targets   ActivityPlanType5Target[]
+  type6Targets   ActivityPlanType6Target[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -3073,5 +3075,26 @@ model ActivityPlanType5Target {
   @@map("activity_plan_type_5_targets")
 }
 
+// =============================================================================
+// TYPE 6: Dedicated Tables (Complaint / Issue Investigation)
+// =============================================================================
 
+model ActivityPlanType6Target {
+  id                 String   @id @default(cuid())
+  activityPlanId     String   @map("activity_plan_id")
+  storeId            String?  @map("store_id")
+  customerName       String?  @map("customer_name")
+  isManualCustomer   Boolean  @default(false) @map("is_manual_customer")
+  issueType          String   @default("สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย") @map("issue_type")
+  detail             String?  @map("detail") @db.Text
 
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  activityPlan       ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store              Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_plan_type_6_targets")
+}

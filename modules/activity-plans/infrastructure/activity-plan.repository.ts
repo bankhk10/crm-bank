@@ -31,6 +31,7 @@ import { type2Strategy } from "../features/type-2/application/type2.strategy";
 import { type3Strategy } from "../features/type-3/application/type3.strategy";
 import { type4Strategy } from "../features/type-4/application/type4.strategy";
 import { type5Strategy } from "../features/type-5/application/type5.strategy";
+import { type6Strategy } from "../features/type-6/application/type6.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -495,6 +496,21 @@ export async function findActivityPlanById(id: string) {
               id: true,
               name: true,
               productCode: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      type6Targets: {
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              customerType: true,
+              province: true,
+              district: true,
             },
           },
         },
@@ -1264,6 +1280,9 @@ export async function createActivityPlan(
         // 1.3.5 Persist dedicated Type 5 records if present
         await type5Strategy.savePlan(tx, plan.id, input);
 
+        // 1.3.6 Persist dedicated Type 6 records if present
+        await type6Strategy.savePlan(tx, plan.id, input);
+
         // 1.4 Create Products if present
         if (input.planProducts && input.planProducts.length > 0) {
           await tx.activityPlanProduct.createMany({
@@ -1756,6 +1775,7 @@ export async function updateActivityPlan(
       await type3Strategy.savePlan(tx, id, { planStores, planProducts });
       await type4Strategy.savePlan(tx, id, { planStores });
       await type5Strategy.savePlan(tx, id, { planStores, planProducts });
+      await type6Strategy.savePlan(tx, id, { planStores, planProducts });
     }
 
     // 1.4 Sync Products
