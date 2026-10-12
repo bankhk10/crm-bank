@@ -9,12 +9,14 @@ import type {
   TargetProductItem,
   Type3ProductSaleDetail,
   DetailType3SalesProps,
+  Type3TargetItem,
 } from "../actual/types";
 
 export type {
   TargetProductItem,
   Type3ProductSaleDetail,
   DetailType3SalesProps,
+  Type3TargetItem,
 };
 
 function parseProductQty(
@@ -58,6 +60,7 @@ function parseProductReason(
 export function DetailType3Sales({
   isVisible,
   target,
+  targets,
   soldProducts,
   actualSales,
   actualQuantity,
@@ -66,26 +69,35 @@ export function DetailType3Sales({
 }: DetailType3SalesProps) {
   if (!isVisible) return null;
 
+  const effectiveTargets =
+    targets && targets.length > 0 ? targets : target ? [target] : [];
+  const primaryTarget: Type3TargetItem = effectiveTargets[0] || {
+    customer: "",
+    detail: "",
+    items: [],
+  };
+
   // Planned items from plan target (or single target fallback)
-  const plannedItems: TargetProductItem[] =
-    target.items && target.items.length > 0
-      ? target.items
-      : target.product
+  const plannedItems: TargetProductItem[] = effectiveTargets.flatMap((t) =>
+    t.items && t.items.length > 0
+      ? t.items
+      : t.product
         ? [
             {
-              id: "planned-single",
-              productName: target.product,
-              customer: target.customer,
-              isSubDealer: target.isSubDealer,
-              subDealerStore: target.subDealerStore,
-              dealerName: target.dealerName,
-              qty: target.targetQty,
-              unitPrice: target.unitPrice,
-              detail: target.detail,
+              id: t.id || "planned-single",
+              productName: t.product,
+              customer: t.customer,
+              isSubDealer: t.isSubDealer,
+              subDealerStore: t.subDealerStore,
+              dealerName: t.dealerName,
+              qty: t.targetQty,
+              unitPrice: t.unitPrice,
+              detail: t.detail,
               isAdditional: false,
             },
           ]
-        : [];
+        : [],
+  );
 
   // Additional items (สินค้านอกแผน)
   const additionalItems: Type3ProductSaleDetail[] =
@@ -295,7 +307,7 @@ export function DetailType3Sales({
                                 Dealer
                               </Badge>
                               <span>
-                                {item.customer || target.customer || "-"}
+                                {item.customer || primaryTarget.customer || "-"}
                               </span>
                             </div>
                           )}
@@ -346,7 +358,7 @@ export function DetailType3Sales({
                         </td>
                         <td className="py-2.5 px-3 text-slate-700">
                           <span className="text-slate-600">
-                            {item.customer || target.customer || "-"}
+                            {item.customer || primaryTarget.customer || "-"}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-center text-slate-400 font-medium">
@@ -406,7 +418,7 @@ export function DetailType3Sales({
                 รายการสินค้าที่ขายได้
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {soldProducts || target.product || "-"}
+                {soldProducts || primaryTarget.product || "-"}
               </span>
             </div>
 

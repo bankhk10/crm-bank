@@ -1092,6 +1092,7 @@ export default function ActivityPlanDetailView({
           <ApprovalType3Sales
             isVisible={isTypeActive("TYPE_3", "เสนอขายสินค้า")}
             target={targets.t3}
+            targets={targets.t3List}
           />
 
           {/* TYPE_4: วางบิล / เก็บเงิน */}

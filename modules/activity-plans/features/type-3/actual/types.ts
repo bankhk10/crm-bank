@@ -1,55 +1,16 @@
-export interface TargetProductItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  isSubDealer?: boolean;
-  subDealerStore?: string;
-  dealerName?: string;
-  qty?: string;
-  unitPrice?: string;
-  detail?: string;
-  notes?: string;
-  unit?: string;
-  price?: string;
-  targetSales?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+import type {
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  Type3TargetItem,
+} from "../types";
 
-export interface Type3ProductSaleDetail {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  qty?: string;
-  unitPrice?: string;
-  price?: string;
-  actualQty?: string;
-  actualSales?: string;
-  unclosedReason?: string;
-  isAdditional?: boolean;
-}
+export type { TargetProductItem, Type3ProductSaleDetail, Type3TargetItem };
 
 export interface ActualType3SalesProps {
   isVisible: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    product?: string;
-    customer?: string;
-    targetQty?: string;
-    targetSales?: string;
-    unitPrice?: string;
-    detail?: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    dealerName?: string;
-    items?: TargetProductItem[];
-  };
+  target?: Type3TargetItem;
+  targets?: Type3TargetItem[];
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
   soldProducts: string;
   setSoldProducts: (v: string) => void;
@@ -65,18 +26,8 @@ export interface ActualType3SalesProps {
 
 export interface DetailType3SalesProps {
   isVisible: boolean;
-  target: {
-    product: string;
-    customer: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    dealerName?: string;
-    targetQty: string;
-    targetSales?: string;
-    unitPrice?: string;
-    detail?: string;
-    items?: TargetProductItem[];
-  };
+  target?: Type3TargetItem;
+  targets?: Type3TargetItem[];
   soldProducts?: string;
   actualSales?: string;
   actualQuantity?: string;
@@ -86,17 +37,6 @@ export interface DetailType3SalesProps {
 
 export interface ApprovalType3SalesProps {
   isVisible: boolean;
-  target: {
-    product?: string;
-    customer?: string;
-    targetSales?: string;
-    targetQty?: string;
-    items?: Array<{
-      productName: string;
-      qty?: string;
-      unitPrice?: string;
-      price?: string;
-      detail?: string;
-    }>;
-  };
+  target?: Type3TargetItem;
+  targets?: Type3TargetItem[];
 }

@@ -5,6 +5,7 @@ import { WORK_TYPES, getWorkTypeName, getWorkTypeCode } from "@/modules/activity
 import { decodeType8StoreNotes } from "@/modules/activity-plans/features/type-8/shared/type8-notes";
 import { extractType1PlanTargets } from "@/modules/activity-plans/features/type-1";
 import { extractType2PlanTargets } from "@/modules/activity-plans/features/type-2";
+import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-3";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -433,71 +434,11 @@ export function extractPlanData(
     targets.t2List = list;
   }
 
-  // TYPE 3: Store / Product / Quantity / Detail / Notes
+  // TYPE 3: Store / Product / Quantity / Detail / Notes (Delegated to Type 3 Feature Slice)
   if (isWorkTypePresent("TYPE_3")) {
-    const t3Stores = stores.filter((s) => s.workTypeCode === "TYPE_3");
-    const t3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
-    const t3Items = t3Products.map((pr) => {
-      const qtyVal = pr.targetQuantity != null ? String(pr.targetQuantity) : "";
-      const matchedStore =
-        t3Stores.find(
-          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
-        ) || t3Stores[0];
-      const isSub = Boolean(matchedStore?.subDealerStore);
-      const custDisplay = isSub
-        ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
-        : matchedStore?.storeName || "";
-
-      return {
-        id: pr.id,
-        productId: pr.productId,
-        productName:
-          pr.productName || (pr as any).product?.name || "สินค้าเสนอขาย",
-        customer: custDisplay,
-        storeId: pr.storeId || matchedStore?.storeId || undefined,
-        isSubDealer: isSub,
-        subDealerStore: matchedStore?.subDealerStore || "",
-        dealerName: matchedStore?.storeName || "",
-        qty: qtyVal,
-        unitPrice: pr.unitPrice
-          ? `${Number(pr.unitPrice).toLocaleString()} บาท`
-          : "",
-        price: "",
-        targetSales: "",
-        detail: pr.notes || matchedStore?.notes || "",
-        notes: pr.notes || "",
-        isAdditional: false,
-      };
-    });
-    const t3TotalQty = t3Products.reduce(
-      (sum, pr) => sum + (pr.targetQuantity || 0),
-      0,
-    );
-    const t3PrimaryStore = t3Stores[0];
-    const t3PrimaryIsSub = Boolean(t3PrimaryStore?.subDealerStore);
-    const t3PrimaryCustDisplay = t3PrimaryIsSub
-      ? `${t3PrimaryStore?.subDealerStore} (Dealer: ${t3PrimaryStore?.storeName || "-"})`
-      : t3Stores
-          .map((s) => s.storeName)
-          .filter(Boolean)
-          .join(", ") || "";
-
-    targets.t3 = {
-      ...prevTargets.t3,
-      customer: t3PrimaryCustDisplay,
-      isSubDealer: t3PrimaryIsSub,
-      subDealerStore: t3PrimaryStore?.subDealerStore || "",
-      dealerName: t3PrimaryStore?.storeName || "",
-      product: t3Products
-        .map((pr) => pr.productName)
-        .filter(Boolean)
-        .join(", "),
-      targetQty: t3TotalQty > 0 ? String(t3TotalQty) : "",
-      unitPrice: "",
-      detail: t3Products[0]?.notes || t3PrimaryStore?.notes || "",
-      targetSales: "",
-      items: t3Items,
-    };
+    const { primary, list } = extractType3PlanTargets(p, prevTargets.t3);
+    targets.t3 = primary;
+    targets.t3List = list;
   }
 
   // TYPE 4: Store / Target Amount (Collect)

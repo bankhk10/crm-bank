@@ -1,5 +1,6 @@
 import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1";
 import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2";
+import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -264,6 +265,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 2 Actual Result (Delegated to Type 2 Feature Slice)
   const t2Parsed = parseType2ActualResult(resData);
   Object.assign(result, t2Parsed);
+
+  // Type 3 Actual Result (Delegated to Type 3 Feature Slice)
+  const t3Parsed = parseType3ActualResult(resData);
+  Object.assign(result, t3Parsed);
+
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&
@@ -278,23 +284,6 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     Array.isArray(resData.saleResults) &&
     resData.saleResults.length > 0
   ) {
-    const t3Sales = resData.saleResults.filter(
-      (s: any) => s.workTypeCode === "TYPE_3",
-    );
-    if (t3Sales.length > 0) {
-      result.t3ProductSalesDetails = t3Sales.map((s: any) => ({
-        id: s.id,
-        productId: s.productId,
-        productName: s.productName || s.product?.name || "",
-        actualQty: String(s.actualQuantity ?? ""),
-        unitPrice: Number(s.actualUnitPrice || 0),
-        actualSales: String(s.actualTotal ?? ""),
-        storeId: s.storeId,
-        customer: s.store?.name || undefined,
-        unclosedReason: s.unclosedReason || "",
-        isAdditional: Boolean(s.isAdditional),
-      }));
-    }
     const t9Sales = resData.saleResults.filter(
       (s: any) => s.workTypeCode === "TYPE_9",
     );

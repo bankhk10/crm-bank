@@ -89,28 +89,20 @@ export type ActivityResultStatusType =
 
 import type { Type1TargetItem } from "@/modules/activity-plans/features/type-1/types";
 import type { Type2TargetItem } from "@/modules/activity-plans/features/type-2/types";
+import type { Type3TargetItem } from "@/modules/activity-plans/features/type-3/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
 export type Type2TargetStateItem = Type2TargetItem;
+export type Type3TargetStateItem = Type3TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
   t1List?: Type1TargetItem[];
   t2: Type2TargetItem;
   t2List?: Type2TargetItem[];
-  t3: {
-    product: string;
-    customer: string;
-    targetQty: string;
-    unitPrice?: string;
-    targetSales: string;
-    detail?: string;
-    isSubDealer?: boolean;
-    subDealerStore?: string;
-    dealerName?: string;
-    items: any[];
-  };
+  t3: Type3TargetItem;
+  t3List?: Type3TargetItem[];
   t4: {
     customer: string;
     orderNo: string;

@@ -3,6 +3,7 @@ import { WORK_TYPES } from "../../../constants";
 import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
 import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/type-1";
 import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2";
+import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -66,46 +67,16 @@ export function extractWorkTypeSections(
   }
 
   // ── 3. เสนอขายสินค้า ───────────────────────────────────
-  const type3Products = products.filter((pr) => pr.workTypeCode === "TYPE_3");
-  const type3Stores = stores.filter((s) => s.workTypeCode === "TYPE_3");
   const t3Line = objectiveLines.find(
     (l) => l.includes("[เสนอขายสินค้า]") || l.includes("เสนอขายสินค้า"),
   );
-  if (type3Products.length > 0 || type3Stores.length > 0 || t3Line) {
-    const list = type3Products.map((pr) => {
-      const matchedStore =
-        type3Stores.find(
-          (s) => s.storeId && pr.storeId && s.storeId === pr.storeId,
-        ) || type3Stores[0];
-      const isSub = Boolean(matchedStore?.subDealerStore);
-      const storeDisplay = isSub
-        ? `${matchedStore?.subDealerStore} (Dealer: ${matchedStore?.storeName || "-"})`
-        : matchedStore?.storeName || "-";
-
-      const extraFields: Array<{ label: string; value: string }> = [];
-      if (pr.targetQuantity != null) {
-        extraFields.push({
-          label: "จำนวนเป้าหมาย",
-          value: `${pr.targetQuantity} หน่วย`,
-        });
-      }
-      if (pr.notes || matchedStore?.notes) {
-        extraFields.push({
-          label: "รายละเอียด",
-          value: pr.notes || matchedStore?.notes || "",
-        });
-      }
-      return {
-        title: pr.productName || "สินค้า",
-        subtitle: `ร้านค้า: ${storeDisplay}`,
-        extraFields: extraFields.length > 0 ? extraFields : undefined,
-      };
-    });
+  const type3Items = mapType3ToSectionItems(stores, products);
+  if (type3Items.length > 0 || t3Line) {
     sections.push({
       typeIndex: 3,
       title: WORK_TYPES[2],
       badge: "เสนอขาย",
-      items: list,
+      items: type3Items,
       rawSummary: t3Line ? t3Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
   }

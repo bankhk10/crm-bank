@@ -3,7 +3,11 @@ export type {
   Type3SalesProductLine,
   CustomerOption,
   ProductOption,
-} from "./shared/types";
+  TargetProductItem,
+  Type3ProductSaleDetail,
+  Type3TargetItem,
+} from "./types";
+
 export { Type3Sales } from "./create/type3-sales";
 export type { Type3SalesProps } from "./create/types";
 export {
@@ -21,8 +25,6 @@ export { DetailType3Sales } from "./detail/detail-type3-sales";
 export { ApprovalType3Sales } from "./approval/approval-type3-sales";
 export { ActualType3Sales } from "./actual/actual-type3-sales";
 export type {
-  TargetProductItem,
-  Type3ProductSaleDetail,
   ActualType3SalesProps,
   DetailType3SalesProps,
   ApprovalType3SalesProps,
@@ -40,3 +42,8 @@ export {
   type Type3PlanCardTargetItem,
 } from "./shared/type3-plan-card";
 
+export {
+  extractType3PlanTargets,
+  parseType3ActualResult,
+  mapType3ToSectionItems,
+} from "./application/mapper";

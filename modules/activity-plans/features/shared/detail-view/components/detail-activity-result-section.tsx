@@ -94,6 +94,7 @@ export function DetailActivityResultSection({
         <DetailType3Sales
           isVisible={isTypeVisible("เสนอขายสินค้า")}
           target={targets.t3}
+          targets={targets.t3List}
           soldProducts={parsedResults.t3SoldProducts}
           actualSales={parsedResults.t3ActualSales}
           actualQuantity={parsedResults.t3ActualQuantity != null ? String(parsedResults.t3ActualQuantity) : undefined}

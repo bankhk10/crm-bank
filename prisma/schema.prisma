@@ -408,6 +408,7 @@ model Customer {
   activityPlanType13Plots     ActivityPlanType13Plot[]     @relation("Type13DealerStore")
   activityPlanType1Stores     ActivityPlanType1Store[]
   activityPlanType2Targets    ActivityPlanType2Target[]
+  activityPlanType3Targets    ActivityPlanType3Target[]
 }
 
 model CustomerAddress {
@@ -709,6 +710,7 @@ model Product {
   activityPlanType13Products     ActivityPlanType13Product[]
   activityPlanType14Products     ActivityPlanType14Product[]
   activityPlanType2Products      ActivityPlanType2Product[]
+  activityPlanType3Products      ActivityPlanType3Product[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1754,6 +1756,8 @@ model ActivityPlan {
   type1Result    ActivityResultType1?
   type2Targets   ActivityPlanType2Target[]
   type2Products  ActivityPlanType2Product[]
+  type3Targets   ActivityPlanType3Target[]
+  type3Products  ActivityPlanType3Product[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2922,4 +2926,52 @@ model ActivityPlanType2Product {
   @@index([productId])
   @@map("activity_plan_type_2_products")
 }
+
+// =============================================================================
+// TYPE 3: Dedicated Tables (Sales Proposal Targets & Products)
+// =============================================================================
+
+model ActivityPlanType3Target {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  storeId                 String?  @map("store_id")
+  isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
+  subDealerStore          String?  @map("sub_dealer_store")
+  notes                   String?  @map("notes")
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType3Product[]
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_plan_type_3_targets")
+}
+
+model ActivityPlanType3Product {
+  id                      String   @id @default(cuid())
+  targetId                String   @map("target_id")
+  activityPlanId          String   @map("activity_plan_id")
+  productId               String   @map("product_id")
+  targetQuantity          Int?     @map("target_quantity")
+  unitPrice               Decimal? @map("unit_price") @db.Decimal(15, 2)
+  targetAmount            Decimal? @map("target_amount") @db.Decimal(15, 2)
+  notes                   String?  @map("notes")
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  target                  ActivityPlanType3Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  activityPlan            ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  product                 Product                 @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([targetId])
+  @@index([activityPlanId])
+  @@index([productId])
+  @@map("activity_plan_type_3_products")
+}
+
 

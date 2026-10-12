@@ -81,6 +81,7 @@ export function ActualType3Sales({
   isVisible,
   planType,
   target,
+  targets,
   products = [],
   setSoldProducts,
   actualSales,
@@ -120,73 +121,81 @@ export function ActualType3Sales({
     return dbProducts;
   }, [products, dbProducts]);
 
-  // 1. Initial Planned items from target
-  const initialPlannedItems: TargetProductItem[] = useMemo(() => {
-    if (!target) return [];
+  const effectiveTargets = useMemo(() => {
+    return targets && targets.length > 0 ? targets : target ? [target] : [];
+  }, [targets, target]);
 
-    if (target.items && target.items.length > 0) {
-      return target.items.map((item, idx) => {
+  // 1. Initial Planned items from target(s)
+  const initialPlannedItems: TargetProductItem[] = useMemo(() => {
+    if (effectiveTargets.length === 0) return [];
+
+    const allItems: TargetProductItem[] = [];
+
+    effectiveTargets.forEach((t) => {
+      if (t.items && t.items.length > 0) {
+        t.items.forEach((item, idx) => {
+          const saved =
+            productSalesDetails?.find(
+              (d) =>
+                !d.isAdditional &&
+                ((item.id && d.id === item.id) ||
+                  (item.productId && d.productId === item.productId) ||
+                  (d.productName === item.productName && (!item.storeId || d.storeId === item.storeId))),
+            ) || productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
+
+          const fallbackQty = parseProductQty(actualQuantity, item.productName);
+          const fallbackReason = parseProductReason(
+            unclosedReason,
+            item.productName,
+          );
+
+          allItems.push({
+            ...item,
+            productId: item.productId,
+            actualQty: saved?.actualQty ?? (fallbackQty || item.actualQty || ""),
+            actualSales:
+              saved?.actualSales ??
+              (effectiveTargets.length === 1 && t.items!.length === 1 && actualSales
+                ? actualSales
+                : item.actualSales || ""),
+            unclosedReason:
+              saved?.unclosedReason ??
+              (fallbackReason || item.unclosedReason || ""),
+            isAdditional: false,
+          });
+        });
+      } else if (t.product) {
+        const fallbackQty =
+          parseProductQty(actualQuantity, t.product) || actualQuantity;
+        const fallbackReason =
+          parseProductReason(unclosedReason, t.product) || unclosedReason;
         const saved =
           productSalesDetails?.find(
-            (d) =>
-              !d.isAdditional &&
-              ((item.id && d.id === item.id) ||
-                (item.productId && d.productId === item.productId) ||
-                d.productName === item.productName),
-          ) || productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
+            (d) => !d.isAdditional && d.productName === t.product,
+          ) || productSalesDetails?.[0];
 
-        const fallbackQty = parseProductQty(actualQuantity, item.productName);
-        const fallbackReason = parseProductReason(
-          unclosedReason,
-          item.productName,
-        );
-
-        return {
-          ...item,
-          productId: item.productId,
-          actualQty: saved?.actualQty ?? (fallbackQty || item.actualQty || ""),
-          actualSales:
-            saved?.actualSales ??
-            (target.items!.length === 1 && actualSales
-              ? actualSales
-              : item.actualSales || ""),
-          unclosedReason:
-            saved?.unclosedReason ??
-            (fallbackReason || item.unclosedReason || ""),
-          isAdditional: false,
-        };
-      });
-    }
-
-    if (target.product) {
-      const fallbackQty =
-        parseProductQty(actualQuantity, target.product) || actualQuantity;
-      const fallbackReason =
-        parseProductReason(unclosedReason, target.product) || unclosedReason;
-      const saved =
-        productSalesDetails?.find(
-          (d) => !d.isAdditional && d.productName === target.product,
-        ) || productSalesDetails?.[0];
-
-      return [
-        {
-          id: "planned-single",
-          productName: target.product,
-          customer: target.customer,
-          qty: target.targetQty,
-          unitPrice: target.unitPrice,
-          detail: target.detail,
+        allItems.push({
+          id: t.id || "planned-single",
+          productName: t.product,
+          customer: t.customer,
+          storeId: t.storeId,
+          isSubDealer: t.isSubDealer,
+          subDealerStore: t.subDealerStore,
+          dealerName: t.dealerName,
+          qty: t.targetQty,
+          unitPrice: t.unitPrice,
+          detail: t.detail,
           actualQty: saved?.actualQty ?? (fallbackQty || ""),
           actualSales: saved?.actualSales ?? (actualSales || ""),
           unclosedReason: saved?.unclosedReason ?? (fallbackReason || ""),
           isAdditional: false,
-        },
-      ];
-    }
+        });
+      }
+    });
 
-    return [];
+    return allItems;
   }, [
-    target,
+    effectiveTargets,
     productSalesDetails,
     actualQuantity,
     actualSales,
@@ -437,8 +446,10 @@ export function ActualType3Sales({
         </div>
       </div>
 
-      {/* TARGET SUMMARY CARD (PLAN OVERVIEW) */}
-      <Type3PlanCard planType={planType} target={target} />
+      {/* TARGET SUMMARY CARD(S) (PLAN OVERVIEW) */}
+      {effectiveTargets.map((t, idx) => (
+        <Type3PlanCard key={t.id || idx} planType={planType} target={t} />
+      ))}
 
       {/* SECTION 1: สินค้าตามแผน (RECORDING FORM) */}
       {planType !== "UNPLANNED" && plannedItems.length > 0 && (
