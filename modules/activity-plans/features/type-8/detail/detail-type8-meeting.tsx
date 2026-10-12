@@ -29,6 +29,7 @@ export type { ProductSaleDetail, DetailType8MeetingProps };
 export function DetailType8Meeting({
   isVisible,
   target,
+  targets,
   actualAttendees,
   feedbackQnA,
   productSalesDetails = [],
@@ -71,7 +72,10 @@ export function DetailType8Meeting({
 
   if (!isVisible) return null;
 
-  const promotionalProducts = target.promotionalProducts || [];
+  const promotionalProducts =
+    targets && targets.length > 0
+      ? targets.flatMap((t) => t.promotionalProducts || [])
+      : target?.promotionalProducts || [];
 
   const targetProductsSales = productSalesDetails.filter((d) => !d.isAdditional);
   const additionalProductsSales = productSalesDetails.filter(
@@ -92,7 +96,15 @@ export function DetailType8Meeting({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type8PlanCard target={target} hidePromotionsTable />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type8PlanCard key={t.id || idx} target={t} hidePromotionsTable />
+          ))}
+        </div>
+      ) : (
+        <Type8PlanCard target={target} hidePromotionsTable />
+      )}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

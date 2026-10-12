@@ -6,6 +6,7 @@ import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5
 import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6";
 import { parseType7aActualResult } from "@/modules/activity-plans/features/type-7a";
 import { parseType7bActualResult } from "@/modules/activity-plans/features/type-7b";
+import { parseType8ActualResult } from "@/modules/activity-plans/features/type-8";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -295,6 +296,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 7B Actual Result (Delegated to Type 7B Feature Slice)
   const t7bParsed = parseType7bActualResult(resData);
   Object.assign(result, t7bParsed);
+
+  // Type 8 Actual Result (Delegated to Type 8 Feature Slice)
+  const t8Parsed = parseType8ActualResult(resData);
+  Object.assign(result, t8Parsed);
 
   if (
     resData.sprayRounds &&
@@ -753,55 +758,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     // TYPE_7B: Handled by parseType7bActualResult above
     // TYPE_7A: Handled by parseType7aActualResult above
 
-    // Type 8
-    const t8AttendeesMatch = summaryText.match(
-      /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
-    );
-    if (t8AttendeesMatch && t8AttendeesMatch[1]) {
-      result.t8ActualAttendees = t8AttendeesMatch[1].split("\n")[0].trim();
-    }
-    const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
-    if (qnaMatch && qnaMatch[1]) {
-      result.t8FeedbackQnA = qnaMatch[1].split("\n")[0].trim();
-    }
-    const t8SalesMatch = summaryText.match(
-      /(?:ยอดขายแยกสินค้าประชุม|t8ProductSalesDetails):\s*(\[.+\])/,
-    );
-    if (t8SalesMatch && t8SalesMatch[1]) {
-      try {
-        const trimmed = t8SalesMatch[1].trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) {
-            result.t8ProductSalesDetails = parsed;
-          }
-        }
-      } catch {
-        // Ignore fallback text parse error
-      }
-    }
-    const t8ImagesMatch = summaryText.match(
-      /(?:รูปภาพบรรยากาศการประชุม|ภาพถ่ายบรรยากาศการประชุม|รูปภาพการประชุม|t8Images):\s*(\[.+\])/,
-    );
-    if (t8ImagesMatch && t8ImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t8ImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t8Images = parsed;
-      } catch (e) {
-        console.error("Failed to parse t8Images JSON:", e);
-      }
-    }
-    const t8RegMatch = summaryText.match(
-      /(?:รูปใบลงทะเบียนผู้เข้าร่วมงาน|ภาพใบลงทะเบียน|รูปใบลงทะเบียน|t8RegistrationImages):\s*(\[.+\])/,
-    );
-    if (t8RegMatch && t8RegMatch[1]) {
-      try {
-        const parsed = JSON.parse(t8RegMatch[1]);
-        if (Array.isArray(parsed)) result.t8RegistrationImages = parsed;
-      } catch (e) {
-        console.error("Failed to parse t8RegistrationImages JSON:", e);
-      }
-    }
+    // TYPE_8: Handled by parseType8ActualResult above
 
     // Type 9
     const t9SalesMatch = summaryText.match(/ยอดขายหน้าร้านจริง:\s*(.+)/);

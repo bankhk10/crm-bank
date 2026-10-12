@@ -95,6 +95,7 @@ import type { Type5TargetItem } from "@/modules/activity-plans/features/type-5/t
 import type { Type6TargetItem } from "@/modules/activity-plans/features/type-6/types";
 import type { Type7aTargetItem } from "@/modules/activity-plans/features/type-7a/types";
 import type { Type7bTargetItem } from "@/modules/activity-plans/features/type-7b/types";
+import type { Type8TargetItem } from "@/modules/activity-plans/features/type-8/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
@@ -105,6 +106,7 @@ export type Type5TargetStateItem = Type5TargetItem;
 export type Type6TargetStateItem = Type6TargetItem;
 export type Type7aTargetStateItem = Type7aTargetItem;
 export type Type7bTargetStateItem = Type7bTargetItem;
+export type Type8TargetStateItem = Type8TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -146,26 +148,8 @@ export interface ActualTargetsState {
   t7aList?: Type7aTargetItem[];
   t7b?: Type7bTargetItem;
   t7bList?: Type7bTargetItem[];
-  t8: {
-    topic: string;
-    products: string;
-    targetAttendees: string;
-    customer?: string;
-    dealerName?: string;
-    subDealerStore?: string;
-    detail?: string;
-    targetProducts?: string[];
-    promotionalProducts?: Array<{
-      id?: string;
-      productId: string;
-      productName: string;
-      quantity: number;
-      unitPrice: number;
-      totalAmount: number;
-      notes?: string;
-      storeId?: string | null;
-    }>;
-  };
+  t8: Type8TargetItem;
+  t8List?: Type8TargetItem[];
   t9: {
     store: string;
     isSubDealer: boolean;

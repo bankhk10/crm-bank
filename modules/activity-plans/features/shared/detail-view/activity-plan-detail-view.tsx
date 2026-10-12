@@ -1154,6 +1154,7 @@ export default function ActivityPlanDetailView({
               )
             }
             target={targets.t8}
+            targets={targets.t8List}
           />
 
           {/* TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}

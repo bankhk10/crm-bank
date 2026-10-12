@@ -886,6 +886,7 @@ export default function ActivityPlanApprovalDetailView({
               isTypeActive("TYPE_8", "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
             }
             target={targets.t8}
+            targets={targets.t8List}
           />
 
           {/* TYPE_9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}

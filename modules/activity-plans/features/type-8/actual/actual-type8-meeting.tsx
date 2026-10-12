@@ -55,6 +55,7 @@ export function ActualType8Meeting({
   isVisible,
   planType,
   target,
+  targets,
   products = [],
   actualAttendees,
   setActualAttendees,
@@ -326,7 +327,20 @@ export function ActualType8Meeting({
       </div>
 
       {/* Target Plan Information Card */}
-      <Type8PlanCard target={target} planType={planType} hidePromotionsTable />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type8PlanCard
+              key={t.id || idx}
+              target={t}
+              planType={planType}
+              hidePromotionsTable
+            />
+          ))}
+        </div>
+      ) : (
+        <Type8PlanCard target={target} planType={planType} hidePromotionsTable />
+      )}
 
       {/* 1. READ-ONLY PROMOTION LIST SECTION */}
       <div className="space-y-2.5 pt-1 border-t border-purple-100/60">

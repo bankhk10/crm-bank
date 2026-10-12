@@ -243,6 +243,7 @@ export function DetailActivityResultSection({
             isTypeVisible("จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
           }
           target={targets.t8}
+          targets={targets.t8List}
           actualAttendees={parsedResults.t8ActualAttendees}
           feedbackQnA={parsedResults.t8FeedbackQnA}
           productSalesDetails={parsedResults.t8ProductSalesDetails}

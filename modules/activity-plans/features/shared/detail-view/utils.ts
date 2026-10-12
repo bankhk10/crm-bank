@@ -8,6 +8,7 @@ import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4
 import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5";
 import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-7a";
 import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-7b";
+import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -215,87 +216,42 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 8. จัดประชุม ────────────────────────────────
-  const type8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
-  const type8PromoProducts = products.filter(
-    (pr) => pr.workTypeCode === "TYPE_8_PROMOTION",
+  // ── 8. จัดประชุม (Delegated to Type 8 Feature Slice) ────────────
+  const type8Stores = stores.filter(
+    (s) =>
+      s.workTypeCode === "TYPE_8" ||
+      s.workTypeCode === "จัดประชุม" ||
+      s.workTypeCode === "จัดประชุมการเกษตร",
   );
-  const type8Stores = stores.filter((s) => s.workTypeCode === "TYPE_8");
-  const decodedT8Notes = decodeType8StoreNotes(type8Stores[0]?.notes);
+  const type8Products = products.filter(
+    (pr) => pr.workTypeCode === "TYPE_8" || pr.workTypeCode === "TYPE_8_PROMOTION",
+  );
   const t8Line = objectiveLines.find(
     (l) => l.includes("[จัดประชุม") || l.includes("ประชุม"),
   );
   if (
-    type8Products.length > 0 ||
-    type8PromoProducts.length > 0 ||
-    decodedT8Notes.promotions.length > 0 ||
     type8Stores.length > 0 ||
+    type8Products.length > 0 ||
     plan.targetAttendeesCount ||
     t8Line
   ) {
-    const extraFields: Array<{ label: string; value: string }> = [];
-    if (type8Stores.length > 0) {
-      const storeStr = type8Stores
-        .map((s) =>
-          s.subDealerStore
-            ? `${s.subDealerStore} (Dealer: ${s.storeName || "-"})`
-            : s.storeName,
-        )
-        .filter(Boolean)
-        .join(", ");
-      if (storeStr) {
-        extraFields.push({
-          label: "ร้านค้า / ตัวแทนจำหน่าย",
-          value: storeStr,
-        });
-      }
-    }
-    if (plan.targetAttendeesCount) {
-      extraFields.push({
-        label: "ผู้เข้าร่วมเป้าหมาย",
-        value: `${plan.targetAttendeesCount} คน`,
-      });
-    }
-    if (type8Products.length > 0) {
-      extraFields.push({
-        label: "สินค้าเป้าหมาย",
-        value: type8Products.map((p) => p.productName).join(", "),
-      });
-    }
-    if (decodedT8Notes.promotions.length > 0) {
-      extraFields.push({
-        label: "รายละเอียดโปรโมชัน",
-        value: decodedT8Notes.promotions.join(", "),
-      });
-    } else if (type8PromoProducts.length > 0) {
-      extraFields.push({
-        label: "รายการสินค้าโปรโมชัน",
-        value: type8PromoProducts
-          .map(
-            (p) =>
-              `${p.productName || "สินค้า"} (${p.targetQuantity ?? 1} ชิ้น${
-                p.notes ? ` - ${p.notes}` : ""
-              })`,
-          )
-          .join(", "),
-      });
-    }
-    if (decodedT8Notes.detail) {
-      extraFields.push({
-        label: "รายละเอียดการประชุม",
-        value: decodedT8Notes.detail,
-      });
-    }
+    const list = mapType8ToSectionItems(
+      type8Stores,
+      products,
+      plan.targetAttendeesCount,
+    );
     sections.push({
       typeIndex: 8,
       title: WORK_TYPES[7],
       badge: "ประชุม",
-      items: [
-        {
-          title: plan.title || "จัดประชุม",
-          extraFields: extraFields.length > 0 ? extraFields : undefined,
-        },
-      ],
+      items:
+        list.length > 0
+          ? list
+          : [
+              {
+                title: plan.title || "จัดประชุม",
+              },
+            ],
       rawSummary: t8Line ? t8Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
   }

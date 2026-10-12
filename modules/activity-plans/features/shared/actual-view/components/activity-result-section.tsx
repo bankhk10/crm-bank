@@ -837,6 +837,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             isVisible={true}
             planType={props.planType || props.plan?.planType}
             target={targets.t8}
+            targets={targets.t8List}
             products={products}
             actualAttendees={t8ActualAttendees}
             setActualAttendees={setT8ActualAttendees}

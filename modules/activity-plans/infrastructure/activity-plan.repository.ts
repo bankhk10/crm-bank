@@ -34,6 +34,7 @@ import { type5Strategy } from "../features/type-5/application/type5.strategy";
 import { type6Strategy } from "../features/type-6/application/type6.strategy";
 import { type7aStrategy } from "../features/type-7a/application/type7a.strategy";
 import { type7bStrategy } from "../features/type-7b/application/type7b.strategy";
+import { type8Strategy } from "../features/type-8/application/type8.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -1285,6 +1286,9 @@ export async function createActivityPlan(
         // 1.3.6 Persist dedicated Type 6 records if present
         await type6Strategy.savePlan(tx, plan.id, input);
 
+        // 1.3.7 Persist dedicated Type 8 records if present
+        await type8Strategy.savePlan(tx, plan.id, input);
+
         // 1.4 Create Products if present
         if (input.planProducts && input.planProducts.length > 0) {
           await tx.activityPlanProduct.createMany({
@@ -1767,6 +1771,7 @@ export async function updateActivityPlan(
       await type4Strategy.savePlan(tx, id, { planStores });
       await type5Strategy.savePlan(tx, id, { planStores, planProducts });
       await type6Strategy.savePlan(tx, id, { planStores, planProducts });
+      await type8Strategy.savePlan(tx, id, { planStores, planProducts });
     }
 
     // 1.4 Sync Products

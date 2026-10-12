@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import { WORK_TYPES, getWorkTypeName, getWorkTypeCode } from "@/modules/activity-plans/constants";
-import { decodeType8StoreNotes } from "@/modules/activity-plans/features/type-8/shared/type8-notes";
 import { extractType1PlanTargets } from "@/modules/activity-plans/features/type-1";
 import { extractType2PlanTargets } from "@/modules/activity-plans/features/type-2";
 import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-3";
@@ -11,6 +10,7 @@ import { extractType5PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType6PlanTargets } from "@/modules/activity-plans/features/type-6";
 import { extractType7aPlanTargets } from "@/modules/activity-plans/features/type-7a";
 import { extractType7bPlanTargets } from "@/modules/activity-plans/features/type-7b";
+import { extractType8PlanTargets } from "@/modules/activity-plans/features/type-8";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -671,61 +671,11 @@ export function extractPlanData(
     targets.t7bList = t7bExtracted.list;
   }
 
-  // TYPE 8: Meeting / Attendees
+  // TYPE 8: Meeting / Attendees (Delegated to Type 8 Feature Slice)
   if (isWorkTypePresent("TYPE_8")) {
-    const t8Products = products.filter((pr) => pr.workTypeCode === "TYPE_8");
-    const t8PromoProducts = products.filter(
-      (pr) => pr.workTypeCode === "TYPE_8_PROMOTION",
-    );
-    const t8Stores = stores.filter((s) => s.workTypeCode === "TYPE_8");
-    const t8Store = t8Stores[0];
-    const decodedStoreNotes = decodeType8StoreNotes(t8Store?.notes);
-    const storeDisplay = t8Store?.subDealerStore
-      ? `${t8Store.subDealerStore} (Dealer: ${t8Store.storeName || "-"})`
-      : t8Store?.storeName || "";
-
-    const targetProductNames = t8Products
-      .map((pr) => pr.productName)
-      .filter(Boolean) as string[];
-
-    const promotionalProducts =
-      decodedStoreNotes.promotions.length > 0
-        ? decodedStoreNotes.promotions.map((p, idx) => ({
-            id: `promo-${idx + 1}`,
-            productId: "",
-            productName: "",
-            quantity: 1,
-            unitPrice: 0,
-            totalAmount: 0,
-            notes: p,
-            storeId: null,
-          }))
-        : t8PromoProducts.map((pr) => ({
-            id: pr.id,
-            productId: pr.productId,
-            productName:
-              pr.productName || (pr as any).product?.name || "สินค้าโปรโมชัน",
-            quantity: pr.targetQuantity ?? 1,
-            unitPrice: pr.unitPrice ? Number(pr.unitPrice) : 0,
-            totalAmount: pr.targetAmount ? Number(pr.targetAmount) : 0,
-            notes: pr.notes || "",
-            storeId: pr.storeId || null,
-          }));
-
-    targets.t8 = {
-      ...prevTargets.t8,
-      topic: t8Store?.remarks || p.objective || "",
-      customer: storeDisplay,
-      dealerName: t8Store?.storeName || "",
-      subDealerStore: t8Store?.subDealerStore || "",
-      detail: decodedStoreNotes.detail || t8Store?.notes || p.description || "",
-      targetProducts: targetProductNames,
-      products: targetProductNames.join(", "),
-      promotionalProducts,
-      targetAttendees: p.targetAttendeesCount
-        ? `${p.targetAttendeesCount} คน`
-        : "",
-    };
+    const { primary, list } = extractType8PlanTargets(p, prevTargets.t8);
+    targets.t8 = primary;
+    targets.t8List = list;
   }
 
   // TYPE 9: Store / Product / Target Sales
