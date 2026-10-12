@@ -90,11 +90,13 @@ export type ActivityResultStatusType =
 import type { Type1TargetItem } from "@/modules/activity-plans/features/type-1/types";
 import type { Type2TargetItem } from "@/modules/activity-plans/features/type-2/types";
 import type { Type3TargetItem } from "@/modules/activity-plans/features/type-3/types";
+import type { Type4TargetItem } from "@/modules/activity-plans/features/type-4/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
 export type Type2TargetStateItem = Type2TargetItem;
 export type Type3TargetStateItem = Type3TargetItem;
+export type Type4TargetStateItem = Type4TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -103,16 +105,8 @@ export interface ActualTargetsState {
   t2List?: Type2TargetItem[];
   t3: Type3TargetItem;
   t3List?: Type3TargetItem[];
-  t4: {
-    customer: string;
-    orderNo: string;
-    targetCollect: string;
-    collectType?: "BILLING" | "COLLECT";
-    targetAmountNum?: number;
-    collectAmount?: number;
-    actualCollectAmount?: number | null;
-    items: any[];
-  };
+  t4: Type4TargetItem;
+  t4List?: Type4TargetItem[];
   t5: {
     store: string;
     product: string;

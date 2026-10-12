@@ -106,11 +106,13 @@ export function DetailActivityResultSection({
         <DetailType4Collect
           isVisible={isTypeVisible("วางบิล / เก็บเงิน")}
           target={targets.t4}
+          targets={targets.t4List}
           orderNo={parsedResults.t4OrderNo}
           receivedAmount={parsedResults.t4ReceivedAmount}
           billingStatus={parsedResults.t4BillingStatus}
           billingDetail={parsedResults.t4BillingDetail}
           collectDetail={parsedResults.t4CollectDetail || parsedResults.t4Detail}
+          paymentImages={parsedResults.t4Images}
         />
 
         {/* WORK TYPE 5 */}

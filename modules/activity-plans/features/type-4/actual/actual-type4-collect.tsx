@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Building2,
   Target,
@@ -16,15 +16,19 @@ import { Type4PlanCard } from "../shared/type4-plan-card";
 
 import type {
   TargetCollectCompanyItem,
+  Type4TargetItem,
   ActualType4CollectProps,
 } from "./types";
 
-export type { TargetCollectCompanyItem, ActualType4CollectProps };
+export type { TargetCollectCompanyItem, Type4TargetItem, ActualType4CollectProps };
 
 export function ActualType4Collect({
   isVisible,
   planType,
   target,
+  targets,
+  orderNo,
+  setOrderNo,
   receivedAmount,
   setReceivedAmount,
   billingStatus = "",
@@ -33,16 +37,56 @@ export function ActualType4Collect({
   setBillingDetail,
   collectDetail = "",
   setCollectDetail,
+  paymentImages = [],
+  onUploadImages,
+  onRemoveImage,
 }: ActualType4CollectProps) {
+  // Resolve effective target (supporting multi-target / targets list)
+  const resolvedTarget: Type4TargetItem | undefined = useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items
+          : [
+              {
+                id: t.id || `t4-item-${idx}`,
+                customer: t.customer,
+                companyName: t.companyName || t.customer,
+                storeId: t.storeId,
+                collectType: t.collectType || "COLLECT",
+                targetCollect: t.targetCollect || "",
+                targetAmountNum: t.targetAmountNum ?? t.collectAmount,
+                detail: t.detail || t.notes,
+              },
+            ],
+      );
+      const totalAmount = targets.reduce(
+        (sum, t) => sum + (t.targetAmountNum || t.collectAmount || 0),
+        0,
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer).filter(Boolean).join(", "),
+        targetCollect:
+          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+        targetAmountNum: totalAmount,
+        collectAmount: totalAmount,
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
+
   // Local state per company for multi-company support
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
     () => {
-      if (target?.items && target.items.length > 0) {
-        return target.items.map((item) => {
-          const isBilling = (item.collectType || target?.collectType) === "BILLING";
+      if (resolvedTarget?.items && resolvedTarget.items.length > 0) {
+        return resolvedTarget.items.map((item: TargetCollectCompanyItem) => {
+          const isBilling = (item.collectType || resolvedTarget?.collectType) === "BILLING";
           return {
             ...item,
-            collectType: item.collectType || target?.collectType || "COLLECT",
+            collectType: item.collectType || resolvedTarget?.collectType || "COLLECT",
             receivedAmount:
               item.receivedAmount ||
               (!isBilling && receivedAmount ? receivedAmount : ""),
@@ -78,15 +122,15 @@ export function ActualType4Collect({
 
   // Sync incoming hydrated props into companyItems based on item collectType
   useEffect(() => {
-    if (!target?.items || target.items.length === 0) return;
+    if (!resolvedTarget?.items || resolvedTarget.items.length === 0) return;
 
     setCompanyItems((prev) => {
-      if (!prev || prev.length === 0 || prev.length !== target.items!.length) {
-        return target.items!.map((item) => {
-          const isBilling = (item.collectType || target?.collectType) === "BILLING";
+      if (!prev || prev.length === 0 || prev.length !== resolvedTarget.items!.length) {
+        return resolvedTarget.items!.map((item: TargetCollectCompanyItem) => {
+          const isBilling = (item.collectType || resolvedTarget?.collectType) === "BILLING";
           return {
             ...item,
-            collectType: item.collectType || target?.collectType || "COLLECT",
+            collectType: item.collectType || resolvedTarget?.collectType || "COLLECT",
             receivedAmount:
               item.receivedAmount ||
               (!isBilling && receivedAmount ? receivedAmount : ""),
@@ -161,7 +205,7 @@ export function ActualType4Collect({
 
       return hasChanges ? updated : prev;
     });
-  }, [target?.items, target?.collectType, billingStatus, billingDetail, collectDetail, receivedAmount]);
+  }, [resolvedTarget?.items, resolvedTarget?.collectType, billingStatus, billingDetail, collectDetail, receivedAmount]);
 
   if (!isVisible) return null;
 
@@ -244,7 +288,7 @@ export function ActualType4Collect({
       </div>
 
       {/* TARGET SUMMARY CARD */}
-      <Type4PlanCard planType={planType} target={target} />
+      <Type4PlanCard planType={planType} target={resolvedTarget} />
 
       {/* MULTI-COMPANY ACTUAL RECORDING FORM */}
       {hasMultipleCompanies ? (

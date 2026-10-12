@@ -1,6 +1,7 @@
 import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1";
 import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2";
 import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3";
+import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -74,6 +75,7 @@ export interface ParsedSummaryValues {
   t4CollectDetail?: string;
   t4Detail?: string;
   t4CollectActualAmount?: number;
+  t4Images?: ImageFile[];
 
   // Type 5
   t5CompetitorBrand?: string;
@@ -269,6 +271,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 3 Actual Result (Delegated to Type 3 Feature Slice)
   const t3Parsed = parseType3ActualResult(resData);
   Object.assign(result, t3Parsed);
+
+  // Type 4 Actual Result (Delegated to Type 4 Feature Slice)
+  const t4Parsed = parseType4ActualResult(resData);
+  Object.assign(result, t4Parsed);
 
   if (
     resData.sprayRounds &&
@@ -777,51 +783,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
-    // Type 4
-    const orderNoMatch = summaryText.match(/เลขที่บิล\/ใบแจ้งหนี้:\s*(.+)/);
-    if (orderNoMatch && orderNoMatch[1]) {
-      result.t4OrderNo = orderNoMatch[1].split("\n")[0].trim();
-    }
-    const billingStatusMatch = summaryText.match(/สถานะการวางบิล:\s*(.+)/);
-    if (billingStatusMatch && billingStatusMatch[1]) {
-      result.t4BillingStatus = billingStatusMatch[1].split("\n")[0].trim();
-    }
-    const receivedMatch = summaryText.match(/ยอดเงินที่เก็บได้จริง:\s*(.+)/);
-    if (receivedMatch && receivedMatch[1]) {
-      result.t4ReceivedAmount = receivedMatch[1].split("\n")[0].trim();
-    } else if (resData.collectResultAmount) {
-      result.t4ReceivedAmount = String(resData.collectResultAmount);
-    }
-    // Parse Billing Detail
-    const billingDetailMatch = summaryText.match(
-      /(?:รายละเอียดเพิ่มเติม\s*\(วางบิล\)|รายละเอียดการวางบิล):\s*(.+)/,
-    );
-    if (billingDetailMatch && billingDetailMatch[1]) {
-      result.t4BillingDetail = billingDetailMatch[1].split("\n")[0].trim();
-    }
-
-    // Parse Collect Detail
-    const collectDetailMatch = summaryText.match(
-      /(?:รายละเอียดเพิ่มเติม\s*\(เก็บเงิน\)|รายละเอียดการเก็บเงิน):\s*(.+)/,
-    );
-    if (collectDetailMatch && collectDetailMatch[1]) {
-      result.t4CollectDetail = collectDetailMatch[1].split("\n")[0].trim();
-    }
-
-    // Backward compatibility for legacy format
-    const t4DetailMatch = summaryText.match(
-      /(?:รายละเอียดเพิ่มเติม\s*\(วางบิล\/เก็บเงิน\)|รายละเอียดเพิ่มเติม):\s*(.+)/,
-    );
-    if (t4DetailMatch && t4DetailMatch[1]) {
-      const legacyVal = t4DetailMatch[1].split("\n")[0].trim();
-      result.t4Detail = legacyVal;
-      if (!result.t4BillingDetail && result.t4BillingStatus) {
-        result.t4BillingDetail = legacyVal;
-      }
-      if (!result.t4CollectDetail && (result.t4ReceivedAmount || !result.t4BillingStatus)) {
-        result.t4CollectDetail = legacyVal;
-      }
-    }
+    // Type 4: Handled by parseType4ActualResult above
 
     // Type 5
     const compBrandMatch = summaryText.match(/แบรนด์คู่แข่ง:\s*(.+)/);

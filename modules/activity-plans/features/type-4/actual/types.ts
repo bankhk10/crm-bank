@@ -1,29 +1,16 @@
-import type { ImageFile, ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type {
+  TargetCollectCompanyItem,
+  Type4TargetItem,
+  Type4ImageFile,
+} from "../types";
 
-export interface TargetCollectCompanyItem {
-  id?: string;
-  customer?: string;
-  companyName: string;
-  targetCollect: string;
-  targetAmountNum?: number;
-  collectType?: "BILLING" | "COLLECT";
-  receivedAmount?: string;
-  billingStatus?: "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ" | "";
-  billingDetail?: string;
-  collectDetail?: string;
-  detail?: string;
-}
+export type { TargetCollectCompanyItem, Type4TargetItem, Type4ImageFile };
 
 export interface ActualType4CollectProps {
   isVisible: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    customer?: string;
-    orderNo?: string;
-    targetCollect?: string;
-    collectType?: "BILLING" | "COLLECT";
-    items?: TargetCollectCompanyItem[];
-  };
+  target?: Type4TargetItem;
+  targets?: Type4TargetItem[];
   orderNo: string;
   setOrderNo: (v: string) => void;
   receivedAmount: string;
@@ -34,33 +21,26 @@ export interface ActualType4CollectProps {
   setBillingDetail?: (v: string) => void;
   collectDetail?: string;
   setCollectDetail?: (v: string) => void;
-  paymentImages?: ImageFile[];
+  paymentImages?: Type4ImageFile[];
   onUploadImages?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage?: (id: string) => void;
 }
 
 export interface DetailType4CollectProps {
   isVisible: boolean;
-  target?: {
-    customer?: string;
-    orderNo?: string;
-    targetCollect?: string;
-    targetAmountNum?: number;
-    collectAmount?: number;
-    collectType?: "BILLING" | "COLLECT";
-    items?: TargetCollectCompanyItem[];
-    [key: string]: any;
-  };
+  target?: Type4TargetItem;
+  targets?: Type4TargetItem[];
   orderNo?: string;
   receivedAmount?: string;
   billingStatus?: string;
   billingDetail?: string;
   collectDetail?: string;
-  paymentImages?: ImageFile[];
+  paymentImages?: Type4ImageFile[];
 }
 
 export interface ApprovalType4CollectProps {
   isVisible: boolean;
-  target: ActualTargetsState["t4"];
+  target?: Type4TargetItem;
+  targets?: Type4TargetItem[];
   actualCollectAmount?: number | string | null;
 }

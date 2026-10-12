@@ -1,7 +1,10 @@
 export type {
   Type4CollectItem,
   CustomerOption,
-} from "./shared/types";
+  TargetCollectCompanyItem,
+  Type4TargetItem,
+  Type4ImageFile,
+} from "./types";
 export { Type4Collect } from "./create/type4-collect";
 export type { Type4CollectProps } from "./create/types";
 export {
@@ -18,7 +21,6 @@ export { DetailType4Collect } from "./detail/detail-type4-collect";
 export { ApprovalType4Collect } from "./approval/approval-type4-collect";
 export { ActualType4Collect } from "./actual/actual-type4-collect";
 export type {
-  TargetCollectCompanyItem,
   ActualType4CollectProps,
   DetailType4CollectProps,
   ApprovalType4CollectProps,
@@ -35,4 +37,10 @@ export {
   type Type4PlanCardTarget,
   type Type4PlanCardTargetItem,
 } from "./shared/type4-plan-card";
+
+export {
+  extractType4PlanTargets,
+  parseType4ActualResult,
+  mapType4ToSectionItems,
+} from "./application/mapper";
 

@@ -10,6 +10,7 @@ import {
 import { getWorkTypeCode } from "../constants";
 import { generateDemoPlotCode } from "./activity-plan.repository";
 import { type1Strategy } from "../features/type-1/application/type1.strategy";
+import { type4Strategy } from "../features/type-4/application/type4.strategy";
 
 export type CreateActivityResultInput = {
   activityPlanId: string;
@@ -375,6 +376,28 @@ export async function upsertActivityResult(
         farmerHomeAddress: input.farmerHomeAddress,
         plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
         plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
+      });
+    }
+
+    // 0.1 Sync dedicated Type 4 actual result
+    if (
+      (input as any).billingStatus !== undefined ||
+      (input as any).billingDetail !== undefined ||
+      (input as any).collectDetail !== undefined ||
+      (input as any).receivedAmount !== undefined ||
+      (input as any).orderNo !== undefined ||
+      (input as any).collectResultAmount !== undefined ||
+      (input as any).type4Result !== undefined
+    ) {
+      await type4Strategy.saveActual?.(tx as any, input.activityPlanId, {
+        activityResultId: result.id,
+        orderNo: (input as any).orderNo,
+        billingStatus: (input as any).billingStatus,
+        receivedAmount: (input as any).receivedAmount ?? (input as any).collectResultAmount,
+        billingDetail: (input as any).billingDetail,
+        collectDetail: (input as any).collectDetail,
+        notes: (input as any).notes,
+        items: (input as any).type4Items || (input as any).items,
       });
     }
 

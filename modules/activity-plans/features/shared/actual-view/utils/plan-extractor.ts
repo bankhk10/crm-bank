@@ -6,6 +6,7 @@ import { decodeType8StoreNotes } from "@/modules/activity-plans/features/type-8/
 import { extractType1PlanTargets } from "@/modules/activity-plans/features/type-1";
 import { extractType2PlanTargets } from "@/modules/activity-plans/features/type-2";
 import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-3";
+import { extractType4PlanTargets } from "@/modules/activity-plans/features/type-4";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -441,54 +442,11 @@ export function extractPlanData(
     targets.t3List = list;
   }
 
-  // TYPE 4: Store / Target Amount (Collect)
+  // TYPE 4: Store / Target Amount (Collect) (Delegated to Type 4 Feature Slice)
   if (isWorkTypePresent("TYPE_4")) {
-    const t4Stores = stores.filter((s) => s.workTypeCode === "TYPE_4");
-    const t4CollectAmt = t4Stores.reduce(
-      (sum, s) => sum + (Number(s.targetAmount ?? (s as any).collectAmount) || 0),
-      0,
-    );
-    const primaryCollectType =
-      t4Stores[0]?.remarks === "BILLING" || t4Stores[0]?.remarks === "วางบิล"
-        ? "BILLING"
-        : "COLLECT";
-
-    const actualCollectAmount =
-      (p as any).result?.collectResultAmount != null
-        ? Number((p as any).result.collectResultAmount)
-        : null;
-
-    targets.t4 = {
-      ...prevTargets.t4,
-      customer:
-        t4Stores
-          .map((s) => s.storeName)
-          .filter(Boolean)
-          .join(", ") || "",
-      targetCollect:
-        t4CollectAmt > 0 ? `${t4CollectAmt.toLocaleString()} บาท` : "",
-      targetAmountNum: t4CollectAmt,
-      collectAmount: t4CollectAmt,
-      actualCollectAmount,
-      collectType: primaryCollectType,
-      orderNo: "",
-      items: t4Stores.map((s) => {
-        const itemAmt = Number(s.targetAmount ?? (s as any).collectAmount) || 0;
-        return {
-          id: s.id,
-          customer: s.storeName || "",
-          companyName: s.storeName || "",
-          collectType:
-            s.remarks === "BILLING" || s.remarks === "วางบิล"
-              ? "BILLING"
-              : "COLLECT",
-          targetCollect: itemAmt > 0 ? `${itemAmt.toLocaleString()} บาท` : "",
-          targetAmountNum: itemAmt,
-          collectAmount: itemAmt,
-          notes: s.notes || "",
-        };
-      }),
-    };
+    const { primary, list } = extractType4PlanTargets(p, prevTargets.t4);
+    targets.t4 = primary;
+    targets.t4List = list;
   }
 
   // TYPE 5: Store / Product / Survey

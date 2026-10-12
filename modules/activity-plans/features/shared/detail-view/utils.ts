@@ -4,6 +4,7 @@ import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
 import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/type-1";
 import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2";
 import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3";
+import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -81,34 +82,24 @@ export function extractWorkTypeSections(
     });
   }
 
-  // ── 4. วางบิล / เก็บเงิน ────────────────────────────────
-  const type4Stores = stores.filter((s) => s.workTypeCode === "TYPE_4");
+  // ── 4. วางบิล / เก็บเงิน (Delegated to Type 4 Feature Slice) ──
+  const rawType4Stores: any[] =
+    (plan as any).type4Targets && (plan as any).type4Targets.length > 0
+      ? (plan as any).type4Targets
+      : stores.filter((s) => s.workTypeCode === "TYPE_4");
   const t4Line = objectiveLines.find(
     (l) =>
       l.includes("[วางบิล") ||
       l.includes("วางบิล / เก็บเงิน") ||
       l.includes("วางบิล/เก็บเงิน"),
   );
-  if (type4Stores.length > 0 || t4Line) {
-    const list = type4Stores.map((s) => {
-      const extraFields: Array<{ label: string; value: string }> = [];
-      if (s.targetAmount != null) {
-        extraFields.push({
-          label: "เป้าหมายการเก็บเงิน",
-          value: `${Number(s.targetAmount).toLocaleString()} บาท`,
-        });
-      }
-      return {
-        title: s.storeName || plan.location || "ลูกค้า/ร้านค้า",
-        details: s.notes || undefined,
-        extraFields: extraFields.length > 0 ? extraFields : undefined,
-      };
-    });
+  const type4Items = mapType4ToSectionItems(rawType4Stores);
+  if (type4Items.length > 0 || t4Line) {
     sections.push({
       typeIndex: 4,
       title: WORK_TYPES[3],
       badge: "เก็บเงิน",
-      items: list,
+      items: type4Items,
       rawSummary: t4Line ? t4Line.replace(/^\[.*?\]\s*/, "") : undefined,
     });
   }

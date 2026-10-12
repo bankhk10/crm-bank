@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 import type {
   TargetCollectCompanyItem,
+  Type4TargetItem,
   DetailType4CollectProps,
 } from "../actual/types";
 
@@ -33,6 +34,7 @@ export type { TargetCollectCompanyItem, DetailType4CollectProps };
 export function DetailType4Collect({
   isVisible,
   target,
+  targets,
   orderNo,
   receivedAmount,
   billingStatus,
@@ -42,13 +44,49 @@ export function DetailType4Collect({
 }: DetailType4CollectProps) {
   if (!isVisible) return null;
 
+  const resolvedTarget: Type4TargetItem | undefined = React.useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items
+          : [
+              {
+                id: t.id || `t4-item-${idx}`,
+                customer: t.customer,
+                companyName: t.companyName || t.customer,
+                storeId: t.storeId,
+                collectType: t.collectType || "COLLECT",
+                targetCollect: t.targetCollect || "",
+                targetAmountNum: t.targetAmountNum ?? t.collectAmount,
+                detail: t.detail || t.notes,
+              },
+            ],
+      );
+      const totalAmount = targets.reduce(
+        (sum, t) => sum + (t.targetAmountNum || t.collectAmount || 0),
+        0,
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer).filter(Boolean).join(", "),
+        targetCollect:
+          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+        targetAmountNum: totalAmount,
+        collectAmount: totalAmount,
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
+
   const hasMultipleCompanies = Boolean(
-    target?.items && target.items.length > 0,
+    resolvedTarget?.items && resolvedTarget.items.length > 0,
   );
 
   // Calculate totals (Only for COLLECT items)
   const totalReceived = hasMultipleCompanies
-    ? target!.items!.reduce((sum, item) => {
+    ? resolvedTarget!.items!.reduce((sum, item) => {
         const isBilling = item.collectType === "BILLING";
         if (isBilling) return sum;
         const itemVal =
@@ -57,12 +95,12 @@ export function DetailType4Collect({
           0;
         return sum + itemVal;
       }, 0)
-    : target?.collectType !== "BILLING"
+    : resolvedTarget?.collectType !== "BILLING"
       ? parseCleanAmount(receivedAmount) || 0
       : 0;
 
   const totalTarget = hasMultipleCompanies
-    ? target!.items!.reduce((sum, item) => {
+    ? resolvedTarget!.items!.reduce((sum, item) => {
         const isBilling = item.collectType === "BILLING";
         if (isBilling) return sum;
         const amt =
@@ -72,29 +110,29 @@ export function DetailType4Collect({
           0;
         return sum + amt;
       }, 0)
-    : target?.collectType !== "BILLING"
-      ? ((target as any)?.targetAmountNum ??
-        (target as any)?.collectAmount ??
-        parseCleanAmount(target?.targetCollect) ??
+    : resolvedTarget?.collectType !== "BILLING"
+      ? ((resolvedTarget as any)?.targetAmountNum ??
+        (resolvedTarget as any)?.collectAmount ??
+        parseCleanAmount(resolvedTarget?.targetCollect) ??
         0)
       : 0;
 
   const hasActual = hasMultipleCompanies
     ? totalReceived > 0
-    : target?.collectType !== "BILLING" && parseCleanAmount(receivedAmount) != null;
+    : resolvedTarget?.collectType !== "BILLING" && parseCleanAmount(receivedAmount) != null;
 
   const totalRemaining = hasActual
     ? Math.max(0, totalTarget - totalReceived)
     : totalTarget;
 
   const billingItems = hasMultipleCompanies
-    ? target!.items!.filter((it) => it.collectType === "BILLING")
-    : target?.collectType === "BILLING"
-      ? [target]
+    ? resolvedTarget!.items!.filter((it) => it.collectType === "BILLING")
+    : resolvedTarget?.collectType === "BILLING"
+      ? [resolvedTarget]
       : [];
 
   const billingSuccessCount = hasMultipleCompanies
-    ? target!.items!.filter((item) => {
+    ? resolvedTarget!.items!.filter((item) => {
         const isBilling = item.collectType === "BILLING";
         if (!isBilling) return false;
         const status = item.billingStatus || billingStatus;
@@ -119,7 +157,7 @@ export function DetailType4Collect({
         {hasMultipleCompanies && (
           <span className="text-xs bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
             <Building2 className="w-3.5 h-3.5" />
-            เป้าหมาย {target!.items!.length} บริษัท/ร้านค้า
+            เป้าหมาย {resolvedTarget!.items!.length} บริษัท/ร้านค้า
           </span>
         )}
       </div>
@@ -135,7 +173,7 @@ export function DetailType4Collect({
           /* MULTI-COMPANY RESULT CARDS */
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {target!.items!.map((item, idx) => {
+              {resolvedTarget!.items!.map((item, idx) => {
                 const isBilling = item.collectType === "BILLING";
                 const targetVal =
                   item.targetAmountNum ??
@@ -294,7 +332,7 @@ export function DetailType4Collect({
               <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs md:text-sm">
                 <CheckCircle2 className="w-4 h-4 text-indigo-600" />
                 <span>
-                  สรุปผลการปฏิบัติงาน ({target!.items!.length} บริษัท/ร้านค้า):
+                  สรุปผลการปฏิบัติงาน ({resolvedTarget!.items!.length} บริษัท/ร้านค้า):
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -335,18 +373,18 @@ export function DetailType4Collect({
         ) : (
           /* SINGLE COMPANY / FALLBACK RESULT DISPLAY */
           <div className="space-y-3">
-            {(orderNo || target?.orderNo) && (
+            {(orderNo || resolvedTarget?.orderNo) && (
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
                 <span className="text-slate-500 font-medium">
                   เลขที่เอกสาร/ใบสั่งซื้อ:
                 </span>
                 <span className="font-semibold text-slate-800">
-                  {orderNo || target?.orderNo}
+                  {orderNo || resolvedTarget?.orderNo}
                 </span>
               </div>
             )}
 
-            {target?.collectType === "BILLING" ? (
+            {resolvedTarget?.collectType === "BILLING" ? (
               /* SINGLE BILLING DISPLAY */
               <div className="bg-indigo-50/30 border border-indigo-200/80 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200/80 text-xs">

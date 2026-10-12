@@ -1,22 +1,61 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 import { Type4PlanCard } from "../shared/type4-plan-card";
+import type { TargetCollectCompanyItem } from "../types";
 
 export interface ApprovalType4CollectProps {
   isVisible: boolean;
-  target: ActualTargetsState["t4"];
+  target?: ActualTargetsState["t4"];
+  targets?: ActualTargetsState["t4"][];
   actualCollectAmount?: number | string | null;
 }
 
 export function ApprovalType4Collect({
   isVisible,
   target,
+  targets,
 }: ApprovalType4CollectProps) {
   if (!isVisible) return null;
+
+  const resolvedTarget: ActualTargetsState["t4"] | undefined = useMemo(() => {
+    if (target && target.items && target.items.length > 0) return target;
+    if (targets && targets.length > 0) {
+      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? (t.items as TargetCollectCompanyItem[])
+          : [
+              {
+                id: t.id || `t4-item-${idx}`,
+                customer: t.customer,
+                companyName: t.companyName || t.customer,
+                storeId: t.storeId,
+                collectType: t.collectType || "COLLECT",
+                targetCollect: t.targetCollect || "",
+                targetAmountNum: t.targetAmountNum ?? t.collectAmount,
+                detail: t.detail || t.notes,
+              },
+            ],
+      );
+      const totalAmount = targets.reduce(
+        (sum, t) => sum + (t.targetAmountNum || t.collectAmount || 0),
+        0,
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer).filter(Boolean).join(", "),
+        targetCollect:
+          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+        targetAmountNum: totalAmount,
+        collectAmount: totalAmount,
+        items: allItems,
+      };
+    }
+    return target;
+  }, [target, targets]);
 
   return (
     <div className="border border-amber-200/80 rounded-2xl p-4 sm:p-5 bg-white space-y-3.5 shadow-2xs">
@@ -37,8 +76,7 @@ export function ApprovalType4Collect({
         </Badge>
       </div>
 
-      <Type4PlanCard target={target} />
+      <Type4PlanCard target={resolvedTarget} />
     </div>
   );
 }
-

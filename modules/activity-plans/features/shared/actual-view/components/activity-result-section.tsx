@@ -543,6 +543,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             isVisible={true}
             planType={props.planType || props.plan?.planType}
             target={targets.t4}
+            targets={targets.t4List}
             orderNo={t4OrderNo}
             setOrderNo={setT4OrderNo}
             receivedAmount={t4ReceivedAmount}

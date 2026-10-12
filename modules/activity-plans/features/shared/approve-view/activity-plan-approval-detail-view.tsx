@@ -831,6 +831,7 @@ export default function ActivityPlanApprovalDetailView({
           <ApprovalType4Collect
             isVisible={isTypeActive("TYPE_4", "วางบิล / เก็บเงิน")}
             target={targets.t4}
+            targets={targets.t4List}
             actualCollectAmount={parsedResults.t4CollectActualAmount}
           />
 
