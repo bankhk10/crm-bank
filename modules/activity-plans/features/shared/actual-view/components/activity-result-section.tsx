@@ -619,6 +619,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             mode="TYPE_7A"
             planType={props.planType || props.plan?.planType}
             target={targets.t7a || targets.t7}
+            targets={targets.t7aList}
             products={products}
             customers={customers}
             planProvince={planProvince}

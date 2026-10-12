@@ -32,6 +32,7 @@ import { type3Strategy } from "../features/type-3/application/type3.strategy";
 import { type4Strategy } from "../features/type-4/application/type4.strategy";
 import { type5Strategy } from "../features/type-5/application/type5.strategy";
 import { type6Strategy } from "../features/type-6/application/type6.strategy";
+import { type7aStrategy } from "../features/type-7a/application/type7a.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -1475,15 +1476,9 @@ export async function createActivityPlan(
           );
         }
 
-        // 1.8.1 TYPE_7A ("ทำแปลงสาธิตใหม่"): ActivityPlanType7a + ActivityPlanType7aProduct
-        if (input.type7aPlots && input.type7aPlots.length > 0) {
-          await createType7aPlots(
-            tx,
-            plan.id,
-            input.type7aPlots,
-            input.startDate,
-            input.employeeId,
-          );
+        // 1.8.1 TYPE_7A ("ทำแปลงสาธิตใหม่"): Strategy pattern handling ActivityPlanType7a + Products + DemoPlot
+        if (input.type7aPlots !== undefined || input.demoPlotData !== undefined) {
+          await type7aStrategy.savePlan(tx, plan.id, input);
         }
 
         // 1.8.2 TYPE_7B ("ติดตามแปลงสาธิต"): ActivityPlanType7b + ActivityPlanType7bPlot + ActivityPlanType7bProduct
@@ -2014,15 +2009,13 @@ export async function updateActivityPlan(
       );
     }
 
-    // 1.9.1 Sync TYPE_7A Plots
-    if (planData.type7aPlots !== undefined) {
-      await syncType7aPlots(
-        tx,
-        id,
-        planData.type7aPlots,
-        updatedPlan.startDate,
-        updatedPlan.employeeId,
-      );
+    // 1.9.1 Sync TYPE_7A Data via Strategy
+    if (planData.type7aPlots !== undefined || planData.demoPlotData !== undefined) {
+      await type7aStrategy.savePlan(tx, id, {
+        ...planData,
+        startDate: updatedPlan.startDate,
+        employeeId: updatedPlan.employeeId,
+      });
     }
 
     // 1.9.2 Sync TYPE_7B Data

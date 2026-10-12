@@ -4,6 +4,7 @@ import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3
 import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4";
 import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5";
 import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6";
+import { parseType7aActualResult } from "@/modules/activity-plans/features/type-7a";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -285,6 +286,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 6 Actual Result (Delegated to Type 6 Feature Slice)
   const t6Parsed = parseType6ActualResult(resData);
   Object.assign(result, t6Parsed);
+
+  // Type 7A Actual Result (Delegated to Type 7A Feature Slice)
+  const t7aParsed = parseType7aActualResult(resData);
+  Object.assign(result, t7aParsed);
 
   if (
     resData.sprayRounds &&
@@ -978,116 +983,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
-    // TYPE_7A Specific Summary Text Parsing
-    const farmerMatch = summaryText.match(/เกษตรกรเจ้าของแปลง:\s*(.+)/);
-    if (farmerMatch && farmerMatch[1]) {
-      let rawFarmer = farmerMatch[1].split("\n")[0].trim();
-      if (rawFarmer.includes("(ไม่มีในระบบ)")) {
-        result.t7IsUnregisteredFarmer = true;
-        rawFarmer = rawFarmer.replace("(ไม่มีในระบบ)", "").trim();
-      }
-      const provMatch = rawFarmer.match(/จ\.([^\s]+)/);
-      if (provMatch && provMatch[1]) {
-        result.t7FarmerProvince = provMatch[1].trim();
-        rawFarmer = rawFarmer.replace(provMatch[0], "").trim();
-      }
-      const distMatch = rawFarmer.match(/อ\.([^\s]+)/);
-      if (distMatch && distMatch[1]) {
-        result.t7FarmerDistrict = distMatch[1].trim();
-        rawFarmer = rawFarmer.replace(distMatch[0], "").trim();
-      }
-      result.t7FarmerName = rawFarmer;
-    }
-
-    const farmerPhoneMatch = summaryText.match(/เบอร์โทรศัพท์เกษตรกร:\s*(.+)/);
-    if (farmerPhoneMatch && farmerPhoneMatch[1]) {
-      result.t7FarmerPhone = farmerPhoneMatch[1].split("\n")[0].trim();
-    }
-
-    const demoCoordsMatch = summaryText.match(/พิกัดแปลงสาธิต:\s*([-\d.]+),\s*([-\d.]+)/);
-    if (demoCoordsMatch && demoCoordsMatch[1] && demoCoordsMatch[2]) {
-      result.t7Latitude = Number(demoCoordsMatch[1]);
-      result.t7Longitude = Number(demoCoordsMatch[2]);
-    }
-
-    const testCropMatch = summaryText.match(/พืชที่ทดสอบ:\s*(.+)/);
-    if (testCropMatch && testCropMatch[1]) {
-      const cropLine = testCropMatch[1].split("\n")[0].trim();
-      const catMatch = cropLine.match(/\((.+?)\)$/);
-      if (catMatch && catMatch[1]) {
-        result.t7CropCategory = catMatch[1].trim();
-        result.t7CropName = cropLine.replace(catMatch[0], "").trim();
-      } else {
-        result.t7CropName = cropLine;
-      }
-    }
-
-    const areaRaiMatch = summaryText.match(/ขนาดพื้นที่แปลง:\s*([0-9.]+)\s*ไร่/);
-    if (areaRaiMatch && areaRaiMatch[1]) {
-      result.t7AreaRai = areaRaiMatch[1].trim();
-    }
-
-    const treeCountMatch = summaryText.match(/จำนวนต้น:\s*([0-9]+)\s*ต้น/);
-    if (treeCountMatch && treeCountMatch[1]) {
-      result.t7TreeCount = treeCountMatch[1].trim();
-    }
-
-    const mainCropInfoMatch = summaryText.match(/ข้อมูลพืชประธาน:\s*(.+)/);
-    if (mainCropInfoMatch && mainCropInfoMatch[1]) {
-      result.t7MainCropInfo = mainCropInfoMatch[1].split("\n")[0].trim();
-    }
-
-    const initialSprayMatch = summaryText.match(/วันที่ฉีดพ่น:\s*(.+)/);
-    if (initialSprayMatch && initialSprayMatch[1]) {
-      result.t7InitialSprayDate = initialSprayMatch[1].split("\n")[0].trim();
-    }
-
-    const irrigationsMatch = summaryText.match(/ระบบน้ำ:\s*(.+)/);
-    if (irrigationsMatch && irrigationsMatch[1]) {
-      const irrStr = irrigationsMatch[1].split("\n")[0].trim();
-      result.t7Irrigations = irrStr.split(",").map((s: string) => s.trim()).filter(Boolean);
-    }
-
-    const expDetailMatch = summaryText.match(/วิธีการทดลอง:\s*(.+)/);
-    if (expDetailMatch && expDetailMatch[1]) {
-      result.t7ExperimentDetail = expDetailMatch[1].split("\n")[0].trim();
-    }
-
-    const demoProductsMatch = summaryText.match(/สินค้าสาธิต:\s*(.+)/);
-    if (demoProductsMatch && demoProductsMatch[1]) {
-      const prodLine = demoProductsMatch[1].split("\n")[0].trim();
-      const rawItems = prodLine.split(/,\s*(?=[^,()]+\s*\(เบิก:)/);
-      const parsedItems = rawItems
-        .map((itemStr: string, idx: number) => {
-          const itemMatch = itemStr.trim().match(
-            /^(.+?)\s*\(\s*เบิก:\s*([^,]+),\s*ใช้จริง:\s*([0-9.]+)(?:\s+([^,]+?))?(?:,\s*คงเหลือ:\s*([0-9.]+))?\)(?:\s*อัตราใช้:\s*(.*))?$/
-          );
-          if (itemMatch) {
-            const pName = itemMatch[1].trim();
-            const rawPlanQty = itemMatch[2].trim();
-            const plannedQty = rawPlanQty === "-" ? null : Number(rawPlanQty);
-            const usedQty = Number(itemMatch[3].trim()) || 0;
-            const unit = itemMatch[4]?.trim() || "";
-            const remainingQty = itemMatch[5] != null ? Number(itemMatch[5].trim()) : null;
-            const applicationRate = itemMatch[6]?.trim() || "";
-            return {
-              id: `parsed-t7a-${idx + 1}`,
-              productName: pName,
-              plannedQuantity: plannedQty,
-              quantity: usedQty,
-              remainingQuantity: remainingQty,
-              unit,
-              applicationRate,
-              isAdditional: plannedQty == null || rawPlanQty === "-",
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (parsedItems.length > 0) {
-        result.t7DemoProducts = parsedItems;
-      }
-    }
+    // TYPE_7A: Handled by parseType7aActualResult above
 
     // Type 8
     const t8AttendeesMatch = summaryText.match(

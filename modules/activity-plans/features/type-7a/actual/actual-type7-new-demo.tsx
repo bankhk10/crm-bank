@@ -70,6 +70,7 @@ export type { TargetDemoItem, CustomerOption, ActualType7NewDemoProps };
 export function ActualType7NewDemo({
   planType,
   target,
+  targets,
   products = [],
   customers = [],
 
@@ -529,23 +530,31 @@ export function ActualType7NewDemo({
       </div>
 
       {/* GROUP 1: ข้อมูลตามแผนงานของแปลงสาธิต (Demo Plot Planned Target) */}
-      <Type7aPlanCard
-        target={
-          target || {
-            plotName,
-            dealerName,
-            province: planProvince,
-            district,
-            objective: plotObjective,
-            cropCategory,
-            crop: isCustomCropName ? customCropName || cropName : cropName,
-            areaRai: isRaiUnit ? areaRai : null,
-            treeCount: !isRaiUnit ? treeCount : null,
-            demoProducts: plannedProducts,
+      {targets && targets.length > 0 ? (
+        <div className="space-y-3">
+          {targets.map((t, idx) => (
+            <Type7aPlanCard key={t.id || idx} target={t} planType={planType} />
+          ))}
+        </div>
+      ) : (
+        <Type7aPlanCard
+          target={
+            target || {
+              plotName,
+              dealerName,
+              province: planProvince,
+              district,
+              objective: plotObjective,
+              cropCategory,
+              crop: isCustomCropName ? customCropName || cropName : cropName,
+              areaRai: isRaiUnit ? areaRai : null,
+              treeCount: !isRaiUnit ? treeCount : null,
+              demoProducts: plannedProducts,
+            }
           }
-        }
-        planType={planType}
-      />
+          planType={planType}
+        />
+      )}
 
       {/* GROUP 2: เกษตรกรเจ้าของแปลงและพิกัดแปลง (Farmer Owner & Coordinates) */}
       <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs">

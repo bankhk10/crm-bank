@@ -4,36 +4,15 @@ import type {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
-import type { CustomerOption } from "../shared/types";
+import type { CustomerOption, Type7aTargetItem } from "../types";
 
-export interface TargetDemoItem {
-  plotName?: string;
-  dealerName?: string;
-  location?: string;
-  province?: string;
-  district?: string;
-  objective?: string;
-  categoryName?: string;
-  categoryCode?: string;
-  chemicalGroupName?: string;
-  cropCategory?: string;
-  crop?: string;
-  cropName?: string;
-  areaRai?: number | string | null;
-  treeCount?: number | string | null;
-  plots?: string;
-  demoProducts?: Array<{
-    productName: string;
-    quantity: number;
-    unit?: string;
-  }>;
-  [key: string]: any;
-}
+export type TargetDemoItem = Type7aTargetItem;
 
 export interface ActualType7NewDemoProps {
   isVisible?: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: TargetDemoItem;
+  target?: Type7aTargetItem;
+  targets?: Type7aTargetItem[];
   customers?: CustomerOption[];
   products?: Array<{
     id: string;
@@ -186,17 +165,19 @@ export interface DemoResultItemData {
 export interface DetailType7NewDemoProps {
   target: {
     activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
+    owner?: string;
+    product?: string;
+    crop?: string;
+    plots?: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
     objective?: string;
     experimentDetail?: string;
     detail?: string;
     items?: any[];
+    [key: string]: any;
   };
+  targets?: Type7aTargetItem[];
   demoPlotData?: any;
   demoPlotId?: string | null;
   farmerProvince?: string;
@@ -251,4 +232,5 @@ export interface DetailType7NewDemoProps {
 export interface ApprovalType7aDemoProps {
   isVisible: boolean;
   target: ActualTargetsState["t7"] | any;
+  targets?: Type7aTargetItem[];
 }

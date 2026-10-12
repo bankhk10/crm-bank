@@ -23,10 +23,10 @@ export interface ActualType7DemoProps {
   planType?: "PLANNED" | "UNPLANNED" | string;
   target: {
     activityType?: string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
+    owner?: string;
+    product?: string;
+    crop?: string;
+    plots?: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
     objective?: string;
@@ -34,7 +34,9 @@ export interface ActualType7DemoProps {
     detail?: string;
     followUpObjective?: string;
     items?: any[];
+    [key: string]: any;
   };
+  targets?: any[];
   products?: Array<{
     id: string;
     name: string;
@@ -286,6 +288,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
     <ActualType7NewDemo
       planType={props.planType}
       target={props.target}
+      targets={props.targets}
       products={props.products}
       customers={props.customers}
       farmerProvince={props.farmerProvince}

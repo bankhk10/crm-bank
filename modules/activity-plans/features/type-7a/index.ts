@@ -1,10 +1,25 @@
+// Domain Types
 export type {
   CustomerOption,
   ProductOption,
   ProductCategoryOption,
   ChemicalGroupOption,
   Type7DemoProductLine,
-} from "./shared/types";
+  Type7DemoPlotItem,
+  Type7aDemoProductItem,
+  Type7aPlanItem,
+  Type7aTargetItem,
+  Type7aActualRecord,
+} from "./types";
+
+// Application Layer (Pure Mappers - Safe for Client)
+export {
+  extractType7aPlanTargets,
+  parseType7aActualResult,
+  mapType7aToSectionItems,
+} from "./application/mapper";
+
+// UI Components & Cards
 export {
   Type7aPlanCard,
   type Type7aPlanCardProps,

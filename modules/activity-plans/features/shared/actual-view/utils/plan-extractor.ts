@@ -9,6 +9,7 @@ import { extractType3PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType4PlanTargets } from "@/modules/activity-plans/features/type-4";
 import { extractType5PlanTargets } from "@/modules/activity-plans/features/type-5";
 import { extractType6PlanTargets } from "@/modules/activity-plans/features/type-6";
+import { extractType7aPlanTargets } from "@/modules/activity-plans/features/type-7a";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -660,46 +661,9 @@ export function extractPlanData(
       })),
     };
 
-    targets.t7a = {
-      ...(prevTargets.t7a || prevTargets.t7),
-      ...commonT7Data,
-      activityType: "CREATE",
-      plotName: firstT7aPlot?.plotName || firstT7aPlot?.name || t7Plot?.name || "",
-      dealerName:
-        firstT7aPlot?.store?.name ||
-        (t7Plot as any)?.customer?.name ||
-        "",
-      dealerCode: (t7Plot as any)?.customer?.customerCode || "",
-      province:
-        firstT7aPlot?.province ||
-        firstT7aPlot?.store?.province ||
-        t7Plot?.province ||
-        p.province ||
-        "",
-      district:
-        firstT7aPlot?.district ||
-        firstT7aPlot?.store?.district ||
-        t7Plot?.district ||
-        p.district ||
-        "",
-      cropCategory: firstT7aPlot?.cropCategory || t7Plot?.cropCategory || "",
-      areaRai: firstT7aPlot?.areaRai
-        ? Number(firstT7aPlot.areaRai)
-        : t7Plot?.areaRai
-          ? Number(t7Plot.areaRai)
-          : null,
-      treeCount: firstT7aPlot?.treeCount ?? t7Plot?.treeCount ?? null,
-      categoryName: t7aCategory?.description || t7aCategory?.name || "",
-      categoryCode: t7aCategory?.code || "",
-      chemicalGroupName: t7aCategory?.description || "",
-      demoProducts: t7aProducts.map((pr: any) => ({
-        productId: pr.productId,
-        productName: pr.productName || (pr.product as any)?.name || "",
-        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
-        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
-        unit: pr.unit || (pr.product as any)?.unit || null,
-      })),
-    };
+    const t7aExtracted = extractType7aPlanTargets(p, prevTargets.t7a || prevTargets.t7);
+    targets.t7a = t7aExtracted.primary;
+    targets.t7aList = t7aExtracted.list;
 
     targets.t7b = {
       ...(prevTargets.t7b || prevTargets.t7),

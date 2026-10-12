@@ -6,6 +6,7 @@ import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2
 import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3";
 import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4";
 import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5";
+import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-7a";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -165,6 +166,7 @@ export function extractWorkTypeSections(
   }
 
   // ── 7. แปลงสาธิต ───────────────────────────────────────
+  const type7aPlots = (plan as any).type7aPlots || [];
   const demoVisits = plan.demoPlotVisits || [];
   const t7Line = objectiveLines.find(
     (l) =>
@@ -172,29 +174,34 @@ export function extractWorkTypeSections(
       l.includes("ทำแปลงสาธิต") ||
       l.includes("แปลงสาธิต"),
   );
-  if (demoVisits.length > 0 || t7Line) {
-    const list = demoVisits.map((v) => {
-      const dp = v.demoPlot;
-      const extraFields: Array<{ label: string; value: string }> = [];
-      if (dp?.cropName)
-        extraFields.push({ label: "พืชเป้าหมาย", value: dp.cropName });
-      if (dp?.primaryProductName)
-        extraFields.push({
-          label: "สินค้าสาธิต",
-          value: dp.primaryProductName,
-        });
-      if (dp?.areaRai)
-        extraFields.push({
-          label: "ขนาดแปลง",
-          value: `${Number(dp.areaRai)} ไร่`,
-        });
-      return {
-        title: dp?.name || dp?.ownerName || "แปลงสาธิต",
-        subtitle: dp?.ownerName ? `เจ้าของ: ${dp.ownerName}` : undefined,
-        details: dp?.objective || undefined,
-        extraFields: extraFields.length > 0 ? extraFields : undefined,
-      };
-    });
+  if (type7aPlots.length > 0 || demoVisits.length > 0 || t7Line) {
+    let list: any[] = [];
+    if (type7aPlots.length > 0) {
+      list = mapType7aToSectionItems(type7aPlots);
+    } else {
+      list = demoVisits.map((v) => {
+        const dp = v.demoPlot;
+        const extraFields: Array<{ label: string; value: string }> = [];
+        if (dp?.cropName)
+          extraFields.push({ label: "พืชเป้าหมาย", value: dp.cropName });
+        if (dp?.primaryProductName)
+          extraFields.push({
+            label: "สินค้าสาธิต",
+            value: dp.primaryProductName,
+          });
+        if (dp?.areaRai)
+          extraFields.push({
+            label: "ขนาดแปลง",
+            value: `${Number(dp.areaRai)} ไร่`,
+          });
+        return {
+          title: dp?.name || dp?.ownerName || "แปลงสาธิต",
+          subtitle: dp?.ownerName ? `เจ้าของ: ${dp.ownerName}` : undefined,
+          details: dp?.objective || undefined,
+          extraFields: extraFields.length > 0 ? extraFields : undefined,
+        };
+      });
+    }
     sections.push({
       typeIndex: 7,
       title: WORK_TYPES[6],

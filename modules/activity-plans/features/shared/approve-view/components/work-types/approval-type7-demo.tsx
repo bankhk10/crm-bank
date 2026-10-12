@@ -9,12 +9,14 @@ export interface ApprovalType7DemoProps {
   isVisible: boolean;
   workTypeCode?: "TYPE_7A" | "TYPE_7B" | string;
   target: ActualTargetsState["t7"] | any;
+  targets?: any[];
 }
 
 export function ApprovalType7Demo({
   isVisible,
   workTypeCode,
   target,
+  targets,
 }: ApprovalType7DemoProps) {
   if (!isVisible) return null;
 
@@ -25,7 +27,13 @@ export function ApprovalType7Demo({
         target.activityType === "FOLLOWUP"));
 
   if (!isFollowUp) {
-    return <ApprovalType7aDemo isVisible={isVisible} target={target} />;
+    return (
+      <ApprovalType7aDemo
+        isVisible={isVisible}
+        target={target}
+        targets={targets}
+      />
+    );
   }
 
   return <ApprovalType7bDemo isVisible={isVisible} target={target} />;

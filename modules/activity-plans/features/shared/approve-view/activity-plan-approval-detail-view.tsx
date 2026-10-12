@@ -867,6 +867,7 @@ export default function ActivityPlanApprovalDetailView({
             isVisible={isTypeActive("TYPE_7A", "ทำแปลงสาธิต")}
             workTypeCode="TYPE_7A"
             target={targets.t7a || targets.t7}
+            targets={targets.t7aList}
           />
 
           {/* TYPE_7B: ติดตามแปลงสาธิต */}

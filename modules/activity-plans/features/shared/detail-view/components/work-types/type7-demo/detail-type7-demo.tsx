@@ -15,10 +15,10 @@ export interface DetailType7DemoProps {
   isVisible: boolean;
   target: {
     activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
+    owner?: string;
+    product?: string;
+    crop?: string;
+    plots?: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
     objective?: string;
@@ -26,7 +26,9 @@ export interface DetailType7DemoProps {
     detail?: string;
     followUpObjective?: string;
     items?: any[];
+    [key: string]: any;
   };
+  targets?: any[];
   demoResults?: DemoResultItemData[];
   plannedProductId?: string | null;
   actualProductId?: string | null;
@@ -84,13 +86,21 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
       (props.target.activityType === "FOLLOW_UP" ||
         (props.target.owner && props.target.owner.startsWith("plot-"))));
 
+  const normalizedTarget = {
+    ...props.target,
+    owner: props.target.owner || "",
+    product: props.target.product || "",
+    crop: props.target.crop || "",
+    plots: props.target.plots || "",
+  };
+
   if (isFollowUp) {
     const resolvedActualDate =
       props.actualStartDate || props.visitDate || props.startDate;
 
     return (
       <DetailType7FollowUp
-        target={props.target}
+        target={normalizedTarget}
         plotName={props.plotName}
         usageMethod={props.usageMethod}
         cropAgeValue={props.cropAgeValue}
@@ -129,7 +139,8 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
 
   return (
     <DetailType7NewDemo
-      target={props.target}
+      target={normalizedTarget}
+      targets={props.targets}
       demoResults={props.demoResults}
       plannedProductId={props.plannedProductId}
       actualProductId={props.actualProductId}

@@ -38,6 +38,7 @@ export type { DetailType7NewDemoProps, DemoResultItemData };
 
 export function DetailType7NewDemo({
   target,
+  targets,
   demoResults = [],
   plannedProductId,
   actualProductId,

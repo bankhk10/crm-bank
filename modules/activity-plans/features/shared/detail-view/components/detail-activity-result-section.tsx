@@ -144,6 +144,7 @@ export function DetailActivityResultSection({
           isVisible={isTypeVisible("ทำแปลงสาธิต") || isTypeVisible("TYPE_7A")}
           mode="TYPE_7A"
           target={targets.t7a || targets.t7}
+          targets={targets.t7aList}
           demoResults={parsedResults.t7DemoResults}
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}

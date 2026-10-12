@@ -93,6 +93,7 @@ import type { Type3TargetItem } from "@/modules/activity-plans/features/type-3/t
 import type { Type4TargetItem } from "@/modules/activity-plans/features/type-4/types";
 import type { Type5TargetItem } from "@/modules/activity-plans/features/type-5/types";
 import type { Type6TargetItem } from "@/modules/activity-plans/features/type-6/types";
+import type { Type7aTargetItem } from "@/modules/activity-plans/features/type-7a/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
@@ -101,6 +102,7 @@ export type Type3TargetStateItem = Type3TargetItem;
 export type Type4TargetStateItem = Type4TargetItem;
 export type Type5TargetStateItem = Type5TargetItem;
 export type Type6TargetStateItem = Type6TargetItem;
+export type Type7aTargetStateItem = Type7aTargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -138,38 +140,8 @@ export interface ActualTargetsState {
     targetCondition?: string;
     items: any[];
   };
-  t7a?: {
-    activityType?: string;
-    owner: string;
-    plotName?: string;
-    dealerName?: string;
-    dealerCode?: string;
-    province?: string;
-    district?: string;
-    categoryName?: string;
-    categoryCode?: string;
-    chemicalGroupName?: string;
-    cropCategory?: string;
-    product: string;
-    productId?: string;
-    plannedProductId?: string;
-    crop: string;
-    plots: string;
-    areaRai?: number | null;
-    treeCount?: number | null;
-    demoProductQuantity: string;
-    demoProducts?: Array<{
-      productId: string;
-      productName: string;
-      quantity: number;
-      unit?: string | null;
-    }>;
-    objective: string;
-    experimentDetail: string;
-    detail: string;
-    targetCondition?: string;
-    items: any[];
-  };
+  t7a?: Type7aTargetItem;
+  t7aList?: Type7aTargetItem[];
   t7b?: {
     activityType?: string;
     owner: string;
