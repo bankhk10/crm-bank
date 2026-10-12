@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { Type1ImageFile, ImageFile } from "../types";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
@@ -19,8 +19,8 @@ export function useType1Actual() {
   const [t1FarmerHomeAddress, setT1FarmerHomeAddress] = useState("");
   const [t1PlotLatitude, setT1PlotLatitude] = useState<string>("");
   const [t1PlotLongitude, setT1PlotLongitude] = useState<string>("");
-  const [t1PlotImages, setT1PlotImages] = useState<ImageFile[]>([]);
-  const initialT1PlotImagesRef = useRef<ImageFile[]>([]);
+  const [t1PlotImages, setT1PlotImages] = useState<Type1ImageFile[]>([]);
+  const initialT1PlotImagesRef = useRef<Type1ImageFile[]>([]);
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;

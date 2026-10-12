@@ -1,3 +1,4 @@
+import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -255,29 +256,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   if (resData.postponedTime) result.postponedTime = resData.postponedTime;
   if (resData.postponedReason) result.postponedReason = resData.postponedReason;
   if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
-  if (resData.discussionResult)
-    result.t1DiscussionResult = resData.discussionResult;
-  if (resData.productAdvice) result.t1ProductAdvice = resData.productAdvice;
-  if (resData.salesOpportunity)
-    result.t1SalesOpportunity = resData.salesOpportunity;
-  if (resData.farmerHomeAddress)
-    result.t1FarmerHomeAddress = resData.farmerHomeAddress;
-  if (resData.plotLatitude != null)
-    result.t1PlotLatitude = Number(resData.plotLatitude);
-  if (resData.plotLongitude != null)
-    result.t1PlotLongitude = Number(resData.plotLongitude);
-  if (resData.problemFound) result.problemFound = resData.problemFound;
-  if (resData.nextAction) {
-    result.nextAction = resData.nextAction;
-    result.t1NextAction = resData.nextAction;
-    result.t11NextAction = resData.nextAction;
-  }
-  if (resData.nextMeetingDate) {
-    result.t1NextMeetingDate =
-      typeof resData.nextMeetingDate === "string"
-        ? resData.nextMeetingDate.split("T")[0]
-        : new Date(resData.nextMeetingDate).toISOString().split("T")[0];
-  }
+  // Type 1 Actual Result (Delegated to Type 1 Feature Slice)
+  const t1Parsed = parseType1ActualResult(resData);
+  Object.assign(result, t1Parsed);
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&

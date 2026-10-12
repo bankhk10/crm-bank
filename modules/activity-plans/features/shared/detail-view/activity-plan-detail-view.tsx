@@ -1078,6 +1078,7 @@ export default function ActivityPlanDetailView({
               isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer")
             }
             target={targets.t1}
+            targets={targets.t1List}
           />
 
           {/* TYPE_2: ติดตามผลการใช้สินค้า */}

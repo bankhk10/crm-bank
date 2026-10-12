@@ -64,6 +64,7 @@ export function DetailActivityResultSection({
             isTypeVisible("เข้าพบร้านค้า / Key Farmer")
           }
           target={targets.t1}
+          targets={targets.t1List}
           productAdvice={parsedResults.t1ProductAdvice}
           discussionResult={parsedResults.t1DiscussionResult}
           salesOpportunity={parsedResults.t1SalesOpportunity}

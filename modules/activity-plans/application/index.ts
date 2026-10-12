@@ -34,6 +34,7 @@ import {
   isUserMarketingManager,
   type ApproverUserContext,
 } from "./can-approve";
+import { getTypeStrategy } from "./strategies/type-registry";
 
 // Facade Use Cases
 
@@ -300,55 +301,10 @@ export async function validateType1VisitPurposeCustomers(
     isUnregisteredFarmer?: boolean;
   }>,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
-  for (const s of planStores) {
-    if (s.workTypeCode === "TYPE_1" || s.workTypeCode === "TYPE_2") {
-      const purpose = s.visitPurpose || "FARMER";
-      if (purpose === "FARMER") {
-        if (!s.isUnregisteredFarmer && s.storeId) {
-          const customer = await db.customer.findUnique({
-            where: { id: s.storeId },
-            select: { id: true, customerType: true },
-          });
-          if (!customer) {
-            return { valid: false, error: "ไม่พบข้อมูลเกษตรกรในระบบ" };
-          }
-          if (customer.customerType !== "FARMER") {
-            return {
-              valid: false,
-              error:
-                "วัตถุประสงค์เข้าพบเกษตรกร อนุญาตเฉพาะลูกค้าประเภทเกษตรกร (FARMER) เท่านั้น",
-            };
-          }
-        }
-      } else if (purpose === "STORE") {
-        if (s.isUnregisteredFarmer) {
-          return {
-            valid: false,
-            error: "วัตถุประสงค์เข้าพบร้านค้า ไม่อนุญาตให้ระบุว่าไม่มีในระบบ",
-          };
-        }
-        if (!s.storeId) {
-          return { valid: false, error: "กรุณาเลือกร้านค้า" };
-        }
-        const customer = await db.customer.findUnique({
-          where: { id: s.storeId },
-          select: { id: true, customerType: true },
-        });
-        if (!customer) {
-          return { valid: false, error: "ไม่พบข้อมูลร้านค้าในระบบ" };
-        }
-        if (
-          customer.customerType !== "DEALER" &&
-          customer.customerType !== "SUBDEALER"
-        ) {
-          return {
-            valid: false,
-            error:
-              "วัตถุประสงค์เข้าพบร้านค้า อนุญาตเฉพาะร้านค้าตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) เท่านั้น",
-          };
-        }
-      }
-    }
+  const strategy = getTypeStrategy("TYPE_1");
+  if (strategy?.validatePlan) {
+    const res = await strategy.validatePlan({ planStores }, db);
+    return res.valid ? { valid: true } : { valid: false, error: res.error || "ข้อมูลเกษตรกร/ร้านค้าไม่ถูกต้อง" };
   }
   return { valid: true };
 }
@@ -381,11 +337,16 @@ export async function createActivityPlanUseCase(
 
   const normalized = normalizePlanInput(parsed.data);
 
-  const customerValidation = await validateType1VisitPurposeCustomers(
-    normalized.planStores,
-  );
-  if (!customerValidation.valid) {
-    return { success: false as const, error: customerValidation.error };
+  // Validate Work Type Strategies
+  for (const wt of normalized.workTypeCodes) {
+    const code = getWorkTypeCode(wt);
+    const strategy = getTypeStrategy(code);
+    if (strategy?.validatePlan) {
+      const res = await strategy.validatePlan(normalized, db);
+      if (!res.valid) {
+        return { success: false as const, error: res.error || "ข้อมูลประเภทงานไม่ถูกต้อง" };
+      }
+    }
   }
 
   const type7aValidation = await validateType7aPlan(
@@ -808,11 +769,16 @@ export async function updateActivityPlanUseCase(
     };
   }
 
-  const customerValidation = await validateType1VisitPurposeCustomers(
-    normalized.planStores,
-  );
-  if (!customerValidation.valid) {
-    return { success: false as const, error: customerValidation.error };
+  // Validate Work Type Strategies
+  for (const wt of normalized.workTypeCodes) {
+    const code = getWorkTypeCode(wt);
+    const strategy = getTypeStrategy(code);
+    if (strategy?.validatePlan) {
+      const res = await strategy.validatePlan(normalized, db);
+      if (!res.valid) {
+        return { success: false as const, error: res.error || "ข้อมูลประเภทงานไม่ถูกต้อง" };
+      }
+    }
   }
 
   const type7aValidation = await validateType7aPlan(

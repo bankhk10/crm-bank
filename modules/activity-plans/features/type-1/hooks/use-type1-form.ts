@@ -1,6 +1,11 @@
 import { useState } from "react";
-import type { Type1VisitItem } from "../shared/types";
-import { validateType1FormItem } from "../create/validation";
+import type { Type1VisitItem, CustomerOption, Type1PlanStoreRecord } from "../types";
+import { validateType1FormItem } from "../application/validation";
+import {
+  mapType1FormToPlanStore,
+  mapType1DbStoreToFormItem,
+} from "../application/mapper";
+import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
 export interface UseType1FormOptions {
   initial?: any;
@@ -17,18 +22,7 @@ export interface UseType1FormResult {
   deleteType1Row: (id: string) => void;
   validateType1: () => { isValid: boolean; error?: string };
   mapType1Payload: (customers: any[]) => {
-    planStores: Array<{
-      workTypeCode: string;
-      visitPurpose: "FARMER" | "STORE";
-      storeId?: string | null;
-      storeName?: string | null;
-      remarks?: string | null;
-      notes?: string | null;
-      province?: string | null;
-      isUnregisteredFarmer?: boolean;
-      unregisteredFarmerName?: string | null;
-      unregisteredFarmerPhone?: string | null;
-    }>;
+    planStores: Type1PlanStoreRecord[];
   };
 }
 
@@ -44,40 +38,18 @@ export function useType1Form({
       Array.isArray(initDetails.type1Items) &&
       initDetails.type1Items.length > 0
     ) {
-      return initDetails.type1Items.slice(0, 1).map((item: any) => ({
+      return initDetails.type1Items.map((item: any) => ({
         ...item,
         visitPurpose: item.visitPurpose || "FARMER",
       }));
     }
     const type1Stores = (initial as any)?.stores?.filter(
-      (s: any) => s.workTypeCode === "TYPE_1",
+      (s: any) => getWorkTypeCode(s.workTypeCode) === "TYPE_1",
     );
     if (type1Stores && type1Stores.length > 0) {
-      return type1Stores.slice(0, 1).map((s: any, idx: number) => {
-        const rawPurpose = s.visitPurpose;
-        const inferredPurpose: "FARMER" | "STORE" = rawPurpose
-          ? (rawPurpose as "FARMER" | "STORE")
-          : s.isUnregisteredFarmer || s.store?.customerType === "FARMER"
-            ? "FARMER"
-            : ["DEALER", "SUBDEALER"].includes(s.store?.customerType)
-              ? "STORE"
-              : "FARMER";
-
-        return {
-          id: s.id || String(idx + 1),
-          visitPurpose: inferredPurpose,
-          storeId: s.storeId || undefined,
-          customerName: s.isUnregisteredFarmer
-            ? s.unregisteredFarmerName || ""
-            : s.store?.name || s.storeName || "",
-          topic: s.remarks || "แจ้งข่าวสาร",
-          detail: s.notes || "",
-          province: s.province || s.store?.province || "",
-          isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-          unregisteredFarmerName: s.unregisteredFarmerName || "",
-          unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
-        };
-      });
+      return type1Stores.map((s: any, idx: number) =>
+        mapType1DbStoreToFormItem(s, idx),
+      );
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
       const items = initDetails.filter(
@@ -86,10 +58,12 @@ export function useType1Form({
           item.visitTopic !== "SALES_PROMOTION" &&
           item.itemType !== "MARKETING_PRODUCT" &&
           item.itemType !== "SALES_PROMOTION" &&
-          (item.visitTopic || item.itemType === "TYPE_1"),
+          (item.visitTopic ||
+            item.itemType === "TYPE_1" ||
+            getWorkTypeCode(item.itemType) === "TYPE_1"),
       );
       if (items.length > 0) {
-        return items.slice(0, 1).map((item: any, idx: number) => ({
+        return items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           visitPurpose: item.visitPurpose || "FARMER",
           storeId: item.storeId,
@@ -120,21 +94,18 @@ export function useType1Form({
   });
 
   const addType1Row = () => {
-    // 1 Plan : 1 Target (maximum 1 item)
-    if (type1Items.length === 0) {
-      const newItem: Type1VisitItem = {
-        id: Date.now().toString(),
-        visitPurpose: "FARMER",
-        customerName: "",
-        topic: "แจ้งข่าวสาร",
-        detail: "",
-        province: "",
-        isUnregisteredFarmer: false,
-        unregisteredFarmerName: "",
-        unregisteredFarmerPhone: "",
-      };
-      setType1Items([newItem]);
-    }
+    const newItem: Type1VisitItem = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      visitPurpose: "FARMER",
+      customerName: "",
+      topic: "แจ้งข่าวสาร",
+      detail: "",
+      province: "",
+      isUnregisteredFarmer: false,
+      unregisteredFarmerName: "",
+      unregisteredFarmerPhone: "",
+    };
+    setType1Items((prev) => [...prev, newItem]);
   };
 
   const updateType1Row = (
@@ -178,96 +149,47 @@ export function useType1Form({
   };
 
   const deleteType1Row = (id: string) => {
-    setType1Items((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const validateType1 = () => {
-    return validateType1FormItem({
-      item: type1Items[0],
-      customersList,
-      selectedWorkTypes,
+    setType1Items((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((item) => item.id !== id);
     });
   };
 
-  const mapType1Payload = (customers: any[]) => {
-    const isSelected =
-      selectedWorkTypes.includes("เข้าพบเกษตรกร") ||
-      selectedWorkTypes.includes("เข้าพบร้านค้า / Key Farmer");
-
-    if (!isSelected) return { planStores: [] };
-
-    const item = type1Items[0];
-    if (!item) return { planStores: [] };
-
-    const planStores: Array<{
-      workTypeCode: string;
-      visitPurpose: "FARMER" | "STORE";
-      storeId?: string | null;
-      storeName?: string | null;
-      remarks?: string | null;
-      notes?: string | null;
-      province?: string | null;
-      isUnregisteredFarmer?: boolean;
-      unregisteredFarmerName?: string | null;
-      unregisteredFarmerPhone?: string | null;
-    }> = [];
-
-    const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
-    if (purpose === "STORE") {
-      const sId =
-        item.storeId ||
-        customers.find((c) => c.name === item.customerName)?.id;
-      if (sId) {
-        planStores.push({
-          workTypeCode: "TYPE_1",
-          visitPurpose: "STORE",
-          storeId: sId,
-          storeName: item.customerName || null,
-          remarks: item.topic || null,
-          notes: item.detail || null,
-          province: null,
-          isUnregisteredFarmer: false,
-          unregisteredFarmerName: null,
-          unregisteredFarmerPhone: null,
-        });
-      }
-    } else {
-      // FARMER
-      if (item.isUnregisteredFarmer) {
-        planStores.push({
-          workTypeCode: "TYPE_1",
-          visitPurpose: "FARMER",
-          storeId: null,
-          storeName: item.unregisteredFarmerName || null,
-          remarks: item.topic || null,
-          notes: item.detail || null,
-          province: item.province || null,
-          isUnregisteredFarmer: true,
-          unregisteredFarmerName: item.unregisteredFarmerName || null,
-          unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
-        });
-      } else {
-        const sId =
-          item.storeId ||
-          customers.find((c) => c.name === item.customerName)?.id;
-        if (sId) {
-          planStores.push({
-            workTypeCode: "TYPE_1",
-            visitPurpose: "FARMER",
-            storeId: sId,
-            storeName: item.customerName || null,
-            remarks: item.topic || null,
-            notes: item.detail || null,
-            province: item.province || null,
-            isUnregisteredFarmer: false,
-            unregisteredFarmerName: null,
-            unregisteredFarmerPhone: null,
-          });
-        }
+  const validateType1 = () => {
+    if (type1Items.length === 0) {
+      return { isValid: false, error: "กรุณาระบุเป้าหมายการเข้าพบอย่างน้อย 1 รายการ" };
+    }
+    for (let i = 0; i < type1Items.length; i++) {
+      const res = validateType1FormItem({
+        item: type1Items[i],
+        customersList,
+        selectedWorkTypes,
+      });
+      if (!res.isValid) {
+        return {
+          isValid: false,
+          error: `เป้าหมายที่ ${i + 1}: ${res.error}`,
+        };
       }
     }
+    return { isValid: true };
+  };
 
-    return { planStores };
+  const mapType1Payload = (customers: CustomerOption[] = customersList) => {
+    const isSelected = selectedWorkTypes.some(
+      (wt) =>
+        getWorkTypeCode(wt) === "TYPE_1" ||
+        wt === "เข้าพบเกษตรกร" ||
+        wt === "เข้าพบร้านค้า / Key Farmer",
+    );
+
+    if (!isSelected || type1Items.length === 0) return { planStores: [] };
+
+    const mappedStores = type1Items
+      .map((item) => mapType1FormToPlanStore(item, customers))
+      .filter(Boolean) as Type1PlanStoreRecord[];
+
+    return { planStores: mappedStores };
   };
 
   return {

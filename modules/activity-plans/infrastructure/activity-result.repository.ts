@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { getWorkTypeCode } from "../constants";
 import { generateDemoPlotCode } from "./activity-plan.repository";
+import { type1Strategy } from "../features/type-1/application/type1.strategy";
 
 export type CreateActivityResultInput = {
   activityPlanId: string;
@@ -355,6 +356,27 @@ export async function upsertActivityResult(
         recordedById: input.recordedById ?? null,
       },
     });
+
+    // 0. Sync dedicated Type 1 actual result
+    if (
+      input.productAdvice !== undefined ||
+      input.discussionResult !== undefined ||
+      input.salesOpportunity !== undefined ||
+      input.nextMeetingDate !== undefined ||
+      input.farmerHomeAddress !== undefined ||
+      input.plotLatitude !== undefined ||
+      input.plotLongitude !== undefined
+    ) {
+      await type1Strategy.saveActual?.(tx as any, input.activityPlanId, {
+        productAdvice: input.productAdvice,
+        discussionResult: input.discussionResult,
+        salesOpportunity: input.salesOpportunity as any,
+        nextMeetingDate: input.nextMeetingDate,
+        farmerHomeAddress: input.farmerHomeAddress,
+        plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
+        plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
+      });
+    }
 
     // 1. Sync Sale Results
     if (input.saleResults !== undefined) {

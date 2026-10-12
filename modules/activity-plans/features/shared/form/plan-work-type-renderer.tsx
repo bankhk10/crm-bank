@@ -4,7 +4,7 @@ import React from "react";
 import { SectionHeader } from "@/components/custom/section-header";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
-import { Type1Visit } from "@/modules/activity-plans/features/type-1/create/type1-visit";
+import { Type1Visit } from "@/modules/activity-plans/features/type-1";
 import { Type2Followup } from "@/modules/activity-plans/features/type-2/create/type2-followup";
 import { Type3Sales } from "@/modules/activity-plans/features/type-3/create/type3-sales";
 import { Type4Collect } from "@/modules/activity-plans/features/type-4/create/type4-collect";

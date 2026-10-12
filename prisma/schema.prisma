@@ -406,6 +406,7 @@ model Customer {
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
   activityPlanType7aPlots     ActivityPlanType7a[]         @relation("Type7aDealerStore")
   activityPlanType13Plots     ActivityPlanType13Plot[]     @relation("Type13DealerStore")
+  activityPlanType1Stores     ActivityPlanType1Store[]
 }
 
 model CustomerAddress {
@@ -1747,6 +1748,8 @@ model ActivityPlan {
   type13         ActivityPlanType13?
   type14         ActivityPlanType14?
   type14FollowUps ActivityPlanType14[] @relation("Type14SourcePlan")
+  type1Stores    ActivityPlanType1Store[]
+  type1Result    ActivityResultType1?
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2822,5 +2825,49 @@ model ActivityPlanType14Product {
   @@map("activity_plan_type_14_products")
 }
 
+// =============================================================================
+// TYPE 1: เข้าพบร้านค้า / Key Farmer (Dedicated Relational Storage)
+// =============================================================================
 
+model ActivityPlanType1Store {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  visitPurpose            String   @map("visit_purpose") // "FARMER" | "STORE"
+  storeId                 String?  @map("store_id")
+  province                String   @map("province")
+  isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
+  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
+  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
+  topic                   String?  @map("topic") // หัวข้อเรื่องเข้าพบ (ไม่ต้องยืม remarks)
+  notes                   String?  @map("notes")
 
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_plan_type_1_stores")
+}
+
+model ActivityResultType1 {
+  id                String    @id @default(cuid())
+  activityPlanId    String    @unique @map("activity_plan_id")
+  productAdvice     String?   @map("product_advice")
+  discussionResult  String?   @map("discussion_result")
+  salesOpportunity  String?   @map("sales_opportunity")
+  nextMeetingDate   DateTime? @map("next_meeting_date")
+  farmerHomeAddress String?   @map("farmer_home_address")
+  plotLatitude      Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
+  plotLongitude     Decimal?  @map("plot_longitude") @db.Decimal(10, 7)
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  activityPlan      ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@map("activity_result_type_1")
+}

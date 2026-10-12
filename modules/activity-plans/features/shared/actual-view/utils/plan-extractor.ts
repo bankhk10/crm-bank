@@ -3,6 +3,7 @@ import { th } from "date-fns/locale";
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import { WORK_TYPES, getWorkTypeName, getWorkTypeCode } from "@/modules/activity-plans/constants";
 import { decodeType8StoreNotes } from "@/modules/activity-plans/features/type-8/shared/type8-notes";
+import { extractType1PlanTargets } from "@/modules/activity-plans/features/type-1";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -417,63 +418,11 @@ export function extractPlanData(
   );
   const isWorkTypePresent = (code: string) => resolvedWorkTypeCodes.has(code);
 
-  // TYPE 1: Store / Topic / Detail (Farmer or Store Visit)
+  // TYPE 1: Store / Topic / Detail (Delegated to Type 1 Feature Slice)
   if (isWorkTypePresent("TYPE_1")) {
-    const t1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
-    const t1First = t1Stores[0];
-    const t1CustomerName = t1First?.isUnregisteredFarmer
-      ? t1First.unregisteredFarmerName || ""
-      : (t1First as any)?.store?.name ||
-        t1First?.storeName ||
-        (t1Stores.length > 0
-          ? t1Stores
-              .map((s) => (s as any).store?.name || s.storeName)
-              .filter(Boolean)
-              .join(", ")
-          : "") ||
-        p.location ||
-        "";
-
-    let t1VisitPurpose: "FARMER" | "STORE" = (t1First as any)?.visitPurpose as
-      | "FARMER"
-      | "STORE";
-    if (!t1VisitPurpose) {
-      if (
-        t1First?.isUnregisteredFarmer ||
-        (t1First as any)?.store?.customerType === "FARMER"
-      ) {
-        t1VisitPurpose = "FARMER";
-      } else if (
-        ["DEALER", "SUBDEALER"].includes((t1First as any)?.store?.customerType)
-      ) {
-        t1VisitPurpose = "STORE";
-      } else {
-        t1VisitPurpose = "FARMER";
-      }
-    }
-
-    targets.t1 = {
-      ...prevTargets.t1,
-      visitPurpose: t1VisitPurpose,
-      customerType: (t1First as any)?.store?.customerType || undefined,
-      customer: t1CustomerName,
-      topic: t1First?.remarks || prevTargets.t1.topic,
-      detail:
-        t1First?.notes ||
-        t1Stores
-          .map((s) => s.notes)
-          .filter(Boolean)
-          .join(" | ") ||
-        "",
-      province:
-        t1First?.province ||
-        (t1First as any)?.store?.province ||
-        p.province ||
-        undefined,
-      isUnregisteredFarmer: Boolean(t1First?.isUnregisteredFarmer),
-      unregisteredFarmerName: t1First?.unregisteredFarmerName || undefined,
-      unregisteredFarmerPhone: t1First?.unregisteredFarmerPhone || undefined,
-    };
+    const { primary, list } = extractType1PlanTargets(p, prevTargets.t1);
+    targets.t1 = primary;
+    targets.t1List = list;
   }
 
   // TYPE 2: Store / Product / Detail

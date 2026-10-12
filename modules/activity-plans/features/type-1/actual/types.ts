@@ -1,17 +1,10 @@
-import type {
-  ImageFile,
-  ActualTargetsState,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  productCode?: string | null;
-}
+import type { Type1ImageFile, Type1TargetItem, ProductOption } from "../types";
+export type { ProductOption };
 
 export interface ActualType1VisitProps {
   isVisible: boolean;
-  target: ActualTargetsState["t1"];
+  target?: Type1TargetItem;
+  targets?: Type1TargetItem[];
   planType?: "PLANNED" | "UNPLANNED" | string;
   productAdvice: string;
   setProductAdvice: (v: string) => void;
@@ -34,6 +27,6 @@ export interface ActualType1VisitProps {
   setPlotLatitude?: (v: string) => void;
   plotLongitude?: string;
   setPlotLongitude?: (v: string) => void;
-  plotImages?: ImageFile[];
-  setPlotImages?: (v: ImageFile[]) => void;
+  plotImages?: Type1ImageFile[];
+  setPlotImages?: (v: Type1ImageFile[]) => void;
 }

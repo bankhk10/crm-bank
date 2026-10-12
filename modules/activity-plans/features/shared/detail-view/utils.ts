@@ -1,6 +1,7 @@
 import type { ActivityPlanWithRelations } from "../../../types";
 import { WORK_TYPES } from "../../../constants";
 import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
+import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/type-1";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -25,19 +26,18 @@ export function extractWorkTypeSections(
   const products = plan.products || [];
 
   // ── 1. เข้าพบร้านค้า / Key Farmer ──────────────────────
-  const type1Stores = stores.filter((s) => s.workTypeCode === "TYPE_1");
+  const rawType1Stores: any[] =
+    (plan as any).type1Stores && (plan as any).type1Stores.length > 0
+      ? (plan as any).type1Stores
+      : stores.filter((s) => s.workTypeCode === "TYPE_1");
   const t1Line = objectiveLines.find(
     (l) =>
       l.includes("[เข้าพบร้านค้า") ||
       l.includes("เข้าพบร้านค้า") ||
       l.includes("Key Farmer"),
   );
-  if (type1Stores.length > 0 || t1Line) {
-    const list = type1Stores.map((s) => ({
-      title: s.storeName || plan.location || "ลูกค้า/ร้านค้า",
-      subtitle: s.remarks ? `หัวข้อเป้าหมาย: ${s.remarks}` : undefined,
-      details: s.notes || undefined,
-    }));
+  if (rawType1Stores.length > 0 || t1Line) {
+    const list = mapType1StoresToSectionItems(rawType1Stores, plan.location);
     sections.push({
       typeIndex: 1,
       title: WORK_TYPES[0],

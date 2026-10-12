@@ -87,24 +87,14 @@ export type ActivityResultStatusType =
   | "POSTPONED"
   | "CANCELLED";
 
+import type { Type1TargetItem } from "@/modules/activity-plans/features/type-1/types";
+
+// Re-export for backward compatibility
+export type Type1TargetStateItem = Type1TargetItem;
+
 export interface ActualTargetsState {
-  t1: {
-    customer: string;
-    topic: string;
-    detail: string;
-    opportunity: string;
-    nextDate: string;
-    visitPurpose?: "FARMER" | "STORE";
-    customerType?: string;
-    province?: string;
-    isUnregisteredFarmer?: boolean;
-    unregisteredFarmerName?: string;
-    unregisteredFarmerPhone?: string;
-    farmerHomeAddress?: string;
-    plotLatitude?: string | number | null;
-    plotLongitude?: string | number | null;
-    plotImages?: ImageFile[];
-  };
+  t1: Type1TargetItem;
+  t1List?: Type1TargetItem[];
   t2: {
     product: string;
     customer: string;

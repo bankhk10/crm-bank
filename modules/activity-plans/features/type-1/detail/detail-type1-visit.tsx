@@ -18,10 +18,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  ActualTargetsState,
-  ImageFile,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { Type1TargetItem, Type1ImageFile } from "../types";
 import {
   ImageLightboxModal,
   LightboxImage,
@@ -29,7 +26,8 @@ import {
 
 interface DetailType1VisitProps {
   isVisible: boolean;
-  target: ActualTargetsState["t1"];
+  target?: Type1TargetItem;
+  targets?: Type1TargetItem[];
   productAdvice?: string;
   discussionResult?: string;
   salesOpportunity?: "สูง" | "ต่ำ" | "";
@@ -38,12 +36,13 @@ interface DetailType1VisitProps {
   farmerHomeAddress?: string;
   plotLatitude?: string | number | null;
   plotLongitude?: string | number | null;
-  plotImages?: ImageFile[];
+  plotImages?: Type1ImageFile[];
 }
 
 export function DetailType1Visit({
   isVisible,
   target,
+  targets,
   productAdvice,
   discussionResult,
   salesOpportunity,
@@ -68,9 +67,13 @@ export function DetailType1Visit({
 
   if (!isVisible) return null;
 
+  const effectiveTargets =
+    targets && targets.length > 0 ? targets : target ? [target] : [];
+  const count = effectiveTargets.length;
+
   const openLightbox = (
     title: string,
-    imgs: ImageFile[] = [],
+    imgs: Type1ImageFile[] = [],
     initialIndex: number = 0,
   ) => {
     if (!imgs || imgs.length === 0) return;
@@ -91,6 +94,7 @@ export function DetailType1Visit({
 
   const isAdviceTopic =
     target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
+    effectiveTargets.some((t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า") ||
     !!productAdvice ||
     !!salesOpportunity;
 
@@ -109,6 +113,8 @@ export function DetailType1Visit({
   };
 
   const isStore = target?.visitPurpose === "STORE";
+  const hasFarmerTarget =
+    effectiveTargets.some((t) => t.visitPurpose !== "STORE") || !isStore;
   const isUnregistered = Boolean(target?.isUnregisteredFarmer);
   const farmerDisplayName = isUnregistered
     ? target?.unregisteredFarmerName || target?.customer || "-"
@@ -124,13 +130,21 @@ export function DetailType1Visit({
     ? `https://www.google.com/maps/search/?api=1&query=${plotLatitude},${plotLongitude}`
     : null;
 
+  const showFarmerSection =
+    hasFarmerTarget ||
+    Boolean(
+      farmerHomeAddress ||
+        hasCoords ||
+        (plotImages && plotImages.length > 0),
+    );
+
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
       {/* Header */}
       <div className="flex items-center justify-between pb-1 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-            {isStore ? (
+            {isStore && !hasFarmerTarget ? (
               <Store className="w-4 h-4" />
             ) : (
               <UserCheck className="w-4 h-4" />
@@ -145,12 +159,60 @@ export function DetailType1Visit({
             </p>
           </div>
         </div>
+        {count > 1 && (
+          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            {count} เป้าหมาย
+          </span>
+        )}
       </div>
 
-      {/*  READ-ONLY ACTUAL RESULT DISPLAY */}
+      {/* MULTI-TARGET PLAN SUMMARY PILLS */}
+      {count > 1 && (
+        <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            เป้าหมายที่เข้าพบตามแผนงาน ({count} เป้าหมาย)
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {effectiveTargets.map((item, idx) => {
+              const itemIsStore = item.visitPurpose === "STORE";
+              const name = item.isUnregisteredFarmer
+                ? item.unregisteredFarmerName || item.customer || "-"
+                : item.customer || "-";
+              return (
+                <div
+                  key={item.id || idx}
+                  className="bg-white p-2.5 rounded-lg border border-slate-200/70 shadow-2xs flex items-center justify-between gap-2"
+                >
+                  <div className="space-y-0.5 min-w-0">
+                    <span
+                      className="font-bold text-slate-800 text-xs block truncate"
+                      title={name}
+                    >
+                      {idx + 1}. {name}
+                    </span>
+                    <span className="text-[11px] text-slate-500 block truncate">
+                      {item.topic || "ไม่ระบุหัวข้อ"}
+                      {item.province ? ` • ${item.province}` : ""}
+                    </span>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] shrink-0 font-semibold bg-emerald-50 text-emerald-800 border-emerald-200"
+                  >
+                    {itemIsStore ? "ร้านค้า" : "เกษตรกร"}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* READ-ONLY ACTUAL RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">
-        {/* Farmer-Specific Actual Displays (Hidden for STORE) */}
-        {!isStore && (
+        {/* Farmer-Specific Actual Displays */}
+        {showFarmerSection && (
           <>
             {/* ที่อยู่บ้านเกษตรกร & พิกัดแปลง */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">

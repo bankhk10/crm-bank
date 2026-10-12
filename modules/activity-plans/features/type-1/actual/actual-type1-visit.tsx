@@ -18,11 +18,8 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import { Type1PlanCard } from "../shared/type1-plan-card";
-import type {
-  ImageFile,
-  ActualTargetsState,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+import { Type1PlanCard } from "../components/type1-plan-card";
+import type { Type1TargetItem, Type1ImageFile } from "../types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
@@ -36,6 +33,7 @@ export type { ProductOption, ActualType1VisitProps };
 export function ActualType1Visit({
   isVisible,
   target,
+  targets,
   planType,
   productAdvice,
   setProductAdvice,
@@ -60,7 +58,15 @@ export function ActualType1Visit({
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  const isAdviceTopic = target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า";
+  const effectiveTargets =
+    targets && targets.length > 0 ? targets : target ? [target] : [];
+  const count = effectiveTargets.length;
+
+  const isAdviceTopic =
+    target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
+    effectiveTargets.some((t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า") ||
+    !!productAdvice ||
+    !!salesOpportunity;
 
   const selectedProducts = useMemo(
     () =>
@@ -150,6 +156,8 @@ export function ActualType1Visit({
   };
 
   const isStore = target?.visitPurpose === "STORE";
+  const hasFarmerTarget =
+    effectiveTargets.some((t) => t.visitPurpose !== "STORE") || !isStore;
 
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
@@ -157,7 +165,7 @@ export function ActualType1Visit({
       <div className="flex items-center justify-between pb-1 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-            {isStore ? (
+            {isStore && !hasFarmerTarget ? (
               <Store className="w-4 h-4" />
             ) : (
               <UserCheck className="w-4 h-4" />
@@ -172,10 +180,15 @@ export function ActualType1Visit({
             </p>
           </div>
         </div>
+        {count > 1 && (
+          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            {count} เป้าหมาย
+          </span>
+        )}
       </div>
 
       {/* PLAN DETAILS SECTION */}
-      <Type1PlanCard planType={planType} target={target} />
+      <Type1PlanCard planType={planType} target={target} targets={targets} />
 
       {/* ACTUAL RESULTS FORM SECTION */}
       <div className="space-y-4 pt-1">
@@ -186,8 +199,8 @@ export function ActualType1Visit({
           </h3>
         </div>
 
-        {/* Farmer-Specific Actual Fields (Hidden in Store Mode) */}
-        {!isStore && (
+        {/* Farmer-Specific Actual Fields (Hidden in Store-Only Mode) */}
+        {hasFarmerTarget && (
           <>
             {/* 1. ที่อยู่บ้านเกษตรกร */}
             <div className="space-y-1.5">
