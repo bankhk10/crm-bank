@@ -1178,6 +1178,7 @@ export default function ActivityPlanDetailView({
           <ApprovalType11Stock
             isVisible={isTypeActive("TYPE_11", "ตรวจเช็กสต็อกหน้าร้าน")}
             target={targets.t11}
+            targets={targets.t11List}
           />
 
           {/* TYPE_12: TOUR SECTION (IF APPLICABLE) */}

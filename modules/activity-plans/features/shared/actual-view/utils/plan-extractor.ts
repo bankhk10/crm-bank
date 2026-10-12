@@ -13,6 +13,7 @@ import { extractType7bPlanTargets } from "@/modules/activity-plans/features/type
 import { extractType8PlanTargets } from "@/modules/activity-plans/features/type-8";
 import { extractType9PlanTargets } from "@/modules/activity-plans/features/type-9";
 import { extractType10PlanTargets } from "@/modules/activity-plans/features/type-10";
+import { extractType11PlanTargets } from "@/modules/activity-plans/features/type-11";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -715,27 +716,11 @@ export function extractPlanData(
     targets.t10List = list;
   }
 
-  // TYPE 11: Multiple Stores
+  // TYPE 11: Store stock check (Delegated to Type 11 Feature Slice)
   if (isWorkTypePresent("TYPE_11")) {
-    const t11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
-    const t11StoreNames = t11Stores
-      .map((s) => s.storeName || s.store?.name)
-      .filter(Boolean)
-      .join(", ");
-    targets.t11 = {
-      ...prevTargets.t11,
-      store: t11StoreNames || "",
-      detail:
-        t11Stores
-          .map((s) => s.remarks || s.notes)
-          .filter(Boolean)
-          .join(" | ") || "",
-      items: t11Stores.map((s) => ({
-        storeId: s.storeId || s.id,
-        store: s.storeName || s.store?.name || "",
-        detail: s.remarks || s.notes || "",
-      })),
-    };
+    const { primary, list } = extractType11PlanTargets(p, prevTargets.t11);
+    targets.t11 = primary;
+    targets.t11List = list;
   }
 
   return {

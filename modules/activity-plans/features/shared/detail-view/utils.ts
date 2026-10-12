@@ -11,6 +11,7 @@ import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-
 import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8";
 import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9";
 import { mapType10ToSectionItems } from "@/modules/activity-plans/features/type-10";
+import { mapType11ToSectionItems } from "@/modules/activity-plans/features/type-11";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -278,21 +279,9 @@ export function extractWorkTypeSections(
 
   // ── 11. ตรวจเช็กสต็อกหน้าร้าน ────────────────────────────
   const type11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
-  const t11Line = objectiveLines.find(
-    (l) => l.includes("[ตรวจเช็กสต็อก") || l.includes("ตรวจเช็กสต็อก"),
-  );
-  if (type11Stores.length > 0 || t11Line) {
-    const list = type11Stores.map((s) => ({
-      title: s.storeName || "ร้านค้า",
-      details: s.remarks || s.notes || undefined,
-    }));
-    sections.push({
-      typeIndex: 11,
-      title: WORK_TYPES[10],
-      badge: "เช็กสต็อก",
-      items: list,
-      rawSummary: t11Line ? t11Line.replace(/^\[.*?\]\s*/, "") : undefined,
-    });
+  const t11Section = mapType11ToSectionItems(type11Stores, objectiveLines);
+  if (t11Section) {
+    sections.push(t11Section);
   }
 
   // ── 12. ทัวร์ ───────────────────────────────────────────

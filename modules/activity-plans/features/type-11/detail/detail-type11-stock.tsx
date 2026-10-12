@@ -16,6 +16,7 @@ export type { StockCheckItem, DetailType11StockProps };
 export function DetailType11Stock({
   isVisible,
   target,
+  targets,
   productList = "",
   remainingQty = "",
   remarks = "",
@@ -67,6 +68,17 @@ export function DetailType11Stock({
           </h2>
         </div>
       </div>
+
+      {/* PLANNED TARGET CARDS */}
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type11PlanCard key={t.id || idx} target={t} />
+          ))}
+        </div>
+      ) : target ? (
+        <Type11PlanCard target={target} />
+      ) : null}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-4 pt-1 border-t border-slate-100">

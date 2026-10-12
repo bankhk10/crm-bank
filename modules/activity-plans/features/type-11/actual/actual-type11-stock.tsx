@@ -28,6 +28,7 @@ export function ActualType11Stock({
   isVisible,
   planType,
   target,
+  targets,
   products = [],
   productList = "",
   setProductList,
@@ -72,13 +73,19 @@ export function ActualType11Stock({
 
   // Parse list of planned stores
   const storesList = useMemo(() => {
+    if (targets && targets.length > 0) {
+      const fromTargets = targets
+        .map((t) => t.store?.trim())
+        .filter(Boolean);
+      if (fromTargets.length > 0) return Array.from(new Set(fromTargets));
+    }
     if (!target?.store || !target.store.trim()) return ["ร้านค้า"];
     const parsed = target.store
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
     return parsed.length > 0 ? parsed : [target.store.trim()];
-  }, [target?.store]);
+  }, [target?.store, targets]);
 
   // Options for FormCombobox
   const productOptions: Array<{
@@ -267,7 +274,19 @@ export function ActualType11Stock({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type11PlanCard target={target} planType={planType} />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type11PlanCard
+              key={t.id || idx}
+              target={t}
+              planType={planType}
+            />
+          ))}
+        </div>
+      ) : (
+        <Type11PlanCard target={target} planType={planType} />
+      )}
 
       {/* PER-STORE STOCK CHECK SECTIONS */}
       <div className="space-y-5 pt-1">

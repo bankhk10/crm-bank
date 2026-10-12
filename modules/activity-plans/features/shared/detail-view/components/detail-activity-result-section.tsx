@@ -286,6 +286,7 @@ export function DetailActivityResultSection({
         <DetailType11Stock
           isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
           target={targets.t11}
+          targets={targets.t11List}
           stockItems={parsedResults.t11StockItems}
           productList={parsedResults.t11ProductList}
           remainingQty={parsedResults.t11RemainingQty}

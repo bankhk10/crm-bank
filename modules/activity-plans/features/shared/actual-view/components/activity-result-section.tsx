@@ -899,6 +899,7 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
             isVisible={true}
             planType={props.planType || props.plan?.planType}
             target={targets.t11}
+            targets={targets.t11List}
             products={products}
             stockItems={t11StockItems}
             setStockItems={setT11StockItems}

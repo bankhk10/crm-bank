@@ -9,6 +9,7 @@ import { parseType7bActualResult } from "@/modules/activity-plans/features/type-
 import { parseType8ActualResult } from "@/modules/activity-plans/features/type-8";
 import { parseType9ActualResult } from "@/modules/activity-plans/features/type-9";
 import { parseType10ActualResult } from "@/modules/activity-plans/features/type-10";
+import { parseType11ActualResult } from "@/modules/activity-plans/features/type-11";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -311,6 +312,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   const t10Parsed = parseType10ActualResult(resData);
   Object.assign(result, t10Parsed);
 
+  // Type 11 Actual Result (Delegated to Type 11 Feature Slice)
+  const t11Parsed = parseType11ActualResult(resData);
+  Object.assign(result, t11Parsed);
+
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&
@@ -341,24 +346,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
   }
 
-  if (
-    resData.stockResults &&
-    Array.isArray(resData.stockResults) &&
-    resData.stockResults.length > 0
-  ) {
-    result.t11StockItems = resData.stockResults.map((st: any) => ({
-      storeId: st.storeId,
-      storeName: st.store?.name || "",
-      productId: st.productId,
-      productName: st.product?.name || "",
-      remainingQty: String(st.remainingQuantity ?? ""),
-      remainingQuantity: Number(st.remainingQuantity ?? 0),
-      remainingStockQty: Number(st.remainingQuantity ?? 0),
-      stockStatus: st.stockStatus || "",
-      reorderOpportunity: st.reorderOpportunity || "",
-      remarks: st.remarks || "",
-    }));
-  }
+  // Stock results handled by parseType11ActualResult above
 
   if (
     resData.surveyResults &&
@@ -735,62 +723,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     // TYPE_8: Handled by parseType8ActualResult above
     // TYPE_9: Handled by parseType9ActualResult above
     // TYPE_10: Handled by parseType10ActualResult above
-
-    // Type 11
-    if (!result.t11StockItems || result.t11StockItems.length === 0) {
-      const t11StockItemsMatch = summaryText.match(
-        /รายการตรวจเช็กสต็อก:\s*(\[.+\])/,
-      );
-      if (t11StockItemsMatch && t11StockItemsMatch[1]) {
-        try {
-          const parsed = JSON.parse(t11StockItemsMatch[1].trim());
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            result.t11StockItems = parsed;
-          }
-        } catch {
-          // Ignore legacy non-json qualitative summary
-        }
-      }
-    }
-    const t11ProductMatch = summaryText.match(/รายการสินค้าตรวจเช็ก:\s*(.+)/);
-    if (t11ProductMatch && t11ProductMatch[1]) {
-      result.t11ProductList = t11ProductMatch[1].split("\n")[0].trim();
-    }
-    const t11QtyMatch = summaryText.match(/จำนวนคงเหลือสต็อก:\s*(.+)/);
-    if (t11QtyMatch && t11QtyMatch[1]) {
-      result.t11RemainingQty = t11QtyMatch[1].split("\n")[0].trim();
-    }
-    const t11RemarksMatch = summaryText.match(/ข้อสังเกตสต็อก:\s*(.+)/);
-    if (t11RemarksMatch && t11RemarksMatch[1]) {
-      result.t11Remarks = t11RemarksMatch[1].split("\n")[0].trim();
-    }
-    const t11StatusMatch = summaryText.match(/สถานะสต็อก:\s*(.+)/);
-    if (t11StatusMatch && t11StatusMatch[1]) {
-      result.t11StockStatus = t11StatusMatch[1].split("\n")[0].trim() as any;
-    }
-    const t11ReorderMatch = summaryText.match(/โอกาสสั่งซื้อซ้ำ:\s*(.+)/);
-    if (t11ReorderMatch && t11ReorderMatch[1]) {
-      result.t11ReorderOpportunity = t11ReorderMatch[1]
-        .split("\n")[0]
-        .trim() as any;
-    }
-    const t11NextActionMatch = summaryText.match(
-      /(?:สิ่งที่ต้องดำเนินการต่อ|แผนการติดตามสต็อก):\s*(.+)/,
-    );
-    if (t11NextActionMatch && t11NextActionMatch[1]) {
-      result.t11NextAction = t11NextActionMatch[1].split("\n")[0].trim();
-    }
-    const t11ImagesMatch = summaryText.match(
-      /(?:รูปภาพการตรวจเช็กสต็อกหน้าร้าน|ภาพถ่ายการตรวจเช็กสต็อก|รูปภาพสต็อก|t11Images):\s*(\[.+\])/,
-    );
-    if (t11ImagesMatch && t11ImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t11ImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t11Images = parsed;
-      } catch (e) {
-        console.error("Failed to parse t11Images JSON:", e);
-      }
-    }
+    // TYPE_11: Handled by parseType11ActualResult above
   }
 
   // Activity Result Status & Postponed / Cancelled fields

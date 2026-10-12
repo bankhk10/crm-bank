@@ -1,9 +1,27 @@
 export type {
+  Type11TargetStoreItem,
+  Type11TargetItem,
+  Type11StockItem,
+  Type11PlanItem,
+  Type11ActualRecord,
+  ActualType11StockProps,
+  DetailType11StockProps,
+  ApprovalType11StockProps,
+} from "./types";
+
+export type {
   Type11StoreItem,
   CustomerOption,
   StockCheckItem,
   ProductOption,
 } from "./shared/types";
+
+export {
+  extractType11PlanTargets,
+  parseType11ActualResult,
+  mapType11ToSectionItems,
+} from "./application/mapper";
+
 export {
   Type11PlanCard,
   type Type11PlanCardProps,
@@ -24,19 +42,9 @@ export {
 } from "./edit/edit-type11";
 
 export { DetailType11Stock } from "./detail/detail-type11-stock";
-export type {
-  DetailType11StockProps,
-  StockCheckItem as DetailStockCheckItem,
-} from "./detail/detail-type11-stock";
-
 export { ApprovalType11Stock } from "./approval/approval-type11-stock";
-export type { ApprovalType11StockProps } from "./approval/approval-type11-stock";
 
 export { ActualType11Stock } from "./actual/actual-type11-stock";
-export type {
-  ActualType11StockProps,
-  StockCheckItem as ActualStockCheckItem,
-} from "./actual/types";
 export { useType11Actual } from "./actual/use-type11-actual";
 
 export {
