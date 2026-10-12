@@ -2,20 +2,20 @@
 
 import React from "react";
 import { CheckCircle2, Layers } from "lucide-react";
-import type { Type2TargetItem } from "../types";
-import { Type2PlanCard } from "../shared/type2-plan-card";
+import type {
+  Type2TargetItem,
+  Type2ApprovalCardProps,
+  ApprovalType2FollowupProps,
+} from "../types";
+import { Type2PlanCard } from "./type2-plan-card";
 
-interface ApprovalType2FollowupProps {
-  isVisible: boolean;
-  target?: Type2TargetItem;
-  targets?: Type2TargetItem[];
-}
+export type { Type2ApprovalCardProps, ApprovalType2FollowupProps };
 
-export function ApprovalType2Followup({
+export function Type2ApprovalCard({
   isVisible,
   target,
   targets,
-}: ApprovalType2FollowupProps) {
+}: Type2ApprovalCardProps) {
   if (!isVisible) return null;
 
   const effectiveTargets: Type2TargetItem[] =
@@ -51,3 +51,6 @@ export function ApprovalType2Followup({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const ApprovalType2Followup = Type2ApprovalCard;

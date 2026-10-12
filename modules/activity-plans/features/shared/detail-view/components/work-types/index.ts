@@ -1,5 +1,5 @@
 export * from "@/modules/activity-plans/features/type-1/components/type1-detail-view";
-export * from "@/modules/activity-plans/features/type-2/detail/detail-type2-followup";
+export * from "@/modules/activity-plans/features/type-2/components/type2-detail-view";
 export * from "@/modules/activity-plans/features/type-3/detail/detail-type3-sales";
 export * from "@/modules/activity-plans/features/type-4/detail/detail-type4-collect";
 export * from "@/modules/activity-plans/features/type-5/detail/detail-type5-survey";

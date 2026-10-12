@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Layers, Plus, Trash2, Sparkles, Package, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Type2PlanCard } from "../shared/type2-plan-card";
+import { Type2PlanCard } from "./type2-plan-card";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
@@ -14,18 +14,25 @@ import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
-import type { Type2ImageFile } from "../types";
+import type {
+  Type2ImageFile,
+  FollowupProductItem,
+  Type2ActualFormProps,
+  ActualType2FollowupProps,
+} from "../types";
 import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import type { FollowupProductItem, ActualType2FollowupProps } from "./types";
+export type {
+  FollowupProductItem,
+  Type2ActualFormProps,
+  ActualType2FollowupProps,
+};
 
-export type { FollowupProductItem, ActualType2FollowupProps };
-
-export function ActualType2Followup({
+export function Type2ActualForm({
   isVisible,
   target,
   targets,
@@ -831,3 +838,6 @@ export function ActualType2Followup({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const ActualType2Followup = Type2ActualForm;

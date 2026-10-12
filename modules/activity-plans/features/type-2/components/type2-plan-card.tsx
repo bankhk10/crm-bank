@@ -1,42 +1,14 @@
 "use client";
 
-import { Package, Store, UserCheck, MapPin, Phone, Layers } from "lucide-react";
+import { Package, Store, UserCheck, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type {
+  Type2PlanCardProps,
+  Type2PlanCardTarget,
+  Type2PlanCardTargetItem,
+} from "../types";
 
-export interface Type2PlanCardTargetItem {
-  id?: string;
-  productId?: string;
-  productName: string;
-  customer?: string;
-  storeId?: string;
-  detail?: string;
-  notes?: string;
-  expectedResult?: string;
-  isAdditional?: boolean;
-  [key: string]: any;
-}
-
-export interface Type2PlanCardTarget {
-  product?: string;
-  customer?: string;
-  storeName?: string;
-  keyFarmer?: string;
-  province?: string;
-  visitPurpose?: "FARMER" | "STORE";
-  isUnregisteredFarmer?: boolean;
-  unregisteredFarmerName?: string;
-  unregisteredFarmerPhone?: string;
-  detail?: string;
-  expectedResult?: string;
-  items?: Type2PlanCardTargetItem[];
-  [key: string]: any;
-}
-
-export interface Type2PlanCardProps {
-  planType?: string;
-  target?: Type2PlanCardTarget;
-  className?: string;
-}
+export type { Type2PlanCardProps, Type2PlanCardTarget, Type2PlanCardTargetItem };
 
 export function Type2PlanCard({
   planType,

@@ -7,7 +7,6 @@ import {
   Trash2,
   Store,
   UserCheck,
-  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
@@ -22,12 +21,19 @@ import type {
   Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
-} from "../shared/types";
-import type { Type2FollowupProps } from "./types";
+  Type2PlanFormProps,
+  Type2FollowupProps,
+} from "../types";
 
-export type { CustomerOption, ProductOption, Type2FollowupProductLine };
+export type {
+  CustomerOption,
+  ProductOption,
+  Type2FollowupProductLine,
+  Type2PlanFormProps,
+  Type2FollowupProps,
+};
 
-export function Type2Followup({
+export function Type2PlanForm({
   readonly = false,
   type2Items,
   addType2Row,
@@ -35,7 +41,7 @@ export function Type2Followup({
   deleteType2Row,
   customers = [],
   products = [],
-}: Type2FollowupProps) {
+}: Type2PlanFormProps) {
   // Add a new product line to a specific followup item
   const addProductLine = (itemId: string) => {
     const currentItem = type2Items.find((i) => i.id === itemId);
@@ -524,3 +530,6 @@ export function Type2Followup({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const Type2Followup = Type2PlanForm;

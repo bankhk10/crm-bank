@@ -3,8 +3,8 @@ import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import type {
   Type2ProductFollowupItem,
   Type2FollowupProductLine,
-} from "../shared/types";
-import { validateType2FormItems } from "../create/validation";
+} from "../types";
+import { validateType2FormItems } from "../application/validation";
 
 export interface UseType2FormOptions {
   initial?: any;

@@ -1,5 +1,5 @@
 export * from "@/modules/activity-plans/features/type-1/components/type1-actual-form";
-export * from "@/modules/activity-plans/features/type-2/actual/actual-type2-followup";
+export * from "@/modules/activity-plans/features/type-2/components/type2-actual-form";
 export * from "@/modules/activity-plans/features/type-3/actual/actual-type3-sales";
 export * from "@/modules/activity-plans/features/type-4/actual/actual-type4-collect";
 export * from "@/modules/activity-plans/features/type-5/actual/actual-type5-survey";

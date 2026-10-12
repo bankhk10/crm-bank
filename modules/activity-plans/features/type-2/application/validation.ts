@@ -1,16 +1,11 @@
 import { z } from "zod";
-import type { Type2ProductFollowupItem } from "../shared/types";
+import type {
+  Type2ProductFollowupItem,
+  ValidateType2Options,
+  Type2ValidationResult,
+} from "../types";
 
-export interface ValidateType2Options {
-  items?: Type2ProductFollowupItem[];
-  customersList?: Array<{ id: string; name: string }>;
-  selectedWorkTypes?: string[];
-}
-
-export interface Type2ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export type { ValidateType2Options, Type2ValidationResult };
 
 export const type2FollowupProductLineSchema = z.object({
   id: z.string().optional(),

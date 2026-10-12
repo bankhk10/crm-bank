@@ -93,3 +93,138 @@ export interface Type2ImageFile {
   isUploaded?: boolean;
   [key: string]: any;
 }
+
+// Backward-compatible alias
+export type ImageFile = Type2ImageFile;
+
+/**
+ * Plan Card types
+ */
+export interface Type2PlanCardTargetItem {
+  id?: string;
+  productId?: string;
+  productName: string;
+  customer?: string;
+  storeId?: string;
+  detail?: string;
+  notes?: string;
+  expectedResult?: string;
+  isAdditional?: boolean;
+  [key: string]: any;
+}
+
+export interface Type2PlanCardTarget {
+  product?: string;
+  customer?: string;
+  storeName?: string;
+  keyFarmer?: string;
+  province?: string;
+  visitPurpose?: "FARMER" | "STORE";
+  isUnregisteredFarmer?: boolean;
+  unregisteredFarmerName?: string;
+  unregisteredFarmerPhone?: string;
+  detail?: string;
+  expectedResult?: string;
+  items?: Type2PlanCardTargetItem[];
+  [key: string]: any;
+}
+
+export interface Type2PlanCardProps {
+  planType?: string;
+  target?: Type2PlanCardTarget;
+  className?: string;
+}
+
+/**
+ * Props for Type 2 Plan Form
+ */
+export interface Type2PlanFormProps {
+  readonly?: boolean;
+  type2Items: Type2ProductFollowupItem[];
+  addType2Row: () => void;
+  updateType2Row: (
+    id: string,
+    field: keyof Type2ProductFollowupItem,
+    val: any,
+  ) => void;
+  deleteType2Row: (id: string) => void;
+  customers?: CustomerOption[];
+  products?: ProductOption[];
+}
+
+// Backward-compatible alias
+export type Type2FollowupProps = Type2PlanFormProps;
+
+/**
+ * Props for Type 2 Actual Form
+ */
+export interface Type2ActualFormProps {
+  isVisible: boolean;
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
+  planType?: "PLANNED" | "UNPLANNED" | string;
+  products?: Array<{ id: string; name: string; productCode?: string | null }>;
+  followupResults?: FollowupProductItem[];
+  onUpdateFollowupResults?: (items: FollowupProductItem[]) => void;
+  // Legacy / backward-compatible props
+  customerName?: string;
+  setCustomerName?: (v: string) => void;
+  detail?: string;
+  setDetail?: (v: string) => void;
+  followupDetail?: string;
+  setFollowupDetail?: (v: string) => void;
+  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
+  setUsageResult?: (v: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "") => void;
+  problemDetail?: string;
+  setProblemDetail?: (v: string) => void;
+  images?: Type2ImageFile[];
+  setImages?: (v: Type2ImageFile[]) => void;
+}
+
+// Backward-compatible alias
+export type ActualType2FollowupProps = Type2ActualFormProps;
+
+/**
+ * Props for Type 2 Detail View
+ */
+export interface Type2DetailViewProps {
+  isVisible: boolean;
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
+  followupResults?: FollowupProductItem[];
+  customerName?: string;
+  detail?: string;
+  followupDetail?: string;
+  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
+  problemDetail?: string;
+  images?: Type2ImageFile[];
+}
+
+// Backward-compatible alias
+export type DetailType2FollowupProps = Type2DetailViewProps;
+
+/**
+ * Props for Type 2 Approval Card
+ */
+export interface Type2ApprovalCardProps {
+  isVisible: boolean;
+  target?: Type2TargetItem;
+  targets?: Type2TargetItem[];
+}
+
+// Backward-compatible alias
+export type ApprovalType2FollowupProps = Type2ApprovalCardProps;
+
+/**
+ * Validation Options and Result
+ */
+export interface ValidateType2Options {
+  items?: Type2ProductFollowupItem[];
+  customersList?: Array<{ id: string; name: string }>;
+  selectedWorkTypes?: string[];
+}
+
+export interface Type2ValidationResult {
+  isValid: boolean;
+  error?: string;
+}

@@ -32,40 +32,27 @@
 
 ```text
 modules/activity-plans/features/type-2/
-├── application/                      # 🧠 Business Logic, Mappers & Strategy
+├── application/                      # 🧠 Business Logic, Mappers, Validation & Strategy
+│   ├── validation.ts                 # Validation Schemas (Zod)
 │   ├── mapper.ts                     # Single Source of Truth สำหรับสกัดและแปลงข้อมูล Form State <-> DB
 │   └── type2.strategy.ts             # WorkTypeStrategy Handler (Validation & Persistence)
 │
-├── types/                            # 📐 Type Definitions กลางของ Type 2
-│   └── index.ts                      # Domain Types: Type2TargetItem, Type2ProductFollowupItem, FollowupProductItem, Type2ImageFile
+├── components/                       # 🖥️ Feature UI Components (Vertical Slice)
+│   ├── type2-plan-form.tsx           # แบบฟอร์มบันทึกแผนงาน (Create & Edit)
+│   ├── type2-actual-form.tsx         # หน้าจอบันทึกผลการปฏิบัติงานจริงและแนบรูปภาพ
+│   ├── type2-detail-view.tsx         # แสดงผลรายละเอียดเป้าหมายและผลการปฏิบัติงานจริง
+│   ├── type2-approval-card.tsx       # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ
+│   └── type2-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Auto-hides in unplanned mode)
 │
-├── create/                           # 🖥️ UI สำหรับสร้างแผนงาน
-│   ├── type2-followup.tsx            # แบบฟอร์มเพิ่มเป้าหมายและรายการสินค้าติดตาม
-│   ├── types.ts                      # Props Interfaces ของ Form
-│   └── validation.ts                 # Validation Schemas
+├── hooks/                            # 🪝 Encapsulated Hooks
+│   ├── use-type2-form.ts             # Form Hook สำหรับ Plan Stage
+│   └── use-type2-actual.ts           # Hook จัดการ State ของผลจริง (Actual Stage)
 │
-├── edit/                             # 🖥️ UI สำหรับแก้ไขแผนงาน
-│   └── edit-type2.tsx                # คอมโพเนนต์แก้ไขข้อมูลแผนงาน Type 2
+├── types/                            # 📐 Type Definitions รวมศูนย์
+│   └── index.ts                      # Domain Types ทั้งหมดของ Type 2
 │
-├── detail/                           # 🖥️ UI หน้ารายละเอียดแผนงาน (Read-only)
-│   └── detail-type2-followup.tsx     # แสดงผลรายละเอียดเป้าหมายและผลการปฏิบัติงานจริง
-│
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type2-followup.tsx   # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ
-│
-├── actual/                           # 🖥️ UI & Hook บันทึกผลจริง
-│   ├── actual-type2-followup.tsx     # หน้าจอบันทึกผลการติดตามสินค้าและแนบรูปภาพ
-│   ├── types.ts                      # Props ของ Actual
-│   └── use-type2-actual.ts           # Hook จัดการ State ของผลจริง
-│
-├── shared/                           # 🧩 คอมโพเนนต์และ Type ที่ใช้ร่วมกันภายใน Type 2
-│   ├── type2-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card)
-│   └── types.ts                      # Re-export จาก types/index.ts เพื่อ Backward Compatibility
-│
-├── hooks/                            # 🪝 Form Hook สำหรับ Plan
-│   └── use-type2-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขแถวเป้าหมายและสินค้า
-│
-└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับภายนอกเรียกใช้
+├── index.ts                          # 📦 Public Barrel Export (Backward Compatible)
+└── README.md                         # 📖 เอกสารกำกับ Type 2 (ไฟล์นี้)
 ```
 
 ---

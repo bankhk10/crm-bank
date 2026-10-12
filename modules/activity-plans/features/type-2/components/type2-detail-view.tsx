@@ -11,7 +11,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Type2PlanCard } from "../shared/type2-plan-card";
+import { Type2PlanCard } from "./type2-plan-card";
 import {
   ImageLightboxModal,
   LightboxImage,
@@ -20,22 +20,17 @@ import type {
   Type2TargetItem,
   Type2ImageFile,
   FollowupProductItem,
+  Type2DetailViewProps,
+  DetailType2FollowupProps,
 } from "../types";
 
-export type { FollowupProductItem, Type2TargetItem, Type2ImageFile };
-
-interface DetailType2FollowupProps {
-  isVisible: boolean;
-  target?: Type2TargetItem;
-  targets?: Type2TargetItem[];
-  followupResults?: FollowupProductItem[];
-  customerName?: string;
-  detail?: string;
-  followupDetail?: string;
-  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  problemDetail?: string;
-  images?: Type2ImageFile[];
-}
+export type {
+  FollowupProductItem,
+  Type2TargetItem,
+  Type2ImageFile,
+  Type2DetailViewProps,
+  DetailType2FollowupProps,
+};
 
 // Helper to parse product-specific followup detail from combined string e.g. "Prod1: detail1 | Prod2: detail2"
 const getParsedFollowupDetail = (
@@ -113,7 +108,7 @@ const getParsedUsageResult = (
   return "";
 };
 
-export function DetailType2Followup({
+export function Type2DetailView({
   isVisible,
   target,
   targets,
@@ -123,7 +118,7 @@ export function DetailType2Followup({
   usageResult,
   problemDetail,
   images = [],
-}: DetailType2FollowupProps) {
+}: Type2DetailViewProps) {
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     title: string;
@@ -581,3 +576,6 @@ export function DetailType2Followup({
     </div>
   );
 }
+
+// Backward-compatible alias
+export const DetailType2Followup = Type2DetailView;
