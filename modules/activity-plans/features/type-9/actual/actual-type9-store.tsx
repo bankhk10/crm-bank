@@ -30,6 +30,7 @@ export function ActualType9Store({
   isVisible,
   planType,
   target,
+  targets,
   actualSales,
   setActualSales,
   productSalesDetails,
@@ -37,9 +38,14 @@ export function ActualType9Store({
   images = [],
   setImages,
 }: ActualType9StoreProps) {
+  const itemsSource =
+    targets && targets.length > 0
+      ? targets.flatMap((t) => t.items || [])
+      : target?.items || [];
+
   const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(() => {
-    if (target?.items && target.items.length > 0) {
-      return target.items.map((item, idx) => {
+    if (itemsSource.length > 0) {
+      return itemsSource.map((item, idx) => {
         const saved =
           productSalesDetails?.find(
             (d) =>
@@ -140,7 +146,20 @@ export function ActualType9Store({
         </div>
       </div>
 
-      <Type9PlanCard target={target} planType={planType} hideItemsTable />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type9PlanCard
+              key={t.id || idx}
+              target={t}
+              planType={planType}
+              hideItemsTable
+            />
+          ))}
+        </div>
+      ) : (
+        <Type9PlanCard target={target} planType={planType} hideItemsTable />
+      )}
 
       {/* MULTI-PRODUCT ACTUAL SALES TABLE (FROM TARGET ITEMS) */}
       {hasMultipleProducts ? (

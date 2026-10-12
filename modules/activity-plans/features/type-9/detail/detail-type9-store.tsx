@@ -25,6 +25,7 @@ export type {
 export function DetailType9Store({
   isVisible,
   target,
+  targets,
   actualSales,
   actualAttendees,
   productSalesDetails = [],
@@ -66,10 +67,14 @@ export function DetailType9Store({
 
   if (!isVisible) return null;
 
-  const hasMultipleProducts = target.items && target.items.length > 0;
+  const allItems =
+    targets && targets.length > 0
+      ? targets.flatMap((t) => t.items || [])
+      : target?.items || [];
+  const hasMultipleProducts = allItems.length > 0;
 
   const effectiveSalesList = hasMultipleProducts
-    ? target.items!.map((item, idx) => {
+    ? allItems.map((item, idx) => {
         const saved =
           productSalesDetails?.find(
             (d) =>
@@ -103,7 +108,15 @@ export function DetailType9Store({
       </div>
 
       {/* PLANNED TARGET CARD */}
-      <Type9PlanCard target={target} />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type9PlanCard key={t.id || idx} target={t} />
+          ))}
+        </div>
+      ) : (
+        <Type9PlanCard target={target} />
+      )}
 
       {/* READ-ONLY RESULT DISPLAY */}
       <div className="space-y-3 pt-1 border-t border-slate-100">

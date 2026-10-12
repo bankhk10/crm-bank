@@ -896,6 +896,7 @@ export default function ActivityPlanApprovalDetailView({
               "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
             )}
             target={targets.t9}
+            targets={targets.t9List}
           />
 
           {/* TYPE_10: จัดงาน Field Day */}

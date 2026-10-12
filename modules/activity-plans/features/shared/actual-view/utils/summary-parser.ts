@@ -7,6 +7,7 @@ import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6
 import { parseType7aActualResult } from "@/modules/activity-plans/features/type-7a";
 import { parseType7bActualResult } from "@/modules/activity-plans/features/type-7b";
 import { parseType8ActualResult } from "@/modules/activity-plans/features/type-8";
+import { parseType9ActualResult } from "@/modules/activity-plans/features/type-9";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -301,6 +302,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   const t8Parsed = parseType8ActualResult(resData);
   Object.assign(result, t8Parsed);
 
+  // Type 9 Actual Result (Delegated to Type 9 Feature Slice)
+  const t9Parsed = parseType9ActualResult(resData);
+  Object.assign(result, t9Parsed);
+
   if (
     resData.sprayRounds &&
     Array.isArray(resData.sprayRounds) &&
@@ -315,19 +320,6 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     Array.isArray(resData.saleResults) &&
     resData.saleResults.length > 0
   ) {
-    const t9Sales = resData.saleResults.filter(
-      (s: any) => s.workTypeCode === "TYPE_9",
-    );
-    if (t9Sales.length > 0) {
-      result.t9ProductSalesDetails = t9Sales.map((s: any) => ({
-        productId: s.productId,
-        productName: s.productName || s.product?.name || "",
-        actualQuantityCases: Number(s.actualQuantity || 0),
-        pricePerCase: Number(s.actualUnitPrice || 0),
-        actualSales: Number(s.actualTotal || 0),
-        storeId: s.storeId,
-      }));
-    }
     const t8Sales = resData.saleResults.filter(
       (s: any) =>
         s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",
@@ -575,10 +567,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t8Images = t8MeetingAtt.map(toImage);
     }
 
-    const t9Att = resData.attachments.filter(
-      (a: any) => a.workTypeCode === "TYPE_9",
-    );
-    if (t9Att.length > 0) result.t9Images = t9Att.map(toImage);
+    // TYPE_9: Handled by parseType9ActualResult above
 
     const t10Att = resData.attachments.filter(
       (a: any) => a.workTypeCode === "TYPE_10",
@@ -759,45 +748,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     // TYPE_7A: Handled by parseType7aActualResult above
 
     // TYPE_8: Handled by parseType8ActualResult above
-
-    // Type 9
-    const t9SalesMatch = summaryText.match(/ยอดขายหน้าร้านจริง:\s*(.+)/);
-    if (t9SalesMatch && t9SalesMatch[1]) {
-      result.t9ActualSales = t9SalesMatch[1].split("\n")[0].trim();
-    }
-    const t9ProductsMatch = summaryText.match(
-      /(?:ยอดขายแยกสินค้าหน้าร้าน|t9ProductSalesDetails):\s*(\[.+\])/,
-    );
-    if (t9ProductsMatch && t9ProductsMatch[1]) {
-      try {
-        const trimmed = t9ProductsMatch[1].trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) {
-            result.t9ProductSalesDetails = parsed;
-          }
-        }
-      } catch {
-        // Ignore fallback text parse error
-      }
-    }
-    const t9AttendeesMatch = summaryText.match(
-      /จำนวนผู้เข้าร่วมกิจกรรมหน้าร้าน:\s*(.+)/,
-    );
-    if (t9AttendeesMatch && t9AttendeesMatch[1]) {
-      result.t9ActualAttendees = t9AttendeesMatch[1].split("\n")[0].trim();
-    }
-    const t9ImagesMatch = summaryText.match(
-      /(?:รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน|ภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน|รูปภาพหน้าร้าน|t9Images):\s*(\[.+\])/,
-    );
-    if (t9ImagesMatch && t9ImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t9ImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t9Images = parsed;
-      } catch (e) {
-        console.error("Failed to parse t9Images JSON:", e);
-      }
-    }
+    // TYPE_9: Handled by parseType9ActualResult above
 
     // Type 10
     const t10AttendeesMatch = summaryText.match(

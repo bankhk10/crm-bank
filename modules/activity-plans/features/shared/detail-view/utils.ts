@@ -9,6 +9,7 @@ import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5
 import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-7a";
 import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-7b";
 import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8";
+import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -259,36 +260,13 @@ export function extractWorkTypeSections(
   // ── 9. กิจกรรมหน้าร้าน ──────────────────────────────────
   const type9Stores = stores.filter((s) => s.workTypeCode === "TYPE_9");
   const type9Products = products.filter((pr) => pr.workTypeCode === "TYPE_9");
-  const t9Line = objectiveLines.find(
-    (l) => l.includes("[กิจกรรมหน้าร้าน") || l.includes("กิจกรรมหน้าร้าน"),
+  const t9Section = mapType9ToSectionItems(
+    type9Stores,
+    type9Products,
+    objectiveLines,
   );
-  if (type9Stores.length > 0 || type9Products.length > 0 || t9Line) {
-    const list = type9Products.map((pr) => ({
-      title: pr.productName || "สินค้า",
-      subtitle: type9Stores[0]?.storeName
-        ? `ร้านค้า: ${type9Stores[0].storeName}`
-        : undefined,
-      extraFields: [
-        ...(pr.targetQuantity != null
-          ? [{ label: "จำนวน", value: `${pr.targetQuantity} ลัง` }]
-          : []),
-        ...(pr.targetAmount != null
-          ? [
-              {
-                label: "ยอดขายเป้าหมาย",
-                value: `${Number(pr.targetAmount).toLocaleString()} บาท`,
-              },
-            ]
-          : []),
-      ],
-    }));
-    sections.push({
-      typeIndex: 9,
-      title: WORK_TYPES[8],
-      badge: "กิจกรรมหน้าร้าน",
-      items: list,
-      rawSummary: t9Line ? t9Line.replace(/^\[.*?\]\s*/, "") : undefined,
-    });
+  if (t9Section) {
+    sections.push(t9Section);
   }
 
   // ── 10. Field Day ───────────────────────────────────────

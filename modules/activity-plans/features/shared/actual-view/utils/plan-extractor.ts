@@ -11,6 +11,7 @@ import { extractType6PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType7aPlanTargets } from "@/modules/activity-plans/features/type-7a";
 import { extractType7bPlanTargets } from "@/modules/activity-plans/features/type-7b";
 import { extractType8PlanTargets } from "@/modules/activity-plans/features/type-8";
+import { extractType9PlanTargets } from "@/modules/activity-plans/features/type-9";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -678,7 +679,7 @@ export function extractPlanData(
     targets.t8List = list;
   }
 
-  // TYPE 9: Store / Product / Target Sales
+  // TYPE 9: Store / Product / Target Sales (Delegated to Type 9 Feature Slice)
   let t9Extra = {
     mainStore: "",
     isSubDealer: false,
@@ -689,58 +690,20 @@ export function extractPlanData(
   };
 
   if (isWorkTypePresent("TYPE_9")) {
-    const t9Stores = stores.filter((s) => s.workTypeCode === "TYPE_9");
-    const t9FirstStore = t9Stores[0];
-    const t9Products = products.filter((pr) => pr.workTypeCode === "TYPE_9");
-    const t9ItemsFromDb = t9Products.map((pr, idx) => ({
-      id: pr.id || String(idx + 1),
-      productId: pr.productId,
-      storeId: pr.storeId || t9FirstStore?.storeId || null,
-      productName: pr.productName || "",
-      quantityCases: pr.targetQuantity || 0,
-      pricePerCase: pr.unitPrice ? Number(pr.unitPrice) : 0,
-      totalAmount: pr.targetAmount
-        ? Number(pr.targetAmount)
-        : (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0),
-    }));
-    const t9ProductTotalSales = t9ItemsFromDb.reduce(
-      (sum, item) => sum + item.totalAmount,
-      0,
-    );
-    const t9TotalSales =
-      t9ItemsFromDb.length > 0
-        ? t9ProductTotalSales
-        : t9FirstStore?.targetAmount != null
-          ? Number(t9FirstStore.targetAmount)
-          : 0;
-    const t9ProductSummary = t9ItemsFromDb
-      .map((prod) => `${prod.productName} (${prod.quantityCases} ลัง)`)
-      .join(", ");
+    const { primary, list } = extractType9PlanTargets(p, prevTargets.t9);
+    targets.t9 = primary;
+    targets.t9List = list;
 
-    const t9MainStore = t9FirstStore?.storeName || "";
-    const t9IsSubDealer = Boolean(t9FirstStore?.subDealerStore);
-    const t9SubDealerStore = t9FirstStore?.subDealerStore || "";
-
-    targets.t9 = {
-      ...prevTargets.t9,
-      store: t9MainStore,
-      isSubDealer: t9IsSubDealer,
-      subDealerStore: t9SubDealerStore,
-      product: t9ProductSummary,
-      targetSales: t9TotalSales > 0 ? `${t9TotalSales.toLocaleString()} บาท` : "",
-      targetAttendees: p.targetAttendeesCount
-        ? `${p.targetAttendeesCount} คน`
-        : "",
-      items: t9ItemsFromDb,
-    };
+    const totalSalesNum =
+      Number(String(primary.targetSales || "0").replace(/[^0-9.]/g, "")) || 0;
 
     t9Extra = {
-      mainStore: t9MainStore,
-      isSubDealer: t9IsSubDealer,
-      subDealerStore: t9SubDealerStore,
-      productSummary: t9ProductSummary,
-      totalSales: t9TotalSales,
-      items: t9ItemsFromDb,
+      mainStore: primary.store || "",
+      isSubDealer: Boolean(primary.isSubDealer),
+      subDealerStore: primary.subDealerStore || "",
+      productSummary: primary.product || "",
+      totalSales: totalSalesNum,
+      items: primary.items || [],
     };
   }
 

@@ -2,7 +2,22 @@ export type {
   Type9ProductItem,
   CustomerOption,
   ProductOption,
-} from "./shared/types";
+  Type9TargetProductItem,
+  Type9ProductSaleDetail,
+  Type9TargetItem,
+  Type9PlanItem,
+  Type9ActualRecord,
+  ActualType9StoreProps,
+  DetailType9StoreProps,
+  ApprovalType9StoreProps,
+} from "./types";
+
+export {
+  extractType9PlanTargets,
+  parseType9ActualResult,
+  mapType9ToSectionItems,
+} from "./application/mapper";
+
 export {
   Type9PlanCard,
   type Type9PlanCardProps,
@@ -26,13 +41,6 @@ export {
 export { DetailType9Store } from "./detail/detail-type9-store";
 export { ApprovalType9Store } from "./approval/approval-type9-store";
 export { ActualType9Store } from "./actual/actual-type9-store";
-export type {
-  Type9TargetProductItem,
-  Type9ProductSaleDetail,
-  ActualType9StoreProps,
-  DetailType9StoreProps,
-  ApprovalType9StoreProps,
-} from "./actual/types";
 export { useType9Actual } from "./actual/use-type9-actual";
 
 export {

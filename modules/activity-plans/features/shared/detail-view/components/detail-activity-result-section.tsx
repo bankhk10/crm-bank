@@ -255,6 +255,7 @@ export function DetailActivityResultSection({
         <DetailType9Store
           isVisible={isTypeVisible("จัดกิจกรรมส่งเสริมการขายหน้าร้าน")}
           target={targets.t9}
+          targets={targets.t9List}
           actualSales={parsedResults.t9ActualSales}
           productSalesDetails={parsedResults.t9ProductSalesDetails}
           actualAttendees={parsedResults.t9ActualAttendees}
