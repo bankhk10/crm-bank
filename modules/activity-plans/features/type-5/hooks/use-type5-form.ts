@@ -3,8 +3,8 @@ import {
   DEMO_PRODUCTS,
   isFieldDayItem,
 } from "@/modules/activity-plans/constants";
-import type { Type5SurveyItem } from "../shared/types";
-import { validateType5FormItems } from "../create/validation";
+import type { Type5SurveyItem } from "../types";
+import { validateType5FormItems } from "../application/validation";
 
 export interface UseType5FormOptions {
   initial?: any;

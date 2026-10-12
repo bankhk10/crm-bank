@@ -36,41 +36,27 @@
 
 ```text
 modules/activity-plans/features/type-5/
+├── components/                       # 🖥️ UI Components (Vertical Slice)
+│   ├── type5-plan-form.tsx           # แบบฟอร์มเพิ่มร้านค้าและสินค้าเป้าหมายสำรวจ (alias: Type5Survey)
+│   ├── type5-actual-form.tsx         # หน้าจอบันทึกผลสำรวจราคา 4 ระดับ โปรโมชั่น และแนบรูปภาพ (alias: ActualType5Survey)
+│   ├── type5-detail-view.tsx         # แสดงผลรายละเอียดเป้าหมายและผลสำรวจราคา/รูปภาพคู่แข่ง (alias: DetailType5Survey)
+│   ├── type5-approval-card.tsx       # แสดงผลข้อมูลแผนและผลสำรวจในหน้าพิจารณาอนุมัติ (alias: ApprovalType5Survey)
+│   └── type5-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card, hides in UNPLANNED)
+│
+├── hooks/                            # 🪝 React Hooks
+│   ├── use-type5-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการเป้าหมายสำรวจ
+│   └── use-type5-actual.ts           # จัดการ State ผลสำรวจ บันทึกรูปภาพ และอัปโหลด
+│
 ├── application/                      # 🧠 Business Logic, Mappers & Strategy
 │   ├── mapper.ts                     # Single Source of Truth สำหรับสกัดและแปลงข้อมูล Form State <-> DB
-│   └── type5.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   ├── type5.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   └── validation.ts                 # Pure Validation Functions (validateType5FormItems)
 │
 ├── types/                            # 📐 Type Definitions กลางของ Type 5
 │   └── index.ts                      # Domain Types: Type5SurveyItem, Type5TargetItem, TargetSurveyItem, Type5SurveyRecord, Type5ImageFile
 │
-├── create/                           # 🖥️ UI สำหรับสร้างแผนงาน
-│   ├── type5-survey.tsx              # แบบฟอร์มเพิ่มร้านค้าและสินค้าเป้าหมายสำรวจ
-│   ├── types.ts                      # Props Interfaces ของ Create Form
-│   └── validation.ts                 # Validation Schemas
-│
-├── edit/                             # 🖥️ UI สำหรับแก้ไขแผนงาน
-│   └── edit-type5.tsx                # คอมโพเนนต์แก้ไขข้อมูลแผนงาน Type 5
-│
-├── detail/                           # 🖥️ UI หน้ารายละเอียดแผนงาน (Read-only)
-│   └── detail-type5-survey.tsx       # แสดงผลรายละเอียดเป้าหมายและผลสำรวจราคา/รูปภาพคู่แข่ง
-│
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type5-survey.tsx     # แสดงผลข้อมูลแผนและผลสำรวจในหน้าพิจารณาอนุมัติ
-│
-├── actual/                           # 🖥️ UI & Hook บันทึกผลจริง
-│   ├── actual-type5-survey.tsx       # หน้าจอบันทึกผลสำรวจราคา 4 ระดับ โปรโมชั่น และแนบรูปภาพ
-│   ├── types.ts                      # Props ของ Actual Components
-│   └── use-type5-actual.ts           # Hook จัดการ State ของผลการสำรวจ
-│
-├── shared/                           # 🧩 คอมโพเนนต์และ Type ที่ใช้ร่วมกันภายใน Type 5
-│   ├── type5-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card)
-│   └── types.ts                      # Re-export จาก types/index.ts เพื่อ Backward Compatibility
-│
-├── hooks/                            # 🪝 Form Hook สำหรับ Plan
-│   └── use-type5-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการเป้าหมายสำรวจ
-│
 ├── README.md                         # 📖 เอกสารกำกับโมดูล Type 5 (ไฟล์นี้)
-└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Client Components
+└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Vertical Slice และ Backward Compatibility
 ```
 
 ---

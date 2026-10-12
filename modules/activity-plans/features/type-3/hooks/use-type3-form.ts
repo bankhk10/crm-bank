@@ -6,8 +6,8 @@ import {
 import type {
   Type3SalesItem,
   Type3SalesProductLine,
-} from "../shared/types";
-import { validateType3FormItems } from "../create/validation";
+} from "../types";
+import { validateType3FormItems } from "../application/validation";
 
 export interface UseType3FormOptions {
   initial?: any;

@@ -6,9 +6,9 @@ import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
 import { Type1Visit } from "@/modules/activity-plans/features/type-1";
 import { Type2Followup } from "@/modules/activity-plans/features/type-2";
-import { Type3Sales } from "@/modules/activity-plans/features/type-3/create/type3-sales";
-import { Type4Collect } from "@/modules/activity-plans/features/type-4/create/type4-collect";
-import { Type5Survey } from "@/modules/activity-plans/features/type-5/create/type5-survey";
+import { Type3Sales } from "@/modules/activity-plans/features/type-3";
+import { Type4Collect } from "@/modules/activity-plans/features/type-4";
+import { Type5Survey } from "@/modules/activity-plans/features/type-5";
 import { Type6Issue } from "@/modules/activity-plans/features/type-6/create/type6-issue";
 import { Type7Demo } from "./components/work-types/type7-demo";
 import { Type8Meeting } from "@/modules/activity-plans/features/type-8/create/type8-meeting";

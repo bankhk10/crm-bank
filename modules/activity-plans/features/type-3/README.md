@@ -31,41 +31,27 @@
 
 ```text
 modules/activity-plans/features/type-3/
-├── application/                      # 🧠 Business Logic, Mappers & Strategy
+├── application/                      # 🧠 Business Logic, Mappers, Validation & Strategy
+│   ├── validation.ts                 # Validation Schemas (Pure functions)
 │   ├── mapper.ts                     # Single Source of Truth สำหรับสกัดและแปลงข้อมูล Form State <-> DB
 │   └── type3.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Sync)
 │
-├── types/                            # 📐 Type Definitions กลางของ Type 3
-│   └── index.ts                      # Domain Types: Type3SalesItem, Type3SalesProductLine, TargetProductItem, Type3ProductSaleDetail, Type3TargetItem
+├── components/                       # 🖥️ Feature UI Components (Vertical Slice)
+│   ├── type3-plan-form.tsx           # แบบฟอร์มบันทึกแผนงานเสนอขายสินค้า (Create & Edit)
+│   ├── type3-actual-form.tsx         # หน้าจอบันทึกผลการปิดการขายและเหตุผลปิดการขายไม่ได้
+│   ├── type3-detail-view.tsx         # แสดงผลรายละเอียดเป้าหมายและผลการเสนอขายจริง
+│   ├── type3-approval-card.tsx       # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ
+│   └── type3-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Auto-hides in unplanned mode)
 │
-├── create/                           # 🖥️ UI สำหรับสร้างแผนงาน
-│   ├── type3-sales.tsx               # แบบฟอร์มเพิ่มร้านค้าและรายการสินค้าเสนอขาย
-│   ├── types.ts                      # Props Interfaces ของ Form
-│   └── validation.ts                 # Validation Schemas
+├── hooks/                            # 🪝 Encapsulated Hooks
+│   ├── use-type3-form.ts             # Form Hook สำหรับ Plan Stage
+│   └── use-type3-actual.ts           # Hook จัดการ State ของผลจริง (Actual Stage)
 │
-├── edit/                             # 🖥️ UI สำหรับแก้ไขแผนงาน
-│   └── edit-type3.tsx                # คอมโพเนนต์แก้ไขข้อมูลแผนงาน Type 3
+├── types/                            # 📐 Type Definitions รวมศูนย์
+│   └── index.ts                      # Domain Types ทั้งหมดของ Type 3
 │
-├── detail/                           # 🖥️ UI หน้ารายละเอียดแผนงาน (Read-only)
-│   └── detail-type3-sales.tsx        # แสดงผลรายละเอียดเป้าหมายและผลการเสนอขายจริง
-│
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type3-sales.tsx      # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ
-│
-├── actual/                           # 🖥️ UI & Hook บันทึกผลจริง
-│   ├── actual-type3-sales.tsx        # หน้าจอบันทึกผลการปิดการขายและเหตุผลปิดการขายไม่ได้
-│   ├── types.ts                      # Props ของ Actual
-│   └── use-type3-actual.ts           # Hook จัดการ State ของผลจริง
-│
-├── shared/                           # 🧩 คอมโพเนนต์และ Type ที่ใช้ร่วมกันภายใน Type 3
-│   ├── type3-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card)
-│   └── types.ts                      # Re-export จาก types/index.ts เพื่อ Backward Compatibility
-│
-├── hooks/                            # 🪝 Form Hook สำหรับ Plan
-│   └── use-type3-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขร้านค้าและรายการสินค้า
-│
-├── README.md                         # 📖 เอกสารกำกับโมดูล Type 3 (ไฟล์นี้)
-└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับภายนอกเรียกใช้
+├── index.ts                          # 📦 Public Barrel Export (Backward Compatible)
+└── README.md                         # 📖 เอกสารกำกับโมดูล Type 3 (ไฟล์นี้)
 ```
 
 ---

@@ -39,41 +39,27 @@
 
 ```text
 modules/activity-plans/features/type-4/
+├── components/                       # 🖥️ UI Components (Vertical Slice)
+│   ├── type4-plan-form.tsx           # แบบฟอร์มเพิ่มร้านค้าและเป้าหมายวางบิล/เก็บเงิน (alias: Type4Collect)
+│   ├── type4-actual-form.tsx         # หน้าจอบันทึกผลการวางบิลและยอดเงินที่เก็บได้จริง (alias: ActualType4Collect)
+│   ├── type4-detail-view.tsx         # แสดงผลรายละเอียดเป้าหมายและผลการวางบิล/เก็บเงินจริง (alias: DetailType4Collect)
+│   ├── type4-approval-card.tsx       # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ (alias: ApprovalType4Collect)
+│   └── type4-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card, hides in UNPLANNED)
+│
+├── hooks/                            # 🪝 React Hooks
+│   ├── use-type4-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการวางบิลและเก็บเงิน
+│   └── use-type4-actual.ts           # จัดการ State บันทึกผลจริงและอัปโหลดภาพ
+│
 ├── application/                      # 🧠 Business Logic, Mappers & Strategy
 │   ├── mapper.ts                     # Single Source of Truth สำหรับสกัดและแปลงข้อมูล Form State <-> DB
-│   └── type4.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   ├── type4.strategy.ts             # WorkTypeStrategy Handler (Validation, Dedicated Persistence & Dual-Write Sync)
+│   └── validation.ts                 # Pure Validation Functions (validateType4FormItems)
 │
 ├── types/                            # 📐 Type Definitions กลางของ Type 4
 │   └── index.ts                      # Domain Types: Type4CollectItem, TargetCollectCompanyItem, Type4TargetItem, Type4ImageFile
 │
-├── create/                           # 🖥️ UI สำหรับสร้างแผนงาน
-│   ├── type4-collect.tsx             # แบบฟอร์มเพิ่มร้านค้าและเป้าหมายวางบิล/เก็บเงิน
-│   ├── types.ts                      # Props Interfaces ของ Create Form
-│   └── validation.ts                 # Validation Schemas
-│
-├── edit/                             # 🖥️ UI สำหรับแก้ไขแผนงาน
-│   └── edit-type4.tsx                # คอมโพเนนต์แก้ไขข้อมูลแผนงาน Type 4
-│
-├── detail/                           # 🖥️ UI หน้ารายละเอียดแผนงาน (Read-only)
-│   └── detail-type4-collect.tsx      # แสดงผลรายละเอียดเป้าหมายและผลการวางบิล/เก็บเงินจริง
-│
-├── approval/                         # 🖥️ UI หน้าคิวอนุมัติ (Read-only)
-│   └── approval-type4-collect.tsx    # แสดงผลเป้าหมายในหน้าพิจารณาอนุมัติ
-│
-├── actual/                           # 🖥️ UI & Hook บันทึกผลจริง
-│   ├── actual-type4-collect.tsx      # หน้าจอบันทึกผลการวางบิลและยอดเงินที่เก็บได้จริง
-│   ├── types.ts                      # Props ของ Actual
-│   └── use-type4-actual.ts           # Hook จัดการ State ของผลจริง
-│
-├── shared/                           # 🧩 คอมโพเนนต์และ Type ที่ใช้ร่วมกันภายใน Type 4
-│   ├── type4-plan-card.tsx           # การ์ดแสดงข้อมูลเป้าหมายตามแผน (Plan Target Card)
-│   └── types.ts                      # Re-export จาก types/index.ts เพื่อ Backward Compatibility
-│
-├── hooks/                            # 🪝 Form Hook สำหรับ Plan
-│   └── use-type4-form.ts             # จัดการ State เพิ่ม/ลด/แก้ไขรายการวางบิลและเก็บเงิน
-│
 ├── README.md                         # 📖 เอกสารกำกับโมดูล Type 4 (ไฟล์นี้)
-└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Client Components
+└── index.ts                          # 🚪 Barrel Export (Public API) สำหรับ Vertical Slice และ Backward Compatibility
 ```
 
 ---
