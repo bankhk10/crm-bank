@@ -3,13 +3,13 @@ name: crm-coding-standards
 description: Enforces the core CRM project coding standards, architecture, module structure, and development practices. Use this skill WHENEVER generating, modifying, refactoring, or reviewing code for this project.
 ---
 
-# CRM Coding Standards & Best Practices
+# CRM Coding Standards & Best Practices: Vertical Slice Architecture
 
 This skill defines the mandatory coding, architecture, module structure, and development standards for this project.
 
 When writing, modifying, refactoring, or reviewing code in this project, you MUST follow these rules.
 
-The goal is to keep every module consistent, predictable, maintainable, and aligned with the same project-wide architecture.
+The primary architectural paradigm for this codebase is **Vertical Slice Architecture (Feature-Based Slices)**. The goal is high cohesion, loose coupling, encapsulation, predictability, and maintainability.
 
 ---
 
@@ -17,359 +17,159 @@ The goal is to keep every module consistent, predictable, maintainable, and alig
 
 The following principles are mandatory:
 
-1. Follow the existing project architecture.
-2. Reuse existing project patterns before creating new patterns.
-3. Keep all modules structurally consistent.
-4. Separate UI, business logic, server transport, and data access.
-5. Do not bypass architectural layers.
-6. Do not introduce new architectural patterns without justification.
-7. Do not modify unrelated code.
-8. Prefer simple solutions that follow existing conventions.
-9. Preserve existing behavior outside the requested scope.
-10. Before completing a task, perform the required self-validation.
+1. **Self-Contained Vertical Slices**: Every feature/type slice encapsulates its own UI, state, domain logic, validation, and data strategy within its own folder.
+2. **Encapsulation & Public Contract**: Outside consumers MUST interact with a feature slice exclusively through its public entry point (`index.ts`). Internal implementation details are private to the slice.
+3. **No Monolithic File Bloat**: Core Server Actions and Repositories MUST NOT contain massive, multi-thousand-line `if-else` / `switch` blocks for every type. Core files act strictly as gatekeepers (Auth, RBAC) and orchestrators, delegating type-specific execution to each slice's Strategy.
+4. **Plug-and-Play Extensibility (Open-Closed Principle)**: Adding or modifying a feature/type slice must be completed entirely within its own folder without breaking or modifying unrelated slices.
+5. **Mobile-First Responsive UI**: All UI components must use a mobile-first approach with Tailwind CSS.
+6. **Strict Database & Migration Integrity**: Schema modifications require corresponding, inspected Prisma migrations. Never leave unmigrated changes.
+7. **Zero-Error Validation**: Always validate with `tsc --noEmit` before declaring any task complete.
 
 ---
 
-# 2. Existing Pattern First
+# 2. Module Architecture Contract
 
-Before creating or modifying code, you MUST inspect the existing codebase.
+Every module under `modules/<module-name>/` follows the Vertical Slice Architecture:
 
-You MUST:
-
-1. Inspect the target module.
-2. Search for existing implementations with similar behavior.
-3. Check existing shared components.
-4. Check existing utilities and hooks.
-5. Check existing Server Action patterns.
-6. Check existing application/business logic patterns.
-7. Check existing repository patterns.
-8. Check similar modules when applicable.
-9. Reuse an existing project pattern whenever possible.
-
-Do NOT create a new implementation when an existing project implementation can reasonably satisfy the requirement.
-
-Do NOT introduce a new architectural pattern simply because another architecture is commonly used elsewhere.
-
-If the existing project pattern cannot satisfy the requirement, explain the reason before introducing a new architectural approach.
-
----
-
-# 3. Module Architecture Contract
-
-Every module under `modules/` MUST follow the same project architecture.
-
-The standard module structure is:
-
+```text
 modules/<module-name>/
-├── application/
-├── features/
-├── infrastructure/
-├── server/
-├── types/
-├── ui/
-├── constants.ts
-├── index.ts
-└── README.md
-
-These folders/files are created only when they are actually required by the module.
-
-Do NOT create empty or unnecessary folders/files just to match the structure.
-
-The important requirement is architectural consistency, not identical file counts.
-
----
-
-# 4. Module Layer Responsibilities
-
-Each module layer has a specific responsibility.
-
-## 4.1 features/
-
-Responsible for user-facing UI and feature-specific UI behavior.
-
-Examples:
-
-features/
-├── list-view/
-├── form/
-└── detail-view/
-
-`features/` MUST NOT:
-
-- Access the database directly.
-- Import repositories directly.
-- Contain database queries.
-- Contain infrastructure logic.
-- Bypass the server/application layers for data mutations.
-
----
-
-## 4.2 application/
-
-Responsible for business logic, validation, and application use cases.
-
-Examples:
-
-application/
-├── create-<module>.ts
-├── update-<module>.ts
-├── validations.ts
-└── index.ts
-
-`application/` MAY contain:
-
-- Business rules.
-- Validation.
-- Uniqueness checks.
-- Use-case orchestration.
-- Domain/application transformations.
-
-`application/` MUST NOT contain:
-
-- UI code.
-- React components.
-- Authentication transport concerns.
-- Direct database client usage when repository access is available.
-
----
-
-## 4.3 infrastructure/
-
-Responsible for database and external data access.
-
-Example:
-
-infrastructure/
-└── <module>.repository.ts
-
-Infrastructure MUST:
-
-- Handle database operations.
-- Use the project's database access pattern.
-- Keep repository operations focused and predictable.
-
-Infrastructure MUST NOT:
-
-- Contain UI logic.
-- Perform authentication.
-- Perform authorization.
-- Contain business rules.
-- Contain feature-specific presentation logic.
-
----
-
-## 4.4 server/
-
-Responsible for Server Actions and server-side transport concerns.
-
-Example:
-
-server/
-└── actions.ts
-
-Server Actions MUST:
-
-1. Verify authentication.
-2. Verify required permissions.
-3. Call the appropriate application logic.
-4. Revalidate the appropriate cache/path.
-
-The Server layer MUST NOT duplicate business logic that belongs in `application/`.
-
----
-
-## 4.5 types/
-
-Contains module-specific TypeScript types.
-
-Example:
-
-types/
-└── index.ts
-
-Types should be shared across layers when appropriate without creating unnecessary dependencies or circular references.
-
----
-
-## 4.6 ui/
-
-Contains reusable UI components that are specific to the module.
-
-Examples:
-
-ui/
-├── <module>-status-badge.tsx
-└── <module>-type-badge.tsx
-
-Shared components used across multiple modules SHOULD be placed in the project's shared component location instead of being duplicated inside individual modules.
-
----
-
-## 4.7 constants.ts
-
-Contains constants that are specific to the module.
-
-Do NOT place module-specific constants into unrelated global files.
-
----
-
-## 4.8 index.ts
-
-Acts as the public export entry point for the module.
-
-Expose only the module APIs that should be consumed externally.
-
-Avoid unnecessary exports.
-
----
-
-## 4.9 README.md
-
-Every module MUST have a `README.md`.
-
-The README should provide a concise overview of:
-
-- Module purpose.
-- Main features.
-- Important architecture/layer information.
-- Important business behavior.
-- Important implementation notes when necessary.
-
-Update the README when module structure, feature set, behavior, or significant functionality changes.
-
-Do NOT update the README for trivial implementation changes that do not affect module behavior or structure.
-
----
-
-# 5. Module Dependency Rules
-
-The dependency direction MUST remain consistent.
-
-The preferred dependency flow is:
-
-features/
-↓
-server/
-↓
-application/
-↓
-infrastructure/
-↓
-database
-
-Rules:
-
-- `features/` MUST NOT access the database directly.
-- `features/` MUST NOT import repositories.
-- `features/` SHOULD NOT import application use-cases directly.
-- `server/` imports from `application/`.
-- `application/` imports from `infrastructure/`.
-- `infrastructure/` imports the database client from `@/lib/db`.
-- Infrastructure MUST NOT depend on UI.
-- Application MUST NOT depend on UI.
-- Server MUST NOT contain duplicated business logic.
-- No circular dependencies.
-- No layer bypassing.
-
-Shared types and truly shared utilities may be imported where appropriate without violating architectural boundaries.
-
----
-
-# 6. Do Not Introduce New Architectural Layers
-
-The following folders MUST NOT be introduced into a module unless the project architecture explicitly defines them:
-
-- `domain/`
-- `services/`
-- `controllers/`
-- `repositories/`
-- `use-cases/`
-- `helpers/`
-- `utils/`
-- `lib/`
-- `hooks/`
-
-This does not mean these concepts can never exist.
-
-It means a new architectural layer MUST NOT be created automatically.
-
-If a new layer appears necessary:
-
-1. Check whether the existing architecture can support the requirement.
-2. Reuse the existing architecture if possible.
-3. If it cannot, explain the reason.
-4. Do not silently introduce a new architecture.
-
----
-
-# 7. UI Design - Mobile First
-
-Always use a Mobile-First approach with Tailwind CSS.
-
-Start with mobile classes and scale up using responsive breakpoints such as:
-
-- `sm:`
-- `md:`
-- `lg:`
-- `xl:`
-
-Example:
-
-```tsx
-<div className="p-4 md:p-6 lg:p-8">
+├── features/              # Vertical Feature Slices (แต่ละ Slice ดูแลตัวเองเบ็ดเสร็จ)
+│   ├── <feature-or-type-1>/
+│   ├── <feature-or-type-2>/
+│   └── ...
+├── application/           # Module-level orchestration & Strategy Registries
+│   ├── strategies/        # Type/Feature Strategy Registry & Universal Interface
+│   └── use-cases/         # Module-wide shared orchestrations
+├── infrastructure/        # Shared core database repositories (Header/Parent models)
+├── server/                # Module-level Server Actions (Auth, RBAC gatekeeper, cache revalidation)
+├── types/                 # Shared cross-slice module types
+├── ui/                    # Truly shared presentation components across the module
+├── constants.ts           # Module-level constants
+├── index.ts               # Module public export barrel
+└── README.md              # Module architecture documentation
 ```
 
 ---
 
-# 8. Database Schema & Prisma Migration Standards
+# 3. Feature Slice Structure (Inside the Slice)
 
-When a task requires modifying or extending database models, tables, columns, enums, or relations, you MUST follow these mandatory database migration standards:
+Each feature slice (e.g. `modules/activity-plans/features/type-X/`) represents an independent, cohesive vertical unit:
 
-## 8.1 Schema Modification & Migration Coupling
-1. If you modify `prisma/schema.prisma` and introduce a persistent database schema change, creating a corresponding Prisma Migration is a **MANDATORY** part of the task.
-2. Modifying `prisma/schema.prisma` alone without generating a migration is **INCOMPLETE** and strictly prohibited.
-3. Never leave unmigrated schema changes in `schema.prisma`.
+```text
+features/<feature-slice>/
+├── components/            # UI components (Forms, Cards, Detail, Preview, Approval)
+├── hooks/                 # React hooks for form state, lifecycle, and interaction
+├── types/                 # Domain types, DTOs, and Zod validation schemas
+├── application/           # Domain logic, mappers, and Server Strategy
+│   ├── mapper.ts          # Pure data mappers (Form State <-> DTO <-> Section Items)
+│   └── <slice>.strategy.ts # Server-only Strategy implementation (validatePlan, savePlan, loadPlan, saveActual)
+├── index.ts               # ⭐️ Public API contract (the ONLY entry point for outside consumers)
+└── README.md              # Feature slice documentation
+```
 
-## 8.2 Migration Creation & SQL Inspection
-1. Always generate migrations using standard Prisma migration workflows (`npx prisma migrate dev --create-only` or `prisma migrate diff`).
-2. You MUST inspect the generated `migration.sql` thoroughly before proceeding.
-3. Verify that `migration.sql` contains **ONLY** the schema changes intended for the specific feature or task.
-4. Check for destructive DDL statements:
-   - `DROP TABLE`
-   - `DROP COLUMN`
-   - `DROP TYPE`
-   - Data truncation or unrecoverable alterations
-5. Check for unexpected data mutations (`INSERT`, `UPDATE`, `DELETE`) inside migration files.
-6. If the generated migration includes unrelated schema changes from earlier unfinished work, you MUST **STOP** and report to the user immediately. Do NOT automatically bundle unrelated changes.
+### 3.1 Responsibilities Inside the Slice:
 
-## 8.3 Separation of Migration Creation vs Migration Application
-1. **Creation** (generating the migration file) and **Application** (`prisma migrate deploy` / executing DDL on database) MUST be treated as separate, distinct steps.
-2. You MUST NOT apply migrations to any database without explicit user authorization or workflow approval.
-3. Prohibit the use of `prisma db push` as a shortcut or substitute for schema migrations when changes are intended to be committed or deployed.
+1. **`components/`**:
+   - Presentation layer for creating, editing, viewing, and approving.
+   - Clean separation of view states (form mode, read-only mode).
+   - Reusable local UI elements (e.g. plot cards, upload zones).
 
-## 8.4 Migration History, Drift & Incident Handling
-1. If a migration history conflict, schema drift, or failed migration record is detected in `_prisma_migrations`, you MUST **STOP** immediately and report the error.
-2. Do not attempt unapproved manual database mutations, forced resets (`prisma migrate reset`), or uncoordinated rollbacks.
-3. Any investigation into migration errors or database schema discrepancies MUST be strictly **Read-Only** until an approved recovery plan is established.
+2. **`hooks/`**:
+   - Manages state hydration, validation trigger, and payload generation for this slice.
+   - Decoupled from outside pages.
 
-## 8.5 End-to-End Consistency Validation
-Before declaring a database-related task complete, perform three-way validation:
-- **`schema.prisma`** (Application Data Model)
-- **`prisma/migrations/`** (Version-controlled Migration History)
-- **Database Catalog** (Actual Target Database Schema)
-Ensure all three layers are 100% synchronized with zero drift.
+3. **`types/` (or `types/index.ts`)**:
+   - Source of truth for TypeScript interfaces and Zod schemas belonging to this slice.
+
+4. **`application/mapper.ts`**:
+   - Pure functions without side effects.
+   - Maps raw database entities into UI view models, and UI form state into database payloads.
+
+5. **`application/<slice>.strategy.ts`**:
+   - Server-side strategy implementing the universal `WorkTypeStrategy` interface.
+   - Encapsulates how this slice validates business rules and saves/loads its specific database records within atomic Prisma transactions.
+
+6. **`index.ts` (Public Contract)**:
+   - Exports ONLY components, hooks, mappers, strategy, and types intended for consumer usage.
+   - External files MUST import from `@/modules/<module>/features/<slice>` and NEVER reach into private internal paths.
 
 ---
 
-# 9. Pre-Completion Self-Validation
+# 4. Core Orchestration & Consumer Rules
 
-Before declaring any task complete, verify the following:
+### 4.1 Server Actions (`server/actions.ts`)
+The module-level Server Actions layer serves as a **Gatekeeper and Orchestrator**:
+1. Authenticates session and checks RBAC permissions.
+2. Validates incoming payload.
+3. Delegates slice-specific processing to the appropriate Strategy registered in `type-registry.ts`.
+4. Handles cache revalidation and error serialization.
+5. **MUST NOT** hardcode inline database queries or sprawling `if-else` business logic for individual feature slices.
 
-1. Architecture adheres to the Module Architecture Contract.
-2. Layer dependency rules are respected (features $\rightarrow$ server $\rightarrow$ application $\rightarrow$ infrastructure).
-3. If database schema was modified, a corresponding Prisma migration exists, is inspected, and is applied with zero drift.
-4. TypeScript check passes with zero errors (`pnpm tsc --noEmit`).
-5. ESLint check passes with zero errors.
-6. Automated tests pass without modification to existing tests unless explicitly requested.
-7. No unrelated code or files were modified.
+### 4.2 Repositories (`infrastructure/`)
+The module-level Infrastructure layer handles **Core/Header persistence**:
+1. Manages parent tables (e.g. `ActivityPlan`, `ActivityResult`).
+2. Provides atomic Prisma transactions (`tx`) to feature strategies.
+3. Feature slices execute their specific table mutations via their Strategy inside the provided transaction.
 
+### 4.3 UI Consumers (Main Pages & Modals)
+Main creation, edit, and detail pages consume feature slices dynamically:
+- Resolve components via standard Registry or clean barrel imports.
+- Pass standard props (`value`, `onChange`, `readonly`, `initialData`).
+- Never micromanage slice-internal inputs.
+
+---
+
+# 5. Dependency & Boundary Rules
+
+```text
+External Consumer (Pages / Modals / Core Actions)
+   ↓ (imports ONLY from index.ts)
+Feature Slice Public API (features/<slice>/index.ts)
+   ↓
+Internal Slice Elements (components / hooks / types / application)
+   ↓ (delegated via tx)
+Prisma Database Transaction
+```
+
+Rules:
+1. **No Cross-Slice Private Imports**: `features/type-1` MUST NOT import internal private files of `features/type-2`.
+2. **No Deep Import Bypassing**: Consumers MUST NOT import internal paths like `features/type-1/components/private-item.tsx`. Always import from the slice's `index.ts`.
+3. **No Database Direct Access from UI**: UI components MUST NOT call Prisma or database clients directly. All mutations go through Server Actions / Strategy transactions.
+4. **No Circular Dependencies**: Ensure clear top-down flow within each slice.
+
+---
+
+# 6. UI Design - Mobile First
+
+Always use a Mobile-First approach with Tailwind CSS:
+- Start with mobile classes and scale up using responsive breakpoints (`sm:`, `md:`, `lg:`, `xl:`).
+- Keep interactive controls accessible, with proper touch targets (minimum 36px–40px height).
+- Example:
+  ```tsx
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+  ```
+
+---
+
+# 7. Database Schema & Prisma Migration Standards
+
+When modifying or extending database models, tables, columns, enums, or relations:
+
+1. **Schema & Migration Coupling**: Any change to `prisma/schema.prisma` introducing persistent database changes MUST be accompanied by a generated Prisma migration. Never leave unmigrated schema changes.
+2. **SQL Inspection**: Always inspect the generated `migration.sql` to verify it contains ONLY intended changes. Check for destructive DDL (`DROP TABLE`, `DROP COLUMN`).
+3. **Separation of Creation vs Application**: Creating migrations and applying them to the database are distinct steps. Do NOT apply migrations without user authorization. Never use `prisma db push` for production-tracked changes.
+4. **Migration History & Drift**: If drift or migration conflicts occur, STOP and report immediately. Never execute forced resets (`prisma migrate reset`) unprompted.
+5. **Parity Validation**: Ensure `schema.prisma`, `prisma/migrations/`, and the database catalog remain synchronized.
+
+---
+
+# 8. Pre-Completion Self-Validation
+
+Before declaring any task complete, verify:
+
+1. Feature slice complies with the Vertical Slice Architecture contract.
+2. Slice exports all necessary components and strategies cleanly in `index.ts`.
+3. TypeScript compiler check passes with ZERO errors (`npx tsc --noEmit`).
+4. If database schema was modified, corresponding Prisma migrations exist and are verified.
+5. Automated tests or dev server run without regressions.
+6. Git working tree integrity is preserved (do not commit unless explicitly requested by the user).
