@@ -99,6 +99,7 @@ import type { Type8TargetItem } from "@/modules/activity-plans/features/type-8/t
 import type { Type9TargetItem } from "@/modules/activity-plans/features/type-9/types";
 import type { Type10TargetItem } from "@/modules/activity-plans/features/type-10/types";
 import type { Type11TargetItem } from "@/modules/activity-plans/features/type-11/types";
+import type { Type12TargetItem } from "@/modules/activity-plans/features/type-12/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
@@ -113,6 +114,7 @@ export type Type8TargetStateItem = Type8TargetItem;
 export type Type9TargetStateItem = Type9TargetItem;
 export type Type10TargetStateItem = Type10TargetItem;
 export type Type11TargetStateItem = Type11TargetItem;
+export type Type12TargetStateItem = Type12TargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -162,6 +164,8 @@ export interface ActualTargetsState {
   t10List?: Type10TargetItem[];
   t11: Type11TargetItem;
   t11List?: Type11TargetItem[];
+  t12?: Type12TargetItem;
+  t12List?: Type12TargetItem[];
 }
 
 export interface Type5SurveyRecord {

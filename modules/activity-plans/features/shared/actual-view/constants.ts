@@ -91,6 +91,13 @@ export const initialTargets: ActualTargetsState = {
     detail: "",
     targetOpportunity: "",
   },
+  t12: {
+    tourType: "CENTRAL",
+    tourSize: null,
+    country: null,
+    storeName: null,
+    destination: null,
+  },
 };
 
 export const initialPlanSummary: PlanSummaryData = {

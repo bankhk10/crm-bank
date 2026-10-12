@@ -11,6 +11,7 @@ import { type8Strategy } from "@/modules/activity-plans/features/type-8/applicat
 import { type9Strategy } from "@/modules/activity-plans/features/type-9/application/type9.strategy";
 import { type10Strategy } from "@/modules/activity-plans/features/type-10/application/type10.strategy";
 import { type11Strategy } from "@/modules/activity-plans/features/type-11/application/type11.strategy";
+import { type12Strategy } from "@/modules/activity-plans/features/type-12/application/type12.strategy";
 
 const strategyRegistry = new Map<string, WorkTypeStrategy>();
 
@@ -32,6 +33,7 @@ registerStrategy(type8Strategy);
 registerStrategy(type9Strategy);
 registerStrategy(type10Strategy);
 registerStrategy(type11Strategy);
+registerStrategy(type12Strategy);
 
 /**
  * Retrieve the Strategy Handler for a given Work Type code

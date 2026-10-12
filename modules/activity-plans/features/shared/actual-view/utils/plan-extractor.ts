@@ -14,6 +14,7 @@ import { extractType8PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType9PlanTargets } from "@/modules/activity-plans/features/type-9";
 import { extractType10PlanTargets } from "@/modules/activity-plans/features/type-10";
 import { extractType11PlanTargets } from "@/modules/activity-plans/features/type-11";
+import { extractType12PlanTargets } from "@/modules/activity-plans/features/type-12";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -209,6 +210,13 @@ export const DEFAULT_TARGETS: ActualTargetsState = {
     store: "",
     detail: "",
     targetOpportunity: "",
+  },
+  t12: {
+    tourType: "CENTRAL",
+    tourSize: null,
+    country: null,
+    storeName: null,
+    destination: null,
   },
 };
 
@@ -721,6 +729,13 @@ export function extractPlanData(
     const { primary, list } = extractType11PlanTargets(p, prevTargets.t11);
     targets.t11 = primary;
     targets.t11List = list;
+  }
+
+  // TYPE 12: Tour / Study trip (Delegated to Type 12 Feature Slice)
+  if (isWorkTypePresent("TYPE_12") || p.tour) {
+    const { primary, list } = extractType12PlanTargets(p, prevTargets.t12);
+    targets.t12 = primary;
+    targets.t12List = list;
   }
 
   return {

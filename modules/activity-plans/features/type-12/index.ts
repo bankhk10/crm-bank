@@ -1,8 +1,25 @@
-// Shared Types & Components
-export * from "./shared/types";
+// Domain Types
+export type {
+  TourType,
+  TourSize,
+  CustomerOption,
+  Type12TourDataPayload,
+  Type12TargetItem,
+  Type12PlanItem,
+  Type12PlanCardProps,
+  DetailType12TourProps,
+  ApprovalType12TourProps,
+} from "./types";
+
+// Pure Mappers
+export {
+  extractType12PlanTargets,
+  mapType12ToSectionItems,
+} from "./application/mapper";
+
+// Shared Components
 export {
   Type12PlanCard,
-  type Type12PlanCardProps,
 } from "./shared/type12-plan-card";
 
 // Create
@@ -18,11 +35,9 @@ export {
 
 // Detail
 export { DetailType12Tour } from "./detail/detail-type12-tour";
-export type { DetailType12TourProps } from "./detail/types";
 
 // Approval
 export { ApprovalType12Tour } from "./approval/approval-type12-tour";
-export type { ApprovalType12TourProps } from "./approval/types";
 
 // Hook
 export {

@@ -38,6 +38,7 @@ import { type8Strategy } from "../features/type-8/application/type8.strategy";
 import { type9Strategy } from "../features/type-9/application/type9.strategy";
 import { type10Strategy } from "../features/type-10/application/type10.strategy";
 import { type11Strategy } from "../features/type-11/application/type11.strategy";
+import { type12Strategy } from "../features/type-12/application/type12.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -1217,35 +1218,7 @@ export async function createActivityPlan(
         }
 
         // 1.2 Create Tour if present
-        if (
-          input.tourData ||
-          primaryCode === "TYPE_12" ||
-          workTypeCodes.includes("TYPE_12")
-        ) {
-          const tourInput = input.tourData;
-          const tourType: TourType =
-            tourInput?.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL;
-          const tourSize: TourSize | null =
-            tourInput?.tourSize === "LARGE"
-              ? TourSize.LARGE
-              : tourInput?.tourSize === "SMALL"
-                ? TourSize.SMALL
-                : null;
-          const country: string | null = tourInput?.country ?? null;
-          const storeId: string | null = tourInput?.storeId ?? null;
-          const destination: string | null = tourInput?.destination ?? null;
-
-          await tx.activityPlanTour.create({
-            data: {
-              activityPlanId: plan.id,
-              tourType,
-              tourSize,
-              country,
-              storeId,
-              destination,
-            },
-          });
-        }
+        await type12Strategy.savePlan(tx, plan.id, input);
 
         // 1.3 Create Stores if present
         if (input.planStores && input.planStores.length > 0) {
@@ -1731,25 +1704,7 @@ export async function updateActivityPlan(
 
     // 1.2 Sync Tour
     if (tourData !== undefined) {
-      await tx.activityPlanTour.deleteMany({ where: { activityPlanId: id } });
-      if (tourData) {
-        await tx.activityPlanTour.create({
-          data: {
-            activityPlanId: id,
-            tourType:
-              tourData.tourType === "STORE" ? TourType.STORE : TourType.CENTRAL,
-            tourSize:
-              tourData.tourSize === "LARGE"
-                ? TourSize.LARGE
-                : tourData.tourSize === "SMALL"
-                  ? TourSize.SMALL
-                  : null,
-            country: tourData.country ?? null,
-            storeId: tourData.storeId ?? null,
-            destination: tourData.destination ?? null,
-          },
-        });
-      }
+      await type12Strategy.savePlan(tx, id, { tourData });
     }
 
     // 1.3 Sync Stores

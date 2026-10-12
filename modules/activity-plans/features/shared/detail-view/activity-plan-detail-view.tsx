@@ -119,6 +119,7 @@ const initialTargets: ActualTargetsState = {
     targetSales: "",
   },
   t11: { store: "", detail: "", targetOpportunity: "" },
+  t12: { tourType: "CENTRAL", tourSize: null, country: null, storeName: null, destination: null },
 };
 
 const initialPlanSummary: PlanSummaryData = {
@@ -1184,6 +1185,8 @@ export default function ActivityPlanDetailView({
           {/* TYPE_12: TOUR SECTION (IF APPLICABLE) */}
           <ApprovalType12Tour
             isVisible={isTourPlan}
+            target={targets.t12}
+            targets={targets.t12List}
             tourType={tourType}
             tourSize={tourSize}
             country={tourCountry}

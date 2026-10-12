@@ -12,6 +12,7 @@ import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8
 import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9";
 import { mapType10ToSectionItems } from "@/modules/activity-plans/features/type-10";
 import { mapType11ToSectionItems } from "@/modules/activity-plans/features/type-11";
+import { mapType12ToSectionItems } from "@/modules/activity-plans/features/type-12";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -285,33 +286,9 @@ export function extractWorkTypeSections(
   }
 
   // ── 12. ทัวร์ ───────────────────────────────────────────
-  const tour = plan.tour;
-  const t12Line = objectiveLines.find(
-    (l) => l.includes("[ทัวร์") || l.includes("ทัวร์"),
-  );
-  if (tour || t12Line) {
-    const extraFields: Array<{ label: string; value: string }> = [];
-    if (tour?.tourType)
-      extraFields.push({
-        label: "ประเภททัวร์",
-        value: tour.tourType === "STORE" ? "ทัวร์ร้านค้า" : "ทัวร์กลาง",
-      });
-    if (tour?.country)
-      extraFields.push({ label: "ประเทศ/ปลายทาง", value: tour.country });
-    if (tour?.destination)
-      extraFields.push({ label: "สถานที่", value: tour.destination });
-    sections.push({
-      typeIndex: 12,
-      title: WORK_TYPES[11] || "ทัวร์",
-      badge: "ทัวร์",
-      items: [
-        {
-          title: tour?.destination || tour?.country || "ทัวร์",
-          extraFields: extraFields.length > 0 ? extraFields : undefined,
-        },
-      ],
-      rawSummary: t12Line ? t12Line.replace(/^\[.*?\]\s*/, "") : undefined,
-    });
+  const t12Section = mapType12ToSectionItems(plan.tour, objectiveLines);
+  if (t12Section) {
+    sections.push(t12Section);
   }
 
   return sections;

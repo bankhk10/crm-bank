@@ -4,11 +4,13 @@ import React from "react";
 import { Plane, Building2, Globe2, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { TourType, TourSize } from "./types";
+import type { TourType, TourSize, Type12TargetItem } from "../types";
 
 export interface Type12PlanCardProps {
   isVisible?: boolean;
   planType?: string | null;
+  target?: Type12TargetItem;
+  targets?: Type12TargetItem[];
   tourType?: TourType | string | null;
   tourSize?: TourSize | string | null;
   country?: string | null;
@@ -21,6 +23,8 @@ export interface Type12PlanCardProps {
 export function Type12PlanCard({
   isVisible = true,
   planType,
+  target,
+  targets,
   tourType = "CENTRAL",
   tourSize,
   country,
@@ -30,32 +34,55 @@ export function Type12PlanCard({
 }: Type12PlanCardProps) {
   if (!isVisible || planType === "UNPLANNED") return null;
 
+  if (targets && targets.length > 1) {
+    return (
+      <div className="space-y-4">
+        {targets.map((t, idx) => (
+          <Type12PlanCard
+            key={t.id || idx}
+            isVisible={isVisible}
+            planType={planType}
+            target={t}
+            className={className}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  const resolvedTarget = targets && targets.length === 1 ? targets[0] : target;
+  const effectiveTourType = resolvedTarget?.tourType ?? tourType;
+  const effectiveTourSize = resolvedTarget?.tourSize ?? tourSize;
+  const effectiveCountry = resolvedTarget?.country ?? country;
+  const effectiveStoreName = resolvedTarget?.storeName ?? storeName;
+  const effectiveDestination = resolvedTarget?.destination ?? destination;
+
   // 1. Resolve normalized tour type
   const isStoreTour =
-    tourType === "STORE" ||
-    tourType === "ทัวร์ร้านค้า" ||
-    (Boolean(storeName) && !country);
+    effectiveTourType === "STORE" ||
+    effectiveTourType === "ทัวร์ร้านค้า" ||
+    (Boolean(effectiveStoreName) && !effectiveCountry);
 
   const tourTypeLabel = isStoreTour ? "ทัวร์ร้านค้า" : "ทัวร์กลาง";
 
   // 2. Resolve normalized tour size (for Central tour)
   let tourSizeLabel = "ไม่ได้ระบุ";
-  if (tourSize === "LARGE" || tourSize === "ทัวร์ใหญ่") {
+  if (effectiveTourSize === "LARGE" || effectiveTourSize === "ทัวร์ใหญ่") {
     tourSizeLabel = "ทัวร์ใหญ่";
-  } else if (tourSize === "SMALL" || tourSize === "ทัวร์เล็ก") {
+  } else if (effectiveTourSize === "SMALL" || effectiveTourSize === "ทัวร์เล็ก") {
     tourSizeLabel = "ทัวร์เล็ก";
   } else if (
-    tourSize &&
-    typeof tourSize === "string" &&
-    tourSize.trim() !== ""
+    effectiveTourSize &&
+    typeof effectiveTourSize === "string" &&
+    effectiveTourSize.trim() !== ""
   ) {
-    tourSizeLabel = tourSize.trim();
+    tourSizeLabel = effectiveTourSize.trim();
   }
 
   // 3. Resolve country, store, and destination safely
-  const countryValue = country?.trim() || "ไม่ได้ระบุ";
-  const storeValue = storeName?.trim() || "ไม่ได้ระบุ";
-  const destinationValue = destination?.trim() || "ไม่ได้ระบุ";
+  const countryValue = effectiveCountry?.trim() || "ไม่ได้ระบุ";
+  const storeValue = effectiveStoreName?.trim() || "ไม่ได้ระบุ";
+  const destinationValue = effectiveDestination?.trim() || "ไม่ได้ระบุ";
 
   return (
     <div
