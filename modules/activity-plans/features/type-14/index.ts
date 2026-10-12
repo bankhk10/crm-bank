@@ -1,47 +1,82 @@
-// Shared Types & Components
-export * from "./shared/types";
-export {
-  Type14PlanCard,
-  type Type14PlanCardProps,
-} from "./shared/type14-plan-card";
-
-// Create
-export { Type14Create } from "./create/type14-create";
-export type { Type14CreateProps } from "./create/types";
-export { validateType14FormValues } from "./create/validation";
-
-// Edit
-export { Type14Edit } from "./edit/type14-edit";
-export type { Type14EditProps } from "./edit/types";
-
-// Detail
-export { Type14Detail } from "./detail/type14-detail";
+// ==========================================
+// Types
+// ==========================================
 export type {
-  Type14DetailProps,
-  FormattedProduct,
-  FormattedFollowUpRound,
-} from "./detail/types";
-
-// Approval
-export { Type14Approval } from "./approval/type14-approval";
-export type { Type14ApprovalProps } from "./approval/types";
-
-// Actual
-export { Type14Actual } from "./actual/type14-actual";
-export type {
-  Type14ActualProps,
+  Type14TrackingAttachment,
+  Type14TrackingItem,
+  Type14WithdrawnProductLine,
+  Type14PlanInput,
+  DealerCustomerOption,
+  ProductOption,
+  Type14PlanStorePayload,
   Type14ActualProductState,
   Type14ImageState,
   Type14SprayRoundState,
-} from "./actual/types";
-export {
-  useType14ActualState,
-  default as defaultUseType14ActualState,
-} from "./actual/use-type14-actual-state";
+  Type14PlanCardProps,
+  Type14CreateProps,
+  Type14EditProps,
+  Type14PlanFormProps,
+  UseType14ActualStateResult,
+  Type14ActualProps,
+  Type14ActualFormProps,
+  FormattedProduct,
+  FormattedFollowUpRound,
+  Type14DetailProps,
+  Type14DetailViewProps,
+  Type14ApprovalProps,
+  Type14ApprovalCardProps,
+  ValidateType14Params,
+  ValidateType14Options,
+  Type14ValidationResult,
+  Type14ActualValidationInput,
+} from "./types";
 
-// Hook
+// ==========================================
+// Application & Validation
+// ==========================================
+export {
+  validateType14FormValues,
+  validateType14Actual,
+} from "./application/validation";
+
+// ==========================================
+// Components (Vertical Slice)
+// ==========================================
+export {
+  Type14PlanCard,
+} from "./components/type14-plan-card";
+
+export {
+  Type14PlanForm,
+  Type14Create,
+  Type14Edit,
+} from "./components/type14-plan-form";
+
+export {
+  Type14ActualForm,
+  Type14Actual,
+} from "./components/type14-actual-form";
+
+export {
+  Type14DetailView,
+  Type14Detail,
+} from "./components/type14-detail-view";
+
+export {
+  Type14ApprovalCard,
+  Type14Approval,
+} from "./components/type14-approval-card";
+
+// ==========================================
+// Hooks
+// ==========================================
 export {
   useType14Form,
   type UseType14FormOptions,
   type UseType14FormResult,
 } from "./hooks/use-type14-form";
+
+export {
+  useType14ActualState,
+  useType14Actual,
+} from "./hooks/use-type14-actual";

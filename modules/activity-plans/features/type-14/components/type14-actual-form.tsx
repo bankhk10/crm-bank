@@ -27,7 +27,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import DatePicker from "@/components/custom/DatePicker";
 import { FormCombobox } from "@/components/custom/FormCombobox";
-import type { useType14ActualState } from "./use-type14-actual-state";
+import type { useType14ActualState } from "../hooks/use-type14-actual-state";
+import type { Type14ActualProps, Type14ActualFormProps } from "../types";
+
+export type { Type14ActualProps, Type14ActualFormProps };
 
 function formatThaiDate(d?: string | Date | null) {
   if (!d) return "-";
@@ -38,10 +41,6 @@ function formatThaiDate(d?: string | Date | null) {
   const year = date.getFullYear() + 543;
   return `${day}/${month}/${year}`;
 }
-
-import type { Type14ActualProps } from "./types";
-
-export type { Type14ActualProps };
 
 export function Type14Actual({
   isVisible = true,
@@ -817,4 +816,5 @@ export function Type14Actual({
   );
 }
 
+export { Type14Actual as Type14ActualForm };
 export default Type14Actual;

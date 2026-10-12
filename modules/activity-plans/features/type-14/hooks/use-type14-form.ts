@@ -4,9 +4,9 @@ import { getWorkTypeCode, type FollowUpPlanOption } from "@/modules/activity-pla
 import type {
   Type14PlanInput as FormType14PlanInput,
   Type14WithdrawnProductLine,
-} from "../shared/types";
+} from "../types";
 import type { Type14PlanInput } from "@/modules/activity-plans/application/validations";
-import { validateType14FormValues } from "../create/validation";
+import { validateType14FormValues } from "../application/validation";
 
 export interface UseType14FormOptions {
   initial?: any;

@@ -13,17 +13,9 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type14PlanInput } from "./types";
+import type { Type14PlanInput, Type14PlanCardProps } from "../types";
 
-export interface Type14PlanCardProps {
-  data?: Type14PlanInput;
-  planSummary?: {
-    province?: string | null;
-    district?: string | null;
-  };
-  planType?: string;
-  className?: string;
-}
+export type { Type14PlanCardProps };
 
 export function Type14PlanCard({
   data,

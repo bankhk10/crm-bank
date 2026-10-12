@@ -20,15 +20,21 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Type14PlanInput } from "../shared/types";
 import { getHattackPlotContextAction } from "../../../server/actions";
 import type {
+  Type14PlanInput,
   FormattedProduct,
   FormattedFollowUpRound,
   Type14DetailProps,
-} from "./types";
+  Type14DetailViewProps,
+} from "../types";
 
-export type { FormattedProduct, FormattedFollowUpRound, Type14DetailProps };
+export type {
+  FormattedProduct,
+  FormattedFollowUpRound,
+  Type14DetailProps,
+  Type14DetailViewProps,
+};
 
 function formatThaiDate(d?: string | Date | null): string {
   if (!d) return "-";
@@ -816,4 +822,5 @@ export function Type14Detail({
   );
 }
 
+export { Type14Detail as Type14DetailView };
 export default Type14Detail;

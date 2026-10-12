@@ -18,12 +18,14 @@ import { FormCombobox } from "@/components/custom/FormCombobox";
 import type {
   Type14PlanInput,
   Type14WithdrawnProductLine,
-} from "../shared/types";
+  Type14CreateProps,
+  Type14EditProps,
+  Type14PlanFormProps,
+} from "../types";
 import { getHattackFollowUpPlansWithPlotsAction } from "../../../server/actions";
-import type { Type14CreateProps } from "./types";
 import type { FollowUpPlanOption } from "@/modules/activity-plans/constants";
 
-export type { Type14CreateProps };
+export type { Type14CreateProps, Type14EditProps, Type14PlanFormProps };
 
 export function Type14Create({
   value,
@@ -958,4 +960,5 @@ export function Type14Create({
   );
 }
 
+export { Type14Create as Type14PlanForm, Type14Create as Type14Edit };
 export default Type14Create;
