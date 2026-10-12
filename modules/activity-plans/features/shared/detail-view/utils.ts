@@ -7,6 +7,7 @@ import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3
 import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4";
 import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5";
 import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-7a";
+import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-7b";
 import type {
   ParsedWorkTypeSection,
   MarketingProductDetail,
@@ -167,6 +168,7 @@ export function extractWorkTypeSections(
 
   // ── 7. แปลงสาธิต ───────────────────────────────────────
   const type7aPlots = (plan as any).type7aPlots || [];
+  const type7bRecord = (plan as any).type7b || (plan as any).type7bData;
   const demoVisits = plan.demoPlotVisits || [];
   const t7Line = objectiveLines.find(
     (l) =>
@@ -174,9 +176,11 @@ export function extractWorkTypeSections(
       l.includes("ทำแปลงสาธิต") ||
       l.includes("แปลงสาธิต"),
   );
-  if (type7aPlots.length > 0 || demoVisits.length > 0 || t7Line) {
+  if (type7bRecord || type7aPlots.length > 0 || demoVisits.length > 0 || t7Line) {
     let list: any[] = [];
-    if (type7aPlots.length > 0) {
+    if (type7bRecord) {
+      list = mapType7bToSectionItems(type7bRecord, demoVisits);
+    } else if (type7aPlots.length > 0) {
       list = mapType7aToSectionItems(type7aPlots);
     } else {
       list = demoVisits.map((v) => {

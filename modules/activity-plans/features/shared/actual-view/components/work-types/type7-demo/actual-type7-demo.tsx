@@ -217,6 +217,7 @@ export function ActualType7Demo(props: ActualType7DemoProps) {
       <ActualType7FollowUp
         planType={props.planType}
         target={props.target}
+        targets={props.targets}
         products={props.products}
         plotName={props.plotName}
         usageMethod={props.usageMethod}

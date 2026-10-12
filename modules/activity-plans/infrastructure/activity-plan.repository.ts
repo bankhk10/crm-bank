@@ -33,6 +33,7 @@ import { type4Strategy } from "../features/type-4/application/type4.strategy";
 import { type5Strategy } from "../features/type-5/application/type5.strategy";
 import { type6Strategy } from "../features/type-6/application/type6.strategy";
 import { type7aStrategy } from "../features/type-7a/application/type7a.strategy";
+import { type7bStrategy } from "../features/type-7b/application/type7b.strategy";
 import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
 export { upsertActivityResult, type CreateActivityResultInput };
 
@@ -1481,14 +1482,9 @@ export async function createActivityPlan(
           await type7aStrategy.savePlan(tx, plan.id, input);
         }
 
-        // 1.8.2 TYPE_7B ("ติดตามแปลงสาธิต"): ActivityPlanType7b + ActivityPlanType7bPlot + ActivityPlanType7bProduct
+        // 1.8.2 TYPE_7B ("ติดตามแปลงสาธิต"): Strategy pattern handling ActivityPlanType7b + Plots + Products + Visits
         if (input.type7bData) {
-          await createType7bData(
-            tx,
-            plan.id,
-            input.type7bData,
-            input.startDate,
-          );
+          await type7bStrategy.savePlan(tx, plan.id, input);
         }
 
         // 3. Create Helpers
@@ -2020,12 +2016,11 @@ export async function updateActivityPlan(
 
     // 1.9.2 Sync TYPE_7B Data
     if (planData.type7bData !== undefined) {
-      await syncType7bData(
-        tx,
-        id,
-        planData.type7bData,
-        updatedPlan.startDate,
-      );
+      await type7bStrategy.savePlan(tx, id, {
+        ...planData,
+        startDate: updatedPlan.startDate,
+        employeeId: updatedPlan.employeeId,
+      });
     }
 
     // 3. Sync Helpers if provided

@@ -1,8 +1,26 @@
+// Domain Types
 export type {
   Type7bWithdrawnProductLine,
   ProductOption,
   UserDemoPlotOption,
-} from "./shared/types";
+  Type7DemoProductLine,
+  Type7DemoPlotItem,
+  Type7bPlotInput,
+  Type7bProductInput,
+  Type7bDataInput,
+  Type7bTargetItem,
+  Type7bActualRecord,
+  Type7bPlanItem,
+} from "./types";
+
+// Application Layer (Pure Mappers - Safe for Client)
+export {
+  extractType7bPlanTargets,
+  parseType7bActualResult,
+  mapType7bToSectionItems,
+} from "./application/mapper";
+
+// UI Components & Cards
 export {
   Type7bPlanCard,
   type Type7bPlanCardProps,

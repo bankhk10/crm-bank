@@ -189,6 +189,7 @@ export function DetailActivityResultSection({
           }
           mode="TYPE_7B"
           target={targets.t7b || targets.t7}
+          targets={targets.t7bList}
           demoResults={parsedResults.t7DemoResults}
           daysAfterSpray={parsedResults.t7DaysAfterSpray || currentVisit?.daysSinceStart}
           sprayMethod={currentVisit?.sprayMethod}

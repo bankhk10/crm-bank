@@ -3,6 +3,7 @@ import type {
   ImageFile,
   Type7bProductRateItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { Type7bTargetItem } from "../types";
 
 export interface DemoPlotVisitHistoryItem {
   id: string;
@@ -37,27 +38,8 @@ export interface DemoPlotVisitHistoryItem {
 export interface ActualType7FollowUpProps {
   isVisible?: boolean;
   planType?: "PLANNED" | "UNPLANNED" | string;
-  target?: {
-    activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner?: string;
-    product?: string;
-    crop?: string;
-    plots?: string;
-    targetCondition?: string;
-    demoProductQuantity?: string | number | null;
-    objective?: string;
-    experimentDetail?: string;
-    detail?: string;
-    followUpObjective?: string;
-    items?: any[];
-    demoProducts?: Array<{
-      productId?: string;
-      productName: string;
-      quantity?: number;
-      targetQuantity?: number;
-      unit?: string;
-    }>;
-  };
+  target?: Type7bTargetItem;
+  targets?: Type7bTargetItem[];
   products?: Array<{
     id: string;
     name: string;
@@ -143,10 +125,10 @@ export interface ActualType7FollowUpProps {
 export interface DetailType7FollowUpProps {
   target: {
     activityType?: "CREATE" | "FOLLOW_UP" | string;
-    owner: string;
-    product: string;
-    crop: string;
-    plots: string;
+    owner?: string;
+    product?: string;
+    crop?: string;
+    plots?: string;
     targetCondition?: string;
     demoProductQuantity?: string | number | null;
     objective?: string;
@@ -154,7 +136,9 @@ export interface DetailType7FollowUpProps {
     detail?: string;
     followUpObjective?: string;
     items?: any[];
+    [key: string]: any;
   };
+  targets?: Type7bTargetItem[];
   plotName?: string;
   usageMethod?: string;
   cropAgeValue?: string;
@@ -194,6 +178,7 @@ export interface DetailType7FollowUpProps {
 export interface ApprovalType7bDemoProps {
   isVisible: boolean;
   target: ActualTargetsState["t7"] | any;
+  targets?: Type7bTargetItem[];
 }
 
 export interface DemoPlotHistoryModalProps {

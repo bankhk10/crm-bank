@@ -1140,6 +1140,7 @@ export default function ActivityPlanDetailView({
             isVisible={isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต")}
             workTypeCode="TYPE_7B"
             target={targets.t7b || targets.t7}
+            targets={targets.t7bList}
           />
 
           {/* TYPE_8: จัดประชุม */}

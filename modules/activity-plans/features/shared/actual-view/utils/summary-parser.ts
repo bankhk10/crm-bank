@@ -5,6 +5,7 @@ import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4
 import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5";
 import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6";
 import { parseType7aActualResult } from "@/modules/activity-plans/features/type-7a";
+import { parseType7bActualResult } from "@/modules/activity-plans/features/type-7b";
 import type {
   ActivityResultStatusType,
   Type5SurveyRecord,
@@ -290,6 +291,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   // Type 7A Actual Result (Delegated to Type 7A Feature Slice)
   const t7aParsed = parseType7aActualResult(resData);
   Object.assign(result, t7aParsed);
+
+  // Type 7B Actual Result (Delegated to Type 7B Feature Slice)
+  const t7bParsed = parseType7bActualResult(resData);
+  Object.assign(result, t7bParsed);
 
   if (
     resData.sprayRounds &&
@@ -745,244 +750,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 6: Handled by parseType6ActualResult above
 
-    // Type 7
-    const t7PlotMatch = summaryText.match(
-      /(?:ชื่อแปลงทดสอบ|ชื่อแปลงสาธิต):\s*(.+)/,
-    );
-    if (t7PlotMatch && t7PlotMatch[1]) {
-      result.t7PlotName = t7PlotMatch[1].split("\n")[0].trim();
-    }
-    const t7MethodMatch = summaryText.match(
-      /(?:วิธีใช้\/อัตราการใช้|ข้อมูลเพิ่มเติม):\s*(.+)/,
-    );
-    if (t7MethodMatch && t7MethodMatch[1]) {
-      result.t7UsageMethod = t7MethodMatch[1].split("\n")[0].trim();
-      result.t7Notes = result.t7UsageMethod;
-    }
-    const t7ExpMatch = summaryText.match(
-      /(?:วิธีการทดลอง|วิธีการทดลอง\s*\/\s*แผนการทดสอบ):\s*(.+)/,
-    );
-    if (t7ExpMatch && t7ExpMatch[1]) {
-      result.t7ExperimentDetail = t7ExpMatch[1].split("\n")[0].trim();
-    }
-    const t7AgeMatch = summaryText.match(
-      /(?:อายุพืช|อายุพืช\s*\(วันหลังปลูก\)):\s*(\d+)\s*(วัน|สัปดาห์|เดือน|ปี)?/,
-    );
-    if (t7AgeMatch && t7AgeMatch[1]) {
-      result.t7CropAgeValue = t7AgeMatch[1].trim();
-      if (t7AgeMatch[2]) {
-        result.t7CropAgeUnit = t7AgeMatch[2].trim();
-      }
-    }
-    const t7GrowthMatch = summaryText.match(
-      /(?:ระยะการเจริญเติบโต|ระยะพืช\s*\(Stage\)):\s*(.+)/,
-    );
-    if (t7GrowthMatch && t7GrowthMatch[1]) {
-      result.t7GrowthStage = t7GrowthMatch[1].split("\n")[0].trim();
-    }
-    const t7CondMatch = summaryText.match(/สภาพแปลง:\s*(.+)/);
-    if (t7CondMatch && t7CondMatch[1]) {
-      const cVal = t7CondMatch[1].split("\n")[0].trim();
-      if (
-        cVal === "สมบูรณ์" ||
-        cVal === "มีปัญหา" ||
-        cVal === "ปานกลาง" ||
-        cVal === "ทรุดโทรม"
-      ) {
-        result.t7CropCondition = cVal as any;
-      }
-    }
-    const t7DescMatch = summaryText.match(
-      /(?:ปัญหาของสภาพพืช|รายละเอียดแปลง):\s*(.+)/,
-    );
-    if (t7DescMatch && t7DescMatch[1]) {
-      result.t7CropProblemDescription = t7DescMatch[1].split("\n")[0].trim();
-    }
-    const t7ResponseMatch = summaryText.match(
-      /(?:ผลหลังการฉีดพ่น|ผลการใช้ผลิตภัณฑ์):\s*(.+)/,
-    );
-    if (t7ResponseMatch && t7ResponseMatch[1]) {
-      const resp = t7ResponseMatch[1].split("\n")[0].trim();
-      if (resp === "พืชตอบสนองดี" || resp === "พบปัญหา") {
-        result.t7ProductResponse = resp;
-      }
-    }
-    const t7ProblemMatch = summaryText.match(
-      /(?:รายละเอียดปัญหาหลังการฉีดพ่น|รายละเอียดปัญหาการใช้ผลิตภัณฑ์|รายละเอียดปัญหา):\s*(.+)/,
-    );
-    if (t7ProblemMatch && t7ProblemMatch[1]) {
-      result.t7ProblemDescription = t7ProblemMatch[1].split("\n")[0].trim();
-    }
-    const customPlotMatch = summaryText.match(/รายละเอียดแปลง:\s*(.+)/);
-    if (customPlotMatch && customPlotMatch[1]) {
-      result.t7CustomPlotDetail = customPlotMatch[1].split("\n")[0].trim();
-      if (!result.t7DemoPlotId) result.t7DemoPlotId = "OTHER";
-    }
-    if (summaryText.includes("แปลงเกษตร: แปลงอื่นๆ") && !result.t7DemoPlotId) {
-      result.t7DemoPlotId = "OTHER";
-    }
-    const plantingDateMatch = summaryText.match(
-      /(?:วันที่เริ่มปลูกจริง|วันที่ปลูก):\s*(.+)/,
-    );
-    if (plantingDateMatch && plantingDateMatch[1]) {
-      result.t7PlantingDate = plantingDateMatch[1].split("\n")[0].trim();
-    }
-    const areaCondMatch = summaryText.match(
-      /(?:สภาพพื้นที่ปลูกตอนเริ่มต้น|สภาพพื้นที่ปลูก|ข้อมูลพืชประธาน):\s*(.+)/,
-    );
-    if (areaCondMatch && areaCondMatch[1]) {
-      result.t7PlantingAreaCondition = areaCondMatch[1].split("\n")[0].trim();
-    }
-    const statusMatch = summaryText.match(/สถานะแปลง:\s*(.+)/);
-    if (statusMatch && statusMatch[1]) {
-      const s = statusMatch[1].split("\n")[0].trim();
-      if (s === "IN_PROGRESS" || s === "COMPLETED" || s === "FAILED") {
-        result.t7PlotStatus = s as any;
-      }
-    }
-    const nextVisitMatch = summaryText.match(
-      /(?:กำหนดฉีดพ่นครั้งต่อไป|กำหนดการติดตามครั้งถัดไป):\s*(.+)/,
-    );
-    if (nextVisitMatch && nextVisitMatch[1]) {
-      result.t7NextFollowUpDate = nextVisitMatch[1].split("\n")[0].trim();
-      result.t7NextSprayDate = result.t7NextFollowUpDate;
-    }
-    const actualVisitDateMatch = summaryText.match(/วันที่ติดตามจริง:\s*(.+)/);
-    if (actualVisitDateMatch && actualVisitDateMatch[1]) {
-      result.actualStartDate = actualVisitDateMatch[1].split("\n")[0].trim();
-      result.t7StartDate = result.actualStartDate;
-    }
-    const daysAfterSprayMatch = summaryText.match(/จำนวนวันหลังฉีดพ่น:\s*(\d+)/);
-    if (daysAfterSprayMatch && daysAfterSprayMatch[1]) {
-      result.t7DaysAfterSpray = daysAfterSprayMatch[1].trim();
-    }
-    const sprayEquipMatch = summaryText.match(
-      /อุปกรณ์ที่ใช้ฉีดพ่น:\s*([^\n(]+)(?:\s*\(([^)]+)\))?/,
-    );
-    if (sprayEquipMatch && sprayEquipMatch[1]) {
-      result.t7SprayEquipment = sprayEquipMatch[1].trim();
-      if (sprayEquipMatch[2]) {
-        result.t7OtherEquipment = sprayEquipMatch[2].trim();
-      }
-    }
-    const sprayMethodMatch = summaryText.match(
-      /(?:วิธีการฉีดพ่น|รูปแบบการฉีดพ่น):\s*(.+)/,
-    );
-    if (sprayMethodMatch && sprayMethodMatch[1]) {
-      const sVal = sprayMethodMatch[1].split("\n")[0].trim();
-      if (
-        sVal.includes("ผสมถัง") ||
-        sVal.includes("TANK_MIXED") ||
-        sVal.includes("Tank-mixed")
-      ) {
-        result.t7SprayMethod = "TANK_MIXED";
-      } else if (
-        sVal.includes("ฉีดเดี่ยว") ||
-        sVal.includes("SINGLE") ||
-        sVal.includes("Single")
-      ) {
-        result.t7SprayMethod = "SINGLE";
-      }
-    }
-    const extChemMatch = summaryText.match(
-      /(?:ยาภายนอก|สารเคมีภายนอก):\s*(.+)/,
-    );
-    if (extChemMatch && extChemMatch[1]) {
-      result.t7HasExternalChemicals = true;
-      const extStr = extChemMatch[1].split("\n")[0].trim();
-      if (extStr.startsWith("[") && extStr.endsWith("]")) {
-        try {
-          result.t7ExternalProducts = JSON.parse(extStr);
-        } catch {
-          // not json
-        }
-      } else {
-        const rawExtItems = extStr.split(/,\s*(?=[^,]+?\s*-\s*[^,]+?\[)/);
-        const parsedExt = rawExtItems
-          .map((itemStr: string) => {
-            const m = itemStr.trim().match(
-              /^(.+?)\s*-\s*(.+?)(?:\s*\{([^}]+)\})?\s*\[(.+?)\]\s*\((.+?)\)$/,
-            );
-            if (m) {
-              const company = m[1].trim();
-              const productName = m[2].trim();
-              const activeIngredient = m[3]?.trim() || "";
-              let formula = m[4].trim();
-              let customFormula = "";
-              if (formula.startsWith("อื่นๆ") || formula.includes("(")) {
-                const cfMatch = formula.match(/อื่นๆ\s*\((.+)\)/);
-                if (cfMatch) {
-                  customFormula = cfMatch[1].trim();
-                  formula = "อื่นๆ";
-                }
-              }
-              const applicationRate = m[5].trim();
-              return {
-                company,
-                productName,
-                activeIngredient,
-                formula,
-                customFormula,
-                applicationRate,
-              };
-            }
-            return null;
-          })
-          .filter(Boolean);
-        if (parsedExt.length > 0) {
-          result.t7ExternalProducts = parsedExt;
-        }
-      }
-    }
-    const yieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*(.+)/);
-    if (yieldMatch && yieldMatch[1]) {
-      result.t7FinalYieldKg = yieldMatch[1].replace(/[^0-9.]/g, "");
-    }
-    const controlMatch = summaryText.match(/ผลผลิตแปลงควบคุม:\s*(.+)/);
-    if (controlMatch && controlMatch[1]) {
-      result.t7ControlYieldKg = controlMatch[1].replace(/[^0-9.]/g, "");
-    }
-    const incMatch = summaryText.match(/%\s*ผลผลิตเพิ่มขึ้น:\s*(.+)/);
-    if (incMatch && incMatch[1]) {
-      result.t7YieldIncreasePercent = incMatch[1].replace(/[^0-9.]/g, "");
-    }
-    const satMatch = summaryText.match(/ความพึงพอใจเกษตรกร:\s*(\d)/);
-    if (satMatch && satMatch[1]) {
-      result.t7FarmerSatisfaction = parseInt(satMatch[1]) || 5;
-    }
-    const comMatch = summaryText.match(/โอกาสสั่งซื้อจริง:\s*(.+)/);
-    if (comMatch && comMatch[1]) {
-      result.t7CommercialPotential = comMatch[1].split("\n")[0].trim();
-    }
-    const finalNotesMatch = summaryText.match(
-      /(?:สรุปผลสัมฤทธิ์(?:แปลง)?|รายละเอียดการยุติการทดลอง|สาเหตุการยุติการทดลอง):\s*(.+)/,
-    );
-    if (finalNotesMatch && finalNotesMatch[1]) {
-      result.t7FinalSummaryNotes = finalNotesMatch[1].split("\n")[0].trim();
-    }
-    const t7CropImagesMatch = summaryText.match(
-      /(?:รูปภาพสภาพพืช|ภาพถ่ายสภาพพืช|รูปสภาพพืช|t7CropImages):\s*(\[.+\])/,
-    );
-    if (t7CropImagesMatch && t7CropImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t7CropImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t7CropImages = parsed;
-      } catch (e) {
-        console.error("Failed to parse t7CropImages JSON:", e);
-      }
-    }
-    const t7PlotImagesMatch = summaryText.match(
-      /(?:รูปภาพสภาพแปลง|ภาพถ่ายสภาพแปลง|รูปสภาพแปลง|t7PlotImages):\s*(\[.+\])/,
-    );
-    if (t7PlotImagesMatch && t7PlotImagesMatch[1]) {
-      try {
-        const parsed = JSON.parse(t7PlotImagesMatch[1]);
-        if (Array.isArray(parsed)) result.t7PlotImages = parsed;
-      } catch (e) {
-        console.error("Failed to parse t7PlotImages JSON:", e);
-      }
-    }
-
+    // TYPE_7B: Handled by parseType7bActualResult above
     // TYPE_7A: Handled by parseType7aActualResult above
 
     // Type 8

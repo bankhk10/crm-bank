@@ -101,6 +101,7 @@ export function DetailType7Demo(props: DetailType7DemoProps) {
     return (
       <DetailType7FollowUp
         target={normalizedTarget}
+        targets={props.targets}
         plotName={props.plotName}
         usageMethod={props.usageMethod}
         cropAgeValue={props.cropAgeValue}

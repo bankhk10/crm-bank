@@ -39,6 +39,7 @@ export type { DetailType7FollowUpProps };
 
 export function DetailType7FollowUp({
   target,
+  targets,
   plotName,
   usageMethod,
   cropAgeValue,

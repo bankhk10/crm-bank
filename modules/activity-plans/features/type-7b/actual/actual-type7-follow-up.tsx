@@ -68,6 +68,7 @@ export type { DemoPlotVisitHistoryItem, ActualType7FollowUpProps };
 export function ActualType7FollowUp({
   planType,
   target,
+  targets,
   products = [],
   plotName,
   usageMethod,
@@ -526,7 +527,15 @@ export function ActualType7FollowUp({
       </div>
 
       {/* SECTION 1: PLANNED TARGET CARD */}
-      <Type7bPlanCard target={target} planType={planType} />
+      {targets && targets.length > 0 ? (
+        <div className="space-y-4">
+          {targets.map((t, idx) => (
+            <Type7bPlanCard key={t.id || idx} target={t} planType={planType} />
+          ))}
+        </div>
+      ) : (
+        <Type7bPlanCard target={target} planType={planType} />
+      )}
 
       {/* READ-ONLY INITIAL DATA CARD FOR TYPE_7B (Problem 3.3 Fix: Complete Baseline Plot Data) */}
       {demoPlotData && (

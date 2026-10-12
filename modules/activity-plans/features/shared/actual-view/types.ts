@@ -94,6 +94,7 @@ import type { Type4TargetItem } from "@/modules/activity-plans/features/type-4/t
 import type { Type5TargetItem } from "@/modules/activity-plans/features/type-5/types";
 import type { Type6TargetItem } from "@/modules/activity-plans/features/type-6/types";
 import type { Type7aTargetItem } from "@/modules/activity-plans/features/type-7a/types";
+import type { Type7bTargetItem } from "@/modules/activity-plans/features/type-7b/types";
 
 // Re-export for backward compatibility
 export type Type1TargetStateItem = Type1TargetItem;
@@ -103,6 +104,7 @@ export type Type4TargetStateItem = Type4TargetItem;
 export type Type5TargetStateItem = Type5TargetItem;
 export type Type6TargetStateItem = Type6TargetItem;
 export type Type7aTargetStateItem = Type7aTargetItem;
+export type Type7bTargetStateItem = Type7bTargetItem;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;
@@ -142,31 +144,8 @@ export interface ActualTargetsState {
   };
   t7a?: Type7aTargetItem;
   t7aList?: Type7aTargetItem[];
-  t7b?: {
-    activityType?: string;
-    owner: string;
-    product: string;
-    productId?: string;
-    plannedProductId?: string;
-    crop: string;
-    plots: string;
-    demoProductQuantity: string;
-    demoProducts?: Array<{
-      productId: string;
-      productName: string;
-      quantity: number;
-      unit?: string | null;
-    }>;
-    objective: string;
-    experimentDetail: string;
-    detail: string;
-    targetCondition: string;
-    items: any[];
-    plotName?: string;
-    plotCode?: string;
-    dealerName?: string;
-    dealerCode?: string;
-  };
+  t7b?: Type7bTargetItem;
+  t7bList?: Type7bTargetItem[];
   t8: {
     topic: string;
     products: string;

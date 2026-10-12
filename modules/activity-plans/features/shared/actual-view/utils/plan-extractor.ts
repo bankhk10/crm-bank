@@ -10,6 +10,7 @@ import { extractType4PlanTargets } from "@/modules/activity-plans/features/type-
 import { extractType5PlanTargets } from "@/modules/activity-plans/features/type-5";
 import { extractType6PlanTargets } from "@/modules/activity-plans/features/type-6";
 import { extractType7aPlanTargets } from "@/modules/activity-plans/features/type-7a";
+import { extractType7bPlanTargets } from "@/modules/activity-plans/features/type-7b";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 
 export interface ExtractedPlanData {
@@ -665,27 +666,9 @@ export function extractPlanData(
     targets.t7a = t7aExtracted.primary;
     targets.t7aList = t7aExtracted.list;
 
-    targets.t7b = {
-      ...(prevTargets.t7b || prevTargets.t7),
-      ...commonT7Data,
-      activityType: "FOLLOW_UP",
-      plotName: firstT7bPlot?.plotName || t7Plot?.name || "",
-      plotCode: t7Plot?.code || "",
-      dealerName:
-        firstT7bPlot?.dealerStoreName ||
-        (t7Plot as any)?.customer?.name ||
-        "",
-      dealerCode: (t7Plot as any)?.customer?.customerCode || "",
-      detail: t7bDetail,
-      objective: t7bDetail,
-      demoProducts: t7bProducts.map((pr: any) => ({
-        productId: pr.productId,
-        productName: pr.productName || (pr.product as any)?.name || "",
-        quantity: pr.quantity ?? pr.targetQuantity ?? 1,
-        targetQuantity: pr.targetQuantity ?? pr.quantity ?? 1,
-        unit: pr.unit || (pr.product as any)?.unit || null,
-      })),
-    };
+    const t7bExtracted = extractType7bPlanTargets(p, prevTargets.t7b || prevTargets.t7);
+    targets.t7b = t7bExtracted.primary;
+    targets.t7bList = t7bExtracted.list;
   }
 
   // TYPE 8: Meeting / Attendees

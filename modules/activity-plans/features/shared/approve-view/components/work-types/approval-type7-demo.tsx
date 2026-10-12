@@ -36,5 +36,11 @@ export function ApprovalType7Demo({
     );
   }
 
-  return <ApprovalType7bDemo isVisible={isVisible} target={target} />;
+  return (
+    <ApprovalType7bDemo
+      isVisible={isVisible}
+      target={target}
+      targets={targets}
+    />
+  );
 }
