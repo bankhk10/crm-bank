@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Type12TourDataPayload } from "../shared/types";
-import { validateType12FormValues } from "../create/validation";
+import type { Type12TourDataPayload } from "../types";
+import { validateType12FormValues } from "../application/validation";
 
 export interface UseType12FormOptions {
   initial?: any;

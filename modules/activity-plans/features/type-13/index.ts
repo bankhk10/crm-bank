@@ -1,53 +1,96 @@
+// ==========================================
 // Types
-export * from "./types";
+// ==========================================
+export type {
+  Type13PlotProduct,
+  Type13WithdrawnProductLine,
+  Type13PlotItem,
+  Type13ExternalProduct,
+  Type13SprayingProduct,
+  Type13SprayingRoundAttachment,
+  Type13SprayingRound,
+  DealerOption,
+  ProductOption,
+  Type13PlanStorePayload,
+  Type13ActualProductState,
+  Type13PlotActualState,
+  Type13TargetItem,
+  Type13PlanTarget,
+  Type13PlanCardProps,
+  Type13CreateProps,
+  Type13EditProps,
+  Type13PlanFormProps,
+  Type13ActualProps,
+  Type13ActualFormProps,
+  UseType13ActualStateResult,
+  Type13DetailActualProduct,
+  Type13DetailExternalProduct,
+  Type13DetailSprayRound,
+  Type13DetailData,
+  Type13DetailProps,
+  DetailType13AttackProps,
+  Type13DetailViewProps,
+  Type13ApprovalProps,
+  Type13ApprovalCardProps,
+  ValidateType13Params,
+  ValidateType13Options,
+  Type13ValidationResult,
+} from "./types";
 
-// Shared Types & Components
-export * from "./shared/types";
+export { TYPE13_MAX_IMAGES_PER_VILLAGE } from "./types";
+
+// ==========================================
+// Application & Mappers & Validation
+// ==========================================
+export {
+  extractType13PlanTargets,
+  mapType13ToSectionItems,
+} from "./application/mapper";
+
+export {
+  validateType13FormValues,
+  validateType13Actual,
+} from "./application/validation";
+
+// ==========================================
+// Components (Vertical Slice)
+// ==========================================
 export {
   Type13PlanCard,
-  type Type13PlanCardProps,
-} from "./shared/type13-plan-card";
+} from "./components/type13-plan-card";
 
-// Create
-export { Type13Create } from "./create/type13-create";
-export type { Type13CreateProps } from "./create/types";
-export { validateType13FormValues } from "./create/validation";
-
-// Edit
-export { Type13Edit } from "./edit/type13-edit";
-export type { Type13EditProps } from "./edit/types";
-
-// Detail
-export { Type13Detail } from "./detail/type13-detail";
-export { DetailType13Attack, type DetailType13AttackProps } from "./detail/detail-type13-attack";
-export type { Type13DetailProps, Type13DetailData, Type13DetailSprayRound, Type13DetailActualProduct, Type13DetailExternalProduct } from "./detail/types";
-
-// Approval
-export { Type13Approval } from "./approval/type13-approval";
-export type { Type13ApprovalProps } from "./approval/types";
-
-// Actual
-export { Type13Actual } from "./actual/type13-actual";
-export type {
-  Type13ActualProps,
-  Type13PlotActualState,
-  Type13ActualProductState,
-} from "./actual/types";
 export {
-  useType13ActualState,
-  default as defaultUseType13ActualState,
-} from "./actual/use-type13-actual-state";
+  Type13PlanForm,
+  Type13Create,
+  Type13Edit,
+} from "./components/type13-plan-form";
 
-// Hook
+export {
+  Type13ActualForm,
+  Type13Actual,
+} from "./components/type13-actual-form";
+
+export {
+  Type13DetailView,
+  DetailType13Attack,
+  Type13Detail,
+} from "./components/type13-detail-view";
+
+export {
+  Type13ApprovalCard,
+  Type13Approval,
+} from "./components/type13-approval-card";
+
+// ==========================================
+// Hooks
+// ==========================================
 export {
   useType13Form,
   type UseType13FormOptions,
   type UseType13FormResult,
 } from "./hooks/use-type13-form";
 
-// Application Layer
 export {
-  extractType13PlanTargets,
-  mapType13ToSectionItems,
-} from "./application/mapper";
-export { type13Strategy } from "./application/type13.strategy";
+  useType13ActualState,
+  useType13Actual,
+} from "./hooks/use-type13-actual";

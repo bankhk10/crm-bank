@@ -3,9 +3,9 @@ import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   Type13PlotItem as FormType13PlotItem,
   Type13WithdrawnProductLine,
-} from "../shared/types";
+} from "../types";
 import type { Type13PlotItem } from "@/modules/activity-plans/application/validations";
-import { validateType13FormValues } from "../create/validation";
+import { validateType13FormValues } from "../application/validation";
 
 export interface UseType13FormOptions {
   initial?: any;

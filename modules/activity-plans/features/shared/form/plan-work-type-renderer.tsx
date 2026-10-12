@@ -14,8 +14,8 @@ import { Type7Demo } from "./components/work-types/type7-demo";
 import { Type8Meeting } from "@/modules/activity-plans/features/type-8";
 import { Type9Store } from "@/modules/activity-plans/features/type-9";
 import { Type10FieldDay } from "@/modules/activity-plans/features/type-10";
-import { Type11Stock } from "@/modules/activity-plans/features/type-11/create/type11-stock";
-import { Type12Tour } from "@/modules/activity-plans/features/type-12/create/type12-tour";
+import { Type11Stock } from "@/modules/activity-plans/features/type-11";
+import { Type12Tour } from "@/modules/activity-plans/features/type-12";
 import { Type13Create } from "@/modules/activity-plans/features/type-13";
 import { Type14Create } from "@/modules/activity-plans/features/type-14";
 

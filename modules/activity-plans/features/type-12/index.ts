@@ -1,45 +1,65 @@
-// Domain Types
+// ==========================================
+// Types
+// ==========================================
 export type {
   TourType,
   TourSize,
   CustomerOption,
+  EditCustomerOption,
   Type12TourDataPayload,
   Type12TargetItem,
+  Type12PlanTarget,
   Type12PlanItem,
   Type12PlanCardProps,
+  Type12TourProps,
+  Type12PlanFormProps,
   DetailType12TourProps,
+  Type12DetailViewProps,
   ApprovalType12TourProps,
+  Type12ApprovalCardProps,
+  ValidateType12Params,
+  ValidateType12Options,
+  Type12ValidationResult,
 } from "./types";
 
-// Pure Mappers
+// ==========================================
+// Application & Mappers & Validation
+// ==========================================
 export {
   extractType12PlanTargets,
   mapType12ToSectionItems,
 } from "./application/mapper";
 
-// Shared Components
+export {
+  validateType12FormValues,
+} from "./application/validation";
+
+// ==========================================
+// Components (Vertical Slice)
+// ==========================================
 export {
   Type12PlanCard,
-} from "./shared/type12-plan-card";
+} from "./components/type12-plan-card";
 
-// Create
-export { Type12Tour } from "./create/type12-tour";
-export type { Type12TourProps } from "./create/types";
-export { validateType12FormValues } from "./create/validation";
-
-// Edit
 export {
+  Type12PlanForm,
+  Type12Tour,
   EditType12Tour,
-  type EditCustomerOption,
-} from "./edit/edit-type12";
+} from "./components/type12-plan-form";
 
-// Detail
-export { DetailType12Tour } from "./detail/detail-type12-tour";
+export {
+  Type12DetailView,
+  DetailType12Tour,
+} from "./components/type12-detail-view";
 
-// Approval
-export { ApprovalType12Tour } from "./approval/approval-type12-tour";
+export {
+  Type12ApprovalCard,
+  ApprovalType12Tour,
+} from "./components/type12-approval-card";
 
-// Hook
+// ==========================================
+// Hooks
+// ==========================================
 export {
   useType12Form,
   type UseType12FormOptions,

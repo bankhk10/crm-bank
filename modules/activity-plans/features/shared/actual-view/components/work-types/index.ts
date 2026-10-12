@@ -8,5 +8,5 @@ export * from "./actual-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/components/type8-actual-form";
 export * from "@/modules/activity-plans/features/type-9/components/type9-actual-form";
 export * from "@/modules/activity-plans/features/type-10/components/type10-actual-form";
-export * from "@/modules/activity-plans/features/type-11/actual/actual-type11-stock";
+export * from "@/modules/activity-plans/features/type-11/components/type11-actual-form";
 export * from "@/modules/activity-plans/features/type-7b/components/demo-plot-history-modal";

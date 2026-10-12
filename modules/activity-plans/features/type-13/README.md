@@ -2,8 +2,7 @@
 
 > **Work Type Code:** `TYPE_13`  
 > **Label:** ฉีดแปลงแฮตแทค (Hattack Spraying)  
-> **hasActual:** `true` (มีการบันทึกผลงานจริง Actual Outcome + รอบการฉีดพ่น + พิกัด GPS + รูปถ่ายหลังฉีดพ่น)  
-> **Status:** ✅ Relational Strategy Pattern, Multi-Target UI State, Clean Architecture
+> **Status:** ✅ Vertical Slice Architecture, Relational Strategy Pattern, Multi-Plot Workflow
 
 ---
 
@@ -13,94 +12,54 @@ Feature Module `type-13` รับผิดชอบกระบวนการ�
 
 ```mermaid
 flowchart TD
-    subgraph Core Plan
-        AP[activity_plans<br/>Activity Plan Header]
-        APT13[activity_plan_type_13<br/>1:1 Relation with ActivityPlan]
-        PLOTS[activity_plan_type_13_plots<br/>Dealer, จังหวัด, อำเภอ, ตำบล, หมู่บ้าน, จำนวนแปลงตามแผน]
-        PRODS[activity_plan_type_13_products<br/>รายการเบิกสินค้าแฮตแทค]
+    subgraph Plan Phase
+        AP[activity_plans]
+        DPV[demo_plot_visits / type13_plots]
     end
 
-    subgraph Core Actual
-        AR[activity_results<br/>Actual Result Header]
-        ROUNDS[activity_result_spray_rounds<br/>รอบการฉีดพ่น, วิธีการ, อุปกรณ์, ผลตอบสนอง]
-        R_PRODS[activity_result_spray_products<br/>สารเคมี/ยาที่ใช้, อัตราที่ใช้จริง, ปริมาณ]
-        ATTS[activity_attachments<br/>รูปหลังฉีดพ่น สูงสุด 20 รูปต่อหมู่บ้าน]
+    subgraph Actual Phase
+        DP[demo_plots<br/>plotType: HATTACK]
+        DPSR[demo_plot_spray_rounds<br/>roundNumber, sprayDate, equipment]
+        DPSRP[demo_plot_spray_round_products<br/>productId, actualRate, quantityUsed]
+        ATT[activity_attachments<br/>category: demo_plot_after_spray]
     end
 
-    subgraph Views & Approvals
-        PLAN_CARD[Type13PlanCard<br/>Render planned plots & village info]
-        DETAIL[DetailType13Attack<br/>Read-only section view + GPS + Photos]
-        APPROVE[Type13Approval<br/>Approval review view]
-    end
-
-    AP --> APT13
-    APT13 --> PLOTS
-    APT13 --> PRODS
-    AR --> ROUNDS
-    ROUNDS --> R_PRODS
-    AR --> ATTS
-    PLOTS --> PLAN_CARD
-    PLAN_CARD --> DETAIL
-    PLAN_CARD --> APPROVE
+    AP --> DPV
+    DPV --> DP
+    DP --> DPSR
+    DPSR --> DPSRP
+    DP --> ATT
 ```
 
 ---
 
-## 2. Directory Structure
+## 2. Directory Structure (Vertical Slice Architecture)
 
 ```
 modules/activity-plans/features/type-13/
 ├── types/
-│   └── index.ts                 # Domain types (Type13PlotItem, Type13PlotActualState, Type13SprayingRound, etc.)
+│   └── index.ts                 # Consolidated domain types, props & validation contracts
 ├── application/
 │   ├── mapper.ts                # Pure mappers (extractType13PlanTargets, mapType13ToSectionItems)
-│   └── type13.strategy.ts      # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, loadPlan)
-├── shared/
-│   ├── types.ts                 # Re-exports domain types for backward compatibility
-│   └── type13-plan-card.tsx    # Planned plots display card component with village & target count
-├── create/                      # Create form components & validation
-│   ├── type13-create.tsx        # Plan creation form with subdistrict, village, and planned plots count
-│   ├── types.ts
-│   └── validation.ts
-├── edit/                        # Edit form components
-│   ├── type13-edit.tsx
-│   └── types.ts
-├── actual/                      # Actual outcome execution components
-│   ├── type13-actual.tsx        # Actual view with actual plots count, application rate, and max 20 photos
-│   ├── types.ts
-│   ├── use-type13-actual-state.ts # React hook for actual state & photo management (max 20)
-│   └── validation.ts
-├── detail/                      # Read-only Detail view
-│   ├── type13-detail.tsx
-│   ├── detail-type13-attack.tsx
-│   └── types.ts
-├── approval/                    # Approval view
-│   ├── type13-approval.tsx
-│   └── types.ts
+│   ├── validation.ts            # Pure validation functions (validateType13FormValues, validateType13Actual)
+│   └── type13.strategy.ts      # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type13-plan-card.tsx     # Plan overview card
+│   ├── type13-plan-form.tsx     # Plan/Edit creation form (Type13PlanForm / Type13Create / Type13Edit)
+│   ├── type13-actual-form.tsx   # Actual result entry form (Type13ActualForm / Type13Actual)
+│   ├── type13-detail-view.tsx   # Detail view (Type13DetailView / Type13Detail / DetailType13Attack)
+│   └── type13-approval-card.tsx # Approval view (Type13ApprovalCard / Type13Approval)
 ├── hooks/
-│   └── use-type13-form.ts       # React hook for plan form state & payload mapping
-├── index.ts                     # Public API barrel export
-└── README.md                    # Documentation
+│   ├── use-type13-form.ts       # React hook for plan form state & payload mapping
+│   ├── use-type13-actual-state.ts # React hook for actual multi-plot spraying execution
+│   └── use-type13-actual.ts     # Re-export / alias for useType13ActualState
+├── index.ts                     # Public Feature Barrel Export (Client-safe, NO server strategy)
+└── README.md                    # This documentation
 ```
 
 ---
 
-## 3. Data Specification & Features
+## 3. Public API & Isolation Guard
 
-### 3.1 สร้างแผนงาน (Trip Plan)
-1. **เลือก ตำบล (`subdistrict`):** ใช้ `ActivityAddressSelect` แบบ `levels="province-district-subdistrict"` เลือก จังหวัด -> อำเภอ -> ตำบล โดยไม่บังคับรหัสไปรษณีย์
-2. **ช่องกรอก หมู่บ้าน (`village`):** ช่องกรอกข้อความสำหรับระบุชื่อหรือหมู่ที่ของหมู่บ้าน (เช่น "บ้านหนองบัว หมู่ 3")
-3. **ช่องกรอกจำนวนแปลงที่ฉีดในหมู่บ้านนั้น (`plannedPlotsCount`):** ช่องกรอกตัวเลขจำนวนแปลงเป้าหมายที่วางแผนฉีดในหมู่บ้านนั้น
-
-### 3.2 บันทึกผลการปฏิบัติงาน (Trip Plan Actual)
-1. **จำนวนแปลงที่ฉีดจริง (`actualPlotsCount`):** ช่องกรอกตัวเลขจำนวนแปลงที่ปฏิบัติงานฉีดจริงในหมู่บ้านนั้น
-2. **ช่องกรอก อัตราการใช้ (`applicationRate`):** ช่องกรอกข้อความสำหรับระบุอัตราการใช้สารเคมี/ผลิตภัณฑ์ (เช่น "20-30 ซีซี ต่อน้ำ 20 ลิตร" หรือ "50 ซีซี/ไร่")
-3. **ใส่รูป ไม่เกิน 20 รูป ต่อหมู่บ้าน (`afterSprayImages`):** ขยายขีดจำกัดการอัปโหลดรูปภาพหลังฉีดพ่นจาก 5 รูป เป็น **สูงสุด 20 รูป ต่อหมู่บ้าน/แปลง** พร้อม Drag & Drop Dropzone, badge แสดงความคืบหน้า `รูป X/20` และการจำกัดขนาดไฟล์ไม่เกิน 20MB
-
----
-
-## 4. Integration & Registration
-
-- **Type Strategy:** ลงทะเบียนใน `modules/activity-plans/application/strategies/type-registry.ts` (`code: "TYPE_13"`).
-- **Validation:** ตรวจสอบผ่าน `validateType13FormValues` และ Zod Schema ใน `validations.ts` (`type13PlotItemSchema`, `type13PlotsActual`, `type13NewPlots`).
-- **Zero Errors:** ผ่านการตรวจสอบ TypeScript Compiler (`npx tsc --noEmit`) 100%.
+- **Client Components & Hooks:** สามารถ import ตรงจาก `@/modules/activity-plans/features/type-13`
+- **Strategy Isolation:** `type13Strategy` อยู่ใน `application/type13.strategy.ts` เท่านั้น และไม่ได้ re-export ผ่าน `index.ts` เพื่อป้องกัน Server bundle รั่วไหล

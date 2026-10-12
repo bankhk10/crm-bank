@@ -59,8 +59,7 @@ import {
   ApprovalType11Stock,
   ApprovalType12Tour,
 } from "./components/work-types";
-import { Type13Approval } from "@/modules/activity-plans/features/type-13";
-import type { Type13PlotItem } from "@/modules/activity-plans/features/type-13/shared/types";
+import { Type13Approval, type Type13PlotItem } from "@/modules/activity-plans/features/type-13";
 import { Type14Approval } from "@/modules/activity-plans/features/type-14";
 import type { Type14PlanInput } from "@/modules/activity-plans/features/type-14/shared/types";
 import {

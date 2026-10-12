@@ -10,7 +10,7 @@ import {
   deleteActivityPlanImagePaths,
 } from "../utils";
 import { isNonStrictOutcome } from "../constants";
-import { validateType13Actual } from "@/modules/activity-plans/features/type-13/actual/validation";
+import { validateType13Actual } from "@/modules/activity-plans/features/type-13";
 import type { PlanSummaryData, ActualTargetsState } from "../types";
 import type { useActualStatusState } from "./use-actual-status-state";
 import type { ActualTypeHooks } from "./use-actual-orchestrator";

@@ -1,3 +1,7 @@
+// ==========================================
+// Domain & Target Types
+// ==========================================
+
 export type TourType =
   | "ทัวร์กลาง"
   | "ทัวร์ร้านค้า"
@@ -19,6 +23,8 @@ export interface CustomerOption {
   responsibleEmployeeId?: string | null;
 }
 
+export type EditCustomerOption = CustomerOption;
+
 export interface Type12TourDataPayload {
   tourType: "STORE" | "CENTRAL";
   tourSize: "LARGE" | "SMALL" | null;
@@ -39,6 +45,8 @@ export interface Type12TargetItem {
   [key: string]: any;
 }
 
+export type Type12PlanTarget = Type12TargetItem;
+
 export interface Type12PlanItem {
   tourType: "STORE" | "CENTRAL";
   tourSize?: "LARGE" | "SMALL" | null;
@@ -46,6 +54,10 @@ export interface Type12PlanItem {
   storeId?: string | null;
   destination?: string | null;
 }
+
+// ==========================================
+// Component Props Types
+// ==========================================
 
 export interface Type12PlanCardProps {
   isVisible?: boolean;
@@ -61,6 +73,23 @@ export interface Type12PlanCardProps {
   [key: string]: any;
 }
 
+export interface Type12TourProps {
+  readonly?: boolean;
+  type12TourType: string;
+  setType12TourType: (val: string) => void;
+  type12TourSize: string;
+  setType12TourSize: (val: string) => void;
+  type12Country: string;
+  setType12Country: (val: string) => void;
+  type12Store: string;
+  setType12Store: (val: string) => void;
+  type12Destination: string;
+  setType12Destination: (val: string) => void;
+  customers?: CustomerOption[];
+}
+
+export type Type12PlanFormProps = Type12TourProps;
+
 export interface DetailType12TourProps {
   isVisible: boolean;
   target?: Type12TargetItem;
@@ -72,6 +101,8 @@ export interface DetailType12TourProps {
   destination?: string | null;
 }
 
+export type Type12DetailViewProps = DetailType12TourProps;
+
 export interface ApprovalType12TourProps {
   isVisible: boolean;
   target?: Type12TargetItem;
@@ -81,4 +112,26 @@ export interface ApprovalType12TourProps {
   country?: string | null;
   storeName?: string | null;
   destination?: string | null;
+}
+
+export type Type12ApprovalCardProps = ApprovalType12TourProps;
+
+// ==========================================
+// Validation Types
+// ==========================================
+
+export interface ValidateType12Params {
+  selectedWorkTypes: string[];
+  type12TourType: string;
+  type12TourSize: string;
+  type12Country: string;
+  type12Store: string;
+  type12Destination: string;
+}
+
+export type ValidateType12Options = ValidateType12Params;
+
+export interface Type12ValidationResult {
+  isValid: boolean;
+  error?: string;
 }

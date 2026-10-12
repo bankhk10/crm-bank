@@ -1,5 +1,30 @@
 import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
 
+// ==========================================
+// Domain & Target Types
+// ==========================================
+
+export interface Type11StoreItem {
+  storeId: string;
+  storeName: string;
+}
+
+export interface CustomerOption {
+  id: string;
+  name: string;
+  customerCode?: string | null;
+  responsibleEmployeeId?: string | null;
+}
+
+export type EditCustomerOption = CustomerOption;
+
+export interface ProductOption {
+  id?: string;
+  value: string;
+  label: string;
+  subLabel?: string;
+}
+
 export interface Type11TargetStoreItem {
   storeId?: string;
   store?: string;
@@ -15,6 +40,8 @@ export interface Type11TargetItem {
   items?: Type11TargetStoreItem[];
   [key: string]: any;
 }
+
+export type Type11PlanTarget = Type11TargetItem;
 
 export interface Type11StockItem {
   id?: string;
@@ -32,6 +59,8 @@ export interface Type11StockItem {
   isCustom?: boolean;
 }
 
+export type StockCheckItem = Type11StockItem;
+
 export interface Type11PlanItem {
   storeId: string;
   storeName?: string | null;
@@ -43,11 +72,30 @@ export interface Type11ActualRecord {
   t11ProductList?: string;
   t11RemainingQty?: string;
   t11Remarks?: string;
-  t11StockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "ปกติ" | string;
+  t11StockStatus?: "ใกล้หมด" | "ขาดสต็อก" | "";
   t11ReorderOpportunity?: "สูง" | "ยังไม่แน่ใจ" | "ต่ำ" | "";
   t11NextAction?: string;
   t11Images?: ImageFile[];
 }
+
+// ==========================================
+// Component Props Types
+// ==========================================
+
+export interface Type11PlanCardProps {
+  target?: Type11TargetItem;
+  planType?: string;
+  className?: string;
+}
+
+export interface Type11StockProps {
+  readonly?: boolean;
+  type11Stores: Type11StoreItem[] | string;
+  setType11Stores: (val: Type11StoreItem[]) => void;
+  customers?: CustomerOption[];
+}
+
+export type Type11PlanFormProps = Type11StockProps;
 
 export interface ActualType11StockProps {
   isVisible: boolean;
@@ -69,6 +117,8 @@ export interface ActualType11StockProps {
   setImages?: (v: ImageFile[]) => void;
 }
 
+export type Type11ActualFormProps = ActualType11StockProps;
+
 export interface DetailType11StockProps {
   isVisible: boolean;
   target?: Type11TargetItem;
@@ -83,8 +133,35 @@ export interface DetailType11StockProps {
   images?: ImageFile[];
 }
 
+export type Type11DetailViewProps = DetailType11StockProps;
+
 export interface ApprovalType11StockProps {
   isVisible: boolean;
   target?: Type11TargetItem;
   targets?: Type11TargetItem[];
+}
+
+export type Type11ApprovalCardProps = ApprovalType11StockProps;
+
+// ==========================================
+// Validation Types
+// ==========================================
+
+export interface ValidateType11Options {
+  selectedWorkTypes?: string[];
+  stores?: Type11StoreItem[] | string;
+}
+
+export interface Type11ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+export interface Type11StockItemInput {
+  productId?: string;
+  productName?: string;
+  remainingQty?: string | number;
+  reorderOpportunity?: string;
+  remarks?: string;
+  stockStatus?: string;
 }

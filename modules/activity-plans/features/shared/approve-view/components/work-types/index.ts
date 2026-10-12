@@ -8,5 +8,5 @@ export * from "./approval-type7-demo";
 export * from "@/modules/activity-plans/features/type-8/components/type8-approval-card";
 export * from "@/modules/activity-plans/features/type-9/components/type9-approval-card";
 export * from "@/modules/activity-plans/features/type-10/components/type10-approval-card";
-export * from "@/modules/activity-plans/features/type-11/approval/approval-type11-stock";
-export * from "@/modules/activity-plans/features/type-12/approval/approval-type12-tour";
+export * from "@/modules/activity-plans/features/type-11/components/type11-approval-card";
+export * from "@/modules/activity-plans/features/type-12/components/type12-approval-card";
