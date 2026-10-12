@@ -10,17 +10,19 @@ import type {
   Type8FarmerChannel,
   CustomerOption,
   ProductOption,
-} from "../shared/types";
-import type { Type8MeetingProps } from "./types";
+  Type8MeetingProps,
+  Type8PlanFormProps,
+} from "../types";
 
 export type {
   CustomerOption,
   ProductOption,
   Type8MeetingProps,
+  Type8PlanFormProps,
   Type8MeetingProps as Props,
 };
 
-export function Type8Meeting({
+export function Type8PlanForm({
   readonly = false,
   type8Items,
   addType8Row,
@@ -914,3 +916,5 @@ export function Type8Meeting({
     </div>
   );
 }
+
+export const Type8Meeting = Type8PlanForm;

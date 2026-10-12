@@ -1,6 +1,5 @@
 import type { ActivityPlanWithRelations } from "../../../types";
 import { WORK_TYPES } from "../../../constants";
-import { decodeType8StoreNotes } from "../../type-8/shared/type8-notes";
 import { mapType1StoresToSectionItems } from "@/modules/activity-plans/features/type-1";
 import { mapType2ToSectionItems } from "@/modules/activity-plans/features/type-2";
 import { mapType3ToSectionItems } from "@/modules/activity-plans/features/type-3";
@@ -8,7 +7,10 @@ import { mapType4ToSectionItems } from "@/modules/activity-plans/features/type-4
 import { mapType5ToSectionItems } from "@/modules/activity-plans/features/type-5";
 import { mapType7aToSectionItems } from "@/modules/activity-plans/features/type-7a";
 import { mapType7bToSectionItems } from "@/modules/activity-plans/features/type-7b";
-import { mapType8ToSectionItems } from "@/modules/activity-plans/features/type-8";
+import {
+  decodeType8StoreNotes,
+  mapType8ToSectionItems,
+} from "@/modules/activity-plans/features/type-8";
 import { mapType9ToSectionItems } from "@/modules/activity-plans/features/type-9";
 import { mapType10ToSectionItems } from "@/modules/activity-plans/features/type-10";
 import { mapType11ToSectionItems } from "@/modules/activity-plans/features/type-11";

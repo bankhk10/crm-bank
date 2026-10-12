@@ -21,23 +21,25 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import { Type10PlanCard } from "../shared/type10-plan-card";
-import {
+import { Type10PlanCard } from "./type10-plan-card";
+import type {
   Type10SoldProductItem,
   SoldProductItem,
   ActualType10FieldDayProps,
-} from "./types";
+  Type10ActualFormProps,
+} from "../types";
 
 export type {
   Type10SoldProductItem,
   SoldProductItem,
   ActualType10FieldDayProps,
+  Type10ActualFormProps,
 };
 
 const CUSTOM_PRODUCT_VALUE = "__CUSTOM_PRODUCT__";
 const EMPTY_PRODUCTS: Array<{ id: string; name: string; productCode?: string | null; price?: number } | string> = [];
 
-export function ActualType10FieldDay({
+export function Type10ActualForm({
   isVisible,
   planType,
   target,
@@ -855,3 +857,5 @@ export function ActualType10FieldDay({
     </div>
   );
 }
+
+export const ActualType10FieldDay = Type10ActualForm;

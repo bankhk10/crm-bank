@@ -38,26 +38,21 @@ flowchart TD
 ```
 modules/activity-plans/features/type-10/
 ├── types/
-│   └── index.ts               # Domain types (Type10TargetItem, Type10SoldProductItem, Type10PlanItem, etc.)
+│   └── index.ts               # Domain types, UI Props, and form validation interfaces
 ├── application/
 │   ├── mapper.ts              # Pure mappers (extractType10PlanTargets, parseType10ActualResult, mapType10ToSectionItems)
-│   └── type10.strategy.ts    # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, saveActual, loadPlan)
-├── shared/
-│   ├── types.ts               # Shared models (Type10SoldProductItem, ProductOption)
-│   └── type10-plan-card.tsx  # Planned Field Day display card component
-├── create/                    # Create form components & sub-components (type10-field-day, validation)
-├── edit/                      # Edit form components (edit-type10)
-├── actual/
-│   ├── types.ts               # Re-exports domain types
-│   ├── actual-type10-field-day.tsx # Actual result execution form & product sales
-│   └── use-type10-actual.ts   # React hook for actual state & gallery uploads
-├── detail/
-│   └── detail-type10-field-day.tsx # Read-only result view with Lightbox modal
-├── approval/
-│   └── approval-type10-field-day.tsx # Approval view rendering Type10PlanCard(s)
+│   ├── validation.ts          # Pure form validation functions
+│   └── type10.strategy.ts    # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type10-plan-card.tsx  # Planned Field Day display card component (supports PLANNED/UNPLANNED)
+│   ├── type10-plan-form.tsx  # Create/Edit form component
+│   ├── type10-actual-form.tsx # Actual result execution form & product sales
+│   ├── type10-detail-view.tsx # Read-only result view with Lightbox modal
+│   └── type10-approval-card.tsx# Approval view rendering Type10PlanCard(s)
 ├── hooks/
-│   └── use-type10-form.ts     # React hook for creation/edit form state & payload mapping
-├── index.ts                   # Public Feature Barrel Export (pure mappers & types, NO server strategies)
+│   ├── use-type10-form.ts     # React hook for creation/edit form state & payload mapping
+│   └── use-type10-actual.ts   # React hook for actual state & gallery uploads
+├── index.ts                   # Public Feature Barrel Export (pure components, hooks, mappers & types; NO server strategies)
 └── README.md                  # This documentation
 ```
 

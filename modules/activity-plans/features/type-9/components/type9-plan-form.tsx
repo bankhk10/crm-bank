@@ -8,17 +8,19 @@ import type {
   Type9ProductItem,
   CustomerOption,
   ProductOption,
-} from "../shared/types";
-import type { Type9StoreProps } from "./types";
+  Type9StoreProps,
+  Type9PlanFormProps,
+} from "../types";
 
 export type {
   CustomerOption,
   ProductOption,
   Type9StoreProps,
+  Type9PlanFormProps,
   Type9StoreProps as Props,
 };
 
-export function Type9Store({
+export function Type9PlanForm({
   readonly = false,
   subdealerId,
   setSubdealerId,
@@ -500,3 +502,5 @@ export function Type9Store({
     </div>
   );
 }
+
+export const Type9Store = Type9PlanForm;

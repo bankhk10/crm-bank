@@ -5,9 +5,9 @@ export * from "@/modules/activity-plans/features/type-4/components/type4-detail-
 export * from "@/modules/activity-plans/features/type-5/components/type5-detail-view";
 export * from "@/modules/activity-plans/features/type-6/components/type6-detail-view";
 export * from "./detail-type7-demo";
-export * from "@/modules/activity-plans/features/type-8/detail/detail-type8-meeting";
-export * from "@/modules/activity-plans/features/type-9/detail/detail-type9-store";
-export * from "@/modules/activity-plans/features/type-10/detail/detail-type10-field-day";
+export * from "@/modules/activity-plans/features/type-8/components/type8-detail-view";
+export * from "@/modules/activity-plans/features/type-9/components/type9-detail-view";
+export * from "@/modules/activity-plans/features/type-10/components/type10-detail-view";
 export * from "@/modules/activity-plans/features/type-11/detail/detail-type11-stock";
 export * from "@/modules/activity-plans/features/type-12/detail/detail-type12-tour";
 export * from "@/modules/activity-plans/features/type-13/detail/detail-type13-attack";

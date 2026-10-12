@@ -6,7 +6,7 @@ import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
-import { validateType8Actual } from "./validation";
+import { validateType8Actual } from "../application/validation";
 
 export { validateType8Actual };
 

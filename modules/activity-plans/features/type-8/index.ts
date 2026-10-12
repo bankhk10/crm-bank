@@ -1,4 +1,4 @@
-// Domain Types
+// Domain & Component Types
 export type {
   Type8MeetingTarget,
   Type8FarmerChannel,
@@ -7,14 +7,28 @@ export type {
   Type8MeetingItem,
   CustomerOption,
   ProductOption,
+  EditProductOption,
   ProductSaleDetail,
   Type8PromotionalProductLine,
   Type8TargetItem,
   Type8PlanItem,
   Type8ActualRecord,
+  Type8PlanTarget,
+  Type8PlanCardProps,
+  Type8MeetingProps,
+  Type8PlanFormProps,
   ActualType8MeetingProps,
+  Type8ActualFormProps,
   DetailType8MeetingProps,
+  Type8DetailViewProps,
   ApprovalType8MeetingProps,
+  Type8ApprovalCardProps,
+  ValidateType8Options,
+  Type8ValidationResult,
+  Type8ActualValidationInput,
+  DecodedType8Notes,
+  UseType8FormOptions,
+  UseType8FormResult,
 } from "./types";
 
 // Application Layer (Pure Mappers - Safe for Client)
@@ -24,33 +38,40 @@ export {
   mapType8ToSectionItems,
 } from "./application/mapper";
 
-// UI Components & Cards
-export {
-  Type8PlanCard,
-  type Type8PlanCardProps,
-  type Type8PlanTarget,
-} from "./shared/type8-plan-card";
-export { Type8Meeting } from "./create/type8-meeting";
-export type { Type8MeetingProps } from "./create/types";
+// Application Layer (Pure Validation - Safe for Client)
 export {
   validateType8FormItems,
-  type ValidateType8Options,
-  type Type8ValidationResult,
-} from "./create/validation";
-export {
-  EditType8Meeting,
-  type EditProductOption,
-} from "./edit/edit-type8";
-export { DetailType8Meeting } from "./detail/detail-type8-meeting";
-export { ApprovalType8Meeting } from "./approval/approval-type8-meeting";
-export { ActualType8Meeting } from "./actual/actual-type8-meeting";
-export { useType8Actual } from "./actual/use-type8-actual";
-export {
-  useType8Form,
-  type UseType8FormOptions,
-  type UseType8FormResult,
-} from "./hooks/use-type8-form";
+  validateType8Actual,
+} from "./application/validation";
+
+// Application Layer (Notes utilities - Safe for Client)
 export {
   encodeType8StoreNotes,
   decodeType8StoreNotes,
-} from "./shared/type8-notes";
+} from "./application/notes";
+
+// UI Components (Vertical Slice Standard)
+export { Type8PlanCard } from "./components/type8-plan-card";
+export {
+  Type8PlanForm,
+  Type8Meeting,
+} from "./components/type8-plan-form";
+export { Type8PlanForm as EditType8Meeting } from "./components/type8-plan-form";
+export {
+  Type8ActualForm,
+  ActualType8Meeting,
+} from "./components/type8-actual-form";
+export {
+  Type8DetailView,
+  DetailType8Meeting,
+} from "./components/type8-detail-view";
+export {
+  Type8ApprovalCard,
+  ApprovalType8Meeting,
+} from "./components/type8-approval-card";
+
+// React Hooks
+export {
+  useType8Form,
+} from "./hooks/use-type8-form";
+export { useType8Actual } from "./hooks/use-type8-actual";

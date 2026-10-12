@@ -1,16 +1,9 @@
-export interface ValidateType9Options {
-  selectedWorkTypes?: string[];
-  isUnregisteredSubdealer?: boolean;
-  subDealerStore?: string;
-  subDealerProvince?: string;
-  subDealerDistrict?: string;
-  subdealerId?: string;
-}
+import type {
+  ValidateType9Options,
+  Type9ValidationResult,
+} from "../types";
 
-export interface Type9ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export type { ValidateType9Options, Type9ValidationResult };
 
 /**
  * Pure validation function for TYPE 9 (Promotion Event / Sales Promotion).

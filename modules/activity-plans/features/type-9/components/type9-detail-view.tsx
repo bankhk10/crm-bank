@@ -9,20 +9,22 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-import { Type9PlanCard } from "../shared/type9-plan-card";
-import {
+import { Type9PlanCard } from "./type9-plan-card";
+import type {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
   DetailType9StoreProps,
-} from "../actual/types";
+  Type9DetailViewProps,
+} from "../types";
 
 export type {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
   DetailType9StoreProps,
+  Type9DetailViewProps,
 };
 
-export function DetailType9Store({
+export function Type9DetailView({
   isVisible,
   target,
   targets,
@@ -271,3 +273,5 @@ export function DetailType9Store({
     </div>
   );
 }
+
+export const DetailType9Store = Type9DetailView;

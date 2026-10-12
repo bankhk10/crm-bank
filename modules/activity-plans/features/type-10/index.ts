@@ -1,3 +1,4 @@
+// Domain & Component Types
 export type {
   Type10SoldProductItem,
   ProductOption,
@@ -6,41 +7,57 @@ export type {
   Type10TargetItem,
   Type10PlanItem,
   Type10ActualRecord,
+  Type10PlanTarget,
+  Type10PlanCardProps,
+  Type10FieldDayProps,
+  Type10PlanFormProps,
   ActualType10FieldDayProps,
+  Type10ActualFormProps,
   DetailType10FieldDayProps,
+  Type10DetailViewProps,
   ApprovalType10FieldDayProps,
+  Type10ApprovalCardProps,
+  ValidateType10Options,
+  Type10ValidationResult,
+  UseType10FormOptions,
+  UseType10FormResult,
 } from "./types";
 
+// Application Layer (Pure Mappers - Safe for Client)
 export {
   extractType10PlanTargets,
   parseType10ActualResult,
   mapType10ToSectionItems,
 } from "./application/mapper";
 
-export {
-  Type10PlanCard,
-  type Type10PlanCardProps,
-  type Type10PlanTarget,
-} from "./shared/type10-plan-card";
-
-export { Type10FieldDay } from "./create/type10-field-day";
-export type { Type10FieldDayProps } from "./create/types";
+// Application Layer (Pure Validation - Safe for Client)
 export {
   validateType10FormItems,
-  type ValidateType10Options,
-  type Type10ValidationResult,
-} from "./create/validation";
+} from "./application/validation";
 
-export { EditType10FieldDay } from "./edit/edit-type10";
+// UI Components (Vertical Slice Standard)
+export { Type10PlanCard } from "./components/type10-plan-card";
+export {
+  Type10PlanForm,
+  Type10FieldDay,
+} from "./components/type10-plan-form";
+export { Type10PlanForm as EditType10FieldDay } from "./components/type10-plan-form";
+export {
+  Type10ActualForm,
+  ActualType10FieldDay,
+} from "./components/type10-actual-form";
+export {
+  Type10DetailView,
+  DetailType10FieldDay,
+} from "./components/type10-detail-view";
+export {
+  Type10ApprovalCard,
+  ApprovalType10FieldDay,
+} from "./components/type10-approval-card";
 
-export { DetailType10FieldDay } from "./detail/detail-type10-field-day";
-export { ApprovalType10FieldDay } from "./approval/approval-type10-field-day";
-export { ActualType10FieldDay } from "./actual/actual-type10-field-day";
-export { useType10Actual } from "./actual/use-type10-actual";
-
+// React Hooks & Schemas
 export {
   useType10Form,
-  type UseType10FormOptions,
-  type UseType10FormResult,
   type10SoldProductItemSchema,
 } from "./hooks/use-type10-form";
+export { useType10Actual } from "./hooks/use-type10-actual";

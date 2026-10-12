@@ -38,23 +38,22 @@ flowchart TD
 ```
 modules/activity-plans/features/type-8/
 ├── types/
-│   └── index.ts               # Domain types (Type8TargetItem, Type8PlanItem, Type8ActualRecord, ProductSaleDetail, etc.)
+│   └── index.ts               # Domain types, UI Props, and form validation interfaces
 ├── application/
 │   ├── mapper.ts              # Pure mappers (extractType8PlanTargets, parseType8ActualResult, mapType8ToSectionItems)
-│   └── type8.strategy.ts     # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, saveActual, loadPlan)
-├── shared/
-│   ├── types.ts               # Re-exports from ../types
-│   └── type8-plan-card.tsx   # Planned meeting display card component
-├── create/                    # Create form components & sub-components
-├── edit/                      # Edit form components
-├── actual/
-│   ├── types.ts               # Re-exports domain types
-│   └── actual-type8-meeting.tsx # Actual result execution form & image upload
-├── detail/
-│   └── detail-type8-meeting.tsx # Read-only result view with Lightbox modal
-├── approval/
-│   └── approval-type8-meeting.tsx # Approval view rendering Type8PlanCard(s)
-├── index.ts                   # Public Feature Barrel Export (pure mappers & types, NO server strategies)
+│   ├── validation.ts          # Pure form & actual validation functions
+│   ├── notes.ts               # Storage encoding/decoding utilities (encodeType8StoreNotes, decodeType8StoreNotes)
+│   └── type8.strategy.ts     # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type8-plan-card.tsx   # Planned meeting display card component (supports PLANNED/UNPLANNED)
+│   ├── type8-plan-form.tsx   # Create/Edit form component
+│   ├── type8-actual-form.tsx # Actual result execution form & image upload
+│   ├── type8-detail-view.tsx # Read-only result view with Lightbox modal
+│   └── type8-approval-card.tsx# Approval view rendering Type8PlanCard(s)
+├── hooks/
+│   ├── use-type8-form.ts     # Plan form state management hook
+│   └── use-type8-actual.ts   # Actual form state management hook
+├── index.ts                   # Public Feature Barrel Export (pure components, hooks, mappers & types; NO server strategies)
 └── README.md                  # This documentation
 ```
 

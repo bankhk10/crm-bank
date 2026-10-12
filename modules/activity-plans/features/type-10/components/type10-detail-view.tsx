@@ -19,18 +19,20 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-import { Type10PlanCard } from "../shared/type10-plan-card";
-import {
+import { Type10PlanCard } from "./type10-plan-card";
+import type {
   Type10SoldProductDetail,
   DetailType10FieldDayProps,
-} from "../actual/types";
+  Type10DetailViewProps,
+} from "../types";
 
 export type {
   Type10SoldProductDetail,
   DetailType10FieldDayProps,
+  Type10DetailViewProps,
 };
 
-export function DetailType10FieldDay({
+export function Type10DetailView({
   isVisible,
   target,
   targets,
@@ -390,3 +392,5 @@ export function DetailType10FieldDay({
     </div>
   );
 }
+
+export const DetailType10FieldDay = Type10DetailView;

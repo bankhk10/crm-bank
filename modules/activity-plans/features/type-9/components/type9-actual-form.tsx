@@ -13,20 +13,22 @@ import {
   isImageFilesEqual,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
-import { Type9PlanCard } from "../shared/type9-plan-card";
-import {
+import { Type9PlanCard } from "./type9-plan-card";
+import type {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
   ActualType9StoreProps,
-} from "./types";
+  Type9ActualFormProps,
+} from "../types";
 
 export type {
   Type9TargetProductItem,
   Type9ProductSaleDetail,
   ActualType9StoreProps,
+  Type9ActualFormProps,
 };
 
-export function ActualType9Store({
+export function Type9ActualForm({
   isVisible,
   planType,
   target,
@@ -317,3 +319,5 @@ export function ActualType9Store({
     </div>
   );
 }
+
+export const ActualType9Store = Type9ActualForm;

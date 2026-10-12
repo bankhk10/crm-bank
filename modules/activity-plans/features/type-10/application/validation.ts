@@ -1,13 +1,9 @@
-export interface ValidateType10Options {
-  selectedWorkTypes?: string[];
-  type10DemoPlot?: string;
-  type10Attendees?: number;
-}
+import type {
+  ValidateType10Options,
+  Type10ValidationResult,
+} from "../types";
 
-export interface Type10ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export type { ValidateType10Options, Type10ValidationResult };
 
 /**
  * Pure validation function for TYPE 10 (Field Day).

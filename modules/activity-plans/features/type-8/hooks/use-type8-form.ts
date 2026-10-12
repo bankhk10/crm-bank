@@ -6,12 +6,12 @@ import type {
   Type8MeetingTarget,
   Type8FarmerChannel,
   Type8VenueType,
-} from "../shared/types";
-import { validateType8FormItems } from "../create/validation";
+} from "../types";
+import { validateType8FormItems } from "../application/validation";
 import {
   encodeType8StoreNotes,
   decodeType8StoreNotes,
-} from "../shared/type8-notes";
+} from "../application/notes";
 
 export interface UseType8FormOptions {
   initial?: any;

@@ -1,16 +1,16 @@
 "use client";
 
 import React from "react";
-import { Type9PlanCard } from "../shared/type9-plan-card";
-import type { ApprovalType9StoreProps } from "../actual/types";
+import { Type9PlanCard } from "./type9-plan-card";
+import type { ApprovalType9StoreProps, Type9ApprovalCardProps } from "../types";
 
-export type { ApprovalType9StoreProps };
+export type { ApprovalType9StoreProps, Type9ApprovalCardProps };
 
-export function ApprovalType9Store({
+export function Type9ApprovalCard({
   isVisible,
   target,
   targets,
-}: ApprovalType9StoreProps) {
+}: Type9ApprovalCardProps) {
   if (!isVisible) return null;
 
   if (targets && targets.length > 0) {
@@ -26,3 +26,4 @@ export function ApprovalType9Store({
   return <Type9PlanCard target={target} />;
 }
 
+export const ApprovalType9Store = Type9ApprovalCard;

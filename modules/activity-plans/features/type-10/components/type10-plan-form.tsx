@@ -4,9 +4,9 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { type UserDemoPlotOption } from "@/modules/activity-plans/constants";
 import { getDemoPlotsAction } from "@/modules/activity-plans/server/actions";
 
-import type { Type10FieldDayProps } from "./types";
+import type { Type10FieldDayProps, Type10PlanFormProps } from "../types";
 
-export type { Type10FieldDayProps, Type10FieldDayProps as Props };
+export type { Type10FieldDayProps, Type10PlanFormProps, Type10FieldDayProps as Props };
 
 function getPlotCoordinates(plot?: UserDemoPlotOption | null): string {
   if (!plot) return "-";
@@ -30,7 +30,7 @@ function getPlotCoordinates(plot?: UserDemoPlotOption | null): string {
   return "-";
 }
 
-export function Type10FieldDay({
+export function Type10PlanForm({
   readonly = false,
   isEdit = false,
   type10DemoPlot,
@@ -277,3 +277,5 @@ export function Type10FieldDay({
     </div>
   );
 }
+
+export const Type10FieldDay = Type10PlanForm;

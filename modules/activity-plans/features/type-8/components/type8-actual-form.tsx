@@ -28,13 +28,14 @@ import {
 } from "@/components/activity/activity-product-select";
 import { listProductsAction } from "@/modules/products/server/actions";
 
-import { Type8PlanCard } from "../shared/type8-plan-card";
-import {
+import { Type8PlanCard } from "./type8-plan-card";
+import type {
   ProductSaleDetail,
   ActualType8MeetingProps,
-} from "./types";
+  Type8ActualFormProps,
+} from "../types";
 
-export type { ProductSaleDetail, ActualType8MeetingProps };
+export type { ProductSaleDetail, ActualType8MeetingProps, Type8ActualFormProps };
 
 interface TargetSaleRow {
   productId?: string;
@@ -51,7 +52,7 @@ interface AdditionalSaleRow {
   notes: string;
 }
 
-export function ActualType8Meeting({
+export function Type8ActualForm({
   isVisible,
   planType,
   target,
@@ -679,3 +680,5 @@ export function ActualType8Meeting({
     </div>
   );
 }
+
+export const ActualType8Meeting = Type8ActualForm;

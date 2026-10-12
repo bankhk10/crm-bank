@@ -5,10 +5,9 @@
  * as structured JSON data without losing existing plain text details.
  */
 
-export interface DecodedType8Notes {
-  detail: string;
-  promotions: string[];
-}
+import type { DecodedType8Notes } from "../types";
+
+export type { DecodedType8Notes };
 
 /**
  * Encode meeting detail text and promotion note strings into a storage string.

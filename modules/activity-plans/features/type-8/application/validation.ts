@@ -1,15 +1,11 @@
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import type { Type8MeetingItem } from "../shared/types";
+import type {
+  ValidateType8Options,
+  Type8ValidationResult,
+  Type8ActualValidationInput,
+} from "../types";
 
-export interface ValidateType8Options {
-  items?: Type8MeetingItem[];
-  selectedWorkTypes?: string[];
-}
-
-export interface Type8ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export type { ValidateType8Options, Type8ValidationResult, Type8ActualValidationInput };
 
 /**
  * Pure validation function for TYPE 8 (Meeting & Seminar) form items.
@@ -128,6 +124,33 @@ export function validateType8FormItems({
           };
         }
       }
+    }
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validates TYPE_8 (จัดประชุม / สัมมนา) actual results
+ */
+export function validateType8Actual(
+  input: Type8ActualValidationInput,
+): { isValid: boolean; error?: string } {
+  const { activityResultStatus = "COMPLETED", t8RegistrationImages = [] } = input;
+
+  if (activityResultStatus === "COMPLETED") {
+    const regImagesCount = t8RegistrationImages.length;
+    if (regImagesCount === 0) {
+      return {
+        isValid: false,
+        error: "กรุณาแนบรูปใบลงทะเบียนผู้เข้าร่วมงานอย่างน้อย 1 รูป",
+      };
+    }
+    if (regImagesCount > 5) {
+      return {
+        isValid: false,
+        error: "รูปใบลงทะเบียนผู้เข้าร่วมงานต้องไม่เกิน 5 รูป",
+      };
     }
   }
 

@@ -4,7 +4,7 @@ import type {
   ProductSaleDetail,
   Type8PromotionalProductLine,
 } from "../types";
-import { decodeType8StoreNotes } from "../shared/type8-notes";
+import { decodeType8StoreNotes } from "./notes";
 
 /**
  * Extract Type 8 targets from an ActivityPlan (supporting Multi-Target Meetings)
@@ -74,7 +74,7 @@ export function extractType8PlanTargets(
 
       const promotionalProducts: Type8PromotionalProductLine[] =
         decodedStoreNotes.promotions.length > 0
-          ? decodedStoreNotes.promotions.map((p, pIdx) => ({
+          ? decodedStoreNotes.promotions.map((p: string, pIdx: number) => ({
               id: `promo-${idx}-${pIdx + 1}`,
               productId: "",
               productName: "",

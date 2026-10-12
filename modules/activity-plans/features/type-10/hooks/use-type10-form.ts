@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { isFieldDayItem } from "@/modules/activity-plans/constants";
-import { validateType10FormItems } from "../create/validation";
-import type { Type10SoldProductItem } from "../shared/types";
+import { validateType10FormItems } from "../application/validation";
+import type { Type10SoldProductItem } from "../types";
 
 export interface UseType10FormOptions {
   initial?: any;
@@ -203,5 +203,5 @@ export function useType10Form({
   };
 }
 
-export type { Type10SoldProductItem } from "../shared/types";
+export type { Type10SoldProductItem } from "../types";
 export { type10SoldProductItemSchema } from "@/modules/activity-plans/application/validations";

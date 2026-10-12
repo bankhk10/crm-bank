@@ -38,26 +38,21 @@ flowchart TD
 ```
 modules/activity-plans/features/type-9/
 ├── types/
-│   └── index.ts               # Domain types (Type9TargetItem, Type9TargetProductItem, Type9ProductSaleDetail, etc.)
+│   └── index.ts               # Domain types, UI Props, and form validation interfaces
 ├── application/
 │   ├── mapper.ts              # Pure mappers (extractType9PlanTargets, parseType9ActualResult, mapType9ToSectionItems)
-│   └── type9.strategy.ts     # Server-only WorkTypeStrategy implementation (validatePlan, savePlan, saveActual, loadPlan)
-├── shared/
-│   ├── types.ts               # Shared create options (CustomerOption, ProductOption, Type9ProductItem)
-│   └── type9-plan-card.tsx   # Planned store event display card component
-├── create/                    # Create form components & sub-components (type9-store, validation)
-├── edit/                      # Edit form components (edit-type9)
-├── actual/
-│   ├── types.ts               # Re-exports domain types
-│   ├── actual-type9-store.tsx # Actual result execution form & image upload
-│   └── use-type9-actual.ts    # React hook for actual state & gallery uploads
-├── detail/
-│   └── detail-type9-store.tsx # Read-only result view with Lightbox modal
-├── approval/
-│   └── approval-type9-store.tsx # Approval view rendering Type9PlanCard(s)
+│   ├── validation.ts          # Pure form validation functions
+│   └── type9.strategy.ts     # Server-only WorkTypeStrategy implementation
+├── components/
+│   ├── type9-plan-card.tsx   # Planned store event display card component (supports PLANNED/UNPLANNED)
+│   ├── type9-plan-form.tsx   # Create/Edit form component
+│   ├── type9-actual-form.tsx # Actual result execution form & image upload
+│   ├── type9-detail-view.tsx # Read-only result view with Lightbox modal
+│   └── type9-approval-card.tsx# Approval view rendering Type9PlanCard(s)
 ├── hooks/
-│   └── use-type9-form.ts      # React hook for creation/edit form state & payload mapping
-├── index.ts                   # Public Feature Barrel Export (pure mappers & types, NO server strategies)
+│   ├── use-type9-form.ts      # React hook for creation/edit form state & payload mapping
+│   └── use-type9-actual.ts    # React hook for actual state & gallery uploads
+├── index.ts                   # Public Feature Barrel Export (pure components, hooks, mappers & types; NO server strategies)
 └── README.md                  # This documentation
 ```
 

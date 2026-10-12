@@ -18,15 +18,16 @@ import {
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 
-import { Type8PlanCard } from "../shared/type8-plan-card";
-import {
+import { Type8PlanCard } from "./type8-plan-card";
+import type {
   ProductSaleDetail,
   DetailType8MeetingProps,
-} from "../actual/types";
+  Type8DetailViewProps,
+} from "../types";
 
-export type { ProductSaleDetail, DetailType8MeetingProps };
+export type { ProductSaleDetail, DetailType8MeetingProps, Type8DetailViewProps };
 
-export function DetailType8Meeting({
+export function Type8DetailView({
   isVisible,
   target,
   targets,
@@ -377,3 +378,5 @@ export function DetailType8Meeting({
     </div>
   );
 }
+
+export const DetailType8Meeting = Type8DetailView;
