@@ -2,7 +2,8 @@
 
 > **Module**: `modules/activity-plans/`  
 > **Domain**: แผนงานและผลการปฏิบัติงานของทีมขาย/ส่งเสริมการเกษตร (Trip Plan)  
-> **Status**: Active Standard (Standardized Modular & Relational Architecture)
+> **Architecture Version**: 4.0.0 (Vertical Slice Architecture + Universal Strategy Registry)  
+> **Status**: ACTIVE STANDARD (Single Source of Truth)
 
 ---
 
@@ -10,41 +11,39 @@
 
 | เอกสาร | หมวดหมู่ | คำอธิบาย |
 |---|:---:|---|
-| [architecture.md](./architecture.md) | **Architecture** | สถาปัตยกรรมข้อมูล Activity Plans, 14 Work Types (TYPE 1 – TYPE 14), Modular Features, Pure Validation & Data Normalization |
-| [audit/data-flow-audit.md](./audit/data-flow-audit.md) | **Audit** | การ Audit และ Data Flow ตั้งแต่ Form Creation → DB Transaction → Detail View → Actual Outcome (Historical Record) |
-| [audit/post-implementation-audit.md](./audit/post-implementation-audit.md) | **Audit** | รายงานผลการตรวจสอบสถาปัตยกรรมหลังการ Rebuild Normalization Layers 1–4 (Historical Record) |
+| [architecture.md](./architecture.md) | **Architecture** | สถาปัตยกรรมข้อมูล Activity Plans, 14 Work Types (TYPE 1 – TYPE 14) ตาม Vertical Slice Architecture, Universal Strategy Pattern & Relational Isolation |
+| [audit/data-flow-audit.md](./audit/data-flow-audit.md) | **Audit** | การ Audit และ Data Flow ตั้งแต่ Form Creation → Universal Strategy → DB Transaction → Detail View → Actual Outcome |
+| [audit/post-implementation-audit.md](./audit/post-implementation-audit.md) | **Audit** | รายงานผลการตรวจสอบสถาปัตยกรรมหลังการ Rebuild และ Refactor สู่ Vertical Slice Architecture |
 
 ---
 
-## 🎯 Architecture Summary
+## 🎯 Architecture Summary (v4.0.0)
 
-โมดูล Activity Plans ใช้สถาปัตยกรรม **Standardized Feature-Based Modular Architecture** ร่วมกับ **Normalized Relational Data Architecture** ครอบคลุม **14 Work Types (TYPE 1 – TYPE 14)**:
+โมดูล Activity Plans ใช้สถาปัตยกรรม **Vertical Slice Architecture** ร่วมกับ **Universal Strategy Pattern** และ **Normalized Relational Data Architecture** ครอบคลุม **14 Work Types (TYPE 1 – TYPE 14)**:
 
-### 1. Modular Structure (`features/`)
-- **`planned/`**: จัดการ Entry point, Multi-type Forms, Pre-calculated Budgets และ State Machine สำหรับแผนงานล่วงหน้า
-- **`unplanned/`**: จัดการ Quick execution สำหรับกิจกรรมด่วน/นอกแผน พร้อมบันทึกผลจริงทันที
-- **`type-1/` ถึง `type-14/`**: แยกแต่ละประเภทงานออกเป็น 6 สับโฟลเดอร์มาตรฐาน (`shared/`, `create/`, `edit/`, `actual/`, `detail/`, `approval/`) พร้อม **Pure Validation Layer** (`validation.ts`)
-- **`shared/`**: คอมโพเนนต์และยูทิลิตี้ส่วนกลางที่แชร์ข้ามประเภทงาน
+### 1. Modular Vertical Slices (`features/`)
+- **`type-1/` ถึง `type-14/`**: แต่ละประเภทงานเป็น Self-Contained Vertical Slice ที่สมบูรณ์ในตัวเอง:
+  - `application/`: Business Logic, Pure Validation Layer (`validation.ts`), Mappers, และ Strategy (`typeX.strategy.ts`)
+  - `components/`: UI Components ประจำ Slice (`plan-card`, `plan-form`, `actual-form`, `detail-view`, `approval-card`)
+  - `hooks/`: Form hooks & Execution State hooks (`use-typeX-form`, `use-typeX-actual-state`)
+  - `types/`: Consolidated Type Definitions (Domain, Props, State)
+  - `index.ts`: Client-safe Public Barrel Export (ไม่มีการรั่วไหลของ Server Strategy)
+  - `README.md`: คู่มือประจำ Slice พร้อม Inbound & Outbound Dependencies Mapping
+- **`planned/`**: Entry point สำหรับแผนงานล่วงหน้า (Multi-type Selection, State Machine, Calendar Sync)
+- **`unplanned/`**: Quick execution สำหรับกิจกรรมนอกแผน (บันทึกผลจริงทันที)
+- **`shared/`**: คอมโพเนนต์และยูทิลิตี้ส่วนกลางที่ประสานงานกับแต่ละ Slice (`form`, `actual-view`, `approve-view`, `detail-view`)
 
-### 2. Plan Data (ข้อมูลแผนงาน)
-- **ตารางหลัก:** `activity_plans`
-- **ประเภทงาน (Source of Truth):** `activity_plan_work_types` (ผูกกับ Master `activity_types`)
-- **ร้านค้าเป้าหมาย:** `activity_plan_stores` (FK: `store_id` → `Customer.id`)
-- **สินค้าเป้าหมาย:** `activity_plan_products` (FK: `store_id`, `product_id` → `Product.id`)
-- **ทัวร์ (TYPE 12 - No Actual):** `activity_plan_tours`
-- **แปลงสาธิต (TYPE 7A):** เชื่อมโยงกับ `DemoPlot`
-- **ผู้ช่วยงาน:** `activity_helpers` (FK: `employee_id` → `Employee.id`)
-- **ประวัติการอนุมัติ:** `activity_approval_logs`
+### 2. Application & Strategy Layer (`application/`)
+- **Universal Strategy Registry (`strategies/type-registry.ts`)**: รวมศูนย์การจัดเก็บและเรียกใช้ Strategy ของทั้ง 14 Work Types (`WorkTypeStrategy`)
+- **Validations (`validations.ts`)**: รวมศูนย์ Orchestration Schema ของระบบ พร้อม Re-export Domain Schemas จากแต่ละ Slice
+- **Workflows (`activity-plan-flow.ts`)**: State Machine จัดการวงจรชีวิตของแผนงาน (DRAFT → PENDING → APPROVED / REJECTED / CORRECTION → COMPLETED / CANCELLED)
 
-### 3. Actual Data (ข้อมูลผลงานจริง)
-- **ตารางหลัก:** `activity_results` (1:1 ผูกกับ `activity_plans`)
-- **ผลงานย่อยตามประเภทงาน:**
-  - `activity_result_sale_items` (TYPE 3, 9, 10)
-  - `activity_result_stock_items` (TYPE 11)
-  - `activity_result_survey_items` (TYPE 5)
-  - `activity_result_demo_items` (TYPE 7B DemoPlotVisit)
-- **ไฟล์แนบ/รูปภาพ:** `activity_attachments`
-- **ระบบยาและการติดตามเฉพาะทาง:** Drug Withdrawal Synthesis (TYPE 13) และ Supplemental Drug Withdrawal (TYPE 14)
+### 3. Infrastructure & Persistence Layer (`infrastructure/`)
+- **`activity-plan.repository.ts`**: Core persistence สำหรับบันทึกแผนงาน โดย Delegate การทำงานเฉพาะทางของแต่ละ Type ไปที่ `strategy.savePlan`
+- **`activity-result.repository.ts`**: Core persistence สำหรับผลการปฏิบัติงานจริง โดย Delegate ไปที่ `strategy.saveActual`
+- **`activity-plan-include.ts`**: รวมศูนย์ Prisma Relation Include Tree ทั้งหมดในจุดเดียว ป้องกันโค้ดบวมและรักษา Type Inference 100%
+- **`demo-plot.repository.ts`**: รวมศูนย์การจัดการแปลงสาธิต (General Demo Plots & Hattack Plots)
+- **`employee-lookup.repository.ts` & `product-category.repository.ts`**: แยก Core Lookup Functions ออกจาก Main Repository อย่างเป็นสัดส่วน
 
 ---
 
