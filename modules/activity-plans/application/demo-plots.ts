@@ -1,8 +1,6 @@
 import {
   findFarmerCustomersForPlots,
   findMasterDemoPlots,
-  findFollowUpDemoPlots,
-  findFollowUpActivityPlans,
   findHattackFollowUpActivityPlans,
   findHattackFollowUpDemoPlots,
   findHattackPlotContext,
@@ -12,6 +10,10 @@ import {
   findDemoPlotByOwnerAndCrop,
   recordDemoPlotVisit,
 } from "../infrastructure";
+import {
+  findFollowUpDemoPlots,
+  findFollowUpActivityPlans,
+} from "@/modules/activity-plans/features/type-7b/infrastructure/type-7b.repository";
 import type {
   UserDemoPlotOption,
   FollowUpPlanOption,
@@ -199,7 +201,7 @@ export async function getFollowUpDemoPlotsUseCase() {
   });
 
   const followUpPlots = await findFollowUpDemoPlots();
-  const demoPlots = followUpPlots.map((p) => mapDemoPlotToOption(p, farmerMap));
+  const demoPlots = followUpPlots.map((p: any) => mapDemoPlotToOption(p, farmerMap));
 
   return {
     success: true as const,
@@ -214,9 +216,9 @@ export async function getFollowUpDemoPlotsUseCase() {
 export async function getFollowUpPlansWithPlotsUseCase() {
   const plans = await findFollowUpActivityPlans();
 
-  const options: FollowUpPlanOption[] = plans
-    .filter((plan) => plan.demoPlotVisits && plan.demoPlotVisits.length > 0)
-    .map((plan) => {
+  const options: FollowUpPlanOption[] = (plans as any[])
+    .filter((plan: any) => plan.demoPlotVisits && plan.demoPlotVisits.length > 0)
+    .map((plan: any) => {
       const planDate = plan.startDate
         ? new Date(plan.startDate).toLocaleDateString("th-TH", {
             year: "numeric",
@@ -232,11 +234,11 @@ export async function getFollowUpPlansWithPlotsUseCase() {
         owner.includes("ชื่อ-สกุล");
 
       const rawPlots = plan.demoPlotVisits
-        .map((v) => v.demoPlot)
-        .filter((p): p is NonNullable<typeof p> => Boolean(p));
+        .map((v: any) => v.demoPlot)
+        .filter((p: any): p is NonNullable<typeof p> => Boolean(p));
 
       // Sort: prioritize plots with real ownerName, then by newest code/ID
-      rawPlots.sort((a, b) => {
+      rawPlots.sort((a: any, b: any) => {
         const aPl = isPlaceholderOwner(a.ownerName);
         const bPl = isPlaceholderOwner(b.ownerName);
         if (aPl && !bPl) return 1;
@@ -279,7 +281,7 @@ export async function getFollowUpPlansWithPlotsUseCase() {
         plots,
       };
     })
-    .filter((opt) => opt.plots.length > 0);
+    .filter((opt: any) => opt.plots.length > 0);
 
   return {
     success: true as const,

@@ -1,4 +1,4 @@
-﻿import { randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 import {
   Prisma,
@@ -19,9 +19,9 @@ import {
   getWorkTypeCode,
 } from "../constants";
 import { getTypeStrategy } from "../application/strategies/type-registry";
-import type { Type7aPlotInput } from "./type-7a.repository";
-import type { Type13DataInput, Type13PlotInput } from "./type-13.repository";
-import type { Type14DataInput } from "./type-14.repository";
+import type { Type7aPlotInput } from "@/modules/activity-plans/features/type-7a/infrastructure/type-7a.repository";
+import type { Type13DataInput, Type13PlotInput } from "@/modules/activity-plans/features/type-13/infrastructure/type-13.repository";
+import type { Type14DataInput } from "@/modules/activity-plans/features/type-14/infrastructure/type-14.repository";
 import type { Type7bDataInput } from "@/modules/activity-plans/features/type-7b/types";
 import {
   createDemoPlotForPlan,
