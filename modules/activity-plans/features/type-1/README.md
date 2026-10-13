@@ -273,3 +273,25 @@ nextMeetingTopic: actual.nextMeetingTopic?.trim() || null,
 ## 📦 7. Public Export (`index.ts`)
 
 ภายนอกโมดูลสามารถเรียกใช้ Component, Hook, Mapper, Validation และ Types ของ Type 1 ผ่าน `@/modules/activity-plans/features/type-1` โดยตรง
+
+## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
+
+### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
+| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกข้อมูล activity_plan_type_1_stores และ type1Result |
+| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
+| **Application** | `getWorkTypeCode` | [`modules/activity-plans/constants/index.ts`](file:///modules/activity-plans/constants/index.ts) | Normalize รหัส Work Type |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls, convertToFileMetadata` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดและจัดการ URL รูปภาพการเข้าพบ |
+| **External Module** | `listCustomersAction, ActivityCustomerSelect` | [`modules/customers/server/actions.ts / components/activity`](file:///modules/customers/server/actions.ts / components/activity) | ค้นหาและเลือกร้านค้า Dealer หรือเกษตรกร |
+
+### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
+| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
+|---|---|---|---|
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type1Strategy` | ลงทะเบียน Handler เพื่อให้ Core Flow เรียก savePlan, saveActual อัตโนมัติ |
+| **Repository Query** | [`modules/activity-plans/infrastructure/activity-plan-include.ts`](file:///modules/activity-plans/infrastructure/activity-plan-include.ts) | `type1Stores, type1Result` | Eager load ข้อมูลร้านค้าและผลลัพธ์ใน findActivityPlanById |
+| **Actual Repository** | [`modules/activity-plans/infrastructure/activity-result.repository.ts`](file:///modules/activity-plans/infrastructure/activity-result.repository.ts) | `getTypeStrategy("TYPE_1").saveActual` | บันทึกผลการเข้าพบจริงแยกตาราง dedicated |
+| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType1StoresToSectionItems` | แปลงข้อมูลร้านค้าเป็น Section Items ในหน้ารายละเอียด |
+| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type1ApprovalCard` | การ์ดแสดงผลสรุปร้านค้าในหน้าจอผู้อนุมัติ |
+| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type1ActualForm, Type1Actual` | ฟอร์มบันทึกผลการเข้าพบจริง |
+

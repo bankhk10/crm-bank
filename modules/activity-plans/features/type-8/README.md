@@ -96,3 +96,22 @@ Type 8 รองรับการจัดประชุมหลายสถ�
 - `targets.t8`: รายการเป้าหมายแรกสำหรับ fallback
 - `targets.t8List`: รายการเป้าหมายการจัดประชุมทั้งหมด
 - ส่วนประกอบ UI ทั้งหมด (`ActualType8Meeting`, `DetailType8Meeting`, `ApprovalType8Meeting`) รองรับ prop `targets?: Type8TargetItem[]` เพื่อแสดงการ์ดเป้าหมายอย่างครบถ้วนทุกรายการ
+
+## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
+
+### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
+| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกข้อมูล targetAttendeesCount และเป้าหมาย |
+| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดรูปภาพการประชุมเกษตรกร |
+| **External Module** | `listCustomersAction` | [`modules/customers/server/actions.ts`](file:///modules/customers/server/actions.ts) | เลือกร้านค้าหรือพื้นที่เป้าหมาย |
+
+### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
+| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
+|---|---|---|---|
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type8Strategy` | ลงทะเบียน Handler สำหรับ Type 8 |
+| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType8ToSectionItems` | แปลงข้อมูลเพื่อแสดงเป้าหมายและจำนวนผู้เข้าร่วมใน Detail View |
+| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type8ApprovalCard` | การ์ดแสดงผลในหน้าอนุมัติ |
+| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type8ActualForm` | ฟอร์มบันทึกผลการประชุมกลุ่มเกษตรกร |
+

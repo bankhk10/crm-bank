@@ -203,3 +203,23 @@ import { type3Strategy } from "@/modules/activity-plans/features/type-3/applicat
 2. **Type Safety & Decoupling**:
    - ผ่านการทดสอบ Type Checking ด้วย `npx tsc --noEmit` โดยไม่มีข้อผิดพลาด (Exit code 0)
    - โมดูล Type 3 ไม่มีการ Import ย้อนกลับไปยัง Shared Views (Zero Circular Dependency)
+
+## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
+
+### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
+| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกข้อมูล activity_plan_type_3_targets และ products |
+| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดรูปภาพกิจกรรมร้านค้า |
+| **External Module** | `listCustomersAction, listProductsAction` | [`modules/customers/server/actions.ts, modules/products/server/actions.ts`](file:///modules/customers/server/actions.ts, modules/products/server/actions.ts) | ค้นหาร้านค้าและสินค้าที่ร่วมจัดกิจกรรม |
+
+### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
+| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
+|---|---|---|---|
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type3Strategy` | ลงทะเบียน Handler สำหรับ Type 3 |
+| **Repository Query** | [`modules/activity-plans/infrastructure/activity-plan-include.ts`](file:///modules/activity-plans/infrastructure/activity-plan-include.ts) | `type3Targets` | Eager load ข้อมูลร้านค้าและสินค้าใน findActivityPlanById |
+| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType3ToSectionItems` | แปลงข้อมูลกิจกรรมร้านค้าเพื่อแสดงใน Detail View |
+| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type3ApprovalCard` | การ์ดแสดงผลในหน้าอนุมัติ |
+| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type3ActualForm` | ฟอร์มบันทึกผลกิจกรรมร่วมร้านค้า |
+

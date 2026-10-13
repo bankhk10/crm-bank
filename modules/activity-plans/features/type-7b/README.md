@@ -111,3 +111,27 @@ modules/activity-plans/features/type-7b/
   - `detail-activity-result-section.tsx`: ส่ง `targets={targets.t7bList}` เข้าสู่ `DetailType7Demo` (`mode="TYPE_7B"`)
   - `activity-plan-detail-view.tsx`: ส่ง `targets={targets.t7bList}` เข้าสู่ `ApprovalType7Demo` สำหรับ TYPE_7B
   - `activity-plan-approval-detail-view.tsx`: ส่ง `targets={targets.t7bList}` เข้าสู่ `ApprovalType7Demo` สำหรับ TYPE_7B
+
+## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
+
+### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
+| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกข้อมูล activity_plan_type_7b และ demoPlotVisits |
+| **Infrastructure** | `findFollowUpDemoPlots, findFollowUpActivityPlans` | [`modules/activity-plans/features/type-7b/infrastructure/type-7b.repository.ts`](file:///modules/activity-plans/features/type-7b/infrastructure/type-7b.repository.ts) | ดึงรายการแปลงสาธิตและแผนต้นทาง TYPE_7A เพื่อนำมาติดตามผล |
+| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
+| **Application** | `type7bProductSchema, type7bPlotSchema, type7bPlanInputSchema` | [`modules/activity-plans/features/type-7b/application/validation.ts`](file:///modules/activity-plans/features/type-7b/application/validation.ts) | Zod Validation Schema ของ Type 7B |
+| **Server Actions** | `getFollowUpPlansWithPlotsAction, getFollowUpDemoPlotsAction` | [`modules/activity-plans/server/actions.ts`](file:///modules/activity-plans/server/actions.ts) | ดึงรายการแปลงและแผนต้นทางเพื่อแสดงใน Combobox เลือกแปลง |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดรูปภาพผลการติดตามแปลงสาธิต |
+
+### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
+| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
+|---|---|---|---|
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type7bStrategy` | ลงทะเบียน Handler สำหรับ Type 7B |
+| **Plan Repository** | [`modules/activity-plans/infrastructure/activity-plan.repository.ts`](file:///modules/activity-plans/infrastructure/activity-plan.repository.ts) | `getTypeStrategy("TYPE_7B").savePlan` | บันทึก relation การติดตามแปลงสาธิต |
+| **Validation Layer** | [`modules/activity-plans/application/validations.ts`](file:///modules/activity-plans/application/validations.ts) | `type7bPlanInputSchema, type7bPlotSchema` | นำเข้า Zod Schema เพื่อตรวจสอบความถูกต้องในระดับภาพรวม |
+| **Repository Query** | [`modules/activity-plans/infrastructure/activity-plan-include.ts`](file:///modules/activity-plans/infrastructure/activity-plan-include.ts) | `type7b, demoPlotVisits` | Eager load ข้อมูลการติดตามและรอบการฉีดพ่นใน findActivityPlanById |
+| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType7bToSectionItems` | แปลงข้อมูลเพื่อแสดงใน Detail View |
+| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type7bApprovalCard` | การ์ดแสดงผลในหน้าอนุมัติ |
+| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type7bActualForm, Type7bHistoryModal` | ฟอร์มบันทึกผลและ Modal ประวัติแปลง |
+

@@ -95,3 +95,26 @@ Type 10 รองรับการจัดงาน Field Day ที่มี�
 - `targets.t10`: รายการแปลงเป้าหมายแรกสำหรับ fallback
 - `targets.t10List`: รายการแปลงเป้าหมาย Field Day ทั้งหมด
 - ส่วนประกอบ UI ทั้งหมด (`ActualType10FieldDay`, `DetailType10FieldDay`, `ApprovalType10FieldDay`) รองรับ prop `targets?: Type10TargetItem[]` เพื่อแสดงการ์ดเป้าหมายอย่างครบถ้วนทุกแปลง
+
+## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
+
+### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
+| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
+|---|---|---|---|
+| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกข้อมูลงาน Field Day และ DemoPlotVisit |
+| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
+| **Application** | `type10SoldProductItemSchema` | [`modules/activity-plans/features/type-10/application/validation.ts`](file:///modules/activity-plans/features/type-10/application/validation.ts) | Zod Validation Schema สำหรับสินค้าที่ขายได้ในงาน |
+| **Server Actions** | `getDemoPlotsAction` | [`modules/activity-plans/server/actions.ts`](file:///modules/activity-plans/server/actions.ts) | ดึงรายการแปลงสาธิตสำหรับจัดงาน Field Day |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดรูปภาพบรรยากาศงานและยอดขาย |
+| **External Module** | `listProductsAction` | [`modules/products/server/actions.ts`](file:///modules/products/server/actions.ts) | ค้นหาสินค้าสำหรับบันทึกยอดขายจริง |
+
+### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
+| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
+|---|---|---|---|
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type10Strategy` | ลงทะเบียน Handler สำหรับ Type 10 |
+| **Validation Layer** | [`modules/activity-plans/application/validations.ts`](file:///modules/activity-plans/application/validations.ts) | `type10SoldProductItemSchema` | นำเข้า Zod Schema เพื่อตรวจสอบยอดขายใน activityResultSchema |
+| **Repository Query** | [`modules/activity-plans/infrastructure/activity-plan-include.ts`](file:///modules/activity-plans/infrastructure/activity-plan-include.ts) | `demoPlotVisits, result.saleResults` | Eager load ข้อมูลแปลงสาธิตและยอดขายใน findActivityPlanById |
+| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType10ToSectionItems` | แปลงข้อมูล Field Day เพื่อแสดงใน Detail View |
+| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type10ApprovalCard` | การ์ดแสดงผลในหน้าอนุมัติ |
+| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type10ActualForm` | ฟอร์มบันทึกผลงาน Field Day และยอดขาย |
+
