@@ -10,14 +10,16 @@ import {
   createActivityPlan,
   updateActivityPlan,
   softDeleteActivityPlan,
-  upsertActivityResult,
   findActivityTypes,
   findProductCategories,
   findOrCreateEmployeeForUser,
   type ListActivityPlansParams,
-  type CreateActivityResultInput,
   type CreateActivityPlanInput,
 } from "../infrastructure/activity-plan.repository";
+import {
+  upsertActivityResult,
+  type CreateActivityResultInput,
+} from "../infrastructure/activity-result.repository";
 import {
   ActivityPlanType,
   ActivityStatus,
@@ -1061,8 +1063,8 @@ export {
   findActivityTypes,
   findActivityTypeByCode,
   resolveActivityTypeId,
-  findApprovalQueueData,
 } from "../infrastructure/activity-plan.repository";
+export { findApprovalQueueData } from "../infrastructure/activity-approval.repository";
 export {
   getApproverDirectoryUseCase,
   formatEmployeeName,

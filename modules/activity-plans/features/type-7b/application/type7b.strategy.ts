@@ -6,7 +6,7 @@ import type {
 import {
   syncType7bData,
   findType7bByPlanId,
-} from "@/modules/activity-plans/infrastructure/type-7b.repository";
+} from "../infrastructure/type-7b.repository";
 
 export const type7bStrategy: WorkTypeStrategy = {
   code: "TYPE_7B",

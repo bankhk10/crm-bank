@@ -11,7 +11,7 @@ import {
   findDemoPlotByIdOrName,
   findDemoPlotByOwnerAndCrop,
   recordDemoPlotVisit,
-} from "../infrastructure/activity-plan.repository";
+} from "../infrastructure";
 import type {
   UserDemoPlotOption,
   FollowUpPlanOption,

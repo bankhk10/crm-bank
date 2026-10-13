@@ -7,3 +7,5 @@ export * from "./type-7a.repository";
 export * from "./type-7b.repository";
 export * from "./type-13.repository";
 export * from "./type-14.repository";
+export * from "./employee-lookup.repository";
+export * from "./product-category.repository";

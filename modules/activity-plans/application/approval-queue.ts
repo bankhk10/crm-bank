@@ -1,4 +1,4 @@
-import { findApprovalQueueData } from "../infrastructure/activity-plan.repository";
+import { findApprovalQueueData } from "../infrastructure/activity-approval.repository";
 import { db } from "@/lib/db";
 import {
   canUserPerformApproval,

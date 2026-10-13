@@ -7,7 +7,7 @@ import {
   syncType7aPlots,
   findType7aByPlanId,
   Type7aPlotInput,
-} from "@/modules/activity-plans/infrastructure/type-7a.repository";
+} from "../infrastructure/type-7a.repository";
 
 export const type7aStrategy: WorkTypeStrategy = {
   code: "TYPE_7A",

@@ -18,37 +18,12 @@ import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
 } from "../constants";
-import {
-  createType7aPlots,
-  syncType7aPlots,
-  Type7aPlotInput,
-} from "./type-7a.repository";
-import { createType7bData, syncType7bData } from "./type-7b.repository";
-import { createType13Data, syncType13Data, Type13DataInput } from "./type-13.repository";
-import { createType14Data, syncType14Data, Type14DataInput } from "./type-14.repository";
-import { type1Strategy } from "../features/type-1/application/type1.strategy";
-import { type2Strategy } from "../features/type-2/application/type2.strategy";
-import { type3Strategy } from "../features/type-3/application/type3.strategy";
-import { type4Strategy } from "../features/type-4/application/type4.strategy";
-import { type5Strategy } from "../features/type-5/application/type5.strategy";
-import { type6Strategy } from "../features/type-6/application/type6.strategy";
-import { type7aStrategy } from "../features/type-7a/application/type7a.strategy";
-import { type7bStrategy } from "../features/type-7b/application/type7b.strategy";
-import { type8Strategy } from "../features/type-8/application/type8.strategy";
-import { type9Strategy } from "../features/type-9/application/type9.strategy";
-import { type10Strategy } from "../features/type-10/application/type10.strategy";
-import { type11Strategy } from "../features/type-11/application/type11.strategy";
-import { type12Strategy } from "../features/type-12/application/type12.strategy";
-import { upsertActivityResult, CreateActivityResultInput } from "./activity-result.repository";
-export { upsertActivityResult, type CreateActivityResultInput };
+import { getTypeStrategy } from "../application/strategies/type-registry";
+import type { Type7aPlotInput } from "./type-7a.repository";
+import type { Type13DataInput } from "./type-13.repository";
+import type { Type14DataInput } from "./type-14.repository";
+import { upsertActivityResult } from "./activity-result.repository";
 
-export * from "./demo-plot.repository";
-export * from "./type-7a.repository";
-export * from "./type-7b.repository";
-export * from "./type-13.repository";
-export * from "./type-14.repository";
-export * from "./activity-result.repository";
-export * from "./activity-approval.repository";
 
 export type ListActivityPlansParams = {
   page?: number;
@@ -1217,10 +1192,7 @@ export async function createActivityPlan(
           });
         }
 
-        // 1.2 Create Tour if present
-        await type12Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3 Create Stores if present
+        // 1.2 Create Stores if present
         if (input.planStores && input.planStores.length > 0) {
           await tx.activityPlanStore.createMany({
             data: input.planStores.map((s) => ({
@@ -1243,36 +1215,6 @@ export async function createActivityPlan(
             })),
           });
         }
-
-        // 1.3.1 Persist dedicated Type 1 store records if present
-        await type1Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.2 Persist dedicated Type 2 records if present
-        await type2Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.3 Persist dedicated Type 3 records if present
-        await type3Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.4 Persist dedicated Type 4 records if present
-        await type4Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.5 Persist dedicated Type 5 records if present
-        await type5Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.6 Persist dedicated Type 6 records if present
-        await type6Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.7 Persist dedicated Type 8 records if present
-        await type8Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.8 Persist dedicated Type 9 records if present
-        await type9Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.9 Persist dedicated Type 10 records if present
-        await type10Strategy.savePlan(tx, plan.id, input);
-
-        // 1.3.10 Persist dedicated Type 11 records if present
-        await type11Strategy.savePlan(tx, plan.id, input);
 
         // 1.4 Create Products if present
         if (input.planProducts && input.planProducts.length > 0) {
@@ -1438,42 +1380,27 @@ export async function createActivityPlan(
           }
         }
 
-        // 1.8 TYPE_13 ("ฉีดแปลงแฮตแทค"): ActivityPlanType13 + ActivityPlanType13Plot + ActivityPlanType13Product
-        if (input.type13Data || (input.type13Plots && input.type13Plots.length > 0)) {
-          const t13Payload: Type13DataInput = input.type13Data || {
-            plots: input.type13Plots?.map((p, idx) => ({
-              ...p,
-              plotIndex: idx + 1,
-            })),
-          };
-          await createType13Data(
-            tx,
-            plan.id,
-            t13Payload,
-            input.startDate,
-            input.employeeId,
+        // 1.8 Execute Work Type Strategies
+        const activeStrategyCodes = new Set<string>();
+        for (const wtCode of workTypeCodes) {
+          activeStrategyCodes.add(getWorkTypeCode(wtCode));
+        }
+        if (input.tourData) activeStrategyCodes.add("TYPE_12");
+        if (input.type13Data || (input.type13Plots && input.type13Plots.length > 0)) activeStrategyCodes.add("TYPE_13");
+        if (input.type14Data) activeStrategyCodes.add("TYPE_14");
+        if (input.type7aPlots !== undefined || input.demoPlotData !== undefined) activeStrategyCodes.add("TYPE_7A");
+        if (input.type7bData) activeStrategyCodes.add("TYPE_7B");
+        if (input.planStores && input.planStores.length > 0) {
+          ["TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_8", "TYPE_9", "TYPE_10", "TYPE_11"].forEach((c) =>
+            activeStrategyCodes.add(c),
           );
         }
 
-        // 1.9 TYPE_14 ("ติดตามแปลงแฮทแทค"): ActivityPlanType14 + ActivityPlanType14Plot + ActivityPlanType14Product
-        if (input.type14Data) {
-          await createType14Data(
-            tx,
-            plan.id,
-            input.type14Data,
-            input.startDate,
-            input.employeeId,
-          );
-        }
-
-        // 1.8.1 TYPE_7A ("ทำแปลงสาธิตใหม่"): Strategy pattern handling ActivityPlanType7a + Products + DemoPlot
-        if (input.type7aPlots !== undefined || input.demoPlotData !== undefined) {
-          await type7aStrategy.savePlan(tx, plan.id, input);
-        }
-
-        // 1.8.2 TYPE_7B ("ติดตามแปลงสาธิต"): Strategy pattern handling ActivityPlanType7b + Plots + Products + Visits
-        if (input.type7bData) {
-          await type7bStrategy.savePlan(tx, plan.id, input);
+        for (const code of activeStrategyCodes) {
+          const strategy = getTypeStrategy(code);
+          if (strategy) {
+            await strategy.savePlan(tx as any, plan.id, input);
+          }
         }
 
         // 3. Create Helpers
@@ -1704,7 +1631,10 @@ export async function updateActivityPlan(
 
     // 1.2 Sync Tour
     if (tourData !== undefined) {
-      await type12Strategy.savePlan(tx, id, { tourData });
+      const strategy = getTypeStrategy("TYPE_12");
+      if (strategy) {
+        await strategy.savePlan(tx as any, id, { tourData });
+      }
     }
 
     // 1.3 Sync Stores
@@ -1732,16 +1662,28 @@ export async function updateActivityPlan(
           })),
         });
       }
-      await type1Strategy.savePlan(tx, id, { planStores });
-      await type2Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type3Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type4Strategy.savePlan(tx, id, { planStores });
-      await type5Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type6Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type8Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type9Strategy.savePlan(tx, id, { planStores, planProducts });
-      await type10Strategy.savePlan(tx, id, planData);
-      await type11Strategy.savePlan(tx, id, { ...planData, planStores });
+      const storeCodes = [
+        "TYPE_1",
+        "TYPE_2",
+        "TYPE_3",
+        "TYPE_4",
+        "TYPE_5",
+        "TYPE_6",
+        "TYPE_8",
+        "TYPE_9",
+        "TYPE_10",
+        "TYPE_11",
+      ];
+      for (const code of storeCodes) {
+        const strategy = getTypeStrategy(code);
+        if (strategy) {
+          await strategy.savePlan(tx as any, id, {
+            ...planData,
+            planStores,
+            planProducts,
+          });
+        }
+      }
     }
 
     // 1.4 Sync Products
@@ -1773,8 +1715,12 @@ export async function updateActivityPlan(
       }
 
       if (planStores === undefined) {
-        await type2Strategy.savePlan(tx, id, { planProducts });
-        await type3Strategy.savePlan(tx, id, { planProducts });
+        for (const code of ["TYPE_2", "TYPE_3"]) {
+          const strategy = getTypeStrategy(code);
+          if (strategy) {
+            await strategy.savePlan(tx as any, id, { planProducts });
+          }
+        }
       }
     }
 
@@ -1947,55 +1893,52 @@ export async function updateActivityPlan(
       await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: id } });
     }
 
-    // 1.8 Sync TYPE_13 Data
+    // 1.8 Sync TYPE_13 Data via Strategy
     if (planData.type13Data !== undefined || planData.type13Plots !== undefined) {
-      const t13Payload: Type13DataInput | null =
-        planData.type13Data !== undefined
-          ? planData.type13Data
-          : planData.type13Plots
-            ? {
-                plots: planData.type13Plots.map((p, idx) => ({
-                  ...p,
-                  plotIndex: idx + 1,
-                })),
-              }
-            : null;
-      await syncType13Data(
-        tx,
-        id,
-        t13Payload,
-        updatedPlan.startDate,
-        updatedPlan.employeeId,
-      );
+      const strategy = getTypeStrategy("TYPE_13");
+      if (strategy) {
+        await strategy.savePlan(tx as any, id, {
+          ...planData,
+          startDate: updatedPlan.startDate,
+          employeeId: updatedPlan.employeeId,
+        });
+      }
     }
 
-    // 1.9 Sync TYPE_14 Data
+    // 1.9 Sync TYPE_14 Data via Strategy
     if (planData.type14Data !== undefined) {
-      await syncType14Data(
-        tx,
-        id,
-        planData.type14Data,
-        updatedPlan.startDate,
-        updatedPlan.employeeId,
-      );
+      const strategy = getTypeStrategy("TYPE_14");
+      if (strategy) {
+        await strategy.savePlan(tx as any, id, {
+          ...planData,
+          startDate: updatedPlan.startDate,
+          employeeId: updatedPlan.employeeId,
+        });
+      }
     }
 
     // 1.9.1 Sync TYPE_7A Data via Strategy
     if (planData.type7aPlots !== undefined || planData.demoPlotData !== undefined) {
-      await type7aStrategy.savePlan(tx, id, {
-        ...planData,
-        startDate: updatedPlan.startDate,
-        employeeId: updatedPlan.employeeId,
-      });
+      const strategy = getTypeStrategy("TYPE_7A");
+      if (strategy) {
+        await strategy.savePlan(tx as any, id, {
+          ...planData,
+          startDate: updatedPlan.startDate,
+          employeeId: updatedPlan.employeeId,
+        });
+      }
     }
 
-    // 1.9.2 Sync TYPE_7B Data
+    // 1.9.2 Sync TYPE_7B Data via Strategy
     if (planData.type7bData !== undefined) {
-      await type7bStrategy.savePlan(tx, id, {
-        ...planData,
-        startDate: updatedPlan.startDate,
-        employeeId: updatedPlan.employeeId,
-      });
+      const strategy = getTypeStrategy("TYPE_7B");
+      if (strategy) {
+        await strategy.savePlan(tx as any, id, {
+          ...planData,
+          startDate: updatedPlan.startDate,
+          employeeId: updatedPlan.employeeId,
+        });
+      }
     }
 
     // 3. Sync Helpers if provided
@@ -2127,104 +2070,5 @@ export async function softDeleteActivityPlan(id: string) {
 
 
 
-/**
- * Retrieve employee profile by ID
- */
-export async function findEmployeeById(id: string) {
-  return db.employee.findFirst({
-    where: { id, deletedAt: null },
-    include: {
-      position: true,
-      department: true,
-    },
-  });
-}
-
-/**
- * Retrieve employee profile by user ID
- */
-export async function findEmployeeByUserId(userId: string) {
-  return db.employee.findFirst({
-    where: { userId, deletedAt: null },
-    include: {
-      position: true,
-      department: true,
-    },
-  });
-}
-
-/**
- * Retrieve or auto-create employee profile for logged-in user
- */
-export async function findOrCreateEmployeeForUser(
-  userId: string,
-  userName?: string,
-  userEmail?: string,
-) {
-  let employee = await db.employee.findFirst({
-    where: { userId, deletedAt: null },
-    include: {
-      position: true,
-      department: true,
-    },
-  });
-
-  if (employee) return employee;
-
-  if (userEmail) {
-    employee = await db.employee.findFirst({
-      where: { email: userEmail, deletedAt: null },
-      include: {
-        position: true,
-        department: true,
-      },
-    });
-
-    if (employee) {
-      if (!employee.userId) {
-        await db.employee.update({
-          where: { id: employee.id },
-          data: { userId },
-        });
-      }
-      return employee;
-    }
-  }
-
-  const name = userName || "พนักงาน";
-  const email = userEmail || `user-${userId}@crm.local`;
-
-  const existingEmail = await db.employee.findFirst({ where: { email } });
-  const finalEmail = existingEmail
-    ? `emp-${userId.slice(-6)}@crm.local`
-    : email;
-
-  return db.employee.create({
-    data: {
-      name,
-      email: finalEmail,
-      userId,
-    },
-    include: {
-      position: true,
-      department: true,
-    },
-  });
-}
-
-
-
-/**
- * Find all active product categories (ProductCategory)
- */
-export async function findProductCategories() {
-  return db.productCategory.findMany({
-    where: { deletedAt: null },
-    orderBy: { code: "asc" },
-    select: {
-      id: true,
-      code: true,
-      description: true,
-    },
-  });
-}
+export * from "./employee-lookup.repository";
+export * from "./product-category.repository";

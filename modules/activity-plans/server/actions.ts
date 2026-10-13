@@ -801,7 +801,7 @@ export async function getFarmerCustomersAction() {
 export async function getFarmerCustomerOptionsAction(province?: string) {
   try {
     const { findFarmerCustomerOptions } =
-      await import("../infrastructure/activity-plan.repository");
+      await import("../infrastructure/demo-plot.repository");
     const farmers = await findFarmerCustomerOptions(province);
     return serialize({
       success: true as const,
@@ -822,7 +822,7 @@ export async function getFarmerCustomerOptionsAction(province?: string) {
 export async function getDealerAndSubdealerCustomerOptionsAction() {
   try {
     const { findDealerAndSubdealerCustomerOptions } =
-      await import("../infrastructure/activity-plan.repository");
+      await import("../infrastructure/demo-plot.repository");
     const stores = await findDealerAndSubdealerCustomerOptions();
     return serialize({
       success: true as const,
