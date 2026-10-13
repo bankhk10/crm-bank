@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   ValidateType7aOptions,
@@ -366,3 +367,148 @@ export function validateType7aActual(input: Type7aActualValidationInput): {
 
   return { isValid: true };
 }
+
+// ── TYPE_7A ("ทำแปลงสาธิตใหม่") Zod Schemas ───────────────────────────
+export const type7aPlotProductSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().optional().nullable(),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().optional().nullable(),
+  targetQuantity: z.coerce.number().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  sortOrder: z.number().optional().default(0),
+});
+
+export const type7aPlotItemSchema = z.object({
+  id: z.string().optional(),
+  plotName: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  storeId: z.string().optional().nullable(),
+  ownerName: z.string().optional().nullable(),
+  ownerPhone: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  cropCategory: z.string().optional().nullable(),
+  cropName: z.string().optional().nullable(),
+  customCropName: z.string().optional().nullable(),
+  areaRai: z.coerce.number().optional().nullable(),
+  treeCount: z.coerce.number().int().optional().nullable(),
+  objective: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  chemicalGroupId: z.string().optional().nullable(),
+  hasProducts: z.boolean().optional().default(false),
+  demoPlotId: z.string().optional().nullable(),
+  demoProducts: z.array(type7aPlotProductSchema).optional().default([]),
+  products: z.array(type7aPlotProductSchema).optional().default([]),
+});
+
+export const type7aDemoPlotProductInputSchema = z.object({
+  id: z.string().optional().nullable(),
+  productId: z.string().min(1, "กรุณาเลือกสินค้าสาธิต"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.01, "จำนวนสินค้าต้องมากกว่า 0"),
+  plannedQuantity: z.coerce.number().optional().nullable(),
+  remainingQuantity: z.coerce.number().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  applicationRate: z.string().optional().nullable().default("-"),
+  isAdditional: z.boolean().optional().nullable(),
+});
+
+export const type7aDemoPlotExternalProductInputSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/เคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type7aDemoPlotInputSchema = z
+  .object({
+    customerId: z.string().optional().nullable(),
+    farmerCustomerId: z.string().optional().nullable(),
+    ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
+    ownerPhone: z.string().optional().nullable(),
+    ownerProvince: z.string().optional().nullable(),
+    ownerDistrict: z.string().optional().nullable(),
+    isUnregisteredFarmer: z.boolean().default(false),
+    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+    district: z.string().optional().nullable(),
+    latitude: z.coerce.number({ required_error: "กรุณาระบุละติจูด" }),
+    longitude: z.coerce.number({ required_error: "กรุณาระบุลองจิจูด" }),
+    plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
+    dealerName: z.string().optional().nullable(),
+    cropCategory: z.string().min(1, "กรุณาระบุหมวดพืช"),
+    cropName: z.string().min(1, "กรุณาระบุชื่อพืช"),
+    customCropName: z.string().optional().nullable(),
+    areaRai: z.coerce.number().optional().nullable(),
+    treeCount: z.coerce.number().int().optional().nullable(),
+    objective: z.string().optional().nullable(),
+    experimentDetail: z.string().optional().nullable(),
+    mainCropInfo: z.string().optional().nullable(),
+    plantingDate: z.coerce.date().optional().nullable(),
+    initialSprayDate: z.coerce.date().optional().nullable(),
+    nextSprayDate: z.coerce.date().optional().nullable(),
+    sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+    hasExternalChemicals: z.boolean().default(false),
+    demoProducts: z
+      .array(type7aDemoPlotProductInputSchema)
+      .min(1, "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ"),
+    externalProducts: z
+      .array(type7aDemoPlotExternalProductInputSchema)
+      .max(4, "ยาภายนอกระบุได้สูงสุด 4 รายการ")
+      .optional()
+      .default([]),
+    irrigations: z.array(z.string()).default([]),
+    usageMethod: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+    cropAgeValue: z.coerce.number().int().optional().nullable(),
+    cropAgeUnit: z.string().default("วัน"),
+    growthStage: z.string().optional().nullable(),
+    cropCondition: z.string().optional().nullable(),
+    productResponse: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.isUnregisteredFarmer) {
+        return (
+          typeof data.ownerName === "string" &&
+          data.ownerName.trim().length > 0 &&
+          typeof data.ownerProvince === "string" &&
+          data.ownerProvince.trim().length > 0 &&
+          typeof data.ownerDistrict === "string" &&
+          data.ownerDistrict.trim().length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อ จังหวัด และอำเภอของเกษตรกร",
+      path: ["ownerDistrict"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.sprayMethod === "TANK_MIXED" && data.hasExternalChemicals) {
+        for (const ep of data.externalProducts || []) {
+          if (
+            ep.formula === "อื่นๆ" &&
+            (!ep.customFormula || !ep.customFormula.trim())
+          ) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    {
+      message: "กรณีเลือกสูตรยา 'อื่นๆ' กรุณาระบุรายละเอียด",
+      path: ["externalProducts"],
+    },
+  );
+
+export type Type7aPlotProduct = z.infer<typeof type7aPlotProductSchema>;
+export type Type7aPlotItem = z.infer<typeof type7aPlotItemSchema>;

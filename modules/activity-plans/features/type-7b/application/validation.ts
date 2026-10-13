@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   ValidateType7bOptions,
@@ -185,3 +186,49 @@ export function validateType7bActual(
 
   return { isValid: true };
 }
+
+// ── TYPE_7B ("ติดตามแปลงสาธิต") Zod Schemas ──────────────────────────
+export const type7bProductSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().optional().nullable(),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().optional().nullable(),
+  targetQuantity: z.coerce.number().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  sortOrder: z.number().optional().default(0),
+});
+
+export const type7bPlotSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().optional().nullable(),
+  plotName: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  cropName: z.string().optional().nullable(),
+  ownerName: z.string().optional().nullable(),
+  farmerName: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  district: z.string().optional().nullable(),
+  areaRai: z.coerce.number().optional().nullable(),
+  treeCount: z.coerce.number().int().optional().nullable(),
+  dealerName: z.string().optional().nullable(),
+  dealerStoreName: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const type7bPlanInputSchema = z.object({
+  sourceActivityPlanId: z.string().optional().nullable(),
+  selectedPlanId: z.string().optional().nullable(),
+  selectedPlotIds: z.array(z.string()).optional().default([]),
+  demoPlotId: z.string().optional().nullable(),
+  hasProducts: z.boolean().optional().default(false),
+  notes: z.string().optional().nullable(),
+  plots: z.array(type7bPlotSchema).optional().default([]),
+  withdrawnProducts: z.array(type7bProductSchema).optional().default([]),
+  products: z.array(type7bProductSchema).optional().default([]),
+});
+
+export type Type7bProduct = z.infer<typeof type7bProductSchema>;
+export type Type7bPlot = z.infer<typeof type7bPlotSchema>;
+export type Type7bPlanInput = z.infer<typeof type7bPlanInputSchema>;

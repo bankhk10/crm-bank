@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   ValidateType14Params,
@@ -146,3 +147,53 @@ export function validateType14Actual(
 
   return { isValid: true };
 }
+
+// ── TYPE_14 ("ติดตามแปลงแฮทแทค") Zod Schemas ────────────────────────────
+export const type14TrackingItemSchema = z.object({
+  id: z.string().optional(),
+  visitDate: z.union([z.string(), z.date()]),
+  daysSinceStart: z.number().min(0, "จำนวนวันหลังฉีดพ่นต้องไม่ติดลบ"),
+  notes: z.string().optional().nullable(),
+  attachments: z
+    .array(z.any())
+    .max(5, "รูปผลหลังการฉีดพ่นต้องไม่เกิน 5 รูปต่อครั้ง")
+    .optional()
+    .default([]),
+});
+
+export const type14WithdrawnProductInputSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type14PlanInputSchema = z.object({
+  mode: z
+    .enum(["EXISTING_PLOT", "NEW_PLOT"])
+    .optional()
+    .default("EXISTING_PLOT"),
+  selectedPlanId: z.string().optional().nullable(),
+  demoPlotId: z.string().optional().nullable(),
+  demoPlotIds: z.array(z.string()).optional().default([]),
+  selectedPlotIds: z.array(z.string()).optional().default([]),
+  name: z.string().optional().default(""),
+  storeId: z.string().optional().nullable().default(""),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().optional().nullable().default(""),
+  district: z.string().optional().nullable().default(""),
+  latitude: z.string().optional().nullable().default(""),
+  longitude: z.string().optional().nullable().default(""),
+  trackings: z.array(type14TrackingItemSchema).optional().default([]),
+  hasProducts: z.boolean().optional(),
+  hasProductWithdrawal: z.boolean().optional(),
+  products: z.array(type14WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z
+    .array(type14WithdrawnProductInputSchema)
+    .optional()
+    .default([]),
+});
+
+export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
+export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;

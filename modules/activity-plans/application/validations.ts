@@ -164,234 +164,90 @@ export const demoPlotDataInputSchema = z.object({
   objective: z.string().optional().nullable().default(""),
 });
 
-// ── TYPE_13 ("ฉีดแปลงแฮตแทค") Validations ─────────────────────────────
-export const type13ProductLineSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.number().min(1, "จำนวนต้องอย่างน้อย 1"),
-  unit: z.string().optional().nullable(),
-});
+// ── Work Type Slices Schemas Import & Re-exports ─────────────────────────────
+import {
+  type13ProductLineSchema,
+  type13PlotItemSchema,
+  type13WithdrawnProductInputSchema,
+  type13PlanInputSchema,
+  type13SprayProductSchema,
+  type13SprayExternalSchema,
+  type13SprayingRoundSchema,
+  type13PlotActualSchema,
+  type Type13ProductLine,
+  type Type13PlotItemInput,
+  type Type13PlanInput,
+  type Type13SprayingRound,
+  type Type13PlotActual,
+} from "@/modules/activity-plans/features/type-13/application/validation";
 
-export const type13PlotItemSchema = z.object({
-  id: z.string(),
-  demoPlotId: z.string().optional().nullable(),
-  name: z.string().optional().default(""),
-  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
-  ownerName: z.string().optional().nullable(),
-  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
-  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
-  subdistrict: z.string().optional().nullable(),
-  village: z.string().optional().nullable(),
-  plannedPlotsCount: z.union([z.number(), z.string()]).optional().nullable(),
-  products: z.array(type13ProductLineSchema).optional().default([]),
-});
+import {
+  type14TrackingItemSchema,
+  type14WithdrawnProductInputSchema,
+  type14PlanInputSchema,
+  type Type14TrackingItem,
+  type Type14PlanInput,
+} from "@/modules/activity-plans/features/type-14/application/validation";
 
-export const type13WithdrawnProductInputSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
-  unit: z.string().optional().nullable(),
-});
+import {
+  type7aPlotProductSchema,
+  type7aPlotItemSchema,
+  type7aDemoPlotProductInputSchema,
+  type7aDemoPlotExternalProductInputSchema,
+  type7aDemoPlotInputSchema,
+  type Type7aPlotProduct,
+  type Type7aPlotItem,
+} from "@/modules/activity-plans/features/type-7a/application/validation";
 
-export const type13PlanInputSchema = z.object({
-  hasProducts: z.boolean().optional(),
-  hasProductWithdrawal: z.boolean().optional(),
-  notes: z.string().optional().nullable(),
-  plots: z.array(type13PlotItemSchema).optional().default([]),
-  products: z.array(type13WithdrawnProductInputSchema).optional().default([]),
-  withdrawnProducts: z
-    .array(type13WithdrawnProductInputSchema)
-    .optional()
-    .default([]),
-});
+import {
+  type7bProductSchema,
+  type7bPlotSchema,
+  type7bPlanInputSchema,
+  type Type7bProduct,
+  type Type7bPlot,
+  type Type7bPlanInput,
+} from "@/modules/activity-plans/features/type-7b/application/validation";
 
-export const type13SprayProductSchema = z.object({
-  productId: z.string().min(1, "กรุณาเลือกสินค้า"),
-  productName: z.string().optional().nullable(),
-  actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
-  quantityUsed: z.coerce.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
-  unit: z.string().optional().nullable(),
-  detail: z.string().optional().nullable(),
-});
+import {
+  type10SoldProductItemSchema,
+  type Type10SoldProductItem,
+} from "@/modules/activity-plans/features/type-10/application/validation";
 
-export const type13SprayExternalSchema = z.object({
-  company: z.string().min(1, "กรุณาระบุบริษัท"),
-  productName: z.string().min(1, "กรุณาระบุชื่อยา/สารเคมี"),
-  activeIngredient: z.string().optional().nullable(),
-  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
-  customFormula: z.string().optional().nullable(),
-  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
-});
-
-export const type13SprayingRoundSchema = z.object({
-  id: z.string().optional(),
-  demoPlotId: z.string().min(1),
-  roundNumber: z.number().min(1),
-  sprayDate: z.union([z.string(), z.date()]),
-  sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
-  sprayEquipment: z.string().min(1, "กรุณาระบุอุปกรณ์ที่ใช้"),
-  otherEquipment: z.string().optional().nullable(),
-  productResponse: z.string().min(1, "กรุณาระบุผลหลังการฉีดพ่น"),
-  problemDetail: z.string().optional().nullable(),
-  products: z.array(type13SprayProductSchema),
-  externalProducts: z.array(type13SprayExternalSchema).optional().default([]),
-  attachments: z
-    .array(z.any())
-    .max(2, "รูปภาพก่อนฉีดพ่นต้องไม่เกิน 2 รูปต่อรอบ")
-    .optional()
-    .default([]),
-});
-
-export const type13PlotActualSchema = z.object({
-  demoPlotId: z.string().min(1),
-  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude) ของแปลง"),
-  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude) ของแปลง"),
-  sprayRounds: z
-    .array(type13SprayingRoundSchema)
-    .min(1, "ต้องมีรอบการฉีดพ่นอย่างน้อย 1 รอบ"),
-});
-
-// ── TYPE_14 ("ติดตามแปลงแฮทแทค") Validations ────────────────────────────
-export const type14TrackingItemSchema = z.object({
-  id: z.string().optional(),
-  visitDate: z.union([z.string(), z.date()]),
-  daysSinceStart: z.number().min(0, "จำนวนวันหลังฉีดพ่นต้องไม่ติดลบ"),
-  notes: z.string().optional().nullable(),
-  attachments: z
-    .array(z.any())
-    .max(5, "รูปผลหลังการฉีดพ่นต้องไม่เกิน 5 รูปต่อครั้ง")
-    .optional()
-    .default([]),
-});
-
-export const type14WithdrawnProductInputSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
-  unit: z.string().optional().nullable(),
-});
-
-export const type14PlanInputSchema = z.object({
-  mode: z
-    .enum(["EXISTING_PLOT", "NEW_PLOT"])
-    .optional()
-    .default("EXISTING_PLOT"),
-  selectedPlanId: z.string().optional().nullable(),
-  demoPlotId: z.string().optional().nullable(),
-  demoPlotIds: z.array(z.string()).optional().default([]),
-  selectedPlotIds: z.array(z.string()).optional().default([]),
-  name: z.string().optional().default(""),
-  storeId: z.string().optional().nullable().default(""),
-  ownerName: z.string().optional().nullable(),
-  province: z.string().optional().nullable().default(""),
-  district: z.string().optional().nullable().default(""),
-  latitude: z.string().optional().nullable().default(""),
-  longitude: z.string().optional().nullable().default(""),
-  trackings: z.array(type14TrackingItemSchema).optional().default([]),
-  hasProducts: z.boolean().optional(),
-  hasProductWithdrawal: z.boolean().optional(),
-  products: z.array(type14WithdrawnProductInputSchema).optional().default([]),
-  withdrawnProducts: z
-    .array(type14WithdrawnProductInputSchema)
-    .optional()
-    .default([]),
-});
-
-// ── TYPE_7A ("ทำแปลงสาธิตใหม่") Validations ───────────────────────────
-export const type7aPlotProductSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().optional().nullable(),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce.number().optional().nullable(),
-  targetQuantity: z.coerce.number().optional().nullable(),
-  unit: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  sortOrder: z.number().optional().default(0),
-});
-
-export const type7aPlotItemSchema = z.object({
-  id: z.string().optional(),
-  plotName: z.string().optional().nullable(),
-  name: z.string().optional().nullable(),
-  storeId: z.string().optional().nullable(),
-  ownerName: z.string().optional().nullable(),
-  ownerPhone: z.string().optional().nullable(),
-  location: z.string().optional().nullable(),
-  province: z.string().optional().nullable(),
-  district: z.string().optional().nullable(),
-  cropCategory: z.string().optional().nullable(),
-  cropName: z.string().optional().nullable(),
-  customCropName: z.string().optional().nullable(),
-  areaRai: z.coerce.number().optional().nullable(),
-  treeCount: z.coerce.number().int().optional().nullable(),
-  objective: z.string().optional().nullable(),
-  categoryId: z.string().optional().nullable(),
-  chemicalGroupId: z.string().optional().nullable(),
-  hasProducts: z.boolean().optional().default(false),
-  demoPlotId: z.string().optional().nullable(),
-  demoProducts: z.array(type7aPlotProductSchema).optional().default([]),
-  products: z.array(type7aPlotProductSchema).optional().default([]),
-});
-
-export type Type7aPlotProduct = z.infer<typeof type7aPlotProductSchema>;
-export type Type7aPlotItem = z.infer<typeof type7aPlotItemSchema>;
-
-// ── TYPE_7B ("ติดตามแปลงสาธิต") Validations ──────────────────────────
-export const type7bProductSchema = z.object({
-  id: z.string().optional(),
-  productId: z.string().optional().nullable(),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce.number().optional().nullable(),
-  targetQuantity: z.coerce.number().optional().nullable(),
-  unit: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  sortOrder: z.number().optional().default(0),
-});
-
-export const type7bPlotSchema = z.object({
-  id: z.string().optional(),
-  demoPlotId: z.string().optional().nullable(),
-  plotName: z.string().optional().nullable(),
-  name: z.string().optional().nullable(),
-  cropName: z.string().optional().nullable(),
-  ownerName: z.string().optional().nullable(),
-  farmerName: z.string().optional().nullable(),
-  province: z.string().optional().nullable(),
-  district: z.string().optional().nullable(),
-  areaRai: z.coerce.number().optional().nullable(),
-  treeCount: z.coerce.number().int().optional().nullable(),
-  dealerName: z.string().optional().nullable(),
-  dealerStoreName: z.string().optional().nullable(),
-  location: z.string().optional().nullable(),
-  notes: z.string().optional().nullable(),
-});
-
-export const type7bPlanInputSchema = z.object({
-  sourceActivityPlanId: z.string().optional().nullable(),
-  selectedPlanId: z.string().optional().nullable(),
-  selectedPlotIds: z.array(z.string()).optional().default([]),
-  demoPlotId: z.string().optional().nullable(),
-  hasProducts: z.boolean().optional().default(false),
-  notes: z.string().optional().nullable(),
-  plots: z.array(type7bPlotSchema).optional().default([]),
-  withdrawnProducts: z.array(type7bProductSchema).optional().default([]),
-  products: z.array(type7bProductSchema).optional().default([]),
-});
-
-export type Type7bProduct = z.infer<typeof type7bProductSchema>;
-export type Type7bPlot = z.infer<typeof type7bPlotSchema>;
-export type Type7bPlanInput = z.infer<typeof type7bPlanInputSchema>;
-
-export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
-export type Type13PlotItem = z.infer<typeof type13PlotItemSchema>;
-export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
-export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
-export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
-export type Type14TrackingItem = z.infer<typeof type14TrackingItemSchema>;
-export type Type14PlanInput = z.infer<typeof type14PlanInputSchema>;
+export {
+  type13ProductLineSchema,
+  type13PlotItemSchema,
+  type13WithdrawnProductInputSchema,
+  type13PlanInputSchema,
+  type13SprayProductSchema,
+  type13SprayExternalSchema,
+  type13SprayingRoundSchema,
+  type13PlotActualSchema,
+  type Type13ProductLine,
+  type Type13PlanInput,
+  type Type13SprayingRound,
+  type Type13PlotActual,
+  type14TrackingItemSchema,
+  type14WithdrawnProductInputSchema,
+  type14PlanInputSchema,
+  type Type14TrackingItem,
+  type Type14PlanInput,
+  type7aPlotProductSchema,
+  type7aPlotItemSchema,
+  type7aDemoPlotProductInputSchema,
+  type7aDemoPlotExternalProductInputSchema,
+  type7aDemoPlotInputSchema,
+  type Type7aPlotProduct,
+  type Type7aPlotItem,
+  type7bProductSchema,
+  type7bPlotSchema,
+  type7bPlanInputSchema,
+  type Type7bProduct,
+  type Type7bPlot,
+  type Type7bPlanInput,
+  type10SoldProductItemSchema,
+  type Type10SoldProductItem,
+};
+export type Type13PlotItem = Type13PlotItemInput;
 
 export const activityPlanSchema = z
   .object({
@@ -522,154 +378,6 @@ export const actualRecordSchema = z.object({
   actualAttendees: z.coerce.number().min(0, "จำนวนลูกค้าต้องไม่ติดลบ"),
   atmosphereImageUrls: z.array(z.string()).default([]),
 });
-
-// ────────────────────────────────────────────────────────────────────────────
-// TYPE_7A Demo Plot Input Schemas
-// ────────────────────────────────────────────────────────────────────────────
-export const type7aDemoPlotProductInputSchema = z.object({
-  id: z.string().optional().nullable(),
-  productId: z.string().min(1, "กรุณาเลือกสินค้าสาธิต"),
-  productName: z.string().optional().nullable(),
-  quantity: z.coerce.number().min(0.01, "จำนวนสินค้าต้องมากกว่า 0"),
-  plannedQuantity: z.coerce.number().optional().nullable(),
-  remainingQuantity: z.coerce.number().optional().nullable(),
-  unit: z.string().optional().nullable(),
-  applicationRate: z.string().optional().nullable().default("-"),
-  isAdditional: z.boolean().optional().nullable(),
-});
-
-export const type7aDemoPlotExternalProductInputSchema = z.object({
-  company: z.string().min(1, "กรุณาระบุบริษัท"),
-  productName: z.string().min(1, "กรุณาระบุชื่อยา/เคมี"),
-  activeIngredient: z.string().optional().nullable(),
-  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
-  customFormula: z.string().optional().nullable(),
-  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
-});
-
-export const type7aDemoPlotInputSchema = z
-  .object({
-    customerId: z.string().optional().nullable(),
-    farmerCustomerId: z.string().optional().nullable(),
-    ownerName: z.string().min(1, "กรุณาระบุชื่อเกษตรกรเจ้าของแปลง"),
-    ownerPhone: z.string().optional().nullable(),
-    ownerProvince: z.string().optional().nullable(),
-    ownerDistrict: z.string().optional().nullable(),
-    isUnregisteredFarmer: z.boolean().default(false),
-    province: z.string().min(1, "กรุณาเลือกจังหวัด"),
-    district: z.string().optional().nullable(),
-    latitude: z.coerce.number({ required_error: "กรุณาระบุละติจูด" }),
-    longitude: z.coerce.number({ required_error: "กรุณาระบุลองจิจูด" }),
-    plotName: z.string().min(1, "กรุณากรอกชื่อแปลงสาธิต"),
-    dealerName: z.string().optional().nullable(),
-    cropCategory: z.string().min(1, "กรุณาระบุหมวดพืช"),
-    cropName: z.string().min(1, "กรุณาระบุชื่อพืช"),
-    customCropName: z.string().optional().nullable(),
-    areaRai: z.coerce.number().optional().nullable(),
-    treeCount: z.coerce.number().int().optional().nullable(),
-    objective: z.string().optional().nullable(),
-    experimentDetail: z.string().optional().nullable(),
-    mainCropInfo: z.string().optional().nullable(),
-    plantingDate: z.coerce.date().optional().nullable(),
-    initialSprayDate: z.coerce.date().optional().nullable(),
-    nextSprayDate: z.coerce.date().optional().nullable(),
-    sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
-    hasExternalChemicals: z.boolean().default(false),
-    demoProducts: z
-      .array(type7aDemoPlotProductInputSchema)
-      .min(1, "กรุณาระบุสินค้าสาธิตอย่างน้อย 1 รายการ"),
-    externalProducts: z
-      .array(type7aDemoPlotExternalProductInputSchema)
-      .max(4, "ยาภายนอกระบุได้สูงสุด 4 รายการ")
-      .optional()
-      .default([]),
-    irrigations: z.array(z.string()).default([]),
-    usageMethod: z.string().optional().nullable(),
-    notes: z.string().optional().nullable(),
-    cropAgeValue: z.coerce.number().int().optional().nullable(),
-    cropAgeUnit: z.string().default("วัน"),
-    growthStage: z.string().optional().nullable(),
-    cropCondition: z.string().optional().nullable(),
-    productResponse: z.string().optional().nullable(),
-  })
-  .refine(
-    (data) => {
-      if (data.isUnregisteredFarmer) {
-        return (
-          typeof data.ownerName === "string" &&
-          data.ownerName.trim().length > 0 &&
-          typeof data.ownerProvince === "string" &&
-          data.ownerProvince.trim().length > 0 &&
-          typeof data.ownerDistrict === "string" &&
-          data.ownerDistrict.trim().length > 0
-        );
-      }
-      return true;
-    },
-    {
-      message:
-        "กรณีไม่มีเกษตรกรในระบบ กรุณากรอกชื่อ จังหวัด และอำเภอของเกษตรกร",
-      path: ["ownerDistrict"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.sprayMethod === "TANK_MIXED" && data.hasExternalChemicals) {
-        for (const ep of data.externalProducts || []) {
-          if (
-            ep.formula === "อื่นๆ" &&
-            (!ep.customFormula || !ep.customFormula.trim())
-          ) {
-            return false;
-          }
-        }
-      }
-      return true;
-    },
-    {
-      message: "กรณีเลือกสูตรยา 'อื่นๆ' กรุณาระบุรายละเอียด",
-      path: ["externalProducts"],
-    },
-  );
-
-/**
- * Schema สำหรับรายการสินค้าที่ขายได้ในกิจกรรม Field Day (Type 10)
- */
-export const type10SoldProductItemSchema = z
-  .object({
-    id: z.string().optional(),
-    isCustomProduct: z.boolean().default(false),
-    isCustom: z.boolean().optional(),
-    productId: z.string().optional().nullable(),
-    productName: z.string().min(1, "กรุณาระบุชื่อสินค้า"),
-    productCode: z.string().optional().nullable(),
-    quantity: z.union([z.string(), z.number()]).refine((val) => {
-      const num =
-        typeof val === "number"
-          ? val
-          : parseFloat(String(val).replace(/,/g, ""));
-      return !isNaN(num) && num >= 0;
-    }, "จำนวนที่ขายได้ต้องเป็นตัวเลขที่มากกว่าหรือเท่ากับ 0"),
-    actualSales: z.union([z.string(), z.number()]).refine((val) => {
-      const num =
-        typeof val === "number"
-          ? val
-          : parseFloat(String(val).replace(/,/g, ""));
-      return !isNaN(num) && num >= 0;
-    }, "ยอดขายจริงต้องเป็นตัวเลขที่มากกว่าหรือเท่ากับ 0"),
-    remarks: z.string().optional().nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.isCustomProduct && !data.isCustom && !data.productId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "กรุณาเลือกสินค้าจากระบบ หรือเลือกกรอกชื่อสินค้าเอง",
-        path: ["productId"],
-      });
-    }
-  });
-
-export type Type10SoldProductItem = z.infer<typeof type10SoldProductItemSchema>;
 
 /**
  * Schema สำหรับบันทึกผลหลังกิจกรรม (ActivityResult)

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import type {
   Type13PlotItem,
@@ -127,3 +128,98 @@ export function validateType13Actual(
 
   return { isValid: true };
 }
+
+// ── TYPE_13 ("ฉีดแปลงแฮตแทค") Zod Schemas ─────────────────────────────
+export const type13ProductLineSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13PlotItemSchema = z.object({
+  id: z.string(),
+  demoPlotId: z.string().optional().nullable(),
+  name: z.string().optional().default(""),
+  storeId: z.string().min(1, "กรุณาเลือกร้านค้า Dealer"),
+  ownerName: z.string().optional().nullable(),
+  province: z.string().min(1, "กรุณาเลือกจังหวัด"),
+  district: z.string().min(1, "กรุณาเลือกอำเภอ"),
+  subdistrict: z.string().optional().nullable(),
+  village: z.string().optional().nullable(),
+  plannedPlotsCount: z.union([z.number(), z.string()]).optional().nullable(),
+  products: z.array(type13ProductLineSchema).optional().default([]),
+});
+
+export const type13WithdrawnProductInputSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().min(1, "กรุณาเลือกตัวยา/ผลิตภัณฑ์"),
+  productName: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(1, "จำนวนต้องอย่างน้อย 1"),
+  unit: z.string().optional().nullable(),
+});
+
+export const type13PlanInputSchema = z.object({
+  hasProducts: z.boolean().optional(),
+  hasProductWithdrawal: z.boolean().optional(),
+  notes: z.string().optional().nullable(),
+  plots: z.array(type13PlotItemSchema).optional().default([]),
+  products: z.array(type13WithdrawnProductInputSchema).optional().default([]),
+  withdrawnProducts: z
+    .array(type13WithdrawnProductInputSchema)
+    .optional()
+    .default([]),
+});
+
+export const type13SprayProductSchema = z.object({
+  productId: z.string().min(1, "กรุณาเลือกสินค้า"),
+  productName: z.string().optional().nullable(),
+  actualRate: z.string().min(1, "กรุณาระบุอัตราการฉีดพ่นจริง"),
+  quantityUsed: z.coerce.number().min(0, "จำนวนที่ใช้ต้องไม่ติดลบ"),
+  unit: z.string().optional().nullable(),
+  detail: z.string().optional().nullable(),
+});
+
+export const type13SprayExternalSchema = z.object({
+  company: z.string().min(1, "กรุณาระบุบริษัท"),
+  productName: z.string().min(1, "กรุณาระบุชื่อยา/สารเคมี"),
+  activeIngredient: z.string().optional().nullable(),
+  formula: z.string().min(1, "กรุณาเลือกสูตรยา"),
+  customFormula: z.string().optional().nullable(),
+  applicationRate: z.string().min(1, "กรุณาระบุอัตราการใช้"),
+});
+
+export const type13SprayingRoundSchema = z.object({
+  id: z.string().optional(),
+  demoPlotId: z.string().min(1),
+  roundNumber: z.number().min(1),
+  sprayDate: z.union([z.string(), z.date()]),
+  sprayMethod: z.enum(["SINGLE", "TANK_MIXED"]),
+  sprayEquipment: z.string().min(1, "กรุณาระบุอุปกรณ์ที่ใช้"),
+  otherEquipment: z.string().optional().nullable(),
+  productResponse: z.string().min(1, "กรุณาระบุผลหลังการฉีดพ่น"),
+  problemDetail: z.string().optional().nullable(),
+  products: z.array(type13SprayProductSchema),
+  externalProducts: z.array(type13SprayExternalSchema).optional().default([]),
+  attachments: z
+    .array(z.any())
+    .max(2, "รูปภาพก่อนฉีดพ่นต้องไม่เกิน 2 รูปต่อรอบ")
+    .optional()
+    .default([]),
+});
+
+export const type13PlotActualSchema = z.object({
+  demoPlotId: z.string().min(1),
+  latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude) ของแปลง"),
+  longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude) ของแปลง"),
+  sprayRounds: z
+    .array(type13SprayingRoundSchema)
+    .min(1, "ต้องมีรอบการฉีดพ่นอย่างน้อย 1 รอบ"),
+});
+
+export type Type13ProductLine = z.infer<typeof type13ProductLineSchema>;
+export type Type13PlotItemInput = z.infer<typeof type13PlotItemSchema>;
+export type Type13PlanInput = z.infer<typeof type13PlanInputSchema>;
+export type Type13SprayingRound = z.infer<typeof type13SprayingRoundSchema>;
+export type Type13PlotActual = z.infer<typeof type13PlotActualSchema>;
