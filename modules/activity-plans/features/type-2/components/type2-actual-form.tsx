@@ -12,19 +12,13 @@ import {
 } from "@/components/activity/activity-product-select";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
+import { ActivityPhotoUpload } from "@/components/activity";
 import type {
   Type2ImageFile,
   FollowupProductItem,
   Type2ActualFormProps,
   ActualType2FollowupProps,
 } from "../types";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export type {
   FollowupProductItem,
@@ -805,36 +799,15 @@ export function Type2ActualForm({
         )}
       </div>
 
-      {/* 4. ส่วนรูปภาพการติดตามผล (GalleryUpload - สูงสุด 5 รูป) */}
-      <div className="bg-emerald-50/20 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center gap-2 border-b border-emerald-100 pb-2.5">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
-            <Camera className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
-              รูปภาพการติดตามผล
-            </h4>
-            <p className="text-[11px] text-emerald-700/80">
-              อัปโหลดรูปภาพสภาพพืช ผลผลิต หรือการติดตามผลการใช้สินค้า (สูงสุด 5
-              รูป)
-            </p>
-          </div>
-        </div>
-        <GalleryUpload
-          maxFiles={5}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(images || [])}
-          onFilesChange={(files: FileWithPreview[]) => {
-            const converted = filesWithPreviewToImageFiles(files);
-            if (!isImageFilesEqual(images, converted) && setImages) {
-              setImages(converted);
-            }
-          }}
-        />
-      </div>
+      {/* 4. ส่วนรูปภาพการติดตามผล (ActivityPhotoUpload - สูงสุด 5 รูป) */}
+      <ActivityPhotoUpload
+        title="รูปภาพการติดตามผล"
+        description="อัปโหลดรูปภาพสภาพพืช ผลผลิต หรือการติดตามผลการใช้สินค้า (สูงสุด 5 รูป)"
+        images={images}
+        onImagesChange={setImages}
+        maxFiles={5}
+        accentColor="emerald"
+      />
     </div>
   );
 }

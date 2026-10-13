@@ -16,8 +16,7 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
+import { ActivityPhotoUpload } from "@/components/activity";
 import { Type1PlanCard } from "./type1-plan-card";
 import type {
   Type1TargetItem,
@@ -26,11 +25,6 @@ import type {
   Type1ActualFormProps,
   ActualType1VisitProps,
 } from "../types";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 export type { ProductOption, Type1ActualFormProps, ActualType1VisitProps };
 
@@ -123,13 +117,6 @@ export function Type1ActualForm({
   const handleRemoveProduct = (prod: string) => {
     const updated = selectedProducts.filter((p) => p !== prod);
     setProductAdvice(updated.join(", "));
-  };
-
-  const handleFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(plotImages, converted) && setPlotImages) {
-      setPlotImages(converted);
-    }
   };
 
   const handleGetCurrentLocation = () => {
@@ -289,29 +276,14 @@ export function Type1ActualForm({
             </div>
 
             {/* 3. รูปแปลง (Plot Photos - Max 5) */}
-            <div className="bg-emerald-50/20 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-              <div className="flex items-center gap-2 border-b border-emerald-100 pb-2.5">
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
-                  <Camera className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
-                    รูปแปลงเกษตรกร (สูงสุด 5 รูป)
-                  </h4>
-                  <p className="text-[11px] text-emerald-700/80">
-                    อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช
-                  </p>
-                </div>
-              </div>
-              <GalleryUpload
-                maxFiles={5}
-                maxSize={20 * 1024 * 1024}
-                accept="image/*"
-                multiple={true}
-                initialFiles={convertToFileMetadata(plotImages || [])}
-                onFilesChange={handleFilesChange}
-              />
-            </div>
+            <ActivityPhotoUpload
+              title="รูปแปลงเกษตรกร (สูงสุด 5 รูป)"
+              description="อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช"
+              images={plotImages}
+              onImagesChange={setPlotImages}
+              maxFiles={5}
+              accentColor="emerald"
+            />
           </>
         )}
 
