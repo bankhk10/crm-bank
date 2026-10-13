@@ -52,11 +52,29 @@ export interface Type7bProductInput {
 export interface Type7bDataInput {
   sourceActivityPlanId?: string | null;
   demoPlotId?: string | null;
-  objective?: string | null;
-  notes?: string | null;
-  hasProducts?: boolean;
+  storeId?: string | null;
+  dealerName?: string | null;
+  farmerName?: string | null;
+  farmerPhone?: string | null;
+  province?: string | null;
+  district?: string | null;
+  cropCategory?: string | null;
+  cropName?: string | null;
+  areaRai?: number | null;
+  treeCount?: number | null;
   sprayRound?: number | null;
+  sprayDate?: Date | string | null;
   daysSinceStart?: number | null;
+  cropAgeValue?: number | null;
+  cropAgeUnit?: string | null;
+  growthStage?: string | null;
+  cropCondition?: string | null;
+  sprayMethod?: string | null;
+  sprayEquipment?: string | null;
+  otherEquipment?: string | null;
+  notes?: string | null;
+  objective?: string | null;
+  hasProducts?: boolean;
   plots?: Type7bPlotInput[];
   products?: Type7bProductInput[];
 }

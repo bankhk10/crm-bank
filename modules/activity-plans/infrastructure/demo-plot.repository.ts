@@ -727,3 +727,300 @@ export async function findDemoPlotByOwnerAndCrop(
     },
   });
 }
+
+export interface DemoPlotDataInput {
+  id?: string | null;
+  name: string;
+  customerId?: string | null;
+  ownerName: string;
+  cropCategory: string;
+  cropName: string;
+  customCropName?: string | null;
+  areaRai?: number | null;
+  treeCount?: number | null;
+  location?: string | null;
+  province?: string | null;
+  district?: string | null;
+  categoryId?: string | null;
+  objective?: string | null;
+}
+
+/**
+ * Creates or links DemoPlot and DemoPlotVisit records when creating an ActivityPlan
+ */
+export async function createDemoPlotForPlan(
+  tx: Prisma.TransactionClient,
+  planId: string,
+  input: {
+    startDate: Date;
+    employeeId: string;
+    demoPlotData?: DemoPlotDataInput | null;
+    demoPlotId?: string | null;
+    demoPlotIds?: string[] | null;
+    type13Plots?: Array<any>;
+    type7bData?: any;
+    type7aPlots?: Array<any>;
+    type14Data?: any;
+  },
+  workTypeCodes: string[],
+  primaryCode: string,
+) {
+  if (input.demoPlotData) {
+    let plotId = input.demoPlotData.id;
+    if (!plotId) {
+      const code = await generateDemoPlotCode(
+        tx,
+        input.startDate ? new Date(input.startDate) : new Date(),
+      );
+
+      const plot = await tx.demoPlot.create({
+        data: {
+          code,
+          name: input.demoPlotData.name,
+          ownerName: input.demoPlotData.ownerName || "",
+          customerId: input.demoPlotData.customerId || null,
+          employeeId: input.employeeId,
+          cropCategory: input.demoPlotData.cropCategory,
+          cropName: input.demoPlotData.cropName,
+          customCropName: input.demoPlotData.customCropName || null,
+          areaRai:
+            input.demoPlotData.areaRai != null
+              ? new Prisma.Decimal(input.demoPlotData.areaRai)
+              : null,
+          treeCount: input.demoPlotData.treeCount || null,
+          location: input.demoPlotData.location || null,
+          province: input.demoPlotData.province || null,
+          district: input.demoPlotData.district || null,
+          objective: input.demoPlotData.objective || null,
+          startDate: input.startDate,
+          status: DemoPlotStatus.IN_PROGRESS,
+        },
+      });
+      plotId = plot.id;
+    } else {
+      await tx.demoPlot.update({
+        where: { id: plotId },
+        data: {
+          name: input.demoPlotData.name,
+          ownerName: input.demoPlotData.ownerName || "",
+          customerId: input.demoPlotData.customerId || null,
+          cropCategory: input.demoPlotData.cropCategory,
+          cropName: input.demoPlotData.cropName,
+          customCropName: input.demoPlotData.customCropName || null,
+          areaRai:
+            input.demoPlotData.areaRai != null
+              ? new Prisma.Decimal(input.demoPlotData.areaRai)
+              : null,
+          treeCount: input.demoPlotData.treeCount || null,
+          location: input.demoPlotData.location || null,
+          province: input.demoPlotData.province || null,
+          district: input.demoPlotData.district || null,
+          objective: input.demoPlotData.objective || null,
+        },
+      });
+    }
+
+    await tx.demoPlotVisit.create({
+      data: {
+        demoPlotId: plotId,
+        activityPlanId: planId,
+        visitDate: input.startDate,
+      },
+    });
+  } else if (
+    ((input.demoPlotIds && input.demoPlotIds.length > 0) ||
+      input.demoPlotId) &&
+    !(input.type13Plots && input.type13Plots.length > 0) &&
+    !input.type7bData &&
+    !(input.type7aPlots && input.type7aPlots.length > 0) &&
+    !input.type14Data
+  ) {
+    const plotIdsToVisit =
+      input.demoPlotIds && input.demoPlotIds.length > 0
+        ? input.demoPlotIds
+        : input.demoPlotId
+          ? [input.demoPlotId]
+          : [];
+
+    const isType10 =
+      workTypeCodes.includes("TYPE_10") || primaryCode === "TYPE_10";
+    const isType7B =
+      workTypeCodes.includes("TYPE_7B") || primaryCode === "TYPE_7B";
+    const isType14 =
+      workTypeCodes.includes("TYPE_14") || primaryCode === "TYPE_14";
+    const visitWorkType = isType10
+      ? "TYPE_10"
+      : isType7B
+        ? "TYPE_7B"
+        : isType14
+          ? "TYPE_14"
+          : workTypeCodes[0] || null;
+
+    for (const pid of plotIdsToVisit) {
+      const existingPlot = await tx.demoPlot.findUnique({
+        where: { id: pid },
+        select: { id: true },
+      });
+
+      if (existingPlot) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: existingPlot.id,
+            activityPlanId: planId,
+            workTypeCode: visitWorkType,
+            visitDate: input.startDate,
+          },
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Syncs DemoPlot and DemoPlotVisit records when updating an ActivityPlan
+ */
+export async function syncDemoPlotForPlan(
+  tx: Prisma.TransactionClient,
+  planId: string,
+  updatedPlan: { startDate: Date; employeeId: string },
+  planData: {
+    demoPlotData?: DemoPlotDataInput | null;
+    demoPlotId?: string | null;
+    demoPlotIds?: string[] | null;
+    type7bData?: any;
+    type7aPlots?: any;
+    type14Data?: any;
+  },
+  workTypeCodes?: string[],
+) {
+  if (planData.demoPlotData) {
+    const existingVisit = await tx.demoPlotVisit.findFirst({
+      where: { activityPlanId: planId },
+      include: { demoPlot: true },
+    });
+
+    const plotId = planData.demoPlotData.id || existingVisit?.demoPlotId;
+
+    if (plotId) {
+      await tx.demoPlot.update({
+        where: { id: plotId },
+        data: {
+          name: planData.demoPlotData.name,
+          ownerName: planData.demoPlotData.ownerName || "",
+          customerId: planData.demoPlotData.customerId || null,
+          cropCategory: planData.demoPlotData.cropCategory,
+          cropName: planData.demoPlotData.cropName,
+          customCropName: planData.demoPlotData.customCropName || null,
+          areaRai:
+            planData.demoPlotData.areaRai != null
+              ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+              : null,
+          treeCount: planData.demoPlotData.treeCount || null,
+          location: planData.demoPlotData.location || null,
+          province: planData.demoPlotData.province || null,
+          district: planData.demoPlotData.district || null,
+          objective: planData.demoPlotData.objective || null,
+        },
+      });
+
+      if (!existingVisit) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: plotId,
+            activityPlanId: planId,
+            visitDate: updatedPlan.startDate,
+          },
+        });
+      }
+    } else {
+      const code = await generateDemoPlotCode(
+        tx,
+        updatedPlan.startDate ? new Date(updatedPlan.startDate) : new Date(),
+      );
+
+      const newPlot = await tx.demoPlot.create({
+        data: {
+          code,
+          name: planData.demoPlotData.name,
+          ownerName: planData.demoPlotData.ownerName || "",
+          customerId: planData.demoPlotData.customerId || null,
+          employeeId: updatedPlan.employeeId,
+          cropCategory: planData.demoPlotData.cropCategory,
+          cropName: planData.demoPlotData.cropName,
+          customCropName: planData.demoPlotData.customCropName || null,
+          areaRai:
+            planData.demoPlotData.areaRai != null
+              ? new Prisma.Decimal(planData.demoPlotData.areaRai)
+              : null,
+          treeCount: planData.demoPlotData.treeCount || null,
+          location: planData.demoPlotData.location || null,
+          province: planData.demoPlotData.province || null,
+          district: planData.demoPlotData.district || null,
+          objective: planData.demoPlotData.objective || null,
+          startDate: updatedPlan.startDate,
+          status: DemoPlotStatus.IN_PROGRESS,
+        },
+      });
+
+      await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: planId } });
+      await tx.demoPlotVisit.create({
+        data: {
+          demoPlotId: newPlot.id,
+          activityPlanId: planId,
+          visitDate: updatedPlan.startDate,
+        },
+      });
+    }
+  } else if (
+    (planData.demoPlotId !== undefined || planData.demoPlotIds !== undefined) &&
+    planData.type7bData === undefined &&
+    planData.type7aPlots === undefined &&
+    planData.type14Data === undefined
+  ) {
+    await tx.demoPlotVisit.deleteMany({
+      where: {
+        activityPlanId: planId,
+        workTypeCode: { in: ["TYPE_7B", "TYPE_10", "TYPE_14"] },
+      },
+    });
+    const plotIdsToVisit =
+      planData.demoPlotIds && planData.demoPlotIds.length > 0
+        ? planData.demoPlotIds
+        : planData.demoPlotId
+          ? [planData.demoPlotId]
+          : [];
+
+    if (plotIdsToVisit.length > 0) {
+      const currentCodes = workTypeCodes ?? [];
+      const isType10 = currentCodes.includes("TYPE_10");
+      const isType7B = currentCodes.includes("TYPE_7B");
+      const isType14 = currentCodes.includes("TYPE_14");
+      const visitWorkType = isType10
+        ? "TYPE_10"
+        : isType7B
+          ? "TYPE_7B"
+          : isType14
+            ? "TYPE_14"
+            : currentCodes[0] || null;
+
+      for (const pid of plotIdsToVisit) {
+        const existingPlot = await tx.demoPlot.findUnique({
+          where: { id: pid },
+          select: { id: true },
+        });
+        if (existingPlot) {
+          await tx.demoPlotVisit.create({
+            data: {
+              demoPlotId: existingPlot.id,
+              activityPlanId: planId,
+              workTypeCode: visitWorkType,
+              visitDate: updatedPlan.startDate,
+            },
+          });
+        }
+      }
+    }
+  } else if (planData.demoPlotData === null) {
+    await tx.demoPlotVisit.deleteMany({ where: { activityPlanId: planId } });
+  }
+}
