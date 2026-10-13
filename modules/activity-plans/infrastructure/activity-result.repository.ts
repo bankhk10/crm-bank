@@ -9,8 +9,7 @@ import {
 } from "@prisma/client";
 import { getWorkTypeCode } from "../constants";
 import { generateDemoPlotCode } from "./activity-plan.repository";
-import { type1Strategy } from "../features/type-1/application/type1.strategy";
-import { type4Strategy } from "../features/type-4/application/type4.strategy";
+import { getTypeStrategy } from "../application/strategies/type-registry";
 
 export type CreateActivityResultInput = {
   activityPlanId: string;
@@ -358,7 +357,7 @@ export async function upsertActivityResult(
       },
     });
 
-    // 0. Sync dedicated Type 1 actual result
+    // 0. Sync dedicated Type 1 actual result via Strategy
     if (
       input.productAdvice !== undefined ||
       input.discussionResult !== undefined ||
@@ -368,18 +367,21 @@ export async function upsertActivityResult(
       input.plotLatitude !== undefined ||
       input.plotLongitude !== undefined
     ) {
-      await type1Strategy.saveActual?.(tx as any, input.activityPlanId, {
-        productAdvice: input.productAdvice,
-        discussionResult: input.discussionResult,
-        salesOpportunity: input.salesOpportunity as any,
-        nextMeetingDate: input.nextMeetingDate,
-        farmerHomeAddress: input.farmerHomeAddress,
-        plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
-        plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
-      });
+      const type1 = getTypeStrategy("TYPE_1");
+      if (type1?.saveActual) {
+        await type1.saveActual(tx as any, input.activityPlanId, {
+          productAdvice: input.productAdvice,
+          discussionResult: input.discussionResult,
+          salesOpportunity: input.salesOpportunity as any,
+          nextMeetingDate: input.nextMeetingDate,
+          farmerHomeAddress: input.farmerHomeAddress,
+          plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
+          plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
+        });
+      }
     }
 
-    // 0.1 Sync dedicated Type 4 actual result
+    // 0.1 Sync dedicated Type 4 actual result via Strategy
     if (
       (input as any).billingStatus !== undefined ||
       (input as any).billingDetail !== undefined ||
@@ -389,16 +391,19 @@ export async function upsertActivityResult(
       (input as any).collectResultAmount !== undefined ||
       (input as any).type4Result !== undefined
     ) {
-      await type4Strategy.saveActual?.(tx as any, input.activityPlanId, {
-        activityResultId: result.id,
-        orderNo: (input as any).orderNo,
-        billingStatus: (input as any).billingStatus,
-        receivedAmount: (input as any).receivedAmount ?? (input as any).collectResultAmount,
-        billingDetail: (input as any).billingDetail,
-        collectDetail: (input as any).collectDetail,
-        notes: (input as any).notes,
-        items: (input as any).type4Items || (input as any).items,
-      });
+      const type4 = getTypeStrategy("TYPE_4");
+      if (type4?.saveActual) {
+        await type4.saveActual(tx as any, input.activityPlanId, {
+          activityResultId: result.id,
+          orderNo: (input as any).orderNo,
+          billingStatus: (input as any).billingStatus,
+          receivedAmount: (input as any).receivedAmount ?? (input as any).collectResultAmount,
+          billingDetail: (input as any).billingDetail,
+          collectDetail: (input as any).collectDetail,
+          notes: (input as any).notes,
+          items: (input as any).type4Items || (input as any).items,
+        });
+      }
     }
 
     // 1. Sync Sale Results
