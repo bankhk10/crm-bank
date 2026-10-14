@@ -68,7 +68,8 @@ interface ProductComboboxOption {
   item: ActivityProductItem;
 }
 
-const defaultLabelClass = "block text-xs font-semibold text-slate-700 mb-1 mx-0";
+const defaultLabelClass =
+  "block text-xs font-semibold text-slate-700 mb-1 mx-0";
 const defaultTriggerClass =
   "h-9 min-h-[36px] py-1 px-3 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium w-full justify-between focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed";
 
@@ -97,7 +98,7 @@ export function ActivityProductSelect({
   placeholder = "เลือกสินค้า...",
   searchPlaceholder = "ค้นหาชื่อ หรือรหัสสินค้า...",
   emptyText = "ไม่พบสินค้า",
-  subLabelType = "auto",
+  subLabelType = "none",
   disabled = false,
   required = false,
   error,
@@ -118,9 +119,7 @@ export function ActivityProductSelect({
 
     // Filter by unit
     if (unitFilter === "box") {
-      const boxList = list.filter(
-        (p) => !p.unit || p.unit.trim() === "กล่อง"
-      );
+      const boxList = list.filter((p) => !p.unit || p.unit.trim() === "กล่อง");
       if (boxList.length > 0) {
         list = boxList;
       }
@@ -159,8 +158,7 @@ export function ActivityProductSelect({
             ? `รหัส: ${p.productCode}`
             : undefined;
       } else if (subLabelType === "price") {
-        subLabel =
-          p.price != null ? `฿${p.price.toLocaleString()}` : undefined;
+        subLabel = p.price != null ? `฿${p.price.toLocaleString()}` : undefined;
       } else if (subLabelType === "auto") {
         if (p.productCode) {
           subLabel = p.productCode;
@@ -180,7 +178,7 @@ export function ActivityProductSelect({
     // If current value is not in filtered list, preserve it
     if (value && !list.some((o) => o.value === value)) {
       const matched = (products || []).find((p) =>
-        valueKey === "id" ? p.id === value : p.name === value || p.id === value
+        valueKey === "id" ? p.id === value : p.name === value || p.id === value,
       );
       if (matched) {
         const optionVal = valueKey === "id" ? matched.id : matched.name;
@@ -203,7 +201,7 @@ export function ActivityProductSelect({
       (opt) =>
         opt.value === value ||
         (valueKey === "name" && opt.item.name === value) ||
-        (valueKey === "id" && opt.item.id === value)
+        (valueKey === "id" && opt.item.id === value),
     );
   }, [formattedOptions, value, valueKey]);
 
@@ -230,7 +228,7 @@ export function ActivityProductSelect({
               triggerClassName,
               className,
               !value && "text-slate-400 font-normal",
-              error && "border-rose-500 focus:ring-rose-500 bg-rose-50/10"
+              error && "border-rose-500 focus:ring-rose-500 bg-rose-50/10",
             )}
           >
             <span className="truncate text-left flex-1 min-w-0">
@@ -285,7 +283,7 @@ export function ActivityProductSelect({
                       <Check
                         className={cn(
                           "mr-2 h-3.5 w-3.5 shrink-0 text-emerald-600",
-                          isSelected ? "opacity-100" : "opacity-0"
+                          isSelected ? "opacity-100" : "opacity-0",
                         )}
                       />
                       <div className="flex flex-col min-w-0 flex-1">
