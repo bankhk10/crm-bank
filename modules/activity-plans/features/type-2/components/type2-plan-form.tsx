@@ -465,7 +465,7 @@ export function Type2PlanForm({
                         }
                       >
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                          รายละเอียด
+                          รายละเอียดสินค้าเพิ่มเติม
                         </label>
                         <ActivityInput
                           type="text"
