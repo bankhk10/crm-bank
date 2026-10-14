@@ -411,8 +411,8 @@ export function Type2ActualForm({
         );
       updated[index] = {
         ...updated[index],
-        productName: value ? (foundProduct?.name || value) : "",
-        productId: value ? (foundProduct?.id || "") : "",
+        productName: value ? foundProduct?.name || value : "",
+        productId: value ? foundProduct?.id || "" : "",
       };
     } else if (field === "usageResult") {
       const nextUsage = value as "ลูกค้าพึงพอใจ" | "พบปัญหา";
