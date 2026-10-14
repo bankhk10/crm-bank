@@ -203,7 +203,7 @@ export function Type2PlanForm({
   };
 
   return (
-    <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <CheckSquare className="h-4 w-4 text-indigo-600" />
@@ -399,7 +399,7 @@ export function Type2PlanForm({
                 )}
 
                 {/* 3. Product Lines Section: รายการสินค้าที่จะติดตามผล */}
-                <div className="space-y-2.5 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70">
+                <div className="">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700">
                       รายการสินค้าที่จะติดตามผล{" "}
