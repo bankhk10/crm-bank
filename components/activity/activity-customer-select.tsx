@@ -157,19 +157,10 @@ export function ActivityCustomerSelect({
       let subLabel: string | undefined = undefined;
 
       if (type === "FARMER") {
-        displayLabel = `${c.name}${c.customerCode ? ` (${c.customerCode})` : ""}`;
+        displayLabel = c.name;
       } else {
-        const typeLabel =
-          c.customerType === "DEALER"
-            ? "ตัวแทนจำหน่าย"
-            : c.customerType === "SUBDEALER"
-              ? "ร้านค้าย่อย"
-              : c.customerType === "BROKER"
-                ? "นายหน้า"
-                : "";
-        const provInfo = c.province ? ` - จ.${c.province}` : "";
-        displayLabel = `${c.name}${typeLabel ? ` (${typeLabel})` : ""}${provInfo}`;
-        subLabel = c.customerCode ? `รหัส: ${c.customerCode}` : undefined;
+        displayLabel = c.name;
+        subLabel = undefined;
       }
 
       const optionVal = valueKey === "name" ? c.name : c.id;

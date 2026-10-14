@@ -276,7 +276,7 @@ export function Type2PlanForm({
                     วัตถุประสงค์ของประเภทงาน{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div className="flex flex-wrap gap-6 items-center pt-0.5">
+                  <div className="flex flex-wrap gap-6 items-center pt-4">
                     <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 select-none">
                       <input
                         type="radio"
@@ -391,8 +391,8 @@ export function Type2PlanForm({
                       required
                     />
                     <p className="text-[11px] text-slate-500">
-                      อนุญาตเฉพาะลูกค้าประเภทตัวแทนจำหน่าย (DEALER)
-                      หรือร้านค้าย่อย (SUBDEALER) ในระบบเท่านั้น
+                      ลูกค้าประเภทตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย
+                      (SUBDEALER)
                     </p>
                   </div>
                 )}
