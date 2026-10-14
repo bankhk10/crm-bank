@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import DatePicker from "@/components/custom/DatePicker";
+import { ActivityGpsPicker } from "@/components/activity";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
 import type { useType13ActualState } from "../hooks/use-type13-actual-state";
 import type {
@@ -311,9 +312,6 @@ export function Type13Actual({
     }));
   }, [dealers]);
 
-  const [gpsLoadingPlotIdx, setGpsLoadingPlotIdx] = useState<number | null>(
-    null,
-  );
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -343,28 +341,6 @@ export function Type13Actual({
       return;
     }
     removePlot(idxToRemove);
-  };
-
-  // Handler: Get GPS Location
-  const handleGetCurrentLocation = (plotIdx: number) => {
-    if (!navigator.geolocation) {
-      alert("เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS");
-      return;
-    }
-    setGpsLoadingPlotIdx(plotIdx);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setGpsLoadingPlotIdx(null);
-        const lat = position.coords.latitude.toFixed(6);
-        const lng = position.coords.longitude.toFixed(6);
-        updatePlotCoordinates(plotIdx, lat, lng);
-      },
-      (error) => {
-        setGpsLoadingPlotIdx(null);
-        alert(`ไม่สามารถดึงพิกัด GPS ได้: ${error.message}`);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
   };
 
   // Handler: Upload photo before spray (max 2)
@@ -651,102 +627,17 @@ export function Type13Actual({
               </div>
 
               {/* GPS Section (Required) */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-emerald-600" />
-                    <h6 className="font-bold text-xs text-slate-800">
-                      พิกัด GPS ของแปลง{" "}
-                      <span className="text-red-500">* (บังคับระบุ)</span>
-                    </h6>
-                  </div>
-
-                  {!readonly && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleGetCurrentLocation(plotIdx)}
-                      disabled={gpsLoadingPlotIdx === plotIdx}
-                      className="h-8 px-2.5 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 rounded-lg flex items-center gap-1.5"
-                    >
-                      <Compass
-                        className={`w-3.5 h-3.5 ${gpsLoadingPlotIdx === plotIdx ? "animate-spin" : ""}`}
-                      />
-                      <span>
-                        {gpsLoadingPlotIdx === plotIdx
-                          ? "กำลังดึงพิกัด..."
-                          : "ดึงตำแหน่งปัจจุบัน (GPS)"}
-                      </span>
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      ละติจูด (Latitude) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={plot.latitude}
-                      onChange={(e) =>
-                        updatePlotCoordinates(
-                          plotIdx,
-                          e.target.value,
-                          plot.longitude,
-                        )
-                      }
-                      disabled={readonly}
-                      placeholder="เช่น 13.756331"
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      ลองจิจูด (Longitude){" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={plot.longitude}
-                      onChange={(e) =>
-                        updatePlotCoordinates(
-                          plotIdx,
-                          plot.latitude,
-                          e.target.value,
-                        )
-                      }
-                      disabled={readonly}
-                      placeholder="เช่น 100.501765"
-                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                    />
-                  </div>
-                </div>
-
-                {!plot.latitude || !plot.longitude ? (
-                  <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                    <span>
-                      จำเป็นต้องระบุพิกัด Latitude และ Longitude
-                      ให้ครบถ้วนก่อนบันทึกผลงาน
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs text-emerald-600">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <a
-                      href={`https://maps.google.com/?q=${plot.latitude},${plot.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline hover:text-emerald-700"
-                    >
-                      ดูตำแหน่งบน Google Maps
-                    </a>
-                  </div>
-                )}
-              </div>
+              <ActivityGpsPicker
+                title="พิกัด GPS ของแปลง"
+                latitude={plot.latitude}
+                longitude={plot.longitude}
+                onLocationChange={(lat, lng) =>
+                  updatePlotCoordinates(plotIdx, lat, lng)
+                }
+                required={true}
+                readonly={readonly}
+                accentColor="emerald"
+              />
 
               {/* Spraying Rounds Section */}
               <div className="space-y-4">

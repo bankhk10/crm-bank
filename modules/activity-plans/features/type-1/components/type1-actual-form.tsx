@@ -16,7 +16,7 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
-import { ActivityPhotoUpload } from "@/components/activity";
+import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
 import { Type1PlanCard } from "./type1-plan-card";
 import type {
   Type1TargetItem,
@@ -53,8 +53,6 @@ export function Type1ActualForm({
   plotImages = [],
   setPlotImages,
 }: Type1ActualFormProps) {
-  const [geoLoading, setGeoLoading] = useState(false);
-  const [geoError, setGeoError] = useState<string | null>(null);
 
   const effectiveTargets =
     targets && targets.length > 0 ? targets : target ? [target] : [];
@@ -117,33 +115,6 @@ export function Type1ActualForm({
   const handleRemoveProduct = (prod: string) => {
     const updated = selectedProducts.filter((p) => p !== prod);
     setProductAdvice(updated.join(", "));
-  };
-
-  const handleGetCurrentLocation = () => {
-    if (typeof window === "undefined" || !navigator.geolocation) {
-      setGeoError("เบราว์เซอร์ไม่รองรับการค้นหาตำแหน่งพิกัด");
-      return;
-    }
-    setGeoLoading(true);
-    setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLoading(false);
-        const lat = pos.coords.latitude.toFixed(7);
-        const lng = pos.coords.longitude.toFixed(7);
-        if (setPlotLatitude) setPlotLatitude(lat);
-        if (setPlotLongitude) setPlotLongitude(lng);
-      },
-      (err) => {
-        setGeoLoading(false);
-        setGeoError(
-          err.code === 1
-            ? "การเข้าถึงพิกัดถูกปฏิเสธ (กรุณาอนุญาตตำแหน่งที่ตั้งหรือกรอกด้วยตนเอง)"
-            : "ไม่สามารถดึงตำแหน่งปัจจุบันได้ กรุณากรอกด้วยตนเอง",
-        );
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    );
   };
 
   const isStore = target?.visitPurpose === "STORE";
@@ -211,69 +182,14 @@ export function Type1ActualForm({
             </div>
 
             {/* 2. พิกัดแปลง (Plot Coordinates) */}
-            <div className="space-y-2 bg-emerald-50/30 border border-emerald-100 rounded-xl p-3.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs sm:text-sm font-semibold text-emerald-950 flex items-center gap-1.5">
-                  <Navigation className="w-3.5 h-3.5 text-emerald-700" />
-                  พิกัดแปลง (Plot Coordinates)
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGetCurrentLocation}
-                  disabled={geoLoading}
-                  className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
-                >
-                  <Navigation
-                    className={cn(
-                      "w-3 h-3 mr-1 text-emerald-600",
-                      geoLoading && "animate-spin",
-                    )}
-                  />
-                  {geoLoading ? "กำลังดึงพิกัด..." : "ใช้ตำแหน่งปัจจุบัน"}
-                </Button>
-              </div>
-
-              {geoError && (
-                <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                  ⚠️ {geoError}
-                </p>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-medium text-slate-600">
-                    Latitude (-90 ถึง 90)
-                  </span>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={plotLatitude}
-                    onChange={(e) =>
-                      setPlotLatitude && setPlotLatitude(e.target.value)
-                    }
-                    placeholder="เช่น 13.7563309"
-                    className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[11px] font-medium text-slate-600">
-                    Longitude (-180 ถึง 180)
-                  </span>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={plotLongitude}
-                    onChange={(e) =>
-                      setPlotLongitude && setPlotLongitude(e.target.value)
-                    }
-                    placeholder="เช่น 100.5017651"
-                    className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
-                  />
-                </div>
-              </div>
-            </div>
+            <ActivityGpsPicker
+              title="พิกัดแปลง (Plot Coordinates)"
+              latitude={plotLatitude}
+              longitude={plotLongitude}
+              onLatitudeChange={setPlotLatitude}
+              onLongitudeChange={setPlotLongitude}
+              accentColor="emerald"
+            />
 
             {/* 3. รูปแปลง (Plot Photos - Max 5) */}
             <ActivityPhotoUpload

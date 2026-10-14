@@ -53,7 +53,7 @@ import {
   DEMO_PLOT_IRRIGATION_METHODS,
   UserDemoPlotOption,
 } from "@/modules/activity-plans/constants";
-import { ActivityPhotoUpload } from "@/components/activity";
+import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
 
 import { Type7aPlanCard } from "./type7a-plan-card";
 import type {
@@ -183,65 +183,6 @@ export function Type7aActualForm({
 
   // Checkbox: แก้ไขข้อมูลแปลงสาธิต (Actual Baseline)
   const [isEditingBaseline, setIsEditingBaseline] = useState(false);
-
-  // Geolocation states for Plot Coordinates
-  const [geoLoading, setGeoLoading] = useState(false);
-  const [geoError, setGeoError] = useState<string | null>(null);
-  const [geoSuccess, setGeoSuccess] = useState(false);
-
-  const handleGetCurrentLocation = () => {
-    if (typeof window === "undefined" || !navigator.geolocation) {
-      setGeoError(
-        "เบราว์เซอร์หรืออุปกรณ์นี้ไม่รองรับการค้นหาตำแหน่งพิกัด (Geolocation)",
-      );
-      setGeoSuccess(false);
-      return;
-    }
-    setGeoLoading(true);
-    setGeoError(null);
-    setGeoSuccess(false);
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLoading(false);
-        const lat = pos.coords.latitude.toFixed(7);
-        const lng = pos.coords.longitude.toFixed(7);
-        setLatitude?.(lat);
-        setLongitude?.(lng);
-        setGeoSuccess(true);
-        setTimeout(() => setGeoSuccess(false), 4000);
-      },
-      (err) => {
-        setGeoLoading(false);
-        setGeoSuccess(false);
-        if (err.code === 1) {
-          // PERMISSION_DENIED
-          setGeoError(
-            "การเข้าถึงพิกัดถูกปฏิเสธ กรุณาอนุญาต Location ใน Browser หรือกรอกพิกัดด้วยตนเอง",
-          );
-        } else if (err.code === 2) {
-          // POSITION_UNAVAILABLE
-          setGeoError(
-            "ไม่สามารถระบุตำแหน่งได้ กรุณาเปิด GPS / ตรวจสอบ Location บนอุปกรณ์แล้วลองใหม่อีกครั้ง",
-          );
-        } else if (err.code === 3) {
-          // TIMEOUT
-          setGeoError(
-            "หมดเวลาในการค้นหาตำแหน่ง กรุณาเปิด GPS / ตรวจสอบสัญญาณแล้วลองใหม่อีกครั้ง",
-          );
-        } else {
-          setGeoError(
-            "ไม่สามารถดึงตำแหน่งปัจจุบันได้ กรุณาตรวจสอบ Location แล้วลองใหม่อีกครั้ง หรือกรอกด้วยตนเอง",
-          );
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    );
-  };
 
   // Business Rule: พืชไร่ / ผักและพืชล้มลุก = ไร่, หมวดอื่น = จำนวนต้น
   const isRaiUnit = ["พืชไร่", "ผักและพืชล้มลุก"].includes(cropCategory);
@@ -704,84 +645,16 @@ export function Type7aActualForm({
           )}
 
           {/* พิกัดแปลงสาธิต (Plot Coordinates: Latitude & Longitude REQUIRED) */}
-          <div className="md:col-span-2 space-y-3 bg-emerald-50/40 border border-emerald-100/80 rounded-2xl p-3.5 sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-emerald-600" />
-                พิกัดแปลงสาธิต (Plot Coordinates){" "}
-                <span className="text-rose-500">*</span>
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleGetCurrentLocation}
-                disabled={geoLoading}
-                className="h-8 text-xs font-semibold bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50 shadow-2xs gap-1.5"
-              >
-                <Navigation
-                  className={cn(
-                    "w-3.5 h-3.5 text-emerald-600",
-                    geoLoading && "animate-spin",
-                  )}
-                />
-                {geoLoading ? "กำลังดึงพิกัด..." : "📍 ดึงพิกัดปัจจุบัน"}
-              </Button>
-            </div>
-
-            {geoError && (
-              <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 p-2.5 rounded-xl flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                <span>{geoError}</span>
-              </div>
-            )}
-
-            {geoSuccess && (
-              <div className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600 stroke-[3] shrink-0" />
-                <span>ดึงพิกัดปัจจุบันสำเร็จเรียบร้อยแล้ว</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  ละติจูด (Latitude) <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={latitude}
-                  onChange={(e) => {
-                    setLatitude?.(e.target.value);
-                    if (geoError) setGeoError(null);
-                  }}
-                  placeholder="เช่น 13.7563309"
-                  className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  ลองจิจูด (Longitude) <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={longitude}
-                  onChange={(e) => {
-                    setLongitude?.(e.target.value);
-                    if (geoError) setGeoError(null);
-                  }}
-                  placeholder="เช่น 100.5017651"
-                  className="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono"
-                  required
-                />
-              </div>
-            </div>
+          <div className="md:col-span-2">
+            <ActivityGpsPicker
+              title="พิกัดแปลงสาธิต (Plot Coordinates)"
+              latitude={latitude}
+              longitude={longitude}
+              onLatitudeChange={setLatitude}
+              onLongitudeChange={setLongitude}
+              required={true}
+              accentColor="emerald"
+            />
           </div>
         </div>
       </div>
