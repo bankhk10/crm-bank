@@ -52,8 +52,7 @@ export {
   type UseType3FormResult,
 } from "./hooks/use-type3-form";
 
-// Strategy (Vertical Slice Server/Application Strategy)
-export { type3Strategy } from "./application/type3.strategy";
+// Note: type3Strategy is deliberately NOT exported here to prevent Prisma Client leakage into client components.
 
 // Application Layer: Validation & Mappers
 export {

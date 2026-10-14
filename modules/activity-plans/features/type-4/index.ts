@@ -53,7 +53,7 @@ export {
   mapType4ToSectionItems,
 } from "./application/mapper";
 
-export { type4Strategy } from "./application/type4.strategy";
+// Note: type4Strategy is deliberately NOT exported here to prevent Prisma Client leakage into client components.
 
 // 4. Types & Props (Re-exported from types slice)
 export * from "./types";

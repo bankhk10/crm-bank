@@ -58,7 +58,7 @@ export {
   mapType6ToSectionItems,
 } from "./application/mapper";
 
-export { type6Strategy } from "./application/type6.strategy";
+// Note: type6Strategy is deliberately NOT exported here to prevent Prisma Client leakage into client components.
 
 // 4. Types & Constants
 export { ISSUE_TYPES } from "./types";
