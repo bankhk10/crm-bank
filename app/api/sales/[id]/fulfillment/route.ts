@@ -219,43 +219,41 @@ export async function POST(
         }
       }
 
-      // Handle stock status transition based on delivery date change
-      if (deliveryDate !== undefined && status !== "CANCELLED") {
-        const newDate = deliveryDate ? new Date(deliveryDate) : null;
-        const oldDate = sale.deliveryDate;
+      // Check if this sale is managed by Split Shipments
+      const existingShipmentsCount = await tx.shipment.count({
+        where: { saleId: id, status: { not: "CANCELLED" } },
+      });
+      const isSplitShipmentSale =
+        sale.hasPartialDelivery || existingShipmentsCount > 0;
 
-        if (!oldDate && newDate) {
-          // FIRST TIME setting delivery date - create stock deduction
+      // Handle stock status transition (Only for Single Delivery sales)
+      if (!isSplitShipmentSale && status !== "CANCELLED") {
+        const targetStatus = status || sale.status;
+        const isDeductingState = (st: string) =>
+          ["DELIVERY_COMPLETED", "COMPLETED", "PAID"].includes(st);
+
+        const oldWasDeducted = sale.isStockDeducted;
+        const newShouldBeDeducted = isDeductingState(targetStatus as string);
+
+        if (!oldWasDeducted && newShouldBeDeducted) {
           if (lotAllocations && lotAllocations.length > 0) {
             await confirmStockDeductionWithLots(id, lotAllocations, tx);
           } else {
             await confirmStockDeduction(id, tx);
           }
-        } else if (oldDate && !newDate) {
-          // Removing delivery date - revert stock
+          updateData.isStockDeducted = true;
+        } else if (oldWasDeducted && !newShouldBeDeducted) {
           await revertStockDeductionFromLots(id, tx);
+          updateData.isStockDeducted = false;
         } else if (
-          oldDate &&
-          newDate &&
+          oldWasDeducted &&
+          newShouldBeDeducted &&
           lotAllocations &&
           lotAllocations.length > 0
         ) {
-          // Delivery date already exists AND LOT allocations provided
-          // This means user wants to UPDATE LOT allocations
-          // Revert existing allocations first, then apply new ones
           await revertStockDeductionFromLots(id, tx);
           await confirmStockDeductionWithLots(id, lotAllocations, tx);
         }
-      } else if (
-        lotAllocations &&
-        lotAllocations.length > 0 &&
-        sale.deliveryDate &&
-        status !== "CANCELLED"
-      ) {
-        // LOT allocations provided but deliveryDate not being changed
-        // This means user is only updating LOT allocations
-        await revertStockDeductionFromLots(id, tx);
-        await confirmStockDeductionWithLots(id, lotAllocations, tx);
       }
 
       // Handle Credit Limit restoration on Payment (for non-PREPAID)

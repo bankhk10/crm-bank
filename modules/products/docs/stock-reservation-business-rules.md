@@ -43,7 +43,8 @@ $$\text{Available Quantity} = \text{Physical Balance} - \text{Reserved Quantity}
         (ไม่มี Split Shipment)                  (มี Shipment / hasPartialDelivery)
                     │                                       │
         • ระบุวันส่ง / Awaiting Delivery        • สร้าง Shipment #1, #2 (PENDING)
-        • ปลดจองทั้งบิล:                          • เมื่อเริ่มส่ง Shipment #i:
+          (ยังคงจองไว้ ไม่ให้ขายซ้อน)               (ยังคงจองไว้ ไม่ให้ขายซ้อน)
+        • เมื่อส่งเสร็จ (DELIVERY_COMPLETED):    • เมื่อเริ่มส่ง Shipment #i (IN_TRANSIT):
           confirmStockDeduction(-SaleQty)         deductStockForShipment(-ShipmentQty)
         • isStockDeducted = true                • เมื่อส่งครบทุก Shipment:
                                                   isStockDeducted = true
@@ -51,8 +52,9 @@ $$\text{Available Quantity} = \text{Physical Balance} - \text{Reserved Quantity}
 
 ### 3.1 รูปแบบที่ 1: การส่งแบบบิลเดี่ยว (Single Delivery Flow)
 * **เงื่อนไข:** ใบสั่งซื้อไม่มีการแบ่งรอบส่ง (`hasPartialDelivery = false` และไม่มี `Shipment`)
+* **สถานะรอส่ง:** เมื่อระบุวันที่จัดส่ง หรือสถานะเป็น `APPROVED`, `AWAITING_DELIVERY` $\rightarrow$ **ยังคงยอดจองไว้ (`reservedQuantity`)** เพื่อป้องกันปัญหาสต็อกเด้งกลับและขายซ้อน (Overselling)
 * **การปลดจอง:** 
-  * เมื่อระบุวันที่จัดส่ง หรือสถานะเปลี่ยนเป็น `AWAITING_DELIVERY`, `DELIVERY_COMPLETED`, `PAID`, `COMPLETED`
+  * เมื่อสถานะเปลี่ยนเป็น: `DELIVERY_COMPLETED`, `COMPLETED`, หรือ `PAID`
   * ระบบเรียก `confirmStockDeductionUseCase(saleId)` หรือ `confirmStockDeductionWithLotsUseCase`
   * ปลดจองทั้งบิล: `reservedQuantity -= item.quantity`
   * บันทึกสถานะ `isStockDeducted = true` บนใบขาย
@@ -111,5 +113,5 @@ Script `scripts/sync-missing-product-stocks.ts` ทำหน้าที่ก�
 
 $$\text{Expected Reserved} = \sum_{\text{Single Sales}} \text{Pending Qty} + \sum_{\text{Split Sales}} (\text{Ordered Qty} - \text{Shipped Qty})$$
 
-* **Single Delivery Sales:** รวมจำนวนจากบิลที่ `status IN ['APPROVED']` และ `isStockDeducted === false`
-* **Split Shipment Sales:** รวมจำนวนจากบิลที่ `status IN ['APPROVED', 'AWAITING_DELIVERY', 'PARTIALLY_DELIVERED']` โดยหักลบด้วยจำนวนสินค้าที่จัดส่งแล้ว (`IN_TRANSIT`, `DELIVERED`, `COMPLETED`) ในแต่ละรอบ
+* **Single Delivery Sales:** รวมจำนวนจากบิลที่ `status IN ['APPROVED', 'PAID', 'AWAITING_DELIVERY']` และ `isStockDeducted === false`
+* **Split Shipment Sales:** รวมจำนวนจากบิลที่ `status IN ['APPROVED', 'PAID', 'AWAITING_DELIVERY', 'PARTIALLY_DELIVERED']` โดยหักลบด้วยจำนวนสินค้าที่จัดส่งแล้ว (`IN_TRANSIT`, `DELIVERED`, `COMPLETED`) ในแต่ละรอบ
