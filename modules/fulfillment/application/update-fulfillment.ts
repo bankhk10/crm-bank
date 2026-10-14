@@ -130,110 +130,27 @@ export async function updateFulfillmentUseCase(
     };
   }
 
-  const updatedSale = await db.$transaction(async (tx: Prisma.TransactionClient) => {
-    const shouldReleaseResources =
-      status === "CANCELLED" && sale.status !== "CANCELLED";
+  const updatedSale = await db.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      const shouldReleaseResources =
+        status === "CANCELLED" && sale.status !== "CANCELLED";
 
-    if (shouldReleaseResources) {
-      // 1. Release stock (return to available)
-      await releaseStock(id, tx);
-      updateData.isStockDeducted = false;
+      if (shouldReleaseResources) {
+        // 1. Release stock (return to available)
+        await releaseStock(id, tx);
+        updateData.isStockDeducted = false;
 
-      // 2. Restore credit limit (for non-PREPAID and not yet paid)
-      if (sale.paymentTerm !== "PREPAID" && !sale.paymentDate) {
-        const creditLimit = await tx.creditLimit.findFirst({
-          where: {
-            customerId: sale.customerId,
-            status: "ACTIVE",
-            deletedAt: null,
-          },
-        });
-
-        if (creditLimit) {
-          await tx.creditLimit.update({
-            where: { id: creditLimit.id },
-            data: {
-              usedAmount: { decrement: sale.totalAmount },
-              availableAmount: { increment: sale.totalAmount },
+        // 2. Restore credit limit (for non-PREPAID and not yet paid)
+        if (sale.paymentTerm !== "PREPAID" && !sale.paymentDate) {
+          const creditLimit = await tx.creditLimit.findFirst({
+            where: {
+              customerId: sale.customerId,
+              status: "ACTIVE",
+              deletedAt: null,
             },
           });
-        }
-      }
-    }
 
-    if (!shouldReleaseResources) {
-      // Check if this sale is managed by Split Shipments (has active shipments or hasPartialDelivery)
-      const existingShipmentsCount = await tx.shipment.count({
-        where: { saleId: id, status: { not: "CANCELLED" } },
-      });
-      const isSplitShipmentSale =
-        sale.hasPartialDelivery || existingShipmentsCount > 0;
-
-      // Only perform whole-sale deduction/reversion for Single Delivery sales!
-      // Split Shipments manage their own deductions strictly per shipment.
-      if (!isSplitShipmentSale) {
-        const targetStatus = status || sale.status;
-        const newDate =
-          deliveryDate !== undefined
-            ? deliveryDate
-              ? new Date(deliveryDate)
-              : null
-            : sale.deliveryDate;
-
-        const isDeductingState = (st: string, date: Date | null) =>
-          ["PAID", "DELIVERY_COMPLETED", "COMPLETED"].includes(st) ||
-          (st === "AWAITING_DELIVERY" && !!date);
-
-        const oldWasDeducted = sale.isStockDeducted;
-        const newShouldBeDeducted =
-          isDeductingState(targetStatus as string, newDate) &&
-          targetStatus !== "CANCELLED";
-
-        if (!oldWasDeducted && newShouldBeDeducted) {
-          if (lotAllocations && lotAllocations.length > 0) {
-            await confirmStockDeductionWithLots(id, lotAllocations, tx);
-          } else {
-            await confirmStockDeduction(id, tx);
-          }
-          updateData.isStockDeducted = true;
-        } else if (oldWasDeducted && !newShouldBeDeducted) {
-          await revertStockDeductionFromLots(id, tx);
-          updateData.isStockDeducted = false;
-        } else if (
-          oldWasDeducted &&
-          newShouldBeDeducted &&
-          lotAllocations &&
-          lotAllocations.length > 0
-        ) {
-          await revertStockDeductionFromLots(id, tx);
-          await confirmStockDeductionWithLots(id, lotAllocations, tx);
-        }
-      }
-    }
-
-    // Handle Credit Limit restoration on Payment (for non-PREPAID)
-    if (
-      paymentDate !== undefined &&
-      sale.paymentTerm !== "PREPAID" &&
-      status !== "CANCELLED"
-    ) {
-      const newPaymentDate = paymentDate ? new Date(paymentDate) : null;
-      const oldPaymentDate = sale.paymentDate;
-
-      const isPaying = !oldPaymentDate && newPaymentDate;
-      const isUnpaying = oldPaymentDate && !newPaymentDate;
-
-      if (isPaying || isUnpaying) {
-        const creditLimit = await tx.creditLimit.findFirst({
-          where: {
-            customerId: sale.customerId,
-            status: "ACTIVE",
-            deletedAt: null,
-          },
-        });
-
-        if (creditLimit) {
-          if (isPaying) {
+          if (creditLimit) {
             await tx.creditLimit.update({
               where: { id: creditLimit.id },
               data: {
@@ -241,21 +158,107 @@ export async function updateFulfillmentUseCase(
                 availableAmount: { increment: sale.totalAmount },
               },
             });
-          } else if (isUnpaying) {
-            await tx.creditLimit.update({
-              where: { id: creditLimit.id },
-              data: {
-                usedAmount: { increment: sale.totalAmount },
-                availableAmount: { decrement: sale.totalAmount },
-              },
-            });
           }
         }
       }
-    }
 
-    return await FulfillmentRepository.updateSale(id, updateData, tx);
-  });
+      if (!shouldReleaseResources) {
+        // Check if this sale is managed by Split Shipments (has active shipments or hasPartialDelivery)
+        const existingShipmentsCount = await tx.shipment.count({
+          where: { saleId: id, status: { not: "CANCELLED" } },
+        });
+        const isSplitShipmentSale =
+          sale.hasPartialDelivery || existingShipmentsCount > 0;
+
+        // Only perform whole-sale deduction/reversion for Single Delivery sales!
+        // Split Shipments manage their own deductions strictly per shipment.
+        if (!isSplitShipmentSale) {
+          const targetStatus = status || sale.status;
+          const newDate =
+            deliveryDate !== undefined
+              ? deliveryDate
+                ? new Date(deliveryDate)
+                : null
+              : sale.deliveryDate;
+
+          // Stock deduction (un-reserving) only happens when delivery is finished (DELIVERY_COMPLETED or COMPLETED).
+          // During APPROVED, PAID, or AWAITING_DELIVERY, stock remains reserved to prevent overselling.
+          const isDeductingState = (st: string) =>
+            ["DELIVERY_COMPLETED", "COMPLETED"].includes(st);
+
+          const oldWasDeducted = sale.isStockDeducted;
+          const newShouldBeDeducted =
+            isDeductingState(targetStatus as string) &&
+            targetStatus !== "CANCELLED";
+
+          if (!oldWasDeducted && newShouldBeDeducted) {
+            if (lotAllocations && lotAllocations.length > 0) {
+              await confirmStockDeductionWithLots(id, lotAllocations, tx);
+            } else {
+              await confirmStockDeduction(id, tx);
+            }
+            updateData.isStockDeducted = true;
+          } else if (oldWasDeducted && !newShouldBeDeducted) {
+            await revertStockDeductionFromLots(id, tx);
+            updateData.isStockDeducted = false;
+          } else if (
+            oldWasDeducted &&
+            newShouldBeDeducted &&
+            lotAllocations &&
+            lotAllocations.length > 0
+          ) {
+            await revertStockDeductionFromLots(id, tx);
+            await confirmStockDeductionWithLots(id, lotAllocations, tx);
+          }
+        }
+      }
+
+      // Handle Credit Limit restoration on Payment (for non-PREPAID)
+      if (
+        paymentDate !== undefined &&
+        sale.paymentTerm !== "PREPAID" &&
+        status !== "CANCELLED"
+      ) {
+        const newPaymentDate = paymentDate ? new Date(paymentDate) : null;
+        const oldPaymentDate = sale.paymentDate;
+
+        const isPaying = !oldPaymentDate && newPaymentDate;
+        const isUnpaying = oldPaymentDate && !newPaymentDate;
+
+        if (isPaying || isUnpaying) {
+          const creditLimit = await tx.creditLimit.findFirst({
+            where: {
+              customerId: sale.customerId,
+              status: "ACTIVE",
+              deletedAt: null,
+            },
+          });
+
+          if (creditLimit) {
+            if (isPaying) {
+              await tx.creditLimit.update({
+                where: { id: creditLimit.id },
+                data: {
+                  usedAmount: { decrement: sale.totalAmount },
+                  availableAmount: { increment: sale.totalAmount },
+                },
+              });
+            } else if (isUnpaying) {
+              await tx.creditLimit.update({
+                where: { id: creditLimit.id },
+                data: {
+                  usedAmount: { increment: sale.totalAmount },
+                  availableAmount: { decrement: sale.totalAmount },
+                },
+              });
+            }
+          }
+        }
+      }
+
+      return await FulfillmentRepository.updateSale(id, updateData, tx);
+    },
+  );
 
   const shouldFinalizePoints =
     updatedSale.status !== sale.status &&

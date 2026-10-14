@@ -142,23 +142,37 @@ async function runTests() {
       }
     });
 
-    // TEST 2: Single Delivery -> Reserved 0
-    await test("TEST 2: Single Delivery (Set Delivery Date) -> Reserved 0", async () => {
+    // TEST 2: Single Delivery (Set Delivery Date keeps Reserved 100 -> DELIVERY_COMPLETED makes Reserved 0)
+    await test("TEST 2: Single Delivery (AWAITING_DELIVERY preserves Reserved 100 -> DELIVERY_COMPLETED makes Reserved 0)", async () => {
       const prod = await createTestProduct(ctx, 200, 0);
       const sale = await createTestSale(ctx, prod.id, 100);
       await approveSaleUseCase(sale.id, ctx.userId);
 
+      // Set delivery date and move to AWAITING_DELIVERY -> Stock MUST still be reserved (100) to prevent overselling!
       await updateFulfillmentUseCase(sale.id, ctx.userId, {
         status: "AWAITING_DELIVERY",
         deliveryDate: new Date().toISOString(),
       });
 
-      const stock = await db.productStock.findUnique({ where: { productId: prod.id } });
+      let stock = await db.productStock.findUnique({ where: { productId: prod.id } });
+      if (stock?.reservedQuantity !== 100) {
+        throw new Error(`During AWAITING_DELIVERY: Expected reserved 100, got ${stock?.reservedQuantity}`);
+      }
+      if (stock?.availableQuantity !== 100) {
+        throw new Error(`During AWAITING_DELIVERY: Expected available 100, got ${stock?.availableQuantity}`);
+      }
+
+      // Complete delivery -> Stock is now deducted
+      await updateFulfillmentUseCase(sale.id, ctx.userId, {
+        status: "DELIVERY_COMPLETED",
+      });
+
+      stock = await db.productStock.findUnique({ where: { productId: prod.id } });
       if (stock?.reservedQuantity !== 0) {
-        throw new Error(`Expected reserved 0, got ${stock?.reservedQuantity}`);
+        throw new Error(`After DELIVERY_COMPLETED: Expected reserved 0, got ${stock?.reservedQuantity}`);
       }
       if (stock?.availableQuantity !== 200) {
-        throw new Error(`Expected available 200, got ${stock?.availableQuantity}`);
+        throw new Error(`After DELIVERY_COMPLETED: Expected available 200, got ${stock?.availableQuantity}`);
       }
     });
 
@@ -203,15 +217,15 @@ async function runTests() {
       const sale = await createTestSale(ctx, prod.id, 100);
       await approveSaleUseCase(sale.id, ctx.userId);
 
-      // User sets single delivery date first
+      // User sets single delivery date first -> Still reserved 100 (not deducted yet)
       await updateFulfillmentUseCase(sale.id, ctx.userId, {
         status: "AWAITING_DELIVERY",
         deliveryDate: new Date().toISOString(),
       });
 
       let stock = await db.productStock.findUnique({ where: { productId: prod.id } });
-      if (stock?.reservedQuantity !== 0) {
-        throw new Error(`After single delivery: Expected reserved 0, got ${stock?.reservedQuantity}`);
+      if (stock?.reservedQuantity !== 100) {
+        throw new Error(`After setting delivery date: Expected reserved 100, got ${stock?.reservedQuantity}`);
       }
 
       // User now decides to split shipment: 93 + 7
@@ -223,7 +237,7 @@ async function runTests() {
         items: [{ saleItemId: saleItem.id, quantity: 7 }],
       });
 
-      // Creating split shipment should restore reservation to 100
+      // Split shipment created -> Reservation stays 100
       stock = await db.productStock.findUnique({ where: { productId: prod.id } });
       if (stock?.reservedQuantity !== 100) {
         throw new Error(`After creating split shipments: Expected reserved 100, got ${stock?.reservedQuantity}`);
@@ -402,6 +416,7 @@ async function runTests() {
     console.log("\n🧹 Cleaning up test fixtures...");
     for (const saleId of ctx.createdSaleIds) {
       await db.saleItemLot.deleteMany({ where: { saleItem: { saleId } } }).catch(() => {});
+      await db.employeePointHistory.deleteMany({ where: { saleId } }).catch(() => {});
       await db.shipmentItem.deleteMany({ where: { shipment: { saleId } } }).catch(() => {});
       await db.shipment.deleteMany({ where: { saleId } }).catch(() => {});
       await db.saleStatusHistory.deleteMany({ where: { saleId } }).catch(() => {});

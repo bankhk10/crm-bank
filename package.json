@@ -17,7 +17,8 @@
     "sync:sale-snapshots": "tsx --env-file=.env scripts/sync-sale-items-snapshot.ts",
     "cleanup:tradename-groups": "tsx --env-file=.env scripts/cleanup-unused-tradename-groups.ts",
     "sync:sale-item-names": "tsx --env-file=.env scripts/sync-sale-item-names.ts",
-    "sync:product-stocks": "tsx --env-file=.env scripts/sync-missing-product-stocks.ts"
+    "sync:product-stocks": "tsx --env-file=.env scripts/sync-missing-product-stocks.ts",
+    "sync:stock-with-sql": "tsx scripts/sync_stock_with_sql.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.0",

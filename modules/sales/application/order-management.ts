@@ -1,7 +1,6 @@
 import { db as prisma, Prisma } from "@/lib/db";
 import {
   releaseStockUseCase as releaseStock,
-  confirmStockDeductionUseCase as confirmStockDeduction,
 } from "@/modules/products/application";
 import { ORDER_CONFIG } from "@/modules/sales/constants";
 import {
@@ -226,14 +225,6 @@ export async function updateDeliveryDateUseCase(
             changedById: userId,
           },
         });
-
-        if (!sale.isStockDeducted) {
-          await confirmStockDeduction(saleId, tx);
-          await tx.sale.update({
-            where: { id: saleId },
-            data: { isStockDeducted: true },
-          });
-        }
       }
     });
 
