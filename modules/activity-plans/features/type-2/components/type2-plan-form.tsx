@@ -11,7 +11,6 @@ import {
   type ActivityProductItem,
 } from "@/components/activity/activity-product-select";
 import type {
-  Type2ProductFollowupItem,
   Type2FollowupProductLine,
   CustomerOption,
   ProductOption,
