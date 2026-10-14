@@ -52,9 +52,9 @@ $$\text{Available Quantity} = \text{Physical Balance} - \text{Reserved Quantity}
 
 ### 3.1 รูปแบบที่ 1: การส่งแบบบิลเดี่ยว (Single Delivery Flow)
 * **เงื่อนไข:** ใบสั่งซื้อไม่มีการแบ่งรอบส่ง (`hasPartialDelivery = false` และไม่มี `Shipment`)
-* **สถานะรอส่ง:** เมื่อระบุวันที่จัดส่ง หรือสถานะเป็น `APPROVED`, `PAID`, `AWAITING_DELIVERY` $\rightarrow$ **ยังคงยอดจองไว้ (`reservedQuantity`)** เพื่อป้องกันปัญหาสต็อกเด้งกลับและขายซ้อน (Overselling)
+* **สถานะรอส่ง:** เมื่อระบุวันที่จัดส่ง หรือสถานะเป็น `APPROVED`, `AWAITING_DELIVERY` $\rightarrow$ **ยังคงยอดจองไว้ (`reservedQuantity`)** เพื่อป้องกันปัญหาสต็อกเด้งกลับและขายซ้อน (Overselling)
 * **การปลดจอง:** 
-  * เมื่อสถานะเปลี่ยนเป็นส่งเสร็จแล้ว: `DELIVERY_COMPLETED` หรือ `COMPLETED`
+  * เมื่อสถานะเปลี่ยนเป็น: `DELIVERY_COMPLETED`, `COMPLETED`, หรือ `PAID`
   * ระบบเรียก `confirmStockDeductionUseCase(saleId)` หรือ `confirmStockDeductionWithLotsUseCase`
   * ปลดจองทั้งบิล: `reservedQuantity -= item.quantity`
   * บันทึกสถานะ `isStockDeducted = true` บนใบขาย

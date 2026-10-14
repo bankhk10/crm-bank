@@ -33,7 +33,7 @@ ActiveOrders AS (
     JOIN "Product" p ON item."productId" = p."id"
     LEFT JOIN ShippedPerSaleItem shipped ON shipped."saleItemId" = item."id"
     WHERE s."deletedAt" IS NULL
-      AND s."status" IN ('APPROVED', 'AWAITING_DELIVERY', 'PARTIALLY_DELIVERED')
+      AND s."status" IN ('APPROVED', 'AWAITING_DELIVERY', 'PARTIALLY_DELIVERED', 'PAID')
 ),
 AggregatedReserved AS (
     SELECT 

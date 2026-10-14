@@ -230,7 +230,7 @@ export async function POST(
       if (!isSplitShipmentSale && status !== "CANCELLED") {
         const targetStatus = status || sale.status;
         const isDeductingState = (st: string) =>
-          ["DELIVERY_COMPLETED", "COMPLETED"].includes(st);
+          ["DELIVERY_COMPLETED", "COMPLETED", "PAID"].includes(st);
 
         const oldWasDeducted = sale.isStockDeducted;
         const newShouldBeDeducted = isDeductingState(targetStatus as string);
