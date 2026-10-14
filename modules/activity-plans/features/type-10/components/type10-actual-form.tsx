@@ -9,9 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { FormCombobox } from "@/components/custom/FormCombobox";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import {
+  ActivityPhotoUpload,
+  ActivityProductSelect,
+  type ActivityProductItem,
+  type ImageFile,
+} from "@/components/activity";
 import { listProductsAction } from "@/modules/products/server/actions";
 
 import { Type10PlanCard } from "./type10-plan-card";
@@ -98,41 +102,44 @@ export function Type10ActualForm({
     return dbProducts;
   }, [products, dbProducts]);
 
-  // Options for FormCombobox
-  const productComboboxOptions = useMemo(() => {
-    const options: Array<{ value: string; label: string; subLabel?: string }> = [];
+  // Options for ActivityProductSelect
+  const formattedProductList = useMemo<ActivityProductItem[]>(() => {
+    const list: ActivityProductItem[] = [];
 
     // If showcase product from target exists, prioritize it
     if (target?.showcase && target.showcase.trim() !== "") {
       const showcaseName = target.showcase.trim();
-      options.push({
-        value: showcaseName,
-        label: `${showcaseName} (สินค้าเด่นประจำแปลงสาธิต)`,
+      list.push({
+        id: `showcase-${showcaseName}`,
+        name: showcaseName,
+        productCode: "สินค้าเด่นประจำแปลงสาธิต",
       });
     }
 
-    masterProductList.forEach((p) => {
+    masterProductList.forEach((p, idx) => {
       if (typeof p === "string") {
-        if (!options.some((o) => o.value === p)) {
-          options.push({ value: p, label: p });
+        if (!list.some((o) => o.name === p)) {
+          list.push({ id: `p-${idx}`, name: p });
         }
       } else if (p && p.name) {
-        if (!options.some((o) => o.value === p.name)) {
-          options.push({
-            value: p.name,
-            label: p.name,
-            subLabel: p.productCode ? `รหัส: ${p.productCode}` : undefined,
+        if (!list.some((o) => o.name === p.name)) {
+          list.push({
+            id: p.id || `p-${idx}`,
+            name: p.name,
+            productCode: p.productCode || null,
+            price: p.price ?? null,
           });
         }
       }
     });
 
-    options.push({
-      value: CUSTOM_PRODUCT_VALUE,
-      label: "➕ ระบุสินค้าอื่นๆ / ไม่พบในระบบ",
+    list.push({
+      id: CUSTOM_PRODUCT_VALUE,
+      name: "➕ ระบุสินค้าอื่นๆ / ไม่พบในระบบ",
+      productCode: "กำหนดเอง",
     });
 
-    return options;
+    return list;
   }, [masterProductList, target?.showcase]);
 
   const normalizeSoldProductItem = (p: any, idx: number): SoldProductItem => {
@@ -676,18 +683,42 @@ export function Type10ActualForm({
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      <FormCombobox
+                      <ActivityProductSelect
+                        id={`type10-product-${idx}`}
                         label="เลือกสินค้าที่ขายได้"
                         required
+                        labelClassName="block text-xs font-bold text-slate-800 mb-1"
+                        triggerClassName="h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                         value={comboboxVal}
-                        onChange={(val: string) => {
-                          if (val === CUSTOM_PRODUCT_VALUE) {
+                        valueKey="name"
+                        onChange={(val: string, prodItem) => {
+                          if (
+                            val === "➕ ระบุสินค้าอื่นๆ / ไม่พบในระบบ" ||
+                            val === CUSTOM_PRODUCT_VALUE ||
+                            prodItem?.id === CUSTOM_PRODUCT_VALUE
+                          ) {
                             handleToggleCustomProduct(idx, true);
                           } else {
                             handleItemChange(idx, "productName", val);
+                            if (
+                              prodItem?.id &&
+                              !prodItem.id.startsWith("showcase-") &&
+                              !prodItem.id.startsWith("p-")
+                            ) {
+                              handleItemChange(idx, "productId", prodItem.id);
+                            }
+                            if (
+                              prodItem?.productCode &&
+                              prodItem.productCode !== "สินค้าเด่นประจำแปลงสาธิต"
+                            ) {
+                              handleItemChange(idx, "productCode", prodItem.productCode);
+                            }
+                            if (prodItem?.price != null) {
+                              handleItemChange(idx, "unitPrice", prodItem.price);
+                            }
                           }
                         }}
-                        options={productComboboxOptions}
+                        products={formattedProductList}
                         placeholder={
                           loadingProducts
                             ? "กำลังโหลดรายการสินค้า..."
@@ -695,7 +726,6 @@ export function Type10ActualForm({
                         }
                         searchPlaceholder="พิมพ์ชื่อสินค้าหรือรหัสสินค้า..."
                         emptyText="ไม่พบรายการสินค้าในระบบ"
-                        className="w-full bg-white text-sm"
                       />
                     </div>
                   )}

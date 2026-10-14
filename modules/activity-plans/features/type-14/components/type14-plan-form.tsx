@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import {
+  ActivityCustomerSelect,
+  ActivityProductSelect,
+  ActivityAddressSelect,
+} from "@/components/activity";
 import type {
   Type14PlanInput,
   Type14WithdrawnProductLine,
@@ -423,11 +428,13 @@ export function Type14Create({
     rowId: string,
     field: keyof Type14WithdrawnProductLine,
     val: any,
+    selectedProd?: any,
   ) => {
     const updated = withdrawnProducts.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
-        const matched = products.find((prod) => prod.id === val);
+        const matched =
+          selectedProd || products.find((prod) => prod.id === val);
         return {
           ...p,
           productId: val,
@@ -644,8 +651,8 @@ export function Type14Create({
           </div>
         )}
 
-        {/* Selected Plots Summary Card ยังไม่ใช้ สรุปรายละเอียดแปลงแฮตแทคที่เลือกติดตาม*/}
-        {/* {selectedPlotItems.length > 0 && (
+        {/* Selected Plots Summary Card */}
+        {selectedPlotItems.length > 0 && (
           <div className="bg-purple-50/50 rounded-xl border border-purple-200/80 p-3.5 sm:p-4 space-y-3 transition-all animate-fadeIn">
             <div className="flex items-center justify-between border-b border-purple-100 pb-2 text-xs font-bold text-purple-900">
               <div className="flex items-center gap-1.5">
@@ -677,23 +684,27 @@ export function Type14Create({
                       {dealerDisplayName}
                     </p>
                   ) : (
-                    <FormCombobox
+                    <ActivityCustomerSelect
                       id="type14-dealer-select-single"
+                      type="STORE"
+                      triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
                       value={value.storeId || ""}
-                      onChange={(val) => {
-                        const matchedDealer = dealerCustomers.find((d) => d.id === val);
+                      valueKey="id"
+                      onChange={(val, matchedDealer) => {
+                        const dealerName =
+                          matchedDealer?.name ||
+                          dealerCustomers.find((d) => d.id === val)?.name ||
+                          "";
                         onChange({
                           ...value,
                           storeId: val,
-                          dealerName: matchedDealer?.name || "",
+                          dealerName,
                         });
                       }}
-                      options={dealerOptions}
+                      customers={dealerCustomers as any}
                       placeholder={dealerDisplayName !== "-" ? dealerDisplayName : "เลือกร้านค้าตัวแทนจำหน่าย..."}
                       searchPlaceholder="ค้นหาร้านค้า Dealer..."
                       emptyText="ไม่พบร้านค้าตัวแทนจำหน่าย"
-                      labelClassName="hidden"
-                      triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
                     />
                   )}
                 </div>
@@ -724,16 +735,38 @@ export function Type14Create({
                   </p>
                 </div>
 
-                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-0.5 sm:col-span-2">
+                <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100/80 space-y-1 sm:col-span-2">
                   <span className="text-[11px] text-slate-500 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-purple-600" />
-                    ที่ตั้งแปลง (อำเภอ / จังหวัด)
+                    พื้นที่ที่ตั้งแปลง (อำเภอ / จังหวัด)
                   </span>
-                  <p className="font-semibold text-slate-800 truncate">
-                    {[selectedPlotItems[0].district, selectedPlotItems[0].province]
-                      .filter(Boolean)
-                      .join(" / ") || "-"}
-                  </p>
+                  {readonly ? (
+                    <p className="font-semibold text-slate-800 truncate text-xs">
+                      {[value.district || selectedPlotItems[0]?.district, value.province || selectedPlotItems[0]?.province]
+                        .filter(Boolean)
+                        .join(" / ") || "-"}
+                    </p>
+                  ) : (
+                    <ActivityAddressSelect
+                      id="type14-plan-address-single"
+                      levels="province-district"
+                      provincePlaceholder="เลือกจังหวัด..."
+                      districtPlaceholder="เลือกอำเภอ..."
+                      labelClassName="hidden"
+                      triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
+                      value={{
+                        province: value.province || selectedPlotItems[0]?.province || "",
+                        district: value.district || selectedPlotItems[0]?.district || "",
+                      }}
+                      onChange={(addrVal) => {
+                        onChange({
+                          ...value,
+                          province: addrVal.province || "",
+                          district: addrVal.district || "",
+                        });
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             ) : (
@@ -767,37 +800,66 @@ export function Type14Create({
                     {readonly ? (
                       <strong className="text-slate-800">{dealerDisplayName}</strong>
                     ) : (
-                      <FormCombobox
+                      <ActivityCustomerSelect
                         id="type14-dealer-select-multi"
+                        type="STORE"
+                        triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
                         value={value.storeId || ""}
-                        onChange={(val) => {
-                          const matchedDealer = dealerCustomers.find((d) => d.id === val);
+                        valueKey="id"
+                        onChange={(val, matchedDealer) => {
+                          const dealerName =
+                            matchedDealer?.name ||
+                            dealerCustomers.find((d) => d.id === val)?.name ||
+                            "";
                           onChange({
                             ...value,
                             storeId: val,
-                            dealerName: matchedDealer?.name || "",
+                            dealerName,
                           });
                         }}
-                        options={dealerOptions}
+                        customers={dealerCustomers as any}
                         placeholder={dealerDisplayName !== "-" ? dealerDisplayName : "เลือกร้านค้าตัวแทนจำหน่าย..."}
                         searchPlaceholder="ค้นหาร้านค้า Dealer..."
                         emptyText="ไม่พบร้านค้าตัวแทนจำหน่าย"
-                        labelClassName="hidden"
-                        triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
                       />
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-600">
-                    <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                    <span>พื้นที่: <strong className="text-slate-800">
-                      {[value.district, value.province].filter(Boolean).join(" / ") || selectedPlotItems[0]?.province || "-"}
-                    </strong></span>
+                  <div className="space-y-1 text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                      <span>พื้นที่ (อำเภอ / จังหวัด):</span>
+                    </div>
+                    {readonly ? (
+                      <strong className="text-slate-800">
+                        {[value.district, value.province].filter(Boolean).join(" / ") || selectedPlotItems[0]?.province || "-"}
+                      </strong>
+                    ) : (
+                      <ActivityAddressSelect
+                        id="type14-plan-address-multi"
+                        levels="province-district"
+                        provincePlaceholder="เลือกจังหวัด..."
+                        districtPlaceholder="เลือกอำเภอ..."
+                        labelClassName="hidden"
+                        triggerClassName="h-7 min-h-[28px] py-0 text-xs bg-white border-purple-200/80 rounded-md text-slate-800 font-medium"
+                        value={{
+                          province: value.province || selectedPlotItems[0]?.province || "",
+                          district: value.district || selectedPlotItems[0]?.district || "",
+                        }}
+                        onChange={(addrVal) => {
+                          onChange({
+                            ...value,
+                            province: addrVal.province || "",
+                            district: addrVal.district || "",
+                          });
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
             )}
           </div>
-        )} */}
+        )}
       </div>
 
       {/* การเบิกสินค้าสำหรับรอบติดตามแปลงแฮทแทค (TYPE_14 Product Withdrawal) */}
@@ -879,19 +941,20 @@ export function Type14Create({
 
                         {/* เลือกสินค้า */}
                         <td className="py-2 px-3 align-middle">
-                          <FormCombobox
+                          <ActivityProductSelect
                             id={`type14-withdrawn-prod-${pLine.id}`}
-                            label=""
                             triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-purple-500 w-full"
                             value={pLine.productId || ""}
-                            onChange={(val) =>
+                            valueKey="id"
+                            onChange={(val, selectedProd) =>
                               updateWithdrawnProductRow(
                                 pLine.id,
                                 "productId",
                                 val,
+                                selectedProd,
                               )
                             }
-                            options={productOptions}
+                            products={products as any}
                             placeholder="เลือกสินค้าที่ต้องการเบิก..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"

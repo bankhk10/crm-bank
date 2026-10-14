@@ -9,13 +9,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { FormCombobox } from "@/components/custom/FormCombobox";
 import { ActivityInput } from "@/components/activity/activity-input";
 import {
   ActivityCustomerSelect,
   type ActivityCustomerItem,
 } from "@/components/activity/activity-customer-select";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import type {
   Type13PlotItem,
   Type13WithdrawnProductLine,
@@ -113,11 +113,12 @@ export function Type13Create({
     rowId: string,
     field: keyof Type13WithdrawnProductLine,
     val: any,
+    selectedProd?: any,
   ) => {
     const updated = currentWithdrawnProducts.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
-        const matched = products.find((prod) => prod.id === val);
+        const matched = selectedProd || products.find((prod) => prod.id === val);
         return {
           ...p,
           productId: val,
@@ -477,19 +478,20 @@ export function Type13Create({
 
                         {/* เลือกสินค้า */}
                         <td className="py-2 px-3 align-middle">
-                          <FormCombobox
+                          <ActivityProductSelect
                             id={`type13-withdrawn-prod-${pLine.id}`}
-                            label=""
                             triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-emerald-500 w-full"
                             value={pLine.productId || ""}
-                            onChange={(val) =>
+                            valueKey="id"
+                            onChange={(val, selectedProd) =>
                               updateWithdrawnProductRow(
                                 pLine.id,
                                 "productId",
                                 val,
+                                selectedProd,
                               )
                             }
-                            options={productOptions}
+                            products={products as any}
                             placeholder="เลือกสินค้าที่ต้องการเบิก..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"

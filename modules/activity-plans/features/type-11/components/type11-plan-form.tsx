@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
-import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import type { Type11StoreItem, CustomerOption, Type11StockProps } from "../types";
 
 export type { CustomerOption, Type11StockProps, Type11StockProps as Type11PlanFormProps };
@@ -21,14 +21,14 @@ export function Type11PlanForm({
     return [];
   }, [type11Stores]);
 
-  const selectedStoreIds = new Set(selectedStores.map((s) => s.storeId));
+  const selectedStoreIds = React.useMemo(
+    () => new Set(selectedStores.map((s) => s.storeId)),
+    [selectedStores],
+  );
 
-  const availableCustomerOptions = (customers || [])
-    .filter((c) => !selectedStoreIds.has(c.id))
-    .map((c) => ({
-      value: c.id,
-      label: `${c.customerCode ? `${c.customerCode} - ` : ""}${c.name}`,
-    }));
+  const availableCustomers = React.useMemo(() => {
+    return (customers || []).filter((c) => !selectedStoreIds.has(c.id));
+  }, [customers, selectedStoreIds]);
 
   return (
     <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 md:p-5 space-y-4">
@@ -74,27 +74,29 @@ export function Type11PlanForm({
 
         {/* Store Selection Dropdown */}
         {!readonly && (
-          <FormCombobox
+          <ActivityCustomerSelect
             id="type11-stores-combobox"
-            label=""
-            labelClassName="hidden"
+            type="STORE"
             triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-slate-500"
             value=""
-            onChange={(selectedId) => {
+            valueKey="id"
+            onChange={(selectedId, foundCustomer) => {
               if (!selectedId) return;
-              const foundCustomer = customers.find((c) => c.id === selectedId);
-              if (foundCustomer && !selectedStoreIds.has(foundCustomer.id)) {
+              const customerName =
+                foundCustomer?.name ||
+                customers.find((c) => c.id === selectedId)?.name;
+              if (customerName && !selectedStoreIds.has(selectedId)) {
                 const updated: Type11StoreItem[] = [
                   ...selectedStores,
                   {
-                    storeId: foundCustomer.id,
-                    storeName: foundCustomer.name,
+                    storeId: selectedId,
+                    storeName: customerName,
                   },
                 ];
                 setType11Stores(updated);
               }
             }}
-            options={availableCustomerOptions}
+            customers={availableCustomers as any}
             placeholder={
               selectedStores.length > 0
                 ? "+ เพิ่มร้านค้าที่จะตรวจเช็กสต็อก..."
