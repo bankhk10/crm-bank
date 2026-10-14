@@ -399,111 +399,109 @@ export function Type2PlanForm({
                 )}
 
                 {/* 3. Product Lines Section: รายการสินค้าที่จะติดตามผล */}
-                <div className="">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">
-                      รายการสินค้าที่จะติดตามผล{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    {!readonly && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => addProductLine(item.id)}
-                        className="h-7 text-xs px-2.5 border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 shadow-sm cursor-pointer"
-                      >
-                        <Plus className="h-3 w-3 mr-1 text-indigo-600" />
-                        เพิ่มสินค้า
-                      </Button>
-                    )}
-                  </div>
-
-                  {prodListLines.map((prodLine) => {
-                    return (
-                      <div
-                        key={prodLine.id}
-                        className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
-                      >
-                        {/* Product Combobox */}
-                        <div
-                          className={
-                            prodListLines.length > 1 && !readonly
-                              ? "md:col-span-6"
-                              : "md:col-span-6"
-                          }
-                        >
-                          <ActivityProductSelect
-                            id={`type2-product-combobox-${item.id}-${prodLine.id}`}
-                            label="สินค้า"
-                            labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
-                            triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
-                            value={prodLine.productName}
-                            valueKey="name"
-                            onChange={(val, prod) =>
-                              updateProductLine(
-                                item.id,
-                                prodLine.id,
-                                "productName",
-                                val,
-                                prod,
-                              )
-                            }
-                            products={nonBoxProducts}
-                            placeholder="เลือกสินค้า..."
-                            searchPlaceholder="ค้นหาสินค้า..."
-                            emptyText="ไม่พบสินค้า"
-                            disabled={readonly}
-                            required
-                          />
-                        </div>
-
-                        {/* Notes / Detail for this specific product */}
-                        <div
-                          className={
-                            prodListLines.length > 1 && !readonly
-                              ? "md:col-span-5"
-                              : "md:col-span-6"
-                          }
-                        >
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            รายละเอียด
-                          </label>
-                          <ActivityInput
-                            type="text"
-                            value={prodLine.notes || ""}
-                            onChange={(e) =>
-                              updateProductLine(
-                                item.id,
-                                prodLine.id,
-                                "notes",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="ระบุข้อสังเกต หรือผลที่คาดหวัง..."
-                          />
-                        </div>
-
-                        {/* Delete Button (when more than 1 product) */}
-                        {prodListLines.length > 1 && !readonly && (
-                          <div className="md:col-span-1 flex justify-center pb-1">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteProductLine(item.id, prodLine.id)
-                              }
-                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="ลบสินค้านี้"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700">
+                    รายการสินค้าที่จะติดตามผล{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  {!readonly && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addProductLine(item.id)}
+                      className="h-7 text-xs px-2.5 border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 shadow-sm cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3 mr-1 text-indigo-600" />
+                      เพิ่มสินค้า
+                    </Button>
+                  )}
                 </div>
+
+                {prodListLines.map((prodLine) => {
+                  return (
+                    <div
+                      key={prodLine.id}
+                      className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs"
+                    >
+                      {/* Product Combobox */}
+                      <div
+                        className={
+                          prodListLines.length > 1 && !readonly
+                            ? "md:col-span-6"
+                            : "md:col-span-6"
+                        }
+                      >
+                        <ActivityProductSelect
+                          id={`type2-product-combobox-${item.id}-${prodLine.id}`}
+                          label="สินค้า"
+                          labelClassName="block text-[11px] font-semibold text-slate-600 mb-1 mx-0"
+                          triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                          value={prodLine.productName}
+                          valueKey="name"
+                          onChange={(val, prod) =>
+                            updateProductLine(
+                              item.id,
+                              prodLine.id,
+                              "productName",
+                              val,
+                              prod,
+                            )
+                          }
+                          products={nonBoxProducts}
+                          placeholder="เลือกสินค้า..."
+                          searchPlaceholder="ค้นหาสินค้า..."
+                          emptyText="ไม่พบสินค้า"
+                          disabled={readonly}
+                          required
+                        />
+                      </div>
+
+                      {/* Notes / Detail for this specific product */}
+                      <div
+                        className={
+                          prodListLines.length > 1 && !readonly
+                            ? "md:col-span-5"
+                            : "md:col-span-6"
+                        }
+                      >
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          รายละเอียด
+                        </label>
+                        <ActivityInput
+                          type="text"
+                          value={prodLine.notes || ""}
+                          onChange={(e) =>
+                            updateProductLine(
+                              item.id,
+                              prodLine.id,
+                              "notes",
+                              e.target.value,
+                            )
+                          }
+                          disabled={readonly}
+                          placeholder="ระบุข้อสังเกต หรือผลที่คาดหวัง..."
+                        />
+                      </div>
+
+                      {/* Delete Button (when more than 1 product) */}
+                      {prodListLines.length > 1 && !readonly && (
+                        <div className="md:col-span-1 flex justify-center pb-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              deleteProductLine(item.id, prodLine.id)
+                            }
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="ลบสินค้านี้"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {/* 4. Common Detail for the Followup Target */}
                 <div className="pt-0.5">
