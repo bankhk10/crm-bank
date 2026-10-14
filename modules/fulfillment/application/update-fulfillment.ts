@@ -184,7 +184,7 @@ export async function updateFulfillmentUseCase(
           // Stock deduction (un-reserving) only happens when delivery is finished (DELIVERY_COMPLETED or COMPLETED).
           // During APPROVED, PAID, or AWAITING_DELIVERY, stock remains reserved to prevent overselling.
           const isDeductingState = (st: string) =>
-            ["DELIVERY_COMPLETED", "COMPLETED"].includes(st);
+            ["DELIVERY_COMPLETED", "COMPLETED", "PAID"].includes(st);
 
           const oldWasDeducted = sale.isStockDeducted;
           const newShouldBeDeducted =
