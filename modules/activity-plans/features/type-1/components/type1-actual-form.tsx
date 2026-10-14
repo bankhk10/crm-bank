@@ -1,17 +1,9 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import {
-  X,
-  UserCheck,
-  Store,
-  MapPin,
-  Camera,
-  Navigation,
-} from "lucide-react";
+import { useMemo } from "react";
+import { X, UserCheck, Store, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
@@ -19,8 +11,6 @@ import DatePicker from "@/components/custom/DatePicker";
 import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
 import { Type1PlanCard } from "./type1-plan-card";
 import type {
-  Type1TargetItem,
-  Type1ImageFile,
   ProductOption,
   Type1ActualFormProps,
   ActualType1VisitProps,
@@ -53,14 +43,15 @@ export function Type1ActualForm({
   plotImages = [],
   setPlotImages,
 }: Type1ActualFormProps) {
-
   const effectiveTargets =
     targets && targets.length > 0 ? targets : target ? [target] : [];
   const count = effectiveTargets.length;
 
   const isAdviceTopic =
     target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
-    effectiveTargets.some((t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า") ||
+    effectiveTargets.some(
+      (t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
+    ) ||
     !!productAdvice ||
     !!salesOpportunity;
 
