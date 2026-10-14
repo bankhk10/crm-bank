@@ -177,9 +177,11 @@ modules/activity-plans/features/type-1/
 
 ### 4.2 หน้าบันทึกผลการปฏิบัติงานจริง (Actual Outcome Stage Form)
 
-**ไฟล์ UI**: [actual/actual-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/actual/actual-type1-visit.tsx)  
-**Hook**: [actual/use-type1-actual.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/actual/use-type1-actual.ts)  
+**ไฟล์ UI**: [components/type1-actual-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-actual-form.tsx)  
+**Hook**: [hooks/use-type1-actual.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/hooks/use-type1-actual.ts)  
 **Summary Builder**: `summary-builder.ts` $\rightarrow$ `buildResultSummary()`
+
+- **รองรับ Multi-Target Actual**: หากแผนงานมี $N$ เป้าหมาย (เช่น 2 ร้านค้า หรือ 1 ร้านค้า + 1 เกษตรกร) ฟอร์มจะแสดงการ์ดบันทึกผลการปฏิบัติงานแยกเป็นรายเป้าหมายอย่างชัดเจน (ผลพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, สิ่งที่ต้องทำต่อ, พิกัด/รูปแปลงเฉพาะเกษตรกร) พร้อมทั้งผสาน (Sync) ข้อมูลกลับสู่ระบบส่วนกลางโดยอัตโนมัติ
 
 | UI Control / Field                        | Form State Key        | Validation Rule                  | บันทึกลงตาราง (DB Table) | คอลัมน์ (DB Column)                                | เงื่อนไข / พฤติกรรม                                 |
 | ----------------------------------------- | --------------------- | -------------------------------- | ------------------------ | -------------------------------------------------- | --------------------------------------------------- |
@@ -197,12 +199,14 @@ modules/activity-plans/features/type-1/
 
 ### 4.3 หน้าแสดงรายละเอียด (Detail View)
 
-**ไฟล์ UI**: [detail/detail-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/detail/detail-type1-visit.tsx)  
+**ไฟล์ UI**: [components/type1-detail-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-detail-view.tsx)  
 **Component แผนเดิม**: [components/type1-plan-card.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-plan-card.tsx)  
 **Data Extractor**: `plan-extractor.ts` $\rightarrow$ `extractPlanData()`
 
 - **ส่วนข้อมูลแผนงาน (PLAN)**:
   - รองรับ Multi-Store ($N$ เป้าหมาย): ดึงข้อมูลจาก `targets.t1List` และแสดงผลผ่าน `<Type1PlanCard targets={targets} />`
+- **ส่วนผลการปฏิบัติงานจริง (ACTUAL)**:
+  - รองรับ Multi-Target Result: แสดงผลการเข้าพบจริงแยกตามแต่ละเป้าหมาย พร้อมรายละเอียดเฉพาะของร้านค้า/เกษตรกรรายนั้นๆ
   - มี Badge แสดงจำนวนเป้าหมายรวม เช่น `4 เป้าหมาย` และแต่ละเป้าหมายแยกการ์ดย่อยชัดเจน (เป้าหมายที่ 1, 2, ..., N) พร้อมวัตถุประสงค์ (ร้านค้า / เกษตรกร)
   - แสดง: วัตถุประสงค์ (`visit_purpose`), ร้านค้า/เกษตรกร (`store_name` หรือ `unregistered_farmer_name`), ประเภทลูกค้า (`Customer.customerType`), จังหวัด (`province`), เบอร์โทรศัพท์ (`unregistered_farmer_phone`), ประเด็นหลัก (`remarks` / `topic`), รายละเอียด (`notes`)
 - **ส่วนผลการปฏิบัติงานจริง (ACTUAL)**:

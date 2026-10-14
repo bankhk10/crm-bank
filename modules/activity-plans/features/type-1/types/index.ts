@@ -93,6 +93,33 @@ export interface Type1PlanFormProps {
 export type Type1VisitProps = Type1PlanFormProps;
 
 /**
+ * Structured actual recording item per target for TYPE 1 Multi-Target actual recording
+ */
+export interface Type1TargetActualItem {
+  id: string;
+  targetId?: string;
+  customer: string;
+  visitPurpose?: "FARMER" | "STORE";
+  topic?: string;
+  detail?: string;
+  province?: string;
+  isUnregisteredFarmer?: boolean;
+  unregisteredFarmerName?: string;
+  unregisteredFarmerPhone?: string;
+
+  // Actual recording fields
+  discussionResult: string;
+  productAdvice?: string;
+  salesOpportunity?: "สูง" | "ต่ำ" | "";
+  nextAction?: string;
+  nextMeetingDate?: string;
+  farmerHomeAddress?: string;
+  plotLatitude?: string;
+  plotLongitude?: string;
+  plotImages?: Type1ImageFile[];
+}
+
+/**
  * Props for Type 1 Actual Form component (Actual & Unplanned recording)
  */
 export interface Type1ActualFormProps {
@@ -123,6 +150,10 @@ export interface Type1ActualFormProps {
   setPlotLongitude?: (v: string) => void;
   plotImages?: Type1ImageFile[];
   setPlotImages?: (v: Type1ImageFile[]) => void;
+
+  // Multi-target structured recording callbacks
+  targetActualResults?: Type1TargetActualItem[];
+  onUpdateTargetActualResults?: (results: Type1TargetActualItem[]) => void;
 }
 
 // Backward-compatible alias
