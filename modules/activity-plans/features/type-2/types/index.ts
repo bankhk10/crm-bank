@@ -39,6 +39,7 @@ export interface CustomerOption {
 export interface ProductOption {
   id: string;
   name: string;
+  unit?: string | null;
   productCode?: string | null;
 }
 
@@ -174,7 +175,9 @@ export interface Type2ActualFormProps {
   followupDetail?: string;
   setFollowupDetail?: (v: string) => void;
   usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
-  setUsageResult?: (v: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "") => void;
+  setUsageResult?: (
+    v: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "",
+  ) => void;
   problemDetail?: string;
   setProblemDetail?: (v: string) => void;
   images?: Type2ImageFile[];

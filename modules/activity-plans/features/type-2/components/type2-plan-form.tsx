@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  CheckSquare,
-  Plus,
-  Trash2,
-  Store,
-  UserCheck,
-} from "lucide-react";
+import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityInput } from "@/components/activity/activity-input";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
@@ -42,6 +36,10 @@ export function Type2PlanForm({
   customers = [],
   products = [],
 }: Type2PlanFormProps) {
+  const nonBoxProducts = React.useMemo(() => {
+    return (products || []).filter((p) => (p.unit || "").trim() !== "กล่อง");
+  }, [products]);
+
   // Add a new product line to a specific followup item
   const addProductLine = (itemId: string) => {
     const currentItem = type2Items.find((i) => i.id === itemId);
@@ -451,7 +449,7 @@ export function Type2PlanForm({
                                 prod,
                               )
                             }
-                            products={products}
+                            products={nonBoxProducts}
                             placeholder="เลือกสินค้า..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"
@@ -510,7 +508,7 @@ export function Type2PlanForm({
                 {/* 4. Common Detail for the Followup Target */}
                 <div className="pt-0.5">
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    รายละเอียดเพิ่มเติม (ภาพรวมการติดตาม)
+                    รายละเอียดเพิ่มเติม
                   </label>
                   <ActivityInput
                     type="text"
