@@ -390,10 +390,6 @@ export function Type2PlanForm({
                       disabled={readonly}
                       required
                     />
-                    <p className="text-[11px] text-slate-500">
-                      ลูกค้าประเภทตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย
-                      (SUBDEALER)
-                    </p>
                   </div>
                 )}
 
