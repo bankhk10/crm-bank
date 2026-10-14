@@ -66,7 +66,8 @@ interface ComboboxOption {
   item: ActivityCustomerItem;
 }
 
-const defaultLabelClass = "block text-xs font-semibold text-slate-700 mb-1 mx-0";
+const defaultLabelClass =
+  "block text-xs font-semibold text-slate-700 mb-1 mx-0";
 const defaultTriggerClass =
   "h-9 min-h-[36px] py-1 px-3 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium w-full justify-between focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed";
 
@@ -183,8 +184,8 @@ export function ActivityCustomerSelect({
 
     // Preserve selected customer option even if not in current filtered list
     if (value && !list.some((o) => o.value === value)) {
-      const matched = (customers || []).find(
-        (c) => (valueKey === "name" ? c.name === value : c.id === value)
+      const matched = (customers || []).find((c) =>
+        valueKey === "name" ? c.name === value : c.id === value,
       );
       if (matched) {
         const typeLabel =
@@ -206,7 +207,8 @@ export function ActivityCustomerSelect({
 
   const selectedOption = useMemo(() => {
     return formattedOptions.find(
-      (opt) => opt.value === value || opt.label === value || opt.item.id === value
+      (opt) =>
+        opt.value === value || opt.label === value || opt.item.id === value,
     );
   }, [formattedOptions, value]);
 
@@ -275,7 +277,19 @@ export function ActivityCustomerSelect({
   }, [emptyText, type, province]);
 
   const isFarmerModeDisabled = type === "FARMER" && !province;
-  const isInputDisabled = disabled || isFarmerModeDisabled || (type === "FARMER" && loadingFarmers);
+  const isInputDisabled =
+    disabled || isFarmerModeDisabled || (type === "FARMER" && loadingFarmers);
+
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    }
+
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
 
   return (
     <div className={cn("space-y-3", containerClassName)}>
@@ -303,7 +317,7 @@ export function ActivityCustomerSelect({
                   triggerClassName,
                   className,
                   !value && "text-slate-400 font-normal",
-                  error && "border-rose-500 focus:ring-rose-500 bg-rose-50/10"
+                  error && "border-rose-500 focus:ring-rose-500 bg-rose-50/10",
                 )}
               >
                 <span className="truncate text-left flex-1 min-w-0">
@@ -345,9 +359,10 @@ export function ActivityCustomerSelect({
                             : []),
                         ]}
                         onSelect={(currentValue) => {
-                          const nextVal = currentValue === value ? "" : currentValue;
+                          const nextVal =
+                            currentValue === value ? "" : currentValue;
                           const chosen = formattedOptions.find(
-                            (o) => o.value === nextVal
+                            (o) => o.value === nextVal,
                           );
                           onChange(nextVal, chosen?.item);
                           setOpen(false);
@@ -359,7 +374,7 @@ export function ActivityCustomerSelect({
                             "mr-2 h-3.5 w-3.5 shrink-0 text-emerald-600",
                             value === option.value
                               ? "opacity-100"
-                              : "opacity-0"
+                              : "opacity-0",
                           )}
                         />
                         <div className="flex flex-col min-w-0 flex-1">
@@ -399,9 +414,6 @@ export function ActivityCustomerSelect({
             className="text-xs font-medium text-slate-700 cursor-pointer select-none"
           >
             ไม่มีเกษตรกรในระบบ{" "}
-            <span className="text-[11px] text-slate-500 font-normal">
-              (กรอกชื่อและเบอร์โทรศัพท์โดยไม่ผูกกับ Master Data)
-            </span>
           </label>
         </div>
       )}
@@ -428,11 +440,16 @@ export function ActivityCustomerSelect({
               {unregisteredPhoneLabel}
             </label>
             <ActivityInput
-              type="tel"
-              value={unregisteredPhone}
-              onChange={(e) => onUnregisteredPhoneChange?.(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              value={formatPhoneNumber(unregisteredPhone)}
+              onChange={(e) =>
+                onUnregisteredPhoneChange?.(
+                  e.target.value.replace(/\D/g, "").slice(0, 10),
+                )
+              }
               disabled={disabled}
-              placeholder="เช่น 0812345678"
+              placeholder="เช่น 081-234-5678"
               maxLength={12}
             />
           </div>
