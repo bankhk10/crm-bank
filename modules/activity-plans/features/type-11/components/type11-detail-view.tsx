@@ -3,9 +3,7 @@
 import React from "react";
 import { Package, ArrowRight, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import { convertToFileMetadata } from "@/modules/activity-plans/features/shared/actual-view/utils";
-import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
 
 import { Type11PlanCard } from "./type11-plan-card";
 import type { StockCheckItem, DetailType11StockProps } from "../types";
@@ -212,23 +210,15 @@ export function Type11DetailView({
 
         {/* READ-ONLY GALLERY FOR STOCK CHECK PHOTOS */}
         {images && images.length > 0 && (
-          <div className="bg-slate-50/50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200">
-                <Camera className="w-4 h-4 text-slate-700" />
-              </div>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                  รูปภาพการตรวจเช็กสต็อกหน้าร้าน ({images.length} รูป)
-                </h4>
-              </div>
-            </div>
-            <GalleryUpload
-              maxFiles={5}
-              disabled={true}
-              initialFiles={convertToFileMetadata(images)}
-            />
-          </div>
+          <ActivityPhotoUpload
+            title={`รูปภาพการตรวจเช็กสต็อกหน้าร้าน (${images.length} รูป)`}
+            description="รูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน"
+            images={images}
+            readonly={true}
+            maxFiles={5}
+            accentColor="slate"
+            icon={<Camera className="w-4 h-4 text-slate-700" />}
+          />
         )}
       </div>
     </div>

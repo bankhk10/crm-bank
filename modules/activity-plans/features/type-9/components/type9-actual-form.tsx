@@ -4,14 +4,7 @@ import React, { useState } from "react";
 import { Store, Package, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
-import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
 
 import { Type9PlanCard } from "./type9-plan-card";
 import type {
@@ -128,13 +121,6 @@ export function Type9ActualForm({
       setActualSales(totalActual > 0 ? totalActual.toLocaleString() : "0");
     } else {
       setActualSales("");
-    }
-  };
-
-  const handleFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(images, converted) && setImages) {
-      setImages(converted);
     }
   };
 
@@ -291,31 +277,16 @@ export function Type9ActualForm({
         </div>
       )}
 
-      {/* GalleryUpload Standard */}
-      <div className="bg-blue-50/20 border border-blue-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center gap-2 border-b border-blue-100 pb-2.5">
-          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center border border-blue-200">
-            <Store className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-blue-950">
-              รูปภาพบรรยากาศหน้าร้าน
-            </h4>
-            <p className="text-[11px] text-blue-700/80">
-              อัปโหลดรูปภาพบรรยากาศการจัดกิจกรรมส่งเสริมการขายหน้าร้าน (สูงสุด
-              10 รูป)
-            </p>
-          </div>
-        </div>
-        <GalleryUpload
-          maxFiles={10}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(images || [])}
-          onFilesChange={handleFilesChange}
-        />
-      </div>
+      {/* ActivityPhotoUpload Standard */}
+      <ActivityPhotoUpload
+        title="รูปภาพบรรยากาศหน้าร้าน"
+        description="อัปโหลดรูปภาพบรรยากาศการจัดกิจกรรมส่งเสริมการขายหน้าร้าน (สูงสุด 10 รูป)"
+        images={images}
+        onImagesChange={setImages}
+        maxFiles={10}
+        accentColor="blue"
+        icon={<Store className="w-4 h-4" />}
+      />
     </div>
   );
 }

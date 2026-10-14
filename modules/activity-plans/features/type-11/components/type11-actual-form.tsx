@@ -6,13 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { FormCombobox } from "@/components/custom/form-components";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
@@ -249,13 +243,6 @@ export function Type11ActualForm({
     updateItems(newItems);
   };
 
-  const handleFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(images, converted) && setImages) {
-      setImages(converted);
-    }
-  };
-
   if (!isVisible) return null;
 
   return (
@@ -482,30 +469,16 @@ export function Type11ActualForm({
         />
       </div>
 
-      {/* GalleryUpload for Stock Check Photos */}
-      <div className="bg-slate-50/50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
-          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200">
-            <Camera className="w-4 h-4 text-slate-700" />
-          </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-              รูปภาพการตรวจเช็กสต็อกหน้าร้าน
-            </h4>
-            <p className="text-[11px] text-slate-500">
-              อัปโหลดรูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน (สูงสุด 5 รูป)
-            </p>
-          </div>
-        </div>
-        <GalleryUpload
-          maxFiles={5}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(images || [])}
-          onFilesChange={handleFilesChange}
-        />
-      </div>
+      {/* ActivityPhotoUpload for Stock Check Photos */}
+      <ActivityPhotoUpload
+        title="รูปภาพการตรวจเช็กสต็อกหน้าร้าน"
+        description="อัปโหลดรูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน (สูงสุด 5 รูป)"
+        images={images}
+        onImagesChange={setImages}
+        maxFiles={5}
+        accentColor="slate"
+        icon={<Camera className="w-4 h-4 text-slate-700" />}
+      />
     </div>
   );
 }

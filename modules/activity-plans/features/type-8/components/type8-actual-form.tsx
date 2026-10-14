@@ -14,14 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
@@ -293,23 +286,6 @@ export function Type8ActualForm({
     const updated = additionalSales.filter((_, idx) => idx !== index);
     setAdditionalSales(updated);
     syncToParent(targetSales, updated);
-  };
-
-  const handleAtmosphereFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(images, converted) && setImages) {
-      setImages(converted);
-    }
-  };
-
-  const handleRegistrationFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (
-      !isImageFilesEqual(registrationImages, converted) &&
-      setRegistrationImages
-    ) {
-      setRegistrationImages(converted);
-    }
   };
 
   if (!isVisible) return null;
@@ -616,67 +592,27 @@ export function Type8ActualForm({
       </div>
 
       {/* SECTION 1: Participant Registration Photos (Required: 1-5 Photos) */}
-      <div className="bg-purple-50/20 border border-purple-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center justify-between border-b border-purple-100 pb-2.5">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center border border-purple-200">
-              <ClipboardCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h4 className="text-xs sm:text-sm font-bold text-purple-950">
-                  รูปใบลงทะเบียนผู้เข้าร่วมงาน
-                </h4>
-                <span className="text-rose-500 font-bold">*</span>
-              </div>
-              <p className="text-[11px] text-purple-700/80">
-                แนบรูปถ่ายใบลงทะเบียนผู้เข้าร่วมประชุม (จำเป็นต้องมีอย่างน้อย 1 รูป)
-              </p>
-            </div>
-          </div>
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-            {registrationImages.length}/5 รูป
-          </span>
-        </div>
-        <GalleryUpload
-          maxFiles={5}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(registrationImages || [])}
-          onFilesChange={handleRegistrationFilesChange}
-        />
-      </div>
+      <ActivityPhotoUpload
+        title="รูปใบลงทะเบียนผู้เข้าร่วมงาน"
+        description="แนบรูปถ่ายใบลงทะเบียนผู้เข้าร่วมประชุม (จำเป็นต้องมีอย่างน้อย 1 รูป)"
+        images={registrationImages}
+        onImagesChange={setRegistrationImages}
+        maxFiles={5}
+        accentColor="purple"
+        required={true}
+        icon={<ClipboardCheck className="w-4 h-4" />}
+      />
 
       {/* SECTION 2: Meeting Atmosphere Photos (Optional: max 10 photos) */}
-      <div className="bg-purple-50/20 border border-purple-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center justify-between border-b border-purple-100 pb-2.5">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center border border-purple-200">
-              <Users className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-purple-950">
-                รูปภาพบรรยากาศการประชุม
-              </h4>
-              <p className="text-[11px] text-purple-700/80">
-                อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด 10 รูป)
-              </p>
-            </div>
-          </div>
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-            {images.length}/10 รูป
-          </span>
-        </div>
-        <GalleryUpload
-          maxFiles={10}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(images || [])}
-          onFilesChange={handleAtmosphereFilesChange}
-        />
-      </div>
+      <ActivityPhotoUpload
+        title="รูปภาพบรรยากาศการประชุม"
+        description="อัปโหลดรูปภาพบรรยากาศการจัดประชุม หรือกิจกรรมที่เกิดขึ้น (สูงสุด 10 รูป)"
+        images={images}
+        onImagesChange={setImages}
+        maxFiles={10}
+        accentColor="purple"
+        icon={<Users className="w-4 h-4" />}
+      />
     </div>
   );
 }

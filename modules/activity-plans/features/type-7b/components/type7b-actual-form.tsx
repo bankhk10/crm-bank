@@ -45,13 +45,9 @@ import {
 } from "@/modules/activity-plans/constants";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { DemoPlotHistoryModal } from "./demo-plot-history-modal";
-import GalleryUpload from "@/components/custom/gallery-upload";
+import { ActivityPhotoUpload } from "@/components/activity";
 import DatePicker from "@/components/custom/DatePicker";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
   isType7bCompletedFollowUpVisit,
   filterCompletedType7bVisits,
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
@@ -431,26 +427,20 @@ export function Type7bActualForm({
 
   const handleRoundPlotFilesChange = (
     roundIdx: number,
-    files: FileWithPreview[],
+    newFiles: ImageFile[],
   ) => {
-    const newFiles = filesWithPreviewToImageFiles(files);
     const currentRounds = [...(t7bSprayingRounds || [])];
     if (currentRounds[roundIdx]) {
-      if (!isImageFilesEqual(currentRounds[roundIdx].plotImages, newFiles)) {
-        currentRounds[roundIdx] = {
-          ...currentRounds[roundIdx],
-          plotImages: newFiles.slice(0, 5),
-        };
-        setT7bSprayingRounds?.(currentRounds);
-      }
+      currentRounds[roundIdx] = {
+        ...currentRounds[roundIdx],
+        plotImages: newFiles.slice(0, 5),
+      };
+      setT7bSprayingRounds?.(currentRounds);
     }
   };
 
-  const handleCropFilesChange = (files: FileWithPreview[]) => {
-    const newFiles = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(cropImages, newFiles)) {
-      setCropImages?.(newFiles.slice(0, 5));
-    }
+  const handleCropFilesChange = (newFiles: ImageFile[]) => {
+    setCropImages?.(newFiles.slice(0, 5));
   };
 
   const handleYieldChange = (finalVal: string, controlVal: string) => {
@@ -885,22 +875,15 @@ export function Type7bActualForm({
         </div>
 
         {/* รูปสภาพพืชรอบนี้ (Upload สูงสุด 5 รูป) */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold text-slate-700">
-              รูปภาพสภาพพืชในการติดตามรอบนี้
-            </label>
-            <span className="text-[11px] text-slate-500">
-              อัปโหลดได้สูงสุด 5 รูป ({cropImages.length}/5)
-            </span>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-            <GalleryUpload
-              initialFiles={convertToFileMetadata(cropImages)}
-              onFilesChange={handleCropFilesChange}
-              maxFiles={5}
-            />
-          </div>
+        <div className="pt-2 border-t border-slate-100">
+          <ActivityPhotoUpload
+            title="รูปภาพสภาพพืชในการติดตามรอบนี้"
+            description="อัปโหลดรูปภาพสภาพพืช การเจริญเติบโต หรือปัญหาที่พบ (สูงสุด 5 รูป)"
+            images={cropImages}
+            onImagesChange={handleCropFilesChange}
+            maxFiles={5}
+            accentColor="emerald"
+          />
         </div>
       </div>
 
@@ -1612,24 +1595,17 @@ export function Type7bActualForm({
                 </div>
 
                 {/* 5. รูปถ่ายการฉีดพ่นรอบนี้ (Upload สูงสุด 5 รูป) */}
-                <div className="space-y-2 pt-2 border-t border-emerald-100">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-700">
-                      5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปภาพแปลง / ขณะปฏิบัติงาน)
-                    </label>
-                    <span className="text-[11px] text-slate-500">
-                      อัปโหลดได้สูงสุด 5 รูป ({round.plotImages.length}/5)
-                    </span>
-                  </div>
-                  <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
-                    <GalleryUpload
-                      initialFiles={convertToFileMetadata(round.plotImages)}
-                      onFilesChange={(files) =>
-                        handleRoundPlotFilesChange(rIdx, files)
-                      }
-                      maxFiles={5}
-                    />
-                  </div>
+                <div className="pt-2 border-t border-emerald-100">
+                  <ActivityPhotoUpload
+                    title="5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปภาพแปลง / ขณะปฏิบัติงาน)"
+                    description="อัปโหลดรูปถ่ายขณะปฏิบัติงานฉีดพ่น สภาพแปลง หรือถังผสม (สูงสุด 5 รูป)"
+                    images={round.plotImages}
+                    onImagesChange={(files) =>
+                      handleRoundPlotFilesChange(rIdx, files)
+                    }
+                    maxFiles={5}
+                    accentColor="emerald"
+                  />
                 </div>
               </div>
             ))}

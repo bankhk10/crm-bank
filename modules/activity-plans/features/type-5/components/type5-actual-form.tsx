@@ -4,17 +4,8 @@ import React, { useMemo } from "react";
 import { Camera, BarChart2, Store, Package, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  ImageFile,
-  Type5SurveyRecord,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import type { Type5SurveyRecord } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 import type {
   TargetSurveyItem,
@@ -159,29 +150,19 @@ export function Type5ActualForm({
   };
 
   // Bottle photos change (Max 2)
-  const handleBottleFilesChange = (index: number, files: FileWithPreview[]) => {
-    // Strictly cap at 2 photos
-    const capped = files.slice(0, 2);
-    const converted = filesWithPreviewToImageFiles(capped);
-    const current = recordsToRender[index]?.record.bottleImages || [];
-
-    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { bottleImages: converted });
+  const handleBottleFilesChange = (index: number, images: ImageFile[]) => {
+    if (onUpdateSurveyItem) {
+      onUpdateSurveyItem(index, { bottleImages: images.slice(0, 2) });
     }
   };
 
   // Promotional media photos change (Max 3)
   const handlePromotionalFilesChange = (
     index: number,
-    files: FileWithPreview[],
+    images: ImageFile[],
   ) => {
-    // Strictly cap at 3 photos
-    const capped = files.slice(0, 3);
-    const converted = filesWithPreviewToImageFiles(capped);
-    const current = recordsToRender[index]?.record.promotionalImages || [];
-
-    if (!isImageFilesEqual(current, converted) && onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { promotionalImages: converted });
+    if (onUpdateSurveyItem) {
+      onUpdateSurveyItem(index, { promotionalImages: images.slice(0, 3) });
     }
   };
 
@@ -438,74 +419,26 @@ export function Type5ActualForm({
                   {/* 2 Separate Upload Sections: Bottle Photos (Max 2) and Promotional Materials (Max 3) */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
                     {/* Bottle Photos */}
-                    <div className="bg-amber-50/20 border border-amber-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-                      <div className="flex items-center justify-between border-b border-amber-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center border border-amber-200">
-                            <Camera className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs sm:text-sm font-bold text-amber-950">
-                              รูปถ่ายขวดผลิตภัณฑ์
-                            </h4>
-                            <p className="text-[11px] text-amber-700/80">
-                              รูปถ่ายขวดหรือบรรจุภัณฑ์ของสินค้าคู่แข่ง
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                          {(record.bottleImages || []).length} / 2 รูป
-                        </span>
-                      </div>
-                      <GalleryUpload
-                        key={`bottle-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
-                        maxFiles={2}
-                        maxSize={20 * 1024 * 1024}
-                        accept="image/*"
-                        multiple={true}
-                        initialFiles={convertToFileMetadata(
-                          (record.bottleImages || []).slice(0, 2),
-                        )}
-                        onFilesChange={(files) =>
-                          handleBottleFilesChange(index, files)
-                        }
-                      />
-                    </div>
+                    <ActivityPhotoUpload
+                      key={`bottle-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                      title="รูปถ่ายขวดผลิตภัณฑ์"
+                      description="รูปถ่ายขวดหรือบรรจุภัณฑ์ของสินค้าคู่แข่ง"
+                      images={record.bottleImages || []}
+                      onImagesChange={(imgs) => handleBottleFilesChange(index, imgs)}
+                      maxFiles={2}
+                      accentColor="amber"
+                    />
 
                     {/* Promotional Materials Photos */}
-                    <div className="bg-blue-50/20 border border-blue-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center border border-blue-200">
-                            <Camera className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs sm:text-sm font-bold text-blue-950">
-                              รูปภาพสื่อส่งเสริมการขาย
-                            </h4>
-                            <p className="text-[11px] text-blue-700/80">
-                              ป้ายโฆษณา, แบนเนอร์, โบรชัวร์ หรือสื่อโปรโมท
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                          {(record.promotionalImages || []).length} / 3 รูป
-                        </span>
-                      </div>
-                      <GalleryUpload
-                        key={`promo-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
-                        maxFiles={3}
-                        maxSize={20 * 1024 * 1024}
-                        accept="image/*"
-                        multiple={true}
-                        initialFiles={convertToFileMetadata(
-                          (record.promotionalImages || []).slice(0, 3),
-                        )}
-                        onFilesChange={(files) =>
-                          handlePromotionalFilesChange(index, files)
-                        }
-                      />
-                    </div>
+                    <ActivityPhotoUpload
+                      key={`promo-${record.id || `${storeGroup.storeName}-${record.product}-${index}`}`}
+                      title="รูปภาพสื่อส่งเสริมการขาย"
+                      description="ป้ายโฆษณา, แบนเนอร์, โบรชัวร์ หรือสื่อโปรโมท"
+                      images={record.promotionalImages || []}
+                      onImagesChange={(imgs) => handlePromotionalFilesChange(index, imgs)}
+                      maxFiles={3}
+                      accentColor="blue"
+                    />
                   </div>
                 </div>
               ))}

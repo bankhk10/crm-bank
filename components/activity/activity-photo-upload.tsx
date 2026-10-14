@@ -25,6 +25,10 @@ export interface ActivityPhotoUploadProps {
    */
   title?: string;
   /**
+   * Whether this photo upload is mandatory (displays red asterisk)
+   */
+  required?: boolean;
+  /**
    * Subtitle / description / instructions
    */
   description?: string;
@@ -118,6 +122,7 @@ export function ActivityPhotoUpload({
   icon,
   readonly = false,
   disabled = false,
+  required = false,
   className,
   targetSize,
 }: ActivityPhotoUploadProps) {
@@ -168,8 +173,9 @@ export function ActivityPhotoUpload({
             {icon || <Camera className="w-4 h-4" />}
           </div>
           <div>
-            <h4 className={cn("text-xs sm:text-sm font-bold", theme.title)}>
-              {title}
+            <h4 className={cn("text-xs sm:text-sm font-bold flex items-center gap-1", theme.title)}>
+              <span>{title}</span>
+              {required && <span className="text-rose-500 font-bold">*</span>}
             </h4>
             {description && (
               <p className={cn("text-[11px] leading-tight mt-0.5", theme.description)}>

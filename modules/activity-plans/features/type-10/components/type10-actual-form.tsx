@@ -11,15 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
-import { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
 import { listProductsAction } from "@/modules/products/server/actions";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import { Type10PlanCard } from "./type10-plan-card";
 import type {
@@ -276,14 +269,6 @@ export function Type10ActualForm({
   }, [actualSalesOrBooking]);
 
   if (!isVisible) return null;
-
-  // Handle files change for GalleryUpload
-  const handleFilesChange = (files: FileWithPreview[]) => {
-    const converted = filesWithPreviewToImageFiles(files);
-    if (!isImageFilesEqual(images, converted) && setImages) {
-      setImages(converted);
-    }
-  };
 
   // Handle Switch toggle for hasSales
   const handleToggleHasSales = (checked: boolean) => {
@@ -830,30 +815,15 @@ export function Type10ActualForm({
         </div>
       </div>
 
-      {/* GalleryUpload Standard */}
-      <div className="bg-orange-50/20 border border-orange-200/70 rounded-2xl p-4 sm:p-5 space-y-3">
-        <div className="flex items-center gap-2 border-b border-orange-100 pb-2.5">
-          <div className="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center border border-orange-200">
-            <Camera className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-orange-950">
-              รูปภาพบรรยากาศงาน Field Day
-            </h4>
-            <p className="text-[11px] text-orange-700/80">
-              อัปโหลดรูปภาพบรรยากาศการจัดงานแปลงสาธิตและเกษตรกรเข้าร่วม (สูงสุด 10 รูป)
-            </p>
-          </div>
-        </div>
-        <GalleryUpload
-          maxFiles={10}
-          maxSize={20 * 1024 * 1024}
-          accept="image/*"
-          multiple={true}
-          initialFiles={convertToFileMetadata(images || [])}
-          onFilesChange={handleFilesChange}
-        />
-      </div>
+      {/* ActivityPhotoUpload Standard */}
+      <ActivityPhotoUpload
+        title="รูปภาพบรรยากาศงาน Field Day"
+        description="อัปโหลดรูปภาพบรรยากาศการจัดงานแปลงสาธิตและเกษตรกรเข้าร่วม (สูงสุด 10 รูป)"
+        images={images}
+        onImagesChange={setImages}
+        maxFiles={10}
+        accentColor="amber"
+      />
     </div>
   );
 }

@@ -53,13 +53,7 @@ import {
   DEMO_PLOT_IRRIGATION_METHODS,
   UserDemoPlotOption,
 } from "@/modules/activity-plans/constants";
-import GalleryUpload from "@/components/custom/gallery-upload";
-import type { FileWithPreview } from "@/hooks/use-file-upload";
-import {
-  convertToFileMetadata,
-  filesWithPreviewToImageFiles,
-  isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import { ActivityPhotoUpload } from "@/components/activity";
 
 import { Type7aPlanCard } from "./type7a-plan-card";
 import type {
@@ -499,16 +493,11 @@ export function Type7aActualForm({
   // Photos handler (Max 10)
   const effectivePhotos =
     initialPhotos.length > 0 ? initialPhotos : plotImages || [];
-  const handlePhotosChange = (files: FileWithPreview[]) => {
-    const newImageFiles = filesWithPreviewToImageFiles(files);
+  const handlePhotosChange = (newImageFiles: ImageFile[]) => {
     if (setInitialPhotos) {
-      if (!isImageFilesEqual(initialPhotos, newImageFiles)) {
-        setInitialPhotos(newImageFiles);
-      }
+      setInitialPhotos(newImageFiles);
     } else if (setPlotImages) {
-      if (!isImageFilesEqual(plotImages, newImageFiles)) {
-        setPlotImages(newImageFiles);
-      }
+      setPlotImages(newImageFiles);
     }
   };
 
@@ -974,23 +963,15 @@ export function Type7aActualForm({
           </div>
 
           {/* ภาพถ่ายสภาพแปลงเริ่มต้น (Max 10 รูป) */}
-          <div className="md:col-span-2 space-y-2 pt-2 border-t border-slate-200/80">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-2">
-                <ImageIcon className="w-4 h-4 text-emerald-700" />
-                ภาพถ่ายสภาพแปลงเริ่มต้น
-              </label>
-              <span className="text-[11px] text-slate-500 font-medium">
-                แนบได้สูงสุด 10 รูป
-              </span>
-            </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200/90">
-              <GalleryUpload
-                initialFiles={convertToFileMetadata(effectivePhotos)}
-                onFilesChange={handlePhotosChange}
-                maxFiles={10}
-              />
-            </div>
+          <div className="md:col-span-2 pt-2 border-t border-slate-200/80">
+            <ActivityPhotoUpload
+              title="ภาพถ่ายสภาพแปลงเริ่มต้น"
+              description="อัปโหลดภาพถ่ายสภาพแปลงก่อนหรือเริ่มการทดลอง (แนบได้สูงสุด 10 รูป)"
+              images={effectivePhotos}
+              onImagesChange={handlePhotosChange}
+              maxFiles={10}
+              accentColor="emerald"
+            />
           </div>
         </div>
       </div>
