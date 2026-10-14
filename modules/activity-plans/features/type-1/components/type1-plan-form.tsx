@@ -126,7 +126,9 @@ export function Type1PlanForm({
                     เป้าหมายที่ {index + 1}
                   </span>
                   <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-slate-600">
-                    {currentPurpose === "STORE" ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
+                    {currentPurpose === "STORE"
+                      ? "เข้าพบร้านค้า"
+                      : "เข้าพบเกษตรกร"}
                   </span>
                 </div>
 
@@ -145,7 +147,8 @@ export function Type1PlanForm({
               {/* Row: วัตถุประสงค์ของประเภทงาน */}
               <div className="space-y-1.5 border-b border-slate-100 pb-3">
                 <label className="block text-xs font-semibold text-slate-700">
-                  วัตถุประสงค์ของประเภทงาน <span className="text-rose-500">*</span>
+                  วัตถุประสงค์ของประเภทงาน{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex flex-wrap gap-6 items-center pt-0.5">
                   <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 select-none">
@@ -206,7 +209,11 @@ export function Type1PlanForm({
                       value={item.storeId || ""}
                       onChange={(val, cust) => {
                         updateType1Row(item.id, "storeId", val || undefined);
-                        updateType1Row(item.id, "customerName", cust?.name || "");
+                        updateType1Row(
+                          item.id,
+                          "customerName",
+                          cust?.name || "",
+                        );
                       }}
                       customers={customers}
                       disabled={readonly}
@@ -239,15 +246,16 @@ export function Type1PlanForm({
                       value={item.storeId || ""}
                       onChange={(val, cust) => {
                         updateType1Row(item.id, "storeId", val || undefined);
-                        updateType1Row(item.id, "customerName", cust?.name || "");
+                        updateType1Row(
+                          item.id,
+                          "customerName",
+                          cust?.name || "",
+                        );
                       }}
                       customers={customers}
                       disabled={readonly}
                       required
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      อนุญาตเฉพาะลูกค้าประเภทตัวแทนจำหน่าย (DEALER) หรือร้านค้าย่อย (SUBDEALER) ในระบบเท่านั้น
-                    </p>
                   </div>
                 </div>
               )}
