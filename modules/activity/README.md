@@ -73,7 +73,7 @@ modules/activity/
 │   │   └── activity-plan-detail-view.tsx # Route: /activity-plans/[id]
 │   │
 │   └── approvals/                        # การพิจารณาและอนุมัติแผนงาน (Approvals)
-│       ├── components/                   # ApprovalWorkTypeList, ApprovalAuditLogs, HelperReviewDialog
+│       ├── components/                   # ApprovalWorkTypeList, ApprovalAuditLogs, HelperReviewDialog, ApprovalActionDialog
 │       ├── hooks/                        # useApprovalDetailLoader
 │       ├── activity-plan-approval-detail-view.tsx # Route: /activity-plans/approvals/[id]
 │       └── activity-plan-approval-list-view.tsx   # Route: /activity-plans/approvals
