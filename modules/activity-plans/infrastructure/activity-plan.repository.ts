@@ -468,6 +468,7 @@ export type CreateActivityPlanInput = {
   type14Data?: Type14DataInput;
   type7aPlots?: Type7aPlotInput[];
   type7bData?: Type7bDataInput | null;
+  type1Stores?: any[];
   actualData?: any;
 };
 
@@ -659,6 +660,9 @@ export async function createActivityPlan(
           ["TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_8", "TYPE_9", "TYPE_10", "TYPE_11"].forEach((c) =>
             activeStrategyCodes.add(c),
           );
+        }
+        if (input.type1Stores && input.type1Stores.length > 0) {
+          activeStrategyCodes.add("TYPE_1");
         }
 
         for (const code of activeStrategyCodes) {

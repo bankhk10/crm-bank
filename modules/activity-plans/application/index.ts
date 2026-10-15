@@ -448,8 +448,39 @@ export async function duplicateActivityPlanUseCase(
         ? [originalPlan.activityType.code]
         : ["TYPE_1"];
 
-  // Stores
-  const planStores = (originalPlan.stores || []).map((s) => ({
+  // Type 1 Stores from dedicated table
+  const type1Stores = (originalPlan.type1Stores || []).map((s: any) => ({
+    workTypeCode: "TYPE_1",
+    visitPurpose: s.visitPurpose || "FARMER",
+    storeId: s.storeId || null,
+    storeName: s.store?.name || s.unregisteredFarmerName || "",
+    province: s.province || s.store?.province || "",
+    isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+    unregisteredFarmerName: s.unregisteredFarmerName || null,
+    unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
+    topic: s.topic || s.remarks || null,
+    remarks: s.topic || s.remarks || null,
+    notes: s.notes || null,
+    detail: s.notes || null,
+  }));
+
+  // Type 2 Targets from dedicated table
+  const type2Stores = (originalPlan.type2Targets || []).map((t: any) => ({
+    workTypeCode: "TYPE_2",
+    visitPurpose: t.visitPurpose || "FARMER",
+    storeId: t.storeId || null,
+    storeName: t.store?.name || t.unregisteredFarmerName || "",
+    province: t.province || t.store?.province || "",
+    isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
+    unregisteredFarmerName: t.unregisteredFarmerName || null,
+    unregisteredFarmerPhone: t.unregisteredFarmerPhone || null,
+    notes: t.notes || null,
+    remarks: t.notes || null,
+    detail: t.notes || null,
+  }));
+
+  // Other Stores from activity_plan_stores
+  const legacyStores = (originalPlan.stores || []).map((s) => ({
     workTypeCode: s.workTypeCode,
     visitPurpose: s.visitPurpose ?? null,
     storeId: s.storeId,
@@ -461,8 +492,29 @@ export async function duplicateActivityPlanUseCase(
     targetAmount: s.targetAmount ? Number(s.targetAmount) : null,
     subDealerStore: s.subDealerStore,
     remarks: s.remarks,
+    topic: s.remarks,
     notes: s.notes,
+    detail: s.notes,
   }));
+
+  const planStores = [
+    ...(type1Stores.length > 0
+      ? type1Stores
+      : legacyStores.filter(
+          (s) =>
+            s.workTypeCode === "TYPE_1" ||
+            s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
+        )),
+    ...(type2Stores.length > 0
+      ? type2Stores
+      : legacyStores.filter((s) => s.workTypeCode === "TYPE_2")),
+    ...legacyStores.filter(
+      (s) =>
+        s.workTypeCode !== "TYPE_1" &&
+        s.workTypeCode !== "เข้าพบร้านค้า / Key Farmer" &&
+        s.workTypeCode !== "TYPE_2",
+    ),
+  ];
 
   // Products
   const planProducts = (originalPlan.products || []).map((p) => ({
@@ -699,6 +751,7 @@ export async function duplicateActivityPlanUseCase(
     workTypeCodes,
     tourData,
     planStores,
+    type1Stores: type1Stores.length > 0 ? type1Stores : undefined,
     planProducts,
     marketingItems,
     promotionItems,
