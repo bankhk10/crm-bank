@@ -34,6 +34,7 @@ export interface Type1TargetItem {
   plotLongitude?: string | number | null;
   plotImages?: Type1ImageFile[];
   productAdvice?: string;
+  advisedProducts?: Type1AdviceProductItem[];
   salesOpportunity?: string;
   nextMeetingDate?: string;
 }
@@ -96,6 +97,17 @@ export interface Type1PlanFormProps {
 export type Type1VisitProps = Type1PlanFormProps;
 
 /**
+ * Structured product advice item for TYPE 1 Normalized reporting
+ */
+export interface Type1AdviceProductItem {
+  id?: string;
+  productId: string;
+  productName: string;
+  productCode?: string | null;
+  targetId?: string;
+}
+
+/**
  * Structured actual recording item per target for TYPE 1 Multi-Target actual recording
  */
 export interface Type1TargetActualItem {
@@ -113,6 +125,7 @@ export interface Type1TargetActualItem {
   // Actual recording fields
   discussionResult: string;
   productAdvice?: string;
+  advisedProducts?: Type1AdviceProductItem[];
   salesOpportunity?: "สูง" | "ต่ำ" | "";
   nextAction?: string;
   nextMeetingDate?: string;
@@ -132,6 +145,8 @@ export interface Type1ActualFormProps {
   planType?: "PLANNED" | "UNPLANNED" | string;
   productAdvice: string;
   setProductAdvice: (v: string) => void;
+  advisedProducts?: Type1AdviceProductItem[];
+  setAdvisedProducts?: (products: Type1AdviceProductItem[]) => void;
   detail?: string;
   setDetail?: (v: string) => void;
   discussionResult: string;

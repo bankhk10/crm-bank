@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type { Type1ImageFile, ImageFile } from "../types";
+import type { Type1ImageFile, ImageFile, Type1AdviceProductItem } from "../types";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
@@ -9,6 +9,7 @@ import {
 
 export function useType1Actual() {
   const [t1ProductAdvice, setT1ProductAdvice] = useState("");
+  const [t1AdvisedProducts, setT1AdvisedProducts] = useState<Type1AdviceProductItem[]>([]);
   const [t1Detail, setT1Detail] = useState("");
   const [t1DiscussionResult, setT1DiscussionResult] = useState("");
   const [t1SalesOpportunity, setT1SalesOpportunity] = useState<
@@ -25,6 +26,9 @@ export function useType1Actual() {
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
     if (parsed.t1ProductAdvice) setT1ProductAdvice(parsed.t1ProductAdvice);
+    if (parsed.t1Products && parsed.t1Products.length > 0) {
+      setT1AdvisedProducts(parsed.t1Products);
+    }
     if (parsed.t1SalesOpportunity) {
       setT1SalesOpportunity(parsed.t1SalesOpportunity);
     }
@@ -88,6 +92,7 @@ export function useType1Actual() {
   const collectPayload = useCallback((cleanImages: ImageFile[] = t1PlotImages) => {
     return {
       t1ProductAdvice,
+      t1Products: t1AdvisedProducts,
       t1SalesOpportunity,
       t1DiscussionResult,
       t1Detail,
@@ -100,6 +105,7 @@ export function useType1Actual() {
     };
   }, [
     t1ProductAdvice,
+    t1AdvisedProducts,
     t1SalesOpportunity,
     t1DiscussionResult,
     t1Detail,
@@ -114,6 +120,8 @@ export function useType1Actual() {
   return {
     t1ProductAdvice,
     setT1ProductAdvice,
+    t1AdvisedProducts,
+    setT1AdvisedProducts,
     t1Detail,
     setT1Detail,
     t1DiscussionResult,

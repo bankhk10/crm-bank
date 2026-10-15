@@ -75,6 +75,7 @@ export {
 export type {
   Type1TargetItem,
   Type1TargetActualItem,
+  Type1AdviceProductItem,
   Type1ImageFile,
   ImageFile,
   Type1VisitItem,

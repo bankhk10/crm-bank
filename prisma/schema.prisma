@@ -716,6 +716,7 @@ model Product {
   activityPlanType2Products      ActivityPlanType2Product[]
   activityPlanType3Products      ActivityPlanType3Product[]
   activityPlanType5Targets       ActivityPlanType5Target[]
+  activityResultType1Products    ActivityResultType1Product[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1759,6 +1760,7 @@ model ActivityPlan {
   type14FollowUps ActivityPlanType14[] @relation("Type14SourcePlan")
   type1Stores    ActivityPlanType1Store[]
   type1Result    ActivityResultType1?
+  type1Products  ActivityResultType1Product[]
   type2Targets   ActivityPlanType2Target[]
   type2Products  ActivityPlanType2Product[]
   type3Targets   ActivityPlanType3Target[]
@@ -2887,6 +2889,25 @@ model ActivityResultType1 {
 
   @@index([activityPlanId])
   @@map("activity_result_type_1")
+}
+
+model ActivityResultType1Product {
+  id             String       @id @default(cuid())
+  activityPlanId String       @map("activity_plan_id")
+  targetId       String?      @map("target_id")
+  productId      String       @map("product_id")
+  productName    String?      @map("product_name")
+
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([productId])
+  @@index([targetId])
+  @@map("activity_result_type_1_products")
 }
 
 // =============================================================================

@@ -154,12 +154,12 @@ export const type1Strategy: WorkTypeStrategy = {
   },
 
   /**
-   * Persist Actual outcome into dedicated `activity_result_type_1` table
+   * Persist Actual outcome into dedicated `activity_result_type_1` and `activity_result_type_1_products` tables
    */
   async saveActual(tx: PrismaTransaction, activityPlanId: string, actualData: Type1ActualResultValues): Promise<void> {
     if (!actualData) return;
 
-    await tx.activityResultType1.upsert({
+    await (tx as any).activityResultType1.upsert({
       where: { activityPlanId },
       create: {
         activityPlanId,
@@ -181,19 +181,74 @@ export const type1Strategy: WorkTypeStrategy = {
         plotLongitude: actualData.plotLongitude ?? null,
       },
     });
+
+    // Persist normalized advised products into dedicated activity_result_type_1_products
+    await (tx as any).activityResultType1Product.deleteMany({
+      where: { activityPlanId },
+    });
+
+    if (actualData.products && actualData.products.length > 0) {
+      await (tx as any).activityResultType1Product.createMany({
+        data: actualData.products.map((p) => ({
+          activityPlanId,
+          targetId: p.targetId || null,
+          productId: p.productId,
+          productName: p.productName || null,
+        })),
+      });
+    } else if (actualData.productAdvice) {
+      // Auto-normalize product names into product IDs for backward compatibility
+      const rawTokens = actualData.productAdvice
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      if (rawTokens.length > 0) {
+        const matchedProducts = await (tx as any).product.findMany({
+          where: {
+            name: { in: rawTokens },
+          },
+          select: { id: true, name: true },
+        });
+
+        if (matchedProducts.length > 0) {
+          await (tx as any).activityResultType1Product.createMany({
+            data: matchedProducts.map((p: any) => ({
+              activityPlanId,
+              productId: p.id,
+              productName: p.name,
+            })),
+          });
+        }
+      }
+    }
   },
 
   /**
-   * Load Actual outcome from dedicated table (with fallback to legacy activity_results)
+   * Load Actual outcome from dedicated tables (with fallback to legacy activity_results)
    */
   async loadActual(tx: PrismaTransaction, activityPlanId: string): Promise<any | null> {
-    const dedicated = await tx.activityResultType1.findUnique({
-      where: { activityPlanId },
-    });
+    const [dedicated, products] = await Promise.all([
+      (tx as any).activityResultType1.findUnique({
+        where: { activityPlanId },
+      }),
+      (tx as any).activityResultType1Product.findMany({
+        where: { activityPlanId },
+        include: { product: true },
+        orderBy: { createdAt: "asc" },
+      }),
+    ]);
 
     if (dedicated) {
       return {
         productAdvice: dedicated.productAdvice,
+        products: products.map((p: any) => ({
+          id: p.id,
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          productCode: p.product?.productCode || null,
+          targetId: p.targetId,
+        })),
         discussionResult: dedicated.discussionResult,
         salesOpportunity: dedicated.salesOpportunity,
         nextMeetingDate: dedicated.nextMeetingDate,
@@ -212,6 +267,7 @@ export const type1Strategy: WorkTypeStrategy = {
 
     return {
       productAdvice: legacy.productAdvice,
+      products: [],
       discussionResult: legacy.discussionResult,
       salesOpportunity: legacy.salesOpportunity,
       nextMeetingDate: legacy.nextMeetingDate,

@@ -111,12 +111,26 @@ modules/activity-plans/features/type-1/
 | `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)               |
 | `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180)            |
 
-### 3.4 ตารางส่วนกลางที่ Sync คู่ขนาน (Legacy Dual-Write Tables)
+### 3.4 ตารางเฉพาะ `activity_result_type_1_products` (Dedicated Advised Products - Normalized)
+
+ตารางเก็บรายการสินค้าที่ให้คำแนะนำแบบแยกแถว (Normalized) มี Foreign Key ผูกกับ Master สินค้า (`Product`) โดยตรง เพื่อใช้จัดทำรายงานสถิติความถี่สินค้า, การจัดอันดับสินค้าที่แนะนำ, และ Conversion Rate:
+
+| คอลัมน์ (Column)   | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                                               |
+| ------------------ | -------------------- | -------- | ------------------------------------------------------------------- |
+| `id`               | `VARCHAR(30)` (cuid) | No       | Primary Key                                                         |
+| `activity_plan_id` | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id` (Cascade Delete)           |
+| `target_id`        | `VARCHAR(30)`        | Yes      | รหัสเป้าหมายที่ได้รับคำแนะนำ (เกษตรกร หรือร้านค้า)                  |
+| `product_id`       | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `Product.id` (เชื่อม Master สินค้า)             |
+| `product_name`     | `TEXT`               | Yes      | ชื่อสินค้า ณ ขณะบันทึก (Snapshot เพื่อความรวดเร็วในการ Query)      |
+| `created_at`       | `TIMESTAMP`          | No       | วันที่และเวลาที่บันทึกข้อมูล                                        |
+| `updated_at`       | `TIMESTAMP`          | No       | วันที่และเวลาที่อัปเดตล่าสุด                                        |
+
+### 3.5 ตารางส่วนกลางที่ Sync คู่ขนาน (Legacy Dual-Write Tables)
 
 - `activity_plan_stores`: มีการบันทึกควบคู่เพื่อรองรับ View / Reports เดิมที่ยังอ่านจากตารางรวม
 - `activity_results`: มีการบันทึกควบคู่เพื่อรองรับ View เดิม
 
-### 3.5 ตาราง `activity_plan_stores` (Legacy Plan Store Reference)
+### 3.6 ตาราง `activity_plan_stores` (Legacy Plan Store Reference)
 
 | คอลัมน์ (Column)            | ชนิดข้อมูล (Type)    | Nullable            | ความหมายและรายละเอียด                                                       |
 | --------------------------- | -------------------- | ------------------- | --------------------------------------------------------------------------- |
@@ -133,7 +147,7 @@ modules/activity-plans/features/type-1/
 | `remarks`                   | `TEXT`               | Yes                 | ประเด็นหลักในการเข้าพบ (Topic) เช่น "แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า" |
 | `notes`                     | `TEXT`               | Yes                 | รายละเอียดเพิ่มเติมในการเข้าพบ (Detail)                                     |
 
-### 3.6 ตาราง `activity_results` (ผลการปฏิบัติงานจริง - Core Parent Header)
+### 3.7 ตาราง `activity_results` (ผลการปฏิบัติงานจริง - Core Parent Header)
 
 ตารางเก็บผลการดำเนินงานจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
 
@@ -152,7 +166,7 @@ modules/activity-plans/features/type-1/
 | `result_status`       | `ENUM`               | No       | สถานะผลการทำกิจกรรม (`COMPLETED`, `PARTIAL`, `CANCELLED`, `POSTPONED`) |
 | `result_summary`      | `TEXT`               | Yes      | ข้อความสรุปผลกิจกรรมโดยรวม (สร้างอัตโนมัติจาก Summary Builder)         |
 
-### 3.7 ตาราง `activity_attachments` (รูปภาพแนบผลงานจริง)
+### 3.8 ตาราง `activity_attachments` (รูปภาพแนบผลงานจริง)
 
 ตารางจัดเก็บ URL รูปถ่ายแปลงเกษตรกรจากการเข้าพบจริง:
 
@@ -166,7 +180,7 @@ modules/activity-plans/features/type-1/
 | `file_url`           | `TEXT`               | No       | URL รูปภาพแปลงเกษตรกรที่อัปโหลดขึ้น Cloud Storage (สูงสุด 5 รูป) |
 | `file_name`          | `TEXT`               | No       | ชื่อไฟล์รูปภาพต้นฉบับ                                            |
 
-### 3.8 ตาราง `Customer` (Master Data ลูกค้าสำหรับอ้างอิง)
+### 3.9 ตาราง `Customer` (Master Data ลูกค้าสำหรับอ้างอิง)
 
 ตารางหลักของลูกค้าที่ `activity_plan_stores.store_id` ชี้ไป:
 

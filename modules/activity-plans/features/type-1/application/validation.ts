@@ -147,6 +147,17 @@ export const type1PlanStoreSchema = z
  */
 export const type1ActualResultSchema = z.object({
   productAdvice: z.string().optional().nullable(),
+  products: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        productId: z.string(),
+        productName: z.string().optional().nullable(),
+        targetId: z.string().optional().nullable(),
+      }),
+    )
+    .optional()
+    .nullable(),
   discussionResult: z.string().optional().nullable(),
   salesOpportunity: z.enum(["สูง", "ต่ำ", ""]).optional().nullable(),
   nextMeetingDate: z.coerce.date().optional().nullable(),

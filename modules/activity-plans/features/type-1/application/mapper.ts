@@ -275,6 +275,13 @@ export function extractType1PlanTargets(
 export function parseType1ActualResult(resData: any): {
   t1DiscussionResult?: string;
   t1ProductAdvice?: string;
+  t1Products?: Array<{
+    id?: string;
+    productId: string;
+    productName: string;
+    productCode?: string | null;
+    targetId?: string;
+  }>;
   t1SalesOpportunity?: "สูง" | "ต่ำ";
   t1FarmerHomeAddress?: string;
   t1PlotLatitude?: number;
@@ -284,6 +291,22 @@ export function parseType1ActualResult(resData: any): {
 } {
   const result: any = {};
   if (!resData) return result;
+
+  const rawProducts =
+    resData.type1Products ||
+    resData.activityResultType1Products ||
+    resData.type1Result?.products ||
+    [];
+
+  if (rawProducts && rawProducts.length > 0) {
+    result.t1Products = rawProducts.map((p: any) => ({
+      id: p.id,
+      productId: p.productId,
+      productName: p.product?.name || p.productName || "",
+      productCode: p.product?.productCode || null,
+      targetId: p.targetId || undefined,
+    }));
+  }
 
   const type1Obj = resData.type1Result;
 

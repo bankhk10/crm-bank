@@ -18,9 +18,10 @@ import type {
   Type1TargetItem,
   Type1ImageFile,
   Type1TargetActualItem,
+  Type1AdviceProductItem,
 } from "../types";
 
-export type { ProductOption, Type1ActualFormProps, ActualType1VisitProps, Type1TargetActualItem };
+export type { ProductOption, Type1ActualFormProps, ActualType1VisitProps, Type1TargetActualItem, Type1AdviceProductItem };
 
 /**
  * Extracts target-specific text from composite strings like "TargetA: notes | TargetB: notes"
@@ -60,6 +61,7 @@ function initializeTargetItems(
     plotImages: Type1ImageFile[];
   },
   savedResults?: Type1TargetActualItem[],
+  productsList: ProductOption[] = [],
 ): Type1TargetActualItem[] {
   if (savedResults && savedResults.length === targets.length) {
     return savedResults;
@@ -153,6 +155,25 @@ function initializeTargetItems(
         ? fallbackProps.nextMeetingDate
         : "");
 
+    const initialAdvised: Type1AdviceProductItem[] =
+      t.advisedProducts && t.advisedProducts.length > 0
+        ? t.advisedProducts
+        : parsedAdvice
+          ? parsedAdvice
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .map((pName) => {
+                const found = productsList.find((p) => p.name === pName);
+                return {
+                  productId: found?.id || pName,
+                  productName: pName,
+                  productCode: found?.productCode || null,
+                  targetId: t.id,
+                };
+              })
+          : [];
+
     return {
       id: t.id || `t1-target-${idx}`,
       targetId: t.id,
@@ -167,6 +188,7 @@ function initializeTargetItems(
 
       discussionResult: parsedDiscussion,
       productAdvice: parsedAdvice,
+      advisedProducts: initialAdvised,
       salesOpportunity: parsedSalesOpp,
       nextAction: parsedNextAction,
       nextMeetingDate: parsedMeetingDate,
@@ -195,6 +217,8 @@ export function Type1ActualForm({
   planType,
   productAdvice,
   setProductAdvice,
+  advisedProducts,
+  setAdvisedProducts,
   discussionResult,
   setDiscussionResult,
   salesOpportunity,
@@ -238,6 +262,7 @@ export function Type1ActualForm({
         plotImages,
       },
       targetActualResults,
+      products,
     ),
   );
 
@@ -245,6 +270,7 @@ export function Type1ActualForm({
   const syncPropsRef = useRef({
     setDiscussionResult,
     setProductAdvice,
+    setAdvisedProducts,
     setSalesOpportunity,
     setNextAction,
     setNextMeetingDate,
@@ -257,6 +283,7 @@ export function Type1ActualForm({
   syncPropsRef.current = {
     setDiscussionResult,
     setProductAdvice,
+    setAdvisedProducts,
     setSalesOpportunity,
     setNextAction,
     setNextMeetingDate,
@@ -274,6 +301,7 @@ export function Type1ActualForm({
     const {
       setDiscussionResult,
       setProductAdvice,
+      setAdvisedProducts,
       setSalesOpportunity,
       setNextAction,
       setNextMeetingDate,
@@ -292,6 +320,9 @@ export function Type1ActualForm({
       const single = items[0];
       setDiscussionResult(single.discussionResult || "");
       setProductAdvice(single.productAdvice || "");
+      if (setAdvisedProducts) {
+        setAdvisedProducts(single.advisedProducts || []);
+      }
       setSalesOpportunity(single.salesOpportunity || "");
       setNextAction(single.nextAction || "");
       setNextMeetingDate(single.nextMeetingDate || "");
@@ -328,6 +359,12 @@ export function Type1ActualForm({
       ),
     );
     setProductAdvice(uniqueProducts.join(", "));
+
+    // 2.1 advisedProducts: all advised items across all targets
+    if (setAdvisedProducts) {
+      const allAdvised = items.flatMap((i) => i.advisedProducts || []);
+      setAdvisedProducts(allAdvised);
+    }
 
     // 3. salesOpportunity: "สูง" if any target is สูง, else "ต่ำ" if any is ต่ำ, else ""
     const hasHigh = items.some((i) => i.salesOpportunity === "สูง");
@@ -599,26 +636,59 @@ export function Type1ActualForm({
 
   const handleAddProduct = (index: number, prod: string) => {
     if (!prod) return;
-    const current = targetItems[index].productAdvice
-      ? targetItems[index].productAdvice!
+    const target = targetItems[index];
+    const current = target.productAdvice
+      ? target.productAdvice
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean)
       : [];
     if (current.includes(prod)) return;
+
+    const matchedProd = products.find((p) => p.name === prod);
+    const newAdvisedItem: Type1AdviceProductItem = {
+      productId: matchedProd?.id || prod,
+      productName: prod,
+      productCode: matchedProd?.productCode || null,
+      targetId: target.id,
+    };
+
+    const currentAdvised = target.advisedProducts || [];
+    const updatedAdvised = [...currentAdvised, newAdvisedItem];
     const updated = [...current, prod].join(", ");
-    handleTargetChange(index, "productAdvice", updated);
+
+    setTargetItems((prev) => {
+      const updatedList = [...prev];
+      updatedList[index] = {
+        ...updatedList[index],
+        productAdvice: updated,
+        advisedProducts: updatedAdvised,
+      };
+      return updatedList;
+    });
   };
 
   const handleRemoveProduct = (index: number, prod: string) => {
-    const current = targetItems[index].productAdvice
-      ? targetItems[index].productAdvice!
+    const target = targetItems[index];
+    const current = target.productAdvice
+      ? target.productAdvice
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean)
       : [];
     const updated = current.filter((p) => p !== prod).join(", ");
-    handleTargetChange(index, "productAdvice", updated);
+    const currentAdvised = target.advisedProducts || [];
+    const updatedAdvised = currentAdvised.filter((p) => p.productName !== prod);
+
+    setTargetItems((prev) => {
+      const updatedList = [...prev];
+      updatedList[index] = {
+        ...updatedList[index],
+        productAdvice: updated,
+        advisedProducts: updatedAdvised,
+      };
+      return updatedList;
+    });
   };
 
   const isStore = target?.visitPurpose === "STORE";
@@ -1013,12 +1083,7 @@ export function Type1ActualForm({
                           <button
                             type="button"
                             onClick={() => {
-                              const updated = productAdvice
-                                .split(",")
-                                .map((s) => s.trim())
-                                .filter((p) => p !== prod && Boolean(p))
-                                .join(", ");
-                              setProductAdvice(updated);
+                              handleRemoveProduct(0, prod);
                             }}
                             className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
                           >
@@ -1036,15 +1101,7 @@ export function Type1ActualForm({
                   value=""
                   onChange={(val) => {
                     if (val) {
-                      const cur = productAdvice
-                        ? productAdvice
-                            .split(",")
-                            .map((s) => s.trim())
-                            .filter(Boolean)
-                        : [];
-                      if (!cur.includes(val)) {
-                        setProductAdvice([...cur, val].join(", "));
-                      }
+                      handleAddProduct(0, val);
                     }
                   }}
                   options={comboboxOptions}
