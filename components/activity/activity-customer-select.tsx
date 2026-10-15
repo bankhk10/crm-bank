@@ -349,13 +349,10 @@ export function ActivityCustomerSelect({
                             ? [option.item.customerCode]
                             : []),
                         ]}
-                        onSelect={(currentValue) => {
+                        onSelect={() => {
                           const nextVal =
-                            currentValue === value ? "" : currentValue;
-                          const chosen = formattedOptions.find(
-                            (o) => o.value === nextVal,
-                          );
-                          onChange(nextVal, chosen?.item);
+                            option.value === value ? "" : option.value;
+                          onChange(nextVal, nextVal ? option.item : undefined);
                           setOpen(false);
                         }}
                         className="text-xs py-1.5 px-2.5 cursor-pointer aria-selected:bg-emerald-50 aria-selected:text-emerald-900"

@@ -185,11 +185,11 @@ export function Type1PlannedForm({
                           value={item.storeId || ""}
                           province={item.province}
                           onChange={(val, cust) => {
-                            updateItem(item.id, "storeId", val || undefined);
-                            updateItem(item.id, "customerName", cust?.name || "");
                             if (cust?.province && !item.province) {
                               updateItem(item.id, "province", cust.province);
                             }
+                            updateItem(item.id, "customerName", cust?.name || "");
+                            updateItem(item.id, "storeId", val || undefined);
                           }}
                           customers={customers}
                           disabled={readonly}
@@ -265,11 +265,11 @@ export function Type1PlannedForm({
                       type="STORE"
                       value={item.storeId || ""}
                       onChange={(val, cust) => {
-                        updateItem(item.id, "storeId", val || undefined);
-                        updateItem(item.id, "customerName", cust?.name || "");
                         if (cust?.province) {
                           updateItem(item.id, "province", cust.province);
                         }
+                        updateItem(item.id, "customerName", cust?.name || "");
+                        updateItem(item.id, "storeId", val || undefined);
                       }}
                       customers={customers}
                       disabled={readonly}

@@ -279,8 +279,10 @@ export function useType1Form({
           }
         }
         if (field === "province") {
-          updated.storeId = undefined;
-          updated.customerName = "";
+          if (item.visitPurpose === "FARMER") {
+            updated.storeId = undefined;
+            updated.customerName = "";
+          }
         }
         return updated;
       }),
