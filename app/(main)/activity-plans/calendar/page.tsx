@@ -1,4 +1,4 @@
-import { ActivityCalendarView } from "@/modules/activity-plans";
+import { ActivityCalendarView } from "@/modules/activity";
 
 export const metadata = {
   title: "ปฏิทินกิจกรรม | CRM",

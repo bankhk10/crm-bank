@@ -1,5 +1,5 @@
 import { use } from "react";
-import { ActivityPlanApprovalDetailView } from "@/modules/activity-plans";
+import { ActivityPlanApprovalDetailView } from "@/modules/activity";
 
 export default function ActivityPlanApprovalDetailPage({
   params,

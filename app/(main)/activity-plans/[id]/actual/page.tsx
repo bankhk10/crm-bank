@@ -1,5 +1,5 @@
 import { use } from "react";
-import { ActivityPlanActualView } from "@/modules/activity-plans";
+import { ActivityPlanActualView } from "@/modules/activity";
 
 export default function ActivityPlanActualDetailPage({
   params,

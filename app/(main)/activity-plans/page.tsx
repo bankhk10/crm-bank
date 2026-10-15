@@ -1,4 +1,4 @@
-import { ActivityPlanListView } from "@/modules/activity-plans";
+import { ActivityPlanListView } from "@/modules/activity";
 
 export default function ActivityPlansPage() {
   return <ActivityPlanListView />;

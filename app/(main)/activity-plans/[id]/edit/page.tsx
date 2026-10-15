@@ -1,5 +1,5 @@
 import { use } from "react";
-import { PlannedEditView } from "@/modules/activity-plans";
+import { PlannedEditView } from "@/modules/activity";
 
 export default function ActivityPlanEditPage({
   params,

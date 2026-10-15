@@ -1,4 +1,4 @@
-import { PromotionalMaterialsView } from "@/modules/activity-plans";
+import { PromotionalMaterialsView } from "@/modules/activity";
 
 export const metadata = {
   title: "จัดการสื่อส่งเสริมการขาย | CRM",

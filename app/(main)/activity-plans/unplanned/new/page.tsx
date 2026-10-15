@@ -1,4 +1,4 @@
-import { UnplannedCreateView } from "@/modules/activity-plans/features/unplanned";
+import { UnplannedCreateView } from "@/modules/activity";
 
 export const metadata = {
   title: "บันทึกกิจกรรมนอกแผน | CRM",
