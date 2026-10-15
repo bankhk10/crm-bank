@@ -177,6 +177,12 @@ export function extractType1PlanTargets(
   const resultFarmerAddress =
     firstT1Result?.farmerHomeAddress || undefined;
 
+  const resultDiscussionResult =
+    firstT1Result?.discussionResult || undefined;
+
+  const resultNextAction =
+    firstT1Result?.nextAction || undefined;
+
   const resultProductAdvice =
     firstT1Result?.productAdvice || undefined;
 
@@ -252,9 +258,9 @@ export function extractType1PlanTargets(
           ? String(targetResult.plotLongitude)
           : (isFarmer ? (resultLng || storeLng) : (storeLng || undefined)),
       productAdvice: isAdviceTopic ? (targetResult?.productAdvice || resultProductAdvice) : undefined,
-      discussionResult: targetResult?.discussionResult || undefined,
+      discussionResult: targetResult?.discussionResult || (rawT1Stores.length === 1 ? resultDiscussionResult : undefined),
       salesOpportunity: targetResult?.salesOpportunity || resultSalesOpportunity,
-      nextAction: targetResult?.nextAction || undefined,
+      nextAction: targetResult?.nextAction || (rawT1Stores.length === 1 ? resultNextAction : undefined),
       nextMeetingDate: targetDate,
     };
   });
@@ -281,6 +287,8 @@ export function extractType1PlanTargets(
         plotLatitude: t1First.plotLatitude || resultLat || prevTarget?.plotLatitude,
         plotLongitude: t1First.plotLongitude || resultLng || prevTarget?.plotLongitude,
         farmerHomeAddress: t1First.farmerHomeAddress || resultFarmerAddress || prevTarget?.farmerHomeAddress,
+        discussionResult: t1First.discussionResult || resultDiscussionResult || prevTarget?.discussionResult,
+        nextAction: t1First.nextAction || resultNextAction || prevTarget?.nextAction,
       }
     : {
         customer: "",
@@ -294,6 +302,8 @@ export function extractType1PlanTargets(
         plotLatitude: resultLat || prevTarget?.plotLatitude,
         plotLongitude: resultLng || prevTarget?.plotLongitude,
         farmerHomeAddress: resultFarmerAddress || prevTarget?.farmerHomeAddress,
+        discussionResult: resultDiscussionResult || prevTarget?.discussionResult,
+        nextAction: resultNextAction || prevTarget?.nextAction,
         ...prevTarget,
       };
 
@@ -368,6 +378,53 @@ export function parseType1ActualResult(resData: any): {
       typeof nextMeetingDate === "string"
         ? nextMeetingDate.split("T")[0]
         : new Date(nextMeetingDate).toISOString().split("T")[0];
+  }
+
+  const allT1Results =
+    resData.type1Results ||
+    resData.activityPlan?.type1Results ||
+    (resData.activityPlan?.type1Stores || [])
+      .map((s: any) => s.result)
+      .filter(Boolean);
+
+  if (allT1Results && allT1Results.length > 1) {
+    const stores = resData.activityPlan?.type1Stores || [];
+    const getStoreName = (idx: number, r: any) => {
+      const match = stores.find((s: any) => s.id === r.planStoreId);
+      return match?.isUnregisteredFarmer
+        ? match?.unregisteredFarmerName
+        : match?.store?.name || match?.storeName || `เป้าหมายที่ ${idx + 1}`;
+    };
+
+    const combinedDiscussion = allT1Results
+      .map((r: any, idx: number) => {
+        if (!r?.discussionResult) return "";
+        const name = getStoreName(idx, r);
+        return `${name}: ${r.discussionResult}`;
+      })
+      .filter(Boolean)
+      .join(" | ");
+    if (combinedDiscussion) result.t1DiscussionResult = combinedDiscussion;
+
+    const combinedNextAction = allT1Results
+      .map((r: any, idx: number) => {
+        if (!r?.nextAction) return "";
+        const name = getStoreName(idx, r);
+        return `${name}: ${r.nextAction}`;
+      })
+      .filter(Boolean)
+      .join(" | ");
+    if (combinedNextAction) result.t1NextAction = combinedNextAction;
+
+    const combinedAddress = allT1Results
+      .map((r: any, idx: number) => {
+        if (!r?.farmerHomeAddress) return "";
+        const name = getStoreName(idx, r);
+        return `${name}: ${r.farmerHomeAddress}`;
+      })
+      .filter(Boolean)
+      .join(" | ");
+    if (combinedAddress) result.t1FarmerHomeAddress = combinedAddress;
   }
 
   return result;

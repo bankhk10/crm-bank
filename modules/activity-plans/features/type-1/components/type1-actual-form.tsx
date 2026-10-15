@@ -70,35 +70,44 @@ function initializeTargetItems(
         farmerTargets[0]?.customer === name ||
         idx === 0);
 
-    const parsedDiscussion = parseTargetText(
-      fallbackProps.discussionResult,
-      name,
-      isSingle
-        ? fallbackProps.discussionResult
-        : idx === 0 && !fallbackProps.discussionResult.includes(":")
+    const parsedDiscussion =
+      t.discussionResult ||
+      parseTargetText(
+        fallbackProps.discussionResult,
+        name,
+        isSingle
           ? fallbackProps.discussionResult
-          : "",
-    );
+          : idx === 0 && !fallbackProps.discussionResult.includes(":")
+            ? fallbackProps.discussionResult
+            : "",
+      ) ||
+      (isSingle ? fallbackProps.discussionResult : "");
 
-    const parsedNextAction = parseTargetText(
-      fallbackProps.nextAction,
-      name,
-      isSingle
-        ? fallbackProps.nextAction
-        : idx === 0 && !fallbackProps.nextAction.includes(":")
+    const parsedNextAction =
+      t.nextAction ||
+      parseTargetText(
+        fallbackProps.nextAction,
+        name,
+        isSingle
           ? fallbackProps.nextAction
-          : "",
-    );
+          : idx === 0 && !fallbackProps.nextAction.includes(":")
+            ? fallbackProps.nextAction
+            : "",
+      ) ||
+      (isSingle ? fallbackProps.nextAction : "");
 
-    const parsedAddress = parseTargetText(
-      fallbackProps.farmerHomeAddress,
-      name,
-      isSingle || isFirstOrOnlyFarmer
-        ? fallbackProps.farmerHomeAddress
-        : idx === 0 && !fallbackProps.farmerHomeAddress.includes(":")
+    const parsedAddress =
+      t.farmerHomeAddress ||
+      parseTargetText(
+        fallbackProps.farmerHomeAddress,
+        name,
+        isSingle || isFirstOrOnlyFarmer
           ? fallbackProps.farmerHomeAddress
-          : "",
-    );
+          : idx === 0 && !fallbackProps.farmerHomeAddress.includes(":")
+            ? fallbackProps.farmerHomeAddress
+            : "",
+      ) ||
+      (isSingle || isFirstOrOnlyFarmer ? fallbackProps.farmerHomeAddress : "");
 
     const images =
       t.plotImages && t.plotImages.length > 0
@@ -116,22 +125,22 @@ function initializeTargetItems(
         : isSingle || idx === 0;
 
     const parsedAdvice =
-      parseTargetText(fallbackProps.productAdvice, name, "") ||
       t.productAdvice ||
+      parseTargetText(fallbackProps.productAdvice, name, "") ||
       (isTargetForAdvice ? fallbackProps.productAdvice : "");
 
     const parsedSalesOpp =
+      ((t.salesOpportunity || t.opportunity) as "สูง" | "ต่ำ" | "") ||
       (parseTargetText(fallbackProps.salesOpportunity, name, "") as
         | "สูง"
         | "ต่ำ"
         | "") ||
-      ((t.salesOpportunity || t.opportunity) as "สูง" | "ต่ำ" | "") ||
       (isTargetForAdvice ? fallbackProps.salesOpportunity : "");
 
     const parsedMeetingDate =
-      parseTargetText(fallbackProps.nextMeetingDate, name, "") ||
       t.nextMeetingDate ||
       t.nextDate ||
+      parseTargetText(fallbackProps.nextMeetingDate, name, "") ||
       (isSingle || idx === 0 || isTargetForAdvice
         ? fallbackProps.nextMeetingDate
         : "");
@@ -168,13 +177,13 @@ function initializeTargetItems(
       unregisteredFarmerName: t.unregisteredFarmerName,
       unregisteredFarmerPhone: t.unregisteredFarmerPhone,
 
-      discussionResult: parsedDiscussion,
-      productAdvice: parsedAdvice,
+      discussionResult: t.discussionResult || parsedDiscussion || "",
+      productAdvice: t.productAdvice || parsedAdvice || "",
       advisedProducts: initialAdvised,
-      salesOpportunity: parsedSalesOpp,
-      nextAction: parsedNextAction,
-      nextMeetingDate: parsedMeetingDate,
-      farmerHomeAddress: parsedAddress,
+      salesOpportunity: (t.salesOpportunity as "สูง" | "ต่ำ" | "") || parsedSalesOpp || "",
+      nextAction: t.nextAction || parsedNextAction || "",
+      nextMeetingDate: t.nextMeetingDate || parsedMeetingDate || "",
+      farmerHomeAddress: t.farmerHomeAddress || parsedAddress || "",
       plotLatitude:
         t.plotLatitude != null && String(t.plotLatitude).trim() !== ""
           ? String(t.plotLatitude)
@@ -204,25 +213,25 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     onUpdateTargetActualResults,
   } = props;
 
-  const productAdvice = actualState?.t1ProductAdvice ?? props.productAdvice ?? "";
+  const productAdvice = actualState?.t1ProductAdvice || props.productAdvice || "";
   const setProductAdvice = actualState?.setT1ProductAdvice ?? props.setProductAdvice ?? (() => {});
   const advisedProducts = actualState?.t1AdvisedProducts ?? props.advisedProducts;
   const setAdvisedProducts = actualState?.setT1AdvisedProducts ?? props.setAdvisedProducts;
-  const discussionResult = actualState?.t1DiscussionResult ?? props.discussionResult ?? "";
+  const discussionResult = actualState?.t1DiscussionResult || props.discussionResult || "";
   const setDiscussionResult = actualState?.setT1DiscussionResult ?? props.setDiscussionResult ?? (() => {});
-  const salesOpportunity = (actualState?.t1SalesOpportunity ?? props.salesOpportunity ?? "") as "สูง" | "ต่ำ" | "";
+  const salesOpportunity = (actualState?.t1SalesOpportunity || props.salesOpportunity || "") as "สูง" | "ต่ำ" | "";
   const setSalesOpportunity = actualState?.setT1SalesOpportunity ?? props.setSalesOpportunity ?? (() => {});
-  const nextAction = actualState?.t1NextAction ?? props.nextAction ?? "";
+  const nextAction = actualState?.t1NextAction || props.nextAction || "";
   const setNextAction = actualState?.setT1NextAction ?? props.setNextAction ?? (() => {});
-  const nextMeetingDate = actualState?.t1NextMeetingDate ?? props.nextMeetingDate ?? "";
+  const nextMeetingDate = actualState?.t1NextMeetingDate || props.nextMeetingDate || "";
   const setNextMeetingDate = actualState?.setT1NextMeetingDate ?? props.setNextMeetingDate ?? (() => {});
-  const farmerHomeAddress = actualState?.t1FarmerHomeAddress ?? props.farmerHomeAddress ?? "";
+  const farmerHomeAddress = actualState?.t1FarmerHomeAddress || props.farmerHomeAddress || "";
   const setFarmerHomeAddress = actualState?.setT1FarmerHomeAddress ?? props.setFarmerHomeAddress;
-  const plotLatitude = actualState?.t1PlotLatitude ?? props.plotLatitude ?? "";
+  const plotLatitude = actualState?.t1PlotLatitude || props.plotLatitude || "";
   const setPlotLatitude = actualState?.setT1PlotLatitude ?? props.setPlotLatitude;
-  const plotLongitude = actualState?.t1PlotLongitude ?? props.plotLongitude ?? "";
+  const plotLongitude = actualState?.t1PlotLongitude || props.plotLongitude || "";
   const setPlotLongitude = actualState?.setT1PlotLongitude ?? props.setPlotLongitude;
-  const plotImages = actualState?.t1PlotImages ?? props.plotImages ?? [];
+  const plotImages = (actualState?.t1PlotImages && actualState.t1PlotImages.length > 0) ? actualState.t1PlotImages : (props.plotImages ?? []);
   const setPlotImages = actualState?.setT1PlotImages ?? props.setPlotImages;
 
   const effectiveTargets = useMemo(
@@ -408,181 +417,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     }
   }, []);
 
-  // Update targetItems when targets prop changes
-  useEffect(() => {
-    if (!effectiveTargets || effectiveTargets.length === 0) return;
-    setTargetItems((prev) => {
-      if (
-        prev.length === effectiveTargets.length &&
-        prev.every(
-          (p, idx) =>
-            p.id === (effectiveTargets[idx].id || `t1-target-${idx}`),
-        )
-      ) {
-        return prev;
-      }
-      return initializeTargetItems(
-        effectiveTargets,
-        {
-          discussionResult,
-          productAdvice,
-          salesOpportunity,
-          nextAction,
-          nextMeetingDate,
-          farmerHomeAddress,
-          plotLatitude,
-          plotLongitude,
-          plotImages,
-        },
-        targetActualResults,
-      );
-    });
-  }, [effectiveTargets]);
 
-  // Synchronize targetItems when server hydrated values (coordinates, address, photos, advice, opportunity, date) become available
-  useEffect(() => {
-    if (
-      !plotLatitude &&
-      !plotLongitude &&
-      !farmerHomeAddress &&
-      !discussionResult &&
-      !productAdvice &&
-      !salesOpportunity &&
-      !nextMeetingDate &&
-      (!plotImages || plotImages.length === 0)
-    ) {
-      return;
-    }
-
-    setTargetItems((prev) => {
-      let changed = false;
-      const farmerTargets = prev.filter((t) => t.visitPurpose !== "STORE");
-      const isOnlyOneFarmer = farmerTargets.length === 1;
-
-      const adviceTargets = prev.filter(
-        (t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
-      );
-
-      const updated = prev.map((item, idx) => {
-        const isStore = item.visitPurpose === "STORE";
-        const isFarmer = !isStore;
-        const isFirstOrOnlyFarmer =
-          isFarmer &&
-          (isOnlyOneFarmer ||
-            farmerTargets[0]?.id === item.id ||
-            idx === 0);
-
-        const isTargetForAdvice =
-          adviceTargets.length > 0
-            ? item.topic?.trim() === "ให้คำแนะนำการใช้สินค้า"
-            : prev.length === 1 || idx === 0;
-
-        let newLat = item.plotLatitude;
-        let newLng = item.plotLongitude;
-        let newAddress = item.farmerHomeAddress;
-        let newImages = item.plotImages;
-        let newDiscussion = item.discussionResult;
-        let newAdvice = item.productAdvice;
-        let newSalesOpp = item.salesOpportunity;
-        let newNextMeetingDate = item.nextMeetingDate;
-
-        if (isFarmer && isFirstOrOnlyFarmer) {
-          if ((!newLat || newLat === "") && plotLatitude) {
-            newLat = String(plotLatitude);
-            changed = true;
-          }
-          if ((!newLng || newLng === "") && plotLongitude) {
-            newLng = String(plotLongitude);
-            changed = true;
-          }
-          if (!newAddress && farmerHomeAddress) {
-            newAddress = farmerHomeAddress;
-            changed = true;
-          }
-          if ((!newImages || newImages.length === 0) && plotImages && plotImages.length > 0) {
-            newImages = plotImages;
-            changed = true;
-          }
-        }
-
-        if (!newDiscussion && discussionResult && !discussionResult.includes(":")) {
-          newDiscussion = discussionResult;
-          changed = true;
-        }
-
-        if (!newAdvice && productAdvice) {
-          const parsed = parseTargetText(productAdvice, item.customer, "");
-          if (parsed) {
-            newAdvice = parsed;
-            changed = true;
-          } else if (isTargetForAdvice) {
-            newAdvice = productAdvice;
-            changed = true;
-          }
-        }
-
-        if (!newSalesOpp && salesOpportunity) {
-          const parsed = parseTargetText(salesOpportunity, item.customer, "") as
-            | "สูง"
-            | "ต่ำ"
-            | "";
-          if (parsed) {
-            newSalesOpp = parsed;
-            changed = true;
-          } else if (isTargetForAdvice) {
-            newSalesOpp = salesOpportunity;
-            changed = true;
-          }
-        }
-
-        if (!newNextMeetingDate && nextMeetingDate) {
-          const parsed = parseTargetText(nextMeetingDate, item.customer, "");
-          if (parsed) {
-            newNextMeetingDate = parsed;
-            changed = true;
-          } else if (prev.length === 1 || idx === 0 || isTargetForAdvice) {
-            newNextMeetingDate = nextMeetingDate;
-            changed = true;
-          }
-        }
-
-        if (
-          newLat !== item.plotLatitude ||
-          newLng !== item.plotLongitude ||
-          newAddress !== item.farmerHomeAddress ||
-          newImages !== item.plotImages ||
-          newDiscussion !== item.discussionResult ||
-          newAdvice !== item.productAdvice ||
-          newSalesOpp !== item.salesOpportunity ||
-          newNextMeetingDate !== item.nextMeetingDate
-        ) {
-          return {
-            ...item,
-            plotLatitude: newLat,
-            plotLongitude: newLng,
-            farmerHomeAddress: newAddress,
-            plotImages: newImages,
-            discussionResult: newDiscussion,
-            productAdvice: newAdvice,
-            salesOpportunity: newSalesOpp,
-            nextMeetingDate: newNextMeetingDate,
-          };
-        }
-        return item;
-      });
-
-      return changed ? updated : prev;
-    });
-  }, [
-    plotLatitude,
-    plotLongitude,
-    farmerHomeAddress,
-    discussionResult,
-    plotImages,
-    productAdvice,
-    salesOpportunity,
-    nextMeetingDate,
-  ]);
 
   // Master product list for Combobox
   const comboboxOptions = useMemo(() => {
@@ -600,9 +435,99 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     }));
   }, [products]);
 
-  // Track initial mount so we do not immediately fire syncToParent before user interaction or updates
+  // Track initial mount and last targets key so we do not trigger infinite render loops
   const isInitialMountRef = useRef(true);
   const prevTargetItemsRef = useRef<string>("");
+  const lastTargetsKeyRef = useRef<string>("");
+
+  // Synchronize targetItems when effectiveTargets change or when targets have loaded actual outcomes
+  useEffect(() => {
+    if (!effectiveTargets || effectiveTargets.length === 0) return;
+
+    const targetsKey = JSON.stringify(
+      effectiveTargets.map((t) => ({
+        id: t.id,
+        customer: t.customer,
+        discussionResult: t.discussionResult,
+        nextAction: t.nextAction,
+        farmerHomeAddress: t.farmerHomeAddress,
+        plotLatitude: t.plotLatitude,
+        plotLongitude: t.plotLongitude,
+        productAdvice: t.productAdvice,
+        salesOpportunity: t.salesOpportunity,
+        nextMeetingDate: t.nextMeetingDate,
+      })),
+    );
+
+    if (lastTargetsKeyRef.current === targetsKey) {
+      return;
+    }
+    lastTargetsKeyRef.current = targetsKey;
+
+    setTargetItems((prev) => {
+      const fresh = initializeTargetItems(
+        effectiveTargets,
+        {
+          discussionResult: discussionResult || "",
+          productAdvice: productAdvice || "",
+          salesOpportunity: salesOpportunity || "",
+          nextAction: nextAction || "",
+          nextMeetingDate: nextMeetingDate || "",
+          farmerHomeAddress: farmerHomeAddress || "",
+          plotLatitude: plotLatitude || "",
+          plotLongitude: plotLongitude || "",
+          plotImages: plotImages || [],
+        },
+        targetActualResults,
+        products,
+      );
+
+      // If prev was empty or different length, use fresh
+      if (prev.length !== fresh.length) {
+        return fresh;
+      }
+
+      const prevHasData = prev.some(
+        (it) =>
+          Boolean(it.discussionResult) ||
+          Boolean(it.nextAction) ||
+          Boolean(it.farmerHomeAddress) ||
+          Boolean(it.plotLatitude) ||
+          Boolean(it.plotLongitude),
+      );
+
+      // If prev was empty / default unpopulated, take fresh
+      if (!prevHasData) {
+        return fresh;
+      }
+
+      // Merge: preserve user edits in prev, but fill in any empty fields from fresh
+      return fresh.map((freshItem, idx) => {
+        const prevItem = prev[idx];
+        if (!prevItem) return freshItem;
+
+        return {
+          ...freshItem,
+          discussionResult: prevItem.discussionResult || freshItem.discussionResult || "",
+          nextAction: prevItem.nextAction || freshItem.nextAction || "",
+          farmerHomeAddress: prevItem.farmerHomeAddress || freshItem.farmerHomeAddress || "",
+          plotLatitude: prevItem.plotLatitude || freshItem.plotLatitude || "",
+          plotLongitude: prevItem.plotLongitude || freshItem.plotLongitude || "",
+          productAdvice: prevItem.productAdvice || freshItem.productAdvice || "",
+          salesOpportunity: prevItem.salesOpportunity || freshItem.salesOpportunity || "",
+          nextMeetingDate: prevItem.nextMeetingDate || freshItem.nextMeetingDate || "",
+          plotImages:
+            prevItem.plotImages && prevItem.plotImages.length > 0
+              ? prevItem.plotImages
+              : freshItem.plotImages,
+          advisedProducts:
+            prevItem.advisedProducts && prevItem.advisedProducts.length > 0
+              ? prevItem.advisedProducts
+              : freshItem.advisedProducts,
+        };
+      });
+    });
+  }, [effectiveTargets, targetActualResults, products]);
 
   // Synchronize internal targetItems changes to parent state safely in an effect
   useEffect(() => {
@@ -610,7 +535,15 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
       prevTargetItemsRef.current = serialized;
-      syncToParent(targetItems);
+      const hasAny = targetItems.some(
+        (it) =>
+          Boolean(it.discussionResult) ||
+          Boolean(it.nextAction) ||
+          Boolean(it.farmerHomeAddress),
+      );
+      if (hasAny) {
+        syncToParent(targetItems);
+      }
       return;
     }
     if (prevTargetItemsRef.current === serialized) {
@@ -1016,10 +949,14 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 </label>
                 <Textarea
                   rows={2}
-                  value={farmerHomeAddress}
-                  onChange={(e) =>
-                    setFarmerHomeAddress && setFarmerHomeAddress(e.target.value)
-                  }
+                  value={farmerHomeAddress || targetItems[0]?.farmerHomeAddress || target?.farmerHomeAddress || ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (setFarmerHomeAddress) setFarmerHomeAddress(v);
+                    if (targetItems.length > 0) {
+                      handleTargetChange(0, "farmerHomeAddress", v);
+                    }
+                  }}
                   placeholder="ระบุที่อยู่บ้านเกษตรกร เช่น เลขที่ หมู่ที่ ตำบล อำเภอ"
                   className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm"
                 />
@@ -1147,8 +1084,14 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
             </label>
             <Textarea
               rows={2}
-              value={discussionResult}
-              onChange={(e) => setDiscussionResult(e.target.value)}
+              value={discussionResult || targetItems[0]?.discussionResult || target?.discussionResult || ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDiscussionResult(v);
+                if (targetItems.length > 0) {
+                  handleTargetChange(0, "discussionResult", v);
+                }
+              }}
               placeholder={
                 isStore
                   ? "สรุปประเด็นสำคัญจากการพูดคุยกับร้านค้า"
@@ -1165,8 +1108,14 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 สิ่งที่ต้องดำเนินการต่อ
               </label>
               <Input
-                value={nextAction}
-                onChange={(e) => setNextAction(e.target.value)}
+                value={nextAction || targetItems[0]?.nextAction || target?.nextAction || ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setNextAction(v);
+                  if (targetItems.length > 0) {
+                    handleTargetChange(0, "nextAction", v);
+                  }
+                }}
                 placeholder="เช่น ส่งตัวอย่างสินค้า, นัดหมายตรวจแปลง"
                 className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
               />

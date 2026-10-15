@@ -112,10 +112,11 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
         setPlanWorkTypes(extracted.resolvedWorkTypes);
         setTargets(extracted.targets);
 
-        if ((p as any).result) {
-          const parsed = parseResultSummary((p as any).result);
-          setParsedResult(parsed);
-        }
+        const parsed = parseResultSummary({
+          ...((p as any).result || {}),
+          activityPlan: p,
+        });
+        setParsedResult(parsed);
       } catch (e: any) {
         console.error("Failed to load plan for actual record", e);
         setFormError(e?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลแผนงาน");
