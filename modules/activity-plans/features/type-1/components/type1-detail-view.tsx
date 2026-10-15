@@ -171,29 +171,38 @@ export function Type1DetailView({
                   `เป้าหมายที่ ${idx + 1}`
                 : item.customer || `เป้าหมายที่ ${idx + 1}`;
 
-              const itemDiscussion = parseTargetField(
-                discussionResult,
-                name,
-                idx === 0 && !discussionResult?.includes(":")
-                  ? discussionResult || "-"
-                  : "-",
-              );
+              const itemDiscussion =
+                item.discussionResult ||
+                parseTargetField(
+                  discussionResult,
+                  name,
+                  idx === 0 && !discussionResult?.includes(":")
+                    ? discussionResult || "-"
+                    : "-",
+                );
 
-              const itemNextAction = parseTargetField(
-                nextAction,
-                name,
-                idx === 0 && !nextAction?.includes(":")
-                  ? nextAction || "-"
-                  : "-",
-              );
+              const itemNextAction =
+                item.nextAction ||
+                parseTargetField(
+                  nextAction,
+                  name,
+                  idx === 0 && !nextAction?.includes(":")
+                    ? nextAction || "-"
+                    : "-",
+                );
 
-              const itemAddress = parseTargetField(
-                farmerHomeAddress,
-                name,
-                idx === 0 && !farmerHomeAddress?.includes(":")
-                  ? farmerHomeAddress || "-"
-                  : "-",
-              );
+              const itemAddress =
+                item.farmerHomeAddress ||
+                parseTargetField(
+                  farmerHomeAddress,
+                  name,
+                  idx === 0 && !farmerHomeAddress?.includes(":")
+                    ? farmerHomeAddress || "-"
+                    : "-",
+                );
+
+              const itemMeetingDate =
+                item.nextMeetingDate || item.nextDate || nextMeetingDate;
 
               return (
                 <div
@@ -301,7 +310,7 @@ export function Type1DetailView({
                         วันที่นัดหมายครั้งถัดไป
                       </span>
                       <span className="font-semibold text-slate-800 block">
-                        {formatThaiDate(nextMeetingDate)}
+                        {formatThaiDate(itemMeetingDate)}
                       </span>
                     </div>
                   </div>
@@ -510,16 +519,16 @@ export function Type1DetailView({
                 <span className="text-xs text-slate-500 font-medium block">
                   ประเมินโอกาสการขาย
                 </span>
-                {salesOpportunity ? (
+                {(target?.salesOpportunity || salesOpportunity) ? (
                   <Badge
                     variant="outline"
                     className={
-                      salesOpportunity === "สูง"
+                      (target?.salesOpportunity || salesOpportunity) === "สูง"
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1"
                         : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs px-3 py-1"
                     }
                   >
-                    {salesOpportunity}
+                    {target?.salesOpportunity || salesOpportunity}
                   </Badge>
                 ) : (
                   <span className="text-xs text-slate-700 font-semibold">
@@ -536,7 +545,7 @@ export function Type1DetailView({
               ผลการพูดคุย
             </span>
             <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
-              {discussionResult || "-"}
+              {target?.discussionResult || discussionResult || "-"}
             </p>
           </div>
 
@@ -548,7 +557,7 @@ export function Type1DetailView({
                 สิ่งที่ต้องดำเนินการต่อ
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {nextAction || "-"}
+                {target?.nextAction || nextAction || "-"}
               </span>
             </div>
 
@@ -558,7 +567,7 @@ export function Type1DetailView({
                 วันที่นัดหมายครั้งถัดไป
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {formatThaiDate(nextMeetingDate)}
+                {formatThaiDate(target?.nextMeetingDate || nextMeetingDate)}
               </span>
             </div>
           </div>

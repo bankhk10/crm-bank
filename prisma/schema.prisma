@@ -2022,12 +2022,8 @@ model ActivityResult {
   actualAttendeesCount Int?     @map("actual_attendees_count") // จำนวนผู้เข้าร่วมจริง
 
   resultStatus  ActivityResultStatus @default(PARTIAL) @map("result_status")
-  resultSummary String?              @map("result_summary") // สรุปผลกิจกรรมโดยรวม
   problemFound  String?              @map("problem_found") // ปัญหาที่พบระหว่างทำ
   nextAction    String?              @map("next_action") // แผนการต่อยอด / ติดตาม
-
-  // Qualitative Feedback
-  nextMeetingDate   DateTime? @map("next_meeting_date")
 
   // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
   cancelReason    String?   @map("cancel_reason") // สาเหตุที่ยกเลิก

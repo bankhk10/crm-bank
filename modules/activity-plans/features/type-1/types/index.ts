@@ -36,7 +36,9 @@ export interface Type1TargetItem {
   plotImages?: Type1ImageFile[];
   productAdvice?: string;
   advisedProducts?: Type1AdviceProductItem[];
+  discussionResult?: string;
   salesOpportunity?: string;
+  nextAction?: string;
   nextMeetingDate?: string;
 }
 

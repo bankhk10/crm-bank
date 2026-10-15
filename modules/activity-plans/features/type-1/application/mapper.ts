@@ -178,16 +178,13 @@ export function extractType1PlanTargets(
   const resultSalesOpportunity =
     plan.type1Result?.salesOpportunity || undefined;
 
-  const resultNextMeetingDate =
-    plan.type1Result?.nextMeetingDate
-      ? typeof plan.type1Result.nextMeetingDate === "string"
-        ? plan.type1Result.nextMeetingDate.split("T")[0]
-        : new Date(plan.type1Result.nextMeetingDate).toISOString().split("T")[0]
-      : plan.result?.nextMeetingDate
-        ? typeof plan.result.nextMeetingDate === "string"
-          ? plan.result.nextMeetingDate.split("T")[0]
-          : new Date(plan.result.nextMeetingDate).toISOString().split("T")[0]
-        : undefined;
+  const firstT1Result =
+    (plan.type1Results && plan.type1Results[0]) || plan.type1Result;
+  const resultNextMeetingDate = firstT1Result?.nextMeetingDate
+    ? typeof firstT1Result.nextMeetingDate === "string"
+      ? firstT1Result.nextMeetingDate.split("T")[0]
+      : new Date(firstT1Result.nextMeetingDate).toISOString().split("T")[0]
+    : undefined;
 
   const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
     const targetResult =
