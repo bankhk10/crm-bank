@@ -147,11 +147,13 @@ export function ApprovalActionDialog({
   const planCode = plan.code || plan.id;
 
   const getTitle = () => {
-    if (isApprove) return "ยืนยันการอนุมัติ Trip Plan";
-    if (isReject) return "ยืนยันการปฏิเสธ Trip Plan";
-    if (isCorrection) return "ส่งกลับให้แก้ไข Trip Plan";
-    if (isApproveCancel) return "ยืนยันการอนุมัติยกเลิกแผนกิจกรรม";
-    if (isRejectCancel) return "ยืนยันปฏิเสธคำขอยกเลิกแผนกิจกรรม";
+    const isUnplanned = plan.planType === "UNPLANNED";
+    const noun = isUnplanned ? "กิจกรรมนอกแผน" : "Trip Plan";
+    if (isApprove) return `ยืนยันการอนุมัติ ${noun}`;
+    if (isReject) return `ยืนยันการปฏิเสธ ${noun}`;
+    if (isCorrection) return `ส่งกลับให้แก้ไข ${noun}`;
+    if (isApproveCancel) return isUnplanned ? "ยืนยันการอนุมัติยกเลิกกิจกรรม" : "ยืนยันการอนุมัติยกเลิกแผนกิจกรรม";
+    if (isRejectCancel) return isUnplanned ? "ยืนยันปฏิเสธคำขอยกเลิกกิจกรรม" : "ยืนยันปฏิเสธคำขอยกเลิกแผนกิจกรรม";
     return "การดำเนินการ";
   };
 
@@ -276,7 +278,7 @@ export function ApprovalActionDialog({
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-slate-500">
-            เลขที่แผน:{" "}
+            {plan.planType === "UNPLANNED" ? "เลขที่กิจกรรม: " : "เลขที่แผน: "}
             <span className="font-semibold text-slate-700">{planCode}</span> —{" "}
             {plan.title}
           </DialogDescription>

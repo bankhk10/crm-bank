@@ -92,7 +92,7 @@ export default function ActivityPlanApprovalDetailView({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500 font-medium">กำลังโหลดข้อมูล Trip Plan...</p>
+        <p className="text-xs text-slate-500 font-medium">กำลังโหลดข้อมูลสำหรับการอนุมัติ...</p>
       </div>
     );
   }
@@ -103,7 +103,7 @@ export default function ActivityPlanApprovalDetailView({
         <Alert variant="destructive">
           <AlertCircle className="w-4 h-4" />
           <AlertDescription>
-            {error || "ไม่พบข้อมูล Trip Plan สำหรับการอนุมัติ"}
+            {error || "ไม่พบข้อมูลสำหรับการอนุมัติ"}
           </AlertDescription>
         </Alert>
         <Button variant="outline" onClick={handleBack} className="text-xs">
@@ -134,7 +134,9 @@ export default function ActivityPlanApprovalDetailView({
             </div>
             <div>
               <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight whitespace-nowrap">
-                พิจารณาอนุมัติแผนงาน ( Trip Plan Approval )
+                {plan.planType === "UNPLANNED"
+                  ? "พิจารณาอนุมัติกิจกรรมนอกแผน ( Unplanned Activity Approval )"
+                  : "พิจารณาอนุมัติแผนงาน ( Trip Plan Approval )"}
               </h1>
             </div>
           </div>
@@ -153,7 +155,10 @@ export default function ActivityPlanApprovalDetailView({
             {(plan.code || planSummary.planNo) && (
               <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
                 <Info className="w-3.5 h-3.5 shrink-0" />
-                <span>เลขที่แผน: {plan.code || planSummary.planNo}</span>
+                <span>
+                  {plan.planType === "UNPLANNED" ? "เลขที่กิจกรรม: " : "เลขที่แผน: "}
+                  {plan.code || planSummary.planNo}
+                </span>
               </div>
             )}
           </div>
@@ -258,7 +263,7 @@ export default function ActivityPlanApprovalDetailView({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-slate-500 font-medium mb-0.5">
-                  ผู้จัดทำแผน
+                  {plan.planType === "UNPLANNED" ? "ผู้บันทึกกิจกรรม" : "ผู้จัดทำแผน"}
                 </p>
                 <p className="text-sm font-bold text-slate-900 truncate">
                   {plan.employee?.name || "-"}
@@ -272,7 +277,9 @@ export default function ActivityPlanApprovalDetailView({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-slate-500 font-medium mb-0.5">
-                  ประเภทงานที่ระบุในแผน ({resolvedWorkTypes.length} ประเภท):
+                  {plan.planType === "UNPLANNED"
+                    ? `ประเภทงานที่ระบุในกิจกรรม (${resolvedWorkTypes.length} ประเภท):`
+                    : `ประเภทงานที่ระบุในแผน (${resolvedWorkTypes.length} ประเภท):`}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-0.5">
                   {resolvedWorkTypes.map((wt, idx) => (

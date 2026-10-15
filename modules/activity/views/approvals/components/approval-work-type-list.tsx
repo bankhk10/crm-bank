@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
-import { Target } from "lucide-react";
+import React, { useMemo } from "react";
+import { Target, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Type1ApprovalCard,
+  Type1DetailView,
   type Type1TargetItem,
+  type Type1ImageFile,
 } from "@/modules/activity/features/type-1";
 
 interface ApprovalWorkTypeListProps {
@@ -20,15 +23,72 @@ interface ApprovalWorkTypeListProps {
 
 /**
  * Component กลางสำหรับแสดงรายละเอียดของประเภทงานในหน้าพิจารณาอนุมัติ (Approvals)
- * สอดคล้องกับ ActualWorkTypeList โดยยึด Type 1 เป็น Gold Standard
+ * รองรับทั้งแผนงานปกติ (Trip Plan) และกิจกรรมนอกแผน (Unplanned Activity 2-in-1 ที่มีผลงานจริง)
+ * สอดคล้องกับ DetailWorkTypeList และ ActualWorkTypeList โดยยึด Type 1 เป็น Gold Standard
  */
 export function ApprovalWorkTypeList({
+  plan,
   type1Targets,
+  parsedResults,
   isTypeActive,
 }: ApprovalWorkTypeListProps) {
   const isType1 =
     isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
     isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer");
+
+  const isUnplanned = plan?.planType === "UNPLANNED";
+
+  // ตรวจสอบว่ามีข้อมูลผลการปฏิบัติงานจริง (Actual Result) หรือไม่
+  const hasActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result || plan?.type1Result || (plan?.type1Results && plan.type1Results.length > 0)) {
+      return true;
+    }
+    const primary = type1Targets.primary;
+    if (
+      primary?.discussionResult ||
+      primary?.farmerHomeAddress ||
+      primary?.plotLatitude ||
+      primary?.productAdvice
+    ) {
+      return true;
+    }
+    return Boolean(
+      type1Targets.list &&
+        type1Targets.list.some(
+          (t) => t.discussionResult || t.plotLatitude || t.farmerHomeAddress || t.productAdvice,
+        ),
+    );
+  }, [isUnplanned, plan, type1Targets]);
+
+  // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
+  const effectiveImages = useMemo<Type1ImageFile[]>(() => {
+    if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
+      return parsedResults.t1PlotImages;
+    }
+    const rawAttachments: any[] = plan?.attachments || [];
+    return rawAttachments
+      .filter((att) => ["PLOT", "STORE", "GENERAL"].includes(att.category))
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName || "รูปภาพ",
+      }));
+  }, [parsedResults?.t1PlotImages, plan?.attachments]);
+
+  // รวมรายการแนะนำสินค้า (Product Advice) หากมีบันทึกใน type1Products
+  const effectiveProductAdvice = useMemo(() => {
+    if (type1Targets.primary?.productAdvice) {
+      return type1Targets.primary.productAdvice;
+    }
+    if (plan?.type1Products && Array.isArray(plan.type1Products) && plan.type1Products.length > 0) {
+      return plan.type1Products
+        .map((p: any) => p.product?.name || p.productName || "")
+        .filter(Boolean)
+        .join(", ");
+    }
+    return undefined;
+  }, [type1Targets.primary?.productAdvice, plan?.type1Products]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -41,14 +101,42 @@ export function ApprovalWorkTypeList({
             รายละเอียดตามประเภทงาน (Work Type Details)
           </h3>
         </div>
+        {isUnplanned && (
+          <Badge
+            variant="outline"
+            className="text-[11px] font-semibold bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1"
+          >
+            <Sparkles className="w-3 h-3 text-purple-600" />
+            กิจกรรมนอกแผน (แสดงผลงานจริง)
+          </Badge>
+        )}
       </div>
 
       {/* 🟢 TYPE 1: เข้าพบเกษตรกร / ร้านค้า (Gold Standard Vertical Slice) */}
-      <Type1ApprovalCard
-        isVisible={isType1}
-        target={type1Targets.primary}
-        targets={type1Targets.list}
-      />
+      {hasActualResults ? (
+        <Type1DetailView
+          isVisible={isType1}
+          target={type1Targets.primary}
+          targets={type1Targets.list}
+          productAdvice={effectiveProductAdvice}
+          discussionResult={type1Targets.primary?.discussionResult}
+          salesOpportunity={
+            (type1Targets.primary?.salesOpportunity as "สูง" | "ต่ำ" | "") || undefined
+          }
+          nextAction={type1Targets.primary?.nextAction}
+          nextMeetingDate={type1Targets.primary?.nextMeetingDate}
+          farmerHomeAddress={type1Targets.primary?.farmerHomeAddress}
+          plotLatitude={type1Targets.primary?.plotLatitude}
+          plotLongitude={type1Targets.primary?.plotLongitude}
+          plotImages={effectiveImages}
+        />
+      ) : (
+        <Type1ApprovalCard
+          isVisible={isType1}
+          target={type1Targets.primary}
+          targets={type1Targets.list}
+        />
+      )}
 
       {/* 🔵 ประเภทงานอื่นๆ (Type 2 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
     </div>

@@ -82,10 +82,15 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
         setPlanWorkTypes(extracted.resolvedWorkTypes);
         setTargets(extracted.targets);
 
-        // Parse result summary if plan result exists
-        if ((p as any).result) {
+        // Parse result summary if plan result exists or unplanned activity
+        if (
+          (p as any).result ||
+          (p as any).type1Result ||
+          ((p as any).type1Results && (p as any).type1Results.length > 0) ||
+          p.planType === "UNPLANNED"
+        ) {
           const parsed = parseResultSummary({
-            ...(p as any).result,
+            ...((p as any).result || {}),
             activityPlan: p,
           });
           setParsedResults(parsed);
