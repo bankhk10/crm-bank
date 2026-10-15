@@ -157,21 +157,23 @@ erDiagram
 
 ---
 
-### 3.2 ตาราง `activity_result_type_1` (ผลการเข้าพบจริง Type 1)
+### 3.2 ตาราง `activity_result_type_1` (ผลการเข้าพบจริง Type 1: 1 แถวต่อ 1 ร้านค้าเป้าหมาย)
 
-จัดเก็บผลการเข้าพบจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
+จัดเก็บผลการเข้าพบจริง สัมพันธ์แบบ **1:1** กับแต่ละเป้าหมายร้านค้า (`activity_plan_type_1_stores`) โดยมี `plan_store_id` กำกับ ทำให้หากใน 1 แผนมี 3 ร้านค้า ตารางนี้จะมี **3 บรรทัด** แยกผลการพูดคุยและพิกัดของแต่ละร้านค้าอย่างเป็นอิสระ:
 
-| คอลัมน์ (Column)      | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                      |
-| --------------------- | -------------------- | -------- | ------------------------------------------ |
-| `id`                  | `VARCHAR(30)` (cuid) | No       | Primary Key                                |
-| `activity_plan_id`    | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id`    |
-| `discussion_result`   | `TEXT`               | Yes      | สรุปผลการพูดคุยกับเกษตรกรหรือร้านค้า       |
-| `product_advice`      | `TEXT`               | Yes      | รายชื่อสินค้าที่ให้คำแนะนำ (ข้อความสรุป)   |
-| `sales_opportunity`   | `TEXT`               | Yes      | การประเมินโอกาสการขาย: `'สูง'` หรือ `'ต่ำ'` |
-| `next_meeting_date`   | `TIMESTAMP`          | Yes      | วันที่นัดหมายครั้งถัดไป                    |
-| `farmer_home_address` | `TEXT`               | Yes      | ที่อยู่บ้านเกษตรกร                         |
-| `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)    |
-| `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180) |
+| คอลัมน์ (Column)      | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                                                 |
+| --------------------- | -------------------- | -------- | --------------------------------------------------------------------- |
+| `id`                  | `VARCHAR(30)` (cuid) | No       | Primary Key                                                           |
+| `activity_plan_id`    | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id`                               |
+| `plan_store_id`       | `VARCHAR(30)`        | Yes (UQ) | Foreign Key อ้างอิง `activity_plan_type_1_stores.id` (1 ร้าน : 1 ผล)  |
+| `discussion_result`   | `TEXT`               | Yes      | สรุปผลการพูดคุยเฉพาะร้านค้า/เกษตรกรเป้าหมายนั้น                       |
+| `product_advice`      | `TEXT`               | Yes      | รายชื่อสินค้าที่ให้คำแนะนำแก่เป้าหมายนั้น                             |
+| `sales_opportunity`   | `TEXT`               | Yes      | การประเมินโอกาสการขายสำหรับเป้าหมายนั้น: `'สูง'` หรือ `'ต่ำ'`         |
+| `next_action`         | `TEXT`               | Yes      | สิ่งที่ต้องดำเนินการต่อสำหรับเป้าหมายนั้น                             |
+| `next_meeting_date`   | `TIMESTAMP`          | Yes      | วันที่นัดหมายครั้งถัดไปของเป้าหมายนั้น                                |
+| `farmer_home_address` | `TEXT`               | Yes      | ที่อยู่บ้านเกษตรกรของเป้าหมายนั้น                                     |
+| `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเป้าหมายนั้น (-90 ถึง 90)                          |
+| `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเป้าหมายนั้น (-180 ถึง 180)                       |
 
 ---
 

@@ -323,6 +323,7 @@ export function useActualSubmit({
           // --- 4. RECORD TO DATABASE ---
           const combinedPayload = {
             ...buildResult.payload,
+            targetActualResults: t1Payload.targetActualResults || buildResult.payload?.targetActualResults,
             ...(t13Payload.sprayRounds?.length || t14Payload.sprayRounds?.length
               ? {
                   sprayRounds: [

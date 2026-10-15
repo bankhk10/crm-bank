@@ -22,6 +22,7 @@ export function useType1Actual() {
   const [t1PlotLatitude, setT1PlotLatitude] = useState<string>("");
   const [t1PlotLongitude, setT1PlotLongitude] = useState<string>("");
   const [t1PlotImages, setT1PlotImages] = useState<Type1ImageFile[]>([]);
+  const [t1TargetItems, setT1TargetItems] = useState<any[]>([]);
   const initialT1PlotImagesRef = useRef<Type1ImageFile[]>([]);
 
   const hydrate = useCallback((parsed: any) => {
@@ -59,6 +60,7 @@ export function useType1Actual() {
   }, []);
 
   const syncFromTargetItems = useCallback((items: Type1VisitItem[]) => {
+    setT1TargetItems(items);
     const agg = aggregateType1TargetItems(items);
     setT1DiscussionResult(agg.discussionResult);
     setT1ProductAdvice(agg.productAdvice);
@@ -117,6 +119,7 @@ export function useType1Actual() {
       t1PlotLatitude,
       t1PlotLongitude,
       t1PlotImages: cleanImages,
+      targetActualResults: t1TargetItems,
     };
   }, [
     t1ProductAdvice,
@@ -130,6 +133,7 @@ export function useType1Actual() {
     t1PlotLatitude,
     t1PlotLongitude,
     t1PlotImages,
+    t1TargetItems,
   ]);
 
   return {
@@ -156,6 +160,8 @@ export function useType1Actual() {
     setT1PlotLongitude,
     t1PlotImages,
     setT1PlotImages,
+    t1TargetItems,
+    setT1TargetItems,
     hydrate,
     syncFromTargetItems,
     uploadImages,

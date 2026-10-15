@@ -1759,7 +1759,7 @@ model ActivityPlan {
   type14         ActivityPlanType14?
   type14FollowUps ActivityPlanType14[] @relation("Type14SourcePlan")
   type1Stores    ActivityPlanType1Store[]
-  type1Result    ActivityResultType1?
+  type1Results   ActivityResultType1[]
   type1Products  ActivityResultType1Product[]
   type2Targets   ActivityPlanType2Target[]
   type2Products  ActivityPlanType2Product[]
@@ -2857,8 +2857,9 @@ model ActivityPlanType1Store {
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
 
-  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan            ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  result                  ActivityResultType1?
 
   @@index([activityPlanId])
   @@index([storeId])
@@ -2867,10 +2868,12 @@ model ActivityPlanType1Store {
 
 model ActivityResultType1 {
   id                String    @id @default(cuid())
-  activityPlanId    String    @unique @map("activity_plan_id")
+  activityPlanId    String    @map("activity_plan_id")
+  planStoreId       String?   @unique @map("plan_store_id")
   productAdvice     String?   @map("product_advice")
   discussionResult  String?   @map("discussion_result")
   salesOpportunity  String?   @map("sales_opportunity")
+  nextAction        String?   @map("next_action")
   nextMeetingDate   DateTime? @map("next_meeting_date")
   farmerHomeAddress String?   @map("farmer_home_address")
   plotLatitude      Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
@@ -2879,9 +2882,11 @@ model ActivityResultType1 {
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  activityPlan      ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityPlan      ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  planStore         ActivityPlanType1Store? @relation(fields: [planStoreId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
+  @@index([planStoreId])
   @@map("activity_result_type_1")
 }
 

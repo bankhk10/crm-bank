@@ -246,10 +246,11 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           longitude: true,
         },
       },
+      result: true,
     },
     orderBy: { createdAt: "asc" },
   },
-  type1Result: true,
+  type1Results: true,
   type1Products: {
     include: {
       product: true,

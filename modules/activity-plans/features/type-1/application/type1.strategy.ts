@@ -138,42 +138,112 @@ export const type1Strategy: WorkTypeStrategy = {
   },
 
   /**
-   * Persist Actual outcome into dedicated `activity_result_type_1` and `activity_result_type_1_products` tables
+   * Persist Actual outcome into dedicated `activity_result_type_1` and `activity_result_type_1_products` tables.
+   * Creates exactly 1 row per target store in `activity_result_type_1`!
    */
   async saveActual(tx: PrismaTransaction, activityPlanId: string, actualData: any): Promise<void> {
     if (!actualData) return;
 
     const data = actualData.type1Actual || actualData;
 
-    await (tx as any).activityResultType1.upsert({
+    // 1. Query target stores for this plan
+    const planStores = await (tx as any).activityPlanType1Store.findMany({
       where: { activityPlanId },
-      create: {
-        activityPlanId,
-        productAdvice: data.productAdvice ?? null,
-        discussionResult: data.discussionResult ?? null,
-        salesOpportunity: data.salesOpportunity ?? null,
-        nextMeetingDate: data.nextMeetingDate ? new Date(data.nextMeetingDate) : null,
-        farmerHomeAddress: data.farmerHomeAddress ?? null,
-        plotLatitude: data.plotLatitude != null && data.plotLatitude !== "" ? Number(data.plotLatitude) : null,
-        plotLongitude: data.plotLongitude != null && data.plotLongitude !== "" ? Number(data.plotLongitude) : null,
-      },
-      update: {
-        productAdvice: data.productAdvice ?? null,
-        discussionResult: data.discussionResult ?? null,
-        salesOpportunity: data.salesOpportunity ?? null,
-        nextMeetingDate: data.nextMeetingDate ? new Date(data.nextMeetingDate) : null,
-        farmerHomeAddress: data.farmerHomeAddress ?? null,
-        plotLatitude: data.plotLatitude != null && data.plotLatitude !== "" ? Number(data.plotLatitude) : null,
-        plotLongitude: data.plotLongitude != null && data.plotLongitude !== "" ? Number(data.plotLongitude) : null,
-      },
+      orderBy: { createdAt: "asc" },
     });
+
+    // 2. Clean previous results for this plan
+    await (tx as any).activityResultType1.deleteMany({
+      where: { activityPlanId },
+    });
+
+    const targetResults: any[] =
+      data.targetActualResults ||
+      data.targetItems ||
+      data.items ||
+      [];
+
+    if (planStores.length > 0) {
+      // 1 row per target store in activity_result_type_1
+      for (let idx = 0; idx < planStores.length; idx++) {
+        const store = planStores[idx];
+        const match =
+          targetResults.find((t: any) =>
+            (t.id && t.id === store.id) ||
+            (t.targetId && t.targetId === store.id) ||
+            (t.planStoreId && t.planStoreId === store.id) ||
+            (store.storeId && t.storeId === store.storeId)
+          ) ||
+          targetResults[idx] ||
+          {};
+
+        const prodAdvice = match.productAdvice || (planStores.length === 1 ? data.productAdvice : null) || null;
+        const discResult = match.discussionResult || (planStores.length === 1 ? data.discussionResult : null) || null;
+        const salesOpp = match.salesOpportunity || (planStores.length === 1 ? data.salesOpportunity : null) || null;
+        const nextActionVal = match.nextAction || (planStores.length === 1 ? data.nextAction : null) || null;
+        const nextDateVal = match.nextMeetingDate || (planStores.length === 1 ? data.nextMeetingDate : null);
+        const address = match.farmerHomeAddress || (planStores.length === 1 ? data.farmerHomeAddress : null) || null;
+        const latVal =
+          match.plotLatitude != null && match.plotLatitude !== ""
+            ? match.plotLatitude
+            : (planStores.length === 1 ? data.plotLatitude : null);
+        const lngVal =
+          match.plotLongitude != null && match.plotLongitude !== ""
+            ? match.plotLongitude
+            : (planStores.length === 1 ? data.plotLongitude : null);
+
+        await (tx as any).activityResultType1.create({
+          data: {
+            activityPlanId,
+            planStoreId: store.id,
+            productAdvice: prodAdvice,
+            discussionResult: discResult,
+            salesOpportunity: salesOpp,
+            nextAction: nextActionVal,
+            nextMeetingDate: nextDateVal ? new Date(nextDateVal) : null,
+            farmerHomeAddress: address,
+            plotLatitude: latVal != null && latVal !== "" ? Number(latVal) : null,
+            plotLongitude: lngVal != null && lngVal !== "" ? Number(lngVal) : null,
+          },
+        });
+      }
+    } else {
+      // Fallback for single header outcome if no target stores defined yet
+      await (tx as any).activityResultType1.create({
+        data: {
+          activityPlanId,
+          planStoreId: null,
+          productAdvice: data.productAdvice || null,
+          discussionResult: data.discussionResult || null,
+          salesOpportunity: data.salesOpportunity || null,
+          nextAction: data.nextAction || null,
+          nextMeetingDate: data.nextMeetingDate ? new Date(data.nextMeetingDate) : null,
+          farmerHomeAddress: data.farmerHomeAddress || null,
+          plotLatitude: data.plotLatitude != null && data.plotLatitude !== "" ? Number(data.plotLatitude) : null,
+          plotLongitude: data.plotLongitude != null && data.plotLongitude !== "" ? Number(data.plotLongitude) : null,
+        },
+      });
+    }
 
     // Persist normalized advised products into dedicated activity_result_type_1_products
     await (tx as any).activityResultType1Product.deleteMany({
       where: { activityPlanId },
     });
 
-    const productsList: any[] = data.products || data.advisedProducts || [];
+    const rawProductsList: any[] = [
+      ...(Array.isArray(data.products) ? data.products : []),
+      ...(Array.isArray(data.advisedProducts) ? data.advisedProducts : []),
+      ...targetResults.flatMap((t: any) => (Array.isArray(t.advisedProducts) ? t.advisedProducts : [])),
+    ];
+
+    const seen = new Set<string>();
+    const productsList = rawProductsList.filter((p) => {
+      if (!p || !p.productId) return false;
+      const key = `${p.targetId || ""}-${p.productId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
     if (productsList.length > 0) {
       await (tx as any).activityResultType1Product.createMany({
@@ -191,9 +261,11 @@ export const type1Strategy: WorkTypeStrategy = {
    * Load Actual outcome exclusively from dedicated tables
    */
   async loadActual(tx: PrismaTransaction, activityPlanId: string): Promise<any | null> {
-    const [dedicated, products] = await Promise.all([
-      (tx as any).activityResultType1.findUnique({
+    const [results, products] = await Promise.all([
+      (tx as any).activityResultType1.findMany({
         where: { activityPlanId },
+        include: { planStore: true },
+        orderBy: { createdAt: "asc" },
       }),
       (tx as any).activityResultType1Product.findMany({
         where: { activityPlanId },
@@ -202,10 +274,13 @@ export const type1Strategy: WorkTypeStrategy = {
       }),
     ]);
 
-    if (!dedicated) return null;
+    if (!results || results.length === 0) return null;
+
+    const first = results[0];
 
     return {
-      productAdvice: dedicated.productAdvice,
+      results,
+      productAdvice: results.map((r: any) => r.productAdvice).filter(Boolean).join(", "),
       products: products.map((p: any) => ({
         id: p.id,
         productId: p.productId,
@@ -213,12 +288,19 @@ export const type1Strategy: WorkTypeStrategy = {
         productCode: p.product?.productCode || null,
         targetId: p.targetId,
       })),
-      discussionResult: dedicated.discussionResult,
-      salesOpportunity: dedicated.salesOpportunity,
-      nextMeetingDate: dedicated.nextMeetingDate,
-      farmerHomeAddress: dedicated.farmerHomeAddress,
-      plotLatitude: dedicated.plotLatitude ? Number(dedicated.plotLatitude) : null,
-      plotLongitude: dedicated.plotLongitude ? Number(dedicated.plotLongitude) : null,
+      discussionResult: results.map((r: any) => r.discussionResult).filter(Boolean).join(" | "),
+      salesOpportunity: first.salesOpportunity,
+      nextAction: results.map((r: any) => r.nextAction).filter(Boolean).join(" | "),
+      nextMeetingDate: results.find((r: any) => r.nextMeetingDate)?.nextMeetingDate,
+      farmerHomeAddress: results.find((r: any) => r.farmerHomeAddress)?.farmerHomeAddress,
+      plotLatitude:
+        results.find((r: any) => r.plotLatitude != null)?.plotLatitude != null
+          ? Number(results.find((r: any) => r.plotLatitude != null).plotLatitude)
+          : null,
+      plotLongitude:
+        results.find((r: any) => r.plotLongitude != null)?.plotLongitude != null
+          ? Number(results.find((r: any) => r.plotLongitude != null).plotLongitude)
+          : null,
     };
   },
 };

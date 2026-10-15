@@ -436,6 +436,7 @@ export const activityResultSchema = z
     demoPlotsFollowedUp: z.coerce.number().int().min(0).optional().nullable(),
     distributorsCount: z.coerce.number().int().min(0).optional().nullable(),
     farmersCount: z.coerce.number().int().min(0).optional().nullable(),
+    targetActualResults: z.array(z.any()).optional().nullable(),
     // Normalized arrays
     saleResults: z
       .array(

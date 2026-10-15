@@ -18,6 +18,7 @@ export type ImageFile = Type1ImageFile;
  */
 export interface Type1TargetItem {
   id?: string;
+  storeId?: string;
   customer: string;
   topic: string;
   detail: string;
@@ -128,6 +129,7 @@ export interface Type1AdviceProductItem {
 export interface Type1TargetActualItem {
   id: string;
   targetId?: string;
+  storeId?: string;
   customer: string;
   visitPurpose?: "FARMER" | "STORE";
   topic?: string;

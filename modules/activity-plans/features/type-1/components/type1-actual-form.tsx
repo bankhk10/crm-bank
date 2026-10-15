@@ -158,6 +158,7 @@ function initializeTargetItems(
     return {
       id: t.id || `t1-target-${idx}`,
       targetId: t.id,
+      storeId: t.storeId,
       customer: name,
       visitPurpose: t.visitPurpose || (isStore ? "STORE" : "FARMER"),
       topic: t.topic || "",
@@ -264,6 +265,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     setPlotLongitude,
     setPlotImages,
     onUpdateTargetActualResults,
+    setT1TargetItems: actualState?.setT1TargetItems,
   });
   syncPropsRef.current = {
     setDiscussionResult,
@@ -277,6 +279,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     setPlotLongitude,
     setPlotImages,
     onUpdateTargetActualResults,
+    setT1TargetItems: actualState?.setT1TargetItems,
   };
 
   // Synchronize internal targetItems changes to parent setters and optional callbacks
@@ -295,10 +298,15 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
       setPlotLongitude,
       setPlotImages,
       onUpdateTargetActualResults,
+      setT1TargetItems,
     } = syncPropsRef.current;
 
     if (onUpdateTargetActualResults) {
       onUpdateTargetActualResults(items);
+    }
+
+    if (setT1TargetItems) {
+      setT1TargetItems(items);
     }
 
     if (items.length === 1) {
@@ -592,17 +600,23 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     }));
   }, [products]);
 
-  if (!isVisible) return null;
-
   // Track initial mount so we do not immediately fire syncToParent before user interaction or updates
   const isInitialMountRef = useRef(true);
+  const prevTargetItemsRef = useRef<string>("");
 
   // Synchronize internal targetItems changes to parent state safely in an effect
   useEffect(() => {
+    const serialized = JSON.stringify(targetItems);
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
+      prevTargetItemsRef.current = serialized;
+      syncToParent(targetItems);
       return;
     }
+    if (prevTargetItemsRef.current === serialized) {
+      return;
+    }
+    prevTargetItemsRef.current = serialized;
     syncToParent(targetItems);
   }, [targetItems, syncToParent]);
 
@@ -679,6 +693,8 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
   const isStore = target?.visitPurpose === "STORE";
   const hasFarmerTarget =
     effectiveTargets.some((t) => t.visitPurpose !== "STORE") || !isStore;
+
+  if (!isVisible) return null;
 
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">

@@ -174,7 +174,7 @@ export async function findApprovalQueueData() {
       },
       orderBy: { createdAt: "asc" as const },
     },
-    type1Result: true,
+    type1Results: true,
     type2Targets: {
       include: {
         store: {

@@ -34,10 +34,9 @@ export function useType1Form({
   selectedWorkTypes = [],
 }: UseType1FormOptions): UseType1FormResult {
   const [type1Items, setType1Items] = useState<Type1VisitItem[]>(() => {
-    const t1Actual = (initial as any)?.type1Result || null;
+    const t1Results: any[] = (initial as any)?.type1Results || [];
+    const t1Actual = t1Results[0] || (initial as any)?.type1Result || null;
     const t1Products = (initial as any)?.type1Products || [];
-    const actualLat = t1Actual?.plotLatitude ?? null;
-    const actualLng = t1Actual?.plotLongitude ?? null;
 
     const attachActualToItem = (
       item: Type1VisitItem,
@@ -45,20 +44,28 @@ export function useType1Form({
       totalCount: number,
       targetCoordIndex: number = 0,
     ): Type1VisitItem => {
-      if (!t1Actual) return item;
+      const targetActual =
+        t1Results.find((r: any) => r.planStoreId === item.id) ||
+        (idx === 0 ? t1Actual : null);
+
+      if (!targetActual && !t1Actual) return item;
+      const act = targetActual || t1Actual;
+      const actualLat = act?.plotLatitude ?? null;
+      const actualLng = act?.plotLongitude ?? null;
+
       const name = item.isUnregisteredFarmer
         ? item.unregisteredFarmerName || item.customerName || `เป้าหมายที่ ${idx + 1}`
         : item.customerName || `เป้าหมายที่ ${idx + 1}`;
-      const isSingle = totalCount === 1;
+      const isSingle = totalCount === 1 || Boolean(targetActual);
       const isTargetForCoordinates = isSingle || idx === targetCoordIndex;
 
-      const parsedDiscussion = parseTargetText(
-        t1Actual.discussionResult,
+      const parsedDiscussion = targetActual?.discussionResult || parseTargetText(
+        act.discussionResult,
         name,
         isSingle
-          ? t1Actual.discussionResult || ""
-          : idx === 0 && !t1Actual.discussionResult?.includes(":")
-            ? t1Actual.discussionResult || ""
+          ? act.discussionResult || ""
+          : idx === 0 && !act.discussionResult?.includes(":")
+            ? act.discussionResult || ""
             : "",
       );
 

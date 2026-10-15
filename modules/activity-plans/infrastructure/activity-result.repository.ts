@@ -27,6 +27,7 @@ export type CreateActivityResultInput = {
   farmerHomeAddress?: string | null;
   plotLatitude?: number | Prisma.Decimal | null;
   plotLongitude?: number | Prisma.Decimal | null;
+  targetActualResults?: any[] | null;
   cancelReason?: string | null;
   postponedDate?: Date | null;
   postponedTime?: string | null;
@@ -335,6 +336,7 @@ export async function upsertActivityResult(
 
     // 0. Sync dedicated Type 1 actual result via Strategy
     if (
+      (input as any).targetActualResults !== undefined ||
       (input as any).type1Actual !== undefined ||
       input.productAdvice !== undefined ||
       input.discussionResult !== undefined ||
@@ -347,6 +349,7 @@ export async function upsertActivityResult(
       const type1 = getTypeStrategy("TYPE_1");
       if (type1?.saveActual) {
         await type1.saveActual(tx as any, input.activityPlanId, {
+          targetActualResults: input.targetActualResults || (input as any).targetActualResults,
           productAdvice: input.productAdvice,
           discussionResult: input.discussionResult,
           salesOpportunity: input.salesOpportunity as any,

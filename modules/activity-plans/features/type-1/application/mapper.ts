@@ -190,6 +190,11 @@ export function extractType1PlanTargets(
         : undefined;
 
   const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
+    const targetResult =
+      s.result ||
+      (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
+      (plan.type1Result && idx === 0 ? plan.type1Result : null);
+
     let visitPurpose: "FARMER" | "STORE" = s.visitPurpose as "FARMER" | "STORE";
     if (!visitPurpose) {
       if (s.isUnregisteredFarmer || s.store?.customerType === "FARMER") {
@@ -210,17 +215,25 @@ export function extractType1PlanTargets(
     const storeLng = s.store?.longitude != null ? String(s.store.longitude) : undefined;
     const isAdviceTopic = (s.topic || s.remarks)?.trim() === "ให้คำแนะนำการใช้สินค้า";
 
+    const targetDate = targetResult?.nextMeetingDate
+      ? typeof targetResult.nextMeetingDate === "string"
+        ? targetResult.nextMeetingDate.split("T")[0]
+        : new Date(targetResult.nextMeetingDate).toISOString().split("T")[0]
+      : resultNextMeetingDate;
+
     return {
       id: s.id,
+      storeId: s.storeId,
       customer: custName,
       topic: s.topic || s.remarks || prevTarget?.topic || "",
       detail: s.notes || "",
       opportunity:
-        (isAdviceTopic ? resultSalesOpportunity : undefined) ||
+        (isAdviceTopic ? (targetResult?.salesOpportunity || resultSalesOpportunity) : undefined) ||
         prevTarget?.opportunity ||
+        targetResult?.salesOpportunity ||
         resultSalesOpportunity ||
         "",
-      nextDate: resultNextMeetingDate || prevTarget?.nextDate || "",
+      nextDate: targetDate || prevTarget?.nextDate || "",
       visitPurpose,
       customerType: s.store?.customerType || undefined,
       province: s.province || s.store?.province || plan.province || undefined,
@@ -228,13 +241,19 @@ export function extractType1PlanTargets(
       unregisteredFarmerName: s.unregisteredFarmerName || undefined,
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || undefined,
       farmerHomeAddress: isFarmer
-        ? s.store?.addressLine || resultFarmerAddress
+        ? targetResult?.farmerHomeAddress || s.store?.addressLine || resultFarmerAddress
         : undefined,
-      plotLatitude: isFarmer ? (resultLat || storeLat) : undefined,
-      plotLongitude: isFarmer ? (resultLng || storeLng) : undefined,
-      productAdvice: isAdviceTopic ? resultProductAdvice : undefined,
-      salesOpportunity: resultSalesOpportunity,
-      nextMeetingDate: resultNextMeetingDate,
+      plotLatitude: isFarmer
+        ? (targetResult?.plotLatitude != null ? String(targetResult.plotLatitude) : (resultLat || storeLat))
+        : undefined,
+      plotLongitude: isFarmer
+        ? (targetResult?.plotLongitude != null ? String(targetResult.plotLongitude) : (resultLng || storeLng))
+        : undefined,
+      productAdvice: isAdviceTopic ? (targetResult?.productAdvice || resultProductAdvice) : undefined,
+      discussionResult: targetResult?.discussionResult || undefined,
+      salesOpportunity: targetResult?.salesOpportunity || resultSalesOpportunity,
+      nextAction: targetResult?.nextAction || undefined,
+      nextMeetingDate: targetDate,
     };
   });
 
@@ -624,6 +643,11 @@ export function hydrateType1UnplannedData(plan: any): import("../unplanned/types
       (p: any) => !p.targetId || p.targetId === s.id,
     );
 
+    const targetResult =
+      s.result ||
+      (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
+      actualResult;
+
     return {
       id: s.id || String(idx + 1),
       visitPurpose: inferredPurpose,
@@ -637,28 +661,29 @@ export function hydrateType1UnplannedData(plan: any): import("../unplanned/types
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
       topic: s.topic || s.remarks || "แจ้งข่าวสาร",
       detail: s.notes || "",
-      discussionResult: actualResult.discussionResult || "",
-      productAdvice: actualResult.productAdvice || "",
+      discussionResult: targetResult.discussionResult || "",
+      productAdvice: targetResult.productAdvice || "",
       advisedProducts: targetProducts.map((p: any) => ({
         productId: p.productId,
         productName: p.product?.name || p.productName || "",
         productCode: p.product?.productCode || p.productCode || null,
         targetId: s.id,
       })),
-      salesOpportunity: (actualResult.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
-      nextMeetingDate: actualResult.nextMeetingDate
-        ? typeof actualResult.nextMeetingDate === "string"
-          ? actualResult.nextMeetingDate.split("T")[0]
-          : new Date(actualResult.nextMeetingDate).toISOString().split("T")[0]
+      salesOpportunity: (targetResult.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
+      nextAction: targetResult.nextAction || "",
+      nextMeetingDate: targetResult.nextMeetingDate
+        ? typeof targetResult.nextMeetingDate === "string"
+          ? targetResult.nextMeetingDate.split("T")[0]
+          : new Date(targetResult.nextMeetingDate).toISOString().split("T")[0]
         : "",
-      farmerHomeAddress: actualResult.farmerHomeAddress || s.store?.addressLine || "",
-      plotLatitude: actualResult.plotLatitude
-        ? String(actualResult.plotLatitude)
+      farmerHomeAddress: targetResult.farmerHomeAddress || s.store?.addressLine || "",
+      plotLatitude: targetResult.plotLatitude
+        ? String(targetResult.plotLatitude)
         : s.store?.latitude
           ? String(s.store.latitude)
           : "",
-      plotLongitude: actualResult.plotLongitude
-        ? String(actualResult.plotLongitude)
+      plotLongitude: targetResult.plotLongitude
+        ? String(targetResult.plotLongitude)
         : s.store?.longitude
           ? String(s.store.longitude)
           : "",

@@ -188,9 +188,11 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
             type1Stores: (plan as any).type1Stores || plan.stores || [],
-            type1Result: (plan as any).type1Result || null,
+            type1Results: (plan as any).type1Results || [],
+            type1Result: (plan as any).type1Results?.[0] || (plan as any).type1Result || null,
             type1Products: (plan as any).type1Products || [],
             activityResultType1:
+              (plan as any).type1Results?.[0] ||
               (plan as any).type1Result ||
               (plan as any).activityResultType1 ||
               null,

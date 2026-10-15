@@ -41,6 +41,7 @@ export interface BuildSummaryInput {
   t1PlotLongitude?: string | number | null;
   t1PlotImages?: ImageFile[];
   t1Products?: any[];
+  targetActualResults?: any[];
 
   // Type 2
   t2CustomerName?: string;
@@ -1465,6 +1466,7 @@ export function buildResultSummary(
     discussionResult: t1DiscussionResult || null,
     productAdvice: t1ProductAdvice || null,
     t1Products: input.t1Products || null,
+    targetActualResults: input.targetActualResults || (input as any).t1TargetItems || undefined,
     salesOpportunity: t1SalesOpportunity || null,
     problemFound:
       (t2HasProblem ? t2ProblemDetail : null) ||
