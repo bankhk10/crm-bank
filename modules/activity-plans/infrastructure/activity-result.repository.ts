@@ -377,6 +377,7 @@ export async function upsertActivityResult(
           farmerHomeAddress: input.farmerHomeAddress,
           plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
           plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
+          products: (input as any).t1Products || (input as any).type1Products || (input as any).products,
         });
       }
     }

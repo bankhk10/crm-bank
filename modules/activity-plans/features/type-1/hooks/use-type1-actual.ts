@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type { Type1ImageFile, ImageFile, Type1AdviceProductItem } from "../types";
+import type { Type1ImageFile, ImageFile, Type1AdviceProductItem, Type1VisitItem } from "../types";
+import { aggregateType1TargetItems } from "../application/mapper";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
@@ -55,6 +56,20 @@ export function useType1Actual() {
         JSON.stringify(parsed.t1PlotImages),
       );
     }
+  }, []);
+
+  const syncFromTargetItems = useCallback((items: Type1VisitItem[]) => {
+    const agg = aggregateType1TargetItems(items);
+    setT1DiscussionResult(agg.discussionResult);
+    setT1ProductAdvice(agg.productAdvice);
+    setT1AdvisedProducts(agg.advisedProducts);
+    setT1SalesOpportunity(agg.salesOpportunity);
+    setT1NextAction(agg.nextAction);
+    setT1NextMeetingDate(agg.nextMeetingDate);
+    setT1FarmerHomeAddress(agg.farmerHomeAddress);
+    setT1PlotLatitude(agg.plotLatitude);
+    setT1PlotLongitude(agg.plotLongitude);
+    setT1PlotImages(agg.plotImages);
   }, []);
 
   const uploadImages = useCallback(
@@ -142,6 +157,7 @@ export function useType1Actual() {
     t1PlotImages,
     setT1PlotImages,
     hydrate,
+    syncFromTargetItems,
     uploadImages,
     collectOldImageUrlsToDelete,
     commitSavedImages,

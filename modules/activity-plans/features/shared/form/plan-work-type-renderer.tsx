@@ -38,6 +38,8 @@ export interface PlanWorkTypeRendererProps {
   combinedType10DemoPlots?: any[];
   defaultProvince?: string;
   defaultDistrict?: string;
+  isUnplanned?: boolean;
+  onSyncType1Actual?: (items: any[]) => void;
 }
 
 export function PlanWorkTypeRenderer({
@@ -57,6 +59,8 @@ export function PlanWorkTypeRenderer({
   combinedType10DemoPlots,
   defaultProvince = "",
   defaultDistrict = "",
+  isUnplanned = false,
+  onSyncType1Actual,
 }: PlanWorkTypeRendererProps) {
   if (!selectedWorkTypes || selectedWorkTypes.length === 0) {
     return null;
@@ -176,6 +180,9 @@ export function PlanWorkTypeRenderer({
             updateType1Row={typeForms.type1.updateType1Row}
             deleteType1Row={typeForms.type1.deleteType1Row}
             customers={customersList}
+            products={productsList}
+            isUnplanned={isUnplanned}
+            onSyncActual={onSyncType1Actual}
           />
         )}
 

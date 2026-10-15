@@ -23,26 +23,7 @@ import type {
 
 export type { ProductOption, Type1ActualFormProps, ActualType1VisitProps, Type1TargetActualItem, Type1AdviceProductItem };
 
-/**
- * Extracts target-specific text from composite strings like "TargetA: notes | TargetB: notes"
- */
-function parseTargetText(
-  text: string | undefined,
-  targetName: string,
-  fallback: string = "",
-): string {
-  if (!text) return fallback;
-  const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(?:^|\\||\\n)\\s*(?:\\d+\\.\\s*)?${escaped}:\\s*([^|\\n]+)`,
-    "i",
-  );
-  const match = text.match(regex);
-  if (match && match[1]) {
-    return match[1].trim();
-  }
-  return fallback;
-}
+import { parseTargetText } from "../application/mapper";
 
 /**
  * Initializes target actual items from effective plan targets and hydrated props

@@ -53,6 +53,18 @@ export interface Type1VisitItem {
   unregisteredFarmerPhone?: string;
   topic: string;
   detail: string;
+
+  // Actual recording fields (Unplanned unified card)
+  discussionResult?: string;
+  productAdvice?: string;
+  advisedProducts?: Type1AdviceProductItem[];
+  salesOpportunity?: "สูง" | "ต่ำ" | "";
+  nextAction?: string;
+  nextMeetingDate?: string;
+  farmerHomeAddress?: string;
+  plotLatitude?: string;
+  plotLongitude?: string;
+  plotImages?: Type1ImageFile[];
 }
 
 /**
@@ -82,7 +94,7 @@ export interface ProductOption {
 }
 
 /**
- * Props for Type 1 Plan Form component (Create & Edit)
+ * Props for Type 1 Plan Form component (Create & Edit & Unplanned)
  */
 export interface Type1PlanFormProps {
   readonly?: boolean;
@@ -91,6 +103,9 @@ export interface Type1PlanFormProps {
   updateType1Row: (id: string, field: keyof Type1VisitItem, val: any) => void;
   deleteType1Row?: (id: string) => void;
   customers?: CustomerOption[];
+  products?: ProductOption[];
+  isUnplanned?: boolean;
+  onSyncActual?: (items: Type1VisitItem[]) => void;
 }
 
 // Backward-compatible alias

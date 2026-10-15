@@ -355,4 +355,14 @@ nextMeetingTopic: actual.nextMeetingTopic?.trim() || null,
 | **Actual Repository** | [`modules/activity-plans/infrastructure/activity-result.repository.ts`](file:///modules/activity-plans/infrastructure/activity-result.repository.ts)                               | `getTypeStrategy("TYPE_1").saveActual` | บันทึกผลการเข้าพบจริงแยกตาราง dedicated                                   |
 | **Detail Mapper**     | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts)                                               | `mapType1StoresToSectionItems`         | แปลงข้อมูลร้านค้าเป็น Section Items ในหน้ารายละเอียด                      |
 | **Approval Queue**    | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type1ApprovalCard`                    | การ์ดแสดงผลสรุปร้านค้าในหน้าจอผู้อนุมัติ                                  |
-| **Actual Form**       | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts)   | `Type1ActualForm, Type1Actual`         | ฟอร์มบันทึกผลการเข้าพบจริง                                                |
+| **Actual Form**       | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts)   | `Type1ActualForm, Type1Actual`         | ฟอร์มบันทึกผลการเข้าพบจริง (สำหรับกิจกรรมตามแผน)                          |
+| **Unplanned Form**    | [`modules/activity-plans/features/unplanned/components/unplanned-activity-form.tsx`](file:///modules/activity-plans/features/unplanned/components/unplanned-activity-form.tsx)     | `Type1Visit` (`isUnplanned={true}`)    | ฟอร์มรวมเป้าหมายและผลจริงไว้ในการ์ดเดียวกัน (Unified Card - Option A)    |
+
+---
+
+## 🌟 8. Unplanned Activity Flow (Unified Target Card - Option A)
+
+สำหรับกิจกรรมนอกแผน (Unplanned Activity) ซึ่งเป็นการบันทึกงานย้อนหลังหลังจากที่ลงพื้นที่เสร็จแล้ว:
+- **Unified Card:** ยุบรวมการกรอก **"เป้าหมาย"** (ประเภทร้านค้า/เกษตรกร, ประเด็นหลัก, รายละเอียด) และ **"ผลการปฏิบัติงานจริง"** (ผลการพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, วันนัดหมาย, ที่อยู่, พิกัด GPS, รูปถ่าย) ไว้ในการ์ดของแต่ละเป้าหมายใน Section เดียวกัน
+- **Multi-Target Scaling:** เมื่อเพิ่มเป้าหมาย (เป้าหมายที่ 1, 2, ...) การ์ดแต่ละใบจะมีส่วนผลจริงของตัวเอง และระบบจะซิงก์ข้อมูลไปยัง Strategy/Repository บันทึกลงทั้ง `activity_plan_stores`, `activity_result_type_1`, และ `activity_result_type_1_products` โดยอัตโนมัติ
+- **Zero Redundancy:** ซ่อนบล็อกผลการปฏิบัติงานจริงซ้ำซ้อนใน Section 7 คงเหลือเฉพาะการเลือกสถานะภาพรวมของกิจกรรม (สำเร็จ/ยกเลิก/เลื่อน)

@@ -4,6 +4,8 @@ import type {
   Type1ActualData,
   CustomerOption,
   Type1TargetItem,
+  Type1AdviceProductItem,
+  Type1ImageFile,
 } from "../types";
 
 /**
@@ -374,4 +376,152 @@ export function mapType1StoresToSectionItems(
       details: s.notes || undefined,
     };
   });
+}
+
+/**
+ * Extracts target-specific text from composite strings like "TargetA: notes | TargetB: notes"
+ */
+export function parseTargetText(
+  text: string | undefined,
+  targetName: string,
+  fallback: string = "",
+): string {
+  if (!text) return fallback;
+  const escaped = targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(
+    `(?:^|\\||\\n)\\s*(?:\\d+\\.\\s*)?${escaped}:\\s*([^|\\n]+)`,
+    "i",
+  );
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return fallback;
+}
+
+export interface AggregatedType1TargetActual {
+  discussionResult: string;
+  productAdvice: string;
+  advisedProducts: Type1AdviceProductItem[];
+  salesOpportunity: "สูง" | "ต่ำ" | "";
+  nextAction: string;
+  nextMeetingDate: string;
+  farmerHomeAddress: string;
+  plotLatitude: string;
+  plotLongitude: string;
+  plotImages: Type1ImageFile[];
+}
+
+/**
+ * Aggregates target-level Type 1 actual fields into plan-level summary fields
+ */
+export function aggregateType1TargetItems(
+  items: Type1VisitItem[],
+): AggregatedType1TargetActual {
+  if (!items || items.length === 0) {
+    return {
+      discussionResult: "",
+      productAdvice: "",
+      advisedProducts: [],
+      salesOpportunity: "",
+      nextAction: "",
+      nextMeetingDate: "",
+      farmerHomeAddress: "",
+      plotLatitude: "",
+      plotLongitude: "",
+      plotImages: [],
+    };
+  }
+
+  if (items.length === 1) {
+    const single = items[0];
+    return {
+      discussionResult: single.discussionResult || "",
+      productAdvice: single.productAdvice || "",
+      advisedProducts: single.advisedProducts || [],
+      salesOpportunity:
+        (single.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
+      nextAction: single.nextAction || "",
+      nextMeetingDate: single.nextMeetingDate || "",
+      farmerHomeAddress: single.farmerHomeAddress || "",
+      plotLatitude: single.plotLatitude || "",
+      plotLongitude: single.plotLongitude || "",
+      plotImages: single.plotImages || [],
+    };
+  }
+
+  // Multi-target:
+  const discussionResult = items
+    .map((it) => {
+      const name = it.isUnregisteredFarmer
+        ? it.unregisteredFarmerName || it.customerName || "เป้าหมาย"
+        : it.customerName || "เป้าหมาย";
+      return it.discussionResult ? `${name}: ${it.discussionResult}` : "";
+    })
+    .filter(Boolean)
+    .join(" | ");
+
+  const advisedProducts = items.flatMap((it) => it.advisedProducts || []);
+
+  const uniqueProdNames = Array.from(
+    new Set(
+      items.flatMap((it) =>
+        (it.productAdvice || "")
+          .split(",")
+          .map((p: string) => p.trim())
+          .filter(Boolean),
+      ),
+    ),
+  );
+  const productAdvice = uniqueProdNames.join(", ");
+
+  const hasHigh = items.some((it) => it.salesOpportunity === "สูง");
+  const hasLow = items.some((it) => it.salesOpportunity === "ต่ำ");
+  const salesOpportunity: "สูง" | "ต่ำ" | "" = hasHigh
+    ? "สูง"
+    : hasLow
+      ? "ต่ำ"
+      : "";
+
+  const nextAction = items
+    .map((it) => {
+      const name = it.isUnregisteredFarmer
+        ? it.unregisteredFarmerName || it.customerName || "เป้าหมาย"
+        : it.customerName || "เป้าหมาย";
+      return it.nextAction ? `${name}: ${it.nextAction}` : "";
+    })
+    .filter(Boolean)
+    .join(" | ");
+
+  const nextMeetingDate =
+    items.find((it) => it.nextMeetingDate)?.nextMeetingDate || "";
+
+  const farmerAddresses = items
+    .filter((it) => it.visitPurpose !== "STORE" && it.farmerHomeAddress)
+    .map((it) => {
+      const name = it.isUnregisteredFarmer
+        ? it.unregisteredFarmerName || it.customerName || "เกษตรกร"
+        : it.customerName || "เกษตรกร";
+      return `${name}: ${it.farmerHomeAddress}`;
+    });
+  const farmerHomeAddress = farmerAddresses.join(" | ");
+
+  const firstCoord = items.find((it) => it.plotLatitude && it.plotLongitude);
+  const plotLatitude = firstCoord?.plotLatitude || "";
+  const plotLongitude = firstCoord?.plotLongitude || "";
+
+  const plotImages = items.flatMap((it) => it.plotImages || []);
+
+  return {
+    discussionResult,
+    productAdvice,
+    advisedProducts,
+    salesOpportunity,
+    nextAction,
+    nextMeetingDate,
+    farmerHomeAddress,
+    plotLatitude,
+    plotLongitude,
+    plotImages,
+  };
 }

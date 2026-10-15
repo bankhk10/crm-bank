@@ -4,6 +4,7 @@ import { validateType1FormItem } from "../application/validation";
 import {
   mapType1FormToPlanStore,
   mapType1DbStoreToFormItem,
+  parseTargetText,
 } from "../application/mapper";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
@@ -33,22 +34,137 @@ export function useType1Form({
   selectedWorkTypes = [],
 }: UseType1FormOptions): UseType1FormResult {
   const [type1Items, setType1Items] = useState<Type1VisitItem[]>(() => {
+    const rawResult =
+      (initial as any)?.activityResult ||
+      (initial as any)?.result ||
+      (initial as any)?.details?.activityResult ||
+      null;
+    const t1Actual = rawResult?.activityResultType1 || rawResult || null;
+    const t1Products =
+      rawResult?.type1Products || (initial as any)?.type1Products || [];
+
+    const attachActualToItem = (
+      item: Type1VisitItem,
+      idx: number,
+      totalCount: number,
+    ): Type1VisitItem => {
+      if (!t1Actual) return item;
+      const name = item.isUnregisteredFarmer
+        ? item.unregisteredFarmerName || item.customerName || `เป้าหมายที่ ${idx + 1}`
+        : item.customerName || `เป้าหมายที่ ${idx + 1}`;
+      const isSingle = totalCount === 1;
+
+      const parsedDiscussion = parseTargetText(
+        t1Actual.discussionResult,
+        name,
+        isSingle
+          ? t1Actual.discussionResult || ""
+          : idx === 0 && !t1Actual.discussionResult?.includes(":")
+            ? t1Actual.discussionResult || ""
+            : "",
+      );
+
+      const parsedNextAction = parseTargetText(
+        t1Actual.nextAction,
+        name,
+        isSingle
+          ? t1Actual.nextAction || ""
+          : idx === 0 && !t1Actual.nextAction?.includes(":")
+            ? t1Actual.nextAction || ""
+            : "",
+      );
+
+      const parsedAddress = parseTargetText(
+        t1Actual.farmerHomeAddress,
+        name,
+        isSingle
+          ? t1Actual.farmerHomeAddress || ""
+          : idx === 0 && !t1Actual.farmerHomeAddress?.includes(":")
+            ? t1Actual.farmerHomeAddress || ""
+            : "",
+      );
+
+      const parsedAdvice =
+        parseTargetText(t1Actual.productAdvice, name, "") ||
+        (isSingle ? t1Actual.productAdvice || "" : "");
+
+      const parsedSalesOpp =
+        (parseTargetText(t1Actual.salesOpportunity, name, "") as
+          | "สูง"
+          | "ต่ำ"
+          | "") ||
+        (isSingle ? (t1Actual.salesOpportunity as any) || "" : "");
+
+      const parsedMeetingDate =
+        parseTargetText(t1Actual.nextMeetingDate, name, "") ||
+        (isSingle ? t1Actual.nextMeetingDate || "" : "");
+
+      const matchedProducts = t1Products
+        .filter(
+          (p: any) =>
+            !p.targetId || p.targetId === item.id || isSingle,
+        )
+        .map((p: any) => ({
+          id: p.id,
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          productCode: p.productCode || p.product?.productCode || null,
+          targetId: item.id,
+        }));
+
+      return {
+        ...item,
+        discussionResult: item.discussionResult || parsedDiscussion,
+        productAdvice: item.productAdvice || parsedAdvice,
+        advisedProducts:
+          item.advisedProducts && item.advisedProducts.length > 0
+            ? item.advisedProducts
+            : matchedProducts,
+        salesOpportunity: item.salesOpportunity || parsedSalesOpp,
+        nextAction: item.nextAction || parsedNextAction,
+        nextMeetingDate: item.nextMeetingDate || parsedMeetingDate,
+        farmerHomeAddress: item.farmerHomeAddress || parsedAddress,
+        plotLatitude:
+          item.plotLatitude ||
+          (isSingle && t1Actual.plotLatitude != null
+            ? String(t1Actual.plotLatitude)
+            : ""),
+        plotLongitude:
+          item.plotLongitude ||
+          (isSingle && t1Actual.plotLongitude != null
+            ? String(t1Actual.plotLongitude)
+            : ""),
+        plotImages:
+          item.plotImages && item.plotImages.length > 0
+            ? item.plotImages
+            : isSingle && t1Actual.plotImages
+              ? t1Actual.plotImages
+              : [],
+      };
+    };
+
     if (
       initDetails?.type1Items &&
       Array.isArray(initDetails.type1Items) &&
       initDetails.type1Items.length > 0
     ) {
-      return initDetails.type1Items.map((item: any) => ({
+      const items = initDetails.type1Items.map((item: any) => ({
         ...item,
         visitPurpose: item.visitPurpose || "FARMER",
       }));
+      return items.map((it: Type1VisitItem, idx: number) =>
+        attachActualToItem(it, idx, items.length),
+      );
     }
     const type1Stores = (initial as any)?.stores?.filter(
       (s: any) => getWorkTypeCode(s.workTypeCode) === "TYPE_1",
     );
     if (type1Stores && type1Stores.length > 0) {
-      return type1Stores.map((s: any, idx: number) =>
+      const mapped = type1Stores.map((s: any, idx: number) =>
         mapType1DbStoreToFormItem(s, idx),
+      );
+      return mapped.map((it: Type1VisitItem, idx: number) =>
+        attachActualToItem(it, idx, mapped.length),
       );
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -63,7 +179,7 @@ export function useType1Form({
             getWorkTypeCode(item.itemType) === "TYPE_1"),
       );
       if (items.length > 0) {
-        return items.map((item: any, idx: number) => ({
+        const mapped = items.map((item: any, idx: number) => ({
           id: item.id || String(idx + 1),
           visitPurpose: item.visitPurpose || "FARMER",
           storeId: item.storeId,
@@ -76,6 +192,9 @@ export function useType1Form({
           unregisteredFarmerName: item.unregisteredFarmerName || "",
           unregisteredFarmerPhone: item.unregisteredFarmerPhone || "",
         }));
+        return mapped.map((it: Type1VisitItem, idx: number) =>
+          attachActualToItem(it, idx, mapped.length),
+        );
       }
     }
     return [

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -746,6 +746,8 @@ export function UnplannedActivityForm({
               combinedType10DemoPlots={typeForms.combinedType10DemoPlots}
               defaultProvince={province}
               defaultDistrict={district}
+              isUnplanned={true}
+              onSyncType1Actual={actualOrchestrator.typeHooks.type1?.syncFromTargetItems}
             />
 
             {/* SECTION 3: Location & Team */}
@@ -852,6 +854,8 @@ export function UnplannedActivityForm({
                   isTypeVisible={(codeOrTitle: string) => {
                     const targetCode = getWorkTypeCode(codeOrTitle);
                     if (!targetCode) return false;
+                    // TYPE_1 is rendered unified in Section 2 (Dynamic Work Types) in Unplanned Mode
+                    if (targetCode === "TYPE_1") return false;
                     return selectedWorkTypes.some((wt) => {
                       const code = getWorkTypeCode(wt);
                       return code === targetCode;

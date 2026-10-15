@@ -40,6 +40,7 @@ export interface BuildSummaryInput {
   t1PlotLatitude?: string | number | null;
   t1PlotLongitude?: string | number | null;
   t1PlotImages?: ImageFile[];
+  t1Products?: any[];
 
   // Type 2
   t2CustomerName?: string;
@@ -1463,6 +1464,7 @@ export function buildResultSummary(
     plotLongitude: parseCleanNumber(input.t1PlotLongitude || input.t7Longitude),
     discussionResult: t1DiscussionResult || null,
     productAdvice: t1ProductAdvice || null,
+    t1Products: input.t1Products || null,
     salesOpportunity: t1SalesOpportunity || null,
     problemFound:
       (t2HasProblem ? t2ProblemDetail : null) ||
