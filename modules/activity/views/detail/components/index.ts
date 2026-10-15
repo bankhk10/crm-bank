@@ -6,4 +6,3 @@ export * from "./detail-activity-status-section";
 export * from "./detail-audit-logs";
 export * from "./detail-view-actions";
 export * from "./cancel-plan-dialog";
-export * from "./work-types";

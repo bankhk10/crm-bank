@@ -5,20 +5,18 @@ import { BarChart3 } from "lucide-react";
 import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
 import type { ParsedSummaryValues } from "@/modules/activity-plans/features/shared/actual-view/utils/summary-parser";
 import { WORK_TYPES } from "@/modules/activity-plans/constants";
-import {
-  DetailType1Visit,
-  DetailType2Followup,
-  DetailType3Sales,
-  DetailType4Collect,
-  DetailType5Survey,
-  DetailType6Issue,
-  DetailType7Demo,
-  DetailType8Meeting,
-  DetailType9Store,
-  DetailType10FieldDay,
-  DetailType11Stock,
-  DetailType13Attack,
-} from "./work-types";
+import { DetailType1Visit } from "@/modules/activity/features/type-1";
+import { DetailType2Followup } from "@/modules/activity-plans/features/type-2/components/type2-detail-view";
+import { DetailType3Sales } from "@/modules/activity-plans/features/type-3/components/type3-detail-view";
+import { DetailType4Collect } from "@/modules/activity-plans/features/type-4/components/type4-detail-view";
+import { DetailType5Survey } from "@/modules/activity-plans/features/type-5/components/type5-detail-view";
+import { DetailType6Issue } from "@/modules/activity-plans/features/type-6/components/type6-detail-view";
+import { DetailType7Demo } from "@/modules/activity-plans/features/shared/detail-view/components/work-types/detail-type7-demo";
+import { DetailType8Meeting } from "@/modules/activity-plans/features/type-8/components/type8-detail-view";
+import { DetailType9Store } from "@/modules/activity-plans/features/type-9/components/type9-detail-view";
+import { DetailType10FieldDay } from "@/modules/activity-plans/features/type-10/components/type10-detail-view";
+import { DetailType11Stock } from "@/modules/activity-plans/features/type-11/components/type11-detail-view";
+import { DetailType13Attack } from "@/modules/activity-plans/features/type-13/components/type13-detail-view";
 import type { Type13PlotItem, Type13DetailData } from "@/modules/activity-plans/features/type-13";
 
 interface DetailActivityResultSectionProps {
