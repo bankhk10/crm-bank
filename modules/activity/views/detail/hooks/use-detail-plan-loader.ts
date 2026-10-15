@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {
@@ -25,9 +26,11 @@ import { extractType1PlanTargets } from "@/modules/activity/features/type-1";
 
 interface UseDetailPlanLoaderProps {
   id: string;
+  onBack?: () => void;
 }
 
-export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
+export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
+  const router = useRouter();
   const { data: session } = useSession();
 
   const [plan, setPlan] = useState<ActivityPlanWithRelations | null>(null);
@@ -49,6 +52,14 @@ export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
+  const handleBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/activity-plans");
+    }
+  }, [onBack, router]);
+
   const loadData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -65,10 +76,15 @@ export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
         setPlanWorkTypes(extracted.resolvedWorkTypes);
         setTargets(extracted.targets);
 
-        // Parse result summary if plan result exists
-        if ((p as any).result) {
+        // Parse result summary if plan result exists or unplanned activity
+        if (
+          (p as any).result ||
+          (p as any).type1Result ||
+          ((p as any).type1Results && (p as any).type1Results.length > 0) ||
+          p.planType === "UNPLANNED"
+        ) {
           const parsed = parseResultSummary({
-            ...(p as any).result,
+            ...((p as any).result || {}),
             activityPlan: p,
           });
           setParsedResults(parsed);
@@ -100,6 +116,24 @@ export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Resolved Work Types list
+  const resolvedWorkTypes = useMemo(() => {
+    if (!plan) return [];
+    const list: Array<{ code: string; name: string }> = [];
+    (plan.stores || []).forEach((s: any) => {
+      if (s.workTypeCode && !list.some((i) => i.code === s.workTypeCode)) {
+        list.push({ code: s.workTypeCode, name: s.workType?.name || s.workTypeCode });
+      }
+    });
+    if (
+      (plan as any).type1Stores?.length > 0 &&
+      !list.some((i) => i.code === "TYPE_1")
+    ) {
+      list.unshift({ code: "TYPE_1", name: "เข้าพบร้านค้า / Key Farmer" });
+    }
+    return list;
+  }, [plan]);
 
   // Type 1 Target extraction
   const type1Targets = useMemo(() => {
@@ -208,6 +242,7 @@ export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
     error,
     planSummary,
     planWorkTypes,
+    resolvedWorkTypes,
     targets,
     type1Targets,
     parsedResults,
@@ -223,6 +258,7 @@ export function useDetailPlanLoader({ id }: UseDetailPlanLoaderProps) {
     cancelLoading,
     cancelError,
     handleCancelSubmit,
+    handleBack,
     reload: loadData,
   };
 }
