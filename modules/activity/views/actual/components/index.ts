@@ -6,3 +6,4 @@ export * from "./budget-section";
 export * from "./promotional-materials-section";
 export * from "./marketing-expense-section";
 export * from "./additional-info-section";
+export * from "./actual-work-type-list";

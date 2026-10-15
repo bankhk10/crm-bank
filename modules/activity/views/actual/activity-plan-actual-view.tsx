@@ -10,11 +10,11 @@ import {
   ActualViewHeader,
   ActualPlanSummary,
   ActivityStatusSection,
+  ActualWorkTypeList,
 } from "./components";
 
 import { useActualPlanLoader, useActualStatusState } from "./hooks";
 import {
-  Type1ActualForm,
   useType1Actual,
   extractType1PlanTargets,
   type Type1TargetItem,
@@ -258,11 +258,6 @@ export function ActivityPlanActualView({
     );
   }
 
-  const isType1 =
-    planWorkTypes.includes("TYPE_1") ||
-    planWorkTypes.includes("VISIT") ||
-    planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
-    planWorkTypes.length === 0;
 
   return (
     <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
@@ -309,39 +304,13 @@ export function ActivityPlanActualView({
             setPostponedNotes={statusState.setPostponedNotes}
           />
 
-          {/* 3. ฟอร์มผลการปฏิบัติงานเฉพาะ Type 1 */}
-          {statusState.activityResultStatus === "COMPLETED" && isType1 && (
-            <div className="space-y-4 pt-2 border-t border-slate-100">
-              <Type1ActualForm
-                isVisible={true}
-                targets={targets}
-                target={targets[0]}
-                targetActualResults={type1Actual.t1TargetItems}
-                onUpdateTargetActualResults={type1Actual.syncFromTargetItems}
-                productAdvice={type1Actual.t1ProductAdvice}
-                setProductAdvice={type1Actual.setT1ProductAdvice}
-                advisedProducts={type1Actual.t1AdvisedProducts}
-                setAdvisedProducts={type1Actual.setT1AdvisedProducts}
-                detail={type1Actual.t1Detail}
-                setDetail={type1Actual.setT1Detail}
-                discussionResult={type1Actual.t1DiscussionResult}
-                setDiscussionResult={type1Actual.setT1DiscussionResult}
-                salesOpportunity={type1Actual.t1SalesOpportunity}
-                setSalesOpportunity={type1Actual.setT1SalesOpportunity}
-                nextAction={type1Actual.t1NextAction}
-                setNextAction={type1Actual.setT1NextAction}
-                nextMeetingDate={type1Actual.t1NextMeetingDate}
-                setNextMeetingDate={type1Actual.setT1NextMeetingDate}
-                farmerHomeAddress={type1Actual.t1FarmerHomeAddress}
-                setFarmerHomeAddress={type1Actual.setT1FarmerHomeAddress}
-                plotLatitude={type1Actual.t1PlotLatitude}
-                setPlotLatitude={type1Actual.setT1PlotLatitude}
-                plotLongitude={type1Actual.t1PlotLongitude}
-                setPlotLongitude={type1Actual.setT1PlotLongitude}
-                plotImages={type1Actual.t1PlotImages}
-                setPlotImages={type1Actual.setT1PlotImages}
-              />
-            </div>
+          {/* 3. ฟอร์มผลการปฏิบัติงานตามประเภทงาน (Work Types 1 - 14) */}
+          {statusState.activityResultStatus === "COMPLETED" && (
+            <ActualWorkTypeList
+              planWorkTypes={planWorkTypes}
+              type1State={type1Actual}
+              targets={targets}
+            />
           )}
 
           {/* ปุ่มบันทึก */}

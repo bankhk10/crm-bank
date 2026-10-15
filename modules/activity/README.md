@@ -63,7 +63,7 @@ modules/activity/
 │   │   └── edit-view.tsx
 │   │
 │   ├── actual/                           # บันทึกผลการปฏิบัติงานจริง (Actual Result)
-│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection
+│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActualWorkTypeList
 │   │   ├── hooks/                        # useActualPlanLoader, useActualStatusState
 │   │   └── activity-plan-actual-view.tsx # Route: /activity-plans/[id]/actual
 │   │
