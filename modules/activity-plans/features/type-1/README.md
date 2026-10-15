@@ -56,7 +56,29 @@ modules/activity-plans/features/type-1/
 
 ในสถาปัตยกรรมใหม่ Type 1 มี **Dedicated Relational Tables** ของตนเองโดยตรง เพื่อป้องกันปัญหาการแชร์ฟิลด์ปะปนกับ Type อื่น และทำงานควบคู่กับการ Sync ตาราง Legacy เพื่อรองรับ Backward Compatibility:
 
-### 3.1 ตารางเฉพาะ `activity_plan_type_1_stores` (Dedicated Type 1 Plan Store)
+### 3.1 ลำดับความสำคัญและการทำงานระหว่างตาราง (Hierarchy & Execution Order)
+
+#### 1) ลำดับเชิงโครงสร้างและการบันทึกข้อมูล (Data Hierarchy & Write Flow)
+
+ในการจัดเก็บข้อมูล ระบบปฏิบัติตามลำดับความสัมพันธ์แบบ **Parent (หัวตาราง) ➔ Child (รายละเอียดเฉพาะประเภท)**:
+
+1. **`activity_plans` (Root Plan):** ตารางหลักที่เป็นต้นกำเนิดของแผนงาน ทุกตารางลูกต้องอ้างอิง `activity_plan_id` จากตารางนี้
+2. **`activity_results` (Core Parent Header):** ตารางผลงานส่วนกลาง ต้องถูกสร้าง/อัปเดตก่อนเสมอ เพื่อควบคุมสถานะ Lifecycle (`result_status`), วันเวลาเริ่ม-จบจริง (`actual_start_date`, `actual_end_date`), งบประมาณจริง (`actual_budget`) และเป็นจุดศูนย์กลางสำหรับระบบรายงานและ Audit รวม
+3. **`activity_result_type_1` (Dedicated Type 1 Child):** ตารางบันทึกผลงานเฉพาะทางของ Type 1 บันทึกตามหลัง `activity_results` เพื่อเก็บข้อมูลเฉพาะของ Type 1 เช่น พิกัดแปลง (`plot_latitude`, `plot_longitude`), ที่อยู่เกษตรกร (`farmer_home_address`), คำแนะนำสินค้า (`product_advice`), สรุปผลพูดคุย (`discussionResult`)
+4. **`activity_result_type_1_farmers` (Target Details):** ตารางเป้าหมายย่อยสำหรับเก็บรายชื่อเกษตรกรและผลสังเกตการณ์พืชรายคน
+
+#### 2) ลำดับการอ่านและ Fallback ของข้อมูล Type 1 (Read & Fallback Priority)
+
+เมื่อหน้าจอ Type 1 ([type1-actual-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-actual-form.tsx)) ดึงข้อมูลผลงานขึ้นมาแสดงผล จะใช้ลำดับจาก **ความเฉพาะเจาะจงสูงสุด** ไปหาข้อมูลเดิม:
+
+1. **Priority 1 (แหล่งข้อมูลหลัก): `activity_result_type_1`**  
+   เป็นแหล่งข้อมูลหลักของ Type 1 ตามสถาปัตยกรรมใหม่ หากพบข้อมูลในตารางนี้จะถูกนำมาแสดงผลเป็นอันดับแรกเสมอ
+2. **Priority 2 (Fallback สำรอง): `activity_results`**  
+   หากใน `activity_result_type_1` ไม่มีข้อมูลหรือเป็นค่าว่าง ระบบจะ Fallback ไปดึงจากคอลัมน์เดิมใน `activity_results` (`plot_latitude`, `plot_longitude`, `farmer_home_address`, `discussion_result`) เพื่อรองรับข้อมูลเก่าในอดีต (Legacy Records) ที่บันทึกไว้ก่อนการแยกตาราง
+
+---
+
+### 3.2 ตารางเฉพาะ `activity_plan_type_1_stores` (Dedicated Type 1 Plan Store)
 
 ตารางเฉพาะสำหรับ Type 1 เก็บข้อมูลเข้าพบร้านค้า/เกษตรกรโดยตรง:
 
@@ -73,7 +95,7 @@ modules/activity-plans/features/type-1/
 | `topic`                     | `TEXT`               | Yes                 | หัวข้อหลักในการเข้าพบ (แทนที่การยืมคอลัมน์ `remarks`)                |
 | `notes`                     | `TEXT`               | Yes                 | รายละเอียดเพิ่มเติมในการเข้าพบ                                       |
 
-### 3.2 ตารางเฉพาะ `activity_result_type_1` (Dedicated Type 1 Actual Outcome)
+### 3.3 ตารางเฉพาะ `activity_result_type_1` (Dedicated Type 1 Actual Outcome)
 
 ตารางเฉพาะสำหรับ Type 1 เก็บผลการเข้าพบจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
 
@@ -89,12 +111,12 @@ modules/activity-plans/features/type-1/
 | `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)               |
 | `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180)            |
 
-### 3.3 ตารางส่วนกลางที่ Sync คู่ขนาน (Legacy Dual-Write Tables)
+### 3.4 ตารางส่วนกลางที่ Sync คู่ขนาน (Legacy Dual-Write Tables)
 
 - `activity_plan_stores`: มีการบันทึกควบคู่เพื่อรองรับ View / Reports เดิมที่ยังอ่านจากตารางรวม
 - `activity_results`: มีการบันทึกควบคู่เพื่อรองรับ View เดิม
 
-### 3.4 ตาราง `activity_plan_stores` (Legacy Plan Store Reference)
+### 3.5 ตาราง `activity_plan_stores` (Legacy Plan Store Reference)
 
 | คอลัมน์ (Column)            | ชนิดข้อมูล (Type)    | Nullable            | ความหมายและรายละเอียด                                                       |
 | --------------------------- | -------------------- | ------------------- | --------------------------------------------------------------------------- |
@@ -111,7 +133,7 @@ modules/activity-plans/features/type-1/
 | `remarks`                   | `TEXT`               | Yes                 | ประเด็นหลักในการเข้าพบ (Topic) เช่น "แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า" |
 | `notes`                     | `TEXT`               | Yes                 | รายละเอียดเพิ่มเติมในการเข้าพบ (Detail)                                     |
 
-### 3.2 ตาราง `activity_results` (ผลการปฏิบัติงานจริง)
+### 3.6 ตาราง `activity_results` (ผลการปฏิบัติงานจริง - Core Parent Header)
 
 ตารางเก็บผลการดำเนินงานจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
 
@@ -130,7 +152,7 @@ modules/activity-plans/features/type-1/
 | `result_status`       | `ENUM`               | No       | สถานะผลการทำกิจกรรม (`COMPLETED`, `PARTIAL`, `CANCELLED`, `POSTPONED`) |
 | `result_summary`      | `TEXT`               | Yes      | ข้อความสรุปผลกิจกรรมโดยรวม (สร้างอัตโนมัติจาก Summary Builder)         |
 
-### 3.3 ตาราง `activity_attachments` (รูปภาพแนบผลงานจริง)
+### 3.7 ตาราง `activity_attachments` (รูปภาพแนบผลงานจริง)
 
 ตารางจัดเก็บ URL รูปถ่ายแปลงเกษตรกรจากการเข้าพบจริง:
 
@@ -144,7 +166,7 @@ modules/activity-plans/features/type-1/
 | `file_url`           | `TEXT`               | No       | URL รูปภาพแปลงเกษตรกรที่อัปโหลดขึ้น Cloud Storage (สูงสุด 5 รูป) |
 | `file_name`          | `TEXT`               | No       | ชื่อไฟล์รูปภาพต้นฉบับ                                            |
 
-### 3.4 ตาราง `Customer` (Master Data ลูกค้าสำหรับอ้างอิง)
+### 3.8 ตาราง `Customer` (Master Data ลูกค้าสำหรับอ้างอิง)
 
 ตารางหลักของลูกค้าที่ `activity_plan_stores.store_id` ชี้ไป:
 
