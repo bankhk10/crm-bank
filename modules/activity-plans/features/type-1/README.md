@@ -3,7 +3,7 @@
 > **Module Path**: `modules/activity-plans/features/type-1/`  
 > **Work Type Code**: `TYPE_1`  
 > **Thai Label**: `เข้าพบร้านค้า / Key Farmer` (หรือ `เข้าพบเกษตรกร`)  
-> **Architecture Pattern**: Self-Contained Feature Slice with Centralized Components, Mapper & Types
+> **Architecture Pattern**: Self-Contained Feature Slice with Sub-slices (Planned, Unplanned, Actual, Shared) & Single Source of Truth Database
 
 ---
 
@@ -18,69 +18,129 @@
    - เลือกร้านค้าตัวแทนจำหน่ายจากตาราง `Customer` ที่มี `customerType` เป็น `'DEALER'` หรือ `'SUBDEALER'` เท่านั้น (ไม่อนุญาตให้เลือกลูกค้านอกระบบ)
 3. **การเพิ่ม/ลบเป้าหมาย (Dynamic Targets)**:
    - สามารถกดปุ่ม **"+ เพิ่มร้านค้า / เกษตรกร"** เพื่อเพิ่มเป้าหมายได้ตามต้องการ (เช่น 4 ร้านค้าในวันเดียว) และมีปุ่มลบถังขยะสำหรับแต่ละรายการ (คงไว้อย่างน้อย 1 เป้าหมาย)
+4. **การแยกขาดระหว่าง In-Plan และ Unplanned**:
+   - กิจกรรม **ในแผน (Planned)** และ **นอกแผน (Unplanned)** ถูกแยก Sub-slices และฟอร์มออกจากกันอย่างเด็ดขาดเพื่อแก้ปัญหา *"แก้ในแผนแล้วนอกแผนพัง"*
 
 ---
 
-## 📂 2. โครงสร้างโฟลเดอร์ล่าสุด (Refactored Directory Structure)
+## 📂 2. โครงสร้างโฟลเดอร์ล่าสุด (Refactored Sub-slice Architecture)
 
-โครงสร้างโฟลเดอร์ได้รับการจัดระเบียบตาม Module Architecture Contract:
+สถาปัตยกรรมได้รับการจัดระเบียบตาม Module Architecture Contract และหลักการ **Separation of Concerns**:
 
 ```text
 modules/activity-plans/features/type-1/
-├── application/                      # 🧠 Business Logic, Validation, Mappers & Strategy
-│   ├── validation.ts                 # Pure Validation functions & Zod Schemas
-│   ├── mapper.ts                     # Single Source of Truth สำหรับแปลงข้อมูล Form State <-> DB
-│   └── type1.strategy.ts             # WorkTypeStrategy Handler สำหรับ Core Orchestration & Persistence
+├── planned/                             # 🎯 กิจกรรมในแผน (In-Plan Targets Section)
+│   ├── components/
+│   │   └── type1-planned-form.tsx       # ฟอร์มวางแผนเป้าหมายล่วงหน้า (สะอาด ไม่มีฟิลด์ผลจริง/GPS ปะปน)
+│   ├── hooks/
+│   │   └── use-type1-planned-form.ts    # State & Handlers เฉพาะการวางแผนเป้าหมาย
+│   ├── types.ts                         # Type definitions สำหรับ Planned Item & Props
+│   └── validation.ts                    # Zod validation schema สำหรับ Planned Targets
 │
-├── components/                       # 🖥️ Feature UI Components (Vertical Slice)
-│   ├── type1-plan-form.tsx           # ฟอร์มบันทึกแผนงาน (Planned & Unplanned Plan Section)
-│   ├── type1-actual-form.tsx         # ฟอร์มบันทึกผลการปฏิบัติงานจริง (Planned & Unplanned Actual Section)
-│   ├── type1-detail-view.tsx         # หน้าแสดงรายละเอียดผลการปฏิบัติงาน (Read-only Detail View)
-│   ├── type1-approval-card.tsx       # การ์ดแสดงผลในหน้าอนุมัติ (Approval Card)
-│   └── type1-plan-card.tsx           # การ์ดสรุปเป้าหมายแผนงานเดิม (Auto-hides in Unplanned mode)
+├── unplanned/                           # ⚡ กิจกรรมนอกแผน (Unplanned All-In-One Unified Form)
+│   ├── components/
+│   │   └── type1-unplanned-form.tsx     # การ์ด All-In-One (เป้าหมาย + ผลการเข้าพบ + GPS + สินค้าแนะนำ + รูปถ่าย)
+│   ├── hooks/
+│   │   └── use-type1-unplanned-form.ts  # State & Handlers สำหรับ Unplanned Item
+│   ├── types.ts                         # Type definitions สำหรับ Unplanned Item & Props
+│   └── validation.ts                    # Zod validation schema สำหรับ Unplanned Flow
 │
-├── hooks/                            # 🪝 Encapsulated Hooks
-│   ├── use-type1-form.ts             # Form Hook สำหรับ Plan Stage
-│   └── use-type1-actual.ts           # Hook สำหรับ Actual Stage (Hydration, Photos, GPS, Payload)
+├── actual/                              # 📝 ผลงานจริงของกิจกรรมในแผน (In-Plan Actual Stage)
+│   ├── components/
+│   │   └── type1-actual-form.tsx        # UI บันทึกผลงานจริง (รับ actualState จาก Orchestrator โดยตรง)
+│   ├── hooks/
+│   │   └── use-type1-actual.ts          # Forwarder / Hook สำหรับจัดการ Actual State
+│   └── types.ts                         # Type definitions สำหรับ Actual View
 │
-├── types/                            # 📐 Type Definitions รวมศูนย์
-│   └── index.ts                      # Single Source of Truth สำหรับ Type 1 ทั้งหมด
+├── shared/                              # 🤝 โมเดลกลางและ Options ที่ใช้ร่วมกัน
+│   └── types.ts                         # VISIT_TOPICS, CustomerOption, ProductOption, Type1ImageFile ฯลฯ
 │
-├── index.ts                          # 📦 Public Barrel Export (Vertical Slice & Backward Compatible)
-└── README.md                         # 📖 เอกสารกำกับ Type 1 (ไฟล์นี้)
+├── components/                          # 🖥️ คอมโพเนนต์แสดงผลส่วนกลางของโมดูล
+│   ├── type1-actual-form.tsx            # ฟอร์มผลงานจริงหลัก (รองรับ Multi-Target)
+│   ├── type1-detail-view.tsx            # หน้าแสดงรายละเอียดผลการปฏิบัติงาน (Read-only Detail View)
+│   ├── type1-approval-card.tsx          # การ์ดแสดงผลในหน้าอนุมัติ (Approval Card)
+│   └── type1-plan-card.tsx              # การ์ดสรุปเป้าหมายแผนงานเดิม (Auto-hides in Unplanned mode)
+│
+├── application/                         # 🧠 Business Logic, Mappers & Persistence Strategy
+│   ├── mapper.ts                        # Single Source of Truth แปลง DB Data <-> UI Form State
+│   ├── type1.strategy.ts                # WorkTypeStrategy บันทึก/โหลดตรงกับ Dedicated Tables 100%
+│   └── validation.ts                    # Core schemas สำหรับ Type 1
+│
+├── hooks/                               # 🪝 Encapsulated Hooks รวม
+│   ├── use-type1-form.ts                # Adapter Hook รวมสำหรับรองรับการเรียกใช้งานระดับโมดูล
+│   └── use-type1-actual.ts              # Core Hook สำหรับจัดการ Actual Data, Photos, Products
+│
+├── types/                               # 📐 Type Definitions รวมศูนย์
+│   └── index.ts                         # Single Source of Truth รวบรวม Type ทุกส่วนของ Type 1
+│
+├── index.ts                             # 📦 Public Barrel Export สำหรับทั้งโมดูล
+└── README.md                            # 📖 เอกสารกำกับ Type 1 (ไฟล์นี้)
 ```
 
 ---
 
-## 🗄️ 3. รายละเอียดตารางฐานข้อมูลที่เกี่ยวข้อง (Database Tables Deep Dive)
+## 🗄️ 3. สถาปัตยกรรมฐานข้อมูลแบบ Single Source of Truth
 
-ในสถาปัตยกรรมใหม่ Type 1 มี **Dedicated Relational Tables** ของตนเองโดยตรง เพื่อป้องกันปัญหาการแชร์ฟิลด์ปะปนกับ Type อื่น และทำงานควบคู่กับการ Sync ตาราง Legacy เพื่อรองรับ Backward Compatibility:
+ข้อมูลของ Type 1 ทั้งหมดถูกจัดเก็บลงใน **Dedicated Tables** โดยตรง **100%**:
+- **ยกเลิก Dual-Writing** (ไม่มีการเขียนข้อมูลซ้ำซ้อนลง `activity_plan_stores` หรือ monolithic columns ใน `activity_results`)
+- **ยกเลิก Legacy Fallback** (ฐานข้อมูลถูกคลีนใหม่หมดจด โค้ดไม่อ่าน fallback จากตารางเก่า ทำให้โค้ดกระชับ รวดเร็ว และไม่มีบั๊กเรื่องข้อมูลไม่ตรงกัน)
 
-### 3.1 ลำดับความสำคัญและการทำงานระหว่างตาราง (Hierarchy & Execution Order)
+```mermaid
+erDiagram
+    ActivityPlan ||--o{ ActivityPlanType1Store : "1:N (เป้าหมายร้านค้า/เกษตรกร)"
+    ActivityPlan ||--o| ActivityResultType1 : "1:1 (ผลลัพธ์การเข้าพบจริง)"
+    ActivityPlan ||--o{ ActivityResultType1Product : "1:N (สินค้าแนะนำที่ผูกกับ Master)"
+    ActivityPlan ||--o{ ActivityAttachment : "1:N (รูปถ่ายแปลงเกษตรกร)"
+    Customer ||--o{ ActivityPlanType1Store : "1:N (ร้านค้า/เกษตรกรในระบบ)"
+    Product ||--o{ ActivityResultType1Product : "1:N (Master สินค้า)"
 
-#### 1) ลำดับเชิงโครงสร้างและการบันทึกข้อมูล (Data Hierarchy & Write Flow)
+    ActivityPlanType1Store {
+        string id PK
+        string activityPlanId FK
+        string visitPurpose "FARMER / STORE"
+        string storeId FK "Customer.id"
+        string province
+        boolean isUnregisteredFarmer
+        string unregisteredFarmerName
+        string unregisteredFarmerPhone
+        string topic
+        string notes
+    }
 
-ในการจัดเก็บข้อมูล ระบบปฏิบัติตามลำดับความสัมพันธ์แบบ **Parent (หัวตาราง) ➔ Child (รายละเอียดเฉพาะประเภท)**:
+    ActivityResultType1 {
+        string id PK
+        string activityPlanId FK "Unique 1:1"
+        string discussionResult
+        string productAdvice
+        string salesOpportunity "สูง / ต่ำ"
+        datetime nextMeetingDate
+        string farmerHomeAddress
+        decimal plotLatitude
+        decimal plotLongitude
+    }
 
-1. **`activity_plans` (Root Plan):** ตารางหลักที่เป็นต้นกำเนิดของแผนงาน ทุกตารางลูกต้องอ้างอิง `activity_plan_id` จากตารางนี้
-2. **`activity_results` (Core Parent Header):** ตารางผลงานส่วนกลาง ต้องถูกสร้าง/อัปเดตก่อนเสมอ เพื่อควบคุมสถานะ Lifecycle (`result_status`), วันเวลาเริ่ม-จบจริง (`actual_start_date`, `actual_end_date`), งบประมาณจริง (`actual_budget`) และเป็นจุดศูนย์กลางสำหรับระบบรายงานและ Audit รวม
-3. **`activity_result_type_1` (Dedicated Type 1 Child):** ตารางบันทึกผลงานเฉพาะทางของ Type 1 บันทึกตามหลัง `activity_results` เพื่อเก็บข้อมูลเฉพาะของ Type 1 เช่น พิกัดแปลง (`plot_latitude`, `plot_longitude`), ที่อยู่เกษตรกร (`farmer_home_address`), คำแนะนำสินค้า (`product_advice`), สรุปผลพูดคุย (`discussionResult`)
-4. **`activity_result_type_1_farmers` (Target Details):** ตารางเป้าหมายย่อยสำหรับเก็บรายชื่อเกษตรกรและผลสังเกตการณ์พืชรายคน
+    ActivityResultType1Product {
+        string id PK
+        string activityPlanId FK
+        string productId FK "Product.id"
+        string productName
+        string targetId
+    }
 
-#### 2) ลำดับการอ่านและ Fallback ของข้อมูล Type 1 (Read & Fallback Priority)
-
-เมื่อหน้าจอ Type 1 ([type1-actual-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-actual-form.tsx)) ดึงข้อมูลผลงานขึ้นมาแสดงผล จะใช้ลำดับจาก **ความเฉพาะเจาะจงสูงสุด** ไปหาข้อมูลเดิม:
-
-1. **Priority 1 (แหล่งข้อมูลหลัก): `activity_result_type_1`**  
-   เป็นแหล่งข้อมูลหลักของ Type 1 ตามสถาปัตยกรรมใหม่ หากพบข้อมูลในตารางนี้จะถูกนำมาแสดงผลเป็นอันดับแรกเสมอ
-2. **Priority 2 (Fallback สำรอง): `activity_results`**  
-   หากใน `activity_result_type_1` ไม่มีข้อมูลหรือเป็นค่าว่าง ระบบจะ Fallback ไปดึงจากคอลัมน์เดิมใน `activity_results` (`plot_latitude`, `plot_longitude`, `farmer_home_address`, `discussion_result`) เพื่อรองรับข้อมูลเก่าในอดีต (Legacy Records) ที่บันทึกไว้ก่อนการแยกตาราง
+    ActivityAttachment {
+        string id PK
+        string activityPlanId FK
+        string workTypeCode "TYPE_1"
+        string fileUrl
+        string fileName
+    }
+```
 
 ---
 
-### 3.2 ตารางเฉพาะ `activity_plan_type_1_stores` (Dedicated Type 1 Plan Store)
+### 3.1 ตาราง `activity_plan_type_1_stores` (เป้าหมายแผนงาน Type 1)
 
-ตารางเฉพาะสำหรับ Type 1 เก็บข้อมูลเข้าพบร้านค้า/เกษตรกรโดยตรง:
+จัดเก็บเป้าหมายร้านค้า/เกษตรกรที่วางแผนจะเข้าพบ (1 แผน มีได้หลายเป้าหมาย):
 
 | คอลัมน์ (Column)            | ชนิดข้อมูล (Type)    | Nullable            | ความหมายและรายละเอียด                                                |
 | --------------------------- | -------------------- | ------------------- | -------------------------------------------------------------------- |
@@ -92,277 +152,136 @@ modules/activity-plans/features/type-1/
 | `is_unregistered_farmer`    | `BOOLEAN`            | No (default: false) | แฟล็กระบุว่าเป็นเกษตรกรนอกระบบหรือไม่                                |
 | `unregistered_farmer_name`  | `TEXT`               | Yes                 | ชื่อ-สกุล ของเกษตรกรนอกระบบ                                          |
 | `unregistered_farmer_phone` | `TEXT`               | Yes                 | เบอร์โทรศัพท์ของเกษตรกรนอกระบบ                                       |
-| `topic`                     | `TEXT`               | Yes                 | หัวข้อหลักในการเข้าพบ (แทนที่การยืมคอลัมน์ `remarks`)                |
+| `topic`                     | `TEXT`               | Yes                 | หัวข้อหลักในการเข้าพบ                                                |
 | `notes`                     | `TEXT`               | Yes                 | รายละเอียดเพิ่มเติมในการเข้าพบ                                       |
 
-### 3.3 ตารางเฉพาะ `activity_result_type_1` (Dedicated Type 1 Actual Outcome)
+---
 
-ตารางเฉพาะสำหรับ Type 1 เก็บผลการเข้าพบจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
+### 3.2 ตาราง `activity_result_type_1` (ผลการเข้าพบจริง Type 1)
 
-| คอลัมน์ (Column)      | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                                 |
-| --------------------- | -------------------- | -------- | ----------------------------------------------------- |
-| `id`                  | `VARCHAR(30)` (cuid) | No       | Primary Key                                           |
-| `activity_plan_id`    | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id` (Unique, 1:1) |
-| `product_advice`      | `TEXT`               | Yes      | รายชื่อสินค้าที่ให้คำแนะนำ                            |
-| `discussionResult`    | `TEXT`               | Yes      | สรุปผลการพูดคุยกับเกษตรกรหรือร้านค้า                  |
-| `sales_opportunity`   | `TEXT`               | Yes      | การประเมินโอกาสการขาย: `'สูง'` หรือ `'ต่ำ'`           |
-| `next_meeting_date`   | `TIMESTAMP`          | Yes      | วันที่นัดหมายครั้งถัดไป                               |
-| `farmer_home_address` | `TEXT`               | Yes      | ที่อยู่บ้านเกษตรกร                                    |
-| `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)               |
-| `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180)            |
+จัดเก็บผลการเข้าพบจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
 
-### 3.4 ตารางเฉพาะ `activity_result_type_1_products` (Dedicated Advised Products - Normalized)
-
-ตารางเก็บรายการสินค้าที่ให้คำแนะนำแบบแยกแถว (Normalized) มี Foreign Key ผูกกับ Master สินค้า (`Product`) โดยตรง เพื่อใช้จัดทำรายงานสถิติความถี่สินค้า, การจัดอันดับสินค้าที่แนะนำ, และ Conversion Rate:
-
-| คอลัมน์ (Column)   | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                                               |
-| ------------------ | -------------------- | -------- | ------------------------------------------------------------------- |
-| `id`               | `VARCHAR(30)` (cuid) | No       | Primary Key                                                         |
-| `activity_plan_id` | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id` (Cascade Delete)           |
-| `target_id`        | `VARCHAR(30)`        | Yes      | รหัสเป้าหมายที่ได้รับคำแนะนำ (เกษตรกร หรือร้านค้า)                  |
-| `product_id`       | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `Product.id` (เชื่อม Master สินค้า)             |
-| `product_name`     | `TEXT`               | Yes      | ชื่อสินค้า ณ ขณะบันทึก (Snapshot เพื่อความรวดเร็วในการ Query)      |
-| `created_at`       | `TIMESTAMP`          | No       | วันที่และเวลาที่บันทึกข้อมูล                                        |
-| `updated_at`       | `TIMESTAMP`          | No       | วันที่และเวลาที่อัปเดตล่าสุด                                        |
-
-### 3.5 ตารางส่วนกลางที่ Sync คู่ขนาน (Legacy Dual-Write Tables)
-
-- `activity_plan_stores`: มีการบันทึกควบคู่เพื่อรองรับ View / Reports เดิมที่ยังอ่านจากตารางรวม
-- `activity_results`: มีการบันทึกควบคู่เพื่อรองรับ View เดิม
-
-### 3.6 ตาราง `activity_plan_stores` (Legacy Plan Store Reference)
-
-| คอลัมน์ (Column)            | ชนิดข้อมูล (Type)    | Nullable            | ความหมายและรายละเอียด                                                       |
-| --------------------------- | -------------------- | ------------------- | --------------------------------------------------------------------------- |
-| `id`                        | `VARCHAR(30)` (cuid) | No                  | Primary Key ของแถวข้อมูล                                                    |
-| `activity_plan_id`          | `VARCHAR(30)`        | No                  | Foreign Key อ้างอิงไปยัง `activity_plans.id` (Cascade Delete)               |
-| `work_type_code`            | `VARCHAR(50)`        | No                  | รหัสประเภทงาน ระบุเป็น `'TYPE_1'` เสมอ                                      |
-| `visit_purpose`             | `TEXT`               | Yes                 | วัตถุประสงค์การเข้าพบ: `'FARMER'` (เกษตรกร) หรือ `'STORE'` (ร้านค้า)        |
-| `store_id`                  | `VARCHAR(30)`        | Yes                 | Foreign Key อ้างอิง `Customer.id` (เป็น null หากเป็นเกษตรกรนอกระบบ)         |
-| `store_name`                | `TEXT`               | Yes                 | ชื่อร้านค้า หรือชื่อเกษตรกร (Denormalized เพื่อความเร็วในการแสดงผล)         |
-| `province`                  | `TEXT`               | Yes                 | จังหวัดเป้าหมาย (สำหรับกรณีเข้าพบเกษตรกร)                                   |
-| `is_unregistered_farmer`    | `BOOLEAN`            | No (default: false) | แฟล็กระบุว่าเป็นเกษตรกรนอกระบบที่ยังไม่มีในฐานข้อมูลหรือไม่                 |
-| `unregistered_farmer_name`  | `TEXT`               | Yes                 | ชื่อ-สกุล ของเกษตรกรนอกระบบ                                                 |
-| `unregistered_farmer_phone` | `TEXT`               | Yes                 | เบอร์โทรศัพท์ของเกษตรกรนอกระบบ                                              |
-| `remarks`                   | `TEXT`               | Yes                 | ประเด็นหลักในการเข้าพบ (Topic) เช่น "แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า" |
-| `notes`                     | `TEXT`               | Yes                 | รายละเอียดเพิ่มเติมในการเข้าพบ (Detail)                                     |
-
-### 3.7 ตาราง `activity_results` (ผลการปฏิบัติงานจริง - Core Parent Header)
-
-ตารางเก็บผลการดำเนินงานจริง สัมพันธ์แบบ **1:1** กับ `activity_plans`:
-
-| คอลัมน์ (Column)      | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียดสำหรับ Type 1                                     |
-| --------------------- | -------------------- | -------- | ---------------------------------------------------------------------- |
-| `id`                  | `VARCHAR(30)` (cuid) | No       | Primary Key                                                            |
-| `activity_plan_id`    | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id` (Unique, 1:1)                  |
-| `discussion_result`   | `TEXT`               | Yes      | สรุปผลการพูดคุยกับเกษตรกรหรือร้านค้า (บังคับกรอกเมื่อสถานะ COMPLETED)  |
-| `product_advice`      | `TEXT`               | Yes      | รายชื่อสินค้าที่ให้คำแนะนำ (คั่นด้วยจุลภาค เช่น "แฮตแทค, ปุ๋ยเกล็ด")   |
-| `sales_opportunity`   | `TEXT`               | Yes      | การประเมินโอกาสการขาย: `'สูง'` หรือ `'ต่ำ'`                            |
-| `next_action`         | `TEXT`               | Yes      | สิ่งที่ต้องดำเนินการต่อ เช่น "ส่งตัวอย่างสินค้า", "นัดตรวจแปลง"        |
-| `next_meeting_date`   | `TIMESTAMP`          | Yes      | วันที่นัดหมายครั้งถัดไป                                                |
-| `farmer_home_address` | `TEXT`               | Yes      | ที่อยู่บ้านเกษตรกร (แสดงเฉพาะโหมด FARMER)                              |
-| `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)                                |
-| `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180)                             |
-| `result_status`       | `ENUM`               | No       | สถานะผลการทำกิจกรรม (`COMPLETED`, `PARTIAL`, `CANCELLED`, `POSTPONED`) |
-| `result_summary`      | `TEXT`               | Yes      | ข้อความสรุปผลกิจกรรมโดยรวม (สร้างอัตโนมัติจาก Summary Builder)         |
-
-### 3.8 ตาราง `activity_attachments` (รูปภาพแนบผลงานจริง)
-
-ตารางจัดเก็บ URL รูปถ่ายแปลงเกษตรกรจากการเข้าพบจริง:
-
-| คอลัมน์ (Column)     | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียดสำหรับ Type 1                               |
-| -------------------- | -------------------- | -------- | ---------------------------------------------------------------- |
-| `id`                 | `VARCHAR(30)` (cuid) | No       | Primary Key                                                      |
-| `activity_plan_id`   | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id`                          |
-| `activity_result_id` | `VARCHAR(30)`        | Yes      | Foreign Key อ้างอิง `activity_results.id`                        |
-| `work_type_code`     | `VARCHAR(50)`        | Yes      | ระบุเป็น `'TYPE_1'`                                              |
-| `category`           | `ENUM`               | No       | กำหนดเป็น `'GENERAL'`                                            |
-| `file_url`           | `TEXT`               | No       | URL รูปภาพแปลงเกษตรกรที่อัปโหลดขึ้น Cloud Storage (สูงสุด 5 รูป) |
-| `file_name`          | `TEXT`               | No       | ชื่อไฟล์รูปภาพต้นฉบับ                                            |
-
-### 3.9 ตาราง `Customer` (Master Data ลูกค้าสำหรับอ้างอิง)
-
-ตารางหลักของลูกค้าที่ `activity_plan_stores.store_id` ชี้ไป:
-
-- `customerType = 'FARMER'`: ใช้สำหรับโหมดเกษตรกรในระบบ
-- `customerType IN ('DEALER', 'SUBDEALER')`: ใช้สำหรับโหมดเข้าพบร้านค้า
+| คอลัมน์ (Column)      | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                      |
+| --------------------- | -------------------- | -------- | ------------------------------------------ |
+| `id`                  | `VARCHAR(30)` (cuid) | No       | Primary Key                                |
+| `activity_plan_id`    | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id`    |
+| `discussion_result`   | `TEXT`               | Yes      | สรุปผลการพูดคุยกับเกษตรกรหรือร้านค้า       |
+| `product_advice`      | `TEXT`               | Yes      | รายชื่อสินค้าที่ให้คำแนะนำ (ข้อความสรุป)   |
+| `sales_opportunity`   | `TEXT`               | Yes      | การประเมินโอกาสการขาย: `'สูง'` หรือ `'ต่ำ'` |
+| `next_meeting_date`   | `TIMESTAMP`          | Yes      | วันที่นัดหมายครั้งถัดไป                    |
+| `farmer_home_address` | `TEXT`               | Yes      | ที่อยู่บ้านเกษตรกร                         |
+| `plot_latitude`       | `DECIMAL(10, 7)`     | Yes      | พิกัดละติจูดของแปลงเกษตรกร (-90 ถึง 90)    |
+| `plot_longitude`      | `DECIMAL(10, 7)`     | Yes      | พิกัดลองจิจูดของแปลงเกษตรกร (-180 ถึง 180) |
 
 ---
 
-## 🖥️ 4. Data Mapping & Field Specification แยกตามหน้าจอ
+### 3.3 ตาราง `activity_result_type_1_products` (สินค้าแนะนำผูก Master)
 
-### 4.1 หน้าสร้างและแก้ไขแผนงาน (Plan Stage: Create / Edit Form)
+จัดเก็บรายการสินค้าที่ให้คำแนะนำแบบแยกแถว (Normalized) ผูกกับตาราง `Product` โดยตรง:
 
-**ไฟล์ UI**: [components/type1-plan-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-plan-form.tsx)  
-**Hook**: [hooks/use-type1-form.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/hooks/use-type1-form.ts)  
-**Mapper**: [application/mapper.ts](file:///d:/code/crm-plans/features/type-1/application/mapper.ts) $\rightarrow$ `mapType1FormToPlanStore()`
-
-| UI Control / Field                       | Form State Key                       | Validation Rule                                    | บันทึกลงตาราง (DB Table) | คอลัมน์ (DB Column)                      | เงื่อนไข / พฤติกรรม                        |
-| ---------------------------------------- | ------------------------------------ | -------------------------------------------------- | ------------------------ | ---------------------------------------- | ------------------------------------------ |
-| **วัตถุประสงค์ของประเภทงาน (Radio)**     | `item.visitPurpose`                  | บังคับเลือก `'FARMER'` หรือ `'STORE'`              | `activity_plan_stores`   | `visit_purpose`                          | สลับโหมดจะล้างฟิลด์เฉพาะทางของอีกโหมดทันที |
-| **จังหวัด (Dropdown)**                   | `item.province`                      | บังคับเลือกจังหวัด (เฉพาะโหมด FARMER)              | `activity_plan_stores`   | `province`                               | เปลี่ยนจังหวัดจะล้างเกษตรกรเดิมที่เลือกไว้ |
-| **เช็กบ็อกซ์ "ไม่มีในระบบ"**             | `item.isUnregisteredFarmer`          | `boolean` (เฉพาะโหมด FARMER)                       | `activity_plan_stores`   | `is_unregistered_farmer`                 | ติ๊กถูกจะสลับเป็นช่องกรอกชื่อ/เบอร์โทร     |
-| **เกษตรกรในระบบ (Combobox)**             | `item.storeId` & `item.customerName` | บังคับเลือกจากฐานข้อมูล `Customer` (type: FARMER)  | `activity_plan_stores`   | `store_id` (FK), `store_name`            | บันทึก `store_id` เป็น ID ลูกค้า           |
-| **ชื่อ-สกุล เกษตรกรนอกระบบ (Input)**     | `item.unregisteredFarmerName`        | บังคับกรอกหากเลือกไม่มีในระบบ                      | `activity_plan_stores`   | `unregistered_farmer_name`, `store_name` | บันทึก `store_id` เป็น `null`              |
-| **เบอร์โทรศัพท์เกษตรกร (Input)**         | `item.unregisteredFarmerPhone`       | ตัวเลข 9-10 หลัก (ถ้ากรอก)                         | `activity_plan_stores`   | `unregistered_farmer_phone`              | กรองขีดและช่องว่างออกก่อนบันทึก            |
-| **ร้านค้า (Combobox)**                   | `item.storeId` & `item.customerName` | บังคับเลือกจาก `Customer` (type: DEALER/SUBDEALER) | `activity_plan_stores`   | `store_id` (FK), `store_name`            | มีเฉพาะในโหมด STORE                        |
-| **ประเด็นหลัก (Combobox)**               | `item.topic`                         | บังคับเลือก (default: "แจ้งข่าวสาร")               | `activity_plan_stores`   | `remarks`                                | นำค่า topic ไปเก็บที่คอลัมน์ `remarks`     |
-| **รายละเอียดเพิ่มเติม (Input/Textarea)** | `item.detail`                        | Optional string                                    | `activity_plan_stores`   | `notes`                                  | นำค่า detail ไปเก็บที่คอลัมน์ `notes`      |
+| คอลัมน์ (Column)   | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียด                                          |
+| ------------------ | -------------------- | -------- | -------------------------------------------------------------- |
+| `id`               | `VARCHAR(30)` (cuid) | No       | Primary Key                                                    |
+| `activity_plan_id` | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id` (Cascade Delete)      |
+| `target_id`        | `VARCHAR(30)`        | Yes      | รหัสเป้าหมายที่ได้รับคำแนะนำ (เกษตรกร หรือร้านค้า)             |
+| `product_id`       | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `Product.id` (เชื่อม Master สินค้าโดยตรง)  |
+| `product_name`     | `TEXT`               | Yes      | ชื่อสินค้า ณ ขณะบันทึก (Snapshot เพื่อความเร็วในการ Query)     |
 
 ---
 
-### 4.2 หน้าบันทึกผลการปฏิบัติงานจริง (Actual Outcome Stage Form)
+### 3.4 ตาราง `activity_attachments` (รูปถ่ายแปลงเกษตรกร)
 
-**ไฟล์ UI**: [components/type1-actual-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-actual-form.tsx)  
-**Hook**: [hooks/use-type1-actual.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/hooks/use-type1-actual.ts)  
-**Summary Builder**: `summary-builder.ts` $\rightarrow$ `buildResultSummary()`
+จัดเก็บไฟล์รูปถ่ายจากการเข้าพบจริง:
 
-- **รองรับ Multi-Target Actual**: หากแผนงานมี $N$ เป้าหมาย (เช่น 2 ร้านค้า หรือ 1 ร้านค้า + 1 เกษตรกร) ฟอร์มจะแสดงการ์ดบันทึกผลการปฏิบัติงานแยกเป็นรายเป้าหมายอย่างชัดเจน (ผลพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, สิ่งที่ต้องทำต่อ, พิกัด/รูปแปลงเฉพาะเกษตรกร) พร้อมทั้งผสาน (Sync) ข้อมูลกลับสู่ระบบส่วนกลางโดยอัตโนมัติ
-
-| UI Control / Field                        | Form State Key        | Validation Rule                  | บันทึกลงตาราง (DB Table) | คอลัมน์ (DB Column)                                | เงื่อนไข / พฤติกรรม                                 |
-| ----------------------------------------- | --------------------- | -------------------------------- | ------------------------ | -------------------------------------------------- | --------------------------------------------------- |
-| **ที่อยู่บ้านเกษตรกร (Textarea)**         | `t1FarmerHomeAddress` | Optional string                  | `activity_results`       | `farmer_home_address`                              | แสดงเฉพาะเมื่อแผนเป็นโหมด FARMER                    |
-| **พิกัดแปลง: Latitude (Input/GPS)**       | `t1PlotLatitude`      | Decimal string (-90 ถึง 90)      | `activity_results`       | `plot_latitude`                                    | กดปุ่ม "ใช้ตำแหน่งปัจจุบัน" ดึง GPS จาก Browser ได้ |
-| **พิกัดแปลง: Longitude (Input/GPS)**      | `t1PlotLongitude`     | Decimal string (-180 ถึง 180)    | `activity_results`       | `plot_longitude`                                   | กดปุ่ม "ใช้ตำแหน่งปัจจุบัน" ดึง GPS จาก Browser ได้ |
-| **รูปแปลงเกษตรกร (Gallery Upload)**       | `t1PlotImages`        | สูงสุด 5 รูป, รูปละไม่เกิน 20MB  | `activity_attachments`   | `file_url`, `file_name`, `work_type_code='TYPE_1'` | อัปโหลดเข้า Cloud Storage ก่อนบันทึก                |
-| **สินค้าที่ให้คำแนะนำ (Multi Combobox)**  | `t1ProductAdvice`     | Comma-separated product names    | `activity_results`       | `product_advice`                                   | แสดงเมื่อเลือกหัวข้อ "ให้คำแนะนำการใช้สินค้า"       |
-| **ประเมินโอกาสการขาย (Button Group)**     | `t1SalesOpportunity`  | บังคับเลือก `'สูง'` หรือ `'ต่ำ'` | `activity_results`       | `sales_opportunity`                                | แสดงเมื่อเลือกหัวข้อ "ให้คำแนะนำการใช้สินค้า"       |
-| **ผลการพูดคุย (Textarea)**                | `t1DiscussionResult`  | บังคับกรอกเมื่อสถานะ COMPLETED   | `activity_results`       | `discussion_result`                                | สรุปประเด็นสำคัญที่ได้จากการพูดคุย                  |
-| **สิ่งที่ต้องดำเนินการต่อ (Input)**       | `t1NextAction`        | Optional string                  | `activity_results`       | `next_action`                                      | Action plan หลังการเข้าพบ                           |
-| **วันที่นัดหมายครั้งถัดไป (Date Picker)** | `t1NextMeetingDate`   | Valid date string / Date         | `activity_results`       | `next_meeting_date`                                | บันทึกเป็น Timestamp                                |
+| คอลัมน์ (Column)   | ชนิดข้อมูล (Type)    | Nullable | ความหมายและรายละเอียดสำหรับ Type 1                               |
+| ------------------ | -------------------- | -------- | ---------------------------------------------------------------- |
+| `id`               | `VARCHAR(30)` (cuid) | No       | Primary Key                                                      |
+| `activity_plan_id` | `VARCHAR(30)`        | No       | Foreign Key อ้างอิง `activity_plans.id`                          |
+| `work_type_code`   | `VARCHAR(50)`        | Yes      | ระบุเป็น `'TYPE_1'`                                              |
+| `category`         | `ENUM`               | No       | กำหนดเป็น `'GENERAL'`                                            |
+| `file_url`         | `TEXT`               | No       | URL รูปภาพแปลงเกษตรกรที่อัปโหลดขึ้น Cloud Storage (สูงสุด 5 รูป) |
+| `file_name`        | `TEXT`               | No       | ชื่อไฟล์รูปภาพ                                                   |
 
 ---
 
-### 4.3 หน้าแสดงรายละเอียด (Detail View)
+## 🖥️ 4. Data Mapping & UI Specification
 
-**ไฟล์ UI**: [components/type1-detail-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-detail-view.tsx)  
-**Component แผนเดิม**: [components/type1-plan-card.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-plan-card.tsx)  
-**Data Extractor**: `plan-extractor.ts` $\rightarrow$ `extractPlanData()`
-
-- **ส่วนข้อมูลแผนงาน (PLAN)**:
-  - รองรับ Multi-Store ($N$ เป้าหมาย): ดึงข้อมูลจาก `targets.t1List` และแสดงผลผ่าน `<Type1PlanCard targets={targets} />`
-- **ส่วนผลการปฏิบัติงานจริง (ACTUAL)**:
-  - รองรับ Multi-Target Result: แสดงผลการเข้าพบจริงแยกตามแต่ละเป้าหมาย พร้อมรายละเอียดเฉพาะของร้านค้า/เกษตรกรรายนั้นๆ
-  - มี Badge แสดงจำนวนเป้าหมายรวม เช่น `4 เป้าหมาย` และแต่ละเป้าหมายแยกการ์ดย่อยชัดเจน (เป้าหมายที่ 1, 2, ..., N) พร้อมวัตถุประสงค์ (ร้านค้า / เกษตรกร)
-  - แสดง: วัตถุประสงค์ (`visit_purpose`), ร้านค้า/เกษตรกร (`store_name` หรือ `unregistered_farmer_name`), ประเภทลูกค้า (`Customer.customerType`), จังหวัด (`province`), เบอร์โทรศัพท์ (`unregistered_farmer_phone`), ประเด็นหลัก (`remarks` / `topic`), รายละเอียด (`notes`)
-- **ส่วนผลการปฏิบัติงานจริง (ACTUAL)**:
-  - อ่านจาก `activity_result_type_1` (หรือ fallback `activity_results`) และ `activity_attachments`
-  - มีกล่องสรุปเป้าหมายที่เข้าพบตามแผนงานทั้งหมด พร้อมสถานะร้านค้า/เกษตรกร
-  - แสดง: ที่อยู่บ้านเกษตรกร (`farmer_home_address`), พิกัดแปลง (`plot_latitude`, `plot_longitude`) พร้อมปุ่มลิงก์เปิด Google Maps อัตโนมัติ, รูปถ่ายแปลงเกษตรกร (`activity_attachments`) พร้อม Lightbox คลิกดูภาพขยาย, สินค้าที่แนะนำ (`product_advice`), โอกาสการขาย (`sales_opportunity`), ผลการพูดคุย (`discussion_result`), สิ่งที่ต้องทำต่อ (`next_action`), วันนัดหมายถัดไป (`next_meeting_date`)
+### 4.1 แผนงานล่วงหน้า (Planned Sub-slice)
+- **Component**: [planned/components/type1-planned-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/planned/components/type1-planned-form.tsx)
+- **Hook**: [planned/hooks/use-type1-planned-form.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/planned/hooks/use-type1-planned-form.ts)
+- **หน้าที่**: สำหรับผู้ใช้สร้างหรือแก้ไขแผนงานล่วงหน้า โดยมุ่งเน้นการวางเป้าหมายร้านค้า/เกษตรกร **ไม่มีฟิลด์ผลการเข้าพบจริง พิกัด GPS หรือรูปถ่ายปะปน**
+- **พฤติกรรม**:
+  - เลือกวัตถุประสงค์ `FARMER` หรือ `STORE`
+  - สลับวัตถุประสงค์จะล้างค่าเฉพาะของอีกโหมดทันที
+  - เพิ่ม/ลบเป้าหมายได้อย่างอิสระ (อย่างน้อย 1 เป้าหมาย)
 
 ---
 
-### 4.4 หน้าคิวอนุมัติ (Approval Queue View)
-
-**ไฟล์ UI**: [approval/approval-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/approval/approval-type1-visit.tsx)
-
-- แสดงผลแบบ Read-only สำหรับผู้มีอำนาจอนุมัติ (Manager / Approver)
-- รองรับ Multi-Store ($N$ เป้าหมาย): รับ `targets={targets.t1List}` และส่งต่อให้ `<Type1PlanCard />`
-- ผู้อนุมัติสามารถตรวจสอบเป้าหมายทั้งหมดในแผนเดียวได้อย่างครบถ้วน ก่อนตัดสินใจ Approve / Reject / Request Correction
-
----
-
-## 🔄 5. กฎ Data Flow & Work Type Switching
-
-1. **การสลับวัตถุประสงค์ FARMER $\leftrightarrow$ STORE ในหน้าจอ**:
-   - เมื่อผู้ใช้เลือก **STORE**: ฟังก์ชัน `handlePurposeChange("STORE")` จะสั่งล้างค่า `province`, `isUnregisteredFarmer`, `unregisteredFarmerName`, `unregisteredFarmerPhone` ทิ้งทันที ป้องกันไม่ให้มีข้อมูลเกษตรกรนอกระบบติดเข้าไปในร้านค้า
-   - เมื่อผู้ใช้เลือก **FARMER**: ฟังก์ชันจะล้างร้านค้าเดิมที่เลือกไว้ เพื่อให้เลือกจังหวัดและเกษตรกรใหม่
-2. **การสลับ Work Type (Uncheck Type 1)**:
-   - ฟังก์ชัน `useType1Form.mapType1Payload()` ตรวจสอบว่ามี `'TYPE_1'` หรือ `'เข้าพบร้านค้า / Key Farmer'` อยู่ใน `selectedWorkTypes` หรือไม่ผ่าน `getWorkTypeCode()`
-   - หาก **ไม่ได้เลือก Type 1**: จะคืนค่า `{ planStores: [] }` ทันที ทำให้ **ไม่มีข้อมูล Type 1 หลุดเข้าไปใน Payload หรือ Transaction บันทึกของแผนงานอื่น**
-3. **การทำสำเนาแผนงาน (Duplication)**:
-   - `duplicateActivityPlanUseCase` สกัดเฉพาะค่าฟิลด์ข้อมูลจากแผนเดิม และสร้างเรคอร์ดใหม่ใน `activity_plan_stores` โดยผูกกับ `activityPlanId` ใหม่ และสร้าง Primary Key `id` ใหม่ทั้งหมด จึงไม่มีปัญหาข้อมูลสองแผนปะปนกัน
+### 4.2 กิจกรรมนอกแผน (Unplanned Sub-slice: Unified All-In-One Form)
+- **Component**: [unplanned/components/type1-unplanned-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/unplanned/components/type1-unplanned-form.tsx)
+- **Hook**: [unplanned/hooks/use-type1-unplanned-form.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/unplanned/hooks/use-type1-unplanned-form.ts)
+- **หน้าที่**: สำหรับการลงพื้นที่จริงโดยไม่ได้วางแผนล่วงหน้า (บันทึกย้อนหลัง)
+- **คุณสมบัติสำคัญ**:
+  1. **All-In-One Form:** รวมการกรอกเป้าหมาย + ผลการพูดคุย + สินค้าแนะนำ + โอกาสการขาย + ที่อยู่ + พิกัด GPS + รูปถ่าย ไว้ในการ์ดของแต่ละเป้าหมายใน Section 2
+  2. **Auto Synchronization:** มี `useEffect` คอยซิงก์ข้อมูลจาก Form State เข้าสู่ `actualOrchestrator.typeHooks.type1` อัตโนมัติในเบื้องหลัง เพื่อให้ระบบบันทึก `ActivityResult` และ `activity_result_type_1` ได้ทันทีเมื่อกดบันทึก
+  3. **Section 7 Clean:** ซ่อนช่องกรอกผลลัพธ์ของ Type 1 ใน Section 7 ทำให้ผู้ใช้กรอกข้อมูลรอบเดียว ไม่ซ้ำซ้อน
 
 ---
 
-## 🛠️ 6. คู่มือ: วิธีเพิ่มฟิลด์ใหม่ใน TYPE 1 ใน 6 ขั้นตอน
+### 4.3 ผลการปฏิบัติงานจริงในแผน (Actual Result Sub-slice)
+- **Component**: [actual/components/type1-actual-form.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/actual/components/type1-actual-form.tsx)
+- **Hook**: [actual/hooks/use-type1-actual.ts](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/actual/hooks/use-type1-actual.ts)
+- **หน้าที่**: สำหรับเปิดบันทึกผลการเข้าพบจริงตามแผนงานที่ได้รับการอนุมัติแล้ว
+- **Decoupled Architecture**: Component รับ `actualState?: ReturnType<typeof useType1Actual>` เข้าไปจัดการภายในตัวมันเองโดยตรง ทำให้ [activity-result-section.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/shared/actual-view/components/activity-result-section.tsx) ของส่วนกลางไม่ต้อง unpack ตัวแปร 20 กว่าบรรทัดอีกต่อไป
 
-ตัวอย่าง: ต้องการเพิ่มฟิลด์ `"หัวข้อการนัดหมายครั้งถัดไป"` (`nextMeetingTopic`) ใน `TYPE_1`
+---
 
-### ขั้นตอนที่ 1: ตรวจสอบและอัปเดต Schema ฐานข้อมูล (`prisma/schema.prisma`)
+### 4.4 หน้าแสดงรายละเอียด (Detail View)
+- **Component**: [components/type1-detail-view.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-detail-view.tsx)
+- **Card**: [components/type1-plan-card.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-plan-card.tsx)
+- **การดึงข้อมูล**:
+  - ดึงข้อมูลร้านค้าจาก `plan.type1Stores` โดยตรง 100%
+  - ดึงผลงานจริงจาก `plan.type1Result` และสินค้าแนะนำจาก `plan.type1Products`
+  - หากเป็นแผนนอกแผน (Unplanned) ระบบจะซ่อน Card แผนงานเดิม และแสดงผลลัพธ์จริงที่ครบถ้วนทันที
 
-1. กำหนดว่าฟิลด์นี้อยู่ในส่วน **Plan** หรือ **Actual Result**:
-   - หากอยู่ใน Plan $\rightarrow$ เพิ่มคอลัมน์ในโมเดล `ActivityPlanStore`
-   - หากอยู่ใน Actual $\rightarrow$ เพิ่มคอลัมน์ `next_meeting_topic` ในโมเดล `ActivityResult`
-2. สร้าง Prisma Migration:
-   ```bash
-   npx prisma migrate dev --create-only --name add_next_meeting_topic_to_activity_result
-   ```
+---
 
-### ขั้นตอนที่ 2: เพิ่ม Type (`types/index.ts`)
+### 4.5 หน้าจออนุมัติ (Approval Card)
+- **Component**: [components/type1-approval-card.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/components/type1-approval-card.tsx)
+- แสดงสรุปเป้าหมายร้านค้า/เกษตรกรที่เสนอขออนุมัติอย่างกระชับและชัดเจนสำหรับ Approver
 
-เพิ่มฟิลด์ใน Interface:
+---
+
+## 🔄 5. จุดเชื่อมโยงกับระบบส่วนกลาง (Central Integrations)
+
+| ส่วนกลางที่เกี่ยวข้อง | ไฟล์ที่เชื่อมต่อ | หน้าที่และสัญญากลาง |
+| :--- | :--- | :--- |
+| **Strategy Pattern** | `application/strategies/type-registry.ts` | ลงทะเบียน `Type1Strategy` เข้ากับ Core Registry |
+| **Prisma Eager Loading** | `infrastructure/activity-plan-include.ts` | กำหนด `type1Stores`, `type1Result`, `type1Products` ใน `ACTIVITY_PLAN_FULL_INCLUDE` |
+| **Plan Repository** | `infrastructure/activity-plan.repository.ts` | บันทึกเฉพาะเป้าหมาย Type อื่นลง `activity_plan_stores` โดยข้าม `TYPE_1` ให้ Strategy จัดการตาราง dedicated |
+| **Actual Repository** | `infrastructure/activity-result.repository.ts` | ปล่อย legacy columns ใน `activity_results` เป็น `null` และ delegate ให้ `Type1Strategy.saveActual` บันทึกตาราง dedicated |
+| **Form Renderer** | `features/shared/form/plan-work-type-renderer.tsx` | เรนเดอร์ `<Type1UnplannedForm />` เมื่อเป็นนอกแผน และ `<Type1PlannedForm />` เมื่อเป็นในแผน |
+| **Detail Mapper** | `features/shared/detail-view/utils.ts` | อ่านตรงจาก `plan.type1Stores` แปลงเป็น Section Data |
+
+---
+
+## 📦 6. Public API (`index.ts`)
+
+ภายนอกสามารถเรียกใช้ Type 1 ผ่าน `@/modules/activity-plans/features/type-1` โดยมี Public Export สำคัญดังนี้:
 
 ```typescript
-export interface Type1ActualData {
-  // ...ฟิลด์เดิม
-  nextMeetingTopic?: string | null;
-}
+// 🟢 โซน "ในแผน" (Planned Sub-slice)
+export { Type1PlannedForm, useType1PlannedForm, validateType1PlannedItem } from "@/modules/activity-plans/features/type-1";
+
+// 🟡 โซน "นอกแผน" (Unplanned Sub-slice)
+export { Type1UnplannedForm, useType1UnplannedForm, validateType1UnplannedItem } from "@/modules/activity-plans/features/type-1";
+
+// 🔵 โซน "บันทึกผลงานจริง" (Actual Sub-slice)
+export { Type1ActualForm, ActualType1Visit, useType1Actual } from "@/modules/activity-plans/features/type-1";
+
+// ⚪ Detail & Approval Components
+export { Type1DetailView, DetailType1Visit, Type1ApprovalCard, ApprovalType1Visit, Type1PlanCard } from "@/modules/activity-plans/features/type-1";
+
+// 🧠 Strategy & Mappers
+export { Type1Strategy, mapType1PlanDbToForm, hydrateType1PlannedData, hydrateType1UnplannedData } from "@/modules/activity-plans/features/type-1";
 ```
-
-### ขั้นตอนที่ 3: เพิ่ม Validation (`application/validation.ts`)
-
-อัปเดต Zod Schema:
-
-```typescript
-export const type1ActualResultSchema = z.object({
-  // ...ฟิลด์เดิม
-  nextMeetingTopic: z.string().optional().nullable(),
-});
-```
-
-### ขั้นตอนที่ 4: เพิ่ม Mapper (`application/mapper.ts`)
-
-แมปค่าส่งต่อไปยัง Payload:
-
-```typescript
-// in mapper.ts -> mapType1ActualFormToDb:
-nextMeetingTopic: actual.nextMeetingTopic?.trim() || null,
-```
-
-### ขั้นตอนที่ 5: เพิ่มช่องกรอกใน UI (`components/` หรือ `actual/`)
-
-เพิ่ม Component เช่น `<Input label="หัวข้อนัดหมายถัดไป" ... />` ใน [actual/actual-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/actual/actual-type1-visit.tsx)
-
-### ขั้นตอนที่ 6: แสดงผลในหน้าอ่านอย่างเดียว (`detail/` และ `approval/`)
-
-เพิ่มการแสดงผลใน [detail/detail-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/detail/detail-type1-visit.tsx) และ [approval/approval-type1-visit.tsx](file:///d:/code/crm-bank/modules/activity-plans/features/type-1/approval/approval-type1-visit.tsx)
-
----
-
-## 📦 7. Public Export (`index.ts`)
-
-ภายนอกโมดูลสามารถเรียกใช้ Component, Hook, Mapper, Validation และ Types ของ Type 1 ผ่าน `@/modules/activity-plans/features/type-1` โดยตรง
-
-## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
-
-### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
-
-| หมวดหมู่              | ฟังก์ชัน / โมดูลที่เรียกใช้                                                 | ที่อยู่ไฟล์ (File Path)                                                                                                                                                  | วัตถุประสงค์การใช้งาน                                                         |
-| --------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| **Infrastructure**    | `db (PrismaClient)`                                                         | [`lib/db.ts`](file:///lib/db.ts)                                                                                                                                         | ประมวลผล Transaction บันทึกข้อมูล activity_plan_type_1_stores และ type1Result |
-| **Application**       | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult`             | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern                                              |
-| **Application**       | `getWorkTypeCode`                                                           | [`modules/activity-plans/constants/index.ts`](file:///modules/activity-plans/constants/index.ts)                                                                         | Normalize รหัส Work Type                                                      |
-| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls, convertToFileMetadata` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts)                         | อัปโหลดและจัดการ URL รูปภาพการเข้าพบ                                          |
-| **External Module**   | `listCustomersAction, ActivityCustomerSelect`                               | [`modules/customers/server/actions.ts / components/activity`](file:///modules/customers/server/actions.ts / components/activity)                                         | ค้นหาและเลือกร้านค้า Dealer หรือเกษตรกร                                       |
-
-### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
-
-| ส่วนกลางที่เรียกใช้   | ไฟล์ที่เรียกใช้ (Caller Path)                                                                                                                                                      | สิ่งที่นำไปใช้ (Export / Function)     | วัตถุประสงค์                                                              |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------- |
-| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts)                                         | `Type1Strategy`                        | ลงทะเบียน Handler เพื่อให้ Core Flow เรียก savePlan, saveActual อัตโนมัติ |
-| **Repository Query**  | [`modules/activity-plans/infrastructure/activity-plan-include.ts`](file:///modules/activity-plans/infrastructure/activity-plan-include.ts)                                         | `type1Stores, type1Result`             | Eager load ข้อมูลร้านค้าและผลลัพธ์ใน findActivityPlanById                 |
-| **Actual Repository** | [`modules/activity-plans/infrastructure/activity-result.repository.ts`](file:///modules/activity-plans/infrastructure/activity-result.repository.ts)                               | `getTypeStrategy("TYPE_1").saveActual` | บันทึกผลการเข้าพบจริงแยกตาราง dedicated                                   |
-| **Detail Mapper**     | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts)                                               | `mapType1StoresToSectionItems`         | แปลงข้อมูลร้านค้าเป็น Section Items ในหน้ารายละเอียด                      |
-| **Approval Queue**    | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type1ApprovalCard`                    | การ์ดแสดงผลสรุปร้านค้าในหน้าจอผู้อนุมัติ                                  |
-| **Actual Form**       | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts)   | `Type1ActualForm, Type1Actual`         | ฟอร์มบันทึกผลการเข้าพบจริง (สำหรับกิจกรรมตามแผน)                          |
-| **Unplanned Form**    | [`modules/activity-plans/features/unplanned/components/unplanned-activity-form.tsx`](file:///modules/activity-plans/features/unplanned/components/unplanned-activity-form.tsx)     | `Type1Visit` (`isUnplanned={true}`)    | ฟอร์มรวมเป้าหมายและผลจริงไว้ในการ์ดเดียวกัน (Unified Card - Option A)    |
-
----
-
-## 🌟 8. Unplanned Activity Flow (Unified Target Card - Option A)
-
-สำหรับกิจกรรมนอกแผน (Unplanned Activity) ซึ่งเป็นการบันทึกงานย้อนหลังหลังจากที่ลงพื้นที่เสร็จแล้ว:
-- **Unified Card:** ยุบรวมการกรอก **"เป้าหมาย"** (ประเภทร้านค้า/เกษตรกร, ประเด็นหลัก, รายละเอียด) และ **"ผลการปฏิบัติงานจริง"** (ผลการพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, วันนัดหมาย, ที่อยู่, พิกัด GPS, รูปถ่าย) ไว้ในการ์ดของแต่ละเป้าหมายใน Section เดียวกัน
-- **Multi-Target Scaling:** เมื่อเพิ่มเป้าหมาย (เป้าหมายที่ 1, 2, ...) การ์ดแต่ละใบจะมีส่วนผลจริงของตัวเอง และระบบจะซิงก์ข้อมูลไปยัง Strategy/Repository บันทึกลงทั้ง `activity_plan_stores`, `activity_result_type_1`, และ `activity_result_type_1_products` โดยอัตโนมัติ
-- **Zero Redundancy:** ซ่อนบล็อกผลการปฏิบัติงานจริงซ้ำซ้อนใน Section 7 คงเหลือเฉพาะการเลือกสถานะภาพรวมของกิจกรรม (สำเร็จ/ยกเลิก/เลื่อน)
