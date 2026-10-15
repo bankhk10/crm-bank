@@ -321,6 +321,6 @@ export interface Type7bSprayingRoundItem {
   plotImages: ImageFile[];
 }
 
-export type { ParsedSummaryValues } from "./utils/summary-parser";
+export type { ParsedSummaryValues } from "@/modules/activity-plans/features/shared/actual-view/utils/summary-parser";
 
 

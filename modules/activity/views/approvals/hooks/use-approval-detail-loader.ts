@@ -10,9 +10,19 @@ import {
 } from "@/modules/activity-plans/server/actions";
 import { canUserPerformApproval } from "@/modules/activity-plans/ui/activity-status-badge";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
-import { extractPlanData, parseResultSummary } from "../../actual/utils";
-import { initialTargets, initialPlanSummary } from "../../actual/constants";
-import type { PlanSummaryData, ActualTargetsState, ParsedSummaryValues } from "../../actual/types";
+import {
+  extractPlanData,
+  parseResultSummary,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import {
+  initialTargets,
+  initialPlanSummary,
+} from "@/modules/activity-plans/features/shared/actual-view/constants";
+import type {
+  PlanSummaryData,
+  ActualTargetsState,
+  ParsedSummaryValues,
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 import { extractType1PlanTargets } from "@/modules/activity/features/type-1";
 import type { ApprovalActionType } from "../components/approval-action-dialog";
 

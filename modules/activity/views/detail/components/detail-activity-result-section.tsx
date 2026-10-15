@@ -2,8 +2,8 @@
 
 import React from "react";
 import { BarChart3 } from "lucide-react";
-import type { ActualTargetsState } from "../../actual/types";
-import type { ParsedSummaryValues } from "../../actual/utils/summary-parser";
+import type { ActualTargetsState } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { ParsedSummaryValues } from "@/modules/activity-plans/features/shared/actual-view/utils/summary-parser";
 import { WORK_TYPES } from "@/modules/activity-plans/constants";
 import {
   DetailType1Visit,

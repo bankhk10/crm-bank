@@ -6,9 +6,18 @@ import { getActivityPlanAction } from "@/modules/activity-plans/server/actions";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
-import type { PlanSummaryData, ActualTargetsState } from "../types";
-import { extractPlanData, parseResultSummary } from "../utils";
-import { initialTargets, initialPlanSummary } from "../constants";
+import type {
+  PlanSummaryData,
+  ActualTargetsState,
+} from "@/modules/activity-plans/features/shared/actual-view/types";
+import {
+  extractPlanData,
+  parseResultSummary,
+} from "@/modules/activity-plans/features/shared/actual-view/utils";
+import {
+  initialTargets,
+  initialPlanSummary,
+} from "@/modules/activity-plans/features/shared/actual-view/constants";
 
 interface UseActualPlanLoaderProps {
   id?: string;
