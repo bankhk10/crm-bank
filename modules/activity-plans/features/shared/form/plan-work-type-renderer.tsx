@@ -4,7 +4,10 @@ import React from "react";
 import { SectionHeader } from "@/components/custom/section-header";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 
-import { Type1Visit } from "@/modules/activity-plans/features/type-1";
+import {
+  Type1PlannedForm,
+  Type1UnplannedForm,
+} from "@/modules/activity-plans/features/type-1";
 import { Type2Followup } from "@/modules/activity-plans/features/type-2";
 import { Type3Sales } from "@/modules/activity-plans/features/type-3";
 import { Type4Collect } from "@/modules/activity-plans/features/type-4";
@@ -39,7 +42,6 @@ export interface PlanWorkTypeRendererProps {
   defaultProvince?: string;
   defaultDistrict?: string;
   isUnplanned?: boolean;
-  onSyncType1Actual?: (items: any[]) => void;
 }
 
 export function PlanWorkTypeRenderer({
@@ -60,7 +62,6 @@ export function PlanWorkTypeRenderer({
   defaultProvince = "",
   defaultDistrict = "",
   isUnplanned = false,
-  onSyncType1Actual,
 }: PlanWorkTypeRendererProps) {
   if (!selectedWorkTypes || selectedWorkTypes.length === 0) {
     return null;
@@ -171,20 +172,28 @@ export function PlanWorkTypeRenderer({
       />
 
       <div className="space-y-5">
-        {/* Work Type 1: เข้าพบเกษตรกร */}
-        {isType1 && (
-          <Type1Visit
-            readonly={readonly}
-            type1Items={typeForms.type1.type1Items}
-            addType1Row={typeForms.type1.addType1Row}
-            updateType1Row={typeForms.type1.updateType1Row}
-            deleteType1Row={typeForms.type1.deleteType1Row}
-            customers={customersList}
-            products={productsList}
-            isUnplanned={isUnplanned}
-            onSyncActual={onSyncType1Actual}
-          />
-        )}
+        {/* Work Type 1: เข้าพบเกษตรกร / ร้านค้า */}
+        {isType1 &&
+          (isUnplanned ? (
+            <Type1UnplannedForm
+              readonly={readonly}
+              items={typeForms.type1.type1Items as any}
+              addItem={typeForms.type1.addType1Row}
+              updateItem={typeForms.type1.updateType1Row}
+              deleteItem={typeForms.type1.deleteType1Row}
+              customers={customersList}
+              products={productsList}
+            />
+          ) : (
+            <Type1PlannedForm
+              readonly={readonly}
+              items={typeForms.type1.type1Items as any}
+              addItem={typeForms.type1.addType1Row}
+              updateItem={typeForms.type1.updateType1Row}
+              deleteItem={typeForms.type1.deleteType1Row}
+              customers={customersList}
+            />
+          ))}
 
         {/* Work Type 2: ติดตามผลการใช้สินค้า */}
         {isType2 && (

@@ -34,37 +34,10 @@ export function useType1Form({
   selectedWorkTypes = [],
 }: UseType1FormOptions): UseType1FormResult {
   const [type1Items, setType1Items] = useState<Type1VisitItem[]>(() => {
-    const rawResult =
-      (initial as any)?.activityResult ||
-      (initial as any)?.result ||
-      (initial as any)?.details?.activityResult ||
-      null;
-    const t1Actual =
-      (initial as any)?.type1Result ||
-      rawResult?.type1Result ||
-      rawResult?.activityResultType1 ||
-      (initial as any)?.activityResultType1 ||
-      rawResult ||
-      null;
-    const t1Products =
-      (initial as any)?.type1Products ||
-      rawResult?.type1Products ||
-      rawResult?.products ||
-      [];
-
-    const actualLat =
-      t1Actual?.plotLatitude ??
-      rawResult?.plotLatitude ??
-      (initial as any)?.type1Result?.plotLatitude ??
-      (initial as any)?.plotLatitude ??
-      null;
-
-    const actualLng =
-      t1Actual?.plotLongitude ??
-      rawResult?.plotLongitude ??
-      (initial as any)?.type1Result?.plotLongitude ??
-      (initial as any)?.plotLongitude ??
-      null;
+    const t1Actual = (initial as any)?.type1Result || null;
+    const t1Products = (initial as any)?.type1Products || [];
+    const actualLat = t1Actual?.plotLatitude ?? null;
+    const actualLng = t1Actual?.plotLongitude ?? null;
 
     const attachActualToItem = (
       item: Type1VisitItem,
@@ -197,19 +170,7 @@ export function useType1Form({
       );
     }
 
-    const dedicatedT1Stores =
-      (initial as any)?.type1Stores && (initial as any).type1Stores.length > 0
-        ? (initial as any).type1Stores
-        : null;
-
-    const legacyT1Stores = (initial as any)?.stores?.filter(
-      (s: any) =>
-        !s.workTypeCode ||
-        getWorkTypeCode(s.workTypeCode) === "TYPE_1" ||
-        s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
-    );
-
-    const type1Stores = dedicatedT1Stores || legacyT1Stores;
+    const type1Stores = (initial as any)?.type1Stores;
 
     if (type1Stores && type1Stores.length > 0) {
       const mapped = type1Stores.map((s: any, idx: number) =>

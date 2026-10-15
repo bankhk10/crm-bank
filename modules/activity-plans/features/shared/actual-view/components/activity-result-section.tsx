@@ -117,29 +117,6 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
     props.createUploadHandler || defaultCreateUploadHandler;
   const removeImage = props.removeImage || defaultRemoveImage;
 
-  // TYPE 1
-  const t1 = typeHooks?.type1;
-  const t1ProductAdvice = t1 ? t1.t1ProductAdvice : (props.t1ProductAdvice ?? "");
-  const setT1ProductAdvice = t1 ? t1.setT1ProductAdvice : (props.setT1ProductAdvice || (() => {}));
-  const t1SalesOpportunity = t1 ? t1.t1SalesOpportunity : (props.t1SalesOpportunity ?? "");
-  const setT1SalesOpportunity = t1 ? t1.setT1SalesOpportunity : (props.setT1SalesOpportunity || (() => {}));
-  const t1DiscussionResult = t1 ? t1.t1DiscussionResult : (props.t1DiscussionResult ?? "");
-  const setT1DiscussionResult = t1 ? t1.setT1DiscussionResult : (props.setT1DiscussionResult || (() => {}));
-  const t1Detail = t1 ? t1.t1Detail : (props.t1Detail ?? "");
-  const setT1Detail = t1 ? t1.setT1Detail : (props.setT1Detail || (() => {}));
-  const t1NextAction = t1 ? t1.t1NextAction : (props.t1NextAction ?? "");
-  const setT1NextAction = t1 ? t1.setT1NextAction : (props.setT1NextAction || (() => {}));
-  const t1NextMeetingDate = t1 ? t1.t1NextMeetingDate : (props.t1NextMeetingDate ?? "");
-  const setT1NextMeetingDate = t1 ? t1.setT1NextMeetingDate : (props.setT1NextMeetingDate || (() => {}));
-  const t1FarmerHomeAddress = t1 ? t1.t1FarmerHomeAddress : (props.t1FarmerHomeAddress ?? "");
-  const setT1FarmerHomeAddress = t1 ? t1.setT1FarmerHomeAddress : (props.setT1FarmerHomeAddress || (() => {}));
-  const t1PlotLatitude = t1 ? t1.t1PlotLatitude : (props.t1PlotLatitude ?? "");
-  const setT1PlotLatitude = t1 ? t1.setT1PlotLatitude : (props.setT1PlotLatitude || props.setPlotLatitude || (() => {}));
-  const t1PlotLongitude = t1 ? t1.t1PlotLongitude : (props.t1PlotLongitude ?? "");
-  const setT1PlotLongitude = t1 ? t1.setT1PlotLongitude : (props.setT1PlotLongitude || props.setPlotLongitude || (() => {}));
-  const t1PlotImages = t1 ? t1.t1PlotImages : (props.t1PlotImages ?? []);
-  const setT1PlotImages = t1 ? t1.setT1PlotImages : (props.setT1PlotImages || props.setPlotImages || (() => {}));
-
   // TYPE 2
   const t2 = typeHooks?.type2;
   const t2CustomerName = t2 ? t2.t2CustomerName : (props.t2CustomerName ?? "");
@@ -463,33 +440,14 @@ export function ActivityResultSection(props: ActivityResultSectionProps) {
 
       <div className="space-y-4 md:space-y-6">
         {/* WORK TYPE 1 */}
-        {isTypeVisible("TYPE_1") && (
+        {isTypeVisible("TYPE_1") && typeHooks?.type1 && (
           <ActualType1Visit
             isVisible={true}
+            actualState={typeHooks.type1}
             planType={props.planType || props.plan?.planType}
             target={targets.t1}
             targets={targets.t1List}
-            productAdvice={t1ProductAdvice}
-            setProductAdvice={setT1ProductAdvice}
-            detail={t1Detail}
-            setDetail={setT1Detail}
-            discussionResult={t1DiscussionResult}
-            setDiscussionResult={setT1DiscussionResult}
-            salesOpportunity={t1SalesOpportunity}
-            setSalesOpportunity={setT1SalesOpportunity}
-            nextAction={t1NextAction}
-            setNextAction={setT1NextAction}
-            nextMeetingDate={t1NextMeetingDate}
-            setNextMeetingDate={setT1NextMeetingDate}
             products={products}
-            farmerHomeAddress={t1FarmerHomeAddress}
-            setFarmerHomeAddress={setT1FarmerHomeAddress}
-            plotLatitude={t1PlotLatitude}
-            setPlotLatitude={setT1PlotLatitude}
-            plotLongitude={t1PlotLongitude}
-            setPlotLongitude={setT1PlotLongitude}
-            plotImages={t1PlotImages}
-            setPlotImages={setT1PlotImages}
           />
         )}
 

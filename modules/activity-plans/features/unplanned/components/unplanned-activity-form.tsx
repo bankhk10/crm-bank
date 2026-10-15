@@ -374,6 +374,20 @@ export function UnplannedActivityForm({
     .slice()
     .sort()
     .join(",");
+  // Real-time synchronization of TYPE_1 unplanned items to actual results hook
+  const t1SyncFn = (actualOrchestrator.typeHooks as any)?.type1?.syncFromTargetItems;
+  const t1Items = typeForms.type1?.type1Items;
+
+  useEffect(() => {
+    const isType1Active = selectedWorkTypes.some(
+      (wt) =>
+        getWorkTypeCode(wt) === "TYPE_1" ||
+        wt === "เข้าพบเกษตรกร" ||
+        wt === "เข้าพบร้านค้า / Key Farmer",
+    );
+    if (!isType1Active || !t1SyncFn || !t1Items) return;
+    t1SyncFn(t1Items);
+  }, [selectedWorkTypes, t1SyncFn, t1Items]);
 
   useEffect(() => {
     const isType14Active = selectedWorkTypes.some(
@@ -747,7 +761,6 @@ export function UnplannedActivityForm({
               defaultProvince={province}
               defaultDistrict={district}
               isUnplanned={true}
-              onSyncType1Actual={actualOrchestrator.typeHooks.type1?.syncFromTargetItems}
             />
 
             {/* SECTION 3: Location & Team */}

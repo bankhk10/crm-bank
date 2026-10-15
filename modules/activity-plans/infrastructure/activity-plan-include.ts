@@ -242,6 +242,8 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          latitude: true,
+          longitude: true,
         },
       },
     },

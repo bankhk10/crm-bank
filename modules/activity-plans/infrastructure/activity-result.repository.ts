@@ -269,21 +269,16 @@ export async function upsertActivityResult(
         actualAttendeesCount: input.actualAttendeesCount ?? null,
         resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
         resultSummary: input.resultSummary ?? null,
-        discussionResult: input.discussionResult ?? null,
-        productAdvice: input.productAdvice ?? null,
-        salesOpportunity: input.salesOpportunity ?? null,
+        // TYPE 1 fields are now exclusively stored in activity_result_type_1
+        discussionResult: null,
+        productAdvice: null,
+        salesOpportunity: null,
         problemFound: input.problemFound ?? null,
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
-        farmerHomeAddress: input.farmerHomeAddress ?? null,
-        plotLatitude:
-          input.plotLatitude != null
-            ? new Prisma.Decimal(input.plotLatitude)
-            : null,
-        plotLongitude:
-          input.plotLongitude != null
-            ? new Prisma.Decimal(input.plotLongitude)
-            : null,
+        farmerHomeAddress: null,
+        plotLatitude: null,
+        plotLongitude: null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -315,21 +310,16 @@ export async function upsertActivityResult(
         actualAttendeesCount: input.actualAttendeesCount ?? null,
         resultStatus: input.resultStatus ?? ActivityResultStatus.COMPLETED,
         resultSummary: input.resultSummary ?? null,
-        discussionResult: input.discussionResult ?? null,
-        productAdvice: input.productAdvice ?? null,
-        salesOpportunity: input.salesOpportunity ?? null,
+        // TYPE 1 fields are now exclusively stored in activity_result_type_1
+        discussionResult: null,
+        productAdvice: null,
+        salesOpportunity: null,
         problemFound: input.problemFound ?? null,
         nextAction: input.nextAction ?? null,
         nextMeetingDate: input.nextMeetingDate ?? null,
-        farmerHomeAddress: input.farmerHomeAddress ?? null,
-        plotLatitude:
-          input.plotLatitude != null
-            ? new Prisma.Decimal(input.plotLatitude)
-            : null,
-        plotLongitude:
-          input.plotLongitude != null
-            ? new Prisma.Decimal(input.plotLongitude)
-            : null,
+        farmerHomeAddress: null,
+        plotLatitude: null,
+        plotLongitude: null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -359,6 +349,7 @@ export async function upsertActivityResult(
 
     // 0. Sync dedicated Type 1 actual result via Strategy
     if (
+      (input as any).type1Actual !== undefined ||
       input.productAdvice !== undefined ||
       input.discussionResult !== undefined ||
       input.salesOpportunity !== undefined ||
@@ -378,6 +369,7 @@ export async function upsertActivityResult(
           plotLatitude: input.plotLatitude != null ? Number(input.plotLatitude) : null,
           plotLongitude: input.plotLongitude != null ? Number(input.plotLongitude) : null,
           products: (input as any).t1Products || (input as any).type1Products || (input as any).products,
+          ...((input as any).type1Actual || {}),
         });
       }
     }

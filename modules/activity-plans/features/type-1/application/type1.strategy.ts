@@ -77,12 +77,19 @@ export const type1Strategy: WorkTypeStrategy = {
    * Also syncs with legacy `activity_plan_stores` for seamless backward compatibility
    */
   async savePlan(tx: PrismaTransaction, activityPlanId: string, planData: any): Promise<void> {
-    const rawStores: any[] = planData.planStores || planData.stores || [];
+    const rawStores: any[] =
+      planData.type1PlannedItems ||
+      planData.type1UnplannedItems ||
+      planData.type1Stores ||
+      planData.planStores ||
+      planData.stores ||
+      [];
+
     const type1Stores = rawStores.filter(
       (s) => !s.workTypeCode || s.workTypeCode === "TYPE_1" || s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
     );
 
-    // 1. Save to dedicated table
+    // Persist exclusively to dedicated table activity_plan_type_1_stores
     await tx.activityPlanType1Store.deleteMany({
       where: { activityPlanId },
     });
@@ -98,14 +105,14 @@ export const type1Strategy: WorkTypeStrategy = {
           unregisteredFarmerName: s.unregisteredFarmerName || null,
           unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
           topic: s.topic || s.remarks || null,
-          notes: s.notes || null,
+          notes: s.notes || s.detail || null,
         })),
       });
     }
   },
 
   /**
-   * Load Plan Stores from dedicated table (with fallback to legacy table)
+   * Load Plan Stores exclusively from dedicated `activity_plan_type_1_stores` table
    */
   async loadPlan(tx: PrismaTransaction, activityPlanId: string): Promise<any[]> {
     const dedicated = await tx.activityPlanType1Store.findMany({
@@ -114,71 +121,50 @@ export const type1Strategy: WorkTypeStrategy = {
       orderBy: { createdAt: "asc" },
     });
 
-    if (dedicated.length > 0) {
-      return dedicated.map((d) => ({
-        id: d.id,
-        workTypeCode: "TYPE_1",
-        visitPurpose: d.visitPurpose,
-        storeId: d.storeId,
-        storeName: d.store?.name || d.unregisteredFarmerName || "",
-        province: d.province,
-        isUnregisteredFarmer: d.isUnregisteredFarmer,
-        unregisteredFarmerName: d.unregisteredFarmerName,
-        unregisteredFarmerPhone: d.unregisteredFarmerPhone,
-        topic: d.topic,
-        remarks: d.topic,
-        notes: d.notes,
-      }));
-    }
-
-    // Fallback for older plans created before migration
-    const legacy = await tx.activityPlanStore.findMany({
-      where: { activityPlanId, workTypeCode: "TYPE_1" },
-      include: { store: true },
-    });
-
-    return legacy.map((l) => ({
-      id: l.id,
+    return dedicated.map((d) => ({
+      id: d.id,
       workTypeCode: "TYPE_1",
-      visitPurpose: l.visitPurpose,
-      storeId: l.storeId,
-      storeName: l.store?.name || l.unregisteredFarmerName || l.storeName || "",
-      province: l.province || "",
-      isUnregisteredFarmer: l.isUnregisteredFarmer,
-      unregisteredFarmerName: l.unregisteredFarmerName,
-      unregisteredFarmerPhone: l.unregisteredFarmerPhone,
-      topic: l.remarks,
-      remarks: l.remarks,
-      notes: l.notes,
+      visitPurpose: d.visitPurpose,
+      storeId: d.storeId,
+      storeName: d.store?.name || d.unregisteredFarmerName || "",
+      province: d.province,
+      isUnregisteredFarmer: d.isUnregisteredFarmer,
+      unregisteredFarmerName: d.unregisteredFarmerName,
+      unregisteredFarmerPhone: d.unregisteredFarmerPhone,
+      topic: d.topic,
+      remarks: d.topic,
+      notes: d.notes,
     }));
   },
 
   /**
    * Persist Actual outcome into dedicated `activity_result_type_1` and `activity_result_type_1_products` tables
    */
-  async saveActual(tx: PrismaTransaction, activityPlanId: string, actualData: Type1ActualResultValues): Promise<void> {
+  async saveActual(tx: PrismaTransaction, activityPlanId: string, actualData: any): Promise<void> {
     if (!actualData) return;
+
+    const data = actualData.type1Actual || actualData;
 
     await (tx as any).activityResultType1.upsert({
       where: { activityPlanId },
       create: {
         activityPlanId,
-        productAdvice: actualData.productAdvice ?? null,
-        discussionResult: actualData.discussionResult ?? null,
-        salesOpportunity: actualData.salesOpportunity ?? null,
-        nextMeetingDate: actualData.nextMeetingDate ? new Date(actualData.nextMeetingDate) : null,
-        farmerHomeAddress: actualData.farmerHomeAddress ?? null,
-        plotLatitude: actualData.plotLatitude ?? null,
-        plotLongitude: actualData.plotLongitude ?? null,
+        productAdvice: data.productAdvice ?? null,
+        discussionResult: data.discussionResult ?? null,
+        salesOpportunity: data.salesOpportunity ?? null,
+        nextMeetingDate: data.nextMeetingDate ? new Date(data.nextMeetingDate) : null,
+        farmerHomeAddress: data.farmerHomeAddress ?? null,
+        plotLatitude: data.plotLatitude != null && data.plotLatitude !== "" ? Number(data.plotLatitude) : null,
+        plotLongitude: data.plotLongitude != null && data.plotLongitude !== "" ? Number(data.plotLongitude) : null,
       },
       update: {
-        productAdvice: actualData.productAdvice ?? null,
-        discussionResult: actualData.discussionResult ?? null,
-        salesOpportunity: actualData.salesOpportunity ?? null,
-        nextMeetingDate: actualData.nextMeetingDate ? new Date(actualData.nextMeetingDate) : null,
-        farmerHomeAddress: actualData.farmerHomeAddress ?? null,
-        plotLatitude: actualData.plotLatitude ?? null,
-        plotLongitude: actualData.plotLongitude ?? null,
+        productAdvice: data.productAdvice ?? null,
+        discussionResult: data.discussionResult ?? null,
+        salesOpportunity: data.salesOpportunity ?? null,
+        nextMeetingDate: data.nextMeetingDate ? new Date(data.nextMeetingDate) : null,
+        farmerHomeAddress: data.farmerHomeAddress ?? null,
+        plotLatitude: data.plotLatitude != null && data.plotLatitude !== "" ? Number(data.plotLatitude) : null,
+        plotLongitude: data.plotLongitude != null && data.plotLongitude !== "" ? Number(data.plotLongitude) : null,
       },
     });
 
@@ -187,45 +173,22 @@ export const type1Strategy: WorkTypeStrategy = {
       where: { activityPlanId },
     });
 
-    if (actualData.products && actualData.products.length > 0) {
+    const productsList: any[] = data.products || data.advisedProducts || [];
+
+    if (productsList.length > 0) {
       await (tx as any).activityResultType1Product.createMany({
-        data: actualData.products.map((p) => ({
+        data: productsList.map((p) => ({
           activityPlanId,
           targetId: p.targetId || null,
           productId: p.productId,
           productName: p.productName || null,
         })),
       });
-    } else if (actualData.productAdvice) {
-      // Auto-normalize product names into product IDs for backward compatibility
-      const rawTokens = actualData.productAdvice
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      if (rawTokens.length > 0) {
-        const matchedProducts = await (tx as any).product.findMany({
-          where: {
-            name: { in: rawTokens },
-          },
-          select: { id: true, name: true },
-        });
-
-        if (matchedProducts.length > 0) {
-          await (tx as any).activityResultType1Product.createMany({
-            data: matchedProducts.map((p: any) => ({
-              activityPlanId,
-              productId: p.id,
-              productName: p.name,
-            })),
-          });
-        }
-      }
     }
   },
 
   /**
-   * Load Actual outcome from dedicated tables (with fallback to legacy activity_results)
+   * Load Actual outcome exclusively from dedicated tables
    */
   async loadActual(tx: PrismaTransaction, activityPlanId: string): Promise<any | null> {
     const [dedicated, products] = await Promise.all([
@@ -239,41 +202,24 @@ export const type1Strategy: WorkTypeStrategy = {
       }),
     ]);
 
-    if (dedicated) {
-      return {
-        productAdvice: dedicated.productAdvice,
-        products: products.map((p: any) => ({
-          id: p.id,
-          productId: p.productId,
-          productName: p.product?.name || p.productName || "",
-          productCode: p.product?.productCode || null,
-          targetId: p.targetId,
-        })),
-        discussionResult: dedicated.discussionResult,
-        salesOpportunity: dedicated.salesOpportunity,
-        nextMeetingDate: dedicated.nextMeetingDate,
-        farmerHomeAddress: dedicated.farmerHomeAddress,
-        plotLatitude: dedicated.plotLatitude ? Number(dedicated.plotLatitude) : null,
-        plotLongitude: dedicated.plotLongitude ? Number(dedicated.plotLongitude) : null,
-      };
-    }
-
-    // Fallback for older actual results
-    const legacy = await tx.activityResult.findUnique({
-      where: { activityPlanId },
-    });
-
-    if (!legacy) return null;
+    if (!dedicated) return null;
 
     return {
-      productAdvice: legacy.productAdvice,
-      products: [],
-      discussionResult: legacy.discussionResult,
-      salesOpportunity: legacy.salesOpportunity,
-      nextMeetingDate: legacy.nextMeetingDate,
-      farmerHomeAddress: legacy.farmerHomeAddress,
-      plotLatitude: legacy.plotLatitude ? Number(legacy.plotLatitude) : null,
-      plotLongitude: legacy.plotLongitude ? Number(legacy.plotLongitude) : null,
+      productAdvice: dedicated.productAdvice,
+      products: products.map((p: any) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.product?.name || p.productName || "",
+        productCode: p.product?.productCode || null,
+        targetId: p.targetId,
+      })),
+      discussionResult: dedicated.discussionResult,
+      salesOpportunity: dedicated.salesOpportunity,
+      nextMeetingDate: dedicated.nextMeetingDate,
+      farmerHomeAddress: dedicated.farmerHomeAddress,
+      plotLatitude: dedicated.plotLatitude ? Number(dedicated.plotLatitude) : null,
+      plotLongitude: dedicated.plotLongitude ? Number(dedicated.plotLongitude) : null,
     };
   },
 };
+

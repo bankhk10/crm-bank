@@ -155,23 +155,24 @@ export interface Type1TargetActualItem {
  */
 export interface Type1ActualFormProps {
   isVisible: boolean;
+  actualState?: any;
   target?: Type1TargetItem;
   targets?: Type1TargetItem[];
   planType?: "PLANNED" | "UNPLANNED" | string;
-  productAdvice: string;
-  setProductAdvice: (v: string) => void;
+  productAdvice?: string;
+  setProductAdvice?: (v: string) => void;
   advisedProducts?: Type1AdviceProductItem[];
   setAdvisedProducts?: (products: Type1AdviceProductItem[]) => void;
   detail?: string;
   setDetail?: (v: string) => void;
-  discussionResult: string;
-  setDiscussionResult: (v: string) => void;
-  salesOpportunity: "สูง" | "ต่ำ" | "";
-  setSalesOpportunity: (v: "สูง" | "ต่ำ" | "") => void;
-  nextAction: string;
-  setNextAction: (v: string) => void;
-  nextMeetingDate: string;
-  setNextMeetingDate: (v: string) => void;
+  discussionResult?: string;
+  setDiscussionResult?: (v: string) => void;
+  salesOpportunity?: "สูง" | "ต่ำ" | "";
+  setSalesOpportunity?: (v: "สูง" | "ต่ำ" | "") => void;
+  nextAction?: string;
+  setNextAction?: (v: string) => void;
+  nextMeetingDate?: string;
+  setNextMeetingDate?: (v: string) => void;
   products?: ProductOption[];
 
   // Actual TYPE_1 fields

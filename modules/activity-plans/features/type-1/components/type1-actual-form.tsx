@@ -191,35 +191,39 @@ function initializeTargetItems(
   });
 }
 
-export function Type1ActualForm({
-  isVisible,
-  target,
-  targets,
-  planType,
-  productAdvice,
-  setProductAdvice,
-  advisedProducts,
-  setAdvisedProducts,
-  discussionResult,
-  setDiscussionResult,
-  salesOpportunity,
-  setSalesOpportunity,
-  nextAction,
-  setNextAction,
-  nextMeetingDate,
-  setNextMeetingDate,
-  products = [],
-  farmerHomeAddress = "",
-  setFarmerHomeAddress,
-  plotLatitude = "",
-  setPlotLatitude,
-  plotLongitude = "",
-  setPlotLongitude,
-  plotImages = [],
-  setPlotImages,
-  targetActualResults,
-  onUpdateTargetActualResults,
-}: Type1ActualFormProps) {
+export function Type1ActualForm(props: Type1ActualFormProps) {
+  const {
+    isVisible,
+    actualState,
+    target,
+    targets,
+    planType,
+    products = [],
+    targetActualResults,
+    onUpdateTargetActualResults,
+  } = props;
+
+  const productAdvice = actualState?.t1ProductAdvice ?? props.productAdvice ?? "";
+  const setProductAdvice = actualState?.setT1ProductAdvice ?? props.setProductAdvice ?? (() => {});
+  const advisedProducts = actualState?.t1AdvisedProducts ?? props.advisedProducts;
+  const setAdvisedProducts = actualState?.setT1AdvisedProducts ?? props.setAdvisedProducts;
+  const discussionResult = actualState?.t1DiscussionResult ?? props.discussionResult ?? "";
+  const setDiscussionResult = actualState?.setT1DiscussionResult ?? props.setDiscussionResult ?? (() => {});
+  const salesOpportunity = (actualState?.t1SalesOpportunity ?? props.salesOpportunity ?? "") as "สูง" | "ต่ำ" | "";
+  const setSalesOpportunity = actualState?.setT1SalesOpportunity ?? props.setSalesOpportunity ?? (() => {});
+  const nextAction = actualState?.t1NextAction ?? props.nextAction ?? "";
+  const setNextAction = actualState?.setT1NextAction ?? props.setNextAction ?? (() => {});
+  const nextMeetingDate = actualState?.t1NextMeetingDate ?? props.nextMeetingDate ?? "";
+  const setNextMeetingDate = actualState?.setT1NextMeetingDate ?? props.setNextMeetingDate ?? (() => {});
+  const farmerHomeAddress = actualState?.t1FarmerHomeAddress ?? props.farmerHomeAddress ?? "";
+  const setFarmerHomeAddress = actualState?.setT1FarmerHomeAddress ?? props.setFarmerHomeAddress;
+  const plotLatitude = actualState?.t1PlotLatitude ?? props.plotLatitude ?? "";
+  const setPlotLatitude = actualState?.setT1PlotLatitude ?? props.setPlotLatitude;
+  const plotLongitude = actualState?.t1PlotLongitude ?? props.plotLongitude ?? "";
+  const setPlotLongitude = actualState?.setT1PlotLongitude ?? props.setPlotLongitude;
+  const plotImages = actualState?.t1PlotImages ?? props.plotImages ?? [];
+  const setPlotImages = actualState?.setT1PlotImages ?? props.setPlotImages;
+
   const effectiveTargets = useMemo(
     () => (targets && targets.length > 0 ? targets : target ? [target] : []),
     [targets, target],
@@ -1041,7 +1045,7 @@ export function Type1ActualForm({
                       {
                         productAdvice
                           .split(",")
-                          .map((s) => s.trim())
+                          .map((s: string) => s.trim())
                           .filter(Boolean).length
                       }{" "}
                       รายการ
@@ -1053,9 +1057,9 @@ export function Type1ActualForm({
                   <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
                     {productAdvice
                       .split(",")
-                      .map((s) => s.trim())
+                      .map((s: string) => s.trim())
                       .filter(Boolean)
-                      .map((prod) => (
+                      .map((prod: string) => (
                         <span
                           key={prod}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"

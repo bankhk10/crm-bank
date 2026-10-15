@@ -324,47 +324,20 @@ export function parseType1ActualResult(resData: any): {
 
   const type1Obj = resData.type1Result || resData.activityResultType1;
 
-  const discussionResult =
-    type1Obj?.discussionResult || resData.discussionResult || resData.result?.discussionResult;
-  if (discussionResult) result.t1DiscussionResult = discussionResult;
+  if (type1Obj?.discussionResult) result.t1DiscussionResult = type1Obj.discussionResult;
+  if (type1Obj?.productAdvice) result.t1ProductAdvice = type1Obj.productAdvice;
+  if (type1Obj?.salesOpportunity) result.t1SalesOpportunity = type1Obj.salesOpportunity;
+  if (type1Obj?.farmerHomeAddress) result.t1FarmerHomeAddress = type1Obj.farmerHomeAddress;
 
-  const productAdvice =
-    type1Obj?.productAdvice || resData.productAdvice || resData.result?.productAdvice;
-  if (productAdvice) result.t1ProductAdvice = productAdvice;
-
-  const salesOpportunity =
-    type1Obj?.salesOpportunity || resData.salesOpportunity || resData.result?.salesOpportunity;
-  if (salesOpportunity) result.t1SalesOpportunity = salesOpportunity;
-
-  const farmerHomeAddress =
-    type1Obj?.farmerHomeAddress || resData.farmerHomeAddress || resData.result?.farmerHomeAddress;
-  if (farmerHomeAddress) result.t1FarmerHomeAddress = farmerHomeAddress;
-
-  const rawLat =
-    type1Obj?.plotLatitude != null
-      ? type1Obj.plotLatitude
-      : resData.plotLatitude != null
-        ? resData.plotLatitude
-        : resData.result?.plotLatitude;
-  if (rawLat != null && rawLat !== "") {
-    result.t1PlotLatitude = Number(rawLat);
+  if (type1Obj?.plotLatitude != null && type1Obj.plotLatitude !== "") {
+    result.t1PlotLatitude = Number(type1Obj.plotLatitude);
   }
-
-  const rawLng =
-    type1Obj?.plotLongitude != null
-      ? type1Obj.plotLongitude
-      : resData.plotLongitude != null
-        ? resData.plotLongitude
-        : resData.result?.plotLongitude;
-  if (rawLng != null && rawLng !== "") {
-    result.t1PlotLongitude = Number(rawLng);
+  if (type1Obj?.plotLongitude != null && type1Obj.plotLongitude !== "") {
+    result.t1PlotLongitude = Number(type1Obj.plotLongitude);
   }
+  if (type1Obj?.nextAction) result.t1NextAction = type1Obj.nextAction;
 
-  const nextAction = type1Obj?.nextAction || resData.nextAction || resData.result?.nextAction;
-  if (nextAction) result.t1NextAction = nextAction;
-
-  const nextMeetingDate =
-    type1Obj?.nextMeetingDate || resData.nextMeetingDate;
+  const nextMeetingDate = type1Obj?.nextMeetingDate;
   if (nextMeetingDate) {
     result.t1NextMeetingDate =
       typeof nextMeetingDate === "string"
@@ -541,3 +514,166 @@ export function aggregateType1TargetItems(
     plotImages,
   };
 }
+
+/**
+ * Single Source of Truth: Hydrate Planned Items from an ActivityPlan record
+ */
+export function hydrateType1PlannedData(plan: any): import("../planned/types").Type1PlannedItem[] {
+  if (!plan) return [];
+
+  const rawStores: any[] = plan.type1Stores || [];
+
+  if (rawStores.length === 0) {
+    return [
+      {
+        id: "1",
+        visitPurpose: "FARMER",
+        province: plan.province || "",
+        isUnregisteredFarmer: false,
+        storeId: "",
+        customerName: "",
+        unregisteredFarmerName: "",
+        unregisteredFarmerPhone: "",
+        topic: "แจ้งข่าวสาร",
+        detail: "",
+      },
+    ];
+  }
+
+  return rawStores.map((s, idx) => {
+    const rawPurpose = s.visitPurpose;
+    const inferredPurpose: "FARMER" | "STORE" = rawPurpose
+      ? (rawPurpose as "FARMER" | "STORE")
+      : s.isUnregisteredFarmer || s.store?.customerType === "FARMER"
+        ? "FARMER"
+        : ["DEALER", "SUBDEALER"].includes(s.store?.customerType)
+          ? "STORE"
+          : "FARMER";
+
+    return {
+      id: s.id || String(idx + 1),
+      visitPurpose: inferredPurpose,
+      storeId: s.storeId || undefined,
+      customerName: s.isUnregisteredFarmer
+        ? s.unregisteredFarmerName || ""
+        : s.store?.name || s.storeName || "",
+      province: s.province || s.store?.province || plan.province || "",
+      isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+      unregisteredFarmerName: s.unregisteredFarmerName || "",
+      unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
+      topic: s.topic || "แจ้งข่าวสาร",
+      detail: s.notes || "",
+    };
+  });
+}
+
+/**
+ * Single Source of Truth: Hydrate Unplanned Items (Target + Actual) from an ActivityPlan record
+ */
+export function hydrateType1UnplannedData(plan: any): import("../unplanned/types").Type1UnplannedItem[] {
+  if (!plan) return [];
+
+  const rawStores: any[] = plan.type1Stores || [];
+  const actualResult = plan.type1Result || {};
+  const products: any[] = plan.type1Products || [];
+  const rawAttachments: any[] = plan.attachments || [];
+
+  const plotImages = rawAttachments
+    .filter((att) => att.category === "PLOT" || att.category === "GENERAL")
+    .map((att) => ({
+      id: att.id,
+      url: att.fileUrl,
+      name: att.fileName || "รูปแปลง",
+    }));
+
+  if (rawStores.length === 0) {
+    return [
+      {
+        id: "1",
+        visitPurpose: "FARMER",
+        province: plan.province || "",
+        isUnregisteredFarmer: false,
+        storeId: "",
+        customerName: "",
+        unregisteredFarmerName: "",
+        unregisteredFarmerPhone: "",
+        topic: "แจ้งข่าวสาร",
+        detail: "",
+        discussionResult: actualResult.discussionResult || "",
+        productAdvice: actualResult.productAdvice || "",
+        advisedProducts: products.map((p: any) => ({
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          productCode: p.product?.productCode || p.productCode || null,
+        })),
+        salesOpportunity: (actualResult.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
+        nextMeetingDate: actualResult.nextMeetingDate
+          ? typeof actualResult.nextMeetingDate === "string"
+            ? actualResult.nextMeetingDate.split("T")[0]
+            : new Date(actualResult.nextMeetingDate).toISOString().split("T")[0]
+          : "",
+        farmerHomeAddress: actualResult.farmerHomeAddress || "",
+        plotLatitude: actualResult.plotLatitude ? String(actualResult.plotLatitude) : "",
+        plotLongitude: actualResult.plotLongitude ? String(actualResult.plotLongitude) : "",
+        plotImages,
+      },
+    ];
+  }
+
+  return rawStores.map((s, idx) => {
+    const rawPurpose = s.visitPurpose;
+    const inferredPurpose: "FARMER" | "STORE" = rawPurpose
+      ? (rawPurpose as "FARMER" | "STORE")
+      : s.isUnregisteredFarmer || s.store?.customerType === "FARMER"
+        ? "FARMER"
+        : ["DEALER", "SUBDEALER"].includes(s.store?.customerType)
+          ? "STORE"
+          : "FARMER";
+
+    const targetProducts = products.filter(
+      (p: any) => !p.targetId || p.targetId === s.id,
+    );
+
+    return {
+      id: s.id || String(idx + 1),
+      visitPurpose: inferredPurpose,
+      storeId: s.storeId || undefined,
+      customerName: s.isUnregisteredFarmer
+        ? s.unregisteredFarmerName || ""
+        : s.store?.name || s.storeName || "",
+      province: s.province || s.store?.province || plan.province || "",
+      isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+      unregisteredFarmerName: s.unregisteredFarmerName || "",
+      unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
+      topic: s.topic || s.remarks || "แจ้งข่าวสาร",
+      detail: s.notes || "",
+      discussionResult: actualResult.discussionResult || "",
+      productAdvice: actualResult.productAdvice || "",
+      advisedProducts: targetProducts.map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || "",
+        productCode: p.product?.productCode || p.productCode || null,
+        targetId: s.id,
+      })),
+      salesOpportunity: (actualResult.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
+      nextMeetingDate: actualResult.nextMeetingDate
+        ? typeof actualResult.nextMeetingDate === "string"
+          ? actualResult.nextMeetingDate.split("T")[0]
+          : new Date(actualResult.nextMeetingDate).toISOString().split("T")[0]
+        : "",
+      farmerHomeAddress: actualResult.farmerHomeAddress || s.store?.addressLine || "",
+      plotLatitude: actualResult.plotLatitude
+        ? String(actualResult.plotLatitude)
+        : s.store?.latitude
+          ? String(s.store.latitude)
+          : "",
+      plotLongitude: actualResult.plotLongitude
+        ? String(actualResult.plotLongitude)
+        : s.store?.longitude
+          ? String(s.store.longitude)
+          : "",
+      plotImages,
+    };
+  });
+}
+

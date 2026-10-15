@@ -40,10 +40,7 @@ export function extractWorkTypeSections(
   const products = plan.products || [];
 
   // ── 1. เข้าพบร้านค้า / Key Farmer ──────────────────────
-  const rawType1Stores: any[] =
-    (plan as any).type1Stores && (plan as any).type1Stores.length > 0
-      ? (plan as any).type1Stores
-      : stores.filter((s) => s.workTypeCode === "TYPE_1");
+  const rawType1Stores: any[] = (plan as any).type1Stores || [];
   const t1Line = objectiveLines.find(
     (l) =>
       l.includes("[เข้าพบร้านค้า") ||

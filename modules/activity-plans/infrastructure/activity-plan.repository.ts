@@ -69,7 +69,7 @@ export async function findActivityTypeByCode(code: string) {
 }
 
 /**
- * Resolve activity type ID (accepts either cuid ID, code like "TYPE_1", or Thai name like "เธ—เธฑเธงเธฃเน")
+ * Resolve activity type ID (accepts either cuid ID, code like "TYPE_1", or Thai name like "ทัวร์")
  */
 export async function resolveActivityTypeId(
   idOrCode: string,
@@ -554,28 +554,33 @@ export async function createActivityPlan(
           });
         }
 
-        // 1.2 Create Stores if present
+        // 1.2 Create Stores if present (TYPE_1 is handled exclusively by type1Strategy into activity_plan_type_1_stores)
         if (input.planStores && input.planStores.length > 0) {
-          await tx.activityPlanStore.createMany({
-            data: input.planStores.map((s) => ({
-              activityPlanId: plan.id,
-              workTypeCode: getWorkTypeCode(s.workTypeCode),
-              visitPurpose: s.visitPurpose ?? null,
-              storeId: s.storeId ?? null,
-              storeName: s.storeName ?? null,
-              province: s.province ?? null,
-              isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-              unregisteredFarmerName: s.unregisteredFarmerName ?? null,
-              unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
-              targetAmount:
-                s.targetAmount != null
-                  ? new Prisma.Decimal(s.targetAmount)
-                  : null,
-              subDealerStore: s.subDealerStore ?? null,
-              remarks: s.remarks ?? null,
-              notes: s.notes ?? null,
-            })),
-          });
+          const nonType1Stores = input.planStores.filter(
+            (s) => getWorkTypeCode(s.workTypeCode) !== "TYPE_1",
+          );
+          if (nonType1Stores.length > 0) {
+            await tx.activityPlanStore.createMany({
+              data: nonType1Stores.map((s) => ({
+                activityPlanId: plan.id,
+                workTypeCode: getWorkTypeCode(s.workTypeCode),
+                visitPurpose: s.visitPurpose ?? null,
+                storeId: s.storeId ?? null,
+                storeName: s.storeName ?? null,
+                province: s.province ?? null,
+                isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
+                unregisteredFarmerName: s.unregisteredFarmerName ?? null,
+                unregisteredFarmerPhone: s.unregisteredFarmerPhone ?? null,
+                targetAmount:
+                  s.targetAmount != null
+                    ? new Prisma.Decimal(s.targetAmount)
+                    : null,
+                subDealerStore: s.subDealerStore ?? null,
+                remarks: s.remarks ?? null,
+                notes: s.notes ?? null,
+              })),
+            });
+          }
         }
 
         // 1.4 Create Products if present
@@ -694,8 +699,8 @@ export async function createActivityPlan(
             step: ActivityApprovalStep.LINE_APPROVAL,
             comment:
               input.planType === ActivityPlanType.UNPLANNED
-                ? "เธเธฑเธเธ—เธถเธเธเธดเธเธเธฃเธฃเธกเธเธญเธเนเธเธเธฃเนเธฒเธเนเธฃเธ"
-                : "เธเธฑเธเธ—เธถเธเนเธเธเธเธฒเธเธฃเนเธฒเธเนเธฃเธ",
+                ? "บันทึกกิจกรรมนอกแผนร่างแรก"
+                : "บันทึกแผนงานร่างแรก",
           },
         });
 
@@ -897,12 +902,15 @@ export async function updateActivityPlan(
       }
     }
 
-    // 1.3 Sync Stores
+    // 1.3 Sync Stores (TYPE_1 is handled exclusively by type1Strategy into activity_plan_type_1_stores)
     if (planStores !== undefined) {
       await tx.activityPlanStore.deleteMany({ where: { activityPlanId: id } });
-      if (planStores.length > 0) {
+      const nonType1Stores = planStores.filter(
+        (s) => getWorkTypeCode(s.workTypeCode) !== "TYPE_1",
+      );
+      if (nonType1Stores.length > 0) {
         await tx.activityPlanStore.createMany({
-          data: planStores.map((s) => ({
+          data: nonType1Stores.map((s) => ({
             activityPlanId: id,
             workTypeCode: getWorkTypeCode(s.workTypeCode),
             visitPurpose: s.visitPurpose ?? null,
