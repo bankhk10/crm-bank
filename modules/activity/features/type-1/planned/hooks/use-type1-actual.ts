@@ -1,0 +1,185 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import type { Type1ImageFile, Type1AdviceProductItem } from "../../shared/types";
+import type { Type1TargetActualItem } from "../types/actual.types";
+import { aggregateType1TargetItems } from "../application/actual-mapper";
+import {
+  collectPermanentUrls,
+  uploadActivityPlanImageGroup,
+} from "@/modules/activity/ui/utils/image-uploader";
+
+export function useType1Actual() {
+  const [t1ProductAdvice, setT1ProductAdvice] = useState("");
+  const [t1AdvisedProducts, setT1AdvisedProducts] = useState<Type1AdviceProductItem[]>([]);
+  const [t1Detail, setT1Detail] = useState("");
+  const [t1DiscussionResult, setT1DiscussionResult] = useState("");
+  const [t1SalesOpportunity, setT1SalesOpportunity] = useState<
+    "สูง" | "ต่ำ" | ""
+  >("");
+  const [t1NextAction, setT1NextAction] = useState("");
+  const [t1NextMeetingDate, setT1NextMeetingDate] = useState("");
+  const [t1FarmerHomeAddress, setT1FarmerHomeAddress] = useState("");
+  const [t1PlotLatitude, setT1PlotLatitude] = useState<string>("");
+  const [t1PlotLongitude, setT1PlotLongitude] = useState<string>("");
+  const [t1PlotImages, setT1PlotImages] = useState<Type1ImageFile[]>([]);
+  const [t1TargetItems, setT1TargetItems] = useState<Type1TargetActualItem[]>([]);
+  const initialT1PlotImagesRef = useRef<Type1ImageFile[]>([]);
+
+  const hydrate = useCallback((parsed: any) => {
+    if (!parsed) return;
+    if (parsed.t1ProductAdvice) setT1ProductAdvice(parsed.t1ProductAdvice);
+    if (parsed.t1Products && parsed.t1Products.length > 0) {
+      setT1AdvisedProducts(parsed.t1Products);
+    }
+    if (parsed.t1SalesOpportunity) {
+      setT1SalesOpportunity(parsed.t1SalesOpportunity);
+    }
+    if (parsed.t1DiscussionResult) {
+      setT1DiscussionResult(parsed.t1DiscussionResult);
+    }
+    if (parsed.t1Detail) setT1Detail(parsed.t1Detail);
+    if (parsed.t1NextAction) setT1NextAction(parsed.t1NextAction);
+    if (parsed.t1NextMeetingDate) {
+      setT1NextMeetingDate(parsed.t1NextMeetingDate);
+    }
+    if (parsed.t1FarmerHomeAddress) {
+      setT1FarmerHomeAddress(parsed.t1FarmerHomeAddress);
+    }
+    if (parsed.t1PlotLatitude != null) {
+      setT1PlotLatitude(String(parsed.t1PlotLatitude));
+    }
+    if (parsed.t1PlotLongitude != null) {
+      setT1PlotLongitude(String(parsed.t1PlotLongitude));
+    }
+    if (parsed.t1PlotImages && parsed.t1PlotImages.length > 0) {
+      setT1PlotImages(parsed.t1PlotImages);
+      initialT1PlotImagesRef.current = JSON.parse(
+        JSON.stringify(parsed.t1PlotImages),
+      );
+    }
+  }, []);
+
+  const syncFromTargetItems = useCallback((items: any[]) => {
+    setT1TargetItems(items);
+    const agg = aggregateType1TargetItems(items);
+    setT1DiscussionResult(agg.discussionResult);
+    setT1ProductAdvice(agg.productAdvice);
+    setT1AdvisedProducts(agg.advisedProducts);
+    setT1SalesOpportunity(agg.salesOpportunity);
+    setT1NextAction(agg.nextAction);
+    setT1NextMeetingDate(agg.nextMeetingDate);
+    setT1FarmerHomeAddress(agg.farmerHomeAddress);
+    setT1PlotLatitude(agg.plotLatitude);
+    setT1PlotLongitude(agg.plotLongitude);
+    setT1PlotImages(agg.plotImages);
+  }, []);
+
+  const uploadImages = useCallback(
+    async (planId: string, newlyUploadedUrls: string[]): Promise<Type1ImageFile[]> => {
+      let cleanImages = t1PlotImages;
+      if (t1PlotImages && t1PlotImages.length > 0) {
+        const res = await uploadActivityPlanImageGroup(
+          planId,
+          t1PlotImages,
+          "type1",
+          "plot",
+        );
+        cleanImages = res.updatedImages;
+        newlyUploadedUrls.push(...res.newlyUploadedUrls);
+        setT1PlotImages(cleanImages);
+      }
+      return cleanImages;
+    },
+    [t1PlotImages],
+  );
+
+  const collectOldImageUrlsToDelete = useCallback(
+    (currentImages: Type1ImageFile[] = t1PlotImages): string[] => {
+      const initialUrls = collectPermanentUrls(initialT1PlotImagesRef.current);
+      const currentUrls = new Set(collectPermanentUrls(currentImages));
+      return initialUrls.filter((u) => !currentUrls.has(u));
+    },
+    [t1PlotImages],
+  );
+
+  const getPayload = useCallback(
+    (uploadedImages: any[] = t1PlotImages) => ({
+      t1ProductAdvice,
+      t1Products: t1AdvisedProducts,
+      t1SalesOpportunity,
+      t1DiscussionResult,
+      t1Detail,
+      t1NextAction,
+      t1NextMeetingDate,
+      t1FarmerHomeAddress,
+      t1PlotLatitude: t1PlotLatitude || "",
+      t1PlotLongitude: t1PlotLongitude || "",
+      t1PlotImages: uploadedImages,
+      targetActualResults: t1TargetItems,
+      // Clean normalized aliases:
+      productAdvice: t1ProductAdvice,
+      products: t1AdvisedProducts,
+      detail: t1Detail,
+      discussionResult: t1DiscussionResult,
+      salesOpportunity: t1SalesOpportunity,
+      nextAction: t1NextAction,
+      nextMeetingDate: t1NextMeetingDate,
+      farmerHomeAddress: t1FarmerHomeAddress,
+      plotLatitude: t1PlotLatitude ? Number(t1PlotLatitude) : null,
+      plotLongitude: t1PlotLongitude ? Number(t1PlotLongitude) : null,
+      plotImages: uploadedImages,
+    }),
+    [
+      t1ProductAdvice,
+      t1AdvisedProducts,
+      t1Detail,
+      t1DiscussionResult,
+      t1SalesOpportunity,
+      t1NextAction,
+      t1NextMeetingDate,
+      t1FarmerHomeAddress,
+      t1PlotLatitude,
+      t1PlotLongitude,
+      t1PlotImages,
+      t1TargetItems,
+    ],
+  );
+
+  return {
+    t1ProductAdvice,
+    setT1ProductAdvice,
+    t1AdvisedProducts,
+    setT1AdvisedProducts,
+    t1Detail,
+    setT1Detail,
+    t1DiscussionResult,
+    setT1DiscussionResult,
+    t1SalesOpportunity,
+    setT1SalesOpportunity,
+    t1NextAction,
+    setT1NextAction,
+    t1NextMeetingDate,
+    setT1NextMeetingDate,
+    t1FarmerHomeAddress,
+    setT1FarmerHomeAddress,
+    t1PlotLatitude,
+    setT1PlotLatitude,
+    t1PlotLongitude,
+    setT1PlotLongitude,
+    t1PlotImages,
+    setT1PlotImages,
+    t1TargetItems,
+    setT1TargetItems,
+    hydrate,
+    syncFromTargetItems,
+    uploadImages,
+    collectOldImageUrlsToDelete,
+    getPayload,
+    collectPayload: getPayload,
+    setFarmerHomeAddress: setT1FarmerHomeAddress,
+    commitSavedImages: (imgs?: any[]) => {
+      if (imgs) setT1PlotImages(imgs);
+    },
+  };
+}

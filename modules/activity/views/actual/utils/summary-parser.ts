@@ -1,0 +1,1015 @@
+import { parseType1ActualResult } from "@/modules/activity-plans/features/type-1";
+import { parseType2ActualResult } from "@/modules/activity-plans/features/type-2";
+import { parseType3ActualResult } from "@/modules/activity-plans/features/type-3";
+import { parseType4ActualResult } from "@/modules/activity-plans/features/type-4";
+import { parseType5ActualResult } from "@/modules/activity-plans/features/type-5";
+import { parseType6ActualResult } from "@/modules/activity-plans/features/type-6";
+import { parseType7aActualResult } from "@/modules/activity-plans/features/type-7a";
+import { parseType7bActualResult } from "@/modules/activity-plans/features/type-7b";
+import { parseType8ActualResult } from "@/modules/activity-plans/features/type-8";
+import { parseType9ActualResult } from "@/modules/activity-plans/features/type-9";
+import { parseType10ActualResult } from "@/modules/activity-plans/features/type-10";
+import { parseType11ActualResult } from "@/modules/activity-plans/features/type-11";
+import type {
+  ActivityResultStatusType,
+  Type5SurveyRecord,
+  Type6IssueRecord,
+  FollowupProductItem,
+  ImageFile,
+  Type7bSprayingRoundItem,
+} from "../types";
+
+export interface ParsedSummaryValues {
+  // Activity Result Status & Postponed / Cancelled
+  activityResultStatus?: ActivityResultStatusType;
+  cancelReason?: string;
+  postponedDate?: string;
+  postponedTime?: string;
+  postponedReason?: string;
+  postponedNotes?: string;
+
+  // Common/numeric fields
+  problemFound?: string;
+  nextAction?: string;
+
+  // Type 1
+  t1ProductAdvice?: string;
+  t1SalesOpportunity?: "สูง" | "ต่ำ";
+  t1DiscussionResult?: string;
+  t1Detail?: string;
+  t1NextAction?: string;
+  t1NextMeetingDate?: string;
+  t1FarmerHomeAddress?: string;
+  t1PlotLatitude?: string | number | null;
+  t1PlotLongitude?: string | number | null;
+  t1PlotImages?: ImageFile[];
+
+  // Type 2
+  t2CustomerName?: string;
+  t2FollowupDetail?: string;
+  t2Detail?: string;
+  t2UsageResult?: "พืชตอบสนองดี" | "พบปัญหา";
+  t2ProblemDetail?: string;
+  t2FollowupResults?: FollowupProductItem[];
+  t2Images?: ImageFile[];
+
+  // Type 3
+  t3SoldProducts?: string;
+  t3ActualSales?: string;
+  t3ActualQuantity?: string | number;
+  t3UnclosedReason?: string;
+  t3ProductSalesDetails?: any[];
+  t3PaymentType?: "เงินสด" | "เงินโอน" | "เครดิต";
+  t3CreditDays?: string;
+  t3OrderBookNo?: string;
+  t3Detail?: string;
+  t3SalesTargetTotal?: number;
+  t3SaleItems?: Array<{
+    id?: string;
+    productId: string;
+    productName: string;
+    actualQuantity: number;
+    actualUnitPrice: number;
+    actualTotal: number;
+    unclosedReason?: string | null;
+    isAdditional?: boolean;
+  }>;
+
+  // Type 4
+  t4OrderNo?: string;
+  t4BillingStatus?: "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ" | "รอวางบิล" | string;
+  t4ReceivedAmount?: string;
+  t4BillingDetail?: string;
+  t4CollectDetail?: string;
+  t4Detail?: string;
+  t4CollectActualAmount?: number;
+  t4Images?: ImageFile[];
+
+  // Type 5
+  t5CompetitorBrand?: string;
+  t5CompetitorProduct?: string;
+  t5CompetitorPrice?: string;
+  t5CompetitorUnit?: string;
+  t5PromotionDetail?: string;
+  t5SurveyDetails?: Type5SurveyRecord[];
+
+  // Type 6
+  t6ProblemDetail?: string;
+  t6InitialSolution?: string;
+  t6Status?: "เสร็จสิ้น" | "รอติดตาม";
+  t6Images?: ImageFile[];
+  t6IssueRecord?: Type6IssueRecord;
+  t6IssueDetails?: Type6IssueRecord[];
+  t6ProductId?: string | null;
+  t6ProductName?: string | null;
+  t6LotNumber?: string | null;
+  t6PurchaseChannel?: string;
+  t6StoreId?: string | null;
+  t6StoreName?: string | null;
+  t6IssueType?: string;
+  t6Detail?: string | null;
+
+  // Type 7
+  t7PlotName?: string;
+  t7PlannedProductId?: string;
+  t7ActualProductId?: string;
+  t7PlannedProductName?: string;
+  t7ActualProductName?: string;
+  t7DemoProductQuantity?: string | number;
+  t7ChangeReason?: string;
+  t7PlotObjective?: string;
+  t7CustomPlotDetail?: string;
+  t7DemoPlotId?: string | null;
+  t7bSprayingRounds?: Type7bSprayingRoundItem[];
+  t7DemoResults?: Array<{
+    id?: string;
+    plannedProductId?: string | null;
+    actualProductId?: string | null;
+    changeReason?: string | null;
+    plotObjective?: string | null;
+    plannedProduct?: {
+      id: string;
+      name: string;
+      productCode?: string | null;
+      unit?: string | null;
+      packageSizeUnit?: string | null;
+    } | null;
+    actualProduct?: {
+      id: string;
+      name: string;
+      productCode?: string | null;
+      unit?: string | null;
+      packageSizeUnit?: string | null;
+    } | null;
+    cropAgeValue?: string | null;
+    cropAgeUnit?: string | null;
+    growthStage?: string | null;
+    cropCondition?: string | null;
+    productResponse?: string | null;
+    problemDescription?: string | null;
+    finalYieldKg?: number | null;
+    controlYieldKg?: number | null;
+    satisfactionScore?: number | null;
+    applicationRate?: string | null;
+  }>;
+  t7UsageMethod?: string;
+  t7Notes?: string;
+  t7ExperimentDetail?: string;
+  t7CropAgeValue?: string;
+  t7CropAgeUnit?: string;
+  t7GrowthStage?: string;
+  t7CropCondition?: "สมบูรณ์" | "มีปัญหา" | "ปานกลาง" | "ทรุดโทรม";
+  t7CropProblemDescription?: string;
+  t7ProductResponse?: "พืชตอบสนองดี" | "พบปัญหา";
+  t7ProblemDescription?: string;
+  t7PlantingDate?: string;
+  t7PlantingAreaCondition?: string;
+  t7PlotStatus?: "IN_PROGRESS" | "COMPLETED" | "FAILED";
+  t7NextFollowUpDate?: string;
+  t7FinalYieldKg?: string;
+  t7ControlYieldKg?: string;
+  t7YieldIncreasePercent?: string;
+  t7FarmerSatisfaction?: number;
+  t7CommercialPotential?: string;
+  t7FinalSummaryNotes?: string;
+  t7CropImages?: ImageFile[];
+  t7PlotImages?: ImageFile[];
+  t7DaysAfterSpray?: string;
+  t7SprayEquipment?: string;
+  t7OtherEquipment?: string;
+  t7NextSprayDate?: string;
+  actualStartDate?: string;
+  t7StartDate?: string;
+  t7SprayMethod?: "SINGLE" | "TANK_MIXED";
+  t7HasExternalChemicals?: boolean;
+  t7ExternalProducts?: any[];
+
+  // Type 7A Specific
+  t7FarmerProvince?: string;
+  t7FarmerDistrict?: string;
+  t7FarmerCustomerId?: string | null;
+  t7FarmerName?: string;
+  t7FarmerPhone?: string;
+  t7IsUnregisteredFarmer?: boolean;
+  t7DealerName?: string;
+  t7DealerCode?: string;
+  t7Latitude?: string | number | null;
+  t7Longitude?: string | number | null;
+  t7District?: string;
+  t7CropCategory?: string;
+  t7CropName?: string;
+  t7CustomCropName?: string;
+  t7AreaRai?: string | number;
+  t7TreeCount?: string | number;
+  t7MainCropInfo?: string;
+  t7Irrigations?: string[];
+  t7InitialSprayDate?: string;
+  t7DemoProducts?: any[];
+  t7InitialPhotos?: ImageFile[];
+  type7aDemoPlot?: any;
+
+  // Type 8
+  t8ActualAttendees?: string;
+  t8FeedbackQnA?: string;
+  t8ProductSalesDetails?: any[];
+  t8Images?: ImageFile[];
+  t8RegistrationImages?: ImageFile[];
+
+  // Type 9
+  t9ActualSales?: string;
+  t9ProductSalesDetails?: any[];
+  t9ActualAttendees?: string;
+  t9Images?: ImageFile[];
+
+  // Type 10
+  t10ActualAttendees?: string;
+  t10ActualSalesOrBooking?: string;
+  t10FarmerFeedback?: "สูง" | "ปานกลาง" | "น้อย";
+  t10TargetFarmersList?: string;
+  t10ProductSalesDetails?: any[];
+  t10Images?: ImageFile[];
+
+  // Type 11
+  t11StockItems?: any[];
+  t11ProductList?: string;
+  t11RemainingQty?: string;
+  t11Remarks?: string;
+  t11StockStatus?: "เพียงพอ" | "ใกล้หมด" | "สินค้าขาดสต็อก";
+  t11ReorderOpportunity?: "สูง" | "ต่ำ" | "ยังไม่แน่ใจ";
+  t11NextAction?: string;
+  t11Images?: ImageFile[];
+
+  // Type 13 / Shared Spray Rounds
+  sprayRounds?: any[];
+  type13PlotsActual?: Array<{ demoPlotId: string; latitude: any; longitude: any }>;
+}
+
+export function parseResultSummary(resData: any): ParsedSummaryValues {
+  const result: ParsedSummaryValues = {};
+
+  if (!resData) return result;
+
+  // 1. Direct fields from ActivityResult model
+  if (resData.resultStatus) result.activityResultStatus = resData.resultStatus;
+  if (resData.cancelReason) result.cancelReason = resData.cancelReason;
+  if (resData.actualStartDate) {
+    result.actualStartDate =
+      typeof resData.actualStartDate === "string"
+        ? resData.actualStartDate.split("T")[0]
+        : new Date(resData.actualStartDate).toISOString().split("T")[0];
+    result.t7StartDate = result.actualStartDate;
+  }
+  if (resData.postponedDate) {
+    result.postponedDate =
+      typeof resData.postponedDate === "string"
+        ? resData.postponedDate.split("T")[0]
+        : new Date(resData.postponedDate).toISOString().split("T")[0];
+  }
+  if (resData.postponedTime) result.postponedTime = resData.postponedTime;
+  if (resData.postponedReason) result.postponedReason = resData.postponedReason;
+  if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
+  // Type 1 Actual Result (Delegated to Type 1 Feature Slice)
+  const t1Parsed = parseType1ActualResult(resData);
+  Object.assign(result, t1Parsed);
+
+  // Type 2 Actual Result (Delegated to Type 2 Feature Slice)
+  const t2Parsed = parseType2ActualResult(resData);
+  Object.assign(result, t2Parsed);
+
+  // Type 3 Actual Result (Delegated to Type 3 Feature Slice)
+  const t3Parsed = parseType3ActualResult(resData);
+  Object.assign(result, t3Parsed);
+
+  // Type 4 Actual Result (Delegated to Type 4 Feature Slice)
+  const t4Parsed = parseType4ActualResult(resData);
+  Object.assign(result, t4Parsed);
+
+  // Type 5 Actual Result (Delegated to Type 5 Feature Slice)
+  const t5Parsed = parseType5ActualResult(resData);
+  Object.assign(result, t5Parsed);
+
+  // Type 6 Actual Result (Delegated to Type 6 Feature Slice)
+  const t6Parsed = parseType6ActualResult(resData);
+  Object.assign(result, t6Parsed);
+
+  // Type 7A Actual Result (Delegated to Type 7A Feature Slice)
+  const t7aParsed = parseType7aActualResult(resData);
+  Object.assign(result, t7aParsed);
+
+  // Type 7B Actual Result (Delegated to Type 7B Feature Slice)
+  const t7bParsed = parseType7bActualResult(resData);
+  Object.assign(result, t7bParsed);
+
+  // Type 8 Actual Result (Delegated to Type 8 Feature Slice)
+  const t8Parsed = parseType8ActualResult(resData);
+  Object.assign(result, t8Parsed);
+
+  // Type 9 Actual Result (Delegated to Type 9 Feature Slice)
+  const t9Parsed = parseType9ActualResult(resData);
+  Object.assign(result, t9Parsed);
+
+  // Type 10 Actual Result (Delegated to Type 10 Feature Slice)
+  const t10Parsed = parseType10ActualResult(resData);
+  Object.assign(result, t10Parsed);
+
+  // Type 11 Actual Result (Delegated to Type 11 Feature Slice)
+  const t11Parsed = parseType11ActualResult(resData);
+  Object.assign(result, t11Parsed);
+
+  if (
+    resData.sprayRounds &&
+    Array.isArray(resData.sprayRounds) &&
+    resData.sprayRounds.length > 0
+  ) {
+    result.sprayRounds = resData.sprayRounds;
+  }
+
+  // 2. Direct collections from normalized relations
+  if (
+    resData.saleResults &&
+    Array.isArray(resData.saleResults) &&
+    resData.saleResults.length > 0
+  ) {
+    const t8Sales = resData.saleResults.filter(
+      (s: any) =>
+        s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",
+    );
+    if (t8Sales.length > 0) {
+      result.t8ProductSalesDetails = t8Sales.map((s: any) => ({
+        id: s.id,
+        productId: s.productId,
+        productName: s.productName || s.product?.name || "",
+        actualQty: String(s.actualQuantity ?? ""),
+        notes: s.unclosedReason || s.notes || "",
+        isAdditional: Boolean(s.isAdditional),
+      }));
+    }
+  }
+
+  // Stock results handled by parseType11ActualResult above
+
+  if (
+    resData.surveyResults &&
+    Array.isArray(resData.surveyResults) &&
+    resData.surveyResults.length > 0
+  ) {
+    const allAttachments = Array.isArray(resData.attachments)
+      ? resData.attachments
+      : [];
+
+    result.t5SurveyDetails = resData.surveyResults.map((sv: any) => {
+      // Collect attachments for this survey item: either via sv.attachments relation or resData.attachments matching surveyItemId
+      let itemAttachments =
+        Array.isArray(sv.attachments) && sv.attachments.length > 0
+          ? sv.attachments
+          : allAttachments.filter((att: any) => att.surveyItemId === sv.id);
+
+      // Fallback for unlinked survey attachments (e.g. saved prior to mapping fix)
+      if (itemAttachments.length === 0) {
+        itemAttachments = allAttachments.filter((att: any) => {
+          const isSurveyCat =
+            att.category === "SURVEY_BOTTLE" ||
+            att.category === "SURVEY_PROMO_MATERIAL";
+          if (!isSurveyCat) return false;
+          if (att.surveyItemId && att.surveyItemId !== sv.id) return false;
+          if (resData.surveyResults.length === 1) return true;
+          return (
+            (att.storeId && att.storeId === sv.storeId) ||
+            (att.productId && att.productId === sv.productId)
+          );
+        });
+      }
+
+      const bottleImages = itemAttachments
+        .filter((att: any) => att.category === "SURVEY_BOTTLE")
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl,
+          name: att.fileName,
+          size: att.fileSize || undefined,
+          type: att.mimeType || undefined,
+        }));
+
+      const promotionalImages = itemAttachments
+        .filter((att: any) => att.category === "SURVEY_PROMO_MATERIAL")
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl,
+          name: att.fileName,
+          size: att.fileSize || undefined,
+          type: att.mimeType || undefined,
+        }));
+
+      return {
+        id: sv.id,
+        storeId: sv.storeId,
+        store: sv.store?.name || "",
+        productId: sv.productId,
+        product: sv.product?.name || "",
+        competitorBrand: sv.competitorBrand || "",
+        competitorProduct: sv.competitorProduct || "",
+        posPrice: sv.posPrice != null ? String(sv.posPrice) : "",
+        dealerPrice: sv.dealerPrice != null ? String(sv.dealerPrice) : "",
+        subdealerPrice:
+          sv.subdealerPrice != null ? String(sv.subdealerPrice) : "",
+        farmerPrice: sv.farmerPrice != null ? String(sv.farmerPrice) : "",
+        sellingPoints: sv.sellingPoints || "",
+        bottleImages,
+        promotionalImages,
+        competitorPrice: sv.competitorPrice ? String(sv.competitorPrice) : "",
+        competitorUnit: sv.competitorUnit || "",
+        promotionDetail: sv.promotionDetail || "",
+      };
+    });
+  } else if (
+    (!result.t5SurveyDetails || result.t5SurveyDetails.length === 0) &&
+    Array.isArray(resData.attachments) &&
+    resData.attachments.some(
+      (att: any) =>
+        att.category === "SURVEY_BOTTLE" ||
+        att.category === "SURVEY_PROMO_MATERIAL",
+    )
+  ) {
+    const bottleImages = resData.attachments
+      .filter((att: any) => att.category === "SURVEY_BOTTLE")
+      .map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName,
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      }));
+    const promotionalImages = resData.attachments
+      .filter((att: any) => att.category === "SURVEY_PROMO_MATERIAL")
+      .map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName,
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      }));
+
+    if (bottleImages.length > 0 || promotionalImages.length > 0) {
+      result.t5SurveyDetails = [
+        {
+          store: "",
+          product: "",
+          competitorBrand: result.t5CompetitorBrand || "",
+          competitorProduct: result.t5CompetitorProduct || "",
+          posPrice: "",
+          dealerPrice: "",
+          subdealerPrice: "",
+          farmerPrice: "",
+          sellingPoints: "",
+          bottleImages,
+          promotionalImages,
+        },
+      ];
+    }
+  }
+
+
+
+  if (
+    resData.attachments &&
+    Array.isArray(resData.attachments) &&
+    resData.attachments.length > 0
+  ) {
+    const toImage = (a: any) => ({
+      id: a.id,
+      url: a.fileUrl,
+      name: a.fileName,
+      size: a.fileSize || undefined,
+      type: a.mimeType || undefined,
+    });
+    const t1PlotAtt = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_1" && a.category === "PLOT",
+    );
+    if (t1PlotAtt.length > 0) result.t1PlotImages = t1PlotAtt.map(toImage);
+
+    const t2Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_2",
+    );
+    if (t2Att.length > 0) result.t2Images = t2Att.map(toImage);
+
+    const t6Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_6",
+    );
+    if (t6Att.length > 0) result.t6Images = t6Att.map(toImage);
+
+    const t7CropAtt = resData.attachments.filter(
+      (a: any) =>
+        (a.workTypeCode === "TYPE_7A" ||
+          a.workTypeCode === "TYPE_7B" ||
+          a.workTypeCode === "TYPE_7") &&
+        a.category === "CROP",
+    );
+    if (t7CropAtt.length > 0) result.t7CropImages = t7CropAtt.map(toImage);
+
+    const t7PlotAtt = resData.attachments.filter(
+      (a: any) =>
+        (a.workTypeCode === "TYPE_7A" ||
+          a.workTypeCode === "TYPE_7B" ||
+          a.workTypeCode === "TYPE_7") &&
+        a.category === "PLOT",
+    );
+    if (t7PlotAtt.length > 0) result.t7PlotImages = t7PlotAtt.map(toImage);
+
+    const t8RegAtt = resData.attachments.filter(
+      (a: any) =>
+        a.workTypeCode === "TYPE_8" &&
+        (a.category === "GENERAL" ||
+          a.category === "REGISTRATION" ||
+          a.surveyItemId === "registration" ||
+          (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+          (a.fileName && a.fileName.toLowerCase().includes("registration"))),
+    );
+    if (t8RegAtt.length > 0) {
+      result.t8RegistrationImages = t8RegAtt.map(toImage);
+    }
+
+    const t8MeetingAtt = resData.attachments.filter(
+      (a: any) =>
+        a.workTypeCode === "TYPE_8" &&
+        (a.category === "ATMOSPHERE" ||
+          !(
+            a.category === "GENERAL" ||
+            a.category === "REGISTRATION" ||
+            a.surveyItemId === "registration" ||
+            (a.fileUrl && a.fileUrl.includes("/registration/")) ||
+            (a.fileName && a.fileName.toLowerCase().includes("registration"))
+          )),
+    );
+    if (t8MeetingAtt.length > 0) {
+      result.t8Images = t8MeetingAtt.map(toImage);
+    }
+
+    // TYPE_9: Handled by parseType9ActualResult above
+    // TYPE_10: Handled by parseType10ActualResult above
+
+    const t11Att = resData.attachments.filter(
+      (a: any) => a.workTypeCode === "TYPE_11",
+    );
+    if (t11Att.length > 0) result.t11Images = t11Att.map(toImage);
+  }
+
+  if (resData.resultSummary) {
+    const summaryText = resData.resultSummary;
+
+    // Type 1 Fallback parsing
+    const homeAddressMatch = summaryText.match(/ที่อยู่บ้านเกษตรกร:\s*(.+)/);
+    if (
+      homeAddressMatch &&
+      homeAddressMatch[1] &&
+      !result.t1FarmerHomeAddress
+    ) {
+      result.t1FarmerHomeAddress = homeAddressMatch[1].split("\n")[0].trim();
+    }
+    const coordsMatch = summaryText.match(
+      /พิกัดแปลง:\s*([-\d.]+),\s*([-\d.]+)/,
+    );
+    if (coordsMatch && coordsMatch[1] && coordsMatch[2]) {
+      if (result.t1PlotLatitude == null)
+        result.t1PlotLatitude = Number(coordsMatch[1]);
+      if (result.t1PlotLongitude == null)
+        result.t1PlotLongitude = Number(coordsMatch[2]);
+    }
+
+    const adviceMatch = summaryText.match(/สินค้าที่แนะนำ:\s*(.+)/);
+    if (adviceMatch && adviceMatch[1]) {
+      result.t1ProductAdvice = adviceMatch[1].split("\n")[0].trim();
+    }
+
+    const opportunityMatch = summaryText.match(/โอกาสการขาย:\s*(.+)/);
+    if (opportunityMatch && opportunityMatch[1]) {
+      const oppVal = opportunityMatch[1].split("\n")[0].trim();
+      if (oppVal === "สูง" || oppVal === "ต่ำ") {
+        result.t1SalesOpportunity = oppVal;
+      }
+    }
+
+    const discussionMatch = summaryText.match(/ผลการพูดคุย:\s*(.+)/);
+    if (discussionMatch && discussionMatch[1]) {
+      result.t1DiscussionResult = discussionMatch[1].split("\n")[0].trim();
+    }
+
+    const detailMatch = summaryText.match(/รายละเอียดเข้าพบ:\s*(.+)/);
+    if (detailMatch && detailMatch[1]) {
+      result.t1Detail = detailMatch[1].split("\n")[0].trim();
+    }
+
+    const nextActionMatch = summaryText.match(
+      /สิ่งที่ต้องดำเนินการต่อ:\s*(.+)/,
+    );
+    if (nextActionMatch && nextActionMatch[1]) {
+      result.t1NextAction = nextActionMatch[1].split("\n")[0].trim();
+    } else if (resData.nextAction) {
+      result.t1NextAction = resData.nextAction;
+    }
+
+    const nextMeetingMatch = summaryText.match(
+      /วันที่นัดหมายครั้งถัดไป:\s*(.+)/,
+    );
+    if (nextMeetingMatch && nextMeetingMatch[1]) {
+      let val = nextMeetingMatch[1].split("\n")[0].trim();
+      if (val.includes("T")) {
+        val = val.split("T")[0];
+      }
+      result.t1NextMeetingDate = val;
+    }
+
+    // Type 2 (Followup)
+    const customerMatch = summaryText.match(/ลูกค้าติดตาม:\s*(.+)/);
+    if (customerMatch && customerMatch[1]) {
+      result.t2CustomerName = customerMatch[1].split("\n")[0].trim();
+    }
+
+    const followupMatch = summaryText.match(/ติดตามผล:\s*(.+)/);
+    if (followupMatch && followupMatch[1]) {
+      result.t2FollowupDetail = followupMatch[1].split("\n")[0].trim();
+    }
+
+    const usageResultMatch = summaryText.match(/ผลลัพธ์การใช้:\s*(.+)/);
+    if (usageResultMatch && usageResultMatch[1]) {
+      const resVal = usageResultMatch[1].split("\n")[0].trim();
+      const canonicalVal =
+        resVal === "ลูกค้าพึงพอใจ" || resVal.includes("ลูกค้าพึงพอใจ")
+          ? "พืชตอบสนองดี"
+          : resVal;
+      result.t2UsageResult = canonicalVal as any;
+      if (canonicalVal === "พืชตอบสนองดี") {
+        result.t2ProblemDetail = "";
+      } else if (
+        canonicalVal === "พบปัญหา" ||
+        (typeof canonicalVal === "string" &&
+          canonicalVal.includes("พบปัญหา") &&
+          !canonicalVal.includes("พืชตอบสนองดี") &&
+          !canonicalVal.includes("ลูกค้าพึงพอใจ"))
+      ) {
+        result.t2FollowupDetail = "";
+      }
+    }
+
+    const problemMatch = summaryText.match(/ปัญหาการใช้สินค้า:\s*(.+)/);
+    if (problemMatch && problemMatch[1]) {
+      result.t2ProblemDetail = problemMatch[1].split("\n")[0].trim();
+    }
+
+    if (
+      resData.followupResults &&
+      Array.isArray(resData.followupResults) &&
+      resData.followupResults.length > 0
+    ) {
+      result.t2FollowupResults = resData.followupResults.map((item: any) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || "สินค้า",
+        customer: item.store?.name || undefined,
+        storeId: item.storeId || undefined,
+        usageResult:
+          item.usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ",
+        followupDetail: item.followupDetail || "",
+        problemDetail: item.problemDetail || "",
+        isAdditional: Boolean(item.isAdditional),
+      }));
+    }
+
+    // Type 3
+    const soldMatch = summaryText.match(/รายการขาย:\s*(.+)/);
+    if (soldMatch && soldMatch[1]) {
+      result.t3SoldProducts = soldMatch[1].split("\n")[0].trim();
+    }
+    const actualSalesMatch = summaryText.match(/ยอดขายจริง:\s*(.+)/);
+    if (actualSalesMatch && actualSalesMatch[1]) {
+      result.t3ActualSales = actualSalesMatch[1].split("\n")[0].trim();
+    } else if (resData.salesResultAmount) {
+      result.t3ActualSales = String(resData.salesResultAmount);
+    }
+    const actualQtyMatch = summaryText.match(/จำนวนที่ขายจริง:\s*(.+)/);
+    if (actualQtyMatch && actualQtyMatch[1]) {
+      result.t3ActualQuantity = actualQtyMatch[1].split("\n")[0].trim();
+    }
+    const unclosedMatch = summaryText.match(/เหตุผลที่ปิดการขายไม่ได้:\s*(.+)/);
+    if (unclosedMatch && unclosedMatch[1]) {
+      result.t3UnclosedReason = unclosedMatch[1].split("\n")[0].trim();
+    }
+
+    const t3DetailsMatch = summaryText.match(/ยอดขายแยกสินค้าเสนอขาย:\s*(.+)/);
+    if (t3DetailsMatch && t3DetailsMatch[1]) {
+      try {
+        const rawJson = t3DetailsMatch[1].split("\n")[0].trim();
+        const parsed = JSON.parse(rawJson);
+        if (
+          Array.isArray(parsed) &&
+          (!result.t3ProductSalesDetails ||
+            result.t3ProductSalesDetails.length === 0)
+        ) {
+          result.t3ProductSalesDetails = parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse t3ProductSalesDetails", e);
+      }
+    }
+
+    // Type 4: Handled by parseType4ActualResult above
+
+    // Type 5: Handled by parseType5ActualResult above
+
+    // Type 6: Handled by parseType6ActualResult above
+
+    // TYPE_7B: Handled by parseType7bActualResult above
+    // TYPE_7A: Handled by parseType7aActualResult above
+
+    // TYPE_8: Handled by parseType8ActualResult above
+    // TYPE_9: Handled by parseType9ActualResult above
+    // TYPE_10: Handled by parseType10ActualResult above
+    // TYPE_11: Handled by parseType11ActualResult above
+  }
+
+  // Activity Result Status & Postponed / Cancelled fields
+  if (resData.resultStatus) {
+    result.activityResultStatus = resData.resultStatus as any;
+  }
+  if (resData.cancelReason) {
+    result.cancelReason = resData.cancelReason;
+  }
+  if (resData.postponedDate) {
+    const d = new Date(resData.postponedDate);
+    result.postponedDate = !isNaN(d.getTime())
+      ? d.toISOString().split("T")[0]
+      : "";
+  }
+  if (resData.postponedTime) {
+    result.postponedTime = resData.postponedTime;
+  }
+  if (resData.postponedReason) {
+    result.postponedReason = resData.postponedReason;
+  }
+  if (resData.postponedNotes) {
+    result.postponedNotes = resData.postponedNotes;
+  }
+
+  // Numeric and common fields from result
+  if (resData.salesResultAmount != null) {
+    const num = Number(resData.salesResultAmount);
+    if (!isNaN(num)) {
+      result.t3ActualSales = String(num);
+      result.t9ActualSales = String(num);
+    }
+  }
+  if (resData.collectResultAmount != null) {
+    const num = Number(resData.collectResultAmount);
+    if (!isNaN(num)) {
+      result.t4ReceivedAmount = String(num);
+    }
+  }
+  if (resData.actualAttendeesCount != null) {
+    const num = Number(resData.actualAttendeesCount);
+    if (!isNaN(num)) {
+      result.t8ActualAttendees = String(num);
+      result.t9ActualAttendees = String(num);
+      result.t10ActualAttendees = String(num);
+    }
+  }
+  if (resData.problemFound) {
+    result.problemFound = resData.problemFound;
+  }
+  if (resData.nextAction) {
+    result.nextAction = resData.nextAction;
+  }
+
+  // Structured Type 7 Demo Results from DB
+  if (
+    resData.demoResults &&
+    Array.isArray(resData.demoResults) &&
+    resData.demoResults.length > 0
+  ) {
+    result.t7DemoResults = resData.demoResults.map((demo: any) => ({
+      id: demo.id,
+      plannedProductId: demo.plannedProductId ?? null,
+      actualProductId: demo.actualProductId ?? null,
+      applicationRate: demo.applicationRate ?? null,
+      changeReason: demo.changeReason ?? null,
+      plotObjective: demo.plotObjective ?? null,
+      plannedProduct: demo.plannedProduct ?? null,
+      actualProduct: demo.actualProduct ?? null,
+      cropAgeValue: demo.cropAgeValue ? String(demo.cropAgeValue) : null,
+      cropAgeUnit: demo.cropAgeUnit ?? null,
+      growthStage: demo.growthStage ?? null,
+      cropCondition: demo.cropCondition ?? null,
+      productResponse: demo.productResponse ?? null,
+      problemDescription: demo.problemDescription ?? null,
+      finalYieldKg:
+        demo.finalYieldKg != null ? Number(demo.finalYieldKg) : null,
+      controlYieldKg:
+        demo.controlYieldKg != null ? Number(demo.controlYieldKg) : null,
+      satisfactionScore: demo.satisfactionScore ?? null,
+    }));
+
+    const demo = resData.demoResults[0];
+    if (demo.demoPlotId) {
+      if (demo.demoPlotId.startsWith("OTHER:")) {
+        result.t7DemoPlotId = "OTHER";
+        result.t7CustomPlotDetail = demo.demoPlotId.substring(6);
+      } else if (demo.demoPlotId === "OTHER") {
+        result.t7DemoPlotId = "OTHER";
+      } else {
+        result.t7DemoPlotId = demo.demoPlotId;
+      }
+    }
+    if (demo.plannedProductId)
+      result.t7PlannedProductId = demo.plannedProductId;
+    if (demo.actualProductId) result.t7ActualProductId = demo.actualProductId;
+    if (demo.changeReason) result.t7ChangeReason = demo.changeReason;
+    if (demo.plotObjective) result.t7PlotObjective = demo.plotObjective;
+    if (demo.plannedProduct?.name)
+      result.t7PlannedProductName = demo.plannedProduct.name;
+    if (demo.actualProduct?.name)
+      result.t7ActualProductName = demo.actualProduct.name;
+    if (demo.cropAgeValue) result.t7CropAgeValue = String(demo.cropAgeValue);
+    if (demo.cropAgeUnit) result.t7CropAgeUnit = demo.cropAgeUnit;
+    if (demo.growthStage) result.t7GrowthStage = demo.growthStage;
+    if (demo.cropCondition) result.t7CropCondition = demo.cropCondition as any;
+    if (demo.productResponse)
+      result.t7ProductResponse = demo.productResponse as any;
+    if (demo.problemDescription)
+      result.t7ProblemDescription = demo.problemDescription;
+    if (demo.finalYieldKg != null)
+      result.t7FinalYieldKg = String(demo.finalYieldKg);
+    if (demo.controlYieldKg != null)
+      result.t7ControlYieldKg = String(demo.controlYieldKg);
+    if (demo.satisfactionScore != null)
+      result.t7FarmerSatisfaction = demo.satisfactionScore;
+  }
+
+  // Structured Type 7B Multiple Spraying Rounds from DB
+  if (
+    resData.sprayRounds &&
+    Array.isArray(resData.sprayRounds) &&
+    resData.sprayRounds.length > 0
+  ) {
+    result.t7bSprayingRounds = resData.sprayRounds.map((sr: any) => ({
+      id: sr.id,
+      roundNumber: sr.roundNumber,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : undefined,
+      sprayMethod: sr.sprayMethod,
+      sprayEquipment: sr.sprayEquipment,
+      otherEquipment: sr.otherEquipment || undefined,
+      productResponse: sr.productResponse,
+      problemDetail: sr.problemDetail || undefined,
+      productRates: (sr.products || []).map((p: any) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        baselineRate: p.baselineRate || undefined,
+        actualRate: p.actualRate || "",
+        quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
+        unit: p.unit || p.product?.unit || undefined,
+        detail: p.detail || undefined,
+        isAdditional: p.detail === "ADDITIONAL" || Boolean(p.isAdditional),
+      })),
+      hasExternalChemicals:
+        sr.sprayMethod === "TANK_MIXED" &&
+        sr.externalProducts &&
+        sr.externalProducts.length > 0,
+      externalProducts: (sr.externalProducts || []).map((ep: any) => ({
+        id: ep.id,
+        company: ep.company,
+        productName: ep.productName,
+        activeIngredient: ep.activeIngredient || undefined,
+        formula: ep.formula,
+        customFormula: ep.customFormula || undefined,
+        applicationRate: ep.applicationRate,
+      })),
+      plotImages: (sr.attachments || []).map((att: any) => ({
+        id: att.id,
+        url: att.fileUrl,
+        name: att.fileName || "spray-round-photo.jpg",
+        size: att.fileSize || undefined,
+        type: att.mimeType || undefined,
+      })),
+    }));
+
+    // General / TYPE_13 spray rounds mapping
+    result.sprayRounds = resData.sprayRounds.map((sr: any) => ({
+      id: sr.id,
+      demoPlotId: sr.demoPlotId,
+      roundNumber: sr.roundNumber,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : undefined,
+      sprayMethod: sr.sprayMethod,
+      sprayEquipment: sr.sprayEquipment,
+      otherEquipment: sr.otherEquipment || null,
+      productResponse: sr.productResponse,
+      problemDetail: sr.problemDetail || null,
+      products: (sr.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.productName || p.product?.name || null,
+        actualRate: p.actualRate || "",
+        quantityUsed: p.quantityUsed != null ? Number(p.quantityUsed) : 0,
+        unit: p.unit || p.product?.unit || null,
+        detail: p.detail || null,
+      })),
+      externalProducts: (sr.externalProducts || []).map((ep: any) => ({
+        company: ep.company || "",
+        productName: ep.productName || "",
+        activeIngredient: ep.activeIngredient || null,
+        formula: ep.formula || "EC",
+        customFormula: ep.customFormula || null,
+        applicationRate: ep.applicationRate || "",
+      })),
+      attachments: (sr.attachments || []).map((att: any) => ({
+        fileUrl: att.fileUrl,
+        fileName: att.fileName || "spray-round-photo.jpg",
+        fileSize: att.fileSize,
+        mimeType: att.mimeType,
+      })),
+    }));
+  }
+
+  // Type 13 Plots Actual (GPS coordinates)
+  if (resData.type13PlotsActual && Array.isArray(resData.type13PlotsActual)) {
+    result.type13PlotsActual = resData.type13PlotsActual.map((item: any) => ({
+      demoPlotId: item.demoPlotId,
+      latitude: item.latitude != null ? String(item.latitude) : "",
+      longitude: item.longitude != null ? String(item.longitude) : "",
+    }));
+  }
+
+  // Structured Type 11 Stock Results from DB (Normalized Source of Truth)
+  if (
+    resData.stockResults &&
+    Array.isArray(resData.stockResults) &&
+    resData.stockResults.length > 0
+  ) {
+    result.t11StockItems = resData.stockResults.map((sr: any) => ({
+      id: sr.id,
+      storeId: sr.storeId,
+      storeName: sr.store?.name || sr.storeName || "ร้านค้า",
+      productId: sr.productId,
+      productName: sr.product?.name || sr.productName || "สินค้า",
+      productCode: sr.product?.productCode || sr.productCode || undefined,
+      remainingQty: String(sr.remainingQuantity ?? 0),
+      reorderOpportunity: (sr.reorderOpportunity as any) || "",
+      remarks: sr.remarks || "",
+    }));
+  }
+
+  // Structured Type 7A Demo Plot Data from DB or Payload
+  if (resData.type7aDemoPlot) {
+    result.type7aDemoPlot = resData.type7aDemoPlot;
+    const dp = resData.type7aDemoPlot;
+    if (dp.ownerProvince) result.t7FarmerProvince = dp.ownerProvince;
+    if (dp.ownerDistrict) result.t7FarmerDistrict = dp.ownerDistrict;
+    if (dp.farmerCustomerId) result.t7FarmerCustomerId = dp.farmerCustomerId;
+    if (dp.ownerName) result.t7FarmerName = dp.ownerName;
+    if (dp.ownerPhone) result.t7FarmerPhone = dp.ownerPhone;
+    if (dp.isUnregisteredFarmer != null)
+      result.t7IsUnregisteredFarmer = Boolean(dp.isUnregisteredFarmer);
+    if (dp.dealerName) result.t7DealerName = dp.dealerName;
+    if (dp.dealerCode) result.t7DealerCode = dp.dealerCode;
+    if (dp.latitude != null) result.t7Latitude = Number(dp.latitude);
+    if (dp.longitude != null) result.t7Longitude = Number(dp.longitude);
+    if (dp.district) result.t7District = dp.district;
+    if (dp.cropCategory) result.t7CropCategory = dp.cropCategory;
+    if (dp.cropName) result.t7CropName = dp.cropName;
+    if (dp.customCropName) result.t7CustomCropName = dp.customCropName;
+    if (dp.areaRai != null) result.t7AreaRai = String(dp.areaRai);
+    if (dp.treeCount != null) result.t7TreeCount = String(dp.treeCount);
+    if (dp.objective) result.t7PlotObjective = dp.objective;
+    if (dp.experimentDetail) result.t7ExperimentDetail = dp.experimentDetail;
+    if (dp.mainCropInfo) result.t7MainCropInfo = dp.mainCropInfo;
+    if (dp.irrigations && dp.irrigations.length > 0)
+      result.t7Irrigations = dp.irrigations;
+    if (dp.plantingDate) {
+      result.t7PlantingDate =
+        typeof dp.plantingDate === "string"
+          ? dp.plantingDate.split("T")[0]
+          : new Date(dp.plantingDate).toISOString().split("T")[0];
+    }
+    if (dp.initialSprayDate) {
+      result.t7InitialSprayDate =
+        typeof dp.initialSprayDate === "string"
+          ? dp.initialSprayDate.split("T")[0]
+          : new Date(dp.initialSprayDate).toISOString().split("T")[0];
+    }
+    if (dp.nextSprayDate) {
+      result.t7NextSprayDate =
+        typeof dp.nextSprayDate === "string"
+          ? dp.nextSprayDate.split("T")[0]
+          : new Date(dp.nextSprayDate).toISOString().split("T")[0];
+    }
+    if (dp.sprayMethod) result.t7SprayMethod = dp.sprayMethod;
+    if (dp.sprayEquipment) result.t7SprayEquipment = dp.sprayEquipment;
+    if (dp.otherEquipment) result.t7OtherEquipment = dp.otherEquipment;
+    if (dp.hasExternalChemicals != null)
+      result.t7HasExternalChemicals = Boolean(dp.hasExternalChemicals);
+    if (dp.externalProducts) result.t7ExternalProducts = dp.externalProducts;
+    if (dp.demoProducts) result.t7DemoProducts = dp.demoProducts;
+  }
+
+  return result;
+}
