@@ -105,7 +105,9 @@ export function Type1DetailView({
 
   const isAdviceTopic =
     target?.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
-    effectiveTargets.some((t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า") ||
+    effectiveTargets.some(
+      (t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
+    ) ||
     !!productAdvice ||
     !!salesOpportunity;
 
@@ -144,82 +146,11 @@ export function Type1DetailView({
   const showFarmerSection =
     hasFarmerTarget ||
     Boolean(
-      farmerHomeAddress ||
-        hasCoords ||
-        (plotImages && plotImages.length > 0),
+      farmerHomeAddress || hasCoords || (plotImages && plotImages.length > 0),
     );
 
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-1 border-b border-emerald-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
-            {isStore && !hasFarmerTarget ? (
-              <Store className="w-4 h-4" />
-            ) : (
-              <UserCheck className="w-4 h-4" />
-            )}
-          </div>
-          <div>
-            <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              เข้าพบร้านค้า / Key Farmer
-            </h2>
-            <p className="text-xs text-slate-500">
-              รายละเอียดแผนงานและผลการปฏิบัติงานจริง
-            </p>
-          </div>
-        </div>
-        {count > 1 && (
-          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-            {count} เป้าหมาย
-          </span>
-        )}
-      </div>
-
-      {/* MULTI-TARGET PLAN SUMMARY PILLS */}
-      {count > 1 && (
-        <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5">
-          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            เป้าหมายที่เข้าพบตามแผนงาน ({count} เป้าหมาย)
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {effectiveTargets.map((item, idx) => {
-              const itemIsStore = item.visitPurpose === "STORE";
-              const name = item.isUnregisteredFarmer
-                ? item.unregisteredFarmerName || item.customer || "-"
-                : item.customer || "-";
-              return (
-                <div
-                  key={item.id || idx}
-                  className="bg-white p-2.5 rounded-lg border border-slate-200/70 shadow-2xs flex items-center justify-between gap-2"
-                >
-                  <div className="space-y-0.5 min-w-0">
-                    <span
-                      className="font-bold text-slate-800 text-xs block truncate"
-                      title={name}
-                    >
-                      {idx + 1}. {name}
-                    </span>
-                    <span className="text-[11px] text-slate-500 block truncate">
-                      {item.topic || "ไม่ระบุหัวข้อ"}
-                      {item.province ? ` • ${item.province}` : ""}
-                    </span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] shrink-0 font-semibold bg-emerald-50 text-emerald-800 border-emerald-200"
-                  >
-                    {itemIsStore ? "ร้านค้า" : "เกษตรกร"}
-                  </Badge>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* READ-ONLY ACTUAL RESULT DISPLAY */}
       {count > 1 ? (
         /* MULTI-TARGET READ-ONLY ACTUAL DISPLAY */
@@ -235,7 +166,9 @@ export function Type1DetailView({
             {effectiveTargets.map((item, idx) => {
               const itemIsStore = item.visitPurpose === "STORE";
               const name = item.isUnregisteredFarmer
-                ? item.unregisteredFarmerName || item.customer || `เป้าหมายที่ ${idx + 1}`
+                ? item.unregisteredFarmerName ||
+                  item.customer ||
+                  `เป้าหมายที่ ${idx + 1}`
                 : item.customer || `เป้าหมายที่ ${idx + 1}`;
 
               const itemDiscussion = parseTargetField(
@@ -332,7 +265,9 @@ export function Type1DetailView({
                             <span>Lng: {String(plotLongitude)}</span>
                           </div>
                         ) : (
-                          <span className="text-slate-700 font-semibold">-</span>
+                          <span className="text-slate-700 font-semibold">
+                            -
+                          </span>
                         )}
                       </div>
                     </div>
@@ -565,7 +500,9 @@ export function Type1DetailView({
                     ))}
                   </div>
                 ) : (
-                  <span className="text-xs text-slate-700 font-semibold">-</span>
+                  <span className="text-xs text-slate-700 font-semibold">
+                    -
+                  </span>
                 )}
               </div>
 
@@ -585,7 +522,9 @@ export function Type1DetailView({
                     {salesOpportunity}
                   </Badge>
                 ) : (
-                  <span className="text-xs text-slate-700 font-semibold">-</span>
+                  <span className="text-xs text-slate-700 font-semibold">
+                    -
+                  </span>
                 )}
               </div>
             </div>
