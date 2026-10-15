@@ -390,6 +390,18 @@ export function Type1ActualForm({
 
   if (!isVisible) return null;
 
+  // Track initial mount so we do not immediately fire syncToParent before user interaction or updates
+  const isInitialMountRef = useRef(true);
+
+  // Synchronize internal targetItems changes to parent state safely in an effect
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+    syncToParent(targetItems);
+  }, [targetItems, syncToParent]);
+
   // Handlers for individual target fields
   const handleTargetChange = (
     index: number,
@@ -399,7 +411,6 @@ export function Type1ActualForm({
     setTargetItems((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
-      syncToParent(updated);
       return updated;
     });
   };
