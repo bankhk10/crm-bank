@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import type { Type1UnplannedItem } from "../types/unplanned.types";
 import {

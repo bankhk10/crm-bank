@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import type { Type1PlannedItem } from "../types/planned.types";
 import {
