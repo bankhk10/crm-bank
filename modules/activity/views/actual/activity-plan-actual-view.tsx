@@ -1,38 +1,26 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertTriangle, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import {
   ActualViewHeader,
   ActualPlanSummary,
-  ActivityResultSection,
   ActivityStatusSection,
-  ActualViewActions,
 } from "./components";
 
+import { useActualPlanLoader, useActualStatusState } from "./hooks";
 import {
-  useActualPlanLoader,
-  useActualStatusState,
-  useActualSubmit,
-} from "./hooks";
-
-import { useType1Actual } from "@/modules/activity/features/type-1";
-import { useType2Actual } from "@/modules/activity-plans/features/type-2";
-import { useType3Actual } from "@/modules/activity-plans/features/type-3";
-import { useType4Actual } from "@/modules/activity-plans/features/type-4";
-import { useType5Actual } from "@/modules/activity-plans/features/type-5";
-import { useType6Actual } from "@/modules/activity-plans/features/type-6";
-import { useType7aActual } from "@/modules/activity-plans/features/type-7a";
-import { useType7bActual } from "@/modules/activity-plans/features/type-7b";
-import { useType8Actual } from "@/modules/activity-plans/features/type-8";
-import { useType9Actual } from "@/modules/activity-plans/features/type-9";
-import { useType10Actual } from "@/modules/activity-plans/features/type-10";
-import { useType11Actual } from "@/modules/activity-plans/features/type-11";
-import { useType13ActualState } from "@/modules/activity-plans/features/type-13";
-import { useType14ActualState } from "@/modules/activity-plans/features/type-14";
+  Type1ActualForm,
+  useType1Actual,
+  extractType1PlanTargets,
+  type Type1TargetItem,
+} from "@/modules/activity/features/type-1";
+import { FormActionButtons } from "@/modules/activity/ui";
+import { recordActivityResultAction } from "@/modules/activity-plans/server/actions";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -48,126 +36,142 @@ export function ActivityPlanActualView({
   const router = useRouter();
 
   // 1. Plan Loading & Shared Master Data
-  const planLoader = useActualPlanLoader({ id });
   const {
     loadingPlan,
-    isRefreshing,
     plan,
-    planStatus,
-    unauthorizedError,
     planSummary,
     planWorkTypes,
-    targets,
-    parsedResult,
     products,
     customers,
-    isTypeVisible,
-  } = planLoader;
+    unauthorizedError,
+    planStatus,
+    isRefreshing,
+  } = useActualPlanLoader({ id });
 
-  // 2. Footer Status State
+  // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
   const statusState = useActualStatusState();
 
-  // 3. TYPE Hooks
-  const type1 = useType1Actual();
-  const type2 = useType2Actual();
-  const type3 = useType3Actual();
-  const type4 = useType4Actual();
-  const type5 = useType5Actual();
-  const type6 = useType6Actual();
-  const type7a = useType7aActual();
-  const type7b = useType7bActual();
-  const type8 = useType8Actual();
-  const type9 = useType9Actual();
-  const type10 = useType10Actual();
-  const type11 = useType11Actual();
-  const type13 = useType13ActualState();
-  const type14 = useType14ActualState();
+  // 3. Type 1 Actual State Hook
+  const type1Actual = useType1Actual();
+  const [targets, setTargets] = useState<Type1TargetItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
-  const typeHooks = useMemo(
-    () => ({
-      type1,
-      type2,
-      type3,
-      type4,
-      type5,
-      type6,
-      type7a,
-      type7b,
-      type8,
-      type9,
-      type10,
-      type11,
-      type13,
-      type14,
-    }),
-    [
-      type1,
-      type2,
-      type3,
-      type4,
-      type5,
-      type6,
-      type7a,
-      type7b,
-      type8,
-      type9,
-      type10,
-      type11,
-      type13,
-      type14,
-    ],
-  );
-
-  // 4. Hydration Orchestration
-  const [isHydrated, setIsHydrated] = useState(!id);
-
+  // 4. Hydrate Type 1 plan targets & existing actual result
   useEffect(() => {
-    setIsHydrated(!id);
-  }, [id]);
+    if (plan && !isHydrated) {
+      const extractedTargets = extractType1PlanTargets(plan);
+      setTargets(extractedTargets.list);
 
-  useEffect(() => {
-    if (!plan) return;
-    statusState.hydrateStatus(parsedResult);
-    type1.hydrate(parsedResult);
-    type2.hydrate(parsedResult);
-    type3.hydrate(parsedResult);
-    type4.hydrate(parsedResult);
-    type5.hydrate(parsedResult, targets);
-    type6.hydrate(parsedResult);
-    type7a.hydrate(plan, parsedResult, targets);
-    type7b.hydrate(plan, parsedResult, targets);
-    type8.hydrate(parsedResult);
-    type9.hydrate(parsedResult);
-    type10.hydrate(parsedResult);
-    type11.hydrate(parsedResult);
-    type13.hydrate(plan, parsedResult, targets);
-    type14.hydrate(plan, parsedResult, targets);
-    setIsHydrated(true);
-  }, [plan, parsedResult]);
-
-  // 5. Submit Handler
-  const submitHandler = useActualSubmit({
-    id,
-    planStatus,
-    onSuccess,
-    onCancel,
-    isTypeVisible,
-    planSummary,
-    planWorkTypes,
-    targets,
-    products,
-    customers,
-    statusState,
-    typeHooks,
-  });
-
-  const { isSubmitting, formError, submitSuccess, handleSubmit } =
-    submitHandler;
+      // Hydrate actual result if already recorded
+      const res = plan.result || plan.actualResult || plan;
+      if (res) {
+        type1Actual.hydrate(res);
+      }
+      setIsHydrated(true);
+    }
+  }, [plan, isHydrated, type1Actual]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
     else if (id) router.push(`/activity-plans/${id}`);
     else router.push("/activity-plans");
+  };
+
+  // Submit Handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || isSubmitting) return;
+
+    setFormError(null);
+
+    const {
+      activityResultStatus,
+      cancelReason,
+      postponedDate,
+      postponedTime,
+      postponedReason,
+      postponedNotes,
+    } = statusState;
+
+    // Validation
+    if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
+      setFormError("กรุณาระบุเหตุผลการยกเลิก");
+      toast.error("กรุณาระบุเหตุผลการยกเลิก");
+      return;
+    }
+
+    if (activityResultStatus === "POSTPONED") {
+      if (!postponedDate) {
+        setFormError("กรุณาระบุวันที่เลื่อนนัดหมาย");
+        toast.error("กรุณาระบุวันที่เลื่อนนัดหมาย");
+        return;
+      }
+      if (!postponedReason.trim()) {
+        setFormError("กรุณาระบุเหตุผลการเลื่อน");
+        toast.error("กรุณาระบุเหตุผลการเลื่อน");
+        return;
+      }
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      let payload: any = {
+        resultStatus: activityResultStatus,
+        cancelReason: activityResultStatus === "CANCELLED" ? cancelReason.trim() : null,
+        postponedDate:
+          activityResultStatus === "POSTPONED" && postponedDate
+            ? new Date(`${postponedDate}T${postponedTime || "08:30"}:00`)
+            : null,
+        postponedReason:
+          activityResultStatus === "POSTPONED" ? postponedReason.trim() : null,
+        postponedNotes:
+          activityResultStatus === "POSTPONED" ? postponedNotes.trim() : null,
+      };
+
+      // If COMPLETED: upload images and collect Type 1 payload
+      if (activityResultStatus === "COMPLETED") {
+        const newlyUploadedUrls: string[] = [];
+        const cleanImages = await type1Actual.uploadImages(id, newlyUploadedUrls);
+        const t1Payload = type1Actual.getPayload(cleanImages);
+
+        payload = {
+          ...payload,
+          discussionResult: t1Payload.discussionResult || null,
+          productAdvice: t1Payload.productAdvice || null,
+          advisedProducts: t1Payload.products || [],
+          salesOpportunity: t1Payload.salesOpportunity || null,
+          nextAction: t1Payload.nextAction || null,
+          nextMeetingDate: t1Payload.nextMeetingDate
+            ? new Date(t1Payload.nextMeetingDate)
+            : null,
+          farmerHomeAddress: t1Payload.farmerHomeAddress || null,
+          plotLatitude: t1Payload.plotLatitude,
+          plotLongitude: t1Payload.plotLongitude,
+          plotImages: t1Payload.plotImages || [],
+          targetActualResults: t1Payload.targetActualResults || [],
+        };
+      }
+
+      const res = await recordActivityResultAction(id, payload);
+      if (res.success) {
+        setSubmitSuccess(true);
+        toast.success("บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว");
+        if (onSuccess) onSuccess();
+        else router.push(`/activity-plans/${id}`);
+      } else {
+        setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผล");
+        toast.error(res.error || "เกิดข้อผิดพลาดในการบันทึกผล");
+      }
+    } catch (err: any) {
+      setFormError(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+      toast.error(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Permission & Loading Guards
@@ -192,13 +196,7 @@ export function ActivityPlanActualView({
             <div className="pt-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  if (onCancel) onCancel();
-                  else
-                    router.push(
-                      id ? `/activity-plans/${id}` : "/activity-plans",
-                    );
-                }}
+                onClick={handleBack}
                 className="gap-2 font-semibold border-slate-300"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -226,7 +224,7 @@ export function ActivityPlanActualView({
     );
   }
 
-  if (id && planStatus && planStatus !== "APPROVED") {
+  if (id && planStatus && planStatus !== "APPROVED" && planStatus !== "COMPLETED") {
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
@@ -247,10 +245,7 @@ export function ActivityPlanActualView({
             <div className="pt-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  if (onCancel) onCancel();
-                  else router.push(`/activity-plans/${id}`);
-                }}
+                onClick={handleBack}
                 className="gap-2 font-semibold border-slate-300"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -263,10 +258,15 @@ export function ActivityPlanActualView({
     );
   }
 
+  const isType1 =
+    planWorkTypes.includes("TYPE_1") ||
+    planWorkTypes.includes("VISIT") ||
+    planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
+    planWorkTypes.length === 0;
+
   return (
     <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
-      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
-        {/* TOP HEADER */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
         <ActualViewHeader planNo={planSummary.planNo} />
         {isRefreshing && (
           <div className="flex items-center gap-2 text-xs text-slate-500 animate-pulse">
@@ -290,26 +290,10 @@ export function ActivityPlanActualView({
             </div>
           )}
 
-          {/* PLAN SUMMARY COMPONENT */}
+          {/* 1. สรุปข้อมูลแผนเดิม */}
           <ActualPlanSummary summary={planSummary} />
 
-          {/* SECTION: ผลการปฏิบัติงานตามประเภทงาน (WORK TYPES 1 - 11) */}
-          <ActivityResultSection
-            isTypeVisible={isTypeVisible}
-            targets={targets}
-            products={products}
-            customers={customers}
-            typeHooks={typeHooks}
-            plan={plan}
-            planProvince={
-              (type7a.t7DemoPlotData as any)?.province ||
-              targets.t7a?.province ||
-              planSummary?.province ||
-              ""
-            }
-          />
-
-          {/* SECTION: สถานะผลการทำกิจกรรม */}
+          {/* 2. สถานะผลการทำกิจกรรม (สำเร็จ / เลื่อน / ยกเลิก) */}
           <ActivityStatusSection
             activityResultStatus={statusState.activityResultStatus}
             setActivityResultStatus={statusState.setActivityResultStatus}
@@ -325,11 +309,46 @@ export function ActivityPlanActualView({
             setPostponedNotes={statusState.setPostponedNotes}
           />
 
-          {/* BOTTOM ACTIONS */}
-          <ActualViewActions
+          {/* 3. ฟอร์มผลการปฏิบัติงานเฉพาะ Type 1 */}
+          {statusState.activityResultStatus === "COMPLETED" && isType1 && (
+            <div className="space-y-4 pt-2 border-t border-slate-100">
+              <Type1ActualForm
+                isVisible={true}
+                targets={targets}
+                target={targets[0]}
+                targetActualResults={type1Actual.t1TargetItems}
+                onUpdateTargetActualResults={type1Actual.syncFromTargetItems}
+                productAdvice={type1Actual.t1ProductAdvice}
+                setProductAdvice={type1Actual.setT1ProductAdvice}
+                advisedProducts={type1Actual.t1AdvisedProducts}
+                setAdvisedProducts={type1Actual.setT1AdvisedProducts}
+                detail={type1Actual.t1Detail}
+                setDetail={type1Actual.setT1Detail}
+                discussionResult={type1Actual.t1DiscussionResult}
+                setDiscussionResult={type1Actual.setT1DiscussionResult}
+                salesOpportunity={type1Actual.t1SalesOpportunity}
+                setSalesOpportunity={type1Actual.setT1SalesOpportunity}
+                nextAction={type1Actual.t1NextAction}
+                setNextAction={type1Actual.setT1NextAction}
+                nextMeetingDate={type1Actual.t1NextMeetingDate}
+                setNextMeetingDate={type1Actual.setT1NextMeetingDate}
+                farmerHomeAddress={type1Actual.t1FarmerHomeAddress}
+                setFarmerHomeAddress={type1Actual.setT1FarmerHomeAddress}
+                plotLatitude={type1Actual.t1PlotLatitude}
+                setPlotLatitude={type1Actual.setT1PlotLatitude}
+                plotLongitude={type1Actual.t1PlotLongitude}
+                setPlotLongitude={type1Actual.setT1PlotLongitude}
+                plotImages={type1Actual.t1PlotImages}
+                setPlotImages={type1Actual.setT1PlotImages}
+              />
+            </div>
+          )}
+
+          {/* ปุ่มบันทึก */}
+          <FormActionButtons
             onBack={handleBack}
             loading={isSubmitting}
-            submitLabel="บันทึกผล"
+            submitLabel="บันทึกผลการปฏิบัติงาน"
           />
         </form>
       </div>
@@ -338,4 +357,3 @@ export function ActivityPlanActualView({
 }
 
 export default ActivityPlanActualView;
-
