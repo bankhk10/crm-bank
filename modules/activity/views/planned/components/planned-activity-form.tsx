@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
   useType1PlannedForm,
   validateType1PlannedItem,
   mapType1PlannedItemToDb,
+  hydrateType1PlannedData,
   type CustomerOption,
   type ProductOption,
 } from "@/modules/activity/features/type-1";
@@ -86,8 +87,13 @@ export function PlannedActivityForm({
   });
 
   // 3. Type 1 Planned Hook
+  const hydratedInitialItems = useMemo(
+    () => hydrateType1PlannedData(initialData),
+    [initialData],
+  );
+
   const type1 = useType1PlannedForm({
-    initialItems: initialData.items || undefined,
+    initialItems: hydratedInitialItems,
     defaultProvince: locationTeam.province,
   });
 

@@ -102,13 +102,35 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
   const resolvedWorkTypes = useMemo(() => {
     if (!plan) return [];
     const list: Array<{ code: string; name: string }> = [];
+
+    // 1. From normalized workTypes
+    if (plan.workTypes && Array.isArray(plan.workTypes)) {
+      plan.workTypes.forEach((wt: any) => {
+        const at = wt.activityType;
+        if (at && !list.some((i) => i.code === at.code)) {
+          list.push({ code: at.code, name: at.name });
+        }
+      });
+    }
+
+    // 2. From primary activityType
+    if (plan.activityType && !list.some((i) => i.code === plan.activityType?.code)) {
+      list.push({
+        code: plan.activityType.code,
+        name: plan.activityType.name,
+      });
+    }
+
+    // 3. From stores
     (plan.stores || []).forEach((s: any) => {
       if (s.workTypeCode && !list.some((i) => i.code === s.workTypeCode)) {
         list.push({ code: s.workTypeCode, name: s.workType?.name || s.workTypeCode });
       }
     });
+
+    // 4. From type1Stores
     if (
-      (plan as any).type1Stores?.length > 0 &&
+      ((plan as any).type1Stores?.length > 0 || list.some((i) => i.code === "TYPE_1")) &&
       !list.some((i) => i.code === "TYPE_1")
     ) {
       list.unshift({ code: "TYPE_1", name: "เข้าพบร้านค้า / Key Farmer" });
@@ -174,12 +196,24 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
   const isTypeActive = useCallback(
     (code: string, label: string) => {
       if (planWorkTypes.includes(code) || planWorkTypes.includes(label)) return true;
-      if (
-        code === "TYPE_1" &&
-        ((plan as any)?.type1Stores?.length > 0 ||
-          plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_1"))
-      ) {
-        return true;
+      if (code === "TYPE_1") {
+        if (
+          (plan as any)?.type1Stores?.length > 0 ||
+          plan?.stores?.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_1" ||
+              s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
+          ) ||
+          plan?.activityType?.code === "TYPE_1" ||
+          plan?.activityType?.name?.includes("เข้าพบ") ||
+          (plan as any)?.workTypes?.some(
+            (wt: any) =>
+              wt.activityType?.code === "TYPE_1" ||
+              wt.activityType?.name?.includes("เข้าพบ"),
+          )
+        ) {
+          return true;
+        }
       }
       return false;
     },

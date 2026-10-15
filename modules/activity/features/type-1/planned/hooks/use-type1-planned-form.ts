@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Type1PlannedItem } from "../types/planned.types";
 import {
   validateType1PlannedItem,
@@ -35,6 +35,23 @@ export function useType1PlannedForm({
       },
     ];
   });
+
+  const isHydratedRef = useRef(false);
+  useEffect(() => {
+    if (!isHydratedRef.current && initialItems && initialItems.length > 0) {
+      const hasRealData = initialItems.some(
+        (it) =>
+          it.storeId ||
+          it.customerName ||
+          it.unregisteredFarmerName ||
+          (it.detail && it.detail.trim() !== ""),
+      );
+      if (hasRealData) {
+        setItems(initialItems);
+        isHydratedRef.current = true;
+      }
+    }
+  }, [initialItems]);
 
   const addItem = useCallback(() => {
     setItems((prev) => [

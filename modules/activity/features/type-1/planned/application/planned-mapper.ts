@@ -98,10 +98,10 @@ export function mapType1DbStoreToPlannedItem(
     visitPurpose: inferredPurpose,
     storeId: storeRecord.storeId || undefined,
     customerName: storeRecord.isUnregisteredFarmer
-      ? storeRecord.unregisteredFarmerName || ""
-      : storeRecord.store?.name || storeRecord.storeName || "",
+      ? storeRecord.unregisteredFarmerName || storeRecord.customerName || storeRecord.customer || ""
+      : storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || storeRecord.customer || "",
     topic: storeRecord.topic || storeRecord.remarks || "แจ้งข่าวสาร",
-    detail: storeRecord.notes || "",
+    detail: storeRecord.notes || storeRecord.detail || "",
     province: storeRecord.province || storeRecord.store?.province || "",
     isUnregisteredFarmer: Boolean(storeRecord.isUnregisteredFarmer),
     unregisteredFarmerName: storeRecord.unregisteredFarmerName || "",
@@ -115,7 +115,19 @@ export function mapType1DbStoreToPlannedItem(
 export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
   if (!plan) return [];
 
-  const rawStores: any[] = plan.type1Stores || [];
+  const rawStores: any[] =
+    plan.type1Stores && plan.type1Stores.length > 0
+      ? plan.type1Stores
+      : plan.items && plan.items.length > 0
+        ? plan.items
+        : plan.stores && plan.stores.length > 0
+          ? plan.stores.filter(
+              (s: any) =>
+                !s.workTypeCode ||
+                s.workTypeCode === "TYPE_1" ||
+                s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
+            )
+          : [];
 
   if (rawStores.length === 0) {
     return [
@@ -134,7 +146,15 @@ export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
     ];
   }
 
-  return rawStores.map((s, idx) => mapType1DbStoreToPlannedItem(s, idx));
+  return rawStores.map((s, idx) => {
+    if (s && (s.customerName !== undefined || s.detail !== undefined)) {
+      return {
+        ...s,
+        id: s.id || String(idx + 1),
+      } as Type1PlannedItem;
+    }
+    return mapType1DbStoreToPlannedItem(s, idx);
+  });
 }
 
 /**
@@ -151,7 +171,9 @@ export function extractType1PlanTargets(
   const rawT1Stores: any[] =
     (plan as any).type1Stores && (plan as any).type1Stores.length > 0
       ? (plan as any).type1Stores
-      : stores.filter((s: any) => s.workTypeCode === "TYPE_1");
+      : (plan as any).items && (plan as any).items.length > 0
+        ? (plan as any).items
+        : stores.filter((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1" || s.workTypeCode === "เข้าพบร้านค้า / Key Farmer");
 
   const firstT1Result =
     (plan.type1Results && plan.type1Results[0]) ||

@@ -20,6 +20,7 @@ import {
   ImageLightboxModal,
   type LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
+import { Type1PlanCard } from "./type1-plan-card";
 
 /**
  * Extracts target-specific text from composite strings like "TargetA: notes | TargetB: notes"
@@ -153,10 +154,35 @@ export function Type1DetailView({
       farmerHomeAddress || hasCoords || (plotImages && plotImages.length > 0),
     );
 
+  const hasActualData = Boolean(
+    discussionResult?.trim() ||
+    nextAction?.trim() ||
+    nextMeetingDate ||
+    farmerHomeAddress?.trim() ||
+    hasCoords ||
+    (plotImages && plotImages.length > 0) ||
+    productAdvice?.trim() ||
+    salesOpportunity ||
+    effectiveTargets.some(
+      (t) =>
+        t.discussionResult?.trim() ||
+        t.nextAction?.trim() ||
+        t.farmerHomeAddress?.trim() ||
+        (t.plotLatitude != null && String(t.plotLatitude).trim() !== "") ||
+        t.productAdvice?.trim() ||
+        t.salesOpportunity,
+    ),
+  );
+
   return (
-    <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
-      {/* READ-ONLY ACTUAL RESULT DISPLAY */}
-      {count > 1 ? (
+    <div className="space-y-4">
+      {/* 1. ข้อมูลเป้าหมายตามแผนงาน (PLAN) */}
+      <Type1PlanCard target={target} targets={targets} />
+
+      {/* 2. ข้อมูลผลการปฏิบัติงานจริง (ACTUAL RESULT) */}
+      {hasActualData ? (
+        <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
+          {count > 1 ? (
         /* MULTI-TARGET READ-ONLY ACTUAL DISPLAY */
         <div className="space-y-4 pt-1 border-t border-slate-100">
           <div className="flex items-center gap-2 pb-1">
@@ -592,6 +618,15 @@ export function Type1DetailView({
               </span>
             </div>
           </div>
+        </div>
+      )}
+      </div>
+      ) : (
+        <div className="bg-slate-50/70 border border-dashed border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-slate-500 shadow-2xs">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            <span>สถานะผลงานจริง: ยังไม่มีการบันทึกผลการปฏิบัติงานจริงสำหรับแผนงานนี้</span>
+          </span>
         </div>
       )}
 

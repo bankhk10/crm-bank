@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Zap, Info } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
   useType1UnplannedForm,
   validateType1UnplannedItem,
   mapType1UnplannedItemToStore,
+  hydrateType1UnplannedData,
   type CustomerOption,
   type ProductOption,
 } from "@/modules/activity/features/type-1";
@@ -88,8 +89,13 @@ export function UnplannedActivityForm({
   });
 
   // 3. Type 1 Unplanned Hook
+  const hydratedInitialItems = useMemo(
+    () => hydrateType1UnplannedData(initialData),
+    [initialData],
+  );
+
   const type1 = useType1UnplannedForm({
-    initialItems: initialData.items || undefined,
+    initialItems: hydratedInitialItems,
     defaultProvince: locationTeam.province,
   });
 

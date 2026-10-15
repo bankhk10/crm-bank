@@ -7,7 +7,19 @@ import type { Type1UnplannedItem } from "../types/unplanned.types";
 export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
   if (!plan) return [];
 
-  const rawStores: any[] = plan.type1Stores || [];
+  const rawStores: any[] =
+    plan.type1Stores && plan.type1Stores.length > 0
+      ? plan.type1Stores
+      : plan.items && plan.items.length > 0
+        ? plan.items
+        : plan.stores && plan.stores.length > 0
+          ? plan.stores.filter(
+              (s: any) =>
+                !s.workTypeCode ||
+                s.workTypeCode === "TYPE_1" ||
+                s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
+            )
+          : [];
   const actualResult = plan.type1Result || {};
   const products: any[] = plan.type1Products || [];
   const rawAttachments: any[] = plan.attachments || [];
