@@ -39,20 +39,45 @@ export function useType1Form({
       (initial as any)?.result ||
       (initial as any)?.details?.activityResult ||
       null;
-    const t1Actual = rawResult?.activityResultType1 || rawResult || null;
+    const t1Actual =
+      (initial as any)?.type1Result ||
+      rawResult?.type1Result ||
+      rawResult?.activityResultType1 ||
+      (initial as any)?.activityResultType1 ||
+      rawResult ||
+      null;
     const t1Products =
-      rawResult?.type1Products || (initial as any)?.type1Products || [];
+      (initial as any)?.type1Products ||
+      rawResult?.type1Products ||
+      rawResult?.products ||
+      [];
+
+    const actualLat =
+      t1Actual?.plotLatitude ??
+      rawResult?.plotLatitude ??
+      (initial as any)?.type1Result?.plotLatitude ??
+      (initial as any)?.plotLatitude ??
+      null;
+
+    const actualLng =
+      t1Actual?.plotLongitude ??
+      rawResult?.plotLongitude ??
+      (initial as any)?.type1Result?.plotLongitude ??
+      (initial as any)?.plotLongitude ??
+      null;
 
     const attachActualToItem = (
       item: Type1VisitItem,
       idx: number,
       totalCount: number,
+      targetCoordIndex: number = 0,
     ): Type1VisitItem => {
       if (!t1Actual) return item;
       const name = item.isUnregisteredFarmer
         ? item.unregisteredFarmerName || item.customerName || `เป้าหมายที่ ${idx + 1}`
         : item.customerName || `เป้าหมายที่ ${idx + 1}`;
       const isSingle = totalCount === 1;
+      const isTargetForCoordinates = isSingle || idx === targetCoordIndex;
 
       const parsedDiscussion = parseTargetText(
         t1Actual.discussionResult,
@@ -126,21 +151,35 @@ export function useType1Form({
         farmerHomeAddress: item.farmerHomeAddress || parsedAddress,
         plotLatitude:
           item.plotLatitude ||
-          (isSingle && t1Actual.plotLatitude != null
-            ? String(t1Actual.plotLatitude)
+          (isTargetForCoordinates && actualLat != null && String(actualLat).trim() !== ""
+            ? String(actualLat)
             : ""),
         plotLongitude:
           item.plotLongitude ||
-          (isSingle && t1Actual.plotLongitude != null
-            ? String(t1Actual.plotLongitude)
+          (isTargetForCoordinates && actualLng != null && String(actualLng).trim() !== ""
+            ? String(actualLng)
             : ""),
         plotImages:
           item.plotImages && item.plotImages.length > 0
             ? item.plotImages
-            : isSingle && t1Actual.plotImages
+            : isTargetForCoordinates && t1Actual.plotImages
               ? t1Actual.plotImages
               : [],
       };
+    };
+
+    const getTargetCoordIndex = (itemList: Type1VisitItem[]) => {
+      const existingCoordIdx = itemList.findIndex(
+        (it) => it.plotLatitude && it.plotLongitude,
+      );
+      if (existingCoordIdx >= 0) return existingCoordIdx;
+
+      const farmerIdx = itemList.findIndex(
+        (it) => it.visitPurpose === "FARMER" || it.isUnregisteredFarmer,
+      );
+      if (farmerIdx >= 0) return farmerIdx;
+
+      return 0;
     };
 
     if (
@@ -152,19 +191,33 @@ export function useType1Form({
         ...item,
         visitPurpose: item.visitPurpose || "FARMER",
       }));
+      const coordIdx = getTargetCoordIndex(items);
       return items.map((it: Type1VisitItem, idx: number) =>
-        attachActualToItem(it, idx, items.length),
+        attachActualToItem(it, idx, items.length, coordIdx),
       );
     }
-    const type1Stores = (initial as any)?.stores?.filter(
-      (s: any) => getWorkTypeCode(s.workTypeCode) === "TYPE_1",
+
+    const dedicatedT1Stores =
+      (initial as any)?.type1Stores && (initial as any).type1Stores.length > 0
+        ? (initial as any).type1Stores
+        : null;
+
+    const legacyT1Stores = (initial as any)?.stores?.filter(
+      (s: any) =>
+        !s.workTypeCode ||
+        getWorkTypeCode(s.workTypeCode) === "TYPE_1" ||
+        s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
     );
+
+    const type1Stores = dedicatedT1Stores || legacyT1Stores;
+
     if (type1Stores && type1Stores.length > 0) {
       const mapped = type1Stores.map((s: any, idx: number) =>
         mapType1DbStoreToFormItem(s, idx),
       );
+      const coordIdx = getTargetCoordIndex(mapped);
       return mapped.map((it: Type1VisitItem, idx: number) =>
-        attachActualToItem(it, idx, mapped.length),
+        attachActualToItem(it, idx, mapped.length, coordIdx),
       );
     }
     if (Array.isArray(initDetails) && initDetails.length > 0) {
@@ -192,23 +245,29 @@ export function useType1Form({
           unregisteredFarmerName: item.unregisteredFarmerName || "",
           unregisteredFarmerPhone: item.unregisteredFarmerPhone || "",
         }));
+        const coordIdx = getTargetCoordIndex(mapped);
         return mapped.map((it: Type1VisitItem, idx: number) =>
-          attachActualToItem(it, idx, mapped.length),
+          attachActualToItem(it, idx, mapped.length, coordIdx),
         );
       }
     }
     return [
-      {
-        id: "1",
-        visitPurpose: "FARMER",
-        customerName: "",
-        topic: "แจ้งข่าวสาร",
-        detail: "",
-        province: "",
-        isUnregisteredFarmer: false,
-        unregisteredFarmerName: "",
-        unregisteredFarmerPhone: "",
-      },
+      attachActualToItem(
+        {
+          id: "1",
+          visitPurpose: "FARMER",
+          customerName: "",
+          topic: "แจ้งข่าวสาร",
+          detail: "",
+          province: "",
+          isUnregisteredFarmer: false,
+          unregisteredFarmerName: "",
+          unregisteredFarmerPhone: "",
+        },
+        0,
+        1,
+        0,
+      ),
     ];
   });
 

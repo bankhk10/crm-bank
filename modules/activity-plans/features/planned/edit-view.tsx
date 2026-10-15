@@ -180,6 +180,11 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
             planType: plan.planType || "PLANNED",
+            type1Stores: (plan as any).type1Stores || plan.stores || [],
+            type1Result: (plan as any).type1Result || null,
+            type1Products: (plan as any).type1Products || [],
+            result: plan.result || (plan as any).activityResult || null,
+            activityResult: plan.result || (plan as any).activityResult || null,
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูล Trip Plan ได้");

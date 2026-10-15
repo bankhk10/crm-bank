@@ -99,12 +99,24 @@ export function mapType1DbStoreToFormItem(
     customerName: storeRecord.isUnregisteredFarmer
       ? storeRecord.unregisteredFarmerName || ""
       : storeRecord.store?.name || storeRecord.storeName || "",
-    topic: storeRecord.remarks || "แจ้งข่าวสาร",
+    topic: storeRecord.topic || storeRecord.remarks || "แจ้งข่าวสาร",
     detail: storeRecord.notes || "",
     province: storeRecord.province || storeRecord.store?.province || "",
     isUnregisteredFarmer: Boolean(storeRecord.isUnregisteredFarmer),
     unregisteredFarmerName: storeRecord.unregisteredFarmerName || "",
     unregisteredFarmerPhone: storeRecord.unregisteredFarmerPhone || "",
+    plotLatitude:
+      storeRecord.plotLatitude != null
+        ? String(storeRecord.plotLatitude)
+        : storeRecord.store?.latitude != null
+          ? String(storeRecord.store.latitude)
+          : undefined,
+    plotLongitude:
+      storeRecord.plotLongitude != null
+        ? String(storeRecord.plotLongitude)
+        : storeRecord.store?.longitude != null
+          ? String(storeRecord.store.longitude)
+          : undefined,
   };
 }
 
@@ -310,28 +322,30 @@ export function parseType1ActualResult(resData: any): {
     }));
   }
 
-  const type1Obj = resData.type1Result;
+  const type1Obj = resData.type1Result || resData.activityResultType1;
 
   const discussionResult =
-    type1Obj?.discussionResult || resData.discussionResult;
+    type1Obj?.discussionResult || resData.discussionResult || resData.result?.discussionResult;
   if (discussionResult) result.t1DiscussionResult = discussionResult;
 
   const productAdvice =
-    type1Obj?.productAdvice || resData.productAdvice;
+    type1Obj?.productAdvice || resData.productAdvice || resData.result?.productAdvice;
   if (productAdvice) result.t1ProductAdvice = productAdvice;
 
   const salesOpportunity =
-    type1Obj?.salesOpportunity || resData.salesOpportunity;
+    type1Obj?.salesOpportunity || resData.salesOpportunity || resData.result?.salesOpportunity;
   if (salesOpportunity) result.t1SalesOpportunity = salesOpportunity;
 
   const farmerHomeAddress =
-    type1Obj?.farmerHomeAddress || resData.farmerHomeAddress;
+    type1Obj?.farmerHomeAddress || resData.farmerHomeAddress || resData.result?.farmerHomeAddress;
   if (farmerHomeAddress) result.t1FarmerHomeAddress = farmerHomeAddress;
 
   const rawLat =
     type1Obj?.plotLatitude != null
       ? type1Obj.plotLatitude
-      : resData.plotLatitude;
+      : resData.plotLatitude != null
+        ? resData.plotLatitude
+        : resData.result?.plotLatitude;
   if (rawLat != null && rawLat !== "") {
     result.t1PlotLatitude = Number(rawLat);
   }
@@ -339,12 +353,14 @@ export function parseType1ActualResult(resData: any): {
   const rawLng =
     type1Obj?.plotLongitude != null
       ? type1Obj.plotLongitude
-      : resData.plotLongitude;
+      : resData.plotLongitude != null
+        ? resData.plotLongitude
+        : resData.result?.plotLongitude;
   if (rawLng != null && rawLng !== "") {
     result.t1PlotLongitude = Number(rawLng);
   }
 
-  const nextAction = type1Obj?.nextAction || resData.nextAction;
+  const nextAction = type1Obj?.nextAction || resData.nextAction || resData.result?.nextAction;
   if (nextAction) result.t1NextAction = nextAction;
 
   const nextMeetingDate =

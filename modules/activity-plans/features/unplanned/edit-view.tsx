@@ -187,6 +187,13 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             type13Plots: (plan as any).type13?.plots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
+            type1Stores: (plan as any).type1Stores || plan.stores || [],
+            type1Result: (plan as any).type1Result || null,
+            type1Products: (plan as any).type1Products || [],
+            activityResultType1:
+              (plan as any).type1Result ||
+              (plan as any).activityResultType1 ||
+              null,
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูลกิจกรรมนอกแผนได้");
