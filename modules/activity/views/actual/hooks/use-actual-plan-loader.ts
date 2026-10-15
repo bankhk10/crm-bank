@@ -6,10 +6,7 @@ import { getActivityPlanAction } from "@/modules/activity-plans/server/actions";
 import { getWorkTypeCode } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
-import type {
-  PlanSummaryData,
-  ActualTargetsState,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { PlanSummaryData } from "../types";
 import {
   extractPlanData,
   parseResultSummary,
@@ -38,8 +35,6 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
-  const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
-  const [extractedData, setExtractedData] = useState<ReturnType<typeof extractPlanData> | null>(null);
   const [parsedResult, setParsedResult] = useState<ReturnType<typeof parseResultSummary> | null>(null);
 
   // Load products & customers master list once
@@ -116,10 +111,8 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
         setPlanStatus(p.status);
 
         const extracted = extractPlanData(p, initialTargets);
-        setExtractedData(extracted);
         setPlanSummary(extracted.planSummary);
         setPlanWorkTypes(extracted.resolvedWorkTypes);
-        setTargets(extracted.targets);
 
         const parsed = parseResultSummary({
           ...((p as any).result || {}),
@@ -160,16 +153,12 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
     unauthorizedError,
     planStatus,
     formError,
-    setFormError,
     plan,
     planSummary,
     planWorkTypes,
     products,
     customers,
-    targets,
-    extractedData,
     parsedResult,
     isTypeVisible,
-    hasLoadedRef,
   };
 }

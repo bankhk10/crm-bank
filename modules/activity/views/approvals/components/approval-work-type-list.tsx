@@ -18,7 +18,10 @@ import {
 } from "./work-types";
 import { Type13Approval, type Type13PlotItem } from "@/modules/activity-plans/features/type-13";
 import { Type14Approval, type Type14PlanInput } from "@/modules/activity-plans/features/type-14";
-import type { ActualTargetsState, ParsedSummaryValues } from "../../actual/types";
+import type {
+  ActualTargetsState,
+  ParsedSummaryValues,
+} from "@/modules/activity-plans/features/shared/actual-view/types";
 
 interface ApprovalWorkTypeListProps {
   plan: any;
