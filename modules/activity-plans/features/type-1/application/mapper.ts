@@ -162,31 +162,21 @@ export function extractType1PlanTargets(
   const resultLat =
     plan.type1Result?.plotLatitude != null
       ? String(plan.type1Result.plotLatitude)
-      : plan.result?.plotLatitude != null
-        ? String(plan.result.plotLatitude)
-        : undefined;
+      : undefined;
 
   const resultLng =
     plan.type1Result?.plotLongitude != null
       ? String(plan.type1Result.plotLongitude)
-      : plan.result?.plotLongitude != null
-        ? String(plan.result.plotLongitude)
-        : undefined;
+      : undefined;
 
   const resultFarmerAddress =
-    plan.type1Result?.farmerHomeAddress ||
-    plan.result?.farmerHomeAddress ||
-    undefined;
+    plan.type1Result?.farmerHomeAddress || undefined;
 
   const resultProductAdvice =
-    plan.type1Result?.productAdvice ||
-    plan.result?.productAdvice ||
-    undefined;
+    plan.type1Result?.productAdvice || undefined;
 
   const resultSalesOpportunity =
-    plan.type1Result?.salesOpportunity ||
-    plan.result?.salesOpportunity ||
-    undefined;
+    plan.type1Result?.salesOpportunity || undefined;
 
   const resultNextMeetingDate =
     plan.type1Result?.nextMeetingDate

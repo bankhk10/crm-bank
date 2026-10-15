@@ -2027,13 +2027,7 @@ model ActivityResult {
   nextAction    String?              @map("next_action") // แผนการต่อยอด / ติดตาม
 
   // Qualitative Feedback
-  discussionResult  String?   @map("discussion_result")
-  productAdvice     String?   @map("product_advice")
-  salesOpportunity  String?   @map("sales_opportunity")
   nextMeetingDate   DateTime? @map("next_meeting_date")
-  farmerHomeAddress String?   @map("farmer_home_address")
-  plotLatitude      Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
-  plotLongitude     Decimal?  @map("plot_longitude") @db.Decimal(10, 7)
 
   // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
   cancelReason    String?   @map("cancel_reason") // สาเหตุที่ยกเลิก
