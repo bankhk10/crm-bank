@@ -145,7 +145,26 @@ export function extractType1PlanTargets(
       ? (plan as any).type1Stores
       : stores.filter((s: any) => s.workTypeCode === "TYPE_1");
 
-  const list: Type1TargetItem[] = rawT1Stores.map((s: any) => {
+  const resultLat =
+    plan.type1Result?.plotLatitude != null
+      ? String(plan.type1Result.plotLatitude)
+      : plan.result?.plotLatitude != null
+        ? String(plan.result.plotLatitude)
+        : undefined;
+
+  const resultLng =
+    plan.type1Result?.plotLongitude != null
+      ? String(plan.type1Result.plotLongitude)
+      : plan.result?.plotLongitude != null
+        ? String(plan.result.plotLongitude)
+        : undefined;
+
+  const resultFarmerAddress =
+    plan.type1Result?.farmerHomeAddress ||
+    plan.result?.farmerHomeAddress ||
+    undefined;
+
+  const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
     let visitPurpose: "FARMER" | "STORE" = s.visitPurpose as "FARMER" | "STORE";
     if (!visitPurpose) {
       if (s.isUnregisteredFarmer || s.store?.customerType === "FARMER") {
@@ -161,6 +180,10 @@ export function extractType1PlanTargets(
       ? s.unregisteredFarmerName || ""
       : s.store?.name || s.storeName || "";
 
+    const isFarmer = visitPurpose === "FARMER";
+    const storeLat = s.store?.latitude != null ? String(s.store.latitude) : undefined;
+    const storeLng = s.store?.longitude != null ? String(s.store.longitude) : undefined;
+
     return {
       id: s.id,
       customer: custName,
@@ -174,6 +197,11 @@ export function extractType1PlanTargets(
       isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
       unregisteredFarmerName: s.unregisteredFarmerName || undefined,
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || undefined,
+      farmerHomeAddress: isFarmer
+        ? s.store?.addressLine || resultFarmerAddress
+        : undefined,
+      plotLatitude: isFarmer ? (resultLat || storeLat) : undefined,
+      plotLongitude: isFarmer ? (resultLng || storeLng) : undefined,
     };
   });
 
@@ -218,19 +246,50 @@ export function parseType1ActualResult(resData: any): {
   const result: any = {};
   if (!resData) return result;
 
-  const t1Res = resData.type1Result || resData;
-  if (t1Res.discussionResult) result.t1DiscussionResult = t1Res.discussionResult;
-  if (t1Res.productAdvice) result.t1ProductAdvice = t1Res.productAdvice;
-  if (t1Res.salesOpportunity) result.t1SalesOpportunity = t1Res.salesOpportunity;
-  if (t1Res.farmerHomeAddress) result.t1FarmerHomeAddress = t1Res.farmerHomeAddress;
-  if (t1Res.plotLatitude != null) result.t1PlotLatitude = Number(t1Res.plotLatitude);
-  if (t1Res.plotLongitude != null) result.t1PlotLongitude = Number(t1Res.plotLongitude);
-  if (t1Res.nextAction) result.t1NextAction = t1Res.nextAction;
-  if (t1Res.nextMeetingDate) {
+  const type1Obj = resData.type1Result;
+
+  const discussionResult =
+    type1Obj?.discussionResult || resData.discussionResult;
+  if (discussionResult) result.t1DiscussionResult = discussionResult;
+
+  const productAdvice =
+    type1Obj?.productAdvice || resData.productAdvice;
+  if (productAdvice) result.t1ProductAdvice = productAdvice;
+
+  const salesOpportunity =
+    type1Obj?.salesOpportunity || resData.salesOpportunity;
+  if (salesOpportunity) result.t1SalesOpportunity = salesOpportunity;
+
+  const farmerHomeAddress =
+    type1Obj?.farmerHomeAddress || resData.farmerHomeAddress;
+  if (farmerHomeAddress) result.t1FarmerHomeAddress = farmerHomeAddress;
+
+  const rawLat =
+    type1Obj?.plotLatitude != null
+      ? type1Obj.plotLatitude
+      : resData.plotLatitude;
+  if (rawLat != null && rawLat !== "") {
+    result.t1PlotLatitude = Number(rawLat);
+  }
+
+  const rawLng =
+    type1Obj?.plotLongitude != null
+      ? type1Obj.plotLongitude
+      : resData.plotLongitude;
+  if (rawLng != null && rawLng !== "") {
+    result.t1PlotLongitude = Number(rawLng);
+  }
+
+  const nextAction = type1Obj?.nextAction || resData.nextAction;
+  if (nextAction) result.t1NextAction = nextAction;
+
+  const nextMeetingDate =
+    type1Obj?.nextMeetingDate || resData.nextMeetingDate;
+  if (nextMeetingDate) {
     result.t1NextMeetingDate =
-      typeof t1Res.nextMeetingDate === "string"
-        ? t1Res.nextMeetingDate.split("T")[0]
-        : new Date(t1Res.nextMeetingDate).toISOString().split("T")[0];
+      typeof nextMeetingDate === "string"
+        ? nextMeetingDate.split("T")[0]
+        : new Date(nextMeetingDate).toISOString().split("T")[0];
   }
 
   return result;

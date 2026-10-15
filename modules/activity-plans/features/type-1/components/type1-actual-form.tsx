@@ -71,11 +71,21 @@ function initializeTargetItems(
       : [{ customer: "เป้าหมายที่ 1", visitPurpose: "FARMER" } as Type1TargetItem];
   const isSingle = effectiveList.length === 1;
 
+  const farmerTargets = effectiveList.filter((t) => t.visitPurpose !== "STORE");
+  const isOnlyOneFarmer = farmerTargets.length === 1;
+
   return effectiveList.map((t, idx) => {
     const isStore = t.visitPurpose === "STORE";
     const name = t.isUnregisteredFarmer
       ? t.unregisteredFarmerName || t.customer || `เป้าหมายที่ ${idx + 1}`
       : t.customer || `เป้าหมายที่ ${idx + 1}`;
+
+    const isFirstOrOnlyFarmer =
+      !isStore &&
+      (isOnlyOneFarmer ||
+        farmerTargets[0]?.id === t.id ||
+        farmerTargets[0]?.customer === name ||
+        idx === 0);
 
     const parsedDiscussion = parseTargetText(
       fallbackProps.discussionResult,
@@ -100,7 +110,7 @@ function initializeTargetItems(
     const parsedAddress = parseTargetText(
       fallbackProps.farmerHomeAddress,
       name,
-      isSingle
+      isSingle || isFirstOrOnlyFarmer
         ? fallbackProps.farmerHomeAddress
         : idx === 0 && !fallbackProps.farmerHomeAddress.includes(":")
           ? fallbackProps.farmerHomeAddress
@@ -110,7 +120,7 @@ function initializeTargetItems(
     const images =
       t.plotImages && t.plotImages.length > 0
         ? t.plotImages
-        : isSingle
+        : isSingle || isFirstOrOnlyFarmer
           ? fallbackProps.plotImages
           : [];
 
@@ -135,16 +145,16 @@ function initializeTargetItems(
         : t.nextDate || "",
       farmerHomeAddress: parsedAddress,
       plotLatitude:
-        t.plotLatitude != null
+        t.plotLatitude != null && String(t.plotLatitude).trim() !== ""
           ? String(t.plotLatitude)
-          : isSingle
-            ? fallbackProps.plotLatitude
+          : isSingle || isFirstOrOnlyFarmer
+            ? fallbackProps.plotLatitude || ""
             : "",
       plotLongitude:
-        t.plotLongitude != null
+        t.plotLongitude != null && String(t.plotLongitude).trim() !== ""
           ? String(t.plotLongitude)
-          : isSingle
-            ? fallbackProps.plotLongitude
+          : isSingle || isFirstOrOnlyFarmer
+            ? fallbackProps.plotLongitude || ""
             : "",
       plotImages: images,
     };
@@ -371,6 +381,91 @@ export function Type1ActualForm({
       );
     });
   }, [effectiveTargets]);
+
+  // Synchronize targetItems when server hydrated values (coordinates, address, photos, notes) become available
+  useEffect(() => {
+    if (
+      !plotLatitude &&
+      !plotLongitude &&
+      !farmerHomeAddress &&
+      !discussionResult &&
+      (!plotImages || plotImages.length === 0)
+    ) {
+      return;
+    }
+
+    setTargetItems((prev) => {
+      let changed = false;
+      const farmerTargets = prev.filter((t) => t.visitPurpose !== "STORE");
+      const isOnlyOneFarmer = farmerTargets.length === 1;
+
+      const updated = prev.map((item, idx) => {
+        const isStore = item.visitPurpose === "STORE";
+        const isFarmer = !isStore;
+        const isFirstOrOnlyFarmer =
+          isFarmer &&
+          (isOnlyOneFarmer ||
+            farmerTargets[0]?.id === item.id ||
+            idx === 0);
+
+        let newLat = item.plotLatitude;
+        let newLng = item.plotLongitude;
+        let newAddress = item.farmerHomeAddress;
+        let newImages = item.plotImages;
+        let newDiscussion = item.discussionResult;
+
+        if (isFarmer && isFirstOrOnlyFarmer) {
+          if ((!newLat || newLat === "") && plotLatitude) {
+            newLat = String(plotLatitude);
+            changed = true;
+          }
+          if ((!newLng || newLng === "") && plotLongitude) {
+            newLng = String(plotLongitude);
+            changed = true;
+          }
+          if (!newAddress && farmerHomeAddress) {
+            newAddress = farmerHomeAddress;
+            changed = true;
+          }
+          if ((!newImages || newImages.length === 0) && plotImages && plotImages.length > 0) {
+            newImages = plotImages;
+            changed = true;
+          }
+        }
+
+        if (!newDiscussion && discussionResult && !discussionResult.includes(":")) {
+          newDiscussion = discussionResult;
+          changed = true;
+        }
+
+        if (
+          newLat !== item.plotLatitude ||
+          newLng !== item.plotLongitude ||
+          newAddress !== item.farmerHomeAddress ||
+          newImages !== item.plotImages ||
+          newDiscussion !== item.discussionResult
+        ) {
+          return {
+            ...item,
+            plotLatitude: newLat,
+            plotLongitude: newLng,
+            farmerHomeAddress: newAddress,
+            plotImages: newImages,
+            discussionResult: newDiscussion,
+          };
+        }
+        return item;
+      });
+
+      return changed ? updated : prev;
+    });
+  }, [
+    plotLatitude,
+    plotLongitude,
+    farmerHomeAddress,
+    discussionResult,
+    plotImages,
+  ]);
 
   // Master product list for Combobox
   const comboboxOptions = useMemo(() => {
