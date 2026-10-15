@@ -1460,22 +1460,8 @@ export function buildResultSummary(
       summaryParts.length > 0
         ? summaryParts.join("\n")
         : `สถานะผลกิจกรรม: ${statusLabel}`,
-    farmerHomeAddress: input.t1FarmerHomeAddress?.trim() || null,
-    plotLatitude: parseCleanNumber(input.t1PlotLatitude || input.t7Latitude),
-    plotLongitude: parseCleanNumber(input.t1PlotLongitude || input.t7Longitude),
-    discussionResult: t1DiscussionResult || null,
-    productAdvice: t1ProductAdvice || null,
-    t1Products: input.t1Products || null,
     targetActualResults: input.targetActualResults || (input as any).t1TargetItems || undefined,
-    salesOpportunity: t1SalesOpportunity || null,
-    problemFound:
-      (t2HasProblem ? t2ProblemDetail : null) ||
-      t6ProblemDetail ||
-      t7ProblemDescription ||
-      t7CropProblemDescription ||
-      null,
-    nextAction: t1NextAction || t11NextAction || null,
-    nextMeetingDate: t1NextMeetingDate ? new Date(t1NextMeetingDate) : null,
+    t1Products: input.t1Products || null,
     cancelReason: activityResultStatus === "CANCELLED" ? cancelReason : null,
     postponedDate:
       activityResultStatus === "POSTPONED" && postponedDate

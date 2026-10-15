@@ -207,6 +207,9 @@ export const type6Strategy: WorkTypeStrategy = {
         issueType: item.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: item.detail ?? null,
         status: item.status || "เสร็จสิ้น",
+        problemFound: item.problemFound ?? item.detail ?? actualData.t6ProblemDetail ?? null,
+        initialSolution: item.initialSolution ?? actualData.t6InitialSolution ?? null,
+        nextAction: item.nextAction ?? actualData.t6NextAction ?? null,
       };
     });
 

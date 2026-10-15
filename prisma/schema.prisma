@@ -2022,8 +2022,6 @@ model ActivityResult {
   actualAttendeesCount Int?     @map("actual_attendees_count") // จำนวนผู้เข้าร่วมจริง
 
   resultStatus  ActivityResultStatus @default(PARTIAL) @map("result_status")
-  problemFound  String?              @map("problem_found") // ปัญหาที่พบระหว่างทำ
-  nextAction    String?              @map("next_action") // แผนการต่อยอด / ติดตาม
 
   // ──── กรณีเลื่อน หรือ ยกเลิก ────────────────────────
   cancelReason    String?   @map("cancel_reason") // สาเหตุที่ยกเลิก
@@ -2104,6 +2102,7 @@ model ActivityResultStockItem {
   stockStatus        String? @map("stock_status") // "ปกติ", "ใกล้หมด", "ของขาด"
   reorderOpportunity String? @map("reorder_opportunity") // "สูง", "ต่ำ"
   remarks            String?
+  nextAction         String? @map("next_action")
 
   activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   store          Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
@@ -2272,6 +2271,9 @@ model ActivityResultIssueItem {
   issueType        String  @map("issue_type") // "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย" | "เกิดความเสียหายหลังการใช้สินค้า" | "อื่นๆ ระบุ"
   detail           String? @map("detail") @db.Text
   status           String  @default("เสร็จสิ้น") @map("status") // "เสร็จสิ้น" | "รอติดตาม"
+  problemFound     String? @map("problem_found") @db.Text
+  initialSolution  String? @map("initial_solution") @db.Text
+  nextAction       String? @map("next_action")
 
   activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   product        Product?             @relation("ActivityResultIssueProductRef", fields: [productId], references: [id], onDelete: SetNull)

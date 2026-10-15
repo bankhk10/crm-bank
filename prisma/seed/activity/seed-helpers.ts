@@ -556,8 +556,6 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
           actualEndDate: new Date(act.actualEndDate),
           actualAttendeesCount: act.actualAttendeesCount ?? null,
           resultStatus: act.resultStatus,
-          problemFound: act.problemFound ?? null,
-          nextAction: act.nextAction ?? null,
           actualSalesPromotionSpent: spSpent > 0 ? new Prisma.Decimal(spSpent) : null,
           actualMarketingSpent: mktSpent > 0 ? new Prisma.Decimal(mktSpent) : null,
           actualTotalSpent: totalSpent > 0 ? new Prisma.Decimal(totalSpent) : null,

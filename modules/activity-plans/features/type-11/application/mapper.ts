@@ -87,7 +87,12 @@ export function parseType11ActualResult(
       stockStatus: sr.stockStatus || "",
       reorderOpportunity: (sr.reorderOpportunity as any) || "",
       remarks: sr.remarks || "",
+      nextAction: sr.nextAction || "",
     }));
+    const foundNextAction = resData.stockResults.find((sr: any) => sr.nextAction)?.nextAction;
+    if (foundNextAction) {
+      result.t11NextAction = foundNextAction;
+    }
   }
 
   // 2. Attachments

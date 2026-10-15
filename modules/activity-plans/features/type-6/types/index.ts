@@ -65,6 +65,9 @@ export interface Type6IssueRecord {
   issueType: string;
   detail?: string | null;
   status: "เสร็จสิ้น" | "รอติดตาม" | string;
+  problemFound?: string | null;
+  initialSolution?: string | null;
+  nextAction?: string | null;
   images?: Type6ImageFile[];
 }
 

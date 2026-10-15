@@ -143,6 +143,7 @@ export function parseType6ActualResult(resData: any): {
   t6Images?: Type6ImageFile[];
   t6ProblemDetail?: string;
   t6InitialSolution?: string;
+  t6NextAction?: string;
 } {
   const result: {
     t6IssueDetails?: Type6IssueRecord[];
@@ -159,6 +160,7 @@ export function parseType6ActualResult(resData: any): {
     t6Images?: Type6ImageFile[];
     t6ProblemDetail?: string;
     t6InitialSolution?: string;
+    t6NextAction?: string;
   } = {};
 
   if (!resData) return result;
@@ -202,6 +204,9 @@ export function parseType6ActualResult(resData: any): {
         issueType: iss.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: iss.detail || "",
         status: (iss.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น") as "เสร็จสิ้น" | "รอติดตาม",
+        problemFound: iss.problemFound || iss.detail || null,
+        initialSolution: iss.initialSolution || null,
+        nextAction: iss.nextAction || null,
         images,
       };
     });
@@ -215,8 +220,10 @@ export function parseType6ActualResult(resData: any): {
       result.t6PurchaseChannel = firstIssue.purchaseChannel;
       result.t6StoreId = firstIssue.storeId;
       result.t6StoreName = firstIssue.storeName;
-      result.t6IssueType = firstIssue.issueType;
-      result.t6Detail = firstIssue.detail;
+      result.t6Detail = firstIssue.detail || firstIssue.problemFound || "";
+      result.t6ProblemDetail = firstIssue.problemFound || firstIssue.detail || "";
+      result.t6InitialSolution = firstIssue.initialSolution || "";
+      result.t6NextAction = firstIssue.nextAction || "";
       result.t6Status = firstIssue.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น";
       if (firstIssue.images && firstIssue.images.length > 0) {
         result.t6Images = firstIssue.images;

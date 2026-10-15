@@ -101,6 +101,7 @@ export const type11Strategy: WorkTypeStrategy = {
           stockStatus: item.stockStatus || null,
           reorderOpportunity: item.reorderOpportunity || null,
           remarks: item.remarks || null,
+          nextAction: item.nextAction || actualData.t11NextAction || actualData.nextAction || null,
         }));
 
       if (validItems.length > 0) {
