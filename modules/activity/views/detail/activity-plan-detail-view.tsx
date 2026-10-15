@@ -8,7 +8,6 @@ import {
   DetailHeader,
   DetailOverview,
   DetailWorkTypeList,
-  DetailActivityResultSection,
   DetailActivityStatusSection,
   DetailAuditLogs,
   DetailViewActions,
@@ -34,8 +33,6 @@ export default function ActivityPlanDetailView({
     targets,
     type1Targets,
     parsedResults,
-    t7DemoPlotData,
-    t7VisitHistory,
     mergedLogs,
     isTypeActive,
     canRequestCancel,
@@ -96,32 +93,18 @@ export default function ActivityPlanDetailView({
           type1Targets={type1Targets}
           parsedResults={parsedResults}
           isTypeActive={isTypeActive}
-          t7DemoPlotData={t7DemoPlotData}
-          t7VisitHistory={t7VisitHistory}
         />
 
-        {/* ─── 4. ACTUAL RESULTS (IF RECORDED) ─── */}
-        {hasActualResult && (
-          <>
-            <DetailActivityResultSection
-              isTypeVisible={(wt) => isTypeActive("", wt)}
-              targets={targets}
-              parsedResults={parsedResults}
-              demoPlotData={t7DemoPlotData}
-              visitHistory={t7VisitHistory}
-            />
-
-            {parsedResults.activityResultStatus && (
-              <DetailActivityStatusSection
-                activityResultStatus={parsedResults.activityResultStatus}
-                cancelReason={parsedResults.cancelReason}
-                postponedDate={parsedResults.postponedDate}
-                postponedTime={parsedResults.postponedTime}
-                postponedReason={parsedResults.postponedReason}
-                postponedNotes={parsedResults.postponedNotes}
-              />
-            )}
-          </>
+        {/* ─── 4. ACTUAL RESULTS STATUS (IF RECORDED) ─── */}
+        {hasActualResult && parsedResults.activityResultStatus && (
+          <DetailActivityStatusSection
+            activityResultStatus={parsedResults.activityResultStatus}
+            cancelReason={parsedResults.cancelReason}
+            postponedDate={parsedResults.postponedDate}
+            postponedTime={parsedResults.postponedTime}
+            postponedReason={parsedResults.postponedReason}
+            postponedNotes={parsedResults.postponedNotes}
+          />
         )}
 
         {/* ─── 5. AUDIT LOGS ─── */}

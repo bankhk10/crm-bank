@@ -17,8 +17,6 @@ interface DetailWorkTypeListProps {
   };
   parsedResults?: any;
   isTypeActive: (code: string, label: string) => boolean;
-  t7DemoPlotData?: any;
-  t7VisitHistory?: any[];
 }
 
 /**

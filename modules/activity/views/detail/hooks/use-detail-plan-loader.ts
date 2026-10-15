@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {
   getActivityPlanAction,
-  getDemoPlotHistoryAction,
   requestCancelActivityPlanAction,
 } from "@/modules/activity-plans/server/actions";
 import {
@@ -41,10 +40,6 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
   const [targets, setTargets] = useState<ActualTargetsState>(initialTargets);
   const [parsedResults, setParsedResults] = useState<ParsedSummaryValues>({});
-
-  // Type 7 Demo Plot data
-  const [t7DemoPlotData, setT7DemoPlotData] = useState<any>(null);
-  const [t7VisitHistory, setT7VisitHistory] = useState<any[]>([]);
 
   // Cancellation State
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -88,20 +83,6 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
             activityPlan: p,
           });
           setParsedResults(parsed);
-        }
-
-        // Fetch demo plot history if applicable
-        if (extracted.t7PlotIdentifier) {
-          getDemoPlotHistoryAction(extracted.t7PlotIdentifier)
-            .then((histRes) => {
-              if (histRes.success && histRes.plot) {
-                setT7DemoPlotData(histRes.plot);
-                setT7VisitHistory(histRes.plot.visits || []);
-              }
-            })
-            .catch((e) => {
-              console.error("Failed to load demo plot history:", e);
-            });
         }
       } else {
         setError(res.error || "ไม่สามารถดึงข้อมูลรายละเอียด Trip Plan ได้");
@@ -246,8 +227,6 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
     targets,
     type1Targets,
     parsedResults,
-    t7DemoPlotData,
-    t7VisitHistory,
     mergedLogs,
     isTypeActive,
     canRequestCancel,

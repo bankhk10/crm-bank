@@ -278,15 +278,17 @@ export function UnplannedActivityForm({ basicProps, locationProps, budgetProps }
 ```tsx
 import React from "react";
 import {
+  DetailHeader,
+  DetailOverview,
   DetailWorkTypeList,
-  DetailActivityResultSection,
+  DetailActivityStatusSection,
   DetailAuditLogs,
   CancelPlanDialog,
   DetailViewActions,
 } from "./components";
 
 export function ActivityPlanDetailView({ id }) {
-  const { plan, targets, type1Targets, mergedLogs, isTypeActive } = useDetailPlanLoader({ id });
+  const { plan, targets, type1Targets, parsedResults, mergedLogs, isTypeActive } = useDetailPlanLoader({ id });
 
   return (
     <section className="space-y-6">
@@ -296,7 +298,7 @@ export function ActivityPlanDetailView({ id }) {
       {/* 2. การ์ดข้อมูลทั่วไปและงบประมาณ */}
       <DetailOverview plan={plan} />
 
-      {/* 3. รายละเอียดตามประเภทงาน (เรียกใช้ <Type1DetailView /> จาก Type 1 Slice) */}
+      {/* 3. รายละเอียดตามประเภทงาน (เรียกใช้ <Type1DetailView /> จาก Type 1 Slice ซึ่งแสดงทั้งเป้าหมายและผลงานจริง) */}
       <DetailWorkTypeList
         plan={plan}
         targets={targets}
@@ -304,9 +306,9 @@ export function ActivityPlanDetailView({ id }) {
         isTypeActive={isTypeActive}
       />
 
-      {/* 4. ผลงานจริง (ถ้ามีบันทึกในฐานข้อมูลแล้ว) */}
-      {plan.result && (
-        <DetailActivityResultSection plan={plan} />
+      {/* 4. สถานะผลการปฏิบัติงานจริง (ถ้ามีบันทึก) */}
+      {plan.result && parsedResults.activityResultStatus && (
+        <DetailActivityStatusSection activityResultStatus={parsedResults.activityResultStatus} />
       )}
 
       {/* 5. บันทึกประวัติการดำเนินการ (Audit Logs) */}
