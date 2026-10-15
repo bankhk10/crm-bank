@@ -33,6 +33,9 @@ export interface Type1TargetItem {
   plotLatitude?: string | number | null;
   plotLongitude?: string | number | null;
   plotImages?: Type1ImageFile[];
+  productAdvice?: string;
+  salesOpportunity?: string;
+  nextMeetingDate?: string;
 }
 
 /**

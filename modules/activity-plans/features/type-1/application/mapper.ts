@@ -164,6 +164,27 @@ export function extractType1PlanTargets(
     plan.result?.farmerHomeAddress ||
     undefined;
 
+  const resultProductAdvice =
+    plan.type1Result?.productAdvice ||
+    plan.result?.productAdvice ||
+    undefined;
+
+  const resultSalesOpportunity =
+    plan.type1Result?.salesOpportunity ||
+    plan.result?.salesOpportunity ||
+    undefined;
+
+  const resultNextMeetingDate =
+    plan.type1Result?.nextMeetingDate
+      ? typeof plan.type1Result.nextMeetingDate === "string"
+        ? plan.type1Result.nextMeetingDate.split("T")[0]
+        : new Date(plan.type1Result.nextMeetingDate).toISOString().split("T")[0]
+      : plan.result?.nextMeetingDate
+        ? typeof plan.result.nextMeetingDate === "string"
+          ? plan.result.nextMeetingDate.split("T")[0]
+          : new Date(plan.result.nextMeetingDate).toISOString().split("T")[0]
+        : undefined;
+
   const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
     let visitPurpose: "FARMER" | "STORE" = s.visitPurpose as "FARMER" | "STORE";
     if (!visitPurpose) {
@@ -183,14 +204,19 @@ export function extractType1PlanTargets(
     const isFarmer = visitPurpose === "FARMER";
     const storeLat = s.store?.latitude != null ? String(s.store.latitude) : undefined;
     const storeLng = s.store?.longitude != null ? String(s.store.longitude) : undefined;
+    const isAdviceTopic = (s.topic || s.remarks)?.trim() === "ให้คำแนะนำการใช้สินค้า";
 
     return {
       id: s.id,
       customer: custName,
       topic: s.topic || s.remarks || prevTarget?.topic || "",
       detail: s.notes || "",
-      opportunity: prevTarget?.opportunity || "",
-      nextDate: prevTarget?.nextDate || "",
+      opportunity:
+        (isAdviceTopic ? resultSalesOpportunity : undefined) ||
+        prevTarget?.opportunity ||
+        resultSalesOpportunity ||
+        "",
+      nextDate: resultNextMeetingDate || prevTarget?.nextDate || "",
       visitPurpose,
       customerType: s.store?.customerType || undefined,
       province: s.province || s.store?.province || plan.province || undefined,
@@ -202,6 +228,9 @@ export function extractType1PlanTargets(
         : undefined,
       plotLatitude: isFarmer ? (resultLat || storeLat) : undefined,
       plotLongitude: isFarmer ? (resultLng || storeLng) : undefined,
+      productAdvice: isAdviceTopic ? resultProductAdvice : undefined,
+      salesOpportunity: resultSalesOpportunity,
+      nextMeetingDate: resultNextMeetingDate,
     };
   });
 
@@ -219,11 +248,21 @@ export function extractType1PlanTargets(
         ...prevTarget,
         ...t1First,
         customer: combinedCustomerName || t1First.customer,
+        opportunity: resultSalesOpportunity || prevTarget?.opportunity || "",
+        nextDate: resultNextMeetingDate || prevTarget?.nextDate || "",
+        productAdvice: resultProductAdvice || t1First.productAdvice,
+        salesOpportunity: resultSalesOpportunity || t1First.salesOpportunity,
+        nextMeetingDate: resultNextMeetingDate || t1First.nextMeetingDate,
       }
     : {
         customer: "",
         topic: "",
         detail: "",
+        opportunity: resultSalesOpportunity || prevTarget?.opportunity || "",
+        nextDate: resultNextMeetingDate || prevTarget?.nextDate || "",
+        productAdvice: resultProductAdvice,
+        salesOpportunity: resultSalesOpportunity,
+        nextMeetingDate: resultNextMeetingDate,
         ...prevTarget,
       };
 

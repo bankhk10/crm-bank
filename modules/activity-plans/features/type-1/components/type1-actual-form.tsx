@@ -124,6 +124,35 @@ function initializeTargetItems(
           ? fallbackProps.plotImages
           : [];
 
+    const adviceTargets = effectiveList.filter(
+      (it) => it.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
+    );
+    const isTargetForAdvice =
+      adviceTargets.length > 0
+        ? t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า"
+        : isSingle || idx === 0;
+
+    const parsedAdvice =
+      parseTargetText(fallbackProps.productAdvice, name, "") ||
+      t.productAdvice ||
+      (isTargetForAdvice ? fallbackProps.productAdvice : "");
+
+    const parsedSalesOpp =
+      (parseTargetText(fallbackProps.salesOpportunity, name, "") as
+        | "สูง"
+        | "ต่ำ"
+        | "") ||
+      ((t.salesOpportunity || t.opportunity) as "สูง" | "ต่ำ" | "") ||
+      (isTargetForAdvice ? fallbackProps.salesOpportunity : "");
+
+    const parsedMeetingDate =
+      parseTargetText(fallbackProps.nextMeetingDate, name, "") ||
+      t.nextMeetingDate ||
+      t.nextDate ||
+      (isSingle || idx === 0 || isTargetForAdvice
+        ? fallbackProps.nextMeetingDate
+        : "");
+
     return {
       id: t.id || `t1-target-${idx}`,
       targetId: t.id,
@@ -137,12 +166,10 @@ function initializeTargetItems(
       unregisteredFarmerPhone: t.unregisteredFarmerPhone,
 
       discussionResult: parsedDiscussion,
-      productAdvice: isSingle ? fallbackProps.productAdvice : "",
-      salesOpportunity: isSingle ? fallbackProps.salesOpportunity : "",
+      productAdvice: parsedAdvice,
+      salesOpportunity: parsedSalesOpp,
       nextAction: parsedNextAction,
-      nextMeetingDate: isSingle
-        ? fallbackProps.nextMeetingDate
-        : t.nextDate || "",
+      nextMeetingDate: parsedMeetingDate,
       farmerHomeAddress: parsedAddress,
       plotLatitude:
         t.plotLatitude != null && String(t.plotLatitude).trim() !== ""
@@ -382,13 +409,16 @@ export function Type1ActualForm({
     });
   }, [effectiveTargets]);
 
-  // Synchronize targetItems when server hydrated values (coordinates, address, photos, notes) become available
+  // Synchronize targetItems when server hydrated values (coordinates, address, photos, advice, opportunity, date) become available
   useEffect(() => {
     if (
       !plotLatitude &&
       !plotLongitude &&
       !farmerHomeAddress &&
       !discussionResult &&
+      !productAdvice &&
+      !salesOpportunity &&
+      !nextMeetingDate &&
       (!plotImages || plotImages.length === 0)
     ) {
       return;
@@ -399,6 +429,10 @@ export function Type1ActualForm({
       const farmerTargets = prev.filter((t) => t.visitPurpose !== "STORE");
       const isOnlyOneFarmer = farmerTargets.length === 1;
 
+      const adviceTargets = prev.filter(
+        (t) => t.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
+      );
+
       const updated = prev.map((item, idx) => {
         const isStore = item.visitPurpose === "STORE";
         const isFarmer = !isStore;
@@ -408,11 +442,19 @@ export function Type1ActualForm({
             farmerTargets[0]?.id === item.id ||
             idx === 0);
 
+        const isTargetForAdvice =
+          adviceTargets.length > 0
+            ? item.topic?.trim() === "ให้คำแนะนำการใช้สินค้า"
+            : prev.length === 1 || idx === 0;
+
         let newLat = item.plotLatitude;
         let newLng = item.plotLongitude;
         let newAddress = item.farmerHomeAddress;
         let newImages = item.plotImages;
         let newDiscussion = item.discussionResult;
+        let newAdvice = item.productAdvice;
+        let newSalesOpp = item.salesOpportunity;
+        let newNextMeetingDate = item.nextMeetingDate;
 
         if (isFarmer && isFirstOrOnlyFarmer) {
           if ((!newLat || newLat === "") && plotLatitude) {
@@ -438,12 +480,51 @@ export function Type1ActualForm({
           changed = true;
         }
 
+        if (!newAdvice && productAdvice) {
+          const parsed = parseTargetText(productAdvice, item.customer, "");
+          if (parsed) {
+            newAdvice = parsed;
+            changed = true;
+          } else if (isTargetForAdvice) {
+            newAdvice = productAdvice;
+            changed = true;
+          }
+        }
+
+        if (!newSalesOpp && salesOpportunity) {
+          const parsed = parseTargetText(salesOpportunity, item.customer, "") as
+            | "สูง"
+            | "ต่ำ"
+            | "";
+          if (parsed) {
+            newSalesOpp = parsed;
+            changed = true;
+          } else if (isTargetForAdvice) {
+            newSalesOpp = salesOpportunity;
+            changed = true;
+          }
+        }
+
+        if (!newNextMeetingDate && nextMeetingDate) {
+          const parsed = parseTargetText(nextMeetingDate, item.customer, "");
+          if (parsed) {
+            newNextMeetingDate = parsed;
+            changed = true;
+          } else if (prev.length === 1 || idx === 0 || isTargetForAdvice) {
+            newNextMeetingDate = nextMeetingDate;
+            changed = true;
+          }
+        }
+
         if (
           newLat !== item.plotLatitude ||
           newLng !== item.plotLongitude ||
           newAddress !== item.farmerHomeAddress ||
           newImages !== item.plotImages ||
-          newDiscussion !== item.discussionResult
+          newDiscussion !== item.discussionResult ||
+          newAdvice !== item.productAdvice ||
+          newSalesOpp !== item.salesOpportunity ||
+          newNextMeetingDate !== item.nextMeetingDate
         ) {
           return {
             ...item,
@@ -452,6 +533,9 @@ export function Type1ActualForm({
             farmerHomeAddress: newAddress,
             plotImages: newImages,
             discussionResult: newDiscussion,
+            productAdvice: newAdvice,
+            salesOpportunity: newSalesOpp,
+            nextMeetingDate: newNextMeetingDate,
           };
         }
         return item;
@@ -465,6 +549,9 @@ export function Type1ActualForm({
     farmerHomeAddress,
     discussionResult,
     plotImages,
+    productAdvice,
+    salesOpportunity,
+    nextMeetingDate,
   ]);
 
   // Master product list for Combobox
