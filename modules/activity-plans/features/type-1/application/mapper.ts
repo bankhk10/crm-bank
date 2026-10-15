@@ -159,27 +159,30 @@ export function extractType1PlanTargets(
       ? (plan as any).type1Stores
       : stores.filter((s: any) => s.workTypeCode === "TYPE_1");
 
+  const firstT1Result =
+    (plan.type1Results && plan.type1Results[0]) ||
+    plan.type1Result ||
+    plan.type1Stores?.[0]?.result;
+
   const resultLat =
-    plan.type1Result?.plotLatitude != null
-      ? String(plan.type1Result.plotLatitude)
+    firstT1Result?.plotLatitude != null
+      ? String(firstT1Result.plotLatitude)
       : undefined;
 
   const resultLng =
-    plan.type1Result?.plotLongitude != null
-      ? String(plan.type1Result.plotLongitude)
+    firstT1Result?.plotLongitude != null
+      ? String(firstT1Result.plotLongitude)
       : undefined;
 
   const resultFarmerAddress =
-    plan.type1Result?.farmerHomeAddress || undefined;
+    firstT1Result?.farmerHomeAddress || undefined;
 
   const resultProductAdvice =
-    plan.type1Result?.productAdvice || undefined;
+    firstT1Result?.productAdvice || undefined;
 
   const resultSalesOpportunity =
-    plan.type1Result?.salesOpportunity || undefined;
+    firstT1Result?.salesOpportunity || undefined;
 
-  const firstT1Result =
-    (plan.type1Results && plan.type1Results[0]) || plan.type1Result;
   const resultNextMeetingDate = firstT1Result?.nextMeetingDate
     ? typeof firstT1Result.nextMeetingDate === "string"
       ? firstT1Result.nextMeetingDate.split("T")[0]
@@ -190,7 +193,8 @@ export function extractType1PlanTargets(
     const targetResult =
       s.result ||
       (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
-      (plan.type1Result && idx === 0 ? plan.type1Result : null);
+      (plan.type1Results && plan.type1Results[idx]) ||
+      (firstT1Result && (idx === 0 || rawT1Stores.length === 1) ? firstT1Result : null);
 
     let visitPurpose: "FARMER" | "STORE" = s.visitPurpose as "FARMER" | "STORE";
     if (!visitPurpose) {
@@ -237,15 +241,16 @@ export function extractType1PlanTargets(
       isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
       unregisteredFarmerName: s.unregisteredFarmerName || undefined,
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || undefined,
-      farmerHomeAddress: isFarmer
-        ? targetResult?.farmerHomeAddress || s.store?.addressLine || resultFarmerAddress
-        : undefined,
-      plotLatitude: isFarmer
-        ? (targetResult?.plotLatitude != null ? String(targetResult.plotLatitude) : (resultLat || storeLat))
-        : undefined,
-      plotLongitude: isFarmer
-        ? (targetResult?.plotLongitude != null ? String(targetResult.plotLongitude) : (resultLng || storeLng))
-        : undefined,
+      farmerHomeAddress:
+        targetResult?.farmerHomeAddress || s.store?.addressLine || (isFarmer ? resultFarmerAddress : undefined),
+      plotLatitude:
+        targetResult?.plotLatitude != null
+          ? String(targetResult.plotLatitude)
+          : (isFarmer ? (resultLat || storeLat) : (storeLat || undefined)),
+      plotLongitude:
+        targetResult?.plotLongitude != null
+          ? String(targetResult.plotLongitude)
+          : (isFarmer ? (resultLng || storeLng) : (storeLng || undefined)),
       productAdvice: isAdviceTopic ? (targetResult?.productAdvice || resultProductAdvice) : undefined,
       discussionResult: targetResult?.discussionResult || undefined,
       salesOpportunity: targetResult?.salesOpportunity || resultSalesOpportunity,
@@ -273,6 +278,9 @@ export function extractType1PlanTargets(
         productAdvice: resultProductAdvice || t1First.productAdvice,
         salesOpportunity: resultSalesOpportunity || t1First.salesOpportunity,
         nextMeetingDate: resultNextMeetingDate || t1First.nextMeetingDate,
+        plotLatitude: t1First.plotLatitude || resultLat || prevTarget?.plotLatitude,
+        plotLongitude: t1First.plotLongitude || resultLng || prevTarget?.plotLongitude,
+        farmerHomeAddress: t1First.farmerHomeAddress || resultFarmerAddress || prevTarget?.farmerHomeAddress,
       }
     : {
         customer: "",
@@ -283,6 +291,9 @@ export function extractType1PlanTargets(
         productAdvice: resultProductAdvice,
         salesOpportunity: resultSalesOpportunity,
         nextMeetingDate: resultNextMeetingDate,
+        plotLatitude: resultLat || prevTarget?.plotLatitude,
+        plotLongitude: resultLng || prevTarget?.plotLongitude,
+        farmerHomeAddress: resultFarmerAddress || prevTarget?.farmerHomeAddress,
         ...prevTarget,
       };
 
@@ -316,6 +327,7 @@ export function parseType1ActualResult(resData: any): {
     resData.type1Products ||
     resData.activityResultType1Products ||
     resData.type1Result?.products ||
+    resData.activityPlan?.type1Products ||
     [];
 
   if (rawProducts && rawProducts.length > 0) {
@@ -328,7 +340,14 @@ export function parseType1ActualResult(resData: any): {
     }));
   }
 
-  const type1Obj = resData.type1Result || resData.activityResultType1;
+  const type1Obj =
+    resData.type1Result ||
+    resData.activityResultType1 ||
+    resData.type1Results?.[0] ||
+    resData.activityPlan?.type1Results?.[0] ||
+    resData.activityPlan?.type1Result ||
+    resData.activityPlan?.type1Stores?.[0]?.result ||
+    resData.type1Stores?.[0]?.result;
 
   if (type1Obj?.discussionResult) result.t1DiscussionResult = type1Obj.discussionResult;
   if (type1Obj?.productAdvice) result.t1ProductAdvice = type1Obj.productAdvice;

@@ -133,14 +133,26 @@ export function Type1DetailView({
     ? target?.unregisteredFarmerName || target?.customer || "-"
     : target?.customer || "-";
 
+  const effectivePlotLatitude =
+    target?.plotLatitude != null && String(target.plotLatitude).trim() !== ""
+      ? String(target.plotLatitude)
+      : plotLatitude != null && String(plotLatitude).trim() !== ""
+        ? String(plotLatitude)
+        : null;
+
+  const effectivePlotLongitude =
+    target?.plotLongitude != null && String(target.plotLongitude).trim() !== ""
+      ? String(target.plotLongitude)
+      : plotLongitude != null && String(plotLongitude).trim() !== ""
+        ? String(plotLongitude)
+        : null;
+
   const hasCoords =
-    plotLatitude != null &&
-    plotLongitude != null &&
-    String(plotLatitude).trim() !== "" &&
-    String(plotLongitude).trim() !== "";
+    effectivePlotLatitude != null &&
+    effectivePlotLongitude != null;
 
   const googleMapsUrl = hasCoords
-    ? `https://www.google.com/maps/search/?api=1&query=${plotLatitude},${plotLongitude}`
+    ? `https://www.google.com/maps/search/?api=1&query=${effectivePlotLatitude},${effectivePlotLongitude}`
     : null;
 
   const showFarmerSection =
@@ -249,36 +261,53 @@ export function Type1DetailView({
                         </p>
                       </div>
 
-                      <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400 font-medium block flex items-center gap-1">
-                            <Navigation className="w-3.5 h-3.5 text-emerald-600" />
-                            พิกัดแปลง (Latitude, Longitude)
-                          </span>
-                          {googleMapsUrl && (
-                            <a
-                              href={googleMapsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              เปิดแผนที่
-                            </a>
-                          )}
-                        </div>
-                        {hasCoords ? (
-                          <div className="flex items-center gap-2 font-mono font-bold text-slate-800">
-                            <span>Lat: {String(plotLatitude)}</span>
-                            <span className="text-slate-300">|</span>
-                            <span>Lng: {String(plotLongitude)}</span>
+                      {(() => {
+                        const itemLat =
+                          item.plotLatitude != null && String(item.plotLatitude).trim() !== ""
+                            ? String(item.plotLatitude)
+                            : effectivePlotLatitude;
+                        const itemLng =
+                          item.plotLongitude != null && String(item.plotLongitude).trim() !== ""
+                            ? String(item.plotLongitude)
+                            : effectivePlotLongitude;
+                        const itemHasCoords = itemLat != null && itemLng != null;
+                        const itemMapsUrl = itemHasCoords
+                          ? `https://www.google.com/maps/search/?api=1&query=${itemLat},${itemLng}`
+                          : null;
+
+                        return (
+                          <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-400 font-medium block flex items-center gap-1">
+                                <Navigation className="w-3.5 h-3.5 text-emerald-600" />
+                                พิกัดแปลง (Latitude, Longitude)
+                              </span>
+                              {itemMapsUrl && (
+                                <a
+                                  href={itemMapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  เปิดแผนที่
+                                </a>
+                              )}
+                            </div>
+                            {itemHasCoords ? (
+                              <div className="flex items-center gap-2 font-mono font-bold text-slate-800">
+                                <span>Lat: {itemLat}</span>
+                                <span className="text-slate-300">|</span>
+                                <span>Lng: {itemLng}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-700 font-semibold">
+                                -
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-slate-700 font-semibold">
-                            -
-                          </span>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -423,9 +452,9 @@ export function Type1DetailView({
                   </div>
                   {hasCoords ? (
                     <div className="flex items-center gap-2 text-xs sm:text-sm font-mono font-bold text-slate-800">
-                      <span>Lat: {String(plotLatitude)}</span>
+                      <span>Lat: {effectivePlotLatitude}</span>
                       <span className="text-slate-300">|</span>
-                      <span>Lng: {String(plotLongitude)}</span>
+                      <span>Lng: {effectivePlotLongitude}</span>
                     </div>
                   ) : (
                     <span className="text-xs text-slate-700 font-semibold">

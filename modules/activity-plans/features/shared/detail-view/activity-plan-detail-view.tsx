@@ -243,7 +243,10 @@ export default function ActivityPlanDetailView({
 
         // Parse result summary if plan result exists in DB
         if ((p as any).result) {
-          const parsed = parseResultSummary((p as any).result);
+          const parsed = parseResultSummary({
+            ...(p as any).result,
+            activityPlan: p,
+          });
           setParsedResults(parsed);
         }
 
