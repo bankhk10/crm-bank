@@ -132,12 +132,38 @@ export function ActivityPhotoUpload({
   // Selected image for zoom preview dialog
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null);
 
-  // Re-mount GalleryUpload once when server images are asynchronously hydrated
-  const isHydratedRef = useRef(false);
+  // Check if images already contain existing server images
+  const initialHasServerImages = Boolean(
+    images &&
+      images.length > 0 &&
+      images.some(
+        (img) =>
+          Boolean(img.url) &&
+          !img.url.startsWith("blob:") &&
+          !img.rawFile &&
+          !(img as any).file,
+      ),
+  );
+  const isHydratedRef = useRef(initialHasServerImages);
   const [mountKey, setMountKey] = useState("init");
 
   useEffect(() => {
-    if (!isHydratedRef.current && images && images.length > 0) {
+    // Only remount for server hydration if:
+    // 1. Not already hydrated
+    // 2. We have images
+    // 3. The images are existing server images (i.e. permanent URL, not blob, and no rawFile/file)
+    const hasServerImages =
+      images &&
+      images.length > 0 &&
+      images.some(
+        (img) =>
+          Boolean(img.url) &&
+          !img.url.startsWith("blob:") &&
+          !img.rawFile &&
+          !(img as any).file,
+      );
+
+    if (!isHydratedRef.current && hasServerImages) {
       isHydratedRef.current = true;
       setMountKey(
         `hydrated-${images.map((i) => i.id || (i as any).fileUrl || i.url).join("-")}`,
@@ -145,10 +171,12 @@ export function ActivityPhotoUpload({
     }
   }, [images]);
 
-  // Memoize initial files for GalleryUpload to prevent re-instantiation loops
+  // Memoize initial files for GalleryUpload - only calculate on mount or mountKey change
+  // so GalleryUpload is not fed changing initialFiles references on local updates
   const initialFiles = useMemo(() => {
     return convertToFileMetadata(images);
-  }, [images]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mountKey]);
 
   const handleFilesChange = useCallback(
     (files: any[]) => {

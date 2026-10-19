@@ -11,7 +11,9 @@ export function convertToFileMetadata(images: ImageFile[] = []): FileMetadata[] 
     size: (img as any).size || 0,
     type: (img as any).type || "image/jpeg",
     url: img.url,
-  }));
+    rawFile: img.rawFile || (img as any).file,
+    file: (img as any).file || img.rawFile,
+  } as FileMetadata));
 }
 
 /**
@@ -34,14 +36,19 @@ export function filesWithPreviewToImageFiles(
         size: item.file.size,
         type: item.file.type,
         rawFile: item.file,
+        file: item.file,
       };
     }
+    const meta = item.file as any;
+    const raw = meta?.rawFile || meta?.file;
     return {
-      id: item.file.id,
-      url: item.file.url,
-      name: item.file.name,
-      size: item.file.size,
-      type: item.file.type,
+      id: meta?.id || item.id,
+      url: item.preview || meta?.url || "",
+      name: meta?.name || (item.preview ? "รูปภาพ" : ""),
+      size: meta?.size || 0,
+      type: meta?.type || "image/jpeg",
+      rawFile: raw instanceof File ? raw : undefined,
+      file: raw instanceof File ? raw : undefined,
     };
   });
 }
@@ -57,8 +64,8 @@ export function isImageFilesEqual(
   return a.every(
     (item, idx) =>
       item.id === b[idx]?.id &&
-      item.url === b[idx]?.url &&
-      item.rawFile === b[idx]?.rawFile,
+      (item.url || (item as any).fileUrl) === (b[idx]?.url || (b[idx] as any).fileUrl) &&
+      (item.rawFile || (item as any).file) === (b[idx]?.rawFile || (b[idx] as any).file),
   );
 }
 
@@ -96,14 +103,33 @@ export async function uploadActivityPlanImageGroup(
   const newFilesToUpload: { file: File; tempId: string }[] = [];
 
   for (const img of images) {
-    if (img.rawFile instanceof File) {
-      newFilesToUpload.push({ file: img.rawFile, tempId: img.id });
+    const raw =
+      img.rawFile instanceof File
+        ? img.rawFile
+        : (img as any).file instanceof File
+          ? (img as any).file
+          : null;
+
+    if (raw) {
+      newFilesToUpload.push({ file: raw, tempId: img.id });
     } else if (img.url && img.url.startsWith("blob:")) {
       try {
         const res = await fetch(img.url);
+        if (!res.ok) throw new Error("fetch blob failed");
         const blob = await res.blob();
-        const file = new File([blob], img.name || `${category}.jpg`, {
-          type: blob.type || "image/jpeg",
+        const ext = img.name?.includes(".")
+          ? img.name.split(".").pop()?.toLowerCase()
+          : "png";
+        const mime =
+          blob.type ||
+          (img as any).type ||
+          (ext === "png"
+            ? "image/png"
+            : ext === "webp"
+              ? "image/webp"
+              : "image/jpeg");
+        const file = new File([blob], img.name || `${category}.${ext || "png"}`, {
+          type: mime,
         });
         newFilesToUpload.push({ file, tempId: img.id });
       } catch {
