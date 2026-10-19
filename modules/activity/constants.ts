@@ -241,3 +241,64 @@ export const MARKETING_PRODUCT_CATEGORIES = [
   "อื่นๆ",
 ];
 
+/**
+ * Resolves canonical work type code (e.g. "TYPE_1") from relation item, code, or name.
+ */
+export function resolveWorkTypeCode(
+  wt: any,
+  masterList?: Array<{ id?: string; code?: string; name?: string }>,
+): string | null {
+  if (!wt) return null;
+  if (typeof wt === "string") {
+    if (WORK_TYPE_CONFIG[wt]) return wt;
+    if (wt === "เข้าพบร้านค้า / Key Farmer" || wt === "เข้าพบเกษตรกร")
+      return "TYPE_1";
+    if (
+      wt === "แก้ปัญหา / รับเรื่องร้องเรียน" ||
+      wt === "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"
+    ) {
+      return "TYPE_6";
+    }
+    const found = Object.values(WORK_TYPE_CONFIG).find(
+      (c) => c.name === wt || c.shortName === wt,
+    );
+    if (found) return found.code;
+    return null;
+  }
+  // 1. Primary: activityType.code
+  if (wt.activityType?.code && typeof wt.activityType.code === "string") {
+    if (WORK_TYPE_CONFIG[wt.activityType.code]) return wt.activityType.code;
+  }
+  // 2. Direct workTypeCode
+  if (wt.workTypeCode && typeof wt.workTypeCode === "string") {
+    if (WORK_TYPE_CONFIG[wt.workTypeCode]) return wt.workTypeCode;
+  }
+  // 3. activityTypeId matching master lookup by id or code
+  if (wt.activityTypeId && typeof wt.activityTypeId === "string") {
+    if (WORK_TYPE_CONFIG[wt.activityTypeId]) return wt.activityTypeId;
+    if (masterList && masterList.length > 0) {
+      const matched = masterList.find(
+        (at) => at.id === wt.activityTypeId || at.code === wt.activityTypeId,
+      );
+      if (matched?.code && WORK_TYPE_CONFIG[matched.code]) {
+        return matched.code;
+      }
+    }
+  }
+  // 4. Fallback: activityType.name
+  if (wt.activityType?.name && typeof wt.activityType.name === "string") {
+    return getWorkTypeCode(wt.activityType.name);
+  }
+  return null;
+}
+
+// Re-export filter matcher and criteria from application layer for backward compatibility
+export {
+  type ActivityFilterCriteria,
+  matchesActivityFilters,
+  matchesWorkTypes,
+  matchesAssignedPerson,
+  matchesPlanStatus,
+  matchesSearchText,
+} from "./application/filters/activity-filter-matcher";
+

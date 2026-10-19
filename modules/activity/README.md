@@ -54,12 +54,24 @@ modules/activity/
 ├── types/                                # Module-level Types & Strategy Interfaces
 │   └── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
 │
+├── domain/                               # Domain Layer (Pure Business Rules & Workflows)
+│   └── approval/                         # 🛡️ Activity Approval Workflow Engine ([README](domain/approval/README.md))
+│       ├── can-approve.ts                # สิทธิ์การอนุมัติและ Action Scope Badges
+│       ├── operator-resolver.ts          # การคำนวณผู้รับผิดชอบปัจจุบัน (Step Resolvers)
+│       └── index.ts                      # Approval Domain Public API
+│
+├── application/                          # Application Services & Filtering
+│   └── filters/                          # Activity Filter Matchers (WorkType, Person, Status, Search)
+│
+├── hooks/                                # Custom Hooks (useApproverDirectory ฯลฯ)
+│
 ├── ui/                                   # Common UI Components (ส่วนกลางที่ใช้ร่วมกันทุกประเภทงาน)
 │   ├── basic-info/                       # PlanBasicInfoCard, DateTimePicker
 │   ├── location-team/                    # PlanLocationTeamCard, usePlanLocationTeam
 │   ├── budget/                           # PlanBudgetSection, usePlanBudget
 │   ├── notes/                            # PlanNotesCard
 │   ├── form-action-buttons.tsx           # FormActionButtons (ปุ่ม ยกเลิก / บันทึกร่าง / ส่งขออนุมัติ)
+│   ├── activity-status-badge.tsx         # ActivityStatusBadge, ActivityStatusWithOperator
 │   └── index.ts                          # UI Public Exports
 │
 ├── views/                                # Pure Declarative Orchestrators (หน้าจอหลักของระบบ)

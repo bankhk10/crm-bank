@@ -47,8 +47,8 @@ import {
   getPlanActionScopes,
   type ApproverUserContext,
   type ActionScopeBadge,
-} from "@/modules/activity-plans/ui/activity-status-badge";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
+} from "@/modules/activity/ui/activity-status-badge";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   getApprovalQueueDataAction,
 } from "@/modules/activity/server/actions";

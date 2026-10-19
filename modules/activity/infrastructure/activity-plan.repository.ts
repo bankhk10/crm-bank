@@ -150,3 +150,16 @@ export async function findActivityTypeByCode(code: string) {
     where: { code },
   });
 }
+
+import { ACTIVITY_PLAN_FULL_INCLUDE } from "./activity-plan-include";
+
+/**
+ * Find activity plan by ID with full relations
+ */
+export async function findActivityPlanById(id: string) {
+  return db.activityPlan.findFirst({
+    where: { id, deletedAt: null },
+    include: ACTIVITY_PLAN_FULL_INCLUDE,
+  });
+}
+

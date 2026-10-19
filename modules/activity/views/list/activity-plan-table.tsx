@@ -22,8 +22,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
-import { ActivityStatusWithOperator } from "@/modules/activity-plans/ui/activity-status-badge";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
+import { ActivityStatusWithOperator } from "@/modules/activity/ui/activity-status-badge";
 import {
   WORK_TYPE_CONFIG,
   getWorkTypeName,

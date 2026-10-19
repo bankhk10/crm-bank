@@ -33,7 +33,7 @@ import {
   STATUS_OPTIONS,
   WORK_TYPE_CONFIG,
   matchesActivityFilters,
-} from "@/modules/activity-plans/constants";
+} from "@/modules/activity/constants";
 import { cn } from "@/lib/utils";
 import {
   format,

@@ -23,3 +23,22 @@ export {
   FormActionButtons,
   type FormActionButtonsProps,
 } from "./form-action-buttons";
+
+export {
+  ActivityStatusBadge,
+  ActivityStatusWithOperator,
+  useApproverDirectory,
+  formatEmployeeName,
+  formatApproverRole,
+  resolveCurrentOperator,
+  isUserAdmin,
+  isUserSalesAdminManager,
+  isUserMarketingManager,
+  isUserSalesDirector,
+  canUserPerformApproval,
+  getPlanActionScopes,
+  type ApproverDirectory,
+  type CurrentOperatorInfo,
+  type ApproverUserContext,
+  type ActionScopeBadge,
+} from "./activity-status-badge";

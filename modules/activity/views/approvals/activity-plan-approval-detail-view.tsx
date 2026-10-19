@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import {
   ActivityStatusBadge,
   resolveCurrentOperator,
-} from "@/modules/activity-plans/ui/activity-status-badge";
+} from "@/modules/activity/ui/activity-status-badge";
 import {
   BudgetSection,
   PromotionalMaterialsSection,

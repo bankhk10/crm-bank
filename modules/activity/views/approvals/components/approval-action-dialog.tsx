@@ -26,7 +26,7 @@ import {
   ShieldCheck,
   Info,
 } from "lucide-react";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   approveActivityPlanAction,
   rejectActivityPlanAction,

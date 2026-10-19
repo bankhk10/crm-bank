@@ -14,12 +14,12 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import type { PlanSummaryData } from "@/modules/activity-plans/features/shared/actual-view/types";
 import {
   ActivityStatusBadge,
   resolveCurrentOperator,
-} from "@/modules/activity-plans/ui/activity-status-badge";
+} from "@/modules/activity/ui/activity-status-badge";
 import {
   BudgetSection,
   PromotionalMaterialsSection,

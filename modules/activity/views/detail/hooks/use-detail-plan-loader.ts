@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   getActivityPlanAction,
   requestCancelActivityPlanAction,

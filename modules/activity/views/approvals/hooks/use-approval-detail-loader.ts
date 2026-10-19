@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
-import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   getActivityPlanAction,
   reviewSingleActivityHelperAction,
 } from "@/modules/activity/server/actions";
-import { canUserPerformApproval } from "@/modules/activity-plans/ui/activity-status-badge";
+import { canUserPerformApproval } from "@/modules/activity/ui/activity-status-badge";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import {
   extractPlanData,

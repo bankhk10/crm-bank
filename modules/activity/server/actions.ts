@@ -265,6 +265,25 @@ export async function getActivityPlanAction(
   }
 }
 
+import { getApproverDirectory } from "../infrastructure/employee-lookup.repository";
+
+/**
+ * Action: Get Approver Directory
+ */
+export async function getApproverDirectoryAction() {
+  try {
+    const result = await getApproverDirectory();
+    return serialize(result);
+  } catch (err: any) {
+    console.error("Failed to get approver directory:", err);
+    return {
+      salesAdminEmployees: [],
+      marketingEmployees: [],
+      salesDirectorEmployees: [],
+    };
+  }
+}
+
 // ─── Re-export standard helpers, workflows, & actions for modules/activity views ───
 export {
   getCurrentUserEmployeeAction,
