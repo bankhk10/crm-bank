@@ -137,10 +137,14 @@ modules/activity/features/type-1/
   - `views/` ➔ เรียกใช้ ➔ `features/type-1` (ผ่าน `index.ts` เท่านั้น)
   - `features/type-1` ➔ เรียกใช้ ➔ `ui/` ส่วนกลาง (เช่น `DatePicker`, `ActivityPhotoUpload`, `ActivityGpsPicker`)
   - `features/type-1` ➔ เรียกใช้ ➔ `@/modules/activity/constants`
+  - `features/type-1` ➔ เรียกใช้ ➔ `@/modules/activity/types/strategy.interface`
+- **Server Actions & Database Flow:**
+  - `views/` ➔ ส่งข้อมูลไปยัง ➔ `@/modules/activity/server/actions` (`createActivityPlanAction`, `updateActivityPlanAction`, `getActivityPlanAction`)
+  - Server Actions ➔ ทำงานร่วมกับ ➔ `type1PlannedStrategy` / `type1UnplannedStrategy` บันทึกลงตาราง `activity_plan_type_1_stores` โดยตรง
 - **สิ่งต้องห้าม (Strictly Forbidden):**
   - ❌ ภายนอก Import เจาะลึกเข้าไปในโฟลเดอร์ย่อย เช่น `features/type-1/planned/components/...`
   - ❌ `features/type-1` เรียกใช้ข้อมูลข้ามไปยัง `features/type-2` ถึง `type-14`
-  - ❌ Import ย้อนกลับไปยังโมดูลเก่า `@/modules/activity-plans/...`
+  - ❌ Import ย้อนกลับไปยังโมดูลเก่า `@/modules/activity-plans/...` โดยเด็ดขาด
 
 ### 3.4 Entry Points and Public Exports
 ไฟล์ [modules/activity/features/type-1/index.ts](file:///d:/code/crm-bank/modules/activity/features/type-1/index.ts) ทำหน้าที่เป็น **Single Public API Contract** ส่งออกเฉพาะ:
@@ -158,7 +162,7 @@ modules/activity/features/type-1/
 - **`use-type1-planned-form.ts`:** จัดการ State ของรายการเป้าหมาย (Array of `Type1PlannedItem`) มีฟังก์ชัน `addItem`, `updateItem`, `deleteItem`, และ `hydrateItems`
 - **`type1-planned-form.tsx`:** เรนเดอร์การ์ดเป้าหมายแต่ละรายการ สลับ UI ตาม `visitPurpose` (ร้านค้า vs เกษตรกร)
 - **`planned-mapper.ts`:**
-  - `mapType1PlannedItemToDb`: แปลงข้อมูลจาก Form ไปเป็น Payload บันทึก DB
+  - `mapType1PlannedItemToDb`: แปลงข้อมูลจาก Form ไปเป็น Payload บันทึก DB (จัดเก็บเฉพาะฟิลด์มาตรฐาน `topic` และ `notes` ตามตาราง `activity_plan_type_1_stores` ไม่ใช้ `remarks`)
   - `mapType1DbStoreToPlannedItem`: แปลงข้อมูลจาก Store Record ไปเป็น Form Item
   - `hydrateType1PlannedData`: กู้คืนข้อมูลแผนเดิมเมื่อเข้าสู่หน้าแก้ไข (`edit-view.tsx`)
   - `extractType1PlanTargets`: แปลงข้อมูลแผนงานเดิมเพื่อเตรียมเป็นเป้าหมายในหน้า Actual และ Detail
@@ -209,10 +213,11 @@ sequenceDiagram
 
 ### 5.1 Create Planned (สร้างแผนใหม่)
 1. `create-view.tsx` เรียกใช้ `useType1PlannedForm()`
-2. ผู้ใช้ระบุเป้าหมายใน `Type1PlannedForm`
+2. ผู้ใช้ระบุเป้าหมายใน `Type1PlannedForm` (เลือกหัวข้อ `topic` และกรอกรายละเอียดเป้าหมาย `notes`)
 3. ผู้ใช้กดส่งข้อมูล ➔ รัน `validateType1PlannedItem`
-4. Form Orchestrator รวม Type 1 payload ➔ ส่ง Server Action `createActivityPlanAction` ➔ เรียก `type1PlannedStrategy.savePlan()`
-5. Prisma บันทึกลงตาราง `activity_plan_type_1_stores`
+4. Form Orchestrator รวม Type 1 payload ➔ ส่งไปยัง Server Action `@/modules/activity/server/actions` (`createActivityPlanAction`)
+5. Server Action เรียก `type1PlannedStrategy.savePlan()` ภายใน `$transaction`
+6. Prisma บันทึกเป้าหมายพร้อมฟิลด์ `topic` และ `notes` ลงตาราง `activity_plan_type_1_stores` โดยตรง (ไม่ผ่าน Zod stripping ของระบบเดิม)
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
 1. `edit-view.tsx` ดึงข้อมูลแผนจากฐานข้อมูล (`plan`)
@@ -414,10 +419,12 @@ model ActivityResultType1Product {
    - `WORK_TYPE_CONFIG`: การตั้งค่าและรหัสประเภทงาน
    - `ACTIVITY_RESULT_STATUS_LABELS`: ป้ายแสดงสถานะผลกิจกรรม
 4. **Server Actions ที่ใช้งานจริง:**
-   - `getActivityPlanAction(id)`: โหลดข้อมูลแผนงาน
-   - `recordActivityResultAction(id, payload)`: บันทึกผลการปฏิบัติงาน
-   - `listProductsAction()`: ดึงรายการสินค้า Master Data
-   - `getCustomersAction()`: ดึงรายชื่อร้านค้า/เกษตรกร
+   - `createActivityPlanAction(rawData)`: สร้างแผนงานใหม่ (Standalone ใน `@/modules/activity/server/actions`)
+   - `updateActivityPlanAction(id, rawData)`: ปรับปรุงแผนงานเดิม (Standalone ใน `@/modules/activity/server/actions`)
+   - `getActivityPlanAction(id)`: โหลดข้อมูลแผนงานพร้อม Include ตารางเฉพาะ Type 1 ครบถ้วน
+   - `recordActivityResultAction(id, payload)`: บันทึกผลการปฏิบัติงานจริง
+   - `listProductsAction()`: ดึงรายการสินค้า Master Data จาก `@/modules/products/server/actions`
+   - `getCustomersAction()`: ดึงรายชื่อร้านค้า/เกษตรกร จาก `@/modules/customers/server/actions`
 
 ---
 
@@ -522,3 +529,4 @@ model ActivityResultType1Product {
 | **2026-10-19** | 1.1.0 | ปลด Dependency ออกจากโฟลเดอร์เก่า สลับมาใช้ `@/modules/activity/constants` และลบ Mock Data (`DEMO_PRODUCTS`) | Antigravity AI |
 | **2026-10-19** | 1.2.0 | จัดทำเอกสารคู่มือมาตรฐานฉบับสมบูรณ์สำหรับ Type 1 Feature (`README.md`) | Antigravity AI |
 | **2026-10-19** | 1.3.0 | เติม Database CRUD Matrix, Field Mapping ครบทุกคอลัมน์, รายละเอียด Prisma Schema, Tracing Pipeline, และ Transaction Write/Read Flow | Antigravity AI |
+| **2026-10-19** | 1.4.0 | แยกขาดจาก `activity-plans` 100%: สร้าง Standalone Server Actions (`@/modules/activity/server/actions`), แยก Infrastructure Repository ภายในโมดูล และตัดโค้ดตกค้าง `remarks` ออกจาก Mapper โดยบันทึกเฉพาะ `topic` และ `notes` ตาม Schema จริง | Antigravity AI |

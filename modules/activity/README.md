@@ -43,6 +43,17 @@ modules/activity/
 │       ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
 │       └── index.ts                      # Unified Public API Contract for Type 1
 │
+├── server/                               # Server Actions Gateways (Standalone ประจำโมดูล)
+│   └── actions.ts                        # createActivityPlanAction, updateActivityPlanAction, getActivityPlanAction ฯลฯ
+│
+├── infrastructure/                       # Database Infrastructure Repositories & Relation Inclusions
+│   ├── activity-plan.repository.ts       # resolveActivityTypeId, generateActivityPlanCode, computeFiscalFields
+│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของ Type 1)
+│   └── employee-lookup.repository.ts     # findOrCreateEmployeeForUser
+│
+├── types/                                # Module-level Types & Strategy Interfaces
+│   └── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
+│
 ├── ui/                                   # Common UI Components (ส่วนกลางที่ใช้ร่วมกันทุกประเภทงาน)
 │   ├── basic-info/                       # PlanBasicInfoCard, DateTimePicker
 │   ├── location-team/                    # PlanLocationTeamCard, usePlanLocationTeam
@@ -78,6 +89,7 @@ modules/activity/
 │       ├── activity-plan-approval-detail-view.tsx # Route: /activity-plans/approvals/[id]
 │       └── activity-plan-approval-list-view.tsx   # Route: /activity-plans/approvals
 │
+├── constants.ts                          # WORK_TYPE_CONFIG, getWorkTypeCode, STATUS_OPTIONS
 ├── index.ts                              # Public Module Exports
 └── README.md                             # เอกสารคู่มือสถาปัตยกรรม (ไฟล์นี้)
 ```
@@ -409,4 +421,7 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] Clean Up หน้า `actual` (บันทึกผลงานจริง)
 - [x] Clean Up หน้า `detail` (รายละเอียดแผนงาน)
 - [x] Clean Up หน้า `approvals` (การพิจารณาอนุมัติ)
+- [x] สร้าง Standalone Server Actions (`server/actions.ts`) ประจำโมดูล activity
+- [x] สร้าง Database Infrastructure (`infrastructure/`) และแยกขาดจากการพึ่งพา `modules/activity-plans` 100%
 - [ ] ทยอย Migrate ประเภทงาน Type 2 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+
