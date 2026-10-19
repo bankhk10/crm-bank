@@ -30,9 +30,18 @@ export const type2UnplannedStrategy: WorkTypeStrategy = {
       planData.t2FollowupResults ||
       [];
 
-    if (followupResults.length > 0) {
+    const attachments =
+      planData.actualData?.attachments ||
+      planData.attachments ||
+      [];
+
+    if (followupResults.length > 0 || attachments.length > 0) {
       await type2PlannedStrategy.saveActual!(tx, activityPlanId, {
         followupResults,
+        attachments,
+        actualStartDate: planData.startDate,
+        actualEndDate: planData.endDate,
+        resultStatus: "COMPLETED",
       });
     }
   },

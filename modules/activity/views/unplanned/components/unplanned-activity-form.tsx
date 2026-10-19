@@ -281,6 +281,10 @@ export function UnplannedActivityForm({
       (budgetPayload.salesPromotionBudgetRequested || 0);
 
     // 5. Assemble Payload
+    const mappedType2 = isType2Active
+      ? mapType2UnplannedToPayload(type2.items, customers, products)
+      : null;
+
     const payload = {
       planType: "UNPLANNED",
       title: title.trim(),
@@ -301,6 +305,7 @@ export function UnplannedActivityForm({
       planProducts,
       followupResults,
       t2FollowupResults: followupResults,
+      type2Targets: mappedType2?.type2Targets,
       actualData,
       type1UnplannedItems: isType1Active ? type1.items : undefined,
     };

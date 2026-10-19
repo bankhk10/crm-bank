@@ -36,7 +36,7 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
         ? t.unregisteredFarmerName || ""
         : t.store?.name || "";
 
-      const targetProducts: Type2UnplannedProductItem[] = (t.products || []).map(
+      let targetProducts: Type2UnplannedProductItem[] = (t.products || []).map(
         (p: any, pIdx: number) => {
           const matchedResult = followupResults.find(
             (f: any) =>
@@ -49,13 +49,33 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
             productId: p.productId,
             productName: p.product?.name || "สินค้า",
             notes: p.notes || "",
-            usageResult: matchedResult?.usageResult || "",
+            usageResult: matchedResult?.usageResult || "ลูกค้าพึงพอใจ",
             followupDetail: matchedResult?.followupDetail || "",
             problemDetail: matchedResult?.problemDetail || "",
             isAdditional: Boolean(matchedResult?.isAdditional),
           };
         },
       );
+
+      // If target had no products in ActivityPlanType2Product, but followupResults has items for this target/store
+      if (targetProducts.length === 0 && followupResults.length > 0) {
+        const storeFollowups = t.storeId
+          ? followupResults.filter((f: any) => f.storeId === t.storeId)
+          : followupResults;
+
+        if (storeFollowups.length > 0) {
+          targetProducts = storeFollowups.map((f: any, fIdx: number) => ({
+            id: f.id || `p-${idx}-${fIdx}`,
+            productId: f.productId,
+            productName: f.product?.name || f.productName || "สินค้า",
+            notes: "",
+            usageResult: f.usageResult || "ลูกค้าพึงพอใจ",
+            followupDetail: f.followupDetail || "",
+            problemDetail: f.problemDetail || "",
+            isAdditional: Boolean(f.isAdditional),
+          }));
+        }
+      }
 
       return {
         id: t.id || String(idx + 1),
@@ -75,7 +95,94 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
                   id: `p-${idx}-0`,
                   productName: "",
                   notes: "",
-                  usageResult: "",
+                  usageResult: "ลูกค้าพึงพอใจ",
+                  followupDetail: "",
+                  problemDetail: "",
+                },
+              ],
+        images: plotImages,
+      };
+    });
+  }
+
+  // 1.1 Backward compatibility: From plan.stores / plan.products
+  const t2Stores = (plan.stores || []).filter(
+    (s: any) => s.workTypeCode === "TYPE_2",
+  );
+  if (t2Stores.length > 0) {
+    return t2Stores.map((s: any, idx: number) => {
+      const isUnregistered = Boolean(s.isUnregisteredFarmer);
+      const customerDisplayName = isUnregistered
+        ? s.unregisteredFarmerName || ""
+        : s.store?.name || s.storeName || "";
+
+      const storeProducts = (plan.products || []).filter(
+        (p: any) =>
+          p.workTypeCode === "TYPE_2" &&
+          (s.storeId ? p.storeId === s.storeId : true),
+      );
+
+      let targetProducts: Type2UnplannedProductItem[] = storeProducts.map(
+        (p: any, pIdx: number) => {
+          const matchedResult = followupResults.find(
+            (f: any) =>
+              (f.productId && f.productId === p.productId) ||
+              (f.productName &&
+                (f.productName === p.product?.name ||
+                  f.productName === p.productName)),
+          );
+
+          return {
+            id: p.id || `p-${idx}-${pIdx}`,
+            productId: p.productId,
+            productName: p.product?.name || p.productName || "สินค้า",
+            notes: p.notes || "",
+            usageResult: matchedResult?.usageResult || "ลูกค้าพึงพอใจ",
+            followupDetail: matchedResult?.followupDetail || "",
+            problemDetail: matchedResult?.problemDetail || "",
+            isAdditional: Boolean(matchedResult?.isAdditional),
+          };
+        },
+      );
+
+      if (targetProducts.length === 0 && followupResults.length > 0) {
+        const storeFollowups = s.storeId
+          ? followupResults.filter((f: any) => f.storeId === s.storeId)
+          : followupResults;
+
+        if (storeFollowups.length > 0) {
+          targetProducts = storeFollowups.map((f: any, fIdx: number) => ({
+            id: f.id || `p-${idx}-${fIdx}`,
+            productId: f.productId,
+            productName: f.product?.name || f.productName || "สินค้า",
+            notes: "",
+            usageResult: f.usageResult || "ลูกค้าพึงพอใจ",
+            followupDetail: f.followupDetail || "",
+            problemDetail: f.problemDetail || "",
+            isAdditional: Boolean(f.isAdditional),
+          }));
+        }
+      }
+
+      return {
+        id: s.id || String(idx + 1),
+        visitPurpose: (s.visitPurpose as "FARMER" | "STORE") || "FARMER",
+        storeId: s.storeId || undefined,
+        customerName: customerDisplayName,
+        province: s.province || plan.province || "",
+        isUnregisteredFarmer: isUnregistered,
+        unregisteredFarmerName: s.unregisteredFarmerName || "",
+        unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
+        notes: s.notes || "",
+        products:
+          targetProducts.length > 0
+            ? targetProducts
+            : [
+                {
+                  id: `p-${idx}-0`,
+                  productName: "",
+                  notes: "",
+                  usageResult: "ลูกค้าพึงพอใจ",
                   followupDetail: "",
                   problemDetail: "",
                 },
@@ -102,7 +209,7 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
           id: "p0",
           productName: "",
           notes: "",
-          usageResult: "",
+          usageResult: "ลูกค้าพึงพอใจ",
           followupDetail: "",
           problemDetail: "",
         },
@@ -123,6 +230,7 @@ export function mapType2UnplannedToPayload(
   const planStores: any[] = [];
   const planProducts: any[] = [];
   const followupResults: any[] = [];
+  const type2Targets: any[] = [];
 
   items.forEach((item) => {
     let resolvedStoreId = item.storeId;
@@ -131,15 +239,17 @@ export function mapType2UnplannedToPayload(
       if (found) resolvedStoreId = found.id;
     }
 
-    // 1. Target Store
+    const isUnregistered = Boolean(item.isUnregisteredFarmer);
+
+    // 1. Target Store (Backward compatibility)
     planStores.push({
       workTypeCode: "TYPE_2",
       visitPurpose: item.visitPurpose || "FARMER",
-      storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
+      storeId: isUnregistered ? null : resolvedStoreId || null,
       storeName: item.customerName || null,
       province: item.province || null,
-      isUnregisteredFarmer: Boolean(item.isUnregisteredFarmer),
-      unregisteredFarmerName: item.isUnregisteredFarmer
+      isUnregisteredFarmer: isUnregistered,
+      unregisteredFarmerName: isUnregistered
         ? item.unregisteredFarmerName || null
         : null,
       unregisteredFarmerPhone: item.isUnregisteredFarmer
@@ -147,6 +257,8 @@ export function mapType2UnplannedToPayload(
         : null,
       notes: item.notes || null,
     });
+
+    const targetProducts: any[] = [];
 
     // 2. Tracked Products
     (item.products || []).forEach((p) => {
@@ -161,22 +273,50 @@ export function mapType2UnplannedToPayload(
       if (pId) {
         planProducts.push({
           workTypeCode: "TYPE_2",
-          storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
+          storeId: isUnregistered ? null : resolvedStoreId || null,
           productId: pId,
           productName: pName || null,
           notes: p.notes || null,
         });
 
+        const effectiveUsage =
+          p.usageResult === "พบปัญหา"
+            ? "พบปัญหา"
+            : (p.usageResult || "ลูกค้าพึงพอใจ");
+
         followupResults.push({
-          storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
+          storeId: isUnregistered ? null : resolvedStoreId || null,
           productId: pId,
           productName: pName || null,
-          usageResult: p.usageResult || null,
-          followupDetail: p.followupDetail || null,
-          problemDetail: p.problemDetail || null,
+          usageResult: effectiveUsage,
+          followupDetail:
+            effectiveUsage === "พบปัญหา" ? null : (p.followupDetail || null),
+          problemDetail:
+            effectiveUsage === "พบปัญหา" ? (p.problemDetail || null) : null,
           isAdditional: Boolean(p.isAdditional),
         });
+
+        targetProducts.push({
+          productId: pId,
+          notes: p.notes || null,
+        });
       }
+    });
+
+    // 3. Dedicated Type 2 Targets
+    type2Targets.push({
+      visitPurpose: item.visitPurpose || "FARMER",
+      storeId: isUnregistered ? null : resolvedStoreId || null,
+      province: item.province || "",
+      isUnregisteredFarmer: isUnregistered,
+      unregisteredFarmerName: isUnregistered
+        ? item.unregisteredFarmerName || null
+        : null,
+      unregisteredFarmerPhone: item.isUnregisteredFarmer
+        ? item.unregisteredFarmerPhone || null
+        : null,
+      notes: item.notes || null,
+      products: targetProducts,
     });
   });
 
@@ -185,5 +325,6 @@ export function mapType2UnplannedToPayload(
     planProducts,
     followupResults,
     t2FollowupResults: followupResults,
+    type2Targets,
   };
 }

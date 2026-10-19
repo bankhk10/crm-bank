@@ -13,6 +13,7 @@ import {
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import { ActivityPhotoUpload } from "@/components/activity/activity-photo-upload";
+import { ActivityProductSelect } from "@/components/activity/activity-product-select";
 import { FormCombobox } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +68,24 @@ export function Type2UnplannedForm({
       subLabel: p.productCode || undefined,
     }));
   }, [products]);
+
+  const nonBoxProducts = useMemo(() => {
+    return (products || []).filter((p) => (p.unit || "").trim() !== "กล่อง");
+  }, [products]);
+
+  const handleUsageResultChange = (
+    itemId: string,
+    prodId: string,
+    newUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา",
+  ) => {
+    if (!updateProductInItem) return;
+    updateProductInItem(itemId, prodId, "usageResult", newUsage);
+    if (newUsage === "ลูกค้าพึงพอใจ") {
+      updateProductInItem(itemId, prodId, "problemDetail", "");
+    } else {
+      updateProductInItem(itemId, prodId, "followupDetail", "");
+    }
+  };
 
   const handlePurposeChange = (
     id: string,
@@ -256,20 +275,22 @@ export function Type2UnplannedForm({
                 )}
               </div>
 
-              {/* 3. Products Tracked & Actual Feedback */}
-              <div className="border-t border-slate-200/80 pt-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                    <Package className="w-4 h-4 text-emerald-600" />
-                    <span>สินค้าและผลการตอบสนอง</span>
+              {/* 3. Products Tracked & Actual Feedback (สไตล์บันทึกผลการติดตามสินค้าตามแผน แบบ Type 2 Actual) */}
+              <div className="border-t border-slate-200/80 pt-4 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                    <label className="text-sm font-bold text-slate-900">
+                      บันทึกผลการติดตามสินค้า ({item.products.length} รายการ)
+                    </label>
                   </div>
                   {!readonly && addProductToItem && (
                     <Button
                       type="button"
-                      variant="ghost"
                       size="sm"
+                      variant="outline"
                       onClick={() => addProductToItem(item.id)}
-                      className="text-xs text-emerald-700 hover:bg-emerald-50 h-7 px-2 cursor-pointer"
+                      className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 h-7 px-2.5 rounded-lg cursor-pointer shadow-2xs"
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" />
                       เพิ่มสินค้า
@@ -277,143 +298,190 @@ export function Type2UnplannedForm({
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  {item.products.map((prod, pIdx) => (
-                    <div
-                      key={prod.id}
-                      className="bg-white border border-slate-200 rounded-md p-3 space-y-3 shadow-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-slate-500">
-                          สินค้าชิ้นที่ {pIdx + 1}
-                        </span>
-                        {!readonly &&
-                          deleteProductFromItem &&
-                          item.products.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteProductFromItem(item.id, prod.id)
-                              }
-                              className="text-slate-400 hover:text-rose-600 text-xs flex items-center gap-1 cursor-pointer"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              ลบ
-                            </button>
-                          )}
-                      </div>
+                <div className="space-y-4">
+                  {item.products.map((prod, pIdx) => {
+                    const isProblem = prod.usageResult === "พบปัญหา";
+                    const activeUsage =
+                      prod.usageResult === "พบปัญหา"
+                        ? "พบปัญหา"
+                        : "ลูกค้าพึงพอใจ";
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    return (
+                      <div
+                        key={prod.id || pIdx}
+                        className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-2xs transition-all hover:border-emerald-300"
+                      >
+                        {/* Header สินค้า */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                          <div className="flex items-center gap-2 font-bold text-sm text-slate-800">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">
+                              {pIdx + 1}
+                            </span>
+                            <span>
+                              สินค้าชิ้นที่ {pIdx + 1}
+                              {prod.productName ? `: ${prod.productName}` : ""}
+                            </span>
+                          </div>
+
+                          {!readonly &&
+                            deleteProductFromItem &&
+                            item.products.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  deleteProductFromItem(item.id, prod.id)
+                                }
+                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium py-1 px-2 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>ลบสินค้า</span>
+                              </button>
+                            )}
+                        </div>
+
+                        {/* เลือกสินค้า */}
                         <div>
-                          <label className="text-xs text-slate-600 mb-1 block">
-                            ชื่อสินค้า <span className="text-rose-500">*</span>
-                          </label>
-                          <FormCombobox
+                          <ActivityProductSelect
+                            id={`unplanned-product-${item.id}-${prod.id}`}
+                            label="สินค้า"
+                            labelClassName="block text-xs font-semibold text-slate-700 mb-1"
+                            triggerClassName="h-10 text-xs bg-white border-slate-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                             value={prod.productName || ""}
-                            options={productComboboxOptions}
-                            placeholder="เลือกสินค้า..."
-                            searchPlaceholder="ค้นหาชื่อสินค้า..."
-                            emptyText="ไม่พบสินค้า"
-                            disabled={readonly}
-                            onChange={(val) => {
+                            valueKey="name"
+                            onChange={(val, pItem) => {
                               if (updateProductInItem) {
-                                const matched = products.find(
-                                  (p) => p.name === val,
-                                );
                                 updateProductInItem(
                                   item.id,
                                   prod.id,
                                   "productName",
-                                  val,
+                                  val || "",
                                 );
                                 updateProductInItem(
                                   item.id,
                                   prod.id,
                                   "productId",
-                                  matched?.id || "",
+                                  pItem?.id || "",
                                 );
                               }
                             }}
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs text-slate-600 mb-1 block">
-                            ผลการตอบสนองของพืช / ความพึงพอใจ
-                          </label>
-                          <select
-                            disabled={readonly}
-                            value={prod.usageResult || ""}
-                            onChange={(e) => {
-                              if (updateProductInItem) {
-                                updateProductInItem(
-                                  item.id,
-                                  prod.id,
-                                  "usageResult",
-                                  e.target.value,
-                                );
-                              }
-                            }}
-                            className="w-full text-sm border border-slate-300 rounded-md p-2 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                          >
-                            <option value="">-- เลือกผลการใช้สินค้า --</option>
-                            {USAGE_RESULTS.map((res) => (
-                              <option key={res} value={res}>
-                                {res}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Problem detail warning if "พบปัญหา" */}
-                      {prod.usageResult === "พบปัญหา" && (
-                        <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-md space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-700">
-                            <AlertTriangle className="w-3.5 h-3.5" />
-                            <span>ระบุปัญหาที่พบ *</span>
-                          </div>
-                          <Textarea
-                            placeholder="เช่น ยอดไหม้ ใบเหลือง หรือไม่มีการตอบสนอง..."
-                            value={prod.problemDetail || ""}
-                            onChange={(e) => {
-                              if (updateProductInItem) {
-                                updateProductInItem(
-                                  item.id,
-                                  prod.id,
-                                  "problemDetail",
-                                  e.target.value,
-                                );
-                              }
-                            }}
-                            disabled={readonly}
-                            rows={2}
-                            className="text-xs bg-white"
-                          />
-                        </div>
-                      )}
-
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="รายละเอียดการติดตาม / คำแนะนำเพิ่มเติม..."
-                          value={prod.followupDetail || ""}
-                          onChange={(e) => {
-                            if (updateProductInItem) {
-                              updateProductInItem(
-                                item.id,
-                                prod.id,
-                                "followupDetail",
-                                e.target.value,
-                              );
+                            products={
+                              nonBoxProducts.length > 0
+                                ? nonBoxProducts
+                                : products
                             }
-                          }}
-                          disabled={readonly}
-                          className="w-full text-xs border border-slate-200 rounded p-1.5 bg-slate-50 focus:bg-white"
-                        />
+                            placeholder="เลือกสินค้า..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                            required
+                          />
+                        </div>
+
+                        {/* ผลการใช้สินค้า (Toggle Buttons: 🟢 ลูกค้าพึงพอใจ / ⚠️ พบปัญหา) */}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-800">
+                            ผลการใช้สินค้า{" "}
+                            <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {(["ลูกค้าพึงพอใจ", "พบปัญหา"] as const).map(
+                              (opt) => {
+                                const isSelected = activeUsage === opt;
+                                return (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    disabled={readonly}
+                                    onClick={() =>
+                                      handleUsageResultChange(
+                                        item.id,
+                                        prod.id,
+                                        opt,
+                                      )
+                                    }
+                                    className={cn(
+                                      "py-2.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1.5",
+                                      isSelected
+                                        ? opt === "ลูกค้าพึงพอใจ"
+                                          ? "bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20 shadow-xs"
+                                          : "bg-rose-50 border-rose-500 text-rose-800 ring-2 ring-rose-500/20 shadow-xs"
+                                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
+                                      readonly &&
+                                        "opacity-75 cursor-not-allowed",
+                                    )}
+                                  >
+                                    <span>
+                                      {opt === "ลูกค้าพึงพอใจ"
+                                        ? "🟢"
+                                        : "⚠️"}
+                                    </span>
+                                    <span>{opt}</span>
+                                  </button>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
+
+                        {/* รายละเอียดการติดตาม (เมื่อไม่พบปัญหา) */}
+                        {!isProblem && (
+                          <div className="space-y-1.5 animate-in fade-in-50 duration-150">
+                            <label className="text-xs font-bold text-slate-800">
+                              รายละเอียดการติดตาม
+                            </label>
+                            <Textarea
+                              rows={2}
+                              value={prod.followupDetail || ""}
+                              onChange={(e) => {
+                                if (updateProductInItem) {
+                                  updateProductInItem(
+                                    item.id,
+                                    prod.id,
+                                    "followupDetail",
+                                    e.target.value,
+                                  );
+                                }
+                              }}
+                              disabled={readonly}
+                              placeholder={`ระบุข้อแนะนำ หรือรายละเอียดการติดตามสำหรับ ${prod.productName || "สินค้านี้"}`}
+                              className="bg-white border-slate-300 text-xs rounded-xl focus:border-emerald-500 focus:ring-emerald-500"
+                            />
+                          </div>
+                        )}
+
+                        {/* ระบุรายละเอียดปัญหาที่พบ (เมื่อพบปัญหา) */}
+                        {isProblem && (
+                          <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 space-y-2 animate-in fade-in-50 duration-150">
+                            <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                              <span>
+                                ระบุรายละเอียดปัญหาที่พบสำหรับ{" "}
+                                {prod.productName || "สินค้านี้"}
+                              </span>
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Textarea
+                              rows={2}
+                              value={prod.problemDetail || ""}
+                              onChange={(e) => {
+                                if (updateProductInItem) {
+                                  updateProductInItem(
+                                    item.id,
+                                    prod.id,
+                                    "problemDetail",
+                                    e.target.value,
+                                  );
+                                }
+                              }}
+                              disabled={readonly}
+                              placeholder="เช่น ยอดไหม้ ใบเหลือง หรือไม่มีการตอบสนอง..."
+                              className="bg-white border-rose-200 text-xs rounded-lg focus:border-rose-400 focus:ring-rose-400"
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

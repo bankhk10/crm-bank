@@ -270,10 +270,29 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
     const followupResults: any[] =
       actualData.followupResults || actualData.t2FollowupResults || [];
 
-    const result = await tx.activityResult.findFirst({
+    let result = await tx.activityResult.findFirst({
       where: { activityPlanId },
       select: { id: true },
     });
+
+    if (!result) {
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: activityPlanId },
+        select: { startDate: true, endDate: true },
+      });
+
+      if (plan) {
+        result = await tx.activityResult.create({
+          data: {
+            activityPlanId,
+            actualStartDate: actualData.actualStartDate || plan.startDate,
+            actualEndDate: actualData.actualEndDate || plan.endDate,
+            resultStatus: actualData.resultStatus || "COMPLETED",
+          },
+          select: { id: true },
+        });
+      }
+    }
 
     if (!result) return;
 
@@ -299,6 +318,47 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
         })),
       });
     }
+
+    const attachments = actualData.attachments || actualData.images || [];
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      await tx.activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_2",
+        },
+      });
+
+      await tx.activityAttachment.createMany({
+        data: attachments.map((att: any) => ({
+          activityPlanId,
+          activityResultId: result.id,
+          workTypeCode: "TYPE_2",
+          category: att.category || "PLOT",
+          fileUrl: att.url || att.fileUrl,
+          fileName: att.name || att.fileName || "รูปภาพ",
+          fileSize: att.size || att.fileSize || 0,
+          mimeType: att.type || att.mimeType || "image/jpeg",
+        })),
+      });
+    }
+  },
+
+  async loadActual(
+    tx: PrismaTransaction,
+    activityPlanId: string,
+  ): Promise<any | null> {
+    const result = await tx.activityResult.findFirst({
+      where: { activityPlanId },
+      include: {
+        followupResults: {
+          include: {
+            product: true,
+            store: true,
+          },
+        },
+      },
+    });
+    return result;
   },
 
   /**
