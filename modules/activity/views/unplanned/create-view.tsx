@@ -171,7 +171,7 @@ export function UnplannedCreateView() {
   }
 
   return (
-    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-white min-h-screen rounded-2xl">
       <UnplannedActivityForm
         initialData={{ employeeName: currentEmployeeName }}
         employees={employees}
