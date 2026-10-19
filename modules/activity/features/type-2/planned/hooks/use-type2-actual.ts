@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import type { Type2ImageFile } from "../../shared/types";
 import type { FollowupProductItem } from "../types/planned.types";
 
+import { uploadActivityPlanImageGroup } from "@/modules/activity/ui/utils/image-uploader";
 import { parseType2ActualResult } from "../application/actual-mapper";
 
 export function useType2Actual() {
@@ -19,6 +20,28 @@ export function useType2Actual() {
   >([]);
   const [t2Images, setT2Images] = useState<Type2ImageFile[]>([]);
   const initialT2ImagesRef = useRef<Type2ImageFile[]>([]);
+
+  const uploadImages = useCallback(
+    async (
+      planId: string,
+      newlyUploadedUrls: string[] = [],
+    ): Promise<Type2ImageFile[]> => {
+      let cleanImages = t2Images;
+      if (t2Images && t2Images.length > 0) {
+        const res = await uploadActivityPlanImageGroup(
+          planId,
+          t2Images,
+          "type2",
+          "plot",
+        );
+        cleanImages = res.updatedImages;
+        newlyUploadedUrls.push(...res.newlyUploadedUrls);
+        setT2Images(cleanImages);
+      }
+      return cleanImages;
+    },
+    [t2Images],
+  );
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
@@ -140,5 +163,6 @@ export function useType2Actual() {
     setT2Images,
     hydrate,
     collectPayload,
+    uploadImages,
   };
 }

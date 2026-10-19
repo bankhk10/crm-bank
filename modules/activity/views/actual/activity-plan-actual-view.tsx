@@ -301,11 +301,27 @@ export function ActivityPlanActualView({
 
         // Collect Type 2 payload if active
         if (isType2Active) {
-          const t2Payload = type2Actual.collectPayload();
+          const newlyUploadedUrls: string[] = [];
+          const cleanImages = await type2Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t2Payload = type2Actual.collectPayload(cleanImages);
           payload = {
             ...payload,
             ...t2Payload,
             followupResults: t2Payload.t2FollowupResults || [],
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanImages.map((img) => ({
+                category: "PLOT",
+                fileUrl: img.url,
+                fileName: img.name || "รูปภาพ",
+                fileSize: img.size || 0,
+                mimeType: img.type || "image/jpeg",
+                workTypeCode: "TYPE_2",
+              })),
+            ],
           };
           if (!isType1Active && t2Payload.t2FollowupDetail) {
             payload.resultSummary = t2Payload.t2FollowupDetail;

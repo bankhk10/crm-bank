@@ -32,6 +32,7 @@ import {
   getWorkTypeCode,
   getWorkTypeName,
 } from "@/modules/activity/constants";
+import { uploadActivityPlanImageGroup } from "@/modules/activity/ui/utils/image-uploader";
 
 export interface UnplannedActivityFormProps {
   initialData?: any;
@@ -202,6 +203,7 @@ export function UnplannedActivityForm({
     let planProducts: any[] = [];
     let followupResults: any[] = [];
     let actualData: any = null;
+    const uploadPlanId = initialData?.id || "unplanned";
 
     // 3. Validation & Mapping by Work Type
     if (isType1Active) {
@@ -220,13 +222,39 @@ export function UnplannedActivityForm({
         .map((item) => mapType1UnplannedItemToStore(item, customers))
         .filter(Boolean);
 
+      const allType1Images = type1.items.flatMap(
+        (item) => item.plotImages || [],
+      );
+      let cleanType1Images = allType1Images;
+      if (allType1Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType1Images,
+            "type1",
+            "plot",
+          );
+          cleanType1Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          return;
+        }
+      }
+
       const firstItem = type1.items[0];
       actualData = {
         workTypeCode: "TYPE_1",
         discussionResult: firstItem?.discussionResult || null,
         productAdvice: firstItem?.productAdvice || null,
         advisedProducts: firstItem?.advisedProducts || [],
-        attachments: firstItem?.plotImages || [],
+        attachments: cleanType1Images.map((img) => ({
+          category: "PLOT",
+          fileUrl: img.url,
+          fileName: img.name || "รูปภาพ",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_1",
+        })),
       };
     } else if (isType2Active) {
       if (type2.items.length === 0) {
@@ -240,15 +268,44 @@ export function UnplannedActivityForm({
         return;
       }
 
-      const mapped = mapType2UnplannedToPayload(type2.items, customers, products);
+      const mapped = mapType2UnplannedToPayload(
+        type2.items,
+        customers,
+        products,
+      );
       planStores = mapped.planStores;
       planProducts = mapped.planProducts;
       followupResults = mapped.followupResults;
 
-      const firstItem = type2.items[0];
+      const allType2Images = type2.items.flatMap(
+        (item) => item.images || [],
+      );
+      let cleanType2Images = allType2Images;
+      if (allType2Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType2Images,
+            "type2",
+            "plot",
+          );
+          cleanType2Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          return;
+        }
+      }
+
       actualData = {
         workTypeCode: "TYPE_2",
-        attachments: firstItem?.images || [],
+        attachments: cleanType2Images.map((img) => ({
+          category: "PLOT",
+          fileUrl: img.url,
+          fileName: img.name || "รูปภาพ",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_2",
+        })),
       };
     }
 
@@ -307,6 +364,7 @@ export function UnplannedActivityForm({
       t2FollowupResults: followupResults,
       type2Targets: mappedType2?.type2Targets,
       actualData,
+      attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
     };
 

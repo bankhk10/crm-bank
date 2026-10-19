@@ -145,18 +145,35 @@ export async function uploadActivityPlanImageGroup(
     }
 
     const data = await res.json();
-    if (data.success && Array.isArray(data.images)) {
-      data.images.forEach((img: any) => {
+    const uploadedList = data.created || data.images || [];
+    if (Array.isArray(uploadedList)) {
+      uploadedList.forEach((uploaded: any, uIdx: number) => {
+        const original = newFilesToUpload[uIdx];
+        const uploadedUrl = uploaded.url || uploaded.fileUrl;
+        const uploadedName =
+          uploaded.filename ||
+          uploaded.fileName ||
+          original?.file?.name ||
+          "รูปภาพ";
         processedImages.push({
-          id: img.id,
-          url: img.fileUrl,
-          name: img.fileName,
-          size: img.fileSize,
-          type: img.fileType,
+          id: uploaded.id,
+          url: uploadedUrl,
+          name: uploadedName,
+          size: uploaded.fileSize || original?.file?.size || 0,
+          type: uploaded.fileType || original?.file?.type || "image/jpeg",
         });
-        newlyUploadedUrls.push(img.fileUrl);
+        if (uploadedUrl) {
+          newlyUploadedUrls.push(uploadedUrl);
+        }
       });
     }
+  }
+
+  // Safety check: ensure NO blob URL remains
+  if (processedImages.some((img) => img.url && img.url.startsWith("blob:"))) {
+    throw new Error(
+      `พบรูปภาพ (${category}) ที่ยังไม่ได้อัปโหลดสมบูรณ์ กรุณาลองใหม่อีกครั้ง`,
+    );
   }
 
   return {

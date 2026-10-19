@@ -319,8 +319,17 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
       });
     }
 
-    const attachments = actualData.attachments || actualData.images || [];
-    if (Array.isArray(attachments) && attachments.length > 0) {
+    const attachments =
+      actualData.attachments ||
+      actualData.images ||
+      actualData.t2Images ||
+      [];
+    const hasAttachmentsInput =
+      actualData.attachments !== undefined ||
+      actualData.images !== undefined ||
+      actualData.t2Images !== undefined;
+
+    if (hasAttachmentsInput) {
       await tx.activityAttachment.deleteMany({
         where: {
           activityPlanId,
@@ -328,18 +337,20 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
         },
       });
 
-      await tx.activityAttachment.createMany({
-        data: attachments.map((att: any) => ({
-          activityPlanId,
-          activityResultId: result.id,
-          workTypeCode: "TYPE_2",
-          category: att.category || "PLOT",
-          fileUrl: att.url || att.fileUrl,
-          fileName: att.name || att.fileName || "รูปภาพ",
-          fileSize: att.size || att.fileSize || 0,
-          mimeType: att.type || att.mimeType || "image/jpeg",
-        })),
-      });
+      if (Array.isArray(attachments) && attachments.length > 0) {
+        await tx.activityAttachment.createMany({
+          data: attachments.map((att: any) => ({
+            activityPlanId,
+            activityResultId: result.id,
+            workTypeCode: "TYPE_2",
+            category: att.category || "PLOT",
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปภาพ",
+            fileSize: att.fileSize || att.size || 0,
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          })),
+        });
+      }
     }
   },
 

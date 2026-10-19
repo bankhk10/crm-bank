@@ -10,13 +10,31 @@ import type {
 export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
   if (!plan) return [];
 
-  const rawAttachments: any[] = plan.attachments || [];
+  const rawAttachments: any[] = [
+    ...(plan.attachments || []),
+    ...(plan.result?.attachments || []),
+  ];
   const plotImages = rawAttachments
-    .filter((att) => att.category === "PLOT" || att.category === "GENERAL")
+    .filter(
+      (att) =>
+        att.category === "PLOT" ||
+        att.category === "GENERAL" ||
+        att.workTypeCode === "TYPE_2" ||
+        !att.category,
+    )
+    .filter(
+      (att, idx, arr) =>
+        idx ===
+        arr.findIndex(
+          (a) => (a.fileUrl || a.url) === (att.fileUrl || att.url),
+        ),
+    )
     .map((att) => ({
       id: att.id,
-      url: att.fileUrl,
-      name: att.fileName || "รูปภาพ",
+      url: att.fileUrl || att.url,
+      name: att.fileName || att.name || "รูปภาพ",
+      size: att.fileSize || att.size || 0,
+      type: att.mimeType || att.type || "image/jpeg",
     }));
 
   const followupResults: any[] =
