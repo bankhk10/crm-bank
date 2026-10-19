@@ -104,19 +104,44 @@ export function extractType2PlanTargets(
   // 2. Fallback: Stores from generic tables
   if (t2Stores.length > 0) {
     const list: Type2TargetItem[] = t2Stores.map((s, idx) => {
-      const matchedProducts =
-        t2Stores.length === 1
-          ? t2Products
-          : t2Products.filter(
-              (p) => p.storeId && s.storeId && p.storeId === s.storeId,
-            );
+      const isUnregistered = Boolean(s.isUnregisteredFarmer);
+      const matchedByIndex = t2Products.filter(
+        (p) => p.targetIndex !== undefined && p.targetIndex === idx,
+      );
+      const matchedByStore =
+        s.storeId && !isUnregistered
+          ? t2Products.filter((p) => p.storeId && p.storeId === s.storeId)
+          : [];
 
-      const effectiveProducts =
-        matchedProducts.length > 0
-          ? matchedProducts
-          : idx === 0 && t2Products.some((p) => !p.storeId)
-            ? t2Products.filter((p) => !p.storeId)
-            : [];
+      let effectiveProducts: any[] = [];
+      if (matchedByIndex.length > 0) {
+        effectiveProducts = matchedByIndex;
+      } else if (matchedByStore.length > 0) {
+        effectiveProducts = matchedByStore;
+      } else if (t2Stores.length === 1) {
+        effectiveProducts = t2Products;
+      } else {
+        const unregisteredStoreIndices = t2Stores
+          .map((st, i) => (st.isUnregisteredFarmer || !st.storeId ? i : -1))
+          .filter((i) => i !== -1);
+        const unassignedProducts = t2Products.filter(
+          (p) => !p.storeId || p.targetIndex !== undefined,
+        );
+        const order = unregisteredStoreIndices.indexOf(idx);
+        if (order !== -1) {
+          const count = Math.max(
+            1,
+            Math.floor(
+              unassignedProducts.length / unregisteredStoreIndices.length,
+            ),
+          );
+          const start = order * count;
+          const isLast = order === unregisteredStoreIndices.length - 1;
+          effectiveProducts = isLast
+            ? unassignedProducts.slice(start)
+            : unassignedProducts.slice(start, start + count);
+        }
+      }
 
       const items: FollowupProductItem[] = effectiveProducts.map((pr) => ({
         id: pr.id,
@@ -133,7 +158,6 @@ export function extractType2PlanTargets(
         isAdditional: false,
       }));
 
-      const isUnregistered = Boolean(s.isUnregisteredFarmer);
       const customerDisplayName = isUnregistered
         ? s.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"
         : s.storeName || s.store?.name || "ร้านค้า/เกษตรกร";
@@ -190,26 +214,32 @@ export function hydrateType2PlannedData(
     Array.isArray(initialData.type2Targets) &&
     initialData.type2Targets.length > 0
   ) {
-    return initialData.type2Targets.map((t: any, idx: number) => ({
-      id: t.id || `t2-${idx}`,
-      visitPurpose: t.visitPurpose || "FARMER",
-      province: t.province || initialData.province || "",
-      isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
-      storeId: t.storeId || "",
-      customerName:
-        t.store?.name ||
-        t.unregisteredFarmerName ||
-        "",
-      unregisteredFarmerName: t.unregisteredFarmerName || "",
-      unregisteredFarmerPhone: t.unregisteredFarmerPhone || "",
-      detail: t.notes || "",
-      products: (t.products || []).map((p: any, pIdx: number) => ({
+    return initialData.type2Targets.map((t: any, idx: number) => {
+      const isUnregistered = Boolean(t.isUnregisteredFarmer);
+      const prods = (t.products || []).map((p: any, pIdx: number) => ({
         id: p.id || `p-${idx}-${pIdx}`,
         productId: p.productId,
         productName: p.product?.name || "",
         notes: p.notes || "",
-      })),
-    }));
+      }));
+
+      return {
+        id: t.id || `t2-${idx}`,
+        visitPurpose: t.visitPurpose || "FARMER",
+        province: t.province || initialData.province || "",
+        isUnregisteredFarmer: isUnregistered,
+        storeId: isUnregistered ? "" : t.storeId || "",
+        customerName: isUnregistered
+          ? t.unregisteredFarmerName || ""
+          : t.store?.name || "",
+        unregisteredFarmerName: t.unregisteredFarmerName || "",
+        unregisteredFarmerPhone: t.unregisteredFarmerPhone || "",
+        detail: t.notes || "",
+        productId: prods[0]?.productId,
+        productName: prods[0]?.productName,
+        products: prods,
+      };
+    });
   }
 
   // 2. From generic stores/products
@@ -233,31 +263,54 @@ export function hydrateType2PlannedData(
 
   if (t2Stores.length > 0) {
     return t2Stores.map((s: any, idx: number) => {
-      const matchedProducts =
-        t2Stores.length === 1
-          ? t2Products
-          : t2Products.filter(
-              (p) => p.storeId && s.storeId && p.storeId === s.storeId,
-            );
+      const isUnregistered = Boolean(s.isUnregisteredFarmer);
+      const matchedByIndex = t2Products.filter(
+        (p) => p.targetIndex !== undefined && p.targetIndex === idx,
+      );
+      const matchedByStore =
+        s.storeId && !isUnregistered
+          ? t2Products.filter((p) => p.storeId && p.storeId === s.storeId)
+          : [];
 
-      const effectiveProducts =
-        matchedProducts.length > 0
-          ? matchedProducts
-          : idx === 0 && t2Products.some((p) => !p.storeId)
-            ? t2Products.filter((p) => !p.storeId)
-            : [];
+      let effectiveProducts: any[] = [];
+      if (matchedByIndex.length > 0) {
+        effectiveProducts = matchedByIndex;
+      } else if (matchedByStore.length > 0) {
+        effectiveProducts = matchedByStore;
+      } else if (t2Stores.length === 1) {
+        effectiveProducts = t2Products;
+      } else {
+        const unregisteredStoreIndices = t2Stores
+          .map((st, i) => (st.isUnregisteredFarmer || !st.storeId ? i : -1))
+          .filter((i) => i !== -1);
+        const unassignedProducts = t2Products.filter(
+          (p) => !p.storeId || p.targetIndex !== undefined,
+        );
+        const order = unregisteredStoreIndices.indexOf(idx);
+        if (order !== -1) {
+          const count = Math.max(
+            1,
+            Math.floor(
+              unassignedProducts.length / unregisteredStoreIndices.length,
+            ),
+          );
+          const start = order * count;
+          const isLast = order === unregisteredStoreIndices.length - 1;
+          effectiveProducts = isLast
+            ? unassignedProducts.slice(start)
+            : unassignedProducts.slice(start, start + count);
+        }
+      }
 
       return {
         id: s.id || `t2-${idx}`,
         visitPurpose: s.visitPurpose || "FARMER",
         province: s.province || initialData.province || "",
-        isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-        storeId: s.storeId || "",
-        customerName:
-          s.storeName ||
-          s.store?.name ||
-          s.unregisteredFarmerName ||
-          "",
+        isUnregisteredFarmer: isUnregistered,
+        storeId: isUnregistered ? "" : s.storeId || "",
+        customerName: isUnregistered
+          ? s.unregisteredFarmerName || ""
+          : s.storeName || s.store?.name || "",
         unregisteredFarmerName: s.unregisteredFarmerName || "",
         unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
         detail: s.notes || s.remarks || "",

@@ -34,6 +34,7 @@ export interface UseType2FormResult {
   ) => {
     planStores: Array<{
       workTypeCode: string;
+      targetIndex?: number;
       visitPurpose: "FARMER" | "STORE";
       storeId?: string | null;
       storeName?: string | null;
@@ -45,12 +46,14 @@ export interface UseType2FormResult {
     }>;
     planProducts: Array<{
       workTypeCode: string;
+      targetIndex?: number;
       storeId?: string | null;
       productId: string;
       productName?: string | null;
       isPriceOverridden?: boolean;
       notes?: string | null;
     }>;
+    type2Targets: any[];
   };
 }
 
@@ -83,8 +86,23 @@ function matchProductsToStores(
   const assigned = new Set<any>();
   const storeProducts: any[][] = stores.map(() => []);
 
+  // 0th pass: Explicit targetIndex match
+  stores.forEach((_, sIdx) => {
+    const matched = products.filter(
+      (p) =>
+        !assigned.has(p) &&
+        p.targetIndex !== undefined &&
+        p.targetIndex === sIdx,
+    );
+    if (matched.length > 0) {
+      matched.forEach((p) => assigned.add(p));
+      storeProducts[sIdx] = matched;
+    }
+  });
+
   // 1st pass: For stores with distinct non-null storeId
   stores.forEach((s, sIdx) => {
+    if (storeProducts[sIdx].length > 0) return;
     if (s.storeId && storeIdCounts.get(s.storeId) === 1) {
       const matched = products.filter(
         (p) => !assigned.has(p) && p.storeId === s.storeId,
@@ -187,25 +205,35 @@ export function useType2Form({
         Array.isArray(initial.type2Targets) &&
         initial.type2Targets.length > 0
       ) {
-        return initial.type2Targets.map((t: any, idx: number) => ({
-          id: t.id || String(idx + 1),
-          visitPurpose: (t.visitPurpose === "STORE" ? "STORE" : "FARMER") as "FARMER" | "STORE",
-          province: t.province || initial?.province || "",
-          isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
-          unregisteredFarmerName: t.unregisteredFarmerName || "",
-          unregisteredFarmerPhone: t.unregisteredFarmerPhone || "",
-          storeId: t.storeId || undefined,
-          customerName: t.isUnregisteredFarmer
-            ? t.unregisteredFarmerName || ""
-            : t.store?.name || "",
-          products: (t.products || []).map((p: any, pIdx: number) => ({
-            id: p.id || `p-${idx}-${pIdx}`,
-            productId: p.productId,
-            productName: p.product?.name || "",
-            notes: p.notes || "",
-          })),
-          detail: t.notes || "",
-        }));
+        return initial.type2Targets.map((t: any, idx: number) => {
+          const prods: Type2FollowupProductLine[] = (t.products || []).map(
+            (p: any, pIdx: number) => ({
+              id: p.id || `p-${idx}-${pIdx}`,
+              productId: p.productId,
+              productName: p.product?.name || "",
+              notes: p.notes || "",
+            }),
+          );
+
+          return {
+            id: t.id || String(idx + 1),
+            visitPurpose: (t.visitPurpose === "STORE" ? "STORE" : "FARMER") as
+              | "FARMER"
+              | "STORE",
+            province: t.province || initial?.province || "",
+            isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
+            unregisteredFarmerName: t.unregisteredFarmerName || "",
+            unregisteredFarmerPhone: t.unregisteredFarmerPhone || "",
+            storeId: t.storeId || undefined,
+            customerName: t.isUnregisteredFarmer
+              ? t.unregisteredFarmerName || ""
+              : t.store?.name || "",
+            products: prods,
+            productId: prods[0]?.productId,
+            productName: prods[0]?.productName,
+            detail: t.notes || "",
+          };
+        });
       }
 
       const type2Prods = (initial as any)?.products?.filter(
@@ -336,8 +364,9 @@ export function useType2Form({
   ) => {
     const planStores: any[] = [];
     const planProducts: any[] = [];
+    const type2Targets: any[] = [];
 
-    type2Items.forEach((item) => {
+    type2Items.forEach((item, idx) => {
       let resolvedStoreId = item.storeId;
       let resolvedStoreName = item.customerName;
 
@@ -349,8 +378,9 @@ export function useType2Form({
         }
       }
 
-      planStores.push({
+      const storeRecord = {
         workTypeCode: "TYPE_2",
+        targetIndex: idx,
         visitPurpose: item.visitPurpose || "FARMER",
         storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
         storeName: item.isUnregisteredFarmer ? null : resolvedStoreName || null,
@@ -363,19 +393,25 @@ export function useType2Form({
         unregisteredFarmerPhone: item.isUnregisteredFarmer
           ? item.unregisteredFarmerPhone || null
           : null,
-      });
+      };
+
+      planStores.push(storeRecord);
 
       const effectiveProducts: Type2FollowupProductLine[] =
         item.products && item.products.length > 0
           ? item.products
-          : [
-              {
-                id: "p0",
-                productId: item.productId,
-                productName: item.productName || "",
-                notes: "",
-              },
-            ];
+          : item.productId || item.productName
+            ? [
+                {
+                  id: "p0",
+                  productId: item.productId,
+                  productName: item.productName || "",
+                  notes: "",
+                },
+              ]
+            : [];
+
+      const targetProducts: any[] = [];
 
       effectiveProducts.forEach((pLine) => {
         let pId = pLine.productId;
@@ -392,16 +428,40 @@ export function useType2Form({
         if (pId) {
           planProducts.push({
             workTypeCode: "TYPE_2",
+            targetIndex: idx,
             storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
+            productId: pId,
+            productName: pName || null,
+            notes: pLine.notes || null,
+          });
+
+          targetProducts.push({
             productId: pId,
             productName: pName || null,
             notes: pLine.notes || null,
           });
         }
       });
+
+      type2Targets.push({
+        targetIndex: idx,
+        visitPurpose: item.visitPurpose || "FARMER",
+        storeId: item.isUnregisteredFarmer ? null : resolvedStoreId || null,
+        storeName: item.isUnregisteredFarmer ? null : resolvedStoreName || null,
+        notes: item.detail || null,
+        province: item.province || null,
+        isUnregisteredFarmer: Boolean(item.isUnregisteredFarmer),
+        unregisteredFarmerName: item.isUnregisteredFarmer
+          ? item.unregisteredFarmerName || null
+          : null,
+        unregisteredFarmerPhone: item.isUnregisteredFarmer
+          ? item.unregisteredFarmerPhone || null
+          : null,
+        products: targetProducts,
+      });
     });
 
-    return { planStores, planProducts };
+    return { planStores, planProducts, type2Targets };
   };
 
   return {

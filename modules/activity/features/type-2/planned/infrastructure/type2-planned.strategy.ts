@@ -90,39 +90,117 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
     });
 
-    if (t2Stores.length > 0) {
+    if (
+      Array.isArray(planData.type2Targets) &&
+      planData.type2Targets.length > 0
+    ) {
+      for (const t of planData.type2Targets) {
+        const isUnregistered = Boolean(t.isUnregisteredFarmer);
+        const targetRecord = await (tx as any).activityPlanType2Target.create({
+          data: {
+            activityPlanId,
+            visitPurpose: t.visitPurpose || "FARMER",
+            storeId: isUnregistered ? null : t.storeId || null,
+            province: t.province || "",
+            isUnregisteredFarmer: isUnregistered,
+            unregisteredFarmerName: isUnregistered
+              ? t.unregisteredFarmerName || null
+              : null,
+            unregisteredFarmerPhone: isUnregistered
+              ? t.unregisteredFarmerPhone || null
+              : null,
+            notes: t.notes || null,
+          },
+        });
+
+        const targetProducts = Array.isArray(t.products) ? t.products : [];
+        const validProducts = targetProducts.filter(
+          (p: any) => p && p.productId,
+        );
+
+        if (validProducts.length > 0) {
+          await (tx as any).activityPlanType2Product.createMany({
+            data: validProducts.map((p: any) => ({
+              targetId: targetRecord.id,
+              activityPlanId,
+              productId: p.productId,
+              notes: p.notes || null,
+            })),
+          });
+        }
+      }
+    } else if (t2Stores.length > 0) {
       for (let idx = 0; idx < t2Stores.length; idx++) {
         const s = t2Stores[idx];
+        const isUnregistered = Boolean(s.isUnregisteredFarmer);
         const targetRecord = await (tx as any).activityPlanType2Target.create({
           data: {
             activityPlanId,
             visitPurpose: s.visitPurpose || "FARMER",
-            storeId: s.storeId || null,
+            storeId: isUnregistered ? null : s.storeId || null,
             province: s.province || "",
-            isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-            unregisteredFarmerName: s.unregisteredFarmerName || null,
-            unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
+            isUnregisteredFarmer: isUnregistered,
+            unregisteredFarmerName: isUnregistered
+              ? s.unregisteredFarmerName || null
+              : null,
+            unregisteredFarmerPhone: isUnregistered
+              ? s.unregisteredFarmerPhone || null
+              : null,
             notes: s.notes || s.remarks || null,
           },
         });
 
-        const matchedProducts =
-          t2Stores.length === 1
-            ? t2Products
-            : t2Products.filter(
-                (p) => p.storeId && s.storeId && p.storeId === s.storeId,
-              );
+        // 1. Check if products match by targetIndex
+        const matchedByIndex = t2Products.filter(
+          (p) => p.targetIndex !== undefined && p.targetIndex === idx,
+        );
 
-        const effectiveProducts =
-          matchedProducts.length > 0
-            ? matchedProducts
-            : idx === 0 && t2Products.some((p) => !p.storeId)
-              ? t2Products.filter((p) => !p.storeId)
-              : [];
+        // 2. Check if products match by storeId
+        const matchedByStore =
+          s.storeId && !isUnregistered
+            ? t2Products.filter(
+                (p) => p.storeId && p.storeId === s.storeId,
+              )
+            : [];
 
-        if (effectiveProducts.length > 0) {
+        // 3. Fallback for unregistered or unassigned products
+        let effectiveProducts: any[] = [];
+        if (matchedByIndex.length > 0) {
+          effectiveProducts = matchedByIndex;
+        } else if (matchedByStore.length > 0) {
+          effectiveProducts = matchedByStore;
+        } else if (t2Stores.length === 1) {
+          effectiveProducts = t2Products;
+        } else {
+          const unregisteredStoreIndices = t2Stores
+            .map((st, i) => (st.isUnregisteredFarmer || !st.storeId ? i : -1))
+            .filter((i) => i !== -1);
+          const unassignedProducts = t2Products.filter(
+            (p) => !p.storeId || p.targetIndex !== undefined,
+          );
+          const order = unregisteredStoreIndices.indexOf(idx);
+          if (order !== -1) {
+            const count = Math.max(
+              1,
+              Math.floor(
+                unassignedProducts.length / unregisteredStoreIndices.length,
+              ),
+            );
+            const start = order * count;
+            const isLast = order === unregisteredStoreIndices.length - 1;
+            effectiveProducts = isLast
+              ? unassignedProducts.slice(start)
+              : unassignedProducts.slice(start, start + count);
+          }
+        }
+
+        const validEffective = effectiveProducts.filter(
+          (p: any) => p && p.productId,
+        );
+
+        if (validEffective.length > 0) {
           await (tx as any).activityPlanType2Product.createMany({
-            data: effectiveProducts.map((p) => ({
+            data: validEffective.map((p) => ({
               targetId: targetRecord.id,
               activityPlanId,
               productId: p.productId,
@@ -147,28 +225,37 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
           activityPlanId,
           workTypeCode: "TYPE_2",
           visitPurpose: s.visitPurpose || "FARMER",
-          storeId: s.storeId || null,
-          storeName: s.storeName || null,
+          storeId: s.isUnregisteredFarmer ? null : s.storeId || null,
+          storeName: s.isUnregisteredFarmer ? null : s.storeName || null,
           province: s.province || "",
           isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-          unregisteredFarmerName: s.unregisteredFarmerName || null,
-          unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
+          unregisteredFarmerName: s.isUnregisteredFarmer
+            ? s.unregisteredFarmerName || null
+            : null,
+          unregisteredFarmerPhone: s.isUnregisteredFarmer
+            ? s.unregisteredFarmerPhone || null
+            : null,
           notes: s.notes || s.remarks || null,
         })),
       });
     }
 
     if (t2Products.length > 0) {
-      await tx.activityPlanProduct.createMany({
-        data: t2Products.map((p) => ({
-          activityPlanId,
-          workTypeCode: "TYPE_2",
-          productId: p.productId,
-          productName: p.productName || null,
-          storeId: p.storeId || null,
-          notes: p.notes || null,
-        })),
-      });
+      const validT2Products = t2Products.filter(
+        (p: any) => p && p.productId,
+      );
+      if (validT2Products.length > 0) {
+        await tx.activityPlanProduct.createMany({
+          data: validT2Products.map((p) => ({
+            activityPlanId,
+            workTypeCode: "TYPE_2",
+            productId: p.productId,
+            productName: p.productName || null,
+            storeId: p.storeId || null,
+            notes: p.notes || null,
+          })),
+        });
+      }
     }
   },
 

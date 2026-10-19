@@ -224,6 +224,7 @@ export function PlannedActivityForm({
     }
 
     // 3. Validation & Mapping - Type 2 Items
+    let type2TargetsPayload: any[] = [];
     if (isType2Active) {
       const type2Validation = type2.validateType2();
       if (!type2Validation.isValid) {
@@ -237,6 +238,7 @@ export function PlannedActivityForm({
       const t2Payload = type2.mapType2Payload(customers, products);
       planStores = [...planStores, ...t2Payload.planStores];
       planProducts = [...planProducts, ...t2Payload.planProducts];
+      type2TargetsPayload = t2Payload.type2Targets;
     }
 
     // 4. Resolve activityTypeId
@@ -278,6 +280,7 @@ export function PlannedActivityForm({
       notes: notes.trim() || null,
       planStores,
       planProducts,
+      type2Targets: type2TargetsPayload,
     };
 
     try {
