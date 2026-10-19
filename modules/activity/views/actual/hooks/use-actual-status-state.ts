@@ -5,7 +5,7 @@ import type { ActivityResultStatusType } from "../types";
 
 export function useActualStatusState() {
   const [activityResultStatus, setActivityResultStatus] =
-    useState<ActivityResultStatusType>("PARTIAL");
+    useState<ActivityResultStatusType>("COMPLETED");
   const [cancelReason, setCancelReason] = useState("");
   const [postponedDate, setPostponedDate] = useState("");
   const [postponedTime, setPostponedTime] = useState("");
@@ -14,11 +14,18 @@ export function useActualStatusState() {
 
   const hydrateStatus = useCallback((parsed: any) => {
     if (!parsed) return;
-    if (parsed.activityResultStatus) {
-      setActivityResultStatus(parsed.activityResultStatus);
+    const status = parsed.activityResultStatus || parsed.resultStatus;
+    if (status) {
+      setActivityResultStatus(status);
     }
     if (parsed.cancelReason) setCancelReason(parsed.cancelReason);
-    if (parsed.postponedDate) setPostponedDate(parsed.postponedDate);
+    if (parsed.postponedDate) {
+      if (typeof parsed.postponedDate === "string") {
+        setPostponedDate(parsed.postponedDate.split("T")[0]);
+      } else if (parsed.postponedDate instanceof Date) {
+        setPostponedDate(parsed.postponedDate.toISOString().split("T")[0]);
+      }
+    }
     if (parsed.postponedTime) setPostponedTime(parsed.postponedTime);
     if (parsed.postponedReason) setPostponedReason(parsed.postponedReason);
     if (parsed.postponedNotes) setPostponedNotes(parsed.postponedNotes);

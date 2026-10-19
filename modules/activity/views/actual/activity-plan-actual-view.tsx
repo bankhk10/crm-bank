@@ -69,10 +69,11 @@ export function ActivityPlanActualView({
       const res = plan.result || plan.actualResult || plan;
       if (res) {
         type1Actual.hydrate(res);
+        statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual]);
+  }, [plan, isHydrated, type1Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -132,8 +133,8 @@ export function ActivityPlanActualView({
           activityResultStatus === "POSTPONED" ? postponedNotes.trim() : null,
       };
 
-      // If COMPLETED: upload images and collect Type 1 payload
-      if (activityResultStatus === "COMPLETED") {
+      // If COMPLETED or PARTIAL: upload images and collect Type 1 payload
+      if (activityResultStatus === "COMPLETED" || activityResultStatus === "PARTIAL") {
         const newlyUploadedUrls: string[] = [];
         const cleanImages = await type1Actual.uploadImages(id, newlyUploadedUrls);
         const t1Payload = type1Actual.getPayload(cleanImages);
@@ -305,11 +306,13 @@ export function ActivityPlanActualView({
           />
 
           {/* 3. ฟอร์มผลการปฏิบัติงานตามประเภทงาน (Work Types 1 - 14) */}
-          {statusState.activityResultStatus === "COMPLETED" && (
+          {(statusState.activityResultStatus === "COMPLETED" ||
+            statusState.activityResultStatus === "PARTIAL") && (
             <ActualWorkTypeList
               planWorkTypes={planWorkTypes}
               type1State={type1Actual}
               targets={targets}
+              plan={plan}
             />
           )}
 

@@ -11,6 +11,7 @@ interface ActualWorkTypeListProps {
   planWorkTypes: string[];
   type1State: ReturnType<typeof useType1Actual>;
   targets: Type1TargetItem[];
+  plan?: any;
 }
 
 /**
@@ -21,11 +22,23 @@ export function ActualWorkTypeList({
   planWorkTypes,
   type1State,
   targets,
+  plan,
 }: ActualWorkTypeListProps) {
   const isType1 =
     planWorkTypes.includes("TYPE_1") ||
     planWorkTypes.includes("VISIT") ||
     planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
+    Boolean(plan?.type1Stores?.length) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) =>
+          !s.workTypeCode ||
+          s.workTypeCode === "TYPE_1" ||
+          s.workTypeCode === "VISIT",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_1" ||
+    targets.length > 0 ||
     planWorkTypes.length === 0;
 
   return (
