@@ -7,6 +7,7 @@ import { Prisma, ActivityPlanType, ActivityStatus } from "@prisma/client";
 import { type1PlannedStrategy } from "../features/type-1/planned/infrastructure/type1-planned.strategy";
 import { type1UnplannedStrategy } from "../features/type-1/unplanned/infrastructure/type1-unplanned.strategy";
 import { type2PlannedStrategy } from "../features/type-2/planned/infrastructure/type2-planned.strategy";
+import { type2UnplannedStrategy } from "../features/type-2/unplanned/infrastructure/type2-unplanned.strategy";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -135,10 +136,20 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
       }
 
       // 4. Save Type 1 targets directly to dedicated table activity_plan_type_1_stores
-      if (rawData.planType === "UNPLANNED") {
-        await type1UnplannedStrategy.savePlan(tx, createdPlan.id, rawData);
-      } else {
-        await type1PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+      const hasType1 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_1") ||
+            rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
+        (rawData.type1Stores && rawData.type1Stores.length > 0);
+
+      if (hasType1) {
+        if (rawData.planType === "UNPLANNED") {
+          await type1UnplannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        } else {
+          await type1PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        }
       }
 
       // 5. Save Type 2 targets directly to dedicated table activity_plan_type_2_targets
@@ -151,7 +162,11 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         (rawData.type2Targets && rawData.type2Targets.length > 0);
 
       if (hasType2) {
-        await type2PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        if (rawData.planType === "UNPLANNED") {
+          await type2UnplannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        } else {
+          await type2PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        }
       }
 
       return createdPlan;
@@ -237,10 +252,20 @@ export async function updateActivityPlanAction(
       }
 
       // 3. Save Type 1 targets
-      if (rawData.planType === "UNPLANNED") {
-        await type1UnplannedStrategy.savePlan(tx, id, rawData);
-      } else {
-        await type1PlannedStrategy.savePlan(tx, id, rawData);
+      const hasType1 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_1") ||
+            rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
+        (rawData.type1Stores && rawData.type1Stores.length > 0);
+
+      if (hasType1) {
+        if (rawData.planType === "UNPLANNED") {
+          await type1UnplannedStrategy.savePlan(tx, id, rawData);
+        } else {
+          await type1PlannedStrategy.savePlan(tx, id, rawData);
+        }
       }
 
       // 4. Save Type 2 targets
@@ -253,7 +278,11 @@ export async function updateActivityPlanAction(
         (rawData.type2Targets && rawData.type2Targets.length > 0);
 
       if (hasType2) {
-        await type2PlannedStrategy.savePlan(tx, id, rawData);
+        if (rawData.planType === "UNPLANNED") {
+          await type2UnplannedStrategy.savePlan(tx, id, rawData);
+        } else {
+          await type2PlannedStrategy.savePlan(tx, id, rawData);
+        }
       }
 
       return updatedPlan;

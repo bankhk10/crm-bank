@@ -11,16 +11,27 @@ import {
   usePlanBudget,
   PlanNotesCard,
   FormActionButtons,
+  PlanWorkTypeSelector,
 } from "@/modules/activity/ui";
 import {
   Type1UnplannedForm,
   useType1UnplannedForm,
-  validateType1UnplannedItem,
   mapType1UnplannedItemToStore,
   hydrateType1UnplannedData,
   type CustomerOption,
   type ProductOption,
 } from "@/modules/activity/features/type-1";
+import {
+  Type2UnplannedForm,
+  useType2UnplannedForm,
+  hydrateType2UnplannedData,
+  mapType2UnplannedToPayload,
+} from "@/modules/activity/features/type-2";
+import {
+  WORK_TYPE_CONFIG,
+  getWorkTypeCode,
+  getWorkTypeName,
+} from "@/modules/activity/constants";
 
 export interface UnplannedActivityFormProps {
   initialData?: any;
@@ -49,10 +60,40 @@ export function UnplannedActivityForm({
 }: UnplannedActivityFormProps) {
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // 1. Basic Info State
-  const [title, setTitle] = useState<string>(
-    initialData.title || "กิจกรรมนอกแผน: เข้าพบเกษตรกร / ร้านค้า",
+  // 1. Work Types Selection State (Single Select: ค่าเริ่มต้นว่าง)
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(() => {
+    if (initialData.workTypes && initialData.workTypes.length > 0) {
+      const first = initialData.workTypes[0];
+      return [getWorkTypeName(first) || first];
+    }
+    if (initialData.workTypeCodes && initialData.workTypeCodes.length > 0) {
+      const first = initialData.workTypeCodes[0];
+      return [getWorkTypeName(first) || first];
+    }
+    if (initialData.type2Targets && initialData.type2Targets.length > 0) {
+      return [WORK_TYPE_CONFIG.TYPE_2.name];
+    }
+    if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
+      return [WORK_TYPE_CONFIG.TYPE_1.name];
+    }
+    return [];
+  });
+
+  const isType1Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_1" ||
+      wt.includes("TYPE_1") ||
+      wt.includes("เข้าพบ"),
   );
+  const isType2Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_2" ||
+      wt.includes("TYPE_2") ||
+      wt.includes("ติดตามผล"),
+  );
+
+  // 2. Basic Info State
+  const [title, setTitle] = useState<string>(initialData.title || "");
   const [startDate, setStartDate] = useState<string>(() => {
     if (initialData.startDate) {
       return new Date(initialData.startDate).toISOString().split("T")[0];
@@ -80,31 +121,42 @@ export function UnplannedActivityForm({
     return "17:30";
   });
 
-  // 2. Location & Team Hook
+  // 3. Location & Team Hook
   const locationTeam = usePlanLocationTeam({
     initial: initialData,
-    selectedWorkTypes: ["TYPE_1"],
+    selectedWorkTypes: selectedWorkTypes.map(getWorkTypeCode),
     employees,
     isEdit,
   });
 
-  // 3. Type 1 Unplanned Hook
-  const hydratedInitialItems = useMemo(
+  // 4. Type 1 Unplanned Hook
+  const hydratedInitialType1Items = useMemo(
     () => hydrateType1UnplannedData(initialData),
     [initialData],
   );
 
   const type1 = useType1UnplannedForm({
-    initialItems: hydratedInitialItems,
+    initialItems: hydratedInitialType1Items,
     defaultProvince: locationTeam.province,
   });
 
-  // 4. Budget Hook
+  // 5. Type 2 Unplanned Hook
+  const hydratedInitialType2Items = useMemo(
+    () => hydrateType2UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type2 = useType2UnplannedForm({
+    initialItems: hydratedInitialType2Items,
+    defaultProvince: locationTeam.province,
+  });
+
+  // 6. Budget Hook
   const budget = usePlanBudget({
     initial: initialData,
   });
 
-  // 5. Notes State
+  // 7. Notes State
   const [notes, setNotes] = useState<string>(initialData.notes || "");
 
   // Submit Handler
@@ -112,7 +164,13 @@ export function UnplannedActivityForm({
     e.preventDefault();
     if (readonly || submitting) return;
 
-    // 1. Validation - Basic Info
+    // 1. Validation - Work Type
+    if (selectedWorkTypes.length === 0) {
+      toast.error("กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      return;
+    }
+
+    // 2. Validation - Basic Info
     if (!title.trim()) {
       toast.error("กรุณาระบุชื่อกิจกรรม");
       return;
@@ -128,43 +186,82 @@ export function UnplannedActivityForm({
       return;
     }
 
-    // 2. Validation - Type 1 Items
-    if (type1.items.length === 0) {
-      toast.error("กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ");
-      return;
+    let planStores: any[] = [];
+    let planProducts: any[] = [];
+    let followupResults: any[] = [];
+    let actualData: any = null;
+
+    // 3. Validation & Mapping by Work Type
+    if (isType1Active) {
+      if (type1.items.length === 0) {
+        toast.error("กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type1Validation = type1.validate(customers);
+      if (!type1Validation.isValid) {
+        toast.error(type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง");
+        return;
+      }
+
+      planStores = type1.items
+        .map((item) => mapType1UnplannedItemToStore(item, customers))
+        .filter(Boolean);
+
+      const firstItem = type1.items[0];
+      actualData = {
+        workTypeCode: "TYPE_1",
+        discussionResult: firstItem?.discussionResult || null,
+        productAdvice: firstItem?.productAdvice || null,
+        advisedProducts: firstItem?.advisedProducts || [],
+        attachments: firstItem?.plotImages || [],
+      };
+    } else if (isType2Active) {
+      if (type2.items.length === 0) {
+        toast.error("กรุณาระบุเป้าหมายการติดตามผลอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type2Validation = type2.validate(customers);
+      if (!type2Validation.isValid) {
+        toast.error(type2Validation.error || "ข้อมูลเป้าหมายติดตามผลไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType2UnplannedToPayload(type2.items, customers, products);
+      planStores = mapped.planStores;
+      planProducts = mapped.planProducts;
+      followupResults = mapped.followupResults;
+
+      const firstItem = type2.items[0];
+      actualData = {
+        workTypeCode: "TYPE_2",
+        attachments: firstItem?.images || [],
+      };
     }
 
-    const type1Validation = type1.validate(customers);
-    if (!type1Validation.isValid) {
-      toast.error(type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง");
-      return;
-    }
-
-    // 3. Map Type 1 items to database stores & actual payload
-    const planStores = type1.items
-      .map((item) => mapType1UnplannedItemToStore(item, customers))
-      .filter(Boolean);
-
-    // 4. Resolve activityTypeId for Type 1
+    // 4. Resolve activityTypeId
     const matchedType =
-      activityTypes.find(
-        (t) =>
-          t.code === "TYPE_1" ||
-          t.code === "VISIT" ||
-          t.name?.includes("เข้าพบ"),
-      ) || activityTypes[0];
+      activityTypes.find((t) => {
+        if (isType1Active) {
+          return (
+            t.code === "TYPE_1" ||
+            t.code === "VISIT" ||
+            t.name?.includes("เข้าพบ")
+          );
+        }
+        if (isType2Active) {
+          return (
+            t.code === "TYPE_2" ||
+            t.code === "FOLLOWUP" ||
+            t.name?.includes("ติดตาม")
+          );
+        }
+        return false;
+      }) || activityTypes[0];
 
-    const activityTypeId = matchedType?.id || "type-1";
-
-    // Build actualData payload for unplanned
-    const firstItem = type1.items[0];
-    const actualData = {
-      workTypeCode: "TYPE_1",
-      discussionResult: firstItem?.discussionResult || null,
-      productAdvice: firstItem?.productAdvice || null,
-      advisedProducts: firstItem?.advisedProducts || [],
-      attachments: firstItem?.plotImages || [],
-    };
+    const activityTypeId =
+      matchedType?.id || (isType2Active ? "type-2" : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -178,17 +275,22 @@ export function UnplannedActivityForm({
       startDate: startDateTime,
       endDate: endDateTime,
       activityTypeId,
-      workTypeCodes: ["TYPE_1"],
+      workTypeCodes: selectedWorkTypes.map(getWorkTypeCode),
       province: locationTeam.province || null,
       district: locationTeam.district || null,
       location: locationTeam.locationText || null,
       helperEmployeeIds: locationTeam.helperEmployeeIds,
       salesPromotionBudgetRequested: budgetPayload.salesPromotionBudgetRequested,
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
-      totalBudgetRequested: totalBudgetRequested > 0 ? totalBudgetRequested : null,
+      totalBudgetRequested:
+        totalBudgetRequested > 0 ? totalBudgetRequested : null,
       notes: notes.trim() || null,
       planStores,
+      planProducts,
+      followupResults,
+      t2FollowupResults: followupResults,
       actualData,
+      type1UnplannedItems: isType1Active ? type1.items : undefined,
     };
 
     try {
@@ -214,7 +316,9 @@ export function UnplannedActivityForm({
           </div>
           <div>
             <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight">
-              {isEdit ? "แก้ไขกิจกรรมนอกแผน ( Unplanned Activity )" : "สร้างกิจกรรมนอกแผน ( Unplanned Activity )"}
+              {isEdit
+                ? "แก้ไขกิจกรรมนอกแผน ( Unplanned Activity )"
+                : "สร้างกิจกรรมนอกแผน ( Unplanned Activity )"}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               {isEdit
@@ -232,7 +336,7 @@ export function UnplannedActivityForm({
         )}
       </div>
 
-      {/* 1. ส่วนกลาง: ข้อมูลระบบ & วันเวลา */}
+      {/* 1. ส่วนกลาง: ข้อมูลระบบ & วันเวลา & ตัวเลือกประเภทงาน */}
       <PlanBasicInfoCard
         isEdit={isEdit}
         readonly={readonly}
@@ -247,6 +351,14 @@ export function UnplannedActivityForm({
         setEndDate={setEndDate}
         endTime={endTime}
         setEndTime={setEndTime}
+        workTypeSelectorNode={
+          <PlanWorkTypeSelector
+            isSingleSelect={true}
+            selectedWorkTypes={selectedWorkTypes}
+            setSelectedWorkTypes={setSelectedWorkTypes}
+            readonly={readonly}
+          />
+        }
       />
 
       {/* 2. ส่วนกลาง: เลือกพื้นที่ & ทีมงานร่วมทาง */}
@@ -271,20 +383,53 @@ export function UnplannedActivityForm({
         setDistrict={locationTeam.setDistrict}
       />
 
-      {/* 3. ส่วนเฉพาะ Type: เข้าพบเกษตรกร / ร้านค้า (Type 1 นอกแผน) */}
-      <Type1UnplannedForm
-        items={type1.items}
-        addItem={type1.addItem}
-        deleteItem={type1.deleteItem}
-        updateItem={type1.updateItem}
-        customers={customers}
-        products={products}
-        readonly={readonly}
-      />
+      {/* 3.0 กล่องข้อความเมื่อยังไม่ได้เลือกประเภทงาน */}
+      {!isType1Active && !isType2Active && (
+        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
+          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+            <Info className="w-5 h-5 text-slate-400" />
+          </div>
+          <p className="text-sm font-semibold text-slate-700">
+            ยังไม่ได้เลือกประเภทงาน
+          </p>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot; ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
+          </p>
+        </div>
+      )}
+
+      {/* 3.1 ส่วนเฉพาะ Type 1: เข้าพบเกษตรกร / ร้านค้า (นอกแผน) */}
+      {isType1Active && (
+        <Type1UnplannedForm
+          items={type1.items}
+          addItem={type1.addItem}
+          deleteItem={type1.deleteItem}
+          updateItem={type1.updateItem}
+          customers={customers}
+          products={products}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.2 ส่วนเฉพาะ Type 2: ติดตามผลการใช้สินค้า (นอกแผน) */}
+      {isType2Active && (
+        <Type2UnplannedForm
+          items={type2.items}
+          addItem={type2.addItem}
+          deleteItem={type2.deleteItem}
+          updateItem={type2.updateItem}
+          addProductToItem={type2.addProductToItem}
+          updateProductInItem={type2.updateProductInItem}
+          deleteProductFromItem={type2.deleteProductFromItem}
+          customers={customers}
+          products={products}
+          readonly={readonly}
+        />
+      )}
 
       {/* 4. ส่วนกลาง: งบประมาณและค่าใช้จ่าย */}
       <PlanBudgetSection
-        selectedWorkTypes={["TYPE_1"]}
+        selectedWorkTypes={selectedWorkTypes.map(getWorkTypeCode)}
         readonly={readonly}
         isPromotionalMediaSelected={budget.isPromotionalMediaSelected}
         setIsPromotionalMediaSelected={budget.setIsPromotionalMediaSelected}
