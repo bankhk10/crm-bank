@@ -165,7 +165,8 @@ export function Type2UnplannedForm({
               {/* 1. Purpose Selector */}
               <div>
                 <label className="text-xs font-medium text-slate-600 mb-1.5 block">
-                  กลุ่มเป้าหมายที่เข้าพบ <span className="text-rose-500">*</span>
+                  กลุ่มเป้าหมายที่เข้าพบ{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3 max-w-md">
                   <button
@@ -213,11 +214,7 @@ export function Type2UnplannedForm({
                       value={item.storeId || ""}
                       onChange={(val, cust) => {
                         updateItem(item.id, "storeId", val || undefined);
-                        updateItem(
-                          item.id,
-                          "customerName",
-                          cust?.name || "",
-                        );
+                        updateItem(item.id, "customerName", cust?.name || "");
                       }}
                       customers={customers}
                       disabled={readonly}
@@ -244,11 +241,7 @@ export function Type2UnplannedForm({
                       value={item.storeId || ""}
                       onChange={(val, cust) => {
                         updateItem(item.id, "storeId", val || undefined);
-                        updateItem(
-                          item.id,
-                          "customerName",
-                          cust?.name || "",
-                        );
+                        updateItem(item.id, "customerName", cust?.name || "");
                       }}
                       customers={customers}
                       disabled={readonly}
@@ -411,9 +404,7 @@ export function Type2UnplannedForm({
                                     )}
                                   >
                                     <span>
-                                      {opt === "ลูกค้าพึงพอใจ"
-                                        ? "🟢"
-                                        : "⚠️"}
+                                      {opt === "ลูกค้าพึงพอใจ" ? "🟢" : "⚠️"}
                                     </span>
                                     <span>{opt}</span>
                                   </button>
@@ -486,7 +477,7 @@ export function Type2UnplannedForm({
               </div>
 
               {/* 4. Photo upload & Notes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200/80 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4 border-t border-slate-200/80 pt-4">
                 <div>
                   <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1">
                     <Camera className="w-3.5 h-3.5 text-slate-500" />
@@ -499,22 +490,6 @@ export function Type2UnplannedForm({
                     }
                     readonly={readonly}
                     maxFiles={5}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">
-                    หมายเหตุเพิ่มเติม
-                  </label>
-                  <Textarea
-                    placeholder="บันทึกข้อมูลเพิ่มเติมเกี่ยวกับเป้าหมาย..."
-                    value={item.notes || ""}
-                    onChange={(e) =>
-                      updateItem(item.id, "notes", e.target.value)
-                    }
-                    disabled={readonly}
-                    rows={3}
-                    className="text-xs bg-white"
                   />
                 </div>
               </div>
