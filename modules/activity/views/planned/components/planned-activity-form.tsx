@@ -63,8 +63,10 @@ export function PlannedActivityForm({
     // 1. ตรวจสอบจาก Dedicated Target / Stores ของ Type 2 ก่อน (แม่นยำสูงสุด)
     if (
       (initialData.type2Targets && initialData.type2Targets.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
-      (initialData.products && initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+      (initialData.products &&
+        initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
@@ -83,7 +85,11 @@ export function PlannedActivityForm({
       const code = getWorkTypeCode(initialData.activityType);
       if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
-    if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
+    if (
+      initialData.type1Stores &&
+      initialData.type1Stores.length > 0 &&
+      isEdit
+    ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
     }
     return [];
@@ -198,7 +204,9 @@ export function PlannedActivityForm({
     // 2. Validation & Mapping - Type 1 Items
     if (isType1Active) {
       if (type1.items.length === 0) {
-        toast.error("กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ (Type 1)");
+        toast.error(
+          "กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ (Type 1)",
+        );
         return;
       }
 
@@ -220,7 +228,8 @@ export function PlannedActivityForm({
       const type2Validation = type2.validateType2();
       if (!type2Validation.isValid) {
         toast.error(
-          type2Validation.error || "ข้อมูลติดตามผลการใช้สินค้าไม่ถูกต้อง (Type 2)",
+          type2Validation.error ||
+            "ข้อมูลติดตามผลการใช้สินค้าไม่ถูกต้อง (Type 2)",
         );
         return;
       }
@@ -261,9 +270,11 @@ export function PlannedActivityForm({
       district: locationTeam.district || null,
       location: locationTeam.locationText || null,
       helperEmployeeIds: locationTeam.helperEmployeeIds,
-      salesPromotionBudgetRequested: budgetPayload.salesPromotionBudgetRequested,
+      salesPromotionBudgetRequested:
+        budgetPayload.salesPromotionBudgetRequested,
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
-      totalBudgetRequested: totalBudgetRequested > 0 ? totalBudgetRequested : null,
+      totalBudgetRequested:
+        totalBudgetRequested > 0 ? totalBudgetRequested : null,
       notes: notes.trim() || null,
       planStores,
       planProducts,
@@ -292,13 +303,10 @@ export function PlannedActivityForm({
           </div>
           <div>
             <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight">
-              {isEdit ? "แก้ไขแผนงาน ( Trip Plan )" : "สร้างแผนงาน ( Trip Plan )"}
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
               {isEdit
-                ? "ปรับปรุงข้อมูลและรายละเอียดของแผนงานกิจกรรม"
-                : "กรอกข้อมูลและรายละเอียดเพื่อวางแผนงานกิจกรรมล่วงหน้า"}
-            </p>
+                ? "แก้ไขแผนงาน ( Trip Plan )"
+                : "สร้างแผนงาน ( Trip Plan )"}
+            </h1>
           </div>
         </div>
 
@@ -367,7 +375,8 @@ export function PlannedActivityForm({
             ยังไม่ได้เลือกประเภทงาน
           </p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot; ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
+            กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot;
+            ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
           </p>
         </div>
       )}
@@ -419,11 +428,7 @@ export function PlannedActivityForm({
       />
 
       {/* 5. ส่วนกลาง: หมายเหตุ */}
-      <PlanNotesCard
-        notes={notes}
-        setNotes={setNotes}
-        readonly={readonly}
-      />
+      <PlanNotesCard notes={notes} setNotes={setNotes} readonly={readonly} />
 
       {/* ปุ่มบันทึก */}
       <FormActionButtons
