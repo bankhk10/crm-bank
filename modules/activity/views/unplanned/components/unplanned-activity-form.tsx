@@ -62,16 +62,28 @@ export function UnplannedActivityForm({
 
   // 1. Work Types Selection State (Single Select: ค่าเริ่มต้นว่าง)
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(() => {
+    // 1. ตรวจสอบจาก Dedicated Target / Stores ของ Type 2 ก่อน (แม่นยำสูงสุด)
+    if (
+      (initialData.type2Targets && initialData.type2Targets.length > 0) ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+      (initialData.products && initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_2.name];
+    }
+    // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
-      return [getWorkTypeName(first) || first];
+      const name = getWorkTypeName(first);
+      if (name) return [name];
     }
     if (initialData.workTypeCodes && initialData.workTypeCodes.length > 0) {
       const first = initialData.workTypeCodes[0];
-      return [getWorkTypeName(first) || first];
+      const name = getWorkTypeName(first);
+      if (name) return [name];
     }
-    if (initialData.type2Targets && initialData.type2Targets.length > 0) {
-      return [WORK_TYPE_CONFIG.TYPE_2.name];
+    if (initialData.activityType) {
+      const code = getWorkTypeCode(initialData.activityType);
+      if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];

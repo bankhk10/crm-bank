@@ -15,6 +15,7 @@ import {
   resolveActivityTypeId,
 } from "../infrastructure/activity-plan.repository";
 import { findOrCreateEmployeeForUser } from "../infrastructure/employee-lookup.repository";
+import { getWorkTypeCode } from "../constants";
 
 // Helper serialize Prisma Decimals/Dates
 function serialize<T>(data: T): T {
@@ -76,8 +77,41 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
     const totalRequested =
       rawData.totalBudgetRequested ?? spRequested + mktRequested;
 
-    const primaryCode = "TYPE_1";
-    const resolvedPrimaryTypeId = await resolveActivityTypeId(primaryCode);
+    const hasType2 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_2") ||
+          rawData.workTypeCodes.includes("ติดตามผลการใช้สินค้า"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+      (rawData.type2Targets && rawData.type2Targets.length > 0);
+
+    const hasType1 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_1") ||
+          rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
+      (rawData.type1Stores && rawData.type1Stores.length > 0);
+
+    let primaryCode = "TYPE_1";
+    if (Array.isArray(rawData.workTypeCodes) && rawData.workTypeCodes.length > 0) {
+      primaryCode = getWorkTypeCode(rawData.workTypeCodes[0]);
+    } else if (Array.isArray(rawData.workTypes) && rawData.workTypes.length > 0) {
+      primaryCode = getWorkTypeCode(rawData.workTypes[0]);
+    } else if (hasType2 && !hasType1) {
+      primaryCode = "TYPE_2";
+    } else if (rawData.activityTypeId) {
+      primaryCode = getWorkTypeCode(rawData.activityTypeId);
+    }
+
+    const resolvedPrimaryTypeId = await resolveActivityTypeId(
+      rawData.activityTypeId || primaryCode,
+    );
+
+    const workTypeCodes =
+      Array.isArray(rawData.workTypeCodes) && rawData.workTypeCodes.length > 0
+        ? rawData.workTypeCodes.map(getWorkTypeCode)
+        : [primaryCode];
 
     const plan = await db.$transaction(async (tx) => {
       const code = await generateActivityPlanCode(tx, startDate);
@@ -117,12 +151,15 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
       });
 
       // 2. Create Join Table (Work Types)
-      await tx.activityPlanWorkType.create({
-        data: {
-          activityPlanId: createdPlan.id,
-          activityTypeId: resolvedPrimaryTypeId,
-        },
-      });
+      for (const wtCode of workTypeCodes) {
+        const wtId = await resolveActivityTypeId(wtCode, tx);
+        await tx.activityPlanWorkType.create({
+          data: {
+            activityPlanId: createdPlan.id,
+            activityTypeId: wtId,
+          },
+        });
+      }
 
       // 3. Save Helpers if any
       if (Array.isArray(rawData.helperEmployeeIds) && rawData.helperEmployeeIds.length > 0) {
@@ -209,6 +246,42 @@ export async function updateActivityPlanAction(
     const totalRequested =
       rawData.totalBudgetRequested ?? spRequested + mktRequested;
 
+    const hasType2 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_2") ||
+          rawData.workTypeCodes.includes("ติดตามผลการใช้สินค้า"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+      (rawData.type2Targets && rawData.type2Targets.length > 0);
+
+    const hasType1 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_1") ||
+          rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
+      (rawData.type1Stores && rawData.type1Stores.length > 0);
+
+    let primaryCode = "TYPE_1";
+    if (Array.isArray(rawData.workTypeCodes) && rawData.workTypeCodes.length > 0) {
+      primaryCode = getWorkTypeCode(rawData.workTypeCodes[0]);
+    } else if (Array.isArray(rawData.workTypes) && rawData.workTypes.length > 0) {
+      primaryCode = getWorkTypeCode(rawData.workTypes[0]);
+    } else if (hasType2 && !hasType1) {
+      primaryCode = "TYPE_2";
+    } else if (rawData.activityTypeId) {
+      primaryCode = getWorkTypeCode(rawData.activityTypeId);
+    }
+
+    const resolvedPrimaryTypeId = await resolveActivityTypeId(
+      rawData.activityTypeId || primaryCode,
+    );
+
+    const workTypeCodes =
+      Array.isArray(rawData.workTypeCodes) && rawData.workTypeCodes.length > 0
+        ? rawData.workTypeCodes.map(getWorkTypeCode)
+        : [primaryCode];
+
     const plan = await db.$transaction(async (tx) => {
       // 1. Update header ActivityPlan
       const updatedPlan = await tx.activityPlan.update({
@@ -221,6 +294,7 @@ export async function updateActivityPlanAction(
           fiscalYear: fiscal.fiscalYear,
           fiscalMonth: fiscal.fiscalMonth,
           fiscalQuarter: fiscal.fiscalQuarter,
+          activityTypeId: resolvedPrimaryTypeId,
           location: rawData.location ? String(rawData.location).trim() || null : null,
           province: rawData.province ?? null,
           district: rawData.district ?? null,
@@ -234,6 +308,22 @@ export async function updateActivityPlanAction(
           totalBudgetRequested: new Prisma.Decimal(totalRequested),
         },
       });
+
+      // 1.1 Update Join Table (Work Types)
+      if (workTypeCodes.length > 0) {
+        await tx.activityPlanWorkType.deleteMany({
+          where: { activityPlanId: id },
+        });
+        for (const wtCode of workTypeCodes) {
+          const wtId = await resolveActivityTypeId(wtCode, tx);
+          await tx.activityPlanWorkType.create({
+            data: {
+              activityPlanId: id,
+              activityTypeId: wtId,
+            },
+          });
+        }
+      }
 
       // 2. Update Helpers
       if (Array.isArray(rawData.helperEmployeeIds)) {

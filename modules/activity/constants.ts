@@ -137,9 +137,25 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
 
 export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 
-export function getWorkTypeCode(nameOrCode: string): string {
+export function getWorkTypeCode(nameOrCode: any): string {
   if (!nameOrCode) return "";
-  const upper = nameOrCode.toUpperCase().trim();
+  let raw = "";
+  if (typeof nameOrCode === "string") {
+    raw = nameOrCode;
+  } else if (typeof nameOrCode === "object") {
+    raw =
+      nameOrCode.workTypeCode ||
+      nameOrCode.code ||
+      nameOrCode.activityType?.name ||
+      nameOrCode.name ||
+      nameOrCode.activityTypeId ||
+      "";
+  } else {
+    raw = String(nameOrCode || "");
+  }
+  if (!raw) return "";
+
+  const upper = raw.toUpperCase().trim();
   if (WORK_TYPE_CONFIG[upper]) return upper;
 
   // Match if input contains "TYPE_1", "TYPE_2", etc.
@@ -149,29 +165,45 @@ export function getWorkTypeCode(nameOrCode: string): string {
 
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
-      c.name.trim() === nameOrCode.trim() ||
-      nameOrCode.includes(c.name) ||
-      c.name.includes(nameOrCode) ||
+      c.name.trim() === raw.trim() ||
+      raw.includes(c.name) ||
+      c.name.includes(raw) ||
       c.shortName.toUpperCase() === upper ||
       c.code.toUpperCase() === upper,
   );
-  return found ? found.code : nameOrCode;
+  return found ? found.code : raw;
 }
 
-export function getWorkTypeName(codeOrName: string): string {
+export function getWorkTypeName(codeOrName: any): string {
   if (!codeOrName) return "";
-  const upper = codeOrName.toUpperCase().trim();
+  let raw = "";
+  if (typeof codeOrName === "string") {
+    raw = codeOrName;
+  } else if (typeof codeOrName === "object") {
+    raw =
+      codeOrName.workTypeCode ||
+      codeOrName.code ||
+      codeOrName.activityType?.name ||
+      codeOrName.name ||
+      codeOrName.activityTypeId ||
+      "";
+  } else {
+    raw = String(codeOrName || "");
+  }
+  if (!raw) return "";
+
+  const upper = raw.toUpperCase().trim();
   if (WORK_TYPE_CONFIG[upper]) return WORK_TYPE_CONFIG[upper].name;
 
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
       c.code.toUpperCase() === upper ||
       upper.includes(c.code.toUpperCase()) ||
-      c.name.trim() === codeOrName.trim() ||
-      codeOrName.includes(c.name) ||
+      c.name.trim() === raw.trim() ||
+      raw.includes(c.name) ||
       c.shortName.toUpperCase() === upper,
   );
-  return found ? found.name : codeOrName;
+  return found ? found.name : raw;
 }
 
 export const ACTIVITY_RESULT_STATUS_LABELS: Record<string, string> = {

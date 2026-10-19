@@ -285,6 +285,11 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     },
     orderBy: { createdAt: "asc" },
   },
+  type2Products: {
+    include: {
+      product: true,
+    },
+  },
   type3Targets: {
     include: {
       store: {
