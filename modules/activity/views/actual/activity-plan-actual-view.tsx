@@ -34,7 +34,10 @@ import {
   extractType1PlanTargets,
   type Type1TargetItem,
 } from "@/modules/activity/features/type-1";
-import { useType2Actual } from "@/modules/activity/features/type-2";
+import {
+  useType2Actual,
+  validateType2Actual,
+} from "@/modules/activity/features/type-2";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 
@@ -127,7 +130,7 @@ export function ActivityPlanActualView({
       postponedNotes,
     } = statusState;
 
-    const isType1 =
+    const isType1Active =
       planWorkTypes.includes("TYPE_1") ||
       planWorkTypes.includes("VISIT") ||
       planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
@@ -139,6 +142,12 @@ export function ActivityPlanActualView({
         ),
       ) ||
       plan?.activityType?.code === "TYPE_1";
+
+    const isType2Active =
+      planWorkTypes.includes("TYPE_2") ||
+      planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
+      planWorkTypes.includes("ติดตามผล") ||
+      Boolean(plan?.type2Targets?.length);
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -181,10 +190,21 @@ export function ActivityPlanActualView({
       let missingFields: string[] = [];
 
       // Delegate Type 1 validation to features/type-1 domain logic
-      if (isType1) {
+      if (isType1Active) {
         const type1Validation = type1Actual.validate(targets);
         if (!type1Validation.isValid) {
           missingFields = [...missingFields, ...type1Validation.errors];
+        }
+      }
+
+      // Delegate Type 2 validation to features/type-2 domain logic
+      if (isType2Active) {
+        const type2Validation = validateType2Actual({
+          followupResults: type2Actual.t2FollowupResults,
+          status: activityResultStatus,
+        });
+        if (!type2Validation.isValid && type2Validation.error) {
+          missingFields.push(type2Validation.error);
         }
       }
 
@@ -237,7 +257,7 @@ export function ActivityPlanActualView({
         activityResultStatus === "PARTIAL"
       ) {
         // Collect Type 1 payload ONLY if Type 1 is active
-        if (isType1) {
+        if (isType1Active) {
           const newlyUploadedUrls: string[] = [];
           const cleanImages = await type1Actual.uploadImages(
             id,
@@ -274,12 +294,6 @@ export function ActivityPlanActualView({
         }
 
         // Collect Type 2 payload if active
-        const isType2Active =
-          planWorkTypes.includes("TYPE_2") ||
-          planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
-          planWorkTypes.includes("ติดตามผล") ||
-          Boolean(plan?.type2Targets?.length);
-
         if (isType2Active) {
           const t2Payload = type2Actual.collectPayload();
           payload = {
@@ -287,7 +301,7 @@ export function ActivityPlanActualView({
             ...t2Payload,
             followupResults: t2Payload.t2FollowupResults || [],
           };
-          if (!isType1 && t2Payload.t2FollowupDetail) {
+          if (!isType1Active && t2Payload.t2FollowupDetail) {
             payload.resultSummary = t2Payload.t2FollowupDetail;
           }
         }

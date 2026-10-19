@@ -32,7 +32,7 @@ export function ActualWorkTypeList({
   plan,
   products = [],
 }: ActualWorkTypeListProps) {
-  const isType1 =
+  const isType1Active =
     planWorkTypes.includes("TYPE_1") ||
     planWorkTypes.includes("VISIT") ||
     planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
@@ -40,16 +40,12 @@ export function ActualWorkTypeList({
     Boolean(
       plan?.stores?.some(
         (s: any) =>
-          !s.workTypeCode ||
-          s.workTypeCode === "TYPE_1" ||
-          s.workTypeCode === "VISIT",
+          s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
       ),
     ) ||
-    plan?.activityType?.code === "TYPE_1" ||
-    targets.length > 0 ||
-    planWorkTypes.length === 0;
+    plan?.activityType?.code === "TYPE_1";
 
-  const isType2 =
+  const isType2Active =
     planWorkTypes.includes("TYPE_2") ||
     planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
     planWorkTypes.includes("ติดตามผล") ||
@@ -58,7 +54,7 @@ export function ActualWorkTypeList({
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
       {/* 🟢 TYPE 1: เข้าพบร้านค้า / Key Farmer */}
-      {isType1 && (
+      {isType1Active && (
         <Type1ActualForm
           isVisible={true}
           targets={targets}
@@ -92,7 +88,7 @@ export function ActualWorkTypeList({
       )}
 
       {/* 🔵 TYPE 2: ติดตามผลการใช้สินค้า (Product Follow-up) */}
-      {isType2 && type2State && (
+      {isType2Active && type2State && (
         <Type2ActualForm
           isVisible={true}
           targets={plan?.type2Targets}
