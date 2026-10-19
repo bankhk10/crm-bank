@@ -34,6 +34,7 @@ export function Type1PlannedForm({
             unregisteredFarmerName: "",
             unregisteredFarmerPhone: "",
             topic: "แจ้งข่าวสาร",
+            notes: "",
             detail: "",
           },
         ];
@@ -302,8 +303,11 @@ export function Type1PlannedForm({
                   </label>
                   <ActivityInput
                     type="text"
-                    value={item.detail}
-                    onChange={(e) => updateItem(item.id, "detail", e.target.value)}
+                    value={item.notes ?? item.detail ?? ""}
+                    onChange={(e) => {
+                      updateItem(item.id, "notes", e.target.value);
+                      updateItem(item.id, "detail", e.target.value);
+                    }}
                     disabled={readonly}
                     placeholder="ระบุรายละเอียดเพิ่มเติมการเข้าพบ..."
                   />

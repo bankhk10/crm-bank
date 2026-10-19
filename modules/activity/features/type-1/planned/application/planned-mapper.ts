@@ -37,7 +37,7 @@ export function mapType1PlannedItemToDb(
       unregisteredFarmerName: null,
       unregisteredFarmerPhone: null,
       topic: item.topic || null,
-      notes: item.detail || null,
+      notes: item.notes || item.detail || null,
     };
   }
 
@@ -53,7 +53,7 @@ export function mapType1PlannedItemToDb(
       unregisteredFarmerName: item.unregisteredFarmerName || null,
       unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
       topic: item.topic || null,
-      notes: item.detail || null,
+      notes: item.notes || item.detail || null,
     };
   }
 
@@ -72,7 +72,7 @@ export function mapType1PlannedItemToDb(
     unregisteredFarmerName: null,
     unregisteredFarmerPhone: null,
     topic: item.topic || null,
-    notes: item.detail || null,
+    notes: item.notes || item.detail || null,
   };
 }
 
@@ -101,6 +101,7 @@ export function mapType1DbStoreToPlannedItem(
       ? storeRecord.unregisteredFarmerName || storeRecord.customerName || storeRecord.customer || ""
       : storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || storeRecord.customer || "",
     topic: storeRecord.topic || storeRecord.remarks || "แจ้งข่าวสาร",
+    notes: storeRecord.notes || storeRecord.detail || "",
     detail: storeRecord.notes || storeRecord.detail || "",
     province: storeRecord.province || storeRecord.store?.province || "",
     isUnregisteredFarmer: Boolean(storeRecord.isUnregisteredFarmer),
@@ -141,15 +142,18 @@ export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
         unregisteredFarmerName: "",
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
+        notes: "",
         detail: "",
       },
     ];
   }
 
   return rawStores.map((s, idx) => {
-    if (s && (s.customerName !== undefined || s.detail !== undefined)) {
+    if (s && (s.customerName !== undefined || s.notes !== undefined || s.detail !== undefined)) {
       return {
         ...s,
+        notes: s.notes || s.detail || "",
+        detail: s.notes || s.detail || "",
         id: s.id || String(idx + 1),
       } as Type1PlannedItem;
     }
@@ -249,7 +253,8 @@ export function extractType1PlanTargets(
       storeId: s.storeId,
       customer: custName,
       topic: s.topic || s.remarks || prevTarget?.topic || "",
-      detail: s.notes || "",
+      notes: s.notes || s.detail || prevTarget?.notes || prevTarget?.detail || "",
+      detail: s.notes || s.detail || prevTarget?.notes || prevTarget?.detail || "",
       opportunity:
         (isAdviceTopic ? (targetResult?.salesOpportunity || resultSalesOpportunity) : undefined) ||
         prevTarget?.opportunity ||

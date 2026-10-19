@@ -44,6 +44,7 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
         unregisteredFarmerName: "",
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
+        notes: "",
         detail: "",
         discussionResult: actualResult.discussionResult || "",
         productAdvice: actualResult.productAdvice || "",
@@ -97,7 +98,8 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
       unregisteredFarmerName: s.unregisteredFarmerName || "",
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
       topic: s.topic || s.remarks || "แจ้งข่าวสาร",
-      detail: s.notes || "",
+      notes: s.notes || s.detail || "",
+      detail: s.notes || s.detail || "",
       discussionResult: targetResult.discussionResult || "",
       productAdvice: targetResult.productAdvice || "",
       advisedProducts: targetProducts.map((p: any) => ({
@@ -152,7 +154,7 @@ export function mapType1UnplannedItemToStore(
       unregisteredFarmerName: null,
       unregisteredFarmerPhone: null,
       topic: item.topic || null,
-      notes: item.detail || null,
+      notes: item.notes || item.detail || null,
     };
   }
 
@@ -167,7 +169,7 @@ export function mapType1UnplannedItemToStore(
       unregisteredFarmerName: item.unregisteredFarmerName || null,
       unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
       topic: item.topic || null,
-      notes: item.detail || null,
+      notes: item.notes || item.detail || null,
     };
   }
 
@@ -185,6 +187,6 @@ export function mapType1UnplannedItemToStore(
     unregisteredFarmerName: null,
     unregisteredFarmerPhone: null,
     topic: item.topic || null,
-    notes: item.detail || null,
+    notes: item.notes || item.detail || null,
   };
 }

@@ -268,8 +268,8 @@ sequenceDiagram
 | **เกษตรกรไม่มีในระบบ**| `isUnregisteredFarmer`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `is_unregistered_farmer`| `BOOLEAN` | No | `false` |
 | **ชื่อเกษตรกรนอกระบบ**| `unregisteredFarmerName`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `unregistered_farmer_name`| `VARCHAR` | Yes | `null` |
 | **เบอร์โทรเกษตรกร** | `unregisteredFarmerPhone`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `unregistered_farmer_phone`| `VARCHAR` | Yes | `null` |
-| **หัวข้อการเข้าพบ** | `topic` | `mapType1PlannedItemToDb` (Fallback จาก `remarks`) | `ActivityPlanType1Store` | `topic` | `VARCHAR` | Yes | `"แจ้งข่าวสาร"`|
-| **รายละเอียดเป้าหมาย**| `detail` | `mapType1PlannedItemToDb` (บันทึกลง `notes`) | `ActivityPlanType1Store` | `notes` | `TEXT` | Yes | `null` |
+| **หัวข้อการเข้าพบ** | `topic` | `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `topic` | `VARCHAR` | Yes | `"แจ้งข่าวสาร"`|
+| **รายละเอียดเป้าหมาย**| `notes` (alias: `detail`)| `mapType1PlannedItemToDb` / `mapType1DbStoreToPlannedItem` | `ActivityPlanType1Store` | `notes` | `TEXT` | Yes | `null` |
 | **ผลการเข้าพบ (สำเร็จ?)**| `isMet` | `mapType1ActualFormToDb` | Form State Only | - | `BOOLEAN` | - | `true` |
 | **คำแนะนำสินค้า** | `productAdvice` | `mapType1ActualFormToDb` | `ActivityResultType1` | `product_advice` | `TEXT` | Yes | `null` |
 | **ผลการพูดคุย** | `discussionResult` | `mapType1ActualFormToDb` | `ActivityResultType1` | `discussion_result` | `TEXT` | Yes | `null` |

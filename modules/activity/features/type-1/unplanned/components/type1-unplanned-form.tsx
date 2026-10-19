@@ -46,6 +46,7 @@ export function Type1UnplannedForm({
             unregisteredFarmerName: "",
             unregisteredFarmerPhone: "",
             topic: "แจ้งข่าวสาร",
+            notes: "",
             detail: "",
             discussionResult: "",
             productAdvice: "",
@@ -343,8 +344,11 @@ export function Type1UnplannedForm({
                   </label>
                   <ActivityInput
                     type="text"
-                    value={item.detail}
-                    onChange={(e) => updateItem(item.id, "detail", e.target.value)}
+                    value={item.notes ?? item.detail ?? ""}
+                    onChange={(e) => {
+                      updateItem(item.id, "notes", e.target.value);
+                      updateItem(item.id, "detail", e.target.value);
+                    }}
                     disabled={readonly}
                     placeholder="ระบุรายละเอียดการเข้าพบ..."
                   />

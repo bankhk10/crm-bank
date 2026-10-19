@@ -28,34 +28,39 @@ export function useType1Actual() {
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
-    if (parsed.t1ProductAdvice) setT1ProductAdvice(parsed.t1ProductAdvice);
-    if (parsed.t1Products && parsed.t1Products.length > 0) {
-      setT1AdvisedProducts(parsed.t1Products);
+    const advice = parsed.productAdvice || parsed.t1ProductAdvice;
+    if (advice) setT1ProductAdvice(advice);
+    const prods = parsed.advisedProducts || parsed.products || parsed.t1Products;
+    if (prods && prods.length > 0) setT1AdvisedProducts(prods);
+    const opp = parsed.salesOpportunity || parsed.t1SalesOpportunity;
+    if (opp) setT1SalesOpportunity(opp);
+    const disc = parsed.discussionResult || parsed.t1DiscussionResult;
+    if (disc) setT1DiscussionResult(disc);
+    const n = parsed.notes || parsed.detail || parsed.t1Detail;
+    if (n) setT1Detail(n);
+    const act = parsed.nextAction || parsed.t1NextAction;
+    if (act) setT1NextAction(act);
+    const meet = parsed.nextMeetingDate || parsed.t1NextMeetingDate;
+    if (meet) {
+      setT1NextMeetingDate(
+        typeof meet === "string"
+          ? meet.split("T")[0]
+          : meet instanceof Date
+            ? meet.toISOString().split("T")[0]
+            : String(meet),
+      );
     }
-    if (parsed.t1SalesOpportunity) {
-      setT1SalesOpportunity(parsed.t1SalesOpportunity);
-    }
-    if (parsed.t1DiscussionResult) {
-      setT1DiscussionResult(parsed.t1DiscussionResult);
-    }
-    if (parsed.t1Detail) setT1Detail(parsed.t1Detail);
-    if (parsed.t1NextAction) setT1NextAction(parsed.t1NextAction);
-    if (parsed.t1NextMeetingDate) {
-      setT1NextMeetingDate(parsed.t1NextMeetingDate);
-    }
-    if (parsed.t1FarmerHomeAddress) {
-      setT1FarmerHomeAddress(parsed.t1FarmerHomeAddress);
-    }
-    if (parsed.t1PlotLatitude != null) {
-      setT1PlotLatitude(String(parsed.t1PlotLatitude));
-    }
-    if (parsed.t1PlotLongitude != null) {
-      setT1PlotLongitude(String(parsed.t1PlotLongitude));
-    }
-    if (parsed.t1PlotImages && parsed.t1PlotImages.length > 0) {
-      setT1PlotImages(parsed.t1PlotImages);
+    const addr = parsed.farmerHomeAddress || parsed.t1FarmerHomeAddress;
+    if (addr) setT1FarmerHomeAddress(addr);
+    const lat = parsed.plotLatitude ?? parsed.t1PlotLatitude;
+    if (lat != null && lat !== "") setT1PlotLatitude(String(lat));
+    const lng = parsed.plotLongitude ?? parsed.t1PlotLongitude;
+    if (lng != null && lng !== "") setT1PlotLongitude(String(lng));
+    const imgs = parsed.plotImages || parsed.t1PlotImages;
+    if (imgs && imgs.length > 0) {
+      setT1PlotImages(imgs);
       initialT1PlotImagesRef.current = JSON.parse(
-        JSON.stringify(parsed.t1PlotImages),
+        JSON.stringify(imgs),
       );
     }
   }, []);
@@ -147,6 +152,33 @@ export function useType1Actual() {
   );
 
   return {
+    // Canonical Prisma Aliases (Gold Standard)
+    productAdvice: t1ProductAdvice,
+    setProductAdvice: setT1ProductAdvice,
+    advisedProducts: t1AdvisedProducts,
+    setAdvisedProducts: setT1AdvisedProducts,
+    notes: t1Detail,
+    setNotes: setT1Detail,
+    discussionResult: t1DiscussionResult,
+    setDiscussionResult: setT1DiscussionResult,
+    salesOpportunity: t1SalesOpportunity,
+    setSalesOpportunity: setT1SalesOpportunity,
+    nextAction: t1NextAction,
+    setNextAction: setT1NextAction,
+    nextMeetingDate: t1NextMeetingDate,
+    setNextMeetingDate: setT1NextMeetingDate,
+    farmerHomeAddress: t1FarmerHomeAddress,
+    setFarmerHomeAddress: setT1FarmerHomeAddress,
+    plotLatitude: t1PlotLatitude,
+    setPlotLatitude: setT1PlotLatitude,
+    plotLongitude: t1PlotLongitude,
+    setPlotLongitude: setT1PlotLongitude,
+    plotImages: t1PlotImages,
+    setPlotImages: setT1PlotImages,
+    targetItems: t1TargetItems,
+    setTargetItems: setT1TargetItems,
+
+    // Legacy t1* Prefixed Properties (Backward Compatibility)
     t1ProductAdvice,
     setT1ProductAdvice,
     t1AdvisedProducts,
@@ -171,13 +203,13 @@ export function useType1Actual() {
     setT1PlotImages,
     t1TargetItems,
     setT1TargetItems,
+
     hydrate,
     syncFromTargetItems,
     uploadImages,
     collectOldImageUrlsToDelete,
     getPayload,
     collectPayload: getPayload,
-    setFarmerHomeAddress: setT1FarmerHomeAddress,
     commitSavedImages: (imgs?: any[]) => {
       if (imgs) setT1PlotImages(imgs);
     },

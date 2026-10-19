@@ -13,7 +13,8 @@ export interface Type1PlannedItem {
   unregisteredFarmerName?: string;
   unregisteredFarmerPhone?: string;
   topic: string;
-  detail: string;
+  notes: string;
+  detail?: string;
 }
 
 /**
@@ -36,7 +37,8 @@ export interface Type1TargetItem {
   storeId?: string;
   customer: string;
   topic: string;
-  detail: string;
+  notes?: string;
+  detail?: string;
   opportunity?: string;
   nextDate?: string;
   visitPurpose?: "FARMER" | "STORE";
