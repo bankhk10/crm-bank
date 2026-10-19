@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
-import type { PlanSummaryData } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { PlanSummaryData } from "@/modules/activity/domain/summary";
 import {
   ActivityStatusBadge,
   resolveCurrentOperator,

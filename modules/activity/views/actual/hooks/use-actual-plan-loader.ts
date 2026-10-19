@@ -10,11 +10,9 @@ import type { PlanSummaryData } from "../types";
 import {
   extractPlanData,
   parseResultSummary,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
-import {
   initialTargets,
   initialPlanSummary,
-} from "@/modules/activity-plans/features/shared/actual-view/constants";
+} from "@/modules/activity/domain/summary";
 
 interface UseActualPlanLoaderProps {
   id?: string;

@@ -55,10 +55,19 @@ modules/activity/
 │   └── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
 │
 ├── domain/                               # Domain Layer (Pure Business Rules & Workflows)
-│   └── approval/                         # 🛡️ Activity Approval Workflow Engine ([README](domain/approval/README.md))
-│       ├── can-approve.ts                # สิทธิ์การอนุมัติและ Action Scope Badges
-│       ├── operator-resolver.ts          # การคำนวณผู้รับผิดชอบปัจจุบัน (Step Resolvers)
-│       └── index.ts                      # Approval Domain Public API
+│   ├── approval/                         # 🛡️ Activity Approval Workflow Engine ([README](domain/approval/README.md))
+│   │   ├── can-approve.ts                # สิทธิ์การอนุมัติและ Action Scope Badges
+│   │   ├── operator-resolver.ts          # การคำนวณผู้รับผิดชอบปัจจุบัน (Step Resolvers)
+│   │   └── index.ts                      # Approval Domain Public API
+│   │
+│   └── summary/                          # 📊 Plan Summary & Extensible Targets Registry
+│       ├── types.ts                      # PlanSummaryData, ActualTargetsState, ParsedSummaryValues
+│       ├── constants.ts                  # initialPlanSummary, initialTargets, NON_STRICT_OUTCOMES
+│       ├── plan-summary-extractor.ts     # Core Extractor (วันเวลา, สถานที่, งบประมาณ, ของเบิก, คนช่วยงาน)
+│       ├── plan-targets-registry.ts      # Targets Registry Pattern (Type 1 - 14)
+│       ├── plan-extractor.ts             # Main Extractor (extractPlanData)
+│       ├── result-summary-parser.ts      # Result Parser (parseResultSummary)
+│       └── index.ts                      # Summary Domain Public API
 │
 ├── application/                          # Application Services & Filtering
 │   └── filters/                          # Activity Filter Matchers (WorkType, Person, Status, Search)
@@ -435,5 +444,28 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] Clean Up หน้า `approvals` (การพิจารณาอนุมัติ)
 - [x] สร้าง Standalone Server Actions (`server/actions.ts`) ประจำโมดูล activity
 - [x] สร้าง Database Infrastructure (`infrastructure/`) และแยกขาดจากการพึ่งพา `modules/activity-plans` 100%
-- [ ] ทยอย Migrate ประเภทงาน Type 2 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+- [x] **Step 1: Approval Workflow & Authority Backbone** (`domain/approval/`, `operator-resolver`, `hooks/use-approver-directory`, Pure UI Badge)
+- [x] **Step 2: Plan Summary & Targets Registry Engine** (`domain/summary/`, Extensible Targets Registry, 100% Decoupled Views)
+- [ ] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
+- [ ] ทยอย Migrate ประเภทงาน Type 3 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+
+---
+
+## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.5.0 (2026-10-19)
+- **100% Decoupled Backbone (Core Migration Complete)**:
+  - สร้าง `domain/approval/` พร้อมคู่มือฉบับเต็ม (`domain/approval/README.md`) แตก Step Resolvers ย่อย (`resolveLineApprover`, `resolveBudgetApprover`, ฯลฯ)
+  - สร้าง `domain/summary/` ด้วย **Registry Pattern** รองรับการลงทะเบียน Targets ของ Type 1 ถึง 14 โดยไม่ต้องแก้ Monolithic File ขนาด 1,000 บรรทัดอีกต่อไป
+  - แยก `application/filters/activity-filter-matcher.ts` ออกจาก `constants.ts` เพื่อความสะอาดตามมาตรฐาน Clean Architecture
+  - แยก Hook `useApproverDirectory()` ออกจาก UI เข้าสู่ `hooks/use-approver-directory.ts`
+  - ปรับ `ui/activity-status-badge.tsx` ให้เป็น Pure UI Presentation ลดขนาดโค้ดจาก 600+ บรรทัด เหลือเพียง ~150 บรรทัด
+  - สลับ Imports ใน Views ทั้งหมด (`views/approvals`, `views/detail`, `views/actual`, `views/calendar`, `views/list`) ให้ชี้หา `@/modules/activity` ตัวเอง 100%
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ โดยไม่มีการแตะต้อง `modules/activity-plans/`
+
+### Version 1.4.0 (2026-10-19)
+- **Autonomous Module Infrastructure**:
+  - ย้ายและปรับปรุง Repositories ประจำโมดูล (`activity-plan.repository.ts`, `employee-lookup.repository.ts`, `activity-plan-include.ts`)
+  - แยกขาด Server Actions Gateway ใน `modules/activity/server/actions.ts`
+  - Clean up Type 1 Mappers ตัด fallback `remarks` เหลือเฉพาะมาตรฐาน `topic` และ `notes`
 

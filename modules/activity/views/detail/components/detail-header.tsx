@@ -4,7 +4,7 @@ import React from "react";
 import { FileText, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
-import type { PlanSummaryData } from "@/modules/activity-plans/features/shared/actual-view/types";
+import type { PlanSummaryData } from "@/modules/activity/domain/summary";
 
 interface DetailHeaderProps {
   plan: ActivityPlanWithRelations;

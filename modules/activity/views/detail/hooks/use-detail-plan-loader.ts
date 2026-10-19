@@ -11,16 +11,12 @@ import {
 import {
   extractPlanData,
   parseResultSummary,
-} from "@/modules/activity-plans/features/shared/actual-view/utils";
-import {
   initialTargets,
   initialPlanSummary,
-} from "@/modules/activity-plans/features/shared/actual-view/constants";
-import type {
-  PlanSummaryData,
-  ActualTargetsState,
-  ParsedSummaryValues,
-} from "@/modules/activity-plans/features/shared/actual-view/types";
+  type PlanSummaryData,
+  type ActualTargetsState,
+  type ParsedSummaryValues,
+} from "@/modules/activity/domain/summary";
 import { extractType1PlanTargets } from "@/modules/activity/features/type-1";
 
 interface UseDetailPlanLoaderProps {
