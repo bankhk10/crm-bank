@@ -148,7 +148,7 @@ export function Type1PlanCard({
                         รายละเอียดเพิ่มเติม
                       </span>
                       <p className="font-normal text-slate-700 whitespace-pre-wrap">
-                        {item?.notes || item?.detail || "-"}
+                        {item?.notes || "-"}
                       </p>
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export function Type1PlanCard({
                         รายละเอียดเพิ่มเติม
                       </span>
                       <span className="font-semibold text-slate-800 block">
-                        {item?.notes || item?.detail || "-"}
+                        {item?.notes || "-"}
                       </span>
                     </div>
                   </div>

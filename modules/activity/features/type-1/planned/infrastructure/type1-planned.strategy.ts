@@ -108,7 +108,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
           unregisteredFarmerName: s.unregisteredFarmerName || null,
           unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
           topic: s.topic || s.remarks || null,
-          notes: s.notes || s.detail || null,
+          notes: s.notes || null,
         })),
       });
     }

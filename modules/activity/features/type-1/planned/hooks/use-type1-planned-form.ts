@@ -32,7 +32,6 @@ export function useType1PlannedForm({
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
-        detail: "",
       },
     ];
   });
@@ -45,8 +44,7 @@ export function useType1PlannedForm({
           it.storeId ||
           it.customerName ||
           it.unregisteredFarmerName ||
-          (it.notes && it.notes.trim() !== "") ||
-          (it.detail && it.detail.trim() !== ""),
+          (it.notes && it.notes.trim() !== ""),
       );
       if (hasRealData) {
         setItems(initialItems);
@@ -69,7 +67,6 @@ export function useType1PlannedForm({
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
-        detail: "",
       },
     ]);
   }, [defaultProvince]);
@@ -77,16 +74,7 @@ export function useType1PlannedForm({
   const updateItem = useCallback(
     (id: string, field: keyof Type1PlannedItem, val: any) => {
       setItems((prev) =>
-        prev.map((it) => {
-          if (it.id !== id) return it;
-          const updated = { ...it, [field]: val };
-          if (field === "notes") {
-            updated.detail = val;
-          } else if (field === "detail") {
-            updated.notes = val;
-          }
-          return updated;
-        }),
+        prev.map((it) => (it.id === id ? { ...it, [field]: val } : it)),
       );
     },
     [],

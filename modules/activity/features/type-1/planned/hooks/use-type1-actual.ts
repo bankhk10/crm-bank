@@ -125,6 +125,7 @@ export function useType1Actual() {
       // Clean normalized aliases:
       productAdvice: t1ProductAdvice,
       products: t1AdvisedProducts,
+      notes: t1Detail,
       detail: t1Detail,
       discussionResult: t1DiscussionResult,
       salesOpportunity: t1SalesOpportunity,

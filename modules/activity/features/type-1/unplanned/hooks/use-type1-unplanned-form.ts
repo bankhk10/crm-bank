@@ -32,7 +32,6 @@ export function useType1UnplannedForm({
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
-        detail: "",
         discussionResult: "",
         productAdvice: "",
         advisedProducts: [],
@@ -60,7 +59,6 @@ export function useType1UnplannedForm({
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
-        detail: "",
         discussionResult: "",
         productAdvice: "",
         advisedProducts: [],
@@ -77,16 +75,7 @@ export function useType1UnplannedForm({
   const updateItem = useCallback(
     (id: string, field: keyof Type1UnplannedItem, val: any) => {
       setItems((prev) =>
-        prev.map((it) => {
-          if (it.id !== id) return it;
-          const updated = { ...it, [field]: val };
-          if (field === "notes") {
-            updated.detail = val;
-          } else if (field === "detail") {
-            updated.notes = val;
-          }
-          return updated;
-        }),
+        prev.map((it) => (it.id === id ? { ...it, [field]: val } : it)),
       );
     },
     [],

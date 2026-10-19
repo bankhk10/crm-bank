@@ -177,7 +177,7 @@ function initializeTargetItems(
       customer: name,
       visitPurpose: t.visitPurpose || (isStore ? "STORE" : "FARMER"),
       topic: t.topic || "",
-      detail: t.detail || "",
+      notes: t.notes || "",
       province: t.province,
       isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
       unregisteredFarmerName: t.unregisteredFarmerName,
@@ -713,7 +713,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                             ? `หัวข้อตามแผน: ${item.topic}`
                             : "ไม่ระบุหัวข้อ"}
                           {item.province ? ` • จังหวัด ${item.province}` : ""}
-                          {item.detail ? ` (${item.detail})` : ""}
+                          {item.notes ? ` (${item.notes})` : ""}
                         </span>
                       </div>
                     </div>

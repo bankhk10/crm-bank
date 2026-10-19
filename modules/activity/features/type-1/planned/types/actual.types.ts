@@ -15,7 +15,7 @@ export interface Type1TargetActualItem {
   customer: string;
   visitPurpose?: "FARMER" | "STORE";
   topic?: string;
-  detail?: string;
+  notes?: string;
   province?: string;
   isUnregisteredFarmer?: boolean;
   unregisteredFarmerName?: string;
@@ -47,6 +47,8 @@ export interface Type1ActualFormProps {
   setProductAdvice?: (v: string) => void;
   advisedProducts?: Type1AdviceProductItem[];
   setAdvisedProducts?: (products: Type1AdviceProductItem[]) => void;
+  notes?: string;
+  setNotes?: (v: string) => void;
   detail?: string;
   setDetail?: (v: string) => void;
   discussionResult?: string;

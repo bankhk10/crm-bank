@@ -106,7 +106,7 @@ export default function ActivityType1TestPage() {
     visitPurpose: "STORE",
     province: "ขอนแก่น",
     topic: "แจ้งข่าวสาร",
-    detail: "แจ้งโปรโมชันปุ๋ยรอบใหม่",
+    notes: "แจ้งโปรโมชันปุ๋ยรอบใหม่",
   };
 
   return (
@@ -287,7 +287,7 @@ export default function ActivityType1TestPage() {
                 visitPurpose: it.visitPurpose,
                 province: it.province,
                 topic: it.topic,
-                detail: it.detail,
+                notes: it.notes,
               }))}
             />
 
@@ -301,7 +301,7 @@ export default function ActivityType1TestPage() {
                 visitPurpose: it.visitPurpose,
                 province: it.province,
                 topic: it.topic,
-                detail: it.detail,
+                notes: it.notes,
               }))}
               targetActualResults={type1Actual.t1TargetItems}
               onUpdateTargetActualResults={type1Actual.syncFromTargetItems}

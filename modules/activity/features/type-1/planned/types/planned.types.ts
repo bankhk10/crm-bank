@@ -14,7 +14,6 @@ export interface Type1PlannedItem {
   unregisteredFarmerPhone?: string;
   topic: string;
   notes: string;
-  detail?: string;
 }
 
 /**
@@ -38,7 +37,6 @@ export interface Type1TargetItem {
   customer: string;
   topic: string;
   notes?: string;
-  detail?: string;
   opportunity?: string;
   nextDate?: string;
   visitPurpose?: "FARMER" | "STORE";

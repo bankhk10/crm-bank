@@ -21,7 +21,6 @@ export interface Type1UnplannedItem {
   unregisteredFarmerPhone?: string;
   topic: string;
   notes: string;
-  detail?: string;
 
   // Actual recording fields (completed on-the-spot)
   discussionResult: string;

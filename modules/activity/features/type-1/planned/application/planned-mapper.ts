@@ -37,7 +37,7 @@ export function mapType1PlannedItemToDb(
       unregisteredFarmerName: null,
       unregisteredFarmerPhone: null,
       topic: item.topic || null,
-      notes: item.notes || item.detail || null,
+      notes: item.notes || null,
     };
   }
 
@@ -53,7 +53,7 @@ export function mapType1PlannedItemToDb(
       unregisteredFarmerName: item.unregisteredFarmerName || null,
       unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
       topic: item.topic || null,
-      notes: item.notes || item.detail || null,
+      notes: item.notes || null,
     };
   }
 
@@ -72,7 +72,7 @@ export function mapType1PlannedItemToDb(
     unregisteredFarmerName: null,
     unregisteredFarmerPhone: null,
     topic: item.topic || null,
-    notes: item.notes || item.detail || null,
+    notes: item.notes || null,
   };
 }
 
@@ -101,8 +101,7 @@ export function mapType1DbStoreToPlannedItem(
       ? storeRecord.unregisteredFarmerName || storeRecord.customerName || storeRecord.customer || ""
       : storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || storeRecord.customer || "",
     topic: storeRecord.topic || storeRecord.remarks || "แจ้งข่าวสาร",
-    notes: storeRecord.notes || storeRecord.detail || "",
-    detail: storeRecord.notes || storeRecord.detail || "",
+    notes: storeRecord.notes || "",
     province: storeRecord.province || storeRecord.store?.province || "",
     isUnregisteredFarmer: Boolean(storeRecord.isUnregisteredFarmer),
     unregisteredFarmerName: storeRecord.unregisteredFarmerName || "",
@@ -143,17 +142,15 @@ export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
         unregisteredFarmerPhone: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
-        detail: "",
       },
     ];
   }
 
   return rawStores.map((s, idx) => {
-    if (s && (s.customerName !== undefined || s.notes !== undefined || s.detail !== undefined)) {
+    if (s && (s.customerName !== undefined || s.notes !== undefined)) {
       return {
         ...s,
-        notes: s.notes || s.detail || "",
-        detail: s.notes || s.detail || "",
+        notes: s.notes || "",
         id: s.id || String(idx + 1),
       } as Type1PlannedItem;
     }
@@ -253,8 +250,7 @@ export function extractType1PlanTargets(
       storeId: s.storeId,
       customer: custName,
       topic: s.topic || s.remarks || prevTarget?.topic || "",
-      notes: s.notes || s.detail || prevTarget?.notes || prevTarget?.detail || "",
-      detail: s.notes || s.detail || prevTarget?.notes || prevTarget?.detail || "",
+      notes: s.notes || prevTarget?.notes || "",
       opportunity:
         (isAdviceTopic ? (targetResult?.salesOpportunity || resultSalesOpportunity) : undefined) ||
         prevTarget?.opportunity ||
@@ -314,7 +310,7 @@ export function extractType1PlanTargets(
     : {
         customer: "",
         topic: "",
-        detail: "",
+        notes: "",
         opportunity: resultSalesOpportunity || prevTarget?.opportunity || "",
         nextDate: resultNextMeetingDate || prevTarget?.nextDate || "",
         productAdvice: resultProductAdvice,
