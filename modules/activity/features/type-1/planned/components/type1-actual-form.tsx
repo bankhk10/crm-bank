@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
-import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
 import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
 import { Badge } from "@/components/ui/badge";
@@ -435,11 +434,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
         subLabel: p.productCode || undefined,
       }));
     }
-    return DEMO_PRODUCTS.map((name) => ({
-      value: name,
-      label: name,
-      subLabel: undefined,
-    }));
+    return [];
   }, [products]);
 
   // Track initial mount and last targets key so we do not trigger infinite render loops

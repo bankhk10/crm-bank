@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   MARKETING_PRODUCT_CATEGORIES,
-  DEMO_PRODUCTS,
 } from "@/modules/activity/constants";
 import type {
   MarketingBudgetProductItem,
@@ -303,7 +302,7 @@ export function usePlanBudget({
   const addRequisitionRow = () => {
     const newItem: RequisitionItem = {
       id: Date.now().toString(),
-      productName: DEMO_PRODUCTS[0],
+      productName: "",
       quantity: 1,
       unit: "ขวด",
       detail: "",

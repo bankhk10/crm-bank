@@ -232,13 +232,6 @@ export function isLocationAndTeamRequired(
   });
 }
 
-export const DEMO_PRODUCTS = [
-  "สินค้าทดสอบ A",
-  "สินค้าทดสอบ B",
-  "สินค้าทดสอบ C",
-  "ปุ๋ยเคมีสูตรพิเศษ",
-];
-
 export const MARKETING_PRODUCT_CATEGORIES = [
   "Premium_item",
   "PP_Board",
