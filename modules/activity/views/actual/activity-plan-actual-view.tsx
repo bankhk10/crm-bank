@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertTriangle, Check, ArrowLeft, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  AlertTriangle,
+  Check,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -140,7 +146,8 @@ export function ActivityPlanActualView({
       setValidationAlert({
         isOpen: true,
         title: "กรุณาระบุเหตุผลการยกเลิก",
-        description: "จำเป็นต้องระบุเหตุผลเพื่อเป็นบันทึกประกอบการยกเลิกแผนงานกิจกรรม",
+        description:
+          "จำเป็นต้องระบุเหตุผลเพื่อเป็นบันทึกประกอบการยกเลิกแผนงานกิจกรรม",
         messages: ["เหตุผลการยกเลิกกิจกรรม"],
       });
       setFormError("กรุณาระบุเหตุผลการยกเลิก");
@@ -157,7 +164,8 @@ export function ActivityPlanActualView({
         setValidationAlert({
           isOpen: true,
           title: "ข้อมูลการเลื่อนกิจกรรมไม่ครบถ้วน",
-          description: "กรุณาระบุข้อมูลวันที่และเหตุผลสำหรับการเลื่อนกิจกรรมให้ครบถ้วน",
+          description:
+            "กรุณาระบุข้อมูลวันที่และเหตุผลสำหรับการเลื่อนกิจกรรมให้ครบถ้วน",
           messages: missing,
         });
         setFormError(`กรุณาระบุ${missing[0]}`);
@@ -167,7 +175,10 @@ export function ActivityPlanActualView({
     }
 
     // 3. Validation for COMPLETED or PARTIAL
-    if (activityResultStatus === "COMPLETED" || activityResultStatus === "PARTIAL") {
+    if (
+      activityResultStatus === "COMPLETED" ||
+      activityResultStatus === "PARTIAL"
+    ) {
       let missingFields: string[] = [];
 
       // Delegate Type 1 validation to features/type-1 domain logic
@@ -209,7 +220,8 @@ export function ActivityPlanActualView({
         actualEndDate: planEnd,
         resultStatus: activityResultStatus,
         resultSummary: `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
-        cancelReason: activityResultStatus === "CANCELLED" ? cancelReason.trim() : null,
+        cancelReason:
+          activityResultStatus === "CANCELLED" ? cancelReason.trim() : null,
         postponedDate:
           activityResultStatus === "POSTPONED" && postponedDate
             ? parseDateSafe(`${postponedDate}T${postponedTime || "08:30"}:00`)
@@ -221,19 +233,29 @@ export function ActivityPlanActualView({
       };
 
       // If COMPLETED or PARTIAL: upload images and collect Type 1 payload
-      if (activityResultStatus === "COMPLETED" || activityResultStatus === "PARTIAL") {
+      if (
+        activityResultStatus === "COMPLETED" ||
+        activityResultStatus === "PARTIAL"
+      ) {
         const newlyUploadedUrls: string[] = [];
-        const cleanImages = await type1Actual.uploadImages(id, newlyUploadedUrls);
+        const cleanImages = await type1Actual.uploadImages(
+          id,
+          newlyUploadedUrls,
+        );
         const t1Payload = type1Actual.getPayload(cleanImages);
 
         // Sanitize nextMeetingDate
         const validNextDate = parseDateSafe(t1Payload.nextMeetingDate);
 
         // Sanitize targetActualResults so empty nextMeetingDate is null, not invalid string
-        const sanitizedTargets = (t1Payload.targetActualResults || []).map((t: any) => ({
-          ...t,
-          nextMeetingDate: parseDateSafe(t.nextMeetingDate) ? t.nextMeetingDate : null,
-        }));
+        const sanitizedTargets = (t1Payload.targetActualResults || []).map(
+          (t: any) => ({
+            ...t,
+            nextMeetingDate: parseDateSafe(t.nextMeetingDate)
+              ? t.nextMeetingDate
+              : null,
+          }),
+        );
 
         payload = {
           ...payload,
@@ -322,7 +344,12 @@ export function ActivityPlanActualView({
     );
   }
 
-  if (id && planStatus && planStatus !== "APPROVED" && planStatus !== "COMPLETED") {
+  if (
+    id &&
+    planStatus &&
+    planStatus !== "APPROVED" &&
+    planStatus !== "COMPLETED"
+  ) {
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
@@ -355,7 +382,6 @@ export function ActivityPlanActualView({
       </section>
     );
   }
-
 
   return (
     <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
@@ -465,7 +491,7 @@ export function ActivityPlanActualView({
               }
               className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl px-5 h-10 cursor-pointer shadow-xs transition-colors"
             >
-              ตกลง / ไปกรอกข้อมูล
+              ตกลง
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
