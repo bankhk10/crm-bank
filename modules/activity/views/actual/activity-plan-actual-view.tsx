@@ -135,14 +135,10 @@ export function ActivityPlanActualView({
       Boolean(
         plan?.stores?.some(
           (s: any) =>
-            !s.workTypeCode ||
-            s.workTypeCode === "TYPE_1" ||
-            s.workTypeCode === "VISIT",
+            s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
         ),
       ) ||
-      plan?.activityType?.code === "TYPE_1" ||
-      targets.length > 0 ||
-      planWorkTypes.length === 0;
+      plan?.activityType?.code === "TYPE_1";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -235,30 +231,47 @@ export function ActivityPlanActualView({
           activityResultStatus === "POSTPONED" ? postponedNotes.trim() : null,
       };
 
-      // If COMPLETED or PARTIAL: upload images and collect Type 1 payload
+      // If COMPLETED or PARTIAL: upload images and collect payloads per work type
       if (
         activityResultStatus === "COMPLETED" ||
         activityResultStatus === "PARTIAL"
       ) {
-        const newlyUploadedUrls: string[] = [];
-        const cleanImages = await type1Actual.uploadImages(
-          id,
-          newlyUploadedUrls,
-        );
-        const t1Payload = type1Actual.getPayload(cleanImages);
+        // Collect Type 1 payload ONLY if Type 1 is active
+        if (isType1) {
+          const newlyUploadedUrls: string[] = [];
+          const cleanImages = await type1Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t1Payload = type1Actual.getPayload(cleanImages);
+          const validNextDate = parseDateSafe(t1Payload.nextMeetingDate);
+          const sanitizedTargets = (t1Payload.targetActualResults || []).map(
+            (t: any) => ({
+              ...t,
+              nextMeetingDate: parseDateSafe(t.nextMeetingDate)
+                ? t.nextMeetingDate
+                : null,
+            }),
+          );
 
-        // Sanitize nextMeetingDate
-        const validNextDate = parseDateSafe(t1Payload.nextMeetingDate);
-
-        // Sanitize targetActualResults so empty nextMeetingDate is null, not invalid string
-        const sanitizedTargets = (t1Payload.targetActualResults || []).map(
-          (t: any) => ({
-            ...t,
-            nextMeetingDate: parseDateSafe(t.nextMeetingDate)
-              ? t.nextMeetingDate
-              : null,
-          }),
-        );
+          payload = {
+            ...payload,
+            resultSummary:
+              t1Payload.discussionResult ||
+              `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
+            discussionResult: t1Payload.discussionResult || null,
+            productAdvice: t1Payload.productAdvice || null,
+            advisedProducts: t1Payload.products || [],
+            salesOpportunity: t1Payload.salesOpportunity || null,
+            nextAction: t1Payload.nextAction || null,
+            nextMeetingDate: validNextDate,
+            farmerHomeAddress: t1Payload.farmerHomeAddress || null,
+            plotLatitude: t1Payload.plotLatitude,
+            plotLongitude: t1Payload.plotLongitude,
+            plotImages: t1Payload.plotImages || [],
+            targetActualResults: sanitizedTargets,
+          };
+        }
 
         // Collect Type 2 payload if active
         const isType2Active =
@@ -267,30 +280,17 @@ export function ActivityPlanActualView({
           planWorkTypes.includes("ติดตามผล") ||
           Boolean(plan?.type2Targets?.length);
 
-        const t2Payload: Record<string, any> = isType2Active
-          ? type2Actual.collectPayload()
-          : {};
-
-        payload = {
-          ...payload,
-          ...t2Payload,
-          followupResults: t2Payload.t2FollowupResults || [],
-          resultSummary:
-            t1Payload.discussionResult ||
-            t2Payload.t2FollowupDetail ||
-            `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
-          discussionResult: t1Payload.discussionResult || null,
-          productAdvice: t1Payload.productAdvice || null,
-          advisedProducts: t1Payload.products || [],
-          salesOpportunity: t1Payload.salesOpportunity || null,
-          nextAction: t1Payload.nextAction || null,
-          nextMeetingDate: validNextDate,
-          farmerHomeAddress: t1Payload.farmerHomeAddress || null,
-          plotLatitude: t1Payload.plotLatitude,
-          plotLongitude: t1Payload.plotLongitude,
-          plotImages: t1Payload.plotImages || [],
-          targetActualResults: sanitizedTargets,
-        };
+        if (isType2Active) {
+          const t2Payload = type2Actual.collectPayload();
+          payload = {
+            ...payload,
+            ...t2Payload,
+            followupResults: t2Payload.t2FollowupResults || [],
+          };
+          if (!isType1 && t2Payload.t2FollowupDetail) {
+            payload.resultSummary = t2Payload.t2FollowupDetail;
+          }
+        }
       }
 
       const res = await recordActivityResultAction(id, payload);

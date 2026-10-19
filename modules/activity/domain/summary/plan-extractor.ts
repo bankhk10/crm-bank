@@ -39,8 +39,10 @@ export function extractPlanData(
     }
   }
 
-  // Type 1 fallback if relation exists
-  if (p.type1Stores?.length > 0 || p.type1Results?.length > 0) {
+  // Type 1 fallback if real store targets exist, or only if no other work types detected
+  if (p.type1Stores && p.type1Stores.length > 0) {
+    detectedWorkTypes.add(getWorkTypeName("TYPE_1"));
+  } else if (p.type1Results && p.type1Results.length > 0 && detectedWorkTypes.size === 0) {
     detectedWorkTypes.add(getWorkTypeName("TYPE_1"));
   }
 
