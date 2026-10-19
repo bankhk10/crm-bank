@@ -125,24 +125,35 @@ export function Type1DetailView({
     );
   };
 
-  const isStore = target?.visitPurpose === "STORE";
+  const isSingle = count <= 1;
+  const singleTarget = effectiveTargets[0] || target;
+  const isSingleStore = singleTarget?.visitPurpose === "STORE";
+
+  // Check whether any target is a farmer (visitPurpose !== "STORE")
   const hasFarmerTarget =
-    effectiveTargets.some((t) => t.visitPurpose !== "STORE") || !isStore;
-  const isUnregistered = Boolean(target?.isUnregisteredFarmer);
+    effectiveTargets.length > 0
+      ? effectiveTargets.some((t) => t.visitPurpose !== "STORE")
+      : target
+        ? target.visitPurpose !== "STORE"
+        : !isSingleStore;
+
+  const isStore = isSingle ? isSingleStore : !hasFarmerTarget;
+
+  const isUnregistered = Boolean(singleTarget?.isUnregisteredFarmer);
   const farmerDisplayName = isUnregistered
-    ? target?.unregisteredFarmerName || target?.customer || "-"
-    : target?.customer || "-";
+    ? singleTarget?.unregisteredFarmerName || singleTarget?.customer || "-"
+    : singleTarget?.customer || "-";
 
   const effectivePlotLatitude =
-    target?.plotLatitude != null && String(target.plotLatitude).trim() !== ""
-      ? String(target.plotLatitude)
+    singleTarget?.plotLatitude != null && String(singleTarget.plotLatitude).trim() !== ""
+      ? String(singleTarget.plotLatitude)
       : plotLatitude != null && String(plotLatitude).trim() !== ""
         ? String(plotLatitude)
         : null;
 
   const effectivePlotLongitude =
-    target?.plotLongitude != null && String(target.plotLongitude).trim() !== ""
-      ? String(target.plotLongitude)
+    singleTarget?.plotLongitude != null && String(singleTarget.plotLongitude).trim() !== ""
+      ? String(singleTarget.plotLongitude)
       : plotLongitude != null && String(plotLongitude).trim() !== ""
         ? String(plotLongitude)
         : null;
@@ -155,11 +166,8 @@ export function Type1DetailView({
     ? `https://www.google.com/maps/search/?api=1&query=${effectivePlotLatitude},${effectivePlotLongitude}`
     : null;
 
-  const showFarmerSection =
-    hasFarmerTarget ||
-    Boolean(
-      farmerHomeAddress || hasCoords || (plotImages && plotImages.length > 0),
-    );
+  // Farmer-specific section (ที่อยู่บ้านเกษตรกร, พิกัดแปลง, รูปแปลง): แสดงเฉพาะเมื่อเป็นเกษตรกรเท่านั้น
+  const showFarmerSection = hasFarmerTarget;
 
   return (
     <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
@@ -167,11 +175,16 @@ export function Type1DetailView({
       {count > 1 ? (
         /* MULTI-TARGET READ-ONLY ACTUAL DISPLAY */
         <div className="space-y-4 pt-1 border-t border-slate-100">
-          <div className="flex items-center gap-2 pb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-            <h3 className="text-sm font-bold text-slate-800">
-              ผลการปฏิบัติงานจริง (แยกตามเป้าหมาย {count} เป้าหมาย)
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+              <h3 className="text-sm font-bold text-slate-800">
+                ผลการปฏิบัติงานจริง (แยกตามเป้าหมาย {count} เป้าหมาย)
+              </h3>
+            </div>
+            <span className="text-xs text-slate-500">
+              * ข้อมูลผลการเข้าพบและพูดคุยแยกตามแต่ละเป้าหมาย
+            </span>
           </div>
 
           <div className="space-y-3.5">
@@ -216,10 +229,47 @@ export function Type1DetailView({
               const itemMeetingDate =
                 item.nextMeetingDate || item.nextDate || nextMeetingDate;
 
+              const itemAdviceTopic =
+                item.topic?.trim() === "ให้คำแนะนำการใช้สินค้า" ||
+                !!item.productAdvice ||
+                !!item.salesOpportunity ||
+                (item.advisedProducts && item.advisedProducts.length > 0);
+
+              const itemProducts = item.productAdvice
+                ? item.productAdvice
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                : item.advisedProducts && item.advisedProducts.length > 0
+                  ? item.advisedProducts.map((p) => p.productName)
+                  : [];
+
+              const itemSalesOpp = item.salesOpportunity || item.opportunity;
+
+              const itemLat =
+                item.plotLatitude != null && String(item.plotLatitude).trim() !== ""
+                  ? String(item.plotLatitude)
+                  : count === 1 ? effectivePlotLatitude : null;
+              const itemLng =
+                item.plotLongitude != null && String(item.plotLongitude).trim() !== ""
+                  ? String(item.plotLongitude)
+                  : count === 1 ? effectivePlotLongitude : null;
+              const itemHasCoords = itemLat != null && itemLng != null;
+              const itemMapsUrl = itemHasCoords
+                ? `https://www.google.com/maps/search/?api=1&query=${itemLat},${itemLng}`
+                : null;
+
+              const itemPlotImages =
+                item.plotImages && item.plotImages.length > 0
+                  ? item.plotImages
+                  : count === 1 && !itemIsStore
+                    ? plotImages
+                    : [];
+
               return (
                 <div
                   key={item.id || idx}
-                  className="bg-emerald-50/20 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs"
+                  className="bg-emerald-50/20 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-2xs hover:border-emerald-300 transition-all"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 pb-2.5">
                     <div className="flex items-center gap-2">
@@ -248,73 +298,140 @@ export function Type1DetailView({
                     </Badge>
                   </div>
 
-                  {/* Farmer Details */}
+                  {/* Farmer Details (ที่อยู่, พิกัดแปลง, รูปแปลง) - แสดงเฉพาะเมื่อไม่ใช่ร้านค้า */}
                   {!itemIsStore && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
-                        <span className="text-slate-400 font-medium block flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                          ที่อยู่บ้านเกษตรกร
-                        </span>
-                        <p className="font-semibold text-slate-800 whitespace-pre-wrap">
-                          {itemAddress}
-                        </p>
-                      </div>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
+                          <span className="text-slate-400 font-medium block flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                            ที่อยู่บ้านเกษตรกร
+                          </span>
+                          <p className="font-semibold text-slate-800 whitespace-pre-wrap">
+                            {itemAddress || "-"}
+                          </p>
+                        </div>
 
-                      {(() => {
-                        const itemLat =
-                          item.plotLatitude != null && String(item.plotLatitude).trim() !== ""
-                            ? String(item.plotLatitude)
-                            : effectivePlotLatitude;
-                        const itemLng =
-                          item.plotLongitude != null && String(item.plotLongitude).trim() !== ""
-                            ? String(item.plotLongitude)
-                            : effectivePlotLongitude;
-                        const itemHasCoords = itemLat != null && itemLng != null;
-                        const itemMapsUrl = itemHasCoords
-                          ? `https://www.google.com/maps/search/?api=1&query=${itemLat},${itemLng}`
-                          : null;
-
-                        return (
-                          <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-slate-400 font-medium block flex items-center gap-1">
-                                <Navigation className="w-3.5 h-3.5 text-emerald-600" />
-                                พิกัดแปลง (Latitude, Longitude)
-                              </span>
-                              {itemMapsUrl && (
-                                <a
-                                  href={itemMapsUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline"
-                                >
-                                  <ExternalLink className="w-3 h-3" />
-                                  เปิดแผนที่
-                                </a>
-                              )}
-                            </div>
-                            {itemHasCoords ? (
-                              <div className="flex items-center gap-2 font-mono font-bold text-slate-800">
-                                <span>Lat: {itemLat}</span>
-                                <span className="text-slate-300">|</span>
-                                <span>Lng: {itemLng}</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-700 font-semibold">
-                                -
-                              </span>
+                        <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400 font-medium block flex items-center gap-1">
+                              <Navigation className="w-3.5 h-3.5 text-emerald-600" />
+                              พิกัดแปลง (Latitude, Longitude)
+                            </span>
+                            {itemMapsUrl && (
+                              <a
+                                href={itemMapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                เปิดแผนที่
+                              </a>
                             )}
                           </div>
-                        );
-                      })()}
+                          {itemHasCoords ? (
+                            <div className="flex items-center gap-2 font-mono font-bold text-slate-800">
+                              <span>Lat: {itemLat}</span>
+                              <span className="text-slate-300">|</span>
+                              <span>Lng: {itemLng}</span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-700 font-semibold">
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* รูปแปลงเกษตรกรประจำเป้าหมายนี้ */}
+                      {itemPlotImages.length > 0 && (
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 space-y-2">
+                          <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                            <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                            รูปแปลงเกษตรกร - {name} ({itemPlotImages.length} รูป)
+                          </span>
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {itemPlotImages.map((img, imgIdx) => (
+                              <button
+                                key={img.id || imgIdx}
+                                type="button"
+                                onClick={() =>
+                                  openLightbox(
+                                    `รูปแปลงเกษตรกร - ${name}`,
+                                    itemPlotImages,
+                                    imgIdx,
+                                  )
+                                }
+                                className="group relative rounded-lg border border-emerald-200/80 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center cursor-pointer shadow-2xs hover:border-emerald-400 transition-all"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={img.url}
+                                  alt={img.name || `รูปแปลง ${imgIdx + 1}`}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                  <Eye className="w-3.5 h-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* สินค้าที่ให้คำแนะนำ & ประเมินโอกาสการขาย (Conditional) */}
+                  {itemAdviceTopic && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
+                        <span className="text-slate-400 font-medium block">
+                          สินค้าที่ให้คำแนะนำ ({name})
+                        </span>
+                        {itemProducts.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5 pt-0.5">
+                            {itemProducts.map((prod, pIdx) => (
+                              <span
+                                key={pIdx}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
+                              >
+                                <Tag className="w-3 h-3 text-emerald-600" />
+                                {prod}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-700 font-semibold">-</span>
+                        )}
+                      </div>
+
+                      <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-1">
+                        <span className="text-slate-400 font-medium block">
+                          ประเมินโอกาสการขาย
+                        </span>
+                        {itemSalesOpp ? (
+                          <Badge
+                            variant="outline"
+                            className={
+                              itemSalesOpp === "สูง"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-2.5 py-0.5"
+                                : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs px-2.5 py-0.5"
+                            }
+                          >
+                            {itemSalesOpp}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-700 font-semibold">-</span>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {/* Discussion Result */}
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 space-y-1 text-xs sm:text-sm">
                     <span className="text-slate-400 text-xs font-medium block">
-                      ผลการพูดคุย
+                      {itemIsStore ? `ผลการพูดคุยกับร้านค้า (${name})` : `ผลการพูดคุยกับเกษตรกร (${name})`}
                     </span>
                     <p className="text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
                       {itemDiscussion}
@@ -347,13 +464,13 @@ export function Type1DetailView({
               );
             })}
 
-            {/* Photos & Products summary */}
-            {(isAdviceTopic || (plotImages && plotImages.length > 0)) && (
+            {/* Photos & Products summary (แสดงรูปแปลงเฉพาะเมื่อมีเกษตรกร และแสดงสินค้าเมื่อมีหัวข้อแนะนำ) */}
+            {(isAdviceTopic || (hasFarmerTarget && plotImages && plotImages.length > 0)) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-                {isAdviceTopic && (
+                {isAdviceTopic && selectedProducts.length > 0 && (
                   <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
                     <span className="text-xs text-slate-500 font-medium block">
-                      สินค้าที่ให้คำแนะนำ & โอกาสการขาย
+                      สินค้าที่ให้คำแนะนำ (ภาพรวม)
                     </span>
                     <div className="flex flex-wrap items-center gap-2">
                       {selectedProducts.map((prod, idx) => (
@@ -371,23 +488,23 @@ export function Type1DetailView({
                           className={
                             salesOpportunity === "สูง"
                               ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
-                              : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs"
+                              : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
                           }
                         >
-                          โอกาสการขาย: {salesOpportunity}
+                          โอกาสการขายรวม: {salesOpportunity}
                         </Badge>
                       )}
                     </div>
                   </div>
                 )}
 
-                {plotImages && plotImages.length > 0 && (
+                {hasFarmerTarget && plotImages && plotImages.length > 0 && (
                   <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
                     <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
                       <Camera className="w-3.5 h-3.5 text-emerald-600" />
                       รูปแปลงเกษตรกร ({plotImages.length} รูป)
                     </span>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {plotImages.map((img, imgIdx) => (
                         <button
                           key={img.id || imgIdx}
@@ -395,7 +512,7 @@ export function Type1DetailView({
                           onClick={() =>
                             openLightbox("รูปแปลงเกษตรกร", plotImages, imgIdx)
                           }
-                          className="group relative rounded-lg border border-emerald-200 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center cursor-pointer"
+                          className="group relative rounded-lg border border-emerald-200 overflow-hidden bg-slate-100 aspect-video flex items-center justify-center cursor-pointer shadow-2xs hover:border-emerald-400 transition-all"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -403,6 +520,9 @@ export function Type1DetailView({
                             alt={img.name || `รูปแปลง ${imgIdx + 1}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <Eye className="w-3.5 h-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -415,7 +535,27 @@ export function Type1DetailView({
       ) : (
         /* SINGLE TARGET READ-ONLY ACTUAL DISPLAY */
         <div className="space-y-4 pt-1 border-t border-slate-100">
-          {/* Farmer-Specific Actual Displays */}
+          <div className="flex items-center justify-between pb-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+              <h3 className="text-sm font-bold text-slate-800">
+                ผลการปฏิบัติงานจริง (ACTUAL)
+              </h3>
+            </div>
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] font-semibold px-2.5 py-0.5 rounded-md",
+                isStore
+                  ? "bg-sky-50 text-sky-800 border-sky-200"
+                  : "bg-emerald-50 text-emerald-800 border-emerald-200",
+              )}
+            >
+              {isStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
+            </Badge>
+          </div>
+
+          {/* Farmer-Specific Actual Displays (ซ่อนอัตโนมัติเมื่อเป็นร้านค้า) */}
           {showFarmerSection && (
             <>
               {/* ที่อยู่บ้านเกษตรกร & พิกัดแปลง */}
@@ -427,7 +567,7 @@ export function Type1DetailView({
                     ที่อยู่บ้านเกษตรกร
                   </span>
                   <p className="text-xs sm:text-sm text-slate-800 font-semibold whitespace-pre-wrap">
-                    {farmerHomeAddress || "-"}
+                    {farmerHomeAddress || singleTarget?.farmerHomeAddress || "-"}
                   </p>
                 </div>
 
@@ -518,7 +658,7 @@ export function Type1DetailView({
             </>
           )}
 
-          {/* สินค้าที่ให้คำแนะนำ & โอกาสการขาย */}
+          {/* สินค้าที่ให้คำแนะนำ & โอกาสการขาย (Conditional) */}
           {isAdviceTopic && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1.5">
@@ -548,16 +688,16 @@ export function Type1DetailView({
                 <span className="text-xs text-slate-500 font-medium block">
                   ประเมินโอกาสการขาย
                 </span>
-                {(target?.salesOpportunity || salesOpportunity) ? (
+                {(singleTarget?.salesOpportunity || salesOpportunity) ? (
                   <Badge
                     variant="outline"
                     className={
-                      (target?.salesOpportunity || salesOpportunity) === "สูง"
+                      (singleTarget?.salesOpportunity || salesOpportunity) === "สูง"
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1"
-                        : "bg-rose-50 text-rose-800 border-rose-300 font-bold text-xs px-3 py-1"
+                        : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs px-3 py-1"
                     }
                   >
-                    {target?.salesOpportunity || salesOpportunity}
+                    {singleTarget?.salesOpportunity || salesOpportunity}
                   </Badge>
                 ) : (
                   <span className="text-xs text-slate-700 font-semibold">
@@ -571,10 +711,10 @@ export function Type1DetailView({
           {/* ผลการพูดคุย */}
           <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
             <span className="text-xs text-slate-500 font-medium block">
-              ผลการพูดคุย
+              {isStore ? "ผลการพูดคุยกับร้านค้า" : "ผลการพูดคุยกับเกษตรกร"}
             </span>
             <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
-              {target?.discussionResult || discussionResult || "-"}
+              {singleTarget?.discussionResult || discussionResult || "-"}
             </p>
           </div>
 
@@ -586,7 +726,7 @@ export function Type1DetailView({
                 สิ่งที่ต้องดำเนินการต่อ
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {target?.nextAction || nextAction || "-"}
+                {singleTarget?.nextAction || nextAction || "-"}
               </span>
             </div>
 
@@ -596,7 +736,7 @@ export function Type1DetailView({
                 วันที่นัดหมายครั้งถัดไป
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-800 block">
-                {formatThaiDate(target?.nextMeetingDate || nextMeetingDate)}
+                {formatThaiDate(singleTarget?.nextMeetingDate || nextMeetingDate)}
               </span>
             </div>
           </div>
