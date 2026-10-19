@@ -64,7 +64,7 @@ graph TD
     G --> I[อัปโหลดรูปภาพสภาพพืช/แปลง ActivityPhotoUpload]
     H --> I
     I --> J[กดบันทึกผลการปฏิบัติงาน]
-    J --> K[Server Action บันทึกลง activity_result_followup_items]
+    J --> K[Server Action บันทึกลง activity_result_followup_items และ activity_attachments]
     C -->|POSTPONED| L[ระบุวันเวลานัดหมายใหม่และเหตุผลที่เลื่อน]
     C -->|CANCELLED| M[ระบุเหตุผลการยกเลิก]
 ```
@@ -81,7 +81,7 @@ graph TD
     G --> H[type2UnplannedStrategy ทำงานใน 1 Transaction]
     H --> I[บันทึก ActivityPlan สถานะ COMPLETED]
     H --> J[บันทึก Targets & Products]
-    H --> K[บันทึก Followup Results]
+    H --> K[บันทึก Followup Results และ Attachments ลง activity_attachments]
 ```
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
@@ -283,6 +283,10 @@ sequenceDiagram
 | **รายละเอียดการติดตาม**| `followupDetail` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `followup_detail` | `TEXT` | Yes | `null` |
 | **ปัญหาที่พบ** | `problemDetail` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `problem_detail` | `TEXT` | Yes | `null` |
 | **สินค้าเพิ่มหน้างาน** | `isAdditional` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `is_additional` | `BOOLEAN` | No | `false` |
+| **รูปภาพสภาพแปลง/พืช** | `images` / `attachments` | `uploadImages` / `saveActual` | `ActivityAttachment` | `file_url` | `VARCHAR` | No | - |
+| **ชื่อไฟล์รูปภาพ** | `fileName` / `name` | `saveActual` | `ActivityAttachment` | `file_name` | `VARCHAR` | No | `"รูปภาพ"` |
+| **หมวดหมู่รูปภาพ** | `category` | `saveActual` | `ActivityAttachment` | `category` | `ENUM (AttachmentCategory)` | No | `PLOT` |
+| **รหัสประเภทงานรูปภาพ** | `workTypeCode` | `saveActual` | `ActivityAttachment` | `work_type_code` | `VARCHAR` | Yes | `"TYPE_2"` |
 
 ### 6.3 รายละเอียดตารางและความสัมพันธ์ (Prisma Schema)
 
@@ -354,11 +358,37 @@ model ActivityResultFollowupItem {
   @@index([isAdditional])
   @@map("activity_result_followup_items")
 }
+
+// 4. ตารางเก็บรูปภาพประกอบกิจกรรม (ภาพสภาพแปลง / ผลิตภัณฑ์)
+model ActivityAttachment {
+  id               String             @id @default(cuid())
+  activityPlanId   String             @map("activity_plan_id")
+  activityResultId String?            @map("activity_result_id")
+  workTypeCode     String?            @map("work_type_code") // "TYPE_2"
+  storeId          String?            @map("store_id")
+  productId        String?            @map("product_id")
+  category         AttachmentCategory @default(GENERAL)      // PLOT, GENERAL
+  fileUrl          String             @map("file_url")
+  fileName         String             @map("file_name")
+  fileSize         Int?               @map("file_size")
+  mimeType         String?            @map("mime_type")
+  createdAt        DateTime           @default(now()) @map("created_at")
+
+  activityPlan     ActivityPlan       @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityResult   ActivityResult?    @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
+  store            Customer?          @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  product          Product?           @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([activityResultId])
+  @@index([category])
+  @@map("activity_attachments")
+}
 ```
 
 ### 6.4 Transaction & Persistence Strategy
 - **Atomic Operations:** ทุกคำสั่ง Write ดำเนินการภายใต้ Prisma Transaction (`tx`) หากเกิดข้อผิดพลาดจะ Rollback ทั้งหมด
-- **Cascade Delete:** เมื่อลบ `ActivityPlan` ระเบียนใน `activity_plan_type_2_targets`, `activity_plan_type_2_products` จะถูกลบตามทันที และเมื่อลบ `ActivityResult` ระเบียนใน `activity_result_followup_items` จะถูกลบด้วย
+- **Cascade Delete:** เมื่อลบ `ActivityPlan` ระเบียนใน `activity_plan_type_2_targets`, `activity_plan_type_2_products`, `activity_attachments` จะถูกลบตามทันที และเมื่อลบ `ActivityResult` ระเบียนใน `activity_result_followup_items` จะถูกลบด้วย
 
 ---
 
