@@ -676,8 +676,8 @@ export function Type2ActualForm({
         </div>
       )}
 
-      {/* ADDITIONAL PRODUCTS */}
-      <div className="border-t border-dashed border-cyan-200/80 pt-5 space-y-4">
+      {/* ปิดไว้ก่อน เดียวมาเปิดเอง ADDITIONAL PRODUCTS */}
+      {/* <div className="border-t border-dashed border-cyan-200/80 pt-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -862,7 +862,7 @@ export function Type2ActualForm({
             })}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* ActivityPhotoUpload */}
       <ActivityPhotoUpload

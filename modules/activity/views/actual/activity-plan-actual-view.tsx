@@ -42,6 +42,7 @@ import {
 } from "@/modules/activity/features/type-2";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
+import { deleteActivityPlanImagePaths } from "@/modules/activity/ui/utils/image-uploader";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -106,8 +107,15 @@ export function ActivityPlanActualView({
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
-        type1Actual.hydrate(res);
-        type2Actual.hydrate(res);
+        const payloadToHydrate = {
+          ...res,
+          attachments:
+            res.attachments && res.attachments.length > 0
+              ? res.attachments
+              : plan.attachments || [],
+        };
+        type1Actual.hydrate(payloadToHydrate);
+        type2Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
@@ -329,8 +337,27 @@ export function ActivityPlanActualView({
         }
       }
 
+      // Track old permanent image URLs that were removed by user
+      const originalUrls = (plan?.attachments || [])
+        .map((a: any) => a.fileUrl || a.url)
+        .filter(
+          (u: string) =>
+            typeof u === "string" && u.startsWith("/uploads/activity-plans/"),
+        );
+      const currentUrls = new Set(
+        (payload.attachments || [])
+          .map((a: any) => a.fileUrl || a.url)
+          .filter(Boolean),
+      );
+      const oldUrlsToDelete = originalUrls.filter(
+        (u: string) => !currentUrls.has(u),
+      );
+
       const res = await recordActivityResultAction(id, payload);
       if (res.success) {
+        if (oldUrlsToDelete.length > 0 && id) {
+          await deleteActivityPlanImagePaths(id, oldUrlsToDelete);
+        }
         setSubmitSuccess(true);
         toast.success("บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว");
         if (onSuccess) onSuccess();

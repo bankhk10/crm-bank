@@ -69,6 +69,29 @@ export function DetailWorkTypeList({
     return undefined;
   }, [type1Targets.primary?.productAdvice, plan?.type1Products]);
 
+  // รวบรวมรูปภาพ Type 2 (Attachments)
+  const effectiveT2Images = useMemo(() => {
+    if (parsedResults?.t2Images && parsedResults.t2Images.length > 0) {
+      return parsedResults.t2Images;
+    }
+    const rawAttachments: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachments
+      .filter(
+        (att) =>
+          att.workTypeCode === "TYPE_2" ||
+          att.category === "PLOT" ||
+          (!att.workTypeCode && !att.category),
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปภาพ",
+      }));
+  }, [parsedResults?.t2Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -111,7 +134,7 @@ export function DetailWorkTypeList({
         followupDetail={parsedResults?.t2FollowupDetail}
         usageResult={parsedResults?.t2UsageResult}
         problemDetail={parsedResults?.t2ProblemDetail}
-        images={parsedResults?.t2Images}
+        images={effectiveT2Images}
       />
 
       {/* 🔵 ประเภทงานอื่นๆ (Type 3 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}

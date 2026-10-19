@@ -109,8 +109,24 @@ export function useType2Actual() {
 
     const imagesList = parsed.t2Images || parsed.images || parsed.attachments;
     if (imagesList && Array.isArray(imagesList) && imagesList.length > 0) {
-      setT2Images(imagesList);
-      initialT2ImagesRef.current = JSON.parse(JSON.stringify(imagesList));
+      const normalizedImages = imagesList
+        .filter(
+          (img: any) =>
+            img.workTypeCode === "TYPE_2" ||
+            !img.workTypeCode ||
+            img.category === "PLOT",
+        )
+        .map((img: any) => ({
+          id: img.id,
+          url: img.url || img.fileUrl,
+          name: img.name || img.fileName || "รูปภาพ",
+          size: img.size || img.fileSize || 0,
+          type: img.type || img.mimeType || "image/jpeg",
+        }));
+      if (normalizedImages.length > 0) {
+        setT2Images(normalizedImages);
+        initialT2ImagesRef.current = JSON.parse(JSON.stringify(normalizedImages));
+      }
     }
   }, []);
 

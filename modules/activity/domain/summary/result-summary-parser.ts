@@ -84,6 +84,30 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         if (!result.t2Detail) result.t2Detail = primary.followupDetail;
       }
     }
+
+    // Type 2 Attachments / Images
+    const rawAttachments: any[] = [
+      ...(Array.isArray(resData.attachments) ? resData.attachments : []),
+      ...(Array.isArray(resData.activityPlan?.attachments)
+        ? resData.activityPlan.attachments
+        : []),
+    ];
+    if (rawAttachments.length > 0 && !result.t2Images) {
+      result.t2Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_2" ||
+            att.category === "PLOT" ||
+            !att.workTypeCode,
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปภาพ",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
   }
 
   return result;

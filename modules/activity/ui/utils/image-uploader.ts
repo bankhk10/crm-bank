@@ -9,10 +9,10 @@ export type ImageFile = Type1ImageFile;
 export function convertToFileMetadata(images: ImageFile[] = []): FileMetadata[] {
   return (images || []).map((img) => ({
     id: img.id,
-    name: img.name || `image-${img.id}`,
-    size: (img as any).size || 0,
-    type: (img as any).type || "image/jpeg",
-    url: img.url,
+    name: img.name || (img as any).fileName || `image-${img.id}`,
+    size: (img as any).size || (img as any).fileSize || 0,
+    type: (img as any).type || (img as any).mimeType || "image/jpeg",
+    url: img.url || (img as any).fileUrl || "",
   }));
 }
 
@@ -58,7 +58,7 @@ export function isImageFilesEqual(
   return a.every(
     (item, idx) =>
       item.id === b[idx]?.id &&
-      item.url === b[idx]?.url &&
+      (item.url || (item as any).fileUrl) === (b[idx]?.url || (b[idx] as any).fileUrl) &&
       item.rawFile === b[idx]?.rawFile,
   );
 }
@@ -180,4 +180,28 @@ export async function uploadActivityPlanImageGroup(
     updatedImages: processedImages,
     newlyUploadedUrls,
   };
+}
+
+/**
+ * Delete specified activity plan image paths from physical storage
+ */
+export async function deleteActivityPlanImagePaths(
+  planId: string,
+  publicPaths: string[],
+): Promise<void> {
+  if (!publicPaths || publicPaths.length === 0) return;
+  const validPaths = publicPaths.filter(
+    (p) => typeof p === "string" && p.startsWith("/uploads/activity-plans/"),
+  );
+  if (validPaths.length === 0) return;
+
+  try {
+    await fetch(`/api/activity-plans/${planId}/images`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicPaths: validPaths }),
+    });
+  } catch (err) {
+    console.warn("Failed to delete activity plan images:", err);
+  }
 }

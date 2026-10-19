@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import { Camera, Eye, X, ImageIcon } from "lucide-react";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import { cn } from "@/lib/utils";
@@ -132,6 +132,19 @@ export function ActivityPhotoUpload({
   // Selected image for zoom preview dialog
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null);
 
+  // Re-mount GalleryUpload once when server images are asynchronously hydrated
+  const isHydratedRef = useRef(false);
+  const [mountKey, setMountKey] = useState("init");
+
+  useEffect(() => {
+    if (!isHydratedRef.current && images && images.length > 0) {
+      isHydratedRef.current = true;
+      setMountKey(
+        `hydrated-${images.map((i) => i.id || (i as any).fileUrl || i.url).join("-")}`,
+      );
+    }
+  }, [images]);
+
   // Memoize initial files for GalleryUpload to prevent re-instantiation loops
   const initialFiles = useMemo(() => {
     return convertToFileMetadata(images);
@@ -205,26 +218,30 @@ export function ActivityPhotoUpload({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 pt-1">
-            {images.map((img, idx) => (
-              <div
-                key={img.id || idx}
-                onClick={() => setSelectedPreviewImage(img.url)}
-                className="group relative rounded-xl border border-slate-200/80 bg-white overflow-hidden aspect-square flex items-center justify-center shadow-xs cursor-pointer hover:border-slate-300 transition-all"
-              >
-                <img
-                  src={img.url}
-                  alt={img.name || `photo-${idx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                  <Eye className="w-5 h-5 drop-shadow-md" />
+            {images.map((img, idx) => {
+              const displayUrl = img.url || (img as any).fileUrl || "";
+              return (
+                <div
+                  key={img.id || idx}
+                  onClick={() => setSelectedPreviewImage(displayUrl)}
+                  className="group relative rounded-xl border border-slate-200/80 bg-white overflow-hidden aspect-square flex items-center justify-center shadow-xs cursor-pointer hover:border-slate-300 transition-all"
+                >
+                  <img
+                    src={displayUrl}
+                    alt={img.name || (img as any).fileName || `photo-${idx + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                    <Eye className="w-5 h-5 drop-shadow-md" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )
       ) : (
         <GalleryUpload
+          key={mountKey}
           maxFiles={maxFiles}
           maxSize={maxSize}
           accept="image/*"

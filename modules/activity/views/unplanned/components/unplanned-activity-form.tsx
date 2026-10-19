@@ -32,7 +32,10 @@ import {
   getWorkTypeCode,
   getWorkTypeName,
 } from "@/modules/activity/constants";
-import { uploadActivityPlanImageGroup } from "@/modules/activity/ui/utils/image-uploader";
+import {
+  uploadActivityPlanImageGroup,
+  deleteActivityPlanImagePaths,
+} from "@/modules/activity/ui/utils/image-uploader";
 
 export interface UnplannedActivityFormProps {
   initialData?: any;
@@ -368,10 +371,34 @@ export function UnplannedActivityForm({
       type1UnplannedItems: isType1Active ? type1.items : undefined,
     };
 
+    // Track old permanent image URLs that were removed by user
+    const originalUrls = (initialData?.attachments || [])
+      .map((a: any) => a.fileUrl || a.url)
+      .filter(
+        (u: string) =>
+          typeof u === "string" && u.startsWith("/uploads/activity-plans/"),
+      );
+    const currentUrls = new Set(
+      (actualData?.attachments || [])
+        .map((a: any) => a.fileUrl || a.url)
+        .filter(Boolean),
+    );
+    const oldUrlsToDelete = originalUrls.filter(
+      (u: string) => !currentUrls.has(u),
+    );
+
     try {
       setSubmitting(true);
       const res = await onSubmit(payload);
-      if (!res.success) {
+      if (res.success) {
+        if (
+          oldUrlsToDelete.length > 0 &&
+          uploadPlanId &&
+          uploadPlanId !== "unplanned"
+        ) {
+          await deleteActivityPlanImagePaths(uploadPlanId, oldUrlsToDelete);
+        }
+      } else {
         toast.error(res.error || "เกิดข้อผิดพลาดในการบันทึก");
       }
     } catch (err: any) {
