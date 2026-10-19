@@ -2,7 +2,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
   WorkTypeStrategy,
-} from "@/modules/activity-plans/application/strategies/work-type-strategy.interface";
+} from "@/modules/activity/types/strategy.interface";
 import { type1PlannedStrategy } from "../../planned/infrastructure/type1-planned.strategy";
 
 /**

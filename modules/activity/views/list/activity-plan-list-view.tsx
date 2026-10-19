@@ -11,7 +11,7 @@ import {
   submitActivityPlanAction,
   duplicateActivityPlanAction,
   getActivityTypesAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { WORK_TYPE_CONFIG } from "@/modules/activity/constants";
 import type { MultiSelectOption } from "@/components/custom/multi-select";

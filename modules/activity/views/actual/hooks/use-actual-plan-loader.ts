@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { getActivityPlanAction } from "@/modules/activity-plans/server/actions";
+import { getActivityPlanAction } from "@/modules/activity/server/actions";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";

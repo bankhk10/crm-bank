@@ -27,7 +27,7 @@ import {
 import {
   getActivityCalendarEventsAction,
   getActivityTypesAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import {
   STATUS_OPTIONS,

@@ -33,7 +33,7 @@ import {
   requestCorrectionPlanAction,
   approveCancelActivityPlanAction,
   rejectCancelActivityPlanAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 
 export type ApprovalActionType =
   | "APPROVE"

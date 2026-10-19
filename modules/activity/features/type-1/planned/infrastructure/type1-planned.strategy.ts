@@ -2,7 +2,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
   WorkTypeStrategy,
-} from "@/modules/activity-plans/application/strategies/work-type-strategy.interface";
+} from "@/modules/activity/types/strategy.interface";
 
 export const type1PlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_1",

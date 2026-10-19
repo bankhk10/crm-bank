@@ -7,7 +7,7 @@ import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {
   getActivityPlanAction,
   requestCancelActivityPlanAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import {
   extractPlanData,
   parseResultSummary,

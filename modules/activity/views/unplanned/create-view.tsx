@@ -14,7 +14,7 @@ import {
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";

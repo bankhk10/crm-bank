@@ -19,7 +19,7 @@ import { DeleteMaterialDialog } from "./delete-material-dialog";
 import {
   getPromotionalMaterialsAction,
   getDistinctPromotionalCategoriesAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 
 export default function PromotionalMaterialsView() {
   const { data: session } = useSession();

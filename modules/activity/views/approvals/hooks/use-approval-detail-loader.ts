@@ -7,7 +7,7 @@ import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {
   getActivityPlanAction,
   reviewSingleActivityHelperAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import { canUserPerformApproval } from "@/modules/activity-plans/ui/activity-status-badge";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import {

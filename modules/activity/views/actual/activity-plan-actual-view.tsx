@@ -20,7 +20,7 @@ import {
   type Type1TargetItem,
 } from "@/modules/activity/features/type-1";
 import { FormActionButtons } from "@/modules/activity/ui";
-import { recordActivityResultAction } from "@/modules/activity-plans/server/actions";
+import { recordActivityResultAction } from "@/modules/activity/server/actions";
 
 interface ActivityPlanActualViewProps {
   id?: string;

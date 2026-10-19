@@ -51,7 +51,7 @@ import {
 import type { ActivityPlanWithRelations } from "@/modules/activity-plans/types";
 import {
   getApprovalQueueDataAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 import {
   ApprovalActionDialog,
   type ApprovalActionType,

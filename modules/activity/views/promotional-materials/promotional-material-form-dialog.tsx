@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { createPromotionalMaterialAction, updatePromotionalMaterialAction } from "@/modules/activity-plans/server/actions";
+import { createPromotionalMaterialAction, updatePromotionalMaterialAction } from "@/modules/activity/server/actions";
 import { MARKETING_UNITS } from "@/modules/activity/constants";
 import { Loader2, PackagePlus, Pencil } from "lucide-react";
 

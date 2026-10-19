@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { deletePromotionalMaterialAction } from "@/modules/activity-plans/server/actions";
+import { deletePromotionalMaterialAction } from "@/modules/activity/server/actions";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 
 interface PromotionalMaterialItem {
