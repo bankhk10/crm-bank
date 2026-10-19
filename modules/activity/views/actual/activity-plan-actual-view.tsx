@@ -401,8 +401,8 @@ export function ActivityPlanActualView({
   }
 
   return (
-    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
-      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
+   <section className="space-y-6 container mx-auto px-0 sm:px-0">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         <ActualViewHeader planNo={planSummary.planNo} />
         {isRefreshing && (
           <div className="flex items-center gap-2 text-xs text-slate-500 animate-pulse">
