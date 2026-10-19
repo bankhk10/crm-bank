@@ -184,6 +184,8 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type1Results: (plan as any).type1Results || [],
             type1Result: (plan as any).type1Results?.[0] || (plan as any).type1Result || null,
             type1Products: (plan as any).type1Products || [],
+            type2Targets: (plan as any).type2Targets || [],
+            type2Products: (plan as any).type2Products || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
           });

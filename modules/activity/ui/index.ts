@@ -3,6 +3,11 @@ export {
   type PlanBasicInfoCardProps,
 } from "./basic-info/plan-basic-info-card";
 export { DateTimePicker } from "./basic-info/date-time-picker";
+export {
+  PlanWorkTypeSelector,
+  type PlanWorkTypeSelectorProps,
+  type PlanWorkTypeOption,
+} from "./basic-info/plan-work-type-selector";
 
 export {
   PlanLocationTeamCard,

@@ -142,9 +142,16 @@ export function getWorkTypeCode(nameOrCode: string): string {
   const upper = nameOrCode.toUpperCase().trim();
   if (WORK_TYPE_CONFIG[upper]) return upper;
 
+  // Match if input contains "TYPE_1", "TYPE_2", etc.
+  for (const key of Object.keys(WORK_TYPE_CONFIG)) {
+    if (upper.includes(key)) return key;
+  }
+
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
       c.name.trim() === nameOrCode.trim() ||
+      nameOrCode.includes(c.name) ||
+      c.name.includes(nameOrCode) ||
       c.shortName.toUpperCase() === upper ||
       c.code.toUpperCase() === upper,
   );
@@ -159,7 +166,9 @@ export function getWorkTypeName(codeOrName: string): string {
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
       c.code.toUpperCase() === upper ||
+      upper.includes(c.code.toUpperCase()) ||
       c.name.trim() === codeOrName.trim() ||
+      codeOrName.includes(c.name) ||
       c.shortName.toUpperCase() === upper,
   );
   return found ? found.name : codeOrName;
