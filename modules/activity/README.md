@@ -453,6 +453,12 @@ export function ActivityPlanApprovalDetailView({ id }) {
 
 ## 7. ประวัติการปรับปรุง (Change Log)
 
+### Version 1.5.1 (2026-10-19)
+- **100% Route & Shared Components Migration (Quick Win Complete)**:
+  - สลับ Imports ใน Route Pages ทั้งหมดของ `app/(main)/activity-plans/*` (`unplanned/[id]/edit/page.tsx` และ `actual/page.tsx`) มายัง `@/modules/activity` ครบ 100%
+  - สลับ `components/activity/activity-photo-upload.tsx` ให้ใช้ Utility และ Type จาก `@/modules/activity/ui/utils/image-uploader`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ
+
 ### Version 1.5.0 (2026-10-19)
 - **100% Decoupled Backbone (Core Migration Complete)**:
   - สร้าง `domain/approval/` พร้อมคู่มือฉบับเต็ม (`domain/approval/README.md`) แตก Step Resolvers ย่อย (`resolveLineApprover`, `resolveBudgetApprover`, ฯลฯ)
@@ -462,6 +468,7 @@ export function ActivityPlanApprovalDetailView({ id }) {
   - ปรับ `ui/activity-status-badge.tsx` ให้เป็น Pure UI Presentation ลดขนาดโค้ดจาก 600+ บรรทัด เหลือเพียง ~150 บรรทัด
   - สลับ Imports ใน Views ทั้งหมด (`views/approvals`, `views/detail`, `views/actual`, `views/calendar`, `views/list`) ให้ชี้หา `@/modules/activity` ตัวเอง 100%
   - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ โดยไม่มีการแตะต้อง `modules/activity-plans/`
+
 
 ### Version 1.4.0 (2026-10-19)
 - **Autonomous Module Infrastructure**:

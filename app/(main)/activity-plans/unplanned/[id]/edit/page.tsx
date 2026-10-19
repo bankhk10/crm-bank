@@ -1,5 +1,5 @@
 import { use } from "react";
-import { UnplannedEditView } from "@/modules/activity-plans/features/unplanned";
+import { UnplannedEditView } from "@/modules/activity";
 
 export const metadata = {
   title: "แก้ไขกิจกรรมนอกแผน | CRM",

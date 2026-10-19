@@ -8,8 +8,8 @@ import {
   convertToFileMetadata,
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
-} from "@/modules/activity-plans/features/shared/actual-view/utils/image-uploader";
-import type { ImageFile } from "@/modules/activity-plans/features/shared/actual-view/types";
+  type ImageFile,
+} from "@/modules/activity/ui/utils/image-uploader";
 import {
   Dialog,
   DialogContent,
