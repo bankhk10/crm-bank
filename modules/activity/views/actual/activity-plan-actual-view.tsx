@@ -120,12 +120,24 @@ export function ActivityPlanActualView({
     try {
       setIsSubmitting(true);
 
+      const parseDateSafe = (val: any): Date | null => {
+        if (!val) return null;
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+      };
+
+      const planStart = parseDateSafe(plan?.startDate) || new Date();
+      const planEnd = parseDateSafe(plan?.endDate) || planStart;
+
       let payload: any = {
+        actualStartDate: planStart,
+        actualEndDate: planEnd,
         resultStatus: activityResultStatus,
+        resultSummary: `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
         cancelReason: activityResultStatus === "CANCELLED" ? cancelReason.trim() : null,
         postponedDate:
           activityResultStatus === "POSTPONED" && postponedDate
-            ? new Date(`${postponedDate}T${postponedTime || "08:30"}:00`)
+            ? parseDateSafe(`${postponedDate}T${postponedTime || "08:30"}:00`)
             : null,
         postponedReason:
           activityResultStatus === "POSTPONED" ? postponedReason.trim() : null,
@@ -139,21 +151,31 @@ export function ActivityPlanActualView({
         const cleanImages = await type1Actual.uploadImages(id, newlyUploadedUrls);
         const t1Payload = type1Actual.getPayload(cleanImages);
 
+        // Sanitize nextMeetingDate
+        const validNextDate = parseDateSafe(t1Payload.nextMeetingDate);
+
+        // Sanitize targetActualResults so empty nextMeetingDate is null, not invalid string
+        const sanitizedTargets = (t1Payload.targetActualResults || []).map((t: any) => ({
+          ...t,
+          nextMeetingDate: parseDateSafe(t.nextMeetingDate) ? t.nextMeetingDate : null,
+        }));
+
         payload = {
           ...payload,
+          resultSummary:
+            t1Payload.discussionResult ||
+            `บันทึกผลการเข้าพบ (${activityResultStatus})`,
           discussionResult: t1Payload.discussionResult || null,
           productAdvice: t1Payload.productAdvice || null,
           advisedProducts: t1Payload.products || [],
           salesOpportunity: t1Payload.salesOpportunity || null,
           nextAction: t1Payload.nextAction || null,
-          nextMeetingDate: t1Payload.nextMeetingDate
-            ? new Date(t1Payload.nextMeetingDate)
-            : null,
+          nextMeetingDate: validNextDate,
           farmerHomeAddress: t1Payload.farmerHomeAddress || null,
           plotLatitude: t1Payload.plotLatitude,
           plotLongitude: t1Payload.plotLongitude,
           plotImages: t1Payload.plotImages || [],
-          targetActualResults: t1Payload.targetActualResults || [],
+          targetActualResults: sanitizedTargets,
         };
       }
 
