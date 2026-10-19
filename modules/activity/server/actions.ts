@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { Prisma, ActivityPlanType, ActivityStatus } from "@prisma/client";
 import { type1PlannedStrategy } from "../features/type-1/planned/infrastructure/type1-planned.strategy";
 import { type1UnplannedStrategy } from "../features/type-1/unplanned/infrastructure/type1-unplanned.strategy";
+import { type2PlannedStrategy } from "../features/type-2/planned/infrastructure/type2-planned.strategy";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -140,6 +141,19 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         await type1PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
       }
 
+      // 5. Save Type 2 targets directly to dedicated table activity_plan_type_2_targets
+      const hasType2 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_2") ||
+            rawData.workTypeCodes.includes("ติดตามผลการใช้สินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+        (rawData.type2Targets && rawData.type2Targets.length > 0);
+
+      if (hasType2) {
+        await type2PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+      }
+
       return createdPlan;
     });
 
@@ -227,6 +241,19 @@ export async function updateActivityPlanAction(
         await type1UnplannedStrategy.savePlan(tx, id, rawData);
       } else {
         await type1PlannedStrategy.savePlan(tx, id, rawData);
+      }
+
+      // 4. Save Type 2 targets
+      const hasType2 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_2") ||
+            rawData.workTypeCodes.includes("ติดตามผลการใช้สินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+        (rawData.type2Targets && rawData.type2Targets.length > 0);
+
+      if (hasType2) {
+        await type2PlannedStrategy.savePlan(tx, id, rawData);
       }
 
       return updatedPlan;

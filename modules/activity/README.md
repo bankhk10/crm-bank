@@ -446,12 +446,22 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] สร้าง Database Infrastructure (`infrastructure/`) และแยกขาดจากการพึ่งพา `modules/activity-plans` 100%
 - [x] **Step 1: Approval Workflow & Authority Backbone** (`domain/approval/`, `operator-resolver`, `hooks/use-approver-directory`, Pure UI Badge)
 - [x] **Step 2: Plan Summary & Targets Registry Engine** (`domain/summary/`, Extensible Targets Registry, 100% Decoupled Views)
-- [ ] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
+- [x] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
 - [ ] ทยอย Migrate ประเภทงาน Type 3 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
 
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.6.0 (2026-10-19)
+- **Type 2 Vertical Slice Complete (ติดตามผลการใช้สินค้า / Product Follow-up)**:
+  - พัฒนา Type 2 Vertical Slice ใน `modules/activity/features/type-2/` ตามต้นแบบ Gold Standard ครบวงจร
+  - **Planned Sub-slice**: `Type2PlanForm`, `Type2PlanCard`, `useType2Form`, `type2PlannedStrategy`, Zod Validation (`validateType2FormItems`) และ Mappers (`extractType2PlanTargets`, `hydrateType2PlannedData`)
+  - **Actual Sub-slice**: `Type2ActualForm`, `Type2DetailView`, `Type2ApprovalCard`, `useType2Actual`, Zod Validation (`validateType2Actual`) และ Mappers (`parseType2ActualResult`, `mapType2ActualFormToDb`)
+  - **Domain Integration**: ลงทะเบียน `TYPE_2` Extractor ใน `domain/summary/plan-targets-registry.ts`
+  - **Views Orchestrators**: เชื่อมโยงเข้ากับ `DetailWorkTypeList`, `ApprovalWorkTypeList`, `ActualWorkTypeList` และ `activity-plan-actual-view.tsx`
+  - **Server Actions**: ผนวก `type2PlannedStrategy` เข้ากับ `createActivityPlanAction` และ `updateActivityPlanAction`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
 
 ### Version 1.5.1 (2026-10-19)
 - **100% Route & Shared Components Migration (Quick Win Complete)**:

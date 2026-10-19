@@ -6,10 +6,15 @@ import {
   type Type1TargetItem,
   type useType1Actual,
 } from "@/modules/activity/features/type-1";
+import {
+  Type2ActualForm,
+  type useType2Actual,
+} from "@/modules/activity/features/type-2";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
   type1State: ReturnType<typeof useType1Actual>;
+  type2State?: ReturnType<typeof useType2Actual>;
   targets: Type1TargetItem[];
   plan?: any;
   products?: any[];
@@ -22,6 +27,7 @@ interface ActualWorkTypeListProps {
 export function ActualWorkTypeList({
   planWorkTypes,
   type1State,
+  type2State,
   targets,
   plan,
   products = [],
@@ -42,6 +48,12 @@ export function ActualWorkTypeList({
     plan?.activityType?.code === "TYPE_1" ||
     targets.length > 0 ||
     planWorkTypes.length === 0;
+
+  const isType2 =
+    planWorkTypes.includes("TYPE_2") ||
+    planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
+    planWorkTypes.includes("ติดตามผล") ||
+    Boolean(plan?.type2Targets?.length);
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -79,8 +91,28 @@ export function ActualWorkTypeList({
         />
       )}
 
-      {/* 🔵 TYPE 2: ติดตามผล (จะเพิ่มเข้ามาที่นี่เมื่อทำ Feature Type 2) */}
-      {/* {isType2 && <Type2ActualForm ... />} */}
+      {/* 🔵 TYPE 2: ติดตามผลการใช้สินค้า (Product Follow-up) */}
+      {isType2 && type2State && (
+        <Type2ActualForm
+          isVisible={true}
+          targets={plan?.type2Targets}
+          target={plan?.type2Targets?.[0]}
+          planType={plan?.planType}
+          products={products}
+          followupResults={type2State.t2FollowupResults}
+          onUpdateFollowupResults={type2State.setT2FollowupResults}
+          detail={type2State.t2Detail}
+          setDetail={type2State.setT2Detail}
+          followupDetail={type2State.t2FollowupDetail}
+          setFollowupDetail={type2State.setT2FollowupDetail}
+          usageResult={type2State.t2UsageResult}
+          setUsageResult={type2State.setT2UsageResult}
+          problemDetail={type2State.t2ProblemDetail}
+          setProblemDetail={type2State.setT2ProblemDetail}
+          images={type2State.t2Images}
+          setImages={type2State.setT2Images}
+        />
+      )}
     </div>
   );
 }

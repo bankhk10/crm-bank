@@ -34,6 +34,7 @@ import {
   extractType1PlanTargets,
   type Type1TargetItem,
 } from "@/modules/activity/features/type-1";
+import { useType2Actual } from "@/modules/activity/features/type-2";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 
@@ -66,8 +67,9 @@ export function ActivityPlanActualView({
   // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
   const statusState = useActualStatusState();
 
-  // 3. Type 1 Actual State Hook
+  // 3. Type 1 & Type 2 Actual State Hooks
   const type1Actual = useType1Actual();
+  const type2Actual = useType2Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -86,7 +88,7 @@ export function ActivityPlanActualView({
     messages: [],
   });
 
-  // 4. Hydrate Type 1 plan targets & existing actual result
+  // 4. Hydrate Type 1 & Type 2 plan targets & existing actual result
   useEffect(() => {
     if (plan && !isHydrated) {
       const extractedTargets = extractType1PlanTargets(plan);
@@ -96,11 +98,12 @@ export function ActivityPlanActualView({
       const res = plan.result || plan.actualResult || plan;
       if (res) {
         type1Actual.hydrate(res);
+        type2Actual.hydrate(res);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -257,11 +260,25 @@ export function ActivityPlanActualView({
           }),
         );
 
+        // Collect Type 2 payload if active
+        const isType2Active =
+          planWorkTypes.includes("TYPE_2") ||
+          planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
+          planWorkTypes.includes("ติดตามผล") ||
+          Boolean(plan?.type2Targets?.length);
+
+        const t2Payload: Record<string, any> = isType2Active
+          ? type2Actual.collectPayload()
+          : {};
+
         payload = {
           ...payload,
+          ...t2Payload,
+          followupResults: t2Payload.t2FollowupResults || [],
           resultSummary:
             t1Payload.discussionResult ||
-            `บันทึกผลการเข้าพบ (${activityResultStatus})`,
+            t2Payload.t2FollowupDetail ||
+            `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
           discussionResult: t1Payload.discussionResult || null,
           productAdvice: t1Payload.productAdvice || null,
           advisedProducts: t1Payload.products || [],
@@ -434,6 +451,7 @@ export function ActivityPlanActualView({
             <ActualWorkTypeList
               planWorkTypes={planWorkTypes}
               type1State={type1Actual}
+              type2State={type2Actual}
               targets={targets}
               plan={plan}
               products={products}

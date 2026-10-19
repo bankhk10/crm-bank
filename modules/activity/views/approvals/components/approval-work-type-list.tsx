@@ -9,6 +9,10 @@ import {
   type Type1TargetItem,
   type Type1ImageFile,
 } from "@/modules/activity/features/type-1";
+import {
+  Type2ApprovalCard,
+  Type2DetailView,
+} from "@/modules/activity/features/type-2";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -28,6 +32,7 @@ interface ApprovalWorkTypeListProps {
  */
 export function ApprovalWorkTypeList({
   plan,
+  targets,
   type1Targets,
   parsedResults,
   isTypeActive,
@@ -35,6 +40,11 @@ export function ApprovalWorkTypeList({
   const isType1 =
     isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
     isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer");
+
+  const isType2 =
+    isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า") ||
+    isTypeActive("TYPE_2", "ติดตามผล") ||
+    Boolean(plan?.type2Targets?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -60,6 +70,27 @@ export function ApprovalWorkTypeList({
         ),
     );
   }, [isUnplanned, plan, type1Targets]);
+
+  const hasType2ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (
+      plan?.result?.followupResults &&
+      plan.result.followupResults.length > 0
+    ) {
+      return true;
+    }
+    if (
+      parsedResults?.t2FollowupResults &&
+      parsedResults.t2FollowupResults.length > 0
+    ) {
+      return true;
+    }
+    return Boolean(
+      parsedResults?.t2UsageResult ||
+        parsedResults?.t2ProblemDetail ||
+        parsedResults?.t2FollowupDetail,
+    );
+  }, [isUnplanned, plan, parsedResults]);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -138,7 +169,30 @@ export function ApprovalWorkTypeList({
         />
       )}
 
-      {/* 🔵 ประเภทงานอื่นๆ (Type 2 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
+      {/* 🔵 TYPE 2: ติดตามผลการใช้สินค้า (Product Follow-up) */}
+      {isType2 &&
+        (hasType2ActualResults ? (
+          <Type2DetailView
+            isVisible={true}
+            target={targets?.t2}
+            targets={targets?.t2List}
+            followupResults={parsedResults?.t2FollowupResults}
+            customerName={parsedResults?.t2CustomerName}
+            detail={parsedResults?.t2Detail}
+            followupDetail={parsedResults?.t2FollowupDetail}
+            usageResult={parsedResults?.t2UsageResult}
+            problemDetail={parsedResults?.t2ProblemDetail}
+            images={parsedResults?.t2Images}
+          />
+        ) : (
+          <Type2ApprovalCard
+            isVisible={true}
+            target={targets?.t2}
+            targets={targets?.t2List}
+          />
+        ))}
+
+      {/* 🔵 ประเภทงานอื่นๆ (Type 3 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
     </div>
   );
 }

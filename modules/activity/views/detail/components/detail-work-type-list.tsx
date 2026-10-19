@@ -7,6 +7,7 @@ import {
   type Type1TargetItem,
   type Type1ImageFile,
 } from "@/modules/activity/features/type-1";
+import { Type2DetailView } from "@/modules/activity/features/type-2";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -25,6 +26,7 @@ interface DetailWorkTypeListProps {
  */
 export function DetailWorkTypeList({
   plan,
+  targets,
   type1Targets,
   parsedResults,
   isTypeActive,
@@ -32,6 +34,11 @@ export function DetailWorkTypeList({
   const isType1 =
     isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
     isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer");
+
+  const isType2 =
+    isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า") ||
+    isTypeActive("TYPE_2", "ติดตามผล") ||
+    Boolean(plan?.type2Targets?.length);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -93,7 +100,21 @@ export function DetailWorkTypeList({
         plotImages={effectiveImages}
       />
 
-      {/* 🔵 ประเภทงานอื่นๆ (Type 2 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
+      {/* 🔵 TYPE 2: ติดตามผลการใช้สินค้า (Product Follow-up) */}
+      <Type2DetailView
+        isVisible={isType2}
+        target={targets?.t2}
+        targets={targets?.t2List}
+        followupResults={parsedResults?.t2FollowupResults}
+        customerName={parsedResults?.t2CustomerName}
+        detail={parsedResults?.t2Detail}
+        followupDetail={parsedResults?.t2FollowupDetail}
+        usageResult={parsedResults?.t2UsageResult}
+        problemDetail={parsedResults?.t2ProblemDetail}
+        images={parsedResults?.t2Images}
+      />
+
+      {/* 🔵 ประเภทงานอื่นๆ (Type 3 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
     </div>
   );
 }
