@@ -3,7 +3,7 @@ import { Search, X, Users, MapPin, UserCircle2, Store } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
 import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
 
-import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+import { getWorkTypeCode } from "@/modules/activity/constants";
 
 export interface Employee {
   id: string;

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
 import { SectionHeader } from "@/components/custom/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "./types";
-import { MARKETING_UNITS } from "@/modules/activity-plans/constants";
+import { MARKETING_UNITS } from "@/modules/activity/constants";
 
 export interface PromotionalProductOption {
   name: string;

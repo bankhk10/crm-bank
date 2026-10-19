@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import {
   isLocationAndTeamRequired,
   getWorkTypeCode,
-} from "@/modules/activity-plans/constants";
+} from "@/modules/activity/constants";
 
 export interface Employee {
   id: string;

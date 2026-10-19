@@ -10,7 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { ActivityResultStatusType } from "../../actual/types";
-import { ACTIVITY_RESULT_STATUS_LABELS } from "@/modules/activity-plans/constants";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "@/modules/activity/constants";
 
 interface DetailActivityStatusSectionProps {
   activityResultStatus?: ActivityResultStatusType;

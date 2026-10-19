@@ -123,21 +123,23 @@ export function ActualFormExample({ plan, statusState, isType1 }) {
       />
 
       {/* 3. ส่วนเฉพาะ Type 1: ฟอร์มผลการเข้าพบจริง + ถ่ายรูป GPS (ดึงจาก features/type-1) */}
-      {statusState.activityResultStatus === "COMPLETED" && isType1 && (
-        <Type1ActualForm
-          isVisible={true}
-          targets={targets}
-          targetActualResults={type1Actual.t1TargetItems}
-          onUpdateTargetActualResults={type1Actual.syncFromTargetItems}
-          productAdvice={type1Actual.t1ProductAdvice}
-          discussionResult={type1Actual.t1DiscussionResult}
-          salesOpportunity={type1Actual.t1SalesOpportunity}
-          nextAction={type1Actual.t1NextAction}
-          nextMeetingDate={type1Actual.t1NextMeetingDate}
-          plotImages={type1Actual.t1PlotImages}
-          setPlotImages={type1Actual.setT1PlotImages}
-        />
-      )}
+      {(statusState.activityResultStatus === "COMPLETED" ||
+        statusState.activityResultStatus === "PARTIAL") &&
+        isType1 && (
+          <Type1ActualForm
+            isVisible={true}
+            targets={targets}
+            targetActualResults={type1Actual.t1TargetItems}
+            onUpdateTargetActualResults={type1Actual.syncFromTargetItems}
+            productAdvice={type1Actual.t1ProductAdvice}
+            discussionResult={type1Actual.t1DiscussionResult}
+            salesOpportunity={type1Actual.t1SalesOpportunity}
+            nextAction={type1Actual.t1NextAction}
+            nextMeetingDate={type1Actual.t1NextMeetingDate}
+            plotImages={type1Actual.t1PlotImages}
+            setPlotImages={type1Actual.setT1PlotImages}
+          />
+        )}
 
       {/* 4. ส่วนกลาง: สรุปค่าใช้จ่ายจริง & สื่อของแถมจริง */}
       <ActualExpenseSection planSummary={planSummary} />

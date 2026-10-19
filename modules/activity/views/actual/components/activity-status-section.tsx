@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateTimePicker } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { ActivityResultStatusType } from "../types";
-import { ACTIVITY_RESULT_STATUS_LABELS } from "@/modules/activity-plans/constants";
+import { ACTIVITY_RESULT_STATUS_LABELS } from "@/modules/activity/constants";
 
 interface ActivityStatusSectionProps {
   activityResultStatus: ActivityResultStatusType;

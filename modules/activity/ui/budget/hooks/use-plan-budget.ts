@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   MARKETING_PRODUCT_CATEGORIES,
   DEMO_PRODUCTS,
-} from "@/modules/activity-plans/constants";
+} from "@/modules/activity/constants";
 import type {
   MarketingBudgetProductItem,
   SalesPromotionItem,

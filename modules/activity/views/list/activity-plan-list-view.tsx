@@ -13,7 +13,7 @@ import {
   getActivityTypesAction,
 } from "@/modules/activity-plans/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
-import { WORK_TYPE_CONFIG } from "@/modules/activity-plans/constants";
+import { WORK_TYPE_CONFIG } from "@/modules/activity/constants";
 import type { MultiSelectOption } from "@/components/custom/multi-select";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Copy, RefreshCw, CheckCircle2 } from "lucide-react";

@@ -9,7 +9,7 @@ import {
   reviewSingleActivityHelperAction,
 } from "@/modules/activity-plans/server/actions";
 import { canUserPerformApproval } from "@/modules/activity-plans/ui/activity-status-badge";
-import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+import { getWorkTypeCode } from "@/modules/activity/constants";
 import {
   extractPlanData,
   parseResultSummary,

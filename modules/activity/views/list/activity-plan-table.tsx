@@ -30,7 +30,7 @@ import {
   getWorkTypeCode,
   ACTIVITY_RESULT_STATUS_LABELS,
   STATUS_OPTIONS,
-} from "@/modules/activity-plans/constants";
+} from "@/modules/activity/constants";
 import CustomTable from "@/components/custom/custom-table";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ActionButton } from "@/components/custom/action-button";
