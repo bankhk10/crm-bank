@@ -284,30 +284,149 @@ export async function getApproverDirectoryAction() {
   }
 }
 
-// ─── Re-export standard helpers, workflows, & actions for modules/activity views ───
-export {
-  getCurrentUserEmployeeAction,
-  getActivityTypesAction,
-  getDemoPlotsAction,
-  getProductCategoriesAction,
-  getActivePromotionalMaterialsGroupedAction,
-  getApprovalQueueDataAction,
-  approveActivityPlanAction,
-  rejectActivityPlanAction,
-  requestCorrectionPlanAction,
-  cancelActivityPlanAction,
-  requestCancelActivityPlanAction,
-  approveCancelActivityPlanAction,
-  rejectCancelActivityPlanAction,
-  deleteActivityPlanAction,
-  submitActivityPlanAction,
-  duplicateActivityPlanAction,
-  reviewSingleActivityHelperAction,
-  getActivityCalendarEventsAction,
-  createPromotionalMaterialAction,
-  updatePromotionalMaterialAction,
-  deletePromotionalMaterialAction,
-  getPromotionalMaterialsAction,
-  getDistinctPromotionalCategoriesAction,
-  recordActivityResultAction,
-} from "@/modules/activity-plans/server/actions";
+import * as legacyActions from "@/modules/activity-plans/server/actions";
+
+// ─── Async wrapper actions compliant with Next.js 16 'use server' boundary ───
+export async function getCurrentUserEmployeeAction(
+  ...args: Parameters<typeof legacyActions.getCurrentUserEmployeeAction>
+) {
+  return legacyActions.getCurrentUserEmployeeAction(...args);
+}
+
+export async function getActivityTypesAction(
+  ...args: Parameters<typeof legacyActions.getActivityTypesAction>
+) {
+  return legacyActions.getActivityTypesAction(...args);
+}
+
+export async function getDemoPlotsAction(
+  ...args: Parameters<typeof legacyActions.getDemoPlotsAction>
+) {
+  return legacyActions.getDemoPlotsAction(...args);
+}
+
+export async function getProductCategoriesAction(
+  ...args: Parameters<typeof legacyActions.getProductCategoriesAction>
+) {
+  return legacyActions.getProductCategoriesAction(...args);
+}
+
+export async function getActivePromotionalMaterialsGroupedAction(
+  ...args: Parameters<typeof legacyActions.getActivePromotionalMaterialsGroupedAction>
+) {
+  return legacyActions.getActivePromotionalMaterialsGroupedAction(...args);
+}
+
+export async function getApprovalQueueDataAction(
+  ...args: Parameters<typeof legacyActions.getApprovalQueueDataAction>
+) {
+  return legacyActions.getApprovalQueueDataAction(...args);
+}
+
+export async function approveActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.approveActivityPlanAction>
+) {
+  return legacyActions.approveActivityPlanAction(...args);
+}
+
+export async function rejectActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.rejectActivityPlanAction>
+) {
+  return legacyActions.rejectActivityPlanAction(...args);
+}
+
+export async function requestCorrectionPlanAction(
+  ...args: Parameters<typeof legacyActions.requestCorrectionPlanAction>
+) {
+  return legacyActions.requestCorrectionPlanAction(...args);
+}
+
+export async function cancelActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.cancelActivityPlanAction>
+) {
+  return legacyActions.cancelActivityPlanAction(...args);
+}
+
+export async function requestCancelActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.requestCancelActivityPlanAction>
+) {
+  return legacyActions.requestCancelActivityPlanAction(...args);
+}
+
+export async function approveCancelActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.approveCancelActivityPlanAction>
+) {
+  return legacyActions.approveCancelActivityPlanAction(...args);
+}
+
+export async function rejectCancelActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.rejectCancelActivityPlanAction>
+) {
+  return legacyActions.rejectCancelActivityPlanAction(...args);
+}
+
+export async function deleteActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.deleteActivityPlanAction>
+) {
+  return legacyActions.deleteActivityPlanAction(...args);
+}
+
+export async function submitActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.submitActivityPlanAction>
+) {
+  return legacyActions.submitActivityPlanAction(...args);
+}
+
+export async function duplicateActivityPlanAction(
+  ...args: Parameters<typeof legacyActions.duplicateActivityPlanAction>
+) {
+  return legacyActions.duplicateActivityPlanAction(...args);
+}
+
+export async function reviewSingleActivityHelperAction(
+  ...args: Parameters<typeof legacyActions.reviewSingleActivityHelperAction>
+) {
+  return legacyActions.reviewSingleActivityHelperAction(...args);
+}
+
+export async function getActivityCalendarEventsAction(
+  ...args: Parameters<typeof legacyActions.getActivityCalendarEventsAction>
+) {
+  return legacyActions.getActivityCalendarEventsAction(...args);
+}
+
+export async function createPromotionalMaterialAction(
+  ...args: Parameters<typeof legacyActions.createPromotionalMaterialAction>
+) {
+  return legacyActions.createPromotionalMaterialAction(...args);
+}
+
+export async function updatePromotionalMaterialAction(
+  ...args: Parameters<typeof legacyActions.updatePromotionalMaterialAction>
+) {
+  return legacyActions.updatePromotionalMaterialAction(...args);
+}
+
+export async function deletePromotionalMaterialAction(
+  ...args: Parameters<typeof legacyActions.deletePromotionalMaterialAction>
+) {
+  return legacyActions.deletePromotionalMaterialAction(...args);
+}
+
+export async function getPromotionalMaterialsAction(
+  ...args: Parameters<typeof legacyActions.getPromotionalMaterialsAction>
+) {
+  return legacyActions.getPromotionalMaterialsAction(...args);
+}
+
+export async function getDistinctPromotionalCategoriesAction(
+  ...args: Parameters<typeof legacyActions.getDistinctPromotionalCategoriesAction>
+) {
+  return legacyActions.getDistinctPromotionalCategoriesAction(...args);
+}
+
+export async function recordActivityResultAction(
+  ...args: Parameters<typeof legacyActions.recordActivityResultAction>
+) {
+  return legacyActions.recordActivityResultAction(...args);
+}
