@@ -401,7 +401,7 @@ export function ActivityPlanActualView({
   }
 
   return (
-   <section className="space-y-6 container mx-auto px-0 sm:px-0">
+    <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
         <ActualViewHeader planNo={planSummary.planNo} />
         {isRefreshing && (
@@ -429,7 +429,20 @@ export function ActivityPlanActualView({
           {/* 1. สรุปข้อมูลแผนเดิม */}
           <ActualPlanSummary summary={planSummary} />
 
-          {/* 2. สถานะผลการทำกิจกรรม (สำเร็จ / เลื่อน / ยกเลิก) */}
+          {/* 2. ฟอร์มผลการปฏิบัติงานตามประเภทงาน (Work Types 1 - 14) */}
+          {(statusState.activityResultStatus === "COMPLETED" ||
+            statusState.activityResultStatus === "PARTIAL") && (
+            <ActualWorkTypeList
+              planWorkTypes={planWorkTypes}
+              type1State={type1Actual}
+              type2State={type2Actual}
+              targets={targets}
+              plan={plan}
+              products={products}
+            />
+          )}
+
+          {/* 3. สถานะผลการทำกิจกรรม (สำเร็จ / เลื่อน / ยกเลิก) */}
           <ActivityStatusSection
             activityResultStatus={statusState.activityResultStatus}
             setActivityResultStatus={statusState.setActivityResultStatus}
@@ -444,19 +457,6 @@ export function ActivityPlanActualView({
             postponedNotes={statusState.postponedNotes}
             setPostponedNotes={statusState.setPostponedNotes}
           />
-
-          {/* 3. ฟอร์มผลการปฏิบัติงานตามประเภทงาน (Work Types 1 - 14) */}
-          {(statusState.activityResultStatus === "COMPLETED" ||
-            statusState.activityResultStatus === "PARTIAL") && (
-            <ActualWorkTypeList
-              planWorkTypes={planWorkTypes}
-              type1State={type1Actual}
-              type2State={type2Actual}
-              targets={targets}
-              plan={plan}
-              products={products}
-            />
-          )}
 
           {/* ปุ่มบันทึก */}
           <FormActionButtons
