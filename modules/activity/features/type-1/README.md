@@ -3,6 +3,7 @@
 > **Feature Slice**: `modules/activity/features/type-1`  
 > **Gold Standard Reference**: ต้นแบบ Vertical Slice Architecture สำหรับประเภทงานอื่น (Work Types 2 - 14)  
 > **Parent Module**: `modules/activity`  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType1Store`, `ActivityResultType1`, `ActivityResultType1Product`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference
 
 ---
@@ -11,9 +12,9 @@
 
 ### 1.1 วัตถุประสงค์ของ Type 1
 **Type 1 (เข้าพบร้านค้า / Key Farmer)** มีวัตถุประสงค์เพื่อรองรับการปฏิบัติงานของพนักงานสนาม (Sales / Technical Reps / Promoters) ในการเดินทางเข้าพบลูกค้ากลุ่มเป้าหมายเพื่อ:
-1. แจ้งข้อมูลข่าวสาร แคมเปญ หรือโปรโมชั่น
+1. แจ้งข้อมูลข่าวสาร แคมเปญ หรือสิทธิประโยชน์ทางการค้า
 2. ให้คำแนะนำทางเทคนิคการใช้ผลิตภัณฑ์เคมีเกษตรและปุ๋ย
-3. แนะนำสินค้าใหม่หรือผลักดันยอดขาย
+3. แนะนำสินค้าใหม่หรือผลักดันยอดขายหน้าร้านและแปลงเกษตรกร
 4. ติดตามความสัมพันธ์และสำรวจความต้องการของร้านค้าและเกษตรกรชั้นนำ
 
 ### 1.2 ขอบเขตของ Type 1
@@ -21,8 +22,8 @@
   - **ร้านค้า (STORE):** ตัวแทนจำหน่ายหลัก (`DEALER`) และตัวแทนจำหน่ายย่อย (`SUBDEALER`)
   - **เกษตรกร (FARMER):** เกษตรกรที่มีประวัติในฐานข้อมูลลูกค้า (Registered Customer) และเกษตรกรรายใหม่ที่ยังไม่ได้ลงทะเบียนในระบบ (Unregistered Farmer)
 - **การจัดเก็บข้อมูล:**
-  - วางแผนเป้าหมายล่วงหน้า (Planned Targets): กำหนดสถานที่, บุคคลที่เข้าพบ, หัวข้อการเข้าพบ และรายละเอียด
-  - บันทึกผลการปฏิบัติงานจริง (Actual Outcome): ระบุผลการเข้าพบรายเป้าหมาย (สำเร็จ/ไม่สำเร็จ), ผลการพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, แผนดำเนินการต่อ, วันนัดหมายครั้งถัดไป, พิกัด GPS และรูปถ่ายแปลง/หน้าร้าน
+  - **วางแผนเป้าหมายล่วงหน้า (Planned Targets):** กำหนดสถานที่, บุคคลที่เข้าพบ, หัวข้อการเข้าพบ และรายละเอียด
+  - **บันทึกผลการปฏิบัติงานจริง (Actual Outcome):** ระบุผลการเข้าพบรายเป้าหมาย (สำเร็จ/ไม่สำเร็จ), ผลการพูดคุย, สินค้าที่แนะนำ, โอกาสการขาย, แผนดำเนินการต่อ, วันนัดหมายครั้งถัดไป, พิกัด GPS และรูปถ่ายแปลง/หน้าร้าน
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน):** วางแผนการเดินทางเข้าพบล่วงหน้า ส่งขออนุมัติตามสายงานก่อนออกปฏิบัติงานจริง
@@ -59,7 +60,7 @@ graph TD
     F --> G[ปักหมุด GPS และอัปโหลดรูปภาพ]
     G --> H[กดบันทึกผลการปฏิบัติงาน]
     H --> I[อัปโหลดรูปภาพไปยัง Storage]
-    I --> J[บันทึกลง activity_result_type_1]
+    I --> J[บันทึกลง activity_result_type_1 และ activity_result_type_1_products]
     C -->|POSTPONED| K[ระบุวันเวลานัดหมายใหม่และเหตุผลที่เลื่อน]
     C -->|CANCELLED| L[ระบุเหตุผลการยกเลิก]
 ```
@@ -67,10 +68,10 @@ graph TD
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new`
 - ฟอร์มจะผสานทั้งการระบุเป้าหมาย (ลูกค้า/ร้านค้า) และการบันทึกผลการปฏิบัติงาน (ผลพูดคุย/สินค้า/รูปภาพ/GPS) เข้าด้วยกัน
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะเสร็จสิ้นทันที พร้อมบันทึกเป้าหมายและผลงานพร้อมกันผ่าน `type1UnplannedStrategy`
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะเสร็จสิ้นทันที พร้อมบันทึกเป้าหมายและผลงานพร้อมกันผ่าน `type1UnplannedStrategy` ภายใน $transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
-- **Detail View:** แสดงการ์ด `Type1PlanCard` สำหรับข้อมูลเป้าหมายตามแผน และแสดง `Type1DetailView` เพื่อดูผลการปฏิบัติงานจริงและรูปภาพถ่ายสถานที่
+- **Detail View:** แสดงการ์ด `Type1PlanCard` สำหรับข้อมูลเป้าหมายตามแผน และแสดง `Type1DetailView` เพื่อดูผลการปฏิบัติงานจริง สินค้าที่แนะนำ และรูปถ่ายสถานที่
 - **Approval View:** แสดง `Type1ApprovalCard` สรุปร้านค้า/เกษตรกรที่วางแผนเข้าพบ เพื่อให้หัวหน้างานพิจารณาอนุมัติแผนงาน
 
 ---
@@ -129,7 +130,7 @@ modules/activity/features/type-1/
 | **งบประมาณ** | - | งบเบิกสินค้าสาธิต, ของแถม, ค่าใช้จ่ายเดินทาง |
 | **ข้อมูลเป้าหมาย** | เลือกร้านค้า, เกษตรกรใน/นอกระบบ, หัวข้อเข้าพบ | - |
 | **ผลการเข้าพบจริง** | ผลพูดคุย, สินค้าที่แนะนำ, โอกาสขาย, วันนัดถัดไป, GPS, รูปภาพ | ผลสรุปภาพรวมแผน (สำเร็จ/เลื่อน/ยกเลิก) |
-| **Database Persistence** | ตาราง `activity_plan_type_1_stores`, `activity_result_type_1` | ตารางหลัก `ActivityPlan`, `ActivityPlanApprovalLog` |
+| **Database Persistence** | ตาราง `activity_plan_type_1_stores`, `activity_result_type_1`, `activity_result_type_1_products` | ตารางหลัก `ActivityPlan`, `ActivityPlanApprovalLog`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ (Allowed):**
@@ -181,11 +182,36 @@ modules/activity/features/type-1/
 
 ## 5. Data Flow
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as พนักงานสนาม
+    participant Form as Type1ActualForm (UI)
+    participant Hook as useType1Actual (Hook)
+    participant Action as recordActivityResultAction
+    participant Strategy as type1PlannedStrategy
+    participant DB as PostgreSQL (Prisma)
+
+    User->>Form: กรอกผลพูดคุย / สินค้า / ถ่ายภาพ / ปักหมุด GPS
+    Form->>Hook: syncFromTargetItems()
+    User->>Form: กดปุ่ม "บันทึกผลการปฏิบัติงาน"
+    Form->>Hook: uploadImages() ➔ ได้ URL รูปภาพ
+    Form->>Hook: getPayload(cleanImages) ➔ สร้าง Payload
+    Form->>Action: ส่ง Payload ไปยัง Server Action
+    Action->>Strategy: saveActual(tx, planId, payload)
+    Strategy->>DB: deleteMany() ลบผลงานเก่าใน activity_result_type_1
+    Strategy->>DB: create() บันทึกลง activity_result_type_1
+    Strategy->>DB: deleteMany() + createMany() ใน activity_result_type_1_products
+    DB-->>Strategy: บันทึกสำเร็จ (Commit)
+    Strategy-->>Action: Success
+    Action-->>Form: แสดง Toast "บันทึกผลเรียบร้อยแล้ว"
+```
+
 ### 5.1 Create Planned (สร้างแผนใหม่)
 1. `create-view.tsx` เรียกใช้ `useType1PlannedForm()`
 2. ผู้ใช้ระบุเป้าหมายใน `Type1PlannedForm`
 3. ผู้ใช้กดส่งข้อมูล ➔ รัน `validateType1PlannedItem`
-4. Form Orchestrator รวม Type 1 payload ➔ ส่ง Server Action ➔ เรียก `type1PlannedStrategy.savePlan()`
+4. Form Orchestrator รวม Type 1 payload ➔ ส่ง Server Action `createActivityPlanAction` ➔ เรียก `type1PlannedStrategy.savePlan()`
 5. Prisma บันทึกลงตาราง `activity_plan_type_1_stores`
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
@@ -199,7 +225,7 @@ modules/activity/features/type-1/
 2. เรียก `type1Actual.uploadImages(id)` เพื่ออัปโหลดไฟล์ภาพไปยัง Storage ได้ URLs กลับมา
 3. เรียก `type1Actual.getPayload(cleanImages)` รวบรวมผลการเข้าพบทุกเป้าหมาย
 4. ส่ง Payload เข้า `recordActivityResultAction(id, payload)`
-5. `type1PlannedStrategy.saveActual()` ลบผลงานเก่าแล้วสร้างระเบียนใหม่ลงตาราง `activity_result_type_1`
+5. `type1PlannedStrategy.saveActual()` ลบผลงานเก่าแล้วสร้างระเบียนใหม่ลงตาราง `activity_result_type_1` และบันทึกสินค้าแนะนำลง `activity_result_type_1_products`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. `useActualPlanLoader` โหลดแผนและข้อมูล `plan.result`
@@ -210,7 +236,7 @@ modules/activity/features/type-1/
 ### 5.5 Create/Edit Unplanned (กิจกรรมนอกแผน)
 1. ผู้ใช้กรอกฟอร์ม `Type1UnplannedForm`
 2. ข้อมูลเป้าหมายและผลงานถูกตรวจสอบพร้อมกันด้วย `type1UnplannedSchema`
-3. `type1UnplannedStrategy.savePlan()` บันทึกเป้าหมายและผลงานจริงในทรานแซกชันเดียวกัน
+3. `type1UnplannedStrategy.savePlan()` บันทึกเป้าหมายลง `activity_plan_type_1_stores` และผลงานลง `activity_result_type_1` ใน $transaction เดียวกัน
 
 ### 5.6 Detail and Approval (การแสดงผลหน้ารายละเอียดและพิจารณาอนุมัติ)
 1. โหลดข้อมูลแผนงานผ่าน `useDetailPlanLoader` หรือ `useApprovalDetailLoader`
@@ -222,84 +248,124 @@ modules/activity/features/type-1/
 
 ## 6. Data Models and Mapping
 
-### 6.1 Planned Types (`planned.types.ts`)
-```typescript
-export interface Type1PlannedItem {
-  id: string;
-  visitPurpose: "FARMER" | "STORE";
-  storeId?: string;
-  customerName?: string;
-  isUnregisteredFarmer?: boolean;
-  unregisteredFarmerName?: string;
-  unregisteredFarmerPhone?: string;
-  topic?: string;
-  detail?: string;
-  province?: string;
+### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
+| ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`activity_plan_type_1_stores`**<br>(`ActivityPlanType1Store`) | `savePlan()`<br>ใน Planned/Unplanned | `loadPlan()`, `plan.type1Stores` ใน Detail / Edit / Actual | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการเป้าหมายตามแผนงาน |
+| **`activity_result_type_1`**<br>(`ActivityResultType1`) | `saveActual()`<br>ใน Actual/Unplanned | `plan.type1Stores[].result` หรือ `plan.result` | `deleteMany()` + `create()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` หรือ `PlanStore` | เก็บผลการเข้าพบจริง พิกัด GPS ผลพูดคุย |
+| **`activity_result_type_1_products`**<br>(`ActivityResultType1Product`) | `saveActual()` | `plan.type1Products` หรือ `target.advisedProducts` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บสินค้าแนะนำที่ผูกกับเป้าหมาย |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `upsertActivityResult()` | `plan.attachments` (หมวดหมู่ GENERAL/PLOT) | ลบรายการเก่าและสร้างระเบียนใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายจริง |
+
+### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
+ไล่จาก **Form Field ➔ Type Field ➔ Mapper ➔ Prisma Model ➔ DB Column Name ➔ Data Type**:
+
+| Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
+| :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
+| **เป้าหมายเข้าพบ** | `visitPurpose` | `mapType1PlannedItemToDb` / `mapType1DbStoreToPlannedItem` | `ActivityPlanType1Store` | `visit_purpose` | `VARCHAR` | No | `"FARMER"` |
+| **รหัสร้านค้า/ลูกค้า** | `storeId` | `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อลูกค้า/ร้านค้า** | `customerName` | `mapType1DbStoreToPlannedItem` (อ่านจาก `store.name` หรือ `unregisteredFarmerName`) | `Customer` / `Store` | `name` | `VARCHAR` | Yes | - |
+| **จังหวัดของเป้าหมาย** | `province` | `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `province` | `VARCHAR` | No | `""` |
+| **เกษตรกรไม่มีในระบบ**| `isUnregisteredFarmer`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `is_unregistered_farmer`| `BOOLEAN` | No | `false` |
+| **ชื่อเกษตรกรนอกระบบ**| `unregisteredFarmerName`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `unregistered_farmer_name`| `VARCHAR` | Yes | `null` |
+| **เบอร์โทรเกษตรกร** | `unregisteredFarmerPhone`| `mapType1PlannedItemToDb` | `ActivityPlanType1Store` | `unregistered_farmer_phone`| `VARCHAR` | Yes | `null` |
+| **หัวข้อการเข้าพบ** | `topic` | `mapType1PlannedItemToDb` (Fallback จาก `remarks`) | `ActivityPlanType1Store` | `topic` | `VARCHAR` | Yes | `"แจ้งข่าวสาร"`|
+| **รายละเอียดเป้าหมาย**| `detail` | `mapType1PlannedItemToDb` (บันทึกลง `notes`) | `ActivityPlanType1Store` | `notes` | `TEXT` | Yes | `null` |
+| **ผลการเข้าพบ (สำเร็จ?)**| `isMet` | `mapType1ActualFormToDb` | Form State Only | - | `BOOLEAN` | - | `true` |
+| **คำแนะนำสินค้า** | `productAdvice` | `mapType1ActualFormToDb` | `ActivityResultType1` | `product_advice` | `TEXT` | Yes | `null` |
+| **ผลการพูดคุย** | `discussionResult` | `mapType1ActualFormToDb` | `ActivityResultType1` | `discussion_result` | `TEXT` | Yes | `null` |
+| **โอกาสการขาย** | `salesOpportunity` | `mapType1ActualFormToDb` | `ActivityResultType1` | `sales_opportunity` | `TEXT` | Yes | `null` |
+| **การปฏิบัติการถัดไป**| `nextAction` | `mapType1ActualFormToDb` | `ActivityResultType1` | `next_action` | `TEXT` | Yes | `null` |
+| **วันนัดหมายถัดไป** | `nextMeetingDate` | `mapType1ActualFormToDb` (`new Date()`) / `extractType1PlanTargets` (`split('T')[0]`) | `ActivityResultType1` | `next_meeting_date` | `TIMESTAMP` | Yes | `null` |
+| **ที่อยู่เกษตรกรจริง**| `farmerHomeAddress` | `mapType1ActualFormToDb` | `ActivityResultType1` | `farmer_home_address` | `TEXT` | Yes | `null` |
+| **พิกัดละติจูด (GPS)** | `plotLatitude` | `mapType1ActualFormToDb` (`Number(val)`) | `ActivityResultType1` | `plot_latitude` | `DECIMAL(10,7)`| Yes | `null` |
+| **พิกัดลองจิจูด (GPS)**| `plotLongitude`| `mapType1ActualFormToDb` (`Number(val)`) | `ActivityResultType1` | `plot_longitude` | `DECIMAL(10,7)`| Yes | `null` |
+| **รายการสินค้าแนะนำ**| `advisedProducts` | `mapType1ActualFormToDb` ➔ Array of `{ productId, productName }` | `ActivityResultType1Product`| `product_id` | `VARCHAR (FK)` | No | - |
+| **รูปถ่ายสถานที่/แปลง**| `plotImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
+
+### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
+
+```prisma
+// 1. ตารางเก็บเป้าหมายเข้าพบ Type 1
+model ActivityPlanType1Store {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  visitPurpose            String   @map("visit_purpose") // "FARMER" | "STORE"
+  storeId                 String?  @map("store_id")
+  province                String   @map("province")
+  isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
+  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
+  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
+  topic                   String?  @map("topic")
+  notes                   String?  @map("notes")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  result                  ActivityResultType1?
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_plan_type_1_stores")
+}
+
+// 2. ตารางเก็บผลการเข้าพบจริง Type 1
+model ActivityResultType1 {
+  id                String    @id @default(cuid())
+  activityPlanId    String    @map("activity_plan_id")
+  planStoreId       String?   @unique @map("plan_store_id")
+  productAdvice     String?   @map("product_advice")
+  discussionResult  String?   @map("discussion_result")
+  salesOpportunity  String?   @map("sales_opportunity")
+  nextAction        String?   @map("next_action")
+  nextMeetingDate   DateTime? @map("next_meeting_date")
+  farmerHomeAddress String?   @map("farmer_home_address")
+  plotLatitude      Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
+  plotLongitude     Decimal?  @map("plot_longitude") @db.Decimal(10, 7)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  activityPlan      ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  planStore         ActivityPlanType1Store? @relation(fields: [planStoreId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([planStoreId])
+  @@map("activity_result_type_1")
+}
+
+// 3. ตารางเก็บสินค้าแนะนำประจำเป้าหมาย Type 1
+model ActivityResultType1Product {
+  id             String       @id @default(cuid())
+  activityPlanId String       @map("activity_plan_id")
+  targetId       String?      @map("target_id")
+  productId      String       @map("product_id")
+  productName    String?      @map("product_name")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([productId])
+  @@index([targetId])
+  @@map("activity_result_type_1_products")
 }
 ```
 
-### 6.2 Actual Types (`actual.types.ts`)
-```typescript
-export interface Type1TargetActualItem {
-  targetId: string;
-  storeId?: string;
-  customerName: string;
-  isMet: boolean;               // ผลการเข้าพบ: สำเร็จ หรือ ไม่สำเร็จ
-  unmetReason?: string;         // สาเหตุที่เข้าพบไม่สำเร็จ
-  discussionResult?: string;
-  productAdvice?: string;
-  salesOpportunity?: string;
-  nextAction?: string;
-  nextMeetingDate?: string;
-  farmerHomeAddress?: string;
-  plotLatitude?: string;
-  plotLongitude?: string;
-  plotImages?: Type1ImageFile[];
-}
-```
-
-### 6.3 Unplanned Types (`unplanned.types.ts`)
-```typescript
-export interface Type1UnplannedItem extends Type1PlannedItem {
-  isMet: boolean;
-  discussionResult?: string;
-  productAdvice?: string;
-  salesOpportunity?: string;
-  plotLatitude?: string;
-  plotLongitude?: string;
-  plotImages?: Type1ImageFile[];
-}
-```
-
-### 6.4 Form-to-Database Mapping
-| ฟิลด์บนฟอร์ม Type 1 | ฟิลด์ในตาราง DB (`activity_plan_type_1_stores`) | ฟิลด์ในตาราง DB (`activity_result_type_1`) |
-| :--- | :--- | :--- |
-| `visitPurpose` | `visit_purpose` ("FARMER" / "STORE") | - |
-| `storeId` | `store_id` (FK ➔ Customer.id) | `store_id` |
-| `customerName` | อ่านจาก `store.name` | `customer_name` |
-| `isUnregisteredFarmer` | `is_unregistered_farmer` (Boolean) | - |
-| `unregisteredFarmerName`| `unregistered_farmer_name` (String) | - |
-| `topic` | `topic` (String) | - |
-| `detail` | `notes` (String) | - |
-| `discussionResult` | - | `discussion_result` |
-| `productAdvice` | - | `product_advice` |
-| `salesOpportunity` | - | `sales_opportunity` |
-| `nextMeetingDate` | - | `next_meeting_date` (DateTime) |
-| `plotLatitude` / `Lng` | - | `plot_latitude` / `plot_longitude` |
-| `plotImages` | - | ตารางลูก `activity_result_type_1_images` |
-
-### 6.5 Database Tables and Relations
-1. **`ActivityPlan` (ตารางหลัก):** เชื่อมโยง 1-to-Many กับเป้าหมายและผลงาน
-2. **`activity_plan_type_1_stores`:** เก็บรายการเป้าหมายตามแผนของ Type 1
-   - `activityPlanId` (FK)
-   - `storeId` (FK ➔ `Customer`, optional)
-   - `visitPurpose`, `topic`, `notes`
-3. **`activity_result_type_1`:** เก็บผลการปฏิบัติงานจริง
-   - `activityPlanId` (FK)
-   - `planStoreId` (FK ➔ `activity_plan_type_1_stores`, optional)
-   - `discussionResult`, `salesOpportunity`, `plotLatitude`, `plotLongitude`
-4. **`activity_result_type_1_products`:** เก็บรายการสินค้าที่แนะนำในการเข้าพบ
-5. **`activity_result_type_1_images`:** เก็บ URL และ Metadata ของรูปภาพที่อัปโหลด
+### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
+- **การจัดการ Transaction (Isolation & Atomicity):**
+  - ทุกการบันทึกของ Type 1 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
+  - หากการบันทึกภาพถ่าย หรือสินค้าแนะนำ หรือพิกัดล้มเหลว ระบบจะทำการ **Rollback ทั้งหมด** ไม่ปล่อยให้มีระเบียนกำพร้า (Orphaned records) ตกค้าง
+- **ขาเขียน (Write Flow):**
+  1. *Planned:* ลบระเบียนเดิมใน `activity_plan_type_1_stores` ที่ผูกกับ `activityPlanId` ออกทั้งหมด ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()`
+  2. *Actual:* ลบระเบียนเดิมใน `activity_result_type_1` และ `activity_result_type_1_products` ➔ สร้างระเบียนผลงานใหม่โดยผูก `planStoreId` กับเป้าหมาย
+  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ บันทึก `activity_plan_type_1_stores` ➔ บันทึก `activity_result_type_1` ใน Transaction เดียวกัน
+- **ขาอ่าน (Read / Hydration Flow):**
+  1. *Planned Edit:* ดึง `plan.type1Stores` (พร้อม include `store`) ➔ ส่งผ่าน `hydrateType1PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
+  2. *Actual View:* ดึง `plan.type1Stores` + `result` ➔ ส่งผ่าน `extractType1PlanTargets()` เพื่อกระจายข้อมูลให้ตัวแปร `targets` และเรียก `type1Actual.hydrate(res)` เพื่อกู้คืนภาพถ่าย พิกัด และผลพูดคุย
+- **การลบข้อมูล (Delete Policy):**
+  - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_plan_type_1_stores`, `activity_result_type_1`, และ `activity_result_type_1_products` จะถูกลบออกอัตโนมัติ
 
 ---
 
@@ -308,7 +374,7 @@ export interface Type1UnplannedItem extends Type1PlannedItem {
 ### 7.1 Validation Rules
 - **กรณีเข้าพบร้านค้า (`STORE`):**
   - ต้องเลือกร้านค้าที่มีอยู่ในระบบเท่านั้น (`storeId` ห้ามว่าง)
-  - ไม่อนุญาตให้เลือกเกษตรกรที่ไม่มีในระบบ
+  - ไม่อนุญาตให้เลือกเกษตรกรที่ไม่มีในระบบ (`isUnregisteredFarmer` ต้องเป็น false)
   - ร้านค้าต้องมีประเภทลูกค้าเป็น `DEALER` หรือ `SUBDEALER`
 - **กรณีเข้าพบเกษตรกร (`FARMER`):**
   - หากเป็นเกษตรกรในระบบ: ลูกค้าต้องมีประเภทเป็น `FARMER`
@@ -382,29 +448,56 @@ export interface Type1UnplannedItem extends Type1PlannedItem {
 
 ---
 
-## 10. Troubleshooting (ปัญหาที่พบบ่อยและวิธีแก้ไข)
+## 10. Troubleshooting & Tracing Pipeline
 
-| อาการ | สาเหตุที่เป็นไปได้ | แนวทางแก้ไข |
+### 10.1 Step-by-Step Tracing Pipeline (คู่มือการไล่โค้ดเมื่อพบปัญหา)
+
+เมื่อพบว่าข้อมูลบางจุดไม่แสดงผล (เช่น `nextMeetingDate` ไม่แสดงหลัง Reload) ให้ไล่ตรวจสอบตาม 8 ขั้นตอนนี้ตามลำดับ:
+
+```text
+[Step 1: UI Field] ➔ Type1ActualForm.tsx (ตรวจว่า DatePicker ผูกกับ value={target.nextMeetingDate} หรือไม่)
+        ↓
+[Step 2: Hook State] ➔ use-type1-actual.ts (ตรวจว่า targetItems มี key "nextMeetingDate" หรือไม่)
+        ↓
+[Step 3: Save Mapper] ➔ actual-mapper.ts (ตรวจ mapType1ActualFormToDb ว่าดึง nextMeetingDate ใส่ payload หรือไม่)
+        ↓
+[Step 4: Server Action] ➔ recordActivityResultAction ➔ recordActivityResultUseCase
+        ↓
+[Step 5: Strategy Write] ➔ type1-planned.strategy.ts: saveActual()
+                          (ตรวจว่าแปลง new Date(nextMeetingDate) บันทึกลง Prisma หรือไม่)
+        ↓
+[Step 6: Prisma Table] ➔ ActivityResultType1 (คอลัมน์ next_meeting_date ใน DB มีค่าจริงหรือไม่)
+        ↓
+[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include type1Stores.result ครบถ้วนหรือไม่)
+        ↓
+[Step 8: Load Hydrator] ➔ planned-mapper.ts: extractType1PlanTargets()
+                          (ตรวจว่าดึง result.nextMeetingDate แปลงกลับเป็น String "YYYY-MM-DD" หรือไม่)
+```
+
+### 10.2 ตารางวิเคราะห์ปัญหาที่พบบ่อย (Common Pitfalls)
+
+| อาการ | จุดที่ต้องตรวจสอบ | ต้นตอและวิธีแก้ไข |
 | :--- | :--- | :--- |
-| **ข้อมูลเป้าหมายไม่ขึ้นในหน้าแก้ไข** | `hydrateType1PlannedData` อ่านคีย์ไม่ตรงกับ Record ในฐานข้อมูล | ตรวจสอบว่า record ส่งมาเป็น `type1Stores`, `items`, หรือ `stores` ใน `planned-mapper.ts` |
-| **หน้า Trip Plan Actual ไม่มีช่องให้กรอกข้อมูล** | สถานะเป็น `PARTIAL` แต่เงื่อนไขหน้าจอเช็คเฉพาะ `COMPLETED` | ตรวจสอบเงื่อนไขใน `activity-plan-actual-view.tsx` ให้รองรับทั้ง `COMPLETED` และ `PARTIAL` |
-| **ข้อมูลหายหลังกด Reload หน้าเว็บ** | ขาดการ Hydrate State ใน `useEffect` หรือ `isHydrated` ถูกรีเซ็ต | ตรวจสอบ `useEffect` ใน `activity-plan-actual-view.tsx` และตรวจว่าเรียก `type1Actual.hydrate()` ครบถ้วน |
-| **บันทึกแล้วข้อมูลโอกาสการขายไม่ลง DB** | ตอน submit ไม่ได้ดึง payload เมื่อเลือกสถานะสำเร็จบางส่วน | อัปเดต `handleSubmit` ใน `activity-plan-actual-view.tsx` ให้อัปโหลดรูปและส่ง payload ทั้ง `COMPLETED` และ `PARTIAL` |
-| **ข้อมูล Planned ซ้อนกับ Unplanned** | ไม่ได้แยก `isUnplanned` flag หรือ Strategy บันทึกผิดตาราง | ตรวจสอบว่ากิจกรรมนอกแผนถูกส่งไปยัง `type1UnplannedStrategy` อย่างถูกต้อง |
+| **ข้อมูลเป้าหมายไม่ขึ้นในหน้าแก้ไข** | `planned-mapper.ts` ➔ `hydrateType1PlannedData` | Record ส่งมาเป็น `type1Stores` แต่โค้ดอ่าน `items` หรือ `stores` ให้เพิ่ม fallback ตรวจสอบให้ครบทั้ง 3 คีย์ |
+| **หน้า Trip Plan Actual ไม่มีช่องให้กรอกข้อมูล** | `activity-plan-actual-view.tsx` บรรทัด 308 | สถานะตั้งต้นเป็น `PARTIAL` แต่ JSX เช็คแค่ `statusState.activityResultStatus === "COMPLETED"` ให้เปลี่ยนเป็น `=== "COMPLETED" \|\| === "PARTIAL"` |
+| **วันนัดหมายถัดไป (`nextMeetingDate`) หายหลัง Reload** | `planned-mapper.ts` ➔ `extractType1PlanTargets` | ค่าใน DB ส่งมาเป็น `Date Object` หรือ `ISO String with Time` ให้ใช้ `.split("T")[0]` เพื่อตัดเวลาออกก่อนส่งให้ `<DatePicker />` |
+| **บันทึกแล้วสินค้าที่แนะนำไม่ลง Database** | `type1-planned.strategy.ts` ➔ `saveActual` | อาเรย์ `advisedProducts` ขาดฟิลด์ `productId` ตรวจสอบว่า Dropdown ส่ง Product Object ที่มี `id` มาครบถ้วน |
+| **กดบันทึกแล้วแจ้งเตือนไม่มีสิทธิ์** | `recordActivityResultUseCase` ใน application | สิทธิ์การบันทึกผลเป็นของ Creator หรือ Super Admin เท่านั้น ตรวจสอบ `userId === plan.createdById` |
 
 ---
 
 ## 11. Testing and Manual UAT
 
 ### แผนการทดสอบแบบครบวงจร (End-to-End Test Checklist):
-- [ ] **TC-01 (Planned Create - Farmer):** สร้างแผนเข้าพบเกษตรกรในระบบและเกษตรกรนอกระบบ บันทึกร่างและส่งอนุมัติได้สำเร็จ
-- [ ] **TC-02 (Planned Create - Store):** สร้างแผนเข้าพบร้านค้า โดยเลือกเฉพาะ Dealer/Subdealer
-- [ ] **TC-03 (Planned Edit):** เข้าหน้าแก้ไข (`/activity-plans/[id]/edit`) ข้อมูลร้านค้าและเป้าหมายต้องแสดงครบทุกช่อง
+- [ ] **TC-01 (Planned Create - Farmer):** สร้างแผนเข้าพบเกษตรกรในระบบและเกษตรกรนอกระบบ บันทึกร่างและส่งอนุมัติได้สำเร็จ ตรวจสอบข้อมูลในตาราง `activity_plan_type_1_stores`
+- [ ] **TC-02 (Planned Create - Store):** สร้างแผนเข้าพบร้านค้า โดยเลือกเฉพาะ Dealer/Subdealer ระบบต้องปฏิเสธหากเลือกลูกค้าที่เป็น Farmer
+- [ ] **TC-03 (Planned Edit):** เข้าหน้าแก้ไข (`/activity-plans/[id]/edit`) ข้อมูลร้านค้าและเป้าหมายต้องแสดงครบทุกช่อง แก้ไขแล้วบันทึกสำเร็จ
 - [ ] **TC-04 (Detail View):** เข้าหน้ารายละเอียด (`/activity-plans/[id]`) การ์ดเป้าหมาย Type 1 ต้องแสดงถูกต้อง
-- [ ] **TC-05 (Actual - Completed):** บันทึกผลการปฏิบัติงานจริงแบบ "ปฏิบัติงานแล้วเสร็จ" พร้อมใส่ผลพูดคุย สินค้าที่แนะนำ ปักหมุด GPS และอัปโหลดภาพถ่าย
+- [ ] **TC-05 (Actual - Completed):** บันทึกผลการปฏิบัติงานจริงแบบ "ปฏิบัติงานแล้วเสร็จ" พร้อมใส่ผลพูดคุย สินค้าที่แนะนำ ปักหมุด GPS และอัปโหลดภาพถ่าย ตรวจสอบว่าบันทึกลง `activity_result_type_1`
 - [ ] **TC-06 (Actual - Partial):** บันทึกผลแบบ "สำเร็จบางส่วน" ตรวจสอบว่ามีช่องให้กรอกข้อมูลครบถ้วน และบันทึกผลได้จริง
 - [ ] **TC-07 (Unplanned 2-in-1):** สร้างกิจกรรมนอกแผน ระบุร้านค้าพร้อมผลพูดคุยในหน้าเดียว บันทึกแล้วเสร็จสมบูรณ์ทันที
 - [ ] **TC-08 (Approval View):** หัวหน้างานเข้าหน้าพิจารณาอนุมัติ ข้อมูลเป้าหมาย Type 1 ต้องแสดงในการ์ดอนุมัติอย่างถูกต้อง
+- [ ] **TC-09 (Reload Persistence Check):** หลังบันทึกผลจริง ให้กด F5 / Refresh หน้าจอ ข้อมูลผลการเข้าพบ วันนัดถัดไป พิกัด และภาพถ่ายต้องยังอยู่ครบ 100%
 
 ---
 
@@ -428,3 +521,4 @@ export interface Type1UnplannedItem extends Type1PlannedItem {
 | **2026-10-15** | 1.0.2 | แก้ไขปัญหาหน้า Actual ซ่อนฟอร์มเมื่อสถานะเป็น `PARTIAL` และเพิ่ม Hydration สถานะเดิม | Antigravity AI |
 | **2026-10-19** | 1.1.0 | ปลด Dependency ออกจากโฟลเดอร์เก่า สลับมาใช้ `@/modules/activity/constants` และลบ Mock Data (`DEMO_PRODUCTS`) | Antigravity AI |
 | **2026-10-19** | 1.2.0 | จัดทำเอกสารคู่มือมาตรฐานฉบับสมบูรณ์สำหรับ Type 1 Feature (`README.md`) | Antigravity AI |
+| **2026-10-19** | 1.3.0 | เติม Database CRUD Matrix, Field Mapping ครบทุกคอลัมน์, รายละเอียด Prisma Schema, Tracing Pipeline, และ Transaction Write/Read Flow | Antigravity AI |
