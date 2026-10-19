@@ -182,7 +182,10 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             planType: plan.planType || "PLANNED",
             type1Stores: (plan as any).type1Stores || plan.stores || [],
             type1Results: (plan as any).type1Results || [],
-            type1Result: (plan as any).type1Results?.[0] || (plan as any).type1Result || null,
+            type1Result:
+              (plan as any).type1Results?.[0] ||
+              (plan as any).type1Result ||
+              null,
             type1Products: (plan as any).type1Products || [],
             type2Targets: (plan as any).type2Targets || [],
             type2Products: (plan as any).type2Products || [],
@@ -226,7 +229,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
   }
 
   return (
-    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-white min-h-screen rounded-2xl">
       {loadError && (
         <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
           <AlertDescription>{loadError}</AlertDescription>
