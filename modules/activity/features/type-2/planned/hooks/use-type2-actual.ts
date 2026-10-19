@@ -4,6 +4,8 @@ import { useState, useRef, useCallback } from "react";
 import type { Type2ImageFile } from "../../shared/types";
 import type { FollowupProductItem } from "../types/planned.types";
 
+import { parseType2ActualResult } from "../application/actual-mapper";
+
 export function useType2Actual() {
   const [t2CustomerName, setT2CustomerName] = useState("");
   const [t2FollowupDetail, setT2FollowupDetail] = useState("");
@@ -20,47 +22,72 @@ export function useType2Actual() {
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
-    if (parsed.t2CustomerName) setT2CustomerName(parsed.t2CustomerName);
-    if (parsed.t2FollowupResults && parsed.t2FollowupResults.length > 0) {
-      setT2FollowupResults(parsed.t2FollowupResults);
+
+    // Normalize data: support Prisma ActivityResult object, parsed result, or plain payload
+    const normalized: any =
+      parsed.followupResults || parsed.resultSummary
+        ? parseType2ActualResult(parsed)
+        : {};
+
+    const followupList =
+      parsed.t2FollowupResults ||
+      (Array.isArray(parsed.followupResults) && parsed.followupResults[0]?.usageResult !== undefined
+        ? parsed.followupResults
+        : normalized.followupResults);
+
+    const customer =
+      parsed.t2CustomerName || parsed.customerName || normalized.customerName;
+
+    const usage =
+      parsed.t2UsageResult || parsed.usageResult || normalized.usageResult;
+
+    const followup =
+      parsed.t2FollowupDetail ||
+      parsed.followupDetail ||
+      normalized.followupDetail;
+
+    const problem =
+      parsed.t2ProblemDetail ||
+      parsed.problemDetail ||
+      normalized.problemDetail;
+
+    if (customer) setT2CustomerName(customer);
+    if (followupList && Array.isArray(followupList) && followupList.length > 0) {
+      setT2FollowupResults(followupList);
     }
-    if (parsed.t2UsageResult) {
-      setT2UsageResult(parsed.t2UsageResult as any);
+    if (usage) {
+      setT2UsageResult(usage as any);
     }
 
     const isProblem =
-      parsed.t2UsageResult === "พบปัญหา" ||
-      (typeof parsed.t2UsageResult === "string" &&
-        parsed.t2UsageResult.includes("พบปัญหา") &&
-        !parsed.t2UsageResult.includes("พืชตอบสนองดี") &&
-        !parsed.t2UsageResult.includes("ลูกค้าพึงพอใจ"));
+      usage === "พบปัญหา" ||
+      (typeof usage === "string" &&
+        usage.includes("พบปัญหา") &&
+        !usage.includes("พืชตอบสนองดี") &&
+        !usage.includes("ลูกค้าพึงพอใจ"));
 
     if (isProblem) {
       setT2FollowupDetail("");
       setT2Detail("");
-      if (parsed.t2ProblemDetail) {
-        setT2ProblemDetail(parsed.t2ProblemDetail);
+      if (problem) {
+        setT2ProblemDetail(problem);
       }
     } else {
-      if (parsed.t2FollowupDetail) {
-        setT2FollowupDetail(parsed.t2FollowupDetail);
-        setT2Detail(parsed.t2FollowupDetail);
+      if (followup) {
+        setT2FollowupDetail(followup);
+        setT2Detail(followup);
       }
-      if (
-        parsed.t2UsageResult === "พืชตอบสนองดี" ||
-        parsed.t2UsageResult === "ลูกค้าพึงพอใจ"
-      ) {
+      if (usage === "พืชตอบสนองดี" || usage === "ลูกค้าพึงพอใจ") {
         setT2ProblemDetail("");
-      } else if (parsed.t2ProblemDetail) {
-        setT2ProblemDetail(parsed.t2ProblemDetail);
+      } else if (problem) {
+        setT2ProblemDetail(problem);
       }
     }
 
-    if (parsed.t2Images && parsed.t2Images.length > 0) {
-      setT2Images(parsed.t2Images);
-      initialT2ImagesRef.current = JSON.parse(
-        JSON.stringify(parsed.t2Images),
-      );
+    const imagesList = parsed.t2Images || parsed.images || parsed.attachments;
+    if (imagesList && Array.isArray(imagesList) && imagesList.length > 0) {
+      setT2Images(imagesList);
+      initialT2ImagesRef.current = JSON.parse(JSON.stringify(imagesList));
     }
   }, []);
 

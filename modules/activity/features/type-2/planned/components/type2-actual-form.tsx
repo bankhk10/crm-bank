@@ -148,7 +148,55 @@ export function Type2ActualForm({
   };
 
   const effectiveTargets = useMemo(() => {
-    return targets && targets.length > 0 ? targets : target ? [target] : [];
+    const rawList =
+      targets && targets.length > 0 ? targets : target ? [target] : [];
+
+    return rawList.map((t: any, idx: number) => {
+      // If already in structured Type2TargetItem shape (has items array)
+      if (t.items && Array.isArray(t.items)) {
+        return t;
+      }
+
+      // If raw Prisma ActivityPlanType2Target object (has products relation)
+      const isUnregistered = Boolean(t.isUnregisteredFarmer);
+      const customerDisplayName = isUnregistered
+        ? t.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"
+        : t.store?.name || t.customer || t.storeName || "ร้านค้า/เกษตรกร";
+
+      const productsList: any[] = t.products || [];
+      const items: FollowupProductItem[] = productsList.map(
+        (p: any, pIdx: number) => ({
+          id: p.id || `planned-${idx}-${pIdx}`,
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "สินค้า",
+          customer: customerDisplayName,
+          storeId: t.storeId || undefined,
+          detail: p.notes || t.notes || "",
+          expectedResult: "พืชตอบสนองดี",
+          isAdditional: false,
+        }),
+      );
+
+      return {
+        id: t.id,
+        storeId: t.storeId || undefined,
+        storeName: t.store?.name || undefined,
+        customer: customerDisplayName,
+        keyFarmer: isUnregistered ? t.unregisteredFarmerName : undefined,
+        province: t.province,
+        visitPurpose: t.visitPurpose,
+        isUnregisteredFarmer: isUnregistered,
+        unregisteredFarmerName: t.unregisteredFarmerName || undefined,
+        unregisteredFarmerPhone: t.unregisteredFarmerPhone || undefined,
+        detail: t.notes || "",
+        expectedResult: "พืชตอบสนองดี",
+        product: productsList
+          .map((p: any) => p.product?.name || p.productName)
+          .filter(Boolean)
+          .join(", "),
+        items,
+      };
+    });
   }, [targets, target]);
 
   const initialPlannedItems: FollowupProductItem[] = useMemo(() => {
@@ -158,7 +206,7 @@ export function Type2ActualForm({
 
     effectiveTargets.forEach((t, tIdx) => {
       if (t.items && t.items.length > 0) {
-        t.items.forEach((item, idx) => {
+        t.items.forEach((item: any, idx: number) => {
           const parsedUsage = getParsedUsageResult(
             usageResult,
             item.productName,
@@ -268,6 +316,49 @@ export function Type2ActualForm({
       return [];
     },
   );
+
+  // Sync state whenever followupResults or initialPlannedItems change from async load
+  useEffect(() => {
+    if (followupResults && followupResults.length > 0) {
+      const fromSavedPlanned = followupResults.filter((f) => !f.isAdditional);
+      if (fromSavedPlanned.length > 0) {
+        setPlannedItems(
+          fromSavedPlanned.map((item, idx) => ({
+            ...item,
+            id: item.id || `planned-${idx}`,
+            isAdditional: false,
+            usageResult:
+              item.usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ",
+            problemDetail:
+              item.usageResult === "พบปัญหา" ? item.problemDetail || "" : "",
+            followupDetail:
+              item.usageResult !== "พบปัญหา" ? item.followupDetail || "" : "",
+          })),
+        );
+      } else if (initialPlannedItems.length > 0) {
+        setPlannedItems(initialPlannedItems);
+      }
+
+      const fromSavedAdditional = followupResults.filter((f) => f.isAdditional);
+      if (fromSavedAdditional.length > 0) {
+        setAdditionalItems(
+          fromSavedAdditional.map((item) => ({
+            ...item,
+            id: item.id || crypto.randomUUID(),
+            isAdditional: true,
+            usageResult:
+              item.usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ",
+            problemDetail:
+              item.usageResult === "พบปัญหา" ? item.problemDetail || "" : "",
+            followupDetail:
+              item.usageResult !== "พบปัญหา" ? item.followupDetail || "" : "",
+          })),
+        );
+      }
+    } else if (initialPlannedItems.length > 0) {
+      setPlannedItems(initialPlannedItems);
+    }
+  }, [followupResults, initialPlannedItems]);
 
   const syncChanges = (
     newPlanned: FollowupProductItem[],

@@ -37,6 +37,8 @@ import {
 import {
   useType2Actual,
   validateType2Actual,
+  extractType2PlanTargets,
+  type Type2TargetItem,
 } from "@/modules/activity/features/type-2";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
@@ -74,6 +76,7 @@ export function ActivityPlanActualView({
   const type1Actual = useType1Actual();
   const type2Actual = useType2Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
+  const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -96,6 +99,9 @@ export function ActivityPlanActualView({
     if (plan && !isHydrated) {
       const extractedTargets = extractType1PlanTargets(plan);
       setTargets(extractedTargets.list);
+
+      const extractedT2 = extractType2PlanTargets(plan);
+      setType2Targets(extractedT2.list);
 
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
@@ -451,6 +457,7 @@ export function ActivityPlanActualView({
               type1State={type1Actual}
               type2State={type2Actual}
               targets={targets}
+              type2Targets={type2Targets}
               plan={plan}
               products={products}
             />

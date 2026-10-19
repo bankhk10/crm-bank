@@ -8,6 +8,7 @@ import {
 } from "@/modules/activity/features/type-1";
 import {
   Type2ActualForm,
+  type Type2TargetItem,
   type useType2Actual,
 } from "@/modules/activity/features/type-2";
 
@@ -16,6 +17,7 @@ interface ActualWorkTypeListProps {
   type1State: ReturnType<typeof useType1Actual>;
   type2State?: ReturnType<typeof useType2Actual>;
   targets: Type1TargetItem[];
+  type2Targets?: Type2TargetItem[];
   plan?: any;
   products?: any[];
 }
@@ -29,6 +31,7 @@ export function ActualWorkTypeList({
   type1State,
   type2State,
   targets,
+  type2Targets = [],
   plan,
   products = [],
 }: ActualWorkTypeListProps) {
@@ -91,8 +94,12 @@ export function ActualWorkTypeList({
       {isType2Active && type2State && (
         <Type2ActualForm
           isVisible={true}
-          targets={plan?.type2Targets}
-          target={plan?.type2Targets?.[0]}
+          targets={
+            type2Targets && type2Targets.length > 0
+              ? type2Targets
+              : plan?.type2Targets
+          }
+          target={type2Targets?.[0] || plan?.type2Targets?.[0]}
           planType={plan?.planType}
           products={products}
           followupResults={type2State.t2FollowupResults}

@@ -281,9 +281,13 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
       where: { activityResultId: result.id },
     });
 
-    if (followupResults.length > 0) {
+    const validFollowups = followupResults.filter(
+      (item: any) => item && Boolean(item.productId),
+    );
+
+    if (validFollowups.length > 0) {
       await tx.activityResultFollowupItem.createMany({
-        data: followupResults.map((item) => ({
+        data: validFollowups.map((item: any) => ({
           activityResultId: result.id,
           storeId: item.storeId || null,
           productId: item.productId,

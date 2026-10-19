@@ -53,6 +53,37 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (resData.nextAction && !result.nextAction) {
       result.nextAction = resData.nextAction;
     }
+
+    // Type 2 Follow-up Results from relation table
+    if (
+      Array.isArray(resData.followupResults) &&
+      resData.followupResults.length > 0 &&
+      !result.t2FollowupResults
+    ) {
+      result.t2FollowupResults = resData.followupResults.map((item: any) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.productName || item.product?.name || "สินค้า",
+        storeId: item.storeId,
+        customer:
+          item.store?.name || item.customerName || item.customer || "",
+        usageResult: item.usageResult as any,
+        followupDetail: item.followupDetail || "",
+        problemDetail: item.problemDetail || "",
+        isAdditional: Boolean(item.isAdditional),
+      }));
+
+      const primary: any = result.t2FollowupResults?.[0];
+      if (primary) {
+        if (!result.t2CustomerName) result.t2CustomerName = primary.customer;
+        if (!result.t2UsageResult) result.t2UsageResult = primary.usageResult;
+        if (!result.t2FollowupDetail)
+          result.t2FollowupDetail = primary.followupDetail;
+        if (!result.t2ProblemDetail)
+          result.t2ProblemDetail = primary.problemDetail;
+        if (!result.t2Detail) result.t2Detail = primary.followupDetail;
+      }
+    }
   }
 
   return result;

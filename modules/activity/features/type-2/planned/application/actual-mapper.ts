@@ -15,14 +15,17 @@ export function parseType2ActualResult(result: any): {
     return { followupResults: [] };
   }
 
-  // 1. From dedicated relation result.followupResults
-  if (result.followupResults && Array.isArray(result.followupResults) && result.followupResults.length > 0) {
-    const list: FollowupProductItem[] = result.followupResults.map((item: any) => ({
+  // 1. From dedicated relation result.followupResults or result.t2FollowupResults
+  const rawFollowupList =
+    result.followupResults || result.t2FollowupResults;
+
+  if (rawFollowupList && Array.isArray(rawFollowupList) && rawFollowupList.length > 0) {
+    const list: FollowupProductItem[] = rawFollowupList.map((item: any) => ({
       id: item.id,
       productId: item.productId,
       productName: item.productName || item.product?.name || "สินค้า",
       storeId: item.storeId,
-      customer: item.store?.name,
+      customer: item.store?.name || item.customerName || item.customer || "",
       usageResult: item.usageResult as any,
       followupDetail: item.followupDetail || "",
       problemDetail: item.problemDetail || "",
@@ -32,10 +35,11 @@ export function parseType2ActualResult(result: any): {
     const primary = list[0];
     return {
       followupResults: list,
-      customerName: primary?.customer,
-      usageResult: primary?.usageResult,
-      followupDetail: primary?.followupDetail,
-      problemDetail: primary?.problemDetail,
+      customerName: primary?.customer || result.customerName || result.t2CustomerName,
+      usageResult: primary?.usageResult || result.usageResult || result.t2UsageResult,
+      followupDetail: primary?.followupDetail || result.followupDetail || result.t2FollowupDetail,
+      problemDetail: primary?.problemDetail || result.problemDetail || result.t2ProblemDetail,
+      detail: primary?.followupDetail || result.detail || result.t2Detail,
     };
   }
 
@@ -44,13 +48,15 @@ export function parseType2ActualResult(result: any): {
   if (rawSummary) {
     try {
       const parsed = typeof rawSummary === "string" ? JSON.parse(rawSummary) : rawSummary;
-      if (parsed?.followupResults && Array.isArray(parsed.followupResults)) {
+      const parsedList = parsed?.followupResults || parsed?.t2FollowupResults;
+      if (parsedList && Array.isArray(parsedList) && parsedList.length > 0) {
         return {
-          followupResults: parsed.followupResults,
-          customerName: parsed.t2CustomerName,
-          usageResult: parsed.t2UsageResult,
-          followupDetail: parsed.t2FollowupDetail,
-          problemDetail: parsed.t2ProblemDetail,
+          followupResults: parsedList,
+          customerName: parsed.t2CustomerName || parsed.customerName,
+          usageResult: parsed.t2UsageResult || parsed.usageResult,
+          followupDetail: parsed.t2FollowupDetail || parsed.followupDetail,
+          problemDetail: parsed.t2ProblemDetail || parsed.problemDetail,
+          detail: parsed.t2Detail || parsed.detail,
         };
       }
     } catch (e) {

@@ -146,10 +146,15 @@ export interface ExtractedPlanData {
 }
 
 export interface FollowupProductItem {
+  id?: string;
   productId: string;
   productName: string;
-  usageResult?: "พืชตอบสนองดี" | "พบปัญหา";
+  customer?: string;
+  storeId?: string;
+  usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | string;
   problemDetail?: string;
+  followupDetail?: string;
+  isAdditional?: boolean;
 }
 
 export interface Type5SurveyRecord {

@@ -60,7 +60,7 @@ export function extractType2PlanTargets(
       const items: FollowupProductItem[] = (t.products || []).map((p: any) => ({
         id: p.id,
         productId: p.productId,
-        productName: p.product?.name || "สินค้า",
+        productName: p.product?.name || p.productName || "สินค้า",
         customer: customerDisplayName,
         storeId: t.storeId || undefined,
         detail: p.notes || t.notes || "",
@@ -88,7 +88,7 @@ export function extractType2PlanTargets(
         detail: t.notes || "",
         expectedResult: "พืชตอบสนองดี",
         product: (t.products || [])
-          .map((p: any) => p.product?.name)
+          .map((p: any) => p.product?.name || p.productName)
           .filter(Boolean)
           .join(", "),
         items,
