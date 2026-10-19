@@ -4,11 +4,16 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { X, UserCheck, Store, MapPin, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import DatePicker from "@/components/custom/DatePicker";
-import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
+import {
+  ActivityPhotoUpload,
+  ActivityGpsPicker,
+  ActivityProductSelect,
+  type ActivityProductItem,
+} from "@/components/activity";
 import { Badge } from "@/components/ui/badge";
+import { listProductsAction } from "@/modules/products/server/actions";
 import { Type1PlanCard } from "./type1-plan-card";
 import type {
   ProductOption,
@@ -240,6 +245,26 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
   const plotImages = (actualState?.t1PlotImages && actualState.t1PlotImages.length > 0) ? actualState.t1PlotImages : (props.plotImages ?? []);
   const setPlotImages = actualState?.setT1PlotImages ?? props.setPlotImages;
 
+  // Self-healing fallback: Load products from master if not supplied by parent view
+  const [internalProducts, setInternalProducts] = useState<ProductOption[]>([]);
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setInternalProducts(products);
+      return;
+    }
+    listProductsAction({ status: "ACTIVE", perPage: 1000 })
+      .then((res: any) => {
+        const list = res?.products || res?.data || [];
+        if (list.length > 0) {
+          setInternalProducts(list);
+        }
+      })
+      .catch(() => {});
+  }, [products]);
+
+  const effectiveProducts =
+    products && products.length > 0 ? products : internalProducts;
+
   const effectiveTargets = useMemo(
     () => (targets && targets.length > 0 ? targets : target ? [target] : []),
     [targets, target],
@@ -425,17 +450,6 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
 
 
 
-  // Master product list for Combobox
-  const comboboxOptions = useMemo(() => {
-    if (products && products.length > 0) {
-      return products.map((p) => ({
-        value: p.name,
-        label: p.name,
-        subLabel: p.productCode || undefined,
-      }));
-    }
-    return [];
-  }, [products]);
 
   // Track initial mount and last targets key so we do not trigger infinite render loops
   const isInitialMountRef = useRef(true);
@@ -529,7 +543,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
         };
       });
     });
-  }, [effectiveTargets, targetActualResults, products]);
+  }, [effectiveTargets, targetActualResults, effectiveProducts]);
 
   // Synchronize internal targetItems changes to parent state safely in an effect
   useEffect(() => {
@@ -568,7 +582,11 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     });
   };
 
-  const handleAddProduct = (index: number, prod: string) => {
+  const handleAddProduct = (
+    index: number,
+    prod: string,
+    matchedProduct?: ActivityProductItem | ProductOption,
+  ) => {
     if (!prod) return;
     const target = targetItems[index];
     const current = target.productAdvice
@@ -579,7 +597,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
       : [];
     if (current.includes(prod)) return;
 
-    const matchedProd = products.find((p) => p.name === prod);
+    const matchedProd = matchedProduct || effectiveProducts.find((p) => p.name === prod);
     const newAdvisedItem: Type1AdviceProductItem = {
       productId: matchedProd?.id || prod,
       productName: prod,
@@ -817,19 +835,19 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                           </div>
                         )}
 
-                        <FormCombobox
-                          id={`product-advice-combobox-${idx}`}
-                          label=""
-                          labelClassName="hidden"
+                        <ActivityProductSelect
+                          id={`product-advice-select-${idx}`}
                           value=""
-                          onChange={(val) => {
-                            if (val) handleAddProduct(idx, val);
+                          onChange={(val, prod) => {
+                            if (val) handleAddProduct(idx, val, prod);
                           }}
-                          options={comboboxOptions}
+                          products={effectiveProducts}
+                          excludeValues={targetSelectedProducts}
+                          subLabelType="code"
                           placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)"
-                          searchPlaceholder="ค้นหาสินค้า..."
+                          searchPlaceholder="พิมพ์ชื่อ หรือรหัสสินค้าเพื่อค้นหา..."
                           emptyText="ไม่พบสินค้า"
-                          triggerClassName="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 min-h-[40px] rounded-xl mt-0 font-normal hover:bg-slate-50 focus:ring-2 focus:ring-emerald-500"
+                          triggerClassName="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 min-h-[40px] rounded-xl font-normal hover:bg-slate-50 focus:ring-2 focus:ring-emerald-500"
                         />
                       </div>
 
@@ -1008,48 +1026,57 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                   )}
                 </label>
 
-                {productAdvice && (
-                  <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
-                    {productAdvice
-                      .split(",")
-                      .map((s: string) => s.trim())
-                      .filter(Boolean)
-                      .map((prod: string) => (
-                        <span
-                          key={prod}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
-                        >
-                          {prod}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleRemoveProduct(0, prod);
-                            }}
-                            className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                  </div>
-                )}
+                {(() => {
+                  const singleSelectedProducts = productAdvice
+                    ? productAdvice
+                        .split(",")
+                        .map((s: string) => s.trim())
+                        .filter(Boolean)
+                    : [];
 
-                <FormCombobox
-                  id="product-advice-combobox-single"
-                  label=""
-                  labelClassName="hidden"
-                  value=""
-                  onChange={(val) => {
-                    if (val) {
-                      handleAddProduct(0, val);
-                    }
-                  }}
-                  options={comboboxOptions}
-                  placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)"
-                  searchPlaceholder="ค้นหาสินค้า..."
-                  emptyText="ไม่พบสินค้า"
-                  triggerClassName="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 min-h-[40px] rounded-xl mt-0 font-normal hover:bg-slate-50 focus:ring-2 focus:ring-emerald-500"
-                />
+                  return (
+                    <>
+                      {singleSelectedProducts.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 p-2.5 bg-emerald-50/40 border border-emerald-200/60 rounded-xl mb-1.5">
+                          {singleSelectedProducts.map((prod: string) => (
+                            <span
+                              key={prod}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-emerald-900 border border-emerald-200 shadow-2xs"
+                            >
+                              {prod}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleRemoveProduct(0, prod);
+                                }}
+                                className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <ActivityProductSelect
+                        id="product-advice-select-single"
+                        value=""
+                        onChange={(val, prod) => {
+                          if (val) {
+                            handleAddProduct(0, val, prod);
+                          }
+                        }}
+                        products={effectiveProducts}
+                        excludeValues={singleSelectedProducts}
+                        subLabelType="code"
+                        placeholder="เลือกสินค้าที่ให้คำแนะนำเพิ่มเติม (คลิกเลือกหลายรายการได้)"
+                        searchPlaceholder="พิมพ์ชื่อ หรือรหัสสินค้าเพื่อค้นหา..."
+                        emptyText="ไม่พบสินค้า"
+                        triggerClassName="w-full bg-white border-slate-200 text-xs sm:text-sm h-10 min-h-[40px] rounded-xl font-normal hover:bg-slate-50 focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="space-y-1.5">

@@ -12,6 +12,7 @@ interface ActualWorkTypeListProps {
   type1State: ReturnType<typeof useType1Actual>;
   targets: Type1TargetItem[];
   plan?: any;
+  products?: any[];
 }
 
 /**
@@ -23,6 +24,7 @@ export function ActualWorkTypeList({
   type1State,
   targets,
   plan,
+  products = [],
 }: ActualWorkTypeListProps) {
   const isType1 =
     planWorkTypes.includes("TYPE_1") ||
@@ -49,6 +51,7 @@ export function ActualWorkTypeList({
           isVisible={true}
           targets={targets}
           target={targets[0]}
+          products={products}
           targetActualResults={type1State.t1TargetItems}
           onUpdateTargetActualResults={type1State.syncFromTargetItems}
           productAdvice={type1State.t1ProductAdvice}

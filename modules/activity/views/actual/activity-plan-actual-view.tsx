@@ -313,6 +313,7 @@ export function ActivityPlanActualView({
               type1State={type1Actual}
               targets={targets}
               plan={plan}
+              products={products}
             />
           )}
 
