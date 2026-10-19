@@ -2,9 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertTriangle, Check, ArrowLeft } from "lucide-react";
+import { Loader2, AlertTriangle, Check, ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 import {
   ActualViewHeader,
@@ -59,6 +68,18 @@ export function ActivityPlanActualView({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
+  // Validation Alert Popup Modal state
+  const [validationAlert, setValidationAlert] = useState<{
+    isOpen: boolean;
+    title: string;
+    description?: string;
+    messages: string[];
+  }>({
+    isOpen: false,
+    title: "",
+    messages: [],
+  });
+
   // 4. Hydrate Type 1 plan targets & existing actual result
   useEffect(() => {
     if (plan && !isHydrated) {
@@ -97,22 +118,76 @@ export function ActivityPlanActualView({
       postponedNotes,
     } = statusState;
 
-    // Validation
+    const isType1 =
+      planWorkTypes.includes("TYPE_1") ||
+      planWorkTypes.includes("VISIT") ||
+      planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
+      Boolean(plan?.type1Stores?.length) ||
+      Boolean(
+        plan?.stores?.some(
+          (s: any) =>
+            !s.workTypeCode ||
+            s.workTypeCode === "TYPE_1" ||
+            s.workTypeCode === "VISIT",
+        ),
+      ) ||
+      plan?.activityType?.code === "TYPE_1" ||
+      targets.length > 0 ||
+      planWorkTypes.length === 0;
+
+    // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
+      setValidationAlert({
+        isOpen: true,
+        title: "กรุณาระบุเหตุผลการยกเลิก",
+        description: "จำเป็นต้องระบุเหตุผลเพื่อเป็นบันทึกประกอบการยกเลิกแผนงานกิจกรรม",
+        messages: ["เหตุผลการยกเลิกกิจกรรม"],
+      });
       setFormError("กรุณาระบุเหตุผลการยกเลิก");
       toast.error("กรุณาระบุเหตุผลการยกเลิก");
       return;
     }
 
+    // 2. Validation for POSTPONED
     if (activityResultStatus === "POSTPONED") {
-      if (!postponedDate) {
-        setFormError("กรุณาระบุวันที่เลื่อนนัดหมาย");
-        toast.error("กรุณาระบุวันที่เลื่อนนัดหมาย");
+      const missing: string[] = [];
+      if (!postponedDate) missing.push("วันที่เลื่อนนัดหมาย");
+      if (!postponedReason.trim()) missing.push("เหตุผลการเลื่อนกิจกรรม");
+      if (missing.length > 0) {
+        setValidationAlert({
+          isOpen: true,
+          title: "ข้อมูลการเลื่อนกิจกรรมไม่ครบถ้วน",
+          description: "กรุณาระบุข้อมูลวันที่และเหตุผลสำหรับการเลื่อนกิจกรรมให้ครบถ้วน",
+          messages: missing,
+        });
+        setFormError(`กรุณาระบุ${missing[0]}`);
+        toast.error(`กรุณาระบุ${missing[0]}`);
         return;
       }
-      if (!postponedReason.trim()) {
-        setFormError("กรุณาระบุเหตุผลการเลื่อน");
-        toast.error("กรุณาระบุเหตุผลการเลื่อน");
+    }
+
+    // 3. Validation for COMPLETED or PARTIAL
+    if (activityResultStatus === "COMPLETED" || activityResultStatus === "PARTIAL") {
+      let missingFields: string[] = [];
+
+      // Delegate Type 1 validation to features/type-1 domain logic
+      if (isType1) {
+        const type1Validation = type1Actual.validate(targets);
+        if (!type1Validation.isValid) {
+          missingFields = [...missingFields, ...type1Validation.errors];
+        }
+      }
+
+      if (missingFields.length > 0) {
+        setValidationAlert({
+          isOpen: true,
+          title: "กรุณากรอกข้อมูลให้ครบถ้วนก่อนบันทึก",
+          description:
+            "ระบบพบข้อมูลจำเป็นที่ยังไม่ได้ระบุ กรุณากรอกข้อมูลในช่องที่มีเครื่องหมายดอกจันสีแดง (*):",
+          messages: missingFields,
+        });
+        setFormError(`กรุณากรอก ${missingFields[0]}`);
+        toast.error(`กรุณากรอก ${missingFields[0]}`);
         return;
       }
     }
@@ -347,6 +422,54 @@ export function ActivityPlanActualView({
           />
         </form>
       </div>
+
+      {/* Popup Modal แจ้งเตือนเมื่อข้อมูลไม่ครบถ้วน */}
+      <AlertDialog
+        open={validationAlert.isOpen}
+        onOpenChange={(open) =>
+          setValidationAlert((prev) => ({ ...prev, isOpen: open }))
+        }
+      >
+        <AlertDialogContent className="max-w-md rounded-2xl p-6 bg-white shadow-xl border border-slate-200">
+          <AlertDialogHeader className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-2xs">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <AlertDialogTitle className="text-base sm:text-lg font-bold text-slate-900">
+                {validationAlert.title}
+              </AlertDialogTitle>
+              {validationAlert.description && (
+                <AlertDialogDescription className="text-xs sm:text-sm text-slate-600 mt-1">
+                  {validationAlert.description}
+                </AlertDialogDescription>
+              )}
+            </div>
+          </AlertDialogHeader>
+
+          <div className="py-2">
+            <ul className="space-y-2 bg-amber-50/60 border border-amber-200/80 rounded-xl p-3.5 text-xs sm:text-sm text-amber-900 font-medium">
+              {validationAlert.messages.map((msg, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">•</span>
+                  <span>{msg}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <AlertDialogFooter className="pt-2">
+            <AlertDialogAction
+              onClick={() =>
+                setValidationAlert((prev) => ({ ...prev, isOpen: false }))
+              }
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl px-5 h-10 cursor-pointer shadow-xs transition-colors"
+            >
+              ตกลง / ไปกรอกข้อมูล
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

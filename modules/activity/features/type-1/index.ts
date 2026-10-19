@@ -27,6 +27,11 @@ export {
   parseTargetText,
   aggregateType1TargetItems,
 } from "./planned/application/actual-mapper";
+export {
+  validateType1Actual,
+  type Type1ActualValidationInput,
+  type Type1ValidationResult,
+} from "./planned/application/actual-validation";
 export { type1PlannedStrategy } from "./planned/infrastructure/type1-planned.strategy";
 export type {
   Type1PlannedItem,

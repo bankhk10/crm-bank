@@ -3,7 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import type { Type1ImageFile, Type1AdviceProductItem } from "../../shared/types";
 import type { Type1TargetActualItem } from "../types/actual.types";
+import type { Type1TargetItem } from "../types/planned.types";
 import { aggregateType1TargetItems } from "../application/actual-mapper";
+import { validateType1Actual } from "../application/actual-validation";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
@@ -211,6 +213,19 @@ export function useType1Actual() {
     collectOldImageUrlsToDelete,
     getPayload,
     collectPayload: getPayload,
+    validate: useCallback(
+      (targets: Type1TargetItem[] = []) =>
+        validateType1Actual(
+          {
+            discussionResult: t1DiscussionResult,
+            salesOpportunity: t1SalesOpportunity,
+            productAdvice: t1ProductAdvice,
+            targetItems: t1TargetItems,
+          },
+          targets,
+        ),
+      [t1DiscussionResult, t1SalesOpportunity, t1ProductAdvice, t1TargetItems],
+    ),
     commitSavedImages: (imgs?: any[]) => {
       if (imgs) setT1PlotImages(imgs);
     },
