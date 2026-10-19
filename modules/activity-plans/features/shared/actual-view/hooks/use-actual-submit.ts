@@ -323,6 +323,38 @@ export function useActualSubmit({
           // --- 4. RECORD TO DATABASE ---
           const combinedPayload = {
             ...buildResult.payload,
+            salesOpportunity:
+              (t1Payload as any).salesOpportunity ??
+              t1Payload.t1SalesOpportunity ??
+              buildResult.payload?.salesOpportunity,
+            discussionResult:
+              (t1Payload as any).discussionResult ??
+              t1Payload.t1DiscussionResult ??
+              buildResult.payload?.discussionResult,
+            productAdvice:
+              (t1Payload as any).productAdvice ??
+              t1Payload.t1ProductAdvice ??
+              buildResult.payload?.productAdvice,
+            nextAction:
+              (t1Payload as any).nextAction ??
+              t1Payload.t1NextAction ??
+              buildResult.payload?.nextAction,
+            nextMeetingDate:
+              (t1Payload as any).nextMeetingDate ??
+              t1Payload.t1NextMeetingDate ??
+              buildResult.payload?.nextMeetingDate,
+            farmerHomeAddress:
+              (t1Payload as any).farmerHomeAddress ??
+              t1Payload.t1FarmerHomeAddress ??
+              buildResult.payload?.farmerHomeAddress,
+            plotLatitude:
+              (t1Payload as any).plotLatitude ??
+              t1Payload.t1PlotLatitude ??
+              buildResult.payload?.plotLatitude,
+            plotLongitude:
+              (t1Payload as any).plotLongitude ??
+              t1Payload.t1PlotLongitude ??
+              buildResult.payload?.plotLongitude,
             targetActualResults: t1Payload.targetActualResults || buildResult.payload?.targetActualResults,
             ...(t13Payload.sprayRounds?.length || t14Payload.sprayRounds?.length
               ? {

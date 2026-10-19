@@ -967,8 +967,18 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 title="พิกัดแปลง (Plot Coordinates)"
                 latitude={plotLatitude}
                 longitude={plotLongitude}
-                onLatitudeChange={setPlotLatitude}
-                onLongitudeChange={setPlotLongitude}
+                onLatitudeChange={(lat) => {
+                  if (setPlotLatitude) setPlotLatitude(lat);
+                  if (targetItems.length > 0) {
+                    handleTargetChange(0, "plotLatitude", lat);
+                  }
+                }}
+                onLongitudeChange={(lng) => {
+                  if (setPlotLongitude) setPlotLongitude(lng);
+                  if (targetItems.length > 0) {
+                    handleTargetChange(0, "plotLongitude", lng);
+                  }
+                }}
                 accentColor="emerald"
               />
 
@@ -977,7 +987,12 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 title="รูปแปลงเกษตรกร (สูงสุด 5 รูป)"
                 description="อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช"
                 images={plotImages}
-                onImagesChange={setPlotImages}
+                onImagesChange={(imgs) => {
+                  if (setPlotImages) setPlotImages(imgs);
+                  if (targetItems.length > 0) {
+                    handleTargetChange(0, "plotImages", imgs);
+                  }
+                }}
                 maxFiles={5}
                 accentColor="emerald"
               />
@@ -1059,7 +1074,12 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => setSalesOpportunity(opt)}
+                      onClick={() => {
+                        setSalesOpportunity(opt);
+                        if (targetItems.length > 0) {
+                          handleTargetChange(0, "salesOpportunity", opt);
+                        }
+                      }}
                       className={cn(
                         "py-2.5 px-4 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
                         salesOpportunity === opt
@@ -1127,7 +1147,13 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
               </label>
               <DatePicker
                 value={nextMeetingDate}
-                onChange={(v) => setNextMeetingDate(v || "")}
+                onChange={(v) => {
+                  const dateVal = v || "";
+                  setNextMeetingDate(dateVal);
+                  if (targetItems.length > 0) {
+                    handleTargetChange(0, "nextMeetingDate", dateVal);
+                  }
+                }}
                 placeholder="เลือกวันที่นัดหมาย"
                 className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
               />

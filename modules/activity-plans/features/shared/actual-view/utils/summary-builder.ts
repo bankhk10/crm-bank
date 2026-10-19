@@ -1462,6 +1462,20 @@ export function buildResultSummary(
         : `สถานะผลกิจกรรม: ${statusLabel}`,
     targetActualResults: input.targetActualResults || (input as any).t1TargetItems || undefined,
     t1Products: input.t1Products || null,
+    productAdvice: input.t1ProductAdvice || (input as any).productAdvice || null,
+    salesOpportunity: input.t1SalesOpportunity || (input as any).salesOpportunity || null,
+    discussionResult: input.t1DiscussionResult || (input as any).discussionResult || null,
+    nextAction: input.t1NextAction || (input as any).nextAction || null,
+    nextMeetingDate: input.t1NextMeetingDate ? new Date(input.t1NextMeetingDate) : null,
+    farmerHomeAddress: input.t1FarmerHomeAddress || (input as any).farmerHomeAddress || null,
+    plotLatitude:
+      input.t1PlotLatitude != null && input.t1PlotLatitude !== ""
+        ? Number(input.t1PlotLatitude)
+        : null,
+    plotLongitude:
+      input.t1PlotLongitude != null && input.t1PlotLongitude !== ""
+        ? Number(input.t1PlotLongitude)
+        : null,
     cancelReason: activityResultStatus === "CANCELLED" ? cancelReason : null,
     postponedDate:
       activityResultStatus === "POSTPONED" && postponedDate
