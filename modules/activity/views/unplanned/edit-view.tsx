@@ -189,11 +189,17 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             activityResult: plan.result || (plan as any).activityResult || null,
             type1Stores: (plan as any).type1Stores || plan.stores || [],
             type1Results: (plan as any).type1Results || [],
-            type1Result: (plan as any).type1Results?.[0] || (plan as any).type1Result || null,
+            type1Result:
+              (plan as any).type1Results?.[0] ||
+              (plan as any).type1Result ||
+              null,
             type1Products: (plan as any).type1Products || [],
             type2Targets: (plan as any).type2Targets || [],
             type2Products: (plan as any).type2Products || [],
-            followupResults: (plan as any).result?.followupResults || (plan as any).followupResults || [],
+            followupResults:
+              (plan as any).result?.followupResults ||
+              (plan as any).followupResults ||
+              [],
             attachments: plan.attachments || [],
             activityResultType1:
               (plan as any).type1Results?.[0] ||
@@ -232,15 +238,13 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
   if (!canView || !canEdit) {
     return (
       <Alert variant="destructive" className="m-6">
-        <AlertDescription>
-          คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนนี้
-        </AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนนี้</AlertDescription>
       </Alert>
     );
   }
 
   return (
-    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-white min-h-screen rounded-2xl">
       {loadError && (
         <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
           <AlertDescription>{loadError}</AlertDescription>
