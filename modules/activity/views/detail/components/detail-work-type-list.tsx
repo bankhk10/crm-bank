@@ -16,6 +16,7 @@ import { Type7aDetailView } from "@/modules/activity/features/type-7a";
 import { Type7bDetailView } from "@/modules/activity/features/type-7b";
 import { Type8DetailView } from "@/modules/activity/features/type-8";
 import { Type9DetailView } from "@/modules/activity/features/type-9";
+import { Type10DetailView } from "@/modules/activity/features/type-10";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -100,6 +101,21 @@ export function DetailWorkTypeList({
     Boolean(plan?.type9Stores?.length) ||
     Boolean(plan?.type9Data) ||
     Boolean(plan?.type9);
+
+  const isType10 =
+    isTypeActive("TYPE_10", "จัดงาน Field Day") ||
+    isTypeActive("TYPE_10", "Field Day") ||
+    Boolean(plan?.type10Targets?.length) ||
+    Boolean(plan?.type10Plots?.length) ||
+    Boolean(plan?.type10Data) ||
+    Boolean(plan?.type10) ||
+    Boolean(
+      plan?.demoPlotVisits?.some(
+        (v: any) =>
+          v.workTypeCode === "TYPE_10" ||
+          v.workTypeCode === "จัดงาน Field Day",
+      ),
+    );
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -349,6 +365,36 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.type9Actual?.images, parsedResults?.t9Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 10 (Attachments / Atmosphere)
+  const effectiveT10Images = useMemo(() => {
+    if (
+      parsedResults?.type10Actual?.images &&
+      parsedResults.type10Actual.images.length > 0
+    ) {
+      return parsedResults.type10Actual.images;
+    }
+    if (parsedResults?.t10Images && parsedResults.t10Images.length > 0) {
+      return parsedResults.t10Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_10" ||
+          att?.category === "ATMOSPHERE" ||
+          att?.category === "FIELD_DAY" ||
+          att?.category === "type10",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพถ่ายบรรยากาศงาน Field Day",
+      }));
+  }, [parsedResults?.type10Actual?.images, parsedResults?.t10Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -527,6 +573,53 @@ export function DetailWorkTypeList({
           plan?.productSalesDetails
         }
         images={effectiveT9Images}
+      />
+
+      {/* 🟢 TYPE 10: จัดงาน Field Day (Field Day Event) */}
+      <Type10DetailView
+        isVisible={isType10}
+        target={
+          targets?.t10 ||
+          targets?.t10List?.[0] ||
+          plan?.type10Targets?.[0] ||
+          plan?.type10Plots?.[0]
+        }
+        targets={
+          targets?.t10List ||
+          plan?.type10Targets ||
+          plan?.type10Plots
+        }
+        actualAttendees={
+          parsedResults?.type10Actual?.actualAttendees != null
+            ? String(parsedResults.type10Actual.actualAttendees)
+            : parsedResults?.actualAttendees != null
+              ? String(parsedResults.actualAttendees)
+              : undefined
+        }
+        actualSalesOrBooking={
+          parsedResults?.type10Actual?.actualSalesOrBooking != null
+            ? String(parsedResults.type10Actual.actualSalesOrBooking)
+            : parsedResults?.type10Actual?.salesResultAmount != null
+              ? String(parsedResults.type10Actual.salesResultAmount)
+              : parsedResults?.actualSales != null
+                ? String(parsedResults.actualSales)
+                : undefined
+        }
+        farmerFeedback={
+          parsedResults?.type10Actual?.farmerFeedback ||
+          parsedResults?.farmerFeedback
+        }
+        soldProducts={
+          parsedResults?.type10Actual?.soldProducts ||
+          parsedResults?.t10SoldProducts ||
+          parsedResults?.productSalesDetails ||
+          plan?.productSalesDetails
+        }
+        notes={
+          parsedResults?.type10Actual?.notes ||
+          parsedResults?.notes
+        }
+        images={effectiveT10Images}
       />
     </div>
   );

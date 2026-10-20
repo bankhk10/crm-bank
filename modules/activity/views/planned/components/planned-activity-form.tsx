@@ -66,6 +66,11 @@ import {
   hydrateType9PlannedData,
 } from "@/modules/activity/features/type-9";
 import {
+  Type10PlannedForm,
+  useType10PlannedForm,
+  hydrateType10PlannedData,
+} from "@/modules/activity/features/type-10";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -246,6 +251,13 @@ export function PlannedActivityForm({
       wt.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
       wt.includes("กิจกรรมหน้าร้าน"),
   );
+  const isType10Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_10" ||
+      wt.includes("TYPE_10") ||
+      wt.includes("จัดงาน Field Day") ||
+      wt.includes("Field Day"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -393,6 +405,18 @@ export function PlannedActivityForm({
     initDetails: hydratedInitialType9Items,
     customersList: customers as any,
     productsList: products as any,
+    selectedWorkTypes,
+  });
+
+  // 5.10 Type 10 Planned Hook
+  const hydratedInitialType10Items = useMemo(
+    () => hydrateType10PlannedData(initialData),
+    [initialData],
+  );
+
+  const type10 = useType10PlannedForm({
+    initial: initialData,
+    initDetails: hydratedInitialType10Items,
     selectedWorkTypes,
   });
 
@@ -655,6 +679,38 @@ export function PlannedActivityForm({
       };
     }
 
+    // 3.9 Validation & Mapping - Type 10 Items
+    let type10Payload: any = null;
+    if (isType10Active) {
+      const type10Validation = type10.validateType10();
+      if (!type10Validation.isValid) {
+        toast.error(
+          type10Validation.error ||
+            "ข้อมูลจัดงาน Field Day ไม่ถูกต้อง (Type 10)",
+        );
+        return;
+      }
+      const t10Mapped = type10.mapType10Payload();
+      type10Payload = {
+        demoPlotId: t10Mapped.submittedDemoPlotId,
+        submittedDemoPlotId: t10Mapped.submittedDemoPlotId,
+        location: type10.type10Location,
+        targetCrop: type10.type10TargetCrop,
+        showcase: type10.type10Showcase,
+        targetAttendees: t10Mapped.targetAttendees,
+        targetAttendeesCount: t10Mapped.targetAttendees,
+        targetBookingSales: t10Mapped.targetBookingSales,
+        plots: [
+          {
+            demoPlotId: t10Mapped.submittedDemoPlotId,
+            location: type10.type10Location,
+            targetAttendeesCount: t10Mapped.targetAttendees,
+            targetBookingSales: t10Mapped.targetBookingSales,
+          },
+        ],
+      };
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -731,6 +787,9 @@ export function PlannedActivityForm({
       type9Data: type9Payload,
       type9Stores: type9Payload ? [type9Payload] : undefined,
       type9Targets: type9Payload ? [type9Payload] : undefined,
+      type10Data: type10Payload,
+      type10Plots: type10Payload?.plots,
+      type10Targets: type10Payload?.plots,
     };
 
     try {
@@ -993,6 +1052,25 @@ export function PlannedActivityForm({
           deleteType9ProductItem={type9.deleteType9ProductItem}
           customers={customers as any}
           products={products as any}
+        />
+      )}
+
+      {/* 3.11 ส่วนเฉพาะ Type 10: จัดงาน Field Day */}
+      {isType10Active && (
+        <Type10PlannedForm
+          readonly={readonly}
+          type10DemoPlot={type10.type10DemoPlot}
+          setType10DemoPlot={type10.setType10DemoPlot}
+          type10Location={type10.type10Location}
+          setType10Location={type10.setType10Location}
+          type10TargetCrop={type10.type10TargetCrop}
+          setType10TargetCrop={type10.setType10TargetCrop}
+          type10Showcase={type10.type10Showcase}
+          setType10Showcase={type10.setType10Showcase}
+          type10Attendees={type10.type10Attendees}
+          setType10Attendees={type10.setType10Attendees}
+          type10BookingSales={type10.type10BookingSales}
+          setType10BookingSales={type10.setType10BookingSales}
         />
       )}
 

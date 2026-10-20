@@ -8,6 +8,7 @@ import { type7aPlannedStrategy, type7aUnplannedStrategy } from "../features/type
 import { type7bPlannedStrategy, type7bUnplannedStrategy } from "../features/type-7b";
 import { type8PlannedStrategy, type8UnplannedStrategy } from "../features/type-8";
 import { type9PlannedStrategy, type9UnplannedStrategy } from "../features/type-9";
+import { type10PlannedStrategy, type10UnplannedStrategy } from "../features/type-10";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -233,6 +234,32 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.t9ActualSales
       ),
   },
+  TYPE_10: {
+    code: "TYPE_10",
+    name: "จัดงาน Field Day",
+    planned: type10PlannedStrategy,
+    unplanned: type10UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_10") ||
+            rawData.workTypeCodes.includes("จัดงาน Field Day"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_10" ||
+              s.workTypeCode === "จัดงาน Field Day",
+          )) ||
+        (rawData.type10Plots && rawData.type10Plots.length > 0) ||
+        (rawData.type10UnplannedItems && rawData.type10UnplannedItems.length > 0) ||
+        rawData.type10Data ||
+        rawData.type10 ||
+        rawData.type10Actual ||
+        rawData.t10TargetAttendees ||
+        rawData.t10ActualAttendees ||
+        rawData.t10SalesResult
+      ),
+  },
 };
 
 /**
@@ -289,6 +316,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_9.hasData(rawData)) {
     return "TYPE_9";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_10.hasData(rawData)) {
+    return "TYPE_10";
   }
 
   return "TYPE_1";

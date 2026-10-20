@@ -88,6 +88,12 @@ import {
   extractType9PlanTargets,
   type Type9TargetItem,
 } from "@/modules/activity/features/type-9";
+import {
+  useType10Actual,
+  validateType10Actual,
+  extractType10PlanTargets,
+  type Type10TargetItem,
+} from "@/modules/activity/features/type-10";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -135,6 +141,7 @@ export function ActivityPlanActualView({
   const type7bActual = useType7bActual();
   const type8Actual = useType8Actual();
   const type9Actual = useType9Actual();
+  const type10Actual = useType10Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -145,6 +152,7 @@ export function ActivityPlanActualView({
   const [type7bTargets, setType7bTargets] = useState<Type7bTargetItem[]>([]);
   const [type8Targets, setType8Targets] = useState<Type8TargetItem[]>([]);
   const [type9Targets, setType9Targets] = useState<Type9TargetItem[]>([]);
+  const [type10Targets, setType10Targets] = useState<Type10TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -195,6 +203,9 @@ export function ActivityPlanActualView({
       const extractedT9 = extractType9PlanTargets(plan);
       setType9Targets(extractedT9.list);
 
+      const extractedT10 = extractType10PlanTargets(plan);
+      setType10Targets(extractedT10.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -218,11 +229,12 @@ export function ActivityPlanActualView({
         }
         type8Actual.hydrate(payloadToHydrate);
         type9Actual.hydrate(payloadToHydrate);
+        type10Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -343,6 +355,23 @@ export function ActivityPlanActualView({
         ),
       ) ||
       plan?.activityType?.code === "TYPE_9";
+
+    const isType10Active =
+      planWorkTypes.includes("TYPE_10") ||
+      planWorkTypes.includes("จัดงาน Field Day") ||
+      planWorkTypes.includes("Field Day") ||
+      Boolean(plan?.type10Targets?.length) ||
+      Boolean(plan?.type10Plots?.length) ||
+      Boolean(plan?.type10Data) ||
+      Boolean(plan?.type10) ||
+      Boolean(
+        plan?.demoPlotVisits?.some(
+          (v: any) =>
+            v.workTypeCode === "TYPE_10" ||
+            v.workTypeCode === "จัดงาน Field Day",
+        ),
+      ) ||
+      plan?.activityType?.code === "TYPE_10";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -480,6 +509,17 @@ export function ActivityPlanActualView({
         });
         if (!t9Validation.isValid && t9Validation.error) {
           missingFields.push(t9Validation.error);
+        }
+      }
+
+      // Delegate Type 10 validation to features/type-10 domain logic
+      if (isType10Active) {
+        const t10Validation = validateType10Actual({
+          actualAttendees: type10Actual.actualAttendees,
+          actualSalesOrBooking: type10Actual.actualSalesOrBooking,
+        });
+        if (!t10Validation.isValid && t10Validation.error) {
+          missingFields.push(t10Validation.error);
         }
       }
 
@@ -971,6 +1011,59 @@ export function ActivityPlanActualView({
             payload.resultSummary = `จัดกิจกรรมหน้าร้าน: ${storeName} (ผู้เข้าร่วมจริง: ${type9Actual.actualAttendees || "-"} คน, ยอดขายจริง: ${type9Actual.actualSales || "-"} บาท)`;
           }
         }
+
+        // Collect Type 10 payload if active
+        if (isType10Active) {
+          const fieldDayImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type10Actual.images || []) as any,
+            "type10_atmosphere",
+            "atmosphere",
+          );
+
+          const finalFieldDayImages = fieldDayImgResult.updatedImages;
+          const t10Payload = type10Actual.collectPayload(finalFieldDayImages);
+
+          payload = {
+            ...payload,
+            ...t10Payload,
+            type10Actual: {
+              ...t10Payload.type10Actual,
+              images: finalFieldDayImages,
+            },
+            attachments: [
+              ...(payload.attachments || []),
+              ...finalFieldDayImages.map((img: any) => ({
+                category: "ATMOSPHERE",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพถ่ายบรรยากาศงาน Field Day",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_10",
+              })),
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive &&
+            !isType8Active &&
+            !isType9Active
+          ) {
+            const plotName =
+              type10Targets[0]?.plotName ||
+              (plan as any)?.type10Targets?.[0]?.plotName ||
+              type10Targets[0]?.location ||
+              "งาน Field Day";
+            payload.resultSummary = `จัดงาน Field Day: ${plotName} (ผู้เข้าร่วมจริง: ${type10Actual.actualAttendees || "-"} คน, ยอดขาย/จอง: ${type10Actual.actualSalesOrBooking || "-"} บาท)`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -1143,6 +1236,7 @@ export function ActivityPlanActualView({
               type7bState={type7bActual}
               type8State={type8Actual}
               type9State={type9Actual}
+              type10State={type10Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -1153,6 +1247,7 @@ export function ActivityPlanActualView({
               type7bTargets={type7bTargets}
               type8Targets={type8Targets}
               type9Targets={type9Targets}
+              type10Targets={type10Targets}
               plan={plan}
               products={products}
               customers={customers}

@@ -82,6 +82,13 @@ import {
   validateType9UnplannedItems,
 } from "@/modules/activity/features/type-9";
 import {
+  Type10UnplannedForm,
+  useType10UnplannedForm,
+  hydrateType10UnplannedData,
+  mapType10UnplannedToPayload,
+  validateType10UnplannedItems,
+} from "@/modules/activity/features/type-10";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -201,6 +208,20 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_9?.name || "จัดกิจกรรมส่งเสริมการขายหน้าร้าน"];
     }
+    // 1.8 ตรวจสอบจาก Dedicated Target ของ Type 10
+    if (
+      (initialData.type10UnplannedItems && initialData.type10UnplannedItems.length > 0) ||
+      initialData.type10 ||
+      initialData.type10Data ||
+      (initialData.demoPlotVisits &&
+        initialData.demoPlotVisits.some(
+          (v: any) =>
+            v.workTypeCode === "TYPE_10" ||
+            v.workTypeCode === "จัดงาน Field Day",
+        ))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_10?.name || "จัดงาน Field Day"];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -290,6 +311,13 @@ export function UnplannedActivityForm({
       wt.includes("TYPE_9") ||
       wt.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
       wt.includes("กิจกรรมหน้าร้าน"),
+  );
+  const isType10Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_10" ||
+      wt.includes("TYPE_10") ||
+      wt.includes("จัดงาน Field Day") ||
+      wt.includes("Field Day"),
   );
 
   // 2. Basic Info State
@@ -432,6 +460,16 @@ export function UnplannedActivityForm({
 
   const type9 = useType9UnplannedForm({
     initialItems: hydratedInitialType9Items,
+  });
+
+  // 5.9 Type 10 Unplanned Hook
+  const hydratedInitialType10Items = useMemo(
+    () => hydrateType10UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type10 = useType10UnplannedForm({
+    initialItems: hydratedInitialType10Items,
   });
 
   // 6. Budget Hook
@@ -1023,6 +1061,67 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_9",
         })),
       };
+    } else if (isType10Active) {
+      if (type10.items.length === 0) {
+        toast.error("กรุณาระบุข้อมูลจัดงาน Field Day อย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type10Validation = validateType10UnplannedItems(type10.items);
+      if (!type10Validation.isValid) {
+        toast.error(
+          type10Validation.errors?.[0] ||
+            "ข้อมูลจัดงาน Field Day ไม่ถูกต้อง (Type 10)",
+        );
+        return;
+      }
+
+      // Upload Field Day Atmosphere Images
+      const allType10Images = type10.items.flatMap(
+        (item) => item.images || [],
+      );
+      let cleanType10Images = allType10Images;
+      if (allType10Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType10Images,
+            "type10",
+            "atmosphere",
+          );
+          cleanType10Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพงาน Field Day ไม่สำเร็จ",
+          );
+          return;
+        }
+      }
+
+      const mapped = mapType10UnplannedToPayload(
+        type10.items.map((item) => ({
+          ...item,
+          images: cleanType10Images,
+        })),
+      );
+
+      const firstItem = type10.items[0];
+      actualData = {
+        workTypeCode: "TYPE_10",
+        actualAttendees: firstItem?.actualAttendees,
+        actualSales: firstItem?.actualSalesOrBooking,
+        notes: firstItem?.notes || "",
+        type10Actual: mapped.actualOutcome?.type10Actual,
+        saleResults: mapped.actualOutcome?.saleResults,
+        attachments: cleanType10Images.map((img) => ({
+          category: "ATMOSPHERE",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพถ่ายบรรยากาศงาน Field Day",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_10",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -1098,6 +1197,14 @@ export function UnplannedActivityForm({
             t.name?.includes("กิจกรรมหน้าร้าน")
           );
         }
+        if (isType10Active) {
+          return (
+            t.code === "TYPE_10" ||
+            t.code === "FIELD_DAY" ||
+            t.name?.includes("Field Day") ||
+            t.name?.includes("จัดงาน")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -1113,7 +1220,9 @@ export function UnplannedActivityForm({
               ? "type-8"
               : isType9Active
                 ? "type-9"
-                : "type-1");
+                : isType10Active
+                  ? "type-10"
+                  : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1155,6 +1264,10 @@ export function UnplannedActivityForm({
 
     const mappedType9 = isType9Active
       ? mapType9UnplannedToPayload(type9.items)
+      : null;
+
+    const mappedType10 = isType10Active
+      ? mapType10UnplannedToPayload(type10.items)
       : null;
 
     const payload = {
@@ -1199,6 +1312,9 @@ export function UnplannedActivityForm({
       type8Targets: mappedType8?.targets,
       type9Data: mappedType9?.type9Data,
       type9Targets: mappedType9?.targets,
+      type10Data: mappedType10?.type10Data,
+      type10Plots: mappedType10?.type10Plots,
+      type10Targets: mappedType10?.targets,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1208,6 +1324,7 @@ export function UnplannedActivityForm({
       type7bUnplannedItems: isType7bActive ? type7b.items : undefined,
       type8UnplannedItems: isType8Active ? type8.items : undefined,
       type9UnplannedItems: isType9Active ? type9.items : undefined,
+      type10UnplannedItems: isType10Active ? type10.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1489,6 +1606,21 @@ export function UnplannedActivityForm({
           updateProductItem={type9.updateProductItem}
           deleteProductItem={type9.deleteProductItem}
           customers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.11 ส่วนเฉพาะ Type 10: จัดงาน Field Day (นอกแผน) */}
+      {isType10Active && (
+        <Type10UnplannedForm
+          items={type10.items}
+          addItem={type10.addItem}
+          deleteItem={type10.deleteItem}
+          updateItem={type10.updateItem}
+          addSoldProduct={type10.addSoldProduct}
+          updateSoldProduct={type10.updateSoldProduct}
+          deleteSoldProduct={type10.deleteSoldProduct}
           products={products as any}
           readonly={readonly}
         />

@@ -181,6 +181,35 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 10 Sale Results from relation table
+    if (
+      Array.isArray(resData.saleResults) &&
+      resData.saleResults.length > 0 &&
+      !result.t10SoldProducts
+    ) {
+      const t10Sales = resData.saleResults.filter(
+        (s: any) =>
+          s.workTypeCode === "TYPE_10" ||
+          s.workTypeCode === "จัดงาน Field Day",
+      );
+      if (t10Sales.length > 0) {
+        result.t10SoldProducts = t10Sales.map((item: any) => ({
+          id: item.id,
+          productId: item.productId,
+          productName: item.productName || item.product?.name || "สินค้า",
+          quantity: Number(item.actualQuantity || 1),
+          amount: Number(item.actualTotal || 0),
+        }));
+        const totalSales = t10Sales.reduce(
+          (sum: number, s: any) => sum + Number(s.actualTotal || 0),
+          0,
+        );
+        if (totalSales > 0 && !result.t10SalesResult) {
+          result.t10SalesResult = String(totalSales);
+        }
+      }
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     if (resData.type4Result || resData.activityResultType4) {
       const t4 = resData.type4Result || resData.activityResultType4;
@@ -321,6 +350,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t10Images) {
+      result.t10Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_10" ||
+            att.workTypeCode === "จัดงาน Field Day" ||
+            att.category === "FIELD_DAY" ||
+            att.category === "ATMOSPHERE",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "ภาพถ่ายบรรยากาศงาน Field Day",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

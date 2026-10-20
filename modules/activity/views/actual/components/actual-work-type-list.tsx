@@ -51,6 +51,11 @@ import {
   type Type9TargetItem,
   type useType9Actual,
 } from "@/modules/activity/features/type-9";
+import {
+  Type10ActualForm,
+  type Type10TargetItem,
+  type useType10Actual,
+} from "@/modules/activity/features/type-10";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -64,6 +69,7 @@ interface ActualWorkTypeListProps {
   type7bState?: ReturnType<typeof useType7bActual>;
   type8State?: ReturnType<typeof useType8Actual>;
   type9State?: ReturnType<typeof useType9Actual>;
+  type10State?: ReturnType<typeof useType10Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -74,6 +80,7 @@ interface ActualWorkTypeListProps {
   type7bTargets?: Type7bTargetItem[];
   type8Targets?: Type8TargetItem[];
   type9Targets?: Type9TargetItem[];
+  type10Targets?: Type10TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -95,6 +102,7 @@ export function ActualWorkTypeList({
   type7bState,
   type8State,
   type9State,
+  type10State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -105,6 +113,7 @@ export function ActualWorkTypeList({
   type7bTargets = [],
   type8Targets = [],
   type9Targets = [],
+  type10Targets = [],
   plan,
   products = [],
   customers = [],
@@ -213,6 +222,23 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_9";
+
+  const isType10Active =
+    planWorkTypes.includes("TYPE_10") ||
+    planWorkTypes.includes("จัดงาน Field Day") ||
+    planWorkTypes.includes("Field Day") ||
+    Boolean(plan?.type10Targets?.length) ||
+    Boolean(plan?.type10Plots?.length) ||
+    Boolean(plan?.type10Data) ||
+    Boolean(plan?.type10) ||
+    Boolean(
+      plan?.demoPlotVisits?.some(
+        (v: any) =>
+          v.workTypeCode === "TYPE_10" ||
+          v.workTypeCode === "จัดงาน Field Day",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_10";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -476,6 +502,35 @@ export function ActualWorkTypeList({
           setActualAttendees={type9State.setActualAttendees}
           images={type9State.images}
           setImages={type9State.setImages}
+        />
+      )}
+
+      {/* 🟢 TYPE 10: จัดงาน Field Day */}
+      {isType10Active && type10State && (
+        <Type10ActualForm
+          isVisible={true}
+          targets={
+            type10Targets && type10Targets.length > 0
+              ? type10Targets
+              : plan?.type10Targets || plan?.type10Plots
+          }
+          target={
+            type10Targets?.[0] ||
+            plan?.type10Targets?.[0] ||
+            plan?.type10Plots?.[0]
+          }
+          planType={plan?.planType}
+          products={products}
+          actualAttendees={type10State.actualAttendees}
+          setActualAttendees={type10State.setActualAttendees}
+          actualSalesOrBooking={type10State.actualSalesOrBooking}
+          setActualSalesOrBooking={type10State.setActualSalesOrBooking}
+          farmerFeedback={type10State.farmerFeedback}
+          setFarmerFeedback={type10State.setFarmerFeedback}
+          soldProducts={type10State.soldProducts}
+          setSoldProducts={type10State.setSoldProducts}
+          images={type10State.images}
+          setImages={type10State.setImages}
         />
       )}
     </div>

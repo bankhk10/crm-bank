@@ -143,7 +143,7 @@ flowchart TD
 
 - [x] **Type 8:** จัดประชุม (Meeting) — Planned & Unplanned
 - [x] **Type 9:** จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event / Sales Promotion) — Planned & Unplanned
-- [ ] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned
+- [x] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned & Unplanned
 - [ ] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
 - [ ] **Type 12:** ทัวร์ (Tour) — Planned
 - [ ] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
@@ -157,6 +157,17 @@ flowchart TD
 - [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`)
 - [x] เชื่อมโยงเข้าสู่ Views ทั้งหมด (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
 - [x] จัดทำเอกสาร [`features/type-9/README.md`](../features/type-9/README.md)
+- [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
+
+#### งานที่ 3.3: Migrate `features/type-10/` (จัดงาน Field Day — Dual-Mode Planned + Unplanned — Completed ✅)
+
+- [x] สร้างโฟลเดอร์ `features/type-10/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด (`ActivityCombobox`, `ActivityInput`, `ActivityProductSelect`, `ActivityPhotoUpload`)
+- [x] สร้าง Native Strategies (`type10PlannedStrategy`, `type10UnplannedStrategy`) พร้อมรองรับ DemoPlotVisits, SoldProducts และ Atmosphere Images
+- [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`)
+- [x] เชื่อมโยงเข้าสู่ Views ทั้งหมด (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-10/README.md`](../features/type-10/README.md)
 - [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
 
@@ -221,6 +232,7 @@ flowchart TD
 
 |     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
 | :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  1.4.0   | Migrate `features/type-10/` (จัดงาน Field Day) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                    | Antigravity AI |
 | **2026-10-20** |  1.3.0   | Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
 | **2026-10-20** |  1.2.0   | Migrate `features/type-8/` (จัดประชุม) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                               | Antigravity AI |
 | **2026-10-20** |  1.1.0   | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox` | Antigravity AI |
