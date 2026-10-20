@@ -6,6 +6,7 @@ import { type5PlannedStrategy, type5UnplannedStrategy } from "../features/type-5
 import { type6PlannedStrategy, type6UnplannedStrategy } from "../features/type-6";
 import { type7aPlannedStrategy, type7aUnplannedStrategy } from "../features/type-7a";
 import { type7bPlannedStrategy, type7bUnplannedStrategy } from "../features/type-7b";
+import { type8PlannedStrategy, type8UnplannedStrategy } from "../features/type-8";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -185,6 +186,28 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.t7GrowthStage
       ),
   },
+  TYPE_8: {
+    code: "TYPE_8",
+    name: "จัดประชุม",
+    planned: type8PlannedStrategy,
+    unplanned: type8UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_8") ||
+            rawData.workTypeCodes.includes("จัดประชุม"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_8")) ||
+        (rawData.type8Meetings && rawData.type8Meetings.length > 0) ||
+        (rawData.type8UnplannedItems && rawData.type8UnplannedItems.length > 0) ||
+        (rawData.type8Items && rawData.type8Items.length > 0) ||
+        rawData.type8Data ||
+        rawData.type8 ||
+        rawData.type8Actual ||
+        rawData.t8Topic ||
+        rawData.t8MeetingTarget
+      ),
+  },
 };
 
 /**
@@ -232,6 +255,12 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_7A.hasData(rawData)) {
     return "TYPE_7A";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_7B.hasData(rawData)) {
+    return "TYPE_7B";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_8.hasData(rawData)) {
+    return "TYPE_8";
   }
 
   return "TYPE_1";

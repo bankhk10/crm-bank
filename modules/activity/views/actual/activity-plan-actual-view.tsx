@@ -76,6 +76,12 @@ import {
   parseType7bActualResult,
   type Type7bTargetItem,
 } from "@/modules/activity/features/type-7b";
+import {
+  useType8Actual,
+  validateType8Actual,
+  extractType8PlanTargets,
+  type Type8TargetItem,
+} from "@/modules/activity/features/type-8";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -121,6 +127,7 @@ export function ActivityPlanActualView({
   const type6Actual = useType6Actual();
   const type7aActual = useType7aActual();
   const type7bActual = useType7bActual();
+  const type8Actual = useType8Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -129,6 +136,7 @@ export function ActivityPlanActualView({
   const [type6Targets, setType6Targets] = useState<Type6TargetItem[]>([]);
   const [type7aTargets, setType7aTargets] = useState<Type7aTargetItem[]>([]);
   const [type7bTargets, setType7bTargets] = useState<Type7bTargetItem[]>([]);
+  const [type8Targets, setType8Targets] = useState<Type8TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -173,6 +181,9 @@ export function ActivityPlanActualView({
       const extractedT7b = extractType7bPlanTargets(plan);
       setType7bTargets(extractedT7b.list);
 
+      const extractedT8 = extractType8PlanTargets(plan);
+      setType8Targets(extractedT8.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -194,11 +205,12 @@ export function ActivityPlanActualView({
         if (Object.keys(parsedT7b).length > 0) {
           type7bActual.setActualState((prev) => ({ ...prev, ...parsedT7b }));
         }
+        type8Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -286,6 +298,20 @@ export function ActivityPlanActualView({
         plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B"),
       ) ||
       plan?.activityType?.code === "TYPE_7B";
+
+    const isType8Active =
+      planWorkTypes.includes("TYPE_8") ||
+      planWorkTypes.includes("จัดประชุม") ||
+      planWorkTypes.includes("ประชุม") ||
+      Boolean(plan?.type8Targets?.length) ||
+      Boolean(plan?.type8Items?.length) ||
+      Boolean(plan?.type8Meetings?.length) ||
+      Boolean(plan?.type8Data) ||
+      Boolean(plan?.type8) ||
+      Boolean(
+        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_8"),
+      ) ||
+      plan?.activityType?.code === "TYPE_8";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -401,6 +427,17 @@ export function ActivityPlanActualView({
         const t7bValidation = validateType7bActual(type7bActual.actualState);
         if (!t7bValidation.isValid && t7bValidation.errors?.length) {
           missingFields = [...missingFields, ...t7bValidation.errors];
+        }
+      }
+
+      // Delegate Type 8 validation to features/type-8 domain logic
+      if (isType8Active) {
+        const t8Validation = validateType8Actual({
+          activityResultStatus,
+          t8RegistrationImages: type8Actual.registrationImages,
+        });
+        if (!t8Validation.isValid && t8Validation.errors?.length) {
+          missingFields = [...missingFields, ...t8Validation.errors];
         }
       }
 
@@ -770,6 +807,77 @@ export function ActivityPlanActualView({
             payload.resultSummary = `ติดตามแปลงสาธิต: ${plotName} (สภาพพืช: ${t7bRecord.t7CropCondition || "ปกติ"})`;
           }
         }
+
+        // Collect Type 8 payload if active
+        if (isType8Active) {
+          const regImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type8Actual.registrationImages || []) as any,
+            "type8_registration",
+            "registration",
+          );
+          const atmosImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type8Actual.images || []) as any,
+            "type8_atmosphere",
+            "atmosphere",
+          );
+
+          const finalRegImages = regImgResult.updatedImages;
+          const finalAtmosImages = atmosImgResult.updatedImages;
+
+          const t8Payload = type8Actual.collectPayload({
+            isTypeVisible: true,
+            cleanImages: finalAtmosImages,
+            cleanRegistrationImages: finalRegImages,
+          });
+
+          payload = {
+            ...payload,
+            ...t8Payload,
+            type8Actual: {
+              ...t8Payload.type8Actual,
+              t8RegistrationImages: finalRegImages,
+              t8Images: finalAtmosImages,
+            },
+            attachments: [
+              ...(payload.attachments || []),
+              ...finalRegImages.map((img: any) => ({
+                category: "REGISTRATION",
+                fileUrl: img.url,
+                fileName: img.name || "รูปใบลงทะเบียนผู้เข้าร่วมงาน",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_8",
+              })),
+              ...finalAtmosImages.map((img: any) => ({
+                category: "ATMOSPHERE",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพถ่ายบรรยากาศการประชุม",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_8",
+              })),
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive
+          ) {
+            const meetingTopic =
+              type8Targets[0]?.topic ||
+              (plan as any)?.type8Targets?.[0]?.topic ||
+              "จัดประชุม";
+            payload.resultSummary = `จัดประชุม: ${meetingTopic} (ผู้เข้าร่วมจริง: ${type8Actual.actualAttendees || "-"} คน)`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -940,6 +1048,7 @@ export function ActivityPlanActualView({
               type6State={type6Actual}
               type7aState={type7aActual}
               type7bState={type7bActual}
+              type8State={type8Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -948,6 +1057,7 @@ export function ActivityPlanActualView({
               type6Targets={type6Targets}
               type7aTargets={type7aTargets}
               type7bTargets={type7bTargets}
+              type8Targets={type8Targets}
               plan={plan}
               products={products}
               customers={customers}

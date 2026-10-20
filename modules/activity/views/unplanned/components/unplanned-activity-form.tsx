@@ -68,6 +68,13 @@ import {
   validateType7bUnplannedItems,
 } from "@/modules/activity/features/type-7b";
 import {
+  Type8UnplannedForm,
+  useType8UnplannedForm,
+  hydrateType8UnplannedData,
+  mapType8UnplannedToPayload,
+  validateType8UnplannedItems,
+} from "@/modules/activity/features/type-8";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -164,6 +171,15 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }
+    // 1.6 ตรวจสอบจาก Dedicated Target ของ Type 8
+    if (
+      (initialData.type8UnplannedItems && initialData.type8UnplannedItems.length > 0) ||
+      initialData.type8 ||
+      initialData.type8Data ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_8"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -184,6 +200,7 @@ export function UnplannedActivityForm({
       if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
       if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
       if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
+      if (code === "TYPE_8") return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -239,6 +256,12 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_7B" ||
       wt.includes("TYPE_7B") ||
       wt.includes("ติดตามแปลงสาธิต"),
+  );
+  const isType8Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_8" ||
+      wt.includes("TYPE_8") ||
+      wt.includes("จัดประชุม"),
   );
 
   // 2. Basic Info State
@@ -361,6 +384,16 @@ export function UnplannedActivityForm({
 
   const type7b = useType7bUnplannedForm({
     initialItems: hydratedInitialType7bItems,
+  });
+
+  // 5.7 Type 8 Unplanned Hook
+  const hydratedInitialType8Items = useMemo(
+    () => hydrateType8UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type8 = useType8UnplannedForm({
+    initialItems: hydratedInitialType8Items,
   });
 
   // 6. Budget Hook
@@ -809,6 +842,91 @@ export function UnplannedActivityForm({
       };
     }
 
+    if (isType8Active) {
+      const type8Validation = type8.validate();
+      if (!type8Validation.isValid) {
+        toast.error(type8Validation.error || "ข้อมูลจัดประชุมนอกแผนไม่ถูกต้อง (Type 8)");
+        return;
+      }
+
+      // Upload Registration Images (Required: min 1)
+      const allType8RegImages = type8.items.flatMap((item) => item.registrationImages || []);
+      let cleanType8RegImages = allType8RegImages;
+      if (allType8RegImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType8RegImages,
+            "type8",
+            "registration",
+          );
+          cleanType8RegImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปใบลงทะเบียนไม่สำเร็จ");
+          return;
+        }
+      }
+
+      // Upload Meeting Atmosphere Images
+      const allType8AtmosImages = type8.items.flatMap((item) => item.images || []);
+      let cleanType8AtmosImages = allType8AtmosImages;
+      if (allType8AtmosImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType8AtmosImages,
+            "type8",
+            "atmosphere",
+          );
+          cleanType8AtmosImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปบรรยากาศการประชุมไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const mapped = mapType8UnplannedToPayload(
+        type8.items.map((item) => ({
+          ...item,
+          registrationImages: cleanType8RegImages,
+          images: cleanType8AtmosImages,
+        })),
+      );
+
+      if (mapped.stores?.length) {
+        planStores = [...planStores, ...mapped.stores];
+      }
+
+      const firstItem = type8.items[0];
+      actualData = {
+        workTypeCode: "TYPE_8",
+        topic: firstItem?.topic,
+        meetingTarget: firstItem?.meetingTarget,
+        actualAttendees: firstItem?.actualAttendees,
+        feedbackQnA: firstItem?.feedbackQnA,
+        notes: firstItem?.notes || "",
+        type8Actual: mapped.actualOutcome?.type8Actual,
+        attachments: [
+          ...cleanType8RegImages.map((img) => ({
+            category: "REGISTRATION",
+            fileUrl: img.url,
+            fileName: img.name || "รูปใบลงทะเบียนผู้เข้าร่วมงาน",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_8",
+          })),
+          ...cleanType8AtmosImages.map((img) => ({
+            category: "ATMOSPHERE",
+            fileUrl: img.url,
+            fileName: img.name || "ภาพถ่ายบรรยากาศการประชุม",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_8",
+          })),
+        ],
+      };
+    }
+
     // 4. Resolve activityTypeId
     const matchedType =
       activityTypes.find((t) => {
@@ -867,6 +985,13 @@ export function UnplannedActivityForm({
             t.name?.includes("ติดตามแปลงสาธิต")
           );
         }
+        if (isType8Active) {
+          return (
+            t.code === "TYPE_8" ||
+            t.code === "MEETING" ||
+            t.name?.includes("ประชุม")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -878,7 +1003,9 @@ export function UnplannedActivityForm({
           ? "type-7a"
           : isType7bActive
             ? "type-7b"
-            : "type-1");
+            : isType8Active
+              ? "type-8"
+              : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -912,6 +1039,10 @@ export function UnplannedActivityForm({
 
     const mappedType7b = isType7bActive
       ? mapType7bUnplannedToPayload(type7b.items)
+      : null;
+
+    const mappedType8 = isType8Active
+      ? mapType8UnplannedToPayload(type8.items)
       : null;
 
     const payload = {
@@ -951,6 +1082,9 @@ export function UnplannedActivityForm({
       type7bData: mappedType7b?.type7bData,
       type7bPlots: mappedType7b?.type7bData?.plots,
       type7bTargets: mappedType7b?.type7bData?.plots,
+      type8Data: mappedType8?.type8Data,
+      type8Meetings: mappedType8?.type8Data?.meetings,
+      type8Targets: mappedType8?.targets,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -958,6 +1092,7 @@ export function UnplannedActivityForm({
       type6UnplannedItems: isType6Active ? type6.items : undefined,
       type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
       type7bUnplannedItems: isType7bActive ? type7b.items : undefined,
+      type8UnplannedItems: isType8Active ? type8.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1207,6 +1342,22 @@ export function UnplannedActivityForm({
           deleteWithdrawnProduct={type7b.deleteWithdrawnProduct}
           plotList={plotList as any}
           followUpPlans={followUpPlans as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.9 ส่วนเฉพาะ Type 8: จัดประชุม (นอกแผน) */}
+      {isType8Active && (
+        <Type8UnplannedForm
+          items={type8.items}
+          addItem={type8.addItem}
+          deleteItem={type8.deleteItem}
+          updateItem={type8.updateItem}
+          addPromotion={type8.addPromotion}
+          updatePromotion={type8.updatePromotion}
+          deletePromotion={type8.deletePromotion}
+          customers={customers as any}
           products={products as any}
           readonly={readonly}
         />

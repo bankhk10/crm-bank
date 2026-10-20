@@ -41,6 +41,11 @@ import {
   type Type7bTargetItem,
   type useType7bActual,
 } from "@/modules/activity/features/type-7b";
+import {
+  Type8ActualForm,
+  type Type8TargetItem,
+  type useType8Actual,
+} from "@/modules/activity/features/type-8";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -52,6 +57,7 @@ interface ActualWorkTypeListProps {
   type6State?: ReturnType<typeof useType6Actual>;
   type7aState?: ReturnType<typeof useType7aActual>;
   type7bState?: ReturnType<typeof useType7bActual>;
+  type8State?: ReturnType<typeof useType8Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -60,6 +66,7 @@ interface ActualWorkTypeListProps {
   type6Targets?: Type6TargetItem[];
   type7aTargets?: Type7aTargetItem[];
   type7bTargets?: Type7bTargetItem[];
+  type8Targets?: Type8TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -79,6 +86,7 @@ export function ActualWorkTypeList({
   type6State,
   type7aState,
   type7bState,
+  type8State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -87,6 +95,7 @@ export function ActualWorkTypeList({
   type6Targets = [],
   type7aTargets = [],
   type7bTargets = [],
+  type8Targets = [],
   plan,
   products = [],
   customers = [],
@@ -160,6 +169,22 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_7B";
+
+  const isType8Active =
+    planWorkTypes.includes("TYPE_8") ||
+    planWorkTypes.includes("จัดประชุม") ||
+    planWorkTypes.includes("ประชุม") ||
+    Boolean(plan?.type8Targets?.length) ||
+    Boolean(plan?.type8Items?.length) ||
+    Boolean(plan?.type8Meetings?.length) ||
+    Boolean(plan?.type8Data) ||
+    Boolean(plan?.type8) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) => s.workTypeCode === "TYPE_8",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_8";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -365,6 +390,36 @@ export function ActualWorkTypeList({
           customers={customers}
           actualState={type7bState.actualState}
           onUpdateField={type7bState.handleUpdateField}
+        />
+      )}
+
+      {/* 🟢 TYPE 8: จัดประชุม (Meeting) */}
+      {isType8Active && type8State && (
+        <Type8ActualForm
+          isVisible={true}
+          targets={
+            type8Targets && type8Targets.length > 0
+              ? type8Targets
+              : plan?.type8Targets || plan?.type8Items || plan?.type8Meetings
+          }
+          target={
+            type8Targets?.[0] ||
+            plan?.type8Targets?.[0] ||
+            plan?.type8Items?.[0] ||
+            plan?.type8Meetings?.[0]
+          }
+          planType={plan?.planType}
+          products={products}
+          actualAttendees={type8State.actualAttendees}
+          setActualAttendees={type8State.setActualAttendees}
+          feedbackQnA={type8State.feedbackQnA}
+          setFeedbackQnA={type8State.setFeedbackQnA}
+          productSalesDetails={type8State.productSalesDetails}
+          setProductSalesDetails={type8State.setProductSalesDetails}
+          images={type8State.images}
+          setImages={type8State.setImages}
+          registrationImages={type8State.registrationImages}
+          setRegistrationImages={type8State.setRegistrationImages}
         />
       )}
     </div>

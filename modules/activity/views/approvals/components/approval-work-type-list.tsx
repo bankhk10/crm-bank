@@ -37,6 +37,10 @@ import {
   Type7bApprovalCard,
   Type7bDetailView,
 } from "@/modules/activity/features/type-7b";
+import {
+  Type8ApprovalCard,
+  Type8DetailView,
+} from "@/modules/activity/features/type-8";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -104,6 +108,15 @@ export function ApprovalWorkTypeList({
     Boolean(plan?.type7bFollowUps?.length) ||
     Boolean(plan?.type7bPlots?.length) ||
     Boolean(plan?.type7b?.plots?.length);
+
+  const isType8 =
+    isTypeActive("TYPE_8", "จัดประชุม") ||
+    isTypeActive("TYPE_8", "ประชุม") ||
+    Boolean(plan?.type8Targets?.length) ||
+    Boolean(plan?.type8Items?.length) ||
+    Boolean(plan?.type8Meetings?.length) ||
+    Boolean(plan?.type8Data) ||
+    Boolean(plan?.type8);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -241,6 +254,23 @@ export function ApprovalWorkTypeList({
     );
   }, [isUnplanned, plan, parsedResults]);
 
+  const hasType8ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type8Actual) return true;
+    return Boolean(
+      parsedResults?.type8Actual ||
+        parsedResults?.t8ActualAttendees ||
+        parsedResults?.t8FeedbackQnA ||
+        (parsedResults?.t8RegistrationImages && parsedResults.t8RegistrationImages.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_8" &&
+              (a.category === "REGISTRATION" || a.category === "ATMOSPHERE" || a.group === "REGISTRATION"),
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
     if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
@@ -362,6 +392,67 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "รูปถ่ายติดตามแปลงสาธิต",
       }));
   }, [parsedResults?.t7CropImages, parsedResults?.t7PlotImages, plan?.attachments, plan?.result?.attachments, isType7b, isType7a]);
+
+  // รวบรวมรูปภาพ Type 8 (Attachments / Registration & Atmosphere)
+  const effectiveT8RegistrationImages = useMemo(() => {
+    if (
+      parsedResults?.type8Actual?.t8RegistrationImages &&
+      parsedResults.type8Actual.t8RegistrationImages.length > 0
+    ) {
+      return parsedResults.type8Actual.t8RegistrationImages;
+    }
+    if (
+      parsedResults?.t8RegistrationImages &&
+      parsedResults.t8RegistrationImages.length > 0
+    ) {
+      return parsedResults.t8RegistrationImages;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_8" &&
+          (att?.category === "REGISTRATION" || att?.group === "REGISTRATION"),
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปใบลงทะเบียน",
+      }));
+  }, [parsedResults?.type8Actual?.t8RegistrationImages, parsedResults?.t8RegistrationImages, plan?.attachments, plan?.result?.attachments]);
+
+  const effectiveT8AtmosphereImages = useMemo(() => {
+    if (
+      parsedResults?.type8Actual?.t8Images &&
+      parsedResults.type8Actual.t8Images.length > 0
+    ) {
+      return parsedResults.type8Actual.t8Images;
+    }
+    if (
+      parsedResults?.t8Images &&
+      parsedResults.t8Images.length > 0
+    ) {
+      return parsedResults.t8Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_8" &&
+          (att?.category === "ATMOSPHERE" || att?.group === "ATMOSPHERE" || att?.category === "MEETING"),
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพบรรยากาศการประชุม",
+      }));
+  }, [parsedResults?.type8Actual?.t8Images, parsedResults?.t8Images, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -561,6 +652,38 @@ export function ApprovalWorkTypeList({
             isVisible={true}
             target={targets?.t7b || targets?.t7bList?.[0]}
             targets={targets?.t7bList}
+            plan={plan}
+          />
+        ))}
+
+      {/* 🟢 TYPE 8: จัดประชุม (Meeting) */}
+      {isType8 &&
+        (hasType8ActualResults ? (
+          <Type8DetailView
+            isVisible={true}
+            target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
+            targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
+            actualAttendees={
+              parsedResults?.type8Actual?.t8ActualAttendees != null
+                ? String(parsedResults.type8Actual.t8ActualAttendees)
+                : parsedResults?.t8ActualAttendees != null
+                  ? String(parsedResults.t8ActualAttendees)
+                  : undefined
+            }
+            feedbackQnA={parsedResults?.type8Actual?.t8FeedbackQnA || parsedResults?.t8FeedbackQnA}
+            productSalesDetails={
+              parsedResults?.type8Actual?.t8ProductSalesDetails ||
+              parsedResults?.t8ProductSalesDetails ||
+              plan?.productSalesDetails
+            }
+            registrationImages={effectiveT8RegistrationImages}
+            images={effectiveT8AtmosphereImages}
+          />
+        ) : (
+          <Type8ApprovalCard
+            isVisible={true}
+            target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
+            targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
             plan={plan}
           />
         ))}

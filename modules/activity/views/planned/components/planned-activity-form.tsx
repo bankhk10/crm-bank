@@ -56,6 +56,11 @@ import {
   hydrateType7bPlannedData,
 } from "@/modules/activity/features/type-7b";
 import {
+  Type8PlannedForm,
+  useType8PlannedForm,
+  hydrateType8PlannedData,
+} from "@/modules/activity/features/type-8";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -151,6 +156,17 @@ export function PlannedActivityForm({
       if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
       if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
       if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
+      if (code === "TYPE_8") return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
+    }
+    if (
+      (initialData.type8Meetings && initialData.type8Meetings.length > 0) ||
+      (initialData.type8Items && initialData.type8Items.length > 0) ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_8")) ||
+      initialData.type8Data ||
+      initialData.type8
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
     if (
       initialData.type1Stores &&
@@ -211,6 +227,12 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_7B" ||
       wt.includes("TYPE_7B") ||
       wt.includes("ติดตามแปลงสาธิต"),
+  );
+  const isType8Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_8" ||
+      wt.includes("TYPE_8") ||
+      wt.includes("จัดประชุม"),
   );
 
   // 2. Basic Info State
@@ -336,6 +358,16 @@ export function PlannedActivityForm({
 
   const type7b = useType7bPlannedForm({
     initialItems: hydratedInitialType7bItems,
+  });
+
+  // 5.8 Type 8 Planned Hook
+  const hydratedInitialType8Items = useMemo(
+    () => hydrateType8PlannedData(initialData),
+    [initialData],
+  );
+
+  const type8 = useType8PlannedForm({
+    initialItems: hydratedInitialType8Items,
   });
 
   // 6. Budget Hook
@@ -545,6 +577,25 @@ export function PlannedActivityForm({
       }
     }
 
+    // 3.7 Validation & Mapping - Type 8 Items
+    let type8Payload: any = null;
+    if (isType8Active) {
+      const type8Validation = type8.validateType8();
+      if (!type8Validation.isValid) {
+        toast.error(
+          type8Validation.error ||
+            "ข้อมูลจัดประชุมไม่ถูกต้อง (Type 8)",
+        );
+        return;
+      }
+
+      const t8Mapped = type8.mapType8Payload(customers as any);
+      type8Payload = t8Mapped.type8Data;
+      if (t8Mapped.stores?.length) {
+        planStores = [...planStores, ...t8Mapped.stores];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -566,7 +617,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_7A" &&
             (t.code === "DEMO" || t.code === "TYPE_7A" || (t.name?.includes("แปลงสาธิต") && !t.name?.includes("ติดตาม")))) ||
           (primaryCode === "TYPE_7B" &&
-            (t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต"))),
+            (t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต"))) ||
+          (primaryCode === "TYPE_8" &&
+            (t.code === "TYPE_8" || t.code === "MEETING" || t.name?.includes("ประชุม"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -610,6 +663,10 @@ export function PlannedActivityForm({
       type7bData: type7bPayload,
       type7bPlots: type7bPayload?.plots,
       type7bTargets: type7bPayload?.plots,
+      type8Data: type8Payload,
+      type8Meetings: type8Payload?.meetings,
+      type8Items: type8Payload?.meetings,
+      type8Targets: type8Payload?.meetings,
     };
 
     try {
@@ -822,6 +879,22 @@ export function PlannedActivityForm({
           updateType7Row={type7b.updateType7bRow}
           plotList={demoPlots as any}
           followUpPlans={followUpPlans as any}
+          products={products as any}
+        />
+      )}
+
+      {/* 3.9 ส่วนเฉพาะ Type 8: จัดประชุม */}
+      {isType8Active && (
+        <Type8PlannedForm
+          readonly={readonly}
+          type8Items={type8.type8Items}
+          addType8Row={type8.addType8Row}
+          updateType8Row={type8.updateType8Row}
+          deleteType8Row={type8.deleteType8Row}
+          addPromotionProduct={type8.addPromotionProduct}
+          updatePromotionProduct={type8.updatePromotionProduct}
+          deletePromotionProduct={type8.deletePromotionProduct}
+          customers={customers as any}
           products={products as any}
         />
       )}

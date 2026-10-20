@@ -141,7 +141,7 @@ flowchart TD
 
 เป้าหมาย: นำเข้ากิจกรรมวิชาการและการสำรวจที่เหลือทั้งหมด โดยทุก Type ต้องมีทั้ง **Planned** และ **Unplanned** ครบถ้วนเสมอ
 
-- [ ] **Type 8:** จัดประชุม (Meeting) — Planned & Unplanned
+- [x] **Type 8:** จัดประชุม (Meeting) — Planned & Unplanned
 - [ ] **Type 9:** จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event / Sales Promotion) — Planned & Unplanned
 - [ ] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned
 - [ ] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned

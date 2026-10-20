@@ -8,6 +8,7 @@ import { extractType5PlanTargets } from "../../features/type-5";
 import { extractType6PlanTargets } from "../../features/type-6";
 import { extractType7aPlanTargets } from "../../features/type-7a";
 import { extractType7bPlanTargets } from "../../features/type-7b";
+import { extractType8PlanTargets } from "../../features/type-8";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -29,6 +30,7 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_6: (p, prev) => extractType6PlanTargets(p, prev),
   TYPE_7A: (p, prev) => extractType7aPlanTargets(p, prev),
   TYPE_7B: (p, prev) => extractType7bPlanTargets(p, prev),
+  TYPE_8: (p, prev) => extractType8PlanTargets(p, prev),
 };
 
 /**
@@ -153,6 +155,20 @@ export function extractPlanTargets(
     const extracted = extractType7bPlanTargets(plan, prevTargets.t7b);
     targets.t7b = extracted.primary;
     targets.t7bList = extracted.list;
+  }
+
+  // Always attempt Type 8 if relation exists
+  if (
+    !targets.t8?.topic &&
+    ((plan as any).type8Targets?.length ||
+      (plan as any).type8Items?.length ||
+      (plan as any).type8Meetings?.length ||
+      (plan as any).type8Data ||
+      (plan as any).type8)
+  ) {
+    const extracted = extractType8PlanTargets(plan, prevTargets.t8);
+    targets.t8 = extracted.primary;
+    targets.t8List = extracted.list;
   }
 
   return targets;
