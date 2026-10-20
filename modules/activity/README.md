@@ -4,6 +4,8 @@
 > **Purpose**: จัดการวงจรชีวิตของกิจกรรมการลงพื้นที่ทั้งหมด (Trip Plans, Unplanned Visits, Field Results Recording, Approval Workflows) ครอบคลุม 14 ประเภทงาน (Work Types 1 - 14)  
 > **Architecture Authority**: [`docs/MODULE_ARCHITECTURE.md`](../../docs/MODULE_ARCHITECTURE.md)  
 > **Coding Standards**: [`docs/CODING_STANDARDS.md`](../../docs/CODING_STANDARDS.md)  
+> **Type Slice Blueprint**: [`modules/activity/docs/TYPE_SLICE_BLUEPRINT.md`](docs/TYPE_SLICE_BLUEPRINT.md)  
+> **Module Roadmap**: [`modules/activity/docs/ROADMAP.md`](docs/ROADMAP.md)  
 > **Gold Standard Reference**: `modules/activity/features/type-1` (ต้นแบบ Vertical Slice สำหรับประเภทงานอื่น)
 
 ---
