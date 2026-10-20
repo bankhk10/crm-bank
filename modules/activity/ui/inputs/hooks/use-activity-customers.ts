@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   getDealerAndSubdealerCustomerOptionsAction,
   getFarmerCustomerOptionsAction,
-} from "@/modules/activity-plans/server/actions";
+} from "@/modules/activity/server/actions";
 
 export type ActivityCustomerType =
   | "FARMER"

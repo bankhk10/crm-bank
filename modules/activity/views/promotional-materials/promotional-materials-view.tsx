@@ -116,7 +116,7 @@ export default function PromotionalMaterialsView() {
         perPage,
         q: searchQuery,
         category: selectedCategory,
-        status: selectedStatus !== "ALL" ? selectedStatus : undefined,
+        status: selectedStatus !== "ALL" ? (selectedStatus as "ACTIVE" | "INACTIVE") : undefined,
         sortBy: "category",
         sortOrder: "asc",
       });

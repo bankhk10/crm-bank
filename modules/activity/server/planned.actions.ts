@@ -9,14 +9,30 @@ import {
   generateActivityPlanCode,
   computeFiscalFields,
   resolveActivityTypeId,
+  findActivityTypes,
 } from "../infrastructure/activity-plan.repository";
 import { findOrCreateEmployeeForUser } from "../infrastructure/employee-lookup.repository";
+import { getAvailableDemoPlots } from "../infrastructure/demo-plot.repository";
 import {
   saveStrategiesForPlan,
   resolvePrimaryWorkTypeCode,
 } from "../infrastructure/strategy.registry";
 import { getWorkTypeCode } from "../constants";
-import * as legacyActions from "@/modules/activity-plans/server/actions";
+import {
+  submitActivityPlanUseCase,
+  cancelActivityPlanUseCase,
+  requestCancelActivityPlanUseCase,
+  approveCancelActivityPlanUseCase,
+  rejectCancelActivityPlanUseCase,
+} from "../application/activity-plan-flow";
+import {
+  listActivityCalendarEventsUseCase,
+  type ListCalendarEventsParams,
+} from "../infrastructure/calendar-integration";
+import {
+  findDealerAndSubdealerCustomerOptions,
+  findFarmerCustomerOptions,
+} from "../infrastructure/customer-lookup.repository";
 import {
   createUnplannedActivityAction,
   updateUnplannedActivityAction,
@@ -325,74 +341,282 @@ export async function getActivityPlanAction(
   }
 }
 
-export async function getCurrentUserEmployeeAction(
-  ...args: Parameters<typeof legacyActions.getCurrentUserEmployeeAction>
-) {
-  return legacyActions.getCurrentUserEmployeeAction(...args);
+export async function getCurrentUserEmployeeAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized" };
+  }
+
+  try {
+    const employee = await findOrCreateEmployeeForUser(
+      session.user.id,
+      session.user.name ?? undefined,
+      session.user.email ?? undefined,
+    );
+
+    return serialize({
+      success: true as const,
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+      },
+      employee: {
+        id: employee.id,
+        name: employee.name,
+        positionTitle: (employee as any).positionTitle || (employee as any).position?.name,
+        departmentName: (employee as any).departmentName || (employee as any).department?.name,
+      },
+    });
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน",
+    };
+  }
 }
 
-export async function getActivityTypesAction(
-  ...args: Parameters<typeof legacyActions.getActivityTypesAction>
-) {
-  return legacyActions.getActivityTypesAction(...args);
+export async function getActivityTypesAction() {
+  try {
+    const types = await findActivityTypes();
+    return serialize({ success: true, types });
+  } catch (err: any) {
+    return serialize({ success: false, types: [], error: err.message });
+  }
 }
 
-export async function getDemoPlotsAction(
-  ...args: Parameters<typeof legacyActions.getDemoPlotsAction>
-) {
-  return legacyActions.getDemoPlotsAction(...args);
+export async function getDemoPlotsAction() {
+  try {
+    const demoPlots = await getAvailableDemoPlots();
+    return serialize({ success: true, demoPlots });
+  } catch (err: any) {
+    console.error("Failed to get demo plots:", err);
+    return serialize({ success: false, demoPlots: [], error: err.message });
+  }
 }
 
-export async function getProductCategoriesAction(
-  ...args: Parameters<typeof legacyActions.getProductCategoriesAction>
-) {
-  return legacyActions.getProductCategoriesAction(...args);
+export async function getProductCategoriesAction() {
+  try {
+    const productCategories = await db.productCategory.findMany({
+      where: { deletedAt: null },
+      orderBy: { code: "asc" },
+      select: {
+        id: true,
+        code: true,
+        description: true,
+      },
+    });
+    return serialize({ success: true, productCategories });
+  } catch (err: any) {
+    console.error("Failed to get product categories:", err);
+    return serialize({ success: false, productCategories: [] });
+  }
 }
 
-export async function cancelActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.cancelActivityPlanAction>
-) {
-  return legacyActions.cancelActivityPlanAction(...args);
+export async function cancelActivityPlanAction(id: string, reason?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await cancelActivityPlanUseCase(id, session.user.id, reason);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function requestCancelActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.requestCancelActivityPlanAction>
-) {
-  return legacyActions.requestCancelActivityPlanAction(...args);
+export async function requestCancelActivityPlanAction(id: string, reason: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await requestCancelActivityPlanUseCase(id, session.user.id, reason);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function approveCancelActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.approveCancelActivityPlanAction>
-) {
-  return legacyActions.approveCancelActivityPlanAction(...args);
+export async function approveCancelActivityPlanAction(id: string, comment?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await approveCancelActivityPlanUseCase(id, session.user.id, comment);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function rejectCancelActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.rejectCancelActivityPlanAction>
-) {
-  return legacyActions.rejectCancelActivityPlanAction(...args);
+export async function rejectCancelActivityPlanAction(id: string, comment?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await rejectCancelActivityPlanUseCase(id, session.user.id, comment);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function deleteActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.deleteActivityPlanAction>
-) {
-  return legacyActions.deleteActivityPlanAction(...args);
+export async function deleteActivityPlanAction(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const plan = await db.activityPlan.findUnique({
+      where: { id },
+      select: { id: true, createdById: true },
+    });
+    if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
+
+    const roles = (session.user as any)?.roles ?? [];
+    const isAdmin =
+      roles.includes("administrator") ||
+      roles.includes("admin") ||
+      roles.includes("ceo");
+
+    if (plan.createdById !== session.user.id && !isAdmin) {
+      return { success: false, error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
+    }
+
+    await db.activityPlan.update({
+      where: { id },
+      data: { deletedAt: new Date(), status: ActivityStatus.CANCELLED },
+    });
+    revalidatePath("/activity-plans");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการลบแผนงาน" };
+  }
 }
 
-export async function submitActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.submitActivityPlanAction>
-) {
-  return legacyActions.submitActivityPlanAction(...args);
+export async function submitActivityPlanAction(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await submitActivityPlanUseCase(id, session.user.id);
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function duplicateActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.duplicateActivityPlanAction>
-) {
-  return legacyActions.duplicateActivityPlanAction(...args);
+export async function duplicateActivityPlanAction(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const originalPlan = await db.activityPlan.findUnique({
+      where: { id },
+      include: ACTIVITY_PLAN_FULL_INCLUDE,
+    });
+    if (!originalPlan) {
+      return { success: false, error: "ไม่พบ Trip Plan ต้นฉบับที่ต้องการทำสำเนา" };
+    }
+
+    const duplicated = await createActivityPlanAction({
+      title: `${originalPlan.title} (สำเนา)`,
+      startDate: originalPlan.startDate,
+      endDate: originalPlan.endDate,
+      activityTypeId: originalPlan.activityTypeId,
+      location: originalPlan.location,
+      province: originalPlan.province,
+      district: originalPlan.district,
+      notes: originalPlan.notes,
+      planType: originalPlan.planType,
+      salesPromotionBudgetRequested: originalPlan.salesPromotionBudgetRequested
+        ? Number(originalPlan.salesPromotionBudgetRequested)
+        : null,
+      marketingBudgetRequested: originalPlan.marketingBudgetRequested
+        ? Number(originalPlan.marketingBudgetRequested)
+        : null,
+      totalBudgetRequested: originalPlan.totalBudgetRequested
+        ? Number(originalPlan.totalBudgetRequested)
+        : null,
+      workTypeCodes: (originalPlan.workTypes || [])
+        .map((wt) => wt.activityType?.code)
+        .filter(Boolean),
+      helperEmployeeIds: (originalPlan.helpers || []).map((h) => h.employeeId),
+    });
+
+    return serialize(duplicated);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการทำสำเนาแผนงาน" };
+  }
 }
 
-export async function getActivityCalendarEventsAction(
-  ...args: Parameters<typeof legacyActions.getActivityCalendarEventsAction>
-) {
-  return legacyActions.getActivityCalendarEventsAction(...args);
+export async function getActivityCalendarEventsAction(params: ListCalendarEventsParams = {}) {
+  try {
+    const events = await listActivityCalendarEventsUseCase(params);
+    return serialize({ success: true, events });
+  } catch (err: any) {
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลปฏิทิน",
+      events: [],
+    });
+  }
+}
+
+export async function getDealerAndSubdealerCustomerOptionsAction() {
+  try {
+    const stores = await findDealerAndSubdealerCustomerOptions();
+    return serialize({ success: true as const, stores });
+  } catch (err: any) {
+    console.error("Failed to get dealer & subdealer customer options:", err);
+    return serialize({ success: false as const, stores: [] });
+  }
+}
+
+export async function getFarmerCustomerOptionsAction(province?: string) {
+  try {
+    const farmers = await findFarmerCustomerOptions(province);
+    return serialize({ success: true as const, farmers });
+  } catch (err: any) {
+    console.error("Failed to get farmer customer options:", err);
+    return serialize({ success: false as const, farmers: [] });
+  }
 }

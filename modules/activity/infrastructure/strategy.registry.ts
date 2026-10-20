@@ -35,7 +35,12 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
         (rawData.type1Stores && rawData.type1Stores.length > 0) ||
-        (rawData.type1UnplannedItems && rawData.type1UnplannedItems.length > 0)
+        (rawData.type1UnplannedItems && rawData.type1UnplannedItems.length > 0) ||
+        rawData.targetActualResults ||
+        rawData.type1Actual ||
+        rawData.discussionResult ||
+        rawData.productAdvice ||
+        rawData.salesOpportunity
       ),
   },
   TYPE_2: {
@@ -51,7 +56,10 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
         (rawData.type2Targets && rawData.type2Targets.length > 0) ||
-        (rawData.type2UnplannedItems && rawData.type2UnplannedItems.length > 0)
+        (rawData.type2UnplannedItems && rawData.type2UnplannedItems.length > 0) ||
+        (rawData.followupResults && rawData.followupResults.length > 0) ||
+        rawData.t2FollowupResults ||
+        rawData.type2Actual
       ),
   },
   TYPE_3: {
@@ -84,7 +92,12 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_4")) ||
         (rawData.type4Targets && rawData.type4Targets.length > 0) ||
-        (rawData.type4Items && rawData.type4Items.length > 0)
+        (rawData.type4Items && rawData.type4Items.length > 0) ||
+        rawData.billingStatus ||
+        rawData.billingDetail ||
+        rawData.collectDetail ||
+        rawData.t4OrderNo ||
+        rawData.orderNo
       ),
   },
 };
@@ -168,3 +181,26 @@ export async function saveStrategiesForPlan(
     }
   }
 }
+
+/**
+ * Execute saveActual for all active strategies inside an atomic Prisma transaction
+ */
+export async function saveStrategiesForActual(
+  tx: PrismaTransaction,
+  planId: string,
+  actualData: any,
+  planWorkTypeCodes: string[] = []
+): Promise<void> {
+  for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
+    const isPlanWorkType = planWorkTypeCodes.some(
+      (code) => getWorkTypeCode(code) === registration.code
+    );
+    if (isPlanWorkType || registration.hasData(actualData)) {
+      const strategy = registration.planned;
+      if (typeof strategy.saveActual === "function") {
+        await strategy.saveActual(tx, planId, actualData);
+      }
+    }
+  }
+}
+

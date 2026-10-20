@@ -1,7 +1,15 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { getApproverDirectory } from "../infrastructure/employee-lookup.repository";
-import * as legacyActions from "@/modules/activity-plans/server/actions";
+import {
+  approveActivityPlanUseCase,
+  rejectActivityPlanUseCase,
+  requestCorrectionPlanUseCase,
+  reviewSingleActivityHelperUseCase,
+} from "../application/activity-plan-flow";
+import { getApprovalQueueDataUseCase } from "../application/approval-queue";
 
 function serialize<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
@@ -24,32 +32,221 @@ export async function getApproverDirectoryAction() {
   }
 }
 
-export async function getApprovalQueueDataAction(
-  ...args: Parameters<typeof legacyActions.getApprovalQueueDataAction>
-) {
-  return legacyActions.getApprovalQueueDataAction(...args);
+/**
+ * Action: Get approval queue data and statistics
+ */
+export async function getApprovalQueueDataAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo") ||
+    permissions.includes("activity.manage");
+
+  const canApprove =
+    isAdmin ||
+    permissions.includes("activity.approve") ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("menu.activity_plans");
+
+  if (!canApprove) {
+    return {
+      success: false as const,
+      error: "Forbidden: คุณไม่มีสิทธิ์เข้าถึงคิวงานอนุมัติ",
+    };
+  }
+
+  try {
+    const result = await getApprovalQueueDataUseCase({
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      employeeId: (session.user as any)?.employeeId,
+      permissions,
+      roles,
+    });
+
+    return serialize(result);
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการโหลดคิวงานอนุมัติ",
+    };
+  }
 }
 
+/**
+ * Action: Approve an Activity Plan
+ */
 export async function approveActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.approveActivityPlanAction>
+  id: string,
+  comment?: string,
+  selectedHelperEmployeeIds?: string[]
 ) {
-  return legacyActions.approveActivityPlanAction(...args);
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan",
+    };
+  }
+
+  try {
+    const result = await approveActivityPlanUseCase(
+      id,
+      session.user.id,
+      comment,
+      selectedHelperEmployeeIds
+    );
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function rejectActivityPlanAction(
-  ...args: Parameters<typeof legacyActions.rejectActivityPlanAction>
-) {
-  return legacyActions.rejectActivityPlanAction(...args);
+/**
+ * Action: Reject an Activity Plan
+ */
+export async function rejectActivityPlanAction(id: string, comment?: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan",
+    };
+  }
+
+  try {
+    const result = await rejectActivityPlanUseCase(
+      id,
+      session.user.id,
+      comment
+    );
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
-export async function requestCorrectionPlanAction(
-  ...args: Parameters<typeof legacyActions.requestCorrectionPlanAction>
-) {
-  return legacyActions.requestCorrectionPlanAction(...args);
+/**
+ * Action: Request Correction on an Activity Plan
+ */
+export async function requestCorrectionPlanAction(id: string, comment: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissions = session.user.permissionKeys ?? [];
+  const roles = (session.user as any)?.roles ?? [];
+  const isAdmin =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+
+  if (
+    !isAdmin &&
+    !permissions.includes("activity.approve") &&
+    !permissions.includes("activity.manage")
+  ) {
+    return {
+      success: false,
+      error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan",
+    };
+  }
+
+  try {
+    const result = await requestCorrectionPlanUseCase(
+      id,
+      session.user.id,
+      comment
+    );
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${id}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }
 
+/**
+ * Action: Review Single Activity Helper
+ */
 export async function reviewSingleActivityHelperAction(
-  ...args: Parameters<typeof legacyActions.reviewSingleActivityHelperAction>
+  activityPlanId: string,
+  helperEmployeeId: string,
+  action: "APPROVE" | "REJECT",
+  rejectionReason?: string
 ) {
-  return legacyActions.reviewSingleActivityHelperAction(...args);
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const result = await reviewSingleActivityHelperUseCase(
+      activityPlanId,
+      helperEmployeeId,
+      session.user.id,
+      action,
+      rejectionReason
+    );
+    if (result.success) {
+      revalidatePath("/activity-plans");
+      revalidatePath("/activity-plans/approvals");
+      revalidatePath(`/activity-plans/${activityPlanId}`);
+    }
+    return serialize(result);
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด" };
+  }
 }

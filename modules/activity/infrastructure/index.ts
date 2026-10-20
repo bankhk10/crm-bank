@@ -2,3 +2,8 @@ export * from "./strategy.registry";
 export * from "./activity-plan-include";
 export * from "./activity-plan.repository";
 export * from "./employee-lookup.repository";
+export * from "./activity-result.repository";
+export * from "./customer-lookup.repository";
+export * from "./promotional-material.repository";
+export * from "./demo-plot.repository";
+export * from "./calendar-integration";
