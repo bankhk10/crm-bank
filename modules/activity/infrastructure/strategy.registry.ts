@@ -11,6 +11,8 @@ import { type9PlannedStrategy, type9UnplannedStrategy } from "../features/type-9
 import { type10PlannedStrategy, type10UnplannedStrategy } from "../features/type-10";
 import { type11PlannedStrategy, type11UnplannedStrategy } from "../features/type-11";
 import { type12PlannedStrategy, type12UnplannedStrategy } from "../features/type-12";
+import { type13PlannedStrategy } from "../features/type-13/planned/infrastructure/type13-planned.strategy";
+import { type13UnplannedStrategy } from "../features/type-13/unplanned/infrastructure/type13-unplanned.strategy";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -307,6 +309,34 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.t12Images && rawData.t12Images.length > 0)
       ),
   },
+  TYPE_13: {
+    code: "TYPE_13",
+    name: "ฉีดแปลงแฮตแทค",
+    planned: type13PlannedStrategy,
+    unplanned: type13UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_13") ||
+            rawData.workTypeCodes.includes("ฉีดแปลงแฮตแทค") ||
+            rawData.workTypeCodes.includes("ฉีดแปลงแฮทแทค"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_13" ||
+              s.workTypeCode === "ฉีดแปลงแฮตแทค" ||
+              s.workTypeCode === "ฉีดแปลงแฮทแทค"
+          )) ||
+        (rawData.type13Plots && rawData.type13Plots.length > 0) ||
+        (rawData.type13UnplannedItems && rawData.type13UnplannedItems.length > 0) ||
+        (rawData.t13Plots && rawData.t13Plots.length > 0) ||
+        rawData.type13Data ||
+        rawData.type13 ||
+        rawData.type13Actual ||
+        rawData.t13SprayRounds ||
+        (rawData.t13Images && rawData.t13Images.length > 0)
+      ),
+  },
 };
 
 /**
@@ -372,6 +402,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_12.hasData(rawData)) {
     return "TYPE_12";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_13.hasData(rawData)) {
+    return "TYPE_13";
   }
 
   return "TYPE_1";

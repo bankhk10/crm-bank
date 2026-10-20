@@ -106,6 +106,12 @@ import {
   extractType12PlanTargets,
   type Type12TargetItem,
 } from "@/modules/activity/features/type-12";
+import {
+  useType13Actual,
+  validateType13Actual,
+  extractType13PlanTargets,
+  type Type13TargetItem,
+} from "@/modules/activity/features/type-13";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -156,6 +162,7 @@ export function ActivityPlanActualView({
   const type10Actual = useType10Actual();
   const type11Actual = useType11Actual();
   const type12Actual = useType12Actual();
+  const type13Actual = useType13Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -169,6 +176,7 @@ export function ActivityPlanActualView({
   const [type10Targets, setType10Targets] = useState<Type10TargetItem[]>([]);
   const [type11Targets, setType11Targets] = useState<Type11TargetItem[]>([]);
   const [type12Targets, setType12Targets] = useState<Type12TargetItem[]>([]);
+  const [type13Targets, setType13Targets] = useState<Type13TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -228,6 +236,9 @@ export function ActivityPlanActualView({
       const extractedT12 = extractType12PlanTargets(plan);
       setType12Targets(extractedT12.list);
 
+      const extractedT13 = extractType13PlanTargets(plan);
+      setType13Targets(extractedT13.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -254,11 +265,12 @@ export function ActivityPlanActualView({
         type10Actual.hydrate(payloadToHydrate);
         type11Actual.hydrate(payloadToHydrate);
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
+        type13Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, type13Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -423,6 +435,18 @@ export function ActivityPlanActualView({
       Boolean(plan?.tourData) ||
       plan?.activityType?.code === "TYPE_12";
 
+    const isType13Active =
+      planWorkTypes.includes("TYPE_13") ||
+      planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
+      planWorkTypes.includes("ฉีดแปลงแฮทแทค") ||
+      planWorkTypes.includes("ฉีดแปลง") ||
+      Boolean(plan?.type13Plots?.length) ||
+      Boolean(plan?.type13Targets?.length) ||
+      Boolean(plan?.t13Plots?.length) ||
+      Boolean(plan?.type13Data) ||
+      Boolean(plan?.type13) ||
+      plan?.activityType?.code === "TYPE_13";
+
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
       setValidationAlert({
@@ -586,6 +610,14 @@ export function ActivityPlanActualView({
         const t12Validation = validateType12Actual(type12Actual.collectPayload());
         if (!t12Validation.isValid && t12Validation.error) {
           missingFields.push(t12Validation.error);
+        }
+      }
+
+      // Delegate Type 13 validation to features/type-13 domain logic
+      if (isType13Active) {
+        const t13Validation = validateType13Actual(type13Actual.collectPayload());
+        if (!t13Validation.isValid && t13Validation.error) {
+          missingFields.push(t13Validation.error);
         }
       }
 
@@ -1236,6 +1268,60 @@ export function ActivityPlanActualView({
             payload.resultSummary = `พาลูกค้าศึกษาดูงาน: ${dest} (ผู้ร่วมเดินทางจริง: ${type12Actual.actualAttendees || "-"} คน)`;
           }
         }
+
+        // Collect Type 13 payload if active
+        if (isType13Active) {
+          const t13Payload = type13Actual.collectPayload();
+          // Upload any un-uploaded images across all plots
+          const allPlotImages = (type13Actual.plotsActual || []).flatMap(
+            (p) => p.afterSprayImages || [],
+          );
+          let uploadedAttachments: any[] = [];
+          if (allPlotImages.length > 0) {
+            const imgResult = await uploadActivityPlanImageGroup(
+              id,
+              allPlotImages as any,
+              "type13_after_spray",
+              "after_spray",
+            );
+            uploadedAttachments = (imgResult.updatedImages || []).map((img: any) => ({
+              category: "AFTER_SPRAY",
+              fileUrl: img.url,
+              fileName: img.name || "ภาพหลังการฉีดพ่น",
+              fileSize: (img as any).size || 0,
+              mimeType: (img as any).type || "image/jpeg",
+              workTypeCode: "TYPE_13",
+            }));
+          }
+
+          payload = {
+            ...payload,
+            type13Actual: t13Payload,
+            attachments: [
+              ...(payload.attachments || []),
+              ...uploadedAttachments,
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive &&
+            !isType8Active &&
+            !isType9Active &&
+            !isType10Active &&
+            !isType11Active &&
+            !isType12Active
+          ) {
+            const plotCount = type13Actual.plotsActual?.length || 1;
+            payload.resultSummary = `ฉีดแปลงแฮตแทค: สำเร็จ (${plotCount} แปลง)`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -1411,6 +1497,7 @@ export function ActivityPlanActualView({
               type10State={type10Actual}
               type11State={type11Actual}
               type12State={type12Actual}
+              type13State={type13Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -1424,6 +1511,7 @@ export function ActivityPlanActualView({
               type10Targets={type10Targets}
               type11Targets={type11Targets}
               type12Targets={type12Targets}
+              type13Targets={type13Targets}
               plan={plan}
               products={products}
               customers={customers}

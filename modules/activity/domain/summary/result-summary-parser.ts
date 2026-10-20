@@ -268,6 +268,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 13 Hattack Spraying Results
+    if (resData.type13Actual) {
+      result.type13Actual = resData.type13Actual;
+      if (resData.type13Actual.plots) {
+        result.t13Plots = resData.type13Actual.plots;
+      }
+      if (resData.type13Actual.sprayRounds) {
+        result.t13SprayRounds = resData.type13Actual.sprayRounds;
+      }
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     if (resData.type4Result || resData.activityResultType4) {
       const t4 = resData.type4Result || resData.activityResultType4;
@@ -462,6 +473,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t13Images) {
+      result.t13Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_13" ||
+            att.workTypeCode === "ฉีดแปลงแฮตแทค" ||
+            att.category === "AFTER_SPRAY" ||
+            att.category === "demo_plot_after_spray",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "ภาพถ่ายหลังฉีดพ่นแปลงแฮตแทค",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

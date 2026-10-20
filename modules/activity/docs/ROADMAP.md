@@ -147,7 +147,7 @@ flowchart TD
 - [x] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned & Unplanned
 - [x] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
 - [x] **Type 12:** ทัวร์ (Tour) — Planned & Unplanned
-- [ ] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
+- [x] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
 - [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
 
 #### งานที่ 3.2: Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน — Dual-Mode Planned + Unplanned — Completed ✅)
@@ -191,6 +191,19 @@ flowchart TD
 - [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`, `summary/types.ts`)
 - [x] เชื่อมโยงเข้าสู่ Views ทั้ง 6 (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
 - [x] จัดทำเอกสาร [`features/type-12/README.md`](../features/type-12/README.md)
+- [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
+
+#### งานที่ 3.6: Migrate `features/type-13/` (ฉีดแปลงแฮตแทค / Hattack Spraying — Dual-Mode Planned + Unplanned — Completed ✅)
+
+- [x] สร้างโฟลเดอร์ `features/type-13/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] รองรับ Multi-Plot (1–10 แปลง) พร้อมการบันทึกรอบฉีดพ่น (Spraying Rounds), อุปกรณ์ฉีดพ่น, และผลการตอบสนองสินค้า
+- [x] รองรับการอัปโหลดรูปภาพหลังฉีดพ่น (After-Spray Photos) สูงสุด 20 รูปต่อหมู่บ้าน หมวดหมู่ `AFTER_SPRAY`
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด (`ActivityCustomerSelect`, `ActivityAddressSelect`, `ActivityInput`, `ActivityGpsPicker`, `ActivityProductSelect`, `ActivityPhotoUpload`)
+- [x] สร้าง Native Strategies (`type13PlannedStrategy`, `type13UnplannedStrategy`) พร้อม Dual Persistence Sync (`ActivityPlanType13`, `ActivityPlanType13Plot`, `ActivityPlanType13Product`, `DemoPlotVisit`)
+- [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`, `summary/types.ts`)
+- [x] เชื่อมโยงเข้าสู่ Views ทั้ง 6 (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-13/README.md`](../features/type-13/README.md)
 - [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
 
@@ -255,6 +268,7 @@ flowchart TD
 
 |     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
 | :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  1.7.0   | Migrate `features/type-13/` (ฉีดแปลงแฮตแทค / Hattack Spraying) ครบ 24 Artifacts, Multi-Plot, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
 | **2026-10-20** |  1.6.0   | Migrate `features/type-12/` (พาลูกค้าศึกษาดูงาน / Tour) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
 | **2026-10-20** |  1.5.0   | Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
 | **2026-10-20** |  1.4.0   | Migrate `features/type-10/` (จัดงาน Field Day) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                    | Antigravity AI |

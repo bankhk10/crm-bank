@@ -81,6 +81,11 @@ import {
   hydrateType12PlannedData,
 } from "@/modules/activity/features/type-12";
 import {
+  Type13PlannedForm,
+  useType13PlannedForm,
+  hydrateType13PlannedData,
+} from "@/modules/activity/features/type-13";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -283,6 +288,14 @@ export function PlannedActivityForm({
       wt.includes("ศึกษาดูงาน") ||
       wt.includes("ทัวร์"),
   );
+  const isType13Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_13" ||
+      wt.includes("TYPE_13") ||
+      wt.includes("ฉีดแปลงแฮตแทค") ||
+      wt.includes("ฉีดแปลงแฮทแทค") ||
+      wt.includes("ฉีดแปลง"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -463,6 +476,12 @@ export function PlannedActivityForm({
     initial: initialData,
     initDetails: initialData?.tour || initialData?.tourData,
     customersList: customers as any,
+    selectedWorkTypes,
+  });
+
+  // 5.13 Type 13 Planned Hook
+  const type13 = useType13PlannedForm({
+    initial: initialData,
     selectedWorkTypes,
   });
 
@@ -808,6 +827,31 @@ export function PlannedActivityForm({
       }
     }
 
+    let type13Payload: any = null;
+    let type13PlotsPayload: any = undefined;
+    if (isType13Active) {
+      const type13Validation = type13.validateType13();
+      if (!type13Validation.isValid) {
+        toast.error(
+          type13Validation.error ||
+            "กรุณาระบุข้อมูลฉีดแปลงแฮตแทค (Type 13) ให้ครบถ้วน",
+        );
+        return;
+      }
+      const t13Mapped = type13.mapType13Payload(
+        customers as any,
+        products as any,
+      );
+      type13Payload = t13Mapped.type13Data;
+      type13PlotsPayload = t13Mapped.type13Plots;
+      if (t13Mapped.planStores?.length) {
+        planStores = [...planStores, ...t13Mapped.planStores];
+      }
+      if (t13Mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...t13Mapped.planProducts];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -835,7 +879,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_9" &&
             (t.code === "TYPE_9" || t.code === "STORE_EVENT" || t.name?.includes("ส่งเสริมการขายหน้าร้าน"))) ||
           (primaryCode === "TYPE_12" &&
-            (t.code === "TYPE_12" || t.code === "TOUR" || t.name?.includes("ทัวร์") || t.name?.includes("ศึกษาดูงาน"))),
+            (t.code === "TYPE_12" || t.code === "TOUR" || t.name?.includes("ทัวร์") || t.name?.includes("ศึกษาดูงาน"))) ||
+          (primaryCode === "TYPE_13" &&
+            (t.code === "TYPE_13" || t.code === "HATTACK" || t.name?.includes("ฉีดแปลง") || t.name?.includes("แฮตแทค"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -895,6 +941,9 @@ export function PlannedActivityForm({
       tourData: type12Payload,
       tour: type12Payload,
       type12Data: type12Payload,
+      type13Data: type13Payload,
+      type13Plots: type13PlotsPayload,
+      type13Targets: type13PlotsPayload,
     };
 
     try {
@@ -1206,6 +1255,21 @@ export function PlannedActivityForm({
           type12Destination={type12.type12Destination}
           setType12Destination={type12.setType12Destination}
           customers={customers as any}
+        />
+      )}
+
+      {/* 3.14 ส่วนเฉพาะ Type 13: ฉีดแปลงแฮตแทค */}
+      {isType13Active && (
+        <Type13PlannedForm
+          plots={type13.type13Plots}
+          onChange={type13.setType13Plots}
+          dealers={customers as any}
+          products={products as any}
+          readonly={readonly}
+          hasProductWithdrawal={type13.hasProductWithdrawal}
+          onToggleWithdrawal={type13.setHasProductWithdrawal}
+          withdrawnProducts={type13.withdrawnProducts}
+          onWithdrawnProductsChange={type13.setWithdrawnProducts}
         />
       )}
 

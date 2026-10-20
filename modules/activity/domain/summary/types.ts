@@ -106,8 +106,13 @@ export type Type9TargetItem = any;
 import type { Type10TargetItem } from "../../features/type-10";
 import type { Type11TargetItem } from "../../features/type-11";
 import type { Type12TargetItem } from "../../features/type-12";
-export type { Type10TargetItem, Type11TargetItem, Type12TargetItem };
-export type Type13TargetItem = any;
+import type { Type13TargetItem } from "../../features/type-13";
+export type {
+  Type10TargetItem,
+  Type11TargetItem,
+  Type12TargetItem,
+  Type13TargetItem,
+};
 export type Type14TargetItem = any;
 
 export interface ActualTargetsState {
@@ -243,6 +248,18 @@ export interface ParsedSummaryValues {
   t7GrowthStatus?: string;
   t7IssuesFound?: string;
   t7bSprayingRounds?: Type7bSprayingRoundItem[];
+
+  // Type 12
+  t12ActualAttendees?: number | string;
+  t12TourHighlights?: string;
+  t12FeedbackIssues?: string;
+  t12Images?: ImageFile[];
+
+  // Type 13
+  t13Plots?: any[];
+  t13SprayRounds?: any[];
+  t13Images?: ImageFile[];
+  type13Actual?: any;
 
   // General index signature for extensible fields
   [key: string]: any;

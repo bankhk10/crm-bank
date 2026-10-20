@@ -19,6 +19,7 @@ import { Type9DetailView } from "@/modules/activity/features/type-9";
 import { Type10DetailView } from "@/modules/activity/features/type-10";
 import { Type11DetailView } from "@/modules/activity/features/type-11";
 import { Type12DetailView } from "@/modules/activity/features/type-12";
+import { Type13DetailView } from "@/modules/activity/features/type-13";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -143,6 +144,19 @@ export function DetailWorkTypeList({
     Boolean(targets?.t12?.country) ||
     Boolean(targets?.t12?.destination) ||
     Boolean(targets?.t12?.storeName);
+
+  const isType13 =
+    isTypeActive("TYPE_13", "ฉีดแปลงแฮตแทค") ||
+    isTypeActive("TYPE_13", "ฉีดแปลงแฮทแทค") ||
+    isTypeActive("TYPE_13", "ฉีดแปลง") ||
+    Boolean(plan?.type13Plots?.length) ||
+    Boolean(plan?.type13Targets?.length) ||
+    Boolean(plan?.t13Plots?.length) ||
+    Boolean(plan?.type13Data) ||
+    Boolean(plan?.type13) ||
+    Boolean(targets?.t13List?.length) ||
+    Boolean(targets?.t13Plots?.length) ||
+    plan?.activityType?.code === "TYPE_13";
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -774,6 +788,27 @@ export function DetailWorkTypeList({
           parsedResults?.t12FeedbackIssues
         }
         images={effectiveT12Images}
+      />
+
+      {/* 🟢 TYPE 13: ฉีดแปลงแฮตแทค */}
+      <Type13DetailView
+        isVisible={isType13}
+        plots={
+          targets?.t13List ||
+          targets?.t13Plots ||
+          plan?.type13Plots ||
+          plan?.t13Plots ||
+          plan?.type13Data?.plots ||
+          []
+        }
+        actualData={
+          parsedResults?.type13Actual || {
+            type13PlotsActual: parsedResults?.t13Plots || plan?.type13Plots,
+            sprayRounds: parsedResults?.t13SprayRounds || plan?.sprayRounds,
+            attachments: parsedResults?.t13Images || plan?.attachments,
+          }
+        }
+        planSummary={plan}
       />
     </div>
   );

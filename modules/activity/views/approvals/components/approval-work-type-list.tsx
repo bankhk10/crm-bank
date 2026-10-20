@@ -57,6 +57,10 @@ import {
   Type12ApprovalCard,
   Type12DetailView,
 } from "@/modules/activity/features/type-12";
+import {
+  Type13ApprovalCard,
+  Type13DetailView,
+} from "@/modules/activity/features/type-13";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -182,6 +186,19 @@ export function ApprovalWorkTypeList({
     Boolean(targets?.t12?.country) ||
     Boolean(targets?.t12?.destination) ||
     Boolean(targets?.t12?.storeName);
+
+  const isType13 =
+    isTypeActive("TYPE_13", "ฉีดแปลงแฮตแทค") ||
+    isTypeActive("TYPE_13", "ฉีดแปลงแฮทแทค") ||
+    isTypeActive("TYPE_13", "ฉีดแปลง") ||
+    Boolean(plan?.type13Plots?.length) ||
+    Boolean(plan?.type13Targets?.length) ||
+    Boolean(plan?.t13Plots?.length) ||
+    Boolean(plan?.type13Data) ||
+    Boolean(plan?.type13) ||
+    Boolean(targets?.t13List?.length) ||
+    Boolean(targets?.t13Plots?.length) ||
+    plan?.activityType?.code === "TYPE_13";
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -412,6 +429,25 @@ export function ApprovalWorkTypeList({
               a.workTypeCode === "TYPE_12" ||
               a.category === "TOUR" ||
               a.category === "type12",
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType13ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type13Actual || plan?.type13Actual) return true;
+    return Boolean(
+      parsedResults?.type13Actual ||
+        (parsedResults?.t13Plots && parsedResults.t13Plots.length > 0) ||
+        (parsedResults?.t13SprayRounds && parsedResults.t13SprayRounds.length > 0) ||
+        (parsedResults?.t13Images && parsedResults.t13Images.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_13" ||
+              a.category === "AFTER_SPRAY" ||
+              a.category === "type13" ||
+              a.category === "demo_plot_after_spray",
           )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -1175,6 +1211,43 @@ export function ApprovalWorkTypeList({
               targets?.t12List ||
               (plan?.tour ? [plan.tour] : undefined)
             }
+          />
+        ))}
+
+      {/* 🟢 TYPE 13: ฉีดแปลงแฮตแทค */}
+      {isType13 &&
+        (hasType13ActualResults ? (
+          <Type13DetailView
+            isVisible={true}
+            plots={
+              targets?.t13List ||
+              targets?.t13Plots ||
+              plan?.type13Plots ||
+              plan?.t13Plots ||
+              plan?.type13Data?.plots ||
+              []
+            }
+            actualData={
+              parsedResults?.type13Actual || {
+                type13PlotsActual: parsedResults?.t13Plots || plan?.type13Plots,
+                sprayRounds: parsedResults?.t13SprayRounds || plan?.sprayRounds,
+                attachments: parsedResults?.t13Images || plan?.attachments,
+              }
+            }
+            planSummary={plan}
+          />
+        ) : (
+          <Type13ApprovalCard
+            isVisible={true}
+            plots={
+              targets?.t13List ||
+              targets?.t13Plots ||
+              plan?.type13Plots ||
+              plan?.t13Plots ||
+              plan?.type13Data?.plots ||
+              []
+            }
+            planSummary={plan}
           />
         ))}
     </div>

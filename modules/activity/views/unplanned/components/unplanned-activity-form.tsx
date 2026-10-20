@@ -102,6 +102,12 @@ import {
   validateType12UnplannedItem,
 } from "@/modules/activity/features/type-12";
 import {
+  Type13UnplannedForm,
+  useType13UnplannedForm,
+  mapType13UnplannedToPayload,
+  validateType13UnplannedItem,
+} from "@/modules/activity/features/type-13";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -347,6 +353,14 @@ export function UnplannedActivityForm({
       wt.includes("ศึกษาดูงาน") ||
       wt.includes("ทัวร์"),
   );
+  const isType13Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_13" ||
+      wt.includes("TYPE_13") ||
+      wt.includes("ฉีดแปลงแฮตแทค") ||
+      wt.includes("ฉีดแปลงแฮทแทค") ||
+      wt.includes("ฉีดแปลง"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -515,6 +529,13 @@ export function UnplannedActivityForm({
   // 5.12 Type 12 Unplanned Hook
   const type12 = useType12UnplannedForm({
     initial: initialData,
+  });
+
+  // 5.13 Type 13 Unplanned Hook
+  const type13 = useType13UnplannedForm({
+    initial: initialData,
+    dealers: customers as any,
+    products: products as any,
   });
 
   // 6. Budget Hook
@@ -1288,6 +1309,56 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_12",
         })),
       };
+    } else if (isType13Active) {
+      const type13Validation = type13.validate();
+      if (!type13Validation.isValid) {
+        toast.error(
+          type13Validation.error ||
+            "ข้อมูลฉีดแปลงแฮตแทคไม่ถูกต้อง (Type 13)",
+        );
+        return;
+      }
+
+      // Upload After-Spray Images
+      const allType13Images = type13.item.images || [];
+      let cleanType13Images = allType13Images;
+      if (allType13Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType13Images,
+            "type13",
+            "after_spray",
+          );
+          cleanType13Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพการฉีดพ่นไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const mapped = mapType13UnplannedToPayload({
+        ...type13.item,
+        images: cleanType13Images,
+      });
+
+      if (mapped.planStores?.length) {
+        planStores = [...planStores, ...mapped.planStores];
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_13",
+        type13Data: mapped.type13Data,
+        type13Actual: mapped.type13Actual,
+        attachments: cleanType13Images.map((img) => ({
+          category: "AFTER_SPRAY",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพหลังการฉีดพ่น",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_13",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -1387,6 +1458,14 @@ export function UnplannedActivityForm({
             t.name?.includes("ศึกษาดูงาน")
           );
         }
+        if (isType13Active) {
+          return (
+            t.code === "TYPE_13" ||
+            t.code === "HATTACK" ||
+            t.name?.includes("ฉีดแปลง") ||
+            t.name?.includes("แฮตแทค")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -1408,7 +1487,9 @@ export function UnplannedActivityForm({
                     ? "type-11"
                     : isType12Active
                       ? "type-12"
-                      : "type-1");
+                      : isType13Active
+                        ? "type-13"
+                        : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1508,6 +1589,10 @@ export function UnplannedActivityForm({
       tour: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
       type12Actual: isType12Active ? mapType12UnplannedToPayload(type12.item).type12Actual : undefined,
       type12Data: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
+      type13Data: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Data : undefined,
+      type13Plots: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
+      type13Targets: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
+      type13Actual: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Actual : undefined,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1520,6 +1605,7 @@ export function UnplannedActivityForm({
       type10UnplannedItems: isType10Active ? type10.items : undefined,
       type11UnplannedItems: isType11Active ? type11.items : undefined,
       type12UnplannedItem: isType12Active ? type12.item : undefined,
+      type13UnplannedItem: isType13Active ? type13.item : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1843,6 +1929,17 @@ export function UnplannedActivityForm({
           item={type12.item}
           onChange={type12.updateItem}
           customers={customers as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.14 ส่วนเฉพาะ Type 13: ฉีดแปลงแฮตแทค */}
+      {isType13Active && (
+        <Type13UnplannedForm
+          item={type13.item}
+          onChange={type13.updateItem}
+          dealers={customers as any}
+          products={products as any}
           readonly={readonly}
         />
       )}

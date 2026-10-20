@@ -66,6 +66,11 @@ import {
   type Type12TargetItem,
   type useType12Actual,
 } from "@/modules/activity/features/type-12";
+import {
+  Type13ActualForm,
+  type Type13TargetItem,
+  type useType13Actual,
+} from "@/modules/activity/features/type-13";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -82,6 +87,7 @@ interface ActualWorkTypeListProps {
   type10State?: ReturnType<typeof useType10Actual>;
   type11State?: ReturnType<typeof useType11Actual>;
   type12State?: ReturnType<typeof useType12Actual>;
+  type13State?: ReturnType<typeof useType13Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -95,6 +101,7 @@ interface ActualWorkTypeListProps {
   type10Targets?: Type10TargetItem[];
   type11Targets?: Type11TargetItem[];
   type12Targets?: Type12TargetItem[];
+  type13Targets?: Type13TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -119,6 +126,7 @@ export function ActualWorkTypeList({
   type10State,
   type11State,
   type12State,
+  type13State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -132,6 +140,7 @@ export function ActualWorkTypeList({
   type10Targets = [],
   type11Targets = [],
   type12Targets = [],
+  type13Targets = [],
   plan,
   products = [],
   customers = [],
@@ -283,6 +292,18 @@ export function ActualWorkTypeList({
     Boolean(plan?.tour) ||
     Boolean(plan?.tourData) ||
     plan?.activityType?.code === "TYPE_12";
+
+  const isType13Active =
+    planWorkTypes.includes("TYPE_13") ||
+    planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
+    planWorkTypes.includes("ฉีดแปลงแฮทแทค") ||
+    planWorkTypes.includes("ฉีดแปลง") ||
+    Boolean(plan?.type13Plots?.length) ||
+    Boolean(plan?.type13Targets?.length) ||
+    Boolean(plan?.t13Plots?.length) ||
+    Boolean(plan?.type13Data) ||
+    Boolean(plan?.type13) ||
+    plan?.activityType?.code === "TYPE_13";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -625,6 +646,17 @@ export function ActualWorkTypeList({
           images={type12State.images}
           setImages={type12State.setImages}
           onUploadImages={type12State.uploadImages}
+        />
+      )}
+
+      {/* 🟢 TYPE 13: ฉีดแปลงแฮตแทค */}
+      {isType13Active && type13State && (
+        <Type13ActualForm
+          isVisible={true}
+          actualState={type13State}
+          products={products || []}
+          dealers={customers || []}
+          targets={type13Targets || plan?.type13Plots || plan?.t13Plots}
         />
       )}
     </div>

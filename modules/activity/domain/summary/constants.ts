@@ -112,9 +112,13 @@ export const initialTargets: ActualTargetsState = {
     destination: null,
   },
   t13: {
-    plots: "",
-    detail: "",
-    items: [],
+    id: "",
+    name: "",
+    storeId: "",
+    province: "",
+    district: "",
+    plannedPlotsCount: 0,
+    products: [],
   },
   t14: {
     plots: "",
