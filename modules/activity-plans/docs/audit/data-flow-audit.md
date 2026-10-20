@@ -67,26 +67,27 @@
 
 ประเภทงานทั้ง 12 ประเภทถูกนิยามเป็น Master Data ในตาราง `activity_types` และมีคู่ขนาน Configuration ใน `modules/activity-plans/constants.ts` ดังนี้:
 
-| Code | ชื่อภาษาไทย (Master Name) | Short Name | Sort Order | hasActual | requiresApproval |
-|---|---|---|:---:|:---:|:---:|
-| `TYPE_1` | เข้าพบร้านค้า / Key Farmer | Visit | 1 | `true` | `true` |
-| `TYPE_2` | ติดตามผลการใช้สินค้า | Followup | 2 | `true` | `true` |
-| `TYPE_3` | เสนอขายสินค้า | Sales | 3 | `true` | `true` |
-| `TYPE_4` | วางบิล / เก็บเงิน | Collect | 4 | `true` | `true` |
-| `TYPE_5` | สำรวจตลาดของคู่แข่ง | Survey | 5 | `true` | `true` |
-| `TYPE_6` | แก้ปัญหา / รับเรื่องร้องเรียน | Issue | 6 | `true` | `true` |
-| `TYPE_7` | ติดตามแปลงสาธิต / ทำแปลง | Demo | 7 | `true` | `true` |
-| `TYPE_8` | จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ | Meeting | 8 | `true` | `true` |
-| `TYPE_9` | จัดกิจกรรมส่งเสริมการขายหน้าร้าน | Store | 9 | `true` | `true` |
-| `TYPE_10` | จัดงาน Field Day | FieldDay | 10 | `true` | `true` |
-| `TYPE_11` | ตรวจเช็กสต็อกหน้าร้าน | Stock | 11 | `true` | `true` |
-| `TYPE_12` | ทัวร์ | Tour | 12 | `false` | `true` |
+| Code      | ชื่อภาษาไทย (Master Name)                  | Short Name | Sort Order | hasActual | requiresApproval |
+| --------- | ------------------------------------------ | ---------- | :--------: | :-------: | :--------------: |
+| `TYPE_1`  | เข้าพบร้านค้า / Key Farmer                 | Visit      |     1      |  `true`   |      `true`      |
+| `TYPE_2`  | ติดตามผลการใช้สินค้า                       | Followup   |     2      |  `true`   |      `true`      |
+| `TYPE_3`  | เสนอขายสินค้า                              | Sales      |     3      |  `true`   |      `true`      |
+| `TYPE_4`  | วางบิล / เก็บเงิน                          | Collect    |     4      |  `true`   |      `true`      |
+| `TYPE_5`  | สำรวจตลาดของคู่แข่ง                        | Survey     |     5      |  `true`   |      `true`      |
+| `TYPE_6`  | แก้ปัญหา / รับเรื่องร้องเรียน              | Issue      |     6      |  `true`   |      `true`      |
+| `TYPE_7`  | ติดตามแปลงสาธิต / ทำแปลง                   | Demo       |     7      |  `true`   |      `true`      |
+| `TYPE_8`  | จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์ | Meeting    |     8      |  `true`   |      `true`      |
+| `TYPE_9`  | จัดกิจกรรมส่งเสริมการขายหน้าร้าน           | Store      |     9      |  `true`   |      `true`      |
+| `TYPE_10` | จัดงาน Field Day                           | FieldDay   |     10     |  `true`   |      `true`      |
+| `TYPE_11` | ตรวจเช็คสต๊อกหน้าร้าน                      | Stock      |     11     |  `true`   |      `true`      |
+| `TYPE_12` | ทัวร์                                      | Tour       |     12     |  `false`  |      `true`      |
 
 ---
 
 ## 3. TYPE_1 Definition ("เข้าพบร้านค้า / Key Farmer")
 
 จากการตรวจสอบ Source Code และฐานข้อมูลจริง:
+
 - **ชื่อประเภทงาน:** `เข้าพบร้านค้า / Key Farmer`
 - **Work Type Code:** `TYPE_1`
 - **Short Name:** `Visit`
@@ -145,23 +146,23 @@
 
 ตารางทั้งหมดในฐานข้อมูลที่เกี่ยวข้องกับโมดูล Activity Plans มีรายละเอียดโครงสร้างดังนี้:
 
-| Prisma Model | Database Table | หน้าที่ | Primary Key | Foreign Keys | Relations ไปยังตารางอื่น |
-|---|---|---|---|---|---|
-| `ActivityType` | `activity_types` | Master ประเภทงาน 12 แบบ | `id` (cuid) | - | `ActivityPlan`, `ActivityPlanWorkType` |
-| `ActivityPlan` | `activity_plans` | ข้อมูลหลักของ Trip Plan | `id` (cuid) | `employee_id`<br>`created_by_id`<br>`current_approver_employee_id`<br>`activity_type_id` | `Employee` (ผู้สร้าง)<br>`User` (บัญชีผู้สร้าง)<br>`Employee` (ผู้อนุมัติ)<br>`ActivityType` (Primary Type) |
-| `ActivityPlanWorkType` | `activity_plan_work_types` | Relation ประเภทงานของแต่ละแผน (Source of Truth) | `id` (cuid) | `activity_plan_id`<br>`activity_type_id` | `ActivityPlan` (Cascade)<br>`ActivityType` (Restrict) |
-| `ActivityPlanStore` | `activity_plan_stores` | Relation ร้านค้า/ลูกค้าเป้าหมายในแผน | `id` (cuid) | `activity_plan_id`<br>`store_id` | `ActivityPlan` (Cascade)<br>`Customer` (Restrict) |
-| `ActivityPlanProduct` | `activity_plan_products` | Relation สินค้าเป้าหมายในแผน (รองรับ Store Ownership) | `id` (cuid) | `activity_plan_id`<br>`store_id`<br>`product_id` | `ActivityPlan` (Cascade)<br>`Customer` (SetNull)<br>`Product` (Restrict) |
-| `ActivityPlanTour` | `activity_plan_tours` | Relation รายละเอียดทัวร์ (TYPE_12) | `id` (cuid) | `activity_plan_id` (Unique)<br>`store_id` | `ActivityPlan` (Cascade)<br>`Customer` (SetNull) |
-| `ActivityHelper` | `activity_helpers` | Relation ผู้ช่วยงานในแต่ละแผน | `id` (cuid) | `activity_plan_id`<br>`employee_id`<br>`approved_by_id` | `ActivityPlan` (Cascade)<br>`Employee` (Restrict)<br>`Employee` (SetNull) |
-| `ActivityApprovalLog` | `activity_approval_logs` | ประวัติ Workflow การขออนุมัติและเปลี่ยนสถานะ | `id` (cuid) | `activity_plan_id`<br>`user_id` | `ActivityPlan` (Cascade)<br>`User` (Restrict) |
-| `ActivityPlanItem` | `activity_plan_items` | ตารางรองรับข้อมูลย่อยแบบ Flat (Compatibility) | `id` (cuid) | `activity_plan_id` | `ActivityPlan` (Cascade) |
-| `ActivityResult` | `activity_results` | ข้อมูลหลักของการบันทึกผลงานจริง (1:1 กับ Plan) | `id` (cuid) | `activity_plan_id` (Unique)<br>`recorded_by_id` | `ActivityPlan` (Cascade)<br>`User` (SetNull) |
-| `ActivityResultSaleItem` | `activity_result_sale_items` | ยอดขายสินค้าจริงตามร้านค้า | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id` | `ActivityResult` (Cascade)<br>`Customer` (SetNull)<br>`Product` (Restrict) |
-| `ActivityResultStockItem` | `activity_result_stock_items` | ผลการตรวจเช็กสต็อกสินค้าหน้าร้าน | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id` | `ActivityResult` (Cascade)<br>`Customer` (Restrict)<br>`Product` (Restrict) |
-| `ActivityResultSurveyItem` | `activity_result_survey_items` | ผลการสำรวจราคาสินค้าคู่แข่ง | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id` | `ActivityResult` (Cascade)<br>`Customer` (Restrict)<br>`Product` (SetNull) |
-| `ActivityResultDemoItem` | `activity_result_demo_items` | ผลการติดตามแปลงสาธิต | `id` (cuid) | `activity_result_id`<br>`demo_plot_id` | `ActivityResult` (Cascade)<br>`DemoPlot` |
-| `ActivityAttachment` | `activity_attachments` | รูปภาพและไฟล์แนบของแผนและผลงาน | `id` (cuid) | `activity_plan_id`<br>`activity_result_id`<br>`store_id`<br>`product_id` | `ActivityPlan` (Cascade)<br>`ActivityResult` (Cascade)<br>`Customer` (SetNull)<br>`Product` (SetNull) |
+| Prisma Model               | Database Table                 | หน้าที่                                               | Primary Key | Foreign Keys                                                                             | Relations ไปยังตารางอื่น                                                                                    |
+| -------------------------- | ------------------------------ | ----------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `ActivityType`             | `activity_types`               | Master ประเภทงาน 12 แบบ                               | `id` (cuid) | -                                                                                        | `ActivityPlan`, `ActivityPlanWorkType`                                                                      |
+| `ActivityPlan`             | `activity_plans`               | ข้อมูลหลักของ Trip Plan                               | `id` (cuid) | `employee_id`<br>`created_by_id`<br>`current_approver_employee_id`<br>`activity_type_id` | `Employee` (ผู้สร้าง)<br>`User` (บัญชีผู้สร้าง)<br>`Employee` (ผู้อนุมัติ)<br>`ActivityType` (Primary Type) |
+| `ActivityPlanWorkType`     | `activity_plan_work_types`     | Relation ประเภทงานของแต่ละแผน (Source of Truth)       | `id` (cuid) | `activity_plan_id`<br>`activity_type_id`                                                 | `ActivityPlan` (Cascade)<br>`ActivityType` (Restrict)                                                       |
+| `ActivityPlanStore`        | `activity_plan_stores`         | Relation ร้านค้า/ลูกค้าเป้าหมายในแผน                  | `id` (cuid) | `activity_plan_id`<br>`store_id`                                                         | `ActivityPlan` (Cascade)<br>`Customer` (Restrict)                                                           |
+| `ActivityPlanProduct`      | `activity_plan_products`       | Relation สินค้าเป้าหมายในแผน (รองรับ Store Ownership) | `id` (cuid) | `activity_plan_id`<br>`store_id`<br>`product_id`                                         | `ActivityPlan` (Cascade)<br>`Customer` (SetNull)<br>`Product` (Restrict)                                    |
+| `ActivityPlanTour`         | `activity_plan_tours`          | Relation รายละเอียดทัวร์ (TYPE_12)                    | `id` (cuid) | `activity_plan_id` (Unique)<br>`store_id`                                                | `ActivityPlan` (Cascade)<br>`Customer` (SetNull)                                                            |
+| `ActivityHelper`           | `activity_helpers`             | Relation ผู้ช่วยงานในแต่ละแผน                         | `id` (cuid) | `activity_plan_id`<br>`employee_id`<br>`approved_by_id`                                  | `ActivityPlan` (Cascade)<br>`Employee` (Restrict)<br>`Employee` (SetNull)                                   |
+| `ActivityApprovalLog`      | `activity_approval_logs`       | ประวัติ Workflow การขออนุมัติและเปลี่ยนสถานะ          | `id` (cuid) | `activity_plan_id`<br>`user_id`                                                          | `ActivityPlan` (Cascade)<br>`User` (Restrict)                                                               |
+| `ActivityPlanItem`         | `activity_plan_items`          | ตารางรองรับข้อมูลย่อยแบบ Flat (Compatibility)         | `id` (cuid) | `activity_plan_id`                                                                       | `ActivityPlan` (Cascade)                                                                                    |
+| `ActivityResult`           | `activity_results`             | ข้อมูลหลักของการบันทึกผลงานจริง (1:1 กับ Plan)        | `id` (cuid) | `activity_plan_id` (Unique)<br>`recorded_by_id`                                          | `ActivityPlan` (Cascade)<br>`User` (SetNull)                                                                |
+| `ActivityResultSaleItem`   | `activity_result_sale_items`   | ยอดขายสินค้าจริงตามร้านค้า                            | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id`                                       | `ActivityResult` (Cascade)<br>`Customer` (SetNull)<br>`Product` (Restrict)                                  |
+| `ActivityResultStockItem`  | `activity_result_stock_items`  | ผลการตรวจเช็กสต็อกสินค้าหน้าร้าน                      | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id`                                       | `ActivityResult` (Cascade)<br>`Customer` (Restrict)<br>`Product` (Restrict)                                 |
+| `ActivityResultSurveyItem` | `activity_result_survey_items` | ผลการสำรวจราคาสินค้าคู่แข่ง                           | `id` (cuid) | `activity_result_id`<br>`store_id`<br>`product_id`                                       | `ActivityResult` (Cascade)<br>`Customer` (Restrict)<br>`Product` (SetNull)                                  |
+| `ActivityResultDemoItem`   | `activity_result_demo_items`   | ผลการติดตามแปลงสาธิต                                  | `id` (cuid) | `activity_result_id`<br>`demo_plot_id`                                                   | `ActivityResult` (Cascade)<br>`DemoPlot`                                                                    |
+| `ActivityAttachment`       | `activity_attachments`         | รูปภาพและไฟล์แนบของแผนและผลงาน                        | `id` (cuid) | `activity_plan_id`<br>`activity_result_id`<br>`store_id`<br>`product_id`                 | `ActivityPlan` (Cascade)<br>`ActivityResult` (Cascade)<br>`Customer` (SetNull)<br>`Product` (SetNull)       |
 
 ---
 
@@ -195,13 +196,25 @@ erDiagram
 ## 7. Store Data Flow (กรณีเลือกหลายร้านค้า)
 
 ### ตัวอย่าง: เลือก 2 ร้านค้า (ร้าน A และ ร้าน B)
+
 เมื่อผู้ใช้เลือก 2 ร้านค้าในหน้าฟอร์ม:
+
 1. **React State (`type1Items`):** เก็บ Object 2 รายการ
 2. **Payload (`planStores`):**
    ```json
    [
-     { "workTypeCode": "TYPE_1", "storeId": "cust_aaa", "storeName": "ร้าน A", "remarks": "แจ้งข่าวสาร" },
-     { "workTypeCode": "TYPE_1", "storeId": "cust_bbb", "storeName": "ร้าน B", "remarks": "เยี่ยมเยียน" }
+     {
+       "workTypeCode": "TYPE_1",
+       "storeId": "cust_aaa",
+       "storeName": "ร้าน A",
+       "remarks": "แจ้งข่าวสาร"
+     },
+     {
+       "workTypeCode": "TYPE_1",
+       "storeId": "cust_bbb",
+       "storeName": "ร้าน B",
+       "remarks": "เยี่ยมเยียน"
+     }
    ]
    ```
 3. **Database Insertion:**
@@ -237,6 +250,7 @@ ActivityPlan
 ## 9. Helper Data Flow (กรณีเลือกผู้ช่วยหลายคน)
 
 ### ตัวอย่าง: เลือกผู้ช่วย 2 คน (นาย ก และ นาย ข)
+
 - **UI State (`helperEmployeeIds`):** `["emp_001", "emp_002"]`
 - **Database Insertion:**
   - ตาราง `activity_helpers`: **2 Records**
@@ -293,22 +307,23 @@ Client Component (`ActivityPlanDetailView`)
 
 ## 12. Plan vs Actual Separation Matrix
 
-| มิติข้อมูล | ข้อมูลแผนงาน (Plan Data) | ข้อมูลผลงานจริง (Actual Data) |
-|---|---|---|
-| **ตารางหลัก** | `activity_plans` | `activity_results` |
-| **ความสัมพันธ์** | 1 แผนงาน | 1 ผลงาน (1:1 ผูกด้วย `activity_plan_id`) |
-| **ประเภทงาน** | `activity_plan_work_types` | แยกตาม Work Type ใน Result Items |
-| **ร้านค้าเป้าหมาย vs จริง** | `activity_plan_stores` | `activity_result_sale_items.store_id`, `activity_result_stock_items.store_id` |
-| **สินค้าเป้าหมาย vs จริง** | `activity_plan_products` (targetQuantity, targetAmount) | `activity_result_sale_items` (actualQuantity, actualTotal) |
-| **งบประมาณ** | `total_budget_requested` | `actual_total_spent` |
-| **วันที่** | `start_date`, `end_date` (วันที่ตามแผน) | `actual_start_date`, `actual_end_date` (วันที่ทำจริง) |
-| **รูปภาพและไฟล์แนบ** | `activity_attachments` (`activity_result_id = null`) | `activity_attachments` (`activity_result_id = result.id`) |
+| มิติข้อมูล                  | ข้อมูลแผนงาน (Plan Data)                                | ข้อมูลผลงานจริง (Actual Data)                                                 |
+| --------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **ตารางหลัก**               | `activity_plans`                                        | `activity_results`                                                            |
+| **ความสัมพันธ์**            | 1 แผนงาน                                                | 1 ผลงาน (1:1 ผูกด้วย `activity_plan_id`)                                      |
+| **ประเภทงาน**               | `activity_plan_work_types`                              | แยกตาม Work Type ใน Result Items                                              |
+| **ร้านค้าเป้าหมาย vs จริง** | `activity_plan_stores`                                  | `activity_result_sale_items.store_id`, `activity_result_stock_items.store_id` |
+| **สินค้าเป้าหมาย vs จริง**  | `activity_plan_products` (targetQuantity, targetAmount) | `activity_result_sale_items` (actualQuantity, actualTotal)                    |
+| **งบประมาณ**                | `total_budget_requested`                                | `actual_total_spent`                                                          |
+| **วันที่**                  | `start_date`, `end_date` (วันที่ตามแผน)                 | `actual_start_date`, `actual_end_date` (วันที่ทำจริง)                         |
+| **รูปภาพและไฟล์แนบ**        | `activity_attachments` (`activity_result_id = null`)    | `activity_attachments` (`activity_result_id = result.id`)                     |
 
 ---
 
 ## 13. Real Database Example (จากฐานข้อมูลจริง)
 
 ### ข้อมูล Master `activity_types` ในฐานข้อมูลปัจจุบัน:
+
 ```
 - TYPE_1  (เข้าพบร้านค้า / Key Farmer)                id: cmtbbeima00004so95oic9jmi
 - TYPE_2  (ติดตามผลการใช้สินค้า)                        id: cmtbbein600014so9ig96hy4g
@@ -320,11 +335,12 @@ Client Component (`ActivityPlanDetailView`)
 - TYPE_8  (จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์) id: cmtbbeinw00074so9nnkbbu1u
 - TYPE_9  (จัดกิจกรรมส่งเสริมการขายหน้าร้าน)          id: cmtbbeio000084so95c1rez6f
 - TYPE_10 (จัดงาน Field Day)                            id: cmtbbeio400094so9181vyok7
-- TYPE_11 (ตรวจเช็กสต็อกหน้าร้าน)                      id: cmtbbeio7000a4so988uvymmk
+- TYPE_11 (ตรวจเช็คสต๊อกหน้าร้าน)                      id: cmtbbeio7000a4so988uvymmk
 - TYPE_12 (ทัวร์)                                      id: cmtbbeioa000b4so986h6fw3z
 ```
 
 ### ข้อมูล Trip Plan จริงในระบบ (ตัวอย่าง Plan `TP26080002`):
+
 - **ActivityPlan ID:** `cmtbcjtjj0009ago9nxyywjhd`
 - **Code:** `TP26080002`
 - **Status:** `APPROVED`
@@ -381,8 +397,9 @@ Client Component (`ActivityPlanDetailView`)
 ## 15. SQL Read-only Query Examples
 
 ### 15.1 ดึงข้อมูลแผนงาน TYPE_1 พร้อม Work Types, ร้านค้า และผู้ช่วยงาน
+
 ```sql
-SELECT 
+SELECT
     p.id AS plan_id,
     p.code AS plan_code,
     p.title,
@@ -412,8 +429,9 @@ ORDER BY p.created_at DESC;
 ```
 
 ### 15.2 ตรวจสอบผลงานจริง (Actual Result) เทียบกับแผน
+
 ```sql
-SELECT 
+SELECT
     p.code AS plan_code,
     p.title,
     p.status AS plan_status,
@@ -436,12 +454,12 @@ WHERE p.code = 'TP26080001'; -- แทนที่ด้วยรหัสแผ
 
 จากการทำ Code Audit อย่างละเอียด พบจุดที่ต้องเฝ้าระวังทางสถาปัตยกรรมดังนี้:
 
-| ลำดับ | จุดที่พบ (File / Function / Line) | รายละเอียดปัญหา | ผลกระทบ | ระดับความรุนแรง |
-|:---:|---|---|---|:---:|
-| 1 | `activity-plan-form.tsx`<br>`handleSubmit()` (L2369-L2397) | การสร้าง `planStores` และ `planProducts` ในฟอร์มทำเฉพาะ `TYPE_1` และ `TYPE_3` ส่วน `TYPE_9` (Store) และ `TYPE_11` (Stock) ไม่ได้ถูก push เข้า `planStores`/`planProducts` ก่อนส่ง payload (ถูกส่งผ่าน `items` compatibility array เท่านั้น) | ข้อมูลร้านค้าของ TYPE_9 และ TYPE_11 ไม่ถูกบันทึกลงตาราง normalized `activity_plan_stores` | **ปานกลาง (Medium)** |
-| 2 | `activity-plan-form.tsx`<br>`handleSubmit()` (L2371) | การ Match `storeId` ทำผ่าน `customersList.find(c => c.name === item.customerName)`. หากผู้ใช้พิมพ์ชื่อร้านค้าที่ไม่มีในระบบ (Free text) `storeMatch` จะเป็น `undefined` และไม่ถูกเพิ่มลง `planStores` | ข้อมูลร้านค้าจะตกไปอยู่ใน `activity_plan_items.customer_name` แทนที่จะมี Foreign Key | **ต่ำ (Low)** |
-| 3 | `summary-builder.ts` & `summary-parser.ts`<br>(L465, L116) | ข้อมูลเชิงคุณภาพของผลงานจริง (เช่น `product_advice`, `discussion_result`, `sales_opportunity`) ถูกบันทึกแบบซ้ำซ้อนทั้งในคอลัมน์เฉพาะของ `activity_results` และแปลงเป็นสตริงใน `result_summary` โดยตัว Parser ยังคงอ่านผ่าน Regex จาก `result_summary` | หากข้อความใน `result_summary` ผิดเพี้ยน อาจกระทบการแสดงผล แม้ในตารางมีคอลัมน์รองรับ | **ต่ำ (Low)** |
-| 4 | `plan-extractor.ts`<br>`extractPlanData()` (L260-L353) | มีโค้ด Regex & Heuristic Fallback สำหรับอ่านประเภทงานจาก `objective` และ `title` ของแผนงานเก่า | เป็น Fallback ที่ปลอดภัยสำหรับข้อมูลเก่า แต่ควรระวังไม่ให้ถูกใช้แทน `workTypes` relation | **ปลอดภัย (Informational)** |
+| ลำดับ | จุดที่พบ (File / Function / Line)                          | รายละเอียดปัญหา                                                                                                                                                                                                                                       | ผลกระทบ                                                                                   |       ระดับความรุนแรง       |
+| :---: | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | :-------------------------: |
+|   1   | `activity-plan-form.tsx`<br>`handleSubmit()` (L2369-L2397) | การสร้าง `planStores` และ `planProducts` ในฟอร์มทำเฉพาะ `TYPE_1` และ `TYPE_3` ส่วน `TYPE_9` (Store) และ `TYPE_11` (Stock) ไม่ได้ถูก push เข้า `planStores`/`planProducts` ก่อนส่ง payload (ถูกส่งผ่าน `items` compatibility array เท่านั้น)           | ข้อมูลร้านค้าของ TYPE_9 และ TYPE_11 ไม่ถูกบันทึกลงตาราง normalized `activity_plan_stores` |    **ปานกลาง (Medium)**     |
+|   2   | `activity-plan-form.tsx`<br>`handleSubmit()` (L2371)       | การ Match `storeId` ทำผ่าน `customersList.find(c => c.name === item.customerName)`. หากผู้ใช้พิมพ์ชื่อร้านค้าที่ไม่มีในระบบ (Free text) `storeMatch` จะเป็น `undefined` และไม่ถูกเพิ่มลง `planStores`                                                 | ข้อมูลร้านค้าจะตกไปอยู่ใน `activity_plan_items.customer_name` แทนที่จะมี Foreign Key      |        **ต่ำ (Low)**        |
+|   3   | `summary-builder.ts` & `summary-parser.ts`<br>(L465, L116) | ข้อมูลเชิงคุณภาพของผลงานจริง (เช่น `product_advice`, `discussion_result`, `sales_opportunity`) ถูกบันทึกแบบซ้ำซ้อนทั้งในคอลัมน์เฉพาะของ `activity_results` และแปลงเป็นสตริงใน `result_summary` โดยตัว Parser ยังคงอ่านผ่าน Regex จาก `result_summary` | หากข้อความใน `result_summary` ผิดเพี้ยน อาจกระทบการแสดงผล แม้ในตารางมีคอลัมน์รองรับ       |        **ต่ำ (Low)**        |
+|   4   | `plan-extractor.ts`<br>`extractPlanData()` (L260-L353)     | มีโค้ด Regex & Heuristic Fallback สำหรับอ่านประเภทงานจาก `objective` และ `title` ของแผนงานเก่า                                                                                                                                                        | เป็น Fallback ที่ปลอดภัยสำหรับข้อมูลเก่า แต่ควรระวังไม่ให้ถูกใช้แทน `workTypes` relation  | **ปลอดภัย (Informational)** |
 
 ---
 
@@ -508,26 +526,26 @@ WHERE p.code = 'TP26080001'; -- แทนที่ด้วยรหัสแผ
 
 ## สรุปคำตอบสุดท้าย
 
-> **คำถาม:** *"ถ้าฉันสร้าง Trip Plan TYPE_1 จำนวน 1 แผน เลือก 2 ร้านค้า 2 สินค้า และผู้ช่วย 2 คน จะเกิด Record ในแต่ละตารางกี่รายการ และข้อมูลแต่ละรายการเชื่อมกันอย่างไร"*
+> **คำถาม:** _"ถ้าฉันสร้าง Trip Plan TYPE_1 จำนวน 1 แผน เลือก 2 ร้านค้า 2 สินค้า และผู้ช่วย 2 คน จะเกิด Record ในแต่ละตารางกี่รายการ และข้อมูลแต่ละรายการเชื่อมกันอย่างไร"_
 
 ### ผลลัพธ์จากการตรวจสอบ Code และ Schema จริง:
 
-1. **ตาราง `activity_plans`:** เกิด **1 Record**  
+1. **ตาราง `activity_plans`:** เกิด **1 Record**
    - เก็บข้อมูลหลักของแผน (รหัสแผน `code`, วันที่, วัตถุประสงค์, ผู้สร้าง `employee_id`)
-2. **ตาราง `activity_plan_work_types`:** เกิด **1 Record**  
+2. **ตาราง `activity_plan_work_types`:** เกิด **1 Record**
    - เชื่อม `activity_plan_id` กับ `activity_type_id` ของ `TYPE_1`
-3. **ตาราง `activity_plan_stores`:** เกิด **2 Records**  
+3. **ตาราง `activity_plan_stores`:** เกิด **2 Records**
    - Record 1: เชื่อม `activity_plan_id` กับ `Customer.id` ของร้านค้าที่ 1
    - Record 2: เชื่อม `activity_plan_id` กับ `Customer.id` ของร้านค้าที่ 2
-4. **ตาราง `activity_plan_products`:**  
-   - สำหรับประเภทงาน `TYPE_1` (เข้าพบร้านค้า) ตามมาตรฐานจะไม่มีการเลือกสินค้าในฟอร์มของ Type 1 (`planProducts` = 0 Records)  
+4. **ตาราง `activity_plan_products`:**
+   - สำหรับประเภทงาน `TYPE_1` (เข้าพบร้านค้า) ตามมาตรฐานจะไม่มีการเลือกสินค้าในฟอร์มของ Type 1 (`planProducts` = 0 Records)
    - **แต่หากเป็นประเภทงานที่มีสินค้า** (เช่น Type 3 เสนอขายสินค้า) ผูก 2 ร้านค้า และเลือก 2 สินค้าต่อร้าน จะเกิด **4 Records** ในตาราง `activity_plan_products` โดยมี `store_id` ผูกกับร้านค้า และ `product_id` ผูกกับสินค้าแต่ละตัว
-5. **ตาราง `activity_helpers`:** เกิด **2 Records**  
+5. **ตาราง `activity_helpers`:** เกิด **2 Records**
    - Record 1: เชื่อม `activity_plan_id` กับ `Employee.id` ของผู้ช่วยคนที่ 1 (สถานะ `PENDING`)
    - Record 2: เชื่อม `activity_plan_id` กับ `Employee.id` ของผู้ช่วยคนที่ 2 (สถานะ `PENDING`)
-6. **ตาราง `activity_approval_logs`:** เกิด **1 Record**  
+6. **ตาราง `activity_approval_logs`:** เกิด **1 Record**
    - บันทึก Action `SUBMIT` ในขั้นตอน `LINE_APPROVAL`
-7. **ตาราง `activity_plan_items` (Compatibility):** เกิด **2 Records**  
+7. **ตาราง `activity_plan_items` (Compatibility):** เกิด **2 Records**
    - บันทึกรายละเอียดรายการเข้าพบร้านค้าที่ 1 และ 2
-8. **ตาราง `activity_results` และ Result Items:** เกิด **0 Records**  
+8. **ตาราง `activity_results` และ Result Items:** เกิด **0 Records**
    - จะยังไม่เกิดขึ้นจนกว่าแผนจะผ่านการอนุมัติครบถ้วน (`APPROVED`) และผู้ใช้เข้าไปบันทึกผลในหน้า Actual

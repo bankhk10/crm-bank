@@ -98,7 +98,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_11: {
     code: "TYPE_11",
-    name: "ตรวจเช็กสต็อกหน้าร้าน",
+    name: "ตรวจเช็คสต๊อกหน้าร้าน",
     shortName: "Stock",
     sortOrder: 12,
     hasActual: true,
@@ -806,7 +806,7 @@ export function hydrateWorkTypesFromPlan(
       if (
         item.itemType === "TYPE_11" ||
         item.targetOpportunity ||
-        (item.detail && item.detail.includes("ตรวจเช็กสต็อกหน้าร้าน"))
+        (item.detail && item.detail.includes("ตรวจเช็คสต๊อกหน้าร้าน"))
       ) {
         detectedTypes.add(WORK_TYPES[10]);
       }
@@ -907,7 +907,7 @@ export function hydrateWorkTypesFromPlan(
     }
     if (
       objectiveText.includes("[ตรวจเช็กสต็อก") ||
-      objectiveText.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+      objectiveText.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
       objectiveText.includes("เช็กสต็อกหน้าร้าน") ||
       objectiveText.includes("สต็อกหน้าร้าน")
     ) {

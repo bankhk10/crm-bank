@@ -89,7 +89,9 @@ export function parseType11ActualResult(
       remarks: sr.remarks || "",
       nextAction: sr.nextAction || "",
     }));
-    const foundNextAction = resData.stockResults.find((sr: any) => sr.nextAction)?.nextAction;
+    const foundNextAction = resData.stockResults.find(
+      (sr: any) => sr.nextAction,
+    )?.nextAction;
     if (foundNextAction) {
       result.t11NextAction = foundNextAction;
     }
@@ -194,7 +196,7 @@ export function mapType11ToSectionItems(
 
   return {
     typeIndex: 11,
-    title: "ตรวจเช็กสต็อกหน้าร้าน",
+    title: "ตรวจเช็คสต๊อกหน้าร้าน",
     badge: "เช็กสต็อก",
     items: list,
     rawSummary: t11Line ? t11Line.replace(/^\[.*?\]\s*/, "") : undefined,

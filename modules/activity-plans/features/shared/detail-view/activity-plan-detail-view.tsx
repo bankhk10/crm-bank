@@ -64,8 +64,14 @@ import {
   ApprovalType11Stock,
   ApprovalType12Tour,
 } from "../approve-view/components/work-types";
-import { Type13Detail, type Type13PlotItem } from "@/modules/activity-plans/features/type-13";
-import { Type14Detail, type Type14PlanInput } from "@/modules/activity-plans/features/type-14";
+import {
+  Type13Detail,
+  type Type13PlotItem,
+} from "@/modules/activity-plans/features/type-13";
+import {
+  Type14Detail,
+  type Type14PlanInput,
+} from "@/modules/activity-plans/features/type-14";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -117,7 +123,13 @@ const initialTargets: ActualTargetsState = {
     targetSales: "",
   },
   t11: { store: "", detail: "", targetOpportunity: "" },
-  t12: { tourType: "CENTRAL", tourSize: null, country: null, storeName: null, destination: null },
+  t12: {
+    tourType: "CENTRAL",
+    tourSize: null,
+    country: null,
+    storeName: null,
+    destination: null,
+  },
 };
 
 const initialPlanSummary: PlanSummaryData = {
@@ -313,16 +325,18 @@ export default function ActivityPlanDetailView({
 
     // 1. From planned type13.plots
     if ((plan as any)?.type13?.plots && (plan as any).type13.plots.length > 0) {
-      const type13Products = ((plan as any).type13.products || []).map((prod: any) => ({
-        productId: prod.productId,
-        productName: prod.product?.name || prod.productName || "",
-        quantity: Number(prod.quantity) || 1,
-        unit:
-          prod.unit ||
-          prod.product?.unit ||
-          prod.product?.packageSizeUnit ||
-          "ขวด",
-      }));
+      const type13Products = ((plan as any).type13.products || []).map(
+        (prod: any) => ({
+          productId: prod.productId,
+          productName: prod.product?.name || prod.productName || "",
+          quantity: Number(prod.quantity) || 1,
+          unit:
+            prod.unit ||
+            prod.product?.unit ||
+            prod.product?.packageSizeUnit ||
+            "ขวด",
+        }),
+      );
 
       (plan as any).type13.plots.forEach((p: any, idx: number) => {
         const key = p.demoPlotId || p.id || `plot-${idx}`;
@@ -351,20 +365,25 @@ export default function ActivityPlanDetailView({
       .forEach((v: any, idx: number) => {
         const dp = v.demoPlot;
         const key = dp?.id || v.demoPlotId || `visit-${idx}`;
-        const existing = plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
+        const existing =
+          plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
 
         const storeName = dp?.customer?.name || dp?.dealerName || "";
-        const ownerName = dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
+        const ownerName =
+          dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
         const lat = dp?.latitude != null ? String(dp.latitude) : "";
         const lng = dp?.longitude != null ? String(dp.longitude) : "";
 
         if (existing) {
-          if (!existing.dealerName && storeName) existing.dealerName = storeName;
+          if (!existing.dealerName && storeName)
+            existing.dealerName = storeName;
           if (!existing.ownerName && ownerName) existing.ownerName = ownerName;
           if (!existing.latitude && lat) existing.latitude = lat;
           if (!existing.longitude && lng) existing.longitude = lng;
-          if (!existing.province && dp?.province) existing.province = dp.province;
-          if (!existing.district && dp?.district) existing.district = dp.district;
+          if (!existing.province && dp?.province)
+            existing.province = dp.province;
+          if (!existing.district && dp?.district)
+            existing.district = dp.district;
           if (dp?.name && !existing.name) existing.name = dp.name;
         } else {
           plotMap.set(key, {
@@ -424,13 +443,21 @@ export default function ActivityPlanDetailView({
     const rawRounds = (plan.result as any)?.sprayRounds || [];
 
     const seenCoordPlotIds = new Set<string>();
-    const type13PlotsActual: Array<{ demoPlotId: string; latitude: any; longitude: any }> = [];
+    const type13PlotsActual: Array<{
+      demoPlotId: string;
+      latitude: any;
+      longitude: any;
+    }> = [];
 
     // 1. From type13.plots
     if ((plan as any)?.type13?.plots) {
       (plan as any).type13.plots.forEach((p: any) => {
         const plotId = p.demoPlotId || p.id;
-        if (plotId && (p.latitude || p.longitude) && !seenCoordPlotIds.has(plotId)) {
+        if (
+          plotId &&
+          (p.latitude || p.longitude) &&
+          !seenCoordPlotIds.has(plotId)
+        ) {
           seenCoordPlotIds.add(plotId);
           type13PlotsActual.push({
             demoPlotId: plotId,
@@ -450,8 +477,10 @@ export default function ActivityPlanDetailView({
       .forEach((v: any) => {
         const plotId = v.demoPlotId || v.demoPlot?.id;
         if (plotId && !seenCoordPlotIds.has(plotId)) {
-          const lat = v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "";
-          const lng = v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "";
+          const lat =
+            v.demoPlot?.latitude != null ? String(v.demoPlot.latitude) : "";
+          const lng =
+            v.demoPlot?.longitude != null ? String(v.demoPlot.longitude) : "";
           if (lat || lng) {
             seenCoordPlotIds.add(plotId);
             type13PlotsActual.push({
@@ -533,14 +562,32 @@ export default function ActivityPlanDetailView({
         demoPlotId: firstPlot.demoPlotId || null,
         name: firstPlot.plotName || firstPlot.demoPlot?.name || "แปลงแฮตแทค",
         storeId: firstPlot.demoPlot?.customerId || "",
-        dealerName: firstPlot.dealerName || firstPlot.demoPlot?.customer?.name || "",
+        dealerName:
+          firstPlot.dealerName || firstPlot.demoPlot?.customer?.name || "",
         ownerName: firstPlot.ownerName || firstPlot.demoPlot?.ownerName || "",
-        cropCategory: firstPlot.cropCategory || firstPlot.demoPlot?.cropCategory || null,
+        cropCategory:
+          firstPlot.cropCategory || firstPlot.demoPlot?.cropCategory || null,
         cropName: firstPlot.cropName || firstPlot.demoPlot?.cropName || null,
-        province: firstPlot.province || firstPlot.demoPlot?.province || plan?.province || "",
-        district: firstPlot.district || firstPlot.demoPlot?.district || plan?.district || "",
-        latitude: firstPlot.latitude ? String(firstPlot.latitude) : firstPlot.demoPlot?.latitude ? String(firstPlot.demoPlot.latitude) : "",
-        longitude: firstPlot.longitude ? String(firstPlot.longitude) : firstPlot.demoPlot?.longitude ? String(firstPlot.demoPlot.longitude) : "",
+        province:
+          firstPlot.province ||
+          firstPlot.demoPlot?.province ||
+          plan?.province ||
+          "",
+        district:
+          firstPlot.district ||
+          firstPlot.demoPlot?.district ||
+          plan?.district ||
+          "",
+        latitude: firstPlot.latitude
+          ? String(firstPlot.latitude)
+          : firstPlot.demoPlot?.latitude
+            ? String(firstPlot.demoPlot.latitude)
+            : "",
+        longitude: firstPlot.longitude
+          ? String(firstPlot.longitude)
+          : firstPlot.demoPlot?.longitude
+            ? String(firstPlot.demoPlot.longitude)
+            : "",
         hasProductWithdrawal: Boolean(t14.hasProducts || prods.length > 0),
         withdrawnProducts: prods,
         trackings: (plan?.demoPlotVisits || [])
@@ -607,10 +654,7 @@ export default function ActivityPlanDetailView({
         id: p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`,
         demoPlotId: p.demoPlotId || p.demoPlot?.id,
         name:
-          p.plotName ||
-          p.name ||
-          p.demoPlot?.name ||
-          `แปลงแฮตแทค #${idx + 1}`,
+          p.plotName || p.name || p.demoPlot?.name || `แปลงแฮตแทค #${idx + 1}`,
         storeId: p.dealerName || p.demoPlot?.customer?.name || "",
         dealerName: p.dealerName || p.demoPlot?.customer?.name || "",
         ownerName: p.ownerName || p.demoPlot?.ownerName || "",
@@ -646,8 +690,7 @@ export default function ActivityPlanDetailView({
             id: pId,
             demoPlotId: pId,
             name: v.demoPlot?.name || `แปลงแฮตแทค #${idx + 1}`,
-            storeId:
-              v.demoPlot?.customer?.name || v.demoPlot?.dealerName || "",
+            storeId: v.demoPlot?.customer?.name || v.demoPlot?.dealerName || "",
             dealerName:
               v.demoPlot?.customer?.name || v.demoPlot?.dealerName || "",
             ownerName: v.demoPlot?.ownerName || "",
@@ -679,7 +722,9 @@ export default function ActivityPlanDetailView({
           cropName: planAny.demoPlot.cropName || "",
           province: planAny.demoPlot.province || plan?.province || "",
           district: planAny.demoPlot.district || plan?.district || "",
-          latitude: planAny.demoPlot.latitude ? String(planAny.demoPlot.latitude) : "",
+          latitude: planAny.demoPlot.latitude
+            ? String(planAny.demoPlot.latitude)
+            : "",
           longitude: planAny.demoPlot.longitude
             ? String(planAny.demoPlot.longitude)
             : "",
@@ -922,7 +967,9 @@ export default function ActivityPlanDetailView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/80 text-xs">
                 <div className="flex items-center justify-between bg-white/80 px-3.5 py-2 rounded-xl border border-amber-200/60 shadow-2xs">
-                  <span className="text-slate-700 font-medium">1. ผู้อนุมัติตามสายงาน:</span>
+                  <span className="text-slate-700 font-medium">
+                    1. ผู้อนุมัติตามสายงาน:
+                  </span>
                   <span
                     className={cn(
                       "font-bold px-2 py-0.5 rounded-md text-[11px]",
@@ -931,7 +978,9 @@ export default function ActivityPlanDetailView({
                         : "bg-amber-100 text-amber-800",
                     )}
                   >
-                    {plan.lineCancellationApproved ? "✓ อนุมัติแล้ว" : "⏳ รออนุมัติ"}
+                    {plan.lineCancellationApproved
+                      ? "✓ อนุมัติแล้ว"
+                      : "⏳ รออนุมัติ"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between bg-white/80 px-3.5 py-2 rounded-xl border border-amber-200/60 shadow-2xs">
@@ -946,7 +995,9 @@ export default function ActivityPlanDetailView({
                         : "bg-amber-100 text-amber-800",
                     )}
                   >
-                    {plan.mktCancellationApproved ? "✓ อนุมัติแล้ว" : "⏳ รออนุมัติ"}
+                    {plan.mktCancellationApproved
+                      ? "✓ อนุมัติแล้ว"
+                      : "⏳ รออนุมัติ"}
                   </span>
                 </div>
               </div>
@@ -1176,9 +1227,9 @@ export default function ActivityPlanDetailView({
             targets={targets.t10List}
           />
 
-          {/* TYPE_11: ตรวจเช็กสต็อกหน้าร้าน */}
+          {/* TYPE_11: ตรวจเช็คสต๊อกหน้าร้าน */}
           <ApprovalType11Stock
-            isVisible={isTypeActive("TYPE_11", "ตรวจเช็กสต็อกหน้าร้าน")}
+            isVisible={isTypeActive("TYPE_11", "ตรวจเช็คสต๊อกหน้าร้าน")}
             target={targets.t11}
             targets={targets.t11List}
           />
@@ -1495,10 +1546,7 @@ export default function ActivityPlanDetailView({
         )}
 
         {/* ─── 8. BOTTOM ACTIONS (READ-ONLY DETAIL VIEW) ─── */}
-        <DetailViewActions
-          onBack={handleBack}
-          backLabel="กลับหน้ารายการแผนงาน"
-        >
+        <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
           {canRequestCancel && (
             <Button
               type="button"

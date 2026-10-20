@@ -4,7 +4,11 @@ import type {
   Type11StockItemInput,
 } from "../types";
 
-export type { ValidateType11Options, Type11ValidationResult, Type11StockItemInput };
+export type {
+  ValidateType11Options,
+  Type11ValidationResult,
+  Type11StockItemInput,
+};
 
 /**
  * Pure validation function for TYPE 11 (Store Stock Check) plan items.
@@ -15,7 +19,7 @@ export function validateType11FormItems({
   stores = [],
 }: ValidateType11Options): Type11ValidationResult {
   const isType11Selected =
-    selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน") ||
+    selectedWorkTypes.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
     selectedWorkTypes.includes("TYPE_11");
 
   if (!isType11Selected) {

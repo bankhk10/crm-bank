@@ -147,7 +147,9 @@ export function extractWorkTypeSections(
           t.customerName ||
           t.store?.name ||
           t.store?.storeName ||
-          (t.isManualCustomer ? "ลูกค้าทั่วไป / เกษตรกร" : "ร้านค้าตัวแทนจำหน่าย"),
+          (t.isManualCustomer
+            ? "ลูกค้าทั่วไป / เกษตรกร"
+            : "ร้านค้าตัวแทนจำหน่าย"),
         subtitle: t.issueType ? `ประเภทปัญหา: ${t.issueType}` : undefined,
         details: t.detail || undefined,
       }));
@@ -181,7 +183,12 @@ export function extractWorkTypeSections(
       l.includes("ทำแปลงสาธิต") ||
       l.includes("แปลงสาธิต"),
   );
-  if (type7bRecord || type7aPlots.length > 0 || demoVisits.length > 0 || t7Line) {
+  if (
+    type7bRecord ||
+    type7aPlots.length > 0 ||
+    demoVisits.length > 0 ||
+    t7Line
+  ) {
     let list: any[] = [];
     if (type7bRecord) {
       list = mapType7bToSectionItems(type7bRecord, demoVisits);
@@ -228,7 +235,8 @@ export function extractWorkTypeSections(
       s.workTypeCode === "จัดประชุมการเกษตร",
   );
   const type8Products = products.filter(
-    (pr) => pr.workTypeCode === "TYPE_8" || pr.workTypeCode === "TYPE_8_PROMOTION",
+    (pr) =>
+      pr.workTypeCode === "TYPE_8" || pr.workTypeCode === "TYPE_8_PROMOTION",
   );
   const t8Line = objectiveLines.find(
     (l) => l.includes("[จัดประชุม") || l.includes("ประชุม"),
@@ -278,7 +286,7 @@ export function extractWorkTypeSections(
     sections.push(t10Section);
   }
 
-  // ── 11. ตรวจเช็กสต็อกหน้าร้าน ────────────────────────────
+  // ── 11. ตรวจเช็คสต๊อกหน้าร้าน ────────────────────────────
   const type11Stores = stores.filter((s) => s.workTypeCode === "TYPE_11");
   const t11Section = mapType11ToSectionItems(type11Stores, objectiveLines);
   if (t11Section) {
@@ -292,7 +300,10 @@ export function extractWorkTypeSections(
   }
 
   // ── 13. ฉีดแปลงแฮตแทค ─────────────────────────────────
-  const t13Section = mapType13ToSectionItems((plan as any).type13, objectiveLines);
+  const t13Section = mapType13ToSectionItems(
+    (plan as any).type13,
+    objectiveLines,
+  );
   if (t13Section) {
     sections.push(t13Section);
   }

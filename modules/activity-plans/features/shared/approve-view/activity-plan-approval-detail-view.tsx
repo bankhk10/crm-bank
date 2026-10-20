@@ -59,8 +59,14 @@ import {
   ApprovalType11Stock,
   ApprovalType12Tour,
 } from "./components/work-types";
-import { Type13Approval, type Type13PlotItem } from "@/modules/activity-plans/features/type-13";
-import { Type14Approval, type Type14PlanInput } from "@/modules/activity-plans/features/type-14";
+import {
+  Type13Approval,
+  type Type13PlotItem,
+} from "@/modules/activity-plans/features/type-13";
+import {
+  Type14Approval,
+  type Type14PlanInput,
+} from "@/modules/activity-plans/features/type-14";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -115,7 +121,13 @@ const initialTargets: ActualTargetsState = {
     targetSales: "",
   },
   t11: { store: "", detail: "", targetOpportunity: "" },
-  t12: { tourType: "CENTRAL", tourSize: null, country: null, storeName: null, destination: null },
+  t12: {
+    tourType: "CENTRAL",
+    tourSize: null,
+    country: null,
+    storeName: null,
+    destination: null,
+  },
 };
 
 const initialPlanSummary: PlanSummaryData = {
@@ -234,16 +246,18 @@ export default function ActivityPlanApprovalDetailView({
 
     // 1. From planned type13.plots
     if ((plan as any)?.type13?.plots && (plan as any).type13.plots.length > 0) {
-      const type13Products = ((plan as any).type13.products || []).map((prod: any) => ({
-        productId: prod.productId,
-        productName: prod.product?.name || prod.productName || "",
-        quantity: Number(prod.quantity) || 1,
-        unit:
-          prod.unit ||
-          prod.product?.unit ||
-          prod.product?.packageSizeUnit ||
-          "ขวด",
-      }));
+      const type13Products = ((plan as any).type13.products || []).map(
+        (prod: any) => ({
+          productId: prod.productId,
+          productName: prod.product?.name || prod.productName || "",
+          quantity: Number(prod.quantity) || 1,
+          unit:
+            prod.unit ||
+            prod.product?.unit ||
+            prod.product?.packageSizeUnit ||
+            "ขวด",
+        }),
+      );
 
       (plan as any).type13.plots.forEach((p: any, idx: number) => {
         const key = p.demoPlotId || p.id || `plot-${idx}`;
@@ -272,20 +286,25 @@ export default function ActivityPlanApprovalDetailView({
       .forEach((v: any, idx: number) => {
         const dp = v.demoPlot;
         const key = dp?.id || v.demoPlotId || `visit-${idx}`;
-        const existing = plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
+        const existing =
+          plotMap.get(key) || (dp?.id ? plotMap.get(dp.id) : undefined);
 
         const storeName = dp?.customer?.name || dp?.dealerName || "";
-        const ownerName = dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
+        const ownerName =
+          dp?.customer?.name || dp?.ownerName || dp?.farmerCustomer?.name || "";
         const lat = dp?.latitude != null ? String(dp.latitude) : "";
         const lng = dp?.longitude != null ? String(dp.longitude) : "";
 
         if (existing) {
-          if (!existing.dealerName && storeName) existing.dealerName = storeName;
+          if (!existing.dealerName && storeName)
+            existing.dealerName = storeName;
           if (!existing.ownerName && ownerName) existing.ownerName = ownerName;
           if (!existing.latitude && lat) existing.latitude = lat;
           if (!existing.longitude && lng) existing.longitude = lng;
-          if (!existing.province && dp?.province) existing.province = dp.province;
-          if (!existing.district && dp?.district) existing.district = dp.district;
+          if (!existing.province && dp?.province)
+            existing.province = dp.province;
+          if (!existing.district && dp?.district)
+            existing.district = dp.district;
           if (dp?.name && !existing.name) existing.name = dp.name;
         } else {
           plotMap.set(key, {
@@ -885,7 +904,10 @@ export default function ActivityPlanApprovalDetailView({
             isVisible={
               isTypeActive("TYPE_8", "จัดประชุม") ||
               isTypeActive("TYPE_8", "จัดประชุมการเกษตร") ||
-              isTypeActive("TYPE_8", "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์")
+              isTypeActive(
+                "TYPE_8",
+                "จัดประชุมการเกษตร / ดีลเลอร์ / ซับดีลเลอร์",
+              )
             }
             target={targets.t8}
             targets={targets.t8List}
@@ -908,9 +930,9 @@ export default function ActivityPlanApprovalDetailView({
             targets={targets.t10List}
           />
 
-          {/* TYPE_11: ตรวจเช็กสต็อกหน้าร้าน */}
+          {/* TYPE_11: ตรวจเช็คสต๊อกหน้าร้าน */}
           <ApprovalType11Stock
-            isVisible={isTypeActive("TYPE_11", "ตรวจเช็กสต็อกหน้าร้าน")}
+            isVisible={isTypeActive("TYPE_11", "ตรวจเช็คสต๊อกหน้าร้าน")}
             target={targets.t11}
             targets={targets.t11List}
           />

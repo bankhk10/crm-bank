@@ -91,7 +91,7 @@ const ACTIVITY_TYPES = [
   },
   {
     code: "TYPE_11",
-    name: "ตรวจเช็กสต็อกหน้าร้าน",
+    name: "ตรวจเช็คสต๊อกหน้าร้าน",
     shortName: "Stock",
     sortOrder: 12,
     hasActual: true,

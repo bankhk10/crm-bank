@@ -3,7 +3,11 @@
 import React from "react";
 import { Boxes, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type11PlanCardProps, Type11TargetItem, Type11PlanTarget } from "../types";
+import type {
+  Type11PlanCardProps,
+  Type11TargetItem,
+  Type11PlanTarget,
+} from "../types";
 
 export type { Type11PlanCardProps, Type11PlanTarget };
 
@@ -38,7 +42,7 @@ export function Type11PlanCard({
             <Boxes className="w-4 h-4" />
           </div>
           <h4 className="font-bold text-slate-950 text-sm sm:text-base">
-            ข้อมูลตามแผนงาน: ตรวจเช็กสต็อกหน้าร้าน
+            ข้อมูลตามแผนงาน: ตรวจเช็คสต๊อกหน้าร้าน
           </h4>
         </div>
         <Badge

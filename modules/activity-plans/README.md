@@ -86,23 +86,23 @@ modules/activity-plans/
 
 ระบบรองรับประเภทงานทั้งหมด 14 ประเภทตามมาตรฐานสถาปัตยกรรม:
 
-| Work Type Code | ชื่อประเภทงาน (Thai Label) | มีผลงานจริง (Actual) | มีการเบิกยา (Withdrawal) | หมายเหตุทางสถาปัตยกรรม |
-| :--- | :--- | :---: | :---: | :--- |
-| `TYPE_1` | เข้าพบร้านค้า / Key Farmer | ✅ | ❌ | แผน/ผลการเข้าพบ, แนะนำสินค้า, โอกาสการขาย |
-| `TYPE_2` | ติดตามผลการใช้สินค้า | ✅ | ❌ | Multi-store / Multi-product follow-up |
-| `TYPE_3` | เสนอขายสินค้า | ✅ | ❌ | Target vs Actual Sales รายสินค้า, เหตุผลที่ปิดไม่ได้ |
-| `TYPE_4` | วางบิล / เก็บเงิน | ✅ | ❌ | ยอดเก็บเงิน, รูปถ่ายหลักฐานการชำระ |
-| `TYPE_5` | สำรวจตลาดของคู่แข่ง | ✅ | ❌ | สำรวจราคา, โปรโมชั่น, รูปถ่ายป้ายราคา/ชั้นวางสินค้า |
-| `TYPE_6` | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา | ✅ | ❌ | ปัญหาที่พบ, แนวทางแก้ไข, สถานะการจัดการ |
-| `TYPE_7A` | ทำแปลงสาธิต (เริ่มทำแปลงใหม่) | ✅ | ❌ | สร้าง DemoPlot ใหม่, วันที่ปลูก, สภาพแปลง, รูปภาพ |
-| `TYPE_7B` | ติดตามแปลงสาธิต (ตรวจแปลงเดิม) | ✅ | ✅ | ตรวจแปลงเดิม (DemoPlotVisit), Timeline ประวัติ, ปิดแปลง |
-| `TYPE_8` | จัดประชุม (Meeting) | ✅ | ❌ | Target Farmer/Dealer, ยอดขาย/จอง, รูปภาพ 2 กลุ่ม |
-| `TYPE_9` | จัดกิจกรรมหน้าร้าน (Store Event) | ✅ | ❌ | เป้าหมายยอดขาย, ยอดขายจริง, รูปภาพกิจกรรม |
-| `TYPE_10` | จัดงาน Field Day | ✅ | ❌ | เกษตรกรเป้าหมาย, จัดประชุมภาคสนาม, ยอดขาย/จอง |
-| `TYPE_11` | ตรวจเช็กสต็อกหน้าร้าน (Stock Check) | ✅ | ❌ | ตรวจสต็อกสินค้า, วันหมดอายุ, โอกาสสั่งซื้อซ้ำ |
-| `TYPE_12` | ทัวร์ (Tour) | ❌ *(No Actual)* | ❌ | ทัวร์กลาง / ทัวร์ร้านค้า, กำหนดแผนงานล่วงหน้าเท่านั้น |
-| `TYPE_13` | ฉีดแปลงแฮตแทค (Hattack Plot Spraying) | ✅ | ✅ | Multi-plot Spraying (1–10 แปลง), รอบการฉีด, รูปก่อน-หลัง |
-| `TYPE_14` | ติดตามแปลงแฮทแทค (Hattack Follow-up) | ✅ | ✅ *(Supplemental)* | ตรวจแปลงเดิม, ยา 3 กลุ่ม (A/B/C), Workflow เบิกยาเพิ่ม |
+| Work Type Code | ชื่อประเภทงาน (Thai Label)            | มีผลงานจริง (Actual) | มีการเบิกยา (Withdrawal) | หมายเหตุทางสถาปัตยกรรม                                   |
+| :------------- | :------------------------------------ | :------------------: | :----------------------: | :------------------------------------------------------- |
+| `TYPE_1`       | เข้าพบร้านค้า / Key Farmer            |          ✅          |            ❌            | แผน/ผลการเข้าพบ, แนะนำสินค้า, โอกาสการขาย                |
+| `TYPE_2`       | ติดตามผลการใช้สินค้า                  |          ✅          |            ❌            | Multi-store / Multi-product follow-up                    |
+| `TYPE_3`       | เสนอขายสินค้า                         |          ✅          |            ❌            | Target vs Actual Sales รายสินค้า, เหตุผลที่ปิดไม่ได้     |
+| `TYPE_4`       | วางบิล / เก็บเงิน                     |          ✅          |            ❌            | ยอดเก็บเงิน, รูปถ่ายหลักฐานการชำระ                       |
+| `TYPE_5`       | สำรวจตลาดของคู่แข่ง                   |          ✅          |            ❌            | สำรวจราคา, โปรโมชั่น, รูปถ่ายป้ายราคา/ชั้นวางสินค้า      |
+| `TYPE_6`       | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา     |          ✅          |            ❌            | ปัญหาที่พบ, แนวทางแก้ไข, สถานะการจัดการ                  |
+| `TYPE_7A`      | ทำแปลงสาธิต (เริ่มทำแปลงใหม่)         |          ✅          |            ❌            | สร้าง DemoPlot ใหม่, วันที่ปลูก, สภาพแปลง, รูปภาพ        |
+| `TYPE_7B`      | ติดตามแปลงสาธิต (ตรวจแปลงเดิม)        |          ✅          |            ✅            | ตรวจแปลงเดิม (DemoPlotVisit), Timeline ประวัติ, ปิดแปลง  |
+| `TYPE_8`       | จัดประชุม (Meeting)                   |          ✅          |            ❌            | Target Farmer/Dealer, ยอดขาย/จอง, รูปภาพ 2 กลุ่ม         |
+| `TYPE_9`       | จัดกิจกรรมหน้าร้าน (Store Event)      |          ✅          |            ❌            | เป้าหมายยอดขาย, ยอดขายจริง, รูปภาพกิจกรรม                |
+| `TYPE_10`      | จัดงาน Field Day                      |          ✅          |            ❌            | เกษตรกรเป้าหมาย, จัดประชุมภาคสนาม, ยอดขาย/จอง            |
+| `TYPE_11`      | ตรวจเช็คสต๊อกหน้าร้าน (Stock Check)   |          ✅          |            ❌            | ตรวจสต็อกสินค้า, วันหมดอายุ, โอกาสสั่งซื้อซ้ำ            |
+| `TYPE_12`      | ทัวร์ (Tour)                          |   ❌ _(No Actual)_   |            ❌            | ทัวร์กลาง / ทัวร์ร้านค้า, กำหนดแผนงานล่วงหน้าเท่านั้น    |
+| `TYPE_13`      | ฉีดแปลงแฮตแทค (Hattack Plot Spraying) |          ✅          |            ✅            | Multi-plot Spraying (1–10 แปลง), รอบการฉีด, รูปก่อน-หลัง |
+| `TYPE_14`      | ติดตามแปลงแฮทแทค (Hattack Follow-up)  |          ✅          |   ✅ _(Supplemental)_    | ตรวจแปลงเดิม, ยา 3 กลุ่ม (A/B/C), Workflow เบิกยาเพิ่ม   |
 
 ---
 
@@ -157,10 +157,12 @@ PostgreSQL Transaction (activity_results, activity_attachments, demo_plot_visits
 ## 🗄️ โครงสร้างฐานข้อมูล (Database Schema)
 
 ### GROUP 1: Master / Lookup
+
 1. **`activity_types`:** Master Types (`TYPE_1`–`TYPE_14`) พร้อม Code, Name, ShortName, SortOrder
 2. **`promotional_materials`:** Master สื่อส่งเสริมการขาย (Full CRUD)
 
 ### GROUP 2: Plan Transactions (Normalized Relational)
+
 3. **`activity_plans`:** หัวเรื่องแผนงาน (`plan_no`, `plan_type`: `PLANNED` | `UNPLANNED`, `start_date`, `end_date`, `province`, `district`, Budget Variance)
 4. **`activity_plan_work_types`:** ประเภทงานที่เลือกในแผนงาน (Source of Truth)
 5. **`activity_plan_stores`:** ร้านค้าเป้าหมายในแผนงาน (FK: `store_id` → `Customer.id`)
@@ -173,14 +175,17 @@ PostgreSQL Transaction (activity_results, activity_attachments, demo_plot_visits
 12. **`activity_plan_type_14`, `activity_plan_type_14_plots`, `activity_plan_type_14_products`:** ตารางเก็บข้อมูลเฉพาะของ TYPE_14 (ติดตามแปลงแฮทแทค)
 
 ### GROUP 3: Demo Plot Master & Life Cycle
+
 13. **`demo_plots`:** Master Entity ของแปลงสาธิตและแปลงแฮตแทค
 14. **`demo_plot_visits`:** ประวัติการเข้าตรวจแปลงแต่ละครั้ง (Timeline Visit History)
 
 ### GROUP 4: Workflow & Approvals
+
 15. **`activity_approval_logs`:** ประวัติการอนุมัติ 5-Step Workflow
-13. **`supplemental_drug_withdrawals`:** คำขอเบิกยาเพิ่มเติมหน้างาน (TYPE 14)
+16. **`supplemental_drug_withdrawals`:** คำขอเบิกยาเพิ่มเติมหน้างาน (TYPE 14)
 
 ### GROUP 5: Post-Activity Results
+
 14. **`activity_results`:** ผลการปฏิบัติงานจริง (1:1 กับ `activity_plans`)
 15. **`activity_result_sale_items`**, **`activity_result_stock_items`**, **`activity_result_survey_items`**, **`activity_result_demo_items`**
 16. **`activity_attachments`:** รูปภาพและเอกสารแนบแยกตามประเภทงานและรอบการปฏิบัติงาน
@@ -200,6 +205,7 @@ PostgreSQL Transaction (activity_results, activity_attachments, demo_plot_visits
 ## 📝 บันทึกการปรับปรุงสถาปัตยกรรมระบบ (Architecture Modernization Log)
 
 ### 2026-10-01: Modular Architecture Standardization & Planned / Unplanned Separation
+
 - **Planned vs Unplanned Separation:**
   - แยกหน้าจอและ State Management ระหว่าง `features/planned/` และ `features/unplanned/` อย่างเด็ดขาด
 - **TYPE 1 – TYPE 14 Standardization:**

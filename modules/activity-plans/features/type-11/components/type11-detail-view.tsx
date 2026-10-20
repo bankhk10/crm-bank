@@ -8,7 +8,11 @@ import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 import { Type11PlanCard } from "./type11-plan-card";
 import type { StockCheckItem, DetailType11StockProps } from "../types";
 
-export type { StockCheckItem, DetailType11StockProps, DetailType11StockProps as Type11DetailViewProps };
+export type {
+  StockCheckItem,
+  DetailType11StockProps,
+  DetailType11StockProps as Type11DetailViewProps,
+};
 
 export function Type11DetailView({
   isVisible,
@@ -61,7 +65,7 @@ export function Type11DetailView({
             <Package className="w-4 h-4" />
           </div>
           <h2 className="font-bold text-slate-900 text-base md:text-lg">
-            ตรวจเช็กสต็อกหน้าร้าน
+            ตรวจเช็คสต๊อกหน้าร้าน
           </h2>
         </div>
       </div>
@@ -140,11 +144,11 @@ export function Type11DetailView({
                               <Badge
                                 variant="outline"
                                 className={
-                                   item.reorderOpportunity === "สูง"
-                                     ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
-                                     : item.reorderOpportunity === "ยังไม่แน่ใจ"
-                                       ? "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
-                                       : "bg-slate-100 text-slate-800 border-slate-300 font-bold text-xs"
+                                  item.reorderOpportunity === "สูง"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
+                                    : item.reorderOpportunity === "ยังไม่แน่ใจ"
+                                      ? "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs"
+                                      : "bg-slate-100 text-slate-800 border-slate-300 font-bold text-xs"
                                 }
                               >
                                 {item.reorderOpportunity}
@@ -211,7 +215,7 @@ export function Type11DetailView({
         {/* READ-ONLY GALLERY FOR STOCK CHECK PHOTOS */}
         {images && images.length > 0 && (
           <ActivityPhotoUpload
-            title={`รูปภาพการตรวจเช็กสต็อกหน้าร้าน (${images.length} รูป)`}
+            title={`รูปภาพการตรวจเช็คสต๊อกหน้าร้าน (${images.length} รูป)`}
             description="รูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน"
             images={images}
             readonly={true}

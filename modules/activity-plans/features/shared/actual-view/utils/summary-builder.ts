@@ -516,9 +516,7 @@ export function buildResultSummary(
     // Type 4
     t4OrderNo ? `เลขที่บิล/ใบแจ้งหนี้: ${t4OrderNo}` : null,
     t4BillingStatus ? `สถานะการวางบิล: ${t4BillingStatus}` : null,
-    t4BillingDetail
-      ? `รายละเอียดเพิ่มเติม (วางบิล): ${t4BillingDetail}`
-      : null,
+    t4BillingDetail ? `รายละเอียดเพิ่มเติม (วางบิล): ${t4BillingDetail}` : null,
     t4ReceivedAmount ? `ยอดเงินที่เก็บได้จริง: ${t4ReceivedAmount}` : null,
     t4CollectDetail
       ? `รายละเอียดเพิ่มเติม (เก็บเงิน): ${t4CollectDetail}`
@@ -563,8 +561,12 @@ export function buildResultSummary(
           t7CustomPlotDetail?.trim()
             ? `รายละเอียดแปลงเพิ่มเติม: ${t7CustomPlotDetail.trim()}`
             : null,
-          input.actualStartDate ? `วันที่ติดตามจริง: ${input.actualStartDate}` : null,
-          input.t7DaysAfterSpray ? `จำนวนวันหลังฉีดพ่น: ${input.t7DaysAfterSpray} วัน` : null,
+          input.actualStartDate
+            ? `วันที่ติดตามจริง: ${input.actualStartDate}`
+            : null,
+          input.t7DaysAfterSpray
+            ? `จำนวนวันหลังฉีดพ่น: ${input.t7DaysAfterSpray} วัน`
+            : null,
           input.t7CropImages && input.t7CropImages.length > 0
             ? `รูปผลหลังการฉีดพ่น (สภาพพืช): มีแนบ ${Math.min(input.t7CropImages.length, 5)} รูป`
             : null,
@@ -580,8 +582,12 @@ export function buildResultSummary(
               : null,
           t7UsageMethod ? `ข้อมูลเพิ่มเติม: ${t7UsageMethod}` : null,
           t7PlotStatus ? `สถานะแปลง: ${t7PlotStatus}` : null,
-          t7FarmerSatisfaction ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}` : null,
-          t7CommercialPotential ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}` : null,
+          t7FarmerSatisfaction
+            ? `ความพึงพอใจเกษตรกร: ${t7FarmerSatisfaction}`
+            : null,
+          t7CommercialPotential
+            ? `โอกาสสั่งซื้อจริง: ${t7CommercialPotential}`
+            : null,
           t7FinalSummaryNotes
             ? t7PlotStatus === "FAILED"
               ? `รายละเอียดการยุติการทดลอง: ${t7FinalSummaryNotes.trim()}`
@@ -594,7 +600,9 @@ export function buildResultSummary(
           input.t7FarmerName
             ? `เกษตรกรเจ้าของแปลง: ${input.t7FarmerName}${input.t7IsUnregisteredFarmer ? " (ไม่มีในระบบ)" : ""}${input.t7FarmerProvince ? ` จ.${input.t7FarmerProvince}` : ""}${input.t7FarmerDistrict ? ` อ.${input.t7FarmerDistrict}` : ""}`
             : null,
-          input.t7FarmerPhone ? `เบอร์โทรศัพท์เกษตรกร: ${input.t7FarmerPhone}` : null,
+          input.t7FarmerPhone
+            ? `เบอร์โทรศัพท์เกษตรกร: ${input.t7FarmerPhone}`
+            : null,
           input.t7Latitude && input.t7Longitude
             ? `พิกัดแปลงสาธิต: ${input.t7Latitude}, ${input.t7Longitude}`
             : null,
@@ -603,8 +611,12 @@ export function buildResultSummary(
             : null,
           input.t7AreaRai ? `ขนาดพื้นที่แปลง: ${input.t7AreaRai} ไร่` : null,
           input.t7TreeCount ? `จำนวนต้น: ${input.t7TreeCount} ต้น` : null,
-          input.t7MainCropInfo ? `ข้อมูลพืชประธาน: ${input.t7MainCropInfo}` : null,
-          input.t7InitialSprayDate ? `วันที่ฉีดพ่น: ${input.t7InitialSprayDate}` : null,
+          input.t7MainCropInfo
+            ? `ข้อมูลพืชประธาน: ${input.t7MainCropInfo}`
+            : null,
+          input.t7InitialSprayDate
+            ? `วันที่ฉีดพ่น: ${input.t7InitialSprayDate}`
+            : null,
           input.t7NextSprayDate
             ? `กำหนดฉีดพ่นครั้งต่อไป: ${input.t7NextSprayDate}`
             : null,
@@ -613,7 +625,8 @@ export function buildResultSummary(
             ? `วิธีการฉีดพ่น: ${input.t7SprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`
             : null,
           input.t7SprayEquipment
-            ? input.t7SprayEquipment === "อื่นๆ ระบุ.." && input.t7OtherEquipment
+            ? input.t7SprayEquipment === "อื่นๆ ระบุ.." &&
+              input.t7OtherEquipment
               ? `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment} (${input.t7OtherEquipment})`
               : `อุปกรณ์ที่ใช้ฉีดพ่น: ${input.t7SprayEquipment}`
             : null,
@@ -669,10 +682,23 @@ export function buildResultSummary(
     t8FeedbackQnA ? `Q&A: ${t8FeedbackQnA}` : null,
     t8ProductSalesDetails &&
     t8ProductSalesDetails.length > 0 &&
-    t8ProductSalesDetails.some((d) => (d.productName && d.productName.trim() !== "") || d.actualQty || d.notes)
+    t8ProductSalesDetails.some(
+      (d) =>
+        (d.productName && d.productName.trim() !== "") ||
+        d.actualQty ||
+        d.notes,
+    )
       ? `ผลการขายแยกสินค้าประชุม: ${t8ProductSalesDetails
-          .filter((d) => (d.productName && d.productName.trim() !== "") || d.actualQty || d.notes)
-          .map((d) => `${d.productName || "สินค้า"}${d.isAdditional ? " [นอกแผน]" : ""} (${d.actualQty ? `${d.actualQty} ลัง` : "0 ลัง"}${d.notes ? ` - ${d.notes}` : ""})`)
+          .filter(
+            (d) =>
+              (d.productName && d.productName.trim() !== "") ||
+              d.actualQty ||
+              d.notes,
+          )
+          .map(
+            (d) =>
+              `${d.productName || "สินค้า"}${d.isAdditional ? " [นอกแผน]" : ""} (${d.actualQty ? `${d.actualQty} ลัง` : "0 ลัง"}${d.notes ? ` - ${d.notes}` : ""})`,
+          )
           .join(", ")}`
       : null,
     t8Images && t8Images.length > 0
@@ -735,7 +761,7 @@ export function buildResultSummary(
     t11ReorderOpportunity ? `โอกาสสั่งซื้อซ้ำ: ${t11ReorderOpportunity}` : null,
     t11NextAction ? `สิ่งที่ต้องดำเนินการต่อ: ${t11NextAction}` : null,
     t11Images && t11Images.length > 0
-      ? `รูปภาพการตรวจเช็กสต็อกหน้าร้าน: มีแนบ ${t11Images.length} รูป`
+      ? `รูปภาพการตรวจเช็คสต๊อกหน้าร้าน: มีแนบ ${t11Images.length} รูป`
       : null,
   ].filter(Boolean) as string[];
 
@@ -932,7 +958,10 @@ export function buildResultSummary(
       const notes = d.notes?.trim() || null;
       const isAdditional = Boolean(d.isAdditional);
 
-      if (pId && (qty > 0 || notes || (d.productName && d.productName.trim() !== ""))) {
+      if (
+        pId &&
+        (qty > 0 || notes || (d.productName && d.productName.trim() !== ""))
+      ) {
         saleResults.push({
           workTypeCode: "TYPE_8",
           storeId: d.storeId || null,
@@ -963,14 +992,12 @@ export function buildResultSummary(
                   (d.productName || "").trim().toLowerCase(),
               )?.id
             : undefined;
-      const qty = Math.round(
-        parseCleanNumber(d.actualQty ?? d.quantity) ?? 0,
-      );
+      const qty = Math.round(parseCleanNumber(d.actualQty ?? d.quantity) ?? 0);
       const parsedSales = parseCleanNumber(d.actualSales);
       const uPrice =
         qty > 0 && parsedSales != null
           ? parsedSales / qty
-          : parseCleanNumber(d.unitPrice ?? d.price) ?? 0;
+          : (parseCleanNumber(d.unitPrice ?? d.price) ?? 0);
       const total = parsedSales != null ? parsedSales : qty * uPrice;
       const reason = d.remarks || d.unclosedReason || d.notes || null;
       if (pId && (qty > 0 || total > 0 || reason)) {
@@ -1095,7 +1122,8 @@ export function buildResultSummary(
         item.subdealerPrice != null ||
         item.farmerPrice != null ||
         (Array.isArray(item.bottleImages) && item.bottleImages.length > 0) ||
-        (Array.isArray(item.promotionalImages) && item.promotionalImages.length > 0);
+        (Array.isArray(item.promotionalImages) &&
+          item.promotionalImages.length > 0);
 
       if (resolvedStoreId && hasAnySurveyContent) {
         const itemId = item.id || `survey-item-${idx + 1}`;
@@ -1237,12 +1265,12 @@ export function buildResultSummary(
   const type7Code = isType7B ? "TYPE_7B" : "TYPE_7A";
 
   if (isType7B) {
-    (input.t7CropImages || []).slice(0, 5).forEach((img) =>
-      addAttachment(img, type7Code, "CROP"),
-    );
-    (input.t7PlotImages || []).slice(0, 5).forEach((img) =>
-      addAttachment(img, type7Code, "PLOT"),
-    );
+    (input.t7CropImages || [])
+      .slice(0, 5)
+      .forEach((img) => addAttachment(img, type7Code, "CROP"));
+    (input.t7PlotImages || [])
+      .slice(0, 5)
+      .forEach((img) => addAttachment(img, type7Code, "PLOT"));
   } else {
     // Initial Demonstration Photos (Rule 10: up to 10 photos via ActivityAttachment)
     const initialPhotos =
@@ -1259,9 +1287,7 @@ export function buildResultSummary(
     .forEach((img) => addAttachment(img, "TYPE_8", "ATMOSPHERE", "meeting"));
   (input.t8RegistrationImages || [])
     .slice(0, 5)
-    .forEach((img) =>
-      addAttachment(img, "TYPE_8", "GENERAL", "registration"),
-    );
+    .forEach((img) => addAttachment(img, "TYPE_8", "GENERAL", "registration"));
   (input.t9Images || [])
     .slice(0, 5)
     .forEach((img) => addAttachment(img, "TYPE_9"));
@@ -1278,9 +1304,9 @@ export function buildResultSummary(
     !isType7B &&
     Boolean(
       input.t7PlotName ||
-        input.t7FarmerName ||
-        (input.t7DemoProducts && input.t7DemoProducts.length > 0) ||
-        input.t7Latitude,
+      input.t7FarmerName ||
+      (input.t7DemoProducts && input.t7DemoProducts.length > 0) ||
+      input.t7Latitude,
     );
 
   if (hasType7AData) {
@@ -1294,10 +1320,8 @@ export function buildResultSummary(
       input.planSummary?.province?.trim() ||
       (input as any).t7DemoPlotData?.province?.trim() ||
       "กรุงเทพมหานคร";
-    const farmerProvinceVal =
-      input.t7FarmerProvince?.trim() || null;
-    const farmerDistrictVal =
-      input.t7FarmerDistrict?.trim() || null;
+    const farmerProvinceVal = input.t7FarmerProvince?.trim() || null;
+    const farmerDistrictVal = input.t7FarmerDistrict?.trim() || null;
 
     type7aDemoPlot = {
       farmerCustomerId: input.t7IsUnregisteredFarmer
@@ -1323,7 +1347,8 @@ export function buildResultSummary(
         (input.targets?.t7a as any)?.ownerName ||
         null,
       cropCategory:
-        input.t7CropCategory?.trim() && input.t7CropCategory.trim() !== "พืชทั่วไป"
+        input.t7CropCategory?.trim() &&
+        input.t7CropCategory.trim() !== "พืชทั่วไป"
           ? input.t7CropCategory.trim()
           : (input.targets?.t7a as any)?.cropCategory ||
             (input.targets?.t7 as any)?.cropCategory ||
@@ -1361,7 +1386,9 @@ export function buildResultSummary(
         null,
       experimentDetail: input.t7ExperimentDetail?.trim() || null,
       mainCropInfo: input.t7MainCropInfo?.trim() || null,
-      plantingDate: input.t7PlantingDate ? new Date(input.t7PlantingDate) : null,
+      plantingDate: input.t7PlantingDate
+        ? new Date(input.t7PlantingDate)
+        : null,
       initialSprayDate: input.t7InitialSprayDate
         ? new Date(input.t7InitialSprayDate)
         : new Date(),
@@ -1426,7 +1453,7 @@ export function buildResultSummary(
             remainingQuantity: remaining,
             unit: p.unit || null,
             applicationRate: p.applicationRate || "-",
-            isAdditional: p.isAdditional ?? (planned == null),
+            isAdditional: p.isAdditional ?? planned == null,
           };
         }),
       externalProducts: (input.t7ExternalProducts || []).map((ep) => ({
@@ -1460,14 +1487,21 @@ export function buildResultSummary(
       summaryParts.length > 0
         ? summaryParts.join("\n")
         : `สถานะผลกิจกรรม: ${statusLabel}`,
-    targetActualResults: input.targetActualResults || (input as any).t1TargetItems || undefined,
+    targetActualResults:
+      input.targetActualResults || (input as any).t1TargetItems || undefined,
     t1Products: input.t1Products || null,
-    productAdvice: input.t1ProductAdvice || (input as any).productAdvice || null,
-    salesOpportunity: input.t1SalesOpportunity || (input as any).salesOpportunity || null,
-    discussionResult: input.t1DiscussionResult || (input as any).discussionResult || null,
+    productAdvice:
+      input.t1ProductAdvice || (input as any).productAdvice || null,
+    salesOpportunity:
+      input.t1SalesOpportunity || (input as any).salesOpportunity || null,
+    discussionResult:
+      input.t1DiscussionResult || (input as any).discussionResult || null,
     nextAction: input.t1NextAction || (input as any).nextAction || null,
-    nextMeetingDate: input.t1NextMeetingDate ? new Date(input.t1NextMeetingDate) : null,
-    farmerHomeAddress: input.t1FarmerHomeAddress || (input as any).farmerHomeAddress || null,
+    nextMeetingDate: input.t1NextMeetingDate
+      ? new Date(input.t1NextMeetingDate)
+      : null,
+    farmerHomeAddress:
+      input.t1FarmerHomeAddress || (input as any).farmerHomeAddress || null,
     plotLatitude:
       input.t1PlotLatitude != null && input.t1PlotLatitude !== ""
         ? Number(input.t1PlotLatitude)
@@ -1493,7 +1527,8 @@ export function buildResultSummary(
     salesResultAmount: salesResult,
     collectResultAmount: collectResult,
     demoPlotsCreated: !isType7B && (t7PlotName || type7aDemoPlot) ? 1 : 0,
-    demoPlotsFollowedUp: isType7B && (t7PlotName || effectiveDemoPlotId) ? 1 : 0,
+    demoPlotsFollowedUp:
+      isType7B && (t7PlotName || effectiveDemoPlotId) ? 1 : 0,
     type7aDemoPlot,
     demoResults,
     sprayRounds,

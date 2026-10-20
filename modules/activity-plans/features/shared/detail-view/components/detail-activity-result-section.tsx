@@ -19,7 +19,10 @@ import {
   DetailType11Stock,
   DetailType13Attack,
 } from "./work-types";
-import type { Type13PlotItem, Type13DetailData } from "@/modules/activity-plans/features/type-13";
+import type {
+  Type13PlotItem,
+  Type13DetailData,
+} from "@/modules/activity-plans/features/type-13";
 
 interface DetailActivityResultSectionProps {
   isTypeVisible: (typeTitle: string) => boolean;
@@ -42,9 +45,7 @@ export function DetailActivityResultSection({
   type13Plots,
   type13ActualData,
 }: DetailActivityResultSectionProps) {
-  const hasAnyActualWorkType = WORK_TYPES.some((wt) =>
-    isTypeVisible(wt),
-  );
+  const hasAnyActualWorkType = WORK_TYPES.some((wt) => isTypeVisible(wt));
   if (!hasAnyActualWorkType) return null;
 
   return (
@@ -97,7 +98,11 @@ export function DetailActivityResultSection({
           targets={targets.t3List}
           soldProducts={parsedResults.t3SoldProducts}
           actualSales={parsedResults.t3ActualSales}
-          actualQuantity={parsedResults.t3ActualQuantity != null ? String(parsedResults.t3ActualQuantity) : undefined}
+          actualQuantity={
+            parsedResults.t3ActualQuantity != null
+              ? String(parsedResults.t3ActualQuantity)
+              : undefined
+          }
           unclosedReason={parsedResults.t3UnclosedReason}
           productSalesDetails={parsedResults.t3ProductSalesDetails}
         />
@@ -111,7 +116,9 @@ export function DetailActivityResultSection({
           receivedAmount={parsedResults.t4ReceivedAmount}
           billingStatus={parsedResults.t4BillingStatus}
           billingDetail={parsedResults.t4BillingDetail}
-          collectDetail={parsedResults.t4CollectDetail || parsedResults.t4Detail}
+          collectDetail={
+            parsedResults.t4CollectDetail || parsedResults.t4Detail
+          }
           paymentImages={parsedResults.t4Images}
         />
 
@@ -157,8 +164,15 @@ export function DetailActivityResultSection({
           demoPlotId={parsedResults.t7DemoPlotId}
           plotName={parsedResults.t7PlotName}
           usageMethod={parsedResults.t7UsageMethod}
-          experimentDetail={parsedResults.t7ExperimentDetail || demoPlotData?.experimentDetail}
-          notes={demoPlotData?.notes || demoPlotData?.visits?.[0]?.notes || parsedResults.t7Notes || parsedResults.t7UsageMethod}
+          experimentDetail={
+            parsedResults.t7ExperimentDetail || demoPlotData?.experimentDetail
+          }
+          notes={
+            demoPlotData?.notes ||
+            demoPlotData?.visits?.[0]?.notes ||
+            parsedResults.t7Notes ||
+            parsedResults.t7UsageMethod
+          }
           plantingDate={parsedResults.t7PlantingDate}
           plantingAreaCondition={parsedResults.t7PlantingAreaCondition}
           cropAgeValue={parsedResults.t7CropAgeValue}
@@ -191,16 +205,42 @@ export function DetailActivityResultSection({
           target={targets.t7b || targets.t7}
           targets={targets.t7bList}
           demoResults={parsedResults.t7DemoResults}
-          daysAfterSpray={parsedResults.t7DaysAfterSpray || currentVisit?.daysSinceStart}
+          daysAfterSpray={
+            parsedResults.t7DaysAfterSpray || currentVisit?.daysSinceStart
+          }
           sprayMethod={currentVisit?.sprayMethod}
-          sprayEquipment={parsedResults.t7SprayEquipment || currentVisit?.sprayEquipment}
-          otherEquipment={parsedResults.t7OtherEquipment || currentVisit?.otherEquipment}
-          nextSprayDate={parsedResults.t7NextSprayDate || currentVisit?.nextSprayDate}
-          visitDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
-          actualStartDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
-          startDate={parsedResults.actualStartDate || parsedResults.t7StartDate || currentVisit?.visitDate}
-          externalProducts={currentVisit?.externalProducts || demoPlotData?.externalProducts}
-          sprayRounds={parsedResults.t7bSprayingRounds || (currentVisit as any)?.sprayRounds || demoPlotData?.sprayRounds}
+          sprayEquipment={
+            parsedResults.t7SprayEquipment || currentVisit?.sprayEquipment
+          }
+          otherEquipment={
+            parsedResults.t7OtherEquipment || currentVisit?.otherEquipment
+          }
+          nextSprayDate={
+            parsedResults.t7NextSprayDate || currentVisit?.nextSprayDate
+          }
+          visitDate={
+            parsedResults.actualStartDate ||
+            parsedResults.t7StartDate ||
+            currentVisit?.visitDate
+          }
+          actualStartDate={
+            parsedResults.actualStartDate ||
+            parsedResults.t7StartDate ||
+            currentVisit?.visitDate
+          }
+          startDate={
+            parsedResults.actualStartDate ||
+            parsedResults.t7StartDate ||
+            currentVisit?.visitDate
+          }
+          externalProducts={
+            currentVisit?.externalProducts || demoPlotData?.externalProducts
+          }
+          sprayRounds={
+            parsedResults.t7bSprayingRounds ||
+            (currentVisit as any)?.sprayRounds ||
+            demoPlotData?.sprayRounds
+          }
           plannedProductId={parsedResults.t7PlannedProductId}
           actualProductId={parsedResults.t7ActualProductId}
           actualQuantity={parsedResults.t7DemoProductQuantity}
@@ -210,9 +250,18 @@ export function DetailActivityResultSection({
           plotObjective={parsedResults.t7PlotObjective}
           customPlotDetail={parsedResults.t7CustomPlotDetail}
           demoPlotId={parsedResults.t7DemoPlotId}
-          plotName={parsedResults.t7PlotName || demoPlotData?.plotCode || demoPlotData?.farmerName}
+          plotName={
+            parsedResults.t7PlotName ||
+            demoPlotData?.plotCode ||
+            demoPlotData?.farmerName
+          }
           usageMethod={parsedResults.t7UsageMethod}
-          notes={demoPlotData?.notes || demoPlotData?.visits?.[0]?.notes || parsedResults.t7Notes || parsedResults.t7UsageMethod}
+          notes={
+            demoPlotData?.notes ||
+            demoPlotData?.visits?.[0]?.notes ||
+            parsedResults.t7Notes ||
+            parsedResults.t7UsageMethod
+          }
           plantingDate={parsedResults.t7PlantingDate}
           plantingAreaCondition={parsedResults.t7PlantingAreaCondition}
           cropAgeValue={parsedResults.t7CropAgeValue}
@@ -223,7 +272,11 @@ export function DetailActivityResultSection({
           productResponse={parsedResults.t7ProductResponse}
           problemDescription={parsedResults.t7ProblemDescription}
           plotStatus={parsedResults.t7PlotStatus}
-          nextFollowUpDate={parsedResults.t7NextSprayDate || parsedResults.t7NextFollowUpDate || currentVisit?.nextSprayDate}
+          nextFollowUpDate={
+            parsedResults.t7NextSprayDate ||
+            parsedResults.t7NextFollowUpDate ||
+            currentVisit?.nextSprayDate
+          }
           finalYieldKg={parsedResults.t7FinalYieldKg}
           controlYieldKg={parsedResults.t7ControlYieldKg}
           yieldIncreasePercent={parsedResults.t7YieldIncreasePercent}
@@ -284,7 +337,7 @@ export function DetailActivityResultSection({
 
         {/* WORK TYPE 11 */}
         <DetailType11Stock
-          isVisible={isTypeVisible("ตรวจเช็กสต็อกหน้าร้าน")}
+          isVisible={isTypeVisible("ตรวจเช็คสต๊อกหน้าร้าน")}
           target={targets.t11}
           targets={targets.t11List}
           stockItems={parsedResults.t11StockItems}
@@ -297,10 +350,7 @@ export function DetailActivityResultSection({
 
         {/* WORK TYPE 13 */}
         <DetailType13Attack
-          isVisible={
-            isTypeVisible("ฉีดแปลงแฮตแทค") ||
-            isTypeVisible("TYPE_13")
-          }
+          isVisible={isTypeVisible("ฉีดแปลงแฮตแทค") || isTypeVisible("TYPE_13")}
           plots={type13Plots}
           actualData={type13ActualData}
         />

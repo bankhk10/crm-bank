@@ -59,7 +59,7 @@ export function useType11Form({
   };
 
   const mapType11Payload = (customers: any[]) => {
-    if (!selectedWorkTypes.includes("ตรวจเช็กสต็อกหน้าร้าน")) {
+    if (!selectedWorkTypes.includes("ตรวจเช็คสต๊อกหน้าร้าน")) {
       return { planStores: [] };
     }
 
@@ -73,8 +73,7 @@ export function useType11Form({
     if (Array.isArray(type11Stores)) {
       type11Stores.forEach((st) => {
         const sId =
-          st.storeId ||
-          customers.find((c) => c.name === st.storeName)?.id;
+          st.storeId || customers.find((c) => c.name === st.storeName)?.id;
         if (sId) {
           planStores.push({
             workTypeCode: "TYPE_11",

@@ -14,7 +14,11 @@ import { listProductsAction } from "@/modules/products/server/actions";
 import { Type11PlanCard } from "./type11-plan-card";
 import type { StockCheckItem, ActualType11StockProps } from "../types";
 
-export type { StockCheckItem, ActualType11StockProps, ActualType11StockProps as Type11ActualFormProps };
+export type {
+  StockCheckItem,
+  ActualType11StockProps,
+  ActualType11StockProps as Type11ActualFormProps,
+};
 
 export function Type11ActualForm({
   isVisible,
@@ -66,9 +70,7 @@ export function Type11ActualForm({
   // Parse list of planned stores
   const storesList = useMemo(() => {
     if (targets && targets.length > 0) {
-      const fromTargets = targets
-        .map((t) => t.store?.trim())
-        .filter(Boolean);
+      const fromTargets = targets.map((t) => t.store?.trim()).filter(Boolean);
       if (fromTargets.length > 0) return Array.from(new Set(fromTargets));
     }
     if (!target?.store || !target.store.trim()) return ["ร้านค้า"];
@@ -253,7 +255,7 @@ export function Type11ActualForm({
             <Package className="h-4 w-4 text-slate-700" />
           </div>
           <h2 className="font-bold text-slate-900 text-base md:text-lg">
-            ตรวจเช็กสต็อกหน้าร้าน
+            ตรวจเช็คสต๊อกหน้าร้าน
           </h2>
         </div>
       </div>
@@ -262,11 +264,7 @@ export function Type11ActualForm({
       {targets && targets.length > 0 ? (
         <div className="space-y-4">
           {targets.map((t, idx) => (
-            <Type11PlanCard
-              key={t.id || idx}
-              target={t}
-              planType={planType}
-            />
+            <Type11PlanCard key={t.id || idx} target={t} planType={planType} />
           ))}
         </div>
       ) : (
@@ -471,7 +469,7 @@ export function Type11ActualForm({
 
       {/* ActivityPhotoUpload for Stock Check Photos */}
       <ActivityPhotoUpload
-        title="รูปภาพการตรวจเช็กสต็อกหน้าร้าน"
+        title="รูปภาพการตรวจเช็คสต๊อกหน้าร้าน"
         description="อัปโหลดรูปภาพการตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน (สูงสุด 5 รูป)"
         images={images}
         onImagesChange={setImages}

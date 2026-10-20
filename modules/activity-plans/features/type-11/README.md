@@ -1,7 +1,7 @@
-# Type 11 Feature Module: ตรวจเช็กสต็อกหน้าร้าน (Stock Check)
+# Type 11 Feature Module: ตรวจเช็คสต๊อกหน้าร้าน (Stock Check)
 
 > **Work Type Code:** `TYPE_11`  
-> **Label:** ตรวจเช็กสต็อกหน้าร้าน (Store Stock Check)  
+> **Label:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check)  
 > **Status:** ✅ Vertical Slice Architecture, Relational Strategy Pattern, Clean Architecture
 
 ---
@@ -64,18 +64,19 @@ modules/activity-plans/features/type-11/
 ## 🔗 ความเชื่อมโยงกับระบบส่วนกลาง (Dependencies & External Functions Mapping)
 
 ### 1. ฟังก์ชันและโมดูลที่ Slice นี้เรียกใช้งาน (Inbound Dependencies)
-| หมวดหมู่ | ฟังก์ชัน / โมดูลที่เรียกใช้ | ที่อยู่ไฟล์ (File Path) | วัตถุประสงค์การใช้งาน |
-|---|---|---|---|
-| **Infrastructure** | `db (PrismaClient)` | [`lib/db.ts`](file:///lib/db.ts) | ประมวลผล Transaction บันทึกเป้าหมายงาน Event และสินค้า |
-| **Application** | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern |
-| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls` | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts) | อัปโหลดรูปภาพงาน Event และบูธ |
-| **External Module** | `listProductsAction` | [`modules/products/server/actions.ts`](file:///modules/products/server/actions.ts) | ค้นหาสินค้าที่นำไปจัดแสดง |
+
+| หมวดหมู่              | ฟังก์ชัน / โมดูลที่เรียกใช้                                     | ที่อยู่ไฟล์ (File Path)                                                                                                                                                  | วัตถุประสงค์การใช้งาน                                  |
+| --------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| **Infrastructure**    | `db (PrismaClient)`                                             | [`lib/db.ts`](file:///lib/db.ts)                                                                                                                                         | ประมวลผล Transaction บันทึกเป้าหมายงาน Event และสินค้า |
+| **Application**       | `WorkTypeStrategy, PrismaTransaction, StrategyValidationResult` | [`modules/activity-plans/application/strategies/work-type-strategy.interface.ts`](file:///modules/activity-plans/application/strategies/work-type-strategy.interface.ts) | สัญญากลางสำหรับ Strategy Pattern                       |
+| **Shared UI / Utils** | `uploadActivityPlanImageGroup, collectPermanentUrls`            | [`modules/activity-plans/features/shared/actual-view/utils/index.ts`](file:///modules/activity-plans/features/shared/actual-view/utils/index.ts)                         | อัปโหลดรูปภาพงาน Event และบูธ                          |
+| **External Module**   | `listProductsAction`                                            | [`modules/products/server/actions.ts`](file:///modules/products/server/actions.ts)                                                                                       | ค้นหาสินค้าที่นำไปจัดแสดง                              |
 
 ### 2. จุดที่ระบบส่วนกลางเรียกใช้งาน Slice นี้ (Outbound Integration Points)
-| ส่วนกลางที่เรียกใช้ | ไฟล์ที่เรียกใช้ (Caller Path) | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์ |
-|---|---|---|---|
-| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts) | `Type11Strategy` | ลงทะเบียน Handler สำหรับ Type 11 |
-| **Detail Mapper** | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts) | `mapType11ToSectionItems` | แปลงข้อมูลงาน Event เพื่อแสดงใน Detail View |
-| **Approval Queue** | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type11ApprovalCard` | การ์ดแสดงผลในหน้าอนุมัติ |
-| **Actual Form** | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts) | `Type11ActualForm` | ฟอร์มบันทึกผลงาน Event |
 
+| ส่วนกลางที่เรียกใช้   | ไฟล์ที่เรียกใช้ (Caller Path)                                                                                                                                                      | สิ่งที่นำไปใช้ (Export / Function) | วัตถุประสงค์                                |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------- |
+| **Strategy Registry** | [`modules/activity-plans/application/strategies/type-registry.ts`](file:///modules/activity-plans/application/strategies/type-registry.ts)                                         | `Type11Strategy`                   | ลงทะเบียน Handler สำหรับ Type 11            |
+| **Detail Mapper**     | [`modules/activity-plans/features/shared/detail-view/utils.ts`](file:///modules/activity-plans/features/shared/detail-view/utils.ts)                                               | `mapType11ToSectionItems`          | แปลงข้อมูลงาน Event เพื่อแสดงใน Detail View |
+| **Approval Queue**    | [`modules/activity-plans/features/shared/approve-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/approve-view/components/work-types/index.ts) | `Type11ApprovalCard`               | การ์ดแสดงผลในหน้าอนุมัติ                    |
+| **Actual Form**       | [`modules/activity-plans/features/shared/actual-view/components/work-types/index.ts`](file:///modules/activity-plans/features/shared/actual-view/components/work-types/index.ts)   | `Type11ActualForm`                 | ฟอร์มบันทึกผลงาน Event                      |

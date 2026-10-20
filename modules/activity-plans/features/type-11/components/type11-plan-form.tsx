@@ -3,9 +3,17 @@
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
 import { ActivityCustomerSelect } from "@/modules/activity/ui";
-import type { Type11StoreItem, CustomerOption, Type11StockProps } from "../types";
+import type {
+  Type11StoreItem,
+  CustomerOption,
+  Type11StockProps,
+} from "../types";
 
-export type { CustomerOption, Type11StockProps, Type11StockProps as Type11PlanFormProps };
+export type {
+  CustomerOption,
+  Type11StockProps,
+  Type11StockProps as Type11PlanFormProps,
+};
 
 export function Type11PlanForm({
   readonly = false,
@@ -35,7 +43,7 @@ export function Type11PlanForm({
       <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <ClipboardList className="h-4 w-4 text-slate-600" />
-          <span>ตรวจเช็กสต็อกหน้าร้าน</span>
+          <span>ตรวจเช็คสต๊อกหน้าร้าน</span>
         </div>
       </div>
 

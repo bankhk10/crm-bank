@@ -75,27 +75,19 @@ export function PlanWorkTypeRenderer({
   );
 
   const isType2 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_2" ||
-      t === "ติดตามผลการใช้สินค้า",
+    (t) => getWorkTypeCode(t) === "TYPE_2" || t === "ติดตามผลการใช้สินค้า",
   );
 
   const isType3 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_3" ||
-      t === "เสนอขายสินค้า",
+    (t) => getWorkTypeCode(t) === "TYPE_3" || t === "เสนอขายสินค้า",
   );
 
   const isType4 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_4" ||
-      t === "วางบิล / เก็บเงิน",
+    (t) => getWorkTypeCode(t) === "TYPE_4" || t === "วางบิล / เก็บเงิน",
   );
 
   const isType5 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_5" ||
-      t === "สำรวจตลาดของคู่แข่ง",
+    (t) => getWorkTypeCode(t) === "TYPE_5" || t === "สำรวจตลาดของคู่แข่ง",
   );
 
   const isType6 = selectedWorkTypes.some(
@@ -105,15 +97,11 @@ export function PlanWorkTypeRenderer({
   );
 
   const isType7A = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_7A" ||
-      t === "ทำแปลงสาธิต",
+    (t) => getWorkTypeCode(t) === "TYPE_7A" || t === "ทำแปลงสาธิต",
   );
 
   const isType7B = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_7B" ||
-      t === "ติดตามแปลงสาธิต",
+    (t) => getWorkTypeCode(t) === "TYPE_7B" || t === "ติดตามแปลงสาธิต",
   );
 
   const isType8 = selectedWorkTypes.some(
@@ -137,27 +125,19 @@ export function PlanWorkTypeRenderer({
   );
 
   const isType11 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_11" ||
-      t === "ตรวจเช็กสต็อกหน้าร้าน",
+    (t) => getWorkTypeCode(t) === "TYPE_11" || t === "ตรวจเช็คสต๊อกหน้าร้าน",
   );
 
   const isType12 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_12" ||
-      t === "ทัวร์",
+    (t) => getWorkTypeCode(t) === "TYPE_12" || t === "ทัวร์",
   );
 
   const isType13 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_13" ||
-      t.includes("ฉีดแปลงแฮตแทค"),
+    (t) => getWorkTypeCode(t) === "TYPE_13" || t.includes("ฉีดแปลงแฮตแทค"),
   );
 
   const isType14 = selectedWorkTypes.some(
-    (t) =>
-      getWorkTypeCode(t) === "TYPE_14" ||
-      t.includes("ติดตามแปลงแฮทแทค"),
+    (t) => getWorkTypeCode(t) === "TYPE_14" || t.includes("ติดตามแปลงแฮทแทค"),
   );
 
   const activeDemoPlotsForType10 =
@@ -270,7 +250,9 @@ export function PlanWorkTypeRenderer({
             customers={customersList}
             products={productsList}
             productCategories={productCategoriesList}
-            chemicalGroups={chemicalGroups.length > 0 ? chemicalGroups : productCategoriesList}
+            chemicalGroups={
+              chemicalGroups.length > 0 ? chemicalGroups : productCategoriesList
+            }
             demoPlots={demoPlotsList}
             parentStartDate={startDate}
           />
@@ -288,7 +270,9 @@ export function PlanWorkTypeRenderer({
             customers={customersList}
             products={productsList}
             productCategories={productCategoriesList}
-            chemicalGroups={chemicalGroups.length > 0 ? chemicalGroups : productCategoriesList}
+            chemicalGroups={
+              chemicalGroups.length > 0 ? chemicalGroups : productCategoriesList
+            }
             demoPlots={followUpPlotsForType7B}
             followUpPlans={
               followUpPlansWithPlots && followUpPlansWithPlots.length > 0
@@ -324,7 +308,9 @@ export function PlanWorkTypeRenderer({
             subdealerName={typeForms.type9.subdealerName}
             setSubdealerName={typeForms.type9.setSubdealerName}
             isUnregisteredSubdealer={typeForms.type9.isUnregisteredSubdealer}
-            setIsUnregisteredSubdealer={typeForms.type9.setIsUnregisteredSubdealer}
+            setIsUnregisteredSubdealer={
+              typeForms.type9.setIsUnregisteredSubdealer
+            }
             subDealerStore={typeForms.type9.subDealerStore}
             setSubDealerStore={typeForms.type9.setSubDealerStore}
             province={typeForms.type9.subDealerProvince}
@@ -371,7 +357,7 @@ export function PlanWorkTypeRenderer({
           />
         )}
 
-        {/* Work Type 11: ตรวจเช็กสต็อกหน้าร้าน */}
+        {/* Work Type 11: ตรวจเช็คสต๊อกหน้าร้าน */}
         {isType11 && (
           <Type11Stock
             readonly={readonly}
