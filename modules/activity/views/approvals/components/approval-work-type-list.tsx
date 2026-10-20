@@ -33,6 +33,10 @@ import {
   Type7aApprovalCard,
   Type7aDetailView,
 } from "@/modules/activity/features/type-7a";
+import {
+  Type7bApprovalCard,
+  Type7bDetailView,
+} from "@/modules/activity/features/type-7b";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -89,10 +93,17 @@ export function ApprovalWorkTypeList({
     Boolean(plan?.type6Targets?.length);
 
   const isType7a =
-    isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
-    isTypeActive("TYPE_7A", "แปลงสาธิต") ||
-    Boolean(plan?.type7aPlots?.length) ||
-    Boolean(plan?.demoPlots?.length);
+    (isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
+      isTypeActive("TYPE_7A", "แปลงสาธิต") ||
+      Boolean(plan?.type7aPlots?.length) ||
+      Boolean(plan?.demoPlots?.length)) &&
+    !isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต");
+
+  const isType7b =
+    isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต") ||
+    Boolean(plan?.type7bFollowUps?.length) ||
+    Boolean(plan?.type7bPlots?.length) ||
+    Boolean(plan?.type7b?.plots?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -214,6 +225,22 @@ export function ApprovalWorkTypeList({
     );
   }, [isUnplanned, plan, parsedResults]);
 
+  const hasType7bActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type7bActual) return true;
+    return Boolean(
+      parsedResults?.type7bActual ||
+        parsedResults?.t7CropCondition ||
+        (parsedResults?.t7CropImages && parsedResults.t7CropImages.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_7B" ||
+              a.category === "CROP",
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
     if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
@@ -309,6 +336,32 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
       }));
   }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
+
+  // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
+  const effectiveT7bImages = useMemo(() => {
+    if (parsedResults?.t7CropImages && parsedResults.t7CropImages.length > 0) {
+      return [
+        ...parsedResults.t7CropImages,
+        ...(parsedResults.t7PlotImages || []),
+      ];
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_7B" ||
+          att?.category === "CROP" ||
+          (att?.category === "PLOT" && isType7b && !isType7a),
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปถ่ายติดตามแปลงสาธิต",
+      }));
+  }, [parsedResults?.t7CropImages, parsedResults?.t7PlotImages, plan?.attachments, plan?.result?.attachments, isType7b, isType7a]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -489,6 +542,25 @@ export function ApprovalWorkTypeList({
             isVisible={true}
             target={targets?.t7a || targets?.t7}
             targets={targets?.t7aList || targets?.t7List}
+            plan={plan}
+          />
+        ))}
+
+      {/* 🟢 TYPE 7B: ติดตามแปลงสาธิต (Demo Plot Follow-up) */}
+      {isType7b &&
+        (hasType7bActualResults ? (
+          <Type7bDetailView
+            isVisible={true}
+            target={targets?.t7b || targets?.t7bList?.[0]}
+            targets={targets?.t7bList}
+            actualResult={parsedResults?.type7bActual || parsedResults}
+            attachments={effectiveT7bImages}
+          />
+        ) : (
+          <Type7bApprovalCard
+            isVisible={true}
+            target={targets?.t7b || targets?.t7bList?.[0]}
+            targets={targets?.t7bList}
             plan={plan}
           />
         ))}

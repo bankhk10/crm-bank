@@ -51,6 +51,11 @@ import {
   hydrateType7aPlannedData,
 } from "@/modules/activity/features/type-7a";
 import {
+  Type7bPlannedForm,
+  useType7bPlannedForm,
+  hydrateType7bPlannedData,
+} from "@/modules/activity/features/type-7b";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -63,6 +68,8 @@ export interface PlannedActivityFormProps {
   products: ProductOption[];
   activityTypes?: any[];
   promotionalMaterialsByCategory?: Record<string, any[]>;
+  demoPlots?: any[];
+  followUpPlans?: any[];
   onSubmit: (payload: any) => Promise<{ success: boolean; error?: string }>;
   onBack?: () => void;
   readonly?: boolean;
@@ -76,6 +83,8 @@ export function PlannedActivityForm({
   products = [],
   activityTypes = [],
   promotionalMaterialsByCategory,
+  demoPlots = [],
+  followUpPlans = [],
   onSubmit,
   onBack,
   readonly = false,
@@ -114,6 +123,16 @@ export function PlannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7A.name];
     }
+    // 1.3 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7B
+    if (
+      (initialData.type7bPlots && initialData.type7bPlots.length > 0) ||
+      initialData.type7b ||
+      initialData.type7bData ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -131,6 +150,7 @@ export function PlannedActivityForm({
       if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
       if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
       if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
+      if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }
     if (
       initialData.type1Stores &&
@@ -184,7 +204,13 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_7A" ||
       wt.includes("TYPE_7A") ||
       wt.includes("จัดทำแปลงสาธิต") ||
-      wt.includes("แปลงสาธิต"),
+      (wt.includes("แปลงสาธิต") && !wt.includes("ติดตาม")),
+  );
+  const isType7bActive = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_7B" ||
+      wt.includes("TYPE_7B") ||
+      wt.includes("ติดตามแปลงสาธิต"),
   );
 
   // 2. Basic Info State
@@ -300,6 +326,16 @@ export function PlannedActivityForm({
 
   const type7a = useType7aPlannedForm({
     initial: { type7aPlots: hydratedInitialType7aItems },
+  });
+
+  // 5.7 Type 7B Planned Hook
+  const hydratedInitialType7bItems = useMemo(
+    () => hydrateType7bPlannedData(initialData),
+    [initialData],
+  );
+
+  const type7b = useType7bPlannedForm({
+    initialItems: hydratedInitialType7bItems,
   });
 
   // 6. Budget Hook
@@ -490,6 +526,25 @@ export function PlannedActivityForm({
       planProducts = [...planProducts, ...t7Products];
     }
 
+    // 3.6 Validation & Mapping - Type 7B Items
+    let type7bPayload: any = null;
+    if (isType7bActive) {
+      const type7bValidation = type7b.validateType7b();
+      if (!type7bValidation.isValid) {
+        toast.error(
+          type7bValidation.error ||
+            "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง (Type 7B)",
+        );
+        return;
+      }
+
+      const t7bMapped = type7b.mapType7bPayload(products as any);
+      type7bPayload = t7bMapped.type7bData;
+      if (t7bMapped.planProducts?.length) {
+        planProducts = [...planProducts, ...t7bMapped.planProducts];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -509,7 +564,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_6" &&
             (t.code === "ISSUE" || t.name?.includes("ร้องเรียน") || t.name?.includes("แก้ปัญหา"))) ||
           (primaryCode === "TYPE_7A" &&
-            (t.code === "DEMO" || t.code === "TYPE_7A" || t.name?.includes("แปลงสาธิต"))),
+            (t.code === "DEMO" || t.code === "TYPE_7A" || (t.name?.includes("แปลงสาธิต") && !t.name?.includes("ติดตาม")))) ||
+          (primaryCode === "TYPE_7B" &&
+            (t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -550,6 +607,9 @@ export function PlannedActivityForm({
       type6Items: type6TargetsPayload,
       type7aPlots: type7aPlotsPayload,
       type7aTargets: type7aPlotsPayload,
+      type7bData: type7bPayload,
+      type7bPlots: type7bPayload?.plots,
+      type7bTargets: type7bPayload?.plots,
     };
 
     try {
@@ -644,7 +704,8 @@ export function PlannedActivityForm({
         !isType4Active &&
         !isType5Active &&
         !isType6Active &&
-        !isType7aActive && (
+        !isType7aActive &&
+        !isType7bActive && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -750,6 +811,18 @@ export function PlannedActivityForm({
           addProductToDemoPlot={type7a.addProductToDemoPlot}
           updateProductInDemoPlot={type7a.updateProductInDemoPlot}
           deleteProductFromDemoPlot={type7a.deleteProductFromDemoPlot}
+        />
+      )}
+
+      {/* 3.8 ส่วนเฉพาะ Type 7B: ติดตามแปลงสาธิต */}
+      {isType7bActive && (
+        <Type7bPlannedForm
+          readonly={readonly}
+          item={type7b.type7bItems[0] || { id: "1" }}
+          updateType7Row={type7b.updateType7bRow}
+          plotList={demoPlots as any}
+          followUpPlans={followUpPlans as any}
+          products={products as any}
         />
       )}
 

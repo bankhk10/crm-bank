@@ -258,6 +258,23 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           type: att.mimeType || att.type || "image/jpeg",
         }));
     }
+
+    if (rawAttachments.length > 0 && !result.t7CropImages) {
+      result.t7CropImages = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_7B" ||
+            att.category === "CROP" ||
+            att.category === "FOLLOW_UP",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปถ่ายการติดตามพืช",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
   }
 
   return result;

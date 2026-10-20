@@ -1,0 +1,238 @@
+"use client";
+
+import React from "react";
+import {
+  Search,
+  User,
+  Sprout,
+  Droplets,
+  Package,
+  Calendar,
+  Camera,
+  Star,
+  CheckCircle2,
+} from "lucide-react";
+import type { Type7bDetailViewProps } from "../types/actual.types";
+
+export function Type7bDetailView({
+  isVisible = true,
+  target,
+  targets = [],
+  actualResult,
+  attachments = [],
+}: Type7bDetailViewProps) {
+  if (!isVisible) return null;
+
+  const plotList = targets.length > 0 ? targets : target ? [target] : [];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2 text-slate-800 font-bold text-base">
+        <Search className="h-5 w-5 text-emerald-600" />
+        <span>ข้อมูลการติดตามแปลงสาธิต (Type 7B)</span>
+      </div>
+
+      {plotList.map((p, idx) => {
+        const withdrawnProds = p.demoProducts || p.withdrawnProducts || [];
+
+        return (
+          <div
+            key={p.id || idx}
+            className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">
+                  {idx + 1}
+                </span>
+                <span>{p.plotName || "แปลงสาธิตติดตาม"}</span>
+              </h4>
+
+              {p.areaRai != null && (
+                <span className="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-md border border-emerald-200">
+                  {String(p.areaRai)} ไร่
+                </span>
+              )}
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="text-slate-500">เจ้าของแปลง:</span>
+                <span className="font-semibold text-slate-800">
+                  {p.ownerName || p.farmerName || p.owner || "-"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Sprout className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="text-slate-500">พืชเป้าหมาย:</span>
+                <span className="font-semibold text-slate-800">
+                  {p.cropName || p.crop || "-"}
+                </span>
+              </div>
+
+              {p.dealerName && (
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span className="text-slate-500">ร้านค้า Dealer:</span>
+                  <span className="font-semibold text-slate-800">{p.dealerName}</span>
+                </div>
+              )}
+
+              {(p.province || p.district) && (
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">พื้นที่:</span>
+                  <span className="font-semibold text-slate-800">
+                    {[p.province, p.district].filter(Boolean).join(" / ")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Objective / Detail */}
+            {(p.detail || p.objective || p.followUpObjective) && (
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs space-y-1">
+                <span className="font-semibold text-slate-600 block text-[11px]">
+                  สิ่งที่ตั้งใจจะไปติดตาม
+                </span>
+                <p className="text-slate-800 whitespace-pre-line leading-relaxed">
+                  {p.detail || p.objective || p.followUpObjective}
+                </p>
+              </div>
+            )}
+
+            {/* Withdrawn Products */}
+            {withdrawnProds.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-emerald-600" />
+                  สินค้าที่เบิกเพื่อการติดตาม:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {withdrawnProds.map((prod: any, pIdx: number) => (
+                    <div
+                      key={prod.id || pIdx}
+                      className="bg-emerald-50 text-emerald-900 border border-emerald-200 rounded-lg px-2.5 py-1 text-xs flex items-center gap-1.5"
+                    >
+                      <span>{prod.productName || prod.product?.name || "สินค้า"}</span>
+                      <span className="font-bold text-emerald-700 bg-white px-1.5 rounded border border-emerald-200">
+                        {prod.quantity || prod.targetQuantity || 1} {prod.unit || prod.product?.unit || ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Actual Results Section */}
+      {actualResult && (
+        <div className="bg-white rounded-2xl border border-emerald-200 p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 border-b border-emerald-100 pb-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+              ผลการติดตามจริงหน้างาน
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            {actualResult.t7CropCondition && (
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 block text-[11px]">สภาพแปลง</span>
+                <span className="font-bold text-slate-800">{actualResult.t7CropCondition}</span>
+              </div>
+            )}
+
+            {actualResult.t7GrowthStage && (
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 block text-[11px]">ระยะพืช</span>
+                <span className="font-bold text-slate-800">{actualResult.t7GrowthStage}</span>
+              </div>
+            )}
+
+            {actualResult.t7ProductResponse && (
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 block text-[11px]">การตอบสนอง</span>
+                <span className="font-bold text-slate-800">{actualResult.t7ProductResponse}</span>
+              </div>
+            )}
+
+            {actualResult.t7SprayMethod && (
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 block text-[11px]">วิธีการพ่น</span>
+                <span className="font-bold text-slate-800">{actualResult.t7SprayMethod}</span>
+              </div>
+            )}
+
+            {actualResult.t7NextSprayDate && (
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 block text-[11px]">พ่นรอบถัดไป</span>
+                <span className="font-bold text-slate-800">{actualResult.t7NextSprayDate}</span>
+              </div>
+            )}
+          </div>
+
+          {actualResult.t7CropProblemDescription && (
+            <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 text-xs space-y-1">
+              <span className="font-semibold text-amber-900 block text-[11px]">
+                ปัญหาหรืออาการผิดปกติที่พบ
+              </span>
+              <p className="text-amber-950 leading-relaxed">
+                {actualResult.t7CropProblemDescription}
+              </p>
+            </div>
+          )}
+
+          {/* Final Yields */}
+          {actualResult.t7FinalYieldKg && (
+            <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-xs space-y-1">
+              <span className="font-semibold text-emerald-950 block text-[11px]">
+                ผลผลิตแปลงสาธิต
+              </span>
+              <p className="text-emerald-900 font-bold">
+                {actualResult.t7FinalYieldKg} กก.
+                {actualResult.t7ControlYieldKg && ` (แปลงเปรียบเทียบ: ${actualResult.t7ControlYieldKg} กก.)`}
+              </p>
+            </div>
+          )}
+
+          {/* Attachments / Photos */}
+          {attachments && attachments.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                รูปถ่ายติดตามแปลงสาธิต ({attachments.length} รูป):
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {attachments.map((img, i) => (
+                  <a
+                    key={img.id || i}
+                    href={img.fileUrl || img.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group block relative aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
+                  >
+                    <img
+                      src={img.fileUrl || img.url}
+                      alt={img.fileName || img.name || `photo-${i}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Backward-compatible alias
+export const DetailType7FollowUp = Type7bDetailView;
+export const DetailType7bDemo = Type7bDetailView;

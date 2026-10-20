@@ -61,6 +61,13 @@ import {
   validateType7aUnplannedItems,
 } from "@/modules/activity/features/type-7a";
 import {
+  Type7bUnplannedForm,
+  useType7bUnplannedForm,
+  hydrateType7bUnplannedData,
+  mapType7bUnplannedToPayload,
+  validateType7bUnplannedItems,
+} from "@/modules/activity/features/type-7b";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -77,6 +84,8 @@ export interface UnplannedActivityFormProps {
   products: ProductOption[];
   activityTypes?: any[];
   promotionalMaterialsByCategory?: Record<string, any[]>;
+  plotList?: any[];
+  followUpPlans?: any[];
   onSubmit: (payload: any) => Promise<{ success: boolean; error?: string }>;
   onBack?: () => void;
   readonly?: boolean;
@@ -90,6 +99,8 @@ export function UnplannedActivityForm({
   products = [],
   activityTypes = [],
   promotionalMaterialsByCategory,
+  plotList = [],
+  followUpPlans = [],
   onSubmit,
   onBack,
   readonly = false,
@@ -143,6 +154,16 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7A.name];
     }
+    // 1.5 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7B
+    if (
+      (initialData.type7bPlots && initialData.type7bPlots.length > 0) ||
+      (initialData.type7bUnplannedItems && initialData.type7bUnplannedItems.length > 0) ||
+      initialData.type7b ||
+      initialData.type7bData ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -162,6 +183,7 @@ export function UnplannedActivityForm({
       if (code === "TYPE_5") return [WORK_TYPE_CONFIG.TYPE_5.name];
       if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
       if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
+      if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -210,7 +232,13 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_7A" ||
       wt.includes("TYPE_7A") ||
       wt.includes("จัดทำแปลงสาธิต") ||
-      wt.includes("แปลงสาธิต"),
+      (wt.includes("แปลงสาธิต") && !wt.includes("ติดตาม")),
+  );
+  const isType7bActive = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_7B" ||
+      wt.includes("TYPE_7B") ||
+      wt.includes("ติดตามแปลงสาธิต"),
   );
 
   // 2. Basic Info State
@@ -323,6 +351,16 @@ export function UnplannedActivityForm({
 
   const type7a = useType7aUnplannedForm({
     initialItems: hydratedInitialType7aItems,
+  });
+
+  // 5.6 Type 7B Unplanned Hook
+  const hydratedInitialType7bItems = useMemo(
+    () => hydrateType7bUnplannedData(initialData),
+    [initialData],
+  );
+
+  const type7b = useType7bUnplannedForm({
+    initialItems: hydratedInitialType7bItems,
   });
 
   // 6. Budget Hook
@@ -716,6 +754,59 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_7A",
         })),
       };
+    } else if (isType7bActive) {
+      if (type7b.items.length === 0) {
+        toast.error("กรุณาระบุแปลงสาธิตที่ติดตามอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type7bValidation = validateType7bUnplannedItems(type7b.items);
+      if (!type7bValidation.isValid) {
+        toast.error(type7bValidation.errors?.[0] || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType7bUnplannedToPayload(type7b.items);
+
+      // Upload Evidence / Follow-up Images
+      const allType7bImages = type7b.items.flatMap((item) => item.photos || []);
+      let cleanType7bImages = allType7bImages;
+      if (allType7bImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType7bImages,
+            "type7b",
+            "plot",
+          );
+          cleanType7bImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพติดตามแปลงสาธิตไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const firstItem = type7b.items[0];
+      actualData = {
+        workTypeCode: "TYPE_7B",
+        demoPlotId: firstItem?.demoPlotId || null,
+        plotName: firstItem?.plotName,
+        cropCategory: firstItem?.cropCategory,
+        cropName: firstItem?.cropName,
+        areaRai: firstItem?.areaRai,
+        notes: firstItem?.notes || firstItem?.objective || "",
+        type7bPlots: mapped.type7bData?.plots,
+        targetActualResults: mapped.type7bData?.plots,
+        type7bActual: mapped.actualOutcome?.type7bActual,
+        attachments: cleanType7bImages.map((img) => ({
+          category: "PLOT",
+          fileUrl: img.url,
+          fileName: img.name || "รูปถ่ายติดตามแปลงสาธิต",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_7B",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -767,14 +858,27 @@ export function UnplannedActivityForm({
           return (
             t.code === "TYPE_7A" ||
             t.code === "DEMO" ||
-            t.name?.includes("แปลงสาธิต")
+            (t.name?.includes("แปลงสาธิต") && !t.name?.includes("ติดตาม"))
+          );
+        }
+        if (isType7bActive) {
+          return (
+            t.code === "TYPE_7B" ||
+            t.name?.includes("ติดตามแปลงสาธิต")
           );
         }
         return false;
       }) || activityTypes[0];
 
     const activityTypeId =
-      matchedType?.id || (isType2Active ? "type-2" : isType7aActive ? "type-7a" : "type-1");
+      matchedType?.id ||
+      (isType2Active
+        ? "type-2"
+        : isType7aActive
+          ? "type-7a"
+          : isType7bActive
+            ? "type-7b"
+            : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -804,6 +908,10 @@ export function UnplannedActivityForm({
 
     const mappedType7a = isType7aActive
       ? mapType7aUnplannedToPayload(type7a.items)
+      : null;
+
+    const mappedType7b = isType7bActive
+      ? mapType7bUnplannedToPayload(type7b.items)
       : null;
 
     const payload = {
@@ -840,12 +948,16 @@ export function UnplannedActivityForm({
       type6ActualIssues: mappedType6?.type6ActualIssues,
       type7aPlots: mappedType7a?.type7aPlots,
       type7aTargets: mappedType7a?.type7aPlots,
+      type7bData: mappedType7b?.type7bData,
+      type7bPlots: mappedType7b?.type7bData?.plots,
+      type7bTargets: mappedType7b?.type7bData?.plots,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
       type5UnplannedItems: isType5Active ? type5.items : undefined,
       type6UnplannedItems: isType6Active ? type6.items : undefined,
       type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
+      type7bUnplannedItems: isType7bActive ? type7b.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -969,7 +1081,8 @@ export function UnplannedActivityForm({
         !isType4Active &&
         !isType5Active &&
         !isType6Active &&
-        !isType7aActive && (
+        !isType7aActive &&
+        !isType7bActive && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -1077,6 +1190,23 @@ export function UnplannedActivityForm({
           updateProductInItem={type7a.updateProductInItem}
           deleteProductFromItem={type7a.deleteProductFromItem}
           customers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.8 ส่วนเฉพาะ Type 7B: ติดตามแปลงสาธิต (นอกแผน) */}
+      {isType7bActive && (
+        <Type7bUnplannedForm
+          items={type7b.items}
+          addItem={type7b.addItem}
+          deleteItem={type7b.deleteItem}
+          updateItem={type7b.updateItem}
+          addWithdrawnProduct={type7b.addWithdrawnProduct}
+          updateWithdrawnProduct={type7b.updateWithdrawnProduct}
+          deleteWithdrawnProduct={type7b.deleteWithdrawnProduct}
+          plotList={plotList as any}
+          followUpPlans={followUpPlans as any}
           products={products as any}
           readonly={readonly}
         />

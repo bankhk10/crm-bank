@@ -7,6 +7,7 @@ import { extractType4PlanTargets } from "../../features/type-4";
 import { extractType5PlanTargets } from "../../features/type-5";
 import { extractType6PlanTargets } from "../../features/type-6";
 import { extractType7aPlanTargets } from "../../features/type-7a";
+import { extractType7bPlanTargets } from "../../features/type-7b";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -27,6 +28,7 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_5: (p, prev) => extractType5PlanTargets(p, prev),
   TYPE_6: (p, prev) => extractType6PlanTargets(p, prev),
   TYPE_7A: (p, prev) => extractType7aPlanTargets(p, prev),
+  TYPE_7B: (p, prev) => extractType7bPlanTargets(p, prev),
 };
 
 /**
@@ -141,6 +143,16 @@ export function extractPlanTargets(
     targets.t7aList = extracted.list;
     targets.t7 = extracted.primary;
     targets.t7List = extracted.list;
+  }
+
+  // Always attempt Type 7B if relation exists
+  if (
+    !targets.t7b?.plotName &&
+    ((plan as any).type7b || (plan as any).type7bData)
+  ) {
+    const extracted = extractType7bPlanTargets(plan, prevTargets.t7b);
+    targets.t7b = extracted.primary;
+    targets.t7bList = extracted.list;
   }
 
   return targets;

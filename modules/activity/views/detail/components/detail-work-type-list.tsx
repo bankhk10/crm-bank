@@ -13,6 +13,7 @@ import { Type4DetailView } from "@/modules/activity/features/type-4";
 import { Type5DetailView } from "@/modules/activity/features/type-5";
 import { Type6DetailView } from "@/modules/activity/features/type-6";
 import { Type7aDetailView } from "@/modules/activity/features/type-7a";
+import { Type7bDetailView } from "@/modules/activity/features/type-7b";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -68,10 +69,17 @@ export function DetailWorkTypeList({
     Boolean(plan?.type6Targets?.length);
 
   const isType7a =
-    isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
-    isTypeActive("TYPE_7A", "แปลงสาธิต") ||
-    Boolean(plan?.type7aPlots?.length) ||
-    Boolean(plan?.demoPlots?.length);
+    (isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
+      isTypeActive("TYPE_7A", "แปลงสาธิต") ||
+      Boolean(plan?.type7aPlots?.length) ||
+      Boolean(plan?.demoPlots?.length)) &&
+    !isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต");
+
+  const isType7b =
+    isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต") ||
+    Boolean(plan?.type7bFollowUps?.length) ||
+    Boolean(plan?.type7bPlots?.length) ||
+    Boolean(plan?.type7b?.plots?.length);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -204,6 +212,32 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
+  const effectiveT7bImages = useMemo(() => {
+    if (parsedResults?.t7CropImages && parsedResults.t7CropImages.length > 0) {
+      return [
+        ...parsedResults.t7CropImages,
+        ...(parsedResults.t7PlotImages || []),
+      ];
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_7B" ||
+          att?.category === "CROP" ||
+          (att?.category === "PLOT" && isType7b && !isType7a),
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปถ่ายติดตามแปลงสาธิต",
+      }));
+  }, [parsedResults?.t7CropImages, parsedResults?.t7PlotImages, plan?.attachments, plan?.result?.attachments, isType7b, isType7a]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -313,6 +347,15 @@ export function DetailWorkTypeList({
         targets={targets?.t7aList || targets?.t7List}
         actualResult={parsedResults}
         attachments={effectiveT7aImages}
+      />
+
+      {/* 🟢 TYPE 7B: ติดตามแปลงสาธิต (Demo Plot Follow-up) */}
+      <Type7bDetailView
+        isVisible={isType7b}
+        target={targets?.t7b || targets?.t7bList?.[0]}
+        targets={targets?.t7bList}
+        actualResult={parsedResults?.type7bActual || parsedResults}
+        attachments={effectiveT7bImages}
       />
     </div>
   );

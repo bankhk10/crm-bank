@@ -69,6 +69,13 @@ import {
   extractType7aPlanTargets,
   type Type7aTargetItem,
 } from "@/modules/activity/features/type-7a";
+import {
+  useType7bActual,
+  validateType7bActual,
+  extractType7bPlanTargets,
+  parseType7bActualResult,
+  type Type7bTargetItem,
+} from "@/modules/activity/features/type-7b";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -113,6 +120,7 @@ export function ActivityPlanActualView({
   const type5Actual = useType5Actual();
   const type6Actual = useType6Actual();
   const type7aActual = useType7aActual();
+  const type7bActual = useType7bActual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -120,6 +128,7 @@ export function ActivityPlanActualView({
   const [type5Targets, setType5Targets] = useState<Type5TargetItem[]>([]);
   const [type6Targets, setType6Targets] = useState<Type6TargetItem[]>([]);
   const [type7aTargets, setType7aTargets] = useState<Type7aTargetItem[]>([]);
+  const [type7bTargets, setType7bTargets] = useState<Type7bTargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -161,6 +170,9 @@ export function ActivityPlanActualView({
       const extractedT7a = extractType7aPlanTargets(plan);
       setType7aTargets(extractedT7a.list);
 
+      const extractedT7b = extractType7bPlanTargets(plan);
+      setType7bTargets(extractedT7b.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -178,11 +190,15 @@ export function ActivityPlanActualView({
         type5Actual.hydrate(payloadToHydrate, { t5: extractedT5.primary });
         type6Actual.hydrate(payloadToHydrate);
         type7aActual.hydrate(plan, payloadToHydrate, { t7a: extractedT7a.primary });
+        const parsedT7b = parseType7bActualResult(res.resultSummary || "", payloadToHydrate);
+        if (Object.keys(parsedT7b).length > 0) {
+          type7bActual.setActualState((prev) => ({ ...prev, ...parsedT7b }));
+        }
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -254,12 +270,22 @@ export function ActivityPlanActualView({
     const isType7aActive =
       planWorkTypes.includes("TYPE_7A") ||
       planWorkTypes.includes("จัดทำแปลงสาธิต") ||
-      planWorkTypes.includes("แปลงสาธิต") ||
+      (planWorkTypes.includes("แปลงสาธิต") && !planWorkTypes.includes("ติดตามแปลงสาธิต")) ||
       Boolean(plan?.type7aPlots?.length) ||
       Boolean(
         plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A"),
       ) ||
       plan?.activityType?.code === "TYPE_7A";
+
+    const isType7bActive =
+      planWorkTypes.includes("TYPE_7B") ||
+      planWorkTypes.includes("ติดตามแปลงสาธิต") ||
+      Boolean(plan?.type7bFollowUps?.length) ||
+      Boolean(plan?.type7bPlots?.length) ||
+      Boolean(
+        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B"),
+      ) ||
+      plan?.activityType?.code === "TYPE_7B";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -367,6 +393,14 @@ export function ActivityPlanActualView({
         const t7Validation = validateType7aActual(type7aActual.actualState);
         if (!t7Validation.isValid && t7Validation.errors?.length) {
           missingFields = [...missingFields, ...t7Validation.errors];
+        }
+      }
+
+      // Delegate Type 7B validation to features/type-7b domain logic
+      if (isType7bActive) {
+        const t7bValidation = validateType7bActual(type7bActual.actualState);
+        if (!t7bValidation.isValid && t7bValidation.errors?.length) {
+          missingFields = [...missingFields, ...t7bValidation.errors];
         }
       }
 
@@ -671,6 +705,71 @@ export function ActivityPlanActualView({
             payload.resultSummary = `จัดทำแปลงสาธิต: ${type7aActual.t7PlotName} (${type7aActual.t7CropName || ""})`;
           }
         }
+
+        // Collect Type 7B payload if active
+        if (isType7bActive) {
+          const cropImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type7bActual.actualState.t7CropImages || []) as any,
+            "type7b_crop",
+            "crop",
+          );
+          const plotImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type7bActual.actualState.t7PlotImages || []) as any,
+            "type7b_plot",
+            "plot",
+          );
+
+          const finalCropImages = cropImgResult.updatedImages;
+          const finalPlotImages = plotImgResult.updatedImages;
+
+          const t7bRecord = {
+            ...type7bActual.actualState,
+            t7CropImages: finalCropImages,
+            t7PlotImages: finalPlotImages,
+          };
+
+          payload = {
+            ...payload,
+            type7bActual: t7bRecord,
+            attachments: [
+              ...(payload.attachments || []),
+              ...finalCropImages.map((img: any) => ({
+                category: "CROP",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพการเจริญเติบโตของพืช",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_7B",
+              })),
+              ...finalPlotImages.map((img: any) => ({
+                category: "PLOT",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพสภาพแปลงสาธิต",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_7B",
+              })),
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive
+          ) {
+            const plotName =
+              t7bRecord.t7PlotName ||
+              type7bTargets[0]?.plotName ||
+              "แปลงสาธิต";
+            payload.resultSummary = `ติดตามแปลงสาธิต: ${plotName} (สภาพพืช: ${t7bRecord.t7CropCondition || "ปกติ"})`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -840,6 +939,7 @@ export function ActivityPlanActualView({
               type5State={type5Actual}
               type6State={type6Actual}
               type7aState={type7aActual}
+              type7bState={type7bActual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -847,6 +947,7 @@ export function ActivityPlanActualView({
               type5Targets={type5Targets}
               type6Targets={type6Targets}
               type7aTargets={type7aTargets}
+              type7bTargets={type7bTargets}
               plan={plan}
               products={products}
               customers={customers}

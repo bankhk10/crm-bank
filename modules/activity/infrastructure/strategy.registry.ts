@@ -5,6 +5,7 @@ import { type4PlannedStrategy, type4UnplannedStrategy } from "../features/type-4
 import { type5PlannedStrategy, type5UnplannedStrategy } from "../features/type-5";
 import { type6PlannedStrategy, type6UnplannedStrategy } from "../features/type-6";
 import { type7aPlannedStrategy, type7aUnplannedStrategy } from "../features/type-7a";
+import { type7bPlannedStrategy, type7bUnplannedStrategy } from "../features/type-7b";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -163,6 +164,25 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.type7aUnplannedItems && rawData.type7aUnplannedItems.length > 0) ||
         rawData.demoPlotData ||
         rawData.t7PlotName
+      ),
+  },
+  TYPE_7B: {
+    code: "TYPE_7B",
+    name: "ติดตามแปลงสาธิต",
+    planned: type7bPlannedStrategy,
+    unplanned: type7bUnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_7B") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงสาธิต"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
+        (rawData.type7bPlots && rawData.type7bPlots.length > 0) ||
+        (rawData.type7bUnplannedItems && rawData.type7bUnplannedItems.length > 0) ||
+        rawData.type7bData ||
+        rawData.type7b ||
+        rawData.t7GrowthStage
       ),
   },
 };

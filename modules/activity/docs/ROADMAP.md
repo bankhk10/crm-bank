@@ -119,6 +119,16 @@ flowchart TD
 - [x] จัดทำเอกสาร [`features/type-7a/README.md`](../features/type-7a/README.md)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
+#### งานที่ 2.4: Migrate `features/type-7b/` (ติดตามแปลงสาธิต — Dual-Mode Planned + Unplanned — Completed ✅)
+- [x] สร้างโฟลเดอร์ `features/type-7b/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] เชื่อมต่อกับระบบติดตามแปลงสาธิต (`DemoPlot` & `ActivityPlan` Repository Native ใน `modules/activity`)
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
+- [x] สร้าง Native Strategies (`type7bPlannedStrategy`, `type7bUnplannedStrategy`)
+- [x] เชื่อมโยงเข้าสู่ Registries และ Views ทั้งหมด (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`, `planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-7b/README.md`](../features/type-7b/README.md)
+- [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors (Exit Code 0)
+
 ---
 
 ### 🔹 Phase 3: ย้ายกิจกรรมเฉพาะทางและวิชาการ (Specialized & Academic Slices Migration)

@@ -36,6 +36,11 @@ import {
   type Type7aTargetItem,
   type useType7aActual,
 } from "@/modules/activity/features/type-7a";
+import {
+  Type7bActualForm,
+  type Type7bTargetItem,
+  type useType7bActual,
+} from "@/modules/activity/features/type-7b";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -46,6 +51,7 @@ interface ActualWorkTypeListProps {
   type5State?: ReturnType<typeof useType5Actual>;
   type6State?: ReturnType<typeof useType6Actual>;
   type7aState?: ReturnType<typeof useType7aActual>;
+  type7bState?: ReturnType<typeof useType7bActual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -53,6 +59,7 @@ interface ActualWorkTypeListProps {
   type5Targets?: Type5TargetItem[];
   type6Targets?: Type6TargetItem[];
   type7aTargets?: Type7aTargetItem[];
+  type7bTargets?: Type7bTargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -71,6 +78,7 @@ export function ActualWorkTypeList({
   type5State,
   type6State,
   type7aState,
+  type7bState,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -78,6 +86,7 @@ export function ActualWorkTypeList({
   type5Targets = [],
   type6Targets = [],
   type7aTargets = [],
+  type7bTargets = [],
   plan,
   products = [],
   customers = [],
@@ -130,7 +139,7 @@ export function ActualWorkTypeList({
   const isType7aActive =
     planWorkTypes.includes("TYPE_7A") ||
     planWorkTypes.includes("จัดทำแปลงสาธิต") ||
-    planWorkTypes.includes("แปลงสาธิต") ||
+    (planWorkTypes.includes("แปลงสาธิต") && !planWorkTypes.includes("ติดตาม")) ||
     Boolean(plan?.type7aPlots?.length) ||
     Boolean(
       plan?.stores?.some(
@@ -138,6 +147,19 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_7A";
+
+  const isType7bActive =
+    planWorkTypes.includes("TYPE_7B") ||
+    planWorkTypes.includes("ติดตามแปลงสาธิต") ||
+    Boolean(plan?.type7bPlots?.length) ||
+    Boolean(plan?.type7bData) ||
+    Boolean(plan?.type7b) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) => s.workTypeCode === "TYPE_7B",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_7B";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -325,6 +347,24 @@ export function ActualWorkTypeList({
           customers={customers}
           actualState={type7aState.actualState}
           onUpdateField={type7aState.handleUpdateField}
+        />
+      )}
+
+      {/* 🟢 TYPE 7B: ติดตามแปลงสาธิต (Demo Plot Follow-up) */}
+      {isType7bActive && type7bState && (
+        <Type7bActualForm
+          isVisible={true}
+          targets={
+            type7bTargets && type7bTargets.length > 0
+              ? type7bTargets
+              : plan?.type7bPlots || plan?.type7b?.plots
+          }
+          target={type7bTargets?.[0] || plan?.type7bPlots?.[0] || plan?.type7b?.plots?.[0]}
+          planType={plan?.planType}
+          products={products}
+          customers={customers}
+          actualState={type7bState.actualState}
+          onUpdateField={type7bState.handleUpdateField}
         />
       )}
     </div>
