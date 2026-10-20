@@ -72,3 +72,20 @@ export * from "./shared/constants";
 export * from "./shared/types";
 export * from "./planned/types/planned.types";
 export * from "./planned/types/actual.types";
+
+// 6. Unplanned Sub-slice
+export { Type6UnplannedForm } from "./unplanned/components/type6-unplanned-form";
+export {
+  useType6UnplannedForm,
+  type UseType6UnplannedFormOptions,
+} from "./unplanned/hooks/use-type6-unplanned-form";
+export {
+  validateType6UnplannedItems,
+  type Type6UnplannedValidationResult,
+} from "./unplanned/application/unplanned-validation";
+export {
+  hydrateType6UnplannedData,
+  mapType6UnplannedToPayload,
+} from "./unplanned/application/unplanned-mapper";
+export { type6UnplannedStrategy } from "./unplanned/infrastructure/type6-unplanned.strategy";
+export * from "./unplanned/types/unplanned.types";

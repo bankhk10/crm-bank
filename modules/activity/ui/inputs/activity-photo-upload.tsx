@@ -51,7 +51,7 @@ export interface ActivityPhotoUploadProps {
   /**
    * Accent color theme: 'emerald' | 'blue' | 'purple' | 'amber' | 'slate' (default: 'emerald')
    */
-  accentColor?: "emerald" | "blue" | "purple" | "amber" | "slate";
+  accentColor?: "emerald" | "blue" | "purple" | "amber" | "slate" | "rose";
   /**
    * Custom icon element (default: <Camera className="w-4 h-4" />)
    */
@@ -108,6 +108,14 @@ const COLOR_THEMES = {
     title: "text-slate-900",
     description: "text-slate-500",
     badge: "bg-slate-100 text-slate-700 border-slate-200",
+  },
+  rose: {
+    container: "bg-rose-50/20 border-rose-200/70",
+    headerBorder: "border-rose-100",
+    iconBox: "bg-rose-100 text-rose-700 border-rose-200",
+    title: "text-rose-950",
+    description: "text-rose-700/80",
+    badge: "bg-rose-100/80 text-rose-800 border-rose-200",
   },
 };
 

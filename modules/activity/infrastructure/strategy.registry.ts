@@ -2,8 +2,8 @@ import { type1PlannedStrategy, type1UnplannedStrategy } from "../features/type-1
 import { type2PlannedStrategy, type2UnplannedStrategy } from "../features/type-2";
 import { type3PlannedStrategy, type3UnplannedStrategy } from "../features/type-3";
 import { type4PlannedStrategy, type4UnplannedStrategy } from "../features/type-4";
-import { type5PlannedStrategy } from "../features/type-5";
-import { type6PlannedStrategy } from "../features/type-6";
+import { type5PlannedStrategy, type5UnplannedStrategy } from "../features/type-5";
+import { type6PlannedStrategy, type6UnplannedStrategy } from "../features/type-6";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -20,7 +20,7 @@ export interface WorkTypeStrategyRegistration {
 }
 
 /**
- * Central Strategy Registry mapping Work Type Codes (TYPE_1 - TYPE_4)
+ * Central Strategy Registry mapping Work Type Codes (TYPE_1 - TYPE_6)
  * to Planned and Unplanned execution strategies.
  */
 export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistration> = {
@@ -106,7 +106,7 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
     code: "TYPE_5",
     name: "สำรวจตลาดของคู่แข่ง",
     planned: type5PlannedStrategy,
-    unplanned: type5PlannedStrategy,
+    unplanned: type5UnplannedStrategy,
     hasData: (rawData: any): boolean =>
       Boolean(
         (rawData.workTypeCodes &&
@@ -116,6 +116,8 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
         (rawData.type5Targets && rawData.type5Targets.length > 0) ||
         (rawData.type5Items && rawData.type5Items.length > 0) ||
+        (rawData.type5UnplannedItems && rawData.type5UnplannedItems.length > 0) ||
+        (rawData.type5SurveyRecords && rawData.type5SurveyRecords.length > 0) ||
         (rawData.surveyResults && rawData.surveyResults.length > 0) ||
         (rawData.t5SurveyDetails && rawData.t5SurveyDetails.length > 0) ||
         rawData.competitorBrand ||
@@ -126,7 +128,7 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
     code: "TYPE_6",
     name: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
     planned: type6PlannedStrategy,
-    unplanned: type6PlannedStrategy,
+    unplanned: type6UnplannedStrategy,
     hasData: (rawData: any): boolean =>
       Boolean(
         (rawData.workTypeCodes &&
@@ -136,6 +138,8 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
         (rawData.type6Targets && rawData.type6Targets.length > 0) ||
         (rawData.type6Items && rawData.type6Items.length > 0) ||
+        (rawData.type6UnplannedItems && rawData.type6UnplannedItems.length > 0) ||
+        (rawData.type6ActualIssues && rawData.type6ActualIssues.length > 0) ||
         (rawData.issueResults && rawData.issueResults.length > 0) ||
         (rawData.t6IssueDetails && rawData.t6IssueDetails.length > 0) ||
         rawData.t6IssueRecord ||

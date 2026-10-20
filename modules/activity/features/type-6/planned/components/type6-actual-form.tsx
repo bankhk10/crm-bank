@@ -8,13 +8,15 @@ import {
   AlertCircle,
   FileText,
 } from "lucide-react";
-import { FormCombobox } from "@/components/custom/form-components";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
   ActivityCustomerSelect,
   type ActivityCustomerItem,
   ActivityPhotoUpload,
+  ActivityInput,
+  ActivityTextarea,
+  ActivityCombobox,
 } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { ImageFile } from "@/modules/activity/domain/summary/types";
@@ -266,13 +268,13 @@ export function Type6ActualForm({
               <Barcode className="w-4 h-4 text-rose-600" />
               เลข Lot <span className="text-rose-500">*</span>
             </label>
-            <input
+            <ActivityInput
               type="text"
               value={lotNumber}
               onChange={(e) => setLotNumber && setLotNumber(e.target.value)}
               disabled={readonly}
               placeholder="ระบุเลข Lot บนบรรจุภัณฑ์ (เช่น L680123)..."
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+              className="bg-white border-slate-200 focus-visible:ring-rose-500 focus-visible:border-rose-500"
               required
             />
           </div>
@@ -280,7 +282,7 @@ export function Type6ActualForm({
 
         {/* Row 4: ประเภทปัญหา */}
         <div className="space-y-1.5">
-          <FormCombobox
+          <ActivityCombobox
             id="type6-issue-type-combobox"
             label="ประเภทปัญหา"
             labelClassName="block text-xs font-semibold text-slate-800 mb-1 mx-0"
@@ -303,13 +305,13 @@ export function Type6ActualForm({
               <FileText className="w-4 h-4 text-rose-600" />
               รายละเอียด <span className="text-rose-500">*</span>
             </label>
-            <textarea
+            <ActivityTextarea
               rows={3}
               value={detail}
               onChange={(e) => setDetail && setDetail(e.target.value)}
               disabled={readonly}
               placeholder="ระบุรายละเอียดของปัญหาหรือข้อร้องเรียนอย่างชัดเจน..."
-              className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white resize-y"
+              className="bg-white border-slate-200 text-xs focus-visible:ring-rose-500 focus-visible:border-rose-500"
               required
             />
           </div>

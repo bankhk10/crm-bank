@@ -2,9 +2,11 @@
 
 import React, { useMemo } from "react";
 import { BarChart2, Store, Package, Sparkles } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ActivityPhotoUpload } from "@/modules/activity/ui";
+import {
+  ActivityInput,
+  ActivityTextarea,
+  ActivityPhotoUpload,
+} from "@/modules/activity/ui";
 import type { Type5ImageFile } from "../../shared/types";
 import type {
   Type5SurveyRecord,
@@ -269,7 +271,7 @@ export function Type5ActualForm({
                         แบรนด์คู่แข่งที่พบหน้างาน{" "}
                         <span className="text-rose-500">*</span>
                       </label>
-                      <Input
+                      <ActivityInput
                         value={record.competitorBrand || ""}
                         onChange={(e) =>
                           handleFieldChange(
@@ -287,7 +289,7 @@ export function Type5ActualForm({
                       <label className="text-xs font-semibold text-slate-700">
                         สินค้าคู่แข่ง <span className="text-rose-500">*</span>
                       </label>
-                      <Input
+                      <ActivityInput
                         value={record.competitorProduct || ""}
                         onChange={(e) =>
                           handleFieldChange(
@@ -319,7 +321,7 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา ณ จุดขาย (POS)
                         </label>
-                        <Input
+                        <ActivityInput
                           type="number"
                           value={
                             record.posPrice != null
@@ -338,7 +340,7 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Dealer
                         </label>
-                        <Input
+                        <ActivityInput
                           type="number"
                           value={
                             record.dealerPrice != null
@@ -361,7 +363,7 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Subdealer
                         </label>
-                        <Input
+                        <ActivityInput
                           type="number"
                           value={
                             record.subdealerPrice != null
@@ -384,7 +386,7 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Farmers
                         </label>
-                        <Input
+                        <ActivityInput
                           type="number"
                           value={
                             record.farmerPrice != null
@@ -411,7 +413,7 @@ export function Type5ActualForm({
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                       จุดขาย / จุดเด่นของสินค้า
                     </label>
-                    <Textarea
+                    <ActivityTextarea
                       rows={2}
                       value={record.sellingPoints || ""}
                       onChange={(e) =>

@@ -40,6 +40,20 @@ import {
   mapType4UnplannedToPayload,
 } from "@/modules/activity/features/type-4";
 import {
+  Type5UnplannedForm,
+  useType5UnplannedForm,
+  hydrateType5UnplannedData,
+  mapType5UnplannedToPayload,
+  validateType5UnplannedItems,
+} from "@/modules/activity/features/type-5";
+import {
+  Type6UnplannedForm,
+  useType6UnplannedForm,
+  hydrateType6UnplannedData,
+  mapType6UnplannedToPayload,
+  validateType6UnplannedItems,
+} from "@/modules/activity/features/type-6";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -94,6 +108,24 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_3.name];
     }
+    // 1.2 ตรวจสอบจาก Dedicated Target / Stores ของ Type 5
+    if (
+      (initialData.type5Targets && initialData.type5Targets.length > 0) ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
+      initialData.type5SurveyRecords ||
+      initialData.competitorBrand
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_5.name];
+    }
+    // 1.3 ตรวจสอบจาก Dedicated Target / Stores ของ Type 6
+    if (
+      (initialData.type6Targets && initialData.type6Targets.length > 0) ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
+      initialData.type6ActualIssues ||
+      initialData.t6IssueRecord
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_6.name];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -110,6 +142,8 @@ export function UnplannedActivityForm({
       if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
       if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
       if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
+      if (code === "TYPE_5") return [WORK_TYPE_CONFIG.TYPE_5.name];
+      if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -140,6 +174,18 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_4" ||
       wt.includes("TYPE_4") ||
       wt.includes("วางบิล"),
+  );
+  const isType5Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_5" ||
+      wt.includes("TYPE_5") ||
+      wt.includes("สำรวจตลาด"),
+  );
+  const isType6Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_6" ||
+      wt.includes("TYPE_6") ||
+      wt.includes("ร้องเรียน"),
   );
 
   // 2. Basic Info State
@@ -222,6 +268,26 @@ export function UnplannedActivityForm({
   const type4 = useType4UnplannedForm({
     initialItems: hydratedInitialType4Items,
     customersList: customers as any,
+  });
+
+  // 5.3 Type 5 Unplanned Hook
+  const hydratedInitialType5Items = useMemo(
+    () => hydrateType5UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type5 = useType5UnplannedForm({
+    initialItems: hydratedInitialType5Items,
+  });
+
+  // 5.4 Type 6 Unplanned Hook
+  const hydratedInitialType6Items = useMemo(
+    () => hydrateType6UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type6 = useType6UnplannedForm({
+    initialItems: hydratedInitialType6Items,
   });
 
   // 6. Budget Hook
@@ -443,6 +509,124 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_4",
         })),
       };
+    } else if (isType5Active) {
+      if (type5.items.length === 0) {
+        toast.error("กรุณาระบุรายการสำรวจตลาดของคู่แข่งอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type5Validation = validateType5UnplannedItems(type5.items);
+      if (!type5Validation.isValid) {
+        toast.error(type5Validation.errors[0] || "ข้อมูลสำรวจตลาดไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType5UnplannedToPayload(type5.items);
+
+      // Upload Bottle Images and Promotional Images
+      const allBottleImages = type5.items.flatMap((item) => item.bottleImages || []);
+      const allPromoImages = type5.items.flatMap((item) => item.promotionalImages || []);
+      let cleanBottleImages = allBottleImages;
+      let cleanPromoImages = allPromoImages;
+
+      if (allBottleImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allBottleImages,
+            "type5",
+            "product",
+          );
+          cleanBottleImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปขวดผลิตภัณฑ์ไม่สำเร็จ");
+          return;
+        }
+      }
+
+      if (allPromoImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allPromoImages,
+            "type5",
+            "media",
+          );
+          cleanPromoImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพสื่อส่งเสริมการขายไม่สำเร็จ");
+          return;
+        }
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_5",
+        type5SurveyRecords: mapped.type5SurveyRecords,
+        targetActualResults: mapped.type5SurveyRecords,
+        attachments: [
+          ...cleanBottleImages.map((img) => ({
+            category: "PRODUCT",
+            fileUrl: img.url,
+            fileName: img.name || "รูปถ่ายขวดผลิตภัณฑ์",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_5",
+          })),
+          ...cleanPromoImages.map((img) => ({
+            category: "MEDIA",
+            fileUrl: img.url,
+            fileName: img.name || "รูปภาพสื่อโปรโมท",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_5",
+          })),
+        ],
+      };
+    } else if (isType6Active) {
+      if (type6.items.length === 0) {
+        toast.error("กรุณาระบุรายการตรวจสอบเรื่องร้องเรียนอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type6Validation = validateType6UnplannedItems(type6.items);
+      if (!type6Validation.isValid) {
+        toast.error(type6Validation.errors[0] || "ข้อมูลตรวจสอบเรื่องร้องเรียนไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType6UnplannedToPayload(type6.items);
+
+      // Upload Evidence Images
+      const allType6Images = type6.items.flatMap((item) => item.images || []);
+      let cleanType6Images = allType6Images;
+      if (allType6Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType6Images,
+            "type6",
+            "issue",
+          );
+          cleanType6Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพหลักฐานไม่สำเร็จ");
+          return;
+        }
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_6",
+        type6ActualIssues: mapped.type6ActualIssues,
+        targetActualResults: mapped.type6ActualIssues,
+        attachments: cleanType6Images.map((img) => ({
+          category: "ISSUE",
+          fileUrl: img.url,
+          fileName: img.name || "รูปถ่ายหลักฐานปัญหา",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_6",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -476,6 +660,20 @@ export function UnplannedActivityForm({
             t.name?.includes("วางบิล")
           );
         }
+        if (isType5Active) {
+          return (
+            t.code === "TYPE_5" ||
+            t.code === "SURVEY" ||
+            t.name?.includes("สำรวจตลาด")
+          );
+        }
+        if (isType6Active) {
+          return (
+            t.code === "TYPE_6" ||
+            t.code === "ISSUE" ||
+            t.name?.includes("ร้องเรียน")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -498,6 +696,14 @@ export function UnplannedActivityForm({
 
     const mappedType4 = isType4Active
       ? mapType4UnplannedToPayload(type4.items, customers as any)
+      : null;
+
+    const mappedType5 = isType5Active
+      ? mapType5UnplannedToPayload(type5.items)
+      : null;
+
+    const mappedType6 = isType6Active
+      ? mapType6UnplannedToPayload(type6.items)
       : null;
 
     const payload = {
@@ -528,9 +734,15 @@ export function UnplannedActivityForm({
       type4Targets: mappedType4?.targets,
       type4Items: mappedType4?.targets,
       type4Result: mappedType4?.result,
+      type5Targets: mappedType5?.type5Targets,
+      type5SurveyRecords: mappedType5?.type5SurveyRecords,
+      type6Targets: mappedType6?.type6Targets,
+      type6ActualIssues: mappedType6?.type6ActualIssues,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
+      type5UnplannedItems: isType5Active ? type5.items : undefined,
+      type6UnplannedItems: isType6Active ? type6.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -648,19 +860,24 @@ export function UnplannedActivityForm({
       />
 
       {/* 3.0 กล่องข้อความเมื่อยังไม่ได้เลือกประเภทงาน */}
-      {!isType1Active && !isType2Active && !isType3Active && !isType4Active && (
-        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
-          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
-            <Info className="w-5 h-5 text-slate-400" />
+      {!isType1Active &&
+        !isType2Active &&
+        !isType3Active &&
+        !isType4Active &&
+        !isType5Active &&
+        !isType6Active && (
+          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
+            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+              <Info className="w-5 h-5 text-slate-400" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">
+              ยังไม่ได้เลือกประเภทงาน
+            </p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot; ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
+            </p>
           </div>
-          <p className="text-sm font-semibold text-slate-700">
-            ยังไม่ได้เลือกประเภทงาน
-          </p>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
-            กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot; ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
-          </p>
-        </div>
-      )}
+        )}
 
       {/* 3.1 ส่วนเฉพาะ Type 1: เข้าพบเกษตรกร / ร้านค้า (นอกแผน) */}
       {isType1Active && (
@@ -715,6 +932,32 @@ export function UnplannedActivityForm({
           removeItem={type4.removeItem}
           updateItem={type4.updateItem}
           customers={customers as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.5 ส่วนเฉพาะ Type 5: สำรวจตลาดของคู่แข่ง (นอกแผน) */}
+      {isType5Active && (
+        <Type5UnplannedForm
+          items={type5.items}
+          addItem={type5.addItem}
+          deleteItem={type5.deleteItem}
+          updateItem={type5.updateItem}
+          customers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.6 ส่วนเฉพาะ Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (นอกแผน) */}
+      {isType6Active && (
+        <Type6UnplannedForm
+          items={type6.items}
+          addItem={type6.addItem}
+          deleteItem={type6.deleteItem}
+          updateItem={type6.updateItem}
+          customers={customers as any}
+          products={products as any}
           readonly={readonly}
         />
       )}

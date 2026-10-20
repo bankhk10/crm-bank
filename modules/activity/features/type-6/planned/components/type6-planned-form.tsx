@@ -3,8 +3,11 @@
 import React from "react";
 import { HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput, ActivityCustomerSelect } from "@/modules/activity/ui";
-import { FormCombobox } from "@/components/custom/form-components";
+import {
+  ActivityInput,
+  ActivityCustomerSelect,
+  ActivityCombobox,
+} from "@/modules/activity/ui";
 import type {
   Type6IssueItem,
   CustomerOption,
@@ -164,7 +167,7 @@ export function Type6PlannedForm({
                   />
                 )}
 
-                <FormCombobox
+                <ActivityCombobox
                   label="ประเภทปัญหา"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-red-500"

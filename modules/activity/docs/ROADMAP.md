@@ -79,47 +79,58 @@ flowchart TD
 | **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | ⏳ รอการดำเนินการ | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
 
 #### งานที่ 2.1: Migrate `features/type-5/` (สำรวจตลาดของคู่แข่ง — Completed ✅)
-- [x] สร้างโฟลเดอร์ `features/type-5/` ตามมาตรฐาน 24 Artifacts (Planned, Shared)
+- [x] สร้างโครงสร้าง Planned ตามมาตรฐาน 24 Artifacts (Planned, Shared)
 - [x] พอร์ต Planned Components (`Type5PlannedForm`, `Type5PlanCard`) พร้อม aliases
 - [x] พอร์ต Hooks (`useType5PlannedForm`, `useType5Actual`) ตัดขาดจากโมดูลเก่า 100%
 - [x] พอร์ต Actual, Detail View, และ Approval Card Components
 - [x] สร้าง Native Strategy (`type5PlannedStrategy`) พร้อม Dual Persistence Sync
 - [x] ผูกเข้ากับ `strategy.registry.ts` และ `plan-targets-registry.ts`
 - [x] เชื่อมต่อเข้ากับ Views (`planned-activity-form.tsx`, `actual-work-type-list.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] สร้างโครงสร้าง Unplanned Slice (`features/type-5/unplanned/`):
+  - [x] `types/unplanned.types.ts`, `application/unplanned-validation.ts`, `unplanned-mapper.ts`
+  - [x] `useType5UnplannedForm` Hook
+  - [x] `Type5UnplannedForm` Component (ใช้ Unified Activity UI Inputs)
+  - [x] `type5UnplannedStrategy` เชื่อมต่อเข้ากับ `strategy.registry.ts` และ `unplanned-activity-form.tsx`
 - [x] จัดทำเอกสาร [`features/type-5/README.md`](../features/type-5/README.md)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 #### งานที่ 2.2: Migrate `features/type-6/` (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา — Completed ✅)
-- [x] สร้างโฟลเดอร์ `features/type-6/` ตามมาตรฐาน 24 Artifacts (Planned, Shared)
+- [x] สร้างโครงสร้าง Planned ตามมาตรฐาน 24 Artifacts (Planned, Shared)
 - [x] พอร์ต Planned Components (`Type6PlannedForm`, `Type6PlanCard`) พร้อม aliases
 - [x] พอร์ต Hooks (`useType6PlannedForm`, `useType6Actual`) ตัดขาดจากโมดูลเก่า 100%
 - [x] พอร์ต Actual (`Type6ActualForm`), Detail View (`Type6DetailView`), Approval Card (`Type6ApprovalCard`)
-- [x] สร้าง Native Strategy (`type6PlannedStrategy`) พร้อม Dual Persistence Sync (`ActivityPlanType6Target`, `ActivityResultIssueItem`, `ActivityPlanStore`)
+- [x] สร้าง Native Strategy (`type6PlannedStrategy`) พร้อม Dual Persistence Sync
 - [x] ผูกเข้ากับ `strategy.registry.ts` และ `plan-targets-registry.ts`
 - [x] เชื่อมต่อเข้ากับ Views (`planned-activity-form.tsx`, `actual-work-type-list.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] สร้างโครงสร้าง Unplanned Slice (`features/type-6/unplanned/`):
+  - [x] `types/unplanned.types.ts`, `application/unplanned-validation.ts`, `unplanned-mapper.ts`
+  - [x] `useType6UnplannedForm` Hook
+  - [x] `Type6UnplannedForm` Component (ใช้ Unified Activity UI Inputs)
+  - [x] `type6UnplannedStrategy` เชื่อมต่อเข้ากับ `strategy.registry.ts` และ `unplanned-activity-form.tsx`
 - [x] จัดทำเอกสาร [`features/type-6/README.md`](../features/type-6/README.md)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
-#### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Next Task)
-- [ ] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts
+#### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Dual-Mode Planned + Unplanned)
+- [ ] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
 - [ ] เชื่อมต่อกับระบบแปลงสาธิต (Demo Plot) และการประเมินผล
-- [ ] สร้าง Native Strategy และบันทึกลงฐานข้อมูล
-- [ ] เชื่อมโยงเข้าสู่ Registries และ Views
+- [ ] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
+- [ ] สร้าง Native Strategies (`type7aPlannedStrategy`, `type7aUnplannedStrategy`)
+- [ ] เชื่อมโยงเข้าสู่ Registries ทั้งสองฝั่ง (`strategy.registry.ts`, `planned-activity-form.tsx`, `unplanned-activity-form.tsx`)
 - [ ] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 ---
 
 ### 🔹 Phase 3: ย้ายกิจกรรมเฉพาะทางและวิชาการ (Specialized & Academic Slices Migration)
 
-เป้าหมาย: นำเข้ากิจกรรมวิชาการและการสำรวจที่เหลือทั้งหมด
+เป้าหมาย: นำเข้ากิจกรรมวิชาการและการสำรวจที่เหลือทั้งหมด โดยทุก Type ต้องมีทั้ง **Planned** และ **Unplanned** ครบถ้วนเสมอ
 
-- [ ] **Type 8:** สัมมนาวิชาการ (Academic Seminar)
-- [ ] **Type 9:** คลินิกพืชเคลื่อนที่ (Plant Clinic / Mobile Consultation)
-- [ ] **Type 10:** วันจัดแสดงแปลง Field Day (Field Day)
-- [ ] **Type 11:** การสำรวจตลาด (Market Survey)
-- [ ] **Type 12:** ประชุมภายใน / อบรม (Internal Meeting / Training)
-- [ ] **Type 13:** จัดทำแปลงแฮทแทค (Hattack Demo Establishment)
-- [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up)
+- [ ] **Type 8:** สัมมนาวิชาการ (Academic Seminar) — Planned & Unplanned
+- [ ] **Type 9:** คลินิกพืชเคลื่อนที่ (Plant Clinic / Mobile Consultation) — Planned & Unplanned
+- [ ] **Type 10:** วันจัดแสดงแปลง Field Day (Field Day) — Planned & Unplanned
+- [ ] **Type 11:** การสำรวจตลาด (Market Survey) — Planned & Unplanned
+- [ ] **Type 12:** ประชุมภายใน / อบรม (Internal Meeting / Training) — Planned & Unplanned
+- [ ] **Type 13:** จัดทำแปลงแฮทแทค (Hattack Demo Establishment) — Planned & Unplanned
+- [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
 
 ---
 
@@ -136,7 +147,7 @@ flowchart TD
 
 ## 🛡️ 3. เกณฑ์มาตรฐานการตรวจรับงานแต่ละ Slice (Quality Gates)
 
-ทุกครั้งที่เริ่มทำหรือ Refactor Activity Type Slice ใดๆ **ต้องผ่าน 5 ข้อบังคับนี้เสมอ**:
+ทุกครั้งที่เริ่มทำหรือ Refactor Activity Type Slice ใดๆ **ต้องผ่าน 7 ข้อบังคับนี้เสมอ**:
 
 1. **โครงสร้าง 24 Artifacts ครบถ้วน:**
    - โครงสร้างโฟลเดอร์แบ่งตาม `planned/`, `unplanned/`, `shared/`
@@ -148,13 +159,32 @@ flowchart TD
    - ฟอร์มผลงานจริง: `type{X}-actual-form.tsx`
    - Hook ผลงานจริง: `use-type{X}-actual-form.ts`
    - การ์ดสรุปผลงาน: `type{X}-actual-card.tsx`
+   - ฟอร์มนอกแผน: `type{X}-unplanned-form.tsx`
+   - Hook นอกแผน: `use-type{X}-unplanned-form.ts`
+   - กลยุทธ์นอกแผน: `type{X}-unplanned.strategy.ts`
 3. **No Internal Sub-barrel Files:**
    - ภายใน sub-folder (`planned/types/`, `shared/types/`) ห้ามมีไฟล์ `index.ts` ย่อย ให้ส่งออกผ่าน `features/type-{X}/index.ts` จุดเดียวเท่านั้น
 4. **Boundary Isolation Check (Zero Legacy Imports):**
    - ห้ามมี Import ใดๆ เรียกข้ามไปยัง `@/modules/activity-plans`
    - สิทธิ์ต้องเรียกผ่าน `@/modules/activity/domain/permissions`
    - Actions ต้องเรียกผ่าน `@/modules/activity/server/actions`
-5. **Zero TypeScript Errors Gate:**
+5. **Full Dual-Mode Requirement (Planned + Unplanned Mandatory):**
+   - **ทุก Activity Type (Type 1 ถึง Type 14) ต้องรองรับทั้งสองโหมด:**
+     1. กิจกรรมตามแผน (Planned Activity): มีฟอร์มสร้างแผน, บันทึกผลจริง, แสดงรายละเอียด, อนุมัติ
+     2. กิจกรรมนอกแผน (Unplanned Activity): มีฟอร์มสร้างกิจกรรมนอกแผน, Hook, Strategy, และผูกเข้ากับ `unplanned-activity-form.tsx`
+   - **ห้ามข้ามไปทำ Type ถัดไปหาก Type ปัจจุบันยังทำ Unplanned ไม่สมบูรณ์**
+6. **Unified Activity UI Component Standard:**
+   - **ห้ามใช้ Raw Input หรือ Ad-hoc Elements ในแต่ละ Slice เด็ดขาด** ทุกแบบฟอร์มต้องใช้ Component กลางจาก `@/modules/activity/ui` หรือ `@/modules/activity/ui/inputs`:
+     - `ActivityInput` - ช่องกรอกข้อความทั่วไป/ตัวเลข (Themed & Standard Touch Targets)
+     - `ActivityTextarea` - ช่องกรอกข้อความยาว/หมายเหตุ พร้อม Label ในตัว
+     - `ActivityCombobox` - ช่องค้นหาและเลือก Dropdown ตัวเลือก
+     - `ActivityCustomerSelect` - สำหรับเลือกลูกค้า (ร้านค้า/เกษตรกร)
+     - `ActivityProductSelect` - สำหรับเลือกรายการสินค้า
+     - `ActivityPhotoUpload` - สำหรับถ่ายภาพ/อัปโหลดภาพพร้อมลายน้ำพิกัด
+     - `ActivityGpsPicker` - สำหรับปักหมุดและระบุพิกัด GPS
+     - `ActivityAddressSelect` - สำหรับระบุที่อยู่ จังหวัด/อำเภอ/ตำบล
+   - **Extensibility Rule:** หากมีประเภทช่องกรอกที่ยังไม่มีในชุดนี้ ให้พัฒนาขึ้นมาเป็น Component กลางไว้ที่ `modules/activity/ui/inputs/` ก่อน แล้วจึงนำไปใช้งานใน Slice
+7. **Zero TypeScript Errors Gate:**
    - ต้องรัน `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0) ก่อนปิดงานแต่ละ Type เสมอ
 
 ---
@@ -163,6 +193,7 @@ flowchart TD
 
 | วันที่ | เวอร์ชัน | รายละเอียดการดำเนินงาน | ผู้รับผิดชอบ |
 | :---: | :---: | :--- | :--- |
+| **2026-10-20** | 1.1.0 | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox` | Antigravity AI |
 | **2026-10-20** | 1.0.0 | สร้างเอกสาร Roadmap รวมขั้นตอน Phase 1 - 4 | Antigravity AI |
 | **2026-10-20** | 0.9.0 | รวมศูนย์ระบบตรวจสอบสิทธิ์ไว้ที่ `domain/permissions/activity-permissions.ts` และปรับปรุง Server Actions & Views ทั้งหมด | Antigravity AI |
 | **2026-10-20** | 0.8.0 | ตัดขาดโมดูล `activity` ออกจาก `activity-plans` 100% (Native repositories, demo plots, calendar, approval actions) | Antigravity AI |

@@ -86,3 +86,23 @@ export type {
   Type5ImageFile,
   ImageFile,
 } from "./shared/types";
+
+// 🟠 โซน "นอกแผน" (Unplanned Sub-slice)
+export { Type5UnplannedForm } from "./unplanned/components/type5-unplanned-form";
+export {
+  useType5UnplannedForm,
+  type UseType5UnplannedFormOptions,
+} from "./unplanned/hooks/use-type5-unplanned-form";
+export {
+  validateType5UnplannedItems,
+  type Type5UnplannedValidationResult,
+} from "./unplanned/application/unplanned-validation";
+export {
+  hydrateType5UnplannedData,
+  mapType5UnplannedToPayload,
+} from "./unplanned/application/unplanned-mapper";
+export { type5UnplannedStrategy } from "./unplanned/infrastructure/type5-unplanned.strategy";
+export type {
+  Type5UnplannedItem,
+  Type5UnplannedFormProps,
+} from "./unplanned/types/unplanned.types";
