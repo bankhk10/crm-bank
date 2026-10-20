@@ -13,6 +13,8 @@ import { type11PlannedStrategy, type11UnplannedStrategy } from "../features/type
 import { type12PlannedStrategy, type12UnplannedStrategy } from "../features/type-12";
 import { type13PlannedStrategy } from "../features/type-13/planned/infrastructure/type13-planned.strategy";
 import { type13UnplannedStrategy } from "../features/type-13/unplanned/infrastructure/type13-unplanned.strategy";
+import { type14PlannedStrategy } from "../features/type-14/planned/infrastructure/type14-planned.strategy";
+import { type14UnplannedStrategy } from "../features/type-14/unplanned/infrastructure/type14-unplanned.strategy";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -337,6 +339,35 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.t13Images && rawData.t13Images.length > 0)
       ),
   },
+  TYPE_14: {
+    code: "TYPE_14",
+    name: "ติดตามแปลงแฮทแทค",
+    planned: type14PlannedStrategy,
+    unplanned: type14UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_14") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงแฮทแทค") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงแฮตแทค") ||
+            rawData.workTypeCodes.includes("ติดตามแปลง"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_14" ||
+              s.workTypeCode === "ติดตามแปลงแฮทแทค" ||
+              s.workTypeCode === "ติดตามแปลงแฮตแทค",
+          )) ||
+        (rawData.type14Plots && rawData.type14Plots.length > 0) ||
+        (rawData.type14UnplannedItems && rawData.type14UnplannedItems.length > 0) ||
+        (rawData.t14Plots && rawData.t14Plots.length > 0) ||
+        rawData.type14Data ||
+        rawData.type14 ||
+        rawData.type14Actual ||
+        rawData.t14FollowUpRounds ||
+        (rawData.t14Images && rawData.t14Images.length > 0)
+      ),
+  },
 };
 
 /**
@@ -405,6 +436,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_13.hasData(rawData)) {
     return "TYPE_13";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_14.hasData(rawData)) {
+    return "TYPE_14";
   }
 
   return "TYPE_1";

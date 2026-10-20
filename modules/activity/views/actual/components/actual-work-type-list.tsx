@@ -71,6 +71,11 @@ import {
   type Type13TargetItem,
   type useType13Actual,
 } from "@/modules/activity/features/type-13";
+import {
+  Type14ActualForm,
+  type Type14TargetItem,
+  type useType14Actual,
+} from "@/modules/activity/features/type-14";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -88,6 +93,7 @@ interface ActualWorkTypeListProps {
   type11State?: ReturnType<typeof useType11Actual>;
   type12State?: ReturnType<typeof useType12Actual>;
   type13State?: ReturnType<typeof useType13Actual>;
+  type14State?: ReturnType<typeof useType14Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -102,6 +108,7 @@ interface ActualWorkTypeListProps {
   type11Targets?: Type11TargetItem[];
   type12Targets?: Type12TargetItem[];
   type13Targets?: Type13TargetItem[];
+  type14Targets?: Type14TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -127,6 +134,7 @@ export function ActualWorkTypeList({
   type11State,
   type12State,
   type13State,
+  type14State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -141,6 +149,7 @@ export function ActualWorkTypeList({
   type11Targets = [],
   type12Targets = [],
   type13Targets = [],
+  type14Targets = [],
   plan,
   products = [],
   customers = [],
@@ -304,6 +313,18 @@ export function ActualWorkTypeList({
     Boolean(plan?.type13Data) ||
     Boolean(plan?.type13) ||
     plan?.activityType?.code === "TYPE_13";
+
+  const isType14Active =
+    planWorkTypes.includes("TYPE_14") ||
+    planWorkTypes.includes("ติดตามแปลงแฮทแทค") ||
+    planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
+    planWorkTypes.includes("ติดตามแปลง") ||
+    Boolean(plan?.type14Plots?.length) ||
+    Boolean(plan?.type14Targets?.length) ||
+    Boolean(plan?.t14Plots?.length) ||
+    Boolean(plan?.type14Data) ||
+    Boolean(plan?.type14) ||
+    plan?.activityType?.code === "TYPE_14";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -657,6 +678,17 @@ export function ActualWorkTypeList({
           products={products || []}
           dealers={customers || []}
           targets={type13Targets || plan?.type13Plots || plan?.t13Plots}
+        />
+      )}
+
+      {/* 🟢 TYPE 14: ติดตามแปลงแฮทแทค */}
+      {isType14Active && type14State && (
+        <Type14ActualForm
+          isVisible={true}
+          actualState={type14State}
+          products={products || []}
+          dealers={customers || []}
+          targets={type14Targets || plan?.type14Plots || plan?.t14Plots}
         />
       )}
     </div>

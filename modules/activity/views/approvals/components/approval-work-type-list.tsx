@@ -61,6 +61,10 @@ import {
   Type13ApprovalCard,
   Type13DetailView,
 } from "@/modules/activity/features/type-13";
+import {
+  Type14ApprovalCard,
+  Type14DetailView,
+} from "@/modules/activity/features/type-14";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -199,6 +203,19 @@ export function ApprovalWorkTypeList({
     Boolean(targets?.t13List?.length) ||
     Boolean(targets?.t13Plots?.length) ||
     plan?.activityType?.code === "TYPE_13";
+
+  const isType14 =
+    isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") ||
+    isTypeActive("TYPE_14", "ติดตามแปลงแฮตแทค") ||
+    isTypeActive("TYPE_14", "ติดตามแปลง") ||
+    Boolean(plan?.type14Plots?.length) ||
+    Boolean(plan?.type14Targets?.length) ||
+    Boolean(plan?.t14Plots?.length) ||
+    Boolean(plan?.type14Data) ||
+    Boolean(plan?.type14) ||
+    Boolean(targets?.t14List?.length) ||
+    Boolean(targets?.t14Plots?.length) ||
+    plan?.activityType?.code === "TYPE_14";
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -448,6 +465,23 @@ export function ApprovalWorkTypeList({
               a.category === "AFTER_SPRAY" ||
               a.category === "type13" ||
               a.category === "demo_plot_after_spray",
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType14ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type14Actual || plan?.type14Actual) return true;
+    return Boolean(
+      parsedResults?.type14Actual ||
+        (parsedResults?.t14FollowUpRounds && parsedResults.t14FollowUpRounds.length > 0) ||
+        (parsedResults?.t14Images && parsedResults.t14Images.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_14" ||
+              a.category === "TRACKING_AFTER_SPRAY" ||
+              a.category === "type14",
           )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -1245,6 +1279,47 @@ export function ApprovalWorkTypeList({
               plan?.type13Plots ||
               plan?.t13Plots ||
               plan?.type13Data?.plots ||
+              []
+            }
+            planSummary={plan}
+          />
+        ))}
+
+      {/* 🟢 TYPE 14: ติดตามแปลงแฮทแทค */}
+      {isType14 &&
+        (hasType14ActualResults ? (
+          <Type14DetailView
+            isVisible={true}
+            plots={
+              targets?.t14List ||
+              targets?.t14Plots ||
+              plan?.type14Plots ||
+              plan?.t14Plots ||
+              plan?.type14Data?.plots ||
+              []
+            }
+            data={plan?.type14Data || plan?.type14}
+            actualData={
+              parsedResults?.type14Actual || {
+                rounds:
+                  parsedResults?.t14FollowUpRounds ||
+                  parsedResults?.rounds ||
+                  plan?.result?.rounds,
+                attachments: parsedResults?.t14Images || plan?.attachments,
+              }
+            }
+            planSummary={plan}
+          />
+        ) : (
+          <Type14ApprovalCard
+            isVisible={true}
+            data={plan?.type14Data || plan?.type14}
+            plots={
+              targets?.t14List ||
+              targets?.t14Plots ||
+              plan?.type14Plots ||
+              plan?.t14Plots ||
+              plan?.type14Data?.plots ||
               []
             }
             planSummary={plan}

@@ -86,6 +86,11 @@ import {
   hydrateType13PlannedData,
 } from "@/modules/activity/features/type-13";
 import {
+  Type14PlannedForm,
+  useType14PlannedForm,
+  hydrateType14PlannedData,
+} from "@/modules/activity/features/type-14";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -296,6 +301,14 @@ export function PlannedActivityForm({
       wt.includes("ฉีดแปลงแฮทแทค") ||
       wt.includes("ฉีดแปลง"),
   );
+  const isType14Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_14" ||
+      wt.includes("TYPE_14") ||
+      wt.includes("ติดตามแปลงแฮทแทค") ||
+      wt.includes("ติดตามแปลงแฮตแทค") ||
+      wt.includes("ติดตามแปลง"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -483,6 +496,14 @@ export function PlannedActivityForm({
   const type13 = useType13PlannedForm({
     initial: initialData,
     selectedWorkTypes,
+  });
+
+  // 5.14 Type 14 Planned Hook
+  const type14 = useType14PlannedForm({
+    initial: initialData,
+    selectedWorkTypes,
+    defaultProvince: locationTeam.province,
+    defaultDistrict: locationTeam.district,
   });
 
   // 6. Budget Hook
@@ -852,6 +873,31 @@ export function PlannedActivityForm({
       }
     }
 
+    let type14Payload: any = null;
+    let type14PlotsPayload: any = undefined;
+    if (isType14Active) {
+      const type14Validation = type14.validateType14();
+      if (!type14Validation.isValid) {
+        toast.error(
+          type14Validation.error ||
+            "กรุณาระบุข้อมูลติดตามแปลงแฮทแทค (Type 14) ให้ครบถ้วน",
+        );
+        return;
+      }
+      const t14Mapped = type14.mapType14Payload(
+        customers as any,
+        products as any,
+      );
+      type14Payload = t14Mapped.type14Data;
+      type14PlotsPayload = t14Mapped.type14Plots;
+      if (t14Mapped.planStores?.length) {
+        planStores = [...planStores, ...t14Mapped.planStores];
+      }
+      if (t14Mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...t14Mapped.planProducts];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -944,6 +990,9 @@ export function PlannedActivityForm({
       type13Data: type13Payload,
       type13Plots: type13PlotsPayload,
       type13Targets: type13PlotsPayload,
+      type14Data: type14Payload,
+      type14Plots: type14PlotsPayload,
+      type14Targets: type14PlotsPayload,
     };
 
     try {
@@ -1270,6 +1319,17 @@ export function PlannedActivityForm({
           onToggleWithdrawal={type13.setHasProductWithdrawal}
           withdrawnProducts={type13.withdrawnProducts}
           onWithdrawnProductsChange={type13.setWithdrawnProducts}
+        />
+      )}
+
+      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮทแทค */}
+      {isType14Active && (
+        <Type14PlannedForm
+          value={type14.data}
+          onChange={type14.setData}
+          dealers={customers as any}
+          products={products as any}
+          readonly={readonly}
         />
       )}
 

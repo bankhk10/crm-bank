@@ -20,6 +20,7 @@ import { Type10DetailView } from "@/modules/activity/features/type-10";
 import { Type11DetailView } from "@/modules/activity/features/type-11";
 import { Type12DetailView } from "@/modules/activity/features/type-12";
 import { Type13DetailView } from "@/modules/activity/features/type-13";
+import { Type14DetailView } from "@/modules/activity/features/type-14";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -157,6 +158,19 @@ export function DetailWorkTypeList({
     Boolean(targets?.t13List?.length) ||
     Boolean(targets?.t13Plots?.length) ||
     plan?.activityType?.code === "TYPE_13";
+
+  const isType14 =
+    isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") ||
+    isTypeActive("TYPE_14", "ติดตามแปลงแฮตแทค") ||
+    isTypeActive("TYPE_14", "ติดตามแปลง") ||
+    Boolean(plan?.type14Plots?.length) ||
+    Boolean(plan?.type14Targets?.length) ||
+    Boolean(plan?.t14Plots?.length) ||
+    Boolean(plan?.type14Data) ||
+    Boolean(plan?.type14) ||
+    Boolean(targets?.t14List?.length) ||
+    Boolean(targets?.t14Plots?.length) ||
+    plan?.activityType?.code === "TYPE_14";
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -806,6 +820,30 @@ export function DetailWorkTypeList({
             type13PlotsActual: parsedResults?.t13Plots || plan?.type13Plots,
             sprayRounds: parsedResults?.t13SprayRounds || plan?.sprayRounds,
             attachments: parsedResults?.t13Images || plan?.attachments,
+          }
+        }
+        planSummary={plan}
+      />
+
+      {/* 🟢 TYPE 14: ติดตามแปลงแฮทแทค */}
+      <Type14DetailView
+        isVisible={isType14}
+        plots={
+          targets?.t14List ||
+          targets?.t14Plots ||
+          plan?.type14Plots ||
+          plan?.t14Plots ||
+          plan?.type14Data?.plots ||
+          []
+        }
+        data={plan?.type14Data || plan?.type14}
+        actualData={
+          parsedResults?.type14Actual || {
+            rounds:
+              parsedResults?.t14FollowUpRounds ||
+              parsedResults?.rounds ||
+              plan?.result?.rounds,
+            attachments: parsedResults?.t14Images || plan?.attachments,
           }
         }
         planSummary={plan}

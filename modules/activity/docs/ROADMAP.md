@@ -19,7 +19,7 @@
 | **Type 5 (สำรวจตลาดของคู่แข่ง)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration                                                                                      |
 | **Type 7A – 7B (งานแปลงสาธิต)**                  |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, เชื่อมต่อ Master DemoPlot, Full View Integration                                                                              |
 | **Type 8 – 12 (กิจกรรมเฉพาะทางและทัวร์)**      |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, Unified Activity UI Inputs, Native Strategies & Registries                                                                     |
-| **Type 13 – 14 (กลุ่มงานแปลงแฮตแทค)**           | ⏳ **รอการ Migrate** | กิจกรรมฉีดแปลงแฮตแทคและติดตามแปลงแฮทแทค รอการย้ายเข้ามาตามลำดับ                                                                                                   |
+| **Type 13 – 14 (กลุ่มงานแปลงแฮตแทค)**           |   ✅ เสร็จสมบูรณ์    | กิจกรรมฉีดแปลงแฮตแทคและติดตามแปลงแฮทแทค โครงสร้าง 24 Artifacts, Dual-Mode, Multi-Plot/Round, Unified UI Inputs, Views & Registries (ปิด Phase 3 สมบูรณ์)           |
 
 ---
 
@@ -33,9 +33,9 @@ flowchart TD
 
     P0["Phase 0: Foundation & Decoupling<br/>(Type 1, Type 2, Actions, Permissions)"]:::done
     P1["Phase 1: Existing Slices Standardization<br/>(Refactor Type 3 & Type 4)"]:::done
-    P2["Phase 2: Core Field Slices Migration<br/>(Type 5, Type 6, Type 7A, Type 7B)"]:::current
-    P3["Phase 3: Specialized Slices Migration<br/>(Type 8, Type 9, Type 10, Type 11, Type 12, Type 13, Type 14)"]:::pending
-    P4["Phase 4: Final Deprecation & Cleanup<br/>(App Router Pages Audit & Decommission legacy)"]:::pending
+    P2["Phase 2: Core Field Slices Migration<br/>(Type 5, Type 6, Type 7A, Type 7B)"]:::done
+    P3["Phase 3: Specialized Slices Migration<br/>(Type 8, Type 9, Type 10, Type 11, Type 12, Type 13, Type 14)"]:::done
+    P4["Phase 4: Final Deprecation & Cleanup<br/>(App Router Pages Audit & Decommission legacy)"]:::current
 
     P0 --> P1 --> P2 --> P3 --> P4
 ```
@@ -138,7 +138,7 @@ flowchart TD
 
 ---
 
-### 🔹 Phase 3: ย้ายกิจกรรมเฉพาะทางและวิชาการ (Specialized & Academic Slices Migration)
+### 🔹 Phase 3: ย้ายกิจกรรมเฉพาะทางและวิชาการ (Specialized & Academic Slices Migration — Completed ✅)
 
 เป้าหมาย: นำเข้ากิจกรรมวิชาการและการสำรวจที่เหลือทั้งหมด โดยทุก Type ต้องมีทั้ง **Planned** และ **Unplanned** ครบถ้วนเสมอ
 
@@ -148,7 +148,7 @@ flowchart TD
 - [x] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
 - [x] **Type 12:** ทัวร์ (Tour) — Planned & Unplanned
 - [x] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
-- [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
+- [x] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
 
 #### งานที่ 3.2: Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน — Dual-Mode Planned + Unplanned — Completed ✅)
 
@@ -204,6 +204,21 @@ flowchart TD
 - [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`, `summary/types.ts`)
 - [x] เชื่อมโยงเข้าสู่ Views ทั้ง 6 (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
 - [x] จัดทำเอกสาร [`features/type-13/README.md`](../features/type-13/README.md)
+- [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
+
+#### งานที่ 3.7: Migrate `features/type-14/` (ติดตามแปลงแฮทแทค / Hattack Follow-up — Dual-Mode Planned + Unplanned — Completed ✅)
+
+- [x] สร้างโฟลเดอร์ `features/type-14/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] รองรับ Multi-Plot และ Multi-Round Tracking (การติดตามผลต่อเนื่องหลายรอบ, วันหลังฉีดพ่น, และการตอบสนองสินค้า)
+- [x] รองรับการเลือกแปลงติดตามทั้งจากประวัติแผนฉีดเดิม (`EXISTING_PLOT`) หรือกรอกข้อมูลแปลงใหม่ (`NEW_PLOT`)
+- [x] รองรับการเบิกสินค้าในแผนงาน (Toggle Withdrawn Product Lines พร้อมเลือกสินค้าและจำนวน)
+- [x] รองรับการอัปโหลดรูปภาพติดตามผล (Follow-up Photos) สูงสุด 20 รูปต่อหมู่บ้าน หมวดหมู่ `AFTER_SPRAY`
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด (`ActivityCustomerSelect`, `ActivityAddressSelect`, `ActivityInput`, `ActivityGpsPicker`, `ActivityProductSelect`, `ActivityPhotoUpload`)
+- [x] สร้าง Native Strategies (`type14PlannedStrategy`, `type14UnplannedStrategy`) พร้อม Dual Persistence Sync (`ActivityPlanType14`, `ActivityPlanType14Plot`, `ActivityPlanType14Product`, `DemoPlotVisit`)
+- [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`, `summary/types.ts`)
+- [x] เชื่อมโยงเข้าสู่ Views ทั้ง 6 (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-14/README.md`](../features/type-14/README.md)
 - [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
 
@@ -268,6 +283,7 @@ flowchart TD
 
 |     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
 | :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  1.8.0   | Migrate `features/type-14/` (ติดตามแปลงแฮทแทค / Hattack Follow-up) ครบ 24 Artifacts, Multi-Plot/Round, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors (ปิด Phase 3 สมบูรณ์) | Antigravity AI |
 | **2026-10-20** |  1.7.0   | Migrate `features/type-13/` (ฉีดแปลงแฮตแทค / Hattack Spraying) ครบ 24 Artifacts, Multi-Plot, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
 | **2026-10-20** |  1.6.0   | Migrate `features/type-12/` (พาลูกค้าศึกษาดูงาน / Tour) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
 | **2026-10-20** |  1.5.0   | Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |

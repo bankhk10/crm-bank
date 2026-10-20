@@ -107,13 +107,14 @@ import type { Type10TargetItem } from "../../features/type-10";
 import type { Type11TargetItem } from "../../features/type-11";
 import type { Type12TargetItem } from "../../features/type-12";
 import type { Type13TargetItem } from "../../features/type-13";
+import type { Type14TargetItem } from "../../features/type-14";
 export type {
   Type10TargetItem,
   Type11TargetItem,
   Type12TargetItem,
   Type13TargetItem,
+  Type14TargetItem,
 };
-export type Type14TargetItem = any;
 
 export interface ActualTargetsState {
   t1: Type1TargetItem;

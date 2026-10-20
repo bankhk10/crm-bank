@@ -14,6 +14,7 @@ import { extractType10PlanTargets } from "../../features/type-10";
 import { extractType11PlanTargets } from "../../features/type-11";
 import { extractType12PlanTargets } from "../../features/type-12";
 import { extractType13PlanTargets } from "../../features/type-13";
+import { extractType14PlanTargets } from "../../features/type-14";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -41,6 +42,7 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_11: (p, prev) => extractType11PlanTargets(p, prev),
   TYPE_12: (p, prev) => extractType12PlanTargets(p, prev),
   TYPE_13: (p, prev) => extractType13PlanTargets(p, prev),
+  TYPE_14: (p, prev) => extractType14PlanTargets(p, prev),
 };
 
 /**
@@ -245,6 +247,20 @@ export function extractPlanTargets(
     const extracted = extractType13PlanTargets(plan, prevTargets.t13);
     targets.t13 = extracted.primary;
     targets.t13List = extracted.list;
+  }
+
+  // Always attempt Type 14 if relation exists
+  if (
+    !targets.t14?.name &&
+    ((plan as any).type14?.plots?.length ||
+      (plan as any).type14Plots?.length ||
+      (plan as any).demoPlotVisits?.some(
+        (v: any) => v.workTypeCode === "TYPE_14",
+      ))
+  ) {
+    const extracted = extractType14PlanTargets(plan, prevTargets.t14);
+    targets.t14 = extracted.primary;
+    targets.t14List = extracted.list;
   }
 
   return targets;

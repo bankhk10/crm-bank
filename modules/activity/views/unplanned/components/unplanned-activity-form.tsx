@@ -108,6 +108,12 @@ import {
   validateType13UnplannedItem,
 } from "@/modules/activity/features/type-13";
 import {
+  Type14UnplannedForm,
+  useType14UnplannedForm,
+  mapType14UnplannedToPayload,
+  validateType14UnplannedItem,
+} from "@/modules/activity/features/type-14";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -361,6 +367,14 @@ export function UnplannedActivityForm({
       wt.includes("ฉีดแปลงแฮทแทค") ||
       wt.includes("ฉีดแปลง"),
   );
+  const isType14Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_14" ||
+      wt.includes("TYPE_14") ||
+      wt.includes("ติดตามแปลงแฮทแทค") ||
+      wt.includes("ติดตามแปลงแฮตแทค") ||
+      wt.includes("ติดตามแปลง"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -533,6 +547,13 @@ export function UnplannedActivityForm({
 
   // 5.13 Type 13 Unplanned Hook
   const type13 = useType13UnplannedForm({
+    initial: initialData,
+    dealers: customers as any,
+    products: products as any,
+  });
+
+  // 5.14 Type 14 Unplanned Hook
+  const type14 = useType14UnplannedForm({
     initial: initialData,
     dealers: customers as any,
     products: products as any,
@@ -1359,6 +1380,56 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_13",
         })),
       };
+    } else if (isType14Active) {
+      const type14Validation = type14.validate();
+      if (!type14Validation.isValid) {
+        toast.error(
+          type14Validation.error ||
+            "ข้อมูลติดตามแปลงแฮทแทคไม่ถูกต้อง (Type 14)",
+        );
+        return;
+      }
+
+      // Upload Follow-up Images
+      const allType14Images = type14.item.images || [];
+      let cleanType14Images = allType14Images;
+      if (allType14Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType14Images,
+            "type14",
+            "after_spray",
+          );
+          cleanType14Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const mapped = mapType14UnplannedToPayload({
+        ...type14.item,
+        images: cleanType14Images,
+      });
+
+      if (mapped.planStores?.length) {
+        planStores = [...planStores, ...mapped.planStores];
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_14",
+        type14Data: mapped.type14Data,
+        type14Actual: mapped.type14Actual,
+        attachments: cleanType14Images.map((img) => ({
+          category: "TRACKING_AFTER_SPRAY",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพติดตามแปลงแฮทแทค",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_14",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -1489,7 +1560,9 @@ export function UnplannedActivityForm({
                       ? "type-12"
                       : isType13Active
                         ? "type-13"
-                        : "type-1");
+                        : isType14Active
+                          ? "type-14"
+                          : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1593,6 +1666,10 @@ export function UnplannedActivityForm({
       type13Plots: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
       type13Targets: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
       type13Actual: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Actual : undefined,
+      type14Data: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Data : undefined,
+      type14Plots: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Plots : undefined,
+      type14Targets: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Plots : undefined,
+      type14Actual: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Actual : undefined,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1606,6 +1683,7 @@ export function UnplannedActivityForm({
       type11UnplannedItems: isType11Active ? type11.items : undefined,
       type12UnplannedItem: isType12Active ? type12.item : undefined,
       type13UnplannedItem: isType13Active ? type13.item : undefined,
+      type14UnplannedItem: isType14Active ? type14.item : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1938,6 +2016,17 @@ export function UnplannedActivityForm({
         <Type13UnplannedForm
           item={type13.item}
           onChange={type13.updateItem}
+          dealers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮทแทค */}
+      {isType14Active && (
+        <Type14UnplannedForm
+          item={type14.item}
+          onChange={type14.updateItem}
           dealers={customers as any}
           products={products as any}
           readonly={readonly}

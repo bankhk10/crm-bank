@@ -112,6 +112,12 @@ import {
   extractType13PlanTargets,
   type Type13TargetItem,
 } from "@/modules/activity/features/type-13";
+import {
+  useType14Actual,
+  validateType14Actual,
+  extractType14PlanTargets,
+  type Type14TargetItem,
+} from "@/modules/activity/features/type-14";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -163,6 +169,7 @@ export function ActivityPlanActualView({
   const type11Actual = useType11Actual();
   const type12Actual = useType12Actual();
   const type13Actual = useType13Actual();
+  const type14Actual = useType14Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -177,6 +184,7 @@ export function ActivityPlanActualView({
   const [type11Targets, setType11Targets] = useState<Type11TargetItem[]>([]);
   const [type12Targets, setType12Targets] = useState<Type12TargetItem[]>([]);
   const [type13Targets, setType13Targets] = useState<Type13TargetItem[]>([]);
+  const [type14Targets, setType14Targets] = useState<Type14TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -239,6 +247,9 @@ export function ActivityPlanActualView({
       const extractedT13 = extractType13PlanTargets(plan);
       setType13Targets(extractedT13.list);
 
+      const extractedT14 = extractType14PlanTargets(plan);
+      setType14Targets(extractedT14.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -266,11 +277,12 @@ export function ActivityPlanActualView({
         type11Actual.hydrate(payloadToHydrate);
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type13Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
+        type14Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, type13Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, type13Actual, type14Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -447,6 +459,18 @@ export function ActivityPlanActualView({
       Boolean(plan?.type13) ||
       plan?.activityType?.code === "TYPE_13";
 
+    const isType14Active =
+      planWorkTypes.includes("TYPE_14") ||
+      planWorkTypes.includes("ติดตามแปลงแฮทแทค") ||
+      planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
+      planWorkTypes.includes("ติดตามแปลง") ||
+      Boolean(plan?.type14Plots?.length) ||
+      Boolean(plan?.type14Targets?.length) ||
+      Boolean(plan?.t14Plots?.length) ||
+      Boolean(plan?.type14Data) ||
+      Boolean(plan?.type14) ||
+      plan?.activityType?.code === "TYPE_14";
+
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
       setValidationAlert({
@@ -618,6 +642,14 @@ export function ActivityPlanActualView({
         const t13Validation = validateType13Actual(type13Actual.collectPayload());
         if (!t13Validation.isValid && t13Validation.error) {
           missingFields.push(t13Validation.error);
+        }
+      }
+
+      // Delegate Type 14 validation to features/type-14 domain logic
+      if (isType14Active) {
+        const t14Validation = validateType14Actual(type14Actual.collectPayload());
+        if (!t14Validation.isValid && t14Validation.error) {
+          missingFields.push(t14Validation.error);
         }
       }
 
@@ -1322,6 +1354,52 @@ export function ActivityPlanActualView({
             payload.resultSummary = `ฉีดแปลงแฮตแทค: สำเร็จ (${plotCount} แปลง)`;
           }
         }
+
+        // Collect Type 14 payload if active
+        if (isType14Active) {
+          const newlyUploadedUrls: string[] = [];
+          const updatedRounds = await type14Actual.uploadImages(id, newlyUploadedUrls);
+          const t14Payload = type14Actual.collectPayload(updatedRounds);
+
+          const allT14Images = updatedRounds.flatMap((r) => r.afterSprayImages || []);
+          const uploadedAttachments = allT14Images.map((img: any) => ({
+            category: "TRACKING_AFTER_SPRAY",
+            fileUrl: img.url,
+            fileName: img.name || "ภาพติดตามแปลงแฮทแทค",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_14",
+          }));
+
+          payload = {
+            ...payload,
+            type14Actual: t14Payload.type14Actual,
+            attachments: [
+              ...(payload.attachments || []),
+              ...uploadedAttachments,
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive &&
+            !isType8Active &&
+            !isType9Active &&
+            !isType10Active &&
+            !isType11Active &&
+            !isType12Active &&
+            !isType13Active
+          ) {
+            const roundsCount = type14Actual.rounds?.length || 1;
+            payload.resultSummary = `ติดตามแปลงแฮทแทค: สำเร็จ (${roundsCount} รอบ)`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -1498,6 +1576,7 @@ export function ActivityPlanActualView({
               type11State={type11Actual}
               type12State={type12Actual}
               type13State={type13Actual}
+              type14State={type14Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -1512,6 +1591,7 @@ export function ActivityPlanActualView({
               type11Targets={type11Targets}
               type12Targets={type12Targets}
               type13Targets={type13Targets}
+              type14Targets={type14Targets}
               plan={plan}
               products={products}
               customers={customers}
