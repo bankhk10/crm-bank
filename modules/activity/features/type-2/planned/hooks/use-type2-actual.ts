@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import type { Type2ImageFile } from "../../shared/types";
 import type { FollowupProductItem } from "../types/planned.types";
 
-import { uploadActivityPlanImageGroup } from "@/modules/activity/ui/utils/image-uploader";
+import { uploadActivityPlanImageGroup } from "@/modules/activity/application/media/image-uploader";
 import { parseType2ActualResult } from "../application/actual-mapper";
 
 export function useType2Actual() {

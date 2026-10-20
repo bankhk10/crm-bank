@@ -45,7 +45,7 @@ import {
 } from "@/modules/activity-plans/constants";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
 import { DemoPlotHistoryModal } from "./demo-plot-history-modal";
-import { ActivityPhotoUpload } from "@/components/activity";
+import { ActivityPhotoUpload } from "@/modules/activity/ui";
 import DatePicker from "@/components/custom/DatePicker";
 import {
   isType7bCompletedFollowUpVisit,
@@ -53,7 +53,7 @@ import {
 } from "@/modules/activity-plans/features/shared/actual-view/utils";
 
 import { Type7bPlanCard } from "./type7b-plan-card";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import { ActivityProductSelect } from "@/modules/activity/ui";
 import type {
   DemoPlotVisitHistoryItem,
   ActualType7FollowUpProps,

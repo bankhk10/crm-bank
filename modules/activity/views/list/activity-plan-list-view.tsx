@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ActivityPlanTable } from "./activity-plan-table";
+import { ActivityPlanTable } from "./components/activity-plan-table";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   deleteActivityPlanAction,

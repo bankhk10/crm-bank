@@ -13,8 +13,10 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import {
+  ActivityInput,
+  ActivityCustomerSelect,
+} from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { Type4UnplannedFormProps } from "../types/unplanned.types";
 import type { StoreOption, Type4ImageFile } from "../../shared/types";

@@ -12,9 +12,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import {
+  ActivityInput,
+  ActivityCustomerSelect,
+  ActivityProductSelect,
+} from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import { NOT_CLOSED_REASONS } from "../../shared/constants";
 import type { Type3UnplannedFormProps } from "../types/unplanned.types";

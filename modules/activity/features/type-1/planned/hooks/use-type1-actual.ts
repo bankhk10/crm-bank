@@ -9,7 +9,7 @@ import { validateType1Actual } from "../application/actual-validation";
 import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
-} from "@/modules/activity/ui/utils/image-uploader";
+} from "@/modules/activity/application/media/image-uploader";
 
 export function useType1Actual() {
   const [t1ProductAdvice, setT1ProductAdvice] = useState("");

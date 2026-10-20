@@ -15,7 +15,7 @@ import {
   ActivityProductSelect,
   type ActivityProductItem,
   type ImageFile,
-} from "@/components/activity";
+} from "@/modules/activity/ui";
 import { listProductsAction } from "@/modules/products/server/actions";
 
 import { Type10PlanCard } from "./type10-plan-card";

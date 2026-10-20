@@ -52,13 +52,22 @@ modules/activity/
 │       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 4
 │       └── index.ts                      # Unified Public API Contract for Type 4
 │
-├── server/                               # Server Actions Gateways (Standalone ประจำโมดูล)
-│   └── actions.ts                        # createActivityPlanAction, updateActivityPlanAction, getActivityPlanAction ฯลฯ
+├── server/                               # Server Actions Gateways (หมวดหมู่แยกหน้าที่ชัดเจน)
+│   ├── planned.actions.ts                # Actions สำหรับแผนงานในแผน (Planned: สร้าง/แก้ไข/ดึง/ลบ/ยกเลิก)
+│   ├── unplanned.actions.ts              # Actions สำหรับกิจกรรมนอกแผน (Unplanned 2-in-1: สร้าง/แก้ไข/ดึง)
+│   ├── actual.actions.ts                 # Actions สำหรับบันทึกผลการปฏิบัติงานจริงตามแผน (recordActivityResultAction)
+│   ├── approval.actions.ts               # Actions สำหรับการอนุมัติ/ไม่อนุมัติ/ตรวจสอบโดยผู้ช่วย
+│   ├── promotional.actions.ts            # Actions สำหรับจัดการสื่อส่งเสริมการขาย
+│   ├── types.ts                          # PlanActionResult types
+│   ├── index.ts                          # Server Actions Public Barrel (No "use server")
+│   └── actions.ts                        # Backward Compatibility Re-export Barrel (No "use server")
 │
-├── infrastructure/                       # Database Infrastructure Repositories & Relation Inclusions
+├── infrastructure/                       # Database Repositories & Execution Registries
+│   ├── strategy.registry.ts              # 🧭 Universal Work Type Strategy Registry (TYPE_1 - TYPE_4)
 │   ├── activity-plan.repository.ts       # resolveActivityTypeId, generateActivityPlanCode, computeFiscalFields
-│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของ Type 1)
-│   └── employee-lookup.repository.ts     # findOrCreateEmployeeForUser
+│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของ Type 1-4)
+│   ├── employee-lookup.repository.ts     # findOrCreateEmployeeForUser, getApproverDirectory
+│   └── index.ts                          # Infrastructure Public Barrel
 │
 ├── types/                                # Module-level Types & Strategy Interfaces
 │   └── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
@@ -78,21 +87,42 @@ modules/activity/
 │       ├── result-summary-parser.ts      # Result Parser (parseResultSummary)
 │       └── index.ts                      # Summary Domain Public API
 │
-├── application/                          # Application Services & Filtering
-│   └── filters/                          # Activity Filter Matchers (WorkType, Person, Status, Search)
+├── application/                          # Application Layer & Services
+│   ├── media/                            # Media & Attachment Services
+│   │   ├── image-uploader.ts             # uploadActivityPlanImageGroup, deleteActivityPlanImagePaths
+│   │   └── index.ts                      # Media Public Barrel
+│   ├── filters/                          # Activity Filter Matchers (WorkType, Person, Status, Search)
+│   └── index.ts                          # Application Public Barrel
 │
 ├── hooks/                                # Custom Hooks (useApproverDirectory ฯลฯ)
 │
 ├── ui/                                   # Common UI Components (ส่วนกลางที่ใช้ร่วมกันทุกประเภทงาน)
+│   ├── inputs/                           # 🧩 Shared Activity Form Inputs & Selectors
+│   │   ├── hooks/                        # useActivityAddresses, useActivityCustomers
+│   │   ├── activity-address-select.tsx   # Dropdown เลือกจังหวัด/อำเภอ/ตำบล
+│   │   ├── activity-customer-select.tsx  # Combobox เลือกร้านค้า/เกษตรกร
+│   │   ├── activity-gps-picker.tsx       # เครื่องมือเลือกพิกัด GPS บนแผนที่
+│   │   ├── activity-input.tsx            # Input มาตรฐานสำหรับโมดูล Activity
+│   │   ├── activity-photo-upload.tsx     # อัปโหลดรูปภาพพร้อม Preview
+│   │   ├── activity-product-select.tsx   # Combobox เลือกสินค้า
+│   │   └── index.ts                      # Inputs Public Barrel
 │   ├── basic-info/                       # PlanBasicInfoCard, DateTimePicker
 │   ├── location-team/                    # PlanLocationTeamCard, usePlanLocationTeam
 │   ├── budget/                           # PlanBudgetSection, usePlanBudget
 │   ├── notes/                            # PlanNotesCard
 │   ├── form-action-buttons.tsx           # FormActionButtons (ปุ่ม ยกเลิก / บันทึกร่าง / ส่งขออนุมัติ)
 │   ├── activity-status-badge.tsx         # ActivityStatusBadge, ActivityStatusWithOperator
-│   └── index.ts                          # UI Public Exports
+│   └── index.ts                          # UI Public Exports (รวม inputs/*)
 │
 ├── views/                                # Pure Declarative Orchestrators (หน้าจอหลักของระบบ)
+│   ├── list/                             # รายการแผนงานและกิจกรรม (/activity-plans)
+│   │   ├── components/                   # activity-plan-table.tsx
+│   │   └── activity-plan-list-view.tsx   # Route: /activity-plans
+│   │
+│   ├── promotional-materials/            # จัดการสื่อส่งเสริมการขาย (/activity-plans/promotional-materials)
+│   │   ├── components/                   # delete-material-dialog.tsx, promotional-material-form-dialog.tsx, promotional-materials-table.tsx
+│   │   └── promotional-materials-view.tsx# Route: /activity-plans/promotional-materials
+│   │
 │   ├── planned/                          # สร้างและแก้ไขแผนงาน (Trip Plan)
 │   │   ├── components/                   # planned-activity-form.tsx (Form Orchestrator)
 │   │   ├── create-view.tsx               # Route: /activity-plans/new
@@ -463,6 +493,22 @@ export function ActivityPlanApprovalDetailView({ id }) {
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.9.0 (2026-10-20)
+- **Core Architecture Refactoring & Shared Components Unification**:
+  - **Deduplicate `can-approve.ts`**: ยุบรวม Authority Logic ไว้ที่ `domain/approval/can-approve.ts` จุดเดียว และลบไฟล์ซ้ำซ้อนใน `ui/can-approve.ts`
+  - **Relocate `image-uploader.ts`**: ย้าย Utility จัดการรูปภาพและไฟล์แนบจาก `ui/utils/` เข้าสู่ `application/media/image-uploader.ts` พร้อมจัดระเบียบ `application/index.ts`
+  - **Unify Shared Inputs (`ui/inputs/`)**: ย้าย Components จาก `components/activity/` เข้ามารวมศูนย์ในโมดูลที่ `modules/activity/ui/inputs/` (`ActivityInput`, `ActivityAddressSelect`, `ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`, `useActivityAddresses`, `useActivityCustomers`) และ Export ออกทาง `@/modules/activity/ui` พร้อมลบโฟลเดอร์เก่าทิ้ง
+  - **Strategy Registry Pattern (`infrastructure/strategy.registry.ts`)**: สร้าง Strategy Registry ศูนย์กลางจับคู่ Work Type Code (`TYPE_1` - `TYPE_4`) กับ Planned และ Unplanned Strategies ทดแทนการเขียน `if-else` กระจายในโค้ด
+  - **Modular Server Actions (`server/*.actions.ts`)**: แยก Server Actions ตามหมวดหมู่ชัดเจน:
+    - `planned.actions.ts`: จัดการแผนงานล่วงหน้า (สร้าง/แก้ไข/ดึงข้อมูล/ลบ/ยกเลิก)
+    - `unplanned.actions.ts`: จัดการกิจกรรมนอกแผน 2-in-1
+    - `actual.actions.ts`: จัดการบันทึกผลการปฏิบัติงานจริงตามแผน
+    - `approval.actions.ts`: จัดการระบบอนุมัติและรายชื่อผู้อนุมัติ
+    - `promotional.actions.ts`: จัดการสื่อส่งเสริมการขาย
+    - คง Barrel Files (`server/index.ts`, `server/actions.ts`) สำหรับ Re-export โดยไม่มี `"use server"` เพื่อความเข้ากันได้ 100% กับ Next.js Action Bundler
+  - **Reorganize View Subcomponents**: จัดโครงสร้างโฟลเดอร์ย่อยใน `views/list/components/activity-plan-table.tsx` และ `views/promotional-materials/components/`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100% Zero Breaking Changes
 
 ### Version 1.8.0 (2026-10-20)
 - **Type 4 Vertical Slice Complete (วางบิล / เก็บเงิน - Billing & Payment Collection)**:

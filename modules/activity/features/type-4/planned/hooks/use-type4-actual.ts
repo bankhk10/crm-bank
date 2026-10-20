@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import type { Type4ImageFile } from "../../shared/types";
 import type { TargetCollectCompanyItem } from "../types/planned.types";
 import { validateType4Actual } from "../application/actual-validation";
-import { uploadActivityPlanImageGroup } from "@/modules/activity/ui/utils/image-uploader";
+import { uploadActivityPlanImageGroup } from "@/modules/activity/application/media/image-uploader";
 
 export function useType4Actual() {
   const [t4OrderNo, setT4OrderNo] = useState("");

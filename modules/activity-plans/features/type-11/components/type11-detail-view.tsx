@@ -3,7 +3,7 @@
 import React from "react";
 import { Package, ArrowRight, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 
 import { Type11PlanCard } from "./type11-plan-card";
 import type { StockCheckItem, DetailType11StockProps } from "../types";

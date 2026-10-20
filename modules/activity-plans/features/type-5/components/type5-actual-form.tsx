@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { Camera, BarChart2, Store, Package, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 import type { Type5SurveyRecord } from "@/modules/activity-plans/features/shared/actual-view/types";
 
 import type {

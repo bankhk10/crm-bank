@@ -1,8 +1,8 @@
 import React from "react";
 import { Users, Plus, Trash2, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
+import { ActivityProductSelect } from "@/modules/activity/ui";
 import type {
   Type8MeetingItem,
   Type8PromotionProductItem,

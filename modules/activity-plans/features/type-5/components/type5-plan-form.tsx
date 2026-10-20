@@ -3,9 +3,9 @@
 import React from "react";
 import { BarChart2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "@/modules/activity/ui";
 import { FormCombobox } from "@/components/custom/form-components";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import type {
   Type5PlanFormProps,
   CustomerOption,

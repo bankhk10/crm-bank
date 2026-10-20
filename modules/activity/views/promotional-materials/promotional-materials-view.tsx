@@ -13,9 +13,9 @@ import {
   Coins,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { PromotionalMaterialsTable, type PromotionalMaterialItem } from "./promotional-materials-table";
-import { PromotionalMaterialFormDialog } from "./promotional-material-form-dialog";
-import { DeleteMaterialDialog } from "./delete-material-dialog";
+import { PromotionalMaterialsTable, type PromotionalMaterialItem } from "./components/promotional-materials-table";
+import { PromotionalMaterialFormDialog } from "./components/promotional-material-form-dialog";
+import { DeleteMaterialDialog } from "./components/delete-material-dialog";
 import {
   getPromotionalMaterialsAction,
   getDistinctPromotionalCategoriesAction,

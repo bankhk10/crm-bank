@@ -8,7 +8,7 @@ import { FormCombobox } from "@/components/custom/form-components";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import DatePicker from "@/components/custom/DatePicker";
-import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
+import { ActivityPhotoUpload, ActivityGpsPicker } from "@/modules/activity/ui";
 import { Badge } from "@/components/ui/badge";
 import { Type1PlanCard } from "./type1-plan-card";
 import type {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Search, X, Users, MapPin, UserCircle2, Store } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
+import { ActivityAddressSelect } from "../inputs/activity-address-select";
 
 import { getWorkTypeCode } from "@/modules/activity/constants";
 

@@ -9,13 +9,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "@/modules/activity/ui";
 import {
   ActivityCustomerSelect,
   type ActivityCustomerItem,
-} from "@/components/activity/activity-customer-select";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
+import { ActivityAddressSelect } from "@/modules/activity/ui";
+import { ActivityProductSelect } from "@/modules/activity/ui";
 import type {
   Type13PlotItem,
   Type13WithdrawnProductLine,

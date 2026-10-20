@@ -12,13 +12,13 @@ import {
   AlertCircle,
   DollarSign,
 } from "lucide-react";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
+  ActivityInput,
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Type3PlanCard } from "./type3-plan-card";
 import { NOT_CLOSED_REASONS } from "../../shared/constants";
 import type {

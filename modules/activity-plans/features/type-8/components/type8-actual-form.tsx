@@ -14,11 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import { listProductsAction } from "@/modules/products/server/actions";
 
 import { Type8PlanCard } from "./type8-plan-card";

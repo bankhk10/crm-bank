@@ -1,4 +1,4 @@
-import type { Type1ImageFile } from "../../features/type-1/shared/types";
+import type { Type1ImageFile } from "@/modules/activity/features/type-1";
 import type { FileMetadata, FileWithPreview } from "@/hooks/use-file-upload";
 
 export type ImageFile = Type1ImageFile;

@@ -4,3 +4,5 @@ export * from "./activity-product-select";
 export * from "./activity-input";
 export * from "./activity-photo-upload";
 export * from "./activity-gps-picker";
+export * from "./hooks/use-activity-addresses";
+export * from "./hooks/use-activity-customers";

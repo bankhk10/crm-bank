@@ -19,7 +19,7 @@ import {
   ActivityCustomerSelect,
   ActivityProductSelect,
   ActivityAddressSelect,
-} from "@/components/activity";
+} from "@/modules/activity/ui";
 import type {
   Type14PlanInput,
   Type14WithdrawnProductLine,

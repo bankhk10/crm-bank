@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import { ActivityAddressSelect } from "@/modules/activity/ui";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
+import { ActivityProductSelect } from "@/modules/activity/ui";
 import type {
   Type9ProductItem,
   CustomerOption,

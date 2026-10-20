@@ -135,12 +135,16 @@ modules/activity/features/type-1/
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ (Allowed):**
   - `views/` ➔ เรียกใช้ ➔ `features/type-1` (ผ่าน `index.ts` เท่านั้น)
-  - `features/type-1` ➔ เรียกใช้ ➔ `ui/` ส่วนกลาง (เช่น `DatePicker`, `ActivityPhotoUpload`, `ActivityGpsPicker`)
+  - `features/type-1` ➔ เรียกใช้ ➔ `ui/` ส่วนกลาง (รวมถึง Shared Inputs: `ActivityInput`, `ActivityAddressSelect`, `ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`, `DatePicker`)
   - `features/type-1` ➔ เรียกใช้ ➔ `@/modules/activity/constants`
   - `features/type-1` ➔ เรียกใช้ ➔ `@/modules/activity/types/strategy.interface`
+  - `features/type-1` ➔ เรียกใช้ ➔ `@/modules/activity/application/media/image-uploader`
 - **Server Actions & Database Flow:**
-  - `views/` ➔ ส่งข้อมูลไปยัง ➔ `@/modules/activity/server/actions` (`createActivityPlanAction`, `updateActivityPlanAction`, `getActivityPlanAction`)
-  - Server Actions ➔ ทำงานร่วมกับ ➔ `type1PlannedStrategy` / `type1UnplannedStrategy` บันทึกลงตาราง `activity_plan_type_1_stores` โดยตรง
+  - `views/` ➔ ส่งข้อมูลไปยัง ➔ Server Actions ใน `@/modules/activity/server/`:
+    - `planned.actions.ts` (`createActivityPlanAction`, `updateActivityPlanAction`, `getActivityPlanAction`)
+    - `unplanned.actions.ts` (`createUnplannedActivityAction`, `updateUnplannedActivityAction`, `getUnplannedActivityAction`)
+    - `actual.actions.ts` (`recordActivityResultAction`)
+  - Server Actions ➔ ทำงานร่วมกับ ➔ `@/modules/activity/infrastructure/strategy.registry` ➔ เรียกใช้ `type1PlannedStrategy` / `type1UnplannedStrategy` บันทึกลงตาราง `activity_plan_type_1_stores` โดยตรง
 - **สิ่งต้องห้าม (Strictly Forbidden):**
   - ❌ ภายนอก Import เจาะลึกเข้าไปในโฟลเดอร์ย่อย เช่น `features/type-1/planned/components/...`
   - ❌ `features/type-1` เรียกใช้ข้อมูลข้ามไปยัง `features/type-2` ถึง `type-14`
@@ -407,9 +411,13 @@ model ActivityResultType1Product {
 
 โมดูล Type 1 ทำงานร่วมกับชิ้นส่วนส่วนกลางต่อไปนี้:
 1. **`@/modules/activity/ui`:**
-   - `DatePicker`: ปฏิทินเลือกวันนัดหมายครั้งถัดไป
+   - `ActivityInput`: คอมโพเนนต์ Input มาตรฐานประจำโมดูล Activity
+   - `ActivityAddressSelect`: คอมโพเนนต์เลือกจังหวัด อำเภอ ตำบล
+   - `ActivityCustomerSelect`: คอมโพเนนต์เลือกร้านค้า/เกษตรกร
+   - `ActivityProductSelect`: คอมโพเนนต์เลือกสินค้า
    - `ActivityPhotoUpload`: คอมโพเนนต์อัปโหลดรูปภาพพร้อมบีบอัดไฟล์
    - `ActivityGpsPicker`: คอมโพเนนต์ดึงพิกัดปัจจุบันผ่านเบราว์เซอร์ Geolocation
+   - `DatePicker`: ปฏิทินเลือกวันนัดหมายครั้งถัดไป
    - `FormActionButtons`: ปุ่มยกเลิก / บันทึกร่าง / ส่งขออนุมัติ
 2. **`@/modules/activity/views`:**
    - `ActualWorkTypeList`: ตัวกระจายฟอร์มผลการปฏิบัติงานจริง
@@ -418,13 +426,24 @@ model ActivityResultType1Product {
 3. **`@/modules/activity/constants`:**
    - `WORK_TYPE_CONFIG`: การตั้งค่าและรหัสประเภทงาน
    - `ACTIVITY_RESULT_STATUS_LABELS`: ป้ายแสดงสถานะผลกิจกรรม
-4. **Server Actions ที่ใช้งานจริง:**
-   - `createActivityPlanAction(rawData)`: สร้างแผนงานใหม่ (Standalone ใน `@/modules/activity/server/actions`)
-   - `updateActivityPlanAction(id, rawData)`: ปรับปรุงแผนงานเดิม (Standalone ใน `@/modules/activity/server/actions`)
-   - `getActivityPlanAction(id)`: โหลดข้อมูลแผนงานพร้อม Include ตารางเฉพาะ Type 1 ครบถ้วน
-   - `recordActivityResultAction(id, payload)`: บันทึกผลการปฏิบัติงานจริง
-   - `listProductsAction()`: ดึงรายการสินค้า Master Data จาก `@/modules/products/server/actions`
-   - `getCustomersAction()`: ดึงรายชื่อร้านค้า/เกษตรกร จาก `@/modules/customers/server/actions`
+4. **`@/modules/activity/infrastructure/strategy.registry`:**
+   - `saveStrategiesForPlan`: จัดการบันทึกข้อมูล Type Strategies ตาม Work Type Codes
+   - `getStrategyForWorkType`: ดึง Strategy ประจำประเภทงาน
+   - `resolvePrimaryWorkTypeCode`: คำนวณ Work Type หลัก
+5. **Server Actions ที่ใช้งานจริง (`@/modules/activity/server/`):**
+   - **`planned.actions.ts`**:
+     - `createActivityPlanAction(rawData)`: สร้างแผนงานใหม่
+     - `updateActivityPlanAction(id, rawData)`: ปรับปรุงแผนงานเดิม
+     - `getActivityPlanAction(id)`: โหลดข้อมูลแผนงานพร้อม Include ตารางเฉพาะ Type 1 ครบถ้วน
+   - **`unplanned.actions.ts`**:
+     - `createUnplannedActivityAction(rawData)`: สร้างกิจกรรมนอกแผน 2-in-1
+     - `updateUnplannedActivityAction(id, rawData)`: แก้ไขกิจกรรมนอกแผน 2-in-1
+     - `getUnplannedActivityAction(id)`: โหลดข้อมูลกิจกรรมนอกแผน
+   - **`actual.actions.ts`**:
+     - `recordActivityResultAction(id, payload)`: บันทึกผลการปฏิบัติงานจริง
+   - **External Actions**:
+     - `listProductsAction()`: ดึงรายการสินค้า Master Data จาก `@/modules/products/server/actions`
+     - `getCustomersAction()`: ดึงรายชื่อร้านค้า/เกษตรกร จาก `@/modules/customers/server/actions`
 
 ---
 
@@ -530,3 +549,4 @@ model ActivityResultType1Product {
 | **2026-10-19** | 1.2.0 | จัดทำเอกสารคู่มือมาตรฐานฉบับสมบูรณ์สำหรับ Type 1 Feature (`README.md`) | Antigravity AI |
 | **2026-10-19** | 1.3.0 | เติม Database CRUD Matrix, Field Mapping ครบทุกคอลัมน์, รายละเอียด Prisma Schema, Tracing Pipeline, และ Transaction Write/Read Flow | Antigravity AI |
 | **2026-10-19** | 1.4.0 | แยกขาดจาก `activity-plans` 100%: สร้าง Standalone Server Actions (`@/modules/activity/server/actions`), แยก Infrastructure Repository ภายในโมดูล และตัดโค้ดตกค้าง `remarks` ออกจาก Mapper โดยบันทึกเฉพาะ `topic` และ `notes` ตาม Schema จริง | Antigravity AI |
+| **2026-10-20** | 1.5.0 | Core Architecture Refactoring: สลับมาใช้ Shared Inputs จาก `@/modules/activity/ui` (`ActivityInput`, `ActivityAddressSelect`, `ActivityCustomerSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`), เชื่อมต่อเข้ากับ `strategy.registry.ts` ใน `infrastructure/`, และอัปเดตการเรียกใช้ Server Actions ที่แยกไฟล์ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |

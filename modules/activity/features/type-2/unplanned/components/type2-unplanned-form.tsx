@@ -10,10 +10,12 @@ import {
   AlertTriangle,
   Camera,
 } from "lucide-react";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
-import { ActivityPhotoUpload } from "@/components/activity/activity-photo-upload";
-import { ActivityProductSelect } from "@/components/activity/activity-product-select";
+import {
+  ActivityAddressSelect,
+  ActivityCustomerSelect,
+  ActivityPhotoUpload,
+  ActivityProductSelect,
+} from "@/modules/activity/ui";
 import { FormCombobox } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

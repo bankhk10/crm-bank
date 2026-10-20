@@ -11,7 +11,7 @@ import {
   ActivityGpsPicker,
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity";
+} from "@/modules/activity/ui";
 import { Badge } from "@/components/ui/badge";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Type1PlanCard } from "./type1-plan-card";

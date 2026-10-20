@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import DatePicker from "@/components/custom/DatePicker";
-import { ActivityGpsPicker } from "@/components/activity";
+import { ActivityGpsPicker } from "@/modules/activity/ui";
 import { EXTERNAL_CHEMICAL_FORMULAS } from "../../../constants";
 import type { useType13ActualState } from "../hooks/use-type13-actual-state";
 import type {

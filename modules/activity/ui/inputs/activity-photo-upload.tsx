@@ -9,7 +9,7 @@ import {
   filesWithPreviewToImageFiles,
   isImageFilesEqual,
   type ImageFile,
-} from "@/modules/activity/ui/utils/image-uploader";
+} from "@/modules/activity/application/media/image-uploader";
 import {
   Dialog,
   DialogContent,

@@ -2,12 +2,12 @@
 
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityInput } from "@/modules/activity/ui";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type {
   Type3SalesProductLine,

@@ -38,12 +38,12 @@ import {
   DemoPlotProductItem,
   DemoPlotExternalProductItem,
 } from "@/modules/activity-plans/features/shared/actual-view/types";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityAddressSelect } from "@/modules/activity/ui";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import {
   CROP_CATEGORIES,
   CROPS_BY_CATEGORY,
@@ -53,7 +53,7 @@ import {
   DEMO_PLOT_IRRIGATION_METHODS,
   UserDemoPlotOption,
 } from "@/modules/activity-plans/constants";
-import { ActivityPhotoUpload, ActivityGpsPicker } from "@/components/activity";
+import { ActivityPhotoUpload, ActivityGpsPicker } from "@/modules/activity/ui";
 
 import { Type7aPlanCard } from "./type7a-plan-card";
 import type {

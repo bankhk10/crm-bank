@@ -53,7 +53,7 @@ import {
 } from "@/modules/activity/features/type-4";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
-import { deleteActivityPlanImagePaths } from "@/modules/activity/ui/utils/image-uploader";
+import { deleteActivityPlanImagePaths } from "@/modules/activity/application/media/image-uploader";
 
 interface ActivityPlanActualViewProps {
   id?: string;

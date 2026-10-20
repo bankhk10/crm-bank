@@ -4,7 +4,7 @@
 
 // 📋 1. List View (/activity-plans)
 export { default as ActivityPlanListView } from "./list/activity-plan-list-view";
-export { ActivityPlanTable } from "./list/activity-plan-table";
+export { ActivityPlanTable } from "./list/components/activity-plan-table";
 
 // 📅 2. Calendar View (/activity-plans/calendar)
 export { ActivityCalendarView } from "./calendar/activity-calendar-view";

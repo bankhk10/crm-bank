@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { FormCombobox } from "@/components/custom/form-components";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import { DEMO_PRODUCTS } from "@/modules/activity-plans/constants";
 import { listProductsAction } from "@/modules/products/server/actions";

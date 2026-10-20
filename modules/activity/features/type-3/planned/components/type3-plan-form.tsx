@@ -3,12 +3,12 @@
 import React from "react";
 import { ShoppingCart, Plus, Trash2, Store, Package, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
 import {
+  ActivityInput,
+  ActivityCustomerSelect,
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type {
   Type3SalesItem,

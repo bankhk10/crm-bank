@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Plane, Building2, Globe2 } from "lucide-react";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { CustomerOption, Type12TourProps } from "../types";

@@ -3,13 +3,13 @@
 import React from "react";
 import { CheckSquare, Plus, Trash2, Store, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityInput } from "@/modules/activity/ui";
+import { ActivityAddressSelect } from "@/modules/activity/ui";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import type {
   Type2FollowupProductLine,
   CustomerOption,

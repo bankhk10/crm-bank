@@ -47,3 +47,7 @@ export {
   type ApproverUserContext,
   type ActionScopeBadge,
 } from "./activity-status-badge";
+
+// 🧩 Shared Inputs & Selectors
+export * from "./inputs";
+

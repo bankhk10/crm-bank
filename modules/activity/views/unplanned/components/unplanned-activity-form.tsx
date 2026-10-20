@@ -47,7 +47,7 @@ import {
 import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
-} from "@/modules/activity/ui/utils/image-uploader";
+} from "@/modules/activity/application/media/image-uploader";
 
 export interface UnplannedActivityFormProps {
   initialData?: any;

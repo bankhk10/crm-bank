@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "./activity-input";
 import { cn } from "@/lib/utils";
 import { useActivityAddresses } from "./hooks/use-activity-addresses";
 

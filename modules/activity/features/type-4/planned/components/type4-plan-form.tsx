@@ -3,8 +3,10 @@
 import React from "react";
 import { Receipt, Plus, Trash2, FileText, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import {
+  ActivityInput,
+  ActivityCustomerSelect,
+} from "@/modules/activity/ui";
 import type { Type4PlanFormProps } from "../types/planned.types";
 import type { StoreOption } from "../../shared/types";
 

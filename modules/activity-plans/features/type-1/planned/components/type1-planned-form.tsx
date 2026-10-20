@@ -2,9 +2,9 @@
 
 import React from "react";
 import { Store, UserCheck, Plus, Trash2 } from "lucide-react";
-import { ActivityInput } from "@/components/activity/activity-input";
-import { ActivityAddressSelect } from "@/components/activity/activity-address-select";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityInput } from "@/modules/activity/ui";
+import { ActivityAddressSelect } from "@/modules/activity/ui";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import { FormCombobox } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

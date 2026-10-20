@@ -9,7 +9,7 @@ import type {
   Type7bWithdrawnProductLine,
 } from "@/modules/activity-plans/features/shared/form/types";
 import type { UserDemoPlotOption } from "@/modules/activity-plans/constants";
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "@/modules/activity/ui";
 import type { ProductOption, Type7FollowUpProps, Type7bPlanFormProps } from "../types";
 
 export type { ProductOption, Type7FollowUpProps, Type7bPlanFormProps };

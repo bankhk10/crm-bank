@@ -9,10 +9,10 @@ import { Type2PlanCard } from "./type2-plan-card";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { Badge } from "@/components/ui/badge";
-import { ActivityPhotoUpload } from "@/components/activity";
+import { ActivityPhotoUpload } from "@/modules/activity/ui";
 import type {
   Type2ImageFile,
   FollowupProductItem,

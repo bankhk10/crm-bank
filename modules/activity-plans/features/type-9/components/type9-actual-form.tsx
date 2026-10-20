@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Store, Package, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ActualTargetCard } from "@/modules/activity-plans/features/shared/actual-view/components/actual-target-card";
-import { ActivityPhotoUpload, type ImageFile } from "@/components/activity";
+import { ActivityPhotoUpload, type ImageFile } from "@/modules/activity/ui";
 
 import { Type9PlanCard } from "./type9-plan-card";
 import type {

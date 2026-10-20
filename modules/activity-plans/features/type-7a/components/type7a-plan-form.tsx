@@ -10,11 +10,11 @@ import type {
 } from "@/modules/activity-plans/features/shared/form/types";
 import { CROPS_BY_CATEGORY } from "@/modules/activity-plans/constants";
 
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "@/modules/activity/ui";
 import {
   ActivityCustomerSelect,
   type ActivityCustomerItem,
-} from "@/components/activity/activity-customer-select";
+} from "@/modules/activity/ui";
 import type {
   CustomerOption,
   ProductOption,

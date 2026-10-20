@@ -18,7 +18,7 @@ import { listProductsAction } from "@/modules/products/server/actions";
 import {
   ActivityProductSelect,
   type ActivityProductItem,
-} from "@/components/activity/activity-product-select";
+} from "@/modules/activity/ui";
 import { Type3PlanCard } from "./type3-plan-card";
 
 import type {

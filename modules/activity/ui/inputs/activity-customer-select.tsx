@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ActivityInput } from "@/components/activity/activity-input";
+import { ActivityInput } from "./activity-input";
 import { cn } from "@/lib/utils";
 import {
   useActivityCustomers,
@@ -416,7 +416,7 @@ export function ActivityCustomerSelect({
             <ActivityInput
               type="text"
               value={unregisteredName}
-              onChange={(e) => onUnregisteredNameChange?.(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUnregisteredNameChange?.(e.target.value)}
               disabled={disabled}
               placeholder="ระบุชื่อ - สกุล เกษตรกร..."
               required
@@ -431,7 +431,7 @@ export function ActivityCustomerSelect({
               type="text"
               inputMode="numeric"
               value={formatPhoneNumber(unregisteredPhone)}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 onUnregisteredPhoneChange?.(
                   e.target.value.replace(/\D/g, "").slice(0, 10),
                 )

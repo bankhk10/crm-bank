@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ClipboardList, X } from "lucide-react";
-import { ActivityCustomerSelect } from "@/components/activity/activity-customer-select";
+import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import type { Type11StoreItem, CustomerOption, Type11StockProps } from "../types";
 
 export type { CustomerOption, Type11StockProps, Type11StockProps as Type11PlanFormProps };
