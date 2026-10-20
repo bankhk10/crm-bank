@@ -241,6 +241,23 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           type: att.mimeType || att.type || "image/jpeg",
         }));
     }
+
+    if (rawAttachments.length > 0 && !result.t7InitialPhotos) {
+      result.t7InitialPhotos = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_7A" ||
+            att.category === "PLOT" ||
+            att.category === "INITIAL",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
   }
 
   return result;

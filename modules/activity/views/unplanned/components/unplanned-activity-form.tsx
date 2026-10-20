@@ -54,6 +54,13 @@ import {
   validateType6UnplannedItems,
 } from "@/modules/activity/features/type-6";
 import {
+  Type7aUnplannedForm,
+  useType7aUnplannedForm,
+  hydrateType7aUnplannedData,
+  mapType7aUnplannedToPayload,
+  validateType7aUnplannedItems,
+} from "@/modules/activity/features/type-7a";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -126,6 +133,16 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_6.name];
     }
+    // 1.4 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7A
+    if (
+      (initialData.type7aPlots && initialData.type7aPlots.length > 0) ||
+      (initialData.demoPlots && initialData.demoPlots.length > 0) ||
+      (initialData.type7aUnplannedItems && initialData.type7aUnplannedItems.length > 0) ||
+      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
+      initialData.demoPlotData
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_7A.name];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -144,6 +161,7 @@ export function UnplannedActivityForm({
       if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
       if (code === "TYPE_5") return [WORK_TYPE_CONFIG.TYPE_5.name];
       if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
+      if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -186,6 +204,13 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_6" ||
       wt.includes("TYPE_6") ||
       wt.includes("ร้องเรียน"),
+  );
+  const isType7aActive = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_7A" ||
+      wt.includes("TYPE_7A") ||
+      wt.includes("จัดทำแปลงสาธิต") ||
+      wt.includes("แปลงสาธิต"),
   );
 
   // 2. Basic Info State
@@ -288,6 +313,16 @@ export function UnplannedActivityForm({
 
   const type6 = useType6UnplannedForm({
     initialItems: hydratedInitialType6Items,
+  });
+
+  // 5.5 Type 7A Unplanned Hook
+  const hydratedInitialType7aItems = useMemo(
+    () => hydrateType7aUnplannedData(initialData),
+    [initialData],
+  );
+
+  const type7a = useType7aUnplannedForm({
+    initialItems: hydratedInitialType7aItems,
   });
 
   // 6. Budget Hook
@@ -627,6 +662,60 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_6",
         })),
       };
+    } else if (isType7aActive) {
+      if (type7a.items.length === 0) {
+        toast.error("กรุณาระบุแปลงสาธิตอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type7aValidation = validateType7aUnplannedItems(type7a.items);
+      if (!type7aValidation.isValid) {
+        toast.error(type7aValidation.errors[0] || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType7aUnplannedToPayload(type7a.items);
+
+      // Upload Evidence / Plot Images
+      const allType7aImages = type7a.items.flatMap((item) => item.initialPhotos || []);
+      let cleanType7aImages = allType7aImages;
+      if (allType7aImages.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType7aImages,
+            "type7a",
+            "plot",
+          );
+          cleanType7aImages = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพแปลงสาธิตไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const firstItem = type7a.items[0];
+      actualData = {
+        workTypeCode: "TYPE_7A",
+        demoPlotId: firstItem?.demoPlotId || null,
+        plotName: firstItem?.plotName,
+        cropCategory: firstItem?.cropCategory,
+        cropName: firstItem?.cropName,
+        areaRai: firstItem?.areaRai,
+        plotObjective: firstItem?.objective || firstItem?.plotObjective || "",
+        latitude: firstItem?.latitude,
+        longitude: firstItem?.longitude,
+        type7aPlots: mapped.type7aPlots,
+        targetActualResults: mapped.type7aPlots,
+        attachments: cleanType7aImages.map((img) => ({
+          category: "PLOT",
+          fileUrl: img.url,
+          fileName: img.name || "รูปถ่ายแปลงสาธิต",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_7A",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -674,11 +763,18 @@ export function UnplannedActivityForm({
             t.name?.includes("ร้องเรียน")
           );
         }
+        if (isType7aActive) {
+          return (
+            t.code === "TYPE_7A" ||
+            t.code === "DEMO" ||
+            t.name?.includes("แปลงสาธิต")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
     const activityTypeId =
-      matchedType?.id || (isType2Active ? "type-2" : "type-1");
+      matchedType?.id || (isType2Active ? "type-2" : isType7aActive ? "type-7a" : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -704,6 +800,10 @@ export function UnplannedActivityForm({
 
     const mappedType6 = isType6Active
       ? mapType6UnplannedToPayload(type6.items)
+      : null;
+
+    const mappedType7a = isType7aActive
+      ? mapType7aUnplannedToPayload(type7a.items)
       : null;
 
     const payload = {
@@ -738,11 +838,14 @@ export function UnplannedActivityForm({
       type5SurveyRecords: mappedType5?.type5SurveyRecords,
       type6Targets: mappedType6?.type6Targets,
       type6ActualIssues: mappedType6?.type6ActualIssues,
+      type7aPlots: mappedType7a?.type7aPlots,
+      type7aTargets: mappedType7a?.type7aPlots,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
       type5UnplannedItems: isType5Active ? type5.items : undefined,
       type6UnplannedItems: isType6Active ? type6.items : undefined,
+      type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -865,7 +968,8 @@ export function UnplannedActivityForm({
         !isType3Active &&
         !isType4Active &&
         !isType5Active &&
-        !isType6Active && (
+        !isType6Active &&
+        !isType7aActive && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -956,6 +1060,22 @@ export function UnplannedActivityForm({
           addItem={type6.addItem}
           deleteItem={type6.deleteItem}
           updateItem={type6.updateItem}
+          customers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.7 ส่วนเฉพาะ Type 7A: จัดทำแปลงสาธิต (นอกแผน) */}
+      {isType7aActive && (
+        <Type7aUnplannedForm
+          items={type7a.items}
+          addItem={type7a.addItem}
+          deleteItem={type7a.deleteItem}
+          updateItem={type7a.updateItem}
+          addProductToItem={type7a.addProductToItem}
+          updateProductInItem={type7a.updateProductInItem}
+          deleteProductFromItem={type7a.deleteProductFromItem}
           customers={customers as any}
           products={products as any}
           readonly={readonly}

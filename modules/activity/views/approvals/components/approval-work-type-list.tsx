@@ -29,6 +29,10 @@ import {
   Type6ApprovalCard,
   Type6DetailView,
 } from "@/modules/activity/features/type-6";
+import {
+  Type7aApprovalCard,
+  Type7aDetailView,
+} from "@/modules/activity/features/type-7a";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -83,6 +87,12 @@ export function ApprovalWorkTypeList({
     isTypeActive("TYPE_6", "ร้องเรียน") ||
     isTypeActive("TYPE_6", "แก้ปัญหา") ||
     Boolean(plan?.type6Targets?.length);
+
+  const isType7a =
+    isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
+    isTypeActive("TYPE_7A", "แปลงสาธิต") ||
+    Boolean(plan?.type7aPlots?.length) ||
+    Boolean(plan?.demoPlots?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -187,6 +197,23 @@ export function ApprovalWorkTypeList({
     );
   }, [isUnplanned, plan, parsedResults]);
 
+  const hasType7aActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type7aPlots?.length) return true;
+    return Boolean(
+      parsedResults?.t7PlotName ||
+        parsedResults?.t7CropName ||
+        (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_7A" ||
+              a.category === "PLOT" ||
+              a.category === "INITIAL",
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
     if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
@@ -259,6 +286,29 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "รูปภาพปัญหา",
       }));
   }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
+
+  // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
+  const effectiveT7aImages = useMemo(() => {
+    if (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) {
+      return parsedResults.t7InitialPhotos;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_7A" ||
+          att?.category === "PLOT" ||
+          att?.category === "INITIAL",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
+      }));
+  }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -421,6 +471,25 @@ export function ApprovalWorkTypeList({
             isVisible={true}
             target={targets?.t6}
             targets={targets?.t6List}
+          />
+        ))}
+
+      {/* 🟢 TYPE 7A: จัดทำแปลงสาธิต (New Demo Plot Creation) */}
+      {isType7a &&
+        (hasType7aActualResults ? (
+          <Type7aDetailView
+            isVisible={true}
+            target={targets?.t7a || targets?.t7}
+            targets={targets?.t7aList || targets?.t7List}
+            actualResult={parsedResults}
+            attachments={effectiveT7aImages}
+          />
+        ) : (
+          <Type7aApprovalCard
+            isVisible={true}
+            target={targets?.t7a || targets?.t7}
+            targets={targets?.t7aList || targets?.t7List}
+            plan={plan}
           />
         ))}
     </div>

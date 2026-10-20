@@ -4,6 +4,7 @@ import { type3PlannedStrategy, type3UnplannedStrategy } from "../features/type-3
 import { type4PlannedStrategy, type4UnplannedStrategy } from "../features/type-4";
 import { type5PlannedStrategy, type5UnplannedStrategy } from "../features/type-5";
 import { type6PlannedStrategy, type6UnplannedStrategy } from "../features/type-6";
+import { type7aPlannedStrategy, type7aUnplannedStrategy } from "../features/type-7a";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -146,6 +147,24 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.t6ProblemDetail
       ),
   },
+  TYPE_7A: {
+    code: "TYPE_7A",
+    name: "จัดทำแปลงสาธิต",
+    planned: type7aPlannedStrategy,
+    unplanned: type7aUnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_7A") ||
+            rawData.workTypeCodes.includes("จัดทำแปลงสาธิต"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7A" || s.workTypeCode === "TYPE_7")) ||
+        (rawData.type7aPlots && rawData.type7aPlots.length > 0) ||
+        (rawData.type7aUnplannedItems && rawData.type7aUnplannedItems.length > 0) ||
+        rawData.demoPlotData ||
+        rawData.t7PlotName
+      ),
+  },
 };
 
 /**
@@ -190,6 +209,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_6.hasData(rawData)) {
     return "TYPE_6";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_7A.hasData(rawData)) {
+    return "TYPE_7A";
   }
 
   return "TYPE_1";

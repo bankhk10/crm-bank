@@ -75,8 +75,8 @@ flowchart TD
 | :---: | :--- | :---: | :--- |
 | **Type 5** | สำรวจตลาดของคู่แข่ง (Competitor Market Survey) | ✅ เสร็จสมบูรณ์ | ราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), แยกอัปโหลดรูปขวด/สื่อ |
 | **Type 6** | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) | ✅ เสร็จสมบูรณ์ | รายละเอียดเรื่องร้องเรียน, แนวทางแก้ไข, รูปถ่ายหลักฐานปัญหา |
-| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment) | ⏳ ลำดับถัดไป | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง |
-| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | ⏳ รอการดำเนินการ | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
+| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment) | ✅ เสร็จสมบูรณ์ | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง |
+| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | ⏳ ลำดับถัดไป | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
 
 #### งานที่ 2.1: Migrate `features/type-5/` (สำรวจตลาดของคู่แข่ง — Completed ✅)
 - [x] สร้างโครงสร้าง Planned ตามมาตรฐาน 24 Artifacts (Planned, Shared)
@@ -110,13 +110,14 @@ flowchart TD
 - [x] จัดทำเอกสาร [`features/type-6/README.md`](../features/type-6/README.md)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
-#### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Dual-Mode Planned + Unplanned)
-- [ ] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
-- [ ] เชื่อมต่อกับระบบแปลงสาธิต (Demo Plot) และการประเมินผล
-- [ ] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
-- [ ] สร้าง Native Strategies (`type7aPlannedStrategy`, `type7aUnplannedStrategy`)
-- [ ] เชื่อมโยงเข้าสู่ Registries ทั้งสองฝั่ง (`strategy.registry.ts`, `planned-activity-form.tsx`, `unplanned-activity-form.tsx`)
-- [ ] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
+#### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Dual-Mode Planned + Unplanned — Completed ✅)
+- [x] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] เชื่อมต่อกับระบบแปลงสาธิต (`DemoPlot` Repository Native ใน `modules/activity`)
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
+- [x] สร้าง Native Strategies (`type7aPlannedStrategy`, `type7aUnplannedStrategy`)
+- [x] เชื่อมโยงเข้าสู่ Registries และ Views ทั้งหมด (`strategy.registry.ts`, `plan-targets-registry.ts`, `planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-7a/README.md`](../features/type-7a/README.md)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 ---
 

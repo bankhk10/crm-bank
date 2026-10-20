@@ -63,9 +63,18 @@ import {
   extractType6PlanTargets,
   type Type6TargetItem,
 } from "@/modules/activity/features/type-6";
+import {
+  useType7aActual,
+  validateType7aActual,
+  extractType7aPlanTargets,
+  type Type7aTargetItem,
+} from "@/modules/activity/features/type-7a";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
-import { deleteActivityPlanImagePaths } from "@/modules/activity/application/media/image-uploader";
+import {
+  uploadActivityPlanImageGroup,
+  deleteActivityPlanImagePaths,
+} from "@/modules/activity/application/media/image-uploader";
 
 interface ActivityPlanActualViewProps {
   id?: string;
@@ -103,12 +112,14 @@ export function ActivityPlanActualView({
   const type4Actual = useType4Actual();
   const type5Actual = useType5Actual();
   const type6Actual = useType6Actual();
+  const type7aActual = useType7aActual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
   const [type4Targets, setType4Targets] = useState<Type4TargetItem[]>([]);
   const [type5Targets, setType5Targets] = useState<Type5TargetItem[]>([]);
   const [type6Targets, setType6Targets] = useState<Type6TargetItem[]>([]);
+  const [type7aTargets, setType7aTargets] = useState<Type7aTargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -126,7 +137,7 @@ export function ActivityPlanActualView({
     messages: [],
   });
 
-  // 4. Hydrate Type 1 - Type 6 plan targets & existing actual result
+  // 4. Hydrate Type 1 - Type 7A plan targets & existing actual result
   useEffect(() => {
     if (plan && !isHydrated) {
       const extractedTargets = extractType1PlanTargets(plan);
@@ -147,6 +158,9 @@ export function ActivityPlanActualView({
       const extractedT6 = extractType6PlanTargets(plan);
       setType6Targets(extractedT6.list);
 
+      const extractedT7a = extractType7aPlanTargets(plan);
+      setType7aTargets(extractedT7a.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -163,11 +177,12 @@ export function ActivityPlanActualView({
         type4Actual.hydrate(payloadToHydrate);
         type5Actual.hydrate(payloadToHydrate, { t5: extractedT5.primary });
         type6Actual.hydrate(payloadToHydrate);
+        type7aActual.hydrate(plan, payloadToHydrate, { t7a: extractedT7a.primary });
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -235,6 +250,16 @@ export function ActivityPlanActualView({
       planWorkTypes.includes("ร้องเรียน") ||
       planWorkTypes.includes("แก้ปัญหา") ||
       Boolean(plan?.type6Targets?.length);
+
+    const isType7aActive =
+      planWorkTypes.includes("TYPE_7A") ||
+      planWorkTypes.includes("จัดทำแปลงสาธิต") ||
+      planWorkTypes.includes("แปลงสาธิต") ||
+      Boolean(plan?.type7aPlots?.length) ||
+      Boolean(
+        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A"),
+      ) ||
+      plan?.activityType?.code === "TYPE_7A";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -334,6 +359,14 @@ export function ActivityPlanActualView({
         const t6Err = type6Actual.validate();
         if (t6Err) {
           missingFields.push(t6Err);
+        }
+      }
+
+      // Delegate Type 7A validation to features/type-7a domain logic
+      if (isType7aActive) {
+        const t7Validation = validateType7aActual(type7aActual.actualState);
+        if (!t7Validation.isValid && t7Validation.errors?.length) {
+          missingFields = [...missingFields, ...t7Validation.errors];
         }
       }
 
@@ -586,6 +619,58 @@ export function ActivityPlanActualView({
             payload.resultSummary = `ตรวจสอบเรื่องร้องเรียน: ${t6Payload.t6ProblemDetail}`;
           }
         }
+
+        // Collect Type 7A payload if active
+        if (isType7aActive) {
+          const newlyUploadedUrls: string[] = [];
+          const cleanImages = await uploadActivityPlanImageGroup(
+            id,
+            type7aActual.t7InitialPhotos,
+            "type7a",
+            "plot",
+          );
+          const t7Payload = type7aActual.buildPayload();
+          payload = {
+            ...payload,
+            ...t7Payload,
+            type7aPlots: [
+              {
+                id: type7aActual.t7DemoPlotId || type7aTargets[0]?.id || "plot-0",
+                plotName: type7aActual.t7PlotName,
+                farmerName: type7aActual.t7FarmerName,
+                cropCategory: type7aActual.t7CropCategory,
+                cropName: type7aActual.t7CropName,
+                areaRai: type7aActual.t7AreaRai ? Number(type7aActual.t7AreaRai) : null,
+                objective: type7aActual.t7PlotObjective,
+                latitude: type7aActual.t7Latitude ? Number(type7aActual.t7Latitude) : null,
+                longitude: type7aActual.t7Longitude ? Number(type7aActual.t7Longitude) : null,
+                demoProducts: type7aActual.t7DemoProducts,
+              },
+            ],
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanImages.updatedImages.map((img: any) => ({
+                category: "PLOT",
+                fileUrl: img.url,
+                fileName: img.name || "รูปถ่ายแปลงสาธิต",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_7A",
+              })),
+            ],
+          };
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            type7aActual.t7PlotName
+          ) {
+            payload.resultSummary = `จัดทำแปลงสาธิต: ${type7aActual.t7PlotName} (${type7aActual.t7CropName || ""})`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -754,12 +839,14 @@ export function ActivityPlanActualView({
               type4State={type4Actual}
               type5State={type5Actual}
               type6State={type6Actual}
+              type7aState={type7aActual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
               type4Targets={type4Targets}
               type5Targets={type5Targets}
               type6Targets={type6Targets}
+              type7aTargets={type7aTargets}
               plan={plan}
               products={products}
               customers={customers}

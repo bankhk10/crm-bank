@@ -12,6 +12,7 @@ import { Type3DetailView } from "@/modules/activity/features/type-3";
 import { Type4DetailView } from "@/modules/activity/features/type-4";
 import { Type5DetailView } from "@/modules/activity/features/type-5";
 import { Type6DetailView } from "@/modules/activity/features/type-6";
+import { Type7aDetailView } from "@/modules/activity/features/type-7a";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -65,6 +66,12 @@ export function DetailWorkTypeList({
     isTypeActive("TYPE_6", "ร้องเรียน") ||
     isTypeActive("TYPE_6", "แก้ปัญหา") ||
     Boolean(plan?.type6Targets?.length);
+
+  const isType7a =
+    isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
+    isTypeActive("TYPE_7A", "แปลงสาธิต") ||
+    Boolean(plan?.type7aPlots?.length) ||
+    Boolean(plan?.demoPlots?.length);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -174,6 +181,29 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
+  const effectiveT7aImages = useMemo(() => {
+    if (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) {
+      return parsedResults.t7InitialPhotos;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_7A" ||
+          att?.category === "PLOT" ||
+          att?.category === "INITIAL",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
+      }));
+  }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -274,6 +304,15 @@ export function DetailWorkTypeList({
         images={effectiveT6Images}
         problemDetail={parsedResults?.t6ProblemDetail}
         initialSolution={parsedResults?.t6InitialSolution}
+      />
+
+      {/* 🟢 TYPE 7A: จัดทำแปลงสาธิต (New Demo Plot Creation) */}
+      <Type7aDetailView
+        isVisible={isType7a}
+        target={targets?.t7a || targets?.t7}
+        targets={targets?.t7aList || targets?.t7List}
+        actualResult={parsedResults}
+        attachments={effectiveT7aImages}
       />
     </div>
   );

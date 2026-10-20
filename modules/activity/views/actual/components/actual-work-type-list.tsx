@@ -31,6 +31,11 @@ import {
   type Type6TargetItem,
   type useType6Actual,
 } from "@/modules/activity/features/type-6";
+import {
+  Type7aActualForm,
+  type Type7aTargetItem,
+  type useType7aActual,
+} from "@/modules/activity/features/type-7a";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -40,12 +45,14 @@ interface ActualWorkTypeListProps {
   type4State?: ReturnType<typeof useType4Actual>;
   type5State?: ReturnType<typeof useType5Actual>;
   type6State?: ReturnType<typeof useType6Actual>;
+  type7aState?: ReturnType<typeof useType7aActual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
   type4Targets?: Type4TargetItem[];
   type5Targets?: Type5TargetItem[];
   type6Targets?: Type6TargetItem[];
+  type7aTargets?: Type7aTargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -63,12 +70,14 @@ export function ActualWorkTypeList({
   type4State,
   type5State,
   type6State,
+  type7aState,
   targets,
   type2Targets = [],
   type3Targets = [],
   type4Targets = [],
   type5Targets = [],
   type6Targets = [],
+  type7aTargets = [],
   plan,
   products = [],
   customers = [],
@@ -117,6 +126,18 @@ export function ActualWorkTypeList({
     planWorkTypes.includes("ร้องเรียน") ||
     planWorkTypes.includes("แก้ปัญหา") ||
     Boolean(plan?.type6Targets?.length);
+
+  const isType7aActive =
+    planWorkTypes.includes("TYPE_7A") ||
+    planWorkTypes.includes("จัดทำแปลงสาธิต") ||
+    planWorkTypes.includes("แปลงสาธิต") ||
+    Boolean(plan?.type7aPlots?.length) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) => s.workTypeCode === "TYPE_7A",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_7A";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -286,6 +307,24 @@ export function ActualWorkTypeList({
           setStatus={type6State.setT6Status}
           images={type6State.t6Images}
           setImages={type6State.setT6Images}
+        />
+      )}
+
+      {/* 🟢 TYPE 7A: จัดทำแปลงสาธิต (New Demo Plot Creation) */}
+      {isType7aActive && type7aState && (
+        <Type7aActualForm
+          isVisible={true}
+          targets={
+            type7aTargets && type7aTargets.length > 0
+              ? type7aTargets
+              : plan?.type7aPlots
+          }
+          target={type7aTargets?.[0] || plan?.type7aPlots?.[0]}
+          planType={plan?.planType}
+          products={products}
+          customers={customers}
+          actualState={type7aState.actualState}
+          onUpdateField={type7aState.handleUpdateField}
         />
       )}
     </div>
