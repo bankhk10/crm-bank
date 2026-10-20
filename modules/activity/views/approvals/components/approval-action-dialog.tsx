@@ -34,6 +34,7 @@ import {
   approveCancelActivityPlanAction,
   rejectCancelActivityPlanAction,
 } from "@/modules/activity/server/actions";
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
 
 export type ApprovalActionType =
   | "APPROVE"
@@ -63,13 +64,8 @@ export function ApprovalActionDialog({
   const [error, setError] = useState<string | null>(null);
   const [selectedHelperIds, setSelectedHelperIds] = useState<string[]>([]);
 
-  const userRoles = session?.user?.roles || [];
   const permissions = session?.user?.permissionKeys || [];
-  const isAdmin =
-    userRoles.includes("administrator") ||
-    userRoles.includes("admin") ||
-    userRoles.includes("ceo") ||
-    permissions.includes("activity.manage");
+  const isAdmin = isActivityAdmin(session?.user);
 
   const userEmployeeId = session?.user?.employeeId;
 

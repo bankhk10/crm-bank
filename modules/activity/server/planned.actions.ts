@@ -37,6 +37,11 @@ import {
   createUnplannedActivityAction,
   updateUnplannedActivityAction,
 } from "./unplanned.actions";
+import {
+  canCreatePlannedActivity,
+  canEditActivityPlan,
+  canDeleteActivityPlan,
+} from "../domain/permissions";
 import type { PlanActionResult } from "./types";
 
 function serialize<T>(data: T): T {
@@ -57,23 +62,11 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
     return { success: false as const, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session.user as any)?.role === "administrator" ||
-    (session.user as any)?.role === "ADMIN";
-
-  if (
-    !isAdmin &&
-    !permissions.includes("activity.create") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const authCheck = canCreatePlannedActivity(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false as const,
-      error: "Forbidden: คุณไม่มีสิทธิ์สร้าง Trip Plan",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์สร้าง Trip Plan",
     };
   }
 
@@ -206,10 +199,15 @@ export async function updateActivityPlanAction(
   try {
     const existing = await db.activityPlan.findUnique({
       where: { id },
-      select: { id: true, createdById: true, status: true, planType: true },
+      select: { id: true, createdById: true, employeeId: true, status: true, planType: true },
     });
     if (!existing) {
       return { success: false as const, error: "ไม่พบ Trip Plan ที่ต้องการแก้ไข" };
+    }
+
+    const editCheck = canEditActivityPlan(session.user, existing);
+    if (!editCheck.allowed) {
+      return { success: false as const, error: editCheck.error || "คุณไม่มีสิทธิ์แก้ไข Trip Plan นี้" };
     }
 
     if (existing.planType === ActivityPlanType.UNPLANNED) {
@@ -498,18 +496,13 @@ export async function deleteActivityPlanAction(id: string) {
   try {
     const plan = await db.activityPlan.findUnique({
       where: { id },
-      select: { id: true, createdById: true },
+      select: { id: true, createdById: true, employeeId: true, status: true },
     });
     if (!plan) return { success: false, error: "ไม่พบแผนกิจกรรม" };
 
-    const roles = (session.user as any)?.roles ?? [];
-    const isAdmin =
-      roles.includes("administrator") ||
-      roles.includes("admin") ||
-      roles.includes("ceo");
-
-    if (plan.createdById !== session.user.id && !isAdmin) {
-      return { success: false, error: "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
+    const deleteCheck = canDeleteActivityPlan(session.user, plan);
+    if (!deleteCheck.allowed) {
+      return { success: false, error: deleteCheck.error || "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
     }
 
     await db.activityPlan.update({

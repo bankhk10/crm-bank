@@ -16,6 +16,10 @@ import {
   resolvePrimaryWorkTypeCode,
 } from "../infrastructure/strategy.registry";
 import { getWorkTypeCode } from "../constants";
+import {
+  canCreateUnplannedActivity,
+  canEditActivityPlan,
+} from "../domain/permissions";
 import type { PlanActionResult } from "./types";
 
 function serialize<T>(data: T): T {
@@ -33,23 +37,11 @@ export async function createUnplannedActivityAction(
     return { success: false as const, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session.user as any)?.role === "administrator" ||
-    (session.user as any)?.role === "ADMIN";
-
-  if (
-    !isAdmin &&
-    !permissions.includes("activity.create") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const authCheck = canCreateUnplannedActivity(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false as const,
-      error: "Forbidden: คุณไม่มีสิทธิ์สร้างกิจกรรมนอกแผน",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์สร้างกิจกรรมนอกแผน",
     };
   }
 
@@ -172,10 +164,15 @@ export async function updateUnplannedActivityAction(
   try {
     const existing = await db.activityPlan.findUnique({
       where: { id },
-      select: { id: true, createdById: true, status: true },
+      select: { id: true, createdById: true, employeeId: true, status: true },
     });
     if (!existing) {
       return { success: false as const, error: "ไม่พบกิจกรรมนอกแผนที่ต้องการแก้ไข" };
+    }
+
+    const editCheck = canEditActivityPlan(session.user, existing);
+    if (!editCheck.allowed) {
+      return { success: false as const, error: editCheck.error || "คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนนี้" };
     }
 
     const startDate = new Date(rawData.startDate);

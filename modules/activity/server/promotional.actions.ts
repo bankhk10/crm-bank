@@ -15,6 +15,11 @@ import {
   type CreatePromotionalMaterialInput,
   type UpdatePromotionalMaterialInput,
 } from "../infrastructure/promotional-material.repository";
+import {
+  canCreatePromotionalMaterial,
+  canEditPromotionalMaterial,
+  canDeletePromotionalMaterial,
+} from "../domain/permissions";
 
 function serialize<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
@@ -113,26 +118,11 @@ export async function createPromotionalMaterialAction(rawData: any) {
     return serialize({ success: false, error: "Unauthorized" });
   }
 
-  const perms = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session.user as any)?.role === "administrator" ||
-    (session.user as any)?.role === "ADMIN";
-
-  const canCreate =
-    isAdmin ||
-    perms.includes("promotional_material.create") ||
-    perms.includes("menu.promotional_materials") ||
-    perms.includes("activity.manage") ||
-    perms.includes("system.settings");
-
-  if (!canCreate) {
+  const authCheck = canCreatePromotionalMaterial(session.user);
+  if (!authCheck.allowed) {
     return serialize({
       success: false,
-      error: "Forbidden: ไม่มีสิทธิ์สร้างสื่อส่งเสริมการขาย",
+      error: authCheck.error || "Forbidden: ไม่มีสิทธิ์สร้างสื่อส่งเสริมการขาย",
     });
   }
 
@@ -162,26 +152,11 @@ export async function updatePromotionalMaterialAction(id: string, rawData: any) 
     return serialize({ success: false, error: "Unauthorized" });
   }
 
-  const perms = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session.user as any)?.role === "administrator" ||
-    (session.user as any)?.role === "ADMIN";
-
-  const canEdit =
-    isAdmin ||
-    perms.includes("promotional_material.edit") ||
-    perms.includes("menu.promotional_materials") ||
-    perms.includes("activity.manage") ||
-    perms.includes("system.settings");
-
-  if (!canEdit) {
+  const authCheck = canEditPromotionalMaterial(session.user);
+  if (!authCheck.allowed) {
     return serialize({
       success: false,
-      error: "Forbidden: ไม่มีสิทธิ์แก้ไขสื่อส่งเสริมการขาย",
+      error: authCheck.error || "Forbidden: ไม่มีสิทธิ์แก้ไขสื่อส่งเสริมการขาย",
     });
   }
 
@@ -211,26 +186,11 @@ export async function deletePromotionalMaterialAction(id: string) {
     return serialize({ success: false, error: "Unauthorized" });
   }
 
-  const perms = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session.user as any)?.role === "administrator" ||
-    (session.user as any)?.role === "ADMIN";
-
-  const canDelete =
-    isAdmin ||
-    perms.includes("promotional_material.delete") ||
-    perms.includes("menu.promotional_materials") ||
-    perms.includes("activity.manage") ||
-    perms.includes("system.settings");
-
-  if (!canDelete) {
+  const authCheck = canDeletePromotionalMaterial(session.user);
+  if (!authCheck.allowed) {
     return serialize({
       success: false,
-      error: "Forbidden: ไม่มีสิทธิ์ลบสื่อส่งเสริมการขาย",
+      error: authCheck.error || "Forbidden: ไม่มีสิทธิ์ลบสื่อส่งเสริมการขาย",
     });
   }
 

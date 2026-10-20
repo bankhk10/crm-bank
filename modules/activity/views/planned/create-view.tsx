@@ -18,6 +18,10 @@ import {
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
+import {
+  isActivityAdmin,
+  canCreatePlannedActivity,
+} from "@/modules/activity/domain/permissions";
 
 export function PlannedCreateView() {
   const router = useRouter();
@@ -26,18 +30,9 @@ export function PlannedCreateView() {
     "menu.activity_plans",
   );
 
-  const roles = (session?.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session?.user as any)?.role === "administrator" ||
-    (session?.user as any)?.role === "ADMIN";
-
-  const canCreate =
-    isAdmin ||
-    hasPermission("activity.create") ||
-    hasPermission("activity.manage");
+  const user = session?.user;
+  const isAdmin = isActivityAdmin(user);
+  const canCreate = canCreatePlannedActivity(user).allowed;
   const canView =
     isAdmin ||
     allowed ||

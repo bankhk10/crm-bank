@@ -10,6 +10,10 @@ import {
   reviewSingleActivityHelperUseCase,
 } from "../application/activity-plan-flow";
 import { getApprovalQueueDataUseCase } from "../application/approval-queue";
+import {
+  canAccessApprovalQueue,
+  canApproveActivityPlan,
+} from "../domain/permissions";
 
 function serialize<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
@@ -41,24 +45,11 @@ export async function getApprovalQueueDataAction() {
     return { success: false as const, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    permissions.includes("activity.manage");
-
-  const canApprove =
-    isAdmin ||
-    permissions.includes("activity.approve") ||
-    permissions.includes("activity.manage") ||
-    permissions.includes("menu.activity_plans");
-
-  if (!canApprove) {
+  const authCheck = canAccessApprovalQueue(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false as const,
-      error: "Forbidden: คุณไม่มีสิทธิ์เข้าถึงคิวงานอนุมัติ",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์เข้าถึงคิวงานอนุมัติ",
     };
   }
 
@@ -68,8 +59,8 @@ export async function getApprovalQueueDataAction() {
       name: session.user.name,
       email: session.user.email,
       employeeId: (session.user as any)?.employeeId,
-      permissions,
-      roles,
+      permissions: session.user.permissionKeys ?? [],
+      roles: (session.user as any)?.roles ?? [],
     });
 
     return serialize(result);
@@ -94,21 +85,11 @@ export async function approveActivityPlanAction(
     return { success: false, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo");
-
-  if (
-    !isAdmin &&
-    !permissions.includes("activity.approve") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const authCheck = canApproveActivityPlan(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false,
-      error: "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์อนุมัติ Trip Plan",
     };
   }
 
@@ -139,21 +120,11 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
     return { success: false, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo");
-
-  if (
-    !isAdmin &&
-    !permissions.includes("activity.approve") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const authCheck = canApproveActivityPlan(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false,
-      error: "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์ปฏิเสธ Trip Plan",
     };
   }
 
@@ -183,21 +154,11 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
     return { success: false, error: "Unauthorized" };
   }
 
-  const permissions = session.user.permissionKeys ?? [];
-  const roles = (session.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo");
-
-  if (
-    !isAdmin &&
-    !permissions.includes("activity.approve") &&
-    !permissions.includes("activity.manage")
-  ) {
+  const authCheck = canApproveActivityPlan(session.user);
+  if (!authCheck.allowed) {
     return {
       success: false,
-      error: "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan",
+      error: authCheck.error || "Forbidden: คุณไม่มีสิทธิ์ส่งตีกลับ Trip Plan",
     };
   }
 

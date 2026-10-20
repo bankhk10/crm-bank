@@ -5,6 +5,7 @@ import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { ActivityStatus } from "@prisma/client";
 import { upsertActivityResult } from "../infrastructure/activity-result.repository";
+import { canRecordActualResult } from "../domain/permissions";
 
 function serialize<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
@@ -43,33 +44,11 @@ export async function recordActivityResultAction(
     }
 
     const isTestMode = process.env.NEXT_PUBLIC_ACTIVITY_PLAN_TEST_MODE === "true";
-    if (plan.status !== ActivityStatus.APPROVED && !isTestMode) {
+    const authCheck = canRecordActualResult(session.user, plan, isTestMode);
+    if (!authCheck.allowed) {
       return {
         success: false,
-        error: "สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น",
-      };
-    }
-
-    // 2. Ownership verification: ONLY creator or super admin can record results
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        employeeProfile: { select: { id: true } },
-        userRoles: { select: { role: { select: { slug: true } } } },
-      },
-    });
-
-    const isSuperAdmin = user?.userRoles?.some((r) =>
-      ["administrator", "admin", "ceo"].includes(r.role.slug)
-    );
-    const isCreator =
-      plan.createdById === session.user.id ||
-      (user?.employeeProfile && plan.employeeId === user.employeeProfile.id);
-
-    if (!isCreator && !isSuperAdmin) {
-      return {
-        success: false,
-        error: "เฉพาะผู้สร้างแผนงาน (Creator) เท่านั้นที่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง",
+        error: authCheck.error || "เฉพาะผู้สร้างแผนงาน (Creator) เท่านั้นที่มีสิทธิ์บันทึกผลการปฏิบัติงานจริง",
       };
     }
 

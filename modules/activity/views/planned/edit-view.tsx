@@ -18,6 +18,7 @@ import {
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
 
 interface PlannedEditViewProps {
   id: string;
@@ -30,13 +31,8 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
     "menu.activity_plans",
   );
 
-  const roles = (session?.user as any)?.roles ?? [];
-  const isAdmin =
-    roles.includes("administrator") ||
-    roles.includes("admin") ||
-    roles.includes("ceo") ||
-    (session?.user as any)?.role === "administrator" ||
-    (session?.user as any)?.role === "ADMIN";
+  const user = session?.user;
+  const isAdmin = isActivityAdmin(user);
 
   const canEdit =
     isAdmin ||
