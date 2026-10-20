@@ -71,6 +71,11 @@ import {
   hydrateType10PlannedData,
 } from "@/modules/activity/features/type-10";
 import {
+  Type11PlannedForm,
+  useType11PlannedForm,
+  hydrateType11PlannedData,
+} from "@/modules/activity/features/type-11";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -258,6 +263,13 @@ export function PlannedActivityForm({
       wt.includes("จัดงาน Field Day") ||
       wt.includes("Field Day"),
   );
+  const isType11Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_11" ||
+      wt.includes("TYPE_11") ||
+      wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
+      wt.includes("ตรวจเช็กสต็อก"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -417,6 +429,19 @@ export function PlannedActivityForm({
   const type10 = useType10PlannedForm({
     initial: initialData,
     initDetails: hydratedInitialType10Items,
+    selectedWorkTypes,
+  });
+
+  // 5.11 Type 11 Planned Hook
+  const hydratedInitialType11Items = useMemo(
+    () => hydrateType11PlannedData(initialData),
+    [initialData],
+  );
+
+  const type11 = useType11PlannedForm({
+    initial: initialData,
+    initDetails: hydratedInitialType11Items,
+    customersList: customers as any,
     selectedWorkTypes,
   });
 
@@ -711,6 +736,30 @@ export function PlannedActivityForm({
       };
     }
 
+    // 3.10 Validation & Mapping - Type 11 Items
+    let type11Payload: any = null;
+    if (isType11Active) {
+      const type11Validation = type11.validateType11();
+      if (!type11Validation.isValid) {
+        toast.error(
+          type11Validation.error ||
+            "ข้อมูลตรวจเช็คสต๊อกหน้าร้านไม่ถูกต้อง (Type 11)",
+        );
+        return;
+      }
+      const t11Mapped = type11.mapType11Payload();
+      type11Payload = t11Mapped.type11Stores;
+      if (t11Mapped.type11Stores?.length) {
+        const t11Stores = t11Mapped.type11Stores.map((st) => ({
+          workTypeCode: "TYPE_11",
+          storeId: st.storeId,
+          storeName: st.storeName || null,
+          notes: st.notes || st.remarks || "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+        }));
+        planStores = [...planStores, ...t11Stores];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -790,6 +839,9 @@ export function PlannedActivityForm({
       type10Data: type10Payload,
       type10Plots: type10Payload?.plots,
       type10Targets: type10Payload?.plots,
+      type11Data: type11Payload,
+      type11Stores: type11Payload,
+      type11Targets: type11Payload,
     };
 
     try {
@@ -1071,6 +1123,16 @@ export function PlannedActivityForm({
           setType10Attendees={type10.setType10Attendees}
           type10BookingSales={type10.type10BookingSales}
           setType10BookingSales={type10.setType10BookingSales}
+        />
+      )}
+
+      {/* 3.12 ส่วนเฉพาะ Type 11: ตรวจเช็คสต๊อกหน้าร้าน */}
+      {isType11Active && (
+        <Type11PlannedForm
+          readonly={readonly}
+          type11Stores={type11.type11Stores}
+          setType11Stores={type11.setType11Stores}
+          customers={customers as any}
         />
       )}
 

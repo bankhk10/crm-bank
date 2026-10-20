@@ -56,6 +56,11 @@ import {
   type Type10TargetItem,
   type useType10Actual,
 } from "@/modules/activity/features/type-10";
+import {
+  Type11ActualForm,
+  type Type11TargetItem,
+  type useType11Actual,
+} from "@/modules/activity/features/type-11";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -70,6 +75,7 @@ interface ActualWorkTypeListProps {
   type8State?: ReturnType<typeof useType8Actual>;
   type9State?: ReturnType<typeof useType9Actual>;
   type10State?: ReturnType<typeof useType10Actual>;
+  type11State?: ReturnType<typeof useType11Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -81,6 +87,7 @@ interface ActualWorkTypeListProps {
   type8Targets?: Type8TargetItem[];
   type9Targets?: Type9TargetItem[];
   type10Targets?: Type10TargetItem[];
+  type11Targets?: Type11TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -103,6 +110,7 @@ export function ActualWorkTypeList({
   type8State,
   type9State,
   type10State,
+  type11State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -114,6 +122,7 @@ export function ActualWorkTypeList({
   type8Targets = [],
   type9Targets = [],
   type10Targets = [],
+  type11Targets = [],
   plan,
   products = [],
   customers = [],
@@ -239,6 +248,23 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_10";
+
+  const isType11Active =
+    planWorkTypes.includes("TYPE_11") ||
+    planWorkTypes.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
+    planWorkTypes.includes("ตรวจเช็กสต็อก") ||
+    Boolean(plan?.type11Targets?.length) ||
+    Boolean(plan?.type11Stores?.length) ||
+    Boolean(plan?.type11Data) ||
+    Boolean(plan?.type11) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) =>
+          s.workTypeCode === "TYPE_11" ||
+          s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_11";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -531,6 +557,37 @@ export function ActualWorkTypeList({
           setSoldProducts={type10State.setSoldProducts}
           images={type10State.images}
           setImages={type10State.setImages}
+        />
+      )}
+
+      {/* 🟢 TYPE 11: ตรวจเช็คสต๊อกหน้าร้าน */}
+      {isType11Active && type11State && (
+        <Type11ActualForm
+          isVisible={true}
+          targets={
+            type11Targets && type11Targets.length > 0
+              ? type11Targets
+              : plan?.type11Targets || plan?.type11Stores
+          }
+          target={
+            type11Targets?.[0] ||
+            plan?.type11Targets?.[0] ||
+            plan?.type11Stores?.[0]
+          }
+          planType={plan?.planType}
+          products={products}
+          stockItems={type11State.stockItems}
+          setStockItems={type11State.setStockItems}
+          productList={type11State.productList}
+          setProductList={type11State.setProductList}
+          remainingQty={type11State.remainingQty}
+          setRemainingQty={type11State.setRemainingQty}
+          remarks={type11State.remarks}
+          setRemarks={type11State.setRemarks}
+          nextAction={type11State.nextAction}
+          setNextAction={type11State.setNextAction}
+          images={type11State.images}
+          setImages={type11State.setImages}
         />
       )}
     </div>

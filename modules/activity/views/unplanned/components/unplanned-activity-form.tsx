@@ -89,6 +89,13 @@ import {
   validateType10UnplannedItems,
 } from "@/modules/activity/features/type-10";
 import {
+  Type11UnplannedForm,
+  useType11UnplannedForm,
+  hydrateType11UnplannedData,
+  mapType11UnplannedToPayload,
+  validateType11UnplannedItems,
+} from "@/modules/activity/features/type-11";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -319,6 +326,13 @@ export function UnplannedActivityForm({
       wt.includes("จัดงาน Field Day") ||
       wt.includes("Field Day"),
   );
+  const isType11Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_11" ||
+      wt.includes("TYPE_11") ||
+      wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
+      wt.includes("ตรวจเช็กสต็อก"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -470,6 +484,18 @@ export function UnplannedActivityForm({
 
   const type10 = useType10UnplannedForm({
     initialItems: hydratedInitialType10Items,
+  });
+
+  // 5.11 Type 11 Unplanned Hook
+  const hydratedInitialType11Items = useMemo(
+    () => hydrateType11UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type11 = useType11UnplannedForm({
+    initialItems: hydratedInitialType11Items,
+    customersList: customers as any,
+    productsList: products as any,
   });
 
   // 6. Budget Hook
@@ -1122,6 +1148,70 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_10",
         })),
       };
+    } else if (isType11Active) {
+      if (type11.items.length === 0) {
+        toast.error("กรุณาระบุข้อมูลตรวจเช็กสต็อกอย่างน้อย 1 ร้านค้า");
+        return;
+      }
+
+      const type11Validation = validateType11UnplannedItems(type11.items);
+      if (!type11Validation.isValid) {
+        toast.error(
+          type11Validation.errors?.[0] ||
+            "ข้อมูลตรวจเช็คสต๊อกหน้าร้านไม่ถูกต้อง (Type 11)",
+        );
+        return;
+      }
+
+      // Upload Stock Photos
+      const allType11Images = type11.items.flatMap(
+        (item) => item.images || [],
+      );
+      let cleanType11Images = allType11Images;
+      if (allType11Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType11Images,
+            "stock",
+            "general",
+          );
+          cleanType11Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพตรวจเช็กสต็อกไม่สำเร็จ",
+          );
+          return;
+        }
+      }
+
+      const mapped = mapType11UnplannedToPayload(
+        type11.items.map((item) => ({
+          ...item,
+          images: cleanType11Images,
+        })),
+      );
+
+      if (mapped.planStores?.length) {
+        planStores = [...planStores, ...mapped.planStores];
+      }
+
+      const firstItem = type11.items[0];
+      actualData = {
+        workTypeCode: "TYPE_11",
+        notes: firstItem?.remarks || "",
+        t11StockItems: mapped.t11StockItems,
+        stockResults: mapped.stockResults,
+        t11NextAction: mapped.t11NextAction,
+        attachments: cleanType11Images.map((img) => ({
+          category: "STOCK",
+          fileUrl: img.url,
+          fileName: img.name || "รูปภาพสต็อกสินค้า",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_11",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -1205,6 +1295,14 @@ export function UnplannedActivityForm({
             t.name?.includes("จัดงาน")
           );
         }
+        if (isType11Active) {
+          return (
+            t.code === "TYPE_11" ||
+            t.code === "STOCK" ||
+            t.name?.includes("ตรวจเช็คสต๊อก") ||
+            t.name?.includes("สต็อก")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -1222,7 +1320,9 @@ export function UnplannedActivityForm({
                 ? "type-9"
                 : isType10Active
                   ? "type-10"
-                  : "type-1");
+                  : isType11Active
+                    ? "type-11"
+                    : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1315,6 +1415,9 @@ export function UnplannedActivityForm({
       type10Data: mappedType10?.type10Data,
       type10Plots: mappedType10?.type10Plots,
       type10Targets: mappedType10?.targets,
+      type11Data: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
+      type11Stores: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
+      type11Targets: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1325,6 +1428,7 @@ export function UnplannedActivityForm({
       type8UnplannedItems: isType8Active ? type8.items : undefined,
       type9UnplannedItems: isType9Active ? type9.items : undefined,
       type10UnplannedItems: isType10Active ? type10.items : undefined,
+      type11UnplannedItems: isType11Active ? type11.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1621,6 +1725,22 @@ export function UnplannedActivityForm({
           addSoldProduct={type10.addSoldProduct}
           updateSoldProduct={type10.updateSoldProduct}
           deleteSoldProduct={type10.deleteSoldProduct}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.12 ส่วนเฉพาะ Type 11: ตรวจเช็คสต๊อกหน้าร้าน */}
+      {isType11Active && (
+        <Type11UnplannedForm
+          items={type11.items}
+          addItem={type11.addItem}
+          deleteItem={type11.deleteItem}
+          updateItem={type11.updateItem}
+          addStockItem={type11.addStockItem}
+          updateStockItem={type11.updateStockItem}
+          deleteStockItem={type11.deleteStockItem}
+          customers={customers as any}
           products={products as any}
           readonly={readonly}
         />

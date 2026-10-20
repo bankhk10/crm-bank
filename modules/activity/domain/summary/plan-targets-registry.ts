@@ -11,6 +11,7 @@ import { extractType7bPlanTargets } from "../../features/type-7b";
 import { extractType8PlanTargets } from "../../features/type-8";
 import { extractType9PlanTargets } from "../../features/type-9";
 import { extractType10PlanTargets } from "../../features/type-10";
+import { extractType11PlanTargets } from "../../features/type-11";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -35,6 +36,7 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_8: (p, prev) => extractType8PlanTargets(p, prev),
   TYPE_9: (p, prev) => extractType9PlanTargets(p, prev),
   TYPE_10: (p, prev) => extractType10PlanTargets(p, prev),
+  TYPE_11: (p, prev) => extractType11PlanTargets(p, prev),
 };
 
 /**
@@ -200,6 +202,19 @@ export function extractPlanTargets(
     const extracted = extractType10PlanTargets(plan, prevTargets.t10);
     targets.t10 = extracted.primary;
     targets.t10List = extracted.list;
+  }
+
+  // Always attempt Type 11 if relation exists
+  if (
+    !targets.t11?.store &&
+    ((plan as any).stores?.some((s: any) => s.workTypeCode === "TYPE_11") ||
+      (plan as any).type11Stores?.length ||
+      (plan as any).type11Data ||
+      (plan as any).type11)
+  ) {
+    const extracted = extractType11PlanTargets(plan, prevTargets.t11);
+    targets.t11 = extracted.primary;
+    targets.t11List = extracted.list;
   }
 
   return targets;

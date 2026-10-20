@@ -17,6 +17,7 @@ import { Type7bDetailView } from "@/modules/activity/features/type-7b";
 import { Type8DetailView } from "@/modules/activity/features/type-8";
 import { Type9DetailView } from "@/modules/activity/features/type-9";
 import { Type10DetailView } from "@/modules/activity/features/type-10";
+import { Type11DetailView } from "@/modules/activity/features/type-11";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -114,6 +115,21 @@ export function DetailWorkTypeList({
         (v: any) =>
           v.workTypeCode === "TYPE_10" ||
           v.workTypeCode === "จัดงาน Field Day",
+      ),
+    );
+
+  const isType11 =
+    isTypeActive("TYPE_11", "ตรวจเช็คสต๊อกหน้าร้าน") ||
+    isTypeActive("TYPE_11", "ตรวจเช็กสต็อก") ||
+    Boolean(plan?.type11Targets?.length) ||
+    Boolean(plan?.type11Stores?.length) ||
+    Boolean(plan?.type11Data) ||
+    Boolean(plan?.type11) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) =>
+          s.workTypeCode === "TYPE_11" ||
+          s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
       ),
     );
 
@@ -395,6 +411,36 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.type10Actual?.images, parsedResults?.t10Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 11 (Attachments / Stock Photos)
+  const effectiveT11Images = useMemo(() => {
+    if (
+      parsedResults?.type11Actual?.images &&
+      parsedResults.type11Actual.images.length > 0
+    ) {
+      return parsedResults.type11Actual.images;
+    }
+    if (parsedResults?.t11Images && parsedResults.t11Images.length > 0) {
+      return parsedResults.t11Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_11" ||
+          att?.category === "STOCK" ||
+          att?.category === "stock" ||
+          att?.category === "type11",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+      }));
+  }, [parsedResults?.type11Actual?.images, parsedResults?.t11Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -620,6 +666,46 @@ export function DetailWorkTypeList({
           parsedResults?.notes
         }
         images={effectiveT10Images}
+      />
+
+      {/* 🟢 TYPE 11: ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) */}
+      <Type11DetailView
+        isVisible={isType11}
+        target={
+          targets?.t11 ||
+          targets?.t11List?.[0] ||
+          plan?.type11Targets?.[0] ||
+          plan?.type11Stores?.[0]
+        }
+        targets={
+          targets?.t11List ||
+          plan?.type11Targets ||
+          plan?.type11Stores
+        }
+        productList={
+          parsedResults?.type11Actual?.t11ProductList ||
+          parsedResults?.t11ProductList
+        }
+        remainingQty={
+          parsedResults?.type11Actual?.t11RemainingQty ||
+          parsedResults?.t11RemainingQty
+        }
+        remarks={
+          parsedResults?.type11Actual?.t11Remarks ||
+          parsedResults?.t11Remarks
+        }
+        stockItems={
+          parsedResults?.type11Actual?.t11StockItems ||
+          parsedResults?.t11StockItems ||
+          parsedResults?.stockResults ||
+          plan?.stockResults
+        }
+        nextAction={
+          parsedResults?.type11Actual?.t11NextAction ||
+          parsedResults?.t11NextAction ||
+          parsedResults?.nextAction
+        }
+        images={effectiveT11Images}
       />
     </div>
   );

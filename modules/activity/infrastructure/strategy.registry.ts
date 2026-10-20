@@ -9,6 +9,7 @@ import { type7bPlannedStrategy, type7bUnplannedStrategy } from "../features/type
 import { type8PlannedStrategy, type8UnplannedStrategy } from "../features/type-8";
 import { type9PlannedStrategy, type9UnplannedStrategy } from "../features/type-9";
 import { type10PlannedStrategy, type10UnplannedStrategy } from "../features/type-10";
+import { type11PlannedStrategy, type11UnplannedStrategy } from "../features/type-11";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -260,6 +261,33 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.t10SalesResult
       ),
   },
+  TYPE_11: {
+    code: "TYPE_11",
+    name: "ตรวจเช็คสต๊อกหน้าร้าน",
+    planned: type11PlannedStrategy,
+    unplanned: type11UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_11") ||
+            rawData.workTypeCodes.includes("ตรวจเช็คสต๊อกหน้าร้าน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_11" ||
+              s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
+          )) ||
+        (rawData.type11Stores && rawData.type11Stores.length > 0) ||
+        (rawData.type11UnplannedItems && rawData.type11UnplannedItems.length > 0) ||
+        rawData.type11Data ||
+        rawData.type11 ||
+        rawData.type11Actual ||
+        (rawData.t11StockItems && rawData.t11StockItems.length > 0) ||
+        (rawData.stockResults && rawData.stockResults.length > 0) ||
+        rawData.t11ProductList ||
+        rawData.t11RemainingQty
+      ),
+  },
 };
 
 /**
@@ -319,6 +347,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_10.hasData(rawData)) {
     return "TYPE_10";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_11.hasData(rawData)) {
+    return "TYPE_11";
   }
 
   return "TYPE_1";

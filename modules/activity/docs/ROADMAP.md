@@ -17,8 +17,9 @@
 | **Type 3 (เสนอขายสินค้า / Sales)**               |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel                                                       |
 | **Type 4 (วางบิล / เก็บเงิน)**                   |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel                                                       |
 | **Type 5 (สำรวจตลาดของคู่แข่ง)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration                                                                                      |
-| **Type 6 (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา)**   |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Native Strategy, Full View Integration                                                                                                    |
-| **Type 7A – 14**                                 | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ                                                                                     |
+| **Type 7A – 7B (งานแปลงสาธิต)**                  |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, เชื่อมต่อ Master DemoPlot, Full View Integration                                                                              |
+| **Type 8 – 11 (กิจกรรมเฉพาะทางและวิชาการ)**      |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, Unified Activity UI Inputs, Native Strategies & Registries                                                                     |
+| **Type 12 – 14**                                 | ⏳ **รอการ Migrate** | กิจกรรมทัวร์ และกลุ่มงานแปลงแฮตแทค (Spraying / Follow-up) รอการย้ายเข้ามาตามลำดับ                                                                                 |
 
 ---
 
@@ -78,7 +79,7 @@ flowchart TD
 | **Type 5**  | สำรวจตลาดของคู่แข่ง (Competitor Market Survey)      | ✅ เสร็จสมบูรณ์ | ราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), แยกอัปโหลดรูปขวด/สื่อ |
 | **Type 6**  | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) | ✅ เสร็จสมบูรณ์ | รายละเอียดเรื่องร้องเรียน, แนวทางแก้ไข, รูปถ่ายหลักฐานปัญหา          |
 | **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment)            | ✅ เสร็จสมบูรณ์ | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง     |
-| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up)               |  ⏳ ลำดับถัดไป  | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต           |
+| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up)               | ✅ เสร็จสมบูรณ์ | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต           |
 
 #### งานที่ 2.1: Migrate `features/type-5/` (สำรวจตลาดของคู่แข่ง — Completed ✅)
 
@@ -144,7 +145,7 @@ flowchart TD
 - [x] **Type 8:** จัดประชุม (Meeting) — Planned & Unplanned
 - [x] **Type 9:** จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event / Sales Promotion) — Planned & Unplanned
 - [x] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned & Unplanned
-- [ ] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
+- [x] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
 - [ ] **Type 12:** ทัวร์ (Tour) — Planned
 - [ ] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
 - [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
@@ -168,6 +169,17 @@ flowchart TD
 - [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`)
 - [x] เชื่อมโยงเข้าสู่ Views ทั้งหมด (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
 - [x] จัดทำเอกสาร [`features/type-10/README.md`](../features/type-10/README.md)
+- [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
+
+#### งานที่ 3.4: Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน — Dual-Mode Planned + Unplanned — Completed ✅)
+
+- [x] สร้างโฟลเดอร์ `features/type-11/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
+- [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด (`ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityInput`, `ActivityCombobox`, `ActivityPhotoUpload`)
+- [x] สร้าง Native Strategies (`type11PlannedStrategy`, `type11UnplannedStrategy`) พร้อมรองรับการบันทึกรายการสต็อกหน้าร้าน (`stockResults` / `t11StockItems`)
+- [x] เชื่อมโยงเข้าสู่ Registries (`strategy.registry.ts`, `plan-targets-registry.ts`, `result-summary-parser.ts`)
+- [x] เชื่อมโยงเข้าสู่ Views ทั้งหมด (`planned-activity-form.tsx`, `unplanned-activity-form.tsx`, `actual-work-type-list.tsx`, `activity-plan-actual-view.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-11/README.md`](../features/type-11/README.md)
 - [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
 
@@ -232,6 +244,7 @@ flowchart TD
 
 |     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
 | :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  1.5.0   | Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
 | **2026-10-20** |  1.4.0   | Migrate `features/type-10/` (จัดงาน Field Day) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                    | Antigravity AI |
 | **2026-10-20** |  1.3.0   | Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
 | **2026-10-20** |  1.2.0   | Migrate `features/type-8/` (จัดประชุม) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                               | Antigravity AI |

@@ -1,4 +1,5 @@
 import type { ParsedSummaryValues } from "./types";
+import { parseType11ActualResult } from "../../features/type-11";
 
 /**
  * Parses the raw JSON string or ActivityResult object
@@ -210,6 +211,33 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 11 Stock Check Results
+    const t11Parsed = parseType11ActualResult(resData);
+    if (t11Parsed.t11StockItems && (!result.t11StockItems || result.t11StockItems.length === 0)) {
+      result.t11StockItems = t11Parsed.t11StockItems;
+    }
+    if (t11Parsed.t11NextAction && !result.t11NextAction) {
+      result.t11NextAction = t11Parsed.t11NextAction;
+    }
+    if (t11Parsed.t11ProductList && !result.t11ProductList) {
+      result.t11ProductList = t11Parsed.t11ProductList;
+    }
+    if (t11Parsed.t11RemainingQty && !result.t11RemainingQty) {
+      result.t11RemainingQty = t11Parsed.t11RemainingQty;
+    }
+    if (t11Parsed.t11Remarks && !result.t11Remarks) {
+      result.t11Remarks = t11Parsed.t11Remarks;
+    }
+    if (t11Parsed.t11StockStatus && !result.t11StockStatus) {
+      result.t11StockStatus = t11Parsed.t11StockStatus;
+    }
+    if (t11Parsed.t11ReorderOpportunity && !result.t11ReorderOpportunity) {
+      result.t11ReorderOpportunity = t11Parsed.t11ReorderOpportunity;
+    }
+    if (t11Parsed.t11Images && (!result.t11Images || result.t11Images.length === 0)) {
+      result.t11Images = t11Parsed.t11Images;
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     if (resData.type4Result || resData.activityResultType4) {
       const t4 = resData.type4Result || resData.activityResultType4;
@@ -368,6 +396,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "ภาพถ่ายบรรยากาศงาน Field Day",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t11Images) {
+      result.t11Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_11" ||
+            att.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน" ||
+            att.category === "stock" ||
+            att.category === "STOCK",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));
