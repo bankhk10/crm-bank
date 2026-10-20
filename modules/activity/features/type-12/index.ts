@@ -57,16 +57,6 @@ export { validateType12Actual } from "./planned/application/actual-validation";
 export { parseType12ActualResult } from "./planned/application/actual-mapper";
 
 export {
-  findType12TourByPlanId,
-  saveType12Tour,
-} from "./planned/infrastructure/type12.repository";
-
-export {
-  type12PlannedStrategy,
-  type12Strategy,
-} from "./planned/infrastructure/type12-planned.strategy";
-
-export {
   useType12PlannedForm,
   useType12Form,
 } from "./planned/hooks/use-type12-planned-form";
@@ -123,8 +113,6 @@ export {
   hydrateType12UnplannedData,
   mapType12UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-
-export { type12UnplannedStrategy } from "./unplanned/infrastructure/type12-unplanned.strategy";
 
 export { useType12UnplannedForm } from "./unplanned/hooks/use-type12-unplanned-form";
 export type { UseType12UnplannedFormOptions } from "./unplanned/hooks/use-type12-unplanned-form";

@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { ActivityApprovalAction } from "@prisma/client";
+import { z } from "zod";
 import {
-  activityApprovalSchema,
   approveActivityPlanUseCase,
   rejectActivityPlanUseCase,
   requestCorrectionPlanUseCase,
-} from "@/modules/activity-plans/application";
+} from "@/modules/activity/application/activity-plan-flow";
+
+const activityApprovalSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT", "REQUEST_CORRECTION"], {
+    required_error: "กรุณาระบุการดำเนินการ",
+  }),
+  comment: z.string().optional().nullable(),
+  selectedHelperEmployeeIds: z.array(z.string()).optional(),
+});
 
 type RouteContext = {
   params: Promise<{ id: string }>;

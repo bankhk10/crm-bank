@@ -22,17 +22,6 @@ export {
   hydrateType7bPlannedData,
   mapType7bToSectionItems,
 } from "./planned/application/planned-mapper";
-export {
-  type7bPlannedStrategy,
-  type7bStrategy, // Backward-compatible alias
-} from "./planned/infrastructure/type7b-planned.strategy";
-export {
-  findFollowUpDemoPlots,
-  findFollowUpActivityPlans,
-  findType7bByPlanId,
-  syncType7bData,
-  createType7bData,
-} from "./planned/infrastructure/type7b.repository";
 export type {
   Type7bPlanItem,
   Type7bTargetItem,
@@ -91,5 +80,4 @@ export {
   hydrateType7bUnplannedData,
   mapType7bUnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type7bUnplannedStrategy } from "./unplanned/infrastructure/type7b-unplanned.strategy";
 export * from "./unplanned/types/unplanned.types";

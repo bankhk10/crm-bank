@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { canAccessRecord } from "@/lib/data-scope";
 import {
-  getActivityPlanDetailUseCase,
-  updateActivityPlanUseCase,
-  deleteActivityPlanUseCase,
-} from "@/modules/activity-plans/application";
+  getActivityPlanAction,
+  updateActivityPlanAction,
+  deleteActivityPlanAction,
+} from "@/modules/activity/server/planned.actions";
 
 // Context params type in Next.js App Router
 type RouteContext = {
@@ -21,7 +21,7 @@ export async function GET(request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   try {
-    const result = await getActivityPlanDetailUseCase(id);
+    const result = await getActivityPlanAction(id);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
@@ -32,8 +32,8 @@ export async function GET(request: Request, context: RouteContext) {
     const hasAccess = await canAccessRecord(session, "activity_plan", {
       resourceOwnerId: plan.createdById,
       resourceEmployeeId: plan.employeeId,
-      resourceDepartmentId: plan.employee.departmentId,
-      resourceHelpers: plan.helpers,
+      resourceDepartmentId: (plan as any).employee?.departmentId,
+      resourceHelpers: (plan as any).helpers,
     });
 
     if (!hasAccess) {
@@ -72,7 +72,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
   try {
     const body = await request.json();
-    const result = await updateActivityPlanUseCase(id, session.user.id, body);
+    const result = await updateActivityPlanAction(id, body);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
@@ -107,7 +107,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   }
 
   try {
-    const result = await deleteActivityPlanUseCase(id, session.user.id);
+    const result = await deleteActivityPlanAction(id);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

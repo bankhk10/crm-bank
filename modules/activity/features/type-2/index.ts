@@ -27,7 +27,6 @@ export {
   extractType2PlanTargets,
   hydrateType2PlannedData,
 } from "./planned/application/planned-mapper";
-export { type2PlannedStrategy } from "./planned/infrastructure/type2-planned.strategy";
 export type {
   Type2PlannedItem,
   Type2ProductFollowupItem,
@@ -87,7 +86,6 @@ export {
   hydrateType2UnplannedData,
   mapType2UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type2UnplannedStrategy } from "./unplanned/infrastructure/type2-unplanned.strategy";
 export type {
   Type2UnplannedItem,
   Type2UnplannedProductItem,

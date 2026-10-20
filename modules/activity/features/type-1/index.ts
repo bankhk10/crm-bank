@@ -32,7 +32,6 @@ export {
   type Type1ActualValidationInput,
   type Type1ValidationResult,
 } from "./planned/application/actual-validation";
-export { type1PlannedStrategy } from "./planned/infrastructure/type1-planned.strategy";
 export type {
   Type1PlannedItem,
   Type1PlannedFormProps,
@@ -71,7 +70,6 @@ export {
   hydrateType1UnplannedData,
   mapType1UnplannedItemToStore,
 } from "./unplanned/application/unplanned-mapper";
-export { type1UnplannedStrategy } from "./unplanned/infrastructure/type1-unplanned.strategy";
 export type {
   Type1UnplannedItem,
   Type1UnplannedFormProps,

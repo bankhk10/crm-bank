@@ -22,10 +22,6 @@ export {
   hydrateType7aPlannedData,
   mapType7aToSectionItems,
 } from "./planned/application/planned-mapper";
-export {
-  type7aPlannedStrategy,
-  type7aStrategy, // Backward-compatible alias
-} from "./planned/infrastructure/type7a-planned.strategy";
 export type {
   Type7aPlanItem,
   Type7aTargetItem,
@@ -82,5 +78,4 @@ export {
   hydrateType7aUnplannedData,
   mapType7aUnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type7aUnplannedStrategy } from "./unplanned/infrastructure/type7a-unplanned.strategy";
 export * from "./unplanned/types/unplanned.types";

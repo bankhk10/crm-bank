@@ -22,14 +22,6 @@ export {
   hydrateType10PlannedData,
   mapType10ToSectionItems,
 } from "./planned/application/planned-mapper";
-export {
-  type10PlannedStrategy,
-  type10Strategy, // Backward-compatible alias
-} from "./planned/infrastructure/type10-planned.strategy";
-export {
-  findType10ByPlanId,
-  saveType10ActualSaleItems,
-} from "./planned/infrastructure/type10.repository";
 export type {
   Type10PlanItem,
   Type10TargetItem,
@@ -85,5 +77,4 @@ export {
   hydrateType10UnplannedData,
   mapType10UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type10UnplannedStrategy } from "./unplanned/infrastructure/type10-unplanned.strategy";
 export * from "./unplanned/types/unplanned.types";

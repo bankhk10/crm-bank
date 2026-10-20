@@ -4,8 +4,8 @@ import { isAuthorized } from "@/modules/rbac";
 import { applyDataScope } from "@/lib/data-scope";
 import { db } from "@/lib/db";
 import { Prisma, ActivityStatus } from "@prisma/client";
-import { createActivityPlanUseCase } from "@/modules/activity-plans/application";
-import { getWorkTypeCode } from "@/modules/activity-plans/constants";
+import { createActivityPlanAction } from "@/modules/activity/server/planned.actions";
+import { getWorkTypeCode } from "@/modules/activity/constants";
 
 const resourcePath = "/api/activity-plans";
 
@@ -250,7 +250,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const result = await createActivityPlanUseCase(session.user.id, body);
+    const result = await createActivityPlanAction(body);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

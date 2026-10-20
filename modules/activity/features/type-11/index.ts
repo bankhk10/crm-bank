@@ -23,14 +23,6 @@ export {
   hydrateType11PlannedData,
   mapType11ToSectionItems,
 } from "./planned/application/planned-mapper";
-export {
-  type11PlannedStrategy,
-  type11Strategy, // Backward-compatible alias
-} from "./planned/infrastructure/type11-planned.strategy";
-export {
-  findType11StoresByPlanId,
-  saveType11ActualStockItems,
-} from "./planned/infrastructure/type11.repository";
 export type {
   Type11PlanItem,
   Type11TargetItem,
@@ -87,5 +79,4 @@ export {
   hydrateType11UnplannedData,
   mapType11UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type11UnplannedStrategy } from "./unplanned/infrastructure/type11-unplanned.strategy";
 export * from "./unplanned/types/unplanned.types";

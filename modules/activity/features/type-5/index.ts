@@ -28,7 +28,6 @@ export {
   mapType5FormToPayload,
   mapType5ToSectionItems,
 } from "./planned/application/planned-mapper";
-export { type5PlannedStrategy } from "./planned/infrastructure/type5-planned.strategy";
 export type {
   Type5SurveyItem,
   TargetSurveyItem,
@@ -101,7 +100,6 @@ export {
   hydrateType5UnplannedData,
   mapType5UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type5UnplannedStrategy } from "./unplanned/infrastructure/type5-unplanned.strategy";
 export type {
   Type5UnplannedItem,
   Type5UnplannedFormProps,

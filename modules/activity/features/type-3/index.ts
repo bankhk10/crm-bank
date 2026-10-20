@@ -30,7 +30,6 @@ export {
   mapType3FormToPayload,
   mapType3ToSectionItems,
 } from "./planned/application/planned-mapper";
-export { type3PlannedStrategy } from "./planned/infrastructure/type3-planned.strategy";
 export type {
   Type3SalesItem,
   Type3SalesProductLine,
@@ -81,7 +80,6 @@ export {
   hydrateType3UnplannedData,
   mapType3UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type3UnplannedStrategy } from "./unplanned/infrastructure/type3-unplanned.strategy";
 export type {
   Type3UnplannedItem,
   Type3UnplannedProductItem,

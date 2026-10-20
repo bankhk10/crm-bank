@@ -29,7 +29,6 @@ export {
   mapType4FormToPayload,
   mapType4ToSectionItems,
 } from "./planned/application/planned-mapper";
-export { type4PlannedStrategy } from "./planned/infrastructure/type4-planned.strategy";
 export type {
   Type4CollectItem,
   TargetCollectCompanyItem,
@@ -78,7 +77,6 @@ export {
   hydrateType4UnplannedData,
   mapType4UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type4UnplannedStrategy } from "./unplanned/infrastructure/type4-unplanned.strategy";
 export type {
   Type4UnplannedItem,
   Type4UnplannedFormProps,

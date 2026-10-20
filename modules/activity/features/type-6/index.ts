@@ -61,11 +61,7 @@ export {
   parseType6ActualResult,
 } from "./planned/application/actual-mapper";
 
-// 4. Infrastructure Strategy
-export {
-  type6PlannedStrategy,
-  type6Strategy,
-} from "./planned/infrastructure/type6-planned.strategy";
+// 5. Types & Constants
 
 // 5. Types & Constants
 export * from "./shared/constants";
@@ -87,5 +83,4 @@ export {
   hydrateType6UnplannedData,
   mapType6UnplannedToPayload,
 } from "./unplanned/application/unplanned-mapper";
-export { type6UnplannedStrategy } from "./unplanned/infrastructure/type6-unplanned.strategy";
 export * from "./unplanned/types/unplanned.types";
