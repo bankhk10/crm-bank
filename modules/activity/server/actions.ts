@@ -10,6 +10,8 @@ import { type2PlannedStrategy } from "../features/type-2/planned/infrastructure/
 import { type2UnplannedStrategy } from "../features/type-2/unplanned/infrastructure/type2-unplanned.strategy";
 import { type3PlannedStrategy } from "../features/type-3/planned/infrastructure/type3-planned.strategy";
 import { type3UnplannedStrategy } from "../features/type-3/unplanned/infrastructure/type3-unplanned.strategy";
+import { type4PlannedStrategy } from "../features/type-4/planned/infrastructure/type4-planned.strategy";
+import { type4UnplannedStrategy } from "../features/type-4/unplanned/infrastructure/type4-unplanned.strategy";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -237,6 +239,24 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         }
       }
 
+      // 7. Save Type 4 targets directly to dedicated table activity_plan_type_4_targets
+      const hasType4 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_4") ||
+            rawData.workTypeCodes.includes("วางบิล / เก็บเงิน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_4")) ||
+        (rawData.type4Targets && rawData.type4Targets.length > 0) ||
+        (rawData.type4Items && rawData.type4Items.length > 0);
+
+      if (hasType4) {
+        if (rawData.planType === "UNPLANNED") {
+          await type4UnplannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        } else {
+          await type4PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        }
+      }
+
       return createdPlan;
     });
 
@@ -432,6 +452,24 @@ export async function updateActivityPlanAction(
           await type3UnplannedStrategy.savePlan(tx, id, rawData);
         } else {
           await type3PlannedStrategy.savePlan(tx, id, rawData);
+        }
+      }
+
+      // 6. Save Type 4 targets
+      const hasType4 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_4") ||
+            rawData.workTypeCodes.includes("วางบิล / เก็บเงิน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_4")) ||
+        (rawData.type4Targets && rawData.type4Targets.length > 0) ||
+        (rawData.type4Items && rawData.type4Items.length > 0);
+
+      if (hasType4) {
+        if (rawData.planType === "UNPLANNED") {
+          await type4UnplannedStrategy.savePlan(tx, id, rawData);
+        } else {
+          await type4PlannedStrategy.savePlan(tx, id, rawData);
         }
       }
 

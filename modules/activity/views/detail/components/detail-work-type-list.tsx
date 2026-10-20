@@ -9,6 +9,7 @@ import {
 } from "@/modules/activity/features/type-1";
 import { Type2DetailView } from "@/modules/activity/features/type-2";
 import { Type3DetailView } from "@/modules/activity/features/type-3";
+import { Type4DetailView } from "@/modules/activity/features/type-4";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -45,6 +46,12 @@ export function DetailWorkTypeList({
     isTypeActive("TYPE_3", "เสนอขายสินค้า") ||
     isTypeActive("TYPE_3", "เสนอขาย") ||
     Boolean(plan?.type3Targets?.length);
+
+  const isType4 =
+    isTypeActive("TYPE_4", "วางบิล / เก็บเงิน") ||
+    isTypeActive("TYPE_4", "วางบิล") ||
+    isTypeActive("TYPE_4", "เก็บเงิน") ||
+    Boolean(plan?.type4Targets?.length);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -111,6 +118,28 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.t2Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 4 (Payment Images)
+  const effectiveT4Images = useMemo(() => {
+    if (parsedResults?.t4PaymentImages && parsedResults.t4PaymentImages.length > 0) {
+      return parsedResults.t4PaymentImages;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_4" ||
+          att?.category === "PAYMENT",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "หลักฐานการชำระเงิน",
+      }));
+  }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -172,7 +201,18 @@ export function DetailWorkTypeList({
         productSalesDetails={parsedResults?.t3ProductSalesDetails}
       />
 
-      {/* 🔵 ประเภทงานอื่นๆ (Type 4 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
+      {/* 🟠 TYPE 4: วางบิล / เก็บเงิน (Billing & Payment Collection) */}
+      <Type4DetailView
+        isVisible={isType4}
+        target={targets?.t4}
+        targets={targets?.t4List}
+        orderNo={parsedResults?.t4OrderNo}
+        receivedAmount={parsedResults?.t4ReceivedAmount}
+        billingStatus={parsedResults?.t4BillingStatus}
+        billingDetail={parsedResults?.t4BillingDetail}
+        collectDetail={parsedResults?.t4CollectDetail}
+        paymentImages={effectiveT4Images}
+      />
     </div>
   );
 }

@@ -114,7 +114,9 @@ export interface ActualTargetsState {
   t1List?: Type1TargetItem[];
   t2?: Type2TargetItem;
   t3?: Type3TargetItem;
+  t3List?: Type3TargetItem[];
   t4?: Type4TargetItem;
+  t4List?: Type4TargetItem[];
   t5?: Type5TargetItem;
   t6?: Type6TargetItem;
   t7?: Type7aTargetItem;

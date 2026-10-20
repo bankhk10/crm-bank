@@ -17,6 +17,10 @@ import {
   Type3ApprovalCard,
   Type3DetailView,
 } from "@/modules/activity/features/type-3";
+import {
+  Type4ApprovalCard,
+  Type4DetailView,
+} from "@/modules/activity/features/type-4";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -54,6 +58,12 @@ export function ApprovalWorkTypeList({
     isTypeActive("TYPE_3", "เสนอขายสินค้า") ||
     isTypeActive("TYPE_3", "เสนอขาย") ||
     Boolean(plan?.type3Targets?.length);
+
+  const isType4 =
+    isTypeActive("TYPE_4", "วางบิล / เก็บเงิน") ||
+    isTypeActive("TYPE_4", "วางบิล") ||
+    isTypeActive("TYPE_4", "เก็บเงิน") ||
+    Boolean(plan?.type4Targets?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -122,6 +132,20 @@ export function ApprovalWorkTypeList({
     );
   }, [isUnplanned, plan, parsedResults]);
 
+  const hasType4ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.activityResultType4 || plan?.result?.type4Result) {
+      return true;
+    }
+    return Boolean(
+      parsedResults?.t4OrderNo ||
+        parsedResults?.t4ReceivedAmount ||
+        parsedResults?.t4BillingStatus ||
+        parsedResults?.t4BillingDetail ||
+        parsedResults?.t4CollectDetail,
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
     if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
@@ -150,6 +174,28 @@ export function ApprovalWorkTypeList({
     }
     return undefined;
   }, [type1Targets.primary?.productAdvice, plan?.type1Products]);
+
+  // รวบรวมรูปภาพ Type 4 (Payment Images)
+  const effectiveT4Images = useMemo(() => {
+    if (parsedResults?.t4PaymentImages && parsedResults.t4PaymentImages.length > 0) {
+      return parsedResults.t4PaymentImages;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_4" ||
+          att?.category === "PAYMENT",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "หลักฐานการชำระเงิน",
+      }));
+  }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -247,7 +293,27 @@ export function ApprovalWorkTypeList({
           />
         ))}
 
-      {/* 🔵 ประเภทงานอื่นๆ (Type 4 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
+      {/* 🟠 TYPE 4: วางบิล / เก็บเงิน (Billing & Payment Collection) */}
+      {isType4 &&
+        (hasType4ActualResults ? (
+          <Type4DetailView
+            isVisible={true}
+            target={targets?.t4}
+            targets={targets?.t4List}
+            orderNo={parsedResults?.t4OrderNo}
+            receivedAmount={parsedResults?.t4ReceivedAmount}
+            billingStatus={parsedResults?.t4BillingStatus}
+            billingDetail={parsedResults?.t4BillingDetail}
+            collectDetail={parsedResults?.t4CollectDetail}
+            paymentImages={effectiveT4Images}
+          />
+        ) : (
+          <Type4ApprovalCard
+            isVisible={true}
+            target={targets?.t4}
+            targets={targets?.t4List}
+          />
+        ))}
     </div>
   );
 }

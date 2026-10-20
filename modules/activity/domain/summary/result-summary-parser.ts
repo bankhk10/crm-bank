@@ -148,6 +148,46 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 4 Billing / Collect Results from dedicated table or outcome
+    if (resData.type4Result || resData.activityResultType4) {
+      const t4 = resData.type4Result || resData.activityResultType4;
+      if (!result.t4OrderNo && t4.orderNo) result.t4OrderNo = t4.orderNo;
+      if (!result.t4BillingStatus && t4.billingStatus)
+        result.t4BillingStatus = t4.billingStatus;
+      if (!result.t4ReceivedAmount && t4.receivedAmount != null)
+        result.t4ReceivedAmount = String(t4.receivedAmount);
+      if (!result.t4BillingDetail && t4.billingDetail)
+        result.t4BillingDetail = t4.billingDetail;
+      if (!result.t4CollectDetail && t4.collectDetail)
+        result.t4CollectDetail = t4.collectDetail;
+      if (!result.t4Detail && t4.notes) result.t4Detail = t4.notes;
+
+      if (Array.isArray(t4.items) && t4.items.length > 0 && !result.t4Items) {
+        result.t4Items = t4.items.map((it: any) => ({
+          id: it.id,
+          storeId: it.storeId,
+          customer: it.companyName || it.store?.name || "",
+          companyName: it.companyName || it.store?.name || "",
+          collectType: it.collectType || "COLLECT",
+          targetAmountNum:
+            it.targetAmount != null ? Number(it.targetAmount) : undefined,
+          targetCollect:
+            it.targetAmount != null
+              ? `${Number(it.targetAmount).toLocaleString()} บาท`
+              : undefined,
+          receivedAmount:
+            it.receivedAmount != null ? String(it.receivedAmount) : undefined,
+          billingStatus: it.billingStatus || "",
+          billingDetail: it.billingDetail || "",
+          collectDetail: it.collectDetail || "",
+          detail: it.notes || "",
+        }));
+      }
+    }
+    if (!result.t4ReceivedAmount && resData.collectResultAmount != null) {
+      result.t4ReceivedAmount = String(resData.collectResultAmount);
+    }
+
     // Type 2 Attachments / Images
     const rawAttachmentsList: any[] = [
       ...(Array.isArray(resData.attachments) ? resData.attachments : []),
@@ -180,6 +220,23 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "รูปภาพ",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t4PaymentImages) {
+      result.t4PaymentImages = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_4" ||
+            att.workTypeCode === "วางบิล / เก็บเงิน" ||
+            att.category === "PAYMENT",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "เอกสารชำระเงิน/วางบิล",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

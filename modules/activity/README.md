@@ -38,12 +38,19 @@ modules/activity/
 │   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 2
 │   │   └── index.ts                      # Unified Public API Contract for Type 2
 │   │
-│   └── type-3/                           # 💼 VERTICAL SLICE: เสนอขายสินค้า (Product Sales Proposal)
-│       ├── planned/                      # แผนเสนอขายและผลงานจริงในแผน (Targets, Products, Actual Sales)
-│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Sales Proposal)
-│       ├── shared/                       # Constants (NOT_CLOSED_REASONS) และ Types
-│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 3
-│       └── index.ts                      # Unified Public API Contract for Type 3
+│   ├── type-3/                           # 💼 VERTICAL SLICE: เสนอขายสินค้า (Product Sales Proposal)
+│   │   ├── planned/                      # แผนเสนอขายและผลงานจริงในแผน (Targets, Products, Actual Sales)
+│   │   ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Sales Proposal)
+│   │   ├── shared/                       # Constants (NOT_CLOSED_REASONS) และ Types
+│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 3
+│   │   └── index.ts                      # Unified Public API Contract for Type 3
+│   │
+│   └── type-4/                           # 💰 VERTICAL SLICE: วางบิล / เก็บเงิน (Billing & Payment Collection)
+│       ├── planned/                      # แผนวางบิล/เก็บเงินและผลงานจริงในแผน (Targets, Actuals, Receipts)
+│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Billing & Collection)
+│       ├── shared/                       # Constants (COLLECT_TYPES, BILLING_STATUSES) และ Types
+│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 4
+│       └── index.ts                      # Unified Public API Contract for Type 4
 │
 ├── server/                               # Server Actions Gateways (Standalone ประจำโมดูล)
 │   └── actions.ts                        # createActivityPlanAction, updateActivityPlanAction, getActivityPlanAction ฯลฯ
@@ -450,11 +457,34 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] **Step 2: Plan Summary & Targets Registry Engine** (`domain/summary/`, Extensible Targets Registry, 100% Decoupled Views)
 - [x] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
 - [x] **Type 3 Vertical Slice**: เสนอขายสินค้า (Product Sales Proposal) ครบทั้ง Planned, Actual, Unplanned 2-in-1 และ Dual Persistence
-- [ ] ทยอย Migrate ประเภทงาน Type 4 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+- [x] **Type 4 Vertical Slice**: วางบิล / เก็บเงิน (Billing & Payment Collection) ครบทั้ง Planned, Actual, Unplanned 2-in-1, Multi-target, สลิปหลักฐาน และ Dual Persistence
+- [ ] ทยอย Migrate ประเภทงาน Type 5 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
 
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.8.0 (2026-10-20)
+- **Type 4 Vertical Slice Complete (วางบิล / เก็บเงิน - Billing & Payment Collection)**:
+  - ย้ายและพัฒนา Type 4 Vertical Slice เต็มรูปแบบใน `modules/activity/features/type-4/` ครบวงจร 100%
+  - **Shared Core & Standards**:
+    - `shared/constants.ts`: กำหนด `COLLECT_TYPES` (วางบิล / เก็บเงิน), `BILLING_STATUSES` (วางบิลสำเร็จ / เลื่อนวางบิล / พบปัญหา) และ Status Badges
+    - `shared/types.ts`: กำหนด `StoreOption` และ `Type4ImageFile`
+  - **Planned Sub-slice (กิจกรรมในแผน Trip Plan)**:
+    - ฟอร์มและ Hook: `Type4PlanForm`, `Type4PlanCard`, `useType4Form` (รองรับหลายร้านค้า Multi-target, สลับประเภทวางบิล/เก็บเงิน, คำนวณยอดเงินรวมเป้าหมายอัตโนมัติ)
+    - Application & Strategy: `planned-validation.ts`, `planned-mapper.ts`, `type4-planned.strategy.ts` พร้อม Dual Persistence บันทึกลง `ActivityPlanType4Target` และ sync ลง `ActivityPlanStore`
+  - **Actual & Review Sub-slice (ผลการปฏิบัติงานตามแผน)**:
+    - ฟอร์มและการ์ด: `Type4ActualForm`, `Type4DetailView`, `Type4ApprovalCard`
+    - Form State Hook: `useType4Actual` (รองรับเลขที่บิล, ยอดเงินจริง, สถานะการวางบิล, และระบบอัปโหลดสลิปหลักฐานการชำระเงิน)
+    - Application & Mappers: `actual-validation.ts`, `actual-mapper.ts`
+  - **Unplanned Sub-slice (กิจกรรมนอกแผน 2-in-1)**:
+    - ฟอร์มและ Hook: `Type4UnplannedForm`, `useType4UnplannedForm` (ระบุร้านค้า ยอดเป้าหมาย ยอดรับจริง และสลิปการชำระเงินเสร็จสิ้นในหน้าเดียว)
+    - Application & Strategy: `unplanned-validation.ts`, `unplanned-mapper.ts`, `type4-unplanned.strategy.ts` บันทึกแผนและผลงานจริงใน 1 Atomic Transaction
+  - **Views & Domain Integration**:
+    - ผูกเข้ากับ `domain/summary/plan-targets-registry.ts` (`extractType4PlanTargets`) และ `result-summary-parser.ts` (`ActivityResultType4` parsing & attachments)
+    - ผูกเข้ากับ View Orchestrators: `PlannedActivityForm`, `UnplannedActivityForm`, `ActualWorkTypeList`, `DetailWorkTypeList`, `ApprovalWorkTypeList` และ `activity-plan-actual-view.tsx`
+    - ผูกเข้ากับ Server Actions: `createActivityPlanAction` และ `updateActivityPlanAction` ใน `modules/activity/server/actions.ts`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
 
 ### Version 1.7.0 (2026-10-20)
 - **Type 3 Vertical Slice Complete (เสนอขายสินค้า / Product Sales Proposal)**:

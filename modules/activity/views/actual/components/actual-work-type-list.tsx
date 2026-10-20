@@ -16,15 +16,22 @@ import {
   type Type3TargetItem,
   type useType3Actual,
 } from "@/modules/activity/features/type-3";
+import {
+  Type4ActualForm,
+  type Type4TargetItem,
+  type useType4Actual,
+} from "@/modules/activity/features/type-4";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
   type1State: ReturnType<typeof useType1Actual>;
   type2State?: ReturnType<typeof useType2Actual>;
   type3State?: ReturnType<typeof useType3Actual>;
+  type4State?: ReturnType<typeof useType4Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
+  type4Targets?: Type4TargetItem[];
   plan?: any;
   products?: any[];
 }
@@ -38,9 +45,11 @@ export function ActualWorkTypeList({
   type1State,
   type2State,
   type3State,
+  type4State,
   targets,
   type2Targets = [],
   type3Targets = [],
+  type4Targets = [],
   plan,
   products = [],
 }: ActualWorkTypeListProps) {
@@ -68,6 +77,13 @@ export function ActualWorkTypeList({
     planWorkTypes.includes("เสนอขายสินค้า") ||
     planWorkTypes.includes("เสนอขาย") ||
     Boolean(plan?.type3Targets?.length);
+
+  const isType4Active =
+    planWorkTypes.includes("TYPE_4") ||
+    planWorkTypes.includes("วางบิล / เก็บเงิน") ||
+    planWorkTypes.includes("วางบิล") ||
+    planWorkTypes.includes("เก็บเงิน") ||
+    Boolean(plan?.type4Targets?.length);
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -154,6 +170,33 @@ export function ActualWorkTypeList({
           setUnclosedReason={type3State.setUnclosedReason}
           productSalesDetails={type3State.productSalesDetails}
           setProductSalesDetails={type3State.setProductSalesDetails}
+        />
+      )}
+
+      {/* 🟠 TYPE 4: วางบิล / เก็บเงิน (Billing & Payment Collection) */}
+      {isType4Active && type4State && (
+        <Type4ActualForm
+          isVisible={true}
+          targets={
+            type4Targets && type4Targets.length > 0
+              ? type4Targets
+              : plan?.type4Targets
+          }
+          target={type4Targets?.[0] || plan?.type4Targets?.[0]}
+          planType={plan?.planType}
+          orderNo={type4State.t4OrderNo}
+          setOrderNo={type4State.setT4OrderNo}
+          receivedAmount={type4State.t4ReceivedAmount}
+          setReceivedAmount={type4State.setT4ReceivedAmount}
+          billingStatus={type4State.t4BillingStatus}
+          setBillingStatus={type4State.setT4BillingStatus}
+          billingDetail={type4State.t4BillingDetail}
+          setBillingDetail={type4State.setT4BillingDetail}
+          collectDetail={type4State.t4CollectDetail}
+          setCollectDetail={type4State.setT4CollectDetail}
+          paymentImages={type4State.t4PaymentImages}
+          onUploadImages={type4State.handleUploadImages}
+          onRemoveImage={type4State.handleRemoveImage}
         />
       )}
     </div>

@@ -46,6 +46,11 @@ import {
   extractType3PlanTargets,
   type Type3TargetItem,
 } from "@/modules/activity/features/type-3";
+import {
+  useType4Actual,
+  extractType4PlanTargets,
+  type Type4TargetItem,
+} from "@/modules/activity/features/type-4";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import { deleteActivityPlanImagePaths } from "@/modules/activity/ui/utils/image-uploader";
@@ -79,13 +84,15 @@ export function ActivityPlanActualView({
   // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
   const statusState = useActualStatusState();
 
-  // 3. Type 1, Type 2 & Type 3 Actual State Hooks
+  // 3. Type 1, Type 2, Type 3 & Type 4 Actual State Hooks
   const type1Actual = useType1Actual();
   const type2Actual = useType2Actual();
   const type3Actual = useType3Actual();
+  const type4Actual = useType4Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
+  const [type4Targets, setType4Targets] = useState<Type4TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -103,7 +110,7 @@ export function ActivityPlanActualView({
     messages: [],
   });
 
-  // 4. Hydrate Type 1 & Type 2 plan targets & existing actual result
+  // 4. Hydrate Type 1, Type 2, Type 3 & Type 4 plan targets & existing actual result
   useEffect(() => {
     if (plan && !isHydrated) {
       const extractedTargets = extractType1PlanTargets(plan);
@@ -114,6 +121,9 @@ export function ActivityPlanActualView({
 
       const extractedT3 = extractType3PlanTargets(plan);
       setType3Targets(extractedT3.list);
+
+      const extractedT4 = extractType4PlanTargets(plan);
+      setType4Targets(extractedT4.list);
 
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
@@ -128,11 +138,12 @@ export function ActivityPlanActualView({
         type1Actual.hydrate(payloadToHydrate);
         type2Actual.hydrate(payloadToHydrate);
         type3Actual.hydrate(payloadToHydrate);
+        type4Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -180,6 +191,13 @@ export function ActivityPlanActualView({
       planWorkTypes.includes("เสนอขายสินค้า") ||
       planWorkTypes.includes("เสนอขาย") ||
       Boolean(plan?.type3Targets?.length);
+
+    const isType4Active =
+      planWorkTypes.includes("TYPE_4") ||
+      planWorkTypes.includes("วางบิล / เก็บเงิน") ||
+      planWorkTypes.includes("วางบิล") ||
+      planWorkTypes.includes("เก็บเงิน") ||
+      Boolean(plan?.type4Targets?.length);
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -252,6 +270,15 @@ export function ActivityPlanActualView({
         });
         if (!type3Validation.isValid && type3Validation.error) {
           missingFields.push(type3Validation.error);
+        }
+      }
+
+      // Delegate Type 4 validation to features/type-4 domain logic
+      if (isType4Active) {
+        const effectiveCollectType = type4Targets?.[0]?.collectType as any;
+        const type4Validation = type4Actual.validate(effectiveCollectType);
+        if (!type4Validation.isValid && type4Validation.error) {
+          missingFields.push(type4Validation.error);
         }
       }
 
@@ -381,6 +408,39 @@ export function ActivityPlanActualView({
           };
           if (!isType1Active && !isType2Active && t3Payload.soldProducts) {
             payload.resultSummary = `เสนอขายสินค้า: ${t3Payload.soldProducts}`;
+          }
+        }
+
+        // Collect Type 4 payload if active
+        if (isType4Active) {
+          const newlyUploadedUrls: string[] = [];
+          const cleanImages = await type4Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t4Payload = type4Actual.collectPayload();
+          payload = {
+            ...payload,
+            ...t4Payload,
+            t4PaymentImages: cleanImages,
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanImages.map((img) => ({
+                category: "PAYMENT",
+                fileUrl: img.url,
+                fileName: img.name || "หลักฐานการชำระเงิน",
+                fileSize: img.size || 0,
+                mimeType: img.type || "image/jpeg",
+                workTypeCode: "TYPE_4",
+              })),
+            ],
+          };
+          if (!isType1Active && !isType2Active && !isType3Active) {
+            payload.resultSummary =
+              t4Payload.t4CollectDetail ||
+              t4Payload.t4BillingDetail ||
+              t4Payload.t4Detail ||
+              `วางบิล / เก็บเงิน: ${t4Payload.t4OrderNo || "บันทึกผลเรียบร้อย"}`;
           }
         }
       }
@@ -548,9 +608,11 @@ export function ActivityPlanActualView({
               type1State={type1Actual}
               type2State={type2Actual}
               type3State={type3Actual}
+              type4State={type4Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
+              type4Targets={type4Targets}
               plan={plan}
               products={products}
             />

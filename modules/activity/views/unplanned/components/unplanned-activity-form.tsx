@@ -34,6 +34,12 @@ import {
   mapType3UnplannedToPayload,
 } from "@/modules/activity/features/type-3";
 import {
+  Type4UnplannedForm,
+  useType4UnplannedForm,
+  hydrateType4UnplannedData,
+  mapType4UnplannedToPayload,
+} from "@/modules/activity/features/type-4";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -103,6 +109,7 @@ export function UnplannedActivityForm({
       const code = getWorkTypeCode(initialData.activityType);
       if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
       if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
+      if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
     }
     if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -127,6 +134,12 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_3" ||
       wt.includes("TYPE_3") ||
       wt.includes("เสนอขาย"),
+  );
+  const isType4Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_4" ||
+      wt.includes("TYPE_4") ||
+      wt.includes("วางบิล"),
   );
 
   // 2. Basic Info State
@@ -198,6 +211,17 @@ export function UnplannedActivityForm({
     initialItems: hydratedInitialType3Items,
     customersList: customers as any,
     productsList: products as any,
+  });
+
+  // 5.2 Type 4 Unplanned Hook
+  const hydratedInitialType4Items = useMemo(
+    () => hydrateType4UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type4 = useType4UnplannedForm({
+    initialItems: hydratedInitialType4Items,
+    customersList: customers as any,
   });
 
   // 6. Budget Hook
@@ -368,6 +392,57 @@ export function UnplannedActivityForm({
         productSalesDetails: mapped.productSalesDetails,
         saleResults: mapped.productSalesDetails,
       };
+    } else if (isType4Active) {
+      if (type4.items.length === 0) {
+        toast.error("กรุณาระบุร้านค้าเป้าหมายสำหรับวางบิล / เก็บเงินอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type4Validation = type4.validate();
+      if (!type4Validation.isValid) {
+        toast.error(type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง");
+        return;
+      }
+
+      const mapped = mapType4UnplannedToPayload(
+        type4.items,
+        customers as any,
+      );
+      planStores = mapped.planStores;
+
+      const allType4Images = type4.items.flatMap(
+        (item) => item.images || [],
+      );
+      let cleanType4Images = allType4Images;
+      if (allType4Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType4Images,
+            "type4",
+            "payment",
+          );
+          cleanType4Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          return;
+        }
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_4",
+        type4Result: mapped.result,
+        items: mapped.items,
+        receivedAmount: mapped.result.receivedAmount,
+        attachments: cleanType4Images.map((img) => ({
+          category: "PAYMENT",
+          fileUrl: img.url,
+          fileName: img.name || "เอกสารชำระเงิน/วางบิล",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_4",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -394,6 +469,13 @@ export function UnplannedActivityForm({
             t.name?.includes("เสนอขาย")
           );
         }
+        if (isType4Active) {
+          return (
+            t.code === "TYPE_4" ||
+            t.code === "COLLECT" ||
+            t.name?.includes("วางบิล")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -412,6 +494,10 @@ export function UnplannedActivityForm({
 
     const mappedType3 = isType3Active
       ? mapType3UnplannedToPayload(type3.items, customers as any, products as any)
+      : null;
+
+    const mappedType4 = isType4Active
+      ? mapType4UnplannedToPayload(type4.items, customers as any)
       : null;
 
     const payload = {
@@ -439,6 +525,9 @@ export function UnplannedActivityForm({
       productSalesDetails: mappedType3?.productSalesDetails,
       saleResults: mappedType3?.saleResults,
       t3ProductSalesDetails: mappedType3?.productSalesDetails,
+      type4Targets: mappedType4?.targets,
+      type4Items: mappedType4?.targets,
+      type4Result: mappedType4?.result,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -559,7 +648,7 @@ export function UnplannedActivityForm({
       />
 
       {/* 3.0 กล่องข้อความเมื่อยังไม่ได้เลือกประเภทงาน */}
-      {!isType1Active && !isType2Active && !isType3Active && (
+      {!isType1Active && !isType2Active && !isType3Active && !isType4Active && (
         <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
           <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
             <Info className="w-5 h-5 text-slate-400" />
@@ -614,6 +703,18 @@ export function UnplannedActivityForm({
           updateProduct={type3.updateProduct}
           customers={customers as any}
           products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.4 ส่วนเฉพาะ Type 4: วางบิล / เก็บเงิน 2-in-1 (นอกแผน) */}
+      {isType4Active && (
+        <Type4UnplannedForm
+          items={type4.items}
+          addItem={type4.addItem}
+          removeItem={type4.removeItem}
+          updateItem={type4.updateItem}
+          customers={customers as any}
           readonly={readonly}
         />
       )}

@@ -31,6 +31,11 @@ import {
   hydrateType3PlannedData,
 } from "@/modules/activity/features/type-3";
 import {
+  Type4PlanForm,
+  useType4Form,
+  hydrateType4PlannedData,
+} from "@/modules/activity/features/type-4";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -100,6 +105,7 @@ export function PlannedActivityForm({
       const code = getWorkTypeCode(initialData.activityType);
       if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
       if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
+      if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
     }
     if (
       initialData.type1Stores &&
@@ -128,6 +134,12 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_3" ||
       wt.includes("TYPE_3") ||
       wt.includes("เสนอขาย"),
+  );
+  const isType4Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_4" ||
+      wt.includes("TYPE_4") ||
+      wt.includes("วางบิล"),
   );
 
   // 2. Basic Info State
@@ -196,6 +208,17 @@ export function PlannedActivityForm({
     initialItems: hydratedInitialType3Items,
     customersList: customers as any,
     productsList: products as any,
+  });
+
+  // 5.2 Type 4 Planned Hook
+  const hydratedInitialType4Items = useMemo(
+    () => hydrateType4PlannedData(initialData),
+    [initialData],
+  );
+
+  const type4 = useType4Form({
+    initialItems: hydratedInitialType4Items,
+    customersList: customers as any,
   });
 
   // 6. Budget Hook
@@ -293,6 +316,23 @@ export function PlannedActivityForm({
       type3TargetsPayload = t3Payload.type3Targets;
     }
 
+    // 3.2 Validation & Mapping - Type 4 Items
+    let type4TargetsPayload: any[] = [];
+    if (isType4Active) {
+      const type4Validation = type4.validateType4();
+      if (!type4Validation.isValid) {
+        toast.error(
+          type4Validation.error ||
+            "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง (Type 4)",
+        );
+        return;
+      }
+
+      const t4Payload = type4.mapType4Payload(customers as any);
+      planStores = [...planStores, ...t4Payload.planStores];
+      type4TargetsPayload = t4Payload.type4Targets;
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -304,7 +344,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_2" &&
             (t.code === "FOLLOWUP" || t.name?.includes("ติดตามผล"))) ||
           (primaryCode === "TYPE_3" &&
-            (t.code === "SALE" || t.name?.includes("เสนอขาย"))),
+            (t.code === "SALE" || t.name?.includes("เสนอขาย"))) ||
+          (primaryCode === "TYPE_4" &&
+            (t.code === "COLLECT" || t.name?.includes("วางบิล"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -337,6 +379,8 @@ export function PlannedActivityForm({
       type2Targets: type2TargetsPayload,
       type3Targets: type3TargetsPayload,
       type3Items: type3TargetsPayload,
+      type4Targets: type4TargetsPayload,
+      type4Items: type4TargetsPayload,
     };
 
     try {
@@ -478,6 +522,18 @@ export function PlannedActivityForm({
           addProductToRow={type3.addProductToRow}
           updateProductInRow={type3.updateProductInRow}
           deleteProductFromRow={type3.deleteProductFromRow}
+        />
+      )}
+
+      {/* 3.4 ส่วนเฉพาะ Type 4: วางบิล / เก็บเงิน */}
+      {isType4Active && (
+        <Type4PlanForm
+          readonly={readonly}
+          customers={customers as any}
+          type4Items={type4.type4Items}
+          addType4Row={type4.addType4Row}
+          updateType4Row={type4.updateType4Row}
+          deleteType4Row={type4.deleteType4Row}
         />
       )}
 
