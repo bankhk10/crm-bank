@@ -111,21 +111,20 @@ modules/activity/features/type-3/
 │
 ├── planned/                                    # Sub-slice แผนงานและผลงานจริงในแผน
 │   ├── types/
-│   │   ├── planned.types.ts                    # Type3SalesItem, Type3SalesProductLine, Type3PlanCardProps
-│   │   ├── actual.types.ts                     # Type3ProductSaleDetail, Type3SaleResultItem, Type3ActualFormProps
-│   │   └── index.ts
+│   │   ├── planned.types.ts                    # Type3SalesItem, Type3SalesProductLine, Type3PlanCardProps, Type3PlannedFormProps
+│   │   └── actual.types.ts                     # Type3ProductSaleDetail, Type3SaleResultItem, Type3ActualFormProps
 │   ├── application/
 │   │   ├── planned-validation.ts               # validateType3FormItems, type3SalesItemSchema, type3ProductLineSchema
 │   │   ├── planned-mapper.ts                   # extractType3PlanTargets, hydrateType3PlannedData, mapType3FormToPayload
 │   │   ├── actual-validation.ts                # validateType3Actual, type3ActualProductDetailSchema
 │   │   └── actual-mapper.ts                    # parseType3ActualResult, mapType3ActualFormToDb
 │   ├── hooks/
-│   │   ├── use-type3-form.ts                   # Hook จัดการสถานะฟอร์มในแผน (เพิ่ม/ลบร้านค้า, สินค้า, คำนวณราคา)
+│   │   ├── use-type3-planned-form.ts           # Hook จัดการสถานะฟอร์มในแผน (เพิ่ม/ลบร้านค้า, สินค้า, คำนวณราคา)
 │   │   └── use-type3-actual.ts                 # Hook จัดการสถานะผลการขายจริง (Target vs Actual, เหตุผลไม่ปิดการขาย)
 │   ├── infrastructure/
 │   │   └── type3-planned.strategy.ts           # Strategy บันทึกแผนงานและผลงานจริง (Dual Persistence & Atomic Transaction)
 │   └── components/
-│       ├── type3-plan-form.tsx                 # ฟอร์มสร้าง/แก้ไขแผนงาน Type 3
+│       ├── type3-planned-form.tsx              # ฟอร์มสร้าง/แก้ไขแผนงาน Type 3 (Type3PlannedForm / alias: Type3PlanForm)
 │       ├── type3-plan-card.tsx                 # การ์ดสรุปเป้าหมายสินค้าตามแผน
 │       ├── type3-actual-form.tsx               # ฟอร์มบันทึกผลงานจริงตามแผน
 │       ├── type3-detail-view.tsx               # การ์ดแสดงผลเปรียบเทียบเป้าหมาย vs ผลขายจริง
@@ -133,8 +132,7 @@ modules/activity/features/type-3/
 │
 └── unplanned/                                  # Sub-slice กิจกรรมนอกแผน 2-in-1
     ├── types/
-    │   ├── unplanned.types.ts                  # Type3UnplannedItem, Type3UnplannedProductItem, Type3UnplannedPayload
-    │   └── index.ts
+    │   └── unplanned.types.ts                  # Type3UnplannedItem, Type3UnplannedProductItem, Type3UnplannedPayload
     ├── application/
     │   ├── unplanned-validation.ts             # validateType3UnplannedForm, validateType3UnplannedItem, Schemas
     │   └── unplanned-mapper.ts                 # hydrateType3UnplannedData, mapType3UnplannedToPayload

@@ -107,21 +107,20 @@ modules/activity/features/type-4/
 │
 ├── planned/                                    # Sub-slice แผนงานและผลงานจริงในแผน
 │   ├── types/
-│   │   ├── planned.types.ts                    # Type4CollectItem, TargetCollectCompanyItem, Type4TargetItem
-│   │   ├── actual.types.ts                     # Type4ActualData, Type4ActualFormProps, Type4DetailViewProps
-│   │   └── index.ts
+│   │   ├── planned.types.ts                    # Type4CollectItem, TargetCollectCompanyItem, Type4TargetItem, Type4PlannedFormProps
+│   │   └── actual.types.ts                     # Type4ActualData, Type4ActualFormProps, Type4DetailViewProps
 │   ├── application/
 │   │   ├── planned-validation.ts               # validateType4FormItems, type4CollectItemSchema
 │   │   ├── planned-mapper.ts                   # extractType4PlanTargets, hydrateType4PlannedData, mapType4FormToPayload
 │   │   ├── actual-validation.ts                # validateType4Actual, type4ActualSchema
 │   │   └── actual-mapper.ts                    # parseType4ActualResult, mapType4ActualFormToDb
 │   ├── hooks/
-│   │   ├── use-type4-form.ts                   # Hook จัดการสถานะฟอร์มในแผน (เพิ่ม/ลบร้านค้า, ประเภทเก็บเงิน, รวมยอด)
+│   │   ├── use-type4-planned-form.ts           # Hook จัดการสถานะฟอร์มในแผน (เพิ่ม/ลบร้านค้า, ประเภทเก็บเงิน, รวมยอด)
 │   │   └── use-type4-actual.ts                 # Hook จัดการสถานะผลการวางบิล/เก็บเงินจริง (ยอดรับจริง, สลิป, อัปโหลด)
 │   ├── infrastructure/
 │   │   └── type4-planned.strategy.ts           # Strategy บันทึกแผนงานและผลงานจริง (Dual Persistence & Atomic Transaction)
 │   └── components/
-│       ├── type4-plan-form.tsx                 # ฟอร์มสร้าง/แก้ไขแผนงาน Type 4
+│       ├── type4-planned-form.tsx              # ฟอร์มสร้าง/แก้ไขแผนงาน Type 4 (Type4PlannedForm / alias: Type4PlanForm, Type4Collect)
 │       ├── type4-plan-card.tsx                 # การ์ดสรุปเป้าหมายวางบิล/เก็บเงินตามแผน
 │       ├── type4-actual-form.tsx               # ฟอร์มบันทึกผลงานจริงตามแผน (เลขบิล, ยอดเงินจริง, รูปสลิป)
 │       ├── type4-detail-view.tsx               # การ์ดแสดงผลเปรียบเทียบเป้าหมาย vs ผลเก็บเงินจริง
@@ -129,8 +128,7 @@ modules/activity/features/type-4/
 │
 └── unplanned/                                  # Sub-slice กิจกรรมนอกแผน 2-in-1
     ├── types/
-    │   ├── unplanned.types.ts                  # Type4UnplannedItem, Type4UnplannedPayload
-    │   └── index.ts
+    │   └── unplanned.types.ts                  # Type4UnplannedItem, Type4UnplannedPayload
     ├── application/
     │   ├── unplanned-validation.ts             # validateType4UnplannedForm, validateType4UnplannedItem, Schemas
     │   └── unplanned-mapper.ts                 # hydrateType4UnplannedData, mapType4UnplannedToPayload
@@ -203,7 +201,7 @@ model ActivityResultType4Item {
 | **Target Registry** | `modules/activity/domain/summary/plan-targets-registry.ts` | ลงทะเบียน `extractType4PlanTargets` ใน `TARGET_EXTRACTORS` และ fallback extraction |
 | **Result Parser** | `modules/activity/domain/summary/result-summary-parser.ts` | แปลงผลงานจริง `ActivityResultType4` / `type4Result` สู่ `t4OrderNo`, `t4ReceivedAmount`, `t4BillingStatus`, `t4PaymentImages` |
 | **Server Actions** | `modules/activity/server/actions.ts` | ผูก `type4PlannedStrategy` และ `type4UnplannedStrategy` ใน `createActivityPlanAction` และ `updateActivityPlanAction` |
-| **Planned Form View** | `modules/activity/views/planned/components/planned-activity-form.tsx` | ผูก `useType4Form` และเรนเดอร์ `Type4PlanForm` |
+| **Planned Form View** | `modules/activity/views/planned/components/planned-activity-form.tsx` | ผูก `useType4PlannedForm` และเรนเดอร์ `Type4PlannedForm` |
 | **Unplanned Form View** | `modules/activity/views/unplanned/components/unplanned-activity-form.tsx` | ผูก `useType4UnplannedForm` และเรนเดอร์ `Type4UnplannedForm` |
 | **Actual View** | `modules/activity/views/actual/activity-plan-actual-view.tsx` & `actual-work-type-list.tsx` | ผูก `useType4Actual`, validate, hydrate, อัปโหลดสลิป และเรนเดอร์ `Type4ActualForm` |
 | **Detail View** | `modules/activity/views/detail/components/detail-work-type-list.tsx` | เรนเดอร์ `Type4DetailView` พร้อมแสดงยอดเงินจริงและสลิปการชำระเงิน |

@@ -98,7 +98,8 @@ export interface Type4PlanFormProps {
   customers?: StoreOption[];
 }
 
-// Backward-compatible alias
+// Backward-compatible aliases and Standard Gold names
+export type Type4PlannedFormProps = Type4PlanFormProps;
 export type Type4CollectProps = Type4PlanFormProps;
 
 export interface ValidateType4Options {

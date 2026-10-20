@@ -3,9 +3,20 @@
 // =============================================================================
 
 // 🟢 โซน "ในแผน" (Planned Sub-slice)
-export { Type3PlanForm } from "./planned/components/type3-plan-form";
+export {
+  Type3PlannedForm,
+  Type3PlanForm,
+  Type3Sales,
+} from "./planned/components/type3-planned-form";
 export { Type3PlanCard } from "./planned/components/type3-plan-card";
-export { useType3Form } from "./planned/hooks/use-type3-form";
+export {
+  useType3PlannedForm,
+  useType3Form,
+  type UseType3PlannedFormOptions,
+  type UseType3FormOptions,
+  type UseType3PlannedFormResult,
+  type UseType3FormResult,
+} from "./planned/hooks/use-type3-planned-form";
 export {
   validateType3FormItems,
   type3SalesItemSchema,
@@ -28,6 +39,7 @@ export type {
   Type3PlanCardTargetItem,
   Type3PlanCardTarget,
   Type3PlanCardProps,
+  Type3PlannedFormProps,
   Type3PlanFormProps,
 } from "./planned/types/planned.types";
 

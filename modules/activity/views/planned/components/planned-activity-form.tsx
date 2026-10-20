@@ -26,13 +26,13 @@ import {
   useType2PlannedForm,
 } from "@/modules/activity/features/type-2";
 import {
-  Type3PlanForm,
-  useType3Form,
+  Type3PlannedForm,
+  useType3PlannedForm,
   hydrateType3PlannedData,
 } from "@/modules/activity/features/type-3";
 import {
-  Type4PlanForm,
-  useType4Form,
+  Type4PlannedForm,
+  useType4PlannedForm,
   hydrateType4PlannedData,
 } from "@/modules/activity/features/type-4";
 import {
@@ -204,7 +204,7 @@ export function PlannedActivityForm({
     [initialData],
   );
 
-  const type3 = useType3Form({
+  const type3 = useType3PlannedForm({
     initialItems: hydratedInitialType3Items,
     customersList: customers as any,
     productsList: products as any,
@@ -216,7 +216,7 @@ export function PlannedActivityForm({
     [initialData],
   );
 
-  const type4 = useType4Form({
+  const type4 = useType4PlannedForm({
     initialItems: hydratedInitialType4Items,
     customersList: customers as any,
   });
@@ -511,7 +511,7 @@ export function PlannedActivityForm({
 
       {/* 3.3 ส่วนเฉพาะ Type 3: เสนอขายสินค้า */}
       {isType3Active && (
-        <Type3PlanForm
+        <Type3PlannedForm
           readonly={readonly}
           customers={customers as any}
           products={products as any}
@@ -527,7 +527,7 @@ export function PlannedActivityForm({
 
       {/* 3.4 ส่วนเฉพาะ Type 4: วางบิล / เก็บเงิน */}
       {isType4Active && (
-        <Type4PlanForm
+        <Type4PlannedForm
           readonly={readonly}
           customers={customers as any}
           type4Items={type4.type4Items}

@@ -117,7 +117,7 @@ export interface Type3PlanCardProps {
   className?: string;
 }
 
-export interface Type3PlanFormProps {
+export interface Type3PlannedFormProps {
   readonly?: boolean;
   type3Items: Type3SalesItem[];
   addType3Row: () => void;
@@ -134,6 +134,8 @@ export interface Type3PlanFormProps {
   customers?: StoreOption[];
   products?: ProductOption[];
 }
+
+export type Type3PlanFormProps = Type3PlannedFormProps;
 
 export interface ValidateType3Options {
   items?: Type3SalesItem[];

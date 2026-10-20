@@ -7,13 +7,15 @@ import type { StoreOption } from "../../shared/types";
 import { validateType4FormItems } from "../application/planned-validation";
 import { mapType4FormToPayload } from "../application/planned-mapper";
 
-export interface UseType4FormOptions {
+export interface UseType4PlannedFormOptions {
   initialItems?: Type4CollectItem[];
   customersList?: StoreOption[];
   selectedWorkTypes?: string[];
 }
 
-export interface UseType4FormResult {
+export type UseType4FormOptions = UseType4PlannedFormOptions;
+
+export interface UseType4PlannedFormResult {
   type4Items: Type4CollectItem[];
   setType4Items: React.Dispatch<React.SetStateAction<Type4CollectItem[]>>;
   addType4Row: () => void;
@@ -33,11 +35,13 @@ export interface UseType4FormResult {
   totalBillingAmount: number;
 }
 
-export function useType4Form({
+export type UseType4FormResult = UseType4PlannedFormResult;
+
+export function useType4PlannedForm({
   initialItems,
   customersList = [],
   selectedWorkTypes = [],
-}: UseType4FormOptions = {}): UseType4FormResult {
+}: UseType4PlannedFormOptions = {}): UseType4PlannedFormResult {
   const createDefaultItem = useCallback(
     (id = "1"): Type4CollectItem => ({
       id,
@@ -148,3 +152,6 @@ export function useType4Form({
     totalBillingAmount,
   };
 }
+
+// Backward-compatible alias
+export const useType4Form = useType4PlannedForm;

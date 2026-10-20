@@ -14,8 +14,8 @@
 | **Type Check & Compilation** | ✅ เสร็จสมบูรณ์ | คำสั่ง `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0 ไม่มีข้อผิดพลาด) |
 | **Type 1 (Gold Standard Slice)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type1-planned-form.tsx`, `use-type1-planned-form.ts`), Native Strategy |
 | **Type 2 (Gold Standard Slice)** | ✅ เสร็จสมบูรณ์ | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel |
-| **Type 3 (เยี่ยมร้านค้า)** | ⏳ **รอการดำเนินการ** | อยู่ใน `modules/activity/features/type-3/` แต่ยังต้องจัดระเบียบชื่อไฟล์และโครงสร้างตาม Gold Standard |
-| **Type 4 (เยี่ยมเกษตรกร)** | ⏳ **รอการดำเนินการ** | อยู่ใน `modules/activity/features/type-4/` แต่ยังต้องจัดระเบียบชื่อไฟล์และโครงสร้างตาม Gold Standard |
+| **Type 3 (เสนอขายสินค้า / Sales)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel |
+| **Type 4 (วางบิล / เก็บเงิน)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel |
 | **Type 5 – 14** | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ |
 
 ---
@@ -29,8 +29,8 @@ flowchart TD
     classDef pending fill:#f1f5f9,stroke:#94a3b8,stroke-width:2px;
 
     P0["Phase 0: Foundation & Decoupling<br/>(Type 1, Type 2, Actions, Permissions)"]:::done
-    P1["Phase 1: Existing Slices Standardization<br/>(Refactor Type 3 & Type 4)"]:::current
-    P2["Phase 2: Core Field Slices Migration<br/>(Type 5, Type 6, Type 7A, Type 7B)"]:::pending
+    P1["Phase 1: Existing Slices Standardization<br/>(Refactor Type 3 & Type 4)"]:::done
+    P2["Phase 2: Core Field Slices Migration<br/>(Type 5, Type 6, Type 7A, Type 7B)"]:::current
     P3["Phase 3: Specialized Slices Migration<br/>(Type 8, Type 9, Type 10, Type 11, Type 12, Type 13, Type 14)"]:::pending
     P4["Phase 4: Final Deprecation & Cleanup<br/>(App Router Pages Audit & Decommission legacy)"]:::pending
 
@@ -39,28 +39,29 @@ flowchart TD
 
 ---
 
-### 🔹 Phase 1: จัดระเบียบ Slice ที่มีอยู่แล้วให้ตรงตามมาตรฐาน (Current Phase)
+### 🔹 Phase 1: จัดระเบียบ Slice ที่มีอยู่แล้วให้ตรงตามมาตรฐาน (Completed ✅)
 
 เป้าหมาย: ทำให้ `type-3` และ `type-4` สอดคล้องกับ [TYPE_SLICE_BLUEPRINT.md](./TYPE_SLICE_BLUEPRINT.md) 100% เช่นเดียวกับ Type 1 และ Type 2
 
-#### งานที่ 1.1: Refactor `features/type-3/` (เยี่ยมร้านค้า - Store Visit)
-- [ ] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
-  - เปลี่ยน `type3-plan-form.tsx` ➔ `type3-planned-form.tsx`
-  - เปลี่ยน `use-type3-form.ts` ➔ `use-type3-planned-form.ts`
-- [ ] ตรวจสอบโครงสร้าง 24 Artifacts (Planned, Unplanned, Shared)
-- [ ] ตรวจสอบและทำความสะอาด Barrel exports (ลบ `types/index.ts` ย่อยที่ไม่จำเป็นออก)
-- [ ] ตรวจสอบการผูก Strategies ใน [`infrastructure/strategy.registry.ts`](../infrastructure/strategy.registry.ts)
-- [ ] อัปเดตเอกสาร [`features/type-3/README.md`](../features/type-3/README.md)
-- [ ] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
+#### งานที่ 1.1: Refactor `features/type-3/` (เสนอขายสินค้า - Product Sales)
+- [x] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
+  - เปลี่ยน `type3-plan-form.tsx` ➔ `type3-planned-form.tsx` (พร้อม alias `Type3PlanForm`, `Type3Sales`)
+  - เปลี่ยน `use-type3-form.ts` ➔ `use-type3-planned-form.ts` (พร้อม alias `useType3Form`)
+- [x] ตรวจสอบโครงสร้าง 24 Artifacts (Planned, Unplanned, Shared)
+- [x] ตรวจสอบและทำความสะอาด Barrel exports (ลบ `types/index.ts` ย่อยที่ไม่จำเป็นออก)
+- [x] ตรวจสอบการผูก Strategies ใน [`infrastructure/strategy.registry.ts`](../infrastructure/strategy.registry.ts)
+- [x] อัปเดตเอกสาร [`features/type-3/README.md`](../features/type-3/README.md)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
-#### งานที่ 1.2: Refactor `features/type-4/` (เยี่ยมเกษตรกร - Farmer Visit)
-- [ ] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
-  - เปลี่ยน `type4-plan-form.tsx` ➔ `type4-planned-form.tsx`
-  - เปลี่ยน `use-type4-form.ts` ➔ `use-type4-planned-form.ts`
-- [ ] ตรวจสอบโครงสร้าง 24 Artifacts ครบถ้วน
-- [ ] ทำความสะอาด Barrel exports และผูก Strategies
-- [ ] อัปเดตเอกสาร [`features/type-4/README.md`](../features/type-4/README.md)
-- [ ] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
+#### งานที่ 1.2: Refactor `features/type-4/` (วางบิล / เก็บเงิน - Billing & Collection)
+- [x] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
+  - เปลี่ยน `type4-plan-form.tsx` ➔ `type4-planned-form.tsx` (พร้อม alias `Type4PlanForm`, `Type4Collect`)
+  - เปลี่ยน `use-type4-form.ts` ➔ `use-type4-planned-form.ts` (พร้อม alias `useType4Form`)
+- [x] ปรับปรุง `ActivityCustomerSelect` ให้ตรงตาม Standard Props ของโมดูล
+- [x] ตรวจสอบโครงสร้าง 24 Artifacts ครบถ้วน
+- [x] ทำความสะอาด Barrel exports และผูก Strategies
+- [x] อัปเดตเอกสาร [`features/type-4/README.md`](../features/type-4/README.md)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 ---
 

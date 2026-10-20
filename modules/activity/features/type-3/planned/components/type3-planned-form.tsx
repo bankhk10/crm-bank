@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShoppingCart, Plus, Trash2, Store, Package, DollarSign } from "lucide-react";
+import { ShoppingCart, Plus, Trash2, Package, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils";
 import type {
   Type3SalesItem,
   Type3SalesProductLine,
+  Type3PlannedFormProps,
   Type3PlanFormProps,
 } from "../types/planned.types";
-import type { StoreOption, ProductOption } from "../../shared/types";
 
-export type { Type3PlanFormProps };
+export type { Type3PlannedFormProps, Type3PlanFormProps };
 
-export function Type3PlanForm({
+export function Type3PlannedForm({
   readonly = false,
   type3Items,
   addType3Row,
@@ -30,7 +30,7 @@ export function Type3PlanForm({
   deleteProductFromRow,
   customers = [],
   products = [],
-}: Type3PlanFormProps) {
+}: Type3PlannedFormProps) {
   // Local fallback handlers if not provided by parent hook
   const handleAddProduct = (rowId: string) => {
     if (addProductToRow) {
@@ -550,4 +550,5 @@ export function Type3PlanForm({
   );
 }
 
-export const Type3Sales = Type3PlanForm;
+export const Type3PlanForm = Type3PlannedForm;
+export const Type3Sales = Type3PlannedForm;

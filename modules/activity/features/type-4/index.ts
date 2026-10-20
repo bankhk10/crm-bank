@@ -3,9 +3,20 @@
 // =============================================================================
 
 // 🟢 โซน "ในแผน" (Planned Sub-slice)
-export { Type4PlanForm, Type4Collect } from "./planned/components/type4-plan-form";
+export {
+  Type4PlannedForm,
+  Type4PlanForm,
+  Type4Collect,
+} from "./planned/components/type4-planned-form";
 export { Type4PlanCard } from "./planned/components/type4-plan-card";
-export { useType4Form } from "./planned/hooks/use-type4-form";
+export {
+  useType4PlannedForm,
+  useType4Form,
+  type UseType4PlannedFormOptions,
+  type UseType4FormOptions,
+  type UseType4PlannedFormResult,
+  type UseType4FormResult,
+} from "./planned/hooks/use-type4-planned-form";
 export {
   validateType4FormItems,
   type4CollectItemSchema,
@@ -26,6 +37,7 @@ export type {
   Type4PlanCardTargetItem,
   Type4PlanCardTarget,
   Type4PlanCardProps,
+  Type4PlannedFormProps,
   Type4PlanFormProps,
   Type4CollectProps,
 } from "./planned/types/planned.types";

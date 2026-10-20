@@ -8,14 +8,16 @@ import type { StoreOption, ProductOption } from "../../shared/types";
 import { validateType3FormItems } from "../application/planned-validation";
 import { mapType3FormToPayload } from "../application/planned-mapper";
 
-export interface UseType3FormOptions {
+export interface UseType3PlannedFormOptions {
   initialItems?: Type3SalesItem[];
   customersList?: StoreOption[];
   productsList?: ProductOption[];
   selectedWorkTypes?: string[];
 }
 
-export interface UseType3FormResult {
+export type UseType3FormOptions = UseType3PlannedFormOptions;
+
+export interface UseType3PlannedFormResult {
   type3Items: Type3SalesItem[];
   setType3Items: React.Dispatch<React.SetStateAction<Type3SalesItem[]>>;
   addType3Row: () => void;
@@ -38,12 +40,14 @@ export interface UseType3FormResult {
   totalTargetAmount: number;
 }
 
-export function useType3Form({
+export type UseType3FormResult = UseType3PlannedFormResult;
+
+export function useType3PlannedForm({
   initialItems,
   customersList = [],
   productsList = [],
   selectedWorkTypes = [],
-}: UseType3FormOptions = {}): UseType3FormResult {
+}: UseType3PlannedFormOptions = {}): UseType3PlannedFormResult {
   const createDefaultItem = useCallback(
     (id = "1"): Type3SalesItem => ({
       id,
@@ -305,3 +309,5 @@ export function useType3Form({
     totalTargetAmount,
   };
 }
+
+export const useType3Form = useType3PlannedForm;
