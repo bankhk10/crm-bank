@@ -6,19 +6,19 @@
 
 ## 📊 1. ภาพรวมสถานะปัจจุบัน (Current Status Overview)
 
-| ลำดับงานหลัก | สถานะ | รายละเอียด |
-| :--- | :---: | :--- |
-| **สถาปัตยกรรมแม่แบบ (Master Blueprint)** | ✅ เสร็จสมบูรณ์ | เอกสาร [`TYPE_SLICE_BLUEPRINT.md`](./TYPE_SLICE_BLUEPRINT.md) กำหนดมาตรฐาน 24-Artifact และกฎเหล็กการ Refactor ครบถ้วน |
-| **การตัดขาดจากโมดูลเก่า (Decoupling)** | ✅ เสร็จสมบูรณ์ | โมดูล `modules/activity/` ตัดขาดจาก `@/modules/activity-plans` 100% (Native Server Actions, Repositories, Domain, Application Services) |
-| **ระบบรวมศูนย์สิทธิ์ (Centralized Permissions)** | ✅ เสร็จสมบูรณ์ | รวมศูนย์ไว้ที่ [`domain/permissions/activity-permissions.ts`](../domain/permissions/activity-permissions.ts) และเชื่อมโยงทั้ง Server Actions และ UI Views ครบถ้วน |
-| **Type Check & Compilation** | ✅ เสร็จสมบูรณ์ | คำสั่ง `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0 ไม่มีข้อผิดพลาด) |
-| **Type 1 (Gold Standard Slice)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type1-planned-form.tsx`, `use-type1-planned-form.ts`), Native Strategy |
-| **Type 2 (Gold Standard Slice)** | ✅ เสร็จสมบูรณ์ | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel |
-| **Type 3 (เสนอขายสินค้า / Sales)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel |
-| **Type 4 (วางบิล / เก็บเงิน)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel |
-| **Type 5 (สำรวจตลาดของคู่แข่ง)** | ✅ เสร็จสมบูรณ์ | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration |
-| **Type 6 (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Native Strategy, Full View Integration |
-| **Type 7A – 14** | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ |
+| ลำดับงานหลัก                                     |        สถานะ         | รายละเอียด                                                                                                                                                        |
+| :----------------------------------------------- | :------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **สถาปัตยกรรมแม่แบบ (Master Blueprint)**         |   ✅ เสร็จสมบูรณ์    | เอกสาร [`TYPE_SLICE_BLUEPRINT.md`](./TYPE_SLICE_BLUEPRINT.md) กำหนดมาตรฐาน 24-Artifact และกฎเหล็กการ Refactor ครบถ้วน                                             |
+| **การตัดขาดจากโมดูลเก่า (Decoupling)**           |   ✅ เสร็จสมบูรณ์    | โมดูล `modules/activity/` ตัดขาดจาก `@/modules/activity-plans` 100% (Native Server Actions, Repositories, Domain, Application Services)                           |
+| **ระบบรวมศูนย์สิทธิ์ (Centralized Permissions)** |   ✅ เสร็จสมบูรณ์    | รวมศูนย์ไว้ที่ [`domain/permissions/activity-permissions.ts`](../domain/permissions/activity-permissions.ts) และเชื่อมโยงทั้ง Server Actions และ UI Views ครบถ้วน |
+| **Type Check & Compilation**                     |   ✅ เสร็จสมบูรณ์    | คำสั่ง `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0 ไม่มีข้อผิดพลาด)                                                                                               |
+| **Type 1 (Gold Standard Slice)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type1-planned-form.tsx`, `use-type1-planned-form.ts`), Native Strategy                                                    |
+| **Type 2 (Gold Standard Slice)**                 |   ✅ เสร็จสมบูรณ์    | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel                                                                                                 |
+| **Type 3 (เสนอขายสินค้า / Sales)**               |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel                                                       |
+| **Type 4 (วางบิล / เก็บเงิน)**                   |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel                                                       |
+| **Type 5 (สำรวจตลาดของคู่แข่ง)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration                                                                                      |
+| **Type 6 (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา)**   |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Native Strategy, Full View Integration                                                                                                    |
+| **Type 7A – 14**                                 | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ                                                                                     |
 
 ---
 
@@ -46,6 +46,7 @@ flowchart TD
 เป้าหมาย: ทำให้ `type-3` และ `type-4` สอดคล้องกับ [TYPE_SLICE_BLUEPRINT.md](./TYPE_SLICE_BLUEPRINT.md) 100% เช่นเดียวกับ Type 1 และ Type 2
 
 #### งานที่ 1.1: Refactor `features/type-3/` (เสนอขายสินค้า - Product Sales)
+
 - [x] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
   - เปลี่ยน `type3-plan-form.tsx` ➔ `type3-planned-form.tsx` (พร้อม alias `Type3PlanForm`, `Type3Sales`)
   - เปลี่ยน `use-type3-form.ts` ➔ `use-type3-planned-form.ts` (พร้อม alias `useType3Form`)
@@ -56,6 +57,7 @@ flowchart TD
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 #### งานที่ 1.2: Refactor `features/type-4/` (วางบิล / เก็บเงิน - Billing & Collection)
+
 - [x] ตรวจสอบชื่อไฟล์ให้ตรงตามข้อกำหนดสากล:
   - เปลี่ยน `type4-plan-form.tsx` ➔ `type4-planned-form.tsx` (พร้อม alias `Type4PlanForm`, `Type4Collect`)
   - เปลี่ยน `use-type4-form.ts` ➔ `use-type4-planned-form.ts` (พร้อม alias `useType4Form`)
@@ -71,14 +73,15 @@ flowchart TD
 
 เป้าหมาย: ย้ายกิจกรรมกลุ่มการตลาดและงานแปลงสาธิตจาก `modules/activity-plans/features/` เข้ามาเป็น Native ภายใน `modules/activity/features/`
 
-| Type | กิจกรรม | สถานะ | สิ่งที่ต้องระวังเป็นพิเศษ |
-| :---: | :--- | :---: | :--- |
-| **Type 5** | สำรวจตลาดของคู่แข่ง (Competitor Market Survey) | ✅ เสร็จสมบูรณ์ | ราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), แยกอัปโหลดรูปขวด/สื่อ |
-| **Type 6** | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) | ✅ เสร็จสมบูรณ์ | รายละเอียดเรื่องร้องเรียน, แนวทางแก้ไข, รูปถ่ายหลักฐานปัญหา |
-| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment) | ✅ เสร็จสมบูรณ์ | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง |
-| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | ⏳ ลำดับถัดไป | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
+|    Type     | กิจกรรม                                             |      สถานะ      | สิ่งที่ต้องระวังเป็นพิเศษ                                            |
+| :---------: | :-------------------------------------------------- | :-------------: | :------------------------------------------------------------------- |
+| **Type 5**  | สำรวจตลาดของคู่แข่ง (Competitor Market Survey)      | ✅ เสร็จสมบูรณ์ | ราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), แยกอัปโหลดรูปขวด/สื่อ |
+| **Type 6**  | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) | ✅ เสร็จสมบูรณ์ | รายละเอียดเรื่องร้องเรียน, แนวทางแก้ไข, รูปถ่ายหลักฐานปัญหา          |
+| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment)            | ✅ เสร็จสมบูรณ์ | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง     |
+| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up)               |  ⏳ ลำดับถัดไป  | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต           |
 
 #### งานที่ 2.1: Migrate `features/type-5/` (สำรวจตลาดของคู่แข่ง — Completed ✅)
+
 - [x] สร้างโครงสร้าง Planned ตามมาตรฐาน 24 Artifacts (Planned, Shared)
 - [x] พอร์ต Planned Components (`Type5PlannedForm`, `Type5PlanCard`) พร้อม aliases
 - [x] พอร์ต Hooks (`useType5PlannedForm`, `useType5Actual`) ตัดขาดจากโมดูลเก่า 100%
@@ -95,6 +98,7 @@ flowchart TD
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 #### งานที่ 2.2: Migrate `features/type-6/` (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา — Completed ✅)
+
 - [x] สร้างโครงสร้าง Planned ตามมาตรฐาน 24 Artifacts (Planned, Shared)
 - [x] พอร์ต Planned Components (`Type6PlannedForm`, `Type6PlanCard`) พร้อม aliases
 - [x] พอร์ต Hooks (`useType6PlannedForm`, `useType6Actual`) ตัดขาดจากโมดูลเก่า 100%
@@ -111,6 +115,7 @@ flowchart TD
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 #### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Dual-Mode Planned + Unplanned — Completed ✅)
+
 - [x] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
 - [x] เชื่อมต่อกับระบบแปลงสาธิต (`DemoPlot` Repository Native ใน `modules/activity`)
 - [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
@@ -120,6 +125,7 @@ flowchart TD
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 #### งานที่ 2.4: Migrate `features/type-7b/` (ติดตามแปลงสาธิต — Dual-Mode Planned + Unplanned — Completed ✅)
+
 - [x] สร้างโฟลเดอร์ `features/type-7b/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
 - [x] เชื่อมต่อกับระบบติดตามแปลงสาธิต (`DemoPlot` & `ActivityPlan` Repository Native ใน `modules/activity`)
 - [x] ใช้ Unified Activity UI Inputs จาก `@/modules/activity/ui` ทั้งหมด
@@ -135,12 +141,12 @@ flowchart TD
 
 เป้าหมาย: นำเข้ากิจกรรมวิชาการและการสำรวจที่เหลือทั้งหมด โดยทุก Type ต้องมีทั้ง **Planned** และ **Unplanned** ครบถ้วนเสมอ
 
-- [ ] **Type 8:** สัมมนาวิชาการ (Academic Seminar) — Planned & Unplanned
-- [ ] **Type 9:** คลินิกพืชเคลื่อนที่ (Plant Clinic / Mobile Consultation) — Planned & Unplanned
-- [ ] **Type 10:** วันจัดแสดงแปลง Field Day (Field Day) — Planned & Unplanned
-- [ ] **Type 11:** การสำรวจตลาด (Market Survey) — Planned & Unplanned
-- [ ] **Type 12:** ประชุมภายใน / อบรม (Internal Meeting / Training) — Planned & Unplanned
-- [ ] **Type 13:** จัดทำแปลงแฮทแทค (Hattack Demo Establishment) — Planned & Unplanned
+- [ ] **Type 8:** จัดประชุม (Meeting) — Planned & Unplanned
+- [ ] **Type 9:** จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event / Sales Promotion) — Planned & Unplanned
+- [ ] **Type 10:** จัดงาน Field Day (Field Day Event) — Planned
+- [ ] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
+- [ ] **Type 12:** ทัวร์ (Tour) — Planned
+- [ ] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
 - [ ] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
 
 ---
@@ -202,11 +208,11 @@ flowchart TD
 
 ## 📝 4. บันทึกความคืบหน้า (Progress Changelog)
 
-| วันที่ | เวอร์ชัน | รายละเอียดการดำเนินงาน | ผู้รับผิดชอบ |
-| :---: | :---: | :--- | :--- |
-| **2026-10-20** | 1.1.0 | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox` | Antigravity AI |
-| **2026-10-20** | 1.0.0 | สร้างเอกสาร Roadmap รวมขั้นตอน Phase 1 - 4 | Antigravity AI |
-| **2026-10-20** | 0.9.0 | รวมศูนย์ระบบตรวจสอบสิทธิ์ไว้ที่ `domain/permissions/activity-permissions.ts` และปรับปรุง Server Actions & Views ทั้งหมด | Antigravity AI |
-| **2026-10-20** | 0.8.0 | ตัดขาดโมดูล `activity` ออกจาก `activity-plans` 100% (Native repositories, demo plots, calendar, approval actions) | Antigravity AI |
-| **2026-10-20** | 0.7.0 | Refactor `features/type-2/` ให้เป็น Gold Standard ตามแม่แบบ Type 1 | Antigravity AI |
-| **2026-10-20** | 0.6.0 | ปรับปรุงเอกสารแม่แบบ `TYPE_SLICE_BLUEPRINT.md` สรุปมาตรฐาน 24 Artifacts | Antigravity AI |
+|     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
+| :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  1.1.0   | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox` | Antigravity AI |
+| **2026-10-20** |  1.0.0   | สร้างเอกสาร Roadmap รวมขั้นตอน Phase 1 - 4                                                                                                                                          | Antigravity AI |
+| **2026-10-20** |  0.9.0   | รวมศูนย์ระบบตรวจสอบสิทธิ์ไว้ที่ `domain/permissions/activity-permissions.ts` และปรับปรุง Server Actions & Views ทั้งหมด                                                             | Antigravity AI |
+| **2026-10-20** |  0.8.0   | ตัดขาดโมดูล `activity` ออกจาก `activity-plans` 100% (Native repositories, demo plots, calendar, approval actions)                                                                   | Antigravity AI |
+| **2026-10-20** |  0.7.0   | Refactor `features/type-2/` ให้เป็น Gold Standard ตามแม่แบบ Type 1                                                                                                                  | Antigravity AI |
+| **2026-10-20** |  0.6.0   | ปรับปรุงเอกสารแม่แบบ `TYPE_SLICE_BLUEPRINT.md` สรุปมาตรฐาน 24 Artifacts                                                                                                             | Antigravity AI |

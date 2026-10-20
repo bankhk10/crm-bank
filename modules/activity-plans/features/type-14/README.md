@@ -1,7 +1,7 @@
 # Type 14 Feature Module: ติดตามแปลงแฮทแทค (Hattack Follow-up)
 
 > **Work Type Code:** `TYPE_14`  
-> **Label:** ติดตามแปลงแฮทแทค (Hattack Follow-up)  
+> **Label:** ติดตามแปลงแฮทแทค (Hattack Follow-up)ติดตามแปลงแฮทแทค (Hattack Follow-up)  
 > **Status:** ✅ Vertical Slice Architecture, Relational Multi-Plot Tracking, Clean Architecture
 
 ---
