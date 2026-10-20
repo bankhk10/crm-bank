@@ -96,6 +96,12 @@ import {
   validateType11UnplannedItems,
 } from "@/modules/activity/features/type-11";
 import {
+  Type12UnplannedForm,
+  useType12UnplannedForm,
+  mapType12UnplannedToPayload,
+  validateType12UnplannedItem,
+} from "@/modules/activity/features/type-12";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -333,6 +339,14 @@ export function UnplannedActivityForm({
       wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
       wt.includes("ตรวจเช็กสต็อก"),
   );
+  const isType12Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_12" ||
+      wt.includes("TYPE_12") ||
+      wt.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      wt.includes("ศึกษาดูงาน") ||
+      wt.includes("ทัวร์"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -496,6 +510,11 @@ export function UnplannedActivityForm({
     initialItems: hydratedInitialType11Items,
     customersList: customers as any,
     productsList: products as any,
+  });
+
+  // 5.12 Type 12 Unplanned Hook
+  const type12 = useType12UnplannedForm({
+    initial: initialData,
   });
 
   // 6. Budget Hook
@@ -1212,6 +1231,63 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_11",
         })),
       };
+    } else if (isType12Active) {
+      const type12Validation = type12.validate();
+      if (!type12Validation.isValid) {
+        toast.error(type12Validation.error || "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)");
+        return;
+      }
+
+      // Upload Tour Images
+      const allType12Images = type12.item.images || [];
+      let cleanType12Images = allType12Images;
+      if (allType12Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType12Images,
+            "type12",
+            "tour",
+          );
+          cleanType12Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพทัวร์ไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const mapped = mapType12UnplannedToPayload({
+        ...type12.item,
+        images: cleanType12Images,
+      });
+
+      if (mapped.tourData.storeId) {
+        const cust = customers.find((c) => c.id === mapped.tourData.storeId);
+        planStores = [
+          ...planStores,
+          {
+            workTypeCode: "TYPE_12",
+            storeId: mapped.tourData.storeId,
+            storeName: cust?.name || type12.item.storeName || null,
+            notes: `ทัวร์ร้านค้า ไปยัง ${type12.item.destination || "ปลายทาง"}`,
+          },
+        ];
+      }
+
+      actualData = {
+        workTypeCode: "TYPE_12",
+        actualAttendees: type12.item.actualAttendees,
+        tourData: mapped.tourData,
+        type12Actual: mapped.type12Actual,
+        attachments: cleanType12Images.map((img) => ({
+          category: "TOUR",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพกิจกรรมศึกษาดูงาน",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_12",
+        })),
+      };
     }
 
     // 4. Resolve activityTypeId
@@ -1303,6 +1379,14 @@ export function UnplannedActivityForm({
             t.name?.includes("สต็อก")
           );
         }
+        if (isType12Active) {
+          return (
+            t.code === "TYPE_12" ||
+            t.code === "TOUR" ||
+            t.name?.includes("ทัวร์") ||
+            t.name?.includes("ศึกษาดูงาน")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -1322,7 +1406,9 @@ export function UnplannedActivityForm({
                   ? "type-10"
                   : isType11Active
                     ? "type-11"
-                    : "type-1");
+                    : isType12Active
+                      ? "type-12"
+                      : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1418,6 +1504,10 @@ export function UnplannedActivityForm({
       type11Data: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
       type11Stores: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
       type11Targets: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
+      tourData: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
+      tour: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
+      type12Actual: isType12Active ? mapType12UnplannedToPayload(type12.item).type12Actual : undefined,
+      type12Data: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1429,6 +1519,7 @@ export function UnplannedActivityForm({
       type9UnplannedItems: isType9Active ? type9.items : undefined,
       type10UnplannedItems: isType10Active ? type10.items : undefined,
       type11UnplannedItems: isType11Active ? type11.items : undefined,
+      type12UnplannedItem: isType12Active ? type12.item : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1742,6 +1833,16 @@ export function UnplannedActivityForm({
           deleteStockItem={type11.deleteStockItem}
           customers={customers as any}
           products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.13 ส่วนเฉพาะ Type 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {isType12Active && (
+        <Type12UnplannedForm
+          item={type12.item}
+          onChange={type12.updateItem}
+          customers={customers as any}
           readonly={readonly}
         />
       )}

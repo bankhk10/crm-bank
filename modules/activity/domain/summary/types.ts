@@ -105,8 +105,8 @@ export type Type8TargetItem = any;
 export type Type9TargetItem = any;
 import type { Type10TargetItem } from "../../features/type-10";
 import type { Type11TargetItem } from "../../features/type-11";
-export type { Type10TargetItem, Type11TargetItem };
-export type Type12TargetItem = any;
+import type { Type12TargetItem } from "../../features/type-12";
+export type { Type10TargetItem, Type11TargetItem, Type12TargetItem };
 export type Type13TargetItem = any;
 export type Type14TargetItem = any;
 

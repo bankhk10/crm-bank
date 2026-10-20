@@ -76,6 +76,11 @@ import {
   hydrateType11PlannedData,
 } from "@/modules/activity/features/type-11";
 import {
+  Type12PlannedForm,
+  useType12PlannedForm,
+  hydrateType12PlannedData,
+} from "@/modules/activity/features/type-12";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -270,6 +275,14 @@ export function PlannedActivityForm({
       wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
       wt.includes("ตรวจเช็กสต็อก"),
   );
+  const isType12Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_12" ||
+      wt.includes("TYPE_12") ||
+      wt.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      wt.includes("ศึกษาดูงาน") ||
+      wt.includes("ทัวร์"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -441,6 +454,14 @@ export function PlannedActivityForm({
   const type11 = useType11PlannedForm({
     initial: initialData,
     initDetails: hydratedInitialType11Items,
+    customersList: customers as any,
+    selectedWorkTypes,
+  });
+
+  // 5.12 Type 12 Planned Hook
+  const type12 = useType12PlannedForm({
+    initial: initialData,
+    initDetails: initialData?.tour || initialData?.tourData,
     customersList: customers as any,
     selectedWorkTypes,
   });
@@ -760,6 +781,33 @@ export function PlannedActivityForm({
       }
     }
 
+    // 3.11 Validation & Mapping - Type 12 Items
+    let type12Payload: any = null;
+    if (isType12Active) {
+      const type12Validation = type12.validateType12();
+      if (!type12Validation.isValid) {
+        toast.error(
+          type12Validation.error ||
+            "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)",
+        );
+        return;
+      }
+      const t12Mapped = type12.mapType12Payload(customers as any);
+      type12Payload = t12Mapped.tourData;
+      if (type12Payload?.storeId) {
+        const cust = customers.find((c) => c.id === type12Payload.storeId);
+        planStores = [
+          ...planStores,
+          {
+            workTypeCode: "TYPE_12",
+            storeId: type12Payload.storeId,
+            storeName: cust?.name || type12.type12Store || null,
+            notes: `ทัวร์ร้านค้า ไปยัง ${type12.type12Destination || "ปลายทาง"}`,
+          },
+        ];
+      }
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -785,7 +833,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_8" &&
             (t.code === "TYPE_8" || t.code === "MEETING" || t.name?.includes("ประชุม"))) ||
           (primaryCode === "TYPE_9" &&
-            (t.code === "TYPE_9" || t.code === "STORE_EVENT" || t.name?.includes("ส่งเสริมการขายหน้าร้าน"))),
+            (t.code === "TYPE_9" || t.code === "STORE_EVENT" || t.name?.includes("ส่งเสริมการขายหน้าร้าน"))) ||
+          (primaryCode === "TYPE_12" &&
+            (t.code === "TYPE_12" || t.code === "TOUR" || t.name?.includes("ทัวร์") || t.name?.includes("ศึกษาดูงาน"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -842,6 +892,9 @@ export function PlannedActivityForm({
       type11Data: type11Payload,
       type11Stores: type11Payload,
       type11Targets: type11Payload,
+      tourData: type12Payload,
+      tour: type12Payload,
+      type12Data: type12Payload,
     };
 
     try {
@@ -1132,6 +1185,26 @@ export function PlannedActivityForm({
           readonly={readonly}
           type11Stores={type11.type11Stores}
           setType11Stores={type11.setType11Stores}
+          customers={customers as any}
+        />
+      )}
+
+      {/* 3.13 ส่วนเฉพาะ Type 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {isType12Active && (
+        <Type12PlannedForm
+          readonly={readonly}
+          type12TourType={type12.type12TourType}
+          setType12TourType={type12.setType12TourType}
+          type12TourSize={type12.type12TourSize}
+          setType12TourSize={type12.setType12TourSize}
+          type12Country={type12.type12Country}
+          setType12Country={type12.setType12Country}
+          type12Store={type12.type12Store}
+          setType12Store={type12.setType12Store}
+          type12StoreId={type12.type12StoreId}
+          setType12StoreId={type12.setType12StoreId}
+          type12Destination={type12.type12Destination}
+          setType12Destination={type12.setType12Destination}
           customers={customers as any}
         />
       )}

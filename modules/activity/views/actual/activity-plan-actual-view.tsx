@@ -100,6 +100,12 @@ import {
   extractType11PlanTargets,
   type Type11TargetItem,
 } from "@/modules/activity/features/type-11";
+import {
+  useType12Actual,
+  validateType12Actual,
+  extractType12PlanTargets,
+  type Type12TargetItem,
+} from "@/modules/activity/features/type-12";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
@@ -149,6 +155,7 @@ export function ActivityPlanActualView({
   const type9Actual = useType9Actual();
   const type10Actual = useType10Actual();
   const type11Actual = useType11Actual();
+  const type12Actual = useType12Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -161,6 +168,7 @@ export function ActivityPlanActualView({
   const [type9Targets, setType9Targets] = useState<Type9TargetItem[]>([]);
   const [type10Targets, setType10Targets] = useState<Type10TargetItem[]>([]);
   const [type11Targets, setType11Targets] = useState<Type11TargetItem[]>([]);
+  const [type12Targets, setType12Targets] = useState<Type12TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -217,6 +225,9 @@ export function ActivityPlanActualView({
       const extractedT11 = extractType11PlanTargets(plan);
       setType11Targets(extractedT11.list);
 
+      const extractedT12 = extractType12PlanTargets(plan);
+      setType12Targets(extractedT12.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -242,11 +253,12 @@ export function ActivityPlanActualView({
         type9Actual.hydrate(payloadToHydrate);
         type10Actual.hydrate(payloadToHydrate);
         type11Actual.hydrate(payloadToHydrate);
+        type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -401,6 +413,15 @@ export function ActivityPlanActualView({
         ),
       ) ||
       plan?.activityType?.code === "TYPE_11";
+
+    const isType12Active =
+      planWorkTypes.includes("TYPE_12") ||
+      planWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      planWorkTypes.includes("ทัวร์") ||
+      planWorkTypes.includes("ศึกษาดูงาน") ||
+      Boolean(plan?.tour) ||
+      Boolean(plan?.tourData) ||
+      plan?.activityType?.code === "TYPE_12";
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -557,6 +578,14 @@ export function ActivityPlanActualView({
         const t11Validation = validateType11Actual(type11Actual.stockItems);
         if (!t11Validation.isValid && t11Validation.error) {
           missingFields.push(t11Validation.error);
+        }
+      }
+
+      // Delegate Type 12 validation to features/type-12 domain logic
+      if (isType12Active) {
+        const t12Validation = validateType12Actual(type12Actual.collectPayload());
+        if (!t12Validation.isValid && t12Validation.error) {
+          missingFields.push(t12Validation.error);
         }
       }
 
@@ -1152,6 +1181,61 @@ export function ActivityPlanActualView({
             payload.resultSummary = `ตรวจเช็คสต๊อกหน้าร้าน: ${storeName} (${type11Actual.stockItems?.length || 0} รายการ)`;
           }
         }
+
+        // Collect Type 12 payload if active
+        if (isType12Active) {
+          const tourImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type12Actual.images || []) as any,
+            "type12_tour",
+            "tour",
+          );
+
+          const finalTourImages = tourImgResult.updatedImages;
+          const t12Payload = type12Actual.collectPayload();
+
+          payload = {
+            ...payload,
+            type12Actual: {
+              ...t12Payload,
+              images: finalTourImages,
+            },
+            attachments: [
+              ...(payload.attachments || []),
+              ...finalTourImages.map((img: any) => ({
+                category: "TOUR",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพกิจกรรมศึกษาดูงาน",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_12",
+              })),
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive &&
+            !isType8Active &&
+            !isType9Active &&
+            !isType10Active &&
+            !isType11Active
+          ) {
+            const dest =
+              type12Targets[0]?.destination ||
+              type12Targets[0]?.country ||
+              (plan as any)?.tour?.destination ||
+              (plan as any)?.tour?.country ||
+              "ทัวร์";
+            payload.resultSummary = `พาลูกค้าศึกษาดูงาน: ${dest} (ผู้ร่วมเดินทางจริง: ${type12Actual.actualAttendees || "-"} คน)`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -1326,6 +1410,7 @@ export function ActivityPlanActualView({
               type9State={type9Actual}
               type10State={type10Actual}
               type11State={type11Actual}
+              type12State={type12Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -1338,6 +1423,7 @@ export function ActivityPlanActualView({
               type9Targets={type9Targets}
               type10Targets={type10Targets}
               type11Targets={type11Targets}
+              type12Targets={type12Targets}
               plan={plan}
               products={products}
               customers={customers}

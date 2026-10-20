@@ -238,6 +238,36 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t11Images = t11Parsed.t11Images;
     }
 
+    // Type 12: พาลูกค้าศึกษาดูงาน (Tour)
+    if (resData.type12Actual || resData.t12Actual) {
+      const t12 = resData.type12Actual || resData.t12Actual;
+      if (t12.actualAttendees !== undefined && result.t12ActualAttendees === undefined) {
+        result.t12ActualAttendees = t12.actualAttendees;
+      }
+      if (t12.tourHighlights && !result.t12TourHighlights) {
+        result.t12TourHighlights = t12.tourHighlights;
+      }
+      if (t12.feedbackIssues && !result.t12FeedbackIssues) {
+        result.t12FeedbackIssues = t12.feedbackIssues;
+      }
+      if (t12.images && (!result.t12Images || result.t12Images.length === 0)) {
+        result.t12Images = t12.images;
+      }
+    } else if (rawSummary && rawSummary.includes("ผลการศึกษาดูงาน/ทัวร์")) {
+      const attendeesMatch = rawSummary.match(/ผู้ร่วมเดินทางจริง:\s*(\d+)/);
+      if (attendeesMatch && result.t12ActualAttendees === undefined) {
+        result.t12ActualAttendees = Number(attendeesMatch[1]);
+      }
+      const highlightsMatch = rawSummary.match(/ไฮไลท์การดูงาน:\s*([^|]+)/);
+      if (highlightsMatch && !result.t12TourHighlights) {
+        result.t12TourHighlights = highlightsMatch[1].trim();
+      }
+      const feedbackMatch = rawSummary.match(/ข้อคิดเห็น\/ปัญหา:\s*([^|]+)/);
+      if (feedbackMatch && !result.t12FeedbackIssues) {
+        result.t12FeedbackIssues = feedbackMatch[1].trim();
+      }
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     if (resData.type4Result || resData.activityResultType4) {
       const t4 = resData.type4Result || resData.activityResultType4;
@@ -414,6 +444,24 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t12Images) {
+      result.t12Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_12" ||
+            att.workTypeCode === "พาลูกค้าศึกษาดูงาน (ทัวร์)" ||
+            att.workTypeCode === "ทัวร์" ||
+            att.category === "TOUR",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

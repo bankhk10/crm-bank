@@ -53,6 +53,10 @@ import {
   Type11ApprovalCard,
   Type11DetailView,
 } from "@/modules/activity/features/type-11";
+import {
+  Type12ApprovalCard,
+  Type12DetailView,
+} from "@/modules/activity/features/type-12";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -168,6 +172,16 @@ export function ApprovalWorkTypeList({
           s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
       ),
     );
+
+  const isType12 =
+    isTypeActive("TYPE_12", "พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    isTypeActive("TYPE_12", "ทัวร์") ||
+    isTypeActive("TYPE_12", "ศึกษาดูงาน") ||
+    Boolean(plan?.tour) ||
+    Boolean(plan?.tourData) ||
+    Boolean(targets?.t12?.country) ||
+    Boolean(targets?.t12?.destination) ||
+    Boolean(targets?.t12?.storeName);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -378,6 +392,26 @@ export function ApprovalWorkTypeList({
               a.category === "STOCK" ||
               a.category === "stock" ||
               a.category === "type11",
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType12ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type12Actual || plan?.type12Actual) return true;
+    return Boolean(
+      parsedResults?.type12Actual ||
+        parsedResults?.t12ActualAttendees ||
+        parsedResults?.t12TourHighlights ||
+        parsedResults?.t12FeedbackIssues ||
+        (parsedResults?.type12Actual?.images && parsedResults.type12Actual.images.length > 0) ||
+        (parsedResults?.t12Images && parsedResults.t12Images.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_12" ||
+              a.category === "TOUR" ||
+              a.category === "type12",
           )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -654,6 +688,35 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
       }));
   }, [parsedResults?.type11Actual?.images, parsedResults?.t11Images, plan?.attachments, plan?.result?.attachments]);
+
+  // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
+  const effectiveT12Images = useMemo(() => {
+    if (
+      parsedResults?.type12Actual?.images &&
+      parsedResults.type12Actual.images.length > 0
+    ) {
+      return parsedResults.type12Actual.images;
+    }
+    if (parsedResults?.t12Images && parsedResults.t12Images.length > 0) {
+      return parsedResults.t12Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_12" ||
+          att?.category === "TOUR" ||
+          att?.category === "type12",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
+      }));
+  }, [parsedResults?.type12Actual?.images, parsedResults?.t12Images, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -1066,6 +1129,51 @@ export function ApprovalWorkTypeList({
               targets?.t11List ||
               plan?.type11Targets ||
               plan?.type11Stores
+            }
+          />
+        ))}
+
+      {/* 🟢 TYPE 12: พาลูกค้าศึกษาดูงาน (Tour) */}
+      {isType12 &&
+        (hasType12ActualResults ? (
+          <Type12DetailView
+            isVisible={true}
+            target={
+              targets?.t12 ||
+              targets?.t12List?.[0] ||
+              plan?.tour ||
+              plan?.tourData
+            }
+            targets={
+              targets?.t12List ||
+              (plan?.tour ? [plan.tour] : undefined)
+            }
+            actualAttendees={
+              parsedResults?.type12Actual?.actualAttendees ||
+              parsedResults?.t12ActualAttendees
+            }
+            tourHighlights={
+              parsedResults?.type12Actual?.tourHighlights ||
+              parsedResults?.t12TourHighlights
+            }
+            feedbackIssues={
+              parsedResults?.type12Actual?.feedbackIssues ||
+              parsedResults?.t12FeedbackIssues
+            }
+            images={effectiveT12Images}
+          />
+        ) : (
+          <Type12ApprovalCard
+            isVisible={true}
+            target={
+              targets?.t12 ||
+              targets?.t12List?.[0] ||
+              plan?.tour ||
+              plan?.tourData
+            }
+            targets={
+              targets?.t12List ||
+              (plan?.tour ? [plan.tour] : undefined)
             }
           />
         ))}

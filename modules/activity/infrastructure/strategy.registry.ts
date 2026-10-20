@@ -10,6 +10,7 @@ import { type8PlannedStrategy, type8UnplannedStrategy } from "../features/type-8
 import { type9PlannedStrategy, type9UnplannedStrategy } from "../features/type-9";
 import { type10PlannedStrategy, type10UnplannedStrategy } from "../features/type-10";
 import { type11PlannedStrategy, type11UnplannedStrategy } from "../features/type-11";
+import { type12PlannedStrategy, type12UnplannedStrategy } from "../features/type-12";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -288,6 +289,24 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.t11RemainingQty
       ),
   },
+  TYPE_12: {
+    code: "TYPE_12",
+    name: "พาลูกค้าศึกษาดูงาน (ทัวร์)",
+    planned: type12PlannedStrategy,
+    unplanned: type12UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_12") ||
+            rawData.workTypeCodes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+            rawData.workTypeCodes.includes("ทัวร์"))) ||
+        rawData.tour ||
+        rawData.tourData ||
+        rawData.type12Actual ||
+        rawData.t12Actual ||
+        (rawData.t12Images && rawData.t12Images.length > 0)
+      ),
+  },
 };
 
 /**
@@ -350,6 +369,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_11.hasData(rawData)) {
     return "TYPE_11";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_12.hasData(rawData)) {
+    return "TYPE_12";
   }
 
   return "TYPE_1";

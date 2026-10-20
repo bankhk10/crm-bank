@@ -61,6 +61,11 @@ import {
   type Type11TargetItem,
   type useType11Actual,
 } from "@/modules/activity/features/type-11";
+import {
+  Type12ActualForm,
+  type Type12TargetItem,
+  type useType12Actual,
+} from "@/modules/activity/features/type-12";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -76,6 +81,7 @@ interface ActualWorkTypeListProps {
   type9State?: ReturnType<typeof useType9Actual>;
   type10State?: ReturnType<typeof useType10Actual>;
   type11State?: ReturnType<typeof useType11Actual>;
+  type12State?: ReturnType<typeof useType12Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -88,6 +94,7 @@ interface ActualWorkTypeListProps {
   type9Targets?: Type9TargetItem[];
   type10Targets?: Type10TargetItem[];
   type11Targets?: Type11TargetItem[];
+  type12Targets?: Type12TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -111,6 +118,7 @@ export function ActualWorkTypeList({
   type9State,
   type10State,
   type11State,
+  type12State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -123,6 +131,7 @@ export function ActualWorkTypeList({
   type9Targets = [],
   type10Targets = [],
   type11Targets = [],
+  type12Targets = [],
   plan,
   products = [],
   customers = [],
@@ -265,6 +274,15 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_11";
+
+  const isType12Active =
+    planWorkTypes.includes("TYPE_12") ||
+    planWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    planWorkTypes.includes("ทัวร์") ||
+    planWorkTypes.includes("ศึกษาดูงาน") ||
+    Boolean(plan?.tour) ||
+    Boolean(plan?.tourData) ||
+    plan?.activityType?.code === "TYPE_12";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -588,6 +606,25 @@ export function ActualWorkTypeList({
           setNextAction={type11State.setNextAction}
           images={type11State.images}
           setImages={type11State.setImages}
+        />
+      )}
+
+      {/* 🟢 TYPE 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {isType12Active && type12State && (
+        <Type12ActualForm
+          isVisible={true}
+          targets={type12Targets?.length ? type12Targets : plan?.tour ? [plan.tour] : undefined}
+          target={type12Targets?.[0] || plan?.tour || plan?.tourData}
+          planType={plan?.planType}
+          actualAttendees={type12State.actualAttendees}
+          setActualAttendees={type12State.setActualAttendees}
+          tourHighlights={type12State.tourHighlights}
+          setTourHighlights={type12State.setTourHighlights}
+          feedbackIssues={type12State.feedbackIssues}
+          setFeedbackIssues={type12State.setFeedbackIssues}
+          images={type12State.images}
+          setImages={type12State.setImages}
+          onUploadImages={type12State.uploadImages}
         />
       )}
     </div>

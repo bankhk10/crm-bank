@@ -18,6 +18,7 @@ import { Type8DetailView } from "@/modules/activity/features/type-8";
 import { Type9DetailView } from "@/modules/activity/features/type-9";
 import { Type10DetailView } from "@/modules/activity/features/type-10";
 import { Type11DetailView } from "@/modules/activity/features/type-11";
+import { Type12DetailView } from "@/modules/activity/features/type-12";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -132,6 +133,16 @@ export function DetailWorkTypeList({
           s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
       ),
     );
+
+  const isType12 =
+    isTypeActive("TYPE_12", "พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    isTypeActive("TYPE_12", "ทัวร์") ||
+    isTypeActive("TYPE_12", "ศึกษาดูงาน") ||
+    Boolean(plan?.tour) ||
+    Boolean(plan?.tourData) ||
+    Boolean(targets?.t12?.country) ||
+    Boolean(targets?.t12?.destination) ||
+    Boolean(targets?.t12?.storeName);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -441,6 +452,35 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.type11Actual?.images, parsedResults?.t11Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
+  const effectiveT12Images = useMemo(() => {
+    if (
+      parsedResults?.type12Actual?.images &&
+      parsedResults.type12Actual.images.length > 0
+    ) {
+      return parsedResults.type12Actual.images;
+    }
+    if (parsedResults?.t12Images && parsedResults.t12Images.length > 0) {
+      return parsedResults.t12Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_12" ||
+          att?.category === "TOUR" ||
+          att?.category === "type12",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
+      }));
+  }, [parsedResults?.type12Actual?.images, parsedResults?.t12Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -706,6 +746,34 @@ export function DetailWorkTypeList({
           parsedResults?.nextAction
         }
         images={effectiveT11Images}
+      />
+
+      {/* 🟢 TYPE 12: พาลูกค้าศึกษาดูงาน (Tour) */}
+      <Type12DetailView
+        isVisible={isType12}
+        target={
+          targets?.t12 ||
+          targets?.t12List?.[0] ||
+          plan?.tour ||
+          plan?.tourData
+        }
+        targets={
+          targets?.t12List ||
+          (plan?.tour ? [plan.tour] : undefined)
+        }
+        actualAttendees={
+          parsedResults?.type12Actual?.actualAttendees ||
+          parsedResults?.t12ActualAttendees
+        }
+        tourHighlights={
+          parsedResults?.type12Actual?.tourHighlights ||
+          parsedResults?.t12TourHighlights
+        }
+        feedbackIssues={
+          parsedResults?.type12Actual?.feedbackIssues ||
+          parsedResults?.t12FeedbackIssues
+        }
+        images={effectiveT12Images}
       />
     </div>
   );
