@@ -10,6 +10,8 @@ import {
 import { Type2DetailView } from "@/modules/activity/features/type-2";
 import { Type3DetailView } from "@/modules/activity/features/type-3";
 import { Type4DetailView } from "@/modules/activity/features/type-4";
+import { Type5DetailView } from "@/modules/activity/features/type-5";
+import { Type6DetailView } from "@/modules/activity/features/type-6";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -52,6 +54,17 @@ export function DetailWorkTypeList({
     isTypeActive("TYPE_4", "วางบิล") ||
     isTypeActive("TYPE_4", "เก็บเงิน") ||
     Boolean(plan?.type4Targets?.length);
+
+  const isType5 =
+    isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง") ||
+    isTypeActive("TYPE_5", "สำรวจตลาด") ||
+    Boolean(plan?.type5Targets?.length);
+
+  const isType6 =
+    isTypeActive("TYPE_6", "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
+    isTypeActive("TYPE_6", "ร้องเรียน") ||
+    isTypeActive("TYPE_6", "แก้ปัญหา") ||
+    Boolean(plan?.type6Targets?.length);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -140,6 +153,27 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
 
+  const effectiveT6Images = useMemo(() => {
+    if (parsedResults?.t6Images && parsedResults.t6Images.length > 0) {
+      return parsedResults.t6Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_6" ||
+          att?.category === "ISSUE",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปภาพปัญหา",
+      }));
+  }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -212,6 +246,34 @@ export function DetailWorkTypeList({
         billingDetail={parsedResults?.t4BillingDetail}
         collectDetail={parsedResults?.t4CollectDetail}
         paymentImages={effectiveT4Images}
+      />
+
+      {/* 🟣 TYPE 5: สำรวจตลาดของคู่แข่ง (Competitor Market Survey) */}
+      <Type5DetailView
+        isVisible={isType5}
+        target={targets?.t5}
+        targets={targets?.t5List}
+        surveyDetails={parsedResults?.t5SurveyDetails}
+        competitorBrand={parsedResults?.t5CompetitorBrand}
+        competitorProduct={parsedResults?.t5CompetitorProduct}
+      />
+
+      {/* 🔴 TYPE 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Customer Complaint / Issue Resolution) */}
+      <Type6DetailView
+        isVisible={isType6}
+        target={targets?.t6}
+        targets={targets?.t6List}
+        issueRecord={parsedResults?.t6IssueRecord}
+        productName={parsedResults?.t6ProductName}
+        lotNumber={parsedResults?.t6LotNumber}
+        purchaseChannel={parsedResults?.t6PurchaseChannel}
+        storeName={parsedResults?.t6StoreName}
+        issueType={parsedResults?.t6IssueType}
+        detail={parsedResults?.t6Detail}
+        status={parsedResults?.t6Status}
+        images={effectiveT6Images}
+        problemDetail={parsedResults?.t6ProblemDetail}
+        initialSolution={parsedResults?.t6InitialSolution}
       />
     </div>
   );

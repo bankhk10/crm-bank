@@ -51,6 +51,18 @@ import {
   extractType4PlanTargets,
   type Type4TargetItem,
 } from "@/modules/activity/features/type-4";
+import {
+  useType5Actual,
+  validateType5Actual,
+  extractType5PlanTargets,
+  type Type5TargetItem,
+} from "@/modules/activity/features/type-5";
+import {
+  useType6Actual,
+  validateType6Actual,
+  extractType6PlanTargets,
+  type Type6TargetItem,
+} from "@/modules/activity/features/type-6";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import { deleteActivityPlanImagePaths } from "@/modules/activity/application/media/image-uploader";
@@ -89,10 +101,14 @@ export function ActivityPlanActualView({
   const type2Actual = useType2Actual();
   const type3Actual = useType3Actual();
   const type4Actual = useType4Actual();
+  const type5Actual = useType5Actual();
+  const type6Actual = useType6Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
   const [type4Targets, setType4Targets] = useState<Type4TargetItem[]>([]);
+  const [type5Targets, setType5Targets] = useState<Type5TargetItem[]>([]);
+  const [type6Targets, setType6Targets] = useState<Type6TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -110,7 +126,7 @@ export function ActivityPlanActualView({
     messages: [],
   });
 
-  // 4. Hydrate Type 1, Type 2, Type 3 & Type 4 plan targets & existing actual result
+  // 4. Hydrate Type 1 - Type 6 plan targets & existing actual result
   useEffect(() => {
     if (plan && !isHydrated) {
       const extractedTargets = extractType1PlanTargets(plan);
@@ -124,6 +140,12 @@ export function ActivityPlanActualView({
 
       const extractedT4 = extractType4PlanTargets(plan);
       setType4Targets(extractedT4.list);
+
+      const extractedT5 = extractType5PlanTargets(plan);
+      setType5Targets(extractedT5.list);
+
+      const extractedT6 = extractType6PlanTargets(plan);
+      setType6Targets(extractedT6.list);
 
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
@@ -139,11 +161,13 @@ export function ActivityPlanActualView({
         type2Actual.hydrate(payloadToHydrate);
         type3Actual.hydrate(payloadToHydrate);
         type4Actual.hydrate(payloadToHydrate);
+        type5Actual.hydrate(payloadToHydrate, { t5: extractedT5.primary });
+        type6Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -198,6 +222,19 @@ export function ActivityPlanActualView({
       planWorkTypes.includes("วางบิล") ||
       planWorkTypes.includes("เก็บเงิน") ||
       Boolean(plan?.type4Targets?.length);
+
+    const isType5Active =
+      planWorkTypes.includes("TYPE_5") ||
+      planWorkTypes.includes("สำรวจตลาดของคู่แข่ง") ||
+      planWorkTypes.includes("สำรวจตลาด") ||
+      Boolean(plan?.type5Targets?.length);
+
+    const isType6Active =
+      planWorkTypes.includes("TYPE_6") ||
+      planWorkTypes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
+      planWorkTypes.includes("ร้องเรียน") ||
+      planWorkTypes.includes("แก้ปัญหา") ||
+      Boolean(plan?.type6Targets?.length);
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -279,6 +316,24 @@ export function ActivityPlanActualView({
         const type4Validation = type4Actual.validate(effectiveCollectType);
         if (!type4Validation.isValid && type4Validation.error) {
           missingFields.push(type4Validation.error);
+        }
+      }
+
+      // Delegate Type 5 validation to features/type-5 domain logic
+      if (isType5Active) {
+        const type5Validation = validateType5Actual(
+          type5Actual.t5SurveyDetails,
+        );
+        if (!type5Validation.isValid && type5Validation.error) {
+          missingFields.push(type5Validation.error);
+        }
+      }
+
+      // Delegate Type 6 validation to features/type-6 domain logic
+      if (isType6Active) {
+        const t6Err = type6Actual.validate();
+        if (t6Err) {
+          missingFields.push(t6Err);
         }
       }
 
@@ -441,6 +496,94 @@ export function ActivityPlanActualView({
               t4Payload.t4BillingDetail ||
               t4Payload.t4Detail ||
               `วางบิล / เก็บเงิน: ${t4Payload.t4OrderNo || "บันทึกผลเรียบร้อย"}`;
+          }
+        }
+
+        // Collect Type 5 payload if active
+        if (isType5Active) {
+          const newlyUploadedUrls: string[] = [];
+          const cleanDetails = await type5Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t5Payload = type5Actual.collectPayload(cleanDetails);
+          payload = {
+            ...payload,
+            ...t5Payload,
+            surveyResults: t5Payload.t5SurveyDetails || [],
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanDetails.flatMap((d) => [
+                ...(d.bottleImages || []).map((img) => ({
+                  category: "SURVEY_BOTTLE",
+                  fileUrl: img.url,
+                  fileName: img.name || "ภาพขวดสินค้า",
+                  fileSize: img.size || 0,
+                  mimeType: img.type || "image/jpeg",
+                  workTypeCode: "TYPE_5",
+                  surveyItemId: d.id,
+                })),
+                ...(d.promotionalImages || []).map((img) => ({
+                  category: "SURVEY_PROMO_MATERIAL",
+                  fileUrl: img.url,
+                  fileName: img.name || "ภาพสื่อส่งเสริมการขาย",
+                  fileSize: img.size || 0,
+                  mimeType: img.type || "image/jpeg",
+                  workTypeCode: "TYPE_5",
+                  surveyItemId: d.id,
+                })),
+              ]),
+            ],
+          };
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            t5Payload.t5CompetitorBrand
+          ) {
+            payload.resultSummary = `สำรวจตลาด: ${t5Payload.t5CompetitorBrand} (${t5Payload.t5CompetitorProduct || ""})`;
+          }
+        }
+
+        // Collect Type 6 payload if active
+        if (isType6Active) {
+          const newlyUploadedUrls: string[] = [];
+          const cleanImages = await type6Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t6Payload = type6Actual.collectPayload({
+            isTypeVisible: true,
+            products,
+            customers,
+            cleanImages,
+          });
+          payload = {
+            ...payload,
+            ...t6Payload,
+            issueResults: t6Payload.t6IssueRecord ? [t6Payload.t6IssueRecord] : [],
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanImages.map((img) => ({
+                category: "ISSUE",
+                fileUrl: img.url,
+                fileName: img.name || "รูปภาพปัญหา",
+                fileSize: img.size || 0,
+                mimeType: img.type || "image/jpeg",
+                workTypeCode: "TYPE_6",
+              })),
+            ],
+          };
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            t6Payload.t6ProblemDetail
+          ) {
+            payload.resultSummary = `ตรวจสอบเรื่องร้องเรียน: ${t6Payload.t6ProblemDetail}`;
           }
         }
       }
@@ -609,12 +752,17 @@ export function ActivityPlanActualView({
               type2State={type2Actual}
               type3State={type3Actual}
               type4State={type4Actual}
+              type5State={type5Actual}
+              type6State={type6Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
               type4Targets={type4Targets}
+              type5Targets={type5Targets}
+              type6Targets={type6Targets}
               plan={plan}
               products={products}
+              customers={customers}
             />
           )}
 

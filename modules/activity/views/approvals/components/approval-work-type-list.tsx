@@ -21,6 +21,14 @@ import {
   Type4ApprovalCard,
   Type4DetailView,
 } from "@/modules/activity/features/type-4";
+import {
+  Type5ApprovalCard,
+  Type5DetailView,
+} from "@/modules/activity/features/type-5";
+import {
+  Type6ApprovalCard,
+  Type6DetailView,
+} from "@/modules/activity/features/type-6";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -64,6 +72,17 @@ export function ApprovalWorkTypeList({
     isTypeActive("TYPE_4", "วางบิล") ||
     isTypeActive("TYPE_4", "เก็บเงิน") ||
     Boolean(plan?.type4Targets?.length);
+
+  const isType5 =
+    isTypeActive("TYPE_5", "สำรวจตลาดของคู่แข่ง") ||
+    isTypeActive("TYPE_5", "สำรวจตลาด") ||
+    Boolean(plan?.type5Targets?.length);
+
+  const isType6 =
+    isTypeActive("TYPE_6", "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
+    isTypeActive("TYPE_6", "ร้องเรียน") ||
+    isTypeActive("TYPE_6", "แก้ปัญหา") ||
+    Boolean(plan?.type6Targets?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -146,6 +165,28 @@ export function ApprovalWorkTypeList({
     );
   }, [isUnplanned, plan, parsedResults]);
 
+  const hasType5ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.surveyResults?.length) return true;
+    return Boolean(
+      (parsedResults?.t5SurveyDetails &&
+        parsedResults.t5SurveyDetails.length > 0) ||
+        parsedResults?.t5CompetitorBrand ||
+        parsedResults?.t5CompetitorProduct,
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType6ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.issueResults?.length) return true;
+    return Boolean(
+      parsedResults?.t6IssueRecord ||
+        parsedResults?.t6ProblemDetail ||
+        parsedResults?.t6InitialSolution ||
+        (parsedResults?.t6Images && parsedResults.t6Images.length > 0),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดอนุมัติ
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
     if (parsedResults?.t1PlotImages && parsedResults.t1PlotImages.length > 0) {
@@ -196,6 +237,28 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "หลักฐานการชำระเงิน",
       }));
   }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
+
+  // รวบรวมรูปภาพ Type 6 (Issue Images)
+  const effectiveT6Images = useMemo(() => {
+    if (parsedResults?.t6Images && parsedResults.t6Images.length > 0) {
+      return parsedResults.t6Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_6" ||
+          att?.category === "ISSUE",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปภาพปัญหา",
+      }));
+  }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -312,6 +375,52 @@ export function ApprovalWorkTypeList({
             isVisible={true}
             target={targets?.t4}
             targets={targets?.t4List}
+          />
+        ))}
+
+      {/* 🟣 TYPE 5: สำรวจตลาดของคู่แข่ง (Competitor Market Survey) */}
+      {isType5 &&
+        (hasType5ActualResults ? (
+          <Type5DetailView
+            isVisible={true}
+            target={targets?.t5}
+            targets={targets?.t5List}
+            surveyDetails={parsedResults?.t5SurveyDetails}
+            competitorBrand={parsedResults?.t5CompetitorBrand}
+            competitorProduct={parsedResults?.t5CompetitorProduct}
+          />
+        ) : (
+          <Type5ApprovalCard
+            isVisible={true}
+            target={targets?.t5}
+            targets={targets?.t5List}
+          />
+        ))}
+
+      {/* 🔴 TYPE 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Customer Complaint / Issue Resolution) */}
+      {isType6 &&
+        (hasType6ActualResults ? (
+          <Type6DetailView
+            isVisible={true}
+            target={targets?.t6}
+            targets={targets?.t6List}
+            issueRecord={parsedResults?.t6IssueRecord}
+            productName={parsedResults?.t6ProductName}
+            lotNumber={parsedResults?.t6LotNumber}
+            purchaseChannel={parsedResults?.t6PurchaseChannel}
+            storeName={parsedResults?.t6StoreName}
+            issueType={parsedResults?.t6IssueType}
+            detail={parsedResults?.t6Detail}
+            status={parsedResults?.t6Status}
+            images={effectiveT6Images}
+            problemDetail={parsedResults?.t6ProblemDetail}
+            initialSolution={parsedResults?.t6InitialSolution}
+          />
+        ) : (
+          <Type6ApprovalCard
+            isVisible={true}
+            target={targets?.t6}
+            targets={targets?.t6List}
           />
         ))}
     </div>

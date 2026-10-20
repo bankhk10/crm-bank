@@ -2,6 +2,8 @@ import { type1PlannedStrategy, type1UnplannedStrategy } from "../features/type-1
 import { type2PlannedStrategy, type2UnplannedStrategy } from "../features/type-2";
 import { type3PlannedStrategy, type3UnplannedStrategy } from "../features/type-3";
 import { type4PlannedStrategy, type4UnplannedStrategy } from "../features/type-4";
+import { type5PlannedStrategy } from "../features/type-5";
+import { type6PlannedStrategy } from "../features/type-6";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -100,6 +102,46 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.orderNo
       ),
   },
+  TYPE_5: {
+    code: "TYPE_5",
+    name: "สำรวจตลาดของคู่แข่ง",
+    planned: type5PlannedStrategy,
+    unplanned: type5PlannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_5") ||
+            rawData.workTypeCodes.includes("สำรวจตลาดของคู่แข่ง"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
+        (rawData.type5Targets && rawData.type5Targets.length > 0) ||
+        (rawData.type5Items && rawData.type5Items.length > 0) ||
+        (rawData.surveyResults && rawData.surveyResults.length > 0) ||
+        (rawData.t5SurveyDetails && rawData.t5SurveyDetails.length > 0) ||
+        rawData.competitorBrand ||
+        rawData.t5CompetitorBrand
+      ),
+  },
+  TYPE_6: {
+    code: "TYPE_6",
+    name: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+    planned: type6PlannedStrategy,
+    unplanned: type6PlannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_6") ||
+            rawData.workTypeCodes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
+        (rawData.type6Targets && rawData.type6Targets.length > 0) ||
+        (rawData.type6Items && rawData.type6Items.length > 0) ||
+        (rawData.issueResults && rawData.issueResults.length > 0) ||
+        (rawData.t6IssueDetails && rawData.t6IssueDetails.length > 0) ||
+        rawData.t6IssueRecord ||
+        rawData.t6ProblemDetail
+      ),
+  },
 };
 
 /**
@@ -138,6 +180,12 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_4.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData)) {
     return "TYPE_4";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_5.hasData(rawData)) {
+    return "TYPE_5";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_6.hasData(rawData)) {
+    return "TYPE_6";
   }
 
   return "TYPE_1";

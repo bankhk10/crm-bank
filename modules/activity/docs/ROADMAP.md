@@ -16,7 +16,9 @@
 | **Type 2 (Gold Standard Slice)** | ✅ เสร็จสมบูรณ์ | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel |
 | **Type 3 (เสนอขายสินค้า / Sales)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel |
 | **Type 4 (วางบิล / เก็บเงิน)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel |
-| **Type 5 – 14** | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ |
+| **Type 5 (สำรวจตลาดของคู่แข่ง)** | ✅ เสร็จสมบูรณ์ | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration |
+| **Type 6 (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา)** | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Native Strategy, Full View Integration |
+| **Type 7A – 14** | ⏳ **รอการ Migrate** | ยังอยู่ในโมดูลเก่า `modules/activity-plans/features/` รอการย้ายเข้ามาตามลำดับ |
 
 ---
 
@@ -69,19 +71,41 @@ flowchart TD
 
 เป้าหมาย: ย้ายกิจกรรมกลุ่มการตลาดและงานแปลงสาธิตจาก `modules/activity-plans/features/` เข้ามาเป็น Native ภายใน `modules/activity/features/`
 
-| Type | กิจกรรม | ความสำคัญ | สิ่งที่ต้องระวังเป็นพิเศษ |
+| Type | กิจกรรม | สถานะ | สิ่งที่ต้องระวังเป็นพิเศษ |
 | :---: | :--- | :---: | :--- |
-| **Type 5** | ส่งเสริมการขาย / ออกบูธ (Sales Promotion) | สูง | มีรายการสื่อส่งเสริมการขาย, งบประมาณการตลาด |
-| **Type 6** | ประชุมกลุ่มเกษตรกร (Farmer Meeting) | สูง | จำนวนผู้เข้าร่วมประชุม, ข้อมูลค่าใช้จ่ายจัดงาน |
-| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment) | วิกฤต | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง |
-| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | วิกฤต | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
+| **Type 5** | สำรวจตลาดของคู่แข่ง (Competitor Market Survey) | ✅ เสร็จสมบูรณ์ | ราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), แยกอัปโหลดรูปขวด/สื่อ |
+| **Type 6** | ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) | ✅ เสร็จสมบูรณ์ | รายละเอียดเรื่องร้องเรียน, แนวทางแก้ไข, รูปถ่ายหลักฐานปัญหา |
+| **Type 7A** | จัดทำแปลงสาธิต (Demo Plot Establishment) | ⏳ ลำดับถัดไป | เชื่อมต่อกับ Master `DemoPlot`, การเบิกสินค้าตัวอย่าง, พิกัดแปลง |
+| **Type 7B** | ติดตามแปลงสาธิต (Demo Plot Follow-up) | ⏳ รอการดำเนินการ | ต้องดึงเฉพาะแปลง 7A ที่ Approved มาประเมินผลการเจริญเติบโต |
 
-**ขั้นตอนการทำงานของแต่ละ Type ใน Phase 2:**
-1. สร้างโฟลเดอร์ `features/type-X/` ตามมาตรฐาน 24 Artifacts
-2. พอร์ต Planned, Unplanned, Shared components และ hooks
-3. สร้าง Native Strategies (Planned & Actual) และผูกใน `strategy.registry.ts`
-4. ผูกฟังก์ชัน Permission ผ่าน `domain/permissions/activity-permissions.ts`
-5. ทดสอบ `npx tsc --noEmit` จนกว่าจะผ่าน 0 errors
+#### งานที่ 2.1: Migrate `features/type-5/` (สำรวจตลาดของคู่แข่ง — Completed ✅)
+- [x] สร้างโฟลเดอร์ `features/type-5/` ตามมาตรฐาน 24 Artifacts (Planned, Shared)
+- [x] พอร์ต Planned Components (`Type5PlannedForm`, `Type5PlanCard`) พร้อม aliases
+- [x] พอร์ต Hooks (`useType5PlannedForm`, `useType5Actual`) ตัดขาดจากโมดูลเก่า 100%
+- [x] พอร์ต Actual, Detail View, และ Approval Card Components
+- [x] สร้าง Native Strategy (`type5PlannedStrategy`) พร้อม Dual Persistence Sync
+- [x] ผูกเข้ากับ `strategy.registry.ts` และ `plan-targets-registry.ts`
+- [x] เชื่อมต่อเข้ากับ Views (`planned-activity-form.tsx`, `actual-work-type-list.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-5/README.md`](../features/type-5/README.md)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
+
+#### งานที่ 2.2: Migrate `features/type-6/` (ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา — Completed ✅)
+- [x] สร้างโฟลเดอร์ `features/type-6/` ตามมาตรฐาน 24 Artifacts (Planned, Shared)
+- [x] พอร์ต Planned Components (`Type6PlannedForm`, `Type6PlanCard`) พร้อม aliases
+- [x] พอร์ต Hooks (`useType6PlannedForm`, `useType6Actual`) ตัดขาดจากโมดูลเก่า 100%
+- [x] พอร์ต Actual (`Type6ActualForm`), Detail View (`Type6DetailView`), Approval Card (`Type6ApprovalCard`)
+- [x] สร้าง Native Strategy (`type6PlannedStrategy`) พร้อม Dual Persistence Sync (`ActivityPlanType6Target`, `ActivityResultIssueItem`, `ActivityPlanStore`)
+- [x] ผูกเข้ากับ `strategy.registry.ts` และ `plan-targets-registry.ts`
+- [x] เชื่อมต่อเข้ากับ Views (`planned-activity-form.tsx`, `actual-work-type-list.tsx`, `detail-work-type-list.tsx`, `approval-work-type-list.tsx`)
+- [x] จัดทำเอกสาร [`features/type-6/README.md`](../features/type-6/README.md)
+- [x] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
+
+#### งานที่ 2.3: Migrate `features/type-7a/` (จัดทำแปลงสาธิต — Next Task)
+- [ ] สร้างโฟลเดอร์ `features/type-7a/` ตามมาตรฐาน 24 Artifacts
+- [ ] เชื่อมต่อกับระบบแปลงสาธิต (Demo Plot) และการประเมินผล
+- [ ] สร้าง Native Strategy และบันทึกลงฐานข้อมูล
+- [ ] เชื่อมโยงเข้าสู่ Registries และ Views
+- [ ] รัน Type Check: `npx tsc --noEmit` ผ่าน 0 errors
 
 ---
 

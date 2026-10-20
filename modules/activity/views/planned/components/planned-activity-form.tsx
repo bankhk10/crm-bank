@@ -36,6 +36,16 @@ import {
   hydrateType4PlannedData,
 } from "@/modules/activity/features/type-4";
 import {
+  Type5PlannedForm,
+  useType5PlannedForm,
+  hydrateType5PlannedData,
+} from "@/modules/activity/features/type-5";
+import {
+  Type6PlannedForm,
+  useType6PlannedForm,
+  hydrateType6PlannedData,
+} from "@/modules/activity/features/type-6";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -141,6 +151,19 @@ export function PlannedActivityForm({
       wt.includes("TYPE_4") ||
       wt.includes("วางบิล"),
   );
+  const isType5Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_5" ||
+      wt.includes("TYPE_5") ||
+      wt.includes("สำรวจตลาด"),
+  );
+  const isType6Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_6" ||
+      wt.includes("TYPE_6") ||
+      wt.includes("ร้องเรียน") ||
+      wt.includes("แก้ปัญหา"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -219,6 +242,32 @@ export function PlannedActivityForm({
   const type4 = useType4PlannedForm({
     initialItems: hydratedInitialType4Items,
     customersList: customers as any,
+  });
+
+  // 5.3 Type 5 Planned Hook
+  const hydratedInitialType5Items = useMemo(
+    () => hydrateType5PlannedData(initialData),
+    [initialData],
+  );
+
+  const type5 = useType5PlannedForm({
+    initialItems: hydratedInitialType5Items,
+    customersList: customers as any,
+    productsList: products as any,
+    selectedWorkTypes: selectedWorkTypes.map(getWorkTypeCode),
+  });
+
+  // 5.5 Type 6 Planned Hook
+  const hydratedInitialType6Items = useMemo(
+    () => hydrateType6PlannedData(initialData),
+    [initialData],
+  );
+
+  const type6 = useType6PlannedForm({
+    initial: initialData,
+    initDetails: { type6Items: hydratedInitialType6Items },
+    customersList: customers as any,
+    selectedWorkTypes: selectedWorkTypes.map(getWorkTypeCode),
   });
 
   // 6. Budget Hook
@@ -333,6 +382,44 @@ export function PlannedActivityForm({
       type4TargetsPayload = t4Payload.type4Targets;
     }
 
+    // 3.3 Validation & Mapping - Type 5 Items
+    let type5TargetsPayload: any[] = [];
+    if (isType5Active) {
+      const type5Validation = type5.validateType5();
+      if (!type5Validation.isValid) {
+        toast.error(
+          type5Validation.error ||
+            "ข้อมูลสำรวจตลาดของคู่แข่งไม่ถูกต้อง (Type 5)",
+        );
+        return;
+      }
+
+      const t5Payload = type5.mapType5Payload(
+        customers as any,
+        products as any,
+      );
+      planStores = [...planStores, ...t5Payload.planStores];
+      planProducts = [...planProducts, ...t5Payload.planProducts];
+      type5TargetsPayload = t5Payload.type5Items;
+    }
+
+    // 3.4 Validation & Mapping - Type 6 Items
+    let type6TargetsPayload: any[] = [];
+    if (isType6Active) {
+      const type6Validation = type6.validateType6();
+      if (!type6Validation.isValid) {
+        toast.error(
+          type6Validation.error ||
+            "ข้อมูลตรวจสอบเรื่องร้องเรียน / แก้ปัญหาไม่ถูกต้อง (Type 6)",
+        );
+        return;
+      }
+
+      const t6Payload = type6.mapType6Payload(customers as any);
+      planStores = [...planStores, ...t6Payload.planStores];
+      type6TargetsPayload = t6Payload.type6Items || [];
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -346,7 +433,11 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_3" &&
             (t.code === "SALE" || t.name?.includes("เสนอขาย"))) ||
           (primaryCode === "TYPE_4" &&
-            (t.code === "COLLECT" || t.name?.includes("วางบิล"))),
+            (t.code === "COLLECT" || t.name?.includes("วางบิล"))) ||
+          (primaryCode === "TYPE_5" &&
+            (t.code === "SURVEY" || t.name?.includes("สำรวจตลาด"))) ||
+          (primaryCode === "TYPE_6" &&
+            (t.code === "ISSUE" || t.name?.includes("ร้องเรียน") || t.name?.includes("แก้ปัญหา"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -381,6 +472,10 @@ export function PlannedActivityForm({
       type3Items: type3TargetsPayload,
       type4Targets: type4TargetsPayload,
       type4Items: type4TargetsPayload,
+      type5Targets: type5TargetsPayload,
+      type5Items: type5TargetsPayload,
+      type6Targets: type6TargetsPayload,
+      type6Items: type6TargetsPayload,
     };
 
     try {
@@ -469,20 +564,25 @@ export function PlannedActivityForm({
       />
 
       {/* 3.0 กล่องข้อความเมื่อยังไม่ได้เลือกประเภทงาน */}
-      {!isType1Active && !isType2Active && !isType3Active && (
-        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
-          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
-            <Info className="w-5 h-5 text-slate-400" />
+      {!isType1Active &&
+        !isType2Active &&
+        !isType3Active &&
+        !isType4Active &&
+        !isType5Active &&
+        !isType6Active && (
+          <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
+            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
+              <Info className="w-5 h-5 text-slate-400" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">
+              ยังไม่ได้เลือกประเภทงาน
+            </p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot;
+              ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
+            </p>
           </div>
-          <p className="text-sm font-semibold text-slate-700">
-            ยังไม่ได้เลือกประเภทงาน
-          </p>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
-            กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot;
-            ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
-          </p>
-        </div>
-      )}
+        )}
 
       {/* 3.1 ส่วนเฉพาะ Type 1: เข้าพบเกษตรกร / ร้านค้า */}
       {isType1Active && (
@@ -534,6 +634,31 @@ export function PlannedActivityForm({
           addType4Row={type4.addType4Row}
           updateType4Row={type4.updateType4Row}
           deleteType4Row={type4.deleteType4Row}
+        />
+      )}
+
+      {/* 3.5 ส่วนเฉพาะ Type 5: สำรวจตลาดของคู่แข่ง */}
+      {isType5Active && (
+        <Type5PlannedForm
+          readonly={readonly}
+          customers={customers as any}
+          products={products as any}
+          type5Items={type5.type5Items}
+          addType5Row={type5.addType5Row}
+          updateType5Row={type5.updateType5Row}
+          deleteType5Row={type5.deleteType5Row}
+        />
+      )}
+
+      {/* 3.6 ส่วนเฉพาะ Type 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา */}
+      {isType6Active && (
+        <Type6PlannedForm
+          readonly={readonly}
+          customers={customers as any}
+          type6Items={type6.type6Items}
+          addType6Row={type6.addType6Row}
+          updateType6Row={type6.updateType6Row}
+          deleteType6Row={type6.deleteType6Row}
         />
       )}
 

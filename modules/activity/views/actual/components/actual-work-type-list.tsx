@@ -21,6 +21,16 @@ import {
   type Type4TargetItem,
   type useType4Actual,
 } from "@/modules/activity/features/type-4";
+import {
+  Type5ActualForm,
+  type Type5TargetItem,
+  type useType5Actual,
+} from "@/modules/activity/features/type-5";
+import {
+  Type6ActualForm,
+  type Type6TargetItem,
+  type useType6Actual,
+} from "@/modules/activity/features/type-6";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -28,12 +38,17 @@ interface ActualWorkTypeListProps {
   type2State?: ReturnType<typeof useType2Actual>;
   type3State?: ReturnType<typeof useType3Actual>;
   type4State?: ReturnType<typeof useType4Actual>;
+  type5State?: ReturnType<typeof useType5Actual>;
+  type6State?: ReturnType<typeof useType6Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
   type4Targets?: Type4TargetItem[];
+  type5Targets?: Type5TargetItem[];
+  type6Targets?: Type6TargetItem[];
   plan?: any;
   products?: any[];
+  customers?: any[];
 }
 
 /**
@@ -46,12 +61,17 @@ export function ActualWorkTypeList({
   type2State,
   type3State,
   type4State,
+  type5State,
+  type6State,
   targets,
   type2Targets = [],
   type3Targets = [],
   type4Targets = [],
+  type5Targets = [],
+  type6Targets = [],
   plan,
   products = [],
+  customers = [],
 }: ActualWorkTypeListProps) {
   const isType1Active =
     planWorkTypes.includes("TYPE_1") ||
@@ -84,6 +104,19 @@ export function ActualWorkTypeList({
     planWorkTypes.includes("วางบิล") ||
     planWorkTypes.includes("เก็บเงิน") ||
     Boolean(plan?.type4Targets?.length);
+
+  const isType5Active =
+    planWorkTypes.includes("TYPE_5") ||
+    planWorkTypes.includes("สำรวจตลาดของคู่แข่ง") ||
+    planWorkTypes.includes("สำรวจตลาด") ||
+    Boolean(plan?.type5Targets?.length);
+
+  const isType6Active =
+    planWorkTypes.includes("TYPE_6") ||
+    planWorkTypes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา") ||
+    planWorkTypes.includes("ร้องเรียน") ||
+    planWorkTypes.includes("แก้ปัญหา") ||
+    Boolean(plan?.type6Targets?.length);
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -197,6 +230,62 @@ export function ActualWorkTypeList({
           paymentImages={type4State.t4PaymentImages}
           onUploadImages={type4State.handleUploadImages}
           onRemoveImage={type4State.handleRemoveImage}
+        />
+      )}
+
+      {/* 🟣 TYPE 5: สำรวจตลาดของคู่แข่ง (Competitor Market Survey) */}
+      {isType5Active && type5State && (
+        <Type5ActualForm
+          isVisible={true}
+          targets={
+            type5Targets && type5Targets.length > 0
+              ? type5Targets
+              : plan?.type5Targets
+          }
+          target={type5Targets?.[0] || plan?.type5Targets?.[0]}
+          planType={plan?.planType}
+          surveyDetails={type5State.t5SurveyDetails}
+          onUpdateSurveyItem={type5State.handleUpdateT5SurveyItem}
+          competitorBrand={type5State.t5CompetitorBrand}
+          setCompetitorBrand={type5State.setT5CompetitorBrand}
+          competitorProduct={type5State.t5CompetitorProduct}
+          setCompetitorProduct={type5State.setT5CompetitorProduct}
+        />
+      )}
+
+      {/* 🔴 TYPE 6: ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Customer Complaint / Issue Resolution) */}
+      {isType6Active && type6State && (
+        <Type6ActualForm
+          isVisible={true}
+          targets={
+            type6Targets && type6Targets.length > 0
+              ? type6Targets
+              : plan?.type6Targets
+          }
+          target={type6Targets?.[0] || plan?.type6Targets?.[0]}
+          planType={plan?.planType}
+          products={products}
+          customers={customers}
+          productId={type6State.t6ProductId}
+          setProductId={type6State.setT6ProductId}
+          productName={type6State.t6ProductName}
+          setProductName={type6State.setT6ProductName}
+          lotNumber={type6State.t6LotNumber}
+          setLotNumber={type6State.setT6LotNumber}
+          purchaseChannel={type6State.t6PurchaseChannel}
+          setPurchaseChannel={type6State.setT6PurchaseChannel as any}
+          storeId={type6State.t6StoreId}
+          setStoreId={type6State.setT6StoreId}
+          storeName={type6State.t6StoreName}
+          setStoreName={type6State.setT6StoreName}
+          issueType={type6State.t6IssueType}
+          setIssueType={type6State.setT6IssueType}
+          detail={type6State.t6Detail}
+          setDetail={type6State.setT6Detail}
+          status={type6State.t6Status}
+          setStatus={type6State.setT6Status}
+          images={type6State.t6Images}
+          setImages={type6State.setT6Images}
         />
       )}
     </div>

@@ -4,6 +4,8 @@ import { extractType1PlanTargets } from "../../features/type-1";
 import { extractType2PlanTargets } from "../../features/type-2";
 import { extractType3PlanTargets } from "../../features/type-3";
 import { extractType4PlanTargets } from "../../features/type-4";
+import { extractType5PlanTargets } from "../../features/type-5";
+import { extractType6PlanTargets } from "../../features/type-6";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -21,6 +23,8 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_2: (p, prev) => extractType2PlanTargets(p, prev),
   TYPE_3: (p, prev) => extractType3PlanTargets(p, prev),
   TYPE_4: (p, prev) => extractType4PlanTargets(p, prev),
+  TYPE_5: (p, prev) => extractType5PlanTargets(p, prev),
+  TYPE_6: (p, prev) => extractType6PlanTargets(p, prev),
 };
 
 /**
@@ -66,7 +70,11 @@ export function extractPlanTargets(
         targets.t4List = extracted.list || [];
       } else {
         const key = `t${code.replace("TYPE_", "").toLowerCase()}`;
-        targets[key] = extractor(plan, prevTargets[key]);
+        const extracted = extractor(plan, prevTargets[key]);
+        targets[key] = extracted?.primary || extracted;
+        if (extracted?.list) {
+          targets[`${key}List`] = extracted.list;
+        }
       }
     }
   }
@@ -100,6 +108,20 @@ export function extractPlanTargets(
     const extracted = extractType4PlanTargets(plan, prevTargets.t4);
     targets.t4 = extracted.primary;
     targets.t4List = extracted.list;
+  }
+
+  // Always attempt Type 5 if relation exists
+  if (!targets.t5?.store && (plan as any).type5Targets?.length) {
+    const extracted = extractType5PlanTargets(plan, prevTargets.t5);
+    targets.t5 = extracted.primary;
+    targets.t5List = extracted.list;
+  }
+
+  // Always attempt Type 6 if relation exists
+  if (!targets.t6?.customer && (plan as any).type6Targets?.length) {
+    const extracted = extractType6PlanTargets(plan, prevTargets.t6);
+    targets.t6 = extracted.primary;
+    targets.t6List = extracted.list;
   }
 
   return targets;
