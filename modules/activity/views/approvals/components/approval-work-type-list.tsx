@@ -13,6 +13,10 @@ import {
   Type2ApprovalCard,
   Type2DetailView,
 } from "@/modules/activity/features/type-2";
+import {
+  Type3ApprovalCard,
+  Type3DetailView,
+} from "@/modules/activity/features/type-3";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -45,6 +49,11 @@ export function ApprovalWorkTypeList({
     isTypeActive("TYPE_2", "ติดตามผลการใช้สินค้า") ||
     isTypeActive("TYPE_2", "ติดตามผล") ||
     Boolean(plan?.type2Targets?.length);
+
+  const isType3 =
+    isTypeActive("TYPE_3", "เสนอขายสินค้า") ||
+    isTypeActive("TYPE_3", "เสนอขาย") ||
+    Boolean(plan?.type3Targets?.length);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -89,6 +98,27 @@ export function ApprovalWorkTypeList({
       parsedResults?.t2UsageResult ||
         parsedResults?.t2ProblemDetail ||
         parsedResults?.t2FollowupDetail,
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType3ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (
+      plan?.result?.saleResults &&
+      plan.result.saleResults.length > 0
+    ) {
+      return true;
+    }
+    if (
+      parsedResults?.t3ProductSalesDetails &&
+      parsedResults.t3ProductSalesDetails.length > 0
+    ) {
+      return true;
+    }
+    return Boolean(
+      parsedResults?.t3ActualQuantity ||
+        parsedResults?.t3ActualSales ||
+        parsedResults?.t3SoldProducts,
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -192,7 +222,32 @@ export function ApprovalWorkTypeList({
           />
         ))}
 
-      {/* 🔵 ประเภทงานอื่นๆ (Type 3 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
+      {/* 🟣 TYPE 3: เสนอขายสินค้า (Product Sales Proposal) */}
+      {isType3 &&
+        (hasType3ActualResults ? (
+          <Type3DetailView
+            isVisible={true}
+            target={targets?.t3}
+            targets={targets?.t3List}
+            soldProducts={parsedResults?.t3SoldProducts}
+            actualSales={parsedResults?.t3ActualSales}
+            actualQuantity={
+              parsedResults?.t3ActualQuantity != null
+                ? String(parsedResults.t3ActualQuantity)
+                : undefined
+            }
+            unclosedReason={parsedResults?.t3UnclosedReason}
+            productSalesDetails={parsedResults?.t3ProductSalesDetails}
+          />
+        ) : (
+          <Type3ApprovalCard
+            isVisible={true}
+            target={targets?.t3}
+            targets={targets?.t3List}
+          />
+        ))}
+
+      {/* 🔵 ประเภทงานอื่นๆ (Type 4 - 14) จะเพิ่มเข้ามาเมื่อเริ่มพัฒนา Feature แต่ละประเภทงาน */}
     </div>
   );
 }

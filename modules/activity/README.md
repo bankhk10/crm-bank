@@ -31,12 +31,19 @@ modules/activity/
 │   │   ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
 │   │   └── index.ts                      # Unified Public API Contract for Type 1
 │   │
-│   └── type-2/                           # 🌾 VERTICAL SLICE: ติดตามผลการใช้สินค้า (Product Follow-up)
-│       ├── planned/                      # กิจกรรมในแผนและผลการติดตามจริง (Targets, Products, Actual Results)
-│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Follow-up)
-│       ├── shared/                       # Constants และ Shared Types ของ Type 2
-│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 2
-│       └── index.ts                      # Unified Public API Contract for Type 2
+│   ├── type-2/                           # 🌾 VERTICAL SLICE: ติดตามผลการใช้สินค้า (Product Follow-up)
+│   │   ├── planned/                      # กิจกรรมในแผนและผลการติดตามจริง (Targets, Products, Actual Results)
+│   │   ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Follow-up)
+│   │   ├── shared/                       # Constants และ Shared Types ของ Type 2
+│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 2
+│   │   └── index.ts                      # Unified Public API Contract for Type 2
+│   │
+│   └── type-3/                           # 💼 VERTICAL SLICE: เสนอขายสินค้า (Product Sales Proposal)
+│       ├── planned/                      # แผนเสนอขายและผลงานจริงในแผน (Targets, Products, Actual Sales)
+│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Sales Proposal)
+│       ├── shared/                       # Constants (NOT_CLOSED_REASONS) และ Types
+│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 3
+│       └── index.ts                      # Unified Public API Contract for Type 3
 │
 ├── server/                               # Server Actions Gateways (Standalone ประจำโมดูล)
 │   └── actions.ts                        # createActivityPlanAction, updateActivityPlanAction, getActivityPlanAction ฯลฯ
@@ -442,11 +449,32 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] **Step 1: Approval Workflow & Authority Backbone** (`domain/approval/`, `operator-resolver`, `hooks/use-approver-directory`, Pure UI Badge)
 - [x] **Step 2: Plan Summary & Targets Registry Engine** (`domain/summary/`, Extensible Targets Registry, 100% Decoupled Views)
 - [x] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
-- [ ] ทยอย Migrate ประเภทงาน Type 3 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+- [x] **Type 3 Vertical Slice**: เสนอขายสินค้า (Product Sales Proposal) ครบทั้ง Planned, Actual, Unplanned 2-in-1 และ Dual Persistence
+- [ ] ทยอย Migrate ประเภทงาน Type 4 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
 
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.7.0 (2026-10-20)
+- **Type 3 Vertical Slice Complete (เสนอขายสินค้า / Product Sales Proposal)**:
+  - พัฒนา Type 3 Vertical Slice ใน `modules/activity/features/type-3/` ตามมาตรฐาน Vertical Slice Architecture อย่างสมบูรณ์ 100%
+  - **Shared Core & Constants**: `NOT_CLOSED_REASONS`, `SALE_STATUSES`, `SALE_STATUS_CONFIG`, `StoreOption`, `ProductOption`
+  - **Planned Sub-slice**:
+    - ฟอร์มและ Hook: `Type3PlanForm`, `Type3PlanCard`, `useType3Form` (รองรับ Dealer/Subdealer, แคตตาล็อกราคา และคำนวณยอดเงินรวมอัตโนมัติ)
+    - Application & Validation: Zod schemas (`type3SalesItemSchema`, `type3ProductLineSchema`), `validateType3FormItems` และ Mappers (`extractType3PlanTargets`, `hydrateType3PlannedData`, `mapType3FormToPayload`)
+    - Strategy: `type3PlannedStrategy` บันทึกลงตารางเฉพาะ `ActivityPlanType3Target` / `ActivityPlanType3Product` พร้อม Dual Persistence Sync สู่ตาราง generic `ActivityPlanStore` / `ActivityPlanProduct`
+  - **Actual & Review Sub-slice**:
+    - ฟอร์มและ Hook: `Type3ActualForm`, `useType3Actual`, `Type3DetailView` (ตารางเปรียบเทียบ Target vs Actual), `Type3ApprovalCard`
+    - Validation & Mappers: `validateType3Actual`, `parseType3ActualResult`, `mapType3ActualFormToDb` บันทึกลง `ActivityResultSaleItem` (`workTypeCode = TYPE_3`)
+  - **Unplanned Sub-slice (กิจกรรมนอกแผน 2-in-1)**:
+    - ฟอร์มและ Hook: `Type3UnplannedForm`, `useType3UnplannedForm` (ระบุร้านค้า สินค้า และบันทึกยอดขายจริงพร้อมเหตุผลปิดดีลในหน้าเดียว)
+    - Application & Strategy: `unplanned-validation.ts`, `unplanned-mapper.ts`, `type3-unplanned.strategy.ts` ทำงานแบบ Atomic 1 Transaction
+  - **Views & Domain Integration**:
+    - ผูกเข้ากับ `domain/summary/plan-targets-registry.ts` และ `result-summary-parser.ts`
+    - ผูกเข้ากับ View Orchestrators: `PlannedActivityForm`, `UnplannedActivityForm`, `ActualWorkTypeList`, `DetailWorkTypeList`, `ApprovalWorkTypeList` และ `activity-plan-actual-view.tsx`
+    - ผูกเข้ากับ Server Actions: `createActivityPlanAction` และ `updateActivityPlanAction` ใน `modules/activity/server/actions.ts`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
 
 ### Version 1.6.1 (2026-10-20)
 - **Type 2 Image Deduplication & Multi-Tier Data Sanitation**:

@@ -11,13 +11,20 @@ import {
   type Type2TargetItem,
   type useType2Actual,
 } from "@/modules/activity/features/type-2";
+import {
+  Type3ActualForm,
+  type Type3TargetItem,
+  type useType3Actual,
+} from "@/modules/activity/features/type-3";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
   type1State: ReturnType<typeof useType1Actual>;
   type2State?: ReturnType<typeof useType2Actual>;
+  type3State?: ReturnType<typeof useType3Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
+  type3Targets?: Type3TargetItem[];
   plan?: any;
   products?: any[];
 }
@@ -30,8 +37,10 @@ export function ActualWorkTypeList({
   planWorkTypes,
   type1State,
   type2State,
+  type3State,
   targets,
   type2Targets = [],
+  type3Targets = [],
   plan,
   products = [],
 }: ActualWorkTypeListProps) {
@@ -53,6 +62,12 @@ export function ActualWorkTypeList({
     planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
     planWorkTypes.includes("ติดตามผล") ||
     Boolean(plan?.type2Targets?.length);
+
+  const isType3Active =
+    planWorkTypes.includes("TYPE_3") ||
+    planWorkTypes.includes("เสนอขายสินค้า") ||
+    planWorkTypes.includes("เสนอขาย") ||
+    Boolean(plan?.type3Targets?.length);
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -114,6 +129,31 @@ export function ActualWorkTypeList({
           setProblemDetail={type2State.setT2ProblemDetail}
           images={type2State.t2Images}
           setImages={type2State.setT2Images}
+        />
+      )}
+
+      {/* 🟣 TYPE 3: เสนอขายสินค้า (Product Sales Proposal) */}
+      {isType3Active && type3State && (
+        <Type3ActualForm
+          isVisible={true}
+          targets={
+            type3Targets && type3Targets.length > 0
+              ? type3Targets
+              : plan?.type3Targets
+          }
+          target={type3Targets?.[0] || plan?.type3Targets?.[0]}
+          planType={plan?.planType}
+          products={products}
+          soldProducts={type3State.soldProducts}
+          setSoldProducts={type3State.setSoldProducts}
+          actualSales={type3State.actualSales}
+          setActualSales={type3State.setActualSales}
+          actualQuantity={type3State.actualQuantity}
+          setActualQuantity={type3State.setActualQuantity}
+          unclosedReason={type3State.unclosedReason}
+          setUnclosedReason={type3State.setUnclosedReason}
+          productSalesDetails={type3State.productSalesDetails}
+          setProductSalesDetails={type3State.setProductSalesDetails}
         />
       )}
     </div>

@@ -85,6 +85,69 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 3 Sale Results from relation table
+    if (
+      Array.isArray(resData.saleResults) &&
+      resData.saleResults.length > 0 &&
+      !result.t3ProductSalesDetails
+    ) {
+      const t3Sales = resData.saleResults.filter(
+        (s: any) =>
+          !s.workTypeCode ||
+          s.workTypeCode === "TYPE_3" ||
+          s.workTypeCode === "เสนอขายสินค้า",
+      );
+
+      if (t3Sales.length > 0) {
+        result.t3ProductSalesDetails = t3Sales.map((item: any) => ({
+          id: item.id,
+          productId: item.productId,
+          productName: item.productName || item.product?.name || "สินค้า",
+          storeId: item.storeId,
+          customer:
+            item.store?.name || item.customerName || item.customer || "",
+          actualQty: item.actualQuantity ?? item.actualQty ?? 0,
+          actualSales:
+            item.actualTotal != null
+              ? Number(item.actualTotal)
+              : item.actualSales,
+          unitPrice:
+            item.actualUnitPrice != null
+              ? Number(item.actualUnitPrice)
+              : item.unitPrice,
+          unclosedReason: item.unclosedReason || "",
+          isAdditional: Boolean(item.isAdditional),
+        }));
+
+        const totalQty = t3Sales.reduce(
+          (sum: number, s: any) => sum + Number(s.actualQuantity ?? 0),
+          0,
+        );
+        const totalSales = t3Sales.reduce(
+          (sum: number, s: any) => sum + Number(s.actualTotal ?? 0),
+          0,
+        );
+        const soldProductNames = t3Sales
+          .map((s: any) => s.productName || s.product?.name)
+          .filter(Boolean);
+
+        if (!result.t3ActualQuantity) result.t3ActualQuantity = totalQty;
+        if (!result.t3ActualSales) result.t3ActualSales = String(totalSales);
+        if (!result.t3SoldProducts)
+          result.t3SoldProducts = Array.from(new Set(soldProductNames)).join(
+            ", ",
+          );
+        if (!result.t3UnclosedReason) {
+          const reasons = t3Sales
+            .map((s: any) => s.unclosedReason)
+            .filter(Boolean);
+          if (reasons.length > 0) {
+            result.t3UnclosedReason = reasons.join("; ");
+          }
+        }
+      }
+    }
+
     // Type 2 Attachments / Images
     const rawAttachmentsList: any[] = [
       ...(Array.isArray(resData.attachments) ? resData.attachments : []),

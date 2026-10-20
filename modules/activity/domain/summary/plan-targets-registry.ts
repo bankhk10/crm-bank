@@ -2,6 +2,7 @@ import type { ActivityPlanWithRelations } from "../../types";
 import { getWorkTypeCode } from "../../constants";
 import { extractType1PlanTargets } from "../../features/type-1";
 import { extractType2PlanTargets } from "../../features/type-2";
+import { extractType3PlanTargets } from "../../features/type-3";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -17,6 +18,7 @@ export type TargetExtractorFn = (
 const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_1: (p, prev) => extractType1PlanTargets(p, prev),
   TYPE_2: (p, prev) => extractType2PlanTargets(p, prev),
+  TYPE_3: (p, prev) => extractType3PlanTargets(p, prev),
 };
 
 /**
@@ -52,6 +54,10 @@ export function extractPlanTargets(
         const extracted = extractor(plan, prevTargets.t2);
         targets.t2 = extracted.primary || extracted;
         targets.t2List = extracted.list || [];
+      } else if (code === "TYPE_3") {
+        const extracted = extractor(plan, prevTargets.t3);
+        targets.t3 = extracted.primary || extracted;
+        targets.t3List = extracted.list || [];
       } else {
         const key = `t${code.replace("TYPE_", "").toLowerCase()}`;
         targets[key] = extractor(plan, prevTargets[key]);
@@ -74,6 +80,13 @@ export function extractPlanTargets(
     const extracted = extractType2PlanTargets(plan, prevTargets.t2);
     targets.t2 = extracted.primary;
     targets.t2List = extracted.list;
+  }
+
+  // Always attempt Type 3 if relation exists
+  if (!targets.t3?.customer && plan.type3Targets?.length) {
+    const extracted = extractType3PlanTargets(plan, prevTargets.t3);
+    targets.t3 = extracted.primary;
+    targets.t3List = extracted.list;
   }
 
   return targets;

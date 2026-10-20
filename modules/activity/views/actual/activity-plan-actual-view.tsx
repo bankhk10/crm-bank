@@ -40,6 +40,12 @@ import {
   extractType2PlanTargets,
   type Type2TargetItem,
 } from "@/modules/activity/features/type-2";
+import {
+  useType3Actual,
+  validateType3Actual,
+  extractType3PlanTargets,
+  type Type3TargetItem,
+} from "@/modules/activity/features/type-3";
 import { FormActionButtons } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import { deleteActivityPlanImagePaths } from "@/modules/activity/ui/utils/image-uploader";
@@ -73,11 +79,13 @@ export function ActivityPlanActualView({
   // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
   const statusState = useActualStatusState();
 
-  // 3. Type 1 & Type 2 Actual State Hooks
+  // 3. Type 1, Type 2 & Type 3 Actual State Hooks
   const type1Actual = useType1Actual();
   const type2Actual = useType2Actual();
+  const type3Actual = useType3Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
+  const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -104,6 +112,9 @@ export function ActivityPlanActualView({
       const extractedT2 = extractType2PlanTargets(plan);
       setType2Targets(extractedT2.list);
 
+      const extractedT3 = extractType3PlanTargets(plan);
+      setType3Targets(extractedT3.list);
+
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
       if (res) {
@@ -116,11 +127,12 @@ export function ActivityPlanActualView({
         };
         type1Actual.hydrate(payloadToHydrate);
         type2Actual.hydrate(payloadToHydrate);
+        type3Actual.hydrate(payloadToHydrate);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, statusState]);
+  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, statusState]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -162,6 +174,12 @@ export function ActivityPlanActualView({
       planWorkTypes.includes("ติดตามผลการใช้สินค้า") ||
       planWorkTypes.includes("ติดตามผล") ||
       Boolean(plan?.type2Targets?.length);
+
+    const isType3Active =
+      planWorkTypes.includes("TYPE_3") ||
+      planWorkTypes.includes("เสนอขายสินค้า") ||
+      planWorkTypes.includes("เสนอขาย") ||
+      Boolean(plan?.type3Targets?.length);
 
     // 1. Validation for CANCELLED
     if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
@@ -219,6 +237,21 @@ export function ActivityPlanActualView({
         });
         if (!type2Validation.isValid && type2Validation.error) {
           missingFields.push(type2Validation.error);
+        }
+      }
+
+      // Delegate Type 3 validation to features/type-3 domain logic
+      if (isType3Active) {
+        const type3Validation = validateType3Actual({
+          soldProducts: type3Actual.soldProducts,
+          actualSales: type3Actual.actualSales,
+          actualQuantity: type3Actual.actualQuantity,
+          unclosedReason: type3Actual.unclosedReason,
+          productSalesDetails: type3Actual.productSalesDetails,
+          status: activityResultStatus,
+        });
+        if (!type3Validation.isValid && type3Validation.error) {
+          missingFields.push(type3Validation.error);
         }
       }
 
@@ -333,6 +366,21 @@ export function ActivityPlanActualView({
           };
           if (!isType1Active && t2Payload.t2FollowupDetail) {
             payload.resultSummary = t2Payload.t2FollowupDetail;
+          }
+        }
+
+        // Collect Type 3 payload if active
+        if (isType3Active) {
+          const t3Payload = type3Actual.collectPayload();
+          payload = {
+            ...payload,
+            ...t3Payload,
+            productSalesDetails: t3Payload.productSalesDetails || [],
+            saleResults: t3Payload.productSalesDetails || [],
+            t3ProductSalesDetails: t3Payload.productSalesDetails || [],
+          };
+          if (!isType1Active && !isType2Active && t3Payload.soldProducts) {
+            payload.resultSummary = `เสนอขายสินค้า: ${t3Payload.soldProducts}`;
           }
         }
       }
@@ -499,8 +547,10 @@ export function ActivityPlanActualView({
               planWorkTypes={planWorkTypes}
               type1State={type1Actual}
               type2State={type2Actual}
+              type3State={type3Actual}
               targets={targets}
               type2Targets={type2Targets}
+              type3Targets={type3Targets}
               plan={plan}
               products={products}
             />

@@ -26,6 +26,11 @@ import {
   useType2Form,
 } from "@/modules/activity/features/type-2";
 import {
+  Type3PlanForm,
+  useType3Form,
+  hydrateType3PlannedData,
+} from "@/modules/activity/features/type-3";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -70,6 +75,16 @@ export function PlannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
+    // 1.1 ตรวจสอบจาก Dedicated Target / Stores ของ Type 3
+    if (
+      (initialData.type3Targets && initialData.type3Targets.length > 0) ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+      (initialData.products &&
+        initialData.products.some((p: any) => p.workTypeCode === "TYPE_3"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_3.name];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -84,6 +99,7 @@ export function PlannedActivityForm({
     if (initialData.activityType) {
       const code = getWorkTypeCode(initialData.activityType);
       if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
+      if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
     }
     if (
       initialData.type1Stores &&
@@ -106,6 +122,12 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_2" ||
       wt.includes("TYPE_2") ||
       wt.includes("ติดตามผล"),
+  );
+  const isType3Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_3" ||
+      wt.includes("TYPE_3") ||
+      wt.includes("เสนอขาย"),
   );
 
   // 2. Basic Info State
@@ -162,6 +184,18 @@ export function PlannedActivityForm({
     customersList: customers,
     productsList: products,
     selectedWorkTypes: selectedWorkTypes.map(getWorkTypeCode),
+  });
+
+  // 5.1 Type 3 Planned Hook
+  const hydratedInitialType3Items = useMemo(
+    () => hydrateType3PlannedData(initialData),
+    [initialData],
+  );
+
+  const type3 = useType3Form({
+    initialItems: hydratedInitialType3Items,
+    customersList: customers as any,
+    productsList: products as any,
   });
 
   // 6. Budget Hook
@@ -241,6 +275,24 @@ export function PlannedActivityForm({
       type2TargetsPayload = t2Payload.type2Targets;
     }
 
+    // 3.1 Validation & Mapping - Type 3 Items
+    let type3TargetsPayload: any[] = [];
+    if (isType3Active) {
+      const type3Validation = type3.validateType3();
+      if (!type3Validation.isValid) {
+        toast.error(
+          type3Validation.error ||
+            "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง (Type 3)",
+        );
+        return;
+      }
+
+      const t3Payload = type3.mapType3Payload(customers as any, products as any);
+      planStores = [...planStores, ...t3Payload.planStores];
+      planProducts = [...planProducts, ...t3Payload.planProducts];
+      type3TargetsPayload = t3Payload.type3Targets;
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -250,7 +302,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_1" &&
             (t.code === "VISIT" || t.name?.includes("เข้าพบ"))) ||
           (primaryCode === "TYPE_2" &&
-            (t.code === "FOLLOWUP" || t.name?.includes("ติดตามผล"))),
+            (t.code === "FOLLOWUP" || t.name?.includes("ติดตามผล"))) ||
+          (primaryCode === "TYPE_3" &&
+            (t.code === "SALE" || t.name?.includes("เสนอขาย"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -281,6 +335,8 @@ export function PlannedActivityForm({
       planStores,
       planProducts,
       type2Targets: type2TargetsPayload,
+      type3Targets: type3TargetsPayload,
+      type3Items: type3TargetsPayload,
     };
 
     try {
@@ -369,7 +425,7 @@ export function PlannedActivityForm({
       />
 
       {/* 3.0 กล่องข้อความเมื่อยังไม่ได้เลือกประเภทงาน */}
-      {!isType1Active && !isType2Active && (
+      {!isType1Active && !isType2Active && !isType3Active && (
         <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
           <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
             <Info className="w-5 h-5 text-slate-400" />
@@ -406,6 +462,22 @@ export function PlannedActivityForm({
           addType2Row={type2.addType2Row}
           updateType2Row={type2.updateType2Row}
           deleteType2Row={type2.deleteType2Row}
+        />
+      )}
+
+      {/* 3.3 ส่วนเฉพาะ Type 3: เสนอขายสินค้า */}
+      {isType3Active && (
+        <Type3PlanForm
+          readonly={readonly}
+          customers={customers as any}
+          products={products as any}
+          type3Items={type3.type3Items}
+          addType3Row={type3.addType3Row}
+          updateType3Row={type3.updateType3Row}
+          deleteType3Row={type3.deleteType3Row}
+          addProductToRow={type3.addProductToRow}
+          updateProductInRow={type3.updateProductInRow}
+          deleteProductFromRow={type3.deleteProductFromRow}
         />
       )}
 

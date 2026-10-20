@@ -8,6 +8,8 @@ import { type1PlannedStrategy } from "../features/type-1/planned/infrastructure/
 import { type1UnplannedStrategy } from "../features/type-1/unplanned/infrastructure/type1-unplanned.strategy";
 import { type2PlannedStrategy } from "../features/type-2/planned/infrastructure/type2-planned.strategy";
 import { type2UnplannedStrategy } from "../features/type-2/unplanned/infrastructure/type2-unplanned.strategy";
+import { type3PlannedStrategy } from "../features/type-3/planned/infrastructure/type3-planned.strategy";
+import { type3UnplannedStrategy } from "../features/type-3/unplanned/infrastructure/type3-unplanned.strategy";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -85,6 +87,15 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
       (rawData.type2Targets && rawData.type2Targets.length > 0);
 
+    const hasType3 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_3") ||
+          rawData.workTypeCodes.includes("เสนอขายสินค้า"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+      (rawData.type3Targets && rawData.type3Targets.length > 0) ||
+      (rawData.type3Items && rawData.type3Items.length > 0);
+
     const hasType1 =
       (rawData.workTypeCodes &&
         (rawData.workTypeCodes.includes("TYPE_1") ||
@@ -100,6 +111,8 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
       primaryCode = getWorkTypeCode(rawData.workTypes[0]);
     } else if (hasType2 && !hasType1) {
       primaryCode = "TYPE_2";
+    } else if (hasType3 && !hasType1 && !hasType2) {
+      primaryCode = "TYPE_3";
     } else if (rawData.activityTypeId) {
       primaryCode = getWorkTypeCode(rawData.activityTypeId);
     }
@@ -206,6 +219,24 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         }
       }
 
+      // 6. Save Type 3 targets directly to dedicated table activity_plan_type_3_targets
+      const hasType3 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_3") ||
+            rawData.workTypeCodes.includes("เสนอขายสินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+        (rawData.type3Targets && rawData.type3Targets.length > 0) ||
+        (rawData.type3Items && rawData.type3Items.length > 0);
+
+      if (hasType3) {
+        if (rawData.planType === "UNPLANNED") {
+          await type3UnplannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        } else {
+          await type3PlannedStrategy.savePlan(tx, createdPlan.id, rawData);
+        }
+      }
+
       return createdPlan;
     });
 
@@ -254,6 +285,15 @@ export async function updateActivityPlanAction(
         rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
       (rawData.type2Targets && rawData.type2Targets.length > 0);
 
+    const hasType3 =
+      (rawData.workTypeCodes &&
+        (rawData.workTypeCodes.includes("TYPE_3") ||
+          rawData.workTypeCodes.includes("เสนอขายสินค้า"))) ||
+      (rawData.planStores &&
+        rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+      (rawData.type3Targets && rawData.type3Targets.length > 0) ||
+      (rawData.type3Items && rawData.type3Items.length > 0);
+
     const hasType1 =
       (rawData.workTypeCodes &&
         (rawData.workTypeCodes.includes("TYPE_1") ||
@@ -269,6 +309,8 @@ export async function updateActivityPlanAction(
       primaryCode = getWorkTypeCode(rawData.workTypes[0]);
     } else if (hasType2 && !hasType1) {
       primaryCode = "TYPE_2";
+    } else if (hasType3 && !hasType1 && !hasType2) {
+      primaryCode = "TYPE_3";
     } else if (rawData.activityTypeId) {
       primaryCode = getWorkTypeCode(rawData.activityTypeId);
     }
@@ -372,6 +414,24 @@ export async function updateActivityPlanAction(
           await type2UnplannedStrategy.savePlan(tx, id, rawData);
         } else {
           await type2PlannedStrategy.savePlan(tx, id, rawData);
+        }
+      }
+
+      // 5. Save Type 3 targets
+      const hasType3 =
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_3") ||
+            rawData.workTypeCodes.includes("เสนอขายสินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+        (rawData.type3Targets && rawData.type3Targets.length > 0) ||
+        (rawData.type3Items && rawData.type3Items.length > 0);
+
+      if (hasType3) {
+        if (rawData.planType === "UNPLANNED") {
+          await type3UnplannedStrategy.savePlan(tx, id, rawData);
+        } else {
+          await type3PlannedStrategy.savePlan(tx, id, rawData);
         }
       }
 
