@@ -25,23 +25,18 @@ Activity Module ได้รับการออกแบบตามสถา�
 ```text
 modules/activity/
 ├── features/                             # Vertical Slices แยกตามประเภทงาน (Work Types 1 - 14)
-│   └── type-1/                           # ⭐ GOLD STANDARD VERTICAL SLICE: เข้าพบร้านค้า / Key Farmer
-│       ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan)
-│       │   ├── application/              # Validation schemas, Mappers, Business Logic
-│       │   ├── components/               # Type1PlannedForm, Type1PlanCard, Type1DetailView, Type1ApprovalCard, Type1ActualForm
-│       │   ├── hooks/                    # useType1PlannedForm, useType1Actual
-│       │   ├── infrastructure/           # type1PlannedStrategy (Prisma Save/Update)
-│       │   └── types/                    # planned.types.ts, actual.types.ts
-│       │
-│       ├── unplanned/                    # กิจกรรม "นอกแผน" (Unplanned 2-in-1: สร้างพร้อมบันทึกผล)
-│       │   ├── application/              # Validation schemas, Mappers
-│       │   ├── components/               # Type1UnplannedForm
-│       │   ├── hooks/                    # useType1UnplannedForm
-│       │   ├── infrastructure/           # type1UnplannedStrategy
-│       │   └── types/                    # unplanned.types.ts
-│       │
-│       ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
-│       └── index.ts                      # Unified Public API Contract for Type 1
+│   ├── type-1/                           # ⭐ GOLD STANDARD VERTICAL SLICE: เข้าพบร้านค้า / Key Farmer
+│   │   ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan)
+│   │   ├── unplanned/                    # กิจกรรม "นอกแผน" (Unplanned 2-in-1: สร้างพร้อมบันทึกผล)
+│   │   ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
+│   │   └── index.ts                      # Unified Public API Contract for Type 1
+│   │
+│   └── type-2/                           # 🌾 VERTICAL SLICE: ติดตามผลการใช้สินค้า (Product Follow-up)
+│       ├── planned/                      # กิจกรรมในแผนและผลการติดตามจริง (Targets, Products, Actual Results)
+│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Follow-up)
+│       ├── shared/                       # Constants และ Shared Types ของ Type 2
+│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 2
+│       └── index.ts                      # Unified Public API Contract for Type 2
 │
 ├── server/                               # Server Actions Gateways (Standalone ประจำโมดูล)
 │   └── actions.ts                        # createActivityPlanAction, updateActivityPlanAction, getActivityPlanAction ฯลฯ
@@ -452,6 +447,16 @@ export function ActivityPlanApprovalDetailView({ id }) {
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 1.6.1 (2026-10-20)
+- **Type 2 Image Deduplication & Multi-Tier Data Sanitation**:
+  - แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ 2 รูปใน `Type2DetailView` อันเกิดจากการที่ตาราง `ActivityAttachment` ผูกทั้ง `activityPlanId` และ `activityResultId` ในระเบียนเดียวกัน
+  - เพิ่มการกรองรูปภาพซ้ำหลายชั้น (Multi-tier Deduplication):
+    - **UI Layer (`Type2DetailView`)**: ใช้ `useMemo` (`uniqueImages`) กรองตาม `id` และ `url` ก่อนเรนเดอร์ Gallery และตัวนับรูป
+    - **Domain Layer (`result-summary-parser.ts`)**: Deduplicate `rawAttachments` ก่อนแปลงเข้า `result.t2Images`
+    - **View Orchestrator (`DetailWorkTypeList`)**: Deduplicate `effectiveT2Images` fallback
+    - **Form State Hook (`useType2Actual`)**: กรองรูปภาพก่อนตั้งค่า Form State
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ
 
 ### Version 1.6.0 (2026-10-19)
 - **Type 2 Vertical Slice Complete (ติดตามผลการใช้สินค้า / Product Follow-up)**:
