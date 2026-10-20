@@ -7,7 +7,7 @@ import type {
 } from "../types/planned.types";
 import { validateType2FormItems } from "../application/planned-validation";
 
-export interface UseType2FormOptions {
+export interface UseType2PlannedFormOptions {
   initial?: any;
   initDetails?: any;
   customersList?: any[];
@@ -15,7 +15,9 @@ export interface UseType2FormOptions {
   selectedWorkTypes?: string[];
 }
 
-export interface UseType2FormResult {
+export type UseType2FormOptions = UseType2PlannedFormOptions;
+
+export interface UseType2PlannedFormResult {
   type2Items: Type2ProductFollowupItem[];
   setType2Items: React.Dispatch<
     React.SetStateAction<Type2ProductFollowupItem[]>
@@ -56,6 +58,8 @@ export interface UseType2FormResult {
     type2Targets: any[];
   };
 }
+
+export type UseType2FormResult = UseType2PlannedFormResult;
 
 function matchProductsToStores(
   stores: any[],
@@ -183,12 +187,12 @@ function matchProductsToStores(
   );
 }
 
-export function useType2Form({
+export function useType2PlannedForm({
   initial = {},
   initDetails,
   customersList = [],
   selectedWorkTypes = [],
-}: UseType2FormOptions): UseType2FormResult {
+}: UseType2PlannedFormOptions): UseType2PlannedFormResult {
   const [type2Items, setType2Items] = useState<Type2ProductFollowupItem[]>(
     () => {
       if (
@@ -474,3 +478,5 @@ export function useType2Form({
     mapType2Payload,
   };
 }
+
+export const useType2Form = useType2PlannedForm;

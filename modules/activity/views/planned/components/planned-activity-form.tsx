@@ -22,8 +22,8 @@ import {
   type ProductOption,
 } from "@/modules/activity/features/type-1";
 import {
-  Type2PlanForm,
-  useType2Form,
+  Type2PlannedForm,
+  useType2PlannedForm,
 } from "@/modules/activity/features/type-2";
 import {
   Type3PlanForm,
@@ -191,7 +191,7 @@ export function PlannedActivityForm({
   });
 
   // 5. Type 2 Planned Hook
-  const type2 = useType2Form({
+  const type2 = useType2PlannedForm({
     initial: initialData,
     customersList: customers,
     productsList: products,
@@ -498,7 +498,7 @@ export function PlannedActivityForm({
 
       {/* 3.2 ส่วนเฉพาะ Type 2: ติดตามผลการใช้สินค้า */}
       {isType2Active && (
-        <Type2PlanForm
+        <Type2PlannedForm
           readonly={readonly}
           customers={customers}
           products={products}

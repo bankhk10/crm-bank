@@ -105,20 +105,19 @@ modules/activity/features/type-2/
 │   │   ├── actual-validation.ts          # Zod schemas ตรวจสอบผลการติดตามสินค้า
 │   │   └── actual-mapper.ts              # แปลงผลงานจริง Form <-> DB Payload
 │   ├── components/                       # UI Components ประจำ Type 2
-│   │   ├── type2-plan-form.tsx           # ฟอร์มกรอกเป้าหมายติดตามสินค้า (Create / Edit)
+│   │   ├── type2-planned-form.tsx        # ฟอร์มกรอกเป้าหมายติดตามสินค้า (Type2PlannedForm)
 │   │   ├── type2-plan-card.tsx           # การ์ดสรุปเป้าหมายสินค้าตามแผนงาน
 │   │   ├── type2-actual-form.tsx         # ฟอร์มบันทึกผลการตอบสนอง + ปัญหา + รูปภาพ
 │   │   ├── type2-detail-view.tsx         # คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด
 │   │   └── type2-approval-card.tsx       # การ์ดสรุปสำหรับหน้าพิจารณาอนุมัติ
 │   ├── hooks/                            # Custom State Hooks
-│   │   ├── use-type2-form.ts             # จัดการ State รายการเป้าหมายและสินค้าในแผน
+│   │   ├── use-type2-planned-form.ts     # จัดการ State รายการเป้าหมายและสินค้าในแผน (useType2PlannedForm)
 │   │   └── use-type2-actual.ts           # จัดการ State ผลการติดตามสินค้าและรูปภาพ
 │   ├── infrastructure/                   # Database Strategies
 │   │   └── type2-planned.strategy.ts     # บันทึก/โหลด Dedicated Tables (Targets & Products & Results)
 │   └── types/                            # Type Definitions ในแผนและผลงานจริง
-│       ├── planned.types.ts              # Type2ProductFollowupItem, Type2TargetItem, Props
-│       ├── actual.types.ts               # Type2ActualFormProps, Type2ActualData
-│       └── index.ts                      # Barrel re-export
+│       ├── planned.types.ts              # Type2PlannedItem, Type2ProductFollowupItem, Props
+│       └── actual.types.ts               # Type2ActualFormProps, Type2ActualData
 │
 ├── unplanned/                            # Sub-slice: กิจกรรมนอกแผน (2-in-1 Composition)
 │   ├── application/                      # Logic และ Mappers กิจกรรมนอกแผน
@@ -176,8 +175,8 @@ modules/activity/features/type-2/
 ## 4. File Responsibilities
 
 ### 4.1 Planned
-- **`use-type2-form.ts`:** จัดการ State ของรายการเป้าหมาย (Array of `Type2ProductFollowupItem`) รองรับการเพิ่ม/แก้ไข/ลบเป้าหมาย และการเพิ่ม/ลบรายการสินค้าในแต่ละเป้าหมาย
-- **`type2-plan-form.tsx`:** เรนเดอร์การ์ดเป้าหมาย สลับ UI ระหว่างร้านค้ากับเกษตรกร พร้อมตารางเพิ่มรายการสินค้าที่ต้องการติดตามผล
+- **`use-type2-planned-form.ts`:** จัดการ State ของรายการเป้าหมาย (Array of `Type2ProductFollowupItem` / `Type2PlannedItem`) รองรับการเพิ่ม/แก้ไข/ลบเป้าหมาย และการเพิ่ม/ลบรายการสินค้าในแต่ละเป้าหมาย (ส่งออก alias `useType2Form` ใน `index.ts`)
+- **`type2-planned-form.tsx`:** เรนเดอร์การ์ดเป้าหมาย สลับ UI ระหว่างร้านค้ากับเกษตรกร พร้อมตารางเพิ่มรายการสินค้าที่ต้องการติดตามผล (Component: `Type2PlannedForm`, ส่งออก alias `Type2PlanForm` ใน `index.ts`)
 - **`planned-mapper.ts`:**
   - `extractType2PlanTargets`: ดึงเป้าหมายจาก `type2Targets` (หรือ generic stores) เพื่อส่งให้หน้า Actual, Detail, และ Approval
   - `hydrateType2PlannedData`: กู้คืนข้อมูลแผนเดิมเข้าฟอร์มเมื่อเปิดหน้าแก้ไข (`edit-view.tsx`)
@@ -434,7 +433,7 @@ model ActivityAttachment {
 ### 9.1 การเพิ่มฟิลด์ใหม่บนฟอร์ม
 1. เพิ่มฟิลด์ใน Type: `planned/types/planned.types.ts` หรือ `actual.types.ts`
 2. เพิ่ม Validation ใน `planned-validation.ts` หรือ `actual-validation.ts`
-3. เพิ่ม Input Field ใน Component: `type2-plan-form.tsx` หรือ `type2-actual-form.tsx`
+3. เพิ่ม Input Field ใน Component: `type2-planned-form.tsx` หรือ `type2-actual-form.tsx`
 4. อัปเดต Mapper ใน `planned-mapper.ts` หรือ `actual-mapper.ts`
 5. อัปเดต Strategy ใน `type2-planned.strategy.ts` เพื่อบันทึกฟิลด์ลง Database
 

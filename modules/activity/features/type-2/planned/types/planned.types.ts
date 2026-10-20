@@ -22,6 +22,8 @@ export interface Type2ProductFollowupItem {
   detail: string;
 }
 
+export type Type2PlannedItem = Type2ProductFollowupItem;
+
 export interface FollowupProductItem {
   id?: string;
   productId?: string;
@@ -89,7 +91,7 @@ export interface Type2PlanCardProps {
   className?: string;
 }
 
-export interface Type2PlanFormProps {
+export interface Type2PlannedFormProps {
   readonly?: boolean;
   type2Items: Type2ProductFollowupItem[];
   addType2Row: () => void;
@@ -103,7 +105,8 @@ export interface Type2PlanFormProps {
   products?: ProductOption[];
 }
 
-export type Type2FollowupProps = Type2PlanFormProps;
+export type Type2PlanFormProps = Type2PlannedFormProps;
+export type Type2FollowupProps = Type2PlannedFormProps;
 
 export interface Type2DetailViewProps {
   isVisible: boolean;

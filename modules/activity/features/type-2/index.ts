@@ -3,9 +3,20 @@
 // =============================================================================
 
 // 🟢 โซน "ในแผน" (Planned Sub-slice)
-export { Type2PlanForm, Type2Followup } from "./planned/components/type2-plan-form";
+export {
+  Type2PlannedForm,
+  Type2PlanForm,
+  Type2Followup,
+} from "./planned/components/type2-planned-form";
 export { Type2PlanCard } from "./planned/components/type2-plan-card";
-export { useType2Form } from "./planned/hooks/use-type2-form";
+export {
+  useType2PlannedForm,
+  useType2Form,
+  type UseType2PlannedFormOptions,
+  type UseType2PlannedFormResult,
+  type UseType2FormOptions,
+  type UseType2FormResult,
+} from "./planned/hooks/use-type2-planned-form";
 export {
   validateType2FormItems,
   createType2ValidationSchema,
@@ -18,12 +29,14 @@ export {
 } from "./planned/application/planned-mapper";
 export { type2PlannedStrategy } from "./planned/infrastructure/type2-planned.strategy";
 export type {
+  Type2PlannedItem,
   Type2ProductFollowupItem,
   Type2FollowupProductLine,
   Type2TargetItem,
   Type2PlanCardTarget,
   Type2PlanCardTargetItem,
   Type2PlanCardProps,
+  Type2PlannedFormProps,
   Type2PlanFormProps,
   Type2FollowupProps,
   Type2DetailViewProps,

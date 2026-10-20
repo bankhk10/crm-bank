@@ -12,6 +12,7 @@ import {
 } from "@/modules/activity/ui";
 import type {
   Type2FollowupProductLine,
+  Type2PlannedFormProps,
   Type2PlanFormProps,
   Type2FollowupProps,
 } from "../types/planned.types";
@@ -21,11 +22,12 @@ export type {
   CustomerOption,
   ProductOption,
   Type2FollowupProductLine,
+  Type2PlannedFormProps,
   Type2PlanFormProps,
   Type2FollowupProps,
 };
 
-export function Type2PlanForm({
+export function Type2PlannedForm({
   readonly = false,
   type2Items,
   addType2Row,
@@ -33,7 +35,7 @@ export function Type2PlanForm({
   deleteType2Row,
   customers = [],
   products = [],
-}: Type2PlanFormProps) {
+}: Type2PlannedFormProps) {
   const nonBoxProducts = useMemo(() => {
     return (products || []).filter((p) => (p.unit || "").trim() !== "กล่อง");
   }, [products]);
@@ -504,4 +506,5 @@ export function Type2PlanForm({
   );
 }
 
-export const Type2Followup = Type2PlanForm;
+export const Type2PlanForm = Type2PlannedForm;
+export const Type2Followup = Type2PlannedForm;
