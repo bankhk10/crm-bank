@@ -123,9 +123,19 @@ export function useType2Actual() {
           size: img.size || img.fileSize || 0,
           type: img.type || img.mimeType || "image/jpeg",
         }));
-      if (normalizedImages.length > 0) {
-        setT2Images(normalizedImages);
-        initialT2ImagesRef.current = JSON.parse(JSON.stringify(normalizedImages));
+      const seenIds = new Set<string>();
+      const seenUrls = new Set<string>();
+      const uniqueImages = normalizedImages.filter((img: any) => {
+        if (!img) return false;
+        if (img.id && seenIds.has(img.id)) return false;
+        if (img.url && seenUrls.has(img.url)) return false;
+        if (img.id) seenIds.add(img.id);
+        if (img.url) seenUrls.add(img.url);
+        return true;
+      });
+      if (uniqueImages.length > 0) {
+        setT2Images(uniqueImages);
+        initialT2ImagesRef.current = JSON.parse(JSON.stringify(uniqueImages));
       }
     }
   }, []);

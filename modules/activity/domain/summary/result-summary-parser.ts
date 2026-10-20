@@ -86,12 +86,25 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 2 Attachments / Images
-    const rawAttachments: any[] = [
+    const rawAttachmentsList: any[] = [
       ...(Array.isArray(resData.attachments) ? resData.attachments : []),
       ...(Array.isArray(resData.activityPlan?.attachments)
         ? resData.activityPlan.attachments
         : []),
     ];
+    const seenAttIds = new Set<string>();
+    const seenAttUrls = new Set<string>();
+    const rawAttachments = rawAttachmentsList.filter((att) => {
+      if (!att) return false;
+      const attId = att.id;
+      const attUrl = att.fileUrl || att.url;
+      if (attId && seenAttIds.has(attId)) return false;
+      if (attUrl && seenAttUrls.has(attUrl)) return false;
+      if (attId) seenAttIds.add(attId);
+      if (attUrl) seenAttUrls.add(attUrl);
+      return true;
+    });
+
     if (rawAttachments.length > 0 && !result.t2Images) {
       result.t2Images = rawAttachments
         .filter(

@@ -74,10 +74,23 @@ export function DetailWorkTypeList({
     if (parsedResults?.t2Images && parsedResults.t2Images.length > 0) {
       return parsedResults.t2Images;
     }
-    const rawAttachments: any[] = [
+    const rawAttachmentsList: any[] = [
       ...(plan?.attachments || []),
       ...(plan?.result?.attachments || []),
     ];
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+    const rawAttachments = rawAttachmentsList.filter((att) => {
+      if (!att) return false;
+      const attId = att.id;
+      const attUrl = att.fileUrl || att.url;
+      if (attId && seenIds.has(attId)) return false;
+      if (attUrl && seenUrls.has(attUrl)) return false;
+      if (attId) seenIds.add(attId);
+      if (attUrl) seenUrls.add(attUrl);
+      return true;
+    });
+
     return rawAttachments
       .filter(
         (att) =>

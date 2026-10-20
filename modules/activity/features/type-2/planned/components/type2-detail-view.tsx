@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Layers,
   AlertCircle,
@@ -148,6 +148,21 @@ export function Type2DetailView({
               problemDetail,
             },
           ];
+
+  // กรองรูปภาพที่ซ้ำกันออก (Deduplicate images by id or url)
+  const uniqueImages = useMemo(() => {
+    if (!images || images.length === 0) return [];
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+    return images.filter((img) => {
+      if (!img) return false;
+      if (img.id && seenIds.has(img.id)) return false;
+      if (img.url && seenUrls.has(img.url)) return false;
+      if (img.id) seenIds.add(img.id);
+      if (img.url) seenUrls.add(img.url);
+      return true;
+    });
+  }, [images]);
 
   const openLightbox = (
     title: string,
@@ -309,23 +324,23 @@ export function Type2DetailView({
             <Camera className="w-4 h-4 text-emerald-600" />
             รูปภาพการติดตามผล
           </span>
-          {images && images.length > 0 ? (
+          {uniqueImages && uniqueImages.length > 0 ? (
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-              {images.length} รูป
+              {uniqueImages.length} รูป
             </span>
           ) : null}
         </div>
 
-        {images && images.length > 0 ? (
+        {uniqueImages && uniqueImages.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-            {images.map((img, imgIdx) => (
+            {uniqueImages.map((img, imgIdx) => (
               <button
                 key={img.id || imgIdx}
                 type="button"
                 onClick={() =>
                   openLightbox(
                     `รูปภาพการติดตามผล - ${primaryTarget.customer || customerName || "ลูกค้า"}`,
-                    images,
+                    uniqueImages,
                     imgIdx,
                   )
                 }
