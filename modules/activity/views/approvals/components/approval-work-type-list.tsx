@@ -41,6 +41,10 @@ import {
   Type8ApprovalCard,
   Type8DetailView,
 } from "@/modules/activity/features/type-8";
+import {
+  Type9ApprovalCard,
+  Type9DetailView,
+} from "@/modules/activity/features/type-9";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -117,6 +121,15 @@ export function ApprovalWorkTypeList({
     Boolean(plan?.type8Meetings?.length) ||
     Boolean(plan?.type8Data) ||
     Boolean(plan?.type8);
+
+  const isType9 =
+    isTypeActive("TYPE_9", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+    isTypeActive("TYPE_9", "กิจกรรมหน้าร้าน") ||
+    Boolean(plan?.type9Targets?.length) ||
+    Boolean(plan?.type9Items?.length) ||
+    Boolean(plan?.type9Stores?.length) ||
+    Boolean(plan?.type9Data) ||
+    Boolean(plan?.type9);
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -267,6 +280,26 @@ export function ApprovalWorkTypeList({
             (a: any) =>
               a.workTypeCode === "TYPE_8" &&
               (a.category === "REGISTRATION" || a.category === "ATMOSPHERE" || a.group === "REGISTRATION"),
+          )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType9ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type9Actual || plan?.type9Actual) return true;
+    return Boolean(
+      parsedResults?.type9Actual ||
+        parsedResults?.actualSales ||
+        parsedResults?.actualAttendees ||
+        (parsedResults?.type9Actual?.images && parsedResults.type9Actual.images.length > 0) ||
+        (parsedResults?.t9Images && parsedResults.t9Images.length > 0) ||
+        (plan?.attachments &&
+          plan.attachments.some(
+            (a: any) =>
+              a.workTypeCode === "TYPE_9" ||
+              a.category === "ATMOSPHERE" ||
+              a.category === "STORE_EVENT" ||
+              a.category === "type9",
           )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -453,6 +486,36 @@ export function ApprovalWorkTypeList({
         name: att.fileName || att.name || "ภาพบรรยากาศการประชุม",
       }));
   }, [parsedResults?.type8Actual?.t8Images, parsedResults?.t8Images, plan?.attachments, plan?.result?.attachments]);
+
+  // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
+  const effectiveT9Images = useMemo(() => {
+    if (
+      parsedResults?.type9Actual?.images &&
+      parsedResults.type9Actual.images.length > 0
+    ) {
+      return parsedResults.type9Actual.images;
+    }
+    if (parsedResults?.t9Images && parsedResults.t9Images.length > 0) {
+      return parsedResults.t9Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_9" ||
+          att?.category === "ATMOSPHERE" ||
+          att?.category === "STORE_EVENT" ||
+          att?.category === "type9",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
+      }));
+  }, [parsedResults?.type9Actual?.images, parsedResults?.t9Images, plan?.attachments, plan?.result?.attachments]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -685,6 +748,64 @@ export function ApprovalWorkTypeList({
             target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
             targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
             plan={plan}
+          />
+        ))}
+
+      {/* 🟢 TYPE 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event) */}
+      {isType9 &&
+        (hasType9ActualResults ? (
+          <Type9DetailView
+            isVisible={true}
+            target={
+              targets?.t9 ||
+              targets?.t9List?.[0] ||
+              plan?.type9Targets?.[0] ||
+              plan?.type9Stores?.[0] ||
+              plan?.type9Items?.[0]
+            }
+            targets={
+              targets?.t9List ||
+              plan?.type9Targets ||
+              plan?.type9Stores ||
+              plan?.type9Items
+            }
+            actualSales={
+              parsedResults?.type9Actual?.actualSales != null
+                ? String(parsedResults.type9Actual.actualSales)
+                : parsedResults?.actualSales != null
+                  ? String(parsedResults.actualSales)
+                  : undefined
+            }
+            actualAttendees={
+              parsedResults?.type9Actual?.actualAttendees != null
+                ? String(parsedResults.type9Actual.actualAttendees)
+                : parsedResults?.actualAttendees != null
+                  ? String(parsedResults.actualAttendees)
+                  : undefined
+            }
+            productSalesDetails={
+              parsedResults?.type9Actual?.productSalesDetails ||
+              parsedResults?.productSalesDetails ||
+              plan?.productSalesDetails
+            }
+            images={effectiveT9Images}
+          />
+        ) : (
+          <Type9ApprovalCard
+            isVisible={true}
+            target={
+              targets?.t9 ||
+              targets?.t9List?.[0] ||
+              plan?.type9Targets?.[0] ||
+              plan?.type9Stores?.[0] ||
+              plan?.type9Items?.[0]
+            }
+            targets={
+              targets?.t9List ||
+              plan?.type9Targets ||
+              plan?.type9Stores ||
+              plan?.type9Items
+            }
           />
         ))}
     </div>

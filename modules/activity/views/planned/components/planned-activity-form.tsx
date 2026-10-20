@@ -61,6 +61,11 @@ import {
   hydrateType8PlannedData,
 } from "@/modules/activity/features/type-8";
 import {
+  Type9PlannedForm,
+  useType9PlannedForm,
+  hydrateType9PlannedData,
+} from "@/modules/activity/features/type-9";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -234,6 +239,13 @@ export function PlannedActivityForm({
       wt.includes("TYPE_8") ||
       wt.includes("จัดประชุม"),
   );
+  const isType9Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_9" ||
+      wt.includes("TYPE_9") ||
+      wt.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+      wt.includes("กิจกรรมหน้าร้าน"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -368,6 +380,20 @@ export function PlannedActivityForm({
 
   const type8 = useType8PlannedForm({
     initialItems: hydratedInitialType8Items,
+  });
+
+  // 5.9 Type 9 Planned Hook
+  const hydratedInitialType9Items = useMemo(
+    () => hydrateType9PlannedData(initialData),
+    [initialData],
+  );
+
+  const type9 = useType9PlannedForm({
+    initial: initialData,
+    initDetails: hydratedInitialType9Items,
+    customersList: customers as any,
+    productsList: products as any,
+    selectedWorkTypes,
   });
 
   // 6. Budget Hook
@@ -596,6 +622,39 @@ export function PlannedActivityForm({
       }
     }
 
+    // 3.8 Validation & Mapping - Type 9 Items
+    let type9Payload: any = null;
+    if (isType9Active) {
+      const type9Validation = type9.validateType9();
+      if (!type9Validation.isValid) {
+        toast.error(
+          type9Validation.error ||
+            "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)",
+        );
+        return;
+      }
+
+      const t9Mapped = type9.mapType9Payload(customers as any, products as any);
+      if (t9Mapped.planStores?.length) {
+        planStores = [...planStores, ...t9Mapped.planStores];
+      }
+      if (t9Mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...t9Mapped.planProducts];
+      }
+      type9Payload = {
+        subdealerId: type9.subdealerId,
+        subdealerName: type9.subdealerName,
+        isUnregisteredSubdealer: type9.isUnregisteredSubdealer,
+        subDealerStore: type9.subDealerStore,
+        province: type9.subDealerProvince,
+        district: type9.subDealerDistrict,
+        parentDealerId: type9.parentDealerId,
+        parentDealerName: type9.parentDealerName,
+        type9Sales: type9.type9Sales,
+        products: type9.type9ProductItems,
+      };
+    }
+
     // 4. Resolve activityTypeId
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -619,7 +678,9 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_7B" &&
             (t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต"))) ||
           (primaryCode === "TYPE_8" &&
-            (t.code === "TYPE_8" || t.code === "MEETING" || t.name?.includes("ประชุม"))),
+            (t.code === "TYPE_8" || t.code === "MEETING" || t.name?.includes("ประชุม"))) ||
+          (primaryCode === "TYPE_9" &&
+            (t.code === "TYPE_9" || t.code === "STORE_EVENT" || t.name?.includes("ส่งเสริมการขายหน้าร้าน"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -667,6 +728,9 @@ export function PlannedActivityForm({
       type8Meetings: type8Payload?.meetings,
       type8Items: type8Payload?.meetings,
       type8Targets: type8Payload?.meetings,
+      type9Data: type9Payload,
+      type9Stores: type9Payload ? [type9Payload] : undefined,
+      type9Targets: type9Payload ? [type9Payload] : undefined,
     };
 
     try {
@@ -894,6 +958,39 @@ export function PlannedActivityForm({
           addPromotionProduct={type8.addPromotionProduct}
           updatePromotionProduct={type8.updatePromotionProduct}
           deletePromotionProduct={type8.deletePromotionProduct}
+          customers={customers as any}
+          products={products as any}
+        />
+      )}
+
+      {/* 3.10 ส่วนเฉพาะ Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน */}
+      {isType9Active && (
+        <Type9PlannedForm
+          readonly={readonly}
+          subdealerId={type9.subdealerId}
+          setSubdealerId={type9.setSubdealerId}
+          subdealerName={type9.subdealerName}
+          setSubdealerName={type9.setSubdealerName}
+          isUnregisteredSubdealer={type9.isUnregisteredSubdealer}
+          setIsUnregisteredSubdealer={type9.setIsUnregisteredSubdealer}
+          subDealerStore={type9.subDealerStore}
+          setSubDealerStore={type9.setSubDealerStore}
+          province={type9.subDealerProvince}
+          setProvince={type9.setSubDealerProvince}
+          district={type9.subDealerDistrict}
+          setDistrict={type9.setSubDealerDistrict}
+          parentDealerId={type9.parentDealerId}
+          setParentDealerId={type9.setParentDealerId}
+          parentDealerName={type9.parentDealerName}
+          setParentDealerName={type9.setParentDealerName}
+          type9Store={type9.type9Store}
+          setType9Store={type9.setType9Store}
+          type9Sales={type9.type9Sales}
+          setType9Sales={type9.setType9Sales}
+          type9ProductItems={type9.type9ProductItems}
+          addType9ProductItem={type9.addType9ProductItem}
+          updateType9ProductItem={type9.updateType9ProductItem}
+          deleteType9ProductItem={type9.deleteType9ProductItem}
           customers={customers as any}
           products={products as any}
         />

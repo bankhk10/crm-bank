@@ -9,6 +9,7 @@ import { extractType6PlanTargets } from "../../features/type-6";
 import { extractType7aPlanTargets } from "../../features/type-7a";
 import { extractType7bPlanTargets } from "../../features/type-7b";
 import { extractType8PlanTargets } from "../../features/type-8";
+import { extractType9PlanTargets } from "../../features/type-9";
 import type { ActualTargetsState } from "./types";
 import { initialTargets } from "./constants";
 
@@ -31,6 +32,7 @@ const TARGET_EXTRACTORS: Record<string, TargetExtractorFn> = {
   TYPE_7A: (p, prev) => extractType7aPlanTargets(p, prev),
   TYPE_7B: (p, prev) => extractType7bPlanTargets(p, prev),
   TYPE_8: (p, prev) => extractType8PlanTargets(p, prev),
+  TYPE_9: (p, prev) => extractType9PlanTargets(p, prev),
 };
 
 /**
@@ -169,6 +171,19 @@ export function extractPlanTargets(
     const extracted = extractType8PlanTargets(plan, prevTargets.t8);
     targets.t8 = extracted.primary;
     targets.t8List = extracted.list;
+  }
+
+  // Always attempt Type 9 if relation exists
+  if (
+    !targets.t9?.store &&
+    ((plan as any).type9Targets?.length ||
+      (plan as any).type9Stores?.length ||
+      (plan as any).type9Data ||
+      (plan as any).type9)
+  ) {
+    const extracted = extractType9PlanTargets(plan, prevTargets.t9);
+    targets.t9 = extracted.primary;
+    targets.t9List = extracted.list;
   }
 
   return targets;

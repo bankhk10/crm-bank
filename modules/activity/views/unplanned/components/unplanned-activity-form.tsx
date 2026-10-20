@@ -75,6 +75,13 @@ import {
   validateType8UnplannedItems,
 } from "@/modules/activity/features/type-8";
 import {
+  Type9UnplannedForm,
+  useType9UnplannedForm,
+  hydrateType9UnplannedData,
+  mapType9UnplannedToPayload,
+  validateType9UnplannedItems,
+} from "@/modules/activity/features/type-9";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -180,6 +187,20 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
+    // 1.7 ตรวจสอบจาก Dedicated Target ของ Type 9
+    if (
+      (initialData.type9UnplannedItems && initialData.type9UnplannedItems.length > 0) ||
+      initialData.type9 ||
+      initialData.type9Data ||
+      (initialData.stores &&
+        initialData.stores.some(
+          (s: any) =>
+            s.workTypeCode === "TYPE_9" ||
+            s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+        ))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_9?.name || "จัดกิจกรรมส่งเสริมการขายหน้าร้าน"];
+    }
     // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
     if (initialData.workTypes && initialData.workTypes.length > 0) {
       const first = initialData.workTypes[0];
@@ -262,6 +283,13 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_8" ||
       wt.includes("TYPE_8") ||
       wt.includes("จัดประชุม"),
+  );
+  const isType9Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_9" ||
+      wt.includes("TYPE_9") ||
+      wt.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+      wt.includes("กิจกรรมหน้าร้าน"),
   );
 
   // 2. Basic Info State
@@ -394,6 +422,16 @@ export function UnplannedActivityForm({
 
   const type8 = useType8UnplannedForm({
     initialItems: hydratedInitialType8Items,
+  });
+
+  // 5.8 Type 9 Unplanned Hook
+  const hydratedInitialType9Items = useMemo(
+    () => hydrateType9UnplannedData(initialData),
+    [initialData],
+  );
+
+  const type9 = useType9UnplannedForm({
+    initialItems: hydratedInitialType9Items,
   });
 
   // 6. Budget Hook
@@ -819,18 +857,15 @@ export function UnplannedActivityForm({
         }
       }
 
+      if (mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...mapped.planProducts];
+      }
+
       const firstItem = type7b.items[0];
       actualData = {
         workTypeCode: "TYPE_7B",
-        demoPlotId: firstItem?.demoPlotId || null,
-        plotName: firstItem?.plotName,
-        cropCategory: firstItem?.cropCategory,
-        cropName: firstItem?.cropName,
-        areaRai: firstItem?.areaRai,
-        notes: firstItem?.notes || firstItem?.objective || "",
-        type7bPlots: mapped.type7bData?.plots,
-        targetActualResults: mapped.type7bData?.plots,
-        type7bActual: mapped.actualOutcome?.type7bActual,
+        notes: firstItem?.notes || "",
+        actualOutcome: mapped.actualOutcome,
         attachments: cleanType7bImages.map((img) => ({
           category: "PLOT",
           fileUrl: img.url,
@@ -840,16 +875,19 @@ export function UnplannedActivityForm({
           workTypeCode: "TYPE_7B",
         })),
       };
-    }
-
-    if (isType8Active) {
-      const type8Validation = type8.validate();
-      if (!type8Validation.isValid) {
-        toast.error(type8Validation.error || "ข้อมูลจัดประชุมนอกแผนไม่ถูกต้อง (Type 8)");
+    } else if (isType8Active) {
+      if (type8.items.length === 0) {
+        toast.error("กรุณาระบุข้อมูลการจัดประชุมอย่างน้อย 1 รายการ");
         return;
       }
 
-      // Upload Registration Images (Required: min 1)
+      const type8Validation = validateType8UnplannedItems(type8.items);
+      if (!type8Validation.isValid) {
+        toast.error(type8Validation.errors?.[0] || "ข้อมูลการจัดประชุมไม่ถูกต้อง");
+        return;
+      }
+
+      // Upload Registration & Atmosphere Images
       const allType8RegImages = type8.items.flatMap((item) => item.registrationImages || []);
       let cleanType8RegImages = allType8RegImages;
       if (allType8RegImages.length > 0) {
@@ -867,7 +905,6 @@ export function UnplannedActivityForm({
         }
       }
 
-      // Upload Meeting Atmosphere Images
       const allType8AtmosImages = type8.items.flatMap((item) => item.images || []);
       let cleanType8AtmosImages = allType8AtmosImages;
       if (allType8AtmosImages.length > 0) {
@@ -924,6 +961,67 @@ export function UnplannedActivityForm({
             workTypeCode: "TYPE_8",
           })),
         ],
+      };
+    } else if (isType9Active) {
+      if (type9.items.length === 0) {
+        toast.error("กรุณาระบุข้อมูลกิจกรรมหน้าร้านอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      const type9Validation = validateType9UnplannedItems(type9.items);
+      if (!type9Validation.isValid) {
+        toast.error(type9Validation.errors?.[0] || "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)");
+        return;
+      }
+
+      // Upload Store Event Atmosphere Images
+      const allType9Images = type9.items.flatMap((item) => item.images || []);
+      let cleanType9Images = allType9Images;
+      if (allType9Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType9Images,
+            "type9",
+            "atmosphere",
+          );
+          cleanType9Images = res.updatedImages;
+        } catch (uploadErr: any) {
+          toast.error(uploadErr.message || "อัปโหลดรูปภาพกิจกรรมหน้าร้านไม่สำเร็จ");
+          return;
+        }
+      }
+
+      const mapped = mapType9UnplannedToPayload(
+        type9.items.map((item) => ({
+          ...item,
+          images: cleanType9Images,
+        })),
+      );
+
+      if (mapped.planStores?.length) {
+        planStores = [...planStores, ...mapped.planStores];
+      }
+      if (mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...mapped.planProducts];
+      }
+
+      const firstItem = type9.items[0];
+      actualData = {
+        workTypeCode: "TYPE_9",
+        actualSales: firstItem?.actualSales,
+        actualAttendees: firstItem?.actualAttendees,
+        notes: firstItem?.notes || "",
+        type9Actual: mapped.actualOutcome?.type9Actual,
+        saleResults: mapped.actualOutcome?.saleResults,
+        attachments: cleanType9Images.map((img) => ({
+          category: "ATMOSPHERE",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_9",
+        })),
       };
     }
 
@@ -992,6 +1090,14 @@ export function UnplannedActivityForm({
             t.name?.includes("ประชุม")
           );
         }
+        if (isType9Active) {
+          return (
+            t.code === "TYPE_9" ||
+            t.code === "STORE_EVENT" ||
+            t.name?.includes("ส่งเสริมการขายหน้าร้าน") ||
+            t.name?.includes("กิจกรรมหน้าร้าน")
+          );
+        }
         return false;
       }) || activityTypes[0];
 
@@ -1005,7 +1111,9 @@ export function UnplannedActivityForm({
             ? "type-7b"
             : isType8Active
               ? "type-8"
-              : "type-1");
+              : isType9Active
+                ? "type-9"
+                : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =
@@ -1043,6 +1151,10 @@ export function UnplannedActivityForm({
 
     const mappedType8 = isType8Active
       ? mapType8UnplannedToPayload(type8.items)
+      : null;
+
+    const mappedType9 = isType9Active
+      ? mapType9UnplannedToPayload(type9.items)
       : null;
 
     const payload = {
@@ -1085,6 +1197,8 @@ export function UnplannedActivityForm({
       type8Data: mappedType8?.type8Data,
       type8Meetings: mappedType8?.type8Data?.meetings,
       type8Targets: mappedType8?.targets,
+      type9Data: mappedType9?.type9Data,
+      type9Targets: mappedType9?.targets,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1093,6 +1207,7 @@ export function UnplannedActivityForm({
       type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
       type7bUnplannedItems: isType7bActive ? type7b.items : undefined,
       type8UnplannedItems: isType8Active ? type8.items : undefined,
+      type9UnplannedItems: isType9Active ? type9.items : undefined,
     };
 
     // Track old permanent image URLs that were removed by user
@@ -1357,6 +1472,22 @@ export function UnplannedActivityForm({
           addPromotion={type8.addPromotion}
           updatePromotion={type8.updatePromotion}
           deletePromotion={type8.deletePromotion}
+          customers={customers as any}
+          products={products as any}
+          readonly={readonly}
+        />
+      )}
+
+      {/* 3.10 ส่วนเฉพาะ Type 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน (นอกแผน) */}
+      {isType9Active && (
+        <Type9UnplannedForm
+          items={type9.items}
+          addItem={type9.addItem}
+          deleteItem={type9.deleteItem}
+          updateItem={type9.updateItem}
+          addProductItem={type9.addProductItem}
+          updateProductItem={type9.updateProductItem}
+          deleteProductItem={type9.deleteProductItem}
           customers={customers as any}
           products={products as any}
           readonly={readonly}

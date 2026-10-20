@@ -148,6 +148,39 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 9 Sale Results from relation table
+    if (
+      Array.isArray(resData.saleResults) &&
+      resData.saleResults.length > 0 &&
+      !result.t9ProductSalesDetails
+    ) {
+      const t9Sales = resData.saleResults.filter(
+        (s: any) =>
+          s.workTypeCode === "TYPE_9" ||
+          s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+      );
+      if (t9Sales.length > 0) {
+        result.t9ProductSalesDetails = t9Sales.map((item: any) => ({
+          id: item.id,
+          productId: item.productId,
+          productName: item.productName || item.product?.name || "สินค้า",
+          storeId: item.storeId,
+          pricePerCase: Number(item.actualUnitPrice || 0),
+          quantityCases: Number(item.actualQuantity || 0),
+          actualQuantityCases: Number(item.actualQuantity || 0),
+          actualSales: Number(item.actualTotal || 0),
+          totalAmount: Number(item.actualTotal || 0),
+        }));
+        const totalSales = t9Sales.reduce(
+          (sum: number, s: any) => sum + Number(s.actualTotal || 0),
+          0,
+        );
+        if (totalSales > 0 && !result.t9ActualSales) {
+          result.t9ActualSales = String(totalSales);
+        }
+      }
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     if (resData.type4Result || resData.activityResultType4) {
       const t4 = resData.type4Result || resData.activityResultType4;
@@ -271,6 +304,23 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           id: att.id,
           url: att.fileUrl || att.url,
           name: att.fileName || att.name || "รูปถ่ายการติดตามพืช",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
+
+    if (rawAttachments.length > 0 && !result.t9Images) {
+      result.t9Images = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_9" ||
+            att.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน" ||
+            att.category === "STORE_EVENT",
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

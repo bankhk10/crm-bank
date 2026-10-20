@@ -46,6 +46,11 @@ import {
   type Type8TargetItem,
   type useType8Actual,
 } from "@/modules/activity/features/type-8";
+import {
+  Type9ActualForm,
+  type Type9TargetItem,
+  type useType9Actual,
+} from "@/modules/activity/features/type-9";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -58,6 +63,7 @@ interface ActualWorkTypeListProps {
   type7aState?: ReturnType<typeof useType7aActual>;
   type7bState?: ReturnType<typeof useType7bActual>;
   type8State?: ReturnType<typeof useType8Actual>;
+  type9State?: ReturnType<typeof useType9Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -67,6 +73,7 @@ interface ActualWorkTypeListProps {
   type7aTargets?: Type7aTargetItem[];
   type7bTargets?: Type7bTargetItem[];
   type8Targets?: Type8TargetItem[];
+  type9Targets?: Type9TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -87,6 +94,7 @@ export function ActualWorkTypeList({
   type7aState,
   type7bState,
   type8State,
+  type9State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -96,6 +104,7 @@ export function ActualWorkTypeList({
   type7aTargets = [],
   type7bTargets = [],
   type8Targets = [],
+  type9Targets = [],
   plan,
   products = [],
   customers = [],
@@ -185,6 +194,25 @@ export function ActualWorkTypeList({
       ),
     ) ||
     plan?.activityType?.code === "TYPE_8";
+
+  const isType9Active =
+    planWorkTypes.includes("TYPE_9") ||
+    planWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+    planWorkTypes.includes("ส่งเสริมการขายหน้าร้าน") ||
+    planWorkTypes.includes("กิจกรรมหน้าร้าน") ||
+    Boolean(plan?.type9Targets?.length) ||
+    Boolean(plan?.type9Items?.length) ||
+    Boolean(plan?.type9Stores?.length) ||
+    Boolean(plan?.type9Data) ||
+    Boolean(plan?.type9) ||
+    Boolean(
+      plan?.stores?.some(
+        (s: any) =>
+          s.workTypeCode === "TYPE_9" ||
+          s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+      ),
+    ) ||
+    plan?.activityType?.code === "TYPE_9";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -420,6 +448,34 @@ export function ActualWorkTypeList({
           setImages={type8State.setImages}
           registrationImages={type8State.registrationImages}
           setRegistrationImages={type8State.setRegistrationImages}
+        />
+      )}
+
+      {/* 🟢 TYPE 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event) */}
+      {isType9Active && type9State && (
+        <Type9ActualForm
+          isVisible={true}
+          targets={
+            type9Targets && type9Targets.length > 0
+              ? type9Targets
+              : plan?.type9Targets || plan?.type9Stores || plan?.type9Items
+          }
+          target={
+            type9Targets?.[0] ||
+            plan?.type9Targets?.[0] ||
+            plan?.type9Stores?.[0] ||
+            plan?.type9Items?.[0]
+          }
+          planType={plan?.planType}
+          products={products}
+          actualSales={type9State.actualSales}
+          setActualSales={type9State.setActualSales}
+          productSalesDetails={type9State.productSalesDetails}
+          setProductSalesDetails={type9State.setProductSalesDetails}
+          actualAttendees={type9State.actualAttendees}
+          setActualAttendees={type9State.setActualAttendees}
+          images={type9State.images}
+          setImages={type9State.setImages}
         />
       )}
     </div>

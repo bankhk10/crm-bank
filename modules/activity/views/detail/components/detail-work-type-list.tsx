@@ -15,6 +15,7 @@ import { Type6DetailView } from "@/modules/activity/features/type-6";
 import { Type7aDetailView } from "@/modules/activity/features/type-7a";
 import { Type7bDetailView } from "@/modules/activity/features/type-7b";
 import { Type8DetailView } from "@/modules/activity/features/type-8";
+import { Type9DetailView } from "@/modules/activity/features/type-9";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -90,6 +91,15 @@ export function DetailWorkTypeList({
     Boolean(plan?.type8Meetings?.length) ||
     Boolean(plan?.type8Data) ||
     Boolean(plan?.type8);
+
+  const isType9 =
+    isTypeActive("TYPE_9", "จัดกิจกรรมส่งเสริมการขายหน้าร้าน") ||
+    isTypeActive("TYPE_9", "กิจกรรมหน้าร้าน") ||
+    Boolean(plan?.type9Targets?.length) ||
+    Boolean(plan?.type9Items?.length) ||
+    Boolean(plan?.type9Stores?.length) ||
+    Boolean(plan?.type9Data) ||
+    Boolean(plan?.type9);
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -309,6 +319,36 @@ export function DetailWorkTypeList({
       }));
   }, [parsedResults?.type8Actual?.t8Images, parsedResults?.t8Images, plan?.attachments, plan?.result?.attachments]);
 
+  // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
+  const effectiveT9Images = useMemo(() => {
+    if (
+      parsedResults?.type9Actual?.images &&
+      parsedResults.type9Actual.images.length > 0
+    ) {
+      return parsedResults.type9Actual.images;
+    }
+    if (parsedResults?.t9Images && parsedResults.t9Images.length > 0) {
+      return parsedResults.t9Images;
+    }
+    const rawAttachmentsList: any[] = [
+      ...(plan?.attachments || []),
+      ...(plan?.result?.attachments || []),
+    ];
+    return rawAttachmentsList
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_9" ||
+          att?.category === "ATMOSPHERE" ||
+          att?.category === "STORE_EVENT" ||
+          att?.category === "type9",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
+      }));
+  }, [parsedResults?.type9Actual?.images, parsedResults?.t9Images, plan?.attachments, plan?.result?.attachments]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -449,6 +489,44 @@ export function DetailWorkTypeList({
         }
         registrationImages={effectiveT8RegistrationImages}
         images={effectiveT8AtmosphereImages}
+      />
+
+      {/* 🟢 TYPE 9: จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event) */}
+      <Type9DetailView
+        isVisible={isType9}
+        target={
+          targets?.t9 ||
+          targets?.t9List?.[0] ||
+          plan?.type9Targets?.[0] ||
+          plan?.type9Stores?.[0] ||
+          plan?.type9Items?.[0]
+        }
+        targets={
+          targets?.t9List ||
+          plan?.type9Targets ||
+          plan?.type9Stores ||
+          plan?.type9Items
+        }
+        actualSales={
+          parsedResults?.type9Actual?.actualSales != null
+            ? String(parsedResults.type9Actual.actualSales)
+            : parsedResults?.actualSales != null
+              ? String(parsedResults.actualSales)
+              : undefined
+        }
+        actualAttendees={
+          parsedResults?.type9Actual?.actualAttendees != null
+            ? String(parsedResults.type9Actual.actualAttendees)
+            : parsedResults?.actualAttendees != null
+              ? String(parsedResults.actualAttendees)
+              : undefined
+        }
+        productSalesDetails={
+          parsedResults?.type9Actual?.productSalesDetails ||
+          parsedResults?.productSalesDetails ||
+          plan?.productSalesDetails
+        }
+        images={effectiveT9Images}
       />
     </div>
   );
