@@ -242,7 +242,7 @@ export function PlanWorkTypeSelector({
 
       {/* Work types dropdown popup */}
       {isWorkTypesDropdownOpen && (
-        <div className="absolute left-0 sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2 animate-in fade-in-0 zoom-in-95">
+        <div className="absolute left-0 sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-3 space-y-2">
           <div className="max-h-80 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
             {options.map((typeItem) => {
               const code = typeItem.code;
