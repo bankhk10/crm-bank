@@ -9,7 +9,7 @@ import type { Type14PlanInput } from "../types/planned.types";
 
 /**
  * Fetch approved TYPE_13 Activity Plans with completed results and their Hattack demo plots
- * Strictly for TYPE_14 ("ติดตามแปลงแฮทแทค")
+ * Strictly for TYPE_14 ("ติดตามแปลงแฮตแทค")
  */
 export async function findHattackFollowUpActivityPlans() {
   return db.activityPlan.findMany({
@@ -59,7 +59,7 @@ export async function findHattackFollowUpActivityPlans() {
 }
 
 /**
- * Fetch HATTACK demo plots for TYPE_14 "ติดตามแปลงแฮทแทค"
+ * Fetch HATTACK demo plots for TYPE_14 "ติดตามแปลงแฮตแทค"
  * Returns plots with plotType = "HATTACK" (excluding CANCELLED and deleted)
  */
 export async function findHattackFollowUpDemoPlots() {
@@ -149,12 +149,21 @@ export async function createType14Data(
           plotName: demoPlot?.name || type14Data.name || null,
           dealerName: demoPlot?.ownerName || type14Data.dealerName || null,
           ownerName: demoPlot?.ownerName || type14Data.ownerName || null,
-          cropCategory: demoPlot?.cropCategory || type14Data.cropCategory || null,
+          cropCategory:
+            demoPlot?.cropCategory || type14Data.cropCategory || null,
           cropName: demoPlot?.cropName || type14Data.cropName || null,
           province: demoPlot?.province || type14Data.province || null,
           district: demoPlot?.district || type14Data.district || null,
-          latitude: demoPlot?.latitude ?? (type14Data.latitude ? new Prisma.Decimal(type14Data.latitude) : null),
-          longitude: demoPlot?.longitude ?? (type14Data.longitude ? new Prisma.Decimal(type14Data.longitude) : null),
+          latitude:
+            demoPlot?.latitude ??
+            (type14Data.latitude
+              ? new Prisma.Decimal(type14Data.latitude)
+              : null),
+          longitude:
+            demoPlot?.longitude ??
+            (type14Data.longitude
+              ? new Prisma.Decimal(type14Data.longitude)
+              : null),
         },
       });
 
@@ -180,7 +189,7 @@ export async function createType14Data(
             visitNumber: visitCount + 1,
             visitDate: startDate,
             daysSinceStart: 0,
-            notes: `สร้างจากแผนงานติดตามแปลงแฮทแทค (TYPE_14)`,
+            notes: `สร้างจากแผนงานติดตามแปลงแฮตแทค (TYPE_14)`,
           },
         });
       }
@@ -197,8 +206,12 @@ export async function createType14Data(
         cropName: type14Data.cropName || null,
         province: type14Data.province || null,
         district: type14Data.district || null,
-        latitude: type14Data.latitude ? new Prisma.Decimal(type14Data.latitude) : null,
-        longitude: type14Data.longitude ? new Prisma.Decimal(type14Data.longitude) : null,
+        latitude: type14Data.latitude
+          ? new Prisma.Decimal(type14Data.latitude)
+          : null,
+        longitude: type14Data.longitude
+          ? new Prisma.Decimal(type14Data.longitude)
+          : null,
       },
     });
   }

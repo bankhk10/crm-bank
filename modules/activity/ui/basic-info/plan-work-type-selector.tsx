@@ -128,7 +128,7 @@ export function PlanWorkTypeSelector({
           {
             code: "TYPE_14",
             name: WORK_TYPE_CONFIG.TYPE_14.name,
-            displayName: "ติดตามแปลงแฮทแทค (Type 14)",
+            displayName: "ติดตามแปลงแฮตแทค (Type 14)",
           },
         ];
 

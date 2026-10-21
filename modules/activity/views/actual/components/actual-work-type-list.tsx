@@ -292,7 +292,7 @@ export function ActualWorkTypeList({
   const isType13Active =
     planWorkTypes.includes("TYPE_13") ||
     planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
-    planWorkTypes.includes("ฉีดแปลงแฮทแทค") ||
+    planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
     planWorkTypes.includes("ฉีดแปลง") ||
     Boolean(plan?.type13Plots?.length) ||
     Boolean(plan?.type13Targets?.length) ||
@@ -303,7 +303,7 @@ export function ActualWorkTypeList({
 
   const isType14Active =
     planWorkTypes.includes("TYPE_14") ||
-    planWorkTypes.includes("ติดตามแปลงแฮทแทค") ||
+    planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
     planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
     planWorkTypes.includes("ติดตามแปลง") ||
     Boolean(plan?.type14Plots?.length) ||
@@ -678,7 +678,7 @@ export function ActualWorkTypeList({
         />
       )}
 
-      {/* 🟢 TYPE 14: ติดตามแปลงแฮทแทค */}
+      {/* 🟢 TYPE 14: ติดตามแปลงแฮตแทค */}
       {isType14Active && type14State && (
         <Type14ActualForm
           isVisible={true}

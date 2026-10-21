@@ -66,7 +66,8 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
       plot.actualVisitDate ||
       new Date().toISOString().split("T")[0],
     daysAfterSpray: String(round.daysAfterSpray ?? plot.daysAfterSpray ?? "7"),
-    trackingResult: round.trackingResult || plot.trackingResult || "ได้ผลตามเกณฑ์",
+    trackingResult:
+      round.trackingResult || plot.trackingResult || "ได้ผลตามเกณฑ์",
     productResponse: round.productResponse || plot.productResponse || "ปกติ",
     additionalNotes: round.additionalNotes || plot.additionalNotes || "",
     products: round.products || plot.products || [],
@@ -136,7 +137,7 @@ export function mapType14UnplannedToPayload(item: Type14UnplannedItem) {
             storeId: item.storeId,
             storeName: item.dealerName || "ร้านค้า Dealer",
             province: item.province || null,
-            remarks: `Dealer ติดตามแปลงแฮทแทค (${item.name})`,
+            remarks: `Dealer ติดตามแปลงแฮตแทค (${item.name})`,
             notes: `แปลงแฮตแทค: ${item.name}`,
           },
         ]

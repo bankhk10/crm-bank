@@ -12,7 +12,7 @@ export function validateType14UnplannedItem(
   if (!item) {
     return {
       isValid: false,
-      error: "กรุณาระบุข้อมูลการติดตามแปลงแฮทแทค (TYPE_14)",
+      error: "กรุณาระบุข้อมูลการติดตามแปลงแฮตแทค (TYPE_14)",
     };
   }
 
@@ -40,7 +40,7 @@ export function validateType14UnplannedItem(
   }
 
   if (!item.trackingResult?.trim()) {
-    return { isValid: false, error: "กรุณาระบุผลการติดตามแปลงแฮทแทค" };
+    return { isValid: false, error: "กรุณาระบุผลการติดตามแปลงแฮตแทค" };
   }
 
   return { isValid: true };

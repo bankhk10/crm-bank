@@ -21,7 +21,9 @@ export function formatType14PlannedNotes(data: any): string {
     parts.push(`เกษตรกร: ${data.ownerName}`);
   }
   if (data.province || data.district) {
-    parts.push(`พื้นที่: ${[data.district, data.province].filter(Boolean).join(", ")}`);
+    parts.push(
+      `พื้นที่: ${[data.district, data.province].filter(Boolean).join(", ")}`,
+    );
   }
 
   return parts.join(" | ");
@@ -36,8 +38,12 @@ export function formatType14ActualSummary(
 ): string {
   const roundCount = rounds.length;
   const latestRound = rounds[roundCount - 1];
-  const daysText = latestRound?.daysAfterSpray ? `(${latestRound.daysAfterSpray} วันหลังฉีด)` : "";
-  const resultText = latestRound?.trackingResult ? `ผล: ${latestRound.trackingResult}` : "";
+  const daysText = latestRound?.daysAfterSpray
+    ? `(${latestRound.daysAfterSpray} วันหลังฉีด)`
+    : "";
+  const resultText = latestRound?.trackingResult
+    ? `ผล: ${latestRound.trackingResult}`
+    : "";
 
-  return `ติดตามแปลงแฮทแทค${plotName ? ` (${plotName})` : ""}: ${roundCount} รอบ ${daysText} ${resultText}`.trim();
+  return `ติดตามแปลงแฮตแทค${plotName ? ` (${plotName})` : ""}: ${roundCount} รอบ ${daysText} ${resultText}`.trim();
 }

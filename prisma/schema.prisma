@@ -2584,7 +2584,7 @@ model DemoPlotIrrigation {
 model ActivityPlanType7a {
   id             String    @id @default(cuid())
   activityPlanId String    @map("activity_plan_id")
-  
+
   // 1. ข้อมูลแปลงสาธิต
   plotName       String    @map("plot_name") // ชื่อแปลง
   storeId        String?   @map("store_id")  // ร้านค้า Dealer
@@ -2596,12 +2596,12 @@ model ActivityPlanType7a {
   customCropName String?   @map("custom_crop_name") // ระบุชื่อพืชเพิ่มเติม (กรณีเลือก อื่นๆ)
   areaRai        Decimal?  @map("area_rai") @db.Decimal(10, 2) // พื้นที่ (ไร่)
   treeCount      Int?      @map("tree_count") // จำนวนต้น
-  
+
   // 2. ข้อมูลการทดลองและวัตถุประสงค์
   objective      String    @map("objective") @db.Text // วัตถุประสงค์การทำแปลง
   categoryId     String?   @map("category_id") // หมวดสินค้าที่เลือก
   hasProducts    Boolean   @default(false) @map("has_products") // มีการระบุสินค้า
-  
+
   // 3. การเชื่อมโยง Master DemoPlot
   demoPlotId     String?   @map("demo_plot_id")
 
@@ -2770,7 +2770,7 @@ model ActivityPlanType13Product {
 }
 
 // =============================================================================
-// TYPE-14: แผนติดตามแปลงแฮทแทค (Hattack Follow-up Plan)
+// TYPE-14: แผนติดตามแปลงแฮตแทค (Hattack Follow-up Plan)
 // =============================================================================
 
 model ActivityPlanType14 {

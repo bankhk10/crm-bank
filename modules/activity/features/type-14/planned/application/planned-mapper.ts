@@ -1,8 +1,12 @@
-import type { Type14PlotItem, Type14TargetItem, FollowUpPlanOption } from "../../shared/types";
+import type {
+  Type14PlotItem,
+  Type14TargetItem,
+  FollowUpPlanOption,
+} from "../../shared/types";
 import type { Type14PlanInput } from "../types/planned.types";
 
 /**
- * Extracts Type 14 plan targets (ติดตามแปลงแฮทแทค) from activity plan relations.
+ * Extracts Type 14 plan targets (ติดตามแปลงแฮตแทค) from activity plan relations.
  */
 export function extractType14PlanTargets(
   plan: any,
@@ -14,8 +18,7 @@ export function extractType14PlanTargets(
     (plan?.demoPlotVisits || [])
       .filter(
         (v: any) =>
-          v.workTypeCode === "TYPE_14" ||
-          v.demoPlot?.plotType === "HATTACK",
+          v.workTypeCode === "TYPE_14" || v.demoPlot?.plotType === "HATTACK",
       )
       .map((v: any) => v.demoPlot)
       .filter(Boolean);
@@ -45,8 +48,8 @@ export function extractType14PlanTargets(
     const singlePlot: Type14PlotItem = {
       id: prevTarget?.id || plan?.id || "type14-default",
       demoPlotId: prevTarget?.demoPlotId || null,
-      name: prevTarget?.name || "ติดตามแปลงแฮทแทค",
-      plotName: prevTarget?.plotName || "ติดตามแปลงแฮทแทค",
+      name: prevTarget?.name || "ติดตามแปลงแฮตแทค",
+      plotName: prevTarget?.plotName || "ติดตามแปลงแฮตแทค",
       storeId: prevTarget?.storeId || "",
       dealerName: prevTarget?.dealerName || null,
       ownerName: prevTarget?.ownerName || null,
@@ -112,14 +115,34 @@ export function hydrateType14PlannedData(
       })),
       name: primaryPlot.plotName || primaryPlot.demoPlot?.name || "แปลงแฮตแทค",
       storeId: primaryPlot.demoPlot?.customerId || "",
-      dealerName: primaryPlot.dealerName || primaryPlot.demoPlot?.customer?.name || "",
+      dealerName:
+        primaryPlot.dealerName || primaryPlot.demoPlot?.customer?.name || "",
       ownerName: primaryPlot.ownerName || primaryPlot.demoPlot?.ownerName || "",
-      cropCategory: primaryPlot.cropCategory || primaryPlot.demoPlot?.cropCategory || null,
+      cropCategory:
+        primaryPlot.cropCategory || primaryPlot.demoPlot?.cropCategory || null,
       cropName: primaryPlot.cropName || primaryPlot.demoPlot?.cropName || null,
-      province: primaryPlot.province || primaryPlot.demoPlot?.province || initial?.province || defaultProvince || "",
-      district: primaryPlot.district || primaryPlot.demoPlot?.district || initial?.district || defaultDistrict || "",
-      latitude: primaryPlot.latitude ? String(primaryPlot.latitude) : primaryPlot.demoPlot?.latitude ? String(primaryPlot.demoPlot.latitude) : "",
-      longitude: primaryPlot.longitude ? String(primaryPlot.longitude) : primaryPlot.demoPlot?.longitude ? String(primaryPlot.demoPlot.longitude) : "",
+      province:
+        primaryPlot.province ||
+        primaryPlot.demoPlot?.province ||
+        initial?.province ||
+        defaultProvince ||
+        "",
+      district:
+        primaryPlot.district ||
+        primaryPlot.demoPlot?.district ||
+        initial?.district ||
+        defaultDistrict ||
+        "",
+      latitude: primaryPlot.latitude
+        ? String(primaryPlot.latitude)
+        : primaryPlot.demoPlot?.latitude
+          ? String(primaryPlot.demoPlot.latitude)
+          : "",
+      longitude: primaryPlot.longitude
+        ? String(primaryPlot.longitude)
+        : primaryPlot.demoPlot?.longitude
+          ? String(primaryPlot.demoPlot.longitude)
+          : "",
       hasProductWithdrawal: Boolean(t14.hasProducts || prods.length > 0),
       withdrawnProducts: prods,
     };

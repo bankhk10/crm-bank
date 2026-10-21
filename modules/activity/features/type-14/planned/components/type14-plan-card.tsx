@@ -34,7 +34,8 @@ export function Type14PlanCard({
                 cropCategory: data.cropCategory || null,
                 cropName: data.cropName || null,
                 areaRai: data.areaRai != null ? Number(data.areaRai) : null,
-                treeCount: data.treeCount != null ? Number(data.treeCount) : null,
+                treeCount:
+                  data.treeCount != null ? Number(data.treeCount) : null,
                 province: data.province || "",
                 district: data.district || "",
               },
@@ -56,7 +57,7 @@ export function Type14PlanCard({
             <Layers className="w-4 h-4" />
           </div>
           <h4 className="font-bold text-emerald-950 text-sm sm:text-base">
-            แผนงานติดตามแปลงแฮทแทค (Type 14)
+            แผนงานติดตามแปลงแฮตแทค (Type 14)
           </h4>
         </div>
         <div className="flex items-center gap-2">
@@ -153,7 +154,9 @@ export function Type14PlanCard({
         <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/30 p-3.5 space-y-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-950">
             <PackageCheck className="w-4 h-4 text-emerald-600" />
-            <span>รายการสินค้าเบิกติดตามแปลง ({withdrawnProducts.length} รายการ)</span>
+            <span>
+              รายการสินค้าเบิกติดตามแปลง ({withdrawnProducts.length} รายการ)
+            </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             {withdrawnProducts.map((p, pIdx) => (

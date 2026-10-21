@@ -80,7 +80,7 @@ export function Type14UnplannedForm({
         </div>
         <div>
           <h4 className="font-bold text-slate-800 text-sm sm:text-base">
-            กิจกรรมนอกแผน: ติดตามแปลงแฮทแทค (TYPE_14)
+            กิจกรรมนอกแผน: ติดตามแปลงแฮตแทค (TYPE_14)
           </h4>
           <p className="text-xs text-slate-500">
             ระบุข้อมูลแปลง ตัวแทนจำหน่าย พิกัด GPS และผลการติดตามการใช้สารแฮทแทค
@@ -345,7 +345,11 @@ export function Type14UnplannedForm({
                     value={p.productId}
                     onChange={(val, prod) => {
                       handleUpdateProduct(pIdx, "productId", val);
-                      handleUpdateProduct(pIdx, "productName", prod?.name || "");
+                      handleUpdateProduct(
+                        pIdx,
+                        "productName",
+                        prod?.name || "",
+                      );
                       if (prod?.unit) {
                         handleUpdateProduct(pIdx, "unit", prod.unit);
                       }

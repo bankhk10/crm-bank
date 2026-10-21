@@ -192,7 +192,7 @@ export function ApprovalWorkTypeList({
 
   const isType13 =
     isTypeActive("TYPE_13", "ฉีดแปลงแฮตแทค") ||
-    isTypeActive("TYPE_13", "ฉีดแปลงแฮทแทค") ||
+    isTypeActive("TYPE_13", "ฉีดแปลงแฮตแทค") ||
     isTypeActive("TYPE_13", "ฉีดแปลง") ||
     Boolean(plan?.type13Plots?.length) ||
     Boolean(plan?.type13Targets?.length) ||
@@ -204,7 +204,7 @@ export function ApprovalWorkTypeList({
     plan?.activityType?.code === "TYPE_13";
 
   const isType14 =
-    isTypeActive("TYPE_14", "ติดตามแปลงแฮทแทค") ||
+    isTypeActive("TYPE_14", "ติดตามแปลงแฮตแทค") ||
     isTypeActive("TYPE_14", "ติดตามแปลงแฮตแทค") ||
     isTypeActive("TYPE_14", "ติดตามแปลง") ||
     Boolean(plan?.type14Plots?.length) ||
@@ -1348,7 +1348,7 @@ export function ApprovalWorkTypeList({
           />
         ))}
 
-      {/* 🟢 TYPE 14: ติดตามแปลงแฮทแทค */}
+      {/* 🟢 TYPE 14: ติดตามแปลงแฮตแทค */}
       {isType14 &&
         (hasType14ActualResults ? (
           <Type14DetailView

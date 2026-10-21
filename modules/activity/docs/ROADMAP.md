@@ -6,21 +6,21 @@
 
 ## 📊 1. ภาพรวมสถานะปัจจุบัน (Current Status Overview)
 
-| ลำดับงานหลัก                                     |        สถานะ         | รายละเอียด                                                                                                                                                        |
-| :----------------------------------------------- | :------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **สถาปัตยกรรมแม่แบบ (Master Blueprint)**         |   ✅ เสร็จสมบูรณ์    | เอกสาร [`TYPE_SLICE_BLUEPRINT.md`](./TYPE_SLICE_BLUEPRINT.md) กำหนดมาตรฐาน 24-Artifact และกฎเหล็กการ Refactor ครบถ้วน                                             |
-| **การตัดขาดจากโมดูลเก่า (Decoupling)**           |   ✅ เสร็จสมบูรณ์    | โมดูล `modules/activity/` ตัดขาดจาก `@/modules/activity-plans` 100% (Native Server Actions, Repositories, Domain, Application Services)                           |
-| **ระบบรวมศูนย์สิทธิ์ (Centralized Permissions)** |   ✅ เสร็จสมบูรณ์    | รวมศูนย์ไว้ที่ [`domain/permissions/activity-permissions.ts`](../domain/permissions/activity-permissions.ts) และเชื่อมโยงทั้ง Server Actions และ UI Views ครบถ้วน |
-| **Type Check & Compilation**                     |   ✅ เสร็จสมบูรณ์    | คำสั่ง `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0 ไม่มีข้อผิดพลาด)                                                                                               |
-| **Type 1 (Gold Standard Slice)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type1-planned-form.tsx`, `use-type1-planned-form.ts`), Native Strategy                                                    |
-| **Type 2 (Gold Standard Slice)**                 |   ✅ เสร็จสมบูรณ์    | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel                                                                                                 |
-| **Type 3 (เสนอขายสินค้า / Sales)**               |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel                                                       |
-| **Type 4 (วางบิล / เก็บเงิน)**                   |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel                                                       |
-| **Type 5 (สำรวจตลาดของคู่แข่ง)**                 |   ✅ เสร็จสมบูรณ์    | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration                                                                                      |
-| **Type 7A – 7B (งานแปลงสาธิต)**                  |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, เชื่อมต่อ Master DemoPlot, Full View Integration                                                                              |
-| **Type 8 – 12 (กิจกรรมเฉพาะทางและทัวร์)**      |   ✅ เสร็จสมบูรณ์    | โครงสร้าง 24 Artifacts, Dual-Mode, Unified Activity UI Inputs, Native Strategies & Registries                                                                     |
-| **Type 13 – 14 (กลุ่มงานแปลงแฮตแทค)**           |   ✅ เสร็จสมบูรณ์    | กิจกรรมฉีดแปลงแฮตแทคและติดตามแปลงแฮทแทค โครงสร้าง 24 Artifacts, Dual-Mode, Multi-Plot/Round, Unified UI Inputs, Views & Registries (ปิด Phase 3 สมบูรณ์)           |
-| **การปลดระวางโมดูลเก่า (Final Decommission)**    |   ✅ เสร็จสมบูรณ์    | ลบโฟลเดอร์ `modules/activity-plans/` ออกจากระบบ 100%, ปรับปรุง Client-Safe Barrels, และผ่าน Next.js Production Build 100% (ปิด Phase 4 สมบูรณ์)                    |
+| ลำดับงานหลัก                                     |      สถานะ      | รายละเอียด                                                                                                                                                        |
+| :----------------------------------------------- | :-------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **สถาปัตยกรรมแม่แบบ (Master Blueprint)**         | ✅ เสร็จสมบูรณ์ | เอกสาร [`TYPE_SLICE_BLUEPRINT.md`](./TYPE_SLICE_BLUEPRINT.md) กำหนดมาตรฐาน 24-Artifact และกฎเหล็กการ Refactor ครบถ้วน                                             |
+| **การตัดขาดจากโมดูลเก่า (Decoupling)**           | ✅ เสร็จสมบูรณ์ | โมดูล `modules/activity/` ตัดขาดจาก `@/modules/activity-plans` 100% (Native Server Actions, Repositories, Domain, Application Services)                           |
+| **ระบบรวมศูนย์สิทธิ์ (Centralized Permissions)** | ✅ เสร็จสมบูรณ์ | รวมศูนย์ไว้ที่ [`domain/permissions/activity-permissions.ts`](../domain/permissions/activity-permissions.ts) และเชื่อมโยงทั้ง Server Actions และ UI Views ครบถ้วน |
+| **Type Check & Compilation**                     | ✅ เสร็จสมบูรณ์ | คำสั่ง `npx tsc --noEmit` ผ่านสมบูรณ์ (Exit Code 0 ไม่มีข้อผิดพลาด)                                                                                               |
+| **Type 1 (Gold Standard Slice)**                 | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type1-planned-form.tsx`, `use-type1-planned-form.ts`), Native Strategy                                                    |
+| **Type 2 (Gold Standard Slice)**                 | ✅ เสร็จสมบูรณ์ | Refactor ตามพิมพ์เขียว Type 1, ลบ Shim/Legacy files, Clean Barrel                                                                                                 |
+| **Type 3 (เสนอขายสินค้า / Sales)**               | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type3-planned-form.tsx`, `use-type3-planned-form.ts`), Clean Barrel                                                       |
+| **Type 4 (วางบิล / เก็บเงิน)**                   | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Strict Naming (`type4-planned-form.tsx`, `use-type4-planned-form.ts`), Clean Barrel                                                       |
+| **Type 5 (สำรวจตลาดของคู่แข่ง)**                 | ✅ เสร็จสมบูรณ์ | โครงสร้างตามพิมพ์เขียว Gold Standard, Native Strategy, Full View Integration                                                                                      |
+| **Type 7A – 7B (งานแปลงสาธิต)**                  | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Dual-Mode, เชื่อมต่อ Master DemoPlot, Full View Integration                                                                               |
+| **Type 8 – 12 (กิจกรรมเฉพาะทางและทัวร์)**        | ✅ เสร็จสมบูรณ์ | โครงสร้าง 24 Artifacts, Dual-Mode, Unified Activity UI Inputs, Native Strategies & Registries                                                                     |
+| **Type 13 – 14 (กลุ่มงานแปลงแฮตแทค)**            | ✅ เสร็จสมบูรณ์ | กิจกรรมฉีดแปลงแฮตแทคและติดตามแปลงแฮตแทค โครงสร้าง 24 Artifacts, Dual-Mode, Multi-Plot/Round, Unified UI Inputs, Views & Registries (ปิด Phase 3 สมบูรณ์)          |
+| **การปลดระวางโมดูลเก่า (Final Decommission)**    | ✅ เสร็จสมบูรณ์ | ลบโฟลเดอร์ `modules/activity-plans/` ออกจากระบบ 100%, ปรับปรุง Client-Safe Barrels, และผ่าน Next.js Production Build 100% (ปิด Phase 4 สมบูรณ์)                   |
 
 ---
 
@@ -149,7 +149,7 @@ flowchart TD
 - [x] **Type 11:** ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) — Planned & Unplanned
 - [x] **Type 12:** ทัวร์ (Tour) — Planned & Unplanned
 - [x] **Type 13:** ฉีดแปลงแฮตแทค (Hattack Spraying) — Planned & Unplanned
-- [x] **Type 14:** ติดตามแปลงแฮทแทค (Hattack Follow-up) — Planned & Unplanned
+- [x] **Type 14:** ติดตามแปลงแฮตแทค (Hattack Follow-up) — Planned & Unplanned
 
 #### งานที่ 3.2: Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน — Dual-Mode Planned + Unplanned — Completed ✅)
 
@@ -208,7 +208,7 @@ flowchart TD
 - [x] ตัดขาดจากโมดูลเก่า `@/modules/activity-plans/` 100% (Zero Legacy Imports)
 - [x] รัน Type Check: `npx tsc --noEmit` ผ่านสมบูรณ์ 0 errors (Exit Code 0)
 
-#### งานที่ 3.7: Migrate `features/type-14/` (ติดตามแปลงแฮทแทค / Hattack Follow-up — Dual-Mode Planned + Unplanned — Completed ✅)
+#### งานที่ 3.7: Migrate `features/type-14/` (ติดตามแปลงแฮตแทค / Hattack Follow-up — Dual-Mode Planned + Unplanned — Completed ✅)
 
 - [x] สร้างโฟลเดอร์ `features/type-14/` ตามมาตรฐาน 24 Artifacts ครบทั้ง `planned/`, `unplanned/`, และ `shared/`
 - [x] รองรับ Multi-Plot และ Multi-Round Tracking (การติดตามผลต่อเนื่องหลายรอบ, วันหลังฉีดพ่น, และการตอบสนองสินค้า)
@@ -283,19 +283,19 @@ flowchart TD
 
 ## 📝 4. บันทึกความคืบหน้า (Progress Changelog)
 
-|     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                              | ผู้รับผิดชอบ   |
-| :------------: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
-| **2026-10-20** |  2.0.0   | สำเร็จ Phase 4: ปลดระวางโมดูลเก่า `modules/activity-plans/` ถาวร, ปรับ Route Handlers และ Client-Safe Barrels, และผ่าน `npm run build` (Next.js Production Build) 100% | Antigravity AI |
-| **2026-10-20** |  1.8.0   | Migrate `features/type-14/` (ติดตามแปลงแฮทแทค / Hattack Follow-up) ครบ 24 Artifacts, Multi-Plot/Round, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors (ปิด Phase 3 สมบูรณ์) | Antigravity AI |
-| **2026-10-20** |  1.7.0   | Migrate `features/type-13/` (ฉีดแปลงแฮตแทค / Hattack Spraying) ครบ 24 Artifacts, Multi-Plot, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
-| **2026-10-20** |  1.6.0   | Migrate `features/type-12/` (พาลูกค้าศึกษาดูงาน / Tour) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
-| **2026-10-20** |  1.5.0   | Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors | Antigravity AI |
-| **2026-10-20** |  1.4.0   | Migrate `features/type-10/` (จัดงาน Field Day) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                    | Antigravity AI |
-| **2026-10-20** |  1.3.0   | Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors         | Antigravity AI |
-| **2026-10-20** |  1.2.0   | Migrate `features/type-8/` (จัดประชุม) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                               | Antigravity AI |
-| **2026-10-20** |  1.1.0   | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox` | Antigravity AI |
-| **2026-10-20** |  1.0.0   | สร้างเอกสาร Roadmap รวมขั้นตอน Phase 1 - 4                                                                                                                                          | Antigravity AI |
-| **2026-10-20** |  0.9.0   | รวมศูนย์ระบบตรวจสอบสิทธิ์ไว้ที่ `domain/permissions/activity-permissions.ts` และปรับปรุง Server Actions & Views ทั้งหมด                                                             | Antigravity AI |
-| **2026-10-20** |  0.8.0   | ตัดขาดโมดูล `activity` ออกจาก `activity-plans` 100% (Native repositories, demo plots, calendar, approval actions)                                                                   | Antigravity AI |
-| **2026-10-20** |  0.7.0   | Refactor `features/type-2/` ให้เป็น Gold Standard ตามแม่แบบ Type 1                                                                                                                  | Antigravity AI |
-| **2026-10-20** |  0.6.0   | ปรับปรุงเอกสารแม่แบบ `TYPE_SLICE_BLUEPRINT.md` สรุปมาตรฐาน 24 Artifacts                                                                                                             | Antigravity AI |
+|     วันที่     | เวอร์ชัน | รายละเอียดการดำเนินงาน                                                                                                                                                                                                     | ผู้รับผิดชอบ   |
+| :------------: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-20** |  2.0.0   | สำเร็จ Phase 4: ปลดระวางโมดูลเก่า `modules/activity-plans/` ถาวร, ปรับ Route Handlers และ Client-Safe Barrels, และผ่าน `npm run build` (Next.js Production Build) 100%                                                     | Antigravity AI |
+| **2026-10-20** |  1.8.0   | Migrate `features/type-14/` (ติดตามแปลงแฮตแทค / Hattack Follow-up) ครบ 24 Artifacts, Multi-Plot/Round, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors (ปิด Phase 3 สมบูรณ์) | Antigravity AI |
+| **2026-10-20** |  1.7.0   | Migrate `features/type-13/` (ฉีดแปลงแฮตแทค / Hattack Spraying) ครบ 24 Artifacts, Multi-Plot, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                 | Antigravity AI |
+| **2026-10-20** |  1.6.0   | Migrate `features/type-12/` (พาลูกค้าศึกษาดูงาน / Tour) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                                    | Antigravity AI |
+| **2026-10-20** |  1.5.0   | Migrate `features/type-11/` (ตรวจเช็คสต๊อกหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                                        | Antigravity AI |
+| **2026-10-20** |  1.4.0   | Migrate `features/type-10/` (จัดงาน Field Day) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                                             | Antigravity AI |
+| **2026-10-20** |  1.3.0   | Migrate `features/type-9/` (จัดกิจกรรมส่งเสริมการขายหน้าร้าน) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                              | Antigravity AI |
+| **2026-10-20** |  1.2.0   | Migrate `features/type-8/` (จัดประชุม) ครบ 24 Artifacts, Dual-Mode, Unified Inputs, เชื่อมโยง Views และ Registries ทั้งหมด และผ่าน Type Check 0 errors                                                                     | Antigravity AI |
+| **2026-10-20** |  1.1.0   | เพิ่มเกณฑ์มาตรฐานข้อ 5 (Dual-Mode Planned + Unplanned บังคับทุก Type) และข้อ 6 (Unified Activity UI Inputs Standard) พร้อม Component กลาง `ActivityTextarea` และ `ActivityCombobox`                                        | Antigravity AI |
+| **2026-10-20** |  1.0.0   | สร้างเอกสาร Roadmap รวมขั้นตอน Phase 1 - 4                                                                                                                                                                                 | Antigravity AI |
+| **2026-10-20** |  0.9.0   | รวมศูนย์ระบบตรวจสอบสิทธิ์ไว้ที่ `domain/permissions/activity-permissions.ts` และปรับปรุง Server Actions & Views ทั้งหมด                                                                                                    | Antigravity AI |
+| **2026-10-20** |  0.8.0   | ตัดขาดโมดูล `activity` ออกจาก `activity-plans` 100% (Native repositories, demo plots, calendar, approval actions)                                                                                                          | Antigravity AI |
+| **2026-10-20** |  0.7.0   | Refactor `features/type-2/` ให้เป็น Gold Standard ตามแม่แบบ Type 1                                                                                                                                                         | Antigravity AI |
+| **2026-10-20** |  0.6.0   | ปรับปรุงเอกสารแม่แบบ `TYPE_SLICE_BLUEPRINT.md` สรุปมาตรฐาน 24 Artifacts                                                                                                                                                    | Antigravity AI |

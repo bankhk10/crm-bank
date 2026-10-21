@@ -356,13 +356,13 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_13") ||
             rawData.workTypeCodes.includes("ฉีดแปลงแฮตแทค") ||
-            rawData.workTypeCodes.includes("ฉีดแปลงแฮทแทค"))) ||
+            rawData.workTypeCodes.includes("ฉีดแปลงแฮตแทค"))) ||
         (rawData.planStores &&
           rawData.planStores.some(
             (s: any) =>
               s.workTypeCode === "TYPE_13" ||
               s.workTypeCode === "ฉีดแปลงแฮตแทค" ||
-              s.workTypeCode === "ฉีดแปลงแฮทแทค",
+              s.workTypeCode === "ฉีดแปลงแฮตแทค",
           )) ||
         (rawData.type13Plots && rawData.type13Plots.length > 0) ||
         (rawData.type13UnplannedItems &&
@@ -377,21 +377,21 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
   },
   TYPE_14: {
     code: "TYPE_14",
-    name: "ติดตามแปลงแฮทแทค",
+    name: "ติดตามแปลงแฮตแทค",
     planned: type14PlannedStrategy,
     unplanned: type14UnplannedStrategy,
     hasData: (rawData: any): boolean =>
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_14") ||
-            rawData.workTypeCodes.includes("ติดตามแปลงแฮทแทค") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงแฮตแทค") ||
             rawData.workTypeCodes.includes("ติดตามแปลงแฮตแทค") ||
             rawData.workTypeCodes.includes("ติดตามแปลง"))) ||
         (rawData.planStores &&
           rawData.planStores.some(
             (s: any) =>
               s.workTypeCode === "TYPE_14" ||
-              s.workTypeCode === "ติดตามแปลงแฮทแทค" ||
+              s.workTypeCode === "ติดตามแปลงแฮตแทค" ||
               s.workTypeCode === "ติดตามแปลงแฮตแทค",
           )) ||
         (rawData.type14Plots && rawData.type14Plots.length > 0) ||

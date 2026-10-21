@@ -115,7 +115,7 @@ const ACTIVITY_TYPES = [
   },
   {
     code: "TYPE_14",
-    name: "ติดตามแปลงแฮทแทค",
+    name: "ติดตามแปลงแฮตแทค",
     shortName: "HattackFollow",
     sortOrder: 15,
     hasActual: false,

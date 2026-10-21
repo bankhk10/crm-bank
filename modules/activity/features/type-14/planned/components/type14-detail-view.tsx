@@ -77,7 +77,7 @@ export function Type14DetailView({
           </div>
           <div>
             <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-              บันทึกผลการติดตามแปลงแฮทแทค (Type 14)
+              บันทึกผลการติดตามแปลงแฮตแทค (Type 14)
             </h4>
             <p className="text-xs text-slate-500">
               ผลการตรวจแปลง ระยะเวลาหลังฉีดพ่น และการตอบสนองของพืช
@@ -101,7 +101,8 @@ export function Type14DetailView({
         <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-semibold text-slate-900 text-sm">
-              แปลงเป้าหมาย: {primaryPlot.name || primaryPlot.plotName || "แปลงแฮตแทค"}
+              แปลงเป้าหมาย:{" "}
+              {primaryPlot.name || primaryPlot.plotName || "แปลงแฮตแทค"}
             </span>
             <div className="flex items-center gap-1 text-xs text-slate-500">
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
@@ -290,35 +291,38 @@ export function Type14DetailView({
       )}
 
       {/* Loose attachments if present */}
-      {attachments.length > 0 && rawRounds.every((r) => (!r.afterSprayImages || r.afterSprayImages.length === 0)) && (
-        <div className="space-y-3 pt-2 border-t border-slate-200">
-          <div className="flex items-center gap-2">
-            <Camera className="w-4 h-4 text-emerald-600" />
-            <h6 className="font-bold text-xs sm:text-sm text-slate-800">
-              รูปถ่ายแนบ ({attachments.length} รูป)
-            </h6>
-          </div>
+      {attachments.length > 0 &&
+        rawRounds.every(
+          (r) => !r.afterSprayImages || r.afterSprayImages.length === 0,
+        ) && (
+          <div className="space-y-3 pt-2 border-t border-slate-200">
+            <div className="flex items-center gap-2">
+              <Camera className="w-4 h-4 text-emerald-600" />
+              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
+                รูปถ่ายแนบ ({attachments.length} รูป)
+              </h6>
+            </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {attachments.map((att: any, attIdx: number) => (
-              <div
-                key={attIdx}
-                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-xs"
-                onClick={() => setPreviewImage(att.fileUrl || att.url)}
-              >
-                <img
-                  src={att.fileUrl || att.url}
-                  alt={att.fileName || `att-${attIdx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Eye className="w-4 h-4 text-white drop-shadow-md" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {attachments.map((att: any, attIdx: number) => (
+                <div
+                  key={attIdx}
+                  className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-xs"
+                  onClick={() => setPreviewImage(att.fileUrl || att.url)}
+                >
+                  <img
+                    src={att.fileUrl || att.url}
+                    alt={att.fileName || `att-${attIdx + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Eye className="w-4 h-4 text-white drop-shadow-md" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Lightbox Modal */}
       {previewImage && (

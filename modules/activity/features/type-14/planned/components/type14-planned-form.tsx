@@ -135,7 +135,8 @@ export function Type14PlannedForm(props: any) {
     return list;
   }, [hattackFollowUpPlans]);
 
-  const selectedPlotIds = data.selectedPlotIds || (data.demoPlotId ? [data.demoPlotId] : []);
+  const selectedPlotIds =
+    data.selectedPlotIds || (data.demoPlotId ? [data.demoPlotId] : []);
 
   const handleSelectExistingPlot = (plot: FollowUpPlotOption) => {
     const isAlreadySelected = selectedPlotIds.includes(plot.id);
@@ -183,8 +184,14 @@ export function Type14PlannedForm(props: any) {
       cropName: primaryPlot?.cropName || data.cropName,
       province: primaryPlot?.province || data.province,
       district: primaryPlot?.district || data.district,
-      latitude: primaryPlot?.latitude != null ? String(primaryPlot.latitude) : data.latitude,
-      longitude: primaryPlot?.longitude != null ? String(primaryPlot.longitude) : data.longitude,
+      latitude:
+        primaryPlot?.latitude != null
+          ? String(primaryPlot.latitude)
+          : data.latitude,
+      longitude:
+        primaryPlot?.longitude != null
+          ? String(primaryPlot.longitude)
+          : data.longitude,
     });
   };
 
@@ -197,7 +204,7 @@ export function Type14PlannedForm(props: any) {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
               <Layers className="h-4 w-4" />
             </span>
-            ติดตามแปลงแฮทแทค (Type 14)
+            ติดตามแปลงแฮตแทค (Type 14)
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             เลือกแปลงที่เคยฉีดพ่นแล้ว หรือระบุแปลงใหม่เพื่อบันทึกการติดตามผล
@@ -350,7 +357,8 @@ export function Type14PlannedForm(props: any) {
 
             <div className="md:col-span-2">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                ร้านค้า / Dealer ผู้รับผิดชอบ <span className="text-destructive">*</span>
+                ร้านค้า / Dealer ผู้รับผิดชอบ{" "}
+                <span className="text-destructive">*</span>
               </label>
               <ActivityCustomerSelect
                 customers={customerItems}
@@ -394,7 +402,8 @@ export function Type14PlannedForm(props: any) {
 
             <div className="md:col-span-2">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                พื้นที่ตั้งแปลง (จังหวัด / อำเภอ) <span className="text-destructive">*</span>
+                พื้นที่ตั้งแปลง (จังหวัด / อำเภอ){" "}
+                <span className="text-destructive">*</span>
               </label>
               <ActivityAddressSelect
                 levels="province-district"

@@ -3,12 +3,15 @@ import type { Type14SprayRoundState } from "../../shared/types";
 import type { Type14ValidationResult } from "../types/planned.types";
 
 /**
- * Validates TYPE_14 (ติดตามแปลงแฮทแทค) tracking rounds actual execution.
+ * Validates TYPE_14 (ติดตามแปลงแฮตแทค) tracking rounds actual execution.
  */
 export function validateType14Actual(
   input:
     | Type14SprayRoundState[]
-    | { rounds?: Type14SprayRoundState[]; sprayRounds?: Type14SprayRoundState[] }
+    | {
+        rounds?: Type14SprayRoundState[];
+        sprayRounds?: Type14SprayRoundState[];
+      }
     | any,
 ): Type14ValidationResult {
   const rounds: Type14SprayRoundState[] = Array.isArray(input)
@@ -18,7 +21,7 @@ export function validateType14Actual(
   if (!rounds || rounds.length === 0) {
     return {
       isValid: false,
-      error: "กรุณาบันทึกรอบการติดตามแปลงแฮทแทคอย่างน้อย 1 รอบ (TYPE_14)",
+      error: "กรุณาบันทึกรอบการติดตามแปลงแฮตแทคอย่างน้อย 1 รอบ (TYPE_14)",
     };
   }
 

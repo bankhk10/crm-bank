@@ -511,7 +511,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         .filter(
           (att) =>
             att.workTypeCode === "TYPE_14" ||
-            att.workTypeCode === "ติดตามแปลงแฮทแทค" ||
+            att.workTypeCode === "ติดตามแปลงแฮตแทค" ||
             att.workTypeCode === "ติดตามแปลงแฮตแทค" ||
             att.category === "TRACKING_AFTER_SPRAY" ||
             att.category === "type14",
@@ -519,7 +519,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         .map((att) => ({
           id: att.id,
           url: att.fileUrl || att.url,
-          name: att.fileName || att.name || "ภาพถ่ายติดตามแปลงแฮทแทค",
+          name: att.fileName || att.name || "ภาพถ่ายติดตามแปลงแฮตแทค",
           size: att.fileSize || att.size || 0,
           type: att.mimeType || att.type || "image/jpeg",
         }));

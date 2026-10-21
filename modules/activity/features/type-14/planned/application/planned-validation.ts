@@ -1,8 +1,11 @@
 import { z } from "zod";
-import type { Type14PlanInput, Type14ValidationResult } from "../types/planned.types";
+import type {
+  Type14PlanInput,
+  Type14ValidationResult,
+} from "../types/planned.types";
 
 /**
- * Validates TYPE_14 (ติดตามแปลงแฮทแทค) plan form values.
+ * Validates TYPE_14 (ติดตามแปลงแฮตแทค) plan form values.
  */
 export function validateType14FormValues(
   type14Data: Type14PlanInput,
@@ -10,7 +13,7 @@ export function validateType14FormValues(
   if (!type14Data) {
     return {
       isValid: false,
-      error: "กรุณากรอกข้อมูลติดตามแปลงแฮทแทค (TYPE_14)",
+      error: "กรุณากรอกข้อมูลติดตามแปลงแฮตแทค (TYPE_14)",
     };
   }
 
@@ -53,10 +56,14 @@ export function validateType14FormValues(
 
   // 3. Product withdrawal validation
   if (type14Data.hasProductWithdrawal) {
-    if (!type14Data.withdrawnProducts || type14Data.withdrawnProducts.length === 0) {
+    if (
+      !type14Data.withdrawnProducts ||
+      type14Data.withdrawnProducts.length === 0
+    ) {
       return {
         isValid: false,
-        error: "กรุณาระบุรายการสินค้าที่ต้องการเบิกสำหรับการติดตามแปลง (TYPE_14)",
+        error:
+          "กรุณาระบุรายการสินค้าที่ต้องการเบิกสำหรับการติดตามแปลง (TYPE_14)",
       };
     }
     for (let i = 0; i < type14Data.withdrawnProducts.length; i++) {

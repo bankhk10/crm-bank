@@ -127,7 +127,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_14: {
     code: "TYPE_14",
-    name: "ติดตามแปลงแฮทแทค",
+    name: "ติดตามแปลงแฮตแทค",
     shortName: "AttackFollow",
     sortOrder: 15,
     hasActual: true,
@@ -170,10 +170,10 @@ export function getWorkTypeCode(nameOrCode: any): string {
   if (raw.includes("ทำแปลงสาธิต") && !raw.includes("ติดตาม")) return "TYPE_7A";
   if (raw.includes("ตรวจเช็คสต๊อก") || raw.includes("ตรวจเช็กสต็อก"))
     return "TYPE_11";
-  if (raw.includes("ศึกษาดูงาน") || raw.includes("ทัวร์")) return "TYPE_12";
-  if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮทแทค"))
+  if (raw.includes("ทัวร์") || raw.includes("ทัวร์")) return "TYPE_12";
+  if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮตแทค"))
     return "TYPE_13";
-  if (raw.includes("ติดตามแปลงแฮทแทค") || raw.includes("ติดตามแปลงแฮตแทค"))
+  if (raw.includes("ติดตามแปลงแฮตแทค") || raw.includes("ติดตามแปลงแฮตแทค"))
     return "TYPE_14";
 
   const found = Object.values(WORK_TYPE_CONFIG).find(

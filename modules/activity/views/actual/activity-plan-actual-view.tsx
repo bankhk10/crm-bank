@@ -468,7 +468,7 @@ export function ActivityPlanActualView({
     const isType13Active =
       planWorkTypes.includes("TYPE_13") ||
       planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
-      planWorkTypes.includes("ฉีดแปลงแฮทแทค") ||
+      planWorkTypes.includes("ฉีดแปลงแฮตแทค") ||
       planWorkTypes.includes("ฉีดแปลง") ||
       Boolean(plan?.type13Plots?.length) ||
       Boolean(plan?.type13Targets?.length) ||
@@ -479,7 +479,7 @@ export function ActivityPlanActualView({
 
     const isType14Active =
       planWorkTypes.includes("TYPE_14") ||
-      planWorkTypes.includes("ติดตามแปลงแฮทแทค") ||
+      planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
       planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
       planWorkTypes.includes("ติดตามแปลง") ||
       Boolean(plan?.type14Plots?.length) ||
@@ -1403,7 +1403,7 @@ export function ActivityPlanActualView({
           const uploadedAttachments = allT14Images.map((img: any) => ({
             category: "TRACKING_AFTER_SPRAY",
             fileUrl: img.url,
-            fileName: img.name || "ภาพติดตามแปลงแฮทแทค",
+            fileName: img.name || "ภาพติดตามแปลงแฮตแทค",
             fileSize: (img as any).size || 0,
             mimeType: (img as any).type || "image/jpeg",
             workTypeCode: "TYPE_14",
@@ -1435,7 +1435,7 @@ export function ActivityPlanActualView({
             !isType13Active
           ) {
             const roundsCount = type14Actual.rounds?.length || 1;
-            payload.resultSummary = `ติดตามแปลงแฮทแทค: สำเร็จ (${roundsCount} รอบ)`;
+            payload.resultSummary = `ติดตามแปลงแฮตแทค: สำเร็จ (${roundsCount} รอบ)`;
           }
         }
       }

@@ -386,14 +386,14 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_13" ||
       wt.includes("TYPE_13") ||
       wt.includes("ฉีดแปลงแฮตแทค") ||
-      wt.includes("ฉีดแปลงแฮทแทค") ||
+      wt.includes("ฉีดแปลงแฮตแทค") ||
       wt.includes("ฉีดแปลง"),
   );
   const isType14Active = selectedWorkTypes.some(
     (wt) =>
       getWorkTypeCode(wt) === "TYPE_14" ||
       wt.includes("TYPE_14") ||
-      wt.includes("ติดตามแปลงแฮทแทค") ||
+      wt.includes("ติดตามแปลงแฮตแทค") ||
       wt.includes("ติดตามแปลงแฮตแทค") ||
       (wt.includes("ติดตามแปลง") && !wt.includes("สาธิต")),
   );
@@ -1435,7 +1435,7 @@ export function UnplannedActivityForm({
       if (!type14Validation.isValid) {
         toast.error(
           type14Validation.error ||
-            "ข้อมูลติดตามแปลงแฮทแทคไม่ถูกต้อง (Type 14)",
+            "ข้อมูลติดตามแปลงแฮตแทคไม่ถูกต้อง (Type 14)",
         );
         return;
       }
@@ -1476,7 +1476,7 @@ export function UnplannedActivityForm({
         attachments: cleanType14Images.map((img) => ({
           category: "TRACKING_AFTER_SPRAY",
           fileUrl: img.url,
-          fileName: img.name || "ภาพติดตามแปลงแฮทแทค",
+          fileName: img.name || "ภาพติดตามแปลงแฮตแทค",
           fileSize: (img as any).size || 0,
           mimeType: (img as any).type || "image/jpeg",
           workTypeCode: "TYPE_14",
@@ -2114,7 +2114,7 @@ export function UnplannedActivityForm({
         />
       )}
 
-      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮทแทค */}
+      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮตแทค */}
       {isType14Active && (
         <Type14UnplannedForm
           item={type14.item}

@@ -332,14 +332,14 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_13" ||
       wt.includes("TYPE_13") ||
       wt.includes("ฉีดแปลงแฮตแทค") ||
-      wt.includes("ฉีดแปลงแฮทแทค") ||
+      wt.includes("ฉีดแปลงแฮตแทค") ||
       wt.includes("ฉีดแปลง"),
   );
   const isType14Active = selectedWorkTypes.some(
     (wt) =>
       getWorkTypeCode(wt) === "TYPE_14" ||
       wt.includes("TYPE_14") ||
-      wt.includes("ติดตามแปลงแฮทแทค") ||
+      wt.includes("ติดตามแปลงแฮตแทค") ||
       wt.includes("ติดตามแปลงแฮตแทค") ||
       (wt.includes("ติดตามแปลง") && !wt.includes("สาธิต")),
   );
@@ -912,7 +912,7 @@ export function PlannedActivityForm({
       if (!type14Validation.isValid) {
         toast.error(
           type14Validation.error ||
-            "กรุณาระบุข้อมูลติดตามแปลงแฮทแทค (Type 14) ให้ครบถ้วน",
+            "กรุณาระบุข้อมูลติดตามแปลงแฮตแทค (Type 14) ให้ครบถ้วน",
         );
         return;
       }
@@ -1376,7 +1376,7 @@ export function PlannedActivityForm({
         />
       )}
 
-      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮทแทค */}
+      {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮตแทค */}
       {isType14Active && (
         <Type14PlannedForm
           value={type14.data}

@@ -33,106 +33,112 @@ export function useType14Actual() {
   const planRef = useRef<any>(null);
 
   // Hydrate state from plan, parsedResult, or targets
-  const hydrate = useCallback((plan: any, parsedResult?: any, _targets?: any) => {
-    if (!plan) return;
-    planRef.current = plan;
+  const hydrate = useCallback(
+    (plan: any, parsedResult?: any, _targets?: any) => {
+      if (!plan) return;
+      planRef.current = plan;
 
-    const rawRounds: any[] =
-      plan.type14Actual?.rounds ||
-      plan.type14Actual?.sprayRounds ||
-      plan.result?.rounds ||
-      plan.result?.sprayRounds ||
-      parsedResult?.rounds ||
-      parsedResult?.sprayRounds ||
-      parsedResult?.type14Actual?.rounds ||
-      [];
+      const rawRounds: any[] =
+        plan.type14Actual?.rounds ||
+        plan.type14Actual?.sprayRounds ||
+        plan.result?.rounds ||
+        plan.result?.sprayRounds ||
+        parsedResult?.rounds ||
+        parsedResult?.sprayRounds ||
+        parsedResult?.type14Actual?.rounds ||
+        [];
 
-    const rawAttachments: any[] =
-      plan.attachments ||
-      plan.result?.attachments ||
-      [];
+      const rawAttachments: any[] =
+        plan.attachments || plan.result?.attachments || [];
 
-    if (rawRounds.length > 0) {
-      const mappedRounds: Type14SprayRoundState[] = rawRounds.map((r: any, idx: number) => {
-        const roundNum = r.roundNumber || idx + 1;
-        const matchedImages = (r.afterSprayImages || r.attachments || []).map(
-          (img: any, imgIdx: number) => ({
-            id: img.id || `img-${roundNum}-${imgIdx + 1}`,
-            url: img.url || img.fileUrl || "",
-            name: img.name || img.fileName || "ภาพติดตามแปลงแฮทแทค",
-            size: img.size || img.fileSize || 0,
-            type: img.type || img.mimeType || "image/jpeg",
-          }),
-        );
+      if (rawRounds.length > 0) {
+        const mappedRounds: Type14SprayRoundState[] = rawRounds.map(
+          (r: any, idx: number) => {
+            const roundNum = r.roundNumber || idx + 1;
+            const matchedImages = (
+              r.afterSprayImages ||
+              r.attachments ||
+              []
+            ).map((img: any, imgIdx: number) => ({
+              id: img.id || `img-${roundNum}-${imgIdx + 1}`,
+              url: img.url || img.fileUrl || "",
+              name: img.name || img.fileName || "ภาพติดตามแปลงแฮตแทค",
+              size: img.size || img.fileSize || 0,
+              type: img.type || img.mimeType || "image/jpeg",
+            }));
 
-        return {
-          id: r.id || `round-${roundNum}`,
-          roundNumber: roundNum,
-          actualVisitDate: r.actualVisitDate || r.visitDate || "",
-          daysAfterSpray: String(r.daysAfterSpray ?? r.daysSinceStart ?? ""),
-          trackingResult: r.trackingResult || r.productResponse || "ปกติ",
-          productResponse: r.productResponse || "ปกติ",
-          additionalNotes: r.additionalNotes || r.notes || "",
-          afterSprayImages: matchedImages,
-          products: (r.products || []).map((p: any) => ({
-            productId: p.productId,
-            productName: p.productName || p.product?.name || "",
-            unit: p.unit || p.product?.unit || "ขวด",
-            quantityUsed: p.quantityUsed ?? p.quantity ?? "",
-            actualRate: p.actualRate || p.applicationRate || "",
-            detail: p.detail || "",
-          })),
-        };
-      });
-
-      setRounds(mappedRounds);
-    } else {
-      // Check if demoPlotVisits exist for TYPE_14
-      const t14Visits = (plan.demoPlotVisits || []).filter(
-        (v: any) => v.workTypeCode === "TYPE_14",
-      );
-
-      if (t14Visits.length > 0) {
-        const mappedFromVisits: Type14SprayRoundState[] = t14Visits.map(
-          (v: any, idx: number) => ({
-            id: v.id || `visit-${idx + 1}`,
-            roundNumber: idx + 1,
-            actualVisitDate: v.visitDate
-              ? new Date(v.visitDate).toISOString().split("T")[0]
-              : new Date().toISOString().split("T")[0],
-            daysAfterSpray: v.daysSinceStart != null ? String(v.daysSinceStart) : "",
-            trackingResult: v.productResponse || v.productProblemDesc || "ปกติ",
-            productResponse: v.productResponse || "ปกติ",
-            additionalNotes: v.notes || "",
-            afterSprayImages: rawAttachments
-              .filter(
-                (a: any) =>
-                  a.workTypeCode === "TYPE_14" ||
-                  a.category === "AFTER_SPRAY" ||
-                  a.category === "TRACKING_AFTER_SPRAY",
-              )
-              .map((a: any) => ({
-                id: a.id,
-                url: a.fileUrl || a.url,
-                name: a.fileName || a.name || "ภาพติดตามแปลงแฮทแทค",
-                size: a.fileSize || a.size || 0,
-                type: a.mimeType || a.type || "image/jpeg",
+            return {
+              id: r.id || `round-${roundNum}`,
+              roundNumber: roundNum,
+              actualVisitDate: r.actualVisitDate || r.visitDate || "",
+              daysAfterSpray: String(
+                r.daysAfterSpray ?? r.daysSinceStart ?? "",
+              ),
+              trackingResult: r.trackingResult || r.productResponse || "ปกติ",
+              productResponse: r.productResponse || "ปกติ",
+              additionalNotes: r.additionalNotes || r.notes || "",
+              afterSprayImages: matchedImages,
+              products: (r.products || []).map((p: any) => ({
+                productId: p.productId,
+                productName: p.productName || p.product?.name || "",
+                unit: p.unit || p.product?.unit || "ขวด",
+                quantityUsed: p.quantityUsed ?? p.quantity ?? "",
+                actualRate: p.actualRate || p.applicationRate || "",
+                detail: p.detail || "",
               })),
-            products: [],
-          }),
+            };
+          },
         );
-        setRounds(mappedFromVisits);
+
+        setRounds(mappedRounds);
       } else {
-        setRounds([createDefaultInitialRound(1)]);
+        // Check if demoPlotVisits exist for TYPE_14
+        const t14Visits = (plan.demoPlotVisits || []).filter(
+          (v: any) => v.workTypeCode === "TYPE_14",
+        );
+
+        if (t14Visits.length > 0) {
+          const mappedFromVisits: Type14SprayRoundState[] = t14Visits.map(
+            (v: any, idx: number) => ({
+              id: v.id || `visit-${idx + 1}`,
+              roundNumber: idx + 1,
+              actualVisitDate: v.visitDate
+                ? new Date(v.visitDate).toISOString().split("T")[0]
+                : new Date().toISOString().split("T")[0],
+              daysAfterSpray:
+                v.daysSinceStart != null ? String(v.daysSinceStart) : "",
+              trackingResult:
+                v.productResponse || v.productProblemDesc || "ปกติ",
+              productResponse: v.productResponse || "ปกติ",
+              additionalNotes: v.notes || "",
+              afterSprayImages: rawAttachments
+                .filter(
+                  (a: any) =>
+                    a.workTypeCode === "TYPE_14" ||
+                    a.category === "AFTER_SPRAY" ||
+                    a.category === "TRACKING_AFTER_SPRAY",
+                )
+                .map((a: any) => ({
+                  id: a.id,
+                  url: a.fileUrl || a.url,
+                  name: a.fileName || a.name || "ภาพติดตามแปลงแฮตแทค",
+                  size: a.fileSize || a.size || 0,
+                  type: a.mimeType || a.type || "image/jpeg",
+                })),
+              products: [],
+            }),
+          );
+          setRounds(mappedFromVisits);
+        } else {
+          setRounds([createDefaultInitialRound(1)]);
+        }
       }
-    }
-  }, []);
+    },
+    [],
+  );
 
   const addRound = useCallback(() => {
-    setRounds((prev) => [
-      ...prev,
-      createDefaultInitialRound(prev.length + 1),
-    ]);
+    setRounds((prev) => [...prev, createDefaultInitialRound(prev.length + 1)]);
   }, []);
 
   const removeRound = useCallback((roundIndex: number) => {
@@ -214,31 +220,28 @@ export function useType14Actual() {
     [],
   );
 
-  const addRoundImages = useCallback(
-    (roundIndex: number, newFiles: File[]) => {
-      if (!newFiles || newFiles.length === 0) return;
-      const newImages: Type14ImageFile[] = newFiles.map((file, idx) => ({
-        id: `local-t14-img-${Date.now()}-${idx}`,
-        url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        rawFile: file,
-        file,
-      }));
+  const addRoundImages = useCallback((roundIndex: number, newFiles: File[]) => {
+    if (!newFiles || newFiles.length === 0) return;
+    const newImages: Type14ImageFile[] = newFiles.map((file, idx) => ({
+      id: `local-t14-img-${Date.now()}-${idx}`,
+      url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      rawFile: file,
+      file,
+    }));
 
-      setRounds((prev) =>
-        prev.map((round, idx) => {
-          if (idx !== roundIndex) return round;
-          return {
-            ...round,
-            afterSprayImages: [...round.afterSprayImages, ...newImages],
-          };
-        }),
-      );
-    },
-    [],
-  );
+    setRounds((prev) =>
+      prev.map((round, idx) => {
+        if (idx !== roundIndex) return round;
+        return {
+          ...round,
+          afterSprayImages: [...round.afterSprayImages, ...newImages],
+        };
+      }),
+    );
+  }, []);
 
   const removeRoundImage = useCallback(
     (roundIndex: number, imageIndex: number) => {

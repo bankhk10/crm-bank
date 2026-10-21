@@ -4,7 +4,10 @@ import type {
   Type14WithdrawnProductLine,
   FollowUpPlanOption,
 } from "../../shared/types";
-import type { Type14PlanInput, Type14ValidationResult } from "../types/planned.types";
+import type {
+  Type14PlanInput,
+  Type14ValidationResult,
+} from "../types/planned.types";
 import { hydrateType14PlannedData } from "../application/planned-mapper";
 import { validateType14FormValues } from "../application/planned-validation";
 
@@ -141,7 +144,7 @@ export function useType14PlannedForm({
       (t) =>
         t === "TYPE_14" ||
         t.includes("TYPE_14") ||
-        t.includes("ติดตามแปลงแฮทแทค") ||
+        t.includes("ติดตามแปลงแฮตแทค") ||
         t.includes("ติดตามแปลงแฮตแทค") ||
         t.includes("ติดตามแปลง"),
     );
@@ -159,7 +162,7 @@ export function useType14PlannedForm({
         (t) =>
           t === "TYPE_14" ||
           t.includes("TYPE_14") ||
-          t.includes("ติดตามแปลงแฮทแทค") ||
+          t.includes("ติดตามแปลงแฮตแทค") ||
           t.includes("ติดตามแปลงแฮตแทค") ||
           t.includes("ติดตามแปลง"),
       );
@@ -185,9 +188,9 @@ export function useType14PlannedForm({
           visitPurpose: "STORE",
           storeId: data.storeId,
           storeName:
-            data.dealerName || matchedCust?.name || "Dealer ติดตามแปลงแฮทแทค",
+            data.dealerName || matchedCust?.name || "Dealer ติดตามแปลงแฮตแทค",
           province: data.province || matchedCust?.province || null,
-          remarks: `Dealer ติดตามแปลงแฮทแทค (${data.name || "แปลงแฮตแทค"})`,
+          remarks: `Dealer ติดตามแปลงแฮตแทค (${data.name || "แปลงแฮตแทค"})`,
           notes: `แปลงแฮตแทค: ${data.name || "แปลงแฮตแทค"}`,
         });
       }
@@ -207,7 +210,7 @@ export function useType14PlannedForm({
                 matchedCust?.name ||
                 `Dealer แปลงที่ ${idx + 1}`,
               province: p.province || matchedCust?.province || null,
-              remarks: `Dealer ติดตามแปลงแฮทแทค (${p.name || `แปลงที่ ${idx + 1}`})`,
+              remarks: `Dealer ติดตามแปลงแฮตแทค (${p.name || `แปลงที่ ${idx + 1}`})`,
               notes: `แปลงแฮตแทค: ${p.name || `แปลงที่ ${idx + 1}`}`,
             });
           }
@@ -222,7 +225,9 @@ export function useType14PlannedForm({
       ) {
         data.withdrawnProducts.forEach((p) => {
           if (p.productId) {
-            const matchedProd = products.find((prod) => prod.id === p.productId);
+            const matchedProd = products.find(
+              (prod) => prod.id === p.productId,
+            );
             planProducts.push({
               workTypeCode: "TYPE_14",
               productId: p.productId,
@@ -250,7 +255,8 @@ export function useType14PlannedForm({
                 cropCategory: data.cropCategory || null,
                 cropName: data.cropName || null,
                 areaRai: data.areaRai != null ? Number(data.areaRai) : null,
-                treeCount: data.treeCount != null ? Number(data.treeCount) : null,
+                treeCount:
+                  data.treeCount != null ? Number(data.treeCount) : null,
                 province: data.province || "",
                 district: data.district || "",
                 latitude: data.latitude || null,

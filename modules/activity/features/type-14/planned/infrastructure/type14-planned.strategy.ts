@@ -23,7 +23,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
     if (!valResult.isValid) {
       return {
         valid: false,
-        error: valResult.error || "ข้อมูลติดตามแปลงแฮทแทคไม่ถูกต้อง (TYPE_14)",
+        error: valResult.error || "ข้อมูลติดตามแปลงแฮตแทคไม่ถูกต้อง (TYPE_14)",
       };
     }
     return { valid: true };
@@ -35,7 +35,9 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
     planData: any,
   ): Promise<void> {
     const rawT14 = planData.type14Data || planData.type14;
-    const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+    const startDate = planData.startDate
+      ? new Date(planData.startDate)
+      : new Date();
 
     if (rawT14) {
       await syncType14Data(tx, planId, rawT14, startDate);
@@ -54,7 +56,9 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
       if (!round.actualVisitDate) continue;
 
       const visitDate = new Date(round.actualVisitDate);
-      const daysSinceStart = round.daysAfterSpray ? parseInt(String(round.daysAfterSpray), 10) : 0;
+      const daysSinceStart = round.daysAfterSpray
+        ? parseInt(String(round.daysAfterSpray), 10)
+        : 0;
 
       // Link to existing DemoPlotVisits for this activity plan
       const visits = await tx.demoPlotVisit.findMany({
@@ -70,7 +74,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
           data: {
             visitDate,
             daysSinceStart: isNaN(daysSinceStart) ? 0 : daysSinceStart,
-            productResponse: round.productResponse || round.trackingResult || "ปกติ",
+            productResponse:
+              round.productResponse || round.trackingResult || "ปกติ",
             productProblemDesc: round.trackingResult || null,
             notes: round.additionalNotes || null,
           },
