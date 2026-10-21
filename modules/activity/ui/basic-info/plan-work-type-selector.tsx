@@ -20,6 +20,7 @@ export interface PlanWorkTypeSelectorProps {
   selectedWorkTypes: string[];
   setSelectedWorkTypes: (types: string[]) => void;
   activeWorkTypeOptions?: PlanWorkTypeOption[];
+  excludedWorkTypeCodes?: string[];
   readonly?: boolean;
   isSingleSelect?: boolean;
 }
@@ -28,6 +29,7 @@ export function PlanWorkTypeSelector({
   selectedWorkTypes,
   setSelectedWorkTypes,
   activeWorkTypeOptions,
+  excludedWorkTypeCodes = [],
   readonly = false,
   isSingleSelect = false,
 }: PlanWorkTypeSelectorProps) {
@@ -51,7 +53,7 @@ export function PlanWorkTypeSelector({
   }, []);
 
   // Default options if not provided: All 15 supported work types (TYPE_1 - TYPE_14)
-  const options: PlanWorkTypeOption[] =
+  const baseOptions: PlanWorkTypeOption[] =
     activeWorkTypeOptions && activeWorkTypeOptions.length > 0
       ? activeWorkTypeOptions
       : [
@@ -131,6 +133,11 @@ export function PlanWorkTypeSelector({
             displayName: "ติดตามแปลงแฮตแทค (Type 14)",
           },
         ];
+
+  const options: PlanWorkTypeOption[] =
+    excludedWorkTypeCodes.length > 0
+      ? baseOptions.filter((opt) => !excludedWorkTypeCodes.includes(opt.code))
+      : baseOptions;
 
   const toggleWorkType = (typeStr: string) => {
     const code = getWorkTypeCode(typeStr);

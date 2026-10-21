@@ -137,6 +137,20 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
 
 export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
 
+/**
+ * ประเภทงานที่ไม่รองรับในหน้าสร้างกิจกรรมนอกแผน (Unplanned Activity):
+ * 1. จัดทำแปลงสาธิต (TYPE_7A)
+ * 2. จัดประชุม (TYPE_8)
+ * 3. จัดกิจกรรมส่งเสริมการขายหน้าร้าน (TYPE_9)
+ * 4. ทัวร์ (TYPE_12)
+ */
+export const UNPLANNED_EXCLUDED_WORK_TYPE_CODES = [
+  "TYPE_7A",
+  "TYPE_8",
+  "TYPE_9",
+  "TYPE_12",
+] as const;
+
 export function getWorkTypeCode(nameOrCode: any): string {
   if (!nameOrCode) return "";
   let raw = "";

@@ -115,6 +115,7 @@ import {
 } from "@/modules/activity/features/type-14";
 import {
   WORK_TYPE_CONFIG,
+  UNPLANNED_EXCLUDED_WORK_TYPE_CODES,
   getWorkTypeCode,
   getWorkTypeName,
 } from "@/modules/activity/constants";
@@ -1857,6 +1858,7 @@ export function UnplannedActivityForm({
             isSingleSelect={true}
             selectedWorkTypes={selectedWorkTypes}
             setSelectedWorkTypes={setSelectedWorkTypes}
+            excludedWorkTypeCodes={[...UNPLANNED_EXCLUDED_WORK_TYPE_CODES]}
             readonly={readonly}
           />
         }
