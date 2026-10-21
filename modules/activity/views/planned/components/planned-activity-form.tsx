@@ -317,7 +317,7 @@ export function PlannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_11" ||
       wt.includes("TYPE_11") ||
       wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
-      wt.includes("ตรวจเช็กสต็อก"),
+      wt.includes("ตรวจเช็คสต๊อก"),
   );
   const isType12Active = selectedWorkTypes.some(
     (wt) =>
@@ -847,7 +847,7 @@ export function PlannedActivityForm({
           workTypeCode: "TYPE_11",
           storeId: st.storeId,
           storeName: st.storeName || null,
-          notes: st.notes || st.remarks || "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+          notes: st.notes || st.remarks || "ตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้าน",
         }));
         planStores = [...planStores, ...t11Stores];
       }

@@ -371,7 +371,7 @@ export function UnplannedActivityForm({
       getWorkTypeCode(wt) === "TYPE_11" ||
       wt.includes("TYPE_11") ||
       wt.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
-      wt.includes("ตรวจเช็กสต็อก"),
+      wt.includes("ตรวจเช็คสต๊อก"),
   );
   const isType12Active = selectedWorkTypes.some(
     (wt) =>
@@ -1261,7 +1261,7 @@ export function UnplannedActivityForm({
       };
     } else if (isType11Active) {
       if (type11.items.length === 0) {
-        toast.error("กรุณาระบุข้อมูลตรวจเช็กสต็อกอย่างน้อย 1 ร้านค้า");
+        toast.error("กรุณาระบุข้อมูลตรวจเช็คสต๊อกอย่างน้อย 1 ร้านค้า");
         return;
       }
 
@@ -1288,7 +1288,7 @@ export function UnplannedActivityForm({
           cleanType11Images = res.updatedImages;
         } catch (uploadErr: any) {
           toast.error(
-            uploadErr.message || "อัปโหลดรูปภาพตรวจเช็กสต็อกไม่สำเร็จ",
+            uploadErr.message || "อัปโหลดรูปภาพตรวจเช็คสต๊อกไม่สำเร็จ",
           );
           return;
         }

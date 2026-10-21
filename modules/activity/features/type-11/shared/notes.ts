@@ -5,7 +5,10 @@ import type { Type11StockItem, Type11StoreItem } from "./types";
  */
 export function formatType11PlannedNotes(stores: Type11StoreItem[]): string {
   if (!stores || stores.length === 0) return "";
-  const storeNames = stores.map((s) => s.storeName).filter(Boolean).join(", ");
+  const storeNames = stores
+    .map((s) => s.storeName)
+    .filter(Boolean)
+    .join(", ");
   return `[ตรวจเช็คสต๊อกหน้าร้าน] ร้านค้าเป้าหมาย: ${storeNames}`;
 }
 
@@ -15,15 +18,19 @@ export function formatType11PlannedNotes(stores: Type11StoreItem[]): string {
 export function formatType11ActualSummary(
   stockItems: Type11StockItem[],
   nextAction?: string,
-  generalRemarks?: string
+  generalRemarks?: string,
 ): string {
-  const parts: string[] = ["[ผลการตรวจเช็กสต็อกหน้าร้าน]"];
+  const parts: string[] = ["[ผลการตรวจเช็คสต๊อกหน้าร้าน]"];
 
   if (stockItems && stockItems.length > 0) {
     const lines = stockItems.map((item) => {
       const storePrefix = item.storeName ? `[${item.storeName}] ` : "";
-      const statusText = item.stockStatus ? ` (สถานะ: ${item.stockStatus})` : "";
-      const reorderText = item.reorderOpportunity ? ` [โอกาสสั่งซื้อ: ${item.reorderOpportunity}]` : "";
+      const statusText = item.stockStatus
+        ? ` (สถานะ: ${item.stockStatus})`
+        : "";
+      const reorderText = item.reorderOpportunity
+        ? ` [โอกาสสั่งซื้อ: ${item.reorderOpportunity}]`
+        : "";
       const rem = item.remarks ? ` - ข้อสังเกต: ${item.remarks}` : "";
       return `${storePrefix}${item.productName}: คงเหลือ ${item.remainingQty}${statusText}${reorderText}${rem}`;
     });

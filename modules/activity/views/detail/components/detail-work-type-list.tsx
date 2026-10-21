@@ -122,7 +122,7 @@ export function DetailWorkTypeList({
 
   const isType11 =
     isTypeActive("TYPE_11", "ตรวจเช็คสต๊อกหน้าร้าน") ||
-    isTypeActive("TYPE_11", "ตรวจเช็กสต็อก") ||
+    isTypeActive("TYPE_11", "ตรวจเช็คสต๊อก") ||
     Boolean(plan?.type11Targets?.length) ||
     Boolean(plan?.type11Stores?.length) ||
     Boolean(plan?.type11Data) ||

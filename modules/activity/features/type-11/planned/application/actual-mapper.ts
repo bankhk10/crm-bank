@@ -62,7 +62,7 @@ export function parseType11ActualResult(
   const summaryText = resData?.resultSummary || "";
   if (summaryText) {
     if (!result.t11StockItems || result.t11StockItems.length === 0) {
-      const match = summaryText.match(/รายการตรวจเช็กสต็อก:\s*(\[.+\])/);
+      const match = summaryText.match(/รายการตรวจเช็คสต๊อก:\s*(\[.+\])/);
       if (match && match[1]) {
         try {
           const parsed = JSON.parse(match[1].trim());

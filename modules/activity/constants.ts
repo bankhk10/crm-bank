@@ -168,7 +168,7 @@ export function getWorkTypeCode(nameOrCode: any): string {
 
   // Common Thai alias matching
   if (raw.includes("ทำแปลงสาธิต") && !raw.includes("ติดตาม")) return "TYPE_7A";
-  if (raw.includes("ตรวจเช็คสต๊อก") || raw.includes("ตรวจเช็กสต็อก"))
+  if (raw.includes("ตรวจเช็คสต๊อก") || raw.includes("ตรวจเช็คสต๊อก"))
     return "TYPE_11";
   if (raw.includes("ทัวร์") || raw.includes("ทัวร์")) return "TYPE_12";
   if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮตแทค"))

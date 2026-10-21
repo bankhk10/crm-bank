@@ -61,7 +61,10 @@ export function extractType11PlanTargets(
 /**
  * Hydrates Type 11 planned state from existing plan or details
  */
-export function hydrateType11PlannedData(initial: any, initDetails?: any): Type11StoreItem[] {
+export function hydrateType11PlannedData(
+  initial: any,
+  initDetails?: any,
+): Type11StoreItem[] {
   if (Array.isArray(initial?.type11Stores) && initial.type11Stores.length > 0) {
     return initial.type11Stores;
   }
@@ -103,7 +106,7 @@ export function mapType11ToSectionItems(
   rawSummary?: string;
 } | null {
   const t11Line = objectiveLines.find(
-    (l) => l.includes("[ตรวจเช็กสต็อก") || l.includes("ตรวจเช็กสต็อก"),
+    (l) => l.includes("[ตรวจเช็คสต๊อก") || l.includes("ตรวจเช็คสต๊อก"),
   );
 
   if ((!type11Stores || type11Stores.length === 0) && !t11Line) {

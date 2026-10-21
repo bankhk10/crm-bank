@@ -18,7 +18,10 @@ import {
 import type { Type11StockItem, Type11ProductOption } from "../../shared/types";
 import type { ActualType11StockProps } from "../types/actual.types";
 
-export type { ActualType11StockProps, ActualType11StockProps as Type11ActualFormProps };
+export type {
+  ActualType11StockProps,
+  ActualType11StockProps as Type11ActualFormProps,
+};
 
 export function Type11ActualForm({
   isVisible,
@@ -183,7 +186,10 @@ export function Type11ActualForm({
     }
   };
 
-  const handleAddProductToStore = (storeName: string, selectedProductId: string) => {
+  const handleAddProductToStore = (
+    storeName: string,
+    selectedProductId: string,
+  ) => {
     if (!selectedProductId.trim()) return;
 
     const matchedOpt = productOptions.find(
@@ -257,7 +263,7 @@ export function Type11ActualForm({
           </div>
           <div>
             <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-              บันทึกผลการตรวจเช็กสต็อกหน้าร้าน
+              บันทึกผลการตรวจเช็คสต๊อกหน้าร้าน
             </h3>
             <p className="text-xs text-slate-500">
               ระบุสินค้า จำนวนคงเหลือ และโอกาสการสั่งซื้อในแต่ละร้านค้า
@@ -337,7 +343,8 @@ export function Type11ActualForm({
                           {/* Remaining Qty */}
                           <div>
                             <label className="text-[11px] font-medium text-slate-600 block mb-1">
-                              จำนวนคงเหลือ <span className="text-red-500">*</span>
+                              จำนวนคงเหลือ{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <ActivityInput
                               type="text"
@@ -375,7 +382,8 @@ export function Type11ActualForm({
                           {/* Reorder Opportunity */}
                           <div>
                             <label className="text-[11px] font-medium text-slate-600 block mb-1">
-                              โอกาสสั่งซื้อซ้ำ <span className="text-red-500">*</span>
+                              โอกาสสั่งซื้อซ้ำ{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <ActivityCombobox
                               value={item.reorderOpportunity || ""}
@@ -443,7 +451,7 @@ export function Type11ActualForm({
             <Camera className="w-4 h-4 text-teal-600 shrink-0" />
             <div>
               <h4 className="font-semibold text-slate-800 text-xs">
-                รูปภาพการตรวจเช็กสต็อกหน้าร้าน
+                รูปภาพการตรวจเช็คสต๊อกหน้าร้าน
               </h4>
               <p className="text-[11px] text-slate-500">
                 ถ่ายภาพชั้นวางสินค้า ป้ายราคา หรือสต็อกคงเหลือในร้าน

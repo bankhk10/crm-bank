@@ -1,4 +1,10 @@
-import { PrismaClient, ActivityStatus, ActivityApprovalAction, ActivityApprovalStep, ActivityResultStatus } from "@prisma/client";
+import {
+  PrismaClient,
+  ActivityStatus,
+  ActivityApprovalAction,
+  ActivityApprovalStep,
+  ActivityResultStatus,
+} from "@prisma/client";
 import { SeedContext, upsertSeedPlan } from "./seed-helpers";
 
 export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
@@ -13,14 +19,15 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
   // Plan 1: Multi-store + Multi-product (3 products per store) + Normalized Stock Audit Results + APPROVED
   await upsertSeedPlan(prisma, {
     code: "TP2608S111",
-    title: "ตรวจเช็กสต็อกสินค้าคงคลังหน้าร้านตัวแทนจำหน่าย สุพรรณบุรี",
+    title: "ตรวจเช็คสต๊อกสินค้าคงคลังหน้าร้านตัวแทนจำหน่าย สุพรรณบุรี",
     primaryWorkTypeCode: "TYPE_11",
     startDate: new Date("2026-08-22T09:00:00.000Z"),
     endDate: new Date("2026-08-22T17:00:00.000Z"),
     province: "สุพรรณบุรี",
     district: "สองพี่น้อง",
     location: "ร้านค้าตัวแทน อ.สองพี่น้อง จ.สุพรรณบุรี",
-    objective: "นับสต็อกสินค้าคงเหลือ เช็กวันหมดอายุ และประเมินโอกาสการสั่งซื้อซ้ำ",
+    objective:
+      "นับสต็อกสินค้าคงเหลือ เช็กวันหมดอายุ และประเมินโอกาสการสั่งซื้อซ้ำ",
     status: ActivityStatus.APPROVED,
     employeeId: ctx.primaryEmployee.id,
     createdById: ctx.adminUser.id,
@@ -28,37 +35,134 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
     submittedAt: new Date("2026-08-15T09:00:00.000Z"),
     approvedAt: new Date("2026-08-16T10:00:00.000Z"),
     stores: [
-      { workTypeCode: "TYPE_11", storeId: store0.id, storeName: store0.name, remarks: "สาขาหลักตลาดสองพี่น้อง" },
-      { workTypeCode: "TYPE_11", storeId: store1.id, storeName: store1.name, remarks: "สาขาริมคลอง" },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store0.id,
+        storeName: store0.name,
+        remarks: "สาขาหลักตลาดสองพี่น้อง",
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store1.id,
+        storeName: store1.name,
+        remarks: "สาขาริมคลอง",
+      },
     ],
     products: [
-      { workTypeCode: "TYPE_11", storeId: store0.id, productId: prod0.id, productName: prod0.name },
-      { workTypeCode: "TYPE_11", storeId: store0.id, productId: prod1.id, productName: prod1.name },
-      { workTypeCode: "TYPE_11", storeId: store0.id, productId: prod2.id, productName: prod2.name },
-      { workTypeCode: "TYPE_11", storeId: store1.id, productId: prod0.id, productName: prod0.name },
-      { workTypeCode: "TYPE_11", storeId: store1.id, productId: prod1.id, productName: prod1.name },
-      { workTypeCode: "TYPE_11", storeId: store1.id, productId: prod2.id, productName: prod2.name },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store0.id,
+        productId: prod0.id,
+        productName: prod0.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store0.id,
+        productId: prod1.id,
+        productName: prod1.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store0.id,
+        productId: prod2.id,
+        productName: prod2.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store1.id,
+        productId: prod0.id,
+        productName: prod0.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store1.id,
+        productId: prod1.id,
+        productName: prod1.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store1.id,
+        productId: prod2.id,
+        productName: prod2.name,
+      },
     ],
     approvalLogs: [
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-15T09:00:00.000Z") },
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-16T10:00:00.000Z") },
+      {
+        userId: ctx.adminUser.id,
+        action: ActivityApprovalAction.SUBMIT,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+        fromStatus: ActivityStatus.DRAFT,
+        toStatus: ActivityStatus.PENDING_LINE_APPROVAL,
+        createdAt: new Date("2026-08-15T09:00:00.000Z"),
+      },
+      {
+        userId: ctx.adminUser.id,
+        action: ActivityApprovalAction.APPROVE,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+        fromStatus: ActivityStatus.PENDING_LINE_APPROVAL,
+        toStatus: ActivityStatus.APPROVED,
+        createdAt: new Date("2026-08-16T10:00:00.000Z"),
+      },
     ],
     actualResult: {
       actualStartDate: new Date("2026-08-22T09:00:00.000Z"),
       actualEndDate: new Date("2026-08-22T16:00:00.000Z"),
       actualAttendeesCount: 3,
       resultStatus: ActivityResultStatus.COMPLETED,
-      resultSummary: "ตรวจนับครบทั้ง 2 ร้านค้า สินค้าบางรายการของขาดเนื่องจากเกษตรกรเข้าซื้อช่วงฝนตกชุก แนะนำให้ร้านค้าสั่งเพิ่มด่วน",
+      resultSummary:
+        "ตรวจนับครบทั้ง 2 ร้านค้า สินค้าบางรายการของขาดเนื่องจากเกษตรกรเข้าซื้อช่วงฝนตกชุก แนะนำให้ร้านค้าสั่งเพิ่มด่วน",
       recordedById: ctx.adminUser.id,
       stockResults: [
         // Store 0 results
-        { storeId: store0.id, productId: prod0.id, remainingQuantity: 18, stockStatus: "ปกติ", reorderOpportunity: "ต่ำ", remarks: "สต็อกเพียงพอสำหรับ 2 สัปดาห์" },
-        { storeId: store0.id, productId: prod1.id, remainingQuantity: 3, stockStatus: "ใกล้หมด", reorderOpportunity: "สูง", remarks: "เหลือ 3 ลัง ร้านค้าเตรียมเปิดบิลสั่ง 20 ลัง" },
-        { storeId: store0.id, productId: prod2.id, remainingQuantity: 0, stockStatus: "ของขาด", reorderOpportunity: "สูง", remarks: "ของหมดเกลี้ยง เกษตรกรมาถามหาทุกวัน" },
+        {
+          storeId: store0.id,
+          productId: prod0.id,
+          remainingQuantity: 18,
+          stockStatus: "ปกติ",
+          reorderOpportunity: "ต่ำ",
+          remarks: "สต็อกเพียงพอสำหรับ 2 สัปดาห์",
+        },
+        {
+          storeId: store0.id,
+          productId: prod1.id,
+          remainingQuantity: 3,
+          stockStatus: "ใกล้หมด",
+          reorderOpportunity: "สูง",
+          remarks: "เหลือ 3 ลัง ร้านค้าเตรียมเปิดบิลสั่ง 20 ลัง",
+        },
+        {
+          storeId: store0.id,
+          productId: prod2.id,
+          remainingQuantity: 0,
+          stockStatus: "ของขาด",
+          reorderOpportunity: "สูง",
+          remarks: "ของหมดเกลี้ยง เกษตรกรมาถามหาทุกวัน",
+        },
         // Store 1 results
-        { storeId: store1.id, productId: prod0.id, remainingQuantity: 12, stockStatus: "ปกติ", reorderOpportunity: "ต่ำ", remarks: "หมุนเวียนได้ดี" },
-        { storeId: store1.id, productId: prod1.id, remainingQuantity: 2, stockStatus: "ใกล้หมด", reorderOpportunity: "สูง", remarks: "เตรียมสั่งเติมสต็อก" },
-        { storeId: store1.id, productId: prod2.id, remainingQuantity: 1, stockStatus: "ใกล้หมด", reorderOpportunity: "สูง", remarks: "เหลือกล่องสุดท้ายบนชั้นวาง" },
+        {
+          storeId: store1.id,
+          productId: prod0.id,
+          remainingQuantity: 12,
+          stockStatus: "ปกติ",
+          reorderOpportunity: "ต่ำ",
+          remarks: "หมุนเวียนได้ดี",
+        },
+        {
+          storeId: store1.id,
+          productId: prod1.id,
+          remainingQuantity: 2,
+          stockStatus: "ใกล้หมด",
+          reorderOpportunity: "สูง",
+          remarks: "เตรียมสั่งเติมสต็อก",
+        },
+        {
+          storeId: store1.id,
+          productId: prod2.id,
+          remainingQuantity: 1,
+          stockStatus: "ใกล้หมด",
+          reorderOpportunity: "สูง",
+          remarks: "เหลือกล่องสุดท้ายบนชั้นวาง",
+        },
       ],
     },
   });
@@ -84,12 +188,36 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_11", storeId: store2.id, storeName: store2.name },
     ],
     products: [
-      { workTypeCode: "TYPE_11", storeId: store2.id, productId: prod0.id, productName: prod0.name },
-      { workTypeCode: "TYPE_11", storeId: store2.id, productId: prod1.id, productName: prod1.name },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store2.id,
+        productId: prod0.id,
+        productName: prod0.name,
+      },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store2.id,
+        productId: prod1.id,
+        productName: prod1.name,
+      },
     ],
     approvalLogs: [
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-16T09:00:00.000Z") },
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.APPROVE, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.PENDING_LINE_APPROVAL, toStatus: ActivityStatus.APPROVED, createdAt: new Date("2026-08-17T11:00:00.000Z") },
+      {
+        userId: ctx.adminUser.id,
+        action: ActivityApprovalAction.SUBMIT,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+        fromStatus: ActivityStatus.DRAFT,
+        toStatus: ActivityStatus.PENDING_LINE_APPROVAL,
+        createdAt: new Date("2026-08-16T09:00:00.000Z"),
+      },
+      {
+        userId: ctx.adminUser.id,
+        action: ActivityApprovalAction.APPROVE,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+        fromStatus: ActivityStatus.PENDING_LINE_APPROVAL,
+        toStatus: ActivityStatus.APPROVED,
+        createdAt: new Date("2026-08-17T11:00:00.000Z"),
+      },
     ],
     actualResult: {
       actualStartDate: new Date("2026-08-24T09:00:00.000Z"),
@@ -99,8 +227,22 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
       resultSummary: "ตรวจนับสต็อกตรงกับระบบบัญชีร้านค้า",
       recordedById: ctx.adminUser.id,
       stockResults: [
-        { storeId: store2.id, productId: prod0.id, remainingQuantity: 15, stockStatus: "ปกติ", reorderOpportunity: "ต่ำ", remarks: "สภาพกล่องเรียบร้อย" },
-        { storeId: store2.id, productId: prod1.id, remainingQuantity: 8, stockStatus: "ปกติ", reorderOpportunity: "ต่ำ", remarks: "สต็อกพร้อมขาย" },
+        {
+          storeId: store2.id,
+          productId: prod0.id,
+          remainingQuantity: 15,
+          stockStatus: "ปกติ",
+          reorderOpportunity: "ต่ำ",
+          remarks: "สภาพกล่องเรียบร้อย",
+        },
+        {
+          storeId: store2.id,
+          productId: prod1.id,
+          remainingQuantity: 8,
+          stockStatus: "ปกติ",
+          reorderOpportunity: "ต่ำ",
+          remarks: "สต็อกพร้อมขาย",
+        },
       ],
     },
   });
@@ -125,10 +267,22 @@ export async function seedType11(prisma: PrismaClient, ctx: SeedContext) {
       { workTypeCode: "TYPE_11", storeId: store0.id, storeName: store0.name },
     ],
     products: [
-      { workTypeCode: "TYPE_11", storeId: store0.id, productId: prod0.id, productName: prod0.name },
+      {
+        workTypeCode: "TYPE_11",
+        storeId: store0.id,
+        productId: prod0.id,
+        productName: prod0.name,
+      },
     ],
     approvalLogs: [
-      { userId: ctx.adminUser.id, action: ActivityApprovalAction.SUBMIT, step: ActivityApprovalStep.LINE_APPROVAL, fromStatus: ActivityStatus.DRAFT, toStatus: ActivityStatus.PENDING_LINE_APPROVAL, createdAt: new Date("2026-08-22T10:00:00.000Z") },
+      {
+        userId: ctx.adminUser.id,
+        action: ActivityApprovalAction.SUBMIT,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+        fromStatus: ActivityStatus.DRAFT,
+        toStatus: ActivityStatus.PENDING_LINE_APPROVAL,
+        createdAt: new Date("2026-08-22T10:00:00.000Z"),
+      },
     ],
   });
 }

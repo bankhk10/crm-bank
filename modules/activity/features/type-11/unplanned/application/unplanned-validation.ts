@@ -14,8 +14,8 @@ export function validateType11UnplannedItems(
   if (!items || items.length === 0) {
     return {
       isValid: false,
-      error: "กรุณาระบุข้อมูลร้านค้าที่ตรวจเช็กสต็อกอย่างน้อย 1 ร้านค้า",
-      errors: ["กรุณาระบุข้อมูลร้านค้าที่ตรวจเช็กสต็อกอย่างน้อย 1 ร้านค้า"],
+      error: "กรุณาระบุข้อมูลร้านค้าที่ตรวจเช็คสต๊อกอย่างน้อย 1 ร้านค้า",
+      errors: ["กรุณาระบุข้อมูลร้านค้าที่ตรวจเช็คสต๊อกอย่างน้อย 1 ร้านค้า"],
     };
   }
 
@@ -30,7 +30,9 @@ export function validateType11UnplannedItems(
       item.stockItems.forEach((si, sIdx) => {
         const prodName = si.productName || `สินค้าที่ ${sIdx + 1}`;
         if (!si.productName || !si.productName.trim()) {
-          errors.push(`${storeLabel}: กรุณาระบุชื่อสินค้ารายการที่ ${sIdx + 1}`);
+          errors.push(
+            `${storeLabel}: กรุณาระบุชื่อสินค้ารายการที่ ${sIdx + 1}`,
+          );
         }
         if (
           si.remainingQty === undefined ||
@@ -40,7 +42,9 @@ export function validateType11UnplannedItems(
           errors.push(`${storeLabel} - ${prodName}: กรุณาระบุจำนวนคงเหลือ`);
         }
         if (!si.reorderOpportunity || !String(si.reorderOpportunity).trim()) {
-          errors.push(`${storeLabel} - ${prodName}: กรุณาเลือกโอกาสสั่งซื้อรอบใหม่`);
+          errors.push(
+            `${storeLabel} - ${prodName}: กรุณาเลือกโอกาสสั่งซื้อรอบใหม่`,
+          );
         }
       });
     }

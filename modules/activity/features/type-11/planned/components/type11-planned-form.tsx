@@ -6,7 +6,11 @@ import { ActivityCustomerSelect } from "@/modules/activity/ui";
 import type { Type11StoreItem } from "../../shared/types";
 import type { Type11PlannedFormProps } from "../types/planned.types";
 
-export type { Type11PlannedFormProps, Type11PlannedFormProps as Type11PlanFormProps, Type11PlannedFormProps as Type11StockProps };
+export type {
+  Type11PlannedFormProps,
+  Type11PlannedFormProps as Type11PlanFormProps,
+  Type11PlannedFormProps as Type11StockProps,
+};
 
 export function Type11PlannedForm({
   readonly = false,
@@ -100,8 +104,8 @@ export function Type11PlannedForm({
             customers={availableCustomers as any}
             placeholder={
               selectedStores.length > 0
-                ? "+ เพิ่มร้านค้าที่จะตรวจเช็กสต็อก..."
-                : "เลือกร้านค้าที่ต้องการตรวจเช็กสต็อก..."
+                ? "+ เพิ่มร้านค้าที่จะตรวจเช็คสต๊อก..."
+                : "เลือกร้านค้าที่ต้องการตรวจเช็คสต๊อก..."
             }
             searchPlaceholder="ค้นหาร้านค้า..."
             emptyText="ไม่พบร้านค้า"
@@ -113,4 +117,8 @@ export function Type11PlannedForm({
   );
 }
 
-export { Type11PlannedForm as Type11Stock, Type11PlannedForm as EditType11Stock, Type11PlannedForm as Type11PlanForm };
+export {
+  Type11PlannedForm as Type11Stock,
+  Type11PlannedForm as EditType11Stock,
+  Type11PlannedForm as Type11PlanForm,
+};

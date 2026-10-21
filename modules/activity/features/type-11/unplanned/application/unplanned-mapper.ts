@@ -14,15 +14,10 @@ export function hydrateType11UnplannedData(
     return initialData.type11UnplannedItems;
   }
 
-  const stores =
-    initialData?.stores ||
-    initialData?.type11Stores ||
-    [];
+  const stores = initialData?.stores || initialData?.type11Stores || [];
 
   const stockResults =
-    initialData?.stockResults ||
-    initialData?.t11StockItems ||
-    [];
+    initialData?.stockResults || initialData?.t11StockItems || [];
 
   if (Array.isArray(stores) && stores.length > 0) {
     const t11Stores = stores.filter(
@@ -79,7 +74,7 @@ export function mapType11UnplannedToPayload(items: Type11UnplannedItem[]) {
     workTypeCode: "TYPE_11",
     storeId: item.storeId || item.id,
     storeName: item.storeName || null,
-    notes: item.remarks || "ตรวจเช็กสต็อกหน้าร้าน",
+    notes: item.remarks || "ตรวจเช็คสต๊อกหน้าร้าน",
   }));
 
   const allStockItems: Type11StockItem[] = [];

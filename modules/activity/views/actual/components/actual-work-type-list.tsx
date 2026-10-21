@@ -266,7 +266,7 @@ export function ActualWorkTypeList({
   const isType11Active =
     planWorkTypes.includes("TYPE_11") ||
     planWorkTypes.includes("ตรวจเช็คสต๊อกหน้าร้าน") ||
-    planWorkTypes.includes("ตรวจเช็กสต็อก") ||
+    planWorkTypes.includes("ตรวจเช็คสต๊อก") ||
     Boolean(plan?.type11Targets?.length) ||
     Boolean(plan?.type11Stores?.length) ||
     Boolean(plan?.type11Data) ||

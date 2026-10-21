@@ -24,7 +24,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
     if (Array.isArray(stores) && stores.length === 0) {
       return {
         valid: false,
-        error: "กรุณาระบุร้านค้าอย่างน้อย 1 ร้านสำหรับการตรวจเช็กสต็อก",
+        error: "กรุณาระบุร้านค้าอย่างน้อย 1 ร้านสำหรับการตรวจเช็คสต๊อก",
       };
     }
 
@@ -63,12 +63,12 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             st.detail ||
             st.remarks ||
             st.notes ||
-            "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+            "ตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้าน",
           notes:
             st.detail ||
             st.remarks ||
             st.notes ||
-            "ตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้าน",
+            "ตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้าน",
         }))
         .filter((st: any) => Boolean(st.storeId));
 
@@ -88,9 +88,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
     resultId: string,
     actualData: any,
   ): Promise<void> {
-    const stockItems =
-      actualData.stockResults ||
-      actualData.t11StockItems;
+    const stockItems = actualData.stockResults || actualData.t11StockItems;
 
     if (stockItems && Array.isArray(stockItems)) {
       await saveType11ActualStockItems(
@@ -105,10 +103,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
   /**
    * Load Type 11 Plan Data
    */
-  async loadPlan(
-    db: any,
-    activityPlanId: string,
-  ): Promise<any> {
+  async loadPlan(db: any, activityPlanId: string): Promise<any> {
     return db.activityPlan.findUnique({
       where: { id: activityPlanId },
       include: {

@@ -77,7 +77,7 @@ export function Type11UnplannedForm({
             <span>ตรวจเช็คสต๊อกหน้าร้าน (Unplanned)</span>
           </h4>
           <p className="text-xs text-slate-500">
-            บันทึกการเข้าตรวจเช็กสต็อกสินค้าคงเหลือหน้าร้านและโอกาสการสั่งซื้อ
+            บันทึกการเข้าตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้านและโอกาสการสั่งซื้อ
           </p>
         </div>
 
@@ -150,7 +150,9 @@ export function Type11UnplannedForm({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
                   <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-teal-600" />
-                    <span>รายการสินค้าตรวจเช็ก ({item.stockItems?.length || 0})</span>
+                    <span>
+                      รายการสินค้าตรวจเช็ก ({item.stockItems?.length || 0})
+                    </span>
                   </span>
 
                   {!readonly && addStockItem && (
@@ -170,7 +172,7 @@ export function Type11UnplannedForm({
                   )}
                 </div>
 
-                {(!item.stockItems || item.stockItems.length === 0) ? (
+                {!item.stockItems || item.stockItems.length === 0 ? (
                   <div className="text-center py-4 text-xs text-slate-400">
                     ยังไม่มีรายการสินค้าตรวจเช็กสำหรับร้านนี้
                   </div>
@@ -199,7 +201,8 @@ export function Type11UnplannedForm({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="text-[11px] font-medium text-slate-600 block mb-1">
-                              จำนวนคงเหลือ <span className="text-red-500">*</span>
+                              จำนวนคงเหลือ{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <ActivityInput
                               type="text"
@@ -245,7 +248,8 @@ export function Type11UnplannedForm({
 
                           <div>
                             <label className="text-[11px] font-medium text-slate-600 block mb-1">
-                              โอกาสสั่งซื้อซ้ำ <span className="text-red-500">*</span>
+                              โอกาสสั่งซื้อซ้ำ{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <ActivityCombobox
                               value={si.reorderOpportunity || ""}

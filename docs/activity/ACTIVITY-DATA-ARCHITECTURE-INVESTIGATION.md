@@ -1,8 +1,8 @@
 # ACTIVITY DATA ARCHITECTURE — TARGET DESIGN
 
-**สถานะ:** INVESTIGATION & ARCHITECTURE DESIGN ONLY (ไม่มีการแก้ไขโค้ดหรือฐานข้อมูลในขั้นตอนนี้)  
-**วันที่:** 10 กันยายน 2026  
-**สภาพแวดล้อมโครงการ:** Development Phase (100% Non-Production, No Production Data Constraint)  
+**สถานะ:** INVESTIGATION & ARCHITECTURE DESIGN ONLY (ไม่มีการแก้ไขโค้ดหรือฐานข้อมูลในขั้นตอนนี้)
+**วันที่:** 10 กันยายน 2026
+**สภาพแวดล้อมโครงการ:** Development Phase (100% Non-Production, No Production Data Constraint)
 **เป้าหมาย:** ออกแบบ Data Architecture เป้าหมายที่สมบูรณ์แบบ (Clean Slate & Normalized) โดยยึดหลัก **UI-First**, **Single Source of Truth**, **Plan ≠ Actual**, และ **Report/Analytics-Ready** โดยปราศจาก Legacy Bias
 
 ---
@@ -11,18 +11,18 @@
 
 จากการตรวจสอบ Source Code, Schema และ UI Form จริง พบปัญหาเชิงโครงสร้าง 6 ประการ:
 
-1. **Sparse Table Anti-Pattern (`ActivityPlanItem`):**  
+1. **Sparse Table Anti-Pattern (`ActivityPlanItem`):**
    ตาราง `ActivityPlanItem` มีขนาดถึง **32 Columns** พยายามรวบข้อมูลของทั้ง 12 ประเภทงานไว้ด้วยกัน ส่งผลให้แต่ละแถวมีค่า `NULL` สูงถึง 85–90% ขาด Foreign Key Constraints ที่รัดกุมกับ Master Data (`Customer`, `Product`)
 2. **Comma-Separated Strings ทำลายความสามารถในการสืบค้น:**
    - ใน `TYPE_11` (ตรวจเช็คสต๊อกหน้าร้าน) รายชื่อร้านค้าที่เลือกจาก Combobox ถูกนำมา `.join(", ")` บันทึกเป็นสตริง เช่น `"ร้าน วันเพ็ญ, ร้าน สิทธิชัย"` ไม่สามารถใช้ SQL `JOIN` หรือสร้าง Customer 360 ได้
    - ใน `TYPE_8` (จัดประชุม) รายชื่อสินค้าเป้าหมายถูกบันทึกเป็น CSV เช่น `"ปุ๋ย 1, ปุ๋ย 2"` ไม่สามารถทำ Product Demand Aggregation ได้
-3. **JSON Serialization ฝังในคอลัมน์ข้อความ (`resultSummary`):**  
+3. **JSON Serialization ฝังในคอลัมน์ข้อความ (`resultSummary`):**
    ในฝั่งบันทึกผลจริง (Actual) มีการใช้ `JSON.stringify` นำ Array ยอดขายแยกสินค้า, รายการสต็อกคงเหลือ, และผลสำรวจคู่แข่ง ไปฝังไว้ในข้อความ `ActivityResult.resultSummary` แล้วใช้ Regular Expression ในการ Parse กลับออกมา ทำลายความสามารถในการทำ SQL Dashboard และ Report โดยสิ้นเชิง ทั้งที่มีตารางลูกรองรับอยู่แล้ว
-4. **Data Omission Bug ใน UI ของ `TYPE_10` (Field Day):**  
+4. **Data Omission Bug ใน UI ของ `TYPE_10` (Field Day):**
    ในหน้าจอสร้างแผนงาน UI มีช่องให้เลือก "แปลงสาธิต" (`type10DemoPlot`), "เป้าหมายผู้เข้าร่วม" (`type10Attendees`), และ "เป้ายอดขายจอง" (`type10BookingSales`) แต่ในฟังก์ชัน `handleSubmit` กลับส่งเพียงข้อความคงที่ ไม่ส่งข้อมูลดังกล่าวเข้าฐานข้อมูล
-5. **การคำนวณงบประมาณกระจัดกระจาย (Duplicated Inline Math):**  
+5. **การคำนวณงบประมาณกระจัดกระจาย (Duplicated Inline Math):**
    สูตรคำนวณ `totalTargetSales = TYPE_3 + TYPE_9 + TYPE_10` และ `salesRatio = (Budget / TargetSales) * 100` ถูกเขียนซ้ำในหลายคอมโพเนนต์ ขาด Domain Single Source of Truth
-6. **Build Error `@prisma/client-runtime-utils` (Leaking Server Boundary):**  
+6. **Build Error `@prisma/client-runtime-utils` (Leaking Server Boundary):**
    Client Form (`"use client"`) มีการ import ฟังก์ชันคำนวณผ่าน Barrel Export `application/index.ts` ซึ่งดึง Server Use Cases, Repositories, และ `@prisma/client` เข้ามาใน Browser Bundle
 
 ---
@@ -151,7 +151,7 @@ erDiagram
 | **`activity_calendar_attendees`**   | รายชื่อผู้เข้าร่วมปฏิทิน (Creator + Approved Helpers)        |    `id`     | `calendarEventId -> ActivityCalendarEvent`<br>`employeeId -> Employee`                   | **PROJECTION** |       **KEEP / REUSE**        |
 | **`activity_results`**              | ส่วนหัวผลการปฏิบัติงานจริง และสรุปเชิงคุณภาพ                 |    `id`     | `activityPlanId -> ActivityPlan` (1:1)<br>`recordedById -> User?`                        |   **ACTUAL**   |      **MODIFY (CLEAN)**       |
 | **`activity_result_sale_items`**    | รายการยอดขายจริงที่ปิดได้รายสินค้าและร้านค้า                 |    `id`     | `activityResultId -> ActivityResult`<br>`productId -> Product`<br>`storeId -> Customer?` |   **ACTUAL**   |       **KEEP / REUSE**        |
-| **`activity_result_stock_items`**   | ผลการตรวจเช็กสต็อกคงเหลือจริงหน้าร้าน                        |    `id`     | `activityResultId -> ActivityResult`<br>`storeId -> Customer`<br>`productId -> Product`  |   **ACTUAL**   |       **KEEP / REUSE**        |
+| **`activity_result_stock_items`**   | ผลการตรวจเช็คสต๊อกคงเหลือจริงหน้าร้าน                        |    `id`     | `activityResultId -> ActivityResult`<br>`storeId -> Customer`<br>`productId -> Product`  |   **ACTUAL**   |       **KEEP / REUSE**        |
 | **`activity_result_survey_items`**  | ผลสำรวจสินค้าและราคาของคู่แข่งจริงหน้าร้าน                   |    `id`     | `activityResultId -> ActivityResult`<br>`storeId -> Customer`<br>`productId -> Product?` |   **ACTUAL**   |       **KEEP / REUSE**        |
 | **`activity_result_demo_items`**    | ผลประเมินและสภาพแปลงสาธิตจริง                                |    `id`     | `activityResultId -> ActivityResult`<br>`demoPlotId -> DemoPlot?`                        |   **ACTUAL**   |       **KEEP / REUSE**        |
 | **`activity_attachments`**          | ไฟล์แนบ รูปภาพหน้าร้าน/แปลง/บรรยากาศ                         |    `id`     | `activityPlanId -> ActivityPlan`<br>`activityResultId -> ActivityResult?`                |    **BOTH**    |       **KEEP / REUSE**        |
@@ -277,7 +277,7 @@ erDiagram
 
 ### การจับคู่เปรียบเทียบ (Plan vs Actual Comparison Matrix):
 
-1. **ยอดขาย:** `SUM(ActivityPlanProduct.targetAmount)` VS `SUM(ActivityResultSaleItem.actualTotal)`  
+1. **ยอดขาย:** `SUM(ActivityPlanProduct.targetAmount)` VS `SUM(ActivityResultSaleItem.actualTotal)`
    $$\text{\% Achievement} = \frac{\text{Actual Sales}}{\text{Target Sales}} \times 100$$
 2. **งบประมาณ:** `ActivityPlan.totalBudgetRequested` VS `ActivityResult.actualTotalSpent`
 3. **การเข้าพบร้านค้า:** `COUNT(ActivityPlanStore)` VS `COUNT(DISTINCT ActivityResultSaleItem.storeId + ActivityResultStockItem.storeId)`
@@ -322,11 +322,11 @@ $$
 
 # 11. Calendar Architecture (การฉายข้อมูลปฏิทิน)
 
-1. **Calendar Event เป็น Projection (ไม่ใช่ Master Data):**  
+1. **Calendar Event เป็น Projection (ไม่ใช่ Master Data):**
    ตาราง `activity_calendar_events` จะถูกสร้างหรืออัปเดตเมื่อแผนงานขึ้นสถานะ `APPROVED` เท่านั้น
-2. **Sync Attendees อัตโนมัติ:**  
+2. **Sync Attendees อัตโนมัติ:**
    ดึงผู้สร้างแผนงาน (`role: CREATOR`) และพนักงานผู้ช่วยงานที่ผ่านการอนุมัติแล้ว (`role: HELPER`) บันทึกลง `activity_calendar_attendees`
-3. **Trigger เมื่อทำกิจกรรมเสร็จ:**  
+3. **Trigger เมื่อทำกิจกรรมเสร็จ:**
    เมื่อผู้ใช้ส่งบันทึกผลงานจริง (`ActivityResult`) สถานะของ Calendar Event จะเปลี่ยนเป็น `COMPLETED` อัตโนมัติ
 
 ---
@@ -428,13 +428,13 @@ $$
 
 # 21. Proposed UI Changes (การปรับปรุง UI ให้สอดคล้อง)
 
-1. **TYPE_10 (Field Day) Submit Fix:**  
+1. **TYPE_10 (Field Day) Submit Fix:**
    ปรับฟังก์ชัน `handleSubmit` ใน `activity-plan-form.tsx` ให้ส่ง `type10DemoPlot`, `type10Attendees`, และ `type10BookingSales` เข้าสู่ Payload เพื่อบันทึกลงฐานข้อมูล (แก้ปัญหา Data Omission)
-2. **TYPE_11 (Store Check) Store Array:**  
+2. **TYPE_11 (Store Check) Store Array:**
    เปลี่ยนจาก `setType11Stores(updated.join(", "))` เป็นการเก็บ State แบบ Array ของ Customer Objects และส่ง `planStores` ไปยัง Backend
-3. **TYPE_8 (Meeting) Product Array:**  
+3. **TYPE_8 (Meeting) Product Array:**
    ส่ง `targetProducts` ในรูปแบบ `planProducts: Array<{ productId, productName }>` แทนสตริง
-4. **Actual View Direct Table Submission:**  
+4. **Actual View Direct Table Submission:**
    ปรับหน้าจอ `activity-plan-actual-view.tsx` ให้ส่ง Array ของ `saleResults`, `stockResults`, `surveyResults` ผ่าน Server Action เพื่อบันทึกลงตารางลูกโดยตรง แทนการทำ `JSON.stringify` ลงใน `resultSummary`
 
 ---
@@ -465,9 +465,9 @@ $$
 
 # 24. Open Business Decisions (ประเด็นรอการตัดสินใจเชิงธุรกิจ)
 
-1. **การรวมเป้ายอดจองของ Field Day ใน Target Sales:**  
+1. **การรวมเป้ายอดจองของ Field Day ใน Target Sales:**
    ยืนยันการนำ `type10BookingSales` ไปรวมใน `totalTargetSales` เพื่อใช้เป็นฐานคำนวณ `salesRatio` ของงบประมาณหรือไม่?
-2. **Audit Threshold สำหรับการแก้ไขราคาขาย (TYPE_3):**  
+2. **Audit Threshold สำหรับการแก้ไขราคาขาย (TYPE_3):**
    เมื่อพนักงานขาย override ราคาขายต่ำกว่า Master Price ต้องการให้ระบบแจ้งเตือน Line Manager เป็นพิเศษ หรือใช้เพียงการติดแฟล็ก `is_price_overridden = true`?
 
 ---
@@ -573,7 +573,7 @@ $$
 | **TYPE_10: แปลงสาธิต**       | `type10DemoPlot`         | `z.string()`                  | `demoPlotVisit.demoPlotId`         | `demo_plot_visits`       | `demo_plot_id`           |    String     | `demo_plots.id` |    DemoPlot Master    | แปลงสาธิตจัด Field Day            |
 | **TYPE_10: ผู้เข้าร่วม**     | `type10Attendees`        | `z.number().int().min(1)`     | `targetAttendeesCount`             | `activity_plans`         | `target_attendees_count` |      Int      |        -        |      User Input       | เป้าหมายเกษตรกรในงาน              |
 | **TYPE_10: ยอดขายจอง**       | `type10BookingSales`     | `z.number().min(0)`           | `targetBookingSales`               | `activity_plans`         | `target_booking_sales`   | Decimal(15,2) |        -        |      User Input       | เป้ายอดจอง (แยก Metric)           |
-| **TYPE_11: ร้านค้าตรวจ**     | `type11Stores[]`         | `z.array(z.string())`         | `planStores[].storeId`             | `activity_plan_stores`   | `store_id`               |    String     | `customers.id`  |  Multi-select Cust.   | ร้านค้าตรวจเช็กสต็อก (1 แถว/ร้าน) |
+| **TYPE_11: ร้านค้าตรวจ**     | `type11Stores[]`         | `z.array(z.string())`         | `planStores[].storeId`             | `activity_plan_stores`   | `store_id`               |    String     | `customers.id`  |  Multi-select Cust.   | ร้านค้าตรวจเช็คสต๊อก (1 แถว/ร้าน) |
 | **TYPE_12: ประเภททัวร์**     | `type12TourType`         | `z.enum(["CENTRAL","STORE"])` | `tourData.tourType`                | `activity_plan_tours`    | `tour_type`              |   TourType    |        -        |   Segmented Toggle    | สถิติทัวร์กลาง/ร้านค้า            |
 | **TYPE_12: ขนาดทัวร์**       | `type12TourSize`         | `z.enum(["SMALL","LARGE"])`   | `tourData.tourSize`                | `activity_plan_tours`    | `tour_size`              |   TourSize?   |        -        |     Button Option     | ขนาดทัวร์ เล็ก/ใหญ่               |
 | **TYPE_12: ประเทศ/สถานที่**  | `country / destination`  | `z.string().nullable()`       | `tourData.country/destination`     | `activity_plan_tours`    | `country / destination`  |    String?    |        -        |      User Input       | ประเทศ/สถานที่จะไป                |

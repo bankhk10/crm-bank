@@ -9,7 +9,10 @@ import {
 } from "@/components/custom/image-lightbox-modal";
 import { Type11PlanCard } from "./type11-plan-card";
 import type { Type11StockItem, Type11ImageFile } from "../../shared/types";
-import type { DetailType11StockProps, Type11DetailViewProps } from "../types/actual.types";
+import type {
+  DetailType11StockProps,
+  Type11DetailViewProps,
+} from "../types/actual.types";
 
 export type { DetailType11StockProps, Type11DetailViewProps };
 
@@ -118,7 +121,7 @@ export function Type11DetailView({
       <div className="space-y-4 pt-1 border-t border-slate-100">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-teal-600"></span>
-          <span>ผลการตรวจเช็กสต็อกจริง</span>
+          <span>ผลการตรวจเช็คสต๊อกจริง</span>
         </div>
 
         {/* STOCK TABLE OR FALLBACK */}
@@ -188,7 +191,9 @@ export function Type11DetailView({
                                 {item.stockStatus}
                               </Badge>
                             ) : (
-                              <span className="text-slate-400 font-normal">-</span>
+                              <span className="text-slate-400 font-normal">
+                                -
+                              </span>
                             )}
                           </td>
                           <td className="py-2.5 px-3 text-center">
@@ -275,7 +280,9 @@ export function Type11DetailView({
               {images.map((img, idx) => (
                 <div
                   key={img.id || idx}
-                  onClick={() => openLightbox("รูปภาพการตรวจเช็คสต๊อกหน้าร้าน", images, idx)}
+                  onClick={() =>
+                    openLightbox("รูปภาพการตรวจเช็คสต๊อกหน้าร้าน", images, idx)
+                  }
                   className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-xs transition-all"
                 >
                   <img

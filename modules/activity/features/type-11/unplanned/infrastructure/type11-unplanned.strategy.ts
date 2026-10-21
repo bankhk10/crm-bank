@@ -25,7 +25,7 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
       if (!result.isValid) {
         return {
           valid: false,
-          error: result.error || "ข้อมูลการตรวจเช็กสต็อกไม่ถูกต้อง",
+          error: result.error || "ข้อมูลการตรวจเช็คสต๊อกไม่ถูกต้อง",
         };
       }
     }
@@ -36,10 +36,14 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
         (s: any) => s.workTypeCode === "TYPE_11" || !s.workTypeCode,
       );
 
-    if (unplannedItems.length === 0 && Array.isArray(stores) && stores.length === 0) {
+    if (
+      unplannedItems.length === 0 &&
+      Array.isArray(stores) &&
+      stores.length === 0
+    ) {
       return {
         valid: false,
-        error: "กรุณาระบุร้านค้าอย่างน้อย 1 ร้านสำหรับการตรวจเช็กสต็อก",
+        error: "กรุณาระบุร้านค้าอย่างน้อย 1 ร้านสำหรับการตรวจเช็คสต๊อก",
       };
     }
 
@@ -72,8 +76,8 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
           workTypeCode: "TYPE_11",
           storeId: item.storeId || item.id,
           storeName: item.storeName || null,
-          remarks: item.remarks || "ตรวจเช็กสต็อกหน้าร้าน (Unplanned)",
-          notes: item.remarks || "ตรวจเช็กสต็อกหน้าร้าน (Unplanned)",
+          remarks: item.remarks || "ตรวจเช็คสต๊อกหน้าร้าน (Unplanned)",
+          notes: item.remarks || "ตรวจเช็คสต๊อกหน้าร้าน (Unplanned)",
         }));
 
       if (storesToCreate.length > 0) {
@@ -105,8 +109,16 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
           workTypeCode: "TYPE_11",
           storeId: st.storeId || st.id,
           storeName: st.storeName || st.name || null,
-          remarks: st.detail || st.remarks || st.notes || "ตรวจเช็กสต็อกหน้าร้าน (Unplanned)",
-          notes: st.detail || st.remarks || st.notes || "ตรวจเช็กสต็อกหน้าร้าน (Unplanned)",
+          remarks:
+            st.detail ||
+            st.remarks ||
+            st.notes ||
+            "ตรวจเช็คสต๊อกหน้าร้าน (Unplanned)",
+          notes:
+            st.detail ||
+            st.remarks ||
+            st.notes ||
+            "ตรวจเช็คสต๊อกหน้าร้าน (Unplanned)",
         }))
         .filter((st: any) => Boolean(st.storeId));
 
@@ -151,9 +163,7 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
     }
 
     // Fallback standard actual
-    const stockItems =
-      actualData.stockResults ||
-      actualData.t11StockItems;
+    const stockItems = actualData.stockResults || actualData.t11StockItems;
 
     if (stockItems && Array.isArray(stockItems)) {
       await saveType11ActualStockItems(
@@ -168,10 +178,7 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
   /**
    * Load Type 11 Unplanned Data
    */
-  async loadPlan(
-    db: any,
-    activityPlanId: string,
-  ): Promise<any> {
+  async loadPlan(db: any, activityPlanId: string): Promise<any> {
     return db.activityPlan.findUnique({
       where: { id: activityPlanId },
       include: {
