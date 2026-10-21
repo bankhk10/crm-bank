@@ -168,7 +168,7 @@ export function Type3ActualForm({
                 ? (saved as any).actualQuantity
                 : item.actualQty !== undefined && item.actualQty !== ""
                   ? item.actualQty
-                  : item.qty ?? "";
+                  : (item.qty ?? "");
           const rawSavedUnit = Number(
             saved?.unitPrice ?? (saved as any)?.actualUnitPrice ?? 0,
           );
@@ -216,7 +216,7 @@ export function Type3ActualForm({
             : (saved as any)?.actualQuantity !== undefined &&
                 (saved as any)?.actualQuantity !== ""
               ? (saved as any).actualQuantity
-              : t.targetQty ?? "";
+              : (t.targetQty ?? "");
         const resolvedUnitPrice =
           Number(
             saved?.unitPrice ??
@@ -227,7 +227,7 @@ export function Type3ActualForm({
         const resolvedActualSales =
           resolvedActualQty !== "" && resolvedUnitPrice > 0
             ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
-            : saved?.actualSales ?? (saved as any)?.actualTotal ?? "";
+            : (saved?.actualSales ?? (saved as any)?.actualTotal ?? "");
 
         allItems.push({
           id: t.id || "planned-single",
@@ -655,7 +655,7 @@ export function Type3ActualForm({
                           เป้าหมายตามแผน
                         </span>
                         <strong className="text-slate-800 text-sm">
-                          {targetQty.toLocaleString()} หน่วย
+                          {targetQty.toLocaleString()} ลัง
                         </strong>
                       </div>
 
@@ -681,7 +681,7 @@ export function Type3ActualForm({
                       {/* Unit Price */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          ราคา/หน่วย (บาท)
+                          ราคา/ลัง (บาท)
                         </label>
                         <ActivityInput
                           type="number"
@@ -827,7 +827,7 @@ export function Type3ActualForm({
 
                     <div className="md:col-span-2">
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        ราคา/หน่วย (บาท)
+                        ราคา/ลัง (บาท)
                       </label>
                       <ActivityInput
                         type="number"
