@@ -721,7 +721,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              บันทึกผลการเข้าพบจริง (ACTUAL) เข้าพบร้านค้า / Key Farmer
+              เข้าพบร้านค้า / Key Farmer
             </h2>
             <p className="text-xs text-slate-500">
               รายละเอียดแผนงานและบันทึกผลการเข้าพบจริง
@@ -735,10 +735,25 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
         )}
       </div>
 
+      {/* PLAN DETAILS SECTION (Hides automatically in UNPLANNED mode) */}
+      <Type1PlanCard planType={planType} target={target} targets={targets} />
+
       {/* ACTUAL RESULTS FORM SECTION */}
       {hasMultipleTargets ? (
         /* MULTI-TARGET ACTUAL FORM (1 CARD PER TARGET) */
         <div className="space-y-4 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+              <h3 className="text-sm font-bold text-slate-800">
+                บันทึกผลการเข้าพบจริง (ACTUAL) แยกตามเป้าหมาย ({count} เป้าหมาย)
+              </h3>
+            </div>
+            <span className="text-xs text-slate-500">
+              * บันทึกข้อมูลผลการเข้าพบและพูดคุยแยกตามแต่ละเป้าหมาย
+            </span>
+          </div>
+
           <div className="space-y-4">
             {targetItems.map((item, idx) => {
               const itemIsStore = item.visitPurpose === "STORE";
@@ -841,7 +856,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                             imgs.map((img) => ({
                               ...img,
                               targetId: item.id || item.targetId,
-                              storeId: item.storeId || undefined,
+                              storeId: item.storeId || null,
                             })),
                           )
                         }
