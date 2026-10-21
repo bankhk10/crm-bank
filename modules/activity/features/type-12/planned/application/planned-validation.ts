@@ -19,7 +19,7 @@ export function validateType12FormValues({
   const isType12Selected =
     selectedWorkTypes.includes("ทัวร์") ||
     selectedWorkTypes.includes("TYPE_12") ||
-    selectedWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)");
+    selectedWorkTypes.includes("ทัวร์");
 
   if (!isType12Selected) {
     return { isValid: true };

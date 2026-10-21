@@ -159,23 +159,28 @@ export function UnplannedActivityForm({
     // 1. ตรวจสอบจาก Dedicated Target / Stores ของ Type 2 ก่อน (แม่นยำสูงสุด)
     if (
       (initialData.type2Targets && initialData.type2Targets.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
-      (initialData.products && initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+      (initialData.products &&
+        initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
     // 1.1 ตรวจสอบจาก Dedicated Target / Stores ของ Type 3
     if (
       (initialData.type3Targets && initialData.type3Targets.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
-      (initialData.products && initialData.products.some((p: any) => p.workTypeCode === "TYPE_3"))
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+      (initialData.products &&
+        initialData.products.some((p: any) => p.workTypeCode === "TYPE_3"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_3.name];
     }
     // 1.2 ตรวจสอบจาก Dedicated Target / Stores ของ Type 5
     if (
       (initialData.type5Targets && initialData.type5Targets.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
       initialData.type5SurveyRecords ||
       initialData.competitorBrand
     ) {
@@ -184,7 +189,8 @@ export function UnplannedActivityForm({
     // 1.3 ตรวจสอบจาก Dedicated Target / Stores ของ Type 6
     if (
       (initialData.type6Targets && initialData.type6Targets.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
       initialData.type6ActualIssues ||
       initialData.t6IssueRecord
     ) {
@@ -194,8 +200,10 @@ export function UnplannedActivityForm({
     if (
       (initialData.type7aPlots && initialData.type7aPlots.length > 0) ||
       (initialData.demoPlots && initialData.demoPlots.length > 0) ||
-      (initialData.type7aUnplannedItems && initialData.type7aUnplannedItems.length > 0) ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
+      (initialData.type7aUnplannedItems &&
+        initialData.type7aUnplannedItems.length > 0) ||
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
       initialData.demoPlotData
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7A.name];
@@ -203,25 +211,30 @@ export function UnplannedActivityForm({
     // 1.5 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7B
     if (
       (initialData.type7bPlots && initialData.type7bPlots.length > 0) ||
-      (initialData.type7bUnplannedItems && initialData.type7bUnplannedItems.length > 0) ||
+      (initialData.type7bUnplannedItems &&
+        initialData.type7bUnplannedItems.length > 0) ||
       initialData.type7b ||
       initialData.type7bData ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }
     // 1.6 ตรวจสอบจาก Dedicated Target ของ Type 8
     if (
-      (initialData.type8UnplannedItems && initialData.type8UnplannedItems.length > 0) ||
+      (initialData.type8UnplannedItems &&
+        initialData.type8UnplannedItems.length > 0) ||
       initialData.type8 ||
       initialData.type8Data ||
-      (initialData.stores && initialData.stores.some((s: any) => s.workTypeCode === "TYPE_8"))
+      (initialData.stores &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_8"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
     // 1.7 ตรวจสอบจาก Dedicated Target ของ Type 9
     if (
-      (initialData.type9UnplannedItems && initialData.type9UnplannedItems.length > 0) ||
+      (initialData.type9UnplannedItems &&
+        initialData.type9UnplannedItems.length > 0) ||
       initialData.type9 ||
       initialData.type9Data ||
       (initialData.stores &&
@@ -231,11 +244,14 @@ export function UnplannedActivityForm({
             s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
         ))
     ) {
-      return [WORK_TYPE_CONFIG.TYPE_9?.name || "จัดกิจกรรมส่งเสริมการขายหน้าร้าน"];
+      return [
+        WORK_TYPE_CONFIG.TYPE_9?.name || "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+      ];
     }
     // 1.8 ตรวจสอบจาก Dedicated Target ของ Type 10
     if (
-      (initialData.type10UnplannedItems && initialData.type10UnplannedItems.length > 0) ||
+      (initialData.type10UnplannedItems &&
+        initialData.type10UnplannedItems.length > 0) ||
       initialData.type10 ||
       initialData.type10Data ||
       (initialData.demoPlotVisits &&
@@ -266,10 +282,16 @@ export function UnplannedActivityForm({
       if (code === "TYPE_5") return [WORK_TYPE_CONFIG.TYPE_5.name];
       if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
       if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
-      if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
-      if (code === "TYPE_8") return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
+      if (code === "TYPE_7B")
+        return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
+      if (code === "TYPE_8")
+        return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
-    if (initialData.type1Stores && initialData.type1Stores.length > 0 && isEdit) {
+    if (
+      initialData.type1Stores &&
+      initialData.type1Stores.length > 0 &&
+      isEdit
+    ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
     }
     return [];
@@ -355,7 +377,7 @@ export function UnplannedActivityForm({
     (wt) =>
       getWorkTypeCode(wt) === "TYPE_12" ||
       wt.includes("TYPE_12") ||
-      wt.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      wt.includes("ทัวร์") ||
       wt.includes("ศึกษาดูงาน") ||
       wt.includes("ทัวร์"),
   );
@@ -373,7 +395,7 @@ export function UnplannedActivityForm({
       wt.includes("TYPE_14") ||
       wt.includes("ติดตามแปลงแฮทแทค") ||
       wt.includes("ติดตามแปลงแฮตแทค") ||
-      wt.includes("ติดตามแปลง"),
+      (wt.includes("ติดตามแปลง") && !wt.includes("สาธิต")),
   );
 
   // 2. Basic Info State
@@ -659,7 +681,9 @@ export function UnplannedActivityForm({
 
       const type2Validation = type2.validate(customers);
       if (!type2Validation.isValid) {
-        toast.error(type2Validation.error || "ข้อมูลเป้าหมายติดตามผลไม่ถูกต้อง");
+        toast.error(
+          type2Validation.error || "ข้อมูลเป้าหมายติดตามผลไม่ถูกต้อง",
+        );
         return;
       }
 
@@ -672,9 +696,7 @@ export function UnplannedActivityForm({
       planProducts = mapped.planProducts;
       followupResults = mapped.followupResults;
 
-      const allType2Images = type2.items.flatMap(
-        (item) => item.images || [],
-      );
+      const allType2Images = type2.items.flatMap((item) => item.images || []);
       let cleanType2Images = allType2Images;
       if (allType2Images.length > 0) {
         try {
@@ -704,7 +726,9 @@ export function UnplannedActivityForm({
       };
     } else if (isType3Active) {
       if (type3.items.length === 0) {
-        toast.error("กรุณาระบุร้านค้าเป้าหมายและรายการสินค้าที่เสนอขายอย่างน้อย 1 รายการ");
+        toast.error(
+          "กรุณาระบุร้านค้าเป้าหมายและรายการสินค้าที่เสนอขายอย่างน้อย 1 รายการ",
+        );
         return;
       }
 
@@ -729,25 +753,24 @@ export function UnplannedActivityForm({
       };
     } else if (isType4Active) {
       if (type4.items.length === 0) {
-        toast.error("กรุณาระบุร้านค้าเป้าหมายสำหรับวางบิล / เก็บเงินอย่างน้อย 1 รายการ");
+        toast.error(
+          "กรุณาระบุร้านค้าเป้าหมายสำหรับวางบิล / เก็บเงินอย่างน้อย 1 รายการ",
+        );
         return;
       }
 
       const type4Validation = type4.validate();
       if (!type4Validation.isValid) {
-        toast.error(type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง");
+        toast.error(
+          type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง",
+        );
         return;
       }
 
-      const mapped = mapType4UnplannedToPayload(
-        type4.items,
-        customers as any,
-      );
+      const mapped = mapType4UnplannedToPayload(type4.items, customers as any);
       planStores = mapped.planStores;
 
-      const allType4Images = type4.items.flatMap(
-        (item) => item.images || [],
-      );
+      const allType4Images = type4.items.flatMap((item) => item.images || []);
       let cleanType4Images = allType4Images;
       if (allType4Images.length > 0) {
         try {
@@ -793,8 +816,12 @@ export function UnplannedActivityForm({
       const mapped = mapType5UnplannedToPayload(type5.items);
 
       // Upload Bottle Images and Promotional Images
-      const allBottleImages = type5.items.flatMap((item) => item.bottleImages || []);
-      const allPromoImages = type5.items.flatMap((item) => item.promotionalImages || []);
+      const allBottleImages = type5.items.flatMap(
+        (item) => item.bottleImages || [],
+      );
+      const allPromoImages = type5.items.flatMap(
+        (item) => item.promotionalImages || [],
+      );
       let cleanBottleImages = allBottleImages;
       let cleanPromoImages = allPromoImages;
 
@@ -823,7 +850,9 @@ export function UnplannedActivityForm({
           );
           cleanPromoImages = res.updatedImages;
         } catch (uploadErr: any) {
-          toast.error(uploadErr.message || "อัปโหลดรูปภาพสื่อส่งเสริมการขายไม่สำเร็จ");
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพสื่อส่งเสริมการขายไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -859,7 +888,9 @@ export function UnplannedActivityForm({
 
       const type6Validation = validateType6UnplannedItems(type6.items);
       if (!type6Validation.isValid) {
-        toast.error(type6Validation.errors[0] || "ข้อมูลตรวจสอบเรื่องร้องเรียนไม่ถูกต้อง");
+        toast.error(
+          type6Validation.errors[0] || "ข้อมูลตรวจสอบเรื่องร้องเรียนไม่ถูกต้อง",
+        );
         return;
       }
 
@@ -904,14 +935,18 @@ export function UnplannedActivityForm({
 
       const type7aValidation = validateType7aUnplannedItems(type7a.items);
       if (!type7aValidation.isValid) {
-        toast.error(type7aValidation.errors[0] || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง");
+        toast.error(
+          type7aValidation.errors[0] || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง",
+        );
         return;
       }
 
       const mapped = mapType7aUnplannedToPayload(type7a.items);
 
       // Upload Evidence / Plot Images
-      const allType7aImages = type7a.items.flatMap((item) => item.initialPhotos || []);
+      const allType7aImages = type7a.items.flatMap(
+        (item) => item.initialPhotos || [],
+      );
       let cleanType7aImages = allType7aImages;
       if (allType7aImages.length > 0) {
         try {
@@ -958,7 +993,9 @@ export function UnplannedActivityForm({
 
       const type7bValidation = validateType7bUnplannedItems(type7b.items);
       if (!type7bValidation.isValid) {
-        toast.error(type7bValidation.errors?.[0] || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง");
+        toast.error(
+          type7bValidation.errors?.[0] || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง",
+        );
         return;
       }
 
@@ -977,7 +1014,9 @@ export function UnplannedActivityForm({
           );
           cleanType7bImages = res.updatedImages;
         } catch (uploadErr: any) {
-          toast.error(uploadErr.message || "อัปโหลดรูปภาพติดตามแปลงสาธิตไม่สำเร็จ");
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพติดตามแปลงสาธิตไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1008,12 +1047,16 @@ export function UnplannedActivityForm({
 
       const type8Validation = validateType8UnplannedItems(type8.items);
       if (!type8Validation.isValid) {
-        toast.error(type8Validation.errors?.[0] || "ข้อมูลการจัดประชุมไม่ถูกต้อง");
+        toast.error(
+          type8Validation.errors?.[0] || "ข้อมูลการจัดประชุมไม่ถูกต้อง",
+        );
         return;
       }
 
       // Upload Registration & Atmosphere Images
-      const allType8RegImages = type8.items.flatMap((item) => item.registrationImages || []);
+      const allType8RegImages = type8.items.flatMap(
+        (item) => item.registrationImages || [],
+      );
       let cleanType8RegImages = allType8RegImages;
       if (allType8RegImages.length > 0) {
         try {
@@ -1030,7 +1073,9 @@ export function UnplannedActivityForm({
         }
       }
 
-      const allType8AtmosImages = type8.items.flatMap((item) => item.images || []);
+      const allType8AtmosImages = type8.items.flatMap(
+        (item) => item.images || [],
+      );
       let cleanType8AtmosImages = allType8AtmosImages;
       if (allType8AtmosImages.length > 0) {
         try {
@@ -1042,7 +1087,9 @@ export function UnplannedActivityForm({
           );
           cleanType8AtmosImages = res.updatedImages;
         } catch (uploadErr: any) {
-          toast.error(uploadErr.message || "อัปโหลดรูปบรรยากาศการประชุมไม่สำเร็จ");
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปบรรยากาศการประชุมไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1095,7 +1142,10 @@ export function UnplannedActivityForm({
 
       const type9Validation = validateType9UnplannedItems(type9.items);
       if (!type9Validation.isValid) {
-        toast.error(type9Validation.errors?.[0] || "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)");
+        toast.error(
+          type9Validation.errors?.[0] ||
+            "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)",
+        );
         return;
       }
 
@@ -1112,7 +1162,9 @@ export function UnplannedActivityForm({
           );
           cleanType9Images = res.updatedImages;
         } catch (uploadErr: any) {
-          toast.error(uploadErr.message || "อัปโหลดรูปภาพกิจกรรมหน้าร้านไม่สำเร็จ");
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพกิจกรรมหน้าร้านไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1164,9 +1216,7 @@ export function UnplannedActivityForm({
       }
 
       // Upload Field Day Atmosphere Images
-      const allType10Images = type10.items.flatMap(
-        (item) => item.images || [],
-      );
+      const allType10Images = type10.items.flatMap((item) => item.images || []);
       let cleanType10Images = allType10Images;
       if (allType10Images.length > 0) {
         try {
@@ -1225,9 +1275,7 @@ export function UnplannedActivityForm({
       }
 
       // Upload Stock Photos
-      const allType11Images = type11.items.flatMap(
-        (item) => item.images || [],
-      );
+      const allType11Images = type11.items.flatMap((item) => item.images || []);
       let cleanType11Images = allType11Images;
       if (allType11Images.length > 0) {
         try {
@@ -1276,7 +1324,10 @@ export function UnplannedActivityForm({
     } else if (isType12Active) {
       const type12Validation = type12.validate();
       if (!type12Validation.isValid) {
-        toast.error(type12Validation.error || "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)");
+        toast.error(
+          type12Validation.error ||
+            "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)",
+        );
         return;
       }
 
@@ -1334,8 +1385,7 @@ export function UnplannedActivityForm({
       const type13Validation = type13.validate();
       if (!type13Validation.isValid) {
         toast.error(
-          type13Validation.error ||
-            "ข้อมูลฉีดแปลงแฮตแทคไม่ถูกต้อง (Type 13)",
+          type13Validation.error || "ข้อมูลฉีดแปลงแฮตแทคไม่ถูกต้อง (Type 13)",
         );
         return;
       }
@@ -1403,7 +1453,9 @@ export function UnplannedActivityForm({
           );
           cleanType14Images = res.updatedImages;
         } catch (uploadErr: any) {
-          toast.error(uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ");
+          toast.error(
+            uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1485,10 +1537,7 @@ export function UnplannedActivityForm({
           );
         }
         if (isType7bActive) {
-          return (
-            t.code === "TYPE_7B" ||
-            t.name?.includes("ติดตามแปลงสาธิต")
-          );
+          return t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต");
         }
         if (isType8Active) {
           return (
@@ -1575,7 +1624,11 @@ export function UnplannedActivityForm({
       : null;
 
     const mappedType3 = isType3Active
-      ? mapType3UnplannedToPayload(type3.items, customers as any, products as any)
+      ? mapType3UnplannedToPayload(
+          type3.items,
+          customers as any,
+          products as any,
+        )
       : null;
 
     const mappedType4 = isType4Active
@@ -1621,7 +1674,8 @@ export function UnplannedActivityForm({
       district: locationTeam.district || null,
       location: locationTeam.locationText || null,
       helperEmployeeIds: locationTeam.helperEmployeeIds,
-      salesPromotionBudgetRequested: budgetPayload.salesPromotionBudgetRequested,
+      salesPromotionBudgetRequested:
+        budgetPayload.salesPromotionBudgetRequested,
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
       totalBudgetRequested:
         totalBudgetRequested > 0 ? totalBudgetRequested : null,
@@ -1655,21 +1709,51 @@ export function UnplannedActivityForm({
       type10Data: mappedType10?.type10Data,
       type10Plots: mappedType10?.type10Plots,
       type10Targets: mappedType10?.targets,
-      type11Data: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
-      type11Stores: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
-      type11Targets: isType11Active ? mapType11UnplannedToPayload(type11.items).type11Stores : undefined,
-      tourData: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
-      tour: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
-      type12Actual: isType12Active ? mapType12UnplannedToPayload(type12.item).type12Actual : undefined,
-      type12Data: isType12Active ? mapType12UnplannedToPayload(type12.item).tourData : undefined,
-      type13Data: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Data : undefined,
-      type13Plots: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
-      type13Targets: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Plots : undefined,
-      type13Actual: isType13Active ? mapType13UnplannedToPayload(type13.item).type13Actual : undefined,
-      type14Data: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Data : undefined,
-      type14Plots: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Plots : undefined,
-      type14Targets: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Plots : undefined,
-      type14Actual: isType14Active ? mapType14UnplannedToPayload(type14.item).type14Actual : undefined,
+      type11Data: isType11Active
+        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        : undefined,
+      type11Stores: isType11Active
+        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        : undefined,
+      type11Targets: isType11Active
+        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        : undefined,
+      tourData: isType12Active
+        ? mapType12UnplannedToPayload(type12.item).tourData
+        : undefined,
+      tour: isType12Active
+        ? mapType12UnplannedToPayload(type12.item).tourData
+        : undefined,
+      type12Actual: isType12Active
+        ? mapType12UnplannedToPayload(type12.item).type12Actual
+        : undefined,
+      type12Data: isType12Active
+        ? mapType12UnplannedToPayload(type12.item).tourData
+        : undefined,
+      type13Data: isType13Active
+        ? mapType13UnplannedToPayload(type13.item).type13Data
+        : undefined,
+      type13Plots: isType13Active
+        ? mapType13UnplannedToPayload(type13.item).type13Plots
+        : undefined,
+      type13Targets: isType13Active
+        ? mapType13UnplannedToPayload(type13.item).type13Plots
+        : undefined,
+      type13Actual: isType13Active
+        ? mapType13UnplannedToPayload(type13.item).type13Actual
+        : undefined,
+      type14Data: isType14Active
+        ? mapType14UnplannedToPayload(type14.item).type14Data
+        : undefined,
+      type14Plots: isType14Active
+        ? mapType14UnplannedToPayload(type14.item).type14Plots
+        : undefined,
+      type14Targets: isType14Active
+        ? mapType14UnplannedToPayload(type14.item).type14Plots
+        : undefined,
+      type14Actual: isType14Active
+        ? mapType14UnplannedToPayload(type14.item).type14Actual
+        : undefined,
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
@@ -1808,7 +1892,14 @@ export function UnplannedActivityForm({
         !isType5Active &&
         !isType6Active &&
         !isType7aActive &&
-        !isType7bActive && (
+        !isType7bActive &&
+        !isType8Active &&
+        !isType9Active &&
+        !isType10Active &&
+        !isType11Active &&
+        !isType12Active &&
+        !isType13Active &&
+        !isType14Active && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -1817,7 +1908,8 @@ export function UnplannedActivityForm({
               ยังไม่ได้เลือกประเภทงาน
             </p>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot; ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
+              กรุณาเลือกประเภทงานจากช่อง &quot;ประเภทงาน&quot;
+              ในส่วนข้อมูลหลักของกิจกรรมด้านบนเพื่อกรอกรายละเอียดเป้าหมาย
             </p>
           </div>
         )}
@@ -2001,7 +2093,7 @@ export function UnplannedActivityForm({
         />
       )}
 
-      {/* 3.13 ส่วนเฉพาะ Type 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {/* 3.13 ส่วนเฉพาะ Type 12: ทัวร์ */}
       {isType12Active && (
         <Type12UnplannedForm
           item={type12.item}
@@ -2055,11 +2147,7 @@ export function UnplannedActivityForm({
       />
 
       {/* 5. ส่วนกลาง: หมายเหตุ */}
-      <PlanNotesCard
-        notes={notes}
-        setNotes={setNotes}
-        readonly={readonly}
-      />
+      <PlanNotesCard notes={notes} setNotes={setNotes} readonly={readonly} />
 
       {/* ปุ่มบันทึก */}
       <FormActionButtons

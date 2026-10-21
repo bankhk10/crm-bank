@@ -47,7 +47,10 @@ export interface WorkTypeStrategyRegistration {
  * Central Strategy Registry mapping Work Type Codes (TYPE_1 - TYPE_6)
  * to Planned and Unplanned execution strategies.
  */
-export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistration> = {
+export const WORK_TYPE_STRATEGY_REGISTRY: Record<
+  string,
+  WorkTypeStrategyRegistration
+> = {
   TYPE_1: {
     code: "TYPE_1",
     name: "เข้าพบร้านค้า / Key Farmer",
@@ -59,14 +62,17 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           (rawData.workTypeCodes.includes("TYPE_1") ||
             rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
         (rawData.planStores &&
-          rawData.planStores.some((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1")) ||
+          rawData.planStores.some(
+            (s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1",
+          )) ||
         (rawData.type1Stores && rawData.type1Stores.length > 0) ||
-        (rawData.type1UnplannedItems && rawData.type1UnplannedItems.length > 0) ||
+        (rawData.type1UnplannedItems &&
+          rawData.type1UnplannedItems.length > 0) ||
         rawData.targetActualResults ||
         rawData.type1Actual ||
         rawData.discussionResult ||
         rawData.productAdvice ||
-        rawData.salesOpportunity
+        rawData.salesOpportunity,
       ),
   },
   TYPE_2: {
@@ -82,10 +88,11 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
         (rawData.type2Targets && rawData.type2Targets.length > 0) ||
-        (rawData.type2UnplannedItems && rawData.type2UnplannedItems.length > 0) ||
+        (rawData.type2UnplannedItems &&
+          rawData.type2UnplannedItems.length > 0) ||
         (rawData.followupResults && rawData.followupResults.length > 0) ||
         rawData.t2FollowupResults ||
-        rawData.type2Actual
+        rawData.type2Actual,
       ),
   },
   TYPE_3: {
@@ -102,7 +109,7 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
         (rawData.type3Targets && rawData.type3Targets.length > 0) ||
         (rawData.type3Items && rawData.type3Items.length > 0) ||
-        (rawData.productSalesDetails && rawData.productSalesDetails.length > 0)
+        (rawData.productSalesDetails && rawData.productSalesDetails.length > 0),
       ),
   },
   TYPE_4: {
@@ -123,7 +130,7 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         rawData.billingDetail ||
         rawData.collectDetail ||
         rawData.t4OrderNo ||
-        rawData.orderNo
+        rawData.orderNo,
       ),
   },
   TYPE_5: {
@@ -140,12 +147,13 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
         (rawData.type5Targets && rawData.type5Targets.length > 0) ||
         (rawData.type5Items && rawData.type5Items.length > 0) ||
-        (rawData.type5UnplannedItems && rawData.type5UnplannedItems.length > 0) ||
+        (rawData.type5UnplannedItems &&
+          rawData.type5UnplannedItems.length > 0) ||
         (rawData.type5SurveyRecords && rawData.type5SurveyRecords.length > 0) ||
         (rawData.surveyResults && rawData.surveyResults.length > 0) ||
         (rawData.t5SurveyDetails && rawData.t5SurveyDetails.length > 0) ||
         rawData.competitorBrand ||
-        rawData.t5CompetitorBrand
+        rawData.t5CompetitorBrand,
       ),
   },
   TYPE_6: {
@@ -157,17 +165,20 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_6") ||
-            rawData.workTypeCodes.includes("ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา"))) ||
+            rawData.workTypeCodes.includes(
+              "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+            ))) ||
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
         (rawData.type6Targets && rawData.type6Targets.length > 0) ||
         (rawData.type6Items && rawData.type6Items.length > 0) ||
-        (rawData.type6UnplannedItems && rawData.type6UnplannedItems.length > 0) ||
+        (rawData.type6UnplannedItems &&
+          rawData.type6UnplannedItems.length > 0) ||
         (rawData.type6ActualIssues && rawData.type6ActualIssues.length > 0) ||
         (rawData.issueResults && rawData.issueResults.length > 0) ||
         (rawData.t6IssueDetails && rawData.t6IssueDetails.length > 0) ||
         rawData.t6IssueRecord ||
-        rawData.t6ProblemDetail
+        rawData.t6ProblemDetail,
       ),
   },
   TYPE_7A: {
@@ -181,11 +192,15 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
           (rawData.workTypeCodes.includes("TYPE_7A") ||
             rawData.workTypeCodes.includes("จัดทำแปลงสาธิต"))) ||
         (rawData.planStores &&
-          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7A" || s.workTypeCode === "TYPE_7")) ||
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_7A" || s.workTypeCode === "TYPE_7",
+          )) ||
         (rawData.type7aPlots && rawData.type7aPlots.length > 0) ||
-        (rawData.type7aUnplannedItems && rawData.type7aUnplannedItems.length > 0) ||
+        (rawData.type7aUnplannedItems &&
+          rawData.type7aUnplannedItems.length > 0) ||
         rawData.demoPlotData ||
-        rawData.t7PlotName
+        rawData.t7PlotName,
       ),
   },
   TYPE_7B: {
@@ -201,10 +216,11 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
         (rawData.type7bPlots && rawData.type7bPlots.length > 0) ||
-        (rawData.type7bUnplannedItems && rawData.type7bUnplannedItems.length > 0) ||
+        (rawData.type7bUnplannedItems &&
+          rawData.type7bUnplannedItems.length > 0) ||
         rawData.type7bData ||
         rawData.type7b ||
-        rawData.t7GrowthStage
+        rawData.t7GrowthStage,
       ),
   },
   TYPE_8: {
@@ -220,13 +236,14 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_8")) ||
         (rawData.type8Meetings && rawData.type8Meetings.length > 0) ||
-        (rawData.type8UnplannedItems && rawData.type8UnplannedItems.length > 0) ||
+        (rawData.type8UnplannedItems &&
+          rawData.type8UnplannedItems.length > 0) ||
         (rawData.type8Items && rawData.type8Items.length > 0) ||
         rawData.type8Data ||
         rawData.type8 ||
         rawData.type8Actual ||
         rawData.t8Topic ||
-        rawData.t8MeetingTarget
+        rawData.t8MeetingTarget,
       ),
   },
   TYPE_9: {
@@ -238,7 +255,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_9") ||
-            rawData.workTypeCodes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน"))) ||
+            rawData.workTypeCodes.includes(
+              "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+            ))) ||
         (rawData.planStores &&
           rawData.planStores.some(
             (s: any) =>
@@ -246,11 +265,12 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
               s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
           )) ||
         (rawData.type9Stores && rawData.type9Stores.length > 0) ||
-        (rawData.type9UnplannedItems && rawData.type9UnplannedItems.length > 0) ||
+        (rawData.type9UnplannedItems &&
+          rawData.type9UnplannedItems.length > 0) ||
         rawData.type9Data ||
         rawData.type9 ||
         rawData.type9Actual ||
-        rawData.t9ActualSales
+        rawData.t9ActualSales,
       ),
   },
   TYPE_10: {
@@ -270,13 +290,14 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
               s.workTypeCode === "จัดงาน Field Day",
           )) ||
         (rawData.type10Plots && rawData.type10Plots.length > 0) ||
-        (rawData.type10UnplannedItems && rawData.type10UnplannedItems.length > 0) ||
+        (rawData.type10UnplannedItems &&
+          rawData.type10UnplannedItems.length > 0) ||
         rawData.type10Data ||
         rawData.type10 ||
         rawData.type10Actual ||
         rawData.t10TargetAttendees ||
         rawData.t10ActualAttendees ||
-        rawData.t10SalesResult
+        rawData.t10SalesResult,
       ),
   },
   TYPE_11: {
@@ -296,32 +317,33 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
               s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
           )) ||
         (rawData.type11Stores && rawData.type11Stores.length > 0) ||
-        (rawData.type11UnplannedItems && rawData.type11UnplannedItems.length > 0) ||
+        (rawData.type11UnplannedItems &&
+          rawData.type11UnplannedItems.length > 0) ||
         rawData.type11Data ||
         rawData.type11 ||
         rawData.type11Actual ||
         (rawData.t11StockItems && rawData.t11StockItems.length > 0) ||
         (rawData.stockResults && rawData.stockResults.length > 0) ||
         rawData.t11ProductList ||
-        rawData.t11RemainingQty
+        rawData.t11RemainingQty,
       ),
   },
   TYPE_12: {
     code: "TYPE_12",
-    name: "พาลูกค้าศึกษาดูงาน (ทัวร์)",
+    name: "ทัวร์",
     planned: type12PlannedStrategy,
     unplanned: type12UnplannedStrategy,
     hasData: (rawData: any): boolean =>
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_12") ||
-            rawData.workTypeCodes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+            rawData.workTypeCodes.includes("ทัวร์") ||
             rawData.workTypeCodes.includes("ทัวร์"))) ||
         rawData.tour ||
         rawData.tourData ||
         rawData.type12Actual ||
         rawData.t12Actual ||
-        (rawData.t12Images && rawData.t12Images.length > 0)
+        (rawData.t12Images && rawData.t12Images.length > 0),
       ),
   },
   TYPE_13: {
@@ -340,16 +362,17 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
             (s: any) =>
               s.workTypeCode === "TYPE_13" ||
               s.workTypeCode === "ฉีดแปลงแฮตแทค" ||
-              s.workTypeCode === "ฉีดแปลงแฮทแทค"
+              s.workTypeCode === "ฉีดแปลงแฮทแทค",
           )) ||
         (rawData.type13Plots && rawData.type13Plots.length > 0) ||
-        (rawData.type13UnplannedItems && rawData.type13UnplannedItems.length > 0) ||
+        (rawData.type13UnplannedItems &&
+          rawData.type13UnplannedItems.length > 0) ||
         (rawData.t13Plots && rawData.t13Plots.length > 0) ||
         rawData.type13Data ||
         rawData.type13 ||
         rawData.type13Actual ||
         rawData.t13SprayRounds ||
-        (rawData.t13Images && rawData.t13Images.length > 0)
+        (rawData.t13Images && rawData.t13Images.length > 0),
       ),
   },
   TYPE_14: {
@@ -372,13 +395,14 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
               s.workTypeCode === "ติดตามแปลงแฮตแทค",
           )) ||
         (rawData.type14Plots && rawData.type14Plots.length > 0) ||
-        (rawData.type14UnplannedItems && rawData.type14UnplannedItems.length > 0) ||
+        (rawData.type14UnplannedItems &&
+          rawData.type14UnplannedItems.length > 0) ||
         (rawData.t14Plots && rawData.t14Plots.length > 0) ||
         rawData.type14Data ||
         rawData.type14 ||
         rawData.type14Actual ||
         rawData.t14FollowUpRounds ||
-        (rawData.t14Images && rawData.t14Images.length > 0)
+        (rawData.t14Images && rawData.t14Images.length > 0),
       ),
   },
 };
@@ -388,19 +412,24 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<string, WorkTypeStrategyRegistr
  */
 export function getStrategyForWorkType(
   workTypeCodeOrName: string,
-  planType: "PLANNED" | "UNPLANNED" | string = "PLANNED"
+  planType: "PLANNED" | "UNPLANNED" | string = "PLANNED",
 ): WorkTypeStrategy | undefined {
   const code = getWorkTypeCode(workTypeCodeOrName);
   const registration = WORK_TYPE_STRATEGY_REGISTRY[code];
   if (!registration) return undefined;
-  return planType === "UNPLANNED" ? registration.unplanned : registration.planned;
+  return planType === "UNPLANNED"
+    ? registration.unplanned
+    : registration.planned;
 }
 
 /**
  * Resolve primary work type code from rawData using registered strategies
  */
 export function resolvePrimaryWorkTypeCode(rawData: any): string {
-  if (Array.isArray(rawData.workTypeCodes) && rawData.workTypeCodes.length > 0) {
+  if (
+    Array.isArray(rawData.workTypeCodes) &&
+    rawData.workTypeCodes.length > 0
+  ) {
     return getWorkTypeCode(rawData.workTypeCodes[0]);
   }
   if (Array.isArray(rawData.workTypes) && rawData.workTypes.length > 0) {
@@ -411,13 +440,25 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
 
   // Fallback: inspect registered strategies
-  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData)) {
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData)
+  ) {
     return "TYPE_2";
   }
-  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData)) {
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData)
+  ) {
     return "TYPE_3";
   }
-  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_4.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) && !WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData)) {
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_4.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData)
+  ) {
     return "TYPE_4";
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_5.hasData(rawData)) {
@@ -462,12 +503,14 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
  */
 export async function validateStrategiesForPlan(
   db: any,
-  rawData: any
+  rawData: any,
 ): Promise<StrategyValidationResult> {
   const isUnplanned = rawData.planType === "UNPLANNED";
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
     if (registration.hasData(rawData)) {
-      const strategy = isUnplanned ? registration.unplanned : registration.planned;
+      const strategy = isUnplanned
+        ? registration.unplanned
+        : registration.planned;
       if (typeof strategy.validatePlan === "function") {
         const result = await strategy.validatePlan(rawData, db);
         if (result && !result.valid) {
@@ -485,12 +528,14 @@ export async function validateStrategiesForPlan(
 export async function saveStrategiesForPlan(
   tx: PrismaTransaction,
   planId: string,
-  rawData: any
+  rawData: any,
 ): Promise<void> {
   const isUnplanned = rawData.planType === "UNPLANNED";
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
     if (registration.hasData(rawData)) {
-      const strategy = isUnplanned ? registration.unplanned : registration.planned;
+      const strategy = isUnplanned
+        ? registration.unplanned
+        : registration.planned;
       await strategy.savePlan(tx, planId, rawData);
     }
   }
@@ -503,11 +548,11 @@ export async function saveStrategiesForActual(
   tx: PrismaTransaction,
   planId: string,
   actualData: any,
-  planWorkTypeCodes: string[] = []
+  planWorkTypeCodes: string[] = [],
 ): Promise<void> {
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
     const isPlanWorkType = planWorkTypeCodes.some(
-      (code) => getWorkTypeCode(code) === registration.code
+      (code) => getWorkTypeCode(code) === registration.code,
     );
     if (isPlanWorkType || registration.hasData(actualData)) {
       const strategy = registration.planned;
@@ -517,4 +562,3 @@ export async function saveStrategiesForActual(
     }
   }
 }
-

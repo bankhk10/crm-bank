@@ -1,5 +1,5 @@
 export const WORK_TYPE_CODE = "TYPE_12";
-export const WORK_TYPE_NAME = "พาลูกค้าศึกษาดูงาน (ทัวร์)";
+export const WORK_TYPE_NAME = "ทัวร์";
 
 export const TOUR_TYPE_OPTIONS = [
   { value: "CENTRAL", label: "ทัวร์กลาง" },

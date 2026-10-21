@@ -37,12 +37,18 @@ export function useType12PlannedForm({
 }: UseType12PlannedFormOptions): UseType12PlannedFormResult {
   const hydrated = hydrateType12PlannedData(initial, initDetails);
 
-  const [type12TourType, setType12TourType] = useState<string>(hydrated.tourType);
-  const [type12TourSize, setType12TourSize] = useState<string>(hydrated.tourSize);
+  const [type12TourType, setType12TourType] = useState<string>(
+    hydrated.tourType,
+  );
+  const [type12TourSize, setType12TourSize] = useState<string>(
+    hydrated.tourSize,
+  );
   const [type12Country, setType12Country] = useState<string>(hydrated.country);
   const [type12Store, setType12Store] = useState<string>(hydrated.store);
   const [type12StoreId, setType12StoreId] = useState<string>(hydrated.storeId);
-  const [type12Destination, setType12Destination] = useState<string>(hydrated.destination);
+  const [type12Destination, setType12Destination] = useState<string>(
+    hydrated.destination,
+  );
 
   // Sync state if initial changes dynamically
   useEffect(() => {
@@ -72,7 +78,7 @@ export function useType12PlannedForm({
     const isSelected =
       selectedWorkTypes.includes("ทัวร์") ||
       selectedWorkTypes.includes("TYPE_12") ||
-      selectedWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)");
+      selectedWorkTypes.includes("ทัวร์");
 
     if (!isSelected) {
       return { tourData: null };
@@ -83,7 +89,8 @@ export function useType12PlannedForm({
 
     const resolvedStoreId =
       type12StoreId ||
-      customers.find((c) => c.name === type12Store || c.id === type12Store)?.id ||
+      customers.find((c) => c.name === type12Store || c.id === type12Store)
+        ?.id ||
       null;
 
     const tourData: Type12TourDataPayload = {

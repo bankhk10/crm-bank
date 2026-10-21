@@ -161,8 +161,7 @@ export function ActualWorkTypeList({
     Boolean(plan?.type1Stores?.length) ||
     Boolean(
       plan?.stores?.some(
-        (s: any) =>
-          s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
+        (s: any) => s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
       ),
     ) ||
     plan?.activityType?.code === "TYPE_1";
@@ -202,13 +201,10 @@ export function ActualWorkTypeList({
   const isType7aActive =
     planWorkTypes.includes("TYPE_7A") ||
     planWorkTypes.includes("จัดทำแปลงสาธิต") ||
-    (planWorkTypes.includes("แปลงสาธิต") && !planWorkTypes.includes("ติดตาม")) ||
+    (planWorkTypes.includes("แปลงสาธิต") &&
+      !planWorkTypes.includes("ติดตาม")) ||
     Boolean(plan?.type7aPlots?.length) ||
-    Boolean(
-      plan?.stores?.some(
-        (s: any) => s.workTypeCode === "TYPE_7A",
-      ),
-    ) ||
+    Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
     plan?.activityType?.code === "TYPE_7A";
 
   const isType7bActive =
@@ -217,11 +213,7 @@ export function ActualWorkTypeList({
     Boolean(plan?.type7bPlots?.length) ||
     Boolean(plan?.type7bData) ||
     Boolean(plan?.type7b) ||
-    Boolean(
-      plan?.stores?.some(
-        (s: any) => s.workTypeCode === "TYPE_7B",
-      ),
-    ) ||
+    Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
     plan?.activityType?.code === "TYPE_7B";
 
   const isType8Active =
@@ -233,11 +225,7 @@ export function ActualWorkTypeList({
     Boolean(plan?.type8Meetings?.length) ||
     Boolean(plan?.type8Data) ||
     Boolean(plan?.type8) ||
-    Boolean(
-      plan?.stores?.some(
-        (s: any) => s.workTypeCode === "TYPE_8",
-      ),
-    ) ||
+    Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_8")) ||
     plan?.activityType?.code === "TYPE_8";
 
   const isType9Active =
@@ -270,8 +258,7 @@ export function ActualWorkTypeList({
     Boolean(
       plan?.demoPlotVisits?.some(
         (v: any) =>
-          v.workTypeCode === "TYPE_10" ||
-          v.workTypeCode === "จัดงาน Field Day",
+          v.workTypeCode === "TYPE_10" || v.workTypeCode === "จัดงาน Field Day",
       ),
     ) ||
     plan?.activityType?.code === "TYPE_10";
@@ -295,7 +282,7 @@ export function ActualWorkTypeList({
 
   const isType12Active =
     planWorkTypes.includes("TYPE_12") ||
-    planWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    planWorkTypes.includes("ทัวร์") ||
     planWorkTypes.includes("ทัวร์") ||
     planWorkTypes.includes("ศึกษาดูงาน") ||
     Boolean(plan?.tour) ||
@@ -524,7 +511,11 @@ export function ActualWorkTypeList({
               ? type7bTargets
               : plan?.type7bPlots || plan?.type7b?.plots
           }
-          target={type7bTargets?.[0] || plan?.type7bPlots?.[0] || plan?.type7b?.plots?.[0]}
+          target={
+            type7bTargets?.[0] ||
+            plan?.type7bPlots?.[0] ||
+            plan?.type7b?.plots?.[0]
+          }
           planType={plan?.planType}
           products={products}
           customers={customers}
@@ -651,11 +642,17 @@ export function ActualWorkTypeList({
         />
       )}
 
-      {/* 🟢 TYPE 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {/* 🟢 TYPE 12: ทัวร์ */}
       {isType12Active && type12State && (
         <Type12ActualForm
           isVisible={true}
-          targets={type12Targets?.length ? type12Targets : plan?.tour ? [plan.tour] : undefined}
+          targets={
+            type12Targets?.length
+              ? type12Targets
+              : plan?.tour
+                ? [plan.tour]
+                : undefined
+          }
           target={type12Targets?.[0] || plan?.tour || plan?.tourData}
           planType={plan?.planType}
           actualAttendees={type12State.actualAttendees}

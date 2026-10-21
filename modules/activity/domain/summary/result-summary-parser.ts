@@ -12,7 +12,8 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
   // 1. Direct fields from ActivityResult model / object
   if (typeof resData === "object") {
-    if (resData.resultStatus) result.activityResultStatus = resData.resultStatus;
+    if (resData.resultStatus)
+      result.activityResultStatus = resData.resultStatus;
     if (resData.cancelReason) result.cancelReason = resData.cancelReason;
     if (resData.actualStartDate) {
       result.actualStartDate =
@@ -28,12 +29,14 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           : new Date(resData.postponedDate).toISOString().split("T")[0];
     }
     if (resData.postponedTime) result.postponedTime = resData.postponedTime;
-    if (resData.postponedReason) result.postponedReason = resData.postponedReason;
+    if (resData.postponedReason)
+      result.postponedReason = resData.postponedReason;
     if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
   }
 
   // 2. Parse resultSummary JSON payload (if exists)
-  const rawSummary = typeof resData === "string" ? resData : resData?.resultSummary;
+  const rawSummary =
+    typeof resData === "string" ? resData : resData?.resultSummary;
   if (rawSummary) {
     try {
       const parsed =
@@ -66,8 +69,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         productId: item.productId,
         productName: item.productName || item.product?.name || "สินค้า",
         storeId: item.storeId,
-        customer:
-          item.store?.name || item.customerName || item.customer || "",
+        customer: item.store?.name || item.customerName || item.customer || "",
         usageResult: item.usageResult as any,
         followupDetail: item.followupDetail || "",
         problemDetail: item.problemDetail || "",
@@ -190,8 +192,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     ) {
       const t10Sales = resData.saleResults.filter(
         (s: any) =>
-          s.workTypeCode === "TYPE_10" ||
-          s.workTypeCode === "จัดงาน Field Day",
+          s.workTypeCode === "TYPE_10" || s.workTypeCode === "จัดงาน Field Day",
       );
       if (t10Sales.length > 0) {
         result.t10SoldProducts = t10Sales.map((item: any) => ({
@@ -213,7 +214,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 11 Stock Check Results
     const t11Parsed = parseType11ActualResult(resData);
-    if (t11Parsed.t11StockItems && (!result.t11StockItems || result.t11StockItems.length === 0)) {
+    if (
+      t11Parsed.t11StockItems &&
+      (!result.t11StockItems || result.t11StockItems.length === 0)
+    ) {
       result.t11StockItems = t11Parsed.t11StockItems;
     }
     if (t11Parsed.t11NextAction && !result.t11NextAction) {
@@ -234,14 +238,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t11Parsed.t11ReorderOpportunity && !result.t11ReorderOpportunity) {
       result.t11ReorderOpportunity = t11Parsed.t11ReorderOpportunity;
     }
-    if (t11Parsed.t11Images && (!result.t11Images || result.t11Images.length === 0)) {
+    if (
+      t11Parsed.t11Images &&
+      (!result.t11Images || result.t11Images.length === 0)
+    ) {
       result.t11Images = t11Parsed.t11Images;
     }
 
     // Type 12: พาลูกค้าศึกษาดูงาน (Tour)
     if (resData.type12Actual || resData.t12Actual) {
       const t12 = resData.type12Actual || resData.t12Actual;
-      if (t12.actualAttendees !== undefined && result.t12ActualAttendees === undefined) {
+      if (
+        t12.actualAttendees !== undefined &&
+        result.t12ActualAttendees === undefined
+      ) {
         result.t12ActualAttendees = t12.actualAttendees;
       }
       if (t12.tourHighlights && !result.t12TourHighlights) {
@@ -465,7 +475,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         .filter(
           (att) =>
             att.workTypeCode === "TYPE_12" ||
-            att.workTypeCode === "พาลูกค้าศึกษาดูงาน (ทัวร์)" ||
+            att.workTypeCode === "ทัวร์" ||
             att.workTypeCode === "ทัวร์" ||
             att.category === "TOUR",
         )

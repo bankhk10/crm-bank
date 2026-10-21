@@ -50,7 +50,7 @@ export function PlanWorkTypeSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Default options if not provided: Currently supported active types (TYPE_1 and TYPE_2)
+  // Default options if not provided: All 15 supported work types (TYPE_1 - TYPE_14)
   const options: PlanWorkTypeOption[] =
     activeWorkTypeOptions && activeWorkTypeOptions.length > 0
       ? activeWorkTypeOptions
@@ -64,6 +64,71 @@ export function PlanWorkTypeSelector({
             code: "TYPE_2",
             name: WORK_TYPE_CONFIG.TYPE_2.name,
             displayName: "ติดตามผลการใช้สินค้า (Type 2)",
+          },
+          {
+            code: "TYPE_3",
+            name: WORK_TYPE_CONFIG.TYPE_3.name,
+            displayName: "เสนอขายสินค้า (Type 3)",
+          },
+          {
+            code: "TYPE_4",
+            name: WORK_TYPE_CONFIG.TYPE_4.name,
+            displayName: "วางบิล / เก็บเงิน (Type 4)",
+          },
+          {
+            code: "TYPE_5",
+            name: WORK_TYPE_CONFIG.TYPE_5.name,
+            displayName: "สำรวจตลาดของคู่แข่ง (Type 5)",
+          },
+          {
+            code: "TYPE_6",
+            name: WORK_TYPE_CONFIG.TYPE_6.name,
+            displayName: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Type 6)",
+          },
+          {
+            code: "TYPE_7A",
+            name: WORK_TYPE_CONFIG.TYPE_7A.name,
+            displayName: "จัดทำแปลงสาธิต (Type 7A)",
+          },
+          {
+            code: "TYPE_7B",
+            name: WORK_TYPE_CONFIG.TYPE_7B.name,
+            displayName: "ติดตามแปลงสาธิต (Type 7B)",
+          },
+          {
+            code: "TYPE_8",
+            name: WORK_TYPE_CONFIG.TYPE_8.name,
+            displayName: "จัดประชุม (Type 8)",
+          },
+          {
+            code: "TYPE_9",
+            name: WORK_TYPE_CONFIG.TYPE_9.name,
+            displayName: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Type 9)",
+          },
+          {
+            code: "TYPE_10",
+            name: WORK_TYPE_CONFIG.TYPE_10.name,
+            displayName: "จัดงาน Field Day (Type 10)",
+          },
+          {
+            code: "TYPE_11",
+            name: WORK_TYPE_CONFIG.TYPE_11.name,
+            displayName: "ตรวจเช็คสต๊อกหน้าร้าน (Type 11)",
+          },
+          {
+            code: "TYPE_12",
+            name: WORK_TYPE_CONFIG.TYPE_12.name,
+            displayName: "ทัวร์ (Type 12)",
+          },
+          {
+            code: "TYPE_13",
+            name: WORK_TYPE_CONFIG.TYPE_13.name,
+            displayName: "ฉีดแปลงแฮตแทค (Type 13)",
+          },
+          {
+            code: "TYPE_14",
+            name: WORK_TYPE_CONFIG.TYPE_14.name,
+            displayName: "ติดตามแปลงแฮทแทค (Type 14)",
           },
         ];
 
@@ -102,9 +167,7 @@ export function PlanWorkTypeSelector({
     setSelectedWorkTypes(
       selectedWorkTypes.filter(
         (t) =>
-          t !== canonicalName &&
-          t !== typeStr &&
-          getWorkTypeCode(t) !== code,
+          t !== canonicalName && t !== typeStr && getWorkTypeCode(t) !== code,
       ),
     );
   };
@@ -137,18 +200,16 @@ export function PlanWorkTypeSelector({
         )}
       >
         {selectedWorkTypes.length === 0 ? (
-          <span className="text-slate-400 text-xs px-1">
-            เลือกประเภทงาน...
-          </span>
+          <span className="text-slate-400 text-xs px-1">เลือกประเภทงาน...</span>
         ) : (
           selectedWorkTypes.map((wt) => {
             const code = getWorkTypeCode(wt);
+            const matchedOption = options.find((opt) => opt.code === code);
             const label =
-              code === "TYPE_1"
-                ? "เข้าพบร้านค้า / Key Farmer (Type 1)"
-                : code === "TYPE_2"
-                  ? "ติดตามผลการใช้สินค้า (Type 2)"
-                  : wt;
+              matchedOption?.displayName ||
+              matchedOption?.name ||
+              getWorkTypeName(code) ||
+              wt;
 
             return (
               <span
@@ -186,9 +247,7 @@ export function PlanWorkTypeSelector({
             {options.map((typeItem) => {
               const code = typeItem.code;
               const displayName =
-                typeItem.displayName ||
-                getWorkTypeName(code) ||
-                typeItem.name;
+                typeItem.displayName || getWorkTypeName(code) || typeItem.name;
 
               const activeList = isSingleSelect
                 ? selectedWorkTypes

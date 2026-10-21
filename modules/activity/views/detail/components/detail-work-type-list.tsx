@@ -116,8 +116,7 @@ export function DetailWorkTypeList({
     Boolean(
       plan?.demoPlotVisits?.some(
         (v: any) =>
-          v.workTypeCode === "TYPE_10" ||
-          v.workTypeCode === "จัดงาน Field Day",
+          v.workTypeCode === "TYPE_10" || v.workTypeCode === "จัดงาน Field Day",
       ),
     );
 
@@ -137,7 +136,7 @@ export function DetailWorkTypeList({
     );
 
   const isType12 =
-    isTypeActive("TYPE_12", "พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    isTypeActive("TYPE_12", "ทัวร์") ||
     isTypeActive("TYPE_12", "ทัวร์") ||
     isTypeActive("TYPE_12", "ศึกษาดูงาน") ||
     Boolean(plan?.tour) ||
@@ -192,7 +191,11 @@ export function DetailWorkTypeList({
     if (type1Targets.primary?.productAdvice) {
       return type1Targets.primary.productAdvice;
     }
-    if (plan?.type1Products && Array.isArray(plan.type1Products) && plan.type1Products.length > 0) {
+    if (
+      plan?.type1Products &&
+      Array.isArray(plan.type1Products) &&
+      plan.type1Products.length > 0
+    ) {
       return plan.type1Products
         .map((p: any) => p.product?.name || p.productName || "")
         .filter(Boolean)
@@ -239,7 +242,10 @@ export function DetailWorkTypeList({
 
   // รวบรวมรูปภาพ Type 4 (Payment Images)
   const effectiveT4Images = useMemo(() => {
-    if (parsedResults?.t4PaymentImages && parsedResults.t4PaymentImages.length > 0) {
+    if (
+      parsedResults?.t4PaymentImages &&
+      parsedResults.t4PaymentImages.length > 0
+    ) {
       return parsedResults.t4PaymentImages;
     }
     const rawAttachmentsList: any[] = [
@@ -248,16 +254,18 @@ export function DetailWorkTypeList({
     ];
     return rawAttachmentsList
       .filter(
-        (att) =>
-          att?.workTypeCode === "TYPE_4" ||
-          att?.category === "PAYMENT",
+        (att) => att?.workTypeCode === "TYPE_4" || att?.category === "PAYMENT",
       )
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "หลักฐานการชำระเงิน",
       }));
-  }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.t4PaymentImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   const effectiveT6Images = useMemo(() => {
     if (parsedResults?.t6Images && parsedResults.t6Images.length > 0) {
@@ -269,9 +277,7 @@ export function DetailWorkTypeList({
     ];
     return rawAttachmentsList
       .filter(
-        (att) =>
-          att?.workTypeCode === "TYPE_6" ||
-          att?.category === "ISSUE",
+        (att) => att?.workTypeCode === "TYPE_6" || att?.category === "ISSUE",
       )
       .map((att) => ({
         id: att.id,
@@ -282,7 +288,10 @@ export function DetailWorkTypeList({
 
   // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
   const effectiveT7aImages = useMemo(() => {
-    if (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) {
+    if (
+      parsedResults?.t7InitialPhotos &&
+      parsedResults.t7InitialPhotos.length > 0
+    ) {
       return parsedResults.t7InitialPhotos;
     }
     const rawAttachmentsList: any[] = [
@@ -301,7 +310,11 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
       }));
-  }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.t7InitialPhotos,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
   const effectiveT7bImages = useMemo(() => {
@@ -327,7 +340,14 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายติดตามแปลงสาธิต",
       }));
-  }, [parsedResults?.t7CropImages, parsedResults?.t7PlotImages, plan?.attachments, plan?.result?.attachments, isType7b, isType7a]);
+  }, [
+    parsedResults?.t7CropImages,
+    parsedResults?.t7PlotImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+    isType7b,
+    isType7a,
+  ]);
 
   // รวบรวมรูปภาพ Type 8 (Attachments / Registration & Atmosphere)
   const effectiveT8RegistrationImages = useMemo(() => {
@@ -358,7 +378,12 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปใบลงทะเบียน",
       }));
-  }, [parsedResults?.type8Actual?.t8RegistrationImages, parsedResults?.t8RegistrationImages, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type8Actual?.t8RegistrationImages,
+    parsedResults?.t8RegistrationImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   const effectiveT8AtmosphereImages = useMemo(() => {
     if (
@@ -367,10 +392,7 @@ export function DetailWorkTypeList({
     ) {
       return parsedResults.type8Actual.t8Images;
     }
-    if (
-      parsedResults?.t8Images &&
-      parsedResults.t8Images.length > 0
-    ) {
+    if (parsedResults?.t8Images && parsedResults.t8Images.length > 0) {
       return parsedResults.t8Images;
     }
     const rawAttachmentsList: any[] = [
@@ -381,14 +403,21 @@ export function DetailWorkTypeList({
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
-          (att?.category === "ATMOSPHERE" || att?.group === "ATMOSPHERE" || att?.category === "MEETING"),
+          (att?.category === "ATMOSPHERE" ||
+            att?.group === "ATMOSPHERE" ||
+            att?.category === "MEETING"),
       )
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพบรรยากาศการประชุม",
       }));
-  }, [parsedResults?.type8Actual?.t8Images, parsedResults?.t8Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type8Actual?.t8Images,
+    parsedResults?.t8Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
   const effectiveT9Images = useMemo(() => {
@@ -418,7 +447,12 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
       }));
-  }, [parsedResults?.type9Actual?.images, parsedResults?.t9Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type9Actual?.images,
+    parsedResults?.t9Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 10 (Attachments / Atmosphere)
   const effectiveT10Images = useMemo(() => {
@@ -448,7 +482,12 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพถ่ายบรรยากาศงาน Field Day",
       }));
-  }, [parsedResults?.type10Actual?.images, parsedResults?.t10Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type10Actual?.images,
+    parsedResults?.t10Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 11 (Attachments / Stock Photos)
   const effectiveT11Images = useMemo(() => {
@@ -478,7 +517,12 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
       }));
-  }, [parsedResults?.type11Actual?.images, parsedResults?.t11Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type11Actual?.images,
+    parsedResults?.t11Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
   const effectiveT12Images = useMemo(() => {
@@ -507,7 +551,12 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
       }));
-  }, [parsedResults?.type12Actual?.images, parsedResults?.t12Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type12Actual?.images,
+    parsedResults?.t12Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -530,7 +579,8 @@ export function DetailWorkTypeList({
         productAdvice={effectiveProductAdvice}
         discussionResult={type1Targets.primary?.discussionResult}
         salesOpportunity={
-          (type1Targets.primary?.salesOpportunity as "สูง" | "ต่ำ" | "") || undefined
+          (type1Targets.primary?.salesOpportunity as "สูง" | "ต่ำ" | "") ||
+          undefined
         }
         nextAction={type1Targets.primary?.nextAction}
         nextMeetingDate={type1Targets.primary?.nextMeetingDate}
@@ -632,7 +682,12 @@ export function DetailWorkTypeList({
       {/* 🟢 TYPE 8: จัดประชุม (Meeting) */}
       <Type8DetailView
         isVisible={isType8}
-        target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
+        target={
+          targets?.t8 ||
+          targets?.t8List?.[0] ||
+          plan?.type8Targets?.[0] ||
+          plan?.type8Meetings?.[0]
+        }
         targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
         actualAttendees={
           parsedResults?.type8Actual?.t8ActualAttendees != null
@@ -641,7 +696,10 @@ export function DetailWorkTypeList({
               ? String(parsedResults.t8ActualAttendees)
               : undefined
         }
-        feedbackQnA={parsedResults?.type8Actual?.t8FeedbackQnA || parsedResults?.t8FeedbackQnA}
+        feedbackQnA={
+          parsedResults?.type8Actual?.t8FeedbackQnA ||
+          parsedResults?.t8FeedbackQnA
+        }
         productSalesDetails={
           parsedResults?.type8Actual?.t8ProductSalesDetails ||
           parsedResults?.t8ProductSalesDetails ||
@@ -698,11 +756,7 @@ export function DetailWorkTypeList({
           plan?.type10Targets?.[0] ||
           plan?.type10Plots?.[0]
         }
-        targets={
-          targets?.t10List ||
-          plan?.type10Targets ||
-          plan?.type10Plots
-        }
+        targets={targets?.t10List || plan?.type10Targets || plan?.type10Plots}
         actualAttendees={
           parsedResults?.type10Actual?.actualAttendees != null
             ? String(parsedResults.type10Actual.actualAttendees)
@@ -729,10 +783,7 @@ export function DetailWorkTypeList({
           parsedResults?.productSalesDetails ||
           plan?.productSalesDetails
         }
-        notes={
-          parsedResults?.type10Actual?.notes ||
-          parsedResults?.notes
-        }
+        notes={parsedResults?.type10Actual?.notes || parsedResults?.notes}
         images={effectiveT10Images}
       />
 
@@ -745,11 +796,7 @@ export function DetailWorkTypeList({
           plan?.type11Targets?.[0] ||
           plan?.type11Stores?.[0]
         }
-        targets={
-          targets?.t11List ||
-          plan?.type11Targets ||
-          plan?.type11Stores
-        }
+        targets={targets?.t11List || plan?.type11Targets || plan?.type11Stores}
         productList={
           parsedResults?.type11Actual?.t11ProductList ||
           parsedResults?.t11ProductList
@@ -759,8 +806,7 @@ export function DetailWorkTypeList({
           parsedResults?.t11RemainingQty
         }
         remarks={
-          parsedResults?.type11Actual?.t11Remarks ||
-          parsedResults?.t11Remarks
+          parsedResults?.type11Actual?.t11Remarks || parsedResults?.t11Remarks
         }
         stockItems={
           parsedResults?.type11Actual?.t11StockItems ||
@@ -780,15 +826,9 @@ export function DetailWorkTypeList({
       <Type12DetailView
         isVisible={isType12}
         target={
-          targets?.t12 ||
-          targets?.t12List?.[0] ||
-          plan?.tour ||
-          plan?.tourData
+          targets?.t12 || targets?.t12List?.[0] || plan?.tour || plan?.tourData
         }
-        targets={
-          targets?.t12List ||
-          (plan?.tour ? [plan.tour] : undefined)
-        }
+        targets={targets?.t12List || (plan?.tour ? [plan.tour] : undefined)}
         actualAttendees={
           parsedResults?.type12Actual?.actualAttendees ||
           parsedResults?.t12ActualAttendees

@@ -6,7 +6,11 @@ import { ActivityCustomerSelect, ActivityInput } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { CustomerOption, Type12TourProps } from "../types/planned.types";
 
-export type { CustomerOption, Type12TourProps, Type12TourProps as Type12PlanFormProps };
+export type {
+  CustomerOption,
+  Type12TourProps,
+  Type12TourProps as Type12PlanFormProps,
+};
 
 export function Type12PlannedForm({
   readonly = false,
@@ -29,7 +33,7 @@ export function Type12PlannedForm({
       <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <Plane className="h-4 w-4 text-sky-600" />
-          <span>พาลูกค้าศึกษาดูงาน (ทัวร์)</span>
+          <span>ทัวร์</span>
         </div>
       </div>
 
@@ -154,4 +158,8 @@ export function Type12PlannedForm({
   );
 }
 
-export { Type12PlannedForm as Type12Tour, Type12PlannedForm as EditType12Tour, Type12PlannedForm as Type12PlanForm };
+export {
+  Type12PlannedForm as Type12Tour,
+  Type12PlannedForm as EditType12Tour,
+  Type12PlannedForm as Type12PlanForm,
+};

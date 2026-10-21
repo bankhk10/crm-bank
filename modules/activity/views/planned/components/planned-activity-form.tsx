@@ -181,12 +181,8 @@ export function PlannedActivityForm({
     }
     if (initialData.activityType) {
       const code = getWorkTypeCode(initialData.activityType);
-      if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
-      if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
-      if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
-      if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
-      if (code === "TYPE_7B") return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
-      if (code === "TYPE_8") return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
+      const name = getWorkTypeName(code);
+      if (name && WORK_TYPE_CONFIG[code]) return [name];
     }
     if (
       (initialData.type8Meetings && initialData.type8Meetings.length > 0) ||
@@ -197,6 +193,44 @@ export function PlannedActivityForm({
       initialData.type8
     ) {
       return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
+    }
+    if (
+      (initialData.type9Stores && initialData.type9Stores.length > 0) ||
+      initialData.type9Data ||
+      initialData.type9
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_9.name];
+    }
+    if (
+      (initialData.type10Plots && initialData.type10Plots.length > 0) ||
+      initialData.type10Data ||
+      initialData.type10
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_10.name];
+    }
+    if (
+      (initialData.type11Stores && initialData.type11Stores.length > 0) ||
+      initialData.type11Data ||
+      initialData.type11
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_11.name];
+    }
+    if (initialData.tour || initialData.tourData || initialData.type12Data) {
+      return [WORK_TYPE_CONFIG.TYPE_12.name];
+    }
+    if (
+      (initialData.type13Plots && initialData.type13Plots.length > 0) ||
+      initialData.type13Data ||
+      initialData.type13
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_13.name];
+    }
+    if (
+      (initialData.type14Plots && initialData.type14Plots.length > 0) ||
+      initialData.type14Data ||
+      initialData.type14
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_14.name];
     }
     if (
       initialData.type1Stores &&
@@ -289,7 +323,7 @@ export function PlannedActivityForm({
     (wt) =>
       getWorkTypeCode(wt) === "TYPE_12" ||
       wt.includes("TYPE_12") ||
-      wt.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      wt.includes("ทัวร์") ||
       wt.includes("ศึกษาดูงาน") ||
       wt.includes("ทัวร์"),
   );
@@ -307,7 +341,7 @@ export function PlannedActivityForm({
       wt.includes("TYPE_14") ||
       wt.includes("ติดตามแปลงแฮทแทค") ||
       wt.includes("ติดตามแปลงแฮตแทค") ||
-      wt.includes("ติดตามแปลง"),
+      (wt.includes("ติดตามแปลง") && !wt.includes("สาธิต")),
   );
 
   // 2. Basic Info State
@@ -589,13 +623,15 @@ export function PlannedActivityForm({
       const type3Validation = type3.validateType3();
       if (!type3Validation.isValid) {
         toast.error(
-          type3Validation.error ||
-            "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง (Type 3)",
+          type3Validation.error || "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง (Type 3)",
         );
         return;
       }
 
-      const t3Payload = type3.mapType3Payload(customers as any, products as any);
+      const t3Payload = type3.mapType3Payload(
+        customers as any,
+        products as any,
+      );
       planStores = [...planStores, ...t3Payload.planStores];
       planProducts = [...planProducts, ...t3Payload.planProducts];
       type3TargetsPayload = t3Payload.type3Targets;
@@ -607,8 +643,7 @@ export function PlannedActivityForm({
       const type4Validation = type4.validateType4();
       if (!type4Validation.isValid) {
         toast.error(
-          type4Validation.error ||
-            "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง (Type 4)",
+          type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง (Type 4)",
         );
         return;
       }
@@ -662,8 +697,7 @@ export function PlannedActivityForm({
       const type7aValidation = type7a.validate();
       if (!type7aValidation.isValid) {
         toast.error(
-          type7aValidation.error ||
-            "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง (Type 7A)",
+          type7aValidation.error || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง (Type 7A)",
         );
         return;
       }
@@ -700,8 +734,7 @@ export function PlannedActivityForm({
       const type7bValidation = type7b.validateType7b();
       if (!type7bValidation.isValid) {
         toast.error(
-          type7bValidation.error ||
-            "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง (Type 7B)",
+          type7bValidation.error || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง (Type 7B)",
         );
         return;
       }
@@ -719,8 +752,7 @@ export function PlannedActivityForm({
       const type8Validation = type8.validateType8();
       if (!type8Validation.isValid) {
         toast.error(
-          type8Validation.error ||
-            "ข้อมูลจัดประชุมไม่ถูกต้อง (Type 8)",
+          type8Validation.error || "ข้อมูลจัดประชุมไม่ถูกต้อง (Type 8)",
         );
         return;
       }
@@ -915,19 +947,34 @@ export function PlannedActivityForm({
           (primaryCode === "TYPE_5" &&
             (t.code === "SURVEY" || t.name?.includes("สำรวจตลาด"))) ||
           (primaryCode === "TYPE_6" &&
-            (t.code === "ISSUE" || t.name?.includes("ร้องเรียน") || t.name?.includes("แก้ปัญหา"))) ||
+            (t.code === "ISSUE" ||
+              t.name?.includes("ร้องเรียน") ||
+              t.name?.includes("แก้ปัญหา"))) ||
           (primaryCode === "TYPE_7A" &&
-            (t.code === "DEMO" || t.code === "TYPE_7A" || (t.name?.includes("แปลงสาธิต") && !t.name?.includes("ติดตาม")))) ||
+            (t.code === "DEMO" ||
+              t.code === "TYPE_7A" ||
+              (t.name?.includes("แปลงสาธิต") &&
+                !t.name?.includes("ติดตาม")))) ||
           (primaryCode === "TYPE_7B" &&
             (t.code === "TYPE_7B" || t.name?.includes("ติดตามแปลงสาธิต"))) ||
           (primaryCode === "TYPE_8" &&
-            (t.code === "TYPE_8" || t.code === "MEETING" || t.name?.includes("ประชุม"))) ||
+            (t.code === "TYPE_8" ||
+              t.code === "MEETING" ||
+              t.name?.includes("ประชุม"))) ||
           (primaryCode === "TYPE_9" &&
-            (t.code === "TYPE_9" || t.code === "STORE_EVENT" || t.name?.includes("ส่งเสริมการขายหน้าร้าน"))) ||
+            (t.code === "TYPE_9" ||
+              t.code === "STORE_EVENT" ||
+              t.name?.includes("ส่งเสริมการขายหน้าร้าน"))) ||
           (primaryCode === "TYPE_12" &&
-            (t.code === "TYPE_12" || t.code === "TOUR" || t.name?.includes("ทัวร์") || t.name?.includes("ศึกษาดูงาน"))) ||
+            (t.code === "TYPE_12" ||
+              t.code === "TOUR" ||
+              t.name?.includes("ทัวร์") ||
+              t.name?.includes("ศึกษาดูงาน"))) ||
           (primaryCode === "TYPE_13" &&
-            (t.code === "TYPE_13" || t.code === "HATTACK" || t.name?.includes("ฉีดแปลง") || t.name?.includes("แฮตแทค"))),
+            (t.code === "TYPE_13" ||
+              t.code === "HATTACK" ||
+              t.name?.includes("ฉีดแปลง") ||
+              t.name?.includes("แฮตแทค"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -1088,7 +1135,14 @@ export function PlannedActivityForm({
         !isType5Active &&
         !isType6Active &&
         !isType7aActive &&
-        !isType7bActive && (
+        !isType7bActive &&
+        !isType8Active &&
+        !isType9Active &&
+        !isType10Active &&
+        !isType11Active &&
+        !isType12Active &&
+        !isType13Active &&
+        !isType14Active && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -1287,7 +1341,7 @@ export function PlannedActivityForm({
         />
       )}
 
-      {/* 3.13 ส่วนเฉพาะ Type 12: พาลูกค้าศึกษาดูงาน (ทัวร์) */}
+      {/* 3.13 ส่วนเฉพาะ Type 12: ทัวร์ */}
       {isType12Active && (
         <Type12PlannedForm
           readonly={readonly}

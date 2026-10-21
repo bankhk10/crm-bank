@@ -63,7 +63,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_7A: {
     code: "TYPE_7A",
-    name: "ทำแปลงสาธิต",
+    name: "จัดทำแปลงสาธิต",
     shortName: "DemoNew",
     sortOrder: 7,
     hasActual: true,
@@ -103,16 +103,16 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
   },
   TYPE_11: {
     code: "TYPE_11",
-    name: "จัดงานแสดงสินค้า / นิทรรศการ",
-    shortName: "Exhibition",
+    name: "ตรวจเช็คสต๊อกหน้าร้าน",
+    shortName: "StockCheck",
     sortOrder: 12,
     hasActual: true,
     requiresApproval: true,
   },
   TYPE_12: {
     code: "TYPE_12",
-    name: "ร่วมกิจกรรมกับหน่วยงานราชการ",
-    shortName: "Government",
+    name: "ทัวร์",
+    shortName: "Tour",
     sortOrder: 13,
     hasActual: true,
     requiresApproval: true,
@@ -158,10 +158,23 @@ export function getWorkTypeCode(nameOrCode: any): string {
   const upper = raw.toUpperCase().trim();
   if (WORK_TYPE_CONFIG[upper]) return upper;
 
-  // Match if input contains "TYPE_1", "TYPE_2", etc.
-  for (const key of Object.keys(WORK_TYPE_CONFIG)) {
+  // Match if input contains "TYPE_10".."TYPE_14", "TYPE_7A", "TYPE_7B", "TYPE_1".."TYPE_9" (longest first)
+  const sortedKeys = Object.keys(WORK_TYPE_CONFIG).sort(
+    (a, b) => b.length - a.length,
+  );
+  for (const key of sortedKeys) {
     if (upper.includes(key)) return key;
   }
+
+  // Common Thai alias matching
+  if (raw.includes("ทำแปลงสาธิต") && !raw.includes("ติดตาม")) return "TYPE_7A";
+  if (raw.includes("ตรวจเช็คสต๊อก") || raw.includes("ตรวจเช็กสต็อก"))
+    return "TYPE_11";
+  if (raw.includes("ศึกษาดูงาน") || raw.includes("ทัวร์")) return "TYPE_12";
+  if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮทแทค"))
+    return "TYPE_13";
+  if (raw.includes("ติดตามแปลงแฮทแทค") || raw.includes("ติดตามแปลงแฮตแทค"))
+    return "TYPE_14";
 
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
@@ -342,4 +355,3 @@ export {
   matchesPlanStatus,
   matchesSearchText,
 } from "./application/filters/activity-filter-matcher";
-

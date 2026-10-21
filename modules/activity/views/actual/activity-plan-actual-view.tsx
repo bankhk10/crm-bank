@@ -266,8 +266,13 @@ export function ActivityPlanActualView({
         type4Actual.hydrate(payloadToHydrate);
         type5Actual.hydrate(payloadToHydrate, { t5: extractedT5.primary });
         type6Actual.hydrate(payloadToHydrate);
-        type7aActual.hydrate(plan, payloadToHydrate, { t7a: extractedT7a.primary });
-        const parsedT7b = parseType7bActualResult(res.resultSummary || "", payloadToHydrate);
+        type7aActual.hydrate(plan, payloadToHydrate, {
+          t7a: extractedT7a.primary,
+        });
+        const parsedT7b = parseType7bActualResult(
+          res.resultSummary || "",
+          payloadToHydrate,
+        );
         if (Object.keys(parsedT7b).length > 0) {
           type7bActual.setActualState((prev) => ({ ...prev, ...parsedT7b }));
         }
@@ -282,7 +287,26 @@ export function ActivityPlanActualView({
       }
       setIsHydrated(true);
     }
-  }, [plan, isHydrated, type1Actual, type2Actual, type3Actual, type4Actual, type5Actual, type6Actual, type7aActual, type7bActual, type8Actual, type9Actual, type10Actual, type11Actual, type12Actual, type13Actual, type14Actual, statusState]);
+  }, [
+    plan,
+    isHydrated,
+    type1Actual,
+    type2Actual,
+    type3Actual,
+    type4Actual,
+    type5Actual,
+    type6Actual,
+    type7aActual,
+    type7bActual,
+    type8Actual,
+    type9Actual,
+    type10Actual,
+    type11Actual,
+    type12Actual,
+    type13Actual,
+    type14Actual,
+    statusState,
+  ]);
 
   const handleBack = () => {
     if (onCancel) onCancel();
@@ -313,8 +337,7 @@ export function ActivityPlanActualView({
       Boolean(plan?.type1Stores?.length) ||
       Boolean(
         plan?.stores?.some(
-          (s: any) =>
-            s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
+          (s: any) => s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",
         ),
       ) ||
       plan?.activityType?.code === "TYPE_1";
@@ -354,11 +377,10 @@ export function ActivityPlanActualView({
     const isType7aActive =
       planWorkTypes.includes("TYPE_7A") ||
       planWorkTypes.includes("จัดทำแปลงสาธิต") ||
-      (planWorkTypes.includes("แปลงสาธิต") && !planWorkTypes.includes("ติดตามแปลงสาธิต")) ||
+      (planWorkTypes.includes("แปลงสาธิต") &&
+        !planWorkTypes.includes("ติดตามแปลงสาธิต")) ||
       Boolean(plan?.type7aPlots?.length) ||
-      Boolean(
-        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A"),
-      ) ||
+      Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
       plan?.activityType?.code === "TYPE_7A";
 
     const isType7bActive =
@@ -366,9 +388,7 @@ export function ActivityPlanActualView({
       planWorkTypes.includes("ติดตามแปลงสาธิต") ||
       Boolean(plan?.type7bFollowUps?.length) ||
       Boolean(plan?.type7bPlots?.length) ||
-      Boolean(
-        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B"),
-      ) ||
+      Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
       plan?.activityType?.code === "TYPE_7B";
 
     const isType8Active =
@@ -380,9 +400,7 @@ export function ActivityPlanActualView({
       Boolean(plan?.type8Meetings?.length) ||
       Boolean(plan?.type8Data) ||
       Boolean(plan?.type8) ||
-      Boolean(
-        plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_8"),
-      ) ||
+      Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_8")) ||
       plan?.activityType?.code === "TYPE_8";
 
     const isType9Active =
@@ -440,7 +458,7 @@ export function ActivityPlanActualView({
 
     const isType12Active =
       planWorkTypes.includes("TYPE_12") ||
-      planWorkTypes.includes("พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+      planWorkTypes.includes("ทัวร์") ||
       planWorkTypes.includes("ทัวร์") ||
       planWorkTypes.includes("ศึกษาดูงาน") ||
       Boolean(plan?.tour) ||
@@ -631,7 +649,9 @@ export function ActivityPlanActualView({
 
       // Delegate Type 12 validation to features/type-12 domain logic
       if (isType12Active) {
-        const t12Validation = validateType12Actual(type12Actual.collectPayload());
+        const t12Validation = validateType12Actual(
+          type12Actual.collectPayload(),
+        );
         if (!t12Validation.isValid && t12Validation.error) {
           missingFields.push(t12Validation.error);
         }
@@ -639,7 +659,9 @@ export function ActivityPlanActualView({
 
       // Delegate Type 13 validation to features/type-13 domain logic
       if (isType13Active) {
-        const t13Validation = validateType13Actual(type13Actual.collectPayload());
+        const t13Validation = validateType13Actual(
+          type13Actual.collectPayload(),
+        );
         if (!t13Validation.isValid && t13Validation.error) {
           missingFields.push(t13Validation.error);
         }
@@ -647,7 +669,9 @@ export function ActivityPlanActualView({
 
       // Delegate Type 14 validation to features/type-14 domain logic
       if (isType14Active) {
-        const t14Validation = validateType14Actual(type14Actual.collectPayload());
+        const t14Validation = validateType14Actual(
+          type14Actual.collectPayload(),
+        );
         if (!t14Validation.isValid && t14Validation.error) {
           missingFields.push(t14Validation.error);
         }
@@ -878,7 +902,9 @@ export function ActivityPlanActualView({
           payload = {
             ...payload,
             ...t6Payload,
-            issueResults: t6Payload.t6IssueRecord ? [t6Payload.t6IssueRecord] : [],
+            issueResults: t6Payload.t6IssueRecord
+              ? [t6Payload.t6IssueRecord]
+              : [],
             attachments: [
               ...(payload.attachments || []),
               ...cleanImages.map((img) => ({
@@ -918,15 +944,22 @@ export function ActivityPlanActualView({
             ...t7Payload,
             type7aPlots: [
               {
-                id: type7aActual.t7DemoPlotId || type7aTargets[0]?.id || "plot-0",
+                id:
+                  type7aActual.t7DemoPlotId || type7aTargets[0]?.id || "plot-0",
                 plotName: type7aActual.t7PlotName,
                 farmerName: type7aActual.t7FarmerName,
                 cropCategory: type7aActual.t7CropCategory,
                 cropName: type7aActual.t7CropName,
-                areaRai: type7aActual.t7AreaRai ? Number(type7aActual.t7AreaRai) : null,
+                areaRai: type7aActual.t7AreaRai
+                  ? Number(type7aActual.t7AreaRai)
+                  : null,
                 objective: type7aActual.t7PlotObjective,
-                latitude: type7aActual.t7Latitude ? Number(type7aActual.t7Latitude) : null,
-                longitude: type7aActual.t7Longitude ? Number(type7aActual.t7Longitude) : null,
+                latitude: type7aActual.t7Latitude
+                  ? Number(type7aActual.t7Latitude)
+                  : null,
+                longitude: type7aActual.t7Longitude
+                  ? Number(type7aActual.t7Longitude)
+                  : null,
                 demoProducts: type7aActual.t7DemoProducts,
               },
             ],
@@ -1013,9 +1046,7 @@ export function ActivityPlanActualView({
             !isType7aActive
           ) {
             const plotName =
-              t7bRecord.t7PlotName ||
-              type7bTargets[0]?.plotName ||
-              "แปลงสาธิต";
+              t7bRecord.t7PlotName || type7bTargets[0]?.plotName || "แปลงสาธิต";
             payload.resultSummary = `ติดตามแปลงสาธิต: ${plotName} (สภาพพืช: ${t7bRecord.t7CropCondition || "ปกติ"})`;
           }
         }
@@ -1316,14 +1347,16 @@ export function ActivityPlanActualView({
               "type13_after_spray",
               "after_spray",
             );
-            uploadedAttachments = (imgResult.updatedImages || []).map((img: any) => ({
-              category: "AFTER_SPRAY",
-              fileUrl: img.url,
-              fileName: img.name || "ภาพหลังการฉีดพ่น",
-              fileSize: (img as any).size || 0,
-              mimeType: (img as any).type || "image/jpeg",
-              workTypeCode: "TYPE_13",
-            }));
+            uploadedAttachments = (imgResult.updatedImages || []).map(
+              (img: any) => ({
+                category: "AFTER_SPRAY",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพหลังการฉีดพ่น",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_13",
+              }),
+            );
           }
 
           payload = {
@@ -1358,10 +1391,15 @@ export function ActivityPlanActualView({
         // Collect Type 14 payload if active
         if (isType14Active) {
           const newlyUploadedUrls: string[] = [];
-          const updatedRounds = await type14Actual.uploadImages(id, newlyUploadedUrls);
+          const updatedRounds = await type14Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
           const t14Payload = type14Actual.collectPayload(updatedRounds);
 
-          const allT14Images = updatedRounds.flatMap((r) => r.afterSprayImages || []);
+          const allT14Images = updatedRounds.flatMap(
+            (r) => r.afterSprayImages || [],
+          );
           const uploadedAttachments = allT14Images.map((img: any) => ({
             category: "TRACKING_AFTER_SPRAY",
             fileUrl: img.url,

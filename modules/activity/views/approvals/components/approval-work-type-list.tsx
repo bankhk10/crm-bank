@@ -161,8 +161,7 @@ export function ApprovalWorkTypeList({
     Boolean(
       plan?.demoPlotVisits?.some(
         (v: any) =>
-          v.workTypeCode === "TYPE_10" ||
-          v.workTypeCode === "จัดงาน Field Day",
+          v.workTypeCode === "TYPE_10" || v.workTypeCode === "จัดงาน Field Day",
       ),
     );
 
@@ -182,7 +181,7 @@ export function ApprovalWorkTypeList({
     );
 
   const isType12 =
-    isTypeActive("TYPE_12", "พาลูกค้าศึกษาดูงาน (ทัวร์)") ||
+    isTypeActive("TYPE_12", "ทัวร์") ||
     isTypeActive("TYPE_12", "ทัวร์") ||
     isTypeActive("TYPE_12", "ศึกษาดูงาน") ||
     Boolean(plan?.tour) ||
@@ -222,7 +221,11 @@ export function ApprovalWorkTypeList({
   // ตรวจสอบว่ามีข้อมูลผลการปฏิบัติงานจริง (Actual Result) หรือไม่
   const hasActualResults = useMemo(() => {
     if (isUnplanned) return true;
-    if (plan?.result || plan?.type1Result || (plan?.type1Results && plan.type1Results.length > 0)) {
+    if (
+      plan?.result ||
+      plan?.type1Result ||
+      (plan?.type1Results && plan.type1Results.length > 0)
+    ) {
       return true;
     }
     const primary = type1Targets.primary;
@@ -236,9 +239,13 @@ export function ApprovalWorkTypeList({
     }
     return Boolean(
       type1Targets.list &&
-        type1Targets.list.some(
-          (t) => t.discussionResult || t.plotLatitude || t.farmerHomeAddress || t.productAdvice,
-        ),
+      type1Targets.list.some(
+        (t) =>
+          t.discussionResult ||
+          t.plotLatitude ||
+          t.farmerHomeAddress ||
+          t.productAdvice,
+      ),
     );
   }, [isUnplanned, plan, type1Targets]);
 
@@ -258,17 +265,14 @@ export function ApprovalWorkTypeList({
     }
     return Boolean(
       parsedResults?.t2UsageResult ||
-        parsedResults?.t2ProblemDetail ||
-        parsedResults?.t2FollowupDetail,
+      parsedResults?.t2ProblemDetail ||
+      parsedResults?.t2FollowupDetail,
     );
   }, [isUnplanned, plan, parsedResults]);
 
   const hasType3ActualResults = useMemo(() => {
     if (isUnplanned) return true;
-    if (
-      plan?.result?.saleResults &&
-      plan.result.saleResults.length > 0
-    ) {
+    if (plan?.result?.saleResults && plan.result.saleResults.length > 0) {
       return true;
     }
     if (
@@ -279,8 +283,8 @@ export function ApprovalWorkTypeList({
     }
     return Boolean(
       parsedResults?.t3ActualQuantity ||
-        parsedResults?.t3ActualSales ||
-        parsedResults?.t3SoldProducts,
+      parsedResults?.t3ActualSales ||
+      parsedResults?.t3SoldProducts,
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -291,10 +295,10 @@ export function ApprovalWorkTypeList({
     }
     return Boolean(
       parsedResults?.t4OrderNo ||
-        parsedResults?.t4ReceivedAmount ||
-        parsedResults?.t4BillingStatus ||
-        parsedResults?.t4BillingDetail ||
-        parsedResults?.t4CollectDetail,
+      parsedResults?.t4ReceivedAmount ||
+      parsedResults?.t4BillingStatus ||
+      parsedResults?.t4BillingDetail ||
+      parsedResults?.t4CollectDetail,
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -304,8 +308,8 @@ export function ApprovalWorkTypeList({
     return Boolean(
       (parsedResults?.t5SurveyDetails &&
         parsedResults.t5SurveyDetails.length > 0) ||
-        parsedResults?.t5CompetitorBrand ||
-        parsedResults?.t5CompetitorProduct,
+      parsedResults?.t5CompetitorBrand ||
+      parsedResults?.t5CompetitorProduct,
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -314,9 +318,9 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.issueResults?.length) return true;
     return Boolean(
       parsedResults?.t6IssueRecord ||
-        parsedResults?.t6ProblemDetail ||
-        parsedResults?.t6InitialSolution ||
-        (parsedResults?.t6Images && parsedResults.t6Images.length > 0),
+      parsedResults?.t6ProblemDetail ||
+      parsedResults?.t6InitialSolution ||
+      (parsedResults?.t6Images && parsedResults.t6Images.length > 0),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -325,15 +329,16 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type7aPlots?.length) return true;
     return Boolean(
       parsedResults?.t7PlotName ||
-        parsedResults?.t7CropName ||
-        (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_7A" ||
-              a.category === "PLOT" ||
-              a.category === "INITIAL",
-          )),
+      parsedResults?.t7CropName ||
+      (parsedResults?.t7InitialPhotos &&
+        parsedResults.t7InitialPhotos.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_7A" ||
+            a.category === "PLOT" ||
+            a.category === "INITIAL",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -342,14 +347,12 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type7bActual) return true;
     return Boolean(
       parsedResults?.type7bActual ||
-        parsedResults?.t7CropCondition ||
-        (parsedResults?.t7CropImages && parsedResults.t7CropImages.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_7B" ||
-              a.category === "CROP",
-          )),
+      parsedResults?.t7CropCondition ||
+      (parsedResults?.t7CropImages && parsedResults.t7CropImages.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) => a.workTypeCode === "TYPE_7B" || a.category === "CROP",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -358,15 +361,18 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type8Actual) return true;
     return Boolean(
       parsedResults?.type8Actual ||
-        parsedResults?.t8ActualAttendees ||
-        parsedResults?.t8FeedbackQnA ||
-        (parsedResults?.t8RegistrationImages && parsedResults.t8RegistrationImages.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_8" &&
-              (a.category === "REGISTRATION" || a.category === "ATMOSPHERE" || a.group === "REGISTRATION"),
-          )),
+      parsedResults?.t8ActualAttendees ||
+      parsedResults?.t8FeedbackQnA ||
+      (parsedResults?.t8RegistrationImages &&
+        parsedResults.t8RegistrationImages.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_8" &&
+            (a.category === "REGISTRATION" ||
+              a.category === "ATMOSPHERE" ||
+              a.group === "REGISTRATION"),
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -375,18 +381,19 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type9Actual || plan?.type9Actual) return true;
     return Boolean(
       parsedResults?.type9Actual ||
-        parsedResults?.actualSales ||
-        parsedResults?.actualAttendees ||
-        (parsedResults?.type9Actual?.images && parsedResults.type9Actual.images.length > 0) ||
-        (parsedResults?.t9Images && parsedResults.t9Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_9" ||
-              a.category === "ATMOSPHERE" ||
-              a.category === "STORE_EVENT" ||
-              a.category === "type9",
-          )),
+      parsedResults?.actualSales ||
+      parsedResults?.actualAttendees ||
+      (parsedResults?.type9Actual?.images &&
+        parsedResults.type9Actual.images.length > 0) ||
+      (parsedResults?.t9Images && parsedResults.t9Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_9" ||
+            a.category === "ATMOSPHERE" ||
+            a.category === "STORE_EVENT" ||
+            a.category === "type9",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -395,18 +402,19 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type10Actual || plan?.type10Actual) return true;
     return Boolean(
       parsedResults?.type10Actual ||
-        parsedResults?.actualSalesOrBooking ||
-        parsedResults?.actualAttendees ||
-        (parsedResults?.type10Actual?.images && parsedResults.type10Actual.images.length > 0) ||
-        (parsedResults?.t10Images && parsedResults.t10Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_10" ||
-              a.category === "ATMOSPHERE" ||
-              a.category === "FIELD_DAY" ||
-              a.category === "type10",
-          )),
+      parsedResults?.actualSalesOrBooking ||
+      parsedResults?.actualAttendees ||
+      (parsedResults?.type10Actual?.images &&
+        parsedResults.type10Actual.images.length > 0) ||
+      (parsedResults?.t10Images && parsedResults.t10Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_10" ||
+            a.category === "ATMOSPHERE" ||
+            a.category === "FIELD_DAY" ||
+            a.category === "type10",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -415,18 +423,19 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type11Actual || plan?.type11Actual) return true;
     return Boolean(
       parsedResults?.type11Actual ||
-        parsedResults?.t11StockItems?.length ||
-        parsedResults?.stockResults?.length ||
-        (parsedResults?.type11Actual?.images && parsedResults.type11Actual.images.length > 0) ||
-        (parsedResults?.t11Images && parsedResults.t11Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_11" ||
-              a.category === "STOCK" ||
-              a.category === "stock" ||
-              a.category === "type11",
-          )),
+      parsedResults?.t11StockItems?.length ||
+      parsedResults?.stockResults?.length ||
+      (parsedResults?.type11Actual?.images &&
+        parsedResults.type11Actual.images.length > 0) ||
+      (parsedResults?.t11Images && parsedResults.t11Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_11" ||
+            a.category === "STOCK" ||
+            a.category === "stock" ||
+            a.category === "type11",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -435,18 +444,19 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type12Actual || plan?.type12Actual) return true;
     return Boolean(
       parsedResults?.type12Actual ||
-        parsedResults?.t12ActualAttendees ||
-        parsedResults?.t12TourHighlights ||
-        parsedResults?.t12FeedbackIssues ||
-        (parsedResults?.type12Actual?.images && parsedResults.type12Actual.images.length > 0) ||
-        (parsedResults?.t12Images && parsedResults.t12Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_12" ||
-              a.category === "TOUR" ||
-              a.category === "type12",
-          )),
+      parsedResults?.t12ActualAttendees ||
+      parsedResults?.t12TourHighlights ||
+      parsedResults?.t12FeedbackIssues ||
+      (parsedResults?.type12Actual?.images &&
+        parsedResults.type12Actual.images.length > 0) ||
+      (parsedResults?.t12Images && parsedResults.t12Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_12" ||
+            a.category === "TOUR" ||
+            a.category === "type12",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -455,17 +465,18 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type13Actual || plan?.type13Actual) return true;
     return Boolean(
       parsedResults?.type13Actual ||
-        (parsedResults?.t13Plots && parsedResults.t13Plots.length > 0) ||
-        (parsedResults?.t13SprayRounds && parsedResults.t13SprayRounds.length > 0) ||
-        (parsedResults?.t13Images && parsedResults.t13Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_13" ||
-              a.category === "AFTER_SPRAY" ||
-              a.category === "type13" ||
-              a.category === "demo_plot_after_spray",
-          )),
+      (parsedResults?.t13Plots && parsedResults.t13Plots.length > 0) ||
+      (parsedResults?.t13SprayRounds &&
+        parsedResults.t13SprayRounds.length > 0) ||
+      (parsedResults?.t13Images && parsedResults.t13Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_13" ||
+            a.category === "AFTER_SPRAY" ||
+            a.category === "type13" ||
+            a.category === "demo_plot_after_spray",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -474,15 +485,16 @@ export function ApprovalWorkTypeList({
     if (plan?.result?.type14Actual || plan?.type14Actual) return true;
     return Boolean(
       parsedResults?.type14Actual ||
-        (parsedResults?.t14FollowUpRounds && parsedResults.t14FollowUpRounds.length > 0) ||
-        (parsedResults?.t14Images && parsedResults.t14Images.length > 0) ||
-        (plan?.attachments &&
-          plan.attachments.some(
-            (a: any) =>
-              a.workTypeCode === "TYPE_14" ||
-              a.category === "TRACKING_AFTER_SPRAY" ||
-              a.category === "type14",
-          )),
+      (parsedResults?.t14FollowUpRounds &&
+        parsedResults.t14FollowUpRounds.length > 0) ||
+      (parsedResults?.t14Images && parsedResults.t14Images.length > 0) ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_14" ||
+            a.category === "TRACKING_AFTER_SPRAY" ||
+            a.category === "type14",
+        )),
     );
   }, [isUnplanned, plan, parsedResults]);
 
@@ -506,7 +518,11 @@ export function ApprovalWorkTypeList({
     if (type1Targets.primary?.productAdvice) {
       return type1Targets.primary.productAdvice;
     }
-    if (plan?.type1Products && Array.isArray(plan.type1Products) && plan.type1Products.length > 0) {
+    if (
+      plan?.type1Products &&
+      Array.isArray(plan.type1Products) &&
+      plan.type1Products.length > 0
+    ) {
       return plan.type1Products
         .map((p: any) => p.product?.name || p.productName || "")
         .filter(Boolean)
@@ -517,7 +533,10 @@ export function ApprovalWorkTypeList({
 
   // รวบรวมรูปภาพ Type 4 (Payment Images)
   const effectiveT4Images = useMemo(() => {
-    if (parsedResults?.t4PaymentImages && parsedResults.t4PaymentImages.length > 0) {
+    if (
+      parsedResults?.t4PaymentImages &&
+      parsedResults.t4PaymentImages.length > 0
+    ) {
       return parsedResults.t4PaymentImages;
     }
     const rawAttachmentsList: any[] = [
@@ -526,16 +545,18 @@ export function ApprovalWorkTypeList({
     ];
     return rawAttachmentsList
       .filter(
-        (att) =>
-          att?.workTypeCode === "TYPE_4" ||
-          att?.category === "PAYMENT",
+        (att) => att?.workTypeCode === "TYPE_4" || att?.category === "PAYMENT",
       )
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "หลักฐานการชำระเงิน",
       }));
-  }, [parsedResults?.t4PaymentImages, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.t4PaymentImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 6 (Issue Images)
   const effectiveT6Images = useMemo(() => {
@@ -548,9 +569,7 @@ export function ApprovalWorkTypeList({
     ];
     return rawAttachmentsList
       .filter(
-        (att) =>
-          att?.workTypeCode === "TYPE_6" ||
-          att?.category === "ISSUE",
+        (att) => att?.workTypeCode === "TYPE_6" || att?.category === "ISSUE",
       )
       .map((att) => ({
         id: att.id,
@@ -561,7 +580,10 @@ export function ApprovalWorkTypeList({
 
   // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
   const effectiveT7aImages = useMemo(() => {
-    if (parsedResults?.t7InitialPhotos && parsedResults.t7InitialPhotos.length > 0) {
+    if (
+      parsedResults?.t7InitialPhotos &&
+      parsedResults.t7InitialPhotos.length > 0
+    ) {
       return parsedResults.t7InitialPhotos;
     }
     const rawAttachmentsList: any[] = [
@@ -580,7 +602,11 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
       }));
-  }, [parsedResults?.t7InitialPhotos, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.t7InitialPhotos,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
   const effectiveT7bImages = useMemo(() => {
@@ -606,7 +632,14 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายติดตามแปลงสาธิต",
       }));
-  }, [parsedResults?.t7CropImages, parsedResults?.t7PlotImages, plan?.attachments, plan?.result?.attachments, isType7b, isType7a]);
+  }, [
+    parsedResults?.t7CropImages,
+    parsedResults?.t7PlotImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+    isType7b,
+    isType7a,
+  ]);
 
   // รวบรวมรูปภาพ Type 8 (Attachments / Registration & Atmosphere)
   const effectiveT8RegistrationImages = useMemo(() => {
@@ -637,7 +670,12 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปใบลงทะเบียน",
       }));
-  }, [parsedResults?.type8Actual?.t8RegistrationImages, parsedResults?.t8RegistrationImages, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type8Actual?.t8RegistrationImages,
+    parsedResults?.t8RegistrationImages,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   const effectiveT8AtmosphereImages = useMemo(() => {
     if (
@@ -646,10 +684,7 @@ export function ApprovalWorkTypeList({
     ) {
       return parsedResults.type8Actual.t8Images;
     }
-    if (
-      parsedResults?.t8Images &&
-      parsedResults.t8Images.length > 0
-    ) {
+    if (parsedResults?.t8Images && parsedResults.t8Images.length > 0) {
       return parsedResults.t8Images;
     }
     const rawAttachmentsList: any[] = [
@@ -660,14 +695,21 @@ export function ApprovalWorkTypeList({
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
-          (att?.category === "ATMOSPHERE" || att?.group === "ATMOSPHERE" || att?.category === "MEETING"),
+          (att?.category === "ATMOSPHERE" ||
+            att?.group === "ATMOSPHERE" ||
+            att?.category === "MEETING"),
       )
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพบรรยากาศการประชุม",
       }));
-  }, [parsedResults?.type8Actual?.t8Images, parsedResults?.t8Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type8Actual?.t8Images,
+    parsedResults?.t8Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
   const effectiveT9Images = useMemo(() => {
@@ -697,7 +739,12 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพถ่ายกิจกรรมหน้าร้าน",
       }));
-  }, [parsedResults?.type9Actual?.images, parsedResults?.t9Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type9Actual?.images,
+    parsedResults?.t9Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 10 (Attachments / Atmosphere)
   const effectiveT10Images = useMemo(() => {
@@ -727,7 +774,12 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพถ่ายบรรยากาศงาน Field Day",
       }));
-  }, [parsedResults?.type10Actual?.images, parsedResults?.t10Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type10Actual?.images,
+    parsedResults?.t10Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 11 (Attachments / Stock Photos)
   const effectiveT11Images = useMemo(() => {
@@ -757,7 +809,12 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
       }));
-  }, [parsedResults?.type11Actual?.images, parsedResults?.t11Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type11Actual?.images,
+    parsedResults?.t11Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
   const effectiveT12Images = useMemo(() => {
@@ -786,7 +843,12 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
       }));
-  }, [parsedResults?.type12Actual?.images, parsedResults?.t12Images, plan?.attachments, plan?.result?.attachments]);
+  }, [
+    parsedResults?.type12Actual?.images,
+    parsedResults?.t12Images,
+    plan?.attachments,
+    plan?.result?.attachments,
+  ]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -819,7 +881,8 @@ export function ApprovalWorkTypeList({
           productAdvice={effectiveProductAdvice}
           discussionResult={type1Targets.primary?.discussionResult}
           salesOpportunity={
-            (type1Targets.primary?.salesOpportunity as "สูง" | "ต่ำ" | "") || undefined
+            (type1Targets.primary?.salesOpportunity as "สูง" | "ต่ำ" | "") ||
+            undefined
           }
           nextAction={type1Targets.primary?.nextAction}
           nextMeetingDate={type1Targets.primary?.nextMeetingDate}
@@ -995,8 +1058,15 @@ export function ApprovalWorkTypeList({
         (hasType8ActualResults ? (
           <Type8DetailView
             isVisible={true}
-            target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
-            targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
+            target={
+              targets?.t8 ||
+              targets?.t8List?.[0] ||
+              plan?.type8Targets?.[0] ||
+              plan?.type8Meetings?.[0]
+            }
+            targets={
+              targets?.t8List || plan?.type8Targets || plan?.type8Meetings
+            }
             actualAttendees={
               parsedResults?.type8Actual?.t8ActualAttendees != null
                 ? String(parsedResults.type8Actual.t8ActualAttendees)
@@ -1004,7 +1074,10 @@ export function ApprovalWorkTypeList({
                   ? String(parsedResults.t8ActualAttendees)
                   : undefined
             }
-            feedbackQnA={parsedResults?.type8Actual?.t8FeedbackQnA || parsedResults?.t8FeedbackQnA}
+            feedbackQnA={
+              parsedResults?.type8Actual?.t8FeedbackQnA ||
+              parsedResults?.t8FeedbackQnA
+            }
             productSalesDetails={
               parsedResults?.type8Actual?.t8ProductSalesDetails ||
               parsedResults?.t8ProductSalesDetails ||
@@ -1016,8 +1089,15 @@ export function ApprovalWorkTypeList({
         ) : (
           <Type8ApprovalCard
             isVisible={true}
-            target={targets?.t8 || targets?.t8List?.[0] || plan?.type8Targets?.[0] || plan?.type8Meetings?.[0]}
-            targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
+            target={
+              targets?.t8 ||
+              targets?.t8List?.[0] ||
+              plan?.type8Targets?.[0] ||
+              plan?.type8Meetings?.[0]
+            }
+            targets={
+              targets?.t8List || plan?.type8Targets || plan?.type8Meetings
+            }
             plan={plan}
           />
         ))}
@@ -1092,9 +1172,7 @@ export function ApprovalWorkTypeList({
               plan?.type10Plots?.[0]
             }
             targets={
-              targets?.t10List ||
-              plan?.type10Targets ||
-              plan?.type10Plots
+              targets?.t10List || plan?.type10Targets || plan?.type10Plots
             }
             actualAttendees={
               parsedResults?.type10Actual?.actualAttendees != null
@@ -1122,10 +1200,7 @@ export function ApprovalWorkTypeList({
               parsedResults?.productSalesDetails ||
               plan?.productSalesDetails
             }
-            notes={
-              parsedResults?.type10Actual?.notes ||
-              parsedResults?.notes
-            }
+            notes={parsedResults?.type10Actual?.notes || parsedResults?.notes}
             images={effectiveT10Images}
           />
         ) : (
@@ -1138,9 +1213,7 @@ export function ApprovalWorkTypeList({
               plan?.type10Plots?.[0]
             }
             targets={
-              targets?.t10List ||
-              plan?.type10Targets ||
-              plan?.type10Plots
+              targets?.t10List || plan?.type10Targets || plan?.type10Plots
             }
           />
         ))}
@@ -1157,9 +1230,7 @@ export function ApprovalWorkTypeList({
               plan?.type11Stores?.[0]
             }
             targets={
-              targets?.t11List ||
-              plan?.type11Targets ||
-              plan?.type11Stores
+              targets?.t11List || plan?.type11Targets || plan?.type11Stores
             }
             productList={
               parsedResults?.type11Actual?.t11ProductList ||
@@ -1196,9 +1267,7 @@ export function ApprovalWorkTypeList({
               plan?.type11Stores?.[0]
             }
             targets={
-              targets?.t11List ||
-              plan?.type11Targets ||
-              plan?.type11Stores
+              targets?.t11List || plan?.type11Targets || plan?.type11Stores
             }
           />
         ))}
@@ -1214,10 +1283,7 @@ export function ApprovalWorkTypeList({
               plan?.tour ||
               plan?.tourData
             }
-            targets={
-              targets?.t12List ||
-              (plan?.tour ? [plan.tour] : undefined)
-            }
+            targets={targets?.t12List || (plan?.tour ? [plan.tour] : undefined)}
             actualAttendees={
               parsedResults?.type12Actual?.actualAttendees ||
               parsedResults?.t12ActualAttendees
@@ -1241,10 +1307,7 @@ export function ApprovalWorkTypeList({
               plan?.tour ||
               plan?.tourData
             }
-            targets={
-              targets?.t12List ||
-              (plan?.tour ? [plan.tour] : undefined)
-            }
+            targets={targets?.t12List || (plan?.tour ? [plan.tour] : undefined)}
           />
         ))}
 

@@ -18,11 +18,7 @@ export function extractType12PlanTargets(
     storeName:
       tour?.store?.name || tour?.storeName || prevTarget?.storeName || null,
     destination: tour?.destination || prevTarget?.destination || null,
-    detail:
-      tour?.destination ||
-      tour?.country ||
-      prevTarget?.detail ||
-      "",
+    detail: tour?.destination || tour?.country || prevTarget?.detail || "",
   };
 
   return {
@@ -161,7 +157,7 @@ export function mapType12ToSectionItems(
 
   return {
     typeIndex: 12,
-    title: "พาลูกค้าศึกษาดูงาน (ทัวร์)",
+    title: "ทัวร์",
     badge: "ทัวร์",
     items: [
       {
