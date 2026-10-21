@@ -83,9 +83,7 @@ export function PlanBasicInfoCard({
             ) : (
               <>
                 <XCircle className="w-4.5 h-4.5 text-red-600 shrink-0" />
-                <span className="text-red-950 font-bold">
-                  เหตุผลที่ปฏิเสธ
-                </span>
+                <span className="text-red-950 font-bold">เหตุผลที่ปฏิเสธ</span>
               </>
             )}
           </div>
@@ -166,6 +164,20 @@ export function PlanBasicInfoCard({
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+        {/* Work Type Selector Node */}
+        {workTypeSelectorNode !== undefined ? (
+          workTypeSelectorNode
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              ประเภทงาน
+            </label>
+            <div className="h-10 flex items-center px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-emerald-800">
+              เข้าพบร้านค้า / Key Farmer (Type 1)
+            </div>
+          </div>
+        )}
+
         {/* ชื่อกิจกรรม */}
         <div className="lg:col-span-1">
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -180,20 +192,6 @@ export function PlanBasicInfoCard({
             className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
         </div>
-
-        {/* Work Type Selector Node */}
-        {workTypeSelectorNode !== undefined ? (
-          workTypeSelectorNode
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              ประเภทงาน
-            </label>
-            <div className="h-10 flex items-center px-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-semibold text-emerald-800">
-              เข้าพบร้านค้า / Key Farmer (Type 1)
-            </div>
-          </div>
-        )}
 
         {/* วันที่เริ่ม */}
         <DateTimePicker
