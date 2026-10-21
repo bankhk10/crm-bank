@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
-  Target,
-  ShoppingBag,
   CheckCircle2,
   Plus,
   Trash2,
@@ -36,11 +34,8 @@ export function Type3ActualForm({
   targets,
   products = [],
   setSoldProducts,
-  actualSales,
   setActualSales,
-  actualQuantity,
   setActualQuantity,
-  unclosedReason,
   setUnclosedReason,
   productSalesDetails = [],
   setProductSalesDetails,
@@ -48,8 +43,43 @@ export function Type3ActualForm({
   if (!isVisible) return null;
 
   const effectiveTargets = useMemo(() => {
-    return targets && targets.length > 0 ? targets : target ? [target] : [];
-  }, [targets, target]);
+    const rawList =
+      targets && targets.length > 0 ? targets : target ? [target] : [];
+    return rawList.map((t) => {
+      if (!t.items || t.items.length === 0) return t;
+      const enrichedItems = t.items.map((item) => {
+        const catalogProd = products.find(
+          (p) => p.id === item.productId || p.name === item.productName,
+        );
+        const qtyNum = Number(item.qty ?? 0) || 0;
+        const rawUnit = Number(item.unitPrice ?? 0) || 0;
+        const catalogPrice =
+          (catalogProd as any)?.price != null
+            ? Number((catalogProd as any).price)
+            : 0;
+        const effectiveUnit = rawUnit > 0 ? rawUnit : catalogPrice;
+        const rawSales = Number(item.targetSales ?? item.price ?? 0) || 0;
+        const effectiveSales =
+          qtyNum > 0 && effectiveUnit > 0 ? qtyNum * effectiveUnit : rawSales;
+
+        return {
+          ...item,
+          unitPrice: effectiveUnit,
+          price: effectiveSales,
+          targetSales: effectiveSales,
+        };
+      });
+      const totalAmount = enrichedItems.reduce(
+        (sum, it) => sum + (Number(it.targetSales) || 0),
+        0,
+      );
+      return {
+        ...t,
+        targetSales: totalAmount > 0 ? totalAmount : t.targetSales,
+        items: enrichedItems,
+      };
+    });
+  }, [targets, target, products]);
 
   // Extract planned items from targets
   const initialPlannedItems: TargetProductItem[] = useMemo(() => {
@@ -69,12 +99,49 @@ export function Type3ActualForm({
                     (!item.storeId || d.storeId === item.storeId))),
             ) || productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
 
+          const catalogProd = products.find(
+            (p) => p.id === item.productId || p.name === item.productName,
+          );
+          const catalogPrice =
+            (catalogProd as any)?.price != null
+              ? Number((catalogProd as any).price)
+              : 0;
+
+          const resolvedActualQty =
+            saved?.actualQty ??
+            (saved as any)?.actualQuantity ??
+            item.actualQty ??
+            item.qty ??
+            "";
+          const rawSavedUnit = Number(
+            saved?.unitPrice ?? (saved as any)?.actualUnitPrice ?? 0,
+          );
+          const rawItemUnit = Number(item.unitPrice ?? 0);
+          const resolvedUnitPrice =
+            rawSavedUnit > 0
+              ? rawSavedUnit
+              : rawItemUnit > 0
+                ? rawItemUnit
+                : catalogPrice;
+          const rawSavedSales =
+            saved?.actualSales ??
+            (saved as any)?.actualTotal ??
+            item.actualSales;
+          const resolvedActualSales =
+            rawSavedSales != null &&
+            rawSavedSales !== "" &&
+            Number(rawSavedSales) > 0
+              ? String(rawSavedSales)
+              : resolvedActualQty !== ""
+                ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
+                : "";
+
           allItems.push({
             ...item,
-            productId: item.productId,
-            actualQty: saved?.actualQty ?? item.actualQty ?? item.qty ?? "",
-            unitPrice: saved?.unitPrice ?? item.unitPrice ?? 0,
-            actualSales: saved?.actualSales ?? item.actualSales ?? "",
+            productId: item.productId || catalogProd?.id,
+            actualQty: resolvedActualQty,
+            unitPrice: resolvedUnitPrice,
+            actualSales: resolvedActualSales,
             unclosedReason: saved?.unclosedReason ?? item.unclosedReason ?? "",
             isAdditional: false,
           });
@@ -85,6 +152,25 @@ export function Type3ActualForm({
             (d) => !d.isAdditional && d.productName === t.product,
           ) || productSalesDetails?.[0];
 
+        const resolvedActualQty =
+          saved?.actualQty ??
+          (saved as any)?.actualQuantity ??
+          t.targetQty ??
+          "";
+        const resolvedUnitPrice =
+          Number(
+            saved?.unitPrice ??
+              (saved as any)?.actualUnitPrice ??
+              t.unitPrice ??
+              0,
+          ) || 0;
+        const resolvedActualSales =
+          saved?.actualSales ??
+          (saved as any)?.actualTotal ??
+          (resolvedActualQty !== ""
+            ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
+            : "");
+
         allItems.push({
           id: t.id || "planned-single",
           productName: t.product,
@@ -94,10 +180,10 @@ export function Type3ActualForm({
           subDealerStore: t.subDealerStore,
           dealerName: t.dealerName,
           qty: t.targetQty,
-          unitPrice: t.unitPrice ?? 0,
+          unitPrice: resolvedUnitPrice,
           detail: t.detail,
-          actualQty: saved?.actualQty ?? t.targetQty ?? "",
-          actualSales: saved?.actualSales ?? "",
+          actualQty: resolvedActualQty,
+          actualSales: resolvedActualSales,
           unclosedReason: saved?.unclosedReason ?? "",
           isAdditional: false,
         });
@@ -105,7 +191,7 @@ export function Type3ActualForm({
     });
 
     return allItems;
-  }, [effectiveTargets, productSalesDetails]);
+  }, [effectiveTargets, productSalesDetails, products]);
 
   // State: Planned items
   const [plannedItems, setPlannedItems] = useState<TargetProductItem[]>(() => {
@@ -126,9 +212,9 @@ export function Type3ActualForm({
         productId: item.productId,
         productName: item.productName || "",
         qty: "",
-        unitPrice: item.unitPrice ?? 0,
-        actualQty: item.actualQty ?? 1,
-        actualSales: item.actualSales ?? "",
+        unitPrice: item.unitPrice ?? (item as any).actualUnitPrice ?? 0,
+        actualQty: item.actualQty ?? (item as any).actualQuantity ?? 1,
+        actualSales: item.actualSales ?? (item as any).actualTotal ?? "",
         unclosedReason: item.unclosedReason || "",
         isAdditional: true,
       }));
@@ -140,11 +226,11 @@ export function Type3ActualForm({
     (planned: TargetProductItem[], additional: TargetProductItem[]) => {
       const all: Type3ProductSaleDetail[] = [
         ...planned.map((p) => {
-          const qty = Number(p.actualQty ?? 0);
-          const uPrice = Number(p.unitPrice ?? 0);
+          const qty = Number(p.actualQty ?? 0) || 0;
+          const uPrice = Number(p.unitPrice ?? 0) || 0;
           const total =
             p.actualSales != null && p.actualSales !== ""
-              ? Number(p.actualSales)
+              ? Number(p.actualSales) || 0
               : qty * uPrice;
 
           return {
@@ -158,16 +244,19 @@ export function Type3ActualForm({
             price: p.price,
             actualQty: qty,
             actualSales: total,
+            actualQuantity: qty,
+            actualUnitPrice: uPrice,
+            actualTotal: total,
             unclosedReason: p.unclosedReason || "",
             isAdditional: false,
           };
         }),
         ...additional.map((a) => {
-          const qty = Number(a.actualQty ?? 0);
-          const uPrice = Number(a.unitPrice ?? 0);
+          const qty = Number(a.actualQty ?? 0) || 0;
+          const uPrice = Number(a.unitPrice ?? 0) || 0;
           const total =
             a.actualSales != null && a.actualSales !== ""
-              ? Number(a.actualSales)
+              ? Number(a.actualSales) || 0
               : qty * uPrice;
 
           return {
@@ -179,6 +268,9 @@ export function Type3ActualForm({
             unitPrice: uPrice,
             actualQty: qty,
             actualSales: total,
+            actualQuantity: qty,
+            actualUnitPrice: uPrice,
+            actualTotal: total,
             unclosedReason: a.unclosedReason || "",
             isAdditional: true,
           };
@@ -220,6 +312,37 @@ export function Type3ActualForm({
       setUnclosedReason,
     ],
   );
+
+  // Sync initial planned items when targets/products finish loading
+  const hasSyncedInitialRef = useRef(false);
+  useEffect(() => {
+    if (initialPlannedItems.length === 0) return;
+    if (!hasSyncedInitialRef.current || plannedItems.length === 0) {
+      hasSyncedInitialRef.current = true;
+      setPlannedItems(initialPlannedItems);
+      syncToParent(initialPlannedItems, additionalItems);
+    } else if (
+      products.length > 0 &&
+      plannedItems.some((p) => !(Number(p.unitPrice) > 0)) &&
+      initialPlannedItems.some((p) => Number(p.unitPrice) > 0)
+    ) {
+      const merged = plannedItems.map((curr, idx) => {
+        const initItem = initialPlannedItems[idx];
+        const u =
+          Number(curr.unitPrice) > 0
+            ? Number(curr.unitPrice)
+            : Number(initItem?.unitPrice) || 0;
+        const q = Number(curr.actualQty ?? 0) || 0;
+        return {
+          ...curr,
+          unitPrice: u,
+          actualSales: String(q * u),
+        };
+      });
+      setPlannedItems(merged);
+      syncToParent(merged, additionalItems);
+    }
+  }, [initialPlannedItems, products.length]);
 
   const updatePlannedItem = (
     index: number,
@@ -266,12 +389,15 @@ export function Type3ActualForm({
 
     if (field === "productName" && val) {
       const found =
-        productItem || products.find((p) => p.name === val || p.id === val);
+        productItem ||
+        products.find((p) => p.name === val || p.id === val);
       if (found) {
         item.productId = found.id;
         item.productName = found.name;
         if ((found as any).price != null) {
           item.unitPrice = Number((found as any).price);
+          const q = Number(item.actualQty) || 1;
+          item.actualSales = String(q * Number((found as any).price));
         }
       }
     }
@@ -337,8 +463,7 @@ export function Type3ActualForm({
                 บันทึกผลการเสนอขายสินค้าจริง (Actual Sales Outcome)
               </h4>
               <p className="text-xs text-slate-500">
-                ระบุจำนวนที่สามารถปิดการขายได้จริง
-                และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
+                ระบุจำนวนที่สามารถปิดการขายได้จริง และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
               </p>
             </div>
           </div>
@@ -422,15 +547,14 @@ export function Type3ActualForm({
                           เป้าหมายตามแผน
                         </span>
                         <strong className="text-slate-800 text-sm">
-                          {targetQty.toLocaleString()} ลัง
+                          {targetQty.toLocaleString()} หน่วย
                         </strong>
                       </div>
 
                       {/* Actual Qty Input */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          จำนวนที่ขายได้จริง{" "}
-                          <span className="text-rose-500">*</span>
+                          จำนวนที่ขายได้จริง <span className="text-rose-500">*</span>
                         </label>
                         <ActivityInput
                           type="number"
@@ -468,14 +592,7 @@ export function Type3ActualForm({
                           ยอดขายจริงที่ปิดได้
                         </span>
                         <strong className="text-emerald-900 text-sm font-extrabold text-right">
-                          ฿
-                          {(Number(item.actualSales) || 0).toLocaleString(
-                            undefined,
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            },
-                          )}
+                          ฿{(Number(item.actualSales) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </strong>
                       </div>
                     </div>
@@ -485,18 +602,13 @@ export function Type3ActualForm({
                       <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-2.5 space-y-1.5">
                         <span className="text-amber-800 font-bold text-xs flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า{" "}
-                          <span className="text-rose-500">*</span>
+                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า <span className="text-rose-500">*</span>
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <select
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(
-                                idx,
-                                "unclosedReason",
-                                e.target.value,
-                              )
+                              updatePlannedItem(idx, "unclosedReason", e.target.value)
                             }
                             className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                           >
@@ -511,11 +623,7 @@ export function Type3ActualForm({
                             type="text"
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(
-                                idx,
-                                "unclosedReason",
-                                e.target.value,
-                              )
+                              updatePlannedItem(idx, "unclosedReason", e.target.value)
                             }
                             placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
                             className="bg-white text-xs"
@@ -586,11 +694,7 @@ export function Type3ActualForm({
                         min={1}
                         value={addItem.actualQty}
                         onChange={(e) =>
-                          updateAdditionalItem(
-                            aIdx,
-                            "actualQty",
-                            e.target.value,
-                          )
+                          updateAdditionalItem(aIdx, "actualQty", e.target.value)
                         }
                         className="text-center font-bold text-purple-900 bg-white"
                       />
@@ -605,11 +709,7 @@ export function Type3ActualForm({
                         min={0}
                         value={addItem.unitPrice ?? 0}
                         onChange={(e) =>
-                          updateAdditionalItem(
-                            aIdx,
-                            "unitPrice",
-                            e.target.value,
-                          )
+                          updateAdditionalItem(aIdx, "unitPrice", e.target.value)
                         }
                         className="bg-white font-medium text-right"
                       />
@@ -622,13 +722,7 @@ export function Type3ActualForm({
                       <div className="h-9 px-3 rounded-lg bg-white border border-slate-200 flex items-center justify-between text-xs font-bold text-purple-800">
                         <span>฿</span>
                         <span>
-                          {(Number(addItem.actualSales) || 0).toLocaleString(
-                            undefined,
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            },
-                          )}
+                          {(Number(addItem.actualSales) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     </div>
@@ -658,17 +752,10 @@ export function Type3ActualForm({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-600">
-              จำนวนขายได้:{" "}
-              <strong className="text-slate-900 font-bold">
-                {totalSoldQty.toLocaleString()} หน่วย
-              </strong>
+              จำนวนขายได้: <strong className="text-slate-900 font-bold">{totalSoldQty.toLocaleString()} หน่วย</strong>
             </span>
             <span className="text-emerald-900 font-extrabold text-sm sm:text-base">
-              ยอดขายรวม: ฿
-              {totalSoldAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              ยอดขายรวม: ฿{totalSoldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         </div>

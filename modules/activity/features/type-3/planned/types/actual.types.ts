@@ -16,6 +16,9 @@ export interface Type3ProductSaleDetail {
   targetSales?: string | number;
   actualQty?: string | number;
   actualSales?: string | number;
+  actualQuantity?: number;
+  actualUnitPrice?: number;
+  actualTotal?: number;
   unclosedReason?: string;
   isAdditional?: boolean;
 }

@@ -142,18 +142,29 @@ export async function upsertActivityResult(
       });
       if (Array.isArray(input.saleResults) && input.saleResults.length > 0) {
         await (tx as any).activityResultSaleItem.createMany({
-          data: input.saleResults.map((item) => ({
-            activityResultId: result.id,
-            workTypeCode: getWorkTypeCode(item.workTypeCode || "TYPE_3"),
-            storeId: item.storeId ?? null,
-            productId: item.productId,
-            productName: item.productName ?? null,
-            actualQuantity: item.actualQuantity,
-            actualUnitPrice: new Prisma.Decimal(item.actualUnitPrice ?? 0),
-            actualTotal: new Prisma.Decimal(item.actualTotal ?? 0),
-            unclosedReason: item.unclosedReason ?? null,
-            isAdditional: Boolean(item.isAdditional),
-          })),
+          data: input.saleResults.map((item: any) => {
+            const qty =
+              Number(item.actualQuantity ?? item.actualQty ?? 0) || 0;
+            const unitPrice =
+              Number(item.actualUnitPrice ?? item.unitPrice ?? 0) || 0;
+            const total =
+              item.actualTotal != null || item.actualSales != null
+                ? Number(item.actualTotal ?? item.actualSales) || 0
+                : qty * unitPrice;
+
+            return {
+              activityResultId: result.id,
+              workTypeCode: getWorkTypeCode(item.workTypeCode || "TYPE_3"),
+              storeId: item.storeId ?? null,
+              productId: item.productId,
+              productName: item.productName ?? null,
+              actualQuantity: qty,
+              actualUnitPrice: new Prisma.Decimal(unitPrice),
+              actualTotal: new Prisma.Decimal(total),
+              unclosedReason: item.unclosedReason ?? null,
+              isAdditional: Boolean(item.isAdditional),
+            };
+          }),
         });
       }
     }

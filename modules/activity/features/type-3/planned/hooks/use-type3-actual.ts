@@ -32,13 +32,46 @@ export function useType3Actual() {
   }, []);
 
   const collectPayload = useCallback((): Type3ActualData => {
+    const normalizedDetails = (t3ProductSalesDetails || []).map((item) => {
+      const qty = Number(item.actualQuantity ?? item.actualQty ?? 0) || 0;
+      const uPrice = Number(item.actualUnitPrice ?? item.unitPrice ?? 0) || 0;
+      const total =
+        item.actualTotal != null && !isNaN(Number(item.actualTotal))
+          ? Number(item.actualTotal)
+          : item.actualSales != null && item.actualSales !== "" && !isNaN(Number(item.actualSales))
+            ? Number(item.actualSales)
+            : qty * uPrice;
+
+      return {
+        ...item,
+        productId: item.productId || "",
+        actualQty: qty,
+        unitPrice: uPrice,
+        actualSales: total,
+        actualQuantity: qty,
+        actualUnitPrice: uPrice,
+        actualTotal: total,
+      };
+    });
+
     return {
       workTypeCode: "TYPE_3",
       soldProducts: t3SoldProducts,
       actualSales: t3ActualSales,
       actualQuantity: t3ActualQuantity,
       unclosedReason: t3UnclosedReason,
-      productSalesDetails: t3ProductSalesDetails,
+      productSalesDetails: normalizedDetails,
+      saleResults: normalizedDetails.map((d) => ({
+        id: d.id,
+        productId: d.productId || "",
+        productName: d.productName || null,
+        storeId: d.storeId || null,
+        actualQuantity: d.actualQuantity,
+        actualUnitPrice: d.actualUnitPrice,
+        actualTotal: d.actualTotal,
+        unclosedReason: d.unclosedReason || null,
+        isAdditional: Boolean(d.isAdditional),
+      })),
     };
   }, [
     t3SoldProducts,
