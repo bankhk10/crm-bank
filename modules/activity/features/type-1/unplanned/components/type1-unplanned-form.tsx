@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Store,
   UserCheck,
@@ -16,14 +16,17 @@ import {
   ActivityCustomerSelect,
   ActivityPhotoUpload,
   ActivityGpsPicker,
+  ActivityProductSelect,
 } from "@/modules/activity/ui";
 import { FormCombobox } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import DatePicker from "@/components/custom/DatePicker";
+import { listProductsAction } from "@/modules/products/server/actions";
 import { cn } from "@/lib/utils";
 import { VISIT_TOPICS } from "../../shared/constants";
+import type { ProductOption } from "../../shared/types";
 import type { Type1UnplannedFormProps } from "../types/unplanned.types";
 
 export function Type1UnplannedForm({
@@ -62,13 +65,25 @@ export function Type1UnplannedForm({
           },
         ];
 
-  const productComboboxOptions = useMemo(() => {
-    return products.map((p) => ({
-      value: p.name,
-      label: p.name,
-      subLabel: p.productCode || undefined,
-    }));
+  // Self-healing fallback: Load products from master if not supplied by parent view
+  const [internalProducts, setInternalProducts] = useState<ProductOption[]>([]);
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setInternalProducts(products);
+      return;
+    }
+    listProductsAction({ status: "ACTIVE", perPage: 1000 })
+      .then((res: any) => {
+        const list = res?.products || res?.data || [];
+        if (list.length > 0) {
+          setInternalProducts(list);
+        }
+      })
+      .catch(() => {});
   }, [products]);
+
+  const effectiveProducts =
+    products && products.length > 0 ? products : internalProducts;
 
   const handlePurposeChange = (
     id: string,
@@ -434,15 +449,22 @@ export function Type1UnplannedForm({
                     )}
                   </div>
 
-                  {!readonly && productComboboxOptions.length > 0 && (
-                    <FormCombobox
+                  {!readonly && (
+                    <ActivityProductSelect
                       id={`advise-prod-${item.id}`}
-                      label=""
-                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800"
                       value=""
-                      onChange={(selectedName) => {
+                      products={effectiveProducts}
+                      excludeValues={(item.advisedProducts || []).map(
+                        (p) => p.productName,
+                      )}
+                      subLabelType="code"
+                      onChange={(selectedName, matchedProd) => {
                         if (!selectedName) return;
-                        const matched = products.find((p) => p.name === selectedName);
+                        const matched =
+                          matchedProd ||
+                          effectiveProducts.find(
+                            (p) => p.name === selectedName,
+                          );
                         if (!matched) return;
                         const curList = item.advisedProducts || [];
                         if (!curList.some((p) => p.productId === matched.id)) {
@@ -463,10 +485,10 @@ export function Type1UnplannedForm({
                           );
                         }
                       }}
-                      options={productComboboxOptions}
                       placeholder="+ เลือกสินค้าแนะนำ..."
-                      searchPlaceholder="ค้นหาสินค้า..."
+                      searchPlaceholder="พิมพ์ชื่อ หรือรหัสสินค้าเพื่อค้นหา..."
                       emptyText="ไม่พบสินค้า"
+                      triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800"
                     />
                   )}
 
