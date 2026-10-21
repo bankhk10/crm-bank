@@ -88,7 +88,8 @@ export function Type3PlanCard({
     );
     const pUnit =
       rawUnit > 0 ? rawUnit : q > 0 && rawTotal > 0 ? rawTotal / q : 0;
-    const lineSales = q > 0 && pUnit > 0 ? q * pUnit : rawTotal > 0 ? rawTotal : 0;
+    const lineSales =
+      q > 0 && pUnit > 0 ? q * pUnit : rawTotal > 0 ? rawTotal : 0;
     return sum + lineSales;
   }, 0);
 
@@ -198,7 +199,7 @@ export function Type3PlanCard({
                       {prod.productName || "สินค้า"}
                     </span>
                     <span className="text-emerald-700 font-bold shrink-0 ml-2">
-                      {pQty.toLocaleString()} {prod.unit || "หน่วย"}
+                      {pQty.toLocaleString()} {"ลัง"}
                     </span>
                   </div>
 
@@ -250,11 +251,10 @@ export function Type3PlanCard({
         <span className="text-slate-600">
           จำนวนเป้าหมายรวม:{" "}
           <strong className="text-slate-900 font-bold">
-            {totalQty.toLocaleString()} หน่วย
+            {totalQty.toLocaleString()} ลัง
           </strong>
         </span>
         <span className="text-emerald-900 font-extrabold flex items-center gap-1 text-sm sm:text-base">
-          <DollarSign className="w-4 h-4 text-emerald-600" />
           เป้าหมายยอดเงิน: ฿
           {totalAmount.toLocaleString(undefined, {
             minimumFractionDigits: 2,
