@@ -157,7 +157,9 @@ export function Type1UnplannedForm({
                     <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs">
                       <button
                         type="button"
-                        onClick={() => handlePurposeChange(item.id, currentPurpose, "FARMER")}
+                        onClick={() =>
+                          handlePurposeChange(item.id, currentPurpose, "FARMER")
+                        }
                         className={cn(
                           "flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all",
                           !isStore
@@ -170,7 +172,9 @@ export function Type1UnplannedForm({
                       </button>
                       <button
                         type="button"
-                        onClick={() => handlePurposeChange(item.id, currentPurpose, "STORE")}
+                        onClick={() =>
+                          handlePurposeChange(item.id, currentPurpose, "STORE")
+                        }
                         className={cn(
                           "flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium transition-all",
                           isStore
@@ -220,7 +224,8 @@ export function Type1UnplannedForm({
                         levels="province"
                         value={item.province || ""}
                         onChange={(val: any) => {
-                          const prov = typeof val === "string" ? val : val?.province || "";
+                          const prov =
+                            typeof val === "string" ? val : val?.province || "";
                           updateItem(item.id, "province", prov);
                         }}
                         disabled={readonly}
@@ -240,15 +245,31 @@ export function Type1UnplannedForm({
                               updateItem(item.id, "province", cust.province);
                             }
                             if (cust?.addressLine && !item.farmerHomeAddress) {
-                              updateItem(item.id, "farmerHomeAddress", cust.addressLine);
+                              updateItem(
+                                item.id,
+                                "farmerHomeAddress",
+                                cust.addressLine,
+                              );
                             }
                             if (cust?.latitude && !item.plotLatitude) {
-                              updateItem(item.id, "plotLatitude", String(cust.latitude));
+                              updateItem(
+                                item.id,
+                                "plotLatitude",
+                                String(cust.latitude),
+                              );
                             }
                             if (cust?.longitude && !item.plotLongitude) {
-                              updateItem(item.id, "plotLongitude", String(cust.longitude));
+                              updateItem(
+                                item.id,
+                                "plotLongitude",
+                                String(cust.longitude),
+                              );
                             }
-                            updateItem(item.id, "customerName", cust?.name || "");
+                            updateItem(
+                              item.id,
+                              "customerName",
+                              cust?.name || "",
+                            );
                             updateItem(item.id, "storeId", val || undefined);
                           }}
                           customers={customers}
@@ -258,14 +279,23 @@ export function Type1UnplannedForm({
                       ) : (
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">
-                            ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>
+                            ชื่อ - สกุล เกษตรกร{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <ActivityInput
                             type="text"
                             value={item.unregisteredFarmerName || ""}
                             onChange={(e) => {
-                              updateItem(item.id, "unregisteredFarmerName", e.target.value);
-                              updateItem(item.id, "customerName", e.target.value);
+                              updateItem(
+                                item.id,
+                                "unregisteredFarmerName",
+                                e.target.value,
+                              );
+                              updateItem(
+                                item.id,
+                                "customerName",
+                                e.target.value,
+                              );
                             }}
                             disabled={readonly}
                             placeholder="ระบุชื่อ-สกุล เกษตรกร"
@@ -279,11 +309,19 @@ export function Type1UnplannedForm({
                             type="button"
                             onClick={() => {
                               const nextVal = !item.isUnregisteredFarmer;
-                              updateItem(item.id, "isUnregisteredFarmer", nextVal);
+                              updateItem(
+                                item.id,
+                                "isUnregisteredFarmer",
+                                nextVal,
+                              );
                               updateItem(item.id, "storeId", undefined);
                               updateItem(item.id, "customerName", "");
                               updateItem(item.id, "unregisteredFarmerName", "");
-                              updateItem(item.id, "unregisteredFarmerPhone", "");
+                              updateItem(
+                                item.id,
+                                "unregisteredFarmerPhone",
+                                "",
+                              );
                             }}
                             className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 underline"
                           >
@@ -306,7 +344,11 @@ export function Type1UnplannedForm({
                           type="tel"
                           value={item.unregisteredFarmerPhone || ""}
                           onChange={(e) =>
-                            updateItem(item.id, "unregisteredFarmerPhone", e.target.value)
+                            updateItem(
+                              item.id,
+                              "unregisteredFarmerPhone",
+                              e.target.value,
+                            )
                           }
                           disabled={readonly}
                           placeholder="08X-XXX-XXXX"
@@ -362,7 +404,9 @@ export function Type1UnplannedForm({
                   <ActivityInput
                     type="text"
                     value={item.notes || ""}
-                    onChange={(e) => updateItem(item.id, "notes", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(item.id, "notes", e.target.value)
+                    }
                     disabled={readonly}
                     placeholder="ระบุรายละเอียดการเข้าพบ..."
                   />
@@ -388,7 +432,11 @@ export function Type1UnplannedForm({
                         rows={2}
                         value={item.farmerHomeAddress || ""}
                         onChange={(e) =>
-                          updateItem(item.id, "farmerHomeAddress", e.target.value)
+                          updateItem(
+                            item.id,
+                            "farmerHomeAddress",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="ระบุที่อยู่บ้านเกษตรกร เช่น เลขที่ หมู่ที่ ตำบล อำเภอ..."
@@ -400,8 +448,12 @@ export function Type1UnplannedForm({
                       title={`พิกัดแปลง/จุดเข้าพบ - ${targetDisplayName}`}
                       latitude={item.plotLatitude || ""}
                       longitude={item.plotLongitude || ""}
-                      onLatitudeChange={(lat) => updateItem(item.id, "plotLatitude", lat)}
-                      onLongitudeChange={(lng) => updateItem(item.id, "plotLongitude", lng)}
+                      onLatitudeChange={(lat) =>
+                        updateItem(item.id, "plotLatitude", lat)
+                      }
+                      onLongitudeChange={(lng) =>
+                        updateItem(item.id, "plotLongitude", lng)
+                      }
                       accentColor="emerald"
                       disabled={readonly}
                     />
@@ -410,7 +462,9 @@ export function Type1UnplannedForm({
                       title="รูปแปลงเกษตรกร (ไม่เกิน 5 รูป)"
                       description="บันทึกสภาพแปลง ปัญหาพืช หรือจุดทดลองจริง"
                       images={item.plotImages || []}
-                      onImagesChange={(imgs) => updateItem(item.id, "plotImages", imgs)}
+                      onImagesChange={(imgs) =>
+                        updateItem(item.id, "plotImages", imgs)
+                      }
                       maxFiles={5}
                       accentColor="emerald"
                       disabled={readonly}
@@ -421,7 +475,8 @@ export function Type1UnplannedForm({
                 {/* Discussion Result */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700">
-                    ผลการพูดคุย / ข้อสรุปการเข้าพบ <span className="text-rose-500">*</span>
+                    ผลการพูดคุย / ข้อสรุปการเข้าพบ{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <Textarea
                     rows={3}
@@ -443,7 +498,10 @@ export function Type1UnplannedForm({
                       รายการสินค้าที่ให้คำแนะนำ / นำเสนอ
                     </label>
                     {isAdviceTopic && (
-                      <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"
+                      >
                         ตรงกับประเด็นหลัก
                       </Badge>
                     )}
@@ -505,14 +563,18 @@ export function Type1UnplannedForm({
                             <button
                               type="button"
                               onClick={() => {
-                                const updated = (item.advisedProducts || []).filter(
+                                const updated = (
+                                  item.advisedProducts || []
+                                ).filter(
                                   (prod) => prod.productId !== p.productId,
                                 );
                                 updateItem(item.id, "advisedProducts", updated);
                                 updateItem(
                                   item.id,
                                   "productAdvice",
-                                  updated.map((prod) => prod.productName).join(", "),
+                                  updated
+                                    .map((prod) => prod.productName)
+                                    .join(", "),
                                 );
                               }}
                               className="text-slate-400 hover:text-rose-500 ml-0.5"
@@ -527,10 +589,10 @@ export function Type1UnplannedForm({
                 </div>
 
                 {/* Sales Opportunity & Next Meeting Date */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-emerald-100 pt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-1 gap-3 border-t border-emerald-100 pt-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      โอกาสการสั่งซื้อ / ต่อยอด
+                      โอกาสการสั่งซื้อ
                     </label>
                     <div className="flex items-center gap-2">
                       {(["สูง", "ต่ำ", ""] as const).map((opt) => (
@@ -538,7 +600,9 @@ export function Type1UnplannedForm({
                           key={opt || "none"}
                           type="button"
                           disabled={readonly}
-                          onClick={() => updateItem(item.id, "salesOpportunity", opt)}
+                          onClick={() =>
+                            updateItem(item.id, "salesOpportunity", opt)
+                          }
                           className={cn(
                             "px-3 py-1.5 rounded-lg border text-xs font-medium transition-all",
                             item.salesOpportunity === opt
