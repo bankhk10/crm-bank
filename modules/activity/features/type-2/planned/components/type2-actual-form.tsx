@@ -867,7 +867,7 @@ export function Type2ActualForm({
       {/* ActivityPhotoUpload */}
       <ActivityPhotoUpload
         title="รูปภาพการติดตามผล"
-        description="อัปโหลดรูปภาพสภาพพืช ผลผลิต หรือการติดตามผลการใช้สินค้า (สูงสุด 5 รูป)"
+        description="อัปโหลดรูปภาพรูปภาพการติดตามผล (สูงสุด 5 รูป)"
         images={images}
         onImagesChange={setImages}
         maxFiles={5}

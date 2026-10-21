@@ -479,22 +479,16 @@ export function Type2UnplannedForm({
               </div>
 
               {/* 4. Photo upload & Notes */}
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-4 border-t border-slate-200/80 pt-4">
-                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1">
-                    <Camera className="w-3.5 h-3.5 text-slate-500" />
-                    <span>รูปภาพสภาพพืช / แปลง</span>
-                  </label>
-                  <ActivityPhotoUpload
-                    images={item.images || []}
-                    onImagesChange={(newImgs) =>
-                      updateItem(item.id, "images", newImgs)
-                    }
-                    readonly={readonly}
-                    maxFiles={5}
-                  />
-                </div>
-              </div>
+              <ActivityPhotoUpload
+                title="รูปภาพการติดตามผล"
+                description="อัปโหลดรูปภาพรูปภาพการติดตามผล (สูงสุด 5 รูป)"
+                images={item.images || []}
+                onImagesChange={(newImgs) =>
+                  updateItem(item.id, "images", newImgs)
+                }
+                readonly={readonly}
+                maxFiles={5}
+              />
             </div>
           );
         })}
