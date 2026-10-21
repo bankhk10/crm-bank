@@ -104,6 +104,37 @@ export function useType1Actual() {
 
   const uploadImages = useCallback(
     async (planId: string, newlyUploadedUrls: string[]): Promise<Type1ImageFile[]> => {
+      if (t1TargetItems && t1TargetItems.length > 0) {
+        const updatedTargets: Type1TargetActualItem[] = [];
+        const allUploaded: Type1ImageFile[] = [];
+
+        for (const target of t1TargetItems) {
+          const targetKey = target.id || target.targetId || "plot";
+          if (target.plotImages && target.plotImages.length > 0) {
+            const res = await uploadActivityPlanImageGroup(
+              planId,
+              target.plotImages,
+              "type1",
+              targetKey,
+            );
+            const tagged = res.updatedImages.map((img) => ({
+              ...img,
+              targetId: targetKey,
+              storeId: target.storeId || undefined,
+            }));
+            newlyUploadedUrls.push(...res.newlyUploadedUrls);
+            updatedTargets.push({ ...target, plotImages: tagged });
+            allUploaded.push(...tagged);
+          } else {
+            updatedTargets.push(target);
+          }
+        }
+
+        setT1TargetItems(updatedTargets);
+        setT1PlotImages(allUploaded);
+        return allUploaded;
+      }
+
       let cleanImages = t1PlotImages;
       if (t1PlotImages && t1PlotImages.length > 0) {
         const res = await uploadActivityPlanImageGroup(
@@ -118,7 +149,7 @@ export function useType1Actual() {
       }
       return cleanImages;
     },
-    [t1PlotImages],
+    [t1PlotImages, t1TargetItems],
   );
 
   const collectOldImageUrlsToDelete = useCallback(

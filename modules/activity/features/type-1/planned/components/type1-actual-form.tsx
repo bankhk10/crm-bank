@@ -120,12 +120,24 @@ function initializeTargetItems(
       ) ||
       (isSingle || isFirstOrOnlyFarmer ? fallbackProps.farmerHomeAddress : "");
 
+    const matchedFromFallback = (fallbackProps.plotImages || []).filter(
+      (img) =>
+        (t.id && (img.targetId === t.id || img.url?.includes(`/${t.id}/`))) ||
+        (t.storeId && img.storeId && img.storeId === t.storeId),
+    );
+    const hasAnyTargetedInFallback = (fallbackProps.plotImages || []).some(
+      (img) =>
+        Boolean(img.targetId) ||
+        effectiveList.some((et) => et.id && img.url?.includes(`/${et.id}/`)),
+    );
     const images =
       t.plotImages && t.plotImages.length > 0
         ? t.plotImages
-        : isSingle || isFirstOrOnlyFarmer
-          ? fallbackProps.plotImages
-          : [];
+        : matchedFromFallback.length > 0
+          ? matchedFromFallback
+          : (isSingle || (isOnlyOneFarmer && !isStore)) && !hasAnyTargetedInFallback
+            ? fallbackProps.plotImages
+            : [];
 
     const adviceTargets = effectiveList.filter(
       (it) => it.topic?.trim() === "ให้คำแนะนำการใช้สินค้า",
@@ -441,9 +453,15 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
       }
     }
 
-    // 8. plotImages: combine all photos across all targets
+    // 8. plotImages: combine all photos across all targets (preserving targetId)
     if (setPlotImages) {
-      const allPlotImages = items.flatMap((i) => i.plotImages || []);
+      const allPlotImages = items.flatMap((i) =>
+        (i.plotImages || []).map((img) => ({
+          ...img,
+          targetId: img.targetId || i.id || i.targetId,
+          storeId: img.storeId || i.storeId || undefined,
+        })),
+      );
       setPlotImages(allPlotImages);
     }
   }, []);
@@ -469,6 +487,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
         farmerHomeAddress: t.farmerHomeAddress,
         plotLatitude: t.plotLatitude,
         plotLongitude: t.plotLongitude,
+        plotImages: (t.plotImages || []).map((img) => img.url),
         productAdvice: t.productAdvice,
         salesOpportunity: t.salesOpportunity,
         nextMeetingDate: t.nextMeetingDate,
@@ -792,7 +811,15 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                         description="อัปโหลดรูปภาพแปลงเกษตรกร เช่น สภาพแปลง แปลงปลูก ต้นพืช"
                         images={item.plotImages || []}
                         onImagesChange={(imgs) =>
-                          handleTargetChange(idx, "plotImages", imgs)
+                          handleTargetChange(
+                            idx,
+                            "plotImages",
+                            imgs.map((img) => ({
+                              ...img,
+                              targetId: item.id || item.targetId,
+                              storeId: item.storeId || undefined,
+                            })),
+                          )
                         }
                         maxFiles={5}
                         accentColor="emerald"

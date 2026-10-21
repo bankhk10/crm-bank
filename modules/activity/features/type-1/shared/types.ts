@@ -9,6 +9,8 @@ export interface Type1ImageFile {
   size?: number;
   type?: string;
   rawFile?: File;
+  targetId?: string;
+  storeId?: string;
 }
 
 export type ImageFile = Type1ImageFile;

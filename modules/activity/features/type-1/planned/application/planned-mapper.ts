@@ -212,6 +212,32 @@ export function extractType1PlanTargets(
       : new Date(firstT1Result.nextMeetingDate).toISOString().split("T")[0]
     : undefined;
 
+  // Collect all unique Type 1 plot attachments from result & plan
+  const rawAttachmentsList: any[] = [
+    ...(Array.isArray(plan.result?.attachments) ? plan.result.attachments : []),
+    ...(Array.isArray(plan.attachments) ? plan.attachments : []),
+  ];
+  const seenAttUrls = new Set<string>();
+  const t1PlotAttachments = rawAttachmentsList.filter((att) => {
+    if (!att) return false;
+    const isT1Plot =
+      att.workTypeCode === "TYPE_1" ||
+      att.workTypeCode === "เข้าพบร้านค้า / Key Farmer" ||
+      (att.category === "PLOT" && (!att.workTypeCode || att.workTypeCode === "TYPE_1"));
+    if (!isT1Plot) return false;
+    const url = att.fileUrl || att.url;
+    if (!url || seenAttUrls.has(url)) return false;
+    seenAttUrls.add(url);
+    return true;
+  });
+
+  const hasTargetSpecificAttachmentUrl = t1PlotAttachments.some((att) => {
+    const url = att.fileUrl || att.url || "";
+    return rawT1Stores.some((st: any) => st.id && url.includes(`/${st.id}/`));
+  });
+  const farmerStores = rawT1Stores.filter((st: any) => st.visitPurpose !== "STORE");
+  const isOnlyOneFarmerInPlan = farmerStores.length === 1;
+
   const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
     const targetResult =
       s.result ||
@@ -259,6 +285,28 @@ export function extractType1PlanTargets(
         targetId: p.targetId || s.id,
       }));
 
+    const targetPlotImages = isFarmer
+      ? t1PlotAttachments
+          .filter((att: any) => {
+            const url = att.fileUrl || att.url || "";
+            if (s.id && url.includes(`/${s.id}/`)) return true;
+            if (!hasTargetSpecificAttachmentUrl) {
+              if (s.storeId && att.storeId && att.storeId === s.storeId) return true;
+              if (isSingleStorePlan || isOnlyOneFarmerInPlan) return true;
+            }
+            return false;
+          })
+          .map((att: any) => ({
+            id: att.id,
+            url: att.fileUrl || att.url,
+            name: att.fileName || att.name || "รูปแปลงเกษตรกร",
+            size: att.fileSize || att.size || 0,
+            type: att.mimeType || att.type || "image/jpeg",
+            targetId: s.id,
+            storeId: s.storeId || undefined,
+          }))
+      : [];
+
     return {
       id: s.id,
       storeId: s.storeId,
@@ -296,6 +344,7 @@ export function extractType1PlanTargets(
           : isFarmer
             ? (isSingleStorePlan ? resultLng : undefined) || storeLng
             : storeLng || undefined,
+      plotImages: targetPlotImages.length > 0 ? targetPlotImages : undefined,
       productAdvice: isAdviceTopic
         ? targetResult?.productAdvice || (isSingleStorePlan ? resultProductAdvice : undefined)
         : undefined,
