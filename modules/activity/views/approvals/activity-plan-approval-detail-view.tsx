@@ -92,7 +92,9 @@ export default function ActivityPlanApprovalDetailView({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500 font-medium">กำลังโหลดข้อมูลสำหรับการอนุมัติ...</p>
+        <p className="text-xs text-slate-500 font-medium">
+          กำลังโหลดข้อมูลสำหรับการอนุมัติ...
+        </p>
       </div>
     );
   }
@@ -115,9 +117,12 @@ export default function ActivityPlanApprovalDetailView({
 
   const start = new Date(plan.startDate);
   const end = new Date(plan.endDate);
-  const startDateDisplay = planSummary.startDateStr || format(start, "dd/MM/yyyy", { locale: th });
-  const endDateDisplay = planSummary.endDateStr || format(end, "dd/MM/yyyy", { locale: th });
-  const startTimeDisplay = planSummary.startTimeStr || format(start, "HH:mm") + " น.";
+  const startDateDisplay =
+    planSummary.startDateStr || format(start, "dd/MM/yyyy", { locale: th });
+  const endDateDisplay =
+    planSummary.endDateStr || format(end, "dd/MM/yyyy", { locale: th });
+  const startTimeDisplay =
+    planSummary.startTimeStr || format(start, "HH:mm") + " น.";
   const endTimeDisplay = planSummary.endTimeStr || format(end, "HH:mm") + " น.";
 
   const userEmployeeId = session?.user?.employeeId;
@@ -156,7 +161,9 @@ export default function ActivityPlanApprovalDetailView({
               <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
                 <Info className="w-3.5 h-3.5 shrink-0" />
                 <span>
-                  {plan.planType === "UNPLANNED" ? "เลขที่กิจกรรม: " : "เลขที่แผน: "}
+                  {plan.planType === "UNPLANNED"
+                    ? "เลขที่กิจกรรม: "
+                    : "เลขที่แผน: "}
                   {plan.code || planSummary.planNo}
                 </span>
               </div>
@@ -229,7 +236,10 @@ export default function ActivityPlanApprovalDetailView({
                 <p className="text-xs text-slate-500 font-medium mb-0.5">
                   ชื่อแผนงาน / กิจกรรม
                 </p>
-                <p className="text-base font-bold text-slate-800 truncate" title={plan.title}>
+                <p
+                  className="text-base font-bold text-slate-800 truncate"
+                  title={plan.title}
+                >
                   {plan.title || "-"}
                 </p>
               </div>
@@ -263,7 +273,9 @@ export default function ActivityPlanApprovalDetailView({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-slate-500 font-medium mb-0.5">
-                  {plan.planType === "UNPLANNED" ? "ผู้บันทึกกิจกรรม" : "ผู้จัดทำแผน"}
+                  {plan.planType === "UNPLANNED"
+                    ? "ผู้บันทึกกิจกรรม"
+                    : "ผู้จัดทำแผน"}
                 </p>
                 <p className="text-sm font-bold text-slate-900 truncate">
                   {plan.employee?.name || "-"}
@@ -356,7 +368,9 @@ export default function ActivityPlanApprovalDetailView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {plan.helpers.map((h, idx) => {
                   const canReviewHelper =
-                    (canManageOrApprove || (h.employee as any)?.managerEmployeeId === userEmployeeId) &&
+                    (canManageOrApprove ||
+                      (h.employee as any)?.managerEmployeeId ===
+                        userEmployeeId) &&
                     h.status === "PENDING";
 
                   return (
@@ -370,8 +384,10 @@ export default function ActivityPlanApprovalDetailView({
                             {idx + 1}. {h.employee?.name || "พนักงาน"}
                           </div>
                           <div className="text-[11px] text-slate-500 truncate">
-                            {h.employee?.positionTitle || "-"}{" "}
-                            • {h.departmentName || h.employee?.departmentName || "ไม่ระบุแผนก"}
+                            {h.employee?.positionTitle || "-"} •{" "}
+                            {h.departmentName ||
+                              h.employee?.departmentName ||
+                              "ไม่ระบุแผนก"}
                           </div>
                           {h.rejectionReason && (
                             <div className="text-[10px] text-red-600 mt-1 italic">
@@ -383,12 +399,19 @@ export default function ActivityPlanApprovalDetailView({
                           variant="outline"
                           className={cn(
                             "text-[10px] font-semibold px-2 py-0.5 shrink-0 rounded-full",
-                            h.status === "APPROVED" && "border-emerald-200 text-emerald-700 bg-emerald-50",
-                            h.status === "REJECTED" && "border-red-200 text-red-700 bg-red-50",
-                            h.status === "PENDING" && "border-amber-200 text-amber-700 bg-amber-50",
+                            h.status === "APPROVED" &&
+                              "border-emerald-200 text-emerald-700 bg-emerald-50",
+                            h.status === "REJECTED" &&
+                              "border-red-200 text-red-700 bg-red-50",
+                            h.status === "PENDING" &&
+                              "border-amber-200 text-amber-700 bg-amber-50",
                           )}
                         >
-                          {h.status === "APPROVED" ? "อนุมัติแล้ว" : h.status === "REJECTED" ? "ปฏิเสธ" : "รออนุมัติ"}
+                          {h.status === "APPROVED"
+                            ? "อนุมัติแล้ว"
+                            : h.status === "REJECTED"
+                              ? "ปฏิเสธ"
+                              : "รออนุมัติ"}
                         </Badge>
                       </div>
 
@@ -437,7 +460,10 @@ export default function ActivityPlanApprovalDetailView({
         <ApprovalAuditLogs logs={plan.approvalLogs || []} />
 
         {/* ─── 5. BOTTOM ACTIONS & APPROVAL ACTION BAR ─── */}
-        <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการอนุมัติ">
+        <DetailViewActions
+          onBack={handleBack}
+          backLabel="กลับหน้ารายการอนุมัติ"
+        >
           {canPerformApproval && plan.status === "PENDING_CANCELLATION" && (
             <>
               <Button
@@ -506,6 +532,7 @@ export default function ActivityPlanApprovalDetailView({
       />
 
       {/* Approval Confirmation Dialog */}
+
       <ApprovalActionDialog
         open={actionDialogOpen}
         onOpenChange={setActionDialogOpen}
@@ -515,6 +542,7 @@ export default function ActivityPlanApprovalDetailView({
           router.push("/activity-plans/approvals");
         }}
       />
+      <div className="h-12 md:hidden" />
     </section>
   );
 }

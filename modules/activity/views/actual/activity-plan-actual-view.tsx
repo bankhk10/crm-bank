@@ -1670,6 +1670,7 @@ export function ActivityPlanActualView({
             loading={isSubmitting}
             submitLabel="บันทึกผลการปฏิบัติงาน"
           />
+          <div className="h-12 md:hidden" />
         </form>
       </div>
 

@@ -50,7 +50,9 @@ export default function ActivityPlanDetailView({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500 font-medium">กำลังโหลดข้อมูลแผนงาน...</p>
+        <p className="text-xs text-slate-500 font-medium">
+          กำลังโหลดข้อมูลแผนงาน...
+        </p>
       </div>
     );
   }
@@ -125,18 +127,20 @@ export default function ActivityPlanDetailView({
           )}
         </DetailViewActions>
       </div>
-
       {/* Cancellation Dialog */}
       <CancelPlanDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        planCodeOrTitle={plan.code || planSummary.planNo || plan.title || plan.id}
+        planCodeOrTitle={
+          plan.code || planSummary.planNo || plan.title || plan.id
+        }
         cancelReason={cancelReason}
         onReasonChange={setCancelReason}
         onSubmit={handleCancelSubmit}
         loading={cancelLoading}
         error={cancelError}
       />
+      <div className="h-12 md:hidden" />
     </section>
   );
 }
