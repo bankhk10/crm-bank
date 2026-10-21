@@ -495,7 +495,7 @@ export function Type1UnplannedForm({
                 <div className="space-y-2 border-t border-emerald-100 pt-3">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-slate-700">
-                      รายการสินค้าที่ให้คำแนะนำ / นำเสนอ
+                      รายการสินค้าที่ให้คำแนะนำ
                     </label>
                     {isAdviceTopic && (
                       <Badge
@@ -515,7 +515,7 @@ export function Type1UnplannedForm({
                       excludeValues={(item.advisedProducts || []).map(
                         (p) => p.productName,
                       )}
-                      subLabelType="code"
+                      unitFilter="box"
                       onChange={(selectedName, matchedProd) => {
                         if (!selectedName) return;
                         const matched =
