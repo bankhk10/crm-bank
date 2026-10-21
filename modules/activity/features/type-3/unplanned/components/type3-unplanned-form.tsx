@@ -58,10 +58,7 @@ export function Type3UnplannedForm({
   const totalActualAmount = items.reduce(
     (sum, it) =>
       sum +
-      it.products.reduce(
-        (pSum, p) => pSum + (Number(p.actualTotal) || 0),
-        0,
-      ),
+      it.products.reduce((pSum, p) => pSum + (Number(p.actualTotal) || 0), 0),
     0,
   );
 
@@ -98,7 +95,8 @@ export function Type3UnplannedForm({
       <div className="space-y-4">
         {items.length === 0 ? (
           <div className="py-8 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200 text-xs">
-            ยังไม่มีรายการเสนอขายสินค้านอกแผน กดปุ่ม &quot;เพิ่มร้านค้าเป้าหมาย&quot; ด้านบนเพื่อเริ่มต้น
+            ยังไม่มีรายการเสนอขายสินค้านอกแผน กดปุ่ม
+            &quot;เพิ่มร้านค้าเป้าหมาย&quot; ด้านบนเพื่อเริ่มต้น
           </div>
         ) : (
           items.map((item, index) => {
@@ -153,7 +151,8 @@ export function Type3UnplannedForm({
                 {/* Customer Type Selector */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">
-                    ประเภทลูกค้า / ร้านค้า <span className="text-rose-500">*</span>
+                    ประเภทลูกค้า / ร้านค้า{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div className="flex items-center gap-5">
                     <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
@@ -213,7 +212,8 @@ export function Type3UnplannedForm({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/40 rounded-xl border border-amber-200/70">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        ชื่อร้าน Subdealer <span className="text-rose-500">*</span>
+                        ชื่อร้าน Subdealer{" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <ActivityInput
                         type="text"
@@ -255,7 +255,8 @@ export function Type3UnplannedForm({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-emerald-600" />
-                      รายการสินค้าและยอดขายจริง <span className="text-rose-500">*</span>
+                      รายการสินค้าและยอดขายจริง{" "}
+                      <span className="text-rose-500">*</span>
                     </span>
                     {!readonly && (
                       <Button
@@ -275,7 +276,8 @@ export function Type3UnplannedForm({
                     {item.products.map((prod, pIdx) => {
                       const isUnderTarget =
                         Number(prod.targetQuantity) > 0 &&
-                        Number(prod.actualQuantity) < Number(prod.targetQuantity);
+                        Number(prod.actualQuantity) <
+                          Number(prod.targetQuantity);
 
                       return (
                         <div
@@ -314,7 +316,8 @@ export function Type3UnplannedForm({
                             {/* Target Quantity */}
                             <div className="md:col-span-2">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                เป้าหมาย <span className="text-rose-500">*</span>
+                                เป้าหมาย{" "}
+                                <span className="text-rose-500">*</span>
                               </label>
                               <ActivityInput
                                 type="number"
@@ -337,7 +340,8 @@ export function Type3UnplannedForm({
                             {/* Actual Quantity Sold */}
                             <div className="md:col-span-2">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                ขายได้จริง <span className="text-rose-500">*</span>
+                                ขายได้จริง{" "}
+                                <span className="text-rose-500">*</span>
                               </label>
                               <ActivityInput
                                 type="number"
@@ -360,7 +364,7 @@ export function Type3UnplannedForm({
                             {/* Unit Price */}
                             <div className="md:col-span-2">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                ราคา/หน่วย (บาท)
+                                ราคา/ลัง (บาท)
                               </label>
                               <ActivityInput
                                 type="number"
@@ -387,14 +391,20 @@ export function Type3UnplannedForm({
                                 </label>
                                 <div className="h-9 px-2.5 rounded-lg bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs font-bold text-emerald-900">
                                   <span>฿</span>
-                                  <span>{(Number(prod.actualTotal) || 0).toLocaleString()}</span>
+                                  <span>
+                                    {(
+                                      Number(prod.actualTotal) || 0
+                                    ).toLocaleString()}
+                                  </span>
                                 </div>
                               </div>
 
                               {!readonly && item.products.length > 1 && (
                                 <button
                                   type="button"
-                                  onClick={() => removeProduct(item.id, prod.id)}
+                                  onClick={() =>
+                                    removeProduct(item.id, prod.id)
+                                  }
                                   className="h-9 w-9 mt-5 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
                                   title="ลบสินค้านี้"
                                 >
@@ -409,7 +419,9 @@ export function Type3UnplannedForm({
                             <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-2.5 space-y-1.5">
                               <span className="text-amber-800 font-bold text-xs flex items-center gap-1">
                                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                                เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า <span className="text-rose-500">*</span>
+                                เหตุผลที่ไม่สามารถปิดการขายได้ /
+                                ปิดได้ไม่ครบตามเป้า{" "}
+                                <span className="text-rose-500">*</span>
                               </span>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <select
@@ -424,7 +436,9 @@ export function Type3UnplannedForm({
                                   }
                                   className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                                 >
-                                  <option value="">-- เลือกเหตุผลหลัก --</option>
+                                  <option value="">
+                                    -- เลือกเหตุผลหลัก --
+                                  </option>
                                   {NOT_CLOSED_REASONS.map((r) => (
                                     <option key={r} value={r}>
                                       {r}
@@ -457,13 +471,24 @@ export function Type3UnplannedForm({
                 {/* Store Subtotal */}
                 <div className="flex flex-wrap items-center justify-between pt-2 border-t border-slate-100 text-xs">
                   <span className="text-slate-500">
-                    เป้าหมาย: <strong className="text-slate-800">{cardTargetQty.toLocaleString()}</strong> หน่วย | 
-                    ขายได้จริง: <strong className="text-emerald-800 ml-1">{cardActualQty.toLocaleString()}</strong> หน่วย
+                    เป้าหมาย:{" "}
+                    <strong className="text-slate-800">
+                      {cardTargetQty.toLocaleString()}
+                    </strong>{" "}
+                    ลัง | ขายได้จริง:{" "}
+                    <strong className="text-emerald-800 ml-1">
+                      {cardActualQty.toLocaleString()}
+                    </strong>{" "}
+                    ลัง
                   </span>
                   <span className="text-slate-600">
                     ยอดขายร้านนี้:{" "}
                     <strong className="text-emerald-700 text-sm ml-1">
-                      ฿{cardActualAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ฿
+                      {cardActualAmount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </strong>
                   </span>
                 </div>
@@ -485,11 +510,22 @@ export function Type3UnplannedForm({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-600">
-              เป้าหมาย: <strong className="text-slate-900">{totalTargetQty.toLocaleString()}</strong> | 
-              ขายได้จริง: <strong className="text-emerald-800 ml-1">{totalActualQty.toLocaleString()}</strong> หน่วย
+              เป้าหมาย:{" "}
+              <strong className="text-slate-900">
+                {totalTargetQty.toLocaleString()}
+              </strong>{" "}
+              | ขายได้จริง:{" "}
+              <strong className="text-emerald-800 ml-1">
+                {totalActualQty.toLocaleString()}
+              </strong>{" "}
+              ลัง
             </span>
             <span className="text-emerald-900 font-extrabold text-sm sm:text-base">
-              ยอดขายรวม: ฿{totalActualAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ยอดขายรวม: ฿
+              {totalActualAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
         </div>
