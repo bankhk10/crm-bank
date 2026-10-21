@@ -84,11 +84,12 @@ modules/activity/features/type-1/
 ├── index.ts                              # Unified Public API Contract (ส่งออกเฉพาะสิ่งที่ภายนอกต้องใช้)
 ├── README.md                             # เอกสารคู่มือทางเทคนิค (ไฟล์นี้)
 │
-├── planned/                              # Sub-slice: กิจกรรมในแผนงาน
+├── planned/                              # Sub-slice: กิจกรรมในแผนงานและบันทึกผลตามแผน
 │   ├── application/                      # Business Logic, Validation, Mappers
 │   │   ├── actual-mapper.ts              # แปลงผลการปฏิบัติงานจริง Form <-> DB/Payload
+│   │   ├── actual-validation.ts          # ตรวจสอบความถูกต้องของผลการปฏิบัติงานจริง (validateType1Actual)
 │   │   ├── planned-mapper.ts             # แปลงเป้าหมายในแผน Form <-> DB / Hydration
-│   │   └── planned-validation.ts         # Zod schemas สำหรับตรวจสอบความถูกต้อง
+│   │   └── planned-validation.ts         # Zod schemas สำหรับตรวจสอบความถูกต้องของแผน
 │   ├── components/                       # UI Components ประจำ Type 1 ในแผน
 │   │   ├── type1-planned-form.tsx        # ฟอร์มกรอกเป้าหมายเข้าพบ (Create / Edit)
 │   │   ├── type1-actual-form.tsx         # ฟอร์มบันทึกผลจริงรายเป้าหมาย + GPS + รูปภาพ
@@ -97,9 +98,9 @@ modules/activity/features/type-1/
 │   │   └── type1-approval-card.tsx       # การ์ดสรุปสำหรับหน้าพิจารณาอนุมัติ
 │   ├── hooks/                            # Custom State Hooks
 │   │   ├── use-type1-planned-form.ts     # จัดการ State รายการเป้าหมายตามแผน
-│   │   └── use-type1-actual.ts           # จัดการ State ผลการปฏิบัติงานจริงและรูปภาพ
+│   │   └── use-type1-actual.ts           # จัดการ State ผลการปฏิบัติงานจริงและอัปโหลดรูปภาพรายเป้าหมาย
 │   ├── infrastructure/                   # Database Strategies
-│   │   └── type1-planned.strategy.ts     # บันทึก/โหลดข้อมูล ActivityPlanType1Store & Result
+│   │   └── type1-planned.strategy.ts     # บันทึก/โหลดข้อมูล ActivityPlanType1Store & Result & Products
 │   └── types/                            # Type Definitions ในแผน
 │       ├── planned.types.ts              # Type1PlannedItem, Type1TargetItem, Props
 │       └── actual.types.ts               # Type1TargetActualItem, Type1ActualData
@@ -119,7 +120,7 @@ modules/activity/features/type-1/
 │
 └── shared/                               # ชิ้นส่วนที่ใช้ร่วมกันภายใน Feature Type 1
     ├── constants.ts                      # VISIT_TOPICS (หัวข้อการเข้าพบมาตรฐาน)
-    └── types.ts                          # CustomerOption, ProductOption, Type1ImageFile
+    └── types.ts                          # CustomerOption, ProductOption, Type1ImageFile, Type1AdviceProductItem
 ```
 
 ### 3.2 Type 1 vs Shared Activity
@@ -151,37 +152,41 @@ modules/activity/features/type-1/
   - ❌ Import ย้อนกลับไปยังโมดูลเก่า `@/modules/activity-plans/...` โดยเด็ดขาด
 
 ### 3.4 Entry Points and Public Exports
-ไฟล์ [modules/activity/features/type-1/index.ts](file:///d:/code/crm-bank/modules/activity/features/type-1/index.ts) ทำหน้าที่เป็น **Single Public API Contract** ส่งออกเฉพาะ:
-- **Components:** `Type1PlannedForm`, `Type1PlanCard`, `Type1ActualForm`, `Type1DetailView`, `Type1ApprovalCard`, `Type1UnplannedForm`
+ไฟล์ [modules/activity/features/type-1/index.ts](file:///d:/code/crm-bank/modules/activity/features/type-1/index.ts) ทำหน้าที่เป็น **Single Public API Contract** สำหรับฝั่ง UI / Application โดยส่งออกเฉพาะ:
+- **Components:** `Type1PlannedForm`, `Type1PlanCard`, `Type1ActualForm` (`ActualType1Visit`), `Type1DetailView` (`DetailType1Visit`), `Type1ApprovalCard` (`ApprovalType1Visit`), `Type1UnplannedForm`
 - **Hooks:** `useType1PlannedForm`, `useType1Actual`, `useType1UnplannedForm`
-- **Mappers & Hydrators:** `hydrateType1PlannedData`, `extractType1PlanTargets`, `hydrateType1UnplannedData`
-- **Strategies:** `type1PlannedStrategy`, `type1UnplannedStrategy`
-- **Types:** `Type1PlannedItem`, `Type1TargetItem`, `Type1ActualData`, `Type1UnplannedItem`
+- **Mappers & Hydrators:** `mapType1PlannedItemToDb`, `mapType1DbStoreToPlannedItem`, `hydrateType1PlannedData`, `extractType1PlanTargets`, `mapType1StoresToSectionItems`, `mapType1ActualFormToDb`, `parseType1ActualResult`, `parseTargetText`, `aggregateType1TargetItems`, `hydrateType1UnplannedData`, `mapType1UnplannedItemToStore`
+- **Validators & Schemas:** `validateType1PlannedItem`, `type1PlannedSchema`, `type1ActualResultSchema`, `validateType1Actual`, `validateType1UnplannedItem`, `type1UnplannedSchema`
+- **Constants & Types:** `VISIT_TOPICS`, `Type1PlannedItem`, `Type1TargetItem`, `Type1TargetActualItem`, `Type1ActualData`, `Type1UnplannedItem`, `CustomerOption`, `ProductOption`, `Type1ImageFile`, `Type1AdviceProductItem`
+- *(หมายเหตุ: `type1PlannedStrategy` และ `type1UnplannedStrategy` ถูกนำเข้าโดยตรงที่ `modules/activity/infrastructure/strategy.registry.ts` เพื่อแยกโค้ดฝั่ง Server/Database ออกจาก Client Bundle)*
 
 ---
 
 ## 4. File Responsibilities
 
-### 4.1 Planned
+### 4.1 Planned & Actual
 - **`use-type1-planned-form.ts`:** จัดการ State ของรายการเป้าหมาย (Array of `Type1PlannedItem`) มีฟังก์ชัน `addItem`, `updateItem`, `deleteItem`, และ `hydrateItems`
 - **`type1-planned-form.tsx`:** เรนเดอร์การ์ดเป้าหมายแต่ละรายการ สลับ UI ตาม `visitPurpose` (ร้านค้า vs เกษตรกร)
+- **`type1-actual-form.tsx`:** ฟอร์มบันทึกผลการปฏิบัติงานจริงรายเป้าหมาย ใช้ `ActivityProductSelect`, `ActivityGpsPicker`, `ActivityPhotoUpload` จาก `@/modules/activity/ui` พร้อมระบบ Self-healing โหลดรายการสินค้าผ่าน `listProductsAction` หากไม่ได้ส่ง `products` ลงมา และผูก `targetId` กับรูปภาพแปลงของเกษตรกรแต่ละราย
+- **`use-type1-actual.ts`:** จัดการ State ผลการปฏิบัติงานจริงรายเป้าหมาย และอัปโหลดรูปภาพแยกตามเป้าหมาย (`/uploads/activity-plans/{planId}/{target.id}/type1`)
 - **`planned-mapper.ts`:**
   - `mapType1PlannedItemToDb`: แปลงข้อมูลจาก Form ไปเป็น Payload บันทึก DB (จัดเก็บเฉพาะฟิลด์มาตรฐาน `topic` และ `notes` ตามตาราง `activity_plan_type_1_stores` ไม่ใช้ `remarks`)
   - `mapType1DbStoreToPlannedItem`: แปลงข้อมูลจาก Store Record ไปเป็น Form Item
   - `hydrateType1PlannedData`: กู้คืนข้อมูลแผนเดิมเมื่อเข้าสู่หน้าแก้ไข (`edit-view.tsx`)
-  - `extractType1PlanTargets`: แปลงข้อมูลแผนงานเดิมเพื่อเตรียมเป็นเป้าหมายในหน้า Actual และ Detail
-- **`planned-validation.ts`:** ตรวจสอบความถูกต้องของข้อมูลร้านค้า/เกษตรกรก่อนบันทึก
-- **`type1-planned.strategy.ts`:** ตรวจสอบสิทธิ์และประเภทลูกค้าใน DB และบันทึกลงตาราง `activity_plan_type_1_stores`
+  - `extractType1PlanTargets`: แปลงข้อมูลแผนงานและผลงานเดิมรายเป้าหมาย (รวมถึงแยก `plotImages` ตาม `/${s.id}/` และ `advisedProducts` ตาม `targetId`) สำหรับหน้า Actual และ Detail
+- **`actual-mapper.ts`:** แปลงข้อมูลฟอร์มบันทึกผลจริงเป็น Payload (`mapType1ActualFormToDb`), รวมผลรายเป้าหมาย (`aggregateType1TargetItems`), และแปลงข้อมูลผลลัพธ์สำหรับแสดงผล (`parseType1ActualResult`)
+- **`planned-validation.ts` & `actual-validation.ts`:** ตรวจสอบความถูกต้องของข้อมูลเป้าหมายในแผน (`validateType1PlannedItem`) และผลการปฏิบัติงานจริงรายเป้าหมาย (`validateType1Actual`)
+- **`type1-planned.strategy.ts`:** ตรวจสอบสิทธิ์และประเภทลูกค้าใน DB และบันทึกข้อมูลลงตาราง `activity_plan_type_1_stores`, `activity_result_type_1`, และ `activity_result_type_1_products` (โดยผูก `targetId` เข้ากับ `store.id` ของเป้าหมายจริงเสมอ)
 
 ### 4.2 Unplanned
 - **`use-type1-unplanned-form.ts`:** จัดการ State กิจกรรมนอกแผนที่มีทั้งเป้าหมายและผลการปฏิบัติงาน
-- **`type1-unplanned-form.tsx`:** ฟอร์ม 2-in-1 แสดงทั้งส่วนเลือกลูกค้า ผลพูดคุย สินค้า และกล้องถ่ายรูป/พิกัด GPS
-- **`unplanned-mapper.ts`:** จัดการ Hydrate ข้อมูลเดิมเมื่อเปิดหน้าแก้ไขกิจกรรมนอกแผน
-- **`type1-unplanned.strategy.ts`:** บันทึกทั้งเป้าหมายและผลการเข้าพบของกิจกรรมนอกแผน
+- **`type1-unplanned-form.tsx`:** ฟอร์ม 2-in-1 แสดงทั้งส่วนเลือกลูกค้า ผลพูดคุย เลือกสินค้าแนะนำผ่าน `ActivityProductSelect` (พร้อม Self-healing โหลดรายการสินค้า) และกล้องถ่ายรูป/พิกัด GPS
+- **`unplanned-mapper.ts`:** จัดการ Hydrate ข้อมูลเดิมเมื่อเปิดหน้าแก้ไขกิจกรรมนอกแผน (`hydrateType1UnplannedData`) รองรับทั้งการจับคู่ `targetId === s.id` และ fallback สำหรับข้อมูลเดิม
+- **`type1-unplanned.strategy.ts`:** บันทึกทั้งเป้าหมายและผลการเข้าพบของกิจกรรมนอกแผนผ่าน `type1PlannedStrategy.savePlan()` และ `type1PlannedStrategy.saveActual()`
 
 ### 4.3 Shared Types and Constants
-- **`shared/constants.ts`:** กำหนด `VISIT_TOPICS` เช่น "แจ้งข่าวสาร / แคมเปญ", "ให้คำแนะนำการใช้สินค้า", "สำรวจความต้องการ", "แนะนำสินค้าใหม่"
-- **`shared/types.ts`:** กำหนดประเภทข้อมูลรูปภาพ (`Type1ImageFile`), ตัวเลือกร้านค้า (`CustomerOption`), ตัวเลือกสินค้า (`ProductOption`)
+- **`shared/constants.ts`:** กำหนด `VISIT_TOPICS` เช่น "แจ้งข่าวสาร", "ให้คำแนะนำการใช้สินค้า", "สำรวจความต้องการ", "แนะนำสินค้าใหม่"
+- **`shared/types.ts`:** กำหนดประเภทข้อมูลรูปภาพ (`Type1ImageFile` รองรับ `targetId` และ `storeId`), สินค้าที่แนะนำ (`Type1AdviceProductItem`), ตัวเลือกร้านค้า (`CustomerOption`), ตัวเลือกสินค้า (`ProductOption`)
 
 ### 4.4 Shared UI and Views
 - `ActualWorkTypeList` และ `DetailWorkTypeList` ในโฟลเดอร์ `views/` ทำหน้าที่เป็น Orchestrator เรียกใช้ Component ของ Type 1 ตามเงื่อนไขการตรวจจับประเภทงาน
@@ -288,8 +293,8 @@ sequenceDiagram
 | **ที่อยู่เกษตรกรจริง**| `farmerHomeAddress` | `mapType1ActualFormToDb` | `ActivityResultType1` | `farmer_home_address` | `TEXT` | Yes | `null` |
 | **พิกัดละติจูด (GPS)** | `plotLatitude` | `mapType1ActualFormToDb` (`Number(val)`) | `ActivityResultType1` | `plot_latitude` | `DECIMAL(10,7)`| Yes | `null` |
 | **พิกัดลองจิจูด (GPS)**| `plotLongitude`| `mapType1ActualFormToDb` (`Number(val)`) | `ActivityResultType1` | `plot_longitude` | `DECIMAL(10,7)`| Yes | `null` |
-| **รายการสินค้าแนะนำ**| `advisedProducts` | `mapType1ActualFormToDb` ➔ Array of `{ productId, productName }` | `ActivityResultType1Product`| `product_id` | `VARCHAR (FK)` | No | - |
-| **รูปถ่ายสถานที่/แปลง**| `plotImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
+| **รายการสินค้าแนะนำ**| `advisedProducts` | `mapType1ActualFormToDb` ➔ Array of `{ productId, productName, targetId }` | `ActivityResultType1Product`| `product_id`, `target_id` | `VARCHAR (FK)` | No | - |
+| **รูปถ่ายสถานที่/แปลง**| `plotImages` | `uploadImages()` (แยก Path `/{planId}/{target.id}/type1`) ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
@@ -368,11 +373,12 @@ model ActivityResultType1Product {
   - หากการบันทึกภาพถ่าย หรือสินค้าแนะนำ หรือพิกัดล้มเหลว ระบบจะทำการ **Rollback ทั้งหมด** ไม่ปล่อยให้มีระเบียนกำพร้า (Orphaned records) ตกค้าง
 - **ขาเขียน (Write Flow):**
   1. *Planned:* ลบระเบียนเดิมใน `activity_plan_type_1_stores` ที่ผูกกับ `activityPlanId` ออกทั้งหมด ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()`
-  2. *Actual:* ลบระเบียนเดิมใน `activity_result_type_1` และ `activity_result_type_1_products` ➔ สร้างระเบียนผลงานใหม่โดยผูก `planStoreId` กับเป้าหมาย
-  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ บันทึก `activity_plan_type_1_stores` ➔ บันทึก `activity_result_type_1` ใน Transaction เดียวกัน
+  2. *Actual:* อัปโหลดรูปแปลงแยกตามเป้าหมาย (`/uploads/activity-plans/{planId}/{target.id}/type1`) ➔ ลบระเบียนเดิมใน `activity_result_type_1` และ `activity_result_type_1_products` ➔ สร้างระเบียนผลงานใหม่รายเป้าหมายโดยผูก `planStoreId: store.id` และบันทึกสินค้าแนะนำโดยผูก `targetId: store.id`
+  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ บันทึก `activity_plan_type_1_stores` ➔ บันทึก `activity_result_type_1` และ `activity_result_type_1_products` (โดยผูก `planStoreId` และ `targetId` เข้ากับ `store.id` ตัวใหม่ที่เพิ่งถูกสร้างใน Transaction เดียวกัน)
 - **ขาอ่าน (Read / Hydration Flow):**
   1. *Planned Edit:* ดึง `plan.type1Stores` (พร้อม include `store`) ➔ ส่งผ่าน `hydrateType1PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
-  2. *Actual View:* ดึง `plan.type1Stores` + `result` ➔ ส่งผ่าน `extractType1PlanTargets()` เพื่อกระจายข้อมูลให้ตัวแปร `targets` และเรียก `type1Actual.hydrate(res)` เพื่อกู้คืนภาพถ่าย พิกัด และผลพูดคุย
+  2. *Actual & Detail View:* ดึง `plan.type1Stores` + `result` + `type1Products` + `attachments` ➔ ส่งผ่าน `extractType1PlanTargets()` เพื่อกระจายข้อมูลรายเป้าหมาย (แยกรูปภาพตาม `/${s.id}/` และแยกสินค้าตาม `targetId`) และเรียก `type1Actual.hydrate(res)` เพื่อกู้คืนภาพถ่าย พิกัด และผลพูดคุย
+  3. *Unplanned Edit:* ดึงข้อมูลแผนผ่าน `getActivityPlanAction` ➔ ส่งผ่าน `hydrateType1UnplannedData()` เพื่อกู้คืนทั้งข้อมูลเป้าหมาย ผลพูดคุย และรายการสินค้าแนะนำรายเป้าหมาย
 - **การลบข้อมูล (Delete Policy):**
   - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_plan_type_1_stores`, `activity_result_type_1`, และ `activity_result_type_1_products` จะถูกลบออกอัตโนมัติ
 
@@ -397,8 +403,13 @@ model ActivityResultType1Product {
 - `isMet`: ค่าเริ่มต้นผลการเข้าพบเป็น `true` (เข้าพบสำเร็จ)
 
 ### 7.3 Conditional Fields
-- หากเลือกหัวข้อ **"ให้คำแนะนำการใช้สินค้า"**: ฟอร์มจะแสดงช่องกรอกคำแนะนำสินค้าและตัวเลือกสินค้าที่แนะนำ
-- หากระบุ **"เข้าพบไม่สำเร็จ" (`isMet = false`)**: ฟอร์มจะแสดงช่องให้ระบุสาเหตุที่เข้าพบไม่สำเร็จ และซ่อนช่องบันทึกโอกาสการขายและพิกัดแปลง
+- **กรณีบันทึกผลตามแผน (`Type1ActualForm`):**
+  - หากหัวข้อของเป้าหมายเป็น **"ให้คำแนะนำการใช้สินค้า"**: ฟอร์มจะแสดงตัวเลือกสินค้าที่ให้คำแนะนำ (`ActivityProductSelect`), ช่องคำแนะนำสินค้า และตัวเลือกประเมินโอกาสการขาย (`สูง` / `ต่ำ`)
+  - หากระบุ **"เข้าพบไม่สำเร็จ" (`isMet = false`)**: ฟอร์มจะแสดงช่องให้ระบุสาเหตุที่เข้าพบไม่สำเร็จ และซ่อนช่องบันทึกผลการพูดคุย โอกาสการขาย และพิกัดแปลง
+- **กรณีกิจกรรมนอกแผน (`Type1UnplannedForm`):**
+  - แสดงตัวเลือกสินค้าที่ให้คำแนะนำ (`ActivityProductSelect`) และโอกาสการสั่งซื้อให้เลือกได้ทุกหัวข้อ โดยหากเลือกหัวข้อ **"ให้คำแนะนำการใช้สินค้า"** จะแสดงป้ายกำกับ `ตรงกับประเด็นหลัก` เพิ่มเติม
+- **กรณีเป้าหมายเป็นเกษตรกร (`visitPurpose === "FARMER"`):**
+  - แสดงส่วนกรอกที่อยู่บ้านเกษตรกร (`farmerHomeAddress`), พิกัดแปลง (`ActivityGpsPicker`), และอัปโหลดรูปแปลงเกษตรกรไม่เกิน 5 รูปต่อเป้าหมาย (`ActivityPhotoUpload`)
 
 ### 7.4 Status and Approval Rules
 - **การบันทึกผลงานจริง (Trip Plan Actual):** สามารถบันทึกได้เฉพาะเมื่อแผนมีสถานะเป็น `APPROVED` (อนุมัติแล้ว) เท่านั้น
@@ -507,7 +518,9 @@ model ActivityResultType1Product {
 | **ข้อมูลเป้าหมายไม่ขึ้นในหน้าแก้ไข** | `planned-mapper.ts` ➔ `hydrateType1PlannedData` | Record ส่งมาเป็น `type1Stores` แต่โค้ดอ่าน `items` หรือ `stores` ให้เพิ่ม fallback ตรวจสอบให้ครบทั้ง 3 คีย์ |
 | **หน้า Trip Plan Actual ไม่มีช่องให้กรอกข้อมูล** | `activity-plan-actual-view.tsx` บรรทัด 308 | สถานะตั้งต้นเป็น `PARTIAL` แต่ JSX เช็คแค่ `statusState.activityResultStatus === "COMPLETED"` ให้เปลี่ยนเป็น `=== "COMPLETED" \|\| === "PARTIAL"` |
 | **วันนัดหมายถัดไป (`nextMeetingDate`) หายหลัง Reload** | `planned-mapper.ts` ➔ `extractType1PlanTargets` | ค่าใน DB ส่งมาเป็น `Date Object` หรือ `ISO String with Time` ให้ใช้ `.split("T")[0]` เพื่อตัดเวลาออกก่อนส่งให้ `<DatePicker />` |
-| **บันทึกแล้วสินค้าที่แนะนำไม่ลง Database** | `type1-planned.strategy.ts` ➔ `saveActual` | อาเรย์ `advisedProducts` ขาดฟิลด์ `productId` ตรวจสอบว่า Dropdown ส่ง Product Object ที่มี `id` มาครบถ้วน |
+| **บันทึกแล้วสินค้าที่แนะนำไม่ลง Database** | `type1-planned.strategy.ts` ➔ `saveActual` | อาเรย์ `advisedProducts` ขาดฟิลด์ `productId` ตรวจสอบว่า `ActivityProductSelect` ส่ง Product Object ที่มี `id` มาครบถ้วน |
+| **สินค้าแนะนำในหน้า Unplanned บันทึกแล้วไม่แสดงตอนเปิดดูซ้ำ** | `type1-planned.strategy.ts` ➔ `saveActual` และ `unplanned-mapper.ts` | ตอนบันทึก Unplanned ตาราง `activity_plan_type_1_stores` จะสร้าง `store.id` ใหม่เสมอ ดังนั้นใน `saveActual` ต้องอัปเดต `p.targetId = store.id` ให้ตรงกับ ID ใหม่ของเป้าหมายก่อนบันทึกลง `activity_result_type_1_products` |
+| **รูปแปลงเกษตรกรของหลายเป้าหมายมารวมกันที่เป้าหมายแรกหลัง Reload** | `use-type1-actual.ts` ➔ `uploadImages` และ `planned-mapper.ts` | ต้องอัปโหลดรูปภาพแยกโฟลเดอร์ตามเป้าหมาย (`{planId}/{target.id}/type1`) และรักษาค่า `img.targetId` ไว้ทั้งตอนอัปโหลดและตอน Hydrate ใน `extractType1PlanTargets` |
 | **กดบันทึกแล้วแจ้งเตือนไม่มีสิทธิ์** | `recordActivityResultUseCase` ใน application | สิทธิ์การบันทึกผลเป็นของ Creator หรือ Super Admin เท่านั้น ตรวจสอบ `userId === plan.createdById` |
 
 ---
@@ -521,9 +534,9 @@ model ActivityResultType1Product {
 - [ ] **TC-04 (Detail View):** เข้าหน้ารายละเอียด (`/activity-plans/[id]`) การ์ดเป้าหมาย Type 1 ต้องแสดงถูกต้อง
 - [ ] **TC-05 (Actual - Completed):** บันทึกผลการปฏิบัติงานจริงแบบ "ปฏิบัติงานแล้วเสร็จ" พร้อมใส่ผลพูดคุย สินค้าที่แนะนำ ปักหมุด GPS และอัปโหลดภาพถ่าย ตรวจสอบว่าบันทึกลง `activity_result_type_1`
 - [ ] **TC-06 (Actual - Partial):** บันทึกผลแบบ "สำเร็จบางส่วน" ตรวจสอบว่ามีช่องให้กรอกข้อมูลครบถ้วน และบันทึกผลได้จริง
-- [ ] **TC-07 (Unplanned 2-in-1):** สร้างกิจกรรมนอกแผน ระบุร้านค้าพร้อมผลพูดคุยในหน้าเดียว บันทึกแล้วเสร็จสมบูรณ์ทันที
+- [ ] **TC-07 (Unplanned 2-in-1):** สร้างกิจกรรมนอกแผน ระบุร้านค้าพร้อมผลพูดคุยและสินค้าแนะนำในหน้าเดียว บันทึกแล้วเปิดแก้ไขซ้ำ ข้อมูลสินค้าแนะนำต้องแสดงครบถ้วน
 - [ ] **TC-08 (Approval View):** หัวหน้างานเข้าหน้าพิจารณาอนุมัติ ข้อมูลเป้าหมาย Type 1 ต้องแสดงในการ์ดอนุมัติอย่างถูกต้อง
-- [ ] **TC-09 (Reload Persistence Check):** หลังบันทึกผลจริง ให้กด F5 / Refresh หน้าจอ ข้อมูลผลการเข้าพบ วันนัดถัดไป พิกัด และภาพถ่ายต้องยังอยู่ครบ 100%
+- [ ] **TC-09 (Reload Persistence Check):** หลังบันทึกผลจริงที่มีเกษตรกรหลายราย ให้กด F5 / Refresh หน้าจอ ข้อมูลผลการเข้าพบ วันนัดถัดไป พิกัด สินค้าแนะนำ และภาพถ่ายแปลงของเกษตรกรแต่ละรายต้องแยกกันถูกต้องครบ 100%
 
 ---
 
@@ -532,7 +545,7 @@ model ActivityResultType1Product {
 1. **Prisma Table Separation:**
    - Type 1 จัดเก็บเป้าหมายไว้ในตารางเฉพาะกิจ `activity_plan_type_1_stores` ไม่ได้เก็บปนในตารางรวม `activity_plan_stores` ของระบบเดิม
 2. **รูปภาพและการบีบอัด:**
-   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type1Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล
+   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type1Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` (ภายใต้ Path `/{planId}/{target.id}/type1`) ก่อนบันทึกลงฐานข้อมูล
 3. **Decoupling Dependency:**
    - ต้องนำเข้าค่าคงที่และฟังก์ชันจาก `@/modules/activity/constants` เท่านั้น ห้ามนำเข้าจาก `@/modules/activity-plans` โดยเด็ดขาด
 
@@ -550,3 +563,4 @@ model ActivityResultType1Product {
 | **2026-10-19** | 1.3.0 | เติม Database CRUD Matrix, Field Mapping ครบทุกคอลัมน์, รายละเอียด Prisma Schema, Tracing Pipeline, และ Transaction Write/Read Flow | Antigravity AI |
 | **2026-10-19** | 1.4.0 | แยกขาดจาก `activity-plans` 100%: สร้าง Standalone Server Actions (`@/modules/activity/server/actions`), แยก Infrastructure Repository ภายในโมดูล และตัดโค้ดตกค้าง `remarks` ออกจาก Mapper โดยบันทึกเฉพาะ `topic` และ `notes` ตาม Schema จริง | Antigravity AI |
 | **2026-10-20** | 1.5.0 | Core Architecture Refactoring: สลับมาใช้ Shared Inputs จาก `@/modules/activity/ui` (`ActivityInput`, `ActivityAddressSelect`, `ActivityCustomerSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`), เชื่อมต่อเข้ากับ `strategy.registry.ts` ใน `infrastructure/`, และอัปเดตการเรียกใช้ Server Actions ที่แยกไฟล์ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
+| **2026-10-21** | 1.6.0 | อัปเดต `Type1UnplannedForm` ให้ใช้ `ActivityProductSelect` พร้อม Self-healing โหลดสินค้า, แยกการอัปโหลดและ Hydrate รูปแปลงเกษตรกร (`plotImages`) ตาม `targetId` รายเป้าหมายไม่ให้ปนกัน, และแก้ไขการผูก `targetId` ของ `advisedProducts` ใน `type1-planned.strategy.ts` กับ `unplanned-mapper.ts` | Antigravity AI |
