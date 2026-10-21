@@ -275,14 +275,30 @@ export function extractType1PlanTargets(
         : undefined;
 
     const rawT1Products: any[] = plan.type1Products || [];
+    const hasMatchingStoreTargetId = rawT1Products.some((p: any) =>
+      rawT1Stores.some((st: any) => st.id && p.targetId === st.id),
+    );
+    const adviceNames = (targetResult?.productAdvice || "")
+      .split(",")
+      .map((n: string) => n.trim())
+      .filter(Boolean);
     const targetAdvisedProducts = rawT1Products
-      .filter((p: any) => p.targetId === s.id || (isSingleStorePlan && !p.targetId))
+      .filter((p: any) => {
+        if (!p.targetId || p.targetId === s.id) return true;
+        if (isSingleStorePlan) return true;
+        if (!hasMatchingStoreTargetId) {
+          if (p.targetId === String(idx + 1)) return true;
+          const pName = p.product?.name || p.productName || "";
+          if (pName && adviceNames.includes(pName)) return true;
+        }
+        return false;
+      })
       .map((p: any) => ({
         id: p.id,
         productId: p.productId,
         productName: p.product?.name || p.productName || "",
         productCode: p.product?.productCode || null,
-        targetId: p.targetId || s.id,
+        targetId: s.id,
       }));
 
     const targetPlotImages = isFarmer
@@ -345,9 +361,9 @@ export function extractType1PlanTargets(
             ? (isSingleStorePlan ? resultLng : undefined) || storeLng
             : storeLng || undefined,
       plotImages: targetPlotImages.length > 0 ? targetPlotImages : undefined,
-      productAdvice: isAdviceTopic
-        ? targetResult?.productAdvice || (isSingleStorePlan ? resultProductAdvice : undefined)
-        : undefined,
+      productAdvice:
+        targetResult?.productAdvice ||
+        (isSingleStorePlan ? resultProductAdvice : undefined),
       advisedProducts: targetAdvisedProducts.length > 0 ? targetAdvisedProducts : undefined,
       discussionResult:
         targetResult?.discussionResult || (isSingleStorePlan ? resultDiscussionResult : undefined),

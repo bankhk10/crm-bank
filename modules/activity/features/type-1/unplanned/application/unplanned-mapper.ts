@@ -66,6 +66,10 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
     ];
   }
 
+  const hasMatchingStoreTargetId = products.some((p: any) =>
+    rawStores.some((st: any) => st.id && p.targetId === st.id),
+  );
+
   return rawStores.map((s, idx) => {
     const rawPurpose = s.visitPurpose;
     const inferredPurpose: "FARMER" | "STORE" = rawPurpose
@@ -76,14 +80,27 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
           ? "STORE"
           : "FARMER";
 
-    const targetProducts = products.filter(
-      (p: any) => !p.targetId || p.targetId === s.id,
-    );
-
     const targetResult =
       s.result ||
       (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
-      actualResult;
+      (plan.type1Results && plan.type1Results[idx]) ||
+      (rawStores.length === 1 ? actualResult : {});
+
+    const adviceNames = (targetResult.productAdvice || "")
+      .split(",")
+      .map((n: string) => n.trim())
+      .filter(Boolean);
+
+    const targetProducts = products.filter((p: any) => {
+      if (!p.targetId || p.targetId === s.id) return true;
+      if (rawStores.length === 1) return true;
+      if (!hasMatchingStoreTargetId) {
+        if (p.targetId === String(idx + 1)) return true;
+        const pName = p.product?.name || p.productName || "";
+        if (pName && adviceNames.includes(pName)) return true;
+      }
+      return false;
+    });
 
     return {
       id: s.id || String(idx + 1),
@@ -104,7 +121,7 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
         productId: p.productId,
         productName: p.product?.name || p.productName || "",
         productCode: p.product?.productCode || p.productCode || null,
-        targetId: s.id,
+        targetId: s.id || String(idx + 1),
       })),
       salesOpportunity: (targetResult.salesOpportunity as "สูง" | "ต่ำ" | "") || "",
       nextAction: targetResult.nextAction || "",

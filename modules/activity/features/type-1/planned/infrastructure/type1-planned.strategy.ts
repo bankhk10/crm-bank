@@ -165,6 +165,8 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       data.items ||
       [];
 
+    const matchedTargetProducts: any[] = [];
+
     if (planStores.length > 0) {
       for (let idx = 0; idx < planStores.length; idx++) {
         const store = planStores[idx];
@@ -177,6 +179,17 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
           ) ||
           targetResults[idx] ||
           {};
+
+        if (Array.isArray(match.advisedProducts)) {
+          for (const p of match.advisedProducts) {
+            if (p && p.productId) {
+              matchedTargetProducts.push({
+                ...p,
+                targetId: store.id,
+              });
+            }
+          }
+        }
 
         const prodAdvice =
           match.productAdvice || (planStores.length === 1 ? data.productAdvice : null) || null;
@@ -236,11 +249,28 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
     });
 
-    const rawProductsList: any[] = [
-      ...(Array.isArray(data.products) ? data.products : []),
-      ...(Array.isArray(data.advisedProducts) ? data.advisedProducts : []),
-      ...targetResults.flatMap((t: any) => (Array.isArray(t.advisedProducts) ? t.advisedProducts : [])),
-    ];
+    const validStoreIds = new Set(planStores.map((s: any) => s.id));
+    const fallbackSingleStoreId = planStores.length === 1 ? planStores[0].id : null;
+
+    const normalizeProductTargetId = (p: any) => {
+      if (!p) return p;
+      if (p.targetId && validStoreIds.has(p.targetId)) return p;
+      if (fallbackSingleStoreId) {
+        return { ...p, targetId: fallbackSingleStoreId };
+      }
+      return p;
+    };
+
+    const rawProductsList: any[] =
+      matchedTargetProducts.length > 0
+        ? matchedTargetProducts
+        : [
+            ...(Array.isArray(data.products) ? data.products.map(normalizeProductTargetId) : []),
+            ...(Array.isArray(data.advisedProducts) ? data.advisedProducts.map(normalizeProductTargetId) : []),
+            ...targetResults.flatMap((t: any) =>
+              Array.isArray(t.advisedProducts) ? t.advisedProducts.map(normalizeProductTargetId) : [],
+            ),
+          ];
 
     const seen = new Set<string>();
     const productsList = rawProductsList.filter((p) => {
