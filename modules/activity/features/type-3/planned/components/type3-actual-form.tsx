@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   CheckCircle2,
   Plus,
@@ -85,19 +91,66 @@ export function Type3ActualForm({
   const initialPlannedItems: TargetProductItem[] = useMemo(() => {
     if (effectiveTargets.length === 0) return [];
     const allItems: TargetProductItem[] = [];
+    const plannedSavedList = (productSalesDetails || []).filter(
+      (d) => !d.isAdditional,
+    );
+    const usedSavedIdx = new Set<number>();
+
+    const findMatchingSaved = (
+      item: {
+        id?: string;
+        productId?: string;
+        productName?: string;
+        storeId?: string;
+      },
+      flatIdx: number,
+    ) => {
+      const matchIdx = plannedSavedList.findIndex((d, i) => {
+        if (usedSavedIdx.has(i)) return false;
+        if (item.id && d.id && d.id === item.id) return true;
+        const storeMatches =
+          !item.storeId || !d.storeId || d.storeId === item.storeId;
+        if (!storeMatches) return false;
+        if (item.productId && d.productId && d.productId === item.productId) {
+          return true;
+        }
+        if (
+          item.productName &&
+          d.productName &&
+          d.productName === item.productName
+        ) {
+          return true;
+        }
+        return false;
+      });
+
+      if (matchIdx !== -1) {
+        usedSavedIdx.add(matchIdx);
+        return plannedSavedList[matchIdx];
+      }
+
+      if (flatIdx < plannedSavedList.length && !usedSavedIdx.has(flatIdx)) {
+        usedSavedIdx.add(flatIdx);
+        return plannedSavedList[flatIdx];
+      }
+
+      return undefined;
+    };
+
+    let flatIdx = 0;
 
     effectiveTargets.forEach((t) => {
       if (t.items && t.items.length > 0) {
-        t.items.forEach((item, idx) => {
-          const saved =
-            productSalesDetails?.find(
-              (d) =>
-                !d.isAdditional &&
-                ((item.id && d.id === item.id) ||
-                  (item.productId && d.productId === item.productId) ||
-                  (d.productName === item.productName &&
-                    (!item.storeId || d.storeId === item.storeId))),
-            ) || productSalesDetails?.filter((d) => !d.isAdditional)?.[idx];
+        t.items.forEach((item) => {
+          const saved = findMatchingSaved(
+            {
+              id: item.id,
+              productId: item.productId,
+              productName: item.productName,
+              storeId: item.storeId || t.storeId,
+            },
+            flatIdx++,
+          );
 
           const catalogProd = products.find(
             (p) => p.id === item.productId || p.name === item.productName,
@@ -108,11 +161,14 @@ export function Type3ActualForm({
               : 0;
 
           const resolvedActualQty =
-            saved?.actualQty ??
-            (saved as any)?.actualQuantity ??
-            item.actualQty ??
-            item.qty ??
-            "";
+            saved?.actualQty !== undefined && saved?.actualQty !== ""
+              ? saved.actualQty
+              : (saved as any)?.actualQuantity !== undefined &&
+                  (saved as any)?.actualQuantity !== ""
+                ? (saved as any).actualQuantity
+                : item.actualQty !== undefined && item.actualQty !== ""
+                  ? item.actualQty
+                  : item.qty ?? "";
           const rawSavedUnit = Number(
             saved?.unitPrice ?? (saved as any)?.actualUnitPrice ?? 0,
           );
@@ -128,12 +184,10 @@ export function Type3ActualForm({
             (saved as any)?.actualTotal ??
             item.actualSales;
           const resolvedActualSales =
-            rawSavedSales != null &&
-            rawSavedSales !== "" &&
-            Number(rawSavedSales) > 0
-              ? String(rawSavedSales)
-              : resolvedActualQty !== ""
-                ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
+            resolvedActualQty !== "" && resolvedUnitPrice > 0
+              ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
+              : rawSavedSales != null && rawSavedSales !== ""
+                ? String(rawSavedSales)
                 : "";
 
           allItems.push({
@@ -147,16 +201,22 @@ export function Type3ActualForm({
           });
         });
       } else if (t.product) {
-        const saved =
-          productSalesDetails?.find(
-            (d) => !d.isAdditional && d.productName === t.product,
-          ) || productSalesDetails?.[0];
+        const saved = findMatchingSaved(
+          {
+            id: t.id,
+            productName: t.product,
+            storeId: t.storeId,
+          },
+          flatIdx++,
+        );
 
         const resolvedActualQty =
-          saved?.actualQty ??
-          (saved as any)?.actualQuantity ??
-          t.targetQty ??
-          "";
+          saved?.actualQty !== undefined && saved?.actualQty !== ""
+            ? saved.actualQty
+            : (saved as any)?.actualQuantity !== undefined &&
+                (saved as any)?.actualQuantity !== ""
+              ? (saved as any).actualQuantity
+              : t.targetQty ?? "";
         const resolvedUnitPrice =
           Number(
             saved?.unitPrice ??
@@ -165,11 +225,9 @@ export function Type3ActualForm({
               0,
           ) || 0;
         const resolvedActualSales =
-          saved?.actualSales ??
-          (saved as any)?.actualTotal ??
-          (resolvedActualQty !== ""
+          resolvedActualQty !== "" && resolvedUnitPrice > 0
             ? String((Number(resolvedActualQty) || 0) * resolvedUnitPrice)
-            : "");
+            : saved?.actualSales ?? (saved as any)?.actualTotal ?? "";
 
         allItems.push({
           id: t.id || "planned-single",
@@ -193,6 +251,47 @@ export function Type3ActualForm({
     return allItems;
   }, [effectiveTargets, productSalesDetails, products]);
 
+  // Extract saved additional items from productSalesDetails
+  const initialAdditionalItems: TargetProductItem[] = useMemo(() => {
+    const fromSaved = (productSalesDetails || []).filter((d) => d.isAdditional);
+    return fromSaved.map((item, idx) => {
+      const catalogProd = products.find(
+        (p) => p.id === item.productId || p.name === item.productName,
+      );
+      const uPrice =
+        Number(
+          item.unitPrice ??
+            (item as any).actualUnitPrice ??
+            (catalogProd as any)?.price ??
+            0,
+        ) || 0;
+      const aQty =
+        item.actualQty !== undefined
+          ? item.actualQty
+          : (item as any).actualQuantity !== undefined
+            ? (item as any).actualQuantity
+            : 1;
+      const aSales =
+        item.actualSales !== undefined && item.actualSales !== ""
+          ? item.actualSales
+          : (item as any).actualTotal !== undefined
+            ? String((item as any).actualTotal)
+            : String((Number(aQty) || 0) * uPrice);
+
+      return {
+        id: item.id || `additional-${idx}`,
+        productId: item.productId || catalogProd?.id,
+        productName: item.productName || catalogProd?.name || "",
+        qty: "",
+        unitPrice: uPrice,
+        actualQty: aQty,
+        actualSales: aSales,
+        unclosedReason: item.unclosedReason || "",
+        isAdditional: true,
+      };
+    });
+  }, [productSalesDetails, products]);
+
   // State: Planned items
   const [plannedItems, setPlannedItems] = useState<TargetProductItem[]>(() => {
     if (initialPlannedItems.length > 0) {
@@ -203,23 +302,11 @@ export function Type3ActualForm({
 
   // State: Additional products on site
   const [additionalItems, setAdditionalItems] = useState<TargetProductItem[]>(
-    () => {
-      const fromSaved = (productSalesDetails || []).filter(
-        (d) => d.isAdditional,
-      );
-      return fromSaved.map((item, idx) => ({
-        id: item.id || `additional-${idx}`,
-        productId: item.productId,
-        productName: item.productName || "",
-        qty: "",
-        unitPrice: item.unitPrice ?? (item as any).actualUnitPrice ?? 0,
-        actualQty: item.actualQty ?? (item as any).actualQuantity ?? 1,
-        actualSales: item.actualSales ?? (item as any).actualTotal ?? "",
-        unclosedReason: item.unclosedReason || "",
-        isAdditional: true,
-      }));
-    },
+    () => initialAdditionalItems,
   );
+
+  // Track last array reference written by syncToParent to distinguish external hydration
+  const lastSyncedToParentRef = useRef<Type3ProductSaleDetail[] | null>(null);
 
   // Sync to parent hooks
   const syncToParent = useCallback(
@@ -277,6 +364,7 @@ export function Type3ActualForm({
         }),
       ];
 
+      lastSyncedToParentRef.current = all;
       if (setProductSalesDetails) {
         setProductSalesDetails(all);
       }
@@ -313,14 +401,29 @@ export function Type3ActualForm({
     ],
   );
 
-  // Sync initial planned items when targets/products finish loading
+  // Sync initial planned items and hydrated DB details when targets/products/saved details finish loading
   const hasSyncedInitialRef = useRef(false);
   useEffect(() => {
+    const isExternalHydration =
+      Array.isArray(productSalesDetails) &&
+      productSalesDetails.length > 0 &&
+      productSalesDetails !== lastSyncedToParentRef.current;
+
+    if (isExternalHydration) {
+      hasSyncedInitialRef.current = true;
+      setPlannedItems(initialPlannedItems);
+      setAdditionalItems(initialAdditionalItems);
+      syncToParent(initialPlannedItems, initialAdditionalItems);
+      return;
+    }
+
     if (initialPlannedItems.length === 0) return;
+
     if (!hasSyncedInitialRef.current || plannedItems.length === 0) {
       hasSyncedInitialRef.current = true;
       setPlannedItems(initialPlannedItems);
-      syncToParent(initialPlannedItems, additionalItems);
+      setAdditionalItems(initialAdditionalItems);
+      syncToParent(initialPlannedItems, initialAdditionalItems);
     } else if (
       products.length > 0 &&
       plannedItems.some((p) => !(Number(p.unitPrice) > 0)) &&
@@ -342,7 +445,12 @@ export function Type3ActualForm({
       setPlannedItems(merged);
       syncToParent(merged, additionalItems);
     }
-  }, [initialPlannedItems, products.length]);
+  }, [
+    initialPlannedItems,
+    initialAdditionalItems,
+    productSalesDetails,
+    products.length,
+  ]);
 
   const updatePlannedItem = (
     index: number,
@@ -389,8 +497,7 @@ export function Type3ActualForm({
 
     if (field === "productName" && val) {
       const found =
-        productItem ||
-        products.find((p) => p.name === val || p.id === val);
+        productItem || products.find((p) => p.name === val || p.id === val);
       if (found) {
         item.productId = found.id;
         item.productName = found.name;
@@ -463,7 +570,8 @@ export function Type3ActualForm({
                 บันทึกผลการเสนอขายสินค้าจริง (Actual Sales Outcome)
               </h4>
               <p className="text-xs text-slate-500">
-                ระบุจำนวนที่สามารถปิดการขายได้จริง และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
+                ระบุจำนวนที่สามารถปิดการขายได้จริง
+                และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
               </p>
             </div>
           </div>
@@ -554,7 +662,8 @@ export function Type3ActualForm({
                       {/* Actual Qty Input */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          จำนวนที่ขายได้จริง <span className="text-rose-500">*</span>
+                          จำนวนที่ขายได้จริง{" "}
+                          <span className="text-rose-500">*</span>
                         </label>
                         <ActivityInput
                           type="number"
@@ -592,7 +701,14 @@ export function Type3ActualForm({
                           ยอดขายจริงที่ปิดได้
                         </span>
                         <strong className="text-emerald-900 text-sm font-extrabold text-right">
-                          ฿{(Number(item.actualSales) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ฿
+                          {(Number(item.actualSales) || 0).toLocaleString(
+                            undefined,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}
                         </strong>
                       </div>
                     </div>
@@ -602,13 +718,18 @@ export function Type3ActualForm({
                       <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-2.5 space-y-1.5">
                         <span className="text-amber-800 font-bold text-xs flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า <span className="text-rose-500">*</span>
+                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า{" "}
+                          <span className="text-rose-500">*</span>
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <select
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(idx, "unclosedReason", e.target.value)
+                              updatePlannedItem(
+                                idx,
+                                "unclosedReason",
+                                e.target.value,
+                              )
                             }
                             className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                           >
@@ -623,7 +744,11 @@ export function Type3ActualForm({
                             type="text"
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(idx, "unclosedReason", e.target.value)
+                              updatePlannedItem(
+                                idx,
+                                "unclosedReason",
+                                e.target.value,
+                              )
                             }
                             placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
                             className="bg-white text-xs"
@@ -638,8 +763,8 @@ export function Type3ActualForm({
           )}
         </div>
 
-        {/* Additional Products on Site */}
-        <div className="space-y-3 pt-2 border-t border-slate-100">
+        {/*ปิดไว้ก่อนเดียวมาเปิดเอง Additional Products on Site */}
+        {/* <div className="space-y-3 pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-purple-600" />
@@ -742,7 +867,7 @@ export function Type3ActualForm({
               })}
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Total Outcome Bar */}
         <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
@@ -752,10 +877,17 @@ export function Type3ActualForm({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-600">
-              จำนวนขายได้: <strong className="text-slate-900 font-bold">{totalSoldQty.toLocaleString()} หน่วย</strong>
+              จำนวนขายได้:{" "}
+              <strong className="text-slate-900 font-bold">
+                {totalSoldQty.toLocaleString()} หน่วย
+              </strong>
             </span>
             <span className="text-emerald-900 font-extrabold text-sm sm:text-base">
-              ยอดขายรวม: ฿{totalSoldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ยอดขายรวม: ฿
+              {totalSoldAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
         </div>

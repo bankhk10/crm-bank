@@ -49,6 +49,9 @@ export function parseType3ActualResult(resData: any): {
         actualQty,
         unitPrice,
         actualSales: actualTotal,
+        actualQuantity: actualQty,
+        actualUnitPrice: unitPrice,
+        actualTotal,
         unclosedReason: item.unclosedReason || "",
         isAdditional: Boolean(item.isAdditional),
       };

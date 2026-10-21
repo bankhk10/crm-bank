@@ -6,6 +6,7 @@ import type {
   Type3ActualData,
 } from "../types/actual.types";
 import { validateType3Actual } from "../application/actual-validation";
+import { parseType3ActualResult } from "../application/actual-mapper";
 
 export function useType3Actual() {
   const [t3SoldProducts, setT3SoldProducts] = useState<string>("");
@@ -16,18 +17,33 @@ export function useType3Actual() {
     Type3ProductSaleDetail[]
   >([]);
 
-  const hydrate = useCallback((parsed: any) => {
-    if (!parsed) return;
-    if (parsed.t3SoldProducts) setT3SoldProducts(parsed.t3SoldProducts);
-    if (parsed.t3ActualSales) setT3ActualSales(String(parsed.t3ActualSales));
-    if (parsed.t3ActualQuantity) {
-      setT3ActualQuantity(String(parsed.t3ActualQuantity));
+  const hydrate = useCallback((parsedInput: any) => {
+    if (!parsedInput) return;
+    const mapped = parseType3ActualResult(parsedInput);
+    const parsed = { ...mapped, ...parsedInput };
+
+    const soldProducts = parsed.t3SoldProducts ?? mapped.t3SoldProducts;
+    const actualSales = parsed.t3ActualSales ?? mapped.t3ActualSales;
+    const actualQuantity = parsed.t3ActualQuantity ?? mapped.t3ActualQuantity;
+    const unclosedReason = parsed.t3UnclosedReason ?? mapped.t3UnclosedReason;
+    const details =
+      Array.isArray(parsedInput.t3ProductSalesDetails) &&
+      parsedInput.t3ProductSalesDetails.length > 0
+        ? parsedInput.t3ProductSalesDetails
+        : mapped.t3ProductSalesDetails;
+
+    if (soldProducts !== undefined) setT3SoldProducts(soldProducts);
+    if (actualSales !== undefined && actualSales !== "") {
+      setT3ActualSales(String(actualSales));
     }
-    if (parsed.t3UnclosedReason) {
-      setT3UnclosedReason(parsed.t3UnclosedReason);
+    if (actualQuantity !== undefined && actualQuantity !== "") {
+      setT3ActualQuantity(String(actualQuantity));
     }
-    if (parsed.t3ProductSalesDetails && Array.isArray(parsed.t3ProductSalesDetails)) {
-      setT3ProductSalesDetails(parsed.t3ProductSalesDetails);
+    if (unclosedReason !== undefined) {
+      setT3UnclosedReason(unclosedReason);
+    }
+    if (details && Array.isArray(details) && details.length > 0) {
+      setT3ProductSalesDetails(details);
     }
   }, []);
 

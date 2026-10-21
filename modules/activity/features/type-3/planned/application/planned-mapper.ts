@@ -27,6 +27,40 @@ export function extractType3PlanTargets(
   };
 
   const genericProducts: any[] = plan?.planProducts || plan?.products || [];
+  const rawSaleResults: any[] =
+    plan?.result?.saleResults ||
+    plan?.actualResult?.saleResults ||
+    plan?.saleResults ||
+    [];
+  const t3SavedSales = rawSaleResults.filter(
+    (s: any) =>
+      !s.isAdditional &&
+      (!s.workTypeCode ||
+        s.workTypeCode === "TYPE_3" ||
+        s.workTypeCode === "เสนอขายสินค้า"),
+  );
+  const usedSavedSaleIdx = new Set<number>();
+
+  const findSavedSaleForProduct = (
+    productId?: string,
+    productName?: string,
+    storeId?: string,
+  ) => {
+    const idx = t3SavedSales.findIndex((s: any, i: number) => {
+      if (usedSavedSaleIdx.has(i)) return false;
+      const storeMatch = !storeId || !s.storeId || s.storeId === storeId;
+      if (!storeMatch) return false;
+      if (productId && s.productId && s.productId === productId) return true;
+      const sName = s.productName || s.product?.name;
+      if (productName && sName && sName === productName) return true;
+      return false;
+    });
+    if (idx !== -1) {
+      usedSavedSaleIdx.add(idx);
+      return t3SavedSales[idx];
+    }
+    return undefined;
+  };
 
   // 1. Load directly from dedicated table ActivityPlanType3Target
   if (
@@ -47,6 +81,16 @@ export function extractType3PlanTargets(
               gp.productId === p.productId &&
               (!t.storeId || !gp.storeId || gp.storeId === t.storeId),
           );
+          const resolvedProdName =
+            p.product?.name ||
+            matchedGenericProd?.productName ||
+            matchedGenericProd?.product?.name ||
+            "สินค้าเสนอขาย";
+          const savedSale = findSavedSaleForProduct(
+            p.productId,
+            resolvedProdName,
+            t.storeId || undefined,
+          );
           const qtyNum =
             p.targetQuantity != null
               ? Number(p.targetQuantity)
@@ -63,7 +107,10 @@ export function extractType3PlanTargets(
                   ? Number(p.product.price)
                   : matchedGenericProd?.product?.price != null
                     ? Number(matchedGenericProd.product.price)
-                    : 0;
+                    : savedSale?.actualUnitPrice != null &&
+                        Number(savedSale.actualUnitPrice) > 0
+                      ? Number(savedSale.actualUnitPrice)
+                      : 0;
           const rawTargetAmount =
             p.targetAmount != null && Number(p.targetAmount) > 0
               ? Number(p.targetAmount)
@@ -82,14 +129,23 @@ export function extractType3PlanTargets(
               ? qtyNum * effectiveUnitPrice
               : rawTargetAmount;
 
+          const savedActualQty =
+            savedSale?.actualQuantity !== undefined
+              ? Number(savedSale.actualQuantity)
+              : savedSale?.actualQty !== undefined
+                ? Number(savedSale.actualQty)
+                : undefined;
+          const savedActualSales =
+            savedSale?.actualTotal !== undefined
+              ? Number(savedSale.actualTotal)
+              : savedSale?.actualSales !== undefined
+                ? Number(savedSale.actualSales)
+                : undefined;
+
           return {
             id: p.id,
             productId: p.productId,
-            productName:
-              p.product?.name ||
-              matchedGenericProd?.productName ||
-              matchedGenericProd?.product?.name ||
-              "สินค้าเสนอขาย",
+            productName: resolvedProdName,
             customer: customerDisplayName,
             storeId: t.storeId || undefined,
             isSubDealer: isSub,
@@ -99,6 +155,9 @@ export function extractType3PlanTargets(
             unitPrice: effectiveUnitPrice,
             price: effectiveTargetAmount,
             targetSales: effectiveTargetAmount,
+            actualQty: savedActualQty,
+            actualSales: savedActualSales,
+            unclosedReason: savedSale?.unclosedReason || undefined,
             unit:
               p.product?.packageSizeUnit ||
               matchedGenericProd?.product?.packageSizeUnit ||
@@ -186,13 +245,23 @@ export function extractType3PlanTargets(
       matchedProds.length > 0 ? matchedProds : t3Products;
 
     const items: TargetProductItem[] = effectiveProds.map((p) => {
+      const resolvedProdName =
+        p.productName || p.product?.name || "สินค้าเสนอขาย";
+      const savedSale = findSavedSaleForProduct(
+        p.productId,
+        resolvedProdName,
+        s.storeId || undefined,
+      );
       const qtyNum = p.targetQuantity != null ? Number(p.targetQuantity) : 0;
       const rawUnitPrice =
         p.unitPrice != null && Number(p.unitPrice) > 0
           ? Number(p.unitPrice)
           : p.product?.price != null
             ? Number(p.product.price)
-            : 0;
+            : savedSale?.actualUnitPrice != null &&
+                Number(savedSale.actualUnitPrice) > 0
+              ? Number(savedSale.actualUnitPrice)
+              : 0;
       const rawTargetAmount =
         p.targetAmount != null && Number(p.targetAmount) > 0
           ? Number(p.targetAmount)
@@ -208,10 +277,23 @@ export function extractType3PlanTargets(
           ? qtyNum * effectiveUnitPrice
           : rawTargetAmount;
 
+      const savedActualQty =
+        savedSale?.actualQuantity !== undefined
+          ? Number(savedSale.actualQuantity)
+          : savedSale?.actualQty !== undefined
+            ? Number(savedSale.actualQty)
+            : undefined;
+      const savedActualSales =
+        savedSale?.actualTotal !== undefined
+          ? Number(savedSale.actualTotal)
+          : savedSale?.actualSales !== undefined
+            ? Number(savedSale.actualSales)
+            : undefined;
+
       return {
         id: p.id,
         productId: p.productId,
-        productName: p.productName || p.product?.name || "สินค้าเสนอขาย",
+        productName: resolvedProdName,
         customer: customerDisplayName,
         storeId: s.storeId || undefined,
         isSubDealer: isSub,
@@ -221,6 +303,9 @@ export function extractType3PlanTargets(
         unitPrice: effectiveUnitPrice,
         price: effectiveTargetAmount,
         targetSales: effectiveTargetAmount,
+        actualQty: savedActualQty,
+        actualSales: savedActualSales,
+        unclosedReason: savedSale?.unclosedReason || undefined,
         unit: p.product?.packageSizeUnit || p.product?.unit || "ลัง",
         detail: p.notes || s.notes || "",
         notes: p.notes || "",
