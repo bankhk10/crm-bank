@@ -142,9 +142,10 @@ export function Type3ActualForm({
         ...planned.map((p) => {
           const qty = Number(p.actualQty ?? 0);
           const uPrice = Number(p.unitPrice ?? 0);
-          const total = p.actualSales != null && p.actualSales !== ""
-            ? Number(p.actualSales)
-            : qty * uPrice;
+          const total =
+            p.actualSales != null && p.actualSales !== ""
+              ? Number(p.actualSales)
+              : qty * uPrice;
 
           return {
             id: p.id,
@@ -164,9 +165,10 @@ export function Type3ActualForm({
         ...additional.map((a) => {
           const qty = Number(a.actualQty ?? 0);
           const uPrice = Number(a.unitPrice ?? 0);
-          const total = a.actualSales != null && a.actualSales !== ""
-            ? Number(a.actualSales)
-            : qty * uPrice;
+          const total =
+            a.actualSales != null && a.actualSales !== ""
+              ? Number(a.actualSales)
+              : qty * uPrice;
 
           return {
             id: a.id,
@@ -187,8 +189,14 @@ export function Type3ActualForm({
         setProductSalesDetails(all);
       }
 
-      const totalQty = all.reduce((sum, item) => sum + (Number(item.actualQty) || 0), 0);
-      const totalAmount = all.reduce((sum, item) => sum + (Number(item.actualSales) || 0), 0);
+      const totalQty = all.reduce(
+        (sum, item) => sum + (Number(item.actualQty) || 0),
+        0,
+      );
+      const totalAmount = all.reduce(
+        (sum, item) => sum + (Number(item.actualSales) || 0),
+        0,
+      );
       const productNames = all
         .filter((item) => Number(item.actualQty) > 0)
         .map((item) => item.productName)
@@ -204,7 +212,13 @@ export function Type3ActualForm({
       setSoldProducts(productNames);
       setUnclosedReason(reasons);
     },
-    [setProductSalesDetails, setActualQuantity, setActualSales, setSoldProducts, setUnclosedReason],
+    [
+      setProductSalesDetails,
+      setActualQuantity,
+      setActualSales,
+      setSoldProducts,
+      setUnclosedReason,
+    ],
   );
 
   const updatePlannedItem = (
@@ -252,8 +266,7 @@ export function Type3ActualForm({
 
     if (field === "productName" && val) {
       const found =
-        productItem ||
-        products.find((p) => p.name === val || p.id === val);
+        productItem || products.find((p) => p.name === val || p.id === val);
       if (found) {
         item.productId = found.id;
         item.productName = found.name;
@@ -285,11 +298,15 @@ export function Type3ActualForm({
     return [
       ...plannedItems.map((p) => ({
         qty: Number(p.actualQty) || 0,
-        amount: Number(p.actualSales) || (Number(p.actualQty) || 0) * (Number(p.unitPrice) || 0),
+        amount:
+          Number(p.actualSales) ||
+          (Number(p.actualQty) || 0) * (Number(p.unitPrice) || 0),
       })),
       ...additionalItems.map((a) => ({
         qty: Number(a.actualQty) || 0,
-        amount: Number(a.actualSales) || (Number(a.actualQty) || 0) * (Number(a.unitPrice) || 0),
+        amount:
+          Number(a.actualSales) ||
+          (Number(a.actualQty) || 0) * (Number(a.unitPrice) || 0),
       })),
     ];
   }, [plannedItems, additionalItems]);
@@ -320,7 +337,8 @@ export function Type3ActualForm({
                 บันทึกผลการเสนอขายสินค้าจริง (Actual Sales Outcome)
               </h4>
               <p className="text-xs text-slate-500">
-                ระบุจำนวนที่สามารถปิดการขายได้จริง และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
+                ระบุจำนวนที่สามารถปิดการขายได้จริง
+                และเหตุผลในกรณีที่ปิดไม่ได้ตามเป้าหมาย
               </p>
             </div>
           </div>
@@ -404,14 +422,15 @@ export function Type3ActualForm({
                           เป้าหมายตามแผน
                         </span>
                         <strong className="text-slate-800 text-sm">
-                          {targetQty.toLocaleString()} หน่วย
+                          {targetQty.toLocaleString()} ลัง
                         </strong>
                       </div>
 
                       {/* Actual Qty Input */}
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          จำนวนที่ขายได้จริง <span className="text-rose-500">*</span>
+                          จำนวนที่ขายได้จริง{" "}
+                          <span className="text-rose-500">*</span>
                         </label>
                         <ActivityInput
                           type="number"
@@ -449,7 +468,14 @@ export function Type3ActualForm({
                           ยอดขายจริงที่ปิดได้
                         </span>
                         <strong className="text-emerald-900 text-sm font-extrabold text-right">
-                          ฿{(Number(item.actualSales) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ฿
+                          {(Number(item.actualSales) || 0).toLocaleString(
+                            undefined,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}
                         </strong>
                       </div>
                     </div>
@@ -459,13 +485,18 @@ export function Type3ActualForm({
                       <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-2.5 space-y-1.5">
                         <span className="text-amber-800 font-bold text-xs flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า <span className="text-rose-500">*</span>
+                          เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า{" "}
+                          <span className="text-rose-500">*</span>
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <select
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(idx, "unclosedReason", e.target.value)
+                              updatePlannedItem(
+                                idx,
+                                "unclosedReason",
+                                e.target.value,
+                              )
                             }
                             className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                           >
@@ -480,7 +511,11 @@ export function Type3ActualForm({
                             type="text"
                             value={item.unclosedReason || ""}
                             onChange={(e) =>
-                              updatePlannedItem(idx, "unclosedReason", e.target.value)
+                              updatePlannedItem(
+                                idx,
+                                "unclosedReason",
+                                e.target.value,
+                              )
                             }
                             placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
                             className="bg-white text-xs"
@@ -551,7 +586,11 @@ export function Type3ActualForm({
                         min={1}
                         value={addItem.actualQty}
                         onChange={(e) =>
-                          updateAdditionalItem(aIdx, "actualQty", e.target.value)
+                          updateAdditionalItem(
+                            aIdx,
+                            "actualQty",
+                            e.target.value,
+                          )
                         }
                         className="text-center font-bold text-purple-900 bg-white"
                       />
@@ -566,7 +605,11 @@ export function Type3ActualForm({
                         min={0}
                         value={addItem.unitPrice ?? 0}
                         onChange={(e) =>
-                          updateAdditionalItem(aIdx, "unitPrice", e.target.value)
+                          updateAdditionalItem(
+                            aIdx,
+                            "unitPrice",
+                            e.target.value,
+                          )
                         }
                         className="bg-white font-medium text-right"
                       />
@@ -579,7 +622,13 @@ export function Type3ActualForm({
                       <div className="h-9 px-3 rounded-lg bg-white border border-slate-200 flex items-center justify-between text-xs font-bold text-purple-800">
                         <span>฿</span>
                         <span>
-                          {(Number(addItem.actualSales) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {(Number(addItem.actualSales) || 0).toLocaleString(
+                            undefined,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}
                         </span>
                       </div>
                     </div>
@@ -609,10 +658,17 @@ export function Type3ActualForm({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-600">
-              จำนวนขายได้: <strong className="text-slate-900 font-bold">{totalSoldQty.toLocaleString()} หน่วย</strong>
+              จำนวนขายได้:{" "}
+              <strong className="text-slate-900 font-bold">
+                {totalSoldQty.toLocaleString()} หน่วย
+              </strong>
             </span>
             <span className="text-emerald-900 font-extrabold text-sm sm:text-base">
-              ยอดขายรวม: ฿{totalSoldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ยอดขายรวม: ฿
+              {totalSoldAmount.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
         </div>
