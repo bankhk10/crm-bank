@@ -57,7 +57,7 @@ export function Type3PlannedForm({
     productItem?: ActivityProductItem,
   ) => {
     if (updateProductInRow) {
-      updateProductInRow(rowId, prodId, field, val);
+      updateProductInRow(rowId, prodId, field, val, productItem);
     } else {
       const item = type3Items.find((i) => i.id === rowId);
       if (!item) return;
@@ -72,6 +72,11 @@ export function Type3PlannedForm({
           if (found) {
             updated.productId = found.id;
             updated.productName = found.name;
+            if ((found as any).price != null) {
+              updated.unitPrice = Number((found as any).price);
+              updated.masterPrice = Number((found as any).price);
+              updated.isPriceOverridden = false;
+            }
           }
         }
         if (field === "unitPrice") {

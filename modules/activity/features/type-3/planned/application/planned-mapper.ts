@@ -26,6 +26,8 @@ export function extractType3PlanTargets(
     ...prevTarget,
   };
 
+  const genericProducts: any[] = plan?.planProducts || plan?.products || [];
+
   // 1. Load directly from dedicated table ActivityPlanType3Target
   if (
     plan?.type3Targets &&
@@ -40,40 +42,83 @@ export function extractType3PlanTargets(
           : t.store?.name || "ร้านค้าตัวแทนจำหน่าย";
 
         const items: TargetProductItem[] = (t.products || []).map((p: any) => {
-          const qtyVal =
-            p.targetQuantity != null ? String(p.targetQuantity) : "";
-          const unitPriceVal = p.unitPrice
-            ? `${Number(p.unitPrice).toLocaleString()} บาท`
-            : "";
-          const targetSalesVal = p.targetAmount
-            ? `${Number(p.targetAmount).toLocaleString()} บาท`
-            : "";
+          const matchedGenericProd = genericProducts.find(
+            (gp: any) =>
+              gp.productId === p.productId &&
+              (!t.storeId || !gp.storeId || gp.storeId === t.storeId),
+          );
+          const qtyNum =
+            p.targetQuantity != null
+              ? Number(p.targetQuantity)
+              : matchedGenericProd?.targetQuantity != null
+                ? Number(matchedGenericProd.targetQuantity)
+                : 0;
+          const rawUnitPrice =
+            p.unitPrice != null && Number(p.unitPrice) > 0
+              ? Number(p.unitPrice)
+              : matchedGenericProd?.unitPrice != null &&
+                  Number(matchedGenericProd.unitPrice) > 0
+                ? Number(matchedGenericProd.unitPrice)
+                : p.product?.price != null
+                  ? Number(p.product.price)
+                  : matchedGenericProd?.product?.price != null
+                    ? Number(matchedGenericProd.product.price)
+                    : 0;
+          const rawTargetAmount =
+            p.targetAmount != null && Number(p.targetAmount) > 0
+              ? Number(p.targetAmount)
+              : matchedGenericProd?.targetAmount != null &&
+                  Number(matchedGenericProd.targetAmount) > 0
+                ? Number(matchedGenericProd.targetAmount)
+                : qtyNum * rawUnitPrice;
+          const effectiveUnitPrice =
+            rawUnitPrice > 0
+              ? rawUnitPrice
+              : qtyNum > 0 && rawTargetAmount > 0
+                ? rawTargetAmount / qtyNum
+                : 0;
+          const effectiveTargetAmount =
+            qtyNum > 0 && effectiveUnitPrice > 0
+              ? qtyNum * effectiveUnitPrice
+              : rawTargetAmount;
 
           return {
             id: p.id,
             productId: p.productId,
-            productName: p.product?.name || "สินค้าเสนอขาย",
+            productName:
+              p.product?.name ||
+              matchedGenericProd?.productName ||
+              matchedGenericProd?.product?.name ||
+              "สินค้าเสนอขาย",
             customer: customerDisplayName,
             storeId: t.storeId || undefined,
             isSubDealer: isSub,
             subDealerStore: t.subDealerStore || "",
             dealerName: t.store?.name || "",
-            qty: qtyVal,
-            unitPrice: unitPriceVal,
-            price: unitPriceVal,
-            targetSales: targetSalesVal,
+            qty: qtyNum > 0 ? String(qtyNum) : "",
+            unitPrice: effectiveUnitPrice,
+            price: effectiveTargetAmount,
+            targetSales: effectiveTargetAmount,
+            unit:
+              p.product?.packageSizeUnit ||
+              matchedGenericProd?.product?.packageSizeUnit ||
+              p.product?.unit ||
+              matchedGenericProd?.product?.unit ||
+              "ลัง",
             detail: p.notes || t.notes || "",
             notes: p.notes || "",
             isAdditional: false,
           };
         });
 
-        const totalQty = (t.products || []).reduce(
-          (sum: number, p: any) => sum + (Number(p.targetQuantity) || 0),
+        const totalQty = items.reduce(
+          (sum: number, item: TargetProductItem) =>
+            sum + (Number(item.qty) || 0),
           0,
         );
-        const totalAmount = (t.products || []).reduce(
-          (sum: number, p: any) => sum + (Number(p.targetAmount) || 0),
+        const totalAmount = items.reduce(
+          (sum: number, item: TargetProductItem) =>
+            sum + (Number(item.targetSales ?? item.price) || 0),
           0,
         );
 
@@ -85,14 +130,13 @@ export function extractType3PlanTargets(
           isSubDealer: isSub,
           subDealerStore: t.subDealerStore || "",
           dealerName: t.store?.name || "",
-          product: (t.products || [])
-            .map((p: any) => p.product?.name)
+          product: items
+            .map((item) => item.productName)
             .filter(Boolean)
             .join(", "),
           targetQty: totalQty > 0 ? String(totalQty) : "",
-          unitPrice: "",
-          targetSales:
-            totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : "",
+          unitPrice: items.length === 1 ? items[0].unitPrice : "",
+          targetSales: totalAmount > 0 ? totalAmount : "",
           detail: t.notes || "",
           items,
         };
@@ -107,7 +151,7 @@ export function extractType3PlanTargets(
 
   // 2. Fallback: Aggregate from activityPlanStore & activityPlanProduct
   const stores: any[] = plan?.planStores || plan?.stores || [];
-  const products: any[] = plan?.planProducts || plan?.products || [];
+  const products: any[] = genericProducts;
 
   const t3Stores = stores.filter(
     (s) =>
@@ -142,14 +186,27 @@ export function extractType3PlanTargets(
       matchedProds.length > 0 ? matchedProds : t3Products;
 
     const items: TargetProductItem[] = effectiveProds.map((p) => {
-      const qtyVal =
-        p.targetQuantity != null ? String(p.targetQuantity) : "";
-      const unitPriceVal = p.unitPrice
-        ? `${Number(p.unitPrice).toLocaleString()} บาท`
-        : "";
-      const targetSalesVal = p.targetAmount
-        ? `${Number(p.targetAmount).toLocaleString()} บาท`
-        : "";
+      const qtyNum = p.targetQuantity != null ? Number(p.targetQuantity) : 0;
+      const rawUnitPrice =
+        p.unitPrice != null && Number(p.unitPrice) > 0
+          ? Number(p.unitPrice)
+          : p.product?.price != null
+            ? Number(p.product.price)
+            : 0;
+      const rawTargetAmount =
+        p.targetAmount != null && Number(p.targetAmount) > 0
+          ? Number(p.targetAmount)
+          : qtyNum * rawUnitPrice;
+      const effectiveUnitPrice =
+        rawUnitPrice > 0
+          ? rawUnitPrice
+          : qtyNum > 0 && rawTargetAmount > 0
+            ? rawTargetAmount / qtyNum
+            : 0;
+      const effectiveTargetAmount =
+        qtyNum > 0 && effectiveUnitPrice > 0
+          ? qtyNum * effectiveUnitPrice
+          : rawTargetAmount;
 
       return {
         id: p.id,
@@ -160,22 +217,24 @@ export function extractType3PlanTargets(
         isSubDealer: isSub,
         subDealerStore: s.subDealerStore || "",
         dealerName: s.storeName || s.store?.name || "",
-        qty: qtyVal,
-        unitPrice: unitPriceVal,
-        price: unitPriceVal,
-        targetSales: targetSalesVal,
+        qty: qtyNum > 0 ? String(qtyNum) : "",
+        unitPrice: effectiveUnitPrice,
+        price: effectiveTargetAmount,
+        targetSales: effectiveTargetAmount,
+        unit: p.product?.packageSizeUnit || p.product?.unit || "ลัง",
         detail: p.notes || s.notes || "",
         notes: p.notes || "",
         isAdditional: false,
       };
     });
 
-    const totalQty = effectiveProds.reduce(
-      (sum: number, p: any) => sum + (Number(p.targetQuantity) || 0),
+    const totalQty = items.reduce(
+      (sum: number, item: TargetProductItem) => sum + (Number(item.qty) || 0),
       0,
     );
-    const totalAmount = effectiveProds.reduce(
-      (sum: number, p: any) => sum + (Number(p.targetAmount) || 0),
+    const totalAmount = items.reduce(
+      (sum: number, item: TargetProductItem) =>
+        sum + (Number(item.targetSales ?? item.price) || 0),
       0,
     );
 
@@ -187,14 +246,13 @@ export function extractType3PlanTargets(
       isSubDealer: isSub,
       subDealerStore: s.subDealerStore || "",
       dealerName: s.storeName || s.store?.name || "",
-      product: effectiveProds
-        .map((p: any) => p.productName || p.product?.name)
+      product: items
+        .map((item) => item.productName)
         .filter(Boolean)
         .join(", "),
       targetQty: totalQty > 0 ? String(totalQty) : "",
-      unitPrice: "",
-      targetSales:
-        totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : "",
+      unitPrice: items.length === 1 ? items[0].unitPrice : "",
+      targetSales: totalAmount > 0 ? totalAmount : "",
       detail: s.notes || "",
       items,
     };
@@ -383,19 +441,26 @@ export function mapType3FormToPayload(
         );
         const pId = p.productId || matchedP?.id;
         const qty = Number(p.quantity) || 1;
-        const uPrice = p.unitPrice != null ? Number(p.unitPrice) : null;
+        const rawUnitPrice =
+          p.unitPrice != null && Number(p.unitPrice) > 0
+            ? Number(p.unitPrice)
+            : matchedP?.price != null
+              ? Number(matchedP.price)
+              : p.unitPrice != null
+                ? Number(p.unitPrice)
+                : null;
         const amount =
-          p.price != null
+          p.price != null && Number(p.price) > 0
             ? Number(p.price)
-            : uPrice != null
-              ? qty * uPrice
+            : rawUnitPrice != null
+              ? qty * rawUnitPrice
               : null;
 
         return {
           productId: pId,
           productName: p.productName || matchedP?.name || "",
           quantity: qty,
-          unitPrice: uPrice,
+          unitPrice: rawUnitPrice,
           price: amount,
           notes: p.notes || null,
         };

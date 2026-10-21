@@ -16,6 +16,17 @@ export type {
   Type3PlanCardTargetItem,
 };
 
+function parseNumericValue(val: unknown): number {
+  if (typeof val === "number") return Number.isFinite(val) ? val : 0;
+  if (typeof val === "string") {
+    const cleaned = val.replace(/[^0-9.-]+/g, "");
+    if (!cleaned) return 0;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
 export function Type3PlanCard({
   planType,
   target,
@@ -63,17 +74,28 @@ export function Type3PlanCard({
   const totalQty = productItems.reduce(
     (sum, p) =>
       sum +
-      (Number(p.quantity ?? p.targetQuantity ?? p.qty ?? p.targetQty) || 0),
+      parseNumericValue(p.quantity ?? p.targetQuantity ?? p.qty ?? p.targetQty),
     0,
   );
 
-  const totalAmount = productItems.reduce((sum, p) => {
-    const q =
-      Number(p.quantity ?? p.targetQuantity ?? p.qty ?? p.targetQty) || 0;
-    const u = Number(p.unitPrice ?? p.price) || 0;
-    const s = Number(p.targetSales ?? p.price);
-    return sum + (!isNaN(s) && s > 0 ? s : q * u);
+  const computedTotalAmount = productItems.reduce((sum, p) => {
+    const q = parseNumericValue(
+      p.quantity ?? p.targetQuantity ?? p.qty ?? p.targetQty,
+    );
+    const rawUnit = parseNumericValue(p.unitPrice ?? p.masterPrice);
+    const rawTotal = parseNumericValue(
+      p.targetSales ?? p.targetAmount ?? p.price,
+    );
+    const pUnit =
+      rawUnit > 0 ? rawUnit : q > 0 && rawTotal > 0 ? rawTotal / q : 0;
+    const lineSales = q > 0 && pUnit > 0 ? q * pUnit : rawTotal > 0 ? rawTotal : 0;
+    return sum + lineSales;
   }, 0);
+
+  const totalAmount =
+    computedTotalAmount > 0
+      ? computedTotalAmount
+      : parseNumericValue(target.targetSales);
 
   return (
     <div
@@ -140,17 +162,31 @@ export function Type3PlanCard({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {productItems.map((prod, idx) => {
-              const pQty = Number(
+              const pQty = parseNumericValue(
                 prod.quantity ??
                   prod.targetQuantity ??
                   prod.qty ??
                   prod.targetQty ??
                   0,
               );
-              const pUnit = Number(prod.unitPrice ?? prod.price ?? 0);
-              const pTotal = Number(prod.targetSales ?? prod.price);
+              const rawUnit = parseNumericValue(
+                prod.unitPrice ?? prod.masterPrice,
+              );
+              const rawTotal = parseNumericValue(
+                prod.targetSales ?? prod.targetAmount ?? prod.price,
+              );
+              const pUnit =
+                rawUnit > 0
+                  ? rawUnit
+                  : pQty > 0 && rawTotal > 0
+                    ? rawTotal / pQty
+                    : 0;
               const lineSales =
-                !isNaN(pTotal) && pTotal > 0 ? pTotal : pQty * pUnit;
+                pQty > 0 && pUnit > 0
+                  ? pQty * pUnit
+                  : rawTotal > 0
+                    ? rawTotal
+                    : 0;
 
               return (
                 <div
@@ -169,7 +205,12 @@ export function Type3PlanCard({
                   <div className="flex items-center justify-between text-slate-500 text-[11px]">
                     <span>
                       ราคา:{" "}
-                      {pUnit > 0 ? `฿${pUnit.toLocaleString()}` : "ราคามาตรฐาน"}
+                      {pUnit > 0
+                        ? `฿${pUnit.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`
+                        : "ราคามาตรฐาน"}
                     </span>
                     <span className="font-semibold text-slate-700">
                       รวม: ฿

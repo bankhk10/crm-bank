@@ -129,6 +129,7 @@ export interface Type3PlannedFormProps {
     prodId: string,
     field: keyof Type3SalesProductLine,
     val: any,
+    productItem?: any,
   ) => void;
   deleteProductFromRow?: (rowId: string, prodId: string) => void;
   customers?: StoreOption[];

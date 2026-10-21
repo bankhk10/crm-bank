@@ -29,6 +29,7 @@ export interface UseType3PlannedFormResult {
     prodId: string,
     field: keyof Type3SalesProductLine,
     val: any,
+    productItem?: any,
   ) => void;
   deleteProductFromRow: (rowId: string, prodId: string) => void;
   resetType3Form: () => void;
@@ -180,6 +181,7 @@ export function useType3PlannedForm({
       prodId: string,
       field: keyof Type3SalesProductLine,
       val: any,
+      productItem?: any,
     ) => {
       setType3Items((prev) =>
         prev.map((item) => {
@@ -191,15 +193,16 @@ export function useType3PlannedForm({
 
             // If productId or productName changes, try finding catalog price
             if (field === "productId" || field === "productName") {
-              const matchedProd = productsList.find(
-                (pr) => pr.id === val || pr.name === val,
-              );
+              const matchedProd =
+                productItem ||
+                productsList.find((pr) => pr.id === val || pr.name === val);
               if (matchedProd) {
                 updatedProd.productId = matchedProd.id;
                 updatedProd.productName = matchedProd.name;
-                if (matchedProd.price != null && !updatedProd.isPriceOverridden) {
+                if (matchedProd.price != null) {
                   updatedProd.unitPrice = Number(matchedProd.price);
                   updatedProd.masterPrice = Number(matchedProd.price);
+                  updatedProd.isPriceOverridden = false;
                 }
               }
             }
