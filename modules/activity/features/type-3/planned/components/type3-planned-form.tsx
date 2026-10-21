@@ -72,10 +72,6 @@ export function Type3PlannedForm({
           if (found) {
             updated.productId = found.id;
             updated.productName = found.name;
-            if (found.price != null && !updated.isPriceOverridden) {
-              updated.unitPrice = Number(found.price);
-              updated.masterPrice = Number(found.price);
-            }
           }
         }
         if (field === "unitPrice") {
@@ -442,7 +438,7 @@ export function Type3PlannedForm({
                           {/* Unit Price */}
                           <div className="md:col-span-2">
                             <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                              ราคา/หน่วย (บาท)
+                              ราคา/ลัง (บาท)
                             </label>
                             <ActivityInput
                               type="number"
@@ -530,7 +526,7 @@ export function Type3PlannedForm({
                   <span className="text-slate-500">
                     รวมรายการสินค้าร้านนี้:{" "}
                     <strong className="text-slate-800">
-                      {cardTotalQty.toLocaleString()} หน่วย
+                      {cardTotalQty.toLocaleString()} ลัง
                     </strong>
                   </span>
                   <span className="text-slate-600">
@@ -564,7 +560,7 @@ export function Type3PlannedForm({
             <span className="text-slate-600">
               จำนวนรวม:{" "}
               <strong className="text-slate-900">
-                {totalAllQuantity.toLocaleString()} หน่วย
+                {totalAllQuantity.toLocaleString()} ลัง
               </strong>
             </span>
             <span className="text-emerald-900 font-extrabold text-sm sm:text-base">

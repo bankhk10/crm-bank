@@ -10,7 +10,11 @@ import type {
   Type3PlanCardTargetItem,
 } from "../types/planned.types";
 
-export type { Type3PlanCardProps, Type3PlanCardTarget, Type3PlanCardTargetItem };
+export type {
+  Type3PlanCardProps,
+  Type3PlanCardTarget,
+  Type3PlanCardTargetItem,
+};
 
 export function Type3PlanCard({
   planType,
@@ -42,9 +46,9 @@ export function Type3PlanCard({
 
   const isSubDealer = Boolean(
     target.isSubDealer ||
-      target.subDealerStore ||
-      productItems[0]?.isSubDealer ||
-      productItems[0]?.subDealerStore,
+    target.subDealerStore ||
+    productItems[0]?.isSubDealer ||
+    productItems[0]?.subDealerStore,
   );
 
   const subDealerStoreName =
@@ -137,11 +141,16 @@ export function Type3PlanCard({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {productItems.map((prod, idx) => {
               const pQty = Number(
-                prod.quantity ?? prod.targetQuantity ?? prod.qty ?? prod.targetQty ?? 0,
+                prod.quantity ??
+                  prod.targetQuantity ??
+                  prod.qty ??
+                  prod.targetQty ??
+                  0,
               );
               const pUnit = Number(prod.unitPrice ?? prod.price ?? 0);
               const pTotal = Number(prod.targetSales ?? prod.price);
-              const lineSales = !isNaN(pTotal) && pTotal > 0 ? pTotal : pQty * pUnit;
+              const lineSales =
+                !isNaN(pTotal) && pTotal > 0 ? pTotal : pQty * pUnit;
 
               return (
                 <div
@@ -149,16 +158,25 @@ export function Type3PlanCard({
                   className="bg-slate-50/70 p-3 rounded-xl border border-slate-200/80 space-y-1.5 text-xs"
                 >
                   <div className="flex items-center justify-between font-bold text-slate-800">
-                    <span className="truncate">{prod.productName || "สินค้า"}</span>
+                    <span className="truncate">
+                      {prod.productName || "สินค้า"}
+                    </span>
                     <span className="text-emerald-700 font-bold shrink-0 ml-2">
                       {pQty.toLocaleString()} {prod.unit || "หน่วย"}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-slate-500 text-[11px]">
-                    <span>ราคา: {pUnit > 0 ? `฿${pUnit.toLocaleString()}` : "ราคามาตรฐาน"}</span>
+                    <span>
+                      ราคา:{" "}
+                      {pUnit > 0 ? `฿${pUnit.toLocaleString()}` : "ราคามาตรฐาน"}
+                    </span>
                     <span className="font-semibold text-slate-700">
-                      รวม: ฿{lineSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      รวม: ฿
+                      {lineSales.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
 
@@ -177,8 +195,12 @@ export function Type3PlanCard({
       {/* Notes if present at target level */}
       {target.detail && (
         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200/70 text-xs">
-          <span className="text-slate-400 font-medium block">เงื่อนไข / ข้อตกลงเพิ่มเติม:</span>
-          <p className="text-slate-700 font-normal whitespace-pre-wrap">{target.detail}</p>
+          <span className="text-slate-400 font-medium block">
+            เงื่อนไข / ข้อตกลงเพิ่มเติม:
+          </span>
+          <p className="text-slate-700 font-normal whitespace-pre-wrap">
+            {target.detail}
+          </p>
         </div>
       )}
 
@@ -192,7 +214,11 @@ export function Type3PlanCard({
         </span>
         <span className="text-emerald-900 font-extrabold flex items-center gap-1 text-sm sm:text-base">
           <DollarSign className="w-4 h-4 text-emerald-600" />
-          เป้าหมายยอดเงิน: ฿{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          เป้าหมายยอดเงิน: ฿
+          {totalAmount.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       </div>
     </div>

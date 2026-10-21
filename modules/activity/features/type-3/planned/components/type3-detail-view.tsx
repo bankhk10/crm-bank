@@ -91,7 +91,13 @@ export function Type3DetailView({
       unclosedReason: p.unclosedReason || unclosedReason || "",
       isAdditional: false,
     }));
-  }, [productSalesDetails, plannedItems, actualQuantity, actualSales, unclosedReason]);
+  }, [
+    productSalesDetails,
+    plannedItems,
+    actualQuantity,
+    actualSales,
+    unclosedReason,
+  ]);
 
   const totalActualQty = allOutcomeItems.reduce(
     (sum, item) => sum + (Number(item.actualQty) || 0),
@@ -245,7 +251,11 @@ export function Type3DetailView({
                         ยอดขายจริงที่ปิดได้
                       </span>
                       <strong className="text-emerald-900 text-sm font-extrabold">
-                        ฿{actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ฿
+                        {actualTotal.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </strong>
                     </div>
                   </div>
@@ -270,11 +280,18 @@ export function Type3DetailView({
           <div className="bg-white border border-emerald-200/80 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm shadow-2xs">
             <span className="text-slate-600 font-medium flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
-              รวมผลการขายได้จริง: <strong className="text-slate-900 font-bold ml-1">{totalActualQty.toLocaleString()} หน่วย</strong>
+              รวมผลการขายได้จริง:{" "}
+              <strong className="text-slate-900 font-bold ml-1">
+                {totalActualQty.toLocaleString()} หน่วย
+              </strong>
             </span>
             <span className="text-emerald-900 font-extrabold flex items-center gap-1 text-sm sm:text-base">
               <DollarSign className="w-4 h-4 text-emerald-600" />
-              ยอดเงินขายได้จริงรวม: ฿{totalActualSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ยอดเงินขายได้จริงรวม: ฿
+              {totalActualSales.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
         </div>
