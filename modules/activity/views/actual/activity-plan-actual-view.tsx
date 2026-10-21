@@ -255,6 +255,7 @@ export function ActivityPlanActualView({
       if (res) {
         const payloadToHydrate = {
           ...res,
+          activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
               ? res.attachments
@@ -759,6 +760,17 @@ export function ActivityPlanActualView({
             plotLongitude: t1Payload.plotLongitude,
             plotImages: t1Payload.plotImages || [],
             targetActualResults: sanitizedTargets,
+            attachments: [
+              ...(payload.attachments || []),
+              ...cleanImages.map((img) => ({
+                category: "PLOT",
+                fileUrl: img.url,
+                fileName: img.name || "รูปแปลงเกษตรกร",
+                fileSize: img.size || 0,
+                mimeType: img.type || "image/jpeg",
+                workTypeCode: "TYPE_1",
+              })),
+            ],
           };
         }
 

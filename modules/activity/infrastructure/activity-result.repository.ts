@@ -62,7 +62,7 @@ export async function upsertActivityResult(
     ) as ActivityResultStatus;
 
     // 1. Upsert Header ActivityResult
-    const result = await (tx as any).activityResult.upsert({
+    const result = await tx.activityResult.upsert({
       where: { activityPlanId: input.activityPlanId },
       create: {
         activityPlanId: input.activityPlanId,
@@ -70,7 +70,6 @@ export async function upsertActivityResult(
         actualEndDate: input.actualEndDate,
         actualAttendeesCount: input.actualAttendeesCount ?? null,
         resultStatus,
-        resultSummary: input.resultSummary ?? null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -101,7 +100,6 @@ export async function upsertActivityResult(
         actualEndDate: input.actualEndDate,
         actualAttendeesCount: input.actualAttendeesCount ?? null,
         resultStatus,
-        resultSummary: input.resultSummary ?? null,
         cancelReason: input.cancelReason ?? null,
         postponedDate: input.postponedDate ?? null,
         postponedTime: input.postponedTime ?? null,
@@ -175,6 +173,7 @@ export async function upsertActivityResult(
             stockStatus: item.stockStatus ?? null,
             reorderOpportunity: item.reorderOpportunity ?? null,
             remarks: item.remarks ?? null,
+            nextAction: item.nextAction ?? null,
           })),
         });
       }
@@ -295,6 +294,9 @@ export async function upsertActivityResult(
             issueType: item.issueType,
             detail: item.detail ?? null,
             status: item.status || "เสร็จสิ้น",
+            problemFound: item.problemFound ?? item.detail ?? null,
+            initialSolution: item.initialSolution ?? null,
+            nextAction: item.nextAction ?? null,
           })),
         });
       }

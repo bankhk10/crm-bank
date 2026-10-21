@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import type { Type1ImageFile, Type1AdviceProductItem } from "../../shared/types";
 import type { Type1TargetActualItem } from "../types/actual.types";
 import type { Type1TargetItem } from "../types/planned.types";
-import { aggregateType1TargetItems } from "../application/actual-mapper";
+import { aggregateType1TargetItems, parseType1ActualResult } from "../application/actual-mapper";
 import { validateType1Actual } from "../application/actual-validation";
 import {
   collectPermanentUrls,
@@ -28,8 +28,11 @@ export function useType1Actual() {
   const [t1TargetItems, setT1TargetItems] = useState<Type1TargetActualItem[]>([]);
   const initialT1PlotImagesRef = useRef<Type1ImageFile[]>([]);
 
-  const hydrate = useCallback((parsed: any) => {
-    if (!parsed) return;
+  const hydrate = useCallback((parsedInput: any) => {
+    if (!parsedInput) return;
+    const mapped = parseType1ActualResult(parsedInput);
+    const parsed = { ...mapped, ...parsedInput };
+
     const advice = parsed.productAdvice || parsed.t1ProductAdvice;
     if (advice) setT1ProductAdvice(advice);
     const prods = parsed.advisedProducts || parsed.products || parsed.t1Products;
@@ -58,7 +61,24 @@ export function useType1Actual() {
     if (lat != null && lat !== "") setT1PlotLatitude(String(lat));
     const lng = parsed.plotLongitude ?? parsed.t1PlotLongitude;
     if (lng != null && lng !== "") setT1PlotLongitude(String(lng));
-    const imgs = parsed.plotImages || parsed.t1PlotImages;
+    let imgs = parsed.plotImages || parsed.t1PlotImages;
+    if ((!imgs || imgs.length === 0) && Array.isArray(parsed.attachments)) {
+      imgs = parsed.attachments
+        .filter(
+          (att: any) =>
+            att &&
+            (att.workTypeCode === "TYPE_1" ||
+              att.category === "PLOT" ||
+              !att.workTypeCode),
+        )
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปแปลงเกษตรกร",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
     if (imgs && imgs.length > 0) {
       setT1PlotImages(imgs);
       initialT1PlotImagesRef.current = JSON.parse(

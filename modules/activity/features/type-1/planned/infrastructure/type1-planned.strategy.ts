@@ -179,37 +179,25 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
           {};
 
         const prodAdvice =
-          (planStores.length === 1 && data.productAdvice)
-            ? data.productAdvice
-            : (match.productAdvice || data.productAdvice || null);
+          match.productAdvice || (planStores.length === 1 ? data.productAdvice : null) || null;
         const discResult =
-          (planStores.length === 1 && data.discussionResult)
-            ? data.discussionResult
-            : (match.discussionResult || data.discussionResult || null);
+          match.discussionResult || (planStores.length === 1 ? data.discussionResult : null) || null;
         const salesOpp =
-          (planStores.length === 1 && data.salesOpportunity)
-            ? data.salesOpportunity
-            : (match.salesOpportunity || data.salesOpportunity || null);
+          match.salesOpportunity || (planStores.length === 1 ? data.salesOpportunity : null) || null;
         const nextActionVal =
-          (planStores.length === 1 && data.nextAction)
-            ? data.nextAction
-            : (match.nextAction || data.nextAction || null);
+          match.nextAction || (planStores.length === 1 ? data.nextAction : null) || null;
         const nextDateVal =
-          (planStores.length === 1 && data.nextMeetingDate)
-            ? data.nextMeetingDate
-            : (match.nextMeetingDate || data.nextMeetingDate || null);
+          match.nextMeetingDate || (planStores.length === 1 ? data.nextMeetingDate : null);
         const address =
-          (planStores.length === 1 && data.farmerHomeAddress)
-            ? data.farmerHomeAddress
-            : (match.farmerHomeAddress || data.farmerHomeAddress || null);
+          match.farmerHomeAddress || (planStores.length === 1 ? data.farmerHomeAddress : null) || null;
         const latVal =
-          (planStores.length === 1 && data.plotLatitude != null && data.plotLatitude !== "")
-            ? data.plotLatitude
-            : (match.plotLatitude != null && match.plotLatitude !== "" ? match.plotLatitude : null);
+          match.plotLatitude != null && match.plotLatitude !== ""
+            ? match.plotLatitude
+            : (planStores.length === 1 && data.plotLatitude != null && data.plotLatitude !== "" ? data.plotLatitude : null);
         const lngVal =
-          (planStores.length === 1 && data.plotLongitude != null && data.plotLongitude !== "")
-            ? data.plotLongitude
-            : (match.plotLongitude != null && match.plotLongitude !== "" ? match.plotLongitude : null);
+          match.plotLongitude != null && match.plotLongitude !== ""
+            ? match.plotLongitude
+            : (planStores.length === 1 && data.plotLongitude != null && data.plotLongitude !== "" ? data.plotLongitude : null);
 
         await (tx as any).activityResultType1.create({
           data: {

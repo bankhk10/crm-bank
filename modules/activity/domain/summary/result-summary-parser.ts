@@ -1,4 +1,5 @@
 import type { ParsedSummaryValues } from "./types";
+import { parseType1ActualResult } from "../../features/type-1";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -51,6 +52,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
   // 3. Fallback: If resData itself has extra fields, merge them
   if (typeof resData === "object") {
+    const t1Parsed = parseType1ActualResult(resData);
+    Object.assign(result, t1Parsed);
+
     if (resData.problemFound && !result.problemFound) {
       result.problemFound = resData.problemFound;
     }
@@ -348,6 +352,23 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       if (attUrl) seenAttUrls.add(attUrl);
       return true;
     });
+
+    if (rawAttachments.length > 0 && !result.t1PlotImages) {
+      result.t1PlotImages = rawAttachments
+        .filter(
+          (att) =>
+            att.workTypeCode === "TYPE_1" ||
+            att.workTypeCode === "เข้าพบร้านค้า / Key Farmer" ||
+            (att.category === "PLOT" && (!att.workTypeCode || att.workTypeCode === "TYPE_1")),
+        )
+        .map((att) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปแปลงเกษตรกร",
+          size: att.fileSize || att.size || 0,
+          type: att.mimeType || att.type || "image/jpeg",
+        }));
+    }
 
     if (rawAttachments.length > 0 && !result.t2Images) {
       result.t2Images = rawAttachments

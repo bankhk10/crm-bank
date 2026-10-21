@@ -239,11 +239,25 @@ export function extractType1PlanTargets(
     const storeLng = s.store?.longitude != null ? String(s.store.longitude) : undefined;
     const isAdviceTopic = (s.topic || s.remarks)?.trim() === "ให้คำแนะนำการใช้สินค้า";
 
+    const isSingleStorePlan = rawT1Stores.length === 1;
     const targetDate = targetResult?.nextMeetingDate
       ? typeof targetResult.nextMeetingDate === "string"
         ? targetResult.nextMeetingDate.split("T")[0]
         : new Date(targetResult.nextMeetingDate).toISOString().split("T")[0]
-      : resultNextMeetingDate;
+      : isSingleStorePlan
+        ? resultNextMeetingDate
+        : undefined;
+
+    const rawT1Products: any[] = plan.type1Products || [];
+    const targetAdvisedProducts = rawT1Products
+      .filter((p: any) => p.targetId === s.id || (isSingleStorePlan && !p.targetId))
+      .map((p: any) => ({
+        id: p.id,
+        productId: p.productId,
+        productName: p.product?.name || p.productName || "",
+        productCode: p.product?.productCode || null,
+        targetId: p.targetId || s.id,
+      }));
 
     return {
       id: s.id,
@@ -252,10 +266,12 @@ export function extractType1PlanTargets(
       topic: s.topic || s.remarks || prevTarget?.topic || "",
       notes: s.notes || prevTarget?.notes || "",
       opportunity:
-        (isAdviceTopic ? (targetResult?.salesOpportunity || resultSalesOpportunity) : undefined) ||
+        (isAdviceTopic
+          ? targetResult?.salesOpportunity || (isSingleStorePlan ? resultSalesOpportunity : undefined)
+          : undefined) ||
         prevTarget?.opportunity ||
         targetResult?.salesOpportunity ||
-        resultSalesOpportunity ||
+        (isSingleStorePlan ? resultSalesOpportunity : undefined) ||
         "",
       nextDate: targetDate || prevTarget?.nextDate || "",
       visitPurpose,
@@ -265,19 +281,31 @@ export function extractType1PlanTargets(
       unregisteredFarmerName: s.unregisteredFarmerName || undefined,
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || undefined,
       farmerHomeAddress:
-        targetResult?.farmerHomeAddress || s.store?.addressLine || (isFarmer ? resultFarmerAddress : undefined),
+        targetResult?.farmerHomeAddress ||
+        s.store?.addressLine ||
+        (isFarmer && isSingleStorePlan ? resultFarmerAddress : undefined),
       plotLatitude:
         targetResult?.plotLatitude != null
           ? String(targetResult.plotLatitude)
-          : (isFarmer ? (resultLat || storeLat) : (storeLat || undefined)),
+          : isFarmer
+            ? (isSingleStorePlan ? resultLat : undefined) || storeLat
+            : storeLat || undefined,
       plotLongitude:
         targetResult?.plotLongitude != null
           ? String(targetResult.plotLongitude)
-          : (isFarmer ? (resultLng || storeLng) : (storeLng || undefined)),
-      productAdvice: isAdviceTopic ? (targetResult?.productAdvice || resultProductAdvice) : undefined,
-      discussionResult: targetResult?.discussionResult || (rawT1Stores.length === 1 ? resultDiscussionResult : undefined),
-      salesOpportunity: targetResult?.salesOpportunity || resultSalesOpportunity,
-      nextAction: targetResult?.nextAction || (rawT1Stores.length === 1 ? resultNextAction : undefined),
+          : isFarmer
+            ? (isSingleStorePlan ? resultLng : undefined) || storeLng
+            : storeLng || undefined,
+      productAdvice: isAdviceTopic
+        ? targetResult?.productAdvice || (isSingleStorePlan ? resultProductAdvice : undefined)
+        : undefined,
+      advisedProducts: targetAdvisedProducts.length > 0 ? targetAdvisedProducts : undefined,
+      discussionResult:
+        targetResult?.discussionResult || (isSingleStorePlan ? resultDiscussionResult : undefined),
+      salesOpportunity:
+        targetResult?.salesOpportunity || (isSingleStorePlan ? resultSalesOpportunity : undefined),
+      nextAction:
+        targetResult?.nextAction || (isSingleStorePlan ? resultNextAction : undefined),
       nextMeetingDate: targetDate,
     };
   });
