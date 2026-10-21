@@ -26,33 +26,31 @@ Activity Module ได้รับการออกแบบตามสถา�
 
 ```text
 modules/activity/
-├── features/                             # Vertical Slices แยกตามประเภทงาน (Work Types 1 - 14)
-│   ├── type-1/                           # ⭐ GOLD STANDARD VERTICAL SLICE: เข้าพบร้านค้า / Key Farmer
-│   │   ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan)
+├── docs/                                 # เอกสารสถาปัตยกรรมและแผนการพัฒนาประจำโมดูล
+│   ├── TYPE_SLICE_BLUEPRINT.md           # พิมพ์เขียวมาตรฐาน 24-Artifact สำหรับทุก Activity Type Slice
+│   └── ROADMAP.md                        # แผนการพัฒนา เกณฑ์ตรวจรับงาน (Quality Gates) และสถานะปัจจุบัน
+│
+├── features/                             # Vertical Slices แยกตามประเภทงาน (Work Types 1 - 14 ครบ 15 Slices)
+│   ├── type-1/                           # ⭐ GOLD STANDARD SLICE: เข้าพบร้านค้า / Key Farmer
+│   │   ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan & Actual Result)
 │   │   ├── unplanned/                    # กิจกรรม "นอกแผน" (Unplanned 2-in-1: สร้างพร้อมบันทึกผล)
 │   │   ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
-│   │   └── index.ts                      # Unified Public API Contract for Type 1
-│   │
-│   ├── type-2/                           # 🌾 VERTICAL SLICE: ติดตามผลการใช้สินค้า (Product Follow-up)
-│   │   ├── planned/                      # กิจกรรมในแผนและผลการติดตามจริง (Targets, Products, Actual Results)
-│   │   ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Follow-up)
-│   │   ├── shared/                       # Constants และ Shared Types ของ Type 2
-│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 2
-│   │   └── index.ts                      # Unified Public API Contract for Type 2
-│   │
-│   ├── type-3/                           # 💼 VERTICAL SLICE: เสนอขายสินค้า (Product Sales Proposal)
-│   │   ├── planned/                      # แผนเสนอขายและผลงานจริงในแผน (Targets, Products, Actual Sales)
-│   │   ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Sales Proposal)
-│   │   ├── shared/                       # Constants (NOT_CLOSED_REASONS) และ Types
-│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 3
-│   │   └── index.ts                      # Unified Public API Contract for Type 3
-│   │
-│   └── type-4/                           # 💰 VERTICAL SLICE: วางบิล / เก็บเงิน (Billing & Payment Collection)
-│       ├── planned/                      # แผนวางบิล/เก็บเงินและผลงานจริงในแผน (Targets, Actuals, Receipts)
-│       ├── unplanned/                    # กิจกรรมนอกแผน 2-in-1 (Unplanned Billing & Collection)
-│       ├── shared/                       # Constants (COLLECT_TYPES, BILLING_STATUSES) และ Types
-│       ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 4
-│       └── index.ts                      # Unified Public API Contract for Type 4
+│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 1
+│   │   └── index.ts                      # Client-Safe Unified Public API Contract
+│   ├── type-2/                           # 🌾 ติดตามผลการใช้สินค้า (Product Follow-up) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-3/                           # 💼 เสนอขายสินค้า (Product Sales Proposal) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-4/                           # 💰 วางบิล / เก็บเงิน (Billing & Payment Collection) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-5/                           # 📊 สำรวจตลาดของคู่แข่ง (Competitor Market Survey) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-6/                           # 🛠️ ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-7a/                          # 🌱 จัดทำแปลงสาธิต (Demo Plot Establishment) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-7b/                          # 🔍 ติดตามแปลงสาธิต (Demo Plot Follow-up) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-8/                           # 👥 จัดประชุม (Meeting) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-9/                           # 🏪 จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-10/                          # 🎪 จัดงาน Field Day (Field Day Event) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-11/                          # 📦 ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-12/                          # 🚌 พาลูกค้าศึกษาดูงาน / ทัวร์ (Customer Study Tour) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-13/                          # 💦 ฉีดแปลงแฮตแทค (Hattack Spraying) [planned / unplanned / shared / README.md / index.ts]
+│   └── type-14/                          # 📈 ติดตามแปลงแฮทแทค (Hattack Follow-up) [planned / unplanned / shared / README.md / index.ts]
 │
 ├── server/                               # Server Actions Gateways (หมวดหมู่แยกหน้าที่ชัดเจน)
 │   ├── planned.actions.ts                # Actions สำหรับแผนงานในแผน (Planned: สร้าง/แก้ไข/ดึง/ลบ/ยกเลิก)
@@ -65,52 +63,70 @@ modules/activity/
 │   └── actions.ts                        # Backward Compatibility Re-export Barrel (No "use server")
 │
 ├── infrastructure/                       # Database Repositories & Execution Registries
-│   ├── strategy.registry.ts              # 🧭 Universal Work Type Strategy Registry (TYPE_1 - TYPE_4)
+│   ├── strategy.registry.ts              # 🧭 Universal Work Type Strategy Registry (TYPE_1 - TYPE_14, รวม TYPE_7A/7B)
 │   ├── activity-plan.repository.ts       # resolveActivityTypeId, generateActivityPlanCode, computeFiscalFields
-│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของ Type 1-4)
+│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของทุก Type)
+│   ├── activity-approval.repository.ts   # Database operations สำหรับการอนุมัติและประวัติ Approval Logs
+│   ├── activity-result.repository.ts     # Database operations สำหรับบันทึกผลการปฏิบัติงานจริง (Actual Results)
+│   ├── customer-lookup.repository.ts     # ค้นหาข้อมูลร้านค้าและเกษตรกรสำหรับระบบแผนงาน
+│   ├── demo-plot.repository.ts           # จัดการข้อมูลแปลงสาธิต (Master DemoPlot & Visits สำหรับ Type 7A/7B/10/13/14)
 │   ├── employee-lookup.repository.ts     # findOrCreateEmployeeForUser, getApproverDirectory
+│   ├── promotional-material.repository.ts# จัดการข้อมูลสื่อส่งเสริมการขายและของเบิก
+│   ├── calendar-integration.ts           # ซิงค์แผนงานและกิจกรรมเข้ากับระบบปฏิทิน
 │   └── index.ts                          # Infrastructure Public Barrel
 │
 ├── types/                                # Module-level Types & Strategy Interfaces
-│   └── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
+│   ├── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
+│   └── index.ts                          # Types Public Barrel
 │
-├── domain/                               # Domain Layer (Pure Business Rules & Workflows)
+├── domain/                               # Domain Layer (Pure Business Rules, Permissions & Workflows)
 │   ├── approval/                         # 🛡️ Activity Approval Workflow Engine ([README](domain/approval/README.md))
 │   │   ├── can-approve.ts                # สิทธิ์การอนุมัติและ Action Scope Badges
 │   │   ├── operator-resolver.ts          # การคำนวณผู้รับผิดชอบปัจจุบัน (Step Resolvers)
 │   │   └── index.ts                      # Approval Domain Public API
 │   │
-│   └── summary/                          # 📊 Plan Summary & Extensible Targets Registry
-│       ├── types.ts                      # PlanSummaryData, ActualTargetsState, ParsedSummaryValues
-│       ├── constants.ts                  # initialPlanSummary, initialTargets, NON_STRICT_OUTCOMES
-│       ├── plan-summary-extractor.ts     # Core Extractor (วันเวลา, สถานที่, งบประมาณ, ของเบิก, คนช่วยงาน)
-│       ├── plan-targets-registry.ts      # Targets Registry Pattern (Type 1 - 14)
-│       ├── plan-extractor.ts             # Main Extractor (extractPlanData)
-│       ├── result-summary-parser.ts      # Result Parser (parseResultSummary)
-│       └── index.ts                      # Summary Domain Public API
+│   ├── permissions/                      # 🔐 Centralized Activity Permissions
+│   │   ├── activity-permissions.ts       # กฎการตรวจสอบสิทธิ์การเข้าถึงและแก้ไขกิจกรรม
+│   │   └── index.ts                      # Permissions Public API
+│   │
+│   ├── summary/                          # 📊 Plan Summary & Extensible Targets Registry
+│   │   ├── types.ts                      # PlanSummaryData, ActualTargetsState, ParsedSummaryValues
+│   │   ├── constants.ts                  # initialPlanSummary, initialTargets, NON_STRICT_OUTCOMES
+│   │   ├── plan-summary-extractor.ts     # Core Extractor (วันเวลา, สถานที่, งบประมาณ, ของเบิก, คนช่วยงาน)
+│   │   ├── plan-targets-registry.ts      # Targets Registry Pattern (Type 1 - 14)
+│   │   ├── plan-extractor.ts             # Main Extractor (extractPlanData)
+│   │   ├── result-summary-parser.ts      # Result Parser (parseResultSummary สำหรับ Type 1 - 14)
+│   │   └── index.ts                      # Summary Domain Public API
+│   └── index.ts                          # Domain Public Barrel
 │
 ├── application/                          # Application Layer & Services
 │   ├── media/                            # Media & Attachment Services
 │   │   ├── image-uploader.ts             # uploadActivityPlanImageGroup, deleteActivityPlanImagePaths
 │   │   └── index.ts                      # Media Public Barrel
-│   ├── filters/                          # Activity Filter Matchers (WorkType, Person, Status, Search)
+│   ├── filters/                          # Activity Filter Matchers
+│   │   └── activity-filter-matcher.ts    # ตัวกรองรายการตาม WorkType, Person, Status, Search
+│   ├── activity-plan-flow.ts             # Orchestration flow สำหรับสถานะและลำดับขั้นของแผนงาน
+│   ├── approval-queue.ts                 # การจัดการคิวงานรออนุมัติ
 │   └── index.ts                          # Application Public Barrel
 │
-├── hooks/                                # Custom Hooks (useApproverDirectory ฯลฯ)
+├── hooks/                                # Module-level Custom Hooks
+│   └── use-approver-directory.ts         # Hook ดึงรายชื่อผู้อนุมัติและผู้ช่วยงาน
 │
 ├── ui/                                   # Common UI Components (ส่วนกลางที่ใช้ร่วมกันทุกประเภทงาน)
-│   ├── inputs/                           # 🧩 Shared Activity Form Inputs & Selectors
+│   ├── inputs/                           # 🧩 Unified Activity Form Inputs & Selectors
 │   │   ├── hooks/                        # useActivityAddresses, useActivityCustomers
 │   │   ├── activity-address-select.tsx   # Dropdown เลือกจังหวัด/อำเภอ/ตำบล
+│   │   ├── activity-combobox.tsx         # Combobox มาตรฐานสำหรับค้นหาและเลือกตัวเลือก
 │   │   ├── activity-customer-select.tsx  # Combobox เลือกร้านค้า/เกษตรกร
 │   │   ├── activity-gps-picker.tsx       # เครื่องมือเลือกพิกัด GPS บนแผนที่
 │   │   ├── activity-input.tsx            # Input มาตรฐานสำหรับโมดูล Activity
-│   │   ├── activity-photo-upload.tsx     # อัปโหลดรูปภาพพร้อม Preview
+│   │   ├── activity-photo-upload.tsx     # อัปโหลดรูปภาพพร้อม Preview และลายน้ำพิกัด
 │   │   ├── activity-product-select.tsx   # Combobox เลือกสินค้า
+│   │   ├── activity-textarea.tsx         # Textarea มาตรฐานพร้อม Label ในตัว
 │   │   └── index.ts                      # Inputs Public Barrel
-│   ├── basic-info/                       # PlanBasicInfoCard, DateTimePicker
-│   ├── location-team/                    # PlanLocationTeamCard, usePlanLocationTeam
-│   ├── budget/                           # PlanBudgetSection, usePlanBudget
+│   ├── basic-info/                       # PlanBasicInfoCard, PlanWorkTypeSelector, DateTimePicker
+│   ├── location-team/                    # PlanLocationTeamCard, LocationTeamSection, hooks/usePlanLocationTeam
+│   ├── budget/                           # PlanBudgetSection, types.ts, hooks/usePlanBudget
 │   ├── notes/                            # PlanNotesCard
 │   ├── form-action-buttons.tsx           # FormActionButtons (ปุ่ม ยกเลิก / บันทึกร่าง / ส่งขออนุมัติ)
 │   ├── activity-status-badge.tsx         # ActivityStatusBadge, ActivityStatusWithOperator
@@ -121,35 +137,43 @@ modules/activity/
 │   │   ├── components/                   # activity-plan-table.tsx
 │   │   └── activity-plan-list-view.tsx   # Route: /activity-plans
 │   │
+│   ├── calendar/                         # ปฏิทินแผนงานและกิจกรรม
+│   │   └── activity-calendar-view.tsx    # Route: /activity-plans/calendar
+│   │
 │   ├── promotional-materials/            # จัดการสื่อส่งเสริมการขาย (/activity-plans/promotional-materials)
 │   │   ├── components/                   # delete-material-dialog.tsx, promotional-material-form-dialog.tsx, promotional-materials-table.tsx
 │   │   └── promotional-materials-view.tsx# Route: /activity-plans/promotional-materials
 │   │
 │   ├── planned/                          # สร้างและแก้ไขแผนงาน (Trip Plan)
-│   │   ├── components/                   # planned-activity-form.tsx (Form Orchestrator)
+│   │   ├── components/                   # planned-activity-form.tsx (Form Orchestrator รองรับ Type 1 - 14)
 │   │   ├── create-view.tsx               # Route: /activity-plans/new
-│   │   └── edit-view.tsx                 # Route: /activity-plans/[id]/edit
+│   │   ├── edit-view.tsx                 # Route: /activity-plans/[id]/edit
+│   │   └── index.ts
 │   │
 │   ├── unplanned/                        # สร้างและแก้ไขกิจกรรมนอกแผน (Unplanned)
-│   │   ├── components/                   # unplanned-activity-form.tsx (2-in-1 Orchestrator)
+│   │   ├── components/                   # unplanned-activity-form.tsx (2-in-1 Orchestrator รองรับ Type 1 - 14)
 │   │   ├── create-view.tsx               # Route: /activity-plans/unplanned/new
-│   │   └── edit-view.tsx
+│   │   ├── edit-view.tsx                 # Route: /activity-plans/unplanned/[id]/edit
+│   │   └── index.ts
 │   │
 │   ├── actual/                           # บันทึกผลการปฏิบัติงานจริง (Actual Result)
-│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActualWorkTypeList
+│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActualWorkTypeList, ActualExpenseSection
 │   │   ├── hooks/                        # useActualPlanLoader, useActualStatusState
+│   │   ├── types.ts
 │   │   └── activity-plan-actual-view.tsx # Route: /activity-plans/[id]/actual
 │   │
 │   ├── detail/                           # แสดงรายละเอียดแผนงาน (Read-Only Detail)
-│   │   ├── components/                   # DetailWorkTypeList, DetailAuditLogs, CancelPlanDialog
+│   │   ├── components/                   # DetailHeader, DetailOverview, DetailWorkTypeList, DetailActivityStatusSection, DetailAuditLogs, CancelPlanDialog, DetailViewActions
 │   │   ├── hooks/                        # useDetailPlanLoader
 │   │   └── activity-plan-detail-view.tsx # Route: /activity-plans/[id]
 │   │
-│   └── approvals/                        # การพิจารณาและอนุมัติแผนงาน (Approvals)
-│       ├── components/                   # ApprovalWorkTypeList, ApprovalAuditLogs, HelperReviewDialog, ApprovalActionDialog
-│       ├── hooks/                        # useApprovalDetailLoader
-│       ├── activity-plan-approval-detail-view.tsx # Route: /activity-plans/approvals/[id]
-│       └── activity-plan-approval-list-view.tsx   # Route: /activity-plans/approvals
+│   ├── approvals/                        # การพิจารณาและอนุมัติแผนงาน (Approvals)
+│   │   ├── components/                   # ApprovalWorkTypeList, ApprovalAuditLogs, HelperReviewDialog, ApprovalActionDialog
+│   │   ├── hooks/                        # useApprovalDetailLoader
+│   │   ├── activity-plan-approval-detail-view.tsx # Route: /activity-plans/approvals/[id]
+│   │   └── activity-plan-approval-list-view.tsx   # Route: /activity-plans/approvals
+│   │
+│   └── index.ts                          # Views Public Barrel
 │
 ├── constants.ts                          # WORK_TYPE_CONFIG, getWorkTypeCode, STATUS_OPTIONS
 ├── index.ts                              # Public Module Exports
@@ -462,39 +486,53 @@ export function ActivityPlanApprovalDetailView({ id }) {
 
 ## 5. Next.js 16 App Router & Turbopack Rules
 
-1. **Client Directives (`"use client";`)**:
+1. **Client Directives (`"use client";`) & Client-Safe Barrels**:
    * ทุก Hook หรือ Component ที่มีการใช้ React Hooks (`useState`, `useEffect`, `useCallback`, `useMemo`) หรือ Client Events ต้องขึ้นต้นบรรทัดที่ 1 ด้วย `"use client";`
-   * ไฟล์ Barrel (`index.ts`) ที่ส่งออก Client Hooks/Components ต้องระวังไม่ให้ Server Components นำไปใช้โดยไม่ผ่าน Client Boundary
-2. **Path Aliasing**:
+   * ไฟล์ Barrel (`features/type-X/index.ts`) ส่งออกเฉพาะ Client-Safe Types, Hooks, Mappers และ UI Components เท่านั้น ส่วน Server Strategies (`*.strategy.ts`) จะถูก Import โดยตรงที่ `infrastructure/strategy.registry.ts` เพื่อป้องกันการ Bundling Leak ของ Node modules (`pg`, `fs`, `net`, `tls`) เข้าสู่ Client Bundle
+2. **Path Aliasing & Boundary Isolation**:
    * การ Import ข้ามโมดูลหรือเข้าสู่ Feature ให้ใช้ Absolute Alias `@/modules/activity/...` เสมอ
-   * ห้าม Import ย้อนกลับไปยัง `modules/activity-plans/` เมื่อ Feature นั้นถูก Refactor เข้าสู่ `modules/activity/` แล้ว
-3. **Type Safety**:
-   * ทุกการแก้ไขต้องผ่านการตรวจสอบ `npx tsc --noEmit` โดยไม่มี Error (Exit code 0)
+   * โฟลเดอร์เก่า `modules/activity-plans/` ถูกปลดระวางและลบออกจากระบบถาวรแล้ว (100% Decommissioned)
+3. **Type Safety & Production Build**:
+   * ทุกการแก้ไขต้องผ่านการตรวจสอบ `npx tsc --noEmit` (Exit code 0) และ `npm run build` โดยไม่มี Error
 
 ---
 
-## 6. แผนการพัฒนาต่อไป (Roadmap)
+## 6. สถานะการพัฒนา (Roadmap — Completed 100% ✅)
 
-- [x] ออกแบบและสร้าง `modules/activity/features/type-1` (Gold Standard)
-- [x] พัฒนา Common UI ใน `modules/activity/ui`
-- [x] สลับเส้นทาง Route ทั้งหมดใน `app/(main)/activity-plans/*` มายัง `modules/activity`
-- [x] Clean Up หน้า `planned` (สร้างและแก้ไขแผนงาน)
-- [x] Clean Up หน้า `unplanned` (กิจกรรมนอกแผน 2-in-1)
-- [x] Clean Up หน้า `actual` (บันทึกผลงานจริง)
-- [x] Clean Up หน้า `detail` (รายละเอียดแผนงาน)
-- [x] Clean Up หน้า `approvals` (การพิจารณาอนุมัติ)
-- [x] สร้าง Standalone Server Actions (`server/actions.ts`) ประจำโมดูล activity
-- [x] สร้าง Database Infrastructure (`infrastructure/`) และแยกขาดจากการพึ่งพา `modules/activity-plans` 100%
-- [x] **Step 1: Approval Workflow & Authority Backbone** (`domain/approval/`, `operator-resolver`, `hooks/use-approver-directory`, Pure UI Badge)
-- [x] **Step 2: Plan Summary & Targets Registry Engine** (`domain/summary/`, Extensible Targets Registry, 100% Decoupled Views)
-- [x] **Type 2 Vertical Slice**: ติดตามผลการใช้สินค้า (Followup) พร้อม `type2Targets` และ `followupResults`
-- [x] **Type 3 Vertical Slice**: เสนอขายสินค้า (Product Sales Proposal) ครบทั้ง Planned, Actual, Unplanned 2-in-1 และ Dual Persistence
-- [x] **Type 4 Vertical Slice**: วางบิล / เก็บเงิน (Billing & Payment Collection) ครบทั้ง Planned, Actual, Unplanned 2-in-1, Multi-target, สลิปหลักฐาน และ Dual Persistence
-- [ ] ทยอย Migrate ประเภทงาน Type 5 ถึง Type 14 ตามแบบอย่างของ Type 1 Gold Standard
+> รายละเอียดแผนการพัฒนาแต่ละระยะและ Quality Gates ทั้ง 7 ข้อ ดูเพิ่มเติมได้ที่ [`docs/ROADMAP.md`](docs/ROADMAP.md) และ [`docs/TYPE_SLICE_BLUEPRINT.md`](docs/TYPE_SLICE_BLUEPRINT.md)
+
+- [x] ออกแบบและสร้าง `modules/activity/features/type-1` (Gold Standard 24-Artifact Blueprint)
+- [x] พัฒนา Common UI และ Unified Form Inputs ใน `modules/activity/ui` (`ActivityInput`, `ActivityTextarea`, `ActivityCombobox`, `ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`, `ActivityAddressSelect`)
+- [x] สลับเส้นทาง Route ทั้งหมดใน `app/(main)/activity-plans/*` และ `app/api/activity-plans/*` มายัง `modules/activity`
+- [x] Clean Up หน้า `planned`, `unplanned`, `actual`, `detail`, `approvals`, `calendar`, `list`, และ `promotional-materials`
+- [x] สร้าง Modular Server Actions (`server/*.actions.ts`) และ Database Infrastructure (`infrastructure/`) แยกขาดจากโมดูลเก่า 100%
+- [x] **Approval Workflow & Permissions Backbone**: `domain/approval/`, `domain/permissions/activity-permissions.ts`, `operator-resolver`, `hooks/use-approver-directory`
+- [x] **Plan Summary & Targets Registry Engine**: `domain/summary/`, Extensible Targets Registry (`TYPE_1` – `TYPE_14`)
+- [x] **Phase 1 — Type 1 to Type 4 Vertical Slices**: เข้าพบร้านค้า (`type-1`), ติดตามผลการใช้สินค้า (`type-2`), เสนอขายสินค้า (`type-3`), วางบิล/เก็บเงิน (`type-4`)
+- [x] **Phase 2 — Core Field & Demo Plot Slices (Type 5 to Type 7B)**: สำรวจตลาดคู่แข่ง (`type-5`), ตรวจสอบเรื่องร้องเรียน (`type-6`), จัดทำแปลงสาธิต (`type-7a`), ติดตามแปลงสาธิต (`type-7b`)
+- [x] **Phase 3 — Specialized & Academic Slices (Type 8 to Type 14)**: จัดประชุม (`type-8`), กิจกรรมหน้าร้าน (`type-9`), งาน Field Day (`type-10`), เช็คสต๊อกหน้าร้าน (`type-11`), พาลูกค้าทัวร์ (`type-12`), ฉีดแปลงแฮตแทค (`type-13`), ติดตามแปลงแฮทแทค (`type-14`)
+- [x] **Phase 4 — Final Decommission & Production Verification**: ลบโฟลเดอร์เก่า `modules/activity-plans/` (466 ไฟล์) ออกจากระบบ 100%, ปรับปรุง Client-Safe Barrels และผ่าน `npm run build` สมบูรณ์แบบ
 
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 2.0.0 (2026-10-20)
+- **Complete 15 Vertical Slices (Work Types 1 – 14) & Legacy Module Decommission (Phase 1 – 4 Complete)**:
+  - **ครบทุกประเภทงาน (15 Slices Dual-Mode Planned + Unplanned)**:
+    - พัฒนาและ Migrate `type-5`, `type-6`, `type-7a`, `type-7b`, `type-8`, `type-9`, `type-10`, `type-11`, `type-12`, `type-13`, และ `type-14` ตามมาตรฐาน 24-Artifact Blueprint (`docs/TYPE_SLICE_BLUEPRINT.md`)
+    - ทุก Type Slice รองรับครบทั้งกิจกรรมในแผน (`planned`), บันทึกผลจริง (`actual`), และกิจกรรมนอกแผน 2-in-1 (`unplanned`) พร้อมเอกสาร `README.md` ประจำแต่ละ Slice
+  - **Universal Strategy & Summary Registries (`TYPE_1` – `TYPE_14`)**:
+    - ลงทะเบียนครบทุกประเภทงานใน `infrastructure/strategy.registry.ts`, `domain/summary/plan-targets-registry.ts`, และ `domain/summary/result-summary-parser.ts`
+  - **Centralized Permissions & Complete Infrastructure**:
+    - รวมศูนย์สิทธิ์การเข้าถึงไว้ที่ `domain/permissions/activity-permissions.ts`
+    - เพิ่มเติม Native Repositories & Services ครบวงจร (`activity-approval.repository.ts`, `activity-result.repository.ts`, `customer-lookup.repository.ts`, `demo-plot.repository.ts`, `promotional-material.repository.ts`, `calendar-integration.ts`, `activity-plan-flow.ts`, `approval-queue.ts`)
+  - **Unified Activity UI Inputs**:
+    - เพิ่ม `ActivityCombobox` และ `ActivityTextarea` ใน `ui/inputs/` พร้อมบังคับใช้ Unified Inputs ข้ามทุก Type Slice
+  - **Client-Safe Barrel Optimization & Legacy Decommission**:
+    - แยก Server Strategy Exports ออกจาก Client Barrels ป้องกัน Node module bundling leak
+    - ปลดระวางและลบโฟลเดอร์ `modules/activity-plans/` ออกจากโปรเจกต์ถาวร (0 legacy imports)
+    - ตรวจสอบผ่านทั้ง `npx tsc --noEmit` (0 errors) และ `npm run build` (Production Build 100%)
 
 ### Version 1.9.0 (2026-10-20)
 - **Core Architecture Refactoring & Shared Components Unification**:
