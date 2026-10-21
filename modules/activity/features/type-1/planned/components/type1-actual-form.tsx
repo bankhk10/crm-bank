@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { X, UserCheck, Store, MapPin, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,7 +68,12 @@ function initializeTargetItems(
   const effectiveList: Type1TargetItem[] =
     targets.length > 0
       ? targets
-      : [{ customer: "เป้าหมายที่ 1", visitPurpose: "FARMER" } as Type1TargetItem];
+      : [
+          {
+            customer: "เป้าหมายที่ 1",
+            visitPurpose: "FARMER",
+          } as Type1TargetItem,
+        ];
   const isSingle = effectiveList.length === 1;
 
   const farmerTargets = effectiveList.filter((t) => t.visitPurpose !== "STORE");
@@ -135,7 +146,8 @@ function initializeTargetItems(
         ? t.plotImages
         : matchedFromFallback.length > 0
           ? matchedFromFallback
-          : (isSingle || (isOnlyOneFarmer && !isStore)) && !hasAnyTargetedInFallback
+          : (isSingle || (isOnlyOneFarmer && !isStore)) &&
+              !hasAnyTargetedInFallback
             ? fallbackProps.plotImages
             : [];
 
@@ -203,7 +215,8 @@ function initializeTargetItems(
       discussionResult: t.discussionResult || parsedDiscussion || "",
       productAdvice: t.productAdvice || parsedAdvice || "",
       advisedProducts: initialAdvised,
-      salesOpportunity: (t.salesOpportunity as "สูง" | "ต่ำ" | "") || parsedSalesOpp || "",
+      salesOpportunity:
+        (t.salesOpportunity as "สูง" | "ต่ำ" | "") || parsedSalesOpp || "",
       nextAction: t.nextAction || parsedNextAction || "",
       nextMeetingDate: t.nextMeetingDate || parsedMeetingDate || "",
       farmerHomeAddress: t.farmerHomeAddress || parsedAddress || "",
@@ -236,25 +249,49 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     onUpdateTargetActualResults,
   } = props;
 
-  const productAdvice = actualState?.t1ProductAdvice || props.productAdvice || "";
-  const setProductAdvice = actualState?.setT1ProductAdvice ?? props.setProductAdvice ?? (() => {});
-  const advisedProducts = actualState?.t1AdvisedProducts ?? props.advisedProducts;
-  const setAdvisedProducts = actualState?.setT1AdvisedProducts ?? props.setAdvisedProducts;
-  const discussionResult = actualState?.t1DiscussionResult || props.discussionResult || "";
-  const setDiscussionResult = actualState?.setT1DiscussionResult ?? props.setDiscussionResult ?? (() => {});
-  const salesOpportunity = (actualState?.t1SalesOpportunity || props.salesOpportunity || "") as "สูง" | "ต่ำ" | "";
-  const setSalesOpportunity = actualState?.setT1SalesOpportunity ?? props.setSalesOpportunity ?? (() => {});
+  const productAdvice =
+    actualState?.t1ProductAdvice || props.productAdvice || "";
+  const setProductAdvice =
+    actualState?.setT1ProductAdvice ?? props.setProductAdvice ?? (() => {});
+  const advisedProducts =
+    actualState?.t1AdvisedProducts ?? props.advisedProducts;
+  const setAdvisedProducts =
+    actualState?.setT1AdvisedProducts ?? props.setAdvisedProducts;
+  const discussionResult =
+    actualState?.t1DiscussionResult || props.discussionResult || "";
+  const setDiscussionResult =
+    actualState?.setT1DiscussionResult ??
+    props.setDiscussionResult ??
+    (() => {});
+  const salesOpportunity = (actualState?.t1SalesOpportunity ||
+    props.salesOpportunity ||
+    "") as "สูง" | "ต่ำ" | "";
+  const setSalesOpportunity =
+    actualState?.setT1SalesOpportunity ??
+    props.setSalesOpportunity ??
+    (() => {});
   const nextAction = actualState?.t1NextAction || props.nextAction || "";
-  const setNextAction = actualState?.setT1NextAction ?? props.setNextAction ?? (() => {});
-  const nextMeetingDate = actualState?.t1NextMeetingDate || props.nextMeetingDate || "";
-  const setNextMeetingDate = actualState?.setT1NextMeetingDate ?? props.setNextMeetingDate ?? (() => {});
-  const farmerHomeAddress = actualState?.t1FarmerHomeAddress || props.farmerHomeAddress || "";
-  const setFarmerHomeAddress = actualState?.setT1FarmerHomeAddress ?? props.setFarmerHomeAddress;
+  const setNextAction =
+    actualState?.setT1NextAction ?? props.setNextAction ?? (() => {});
+  const nextMeetingDate =
+    actualState?.t1NextMeetingDate || props.nextMeetingDate || "";
+  const setNextMeetingDate =
+    actualState?.setT1NextMeetingDate ?? props.setNextMeetingDate ?? (() => {});
+  const farmerHomeAddress =
+    actualState?.t1FarmerHomeAddress || props.farmerHomeAddress || "";
+  const setFarmerHomeAddress =
+    actualState?.setT1FarmerHomeAddress ?? props.setFarmerHomeAddress;
   const plotLatitude = actualState?.t1PlotLatitude || props.plotLatitude || "";
-  const setPlotLatitude = actualState?.setT1PlotLatitude ?? props.setPlotLatitude;
-  const plotLongitude = actualState?.t1PlotLongitude || props.plotLongitude || "";
-  const setPlotLongitude = actualState?.setT1PlotLongitude ?? props.setPlotLongitude;
-  const plotImages = (actualState?.t1PlotImages && actualState.t1PlotImages.length > 0) ? actualState.t1PlotImages : (props.plotImages ?? []);
+  const setPlotLatitude =
+    actualState?.setT1PlotLatitude ?? props.setPlotLatitude;
+  const plotLongitude =
+    actualState?.t1PlotLongitude || props.plotLongitude || "";
+  const setPlotLongitude =
+    actualState?.setT1PlotLongitude ?? props.setPlotLongitude;
+  const plotImages =
+    actualState?.t1PlotImages && actualState.t1PlotImages.length > 0
+      ? actualState.t1PlotImages
+      : (props.plotImages ?? []);
   const setPlotImages = actualState?.setT1PlotImages ?? props.setPlotImages;
 
   // Self-healing fallback: Load products from master if not supplied by parent view
@@ -443,9 +480,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
     }
 
     // 7. plotLatitude & plotLongitude: first farmer with coordinates
-    const firstCoord = items.find(
-      (i) => i.plotLatitude && i.plotLongitude,
-    );
+    const firstCoord = items.find((i) => i.plotLatitude && i.plotLongitude);
     if (setPlotLatitude && setPlotLongitude) {
       if (firstCoord) {
         setPlotLatitude(firstCoord.plotLatitude || "");
@@ -465,9 +500,6 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
       setPlotImages(allPlotImages);
     }
   }, []);
-
-
-
 
   // Track initial mount and last targets key so we do not trigger infinite render loops
   const isInitialMountRef = useRef(true);
@@ -543,14 +575,20 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
 
         return {
           ...freshItem,
-          discussionResult: prevItem.discussionResult || freshItem.discussionResult || "",
+          discussionResult:
+            prevItem.discussionResult || freshItem.discussionResult || "",
           nextAction: prevItem.nextAction || freshItem.nextAction || "",
-          farmerHomeAddress: prevItem.farmerHomeAddress || freshItem.farmerHomeAddress || "",
+          farmerHomeAddress:
+            prevItem.farmerHomeAddress || freshItem.farmerHomeAddress || "",
           plotLatitude: prevItem.plotLatitude || freshItem.plotLatitude || "",
-          plotLongitude: prevItem.plotLongitude || freshItem.plotLongitude || "",
-          productAdvice: prevItem.productAdvice || freshItem.productAdvice || "",
-          salesOpportunity: prevItem.salesOpportunity || freshItem.salesOpportunity || "",
-          nextMeetingDate: prevItem.nextMeetingDate || freshItem.nextMeetingDate || "",
+          plotLongitude:
+            prevItem.plotLongitude || freshItem.plotLongitude || "",
+          productAdvice:
+            prevItem.productAdvice || freshItem.productAdvice || "",
+          salesOpportunity:
+            prevItem.salesOpportunity || freshItem.salesOpportunity || "",
+          nextMeetingDate:
+            prevItem.nextMeetingDate || freshItem.nextMeetingDate || "",
           plotImages:
             prevItem.plotImages && prevItem.plotImages.length > 0
               ? prevItem.plotImages
@@ -616,7 +654,8 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
       : [];
     if (current.includes(prod)) return;
 
-    const matchedProd = matchedProduct || effectiveProducts.find((p) => p.name === prod);
+    const matchedProd =
+      matchedProduct || effectiveProducts.find((p) => p.name === prod);
     const newAdvisedItem: Type1AdviceProductItem = {
       productId: matchedProd?.id || prod,
       productName: prod,
@@ -682,7 +721,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
           </div>
           <div>
             <h2 className="font-bold text-emerald-900 text-base md:text-lg">
-              เข้าพบร้านค้า / Key Farmer
+              บันทึกผลการเข้าพบจริง (ACTUAL) เข้าพบร้านค้า / Key Farmer
             </h2>
             <p className="text-xs text-slate-500">
               รายละเอียดแผนงานและบันทึกผลการเข้าพบจริง
@@ -696,25 +735,10 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
         )}
       </div>
 
-      {/* PLAN DETAILS SECTION (Hides automatically in UNPLANNED mode) */}
-      <Type1PlanCard planType={planType} target={target} targets={targets} />
-
       {/* ACTUAL RESULTS FORM SECTION */}
       {hasMultipleTargets ? (
         /* MULTI-TARGET ACTUAL FORM (1 CARD PER TARGET) */
         <div className="space-y-4 pt-1">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-              <h3 className="text-sm font-bold text-slate-800">
-                บันทึกผลการเข้าพบจริง (ACTUAL) แยกตามเป้าหมาย ({count} เป้าหมาย)
-              </h3>
-            </div>
-            <span className="text-xs text-slate-500">
-              * บันทึกข้อมูลผลการเข้าพบและพูดคุยแยกตามแต่ละเป้าหมาย
-            </span>
-          </div>
-
           <div className="space-y-4">
             {targetItems.map((item, idx) => {
               const itemIsStore = item.visitPurpose === "STORE";
@@ -850,9 +874,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                                 {prod}
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    handleRemoveProduct(idx, prod)
-                                  }
+                                  onClick={() => handleRemoveProduct(idx, prod)}
                                   className="hover:bg-emerald-100 rounded-md p-0.5 transition-colors text-emerald-600 hover:text-red-600 cursor-pointer"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -880,7 +902,8 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
 
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-slate-800">
-                          ประเมินโอกาสการขาย <span className="text-rose-500">*</span>
+                          ประเมินโอกาสการขาย{" "}
+                          <span className="text-rose-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 gap-3 max-w-sm">
                           {(["สูง", "ต่ำ"] as const).map((opt) => (
@@ -888,11 +911,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                               key={opt}
                               type="button"
                               onClick={() =>
-                                handleTargetChange(
-                                  idx,
-                                  "salesOpportunity",
-                                  opt,
-                                )
+                                handleTargetChange(idx, "salesOpportunity", opt)
                               }
                               className={cn(
                                 "py-2 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center",
@@ -959,11 +978,7 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                       <DatePicker
                         value={item.nextMeetingDate || ""}
                         onChange={(v) =>
-                          handleTargetChange(
-                            idx,
-                            "nextMeetingDate",
-                            v || "",
-                          )
+                          handleTargetChange(idx, "nextMeetingDate", v || "")
                         }
                         placeholder="เลือกวันที่นัดหมาย"
                         className="bg-white border-slate-200 rounded-xl text-xs sm:text-sm h-10"
@@ -996,7 +1011,12 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 </label>
                 <Textarea
                   rows={2}
-                  value={farmerHomeAddress || targetItems[0]?.farmerHomeAddress || target?.farmerHomeAddress || ""}
+                  value={
+                    farmerHomeAddress ||
+                    targetItems[0]?.farmerHomeAddress ||
+                    target?.farmerHomeAddress ||
+                    ""
+                  }
                   onChange={(e) => {
                     const v = e.target.value;
                     if (setFarmerHomeAddress) setFarmerHomeAddress(v);
@@ -1160,7 +1180,12 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
             </label>
             <Textarea
               rows={2}
-              value={discussionResult || targetItems[0]?.discussionResult || target?.discussionResult || ""}
+              value={
+                discussionResult ||
+                targetItems[0]?.discussionResult ||
+                target?.discussionResult ||
+                ""
+              }
               onChange={(e) => {
                 const v = e.target.value;
                 setDiscussionResult(v);
@@ -1184,7 +1209,12 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                 สิ่งที่ต้องดำเนินการต่อ
               </label>
               <Input
-                value={nextAction || targetItems[0]?.nextAction || target?.nextAction || ""}
+                value={
+                  nextAction ||
+                  targetItems[0]?.nextAction ||
+                  target?.nextAction ||
+                  ""
+                }
                 onChange={(e) => {
                   const v = e.target.value;
                   setNextAction(v);
