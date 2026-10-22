@@ -217,6 +217,16 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
               (plan as any).surveyResults ||
               [],
             type5UnplannedItems: (plan as any).type5UnplannedItems || [],
+            type6Targets: (plan as any).type6Targets || [],
+            issueResults:
+              (plan as any).result?.issueResults ||
+              (plan as any).issueResults ||
+              [],
+            type6ActualIssues:
+              (plan as any).result?.issueResults ||
+              (plan as any).issueResults ||
+              [],
+            type6UnplannedItems: (plan as any).type6UnplannedItems || [],
           });
         } else {
           setLoadError(planRes.error || "ไม่สามารถดึงข้อมูลกิจกรรมนอกแผนได้");

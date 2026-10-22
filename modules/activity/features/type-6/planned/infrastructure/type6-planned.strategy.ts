@@ -64,6 +64,10 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
 
     if (planData.type6Items && Array.isArray(planData.type6Items)) {
       items = planData.type6Items;
+    } else if (planData.type6Targets && Array.isArray(planData.type6Targets)) {
+      items = planData.type6Targets;
+    } else if (planData.type6UnplannedItems && Array.isArray(planData.type6UnplannedItems)) {
+      items = planData.type6UnplannedItems;
     } else if (planData.planStores && Array.isArray(planData.planStores)) {
       items = planData.planStores.filter(
         (s: any) =>
@@ -170,12 +174,37 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       });
       resultId = result?.id;
     }
+
+    if (!resultId) {
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: activityPlanId },
+        select: { startDate: true, endDate: true },
+      });
+      if (plan) {
+        const created = await tx.activityResult.create({
+          data: {
+            activityPlanId,
+            actualStartDate: actualData.actualStartDate || plan.startDate || new Date(),
+            actualEndDate: actualData.actualEndDate || plan.endDate || new Date(),
+            resultStatus: actualData.resultStatus || "COMPLETED",
+          },
+          select: { id: true },
+        });
+        resultId = created.id;
+      }
+    }
     if (!resultId) return;
 
     // Collect issue items
     let issueItems: any[] = [];
     if (actualData.issueResults && Array.isArray(actualData.issueResults)) {
       issueItems = actualData.issueResults;
+    } else if (actualData.type6ActualIssues && Array.isArray(actualData.type6ActualIssues)) {
+      issueItems = actualData.type6ActualIssues;
+    } else if (actualData.targetActualResults && Array.isArray(actualData.targetActualResults)) {
+      issueItems = actualData.targetActualResults;
+    } else if (actualData.type6UnplannedItems && Array.isArray(actualData.type6UnplannedItems)) {
+      issueItems = actualData.type6UnplannedItems;
     } else if (actualData.t6IssueRecord) {
       issueItems = [actualData.t6IssueRecord];
     } else if (actualData.t6IssueDetails && Array.isArray(actualData.t6IssueDetails)) {
@@ -216,6 +245,64 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
     await (tx as any).activityResultIssueItem.createMany({
       data: itemsToCreate,
     });
+
+    // Sync attachments for Type 6 issue results
+    const issueAttachments: any[] = [];
+    issueItems.forEach((item: any, idx: number) => {
+      const dbId = itemsToCreate[idx]?.id;
+      if (Array.isArray(item.images)) {
+        for (const img of item.images) {
+          issueAttachments.push({
+            activityPlanId,
+            activityResultId: resultId,
+            workTypeCode: "TYPE_6",
+            category: "ISSUE",
+            storeId: item.storeId || null,
+            productId: item.productId || null,
+            issueItemId: dbId,
+            fileUrl: img.url || img.fileUrl,
+            fileName: img.name || img.fileName || "รูปถ่ายหลักฐานปัญหา",
+            fileSize: img.size || img.fileSize || 0,
+            mimeType: img.type || img.mimeType || "image/jpeg",
+          });
+        }
+      }
+    });
+
+    const rawAttachments: any[] = Array.isArray(actualData.attachments)
+      ? actualData.attachments
+      : [];
+    for (const att of rawAttachments) {
+      if (att.workTypeCode === "TYPE_6" || att.category === "ISSUE") {
+        if (!issueAttachments.some((ia) => ia.fileUrl === (att.fileUrl || att.url))) {
+          issueAttachments.push({
+            activityPlanId,
+            activityResultId: resultId,
+            workTypeCode: "TYPE_6",
+            category: "ISSUE",
+            storeId: att.storeId || itemsToCreate[0]?.storeId || null,
+            productId: att.productId || itemsToCreate[0]?.productId || null,
+            issueItemId: att.issueItemId || itemsToCreate[0]?.id || null,
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปถ่ายหลักฐานปัญหา",
+            fileSize: att.fileSize || att.size || 0,
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          });
+        }
+      }
+    }
+
+    if (issueAttachments.length > 0) {
+      await (tx as any).activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_6",
+        },
+      });
+      await (tx as any).activityAttachment.createMany({
+        data: issueAttachments,
+      });
+    }
   },
 
   /**

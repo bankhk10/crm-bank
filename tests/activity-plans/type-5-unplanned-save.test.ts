@@ -248,6 +248,7 @@ async function runTests() {
   assert.strictEqual(hydrated.length, 2, "Must hydrate 2 unplanned items");
 
   // Item 1
+  assert.ok(hydrated[0], "hydrated[0] must exist");
   assert.strictEqual(hydrated[0].storeName, "ร้านรุ่งเรืองการเกษตร");
   assert.strictEqual(hydrated[0].comparedProduct, "ยาฆ่าหญ้าตราปืนใหญ่");
   assert.strictEqual(hydrated[0].competitorBrand, "ตราเสือคู่");
@@ -257,10 +258,11 @@ async function runTests() {
   assert.strictEqual(hydrated[0].subdealerPrice, 410);
   assert.strictEqual(hydrated[0].farmerPrice, 450);
   assert.strictEqual(hydrated[0].sellingPoints, "เม็ดปุ๋ยแกร่ง ละลายดี ไม่เป็นฝุ่น");
-  assert.strictEqual(hydrated[0].bottleImages.length, 1);
-  assert.strictEqual(hydrated[0].promotionalImages.length, 1);
+  assert.strictEqual(hydrated[0].bottleImages?.length, 1);
+  assert.strictEqual(hydrated[0].promotionalImages?.length, 1);
 
   // Item 2
+  assert.ok(hydrated[1], "hydrated[1] must exist");
   assert.strictEqual(hydrated[1].storeName, "ร้าน ป.การเกษตร");
   assert.strictEqual(hydrated[1].comparedProduct, "ฮอร์โมนเร่งราก");
   assert.strictEqual(hydrated[1].competitorBrand, "ตราช้างบิน");

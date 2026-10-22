@@ -35,8 +35,13 @@ export const type6UnplannedStrategy: WorkTypeStrategy = {
 
     if (items.length > 0) {
       await type6PlannedStrategy.saveActual!(tx, activityPlanId, {
-        targetActualResults: items,
+        issueResults: items,
         type6ActualIssues: items,
+        targetActualResults: items,
+        attachments:
+          planData.attachments ||
+          planData.actualData?.attachments ||
+          [],
       });
     }
   },

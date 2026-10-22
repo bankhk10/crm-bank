@@ -62,6 +62,7 @@ import {
   useType6Actual,
   validateType6Actual,
   extractType6PlanTargets,
+  parseType6ActualResult,
   type Type6TargetItem,
 } from "@/modules/activity/features/type-6";
 import {
@@ -270,7 +271,8 @@ export function ActivityPlanActualView({
         type4Actual.hydrate(payloadToHydrate);
         const parsedT5 = parseType5ActualResult(payloadToHydrate);
         type5Actual.hydrate(parsedT5, { t5: extractedT5.primary });
-        type6Actual.hydrate(payloadToHydrate);
+        const parsedT6 = parseType6ActualResult(payloadToHydrate);
+        type6Actual.hydrate(parsedT6);
         type7aActual.hydrate(plan, payloadToHydrate, {
           t7a: extractedT7a.primary,
         });

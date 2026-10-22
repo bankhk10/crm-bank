@@ -14,6 +14,7 @@ export interface Type6UnplannedItem {
   // Target Customer
   isManualCustomer?: boolean;
   storeId?: string | null;
+  storeName?: string | null;
   customerName?: string;
   manualCustomerName?: string;
   manualCustomerAddress?: string;

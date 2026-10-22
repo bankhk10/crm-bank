@@ -43,32 +43,50 @@ export function parseType6ActualResult(resData: any): {
 
   if (!resData) return result;
 
-  const allAttachments: any[] = Array.isArray(resData.attachments)
-    ? resData.attachments
-    : [];
+  const allAttachments: any[] =
+    Array.isArray(resData.attachments) && resData.attachments.length > 0
+      ? resData.attachments
+      : Array.isArray(resData.result?.attachments) &&
+          resData.result.attachments.length > 0
+        ? resData.result.attachments
+        : Array.isArray(resData.activityPlan?.attachments) &&
+            resData.activityPlan.attachments.length > 0
+          ? resData.activityPlan.attachments
+          : [];
+
+  const rawIssueResults: any[] =
+    Array.isArray(resData.issueResults) && resData.issueResults.length > 0
+      ? resData.issueResults
+      : Array.isArray(resData.result?.issueResults) &&
+          resData.result.issueResults.length > 0
+        ? resData.result.issueResults
+        : Array.isArray(resData.activityPlan?.result?.issueResults) &&
+            resData.activityPlan.result.issueResults.length > 0
+          ? resData.activityPlan.result.issueResults
+          : Array.isArray(resData.t6IssueDetails) &&
+              resData.t6IssueDetails.length > 0
+            ? resData.t6IssueDetails
+            : [];
 
   // 1. Direct from issueResults relation
-  if (
-    resData.issueResults &&
-    Array.isArray(resData.issueResults) &&
-    resData.issueResults.length > 0
-  ) {
-    result.t6IssueDetails = resData.issueResults.map((iss: any) => {
-      const itemAttachments =
+  if (rawIssueResults.length > 0) {
+    result.t6IssueDetails = rawIssueResults.map((iss: any) => {
+      let itemAttachments =
         Array.isArray(iss.attachments) && iss.attachments.length > 0
           ? iss.attachments
           : allAttachments.filter(
               (att: any) =>
                 att.issueItemId === iss.id ||
-                (att.workTypeCode === "TYPE_6" && att.category === "ISSUE"),
+                (att.workTypeCode === "TYPE_6" && att.category === "ISSUE") ||
+                att.category === "ISSUE",
             );
 
       const images: Type6ImageFile[] = itemAttachments.map((att: any) => ({
         id: att.id,
-        url: att.fileUrl,
-        name: att.fileName || "image.jpg",
-        size: att.fileSize || undefined,
-        type: att.mimeType || undefined,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "image.jpg",
+        size: att.fileSize || att.size || undefined,
+        type: att.mimeType || att.type || undefined,
       }));
 
       return {
@@ -98,6 +116,7 @@ export function parseType6ActualResult(resData: any): {
       result.t6PurchaseChannel = firstIssue.purchaseChannel;
       result.t6StoreId = firstIssue.storeId;
       result.t6StoreName = firstIssue.storeName;
+      result.t6IssueType = firstIssue.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย";
       result.t6Detail = firstIssue.detail || firstIssue.problemFound || "";
       result.t6ProblemDetail = firstIssue.problemFound || firstIssue.detail || "";
       result.t6InitialSolution = firstIssue.initialSolution || "";

@@ -17,7 +17,7 @@ import type { Type6UnplannedFormProps } from "../types/unplanned.types";
 
 const PURCHASE_CHANNELS = [
   { id: "ร้านค้าตัวแทนจำหน่าย", label: "ร้านค้าตัวแทนจำหน่าย", icon: Store },
-  { id: "ช่องทางออนไลน์", label: "ช่องทางออนไลน์", icon: Globe },
+  { id: "ออนไลน์", label: "ออนไลน์", icon: Globe },
 ] as const;
 
 export function Type6UnplannedForm({
@@ -169,12 +169,19 @@ export function Type6UnplannedForm({
               <div className="grid grid-cols-2 gap-3 max-w-md">
                 {PURCHASE_CHANNELS.map((ch) => {
                   const Icon = ch.icon;
-                  const isSelected = (item.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย") === ch.id;
+                  const isSelected =
+                    (item.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย") === ch.id;
                   return (
                     <button
                       key={ch.id}
                       type="button"
-                      onClick={() => updateItem(item.id, "purchaseChannel", ch.id)}
+                      onClick={() => {
+                        updateItem(item.id, "purchaseChannel", ch.id);
+                        if (ch.id === "ออนไลน์" && item.isManualCustomer) {
+                          updateItem(item.id, "storeId", null);
+                          updateItem(item.id, "storeName", null);
+                        }
+                      }}
                       disabled={readonly}
                       className={cn(
                         "py-2 px-3 rounded-lg border text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
@@ -184,13 +191,43 @@ export function Type6UnplannedForm({
                         readonly && "cursor-not-allowed opacity-75",
                       )}
                     >
-                      <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-rose-600" : "text-slate-400")} />
+                      <Icon
+                        className={cn(
+                          "w-3.5 h-3.5",
+                          isSelected ? "text-rose-600" : "text-slate-400",
+                        )}
+                      />
                       <span>{ch.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
+
+            {/* Dealer selection when purchaseChannel is dealer and customer is manual */}
+            {item.purchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && item.isManualCustomer && (
+              <div className="bg-rose-50/30 border border-rose-100 rounded-xl p-3 space-y-1.5">
+                <ActivityCustomerSelect
+                  id={`dealer-combobox-${item.id}`}
+                  type="STORE"
+                  label="ร้านค้าตัวแทนจำหน่ายที่ซื้อ"
+                  labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                  value={item.storeId || item.storeName || ""}
+                  onChange={(val, cust) => {
+                    updateItem(item.id, "storeName", cust?.name || val);
+                    if (cust?.id) {
+                      updateItem(item.id, "storeId", cust.id);
+                    }
+                  }}
+                  customers={customers as any}
+                  placeholder="เลือกร้านค้าตัวแทนจำหน่าย..."
+                  searchPlaceholder="ค้นหาร้านค้า..."
+                  emptyText="ไม่พบร้านค้า"
+                  disabled={readonly}
+                />
+              </div>
+            )}
 
             {/* Product selection & Lot Number */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

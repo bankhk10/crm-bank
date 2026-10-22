@@ -926,6 +926,21 @@ export function UnplannedActivityForm({
 
       const mapped = mapType6UnplannedToPayload(type6.items);
 
+      if (mapped.type6Targets?.length) {
+        planStores = [
+          ...planStores,
+          ...mapped.type6Targets
+            .filter((t) => t.storeId || t.customerName)
+            .map((t) => ({
+              workTypeCode: "TYPE_6",
+              storeId: t.storeId || null,
+              storeName: t.customerName || t.storeName || null,
+              notes: t.detail || null,
+              isUnregisteredFarmer: Boolean(t.isManualCustomer),
+            })),
+        ];
+      }
+
       // Upload Evidence Images
       const allType6Images = type6.items.flatMap((item) => item.images || []);
       let cleanType6Images = allType6Images;
@@ -946,6 +961,7 @@ export function UnplannedActivityForm({
 
       actualData = {
         workTypeCode: "TYPE_6",
+        issueResults: mapped.type6ActualIssues,
         type6ActualIssues: mapped.type6ActualIssues,
         targetActualResults: mapped.type6ActualIssues,
         attachments: cleanType6Images.map((img) => ({
@@ -1731,7 +1747,9 @@ export function UnplannedActivityForm({
       surveyResults: mappedType5?.type5SurveyRecords,
       t5SurveyDetails: mappedType5?.type5SurveyRecords,
       type6Targets: mappedType6?.type6Targets,
+      type6Items: mappedType6?.type6Targets,
       type6ActualIssues: mappedType6?.type6ActualIssues,
+      issueResults: mappedType6?.type6ActualIssues,
       type7aPlots: mappedType7a?.type7aPlots,
       type7aTargets: mappedType7a?.type7aPlots,
       type7bData: mappedType7b?.type7bData,

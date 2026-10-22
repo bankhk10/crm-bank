@@ -7,6 +7,7 @@ import {
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType6Actual } from "../application/actual-validation";
+import { parseType6ActualResult } from "../application/actual-mapper";
 
 export { validateType6Actual };
 
@@ -50,8 +51,14 @@ export function useType6Actual() {
     t6Detail,
   ]);
 
-  const hydrate = useCallback((parsed: any) => {
+  const hydrate = useCallback((parsedOrRaw: any) => {
+    if (!parsedOrRaw) return;
+    const parsed =
+      parsedOrRaw.t6IssueRecord || parsedOrRaw.t6IssueDetails
+        ? parsedOrRaw
+        : parseType6ActualResult(parsedOrRaw);
     if (!parsed) return;
+
     if (parsed.t6IssueRecord) {
       const rec = parsed.t6IssueRecord;
       if (rec.productId) setT6ProductId(rec.productId);
