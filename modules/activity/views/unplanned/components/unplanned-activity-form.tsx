@@ -1811,27 +1811,23 @@ export function UnplannedActivityForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* ─── 0. Form Header ─── */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
+      <div className="relative bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 shadow-2xs">
             <Zap className="w-5 h-5 stroke-[2.2]" />
           </div>
+
           <div>
-            <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight">
+            <h1 className="font-bold text-sm sm:text-2xl text-slate-800 tracking-tight">
               {isEdit
                 ? "แก้ไขกิจกรรมนอกแผน ( Unplanned Activity )"
                 : "สร้างกิจกรรมนอกแผน ( Unplanned Activity )"}
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isEdit
-                ? "ปรับปรุงข้อมูลและบันทึกผลการปฏิบัติงานนอกแผน"
-                : "บันทึกข้อมูลการเข้าพบลูกค้าและผลการดำเนินงานจริงนอกแผน"}
-            </p>
           </div>
         </div>
 
         {initialData?.code && (
-          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs self-start sm:self-auto">
+          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs self-center sm:self-auto sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2">
             <Info className="w-3.5 h-3.5 shrink-0" />
             <span>เลขที่กิจกรรม: {initialData.code}</span>
           </div>
