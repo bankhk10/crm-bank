@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Type5UnplannedItem } from "../types/unplanned.types";
 
 export interface UseType5UnplannedFormOptions {
@@ -32,6 +32,12 @@ export function useType5UnplannedForm(options: UseType5UnplannedFormOptions = {}
       },
     ];
   });
+
+  useEffect(() => {
+    if (options.initialItems && options.initialItems.length > 0) {
+      setItems(options.initialItems);
+    }
+  }, [options.initialItems]);
 
   const addItem = useCallback(() => {
     setItems((prev) => [

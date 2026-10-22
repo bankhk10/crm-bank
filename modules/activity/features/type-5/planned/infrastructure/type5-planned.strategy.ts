@@ -90,7 +90,11 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
     activityPlanId: string,
     planData: any,
   ): Promise<void> {
-    const directItems: any[] = planData.type5Items || [];
+    const directItems: any[] =
+      planData.type5Items ||
+      planData.type5Targets ||
+      planData.type5UnplannedItems ||
+      [];
     const rawStores: any[] = planData.planStores || planData.stores || [];
     const rawProducts: any[] =
       planData.planProducts || planData.products || [];
@@ -119,10 +123,17 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
     if (directItems.length > 0) {
       itemsToSave = directItems.map((it) => ({
         storeId: it.storeId || null,
-        storeName: it.storeName || null,
+        storeName:
+          it.storeName ||
+          (typeof it.store === "string" ? it.store : it.store?.name) ||
+          null,
         productId: it.productId || null,
-        productName: it.comparedProduct || null,
-        detail: it.detail || null,
+        productName:
+          it.comparedProduct ||
+          it.productName ||
+          (typeof it.product === "string" ? it.product : it.product?.name) ||
+          null,
+        detail: it.detail || it.notes || null,
       }));
     } else {
       const maxCount = Math.max(t5Stores.length, t5Products.length);
@@ -218,10 +229,34 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
       });
       resultId = result?.id;
     }
+
+    if (!resultId) {
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: activityPlanId },
+        select: { startDate: true, endDate: true, createdById: true },
+      });
+      if (plan) {
+        const created = await tx.activityResult.create({
+          data: {
+            activityPlanId,
+            actualStartDate: actualData.actualStartDate || plan.startDate || new Date(),
+            actualEndDate: actualData.actualEndDate || plan.endDate || new Date(),
+            resultStatus: actualData.resultStatus || "COMPLETED",
+          },
+          select: { id: true },
+        });
+        resultId = created.id;
+      }
+    }
     if (!resultId) return;
 
     const surveyResults: any[] =
-      actualData.surveyResults || actualData.t5SurveyDetails || [];
+      actualData.surveyResults ||
+      actualData.t5SurveyDetails ||
+      actualData.type5SurveyRecords ||
+      actualData.targetActualResults ||
+      actualData.type5UnplannedItems ||
+      [];
     if (!surveyResults || surveyResults.length === 0) return;
 
     await (tx as any).activityResultSurveyItem.deleteMany({
@@ -251,6 +286,94 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
     await (tx as any).activityResultSurveyItem.createMany({
       data: itemsToCreate,
     });
+
+    // Sync attachments for Type 5 survey results
+    const itemAttachments: any[] = [];
+    surveyResults.forEach((item: any, idx: number) => {
+      const dbId = itemsToCreate[idx]?.id;
+      if (Array.isArray(item.bottleImages)) {
+        for (const img of item.bottleImages) {
+          itemAttachments.push({
+            activityPlanId,
+            activityResultId: resultId,
+            workTypeCode: "TYPE_5",
+            category: "SURVEY_BOTTLE",
+            storeId: item.storeId || null,
+            productId: item.productId || null,
+            surveyItemId: dbId,
+            fileUrl: img.url || img.fileUrl,
+            fileName: img.name || img.fileName || "รูปถ่ายขวดผลิตภัณฑ์",
+            fileSize: img.size || img.fileSize || 0,
+            mimeType: img.type || img.mimeType || "image/jpeg",
+          });
+        }
+      }
+      if (Array.isArray(item.promotionalImages)) {
+        for (const img of item.promotionalImages) {
+          itemAttachments.push({
+            activityPlanId,
+            activityResultId: resultId,
+            workTypeCode: "TYPE_5",
+            category: "SURVEY_PROMO_MATERIAL",
+            storeId: item.storeId || null,
+            productId: item.productId || null,
+            surveyItemId: dbId,
+            fileUrl: img.url || img.fileUrl,
+            fileName: img.name || img.fileName || "รูปภาพสื่อโปรโมท",
+            fileSize: img.size || img.fileSize || 0,
+            mimeType: img.type || img.mimeType || "image/jpeg",
+          });
+        }
+      }
+    });
+
+    const rawAttachments: any[] = Array.isArray(actualData.attachments)
+      ? actualData.attachments
+      : [];
+    for (const att of rawAttachments) {
+      if (att.workTypeCode === "TYPE_5" || !att.workTypeCode) {
+        if (!itemAttachments.some((ia) => ia.fileUrl === (att.fileUrl || att.url))) {
+          const isBottle =
+            att.category === "PRODUCT" ||
+            att.category === "SURVEY_BOTTLE" ||
+            att.category === "BOTTLE";
+          const isPromo =
+            att.category === "MEDIA" ||
+            att.category === "SURVEY_PROMO_MATERIAL" ||
+            att.category === "PROMOTION";
+          const cat = isBottle
+            ? "SURVEY_BOTTLE"
+            : isPromo
+              ? "SURVEY_PROMO_MATERIAL"
+              : att.category || "GENERAL";
+          itemAttachments.push({
+            activityPlanId,
+            activityResultId: resultId,
+            workTypeCode: "TYPE_5",
+            category: cat,
+            storeId: att.storeId || null,
+            productId: att.productId || null,
+            surveyItemId: att.surveyItemId || itemsToCreate[0]?.id || null,
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปภาพสำรวจตลาด",
+            fileSize: att.fileSize || att.size || 0,
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          });
+        }
+      }
+    }
+
+    if (itemAttachments.length > 0) {
+      await (tx as any).activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_5",
+        },
+      });
+      await (tx as any).activityAttachment.createMany({
+        data: itemAttachments,
+      });
+    }
   },
 
   /**

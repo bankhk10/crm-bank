@@ -818,6 +818,31 @@ export function UnplannedActivityForm({
 
       const mapped = mapType5UnplannedToPayload(type5.items);
 
+      if (mapped.type5Targets?.length) {
+        planStores = [
+          ...planStores,
+          ...mapped.type5Targets
+            .filter((t) => t.storeId)
+            .map((t) => ({
+              workTypeCode: "TYPE_5",
+              storeId: t.storeId,
+              storeName: t.storeName,
+              notes: t.notes,
+            })),
+        ];
+        planProducts = [
+          ...planProducts,
+          ...mapped.type5Targets
+            .filter((t) => t.productId)
+            .map((t) => ({
+              workTypeCode: "TYPE_5",
+              productId: t.productId,
+              productName: t.productName,
+              notes: t.notes,
+            })),
+        ];
+      }
+
       // Upload Bottle Images and Promotional Images
       const allBottleImages = type5.items.flatMap(
         (item) => item.bottleImages || [],
@@ -863,10 +888,12 @@ export function UnplannedActivityForm({
       actualData = {
         workTypeCode: "TYPE_5",
         type5SurveyRecords: mapped.type5SurveyRecords,
+        surveyResults: mapped.type5SurveyRecords,
+        t5SurveyDetails: mapped.type5SurveyRecords,
         targetActualResults: mapped.type5SurveyRecords,
         attachments: [
           ...cleanBottleImages.map((img) => ({
-            category: "PRODUCT",
+            category: "SURVEY_BOTTLE",
             fileUrl: img.url,
             fileName: img.name || "รูปถ่ายขวดผลิตภัณฑ์",
             fileSize: (img as any).size || 0,
@@ -874,7 +901,7 @@ export function UnplannedActivityForm({
             workTypeCode: "TYPE_5",
           })),
           ...cleanPromoImages.map((img) => ({
-            category: "MEDIA",
+            category: "SURVEY_PROMO_MATERIAL",
             fileUrl: img.url,
             fileName: img.name || "รูปภาพสื่อโปรโมท",
             fileSize: (img as any).size || 0,
@@ -1699,7 +1726,10 @@ export function UnplannedActivityForm({
       type4ActualItems: mappedType4?.items,
       items: isType4Active ? mappedType4?.items : undefined,
       type5Targets: mappedType5?.type5Targets,
+      type5Items: mappedType5?.type5Targets,
       type5SurveyRecords: mappedType5?.type5SurveyRecords,
+      surveyResults: mappedType5?.type5SurveyRecords,
+      t5SurveyDetails: mappedType5?.type5SurveyRecords,
       type6Targets: mappedType6?.type6Targets,
       type6ActualIssues: mappedType6?.type6ActualIssues,
       type7aPlots: mappedType7a?.type7aPlots,
