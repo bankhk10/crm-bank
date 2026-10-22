@@ -34,38 +34,76 @@ export function Type4ActualForm({
   setBillingDetail,
   collectDetail = "",
   setCollectDetail,
+  items,
+  onUpdateItems,
   paymentImages = [],
   onUploadImages,
   onRemoveImage,
 }: Type4ActualFormProps) {
   // Resolve effective target (supporting multi-target / targets list)
   const resolvedTarget: Type4TargetItem | undefined = useMemo(() => {
-    if (target && target.items && target.items.length > 0) return target;
-    if (targets && targets.length > 0) {
-      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
-        t.items && t.items.length > 0
-          ? t.items
-          : [
-              {
-                id: t.id || `t4-item-${idx}`,
-                customer: t.customer,
-                companyName: t.companyName || t.customer,
-                storeId: t.storeId,
-                collectType: t.collectType || "COLLECT",
-                targetCollect: t.targetCollect || "",
-                targetAmountNum: t.targetAmountNum ?? t.collectAmount,
-                detail: t.detail || t.notes,
-              },
-            ],
-      );
+    // 1. If target already has multiple aggregated items, prioritize it
+    if (target && target.items && target.items.length > 1) {
+      return target;
+    }
+
+    // 2. If targets list has multiple targets, aggregate all items across all targets
+    if (targets && targets.length > 1) {
+      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) => {
+        if (t.items && t.items.length > 0) {
+          return t.items.map((it) => ({
+            ...it,
+            detail: it.detail || (it as any).notes || t.detail || (t as any).notes || "",
+          }));
+        }
+        const custDisplay =
+          t.customer ||
+          (t as any).companyName ||
+          (t as any).store?.name ||
+          "ร้านค้า / ลูกค้า";
+        const amtNum =
+          t.targetAmountNum ??
+          t.collectAmount ??
+          (t.targetAmount != null ? Number(t.targetAmount) : 0);
+        const targetCollectStr =
+          t.targetCollect ||
+          (amtNum > 0 ? `${amtNum.toLocaleString()} บาท` : "");
+        const collectType = (
+          t.collectType === "BILLING" ? "BILLING" : "COLLECT"
+        ) as "BILLING" | "COLLECT";
+        return [
+          {
+            id: t.id || `t4-item-${idx}`,
+            customer: custDisplay,
+            companyName: t.companyName || (t as any).store?.name || custDisplay,
+            storeId: t.storeId || undefined,
+            collectType,
+            targetCollect: targetCollectStr,
+            targetAmountNum: amtNum,
+            detail: t.detail || (t as any).notes || "",
+          },
+        ];
+      });
+
       const totalAmount = targets.reduce(
-        (sum, t) => sum + (t.targetAmountNum || t.collectAmount || 0),
+        (sum, t) =>
+          sum +
+          (t.targetAmountNum ??
+            t.collectAmount ??
+            (t.targetAmount != null ? Number(t.targetAmount) : 0)),
         0,
       );
+
       return {
         ...targets[0],
         customer: targets
-          .map((t) => t.customer)
+          .map(
+            (t) =>
+              t.customer ||
+              (t as any).store?.name ||
+              (t as any).companyName ||
+              "",
+          )
           .filter(Boolean)
           .join(", "),
         targetCollect:
@@ -77,6 +115,49 @@ export function Type4ActualForm({
         items: allItems,
       };
     }
+
+    // 3. Fallback to single target with items
+    if (target && target.items && target.items.length > 0) {
+      return target;
+    }
+
+    // 4. Fallback to single target in targets list
+    if (targets && targets.length === 1) {
+      const t = targets[0];
+      if (t.items && t.items.length > 0) return t;
+      const custDisplay =
+        t.customer ||
+        (t as any).companyName ||
+        (t as any).store?.name ||
+        "ร้านค้า / ลูกค้า";
+      const amtNum =
+        t.targetAmountNum ??
+        t.collectAmount ??
+        (t.targetAmount != null ? Number(t.targetAmount) : 0);
+      const targetCollectStr =
+        t.targetCollect || (amtNum > 0 ? `${amtNum.toLocaleString()} บาท` : "");
+      const collectType = (
+        t.collectType === "BILLING" ? "BILLING" : "COLLECT"
+      ) as "BILLING" | "COLLECT";
+      return {
+        ...t,
+        customer: custDisplay,
+        companyName: t.companyName || (t as any).store?.name || custDisplay,
+        items: [
+          {
+            id: t.id || "t4-item-0",
+            customer: custDisplay,
+            companyName: t.companyName || (t as any).store?.name || custDisplay,
+            storeId: t.storeId || undefined,
+            collectType,
+            targetCollect: targetCollectStr,
+            targetAmountNum: amtNum,
+            detail: t.detail || (t as any).notes || "",
+          },
+        ],
+      };
+    }
+
     return target;
   }, [target, targets]);
 
@@ -84,95 +165,102 @@ export function Type4ActualForm({
   const [companyItems, setCompanyItems] = useState<TargetCollectCompanyItem[]>(
     () => {
       if (resolvedTarget?.items && resolvedTarget.items.length > 0) {
-        return resolvedTarget.items.map((item: TargetCollectCompanyItem) => {
-          const isBilling =
-            (item.collectType || resolvedTarget?.collectType) === "BILLING";
-          return {
-            ...item,
-            collectType:
-              item.collectType || resolvedTarget?.collectType || "COLLECT",
-            receivedAmount:
-              item.receivedAmount ||
-              (!isBilling && receivedAmount ? receivedAmount : ""),
-            billingStatus:
-              item.billingStatus ||
-              (isBilling && billingStatus
-                ? (billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ")
-                : isBilling
-                  ? "วางบิลสำเร็จ"
-                  : ""),
-            billingDetail:
-              item.billingDetail ||
-              (isBilling && billingDetail
-                ? billingDetail
-                : isBilling && item.detail
-                  ? item.detail
-                  : ""),
-            collectDetail:
-              item.collectDetail ||
-              (!isBilling && collectDetail
-                ? collectDetail
-                : !isBilling && item.detail
-                  ? item.detail
-                  : ""),
-            detail:
-              item.detail || (isBilling ? billingDetail : collectDetail) || "",
-          };
-        });
+        return resolvedTarget.items.map(
+          (item: TargetCollectCompanyItem, idx: number) => {
+            const isBilling =
+              (item.collectType || resolvedTarget?.collectType) === "BILLING";
+            const planNotes = item.detail || (item as any).notes || "";
+
+            const existingItem =
+              items?.find(
+                (it) =>
+                  (it.id && it.id === item.id) ||
+                  (it.storeId && it.storeId === item.storeId),
+              ) || items?.[idx];
+
+            return {
+              ...item,
+              collectType:
+                item.collectType || resolvedTarget?.collectType || "COLLECT",
+              receivedAmount:
+                existingItem?.receivedAmount ?? item.receivedAmount ?? "",
+              billingStatus:
+                existingItem?.billingStatus ??
+                item.billingStatus ??
+                (isBilling ? "วางบิลสำเร็จ" : ""),
+              billingDetail:
+                existingItem?.billingDetail ??
+                item.billingDetail ??
+                (isBilling ? planNotes : ""),
+              collectDetail:
+                existingItem?.collectDetail ??
+                item.collectDetail ??
+                (!isBilling ? planNotes : ""),
+              detail: item.detail || planNotes,
+            };
+          },
+        );
       }
       return [];
     },
   );
 
-  // Sync incoming hydrated props into companyItems based on item collectType
+  // Sync incoming hydrated props into companyItems
   useEffect(() => {
     if (!resolvedTarget?.items || resolvedTarget.items.length === 0) return;
 
     setCompanyItems((prev) => {
+      // 1. Initial hydration or change in number of items
       if (
         !prev ||
         prev.length === 0 ||
         prev.length !== resolvedTarget.items!.length
       ) {
-        return resolvedTarget.items!.map((item: TargetCollectCompanyItem) => {
-          const isBilling =
-            (item.collectType || resolvedTarget?.collectType) === "BILLING";
-          return {
-            ...item,
-            collectType:
-              item.collectType || resolvedTarget?.collectType || "COLLECT",
-            receivedAmount:
-              item.receivedAmount ||
-              (!isBilling && receivedAmount ? receivedAmount : ""),
-            billingStatus:
-              item.billingStatus ||
-              (isBilling && billingStatus
-                ? (billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ")
-                : isBilling
-                  ? "วางบิลสำเร็จ"
-                  : ""),
-            billingDetail:
-              item.billingDetail ||
-              (isBilling && billingDetail
-                ? billingDetail
-                : isBilling && item.detail
-                  ? item.detail
-                  : ""),
-            collectDetail:
-              item.collectDetail ||
-              (!isBilling && collectDetail
-                ? collectDetail
-                : !isBilling && item.detail
-                  ? item.detail
-                  : ""),
-            detail:
-              item.detail || (isBilling ? billingDetail : collectDetail) || "",
-          };
-        });
+        const newItems = resolvedTarget.items!.map(
+          (targetItem: TargetCollectCompanyItem, idx: number) => {
+            const isBilling =
+              (targetItem.collectType || resolvedTarget?.collectType) === "BILLING";
+            const planNotes = targetItem.detail || (targetItem as any).notes || "";
+
+            const existingItem =
+              items?.find(
+                (it) =>
+                  (it.id && it.id === targetItem.id) ||
+                  (it.storeId && it.storeId === targetItem.storeId),
+              ) ||
+              items?.[idx] ||
+              prev?.[idx];
+
+            return {
+              ...targetItem,
+              collectType:
+                targetItem.collectType || resolvedTarget?.collectType || "COLLECT",
+              receivedAmount:
+                existingItem?.receivedAmount ?? targetItem.receivedAmount ?? "",
+              billingStatus:
+                existingItem?.billingStatus ??
+                targetItem.billingStatus ??
+                (isBilling ? "วางบิลสำเร็จ" : ""),
+              billingDetail:
+                existingItem?.billingDetail ??
+                targetItem.billingDetail ??
+                (isBilling ? planNotes : ""),
+              collectDetail:
+                existingItem?.collectDetail ??
+                targetItem.collectDetail ??
+                (!isBilling ? planNotes : ""),
+              detail: targetItem.detail || planNotes,
+            };
+          },
+        );
+
+        onUpdateItems?.(newItems);
+        return newItems;
       }
 
-      let hasChanges = false;
-      const updated = prev.map((item) => {
+      // 2. If single store, sync from top-level props if they were updated externally
+      if (resolvedTarget.items!.length === 1) {
+        const item = prev[0];
         const isBilling = item.collectType === "BILLING";
         let itemUpdated = false;
         let newStatus = item.billingStatus;
@@ -213,23 +301,26 @@ export function Type4ActualForm({
         }
 
         if (itemUpdated) {
-          hasChanges = true;
-          return {
-            ...item,
-            billingStatus: newStatus,
-            billingDetail: newBillingDetail,
-            collectDetail: newCollectDetail,
-            receivedAmount: newRec,
-          };
+          const updated = [
+            {
+              ...item,
+              billingStatus: newStatus,
+              billingDetail: newBillingDetail,
+              collectDetail: newCollectDetail,
+              receivedAmount: newRec,
+            },
+          ];
+          onUpdateItems?.(updated);
+          return updated;
         }
-        return item;
-      });
+      }
 
-      return hasChanges ? updated : prev;
+      return prev;
     });
   }, [
     resolvedTarget?.items,
     resolvedTarget?.collectType,
+    items,
     billingStatus,
     billingDetail,
     collectDetail,
@@ -244,6 +335,7 @@ export function Type4ActualForm({
     const updated = [...companyItems];
     updated[index] = { ...updated[index], receivedAmount: value };
     setCompanyItems(updated);
+    onUpdateItems?.(updated);
 
     // Sync total sum of received amounts for collect items to parent
     const totalSum = updated
@@ -259,21 +351,45 @@ export function Type4ActualForm({
     const updated = [...companyItems];
     updated[index] = { ...updated[index], billingStatus: status };
     setCompanyItems(updated);
-    setBillingStatus?.(status);
+    onUpdateItems?.(updated);
+
+    if (updated.length === 1) {
+      setBillingStatus?.(status);
+    }
   };
 
   const handleCompanyBillingDetailChange = (index: number, detail: string) => {
     const updated = [...companyItems];
     updated[index] = { ...updated[index], billingDetail: detail };
     setCompanyItems(updated);
-    setBillingDetail?.(detail);
+    onUpdateItems?.(updated);
+
+    if (updated.length === 1) {
+      setBillingDetail?.(detail);
+    } else {
+      const summary = updated
+        .filter((it) => it.collectType === "BILLING" && it.billingDetail)
+        .map((it) => `${it.companyName}: ${it.billingDetail}`)
+        .join("; ");
+      setBillingDetail?.(summary);
+    }
   };
 
   const handleCompanyCollectDetailChange = (index: number, detail: string) => {
     const updated = [...companyItems];
     updated[index] = { ...updated[index], collectDetail: detail };
     setCompanyItems(updated);
-    setCollectDetail?.(detail);
+    onUpdateItems?.(updated);
+
+    if (updated.length === 1) {
+      setCollectDetail?.(detail);
+    } else {
+      const summary = updated
+        .filter((it) => it.collectType !== "BILLING" && it.collectDetail)
+        .map((it) => `${it.companyName}: ${it.collectDetail}`)
+        .join("; ");
+      setCollectDetail?.(summary);
+    }
   };
 
   // Summaries (Calculated only for COLLECT items)
@@ -640,7 +756,7 @@ export function Type4ActualForm({
                 </label>
                 <Input
                   type="text"
-                  value={billingDetail}
+                  value={billingDetail || target?.detail || target?.notes || ""}
                   onChange={(e) => setBillingDetail?.(e.target.value)}
                   placeholder="ระบุรายละเอียดเพิ่มเติมการวางบิล เช่น กำหนดรับเช็ค..."
                   className="bg-white border-slate-300 text-xs h-9"
@@ -707,7 +823,7 @@ export function Type4ActualForm({
                 </label>
                 <Input
                   type="text"
-                  value={collectDetail}
+                  value={collectDetail || target?.detail || target?.notes || ""}
                   onChange={(e) => setCollectDetail?.(e.target.value)}
                   placeholder="ระบุรายละเอียดเพิ่มเติมการเก็บเงิน..."
                   className="bg-white border-slate-300 text-xs h-9"

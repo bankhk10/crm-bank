@@ -218,7 +218,12 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     });
 
     // Save individual multi-items if present
-    const multiItems: any[] = t4Data.items || t4Data.companyItems || [];
+    const multiItems: any[] =
+      t4Data.items ||
+      t4Data.companyItems ||
+      t4Data.t4Items ||
+      outcomeData.t4Items ||
+      [];
     if (multiItems.length > 0) {
       await (tx as any).activityResultType4Item.createMany({
         data: multiItems.map((item) => {

@@ -422,6 +422,8 @@ export function ActualWorkTypeList({
           setBillingDetail={type4State.setT4BillingDetail}
           collectDetail={type4State.t4CollectDetail}
           setCollectDetail={type4State.setT4CollectDetail}
+          items={type4State.t4Items}
+          onUpdateItems={type4State.setT4Items}
           paymentImages={type4State.t4PaymentImages}
           onUploadImages={type4State.handleUploadImages}
           onRemoveImage={type4State.handleRemoveImage}

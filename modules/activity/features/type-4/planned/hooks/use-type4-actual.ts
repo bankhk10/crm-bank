@@ -114,6 +114,8 @@ export function useType4Actual() {
       t4CollectDetail,
       t4Detail: t4CollectDetail || t4BillingDetail || t4Detail,
       t4Items,
+      items: t4Items,
+      companyItems: t4Items,
       t4PaymentImages,
     };
   }, [

@@ -34,6 +34,8 @@ export interface Type4ActualFormProps {
   setBillingDetail?: (v: string) => void;
   collectDetail?: string;
   setCollectDetail?: (v: string) => void;
+  items?: TargetCollectCompanyItem[];
+  onUpdateItems?: (items: TargetCollectCompanyItem[]) => void;
   paymentImages?: Type4ImageFile[];
   onUploadImages?: (e: React.ChangeEvent<HTMLInputElement> | File[]) => void;
   onRemoveImage?: (id: string) => void;

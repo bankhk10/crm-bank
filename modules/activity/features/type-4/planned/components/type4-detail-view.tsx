@@ -50,6 +50,41 @@ export function Type4DetailView({
   if (!isVisible) return null;
 
   const resolvedTarget: Type4TargetItem | undefined = React.useMemo(() => {
+    if (target && target.items && target.items.length > 1) return target;
+    if (targets && targets.length > 1) {
+      const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
+        t.items && t.items.length > 0
+          ? t.items.map((it) => ({
+              ...it,
+              detail: it.detail || (it as any).notes || t.detail || (t as any).notes || "",
+            }))
+          : [
+              {
+                id: t.id || `t4-item-${idx}`,
+                customer: t.customer || (t as any).store?.name || (t as any).companyName || "",
+                companyName: t.companyName || (t as any).store?.name || t.customer || "ร้านค้า / ลูกค้า",
+                storeId: t.storeId,
+                collectType: t.collectType || "COLLECT",
+                targetCollect: t.targetCollect || "",
+                targetAmountNum: t.targetAmountNum ?? t.collectAmount,
+                detail: t.detail || (t as any).notes || "",
+              },
+            ],
+      );
+      const totalAmount = targets.reduce(
+        (sum, t) => sum + (t.targetAmountNum || t.collectAmount || 0),
+        0,
+      );
+      return {
+        ...targets[0],
+        customer: targets.map((t) => t.customer || (t as any).store?.name || (t as any).companyName).filter(Boolean).join(", "),
+        targetCollect:
+          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+        targetAmountNum: totalAmount,
+        collectAmount: totalAmount,
+        items: allItems,
+      };
+    }
     if (target && target.items && target.items.length > 0) return target;
     if (targets && targets.length > 0) {
       const allItems: TargetCollectCompanyItem[] = targets.flatMap((t, idx) =>
@@ -64,7 +99,7 @@ export function Type4DetailView({
                 collectType: t.collectType || "COLLECT",
                 targetCollect: t.targetCollect || "",
                 targetAmountNum: t.targetAmountNum ?? t.collectAmount,
-                detail: t.detail || t.notes,
+                detail: t.detail || (t as any).notes,
               },
             ],
       );
