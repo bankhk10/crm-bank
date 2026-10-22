@@ -228,14 +228,29 @@ export function useActivityCustomers(
       const cleanProv = province?.trim();
       if (!cleanProv) return [];
 
-      const apiList = farmerCache[cleanProv] || cachedFarmersByProvince[cleanProv] || [];
+      const normalize = (p?: string | null) =>
+        (p || "").replace(/^(จังหวัด|จ\.)\s*/, "").trim();
+      const normTarget = normalize(cleanProv);
+
+      const apiList =
+        farmerCache[cleanProv] ||
+        cachedFarmersByProvince[cleanProv] ||
+        farmerCache[normTarget] ||
+        cachedFarmersByProvince[normTarget] ||
+        [];
       const map = new Map<string, ActivityCustomerItem>();
       apiList.forEach((f) => map.set(f.id, f));
 
       customers.forEach((c) => {
+        const cNorm = normalize(c.province);
+        const isProvinceMatch =
+          cNorm === normTarget ||
+          (normTarget && cNorm.includes(normTarget)) ||
+          (c.province && c.province.trim() === cleanProv);
+
         if (
-          c.customerType === "FARMER" &&
-          c.province?.trim() === cleanProv &&
+          (c.customerType === "FARMER" || !c.customerType) &&
+          isProvinceMatch &&
           !map.has(c.id)
         ) {
           map.set(c.id, c);

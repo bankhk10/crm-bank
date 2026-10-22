@@ -8,5 +8,6 @@ export * from "./activity-photo-upload";
 export * from "./activity-gps-picker";
 export * from "./activity-irrigation-checkbox";
 export * from "./activity-date-picker";
+export * from "./activity-select";
 export * from "./hooks/use-activity-addresses";
 export * from "./hooks/use-activity-customers";

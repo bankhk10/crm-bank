@@ -27,6 +27,7 @@ import {
   ActivityAddressSelect,
   ActivityIrrigationCheckbox,
   ActivityDatePicker,
+  ActivitySelect,
 } from "@/modules/activity/ui";
 import type {
   Type7aActualFormProps,
@@ -300,15 +301,22 @@ export function Type7aActualForm({
             {/* โหมด 1: เกษตรกรในระบบ */}
             {!actualState.t7IsUnregisteredFarmer ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <ActivityCombobox
+                <ActivityAddressSelect
+                  levels="province"
                   label="เลือกจังหวัด (เพื่อกรองเกษตรกร)"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                  options={provinceOptions}
                   value={actualState.t7SelectedProvince || actualState.t7FarmerProvince || ""}
-                  onChange={(val) => {
-                    onUpdateField?.("t7SelectedProvince", val);
-                    onUpdateField?.("t7FarmerProvince", val);
+                  onChange={(val: any) => {
+                    const prov = typeof val === "string" ? val : val?.province || "";
+                    onUpdateField?.("t7SelectedProvince", prov);
+                    onUpdateField?.("t7FarmerProvince", prov);
+                    // Reset farmer selection when changing province
+                    if (actualState.t7FarmerCustomerId) {
+                      onUpdateField?.("t7FarmerCustomerId", null);
+                      onUpdateField?.("t7FarmerName", "");
+                    }
                   }}
+                  provincePlaceholder="เลือกจังหวัด..."
                   placeholder="เลือกจังหวัด..."
                   disabled={readonly}
                 />
@@ -316,6 +324,8 @@ export function Type7aActualForm({
                 <ActivityCustomerSelect
                   id="actual-t7-farmer-combobox"
                   type="FARMER"
+                  province={actualState.t7SelectedProvince || actualState.t7FarmerProvince || ""}
+                  customers={customers}
                   label="เกษตรกรเจ้าของแปลง"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   value={actualState.t7FarmerCustomerId || actualState.t7FarmerName || ""}
@@ -328,10 +338,15 @@ export function Type7aActualForm({
                       if (cust.phone || (cust as any).telephone) {
                         onUpdateField?.("t7FarmerPhone", cust.phone || (cust as any).telephone);
                       }
+                    } else {
+                      onUpdateField?.("t7FarmerCustomerId", null);
                     }
                   }}
-                  customers={filteredFarmers as any}
-                  placeholder="เลือกเกษตรกรจากรายชื่อ..."
+                  placeholder={
+                    actualState.t7SelectedProvince || actualState.t7FarmerProvince
+                      ? "เลือกเกษตรกรจากรายชื่อ..."
+                      : "กรุณาเลือกจังหวัดก่อน"
+                  }
                   searchPlaceholder="พิมพ์ชื่อค้นหาเกษตรกร..."
                   emptyText="ไม่พบรายชื่อเกษตรกรในจังหวัดนี้"
                   disabled={readonly}
@@ -503,15 +518,15 @@ export function Type7aActualForm({
                   disabled={readonly}
                   placeholder="เช่น 15"
                 />
-                <select
+                <ActivitySelect
                   value={actualState.t7CropAgeUnit || "วัน"}
-                  onChange={(e) => onUpdateField?.("t7CropAgeUnit", e.target.value)}
+                  onChange={(val) => onUpdateField?.("t7CropAgeUnit", val)}
+                  options={[
+                    { value: "วัน", label: "วัน" },
+                    { value: "เดือน", label: "เดือน" },
+                  ]}
                   disabled={readonly}
-                  className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="วัน">วัน</option>
-                  <option value="เดือน">เดือน</option>
-                </select>
+                />
               </div>
             </div>
 
@@ -697,23 +712,16 @@ export function Type7aActualForm({
                               </div>
 
                               <div className="space-y-1">
-                                <label className="text-[11px] font-medium text-slate-600">
-                                  สูตร
-                                </label>
-                                <select
+                                <ActivitySelect
+                                  label="สูตร"
+                                  labelClassName="text-[11px] font-medium text-slate-600 mb-0"
                                   value={ext.formula || "SL"}
-                                  onChange={(e) =>
-                                    handleUpdateExtProd(idx, "formula", e.target.value)
+                                  onChange={(val) =>
+                                    handleUpdateExtProd(idx, "formula", val)
                                   }
+                                  options={EXTERNAL_FORMULA_OPTIONS}
                                   disabled={readonly}
-                                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                >
-                                  {EXTERNAL_FORMULA_OPTIONS.map((f) => (
-                                    <option key={f.value} value={f.value}>
-                                      {f.label}
-                                    </option>
-                                  ))}
-                                </select>
+                                />
                               </div>
 
                               {ext.formula === "อื่นๆ" && (
@@ -769,23 +777,13 @@ export function Type7aActualForm({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">
-                เลือกอุปกรณ์ที่ใช้ฉีดพ่น
-              </label>
-              <select
-                value={actualState.t7SprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
-                onChange={(e) => onUpdateField?.("t7SprayEquipment", e.target.value)}
-                disabled={readonly}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                {SPRAY_EQUIPMENT_OPTIONS.map((equip) => (
-                  <option key={equip} value={equip}>
-                    {equip}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <ActivitySelect
+              label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
+              value={actualState.t7SprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
+              onChange={(val) => onUpdateField?.("t7SprayEquipment", val)}
+              options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({ value: equip, label: equip }))}
+              disabled={readonly}
+            />
 
             {actualState.t7SprayEquipment === "อื่นๆ (ระบุ)" && (
               <div className="space-y-1">
@@ -867,17 +865,17 @@ export function Type7aActualForm({
                           disabled={readonly}
                           placeholder="เช่น 250"
                         />
-                        <select
+                        <ActivitySelect
                           value={prod.extraUnit || "ซีซี"}
-                          onChange={(e) =>
-                            handleUpdatePlannedProd(idx, "extraUnit", e.target.value)
+                          onChange={(val) =>
+                            handleUpdatePlannedProd(idx, "extraUnit", val)
                           }
+                          options={[
+                            { value: "ซีซี", label: "ซีซี (ขวด)" },
+                            { value: "กรัม", label: "กรัม (ซอง)" },
+                          ]}
                           disabled={readonly}
-                          className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-                          <option value="ซีซี">ซีซี (ขวด)</option>
-                          <option value="กรัม">กรัม (ซอง)</option>
-                        </select>
+                        />
                       </div>
                     </div>
 
@@ -1006,17 +1004,17 @@ export function Type7aActualForm({
                           disabled={readonly}
                           placeholder="เช่น 250"
                         />
-                        <select
+                        <ActivitySelect
                           value={prod.extraUnit || "ซีซี"}
-                          onChange={(e) =>
-                            handleUpdateAdditionalProd(idx, "extraUnit", e.target.value)
+                          onChange={(val) =>
+                            handleUpdateAdditionalProd(idx, "extraUnit", val)
                           }
+                          options={[
+                            { value: "ซีซี", label: "ซีซี (ขวด)" },
+                            { value: "กรัม", label: "กรัม (ซอง)" },
+                          ]}
                           disabled={readonly}
-                          className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-                          <option value="ซีซี">ซีซี (ขวด)</option>
-                          <option value="กรัม">กรัม (ซอง)</option>
-                        </select>
+                        />
                       </div>
                     </div>
 

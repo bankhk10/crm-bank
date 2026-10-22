@@ -4,11 +4,22 @@ import { db } from "@/lib/db";
  * Fetch Farmer customers filtered optionally by province
  */
 export async function findFarmerCustomerOptions(province?: string) {
+  const cleanProv = province?.replace(/^(จังหวัด|จ\.)\s*/, "").trim();
+
   return db.customer.findMany({
     where: {
       deletedAt: null,
       customerType: "FARMER",
-      ...(province && province.trim() ? { province: province.trim() } : {}),
+      ...(cleanProv
+        ? {
+            OR: [
+              { province: cleanProv },
+              { province: `จ.${cleanProv}` },
+              { province: `จังหวัด${cleanProv}` },
+              { province: { contains: cleanProv, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     select: {
       id: true,
