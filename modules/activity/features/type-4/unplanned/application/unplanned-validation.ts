@@ -22,7 +22,8 @@ export const type4UnplannedItemSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.collectType === "BILLING") {
-      if (!data.billingStatus?.trim()) {
+      const status = data.billingStatus?.trim() || "วางบิลสำเร็จ";
+      if (!status) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "กรุณาระบุสถานะการวางบิล",
@@ -71,7 +72,8 @@ export function validateType4UnplannedForm(
     }
 
     if (item.collectType === "BILLING") {
-      if (!item.billingStatus?.trim()) {
+      const status = item.billingStatus?.trim() || "วางบิลสำเร็จ";
+      if (!status) {
         return {
           isValid: false,
           error: `กรุณาเลือกสถานะการวางบิล (รายการที่ ${rowNum})`,

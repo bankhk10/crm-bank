@@ -29,19 +29,13 @@ export function Type4UnplannedForm({
   readonly = false,
 }: Type4UnplannedFormProps) {
   // Aggregate totals
-  const totalTarget = items
-    .filter((it) => it.collectType !== "BILLING")
-    .reduce((sum, it) => sum + (Number(it.targetAmount) || 0), 0);
-
   const totalReceived = items
     .filter((it) => it.collectType !== "BILLING")
     .reduce((sum, it) => sum + (Number(it.receivedAmount) || 0), 0);
 
-  const totalRemaining = Math.max(0, totalTarget - totalReceived);
-
   const billingItems = items.filter((it) => it.collectType === "BILLING");
   const billingSuccessCount = billingItems.filter(
-    (it) => it.billingStatus === "วางบิลสำเร็จ",
+    (it) => (it.billingStatus || "วางบิลสำเร็จ") === "วางบิลสำเร็จ",
   ).length;
 
   const handleImageUpload = (
@@ -107,9 +101,8 @@ export function Type4UnplannedForm({
         ) : (
           items.map((item, index) => {
             const isBilling = item.collectType === "BILLING";
-            const targetVal = Number(item.targetAmount) || 0;
-            const recVal = Number(item.receivedAmount) || 0;
-            const remaining = Math.max(0, targetVal - recVal);
+            const effectiveBillingStatus =
+              item.billingStatus || (isBilling ? "วางบิลสำเร็จ" : "");
 
             return (
               <div
@@ -149,9 +142,12 @@ export function Type4UnplannedForm({
                         name={`type4-unplanned-collect-type-${item.id}`}
                         value="BILLING"
                         checked={isBilling}
-                        onChange={() =>
-                          updateItem(item.id, "collectType", "BILLING")
-                        }
+                        onChange={() => {
+                          updateItem(item.id, "collectType", "BILLING");
+                          if (!item.billingStatus) {
+                            updateItem(item.id, "billingStatus", "วางบิลสำเร็จ");
+                          }
+                        }}
                         disabled={readonly}
                         className="w-4 h-4 text-amber-600 border-slate-300 focus:ring-amber-500 cursor-pointer"
                       />
@@ -204,21 +200,6 @@ export function Type4UnplannedForm({
                     disabled={readonly}
                     required
                   />
-                  {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
-                  {/* <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      เลขที่บิล / ใบแจ้งหนี้ (ถ้ามี)
-                    </label>
-                    <ActivityInput
-                      type="text"
-                      value={item.invoiceNo || ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "invoiceNo", e.target.value)
-                      }
-                      disabled={readonly}
-                      placeholder="เช่น INV-2026-001..."
-                    />
-                  </div> */}
                 </div>
 
                 {/* Flow Specific Inputs */}
@@ -239,7 +220,7 @@ export function Type4UnplannedForm({
                           disabled={readonly}
                           className={cn(
                             "flex items-center justify-center gap-2 p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer",
-                            item.billingStatus === "วางบิลสำเร็จ"
+                            effectiveBillingStatus === "วางบิลสำเร็จ"
                               ? "bg-emerald-50 border-emerald-500 text-emerald-800 shadow-xs ring-1 ring-emerald-400"
                               : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                           )}
@@ -247,7 +228,7 @@ export function Type4UnplannedForm({
                           <CheckCircle2
                             className={cn(
                               "w-4 h-4",
-                              item.billingStatus === "วางบิลสำเร็จ"
+                              effectiveBillingStatus === "วางบิลสำเร็จ"
                                 ? "text-emerald-600"
                                 : "text-slate-400",
                             )}
@@ -267,7 +248,7 @@ export function Type4UnplannedForm({
                           disabled={readonly}
                           className={cn(
                             "flex items-center justify-center gap-2 p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer",
-                            item.billingStatus === "วางบิลไม่สำเร็จ"
+                            effectiveBillingStatus === "วางบิลไม่สำเร็จ"
                               ? "bg-rose-50 border-rose-500 text-rose-800 shadow-xs ring-1 ring-rose-400"
                               : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
                           )}
@@ -275,7 +256,7 @@ export function Type4UnplannedForm({
                           <AlertCircle
                             className={cn(
                               "w-4 h-4",
-                              item.billingStatus === "วางบิลไม่สำเร็จ"
+                              effectiveBillingStatus === "วางบิลไม่สำเร็จ"
                                 ? "text-rose-600"
                                 : "text-slate-400",
                             )}
@@ -303,83 +284,31 @@ export function Type4UnplannedForm({
                 ) : (
                   /* COLLECT FLOW */
                   <div className="space-y-3 p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          เป้ายอดเงินตามบิล (บาท)
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold z-10">
-                            ฿
-                          </span>
-                          <ActivityInput
-                            type="number"
-                            min={0}
-                            value={item.targetAmount || ""}
-                            onChange={(e) =>
-                              updateItem(
-                                item.id,
-                                "targetAmount",
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="0"
-                            className="pl-7 pr-3 text-right font-medium"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          จำนวนเงินที่เก็บได้จริง (บาท){" "}
-                          <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold z-10">
-                            ฿
-                          </span>
-                          <ActivityInput
-                            type="number"
-                            min={0}
-                            value={item.receivedAmount || ""}
-                            onChange={(e) =>
-                              updateItem(
-                                item.id,
-                                "receivedAmount",
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="0"
-                            className="pl-7 pr-3 text-right font-medium"
-                            required
-                          />
-                        </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        จำนวนเงินที่เก็บได้จริง (บาท){" "}
+                        <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold z-10">
+                          ฿
+                        </span>
+                        <ActivityInput
+                          type="number"
+                          min={0}
+                          value={item.receivedAmount || ""}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateItem(item.id, "receivedAmount", val);
+                            updateItem(item.id, "targetAmount", val);
+                          }}
+                          disabled={readonly}
+                          placeholder="0"
+                          className="pl-7 pr-3 text-right font-medium"
+                          required
+                        />
                       </div>
                     </div>
-
-                    {targetVal > 0 && (
-                      <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-semibold flex items-center gap-1.5">
-                          <Coins className="w-3.5 h-3.5 text-amber-600" />
-                          ยอดคงค้าง:
-                        </span>
-                        <span
-                          className={cn(
-                            "font-bold px-2.5 py-0.5 rounded-md text-xs",
-                            remaining === 0 && recVal > 0
-                              ? "bg-emerald-100 text-emerald-800 font-extrabold"
-                              : remaining > 0
-                                ? "bg-amber-100 text-amber-900 font-extrabold"
-                                : "bg-slate-100 text-slate-600",
-                          )}
-                        >
-                          {remaining.toLocaleString()} บาท
-                          {remaining === 0 && recVal > 0 && " (ชำระครบถ้วน)"}
-                        </span>
-                      </div>
-                    )}
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -395,6 +324,56 @@ export function Type4UnplannedForm({
                         placeholder="ระบุรายละเอียด เช่น ชำระเงินสด, โอนเงิน, เช็ค..."
                       />
                     </div>
+
+                    {/* แนบรูปภาพสลิป/หลักฐานการชำระเงิน */}
+                    <div className="space-y-1.5 pt-1">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                        <span>รูปหลักฐานการชำระเงิน / สลิปโอนเงิน</span>
+                        <span className="text-[11px] text-slate-400 font-normal">
+                          (ถ้ามี)
+                        </span>
+                      </label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {item.images?.map((img) => (
+                          <div
+                            key={img.id}
+                            className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group bg-slate-50"
+                          >
+                            <img
+                              src={img.url || img.previewUrl}
+                              alt={img.name || "payment proof"}
+                              className="w-full h-full object-cover"
+                            />
+                            {!readonly && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveImage(item.id, img.id)
+                                }
+                                className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4 text-rose-300" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {!readonly && (
+                          <label className="w-16 h-16 rounded-lg border-2 border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/50 hover:bg-amber-100/50 flex flex-col items-center justify-center cursor-pointer transition-colors text-amber-700">
+                            <Upload className="w-4 h-4" />
+                            <span className="text-[10px] font-semibold mt-0.5">
+                              แนบรูป
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handleImageUpload(item.id, e)}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -404,7 +383,7 @@ export function Type4UnplannedForm({
       </div>
 
       {/* Summary Footer */}
-      {(totalReceived > 0 || totalTarget > 0 || billingItems.length > 0) && (
+      {(totalReceived > 0 || billingItems.length > 0) && (
         <div className="bg-amber-100/70 border border-amber-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs text-xs font-bold text-amber-950">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-amber-700" />
@@ -416,14 +395,6 @@ export function Type4UnplannedForm({
                 ยอดเก็บเงินจริงรวม:{" "}
                 <span className="text-amber-800 font-extrabold text-sm ml-1">
                   ฿ {totalReceived.toLocaleString()}
-                </span>
-              </span>
-            )}
-            {totalRemaining > 0 && (
-              <span className="bg-white px-3 py-1 rounded-lg border border-amber-200 text-amber-900">
-                ยอดคงค้างรวม:{" "}
-                <span className="text-amber-700 font-extrabold text-sm ml-1">
-                  ฿ {totalRemaining.toLocaleString()}
                 </span>
               </span>
             )}

@@ -25,7 +25,7 @@ export function useType4UnplannedForm({
       collectType: "COLLECT",
       targetAmount: 0,
       receivedAmount: 0,
-      billingStatus: "",
+      billingStatus: "วางบิลสำเร็จ",
       billingDetail: "",
       collectDetail: "",
       notes: "",
@@ -52,6 +52,10 @@ export function useType4UnplannedForm({
         prev.map((it) => {
           if (it.id !== id) return it;
           const updated: Type4UnplannedItem = { ...it, [field]: val };
+
+          if (field === "collectType" && val === "BILLING" && !it.billingStatus) {
+            updated.billingStatus = "วางบิลสำเร็จ";
+          }
 
           if (field === "storeId" && val) {
             const foundStore = customersList.find((c) => c.id === val);

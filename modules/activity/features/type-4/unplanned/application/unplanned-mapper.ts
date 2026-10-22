@@ -173,15 +173,19 @@ export function mapType4UnplannedToPayload(
     }
 
     const isBilling = item.collectType === "BILLING";
-    const targetAmt = item.targetAmount != null ? Number(item.targetAmount) : null;
     const recAmt = item.receivedAmount != null ? Number(item.receivedAmount) : null;
+    const targetAmt =
+      item.targetAmount != null
+        ? Number(item.targetAmount)
+        : recAmt;
+    const bStatus = isBilling ? item.billingStatus || "วางบิลสำเร็จ" : null;
 
     if (!isBilling && recAmt != null) {
       overallReceivedAmount += recAmt;
     }
 
     if (item.invoiceNo) overallInvoices.push(item.invoiceNo);
-    if (item.billingStatus) overallBillingStatuses.push(item.billingStatus);
+    if (bStatus) overallBillingStatuses.push(bStatus);
     if (item.billingDetail) overallBillingDetails.push(item.billingDetail);
     if (item.collectDetail) overallCollectDetails.push(item.collectDetail);
     if (item.notes) overallNotes.push(item.notes);
@@ -212,7 +216,7 @@ export function mapType4UnplannedToPayload(
       collectType: isBilling ? "BILLING" : "COLLECT",
       targetAmount: targetAmt,
       receivedAmount: recAmt,
-      billingStatus: item.billingStatus || null,
+      billingStatus: bStatus,
       billingDetail: item.billingDetail || null,
       collectDetail: item.collectDetail || null,
       notes: item.notes || null,
