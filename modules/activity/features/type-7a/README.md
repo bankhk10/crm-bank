@@ -4,7 +4,7 @@
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`DemoPlot`, `ActivityPlanType7a`, `ActivityPlanType7aProduct`, `ActivityResultDemoItem`, `ActivityAttachment`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
-> **Status**: Production Ready / Active Reference (v1.6.0 — Updated 2026-10-22)
+> **Status**: Production Ready / Active Reference (v1.7.0 — Updated 2026-10-22)
 
 ---
 
@@ -25,11 +25,18 @@
 
 ### 1.2 ขอบเขตของ Type 7A
 - **กลุ่มเป้าหมายที่รองรับ:**
-  - **ร้านค้าตัวแทนจำหน่าย (Dealer Store):** ร้านค้าตัวแทนจำหน่ายหลัก (`DEALER`) ที่เข้าร่วมโครงการแปลงสาธิต
-  - **เกษตรกรเจ้าของแปลง (Farmer / Plot Owner):** รองรับทั้งเกษตรกรในระบบและเกษตรกรชั้นนำที่ระบุชื่อหน้างาน
-- **การจำแนกหมวดพืชและวัตถุประสงค์ (Crop & Objectives):**
-  - **หมวดพืช (`CROP_CATEGORIES`):** พืชไร่ (ข้าว, ข้าวโพด, มันสำปะหลัง, อ้อย), ไม้ผล (ทุเรียน, มังคุด, ลำไย, ส้ม, มะม่วง), พืชผัก (พริก, มะเขือเทศ, กะหล่ำปลี, แตงกวา), ไม้ดอกไม้ประดับ, พืชอื่นๆ
-  - **วัตถุประสงค์ (`PLOT_OBJECTIVES`):** เปรียบเทียบประสิทธิภาพสินค้ากับสารเคมีคู่แข่ง, ทดสอบการป้องกันและกำจัดโรค/แมลง, ทดสอบการเพิ่มผลผลิต, แปลงสาธิตสำหรับจัดงาน Field Day, อื่นๆ ระบุ
+  - **ชื่อ ร้านค้า Dealer (`storeId` / `ownerName`):** เลือกเฉพาะร้านค้าตัวแทนจำหน่ายหลัก (`type="DEALER"`) ที่เข้าร่วมโครงการแปลงสาธิต พร้อมซิงค์จังหวัดและอำเภออัตโนมัติ
+- **การจำแนกหมวดพืช ชื่อพืช ขนาดแปลง และวัตถุประสงค์ (Crop, Size & Objectives):**
+  - **หมวดพืช (`CROP_CATEGORIES`):** มี 3 ตัวเลือก ได้แก่ `ผักและพืชล้มลุก`, `พืชไร่`, `พืชสวน`
+  - **ชื่อพืชตามหมวดพืช (`CROP_NAMES_BY_CATEGORY`):**
+    1. ถ้าเลือก **`ผักและพืชล้มลุก`**: ตัวเลือกมี `คะน้า`, `กะหล่ำปลี`, `พริก`, `ผักและพืชล้มลุกอื่นๆ` (หากเลือก `ผักและพืชล้มลุกอื่นๆ` จะแสดงช่อง **`ระบุชื่อพืชเพิ่มเติม *`** เก็บใน `customCropName`)
+    2. ถ้าเลือก **`พืชไร่`**: ตัวเลือกมี `ข้าว`, `อ้อย`, `ยางพารา`, `พืชไร่อื่นๆ` (หากเลือก `พืชไร่อื่นๆ` จะแสดงช่อง **`ระบุชื่อพืชเพิ่มเติม *`** เก็บใน `customCropName`)
+    3. ถ้าเลือก **`พืชสวน`**: ตัวเลือกมี `ทุเรียน`, `ชมพู่`, `ยางพารา`, `พืชสวนอื่นๆ` (หากเลือก `พืชสวนอื่นๆ` จะแสดงช่อง **`ระบุชื่อพืชเพิ่มเติม *`** เก็บใน `customCropName`)
+  - **ขนาดแปลงตามหมวดพืช (`areaRai` vs `treeCount`):**
+    - หากเลือกหมวดพืชเป็น **`พืชสวน`**: แสดงช่อง **`จำนวนต้น *`** (`treeCount`)
+    - หากเลือกหมวดพืชเป็น **`ผักและพืชล้มลุก`** หรือ **`พืชไร่`**: แสดงช่อง **`พื้นที่ (ไร่) *`** (`areaRai`)
+  - **วัตถุประสงค์การจัดทำแปลง (`objective`):** ช่องกรอกข้อความอิสระ (Free-text `ActivityInput`) ให้พิมพ์ระบุเอง
+  - **สินค้าที่นำไปทดสอบสาธิต (`demoProducts` / `products`):** มีตัวเลือก **`หมวดสินค้า`** (`categoryId` จาก `ProductCategory`) ก่อน แล้วช่อง **`เลือกสินค้า`** (`ActivityProductSelect`) จะกรองเฉพาะสินค้าที่อยู่ในหมวดสินค้านั้น
 - **ระบบออกรหัสแปลงสาธิตอัตโนมัติ (Automated DemoPlot Code Generation):**
   - สร้างรหัสแปลงรูปแบบ `DPYYMMXXXX` (เช่น `DP26100001`) ผ่านฟังก์ชัน `generateDemoPlotCode` โดยใช้ PostgreSQL Advisory Lock (`pg_advisory_xact_lock`) เพื่อรับประกันว่าจะไม่มีรหัสซ้ำกันแม้มีการบันทึกพร้อมกัน (Concurrent Requests)
 - **การจัดเก็บข้อมูลแบบ Dual Persistence:**
@@ -55,15 +62,15 @@ graph TD
     A["ผู้ใช้สร้างแผนงานใหม่"] --> B["กรอกข้อมูลทั่วไปและงบประมาณส่วนกลาง"]
     B --> C["เลือกประเภทงาน Type 7A: จัดทำแปลงสาธิต"]
     C --> D["กรอกฟอร์ม Type7aPlannedForm"]
-    D --> E["ระบุชื่อแปลงสาธิต และชื่อเกษตรกรเจ้าของแปลง"]
-    E --> F["เลือกร้านค้าตัวแทนจำหน่ายที่ร่วมโครงการผ่าน ActivityCustomerSelect"]
-    F --> G["เลือกหมวดพืชและชนิดพืช (CROP_CATEGORIES)"]
-    G --> H["ระบุพื้นที่แปลง (ไร่), จำนวนต้น และวัตถุประสงค์ (PLOT_OBJECTIVES)"]
-    H --> I["เพิ่มสินค้าตัวอย่างที่นำไปสาธิตผ่าน ActivityProductSelect พร้อมระบุจำนวน"]
+    D --> E["ระบุชื่อแปลงสาธิต และเลือกร้านค้า Dealer (type=DEALER)"]
+    E --> F["เลือกหมวดพืช (ผักและพืชล้มลุก / พืชไร่ / พืชสวน)"]
+    F --> G["เลือกชื่อพืชตามหมวดพืช (หากเลือก อื่นๆ ให้ระบุชื่อพืชเพิ่มเติม)"]
+    G --> H["ระบุ จำนวนต้น (กรณีพืชสวน) หรือ พื้นที่ไร่ (กรณีพืชไร่/ผัก) และพิมพ์วัตถุประสงค์"]
+    H --> I["เลือกหมวดสินค้า แล้วเลือกสินค้าที่อยู่ในหมวดนั้น พร้อมระบุจำนวนที่ใช้"]
     I --> J{"ต้องการเพิ่มแปลงสาธิตอื่น?"}
     J -->|"เพิ่มแปลง"| D
     J -->|"เสร็จสิ้น"| K["กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ"]
-    K --> L["type7aPlannedStrategy สร้าง DemoPlot (รหัส DPYYMMXXXX)"]
+    K --> L["type7aPlannedStrategy สร้าง DemoPlot (รหัส DPYYMMXXXX) และบันทึกลง ActivityPlanType7a"]
     L --> M["Sync สำเนาสู่ activity_plan_stores และ activity_plan_products (workTypeCode: TYPE_7A)"]
 ```
 
@@ -178,7 +185,7 @@ modules/activity/features/type-7a/
 - **Hooks:** `useType7aPlannedForm` (`useType7aForm`), `useType7aActual`, `useType7aUnplannedForm`
 - **Mappers & Hydrators:** `extractType7aPlanTargets`, `hydrateType7aPlannedData`, `mapType7aToSectionItems`, `parseType7aActualResult`, `hydrateType7aUnplannedData`, `mapType7aUnplannedToPayload`
 - **Validators & Schemas:** `validateType7aFormItems`, `validateType7aActual`, `validateType7aUnplannedItems`
-- **Constants & Types:** `WORK_TYPE_CODE`, `WORK_TYPE_NAME`, `CROP_CATEGORIES`, `PLOT_OBJECTIVES`, `IRRIGATION_METHODS`, `SPRAY_METHODS`, `DEMO_PLOT_STATUSES`, `Type7aPlanItem`, `Type7aTargetItem`, `Type7aPlanCardTarget`, `Type7aPlanCardProps`, `Type7aPlannedFormProps`, `Type7aActualRecord`, `Type7aActualFormProps`, `Type7aDetailViewProps`, `Type7aApprovalCardProps`, `Type7aUnplannedItem`, `Type7aUnplannedFormProps`, `CustomerOption`, `ProductOption`, `Type7aDemoProductItem`, `Type7aPlotInput`, `Type7aImageFile`
+- **Constants & Types:** `WORK_TYPE_CODE`, `WORK_TYPE_NAME`, `CROP_CATEGORIES`, `CROP_NAMES_BY_CATEGORY`, `OTHER_CROP_OPTIONS`, `PLOT_OBJECTIVES`, `IRRIGATION_METHODS`, `SPRAY_METHODS`, `DEMO_PLOT_STATUSES`, `Type7aPlanItem`, `Type7aTargetItem`, `Type7aPlanCardTarget`, `Type7aPlanCardProps`, `Type7aPlannedFormProps`, `Type7aActualRecord`, `Type7aActualFormProps`, `Type7aDetailViewProps`, `Type7aApprovalCardProps`, `Type7aUnplannedItem`, `Type7aUnplannedFormProps`, `CustomerOption`, `ProductOption`, `ProductCategoryOption`, `Type7aDemoProductItem`, `Type7aPlotInput`, `Type7aImageFile`
 - *(หมายเหตุ: `type7aPlannedStrategy` และ `type7aUnplannedStrategy` ถูกนำเข้าโดยตรงที่ `modules/activity/infrastructure/strategy.registry.ts` เพื่อแยกโค้ดฝั่ง Server/Database ออกจาก Client Bundle)*
 
 ---
@@ -310,22 +317,22 @@ sequenceDiagram
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
 | **ชื่อแปลงสาธิต** | `plotName` / `name` | `syncType7aPlots` / `extractType7aPlanTargets` | `DemoPlot` / `ActivityPlanType7a` | `name` / `plot_name` | `VARCHAR` | No | - |
-| **ชื่อเกษตรกร / เจ้าของแปลง** | `farmerName` / `ownerName` | `syncType7aPlots` / `extractType7aPlanTargets` | `DemoPlot` / `ActivityPlanType7a` | `owner_name` | `VARCHAR` | No | `""` |
-| **ร้านค้าตัวแทนจำหน่าย** | `storeId` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `customer_id` / `store_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อ ร้านค้า Dealer** | `storeId`, `ownerName`, `farmerName` | `syncType7aPlots` / `extractType7aPlanTargets` | `DemoPlot` / `ActivityPlanType7a` | `customer_id` / `store_id`, `owner_name` | `VARCHAR` | Yes / No | `null` / `""` |
 | **จังหวัด** | `province` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `province` | `VARCHAR` | Yes | `null` |
 | **อำเภอ** | `district` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `district` | `VARCHAR` | Yes | `null` |
 | **หมวดพืช** | `cropCategory` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `crop_category` | `VARCHAR` | Yes / No | `"พืชทั่วไป"` |
-| **ชนิดพืช** | `cropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `crop_name` | `VARCHAR` | Yes / No | `"พืชทั่วไป"` |
-| **ชื่อพืชเพิ่มเติม (ระบุเอง)** | `customCropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `custom_crop_name` | `VARCHAR` | Yes | `null` |
-| **ขนาดพื้นที่แปลง (ไร่)** | `areaRai` | `syncType7aPlots` (`new Prisma.Decimal()`) | `DemoPlot` / `ActivityPlanType7a` | `area_rai` | `DECIMAL(10,2)` | Yes | `null` |
-| **จำนวนต้น** | `treeCount` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `tree_count` | `INTEGER` | Yes | `null` |
-| **วัตถุประสงค์แปลงสาธิต** | `objective` / `plotObjective` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `objective` | `TEXT` | Yes | `null` |
+| **ชื่อพืช** | `cropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `crop_name` | `VARCHAR` | Yes / No | `"พืชทั่วไป"` |
+| **ระบุชื่อพืชเพิ่มเติม** | `customCropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `custom_crop_name` | `VARCHAR` | Yes | `null` |
+| **พื้นที่ (ไร่)** *(กรณี ผัก/พืชไร่)* | `areaRai` | `syncType7aPlots` (`new Prisma.Decimal()`) | `DemoPlot` / `ActivityPlanType7a` | `area_rai` | `DECIMAL(10,2)` | Yes | `null` |
+| **จำนวนต้น** *(กรณี พืชสวน)* | `treeCount` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `tree_count` | `INTEGER` | Yes | `null` |
+| **วัตถุประสงค์การจัดทำแปลง** | `objective` / `plotObjective` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `objective` | `TEXT` | Yes / No | `""` |
+| **หมวดสินค้า** | `categoryId` | `syncType7aPlots` / `hydrateType7aPlannedData` | `ActivityPlanType7a` | `category_id` | `VARCHAR` | Yes | `null` |
 | **วันที่ปลูก / เริ่มแปลง** | `plantingDate` | `syncType7aPlots` | `DemoPlot` | `start_date` / `planting_date` | `TIMESTAMP` | No / Yes | `now()` |
 | **วันที่ฉีดพ่นครั้งแรก** | `initialSprayDate` | `syncType7aPlots` | `DemoPlot` | `initial_spray_date` | `TIMESTAMP` | Yes | `null` |
 | **กำหนดฉีดพ่นครั้งต่อไป** | `nextSprayDate` | `syncType7aPlots` | `DemoPlot` | `next_spray_date` | `TIMESTAMP` | Yes | `null` |
 | **พิกัดแปลง (GPS ละติจูด)** | `latitude` | `syncType7aPlots` (`parseDecimalCoord`) | `DemoPlot` | `latitude` | `DECIMAL(10,7)` | Yes | `null` |
 | **พิกัดแปลง (GPS ลองจิจูด)** | `longitude` | `syncType7aPlots` (`parseDecimalCoord`) | `DemoPlot` | `longitude` | `DECIMAL(10,7)` | Yes | `null` |
-| **สินค้าทดสอบสาธิต** | `demoProducts` / `products` | `syncType7aPlots` / `saveActual` | `ActivityPlanProduct` / `ActivityResultDemoItem` | `product_id`, `target_quantity` | `VARCHAR (FK)` | No | - |
+| **สินค้าที่นำไปทดสอบสาธิต** | `demoProducts` / `products` | `syncType7aPlots` / `saveActual` | `ActivityPlanType7aProduct` / `ActivityPlanProduct` / `ActivityResultDemoItem` | `product_id`, `quantity` / `target_quantity` | `VARCHAR (FK)` | No | - |
 | **ภาพถ่ายแปลงสาธิต** | `initialPhotos` / `plotImages` | `uploadImages()` (`PLOT`, max 5) | `ActivityAttachment` | `file_url`, `category: "PLOT"` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
@@ -426,8 +433,11 @@ model ActivityAttachment {
 - **การวางแผนเป้าหมาย (`Type7aPlannedForm`):**
   - ต้องมีแปลงสาธิตอย่างน้อย 1 แปลง
   - แต่ละแปลงต้องระบุชื่อแปลงสาธิต (`plotName` ห้ามว่าง)
-  - แต่ละแปลงต้องระบุชื่อเจ้าของแปลง / เกษตรกร (`farmerName` หรือ `ownerName` ห้ามว่าง)
-  - แต่ละแปลงต้องระบุชนิดพืชที่ต้องการทดสอบ (`cropName`, `cropCategory` หรือ `customCropName`)
+  - แต่ละแปลงต้องเลือกร้านค้า Dealer (`storeId` / `ownerName` ห้ามว่าง)
+  - แต่ละแปลงต้องเลือกหมวดพืช (`cropCategory`) และชื่อพืช (`cropName`)
+  - หากเลือกชื่อพืชเป็น `"ผักและพืชล้มลุกอื่นๆ"`, `"พืชไร่อื่นๆ"`, หรือ `"พืชสวนอื่นๆ"` (`OTHER_CROP_OPTIONS`) ต้องกรอกช่อง **ระบุชื่อพืชเพิ่มเติม** (`customCropName` ห้ามว่าง)
+  - หากเลือกหมวดพืชเป็น **`"พืชสวน"`** ต้องระบุ **จำนวนต้น** (`treeCount > 0`)
+  - หากเลือกหมวดพืชเป็น **`"ผักและพืชล้มลุก"`** หรือ **`"พืชไร่"`** ต้องระบุ **พื้นที่ (ไร่)** (`areaRai > 0`)
 - **การบันทึกผลงานจริง (`Type7aActualForm`):**
   - ต้องมีข้อมูลชื่อแปลงสาธิตหรือชื่อเกษตรกร
   - ต้องระบุชนิดพืชที่ทำการสาธิต
@@ -442,8 +452,16 @@ model ActivityAttachment {
 - `cropName`: ค่าเริ่มต้นกรณีไม่ได้เลือกคือ `"พืชทั่วไป"`
 
 ### 7.3 Conditional Fields
-- **พืชอื่นๆ (`customCropName`):**
-  - หากเลือกชนิดพืชเป็น "พืชอื่นๆ": ฟอร์มจะแสดงช่องให้กรอกชื่อพืชเพิ่มเติม
+- **ชื่อพืชตามหมวดพืช (`CROP_NAMES_BY_CATEGORY`) และช่องระบุชื่อพืชเพิ่มเติม (`customCropName`):**
+  - `ผักและพืชล้มลุก` ➔ `คะน้า`, `กะหล่ำปลี`, `พริก`, `ผักและพืชล้มลุกอื่นๆ`
+  - `พืชไร่` ➔ `ข้าว`, `อ้อย`, `ยางพารา`, `พืชไร่อื่นๆ`
+  - `พืชสวน` ➔ `ทุเรียน`, `ชมพู่`, `ยางพารา`, `พืชสวนอื่นๆ`
+  - เมื่อเลือกตัวเลือกที่ลงท้ายด้วย `"อื่นๆ"` ระบบจะแสดงช่อง **ระบุชื่อพืชเพิ่มเติม \*** (`customCropName`)
+- **พื้นที่ (ไร่) vs จำนวนต้น (`areaRai` vs `treeCount`):**
+  - ถ้า `cropCategory === "พืชสวน"` แสดงช่อง **จำนวนต้น \*** (`treeCount`)
+  - ถ้าไม่ใช่ `"พืชสวน"` แสดงช่อง **พื้นที่ (ไร่) \*** (`areaRai`)
+- **การกรองสินค้าตามหมวดสินค้า (`categoryId`):**
+  - ในส่วน `สินค้าที่นำไปทดสอบสาธิต` ต้องเลือก **หมวดสินค้า** ก่อน แล้วช่อง **เลือกสินค้า** จะกรองแสดงเฉพาะสินค้าที่อยู่ในหมวดสินค้านั้น
 - **ข้อจำกัดจำนวนภาพถ่าย:**
   - รูปภาพแปลงสาธิต (`PLOT`): รองรับสูงสุด 5 ภาพต่อแปลง
 
@@ -598,3 +616,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.4.0 | เชื่อมต่อเข้ากับ `strategy.registry.ts` และ Server Actions ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | ปรับปรุงการซิงค์ `ActivityPlanStore` และ `ActivityPlanProduct` พร้อมรองรับการเชื่อมต่อไปยัง Type 7B | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
+| **2026-10-22** | 1.7.0 | ปรับปรุงฟอร์ม `Type7aPlannedForm`: เปลี่ยนช่องลูกค้าเป็น `ชื่อ ร้านค้า Dealer` (`DEALER`), ปรับ `หมวดพืช` 3 หมวด (`ผักและพืชล้มลุก`, `พืชไร่`, `พืชสวน`) พร้อมตัวเลือก `ชื่อพืช` ตามหมวดและช่อง `ระบุชื่อพืชเพิ่มเติม`, สลับช่อง `จำนวนต้น *` / `พื้นที่ (ไร่) *` ตามหมวดพืช, ปรับ `วัตถุประสงค์การจัดทำแปลง` ให้พิมพ์เอง และเพิ่มตัวเลือก `หมวดสินค้า` เพื่อกรองรายการสินค้า | Antigravity AI |
