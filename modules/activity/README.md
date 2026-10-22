@@ -19,7 +19,7 @@ Activity Module ได้รับการออกแบบตามสถา�
 1. **Pure Declarative Orchestrators (Views)**: หน้าจอทุกหน้าใน `views/` ทำหน้าที่เป็นเพียง "ผู้กำกับเวที" (Orchestrator) นำชิ้นส่วน UI ส่วนกลาง (`ui/`) และชิ้นส่วนเฉพาะงาน (`features/type-X`) มาวางเรียงกันอย่างอ่านง่าย โดยไม่มี Business Logic หรือการดึงข้อมูลตรงแทรกอยู่ใน JSX
 2. **Gold Standard Vertical Slice (`features/type-1`)**: แต่ละประเภทงานแยกอิสระเป็นโมดูลย่อย มีทั้ง `planned`, `unplanned`, และ `actual` ของตัวเองอย่างชัดเจน พร้อม Strategy บันทึกฐานข้อมูล และ Mapper
 3. **Common Reusable UI Blocks (`ui/`)**: ส่วนประกอบที่เป็นของกลาง เช่น ข้อมูลทั่วไป, วันที่/เวลา, พื้นที่และทีมงานร่วมทาง, งบประมาณ, หมายเหตุ และปุ่ม Action ถูกแยกออกมาเพื่อใช้ร่วมกันข้ามทุกประเภทงาน
-4. **Zero Database Schema Changes**: รองรับและเชื่อมต่อกับ Prisma Models เดิม (`ActivityPlan`, `ActivityPlanType1Store`, `ActivityResultType1`, ฯลฯ) 100%
+4. **Dedicated Type Tables + Legacy Compatibility**: แต่ละประเภทงานบันทึกลงตารางเฉพาะของตัวเอง (`ActivityPlanType1Store`, `ActivityResultType1`, `ActivityPlanType4Target`, `ActivityResultType4`, ฯลฯ) ผ่าน Strategy ภายใน Transaction เดียว พร้อม Dual-Write ไปยังตาราง Generic เดิม (`ActivityPlanStore`, `ActivityPlanProduct`) เพื่อความเข้ากันได้ย้อนหลัง
 
 ---
 
@@ -158,7 +158,7 @@ modules/activity/
 │   │   └── index.ts
 │   │
 │   ├── actual/                           # บันทึกผลการปฏิบัติงานจริง (Actual Result)
-│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActualWorkTypeList, ActualExpenseSection
+│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActivitySummarySection, ActualWorkTypeList, BudgetSection, MarketingExpenseSection, PromotionalMaterialsSection, AdditionalInfoSection
 │   │   ├── hooks/                        # useActualPlanLoader, useActualStatusState
 │   │   ├── types.ts
 │   │   └── activity-plan-actual-view.tsx # Route: /activity-plans/[id]/actual
@@ -193,7 +193,12 @@ modules/activity/
 
 ```tsx
 import React from "react";
-import { ActualPlanSummary, ActivityStatusSection } from "./components";
+import {
+  ActualPlanSummary,
+  ActivityStatusSection,
+  BudgetSection,
+  PromotionalMaterialsSection,
+} from "./components";
 import {
   Type1ActualForm,
   useType1Actual,
@@ -238,7 +243,8 @@ export function ActualFormExample({ plan, statusState, isType1 }) {
         )}
 
       {/* 4. ส่วนกลาง: สรุปค่าใช้จ่ายจริง & สื่อของแถมจริง */}
-      <ActualExpenseSection planSummary={planSummary} />
+      <BudgetSection summary={planSummary} />
+      <PromotionalMaterialsSection {...promotionalProps} />
 
       {/* ปุ่มบันทึกผลการปฏิบัติงาน */}
       <FormActionButtons
@@ -532,6 +538,23 @@ export function ActivityPlanApprovalDetailView({ id }) {
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 2.1.0 (2026-10-22)
+
+- **Type 4 (วางบิล / เก็บเงิน) — Single Result Table Consolidation & Multi-Store Fixes** ([README](features/type-4/README.md)):
+  - **Database Schema**:
+    - ยุบตาราง `ActivityResultType4Item` (`activity_result_type_4_items`) รวมเข้ากับ `ActivityResultType4` (`activity_result_type_4`) เหลือตารางเดียว — **1 แถวต่อ 1 ร้านค้า** (ฟิลด์ `storeId`, `companyName`, `collectType`, `targetAmount`, `receivedAmount`, `orderNo`, `billingStatus`, `billingDetail`, `collectDetail`, `notes`)
+    - ความสัมพันธ์บน `ActivityPlan` เปลี่ยนจาก 1-to-1 (`type4Result`) เป็น 1-to-many (`type4Results ActivityResultType4[]`)
+  - **Infrastructure & Domain**:
+    - ปรับ `activity-plan-include.ts`, `type4-planned.strategy.ts` (`saveActual` บันทึก 1 แถวต่อร้านค้า + sync `collectResultAmount`), `type4-unplanned.strategy.ts`, `result-summary-parser.ts` และ `views/detail/hooks/use-detail-plan-loader.ts` ให้อ่าน/เขียนจาก `type4Results`
+  - **Planned Actual (`Type4ActualForm`, `Type4DetailView`)**:
+    - แสดงผลครบทุกร้านค้าจาก `ActivityPlanType4Target` (แก้ปัญหาแสดงเพียง 1 ร้าน) และแยกช่อง "รายละเอียดเพิ่มเติม" ตามแต่ละบริษัท/ร้านค้า
+    - แก้ปัญหาข้อมูลว่างเมื่อกลับเข้ามาแก้ไขหลังบันทึก (Hydration จาก `type4Results`)
+    - แก้ Validation `"กรุณาระบุสถานะการวางบิล"`: `validateType4Actual` ตรวจสอบรายร้านค้าผ่าน `items` และ `useType4Actual` fallback สถานะเริ่มต้นเป็น `"วางบิลสำเร็จ"`
+  - **Unplanned (`Type4UnplannedForm`)**:
+    - นำช่อง "เป้ายอดเงินตามบิล (บาท)" และยอดคงค้างออก เหลือเพียง "จำนวนเงินที่เก็บได้จริง (บาท)" (ค่า `targetAmount` ถูก sync จากยอดรับจริง)
+    - ตั้งค่าเริ่มต้นสถานะการวางบิลเป็น `"วางบิลสำเร็จ"` (`BILLING_STATUSES` = `วางบิลสำเร็จ` / `วางบิลไม่สำเร็จ`) และเพิ่มส่วนแนบสลิป/หลักฐานการชำระเงินรายร้านค้า
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0
 
 ### Version 2.0.0 (2026-10-20)
 
