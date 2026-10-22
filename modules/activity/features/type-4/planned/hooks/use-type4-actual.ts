@@ -85,6 +85,13 @@ export function useType4Actual() {
     }
     if (parsed.t4BillingStatus) {
       setT4BillingStatus(parsed.t4BillingStatus);
+    } else if (parsed.t4Items && Array.isArray(parsed.t4Items)) {
+      const firstBilling = parsed.t4Items.find(
+        (it: any) => it.billingStatus,
+      );
+      if (firstBilling?.billingStatus) {
+        setT4BillingStatus(firstBilling.billingStatus);
+      }
     }
     if (parsed.t4BillingDetail !== undefined) {
       setT4BillingDetail(parsed.t4BillingDetail);
@@ -114,10 +121,18 @@ export function useType4Actual() {
   }, []);
 
   const collectPayload = useCallback(() => {
+    const effectiveBillingStatus =
+      t4BillingStatus ||
+      t4Items.find((it) => it.billingStatus)?.billingStatus ||
+      (t4Items.some((it) => it.collectType === "BILLING")
+        ? "วางบิลสำเร็จ"
+        : "");
+
     return {
       t4OrderNo,
       t4ReceivedAmount,
-      t4BillingStatus,
+      t4BillingStatus: effectiveBillingStatus,
+      billingStatus: effectiveBillingStatus,
       t4BillingDetail,
       t4CollectDetail,
       t4Detail: t4CollectDetail || t4BillingDetail || t4Detail,
@@ -139,14 +154,24 @@ export function useType4Actual() {
 
   const validate = useCallback(
     (collectType?: "BILLING" | "COLLECT") => {
+      const effectiveBillingStatus =
+        t4BillingStatus ||
+        t4Items.find((it) => it.billingStatus)?.billingStatus ||
+        (t4Items.some((it) => it.collectType === "BILLING")
+          ? "วางบิลสำเร็จ"
+          : collectType === "BILLING"
+            ? "วางบิลสำเร็จ"
+            : "");
+
       return validateType4Actual(
         {
           orderNo: t4OrderNo,
           receivedAmount: t4ReceivedAmount,
-          billingStatus: t4BillingStatus,
+          billingStatus: effectiveBillingStatus,
           billingDetail: t4BillingDetail,
           collectDetail: t4CollectDetail,
           notes: t4Detail,
+          items: t4Items,
         },
         collectType,
       );
@@ -158,6 +183,7 @@ export function useType4Actual() {
       t4BillingDetail,
       t4CollectDetail,
       t4Detail,
+      t4Items,
     ],
   );
 

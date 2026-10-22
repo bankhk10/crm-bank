@@ -188,18 +188,20 @@ export function Type4ActualForm({
               collectType:
                 item.collectType || resolvedTarget?.collectType || "COLLECT",
               receivedAmount:
-                existingItem?.receivedAmount ?? item.receivedAmount ?? "",
-              billingStatus:
-                existingItem?.billingStatus ??
-                item.billingStatus ??
-                (isBilling ? "วางบิลสำเร็จ" : ""),
+                existingItem?.receivedAmount || item.receivedAmount || "",
+              billingStatus: (existingItem?.billingStatus ||
+                item.billingStatus ||
+                (isBilling ? "วางบิลสำเร็จ" : "")) as
+                | ""
+                | "วางบิลสำเร็จ"
+                | "วางบิลไม่สำเร็จ",
               billingDetail:
-                existingItem?.billingDetail ??
-                item.billingDetail ??
+                existingItem?.billingDetail ||
+                item.billingDetail ||
                 (isBilling ? planNotes : ""),
               collectDetail:
-                existingItem?.collectDetail ??
-                item.collectDetail ??
+                existingItem?.collectDetail ||
+                item.collectDetail ||
                 (!isBilling ? planNotes : ""),
               detail: item.detail || planNotes,
             };
@@ -212,7 +214,16 @@ export function Type4ActualForm({
 
   // Sync incoming hydrated props into companyItems
   useEffect(() => {
-    if (!resolvedTarget?.items || resolvedTarget.items.length === 0) return;
+    if (!resolvedTarget?.items || resolvedTarget.items.length === 0) {
+      if (
+        (resolvedTarget?.collectType === "BILLING" ||
+          target?.collectType === "BILLING") &&
+        !billingStatus
+      ) {
+        setBillingStatus?.("วางบิลสำเร็จ");
+      }
+      return;
+    }
 
     setCompanyItems((prev) => {
       // Check if items prop has actual data loaded from database
@@ -263,18 +274,20 @@ export function Type4ActualForm({
                 resolvedTarget?.collectType ||
                 "COLLECT",
               receivedAmount:
-                existingItem?.receivedAmount ?? targetItem.receivedAmount ?? "",
-              billingStatus:
-                existingItem?.billingStatus ??
-                targetItem.billingStatus ??
-                (isBilling ? "วางบิลสำเร็จ" : ""),
+                existingItem?.receivedAmount || targetItem.receivedAmount || "",
+              billingStatus: (existingItem?.billingStatus ||
+                targetItem.billingStatus ||
+                (isBilling ? "วางบิลสำเร็จ" : "")) as
+                | ""
+                | "วางบิลสำเร็จ"
+                | "วางบิลไม่สำเร็จ",
               billingDetail:
-                existingItem?.billingDetail ??
-                targetItem.billingDetail ??
+                existingItem?.billingDetail ||
+                targetItem.billingDetail ||
                 (isBilling ? planNotes : ""),
               collectDetail:
-                existingItem?.collectDetail ??
-                targetItem.collectDetail ??
+                existingItem?.collectDetail ||
+                targetItem.collectDetail ||
                 (!isBilling ? planNotes : ""),
               detail: targetItem.detail || planNotes,
             };
@@ -289,6 +302,14 @@ export function Type4ActualForm({
           .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
         if (totalSum > 0) {
           setReceivedAmount(String(totalSum));
+        }
+
+        // Sync first billing status to parent if available and parent billingStatus is empty
+        const firstBillingItem = newItems.find(
+          (it) => it.collectType === "BILLING" || it.billingStatus,
+        );
+        if (firstBillingItem?.billingStatus && !billingStatus) {
+          setBillingStatus?.(firstBillingItem.billingStatus);
         }
 
         return newItems;
@@ -389,9 +410,7 @@ export function Type4ActualForm({
     setCompanyItems(updated);
     onUpdateItems?.(updated);
 
-    if (updated.length === 1) {
-      setBillingStatus?.(status);
-    }
+    setBillingStatus?.(status);
   };
 
   const handleCompanyBillingDetailChange = (index: number, detail: string) => {
