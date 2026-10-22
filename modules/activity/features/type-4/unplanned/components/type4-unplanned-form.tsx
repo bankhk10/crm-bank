@@ -13,10 +13,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  ActivityInput,
-  ActivityCustomerSelect,
-} from "@/modules/activity/ui";
+import { ActivityInput, ActivityCustomerSelect } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { Type4UnplannedFormProps } from "../types/unplanned.types";
 import type { StoreOption, Type4ImageFile } from "../../shared/types";
@@ -85,7 +82,7 @@ export function Type4UnplannedForm({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <Receipt className="h-4 w-4 text-amber-600" />
-          <span>บันทึกผลวางบิล / เก็บเงินนอกแผน (2-in-1 Flow)</span>
+          <span>บันทึกผลวางบิล / เก็บเงินนอกแผน</span>
         </div>
 
         {!readonly && (
@@ -195,11 +192,7 @@ export function Type4UnplannedForm({
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-amber-500"
                     value={item.storeId || item.customerName || ""}
                     onChange={(val, cust) => {
-                      updateItem(
-                        item.id,
-                        "customerName",
-                        cust?.name || val,
-                      );
+                      updateItem(item.id, "customerName", cust?.name || val);
                       if (cust?.id) {
                         updateItem(item.id, "storeId", cust.id);
                       }
@@ -211,8 +204,8 @@ export function Type4UnplannedForm({
                     disabled={readonly}
                     required
                   />
-
-                  <div className="md:col-span-3">
+                  {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+                  {/* <div className="md:col-span-3">
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       เลขที่บิล / ใบแจ้งหนี้ (ถ้ามี)
                     </label>
@@ -225,7 +218,7 @@ export function Type4UnplannedForm({
                       disabled={readonly}
                       placeholder="เช่น INV-2026-001..."
                     />
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Flow Specific Inputs */}
