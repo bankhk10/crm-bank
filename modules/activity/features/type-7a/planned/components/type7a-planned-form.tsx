@@ -12,7 +12,10 @@ import {
   ActivityGpsPicker,
 } from "@/modules/activity/ui";
 import { CROP_CATEGORIES, PLOT_OBJECTIVES } from "../../shared/constants";
-import type { Type7aPlannedFormProps, Type7aPlanItem } from "../types/planned.types";
+import type {
+  Type7aPlannedFormProps,
+  Type7aPlanItem,
+} from "../types/planned.types";
 
 export function Type7aPlannedForm({
   readonly = false,
@@ -26,7 +29,10 @@ export function Type7aPlannedForm({
   customers = [],
   products = [],
 }: Type7aPlannedFormProps) {
-  const cropCategoryOptions = CROP_CATEGORIES.map((c) => ({ value: c, label: c }));
+  const cropCategoryOptions = CROP_CATEGORIES.map((c) => ({
+    value: c,
+    label: c,
+  }));
   const objectiveOptions = PLOT_OBJECTIVES.map((o) => ({ value: o, label: o }));
 
   return (
@@ -35,10 +41,10 @@ export function Type7aPlannedForm({
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
           <Sprout className="h-4 w-4 text-emerald-600" />
-          <span>จัดทำแปลงสาธิต (ตามแผน)</span>
+          <span>จัดทำแปลงสาธิต</span>
         </div>
-
-        {!readonly && (
+        {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+        {/* {!readonly && (
           <Button
             type="button"
             size="sm"
@@ -48,7 +54,7 @@ export function Type7aPlannedForm({
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มแปลงสาธิต
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Plots List */}
@@ -84,7 +90,9 @@ export function Type7aPlannedForm({
                 </label>
                 <ActivityInput
                   value={plot.plotName || ""}
-                  onChange={(e) => updateType7aRow(plot.id, "plotName", e.target.value)}
+                  onChange={(e) =>
+                    updateType7aRow(plot.id, "plotName", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="เช่น แปลงข้าว กข43 นาลุงสมชาย"
                   required
@@ -127,7 +135,9 @@ export function Type7aPlannedForm({
                 labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                 options={cropCategoryOptions}
                 value={plot.cropCategory || ""}
-                onChange={(val) => updateType7aRow(plot.id, "cropCategory", val)}
+                onChange={(val) =>
+                  updateType7aRow(plot.id, "cropCategory", val)
+                }
                 placeholder="เลือกกลุ่มพืช..."
                 disabled={readonly}
                 required
@@ -150,7 +160,9 @@ export function Type7aPlannedForm({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">พื้นที่แปลง (ไร่)</label>
+                <label className="text-xs font-semibold text-slate-700">
+                  พื้นที่แปลง (ไร่)
+                </label>
                 <ActivityInput
                   type="number"
                   value={plot.areaRai != null ? String(plot.areaRai) : ""}
@@ -180,10 +192,14 @@ export function Type7aPlannedForm({
               />
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-700">หมายเหตุ / แผนการทดสอบ</label>
+                <label className="text-xs font-semibold text-slate-700">
+                  หมายเหตุ / แผนการทดสอบ
+                </label>
                 <ActivityInput
                   value={plot.notes || ""}
-                  onChange={(e) => updateType7aRow(plot.id, "notes", e.target.value)}
+                  onChange={(e) =>
+                    updateType7aRow(plot.id, "notes", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="ระบุแนวทางการทดสอบหรือรายละเอียดเพิ่มเติม..."
                 />
@@ -197,8 +213,12 @@ export function Type7aPlannedForm({
                 พิกัดแปลงสาธิต (GPS)
               </label>
               <ActivityGpsPicker
-                latitude={plot.latitude != null ? String(plot.latitude) : undefined}
-                longitude={plot.longitude != null ? String(plot.longitude) : undefined}
+                latitude={
+                  plot.latitude != null ? String(plot.latitude) : undefined
+                }
+                longitude={
+                  plot.longitude != null ? String(plot.longitude) : undefined
+                }
                 onLocationChange={(lat: string, lng: string) => {
                   updateType7aRow(plot.id, "latitude", lat);
                   updateType7aRow(plot.id, "longitude", lng);
@@ -230,69 +250,87 @@ export function Type7aPlannedForm({
               </div>
 
               <div className="space-y-2">
-                {(plot.demoProducts || plot.products || []).map((prod, pIdx) => (
-                  <div
-                    key={prod.id || pIdx}
-                    className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-white p-2.5 rounded-lg border border-slate-200 items-center shadow-2xs"
-                  >
-                    <div className="sm:col-span-7">
-                      <ActivityProductSelect
-                        label="เลือกสินค้า"
-                        labelClassName="text-[11px] text-slate-600 mb-0.5"
-                        products={products as any}
-                        value={prod.productId || ""}
-                        valueKey="id"
-                        onChange={(val, pObj) => {
-                          if (updateProductInDemoPlot) {
-                            updateProductInDemoPlot(plot.id, pIdx, "productId", val);
-                            updateProductInDemoPlot(plot.id, pIdx, "productName", pObj?.name || "");
-                          }
-                        }}
-                        disabled={readonly}
-                        placeholder="เลือกสินค้า..."
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label className="text-[11px] text-slate-600 block mb-0.5">จำนวนที่ใช้</label>
-                      <ActivityInput
-                        type="number"
-                        value={prod.quantity != null ? String(prod.quantity) : ""}
-                        onChange={(e) => {
-                          if (updateProductInDemoPlot) {
-                            updateProductInDemoPlot(
-                              plot.id,
-                              pIdx,
-                              "quantity",
-                              e.target.value ? Number(e.target.value) : 0,
-                            );
-                            updateProductInDemoPlot(
-                              plot.id,
-                              pIdx,
-                              "targetQuantity",
-                              e.target.value ? Number(e.target.value) : 0,
-                            );
-                          }
-                        }}
-                        disabled={readonly}
-                        placeholder="จำนวน"
-                        className="h-9 text-xs"
-                      />
-                    </div>
-
-                    {!readonly && deleteProductFromDemoPlot && (
-                      <div className="sm:col-span-2 flex justify-end pt-4 sm:pt-0">
-                        <button
-                          type="button"
-                          onClick={() => deleteProductFromDemoPlot(plot.id, pIdx)}
-                          className="text-rose-500 hover:text-rose-700 p-1.5 rounded-md hover:bg-rose-50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                {(plot.demoProducts || plot.products || []).map(
+                  (prod, pIdx) => (
+                    <div
+                      key={prod.id || pIdx}
+                      className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-white p-2.5 rounded-lg border border-slate-200 items-center shadow-2xs"
+                    >
+                      <div className="sm:col-span-7">
+                        <ActivityProductSelect
+                          label="เลือกสินค้า"
+                          labelClassName="text-[11px] text-slate-600 mb-0.5"
+                          products={products as any}
+                          value={prod.productId || ""}
+                          valueKey="id"
+                          onChange={(val, pObj) => {
+                            if (updateProductInDemoPlot) {
+                              updateProductInDemoPlot(
+                                plot.id,
+                                pIdx,
+                                "productId",
+                                val,
+                              );
+                              updateProductInDemoPlot(
+                                plot.id,
+                                pIdx,
+                                "productName",
+                                pObj?.name || "",
+                              );
+                            }
+                          }}
+                          disabled={readonly}
+                          placeholder="เลือกสินค้า..."
+                        />
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      <div className="sm:col-span-3">
+                        <label className="text-[11px] text-slate-600 block mb-0.5">
+                          จำนวนที่ใช้
+                        </label>
+                        <ActivityInput
+                          type="number"
+                          value={
+                            prod.quantity != null ? String(prod.quantity) : ""
+                          }
+                          onChange={(e) => {
+                            if (updateProductInDemoPlot) {
+                              updateProductInDemoPlot(
+                                plot.id,
+                                pIdx,
+                                "quantity",
+                                e.target.value ? Number(e.target.value) : 0,
+                              );
+                              updateProductInDemoPlot(
+                                plot.id,
+                                pIdx,
+                                "targetQuantity",
+                                e.target.value ? Number(e.target.value) : 0,
+                              );
+                            }
+                          }}
+                          disabled={readonly}
+                          placeholder="จำนวน"
+                          className="h-9 text-xs"
+                        />
+                      </div>
+
+                      {!readonly && deleteProductFromDemoPlot && (
+                        <div className="sm:col-span-2 flex justify-end pt-4 sm:pt-0">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              deleteProductFromDemoPlot(plot.id, pIdx)
+                            }
+                            className="text-rose-500 hover:text-rose-700 p-1.5 rounded-md hover:bg-rose-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </div>
