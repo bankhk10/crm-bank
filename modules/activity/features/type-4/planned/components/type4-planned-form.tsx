@@ -3,10 +3,7 @@
 import React from "react";
 import { Receipt, Plus, Trash2, FileText, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  ActivityInput,
-  ActivityCustomerSelect,
-} from "@/modules/activity/ui";
+import { ActivityInput, ActivityCustomerSelect } from "@/modules/activity/ui";
 import type {
   Type4PlannedFormProps,
   Type4PlanFormProps,
@@ -96,7 +93,7 @@ export function Type4PlannedForm({
                 </div>
 
                 {/* Sub-form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+             
                   {/* Collect Type Selector */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -188,8 +185,8 @@ export function Type4PlannedForm({
                     />
                   </div>
 
-                  {/* Invoice / Reference No */}
-                  <div>
+                  {/*ปิดไว้ก่อนเดียวมาเปิดเอง Invoice / Reference No */}
+                  {/* <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       เลขที่บิล / ใบสั่งซื้อ (ถ้ามี)
                     </label>
@@ -202,7 +199,7 @@ export function Type4PlannedForm({
                       disabled={readonly}
                       placeholder="เช่น INV-2026-001..."
                     />
-                  </div>
+                  </div> */}
 
                   <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -222,7 +219,7 @@ export function Type4PlannedForm({
                       }
                     />
                   </div>
-                </div>
+
               </div>
             );
           })
