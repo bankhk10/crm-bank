@@ -23,17 +23,32 @@ export function parseType5ActualResult(resData: any): {
 
   if (!resData) return result;
 
-  const allAttachments: any[] = Array.isArray(resData.attachments)
-    ? resData.attachments
-    : [];
+  const allAttachments: any[] =
+    Array.isArray(resData.attachments) && resData.attachments.length > 0
+      ? resData.attachments
+      : Array.isArray(resData.result?.attachments)
+        ? resData.result.attachments
+        : Array.isArray(resData.activityPlan?.attachments)
+          ? resData.activityPlan.attachments
+          : [];
+
+  const rawSurveyResults: any[] =
+    Array.isArray(resData.surveyResults) && resData.surveyResults.length > 0
+      ? resData.surveyResults
+      : Array.isArray(resData.result?.surveyResults) &&
+          resData.result.surveyResults.length > 0
+        ? resData.result.surveyResults
+        : Array.isArray(resData.activityPlan?.result?.surveyResults) &&
+            resData.activityPlan.result.surveyResults.length > 0
+          ? resData.activityPlan.result.surveyResults
+          : Array.isArray(resData.t5SurveyDetails) &&
+              resData.t5SurveyDetails.length > 0
+            ? resData.t5SurveyDetails
+            : [];
 
   // 1. Direct from surveyResults relation
-  if (
-    resData.surveyResults &&
-    Array.isArray(resData.surveyResults) &&
-    resData.surveyResults.length > 0
-  ) {
-    result.t5SurveyDetails = resData.surveyResults.map((sv: any) => {
+  if (rawSurveyResults.length > 0) {
+    result.t5SurveyDetails = rawSurveyResults.map((sv: any) => {
       let itemAttachments =
         Array.isArray(sv.attachments) && sv.attachments.length > 0
           ? sv.attachments
@@ -43,10 +58,15 @@ export function parseType5ActualResult(resData: any): {
         itemAttachments = allAttachments.filter((att: any) => {
           const isSurveyCat =
             att.category === "SURVEY_BOTTLE" ||
-            att.category === "SURVEY_PROMO_MATERIAL";
+            att.category === "SURVEY_PROMO_MATERIAL" ||
+            att.category === "BOTTLE" ||
+            att.category === "bottle" ||
+            att.category === "PROMOTION" ||
+            att.category === "promo";
           if (!isSurveyCat) return false;
+          if (att.surveyItemId && att.surveyItemId === sv.id) return true;
           if (att.surveyItemId && att.surveyItemId !== sv.id) return false;
-          if (resData.surveyResults.length === 1) return true;
+          if (rawSurveyResults.length === 1) return true;
           return (
             (att.storeId && att.storeId === sv.storeId) ||
             (att.productId && att.productId === sv.productId)
@@ -55,7 +75,12 @@ export function parseType5ActualResult(resData: any): {
       }
 
       const bottleImages: Type5ImageFile[] = itemAttachments
-        .filter((att: any) => att.category === "SURVEY_BOTTLE")
+        .filter(
+          (att: any) =>
+            att.category === "SURVEY_BOTTLE" ||
+            att.category === "BOTTLE" ||
+            att.category === "bottle",
+        )
         .map((att: any) => ({
           id: att.id,
           url: att.fileUrl || att.url,
@@ -67,7 +92,12 @@ export function parseType5ActualResult(resData: any): {
         }));
 
       const promotionalImages: Type5ImageFile[] = itemAttachments
-        .filter((att: any) => att.category === "SURVEY_PROMO_MATERIAL")
+        .filter(
+          (att: any) =>
+            att.category === "SURVEY_PROMO_MATERIAL" ||
+            att.category === "PROMOTION" ||
+            att.category === "promo",
+        )
         .map((att: any) => ({
           id: att.id,
           url: att.fileUrl || att.url,
@@ -81,9 +111,9 @@ export function parseType5ActualResult(resData: any): {
       return {
         id: sv.id,
         storeId: sv.storeId,
-        store: sv.store?.shopName || sv.store?.name || sv.storeName || "",
+        store: sv.store?.shopName || sv.store?.name || sv.storeName || sv.store || "",
         productId: sv.productId,
-        product: sv.product?.name || sv.productName || "",
+        product: sv.product?.name || sv.productName || sv.product || "",
         competitorBrand: sv.competitorBrand || "",
         competitorProduct: sv.competitorProduct || "",
         posPrice: sv.posPrice != null ? String(sv.posPrice) : "",
@@ -100,6 +130,15 @@ export function parseType5ActualResult(resData: any): {
         promotionDetail: sv.promotionDetail || "",
       };
     });
+
+    if (result.t5SurveyDetails && result.t5SurveyDetails.length > 0) {
+      const first = result.t5SurveyDetails[0];
+      if (!result.t5CompetitorBrand) result.t5CompetitorBrand = first.competitorBrand || "";
+      if (!result.t5CompetitorProduct) result.t5CompetitorProduct = first.competitorProduct || "";
+      if (!result.t5CompetitorPrice) result.t5CompetitorPrice = first.competitorPrice || "";
+      if (!result.t5CompetitorUnit) result.t5CompetitorUnit = first.competitorUnit || "";
+      if (!result.t5PromotionDetail) result.t5PromotionDetail = first.promotionDetail || "";
+    }
   }
 
   // 2. Fallback: Parse from actualSummary text

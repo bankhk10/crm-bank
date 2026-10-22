@@ -55,6 +55,7 @@ import {
   useType5Actual,
   validateType5Actual,
   extractType5PlanTargets,
+  parseType5ActualResult,
   type Type5TargetItem,
 } from "@/modules/activity/features/type-5";
 import {
@@ -267,7 +268,8 @@ export function ActivityPlanActualView({
         type2Actual.hydrate(payloadToHydrate);
         type3Actual.hydrate(payloadToHydrate);
         type4Actual.hydrate(payloadToHydrate);
-        type5Actual.hydrate(payloadToHydrate, { t5: extractedT5.primary });
+        const parsedT5 = parseType5ActualResult(payloadToHydrate);
+        type5Actual.hydrate(parsedT5, { t5: extractedT5.primary });
         type6Actual.hydrate(payloadToHydrate);
         type7aActual.hydrate(plan, payloadToHydrate, {
           t7a: extractedT7a.primary,
@@ -875,6 +877,8 @@ export function ActivityPlanActualView({
                   fileSize: img.size || 0,
                   mimeType: img.type || "image/jpeg",
                   workTypeCode: "TYPE_5",
+                  storeId: d.storeId || undefined,
+                  productId: d.productId || undefined,
                   surveyItemId: d.id,
                 })),
                 ...(d.promotionalImages || []).map((img) => ({
@@ -884,6 +888,8 @@ export function ActivityPlanActualView({
                   fileSize: img.size || 0,
                   mimeType: img.type || "image/jpeg",
                   workTypeCode: "TYPE_5",
+                  storeId: d.storeId || undefined,
+                  productId: d.productId || undefined,
                   surveyItemId: d.id,
                 })),
               ]),

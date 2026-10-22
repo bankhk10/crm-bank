@@ -5,6 +5,13 @@ import type { PrismaTransaction } from "../types/strategy.interface";
 import { saveStrategiesForActual } from "./strategy.registry";
 import { getWorkTypeCode } from "../constants";
 
+function toDecimalSafe(val: any): Prisma.Decimal | null {
+  if (val == null) return null;
+  const str = String(val).replace(/,/g, "").trim();
+  if (str === "" || isNaN(Number(str))) return null;
+  return new Prisma.Decimal(str);
+}
+
 export interface UpsertActivityResultInput {
   activityPlanId: string;
   actualStartDate: Date;
@@ -190,39 +197,29 @@ export async function upsertActivityResult(
       }
     }
 
-    // 5. Sync Survey Results
-    if (input.surveyResults !== undefined) {
+    // 5. Sync Survey Results (fallback if not handled by strategy)
+    const isType5HandledByStrategy = input.planWorkTypeCodes?.some(
+      (c: string) => getWorkTypeCode(c) === "TYPE_5",
+    );
+    if (input.surveyResults !== undefined && !isType5HandledByStrategy) {
       await (tx as any).activityResultSurveyItem.deleteMany({
         where: { activityResultId: result.id },
       });
       if (Array.isArray(input.surveyResults) && input.surveyResults.length > 0) {
         await (tx as any).activityResultSurveyItem.createMany({
-          data: input.surveyResults.map((item) => ({
-            id: randomUUID(),
+          data: input.surveyResults.map((item: any) => ({
+            id: item.id || randomUUID(),
             activityResultId: result.id,
-            storeId: item.storeId,
+            storeId: item.storeId || null,
             productId: item.productId ?? null,
             competitorBrand: item.competitorBrand || "-",
             competitorProduct: item.competitorProduct || "-",
-            posPrice:
-              item.posPrice != null ? new Prisma.Decimal(item.posPrice) : null,
-            dealerPrice:
-              item.dealerPrice != null
-                ? new Prisma.Decimal(item.dealerPrice)
-                : null,
-            subdealerPrice:
-              item.subdealerPrice != null
-                ? new Prisma.Decimal(item.subdealerPrice)
-                : null,
-            farmerPrice:
-              item.farmerPrice != null
-                ? new Prisma.Decimal(item.farmerPrice)
-                : null,
+            posPrice: toDecimalSafe(item.posPrice),
+            dealerPrice: toDecimalSafe(item.dealerPrice),
+            subdealerPrice: toDecimalSafe(item.subdealerPrice),
+            farmerPrice: toDecimalSafe(item.farmerPrice),
             sellingPoints: item.sellingPoints ?? null,
-            competitorPrice:
-              item.competitorPrice != null
-                ? new Prisma.Decimal(item.competitorPrice)
-                : null,
+            competitorPrice: toDecimalSafe(item.competitorPrice),
             competitorUnit: item.competitorUnit ?? null,
             promotionDetail: item.promotionDetail ?? null,
           })),
@@ -324,7 +321,11 @@ export async function upsertActivityResult(
             activityPlanId: input.activityPlanId,
             activityResultId: result.id,
             workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
-            category: att.category || "ATTACHMENT",
+            category: att.category || "GENERAL",
+            storeId: att.storeId || null,
+            productId: att.productId || null,
+            surveyItemId: att.surveyItemId || null,
+            issueItemId: att.issueItemId || null,
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปภาพ",
             fileSize: att.fileSize || att.size || 0,

@@ -149,8 +149,21 @@ export function Type5ActualForm({
     field: keyof Type5SurveyRecord,
     val: any,
   ) => {
+    const currentRec = recordsToRender[index]?.record;
     if (onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { [field]: val });
+      onUpdateSurveyItem(index, {
+        ...(currentRec
+          ? {
+              id: currentRec.id,
+              storeId: currentRec.storeId,
+              store: currentRec.store,
+              productId: currentRec.productId,
+              product: currentRec.product,
+              detail: currentRec.detail,
+            }
+          : {}),
+        [field]: val,
+      });
     }
     if (index === 0) {
       if (field === "competitorBrand" && setCompetitorBrand)
@@ -164,8 +177,21 @@ export function Type5ActualForm({
     index: number,
     images: Type5ImageFile[],
   ) => {
+    const currentRec = recordsToRender[index]?.record;
     if (onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { bottleImages: images.slice(0, 2) });
+      onUpdateSurveyItem(index, {
+        ...(currentRec
+          ? {
+              id: currentRec.id,
+              storeId: currentRec.storeId,
+              store: currentRec.store,
+              productId: currentRec.productId,
+              product: currentRec.product,
+              detail: currentRec.detail,
+            }
+          : {}),
+        bottleImages: images.slice(0, 2),
+      });
     }
   };
 
@@ -173,8 +199,21 @@ export function Type5ActualForm({
     index: number,
     images: Type5ImageFile[],
   ) => {
+    const currentRec = recordsToRender[index]?.record;
     if (onUpdateSurveyItem) {
-      onUpdateSurveyItem(index, { promotionalImages: images.slice(0, 3) });
+      onUpdateSurveyItem(index, {
+        ...(currentRec
+          ? {
+              id: currentRec.id,
+              storeId: currentRec.storeId,
+              store: currentRec.store,
+              productId: currentRec.productId,
+              product: currentRec.product,
+              detail: currentRec.detail,
+            }
+          : {}),
+        promotionalImages: images.slice(0, 3),
+      });
     }
   };
 

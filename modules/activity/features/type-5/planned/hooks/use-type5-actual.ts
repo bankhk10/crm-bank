@@ -7,6 +7,7 @@ import {
   collectPermanentUrls,
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
+import { parseType5ActualResult } from "../application/actual-mapper";
 
 export function useType5Actual() {
   const [t5CompetitorBrand, setT5CompetitorBrand] = useState("");
@@ -24,9 +25,24 @@ export function useType5Actual() {
     (index: number, updated: Partial<Type5SurveyRecord>) => {
       setT5SurveyDetails((prev) => {
         const next = [...prev];
-        if (next[index]) {
-          next[index] = { ...next[index], ...updated };
+        while (next.length <= index) {
+          next.push({
+            id: `item-${next.length + 1}`,
+            store: "",
+            product: "",
+            detail: "",
+            competitorBrand: "",
+            competitorProduct: "",
+            posPrice: "",
+            dealerPrice: "",
+            subdealerPrice: "",
+            farmerPrice: "",
+            sellingPoints: "",
+            bottleImages: [],
+            promotionalImages: [],
+          });
         }
+        next[index] = { ...next[index], ...updated };
         return next;
       });
       if (index === 0) {
@@ -45,7 +61,13 @@ export function useType5Actual() {
     [],
   );
 
-  const hydrate = useCallback((parsed: any, extractedTargets?: any) => {
+  const hydrate = useCallback((parsedOrRaw: any, extractedTargets?: any) => {
+    const parsed =
+      parsedOrRaw?.t5SurveyDetails !== undefined ||
+      parsedOrRaw?.t5CompetitorBrand !== undefined
+        ? parsedOrRaw
+        : parseType5ActualResult(parsedOrRaw);
+
     const plannedT5Items = extractedTargets?.t5?.items || [];
     const defaultT5Records: Type5SurveyRecord[] = (
       plannedT5Items.length > 0
@@ -102,6 +124,12 @@ export function useType5Actual() {
           let matchedIdx = savedT5List.findIndex(
             (s: any) =>
               (s.id && plannedItem.id && s.id === plannedItem.id) ||
+              (s.storeId &&
+                plannedItem.storeId &&
+                s.storeId === plannedItem.storeId &&
+                s.productId &&
+                plannedItem.productId &&
+                s.productId === plannedItem.productId) ||
               (s.store &&
                 plannedItem.store &&
                 s.store === plannedItem.store &&
@@ -207,6 +235,24 @@ export function useType5Actual() {
         }
       });
 
+      if (hydratedT5.length === 0) {
+        hydratedT5.push({
+          id: "item-1",
+          store: "",
+          product: "",
+          detail: "",
+          competitorBrand: parsed.t5CompetitorBrand || "",
+          competitorProduct: parsed.t5CompetitorProduct || "",
+          posPrice: "",
+          dealerPrice: "",
+          subdealerPrice: "",
+          farmerPrice: "",
+          sellingPoints: "",
+          bottleImages: [],
+          promotionalImages: [],
+        });
+      }
+
       setT5SurveyDetails(hydratedT5);
       initialT5SurveyDetailsRef.current = JSON.parse(
         JSON.stringify(hydratedT5),
@@ -231,6 +277,7 @@ export function useType5Actual() {
       for (let i = 0; i < t5SurveyDetails.length; i++) {
         const rec = { ...t5SurveyDetails[i] };
         const surveyItemId = rec.id || `item-${i + 1}`;
+        rec.id = surveyItemId;
 
         if (rec.bottleImages && rec.bottleImages.length > 0) {
           const res = await uploadActivityPlanImageGroup(

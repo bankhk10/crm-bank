@@ -6,6 +6,13 @@ import type {
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
 
+function toDecimalSafe(val: any): Prisma.Decimal | null {
+  if (val == null) return null;
+  const str = String(val).replace(/,/g, "").trim();
+  if (str === "" || isNaN(Number(str))) return null;
+  return new Prisma.Decimal(str);
+}
+
 /**
  * Type 5 Strategy: สำรวจตลาดของคู่แข่ง (Competitor Market Survey)
  * Handles validation, persistence into dedicated table (ActivityPlanType5Target)
@@ -222,35 +229,20 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
     });
 
     const itemsToCreate = surveyResults.map((item: any) => {
-      const dbId = randomUUID();
+      const dbId = item.id || randomUUID();
       return {
         id: dbId,
         activityResultId: resultId,
-        storeId: item.storeId,
+        storeId: item.storeId || null,
         productId: item.productId ?? null,
         competitorBrand: item.competitorBrand || "-",
         competitorProduct: item.competitorProduct || "-",
-        posPrice:
-          item.posPrice != null && item.posPrice !== ""
-            ? new Prisma.Decimal(item.posPrice)
-            : null,
-        dealerPrice:
-          item.dealerPrice != null && item.dealerPrice !== ""
-            ? new Prisma.Decimal(item.dealerPrice)
-            : null,
-        subdealerPrice:
-          item.subdealerPrice != null && item.subdealerPrice !== ""
-            ? new Prisma.Decimal(item.subdealerPrice)
-            : null,
-        farmerPrice:
-          item.farmerPrice != null && item.farmerPrice !== ""
-            ? new Prisma.Decimal(item.farmerPrice)
-            : null,
+        posPrice: toDecimalSafe(item.posPrice),
+        dealerPrice: toDecimalSafe(item.dealerPrice),
+        subdealerPrice: toDecimalSafe(item.subdealerPrice),
+        farmerPrice: toDecimalSafe(item.farmerPrice),
         sellingPoints: item.sellingPoints ?? null,
-        competitorPrice:
-          item.competitorPrice != null && item.competitorPrice !== ""
-            ? new Prisma.Decimal(item.competitorPrice)
-            : null,
+        competitorPrice: toDecimalSafe(item.competitorPrice),
         competitorUnit: item.competitorUnit ?? null,
         promotionDetail: item.promotionDetail ?? null,
       };
