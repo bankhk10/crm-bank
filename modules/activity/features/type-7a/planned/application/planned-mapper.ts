@@ -29,16 +29,26 @@ export function extractType7aPlanTargets(
     list = plan.type7aPlots.map((p: any) => ({
       id: p.id,
       plotName: p.plotName || p.name,
-      ownerName: p.ownerName || p.farmerName,
-      farmerName: p.farmerName || p.ownerName,
+      ownerName: p.ownerName || p.farmerName || p.store?.name,
+      farmerName: p.farmerName || p.ownerName || p.store?.name,
       storeId: p.storeId,
       province: p.province,
       district: p.district,
       cropName: p.cropName || p.customCropName || p.cropCategory,
+      customCropName: p.customCropName,
       cropCategory: p.cropCategory,
-      areaRai: p.areaRai,
+      areaRai: p.areaRai != null ? Number(p.areaRai) : null,
+      treeCount: p.treeCount != null ? Number(p.treeCount) : null,
       objective: p.objective,
-      demoProducts: p.demoProducts || p.products || [],
+      categoryId: p.categoryId || null,
+      demoProducts: (p.demoProducts || p.products || []).map((prod: any) => ({
+        ...prod,
+        productId: prod.productId || prod.product?.id,
+        productName: prod.productName || prod.product?.name,
+        categoryId: prod.categoryId || prod.product?.categoryId || p.categoryId || null,
+        quantity: prod.quantity != null ? Number(prod.quantity) : Number(prod.targetQuantity || 1),
+        targetQuantity: prod.targetQuantity != null ? Number(prod.targetQuantity) : Number(prod.quantity || 1),
+      })),
     }));
   } else if (plan.demoPlotData) {
     list = [
@@ -51,8 +61,10 @@ export function extractType7aPlanTargets(
         province: plan.demoPlotData.province,
         district: plan.demoPlotData.district,
         cropName: plan.demoPlotData.cropName || plan.demoPlotData.customCropName,
+        customCropName: plan.demoPlotData.customCropName,
         cropCategory: plan.demoPlotData.cropCategory,
         areaRai: plan.demoPlotData.areaRai,
+        treeCount: plan.demoPlotData.treeCount,
         objective: plan.demoPlotData.objective,
         demoProducts: plan.demoProducts || [],
       },
@@ -72,36 +84,69 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
   if (!initialData) return [];
 
   if (Array.isArray(initialData.type7aPlots) && initialData.type7aPlots.length > 0) {
-    return initialData.type7aPlots.map((p: any, idx: number) => ({
-      id: p.id || `plot-${idx}`,
-      demoPlotId: p.demoPlotId || null,
-      plotName: p.plotName || p.name || "",
-      name: p.name || p.plotName || "",
-      farmerName: p.farmerName || p.ownerName || "",
-      ownerName: p.ownerName || p.farmerName || "",
-      ownerPhone: p.ownerPhone || "",
-      storeId: p.storeId || null,
-      province: p.province || "",
-      district: p.district || "",
-      subdistrict: p.subdistrict || "",
-      cropCategory: p.cropCategory || "",
-      cropName: p.cropName || "",
-      customCropName: p.customCropName || "",
-      areaRai: p.areaRai != null ? Number(p.areaRai) : null,
-      treeCount: p.treeCount != null ? Number(p.treeCount) : null,
-      plantingDate: p.plantingDate ? new Date(p.plantingDate).toISOString().split("T")[0] : null,
-      initialSprayDate: p.initialSprayDate ? new Date(p.initialSprayDate).toISOString().split("T")[0] : null,
-      nextSprayDate: p.nextSprayDate ? new Date(p.nextSprayDate).toISOString().split("T")[0] : null,
-      objective: p.objective || "",
-      notes: p.notes || "",
-      categoryId: p.categoryId || null,
-      chemicalGroupId: p.chemicalGroupId || null,
-      latitude: p.latitude || null,
-      longitude: p.longitude || null,
-      hasProducts: p.hasProducts ?? true,
-      demoProducts: p.demoProducts || p.products || [],
-      products: p.products || p.demoProducts || [],
-    }));
+    return initialData.type7aPlots.map((p: any, idx: number) => {
+      const rawProducts = p.demoProducts || p.products || [];
+      const mappedProducts = rawProducts.map((prod: any, pIdx: number) => ({
+        id: prod.id || `prod-${idx}-${pIdx}`,
+        categoryId:
+          prod.categoryId ||
+          prod.product?.categoryId ||
+          p.categoryId ||
+          null,
+        productId: prod.productId || prod.product?.id || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity:
+          prod.quantity != null
+            ? Number(prod.quantity)
+            : prod.targetQuantity != null
+              ? Number(prod.targetQuantity)
+              : 1,
+        targetQuantity:
+          prod.targetQuantity != null
+            ? Number(prod.targetQuantity)
+            : prod.quantity != null
+              ? Number(prod.quantity)
+              : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }));
+
+      return {
+        id: p.id || `plot-${idx}`,
+        demoPlotId: p.demoPlotId || null,
+        plotName: p.plotName || p.name || "",
+        name: p.name || p.plotName || "",
+        farmerName: p.farmerName || p.ownerName || p.store?.name || "",
+        ownerName: p.ownerName || p.farmerName || p.store?.name || "",
+        ownerPhone: p.ownerPhone || "",
+        storeId: p.storeId || null,
+        province: p.province || p.store?.province || "",
+        district: p.district || p.store?.district || "",
+        subdistrict: p.subdistrict || "",
+        cropCategory: p.cropCategory || "",
+        cropName: p.cropName || "",
+        customCropName: p.customCropName || "",
+        areaRai: p.areaRai != null ? Number(p.areaRai) : null,
+        treeCount: p.treeCount != null ? Number(p.treeCount) : null,
+        plantingDate: p.plantingDate
+          ? new Date(p.plantingDate).toISOString().split("T")[0]
+          : null,
+        initialSprayDate: p.initialSprayDate
+          ? new Date(p.initialSprayDate).toISOString().split("T")[0]
+          : null,
+        nextSprayDate: p.nextSprayDate
+          ? new Date(p.nextSprayDate).toISOString().split("T")[0]
+          : null,
+        objective: p.objective || "",
+        notes: p.notes || "",
+        categoryId: p.categoryId || mappedProducts[0]?.categoryId || null,
+        chemicalGroupId: p.chemicalGroupId || null,
+        latitude: p.latitude || null,
+        longitude: p.longitude || null,
+        hasProducts: p.hasProducts ?? true,
+        demoProducts: mappedProducts,
+        products: mappedProducts,
+      };
+    });
   }
 
   if (initialData.demoPlotData) {
@@ -144,7 +189,7 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
 export function mapType7aToSectionItems(targets: Type7aTargetItem[]) {
   return targets.map((t) => ({
     title: t.plotName || "แปลงสาธิต",
-    subtitle: `เกษตรกร: ${t.ownerName || t.farmerName || "-"} | พืช: ${t.cropName || t.cropCategory || "-"}`,
+    subtitle: `ร้านค้า Dealer: ${t.ownerName || t.farmerName || "-"} | พืช: ${t.customCropName || t.cropName || t.cropCategory || "-"}`,
     details: t.objective || "",
     products: (t.demoProducts || []).map((p) => ({
       name: p.productName || "-",

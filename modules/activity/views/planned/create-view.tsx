@@ -172,6 +172,7 @@ export function PlannedCreateView() {
         employees={employees}
         customers={customers}
         products={products}
+        productCategories={productCategories}
         activityTypes={activityTypes}
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
         onSubmit={handleSubmit}

@@ -101,6 +101,7 @@ export interface PlannedActivityFormProps {
   employees: any[];
   customers: CustomerOption[];
   products: ProductOption[];
+  productCategories?: any[];
   activityTypes?: any[];
   promotionalMaterialsByCategory?: Record<string, any[]>;
   demoPlots?: any[];
@@ -116,6 +117,7 @@ export function PlannedActivityForm({
   employees = [],
   customers = [],
   products = [],
+  productCategories = [],
   activityTypes = [],
   promotionalMaterialsByCategory,
   demoPlots = [],
@@ -1241,6 +1243,7 @@ export function PlannedActivityForm({
           readonly={readonly}
           customers={customers as any}
           products={products as any}
+          productCategories={productCategories as any}
           type7aPlots={type7a.type7aPlots}
           addType7aRow={type7a.addType7aRow}
           updateType7aRow={type7a.updateType7aRow}

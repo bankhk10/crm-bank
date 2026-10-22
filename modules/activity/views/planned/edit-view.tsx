@@ -185,6 +185,12 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type1Products: (plan as any).type1Products || [],
             type2Targets: (plan as any).type2Targets || [],
             type2Products: (plan as any).type2Products || [],
+            type3Targets: (plan as any).type3Targets || [],
+            type4Targets: (plan as any).type4Targets || [],
+            type5Targets: (plan as any).type5Targets || [],
+            type6Targets: (plan as any).type6Targets || [],
+            type7aPlots: (plan as any).type7aPlots || [],
+            type7bPlots: (plan as any).type7bPlots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
           });
@@ -238,6 +244,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
           employees={employees}
           customers={customers}
           products={products}
+          productCategories={productCategories}
           activityTypes={activityTypes}
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}
           onSubmit={handleSubmit}

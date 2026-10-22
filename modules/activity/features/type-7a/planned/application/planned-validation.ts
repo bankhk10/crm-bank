@@ -1,3 +1,4 @@
+import { OTHER_CROP_OPTIONS } from "../../shared/constants";
 import type {
   Type7aPlanItem,
   Type7aValidationResult,
@@ -29,21 +30,47 @@ export function validateType7aFormItems(
       errors.push(`แปลงที่ ${idx}: กรุณาระบุชื่อแปลงสาธิต`);
     }
 
-    // 2. Farmer / Owner Name
-    if (!plot.ownerName && !plot.farmerName) {
-      errors.push(`แปลงที่ ${idx}: กรุณาระบุหรือเลือกชื่อเจ้าของแปลง / เกษตรกร`);
+    // 2. Dealer Store / Owner Name
+    if (!plot.storeId && !plot.ownerName && !plot.farmerName) {
+      errors.push(`แปลงที่ ${idx}: กรุณาเลือกร้านค้า Dealer`);
     }
 
-    // 3. Crop
+    // 3. Crop Category & Crop Name
     if (!plot.cropName && !plot.cropCategory && !plot.customCropName) {
-      errors.push(`แปลงที่ ${idx}: กรุณาระบุชนิดพืชที่ต้องการทดสอบ`);
+      errors.push(`แปลงที่ ${idx}: กรุณาเลือกหมวดพืชและชื่อพืช`);
+    } else if (plot.cropCategory && !plot.cropName) {
+      errors.push(`แปลงที่ ${idx}: กรุณาเลือกชื่อพืช`);
     }
 
-    // 4. Products check (optional)
+    // 3.1 Custom Crop Name when "อื่นๆ" is selected
+    if (
+      OTHER_CROP_OPTIONS.includes((plot.cropName || "") as any) &&
+      (!plot.customCropName || !plot.customCropName.trim())
+    ) {
+      errors.push(`แปลงที่ ${idx}: กรุณาระบุชื่อพืชเพิ่มเติม`);
+    }
+
+    // 4. Area (ไร่) or Tree Count (จำนวนต้น) based on cropCategory
+    if (plot.cropCategory === "พืชสวน") {
+      if (plot.treeCount == null || Number(plot.treeCount) <= 0) {
+        errors.push(`แปลงที่ ${idx}: กรุณาระบุจำนวนต้น`);
+      }
+    } else if (
+      plot.cropCategory === "ผักและพืชล้มลุก" ||
+      plot.cropCategory === "พืชไร่"
+    ) {
+      if (plot.areaRai == null || Number(plot.areaRai) <= 0) {
+        errors.push(`แปลงที่ ${idx}: กรุณาระบุพื้นที่ (ไร่)`);
+      }
+    }
+
+    // 5. Products check (optional)
     if (options.checkProducts) {
       const prods = plot.demoProducts || plot.products || [];
       if (prods.length === 0) {
-        errors.push(`แปลงที่ ${idx}: กรุณาระบุสินค้าที่นำไปทดสอบสาธิตอย่างน้อย 1 รายการ`);
+        errors.push(
+          `แปลงที่ ${idx}: กรุณาระบุสินค้าที่นำไปทดสอบสาธิตอย่างน้อย 1 รายการ`,
+        );
       }
     }
   });

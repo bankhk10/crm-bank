@@ -1,6 +1,7 @@
 import type {
   CustomerOption,
   ProductOption,
+  ProductCategoryOption,
   Type7aDemoProductItem,
 } from "../../shared/types";
 
@@ -89,6 +90,7 @@ export interface Type7aPlannedFormProps {
   deleteProductFromDemoPlot?: (plotId: string, prodIndex: number) => void;
   customers?: CustomerOption[];
   products?: ProductOption[];
+  productCategories?: ProductCategoryOption[];
 }
 
 export type Type7aPlanFormProps = Type7aPlannedFormProps;

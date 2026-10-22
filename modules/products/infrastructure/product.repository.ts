@@ -114,6 +114,7 @@ export async function findProducts(params: ListProductsParams) {
         },
         tradeNameGroup: true,
         productGroup: true,
+        category: true,
       },
     } as any),
   ]);

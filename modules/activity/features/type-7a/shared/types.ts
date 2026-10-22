@@ -21,6 +21,12 @@ export interface ProductOption {
   productCode?: string | null;
   categoryId?: string | null;
   productGroupId?: string | null;
+  category?: {
+    id: string;
+    code: string;
+    description?: string | null;
+    name?: string | null;
+  } | null;
   price?: number | null;
   unit?: string | null;
   packageSizeUnit?: string | null;
@@ -42,6 +48,7 @@ export interface ChemicalGroupOption {
 
 export interface Type7aDemoProductItem {
   id?: string;
+  categoryId?: string | null;
   productId?: string;
   productName?: string;
   quantity?: number;

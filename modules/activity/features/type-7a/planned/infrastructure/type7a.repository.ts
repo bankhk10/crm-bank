@@ -72,11 +72,24 @@ export async function syncType7aPlots(
 ): Promise<void> {
   if (!rawPlots || rawPlots.length === 0) return;
 
+  // Clean up previous plan records for idempotent updates
+  if ((tx as any).activityPlanType7a) {
+    await (tx as any).activityPlanType7a.deleteMany({
+      where: { activityPlanId },
+    });
+  }
+  await tx.activityPlanStore.deleteMany({
+    where: { activityPlanId, workTypeCode: "TYPE_7A" },
+  });
+  await tx.activityPlanProduct.deleteMany({
+    where: { activityPlanId, workTypeCode: "TYPE_7A" },
+  });
+
   for (let i = 0; i < rawPlots.length; i++) {
     const plot = rawPlots[i];
     let demoPlotId = plot.demoPlotId || null;
 
-    // 1. Create or link DemoPlot
+    // 1. Create or update DemoPlot
     if (!demoPlotId) {
       const code = await generateDemoPlotCode(tx, startDate, i);
       const createdPlot = await tx.demoPlot.create({
@@ -104,9 +117,75 @@ export async function syncType7aPlots(
         },
       });
       demoPlotId = createdPlot.id;
+    } else {
+      try {
+        await tx.demoPlot.update({
+          where: { id: demoPlotId },
+          data: {
+            name: plot.plotName || plot.name || "แปลงสาธิต",
+            ownerName: plot.ownerName || plot.farmerName || "",
+            customerId: plot.storeId || null,
+            province: plot.province || null,
+            district: plot.district || null,
+            cropCategory: plot.cropCategory || "พืชทั่วไป",
+            cropName: plot.cropName || "พืชทั่วไป",
+            customCropName: plot.customCropName || null,
+            areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
+            treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
+            objective: plot.objective || null,
+            notes: plot.notes || null,
+          },
+        });
+      } catch {
+        // Ignore if demoPlotId was not found
+      }
     }
 
-    // 2. Also dual-sync to ActivityPlanStore for unified schedule queries
+    const prods = (plot.demoProducts || plot.products || []).filter((prod) =>
+      Boolean(prod.productId),
+    );
+
+    // 2. Save to Dedicated Plan Table (ActivityPlanType7a + ActivityPlanType7aProduct)
+    if ((tx as any).activityPlanType7a) {
+      await (tx as any).activityPlanType7a.create({
+        data: {
+          activityPlanId,
+          plotName: plot.plotName || plot.name || "แปลงสาธิต",
+          storeId: plot.storeId || null,
+          ownerName: plot.ownerName || plot.farmerName || null,
+          province: plot.province || null,
+          district: plot.district || null,
+          cropCategory: plot.cropCategory || "พืชทั่วไป",
+          cropName: plot.cropName || "พืชทั่วไป",
+          customCropName: plot.customCropName || null,
+          areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
+          treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
+          objective: plot.objective || "",
+          categoryId:
+            plot.categoryId ||
+            prods.find((p) => p.categoryId)?.categoryId ||
+            null,
+          hasProducts: prods.length > 0,
+          demoPlotId,
+          products:
+            prods.length > 0
+              ? {
+                  create: prods.map((prod, pIdx) => ({
+                    productId: prod.productId!,
+                    productName: prod.productName || null,
+                    quantity: new Prisma.Decimal(
+                      prod.quantity || prod.targetQuantity || 1,
+                    ),
+                    unit: prod.unit || "ขวด",
+                    sortOrder: pIdx,
+                  })),
+                }
+              : undefined,
+        },
+      });
+    }
+
+    // 3. Also dual-sync to ActivityPlanStore for unified schedule queries
     const storeName = plot.ownerName || plot.farmerName || plot.plotName || "แปลงสาธิต";
     await tx.activityPlanStore.create({
       data: {
@@ -118,8 +197,7 @@ export async function syncType7aPlots(
       },
     });
 
-    // 3. Dual-sync products
-    const prods = plot.demoProducts || plot.products || [];
+    // 4. Dual-sync products to ActivityPlanProduct
     if (prods.length > 0) {
       for (const prod of prods) {
         if (prod.productId) {
@@ -127,7 +205,10 @@ export async function syncType7aPlots(
             data: {
               activityPlanId,
               productId: prod.productId,
-              targetQuantity: prod.quantity || prod.targetQuantity ? Number(prod.quantity || prod.targetQuantity) : 0,
+              targetQuantity:
+                prod.quantity || prod.targetQuantity
+                  ? Number(prod.quantity || prod.targetQuantity)
+                  : 0,
               notes: prod.notes || null,
               workTypeCode: "TYPE_7A",
             },
@@ -142,16 +223,30 @@ export async function syncType7aPlots(
  * Find Type 7A data by Plan ID
  */
 export async function findType7aByPlanId(activityPlanId: string) {
-  const stores = await db.activityPlanStore.findMany({
-    where: { activityPlanId, workTypeCode: "TYPE_7A" },
-  });
-
-  const products = await db.activityPlanProduct.findMany({
-    where: { activityPlanId, workTypeCode: "TYPE_7A" },
-    include: { product: true },
-  });
+  const [type7aPlots, stores, products] = await Promise.all([
+    db.activityPlanType7a.findMany({
+      where: { activityPlanId },
+      include: {
+        store: true,
+        demoPlot: true,
+        products: {
+          orderBy: { sortOrder: "asc" },
+          include: { product: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.activityPlanStore.findMany({
+      where: { activityPlanId, workTypeCode: "TYPE_7A" },
+    }),
+    db.activityPlanProduct.findMany({
+      where: { activityPlanId, workTypeCode: "TYPE_7A" },
+      include: { product: true },
+    }),
+  ]);
 
   return {
+    type7aPlots,
     stores,
     products,
   };
