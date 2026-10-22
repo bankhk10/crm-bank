@@ -206,28 +206,7 @@ export function Type7aPlannedForm({
               </div>
             </div>
 
-            {/* Row 4: พิกัดแปลง GPS */}
-            <div className="space-y-1.5 pt-1">
-              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                พิกัดแปลงสาธิต (GPS)
-              </label>
-              <ActivityGpsPicker
-                latitude={
-                  plot.latitude != null ? String(plot.latitude) : undefined
-                }
-                longitude={
-                  plot.longitude != null ? String(plot.longitude) : undefined
-                }
-                onLocationChange={(lat: string, lng: string) => {
-                  updateType7aRow(plot.id, "latitude", lat);
-                  updateType7aRow(plot.id, "longitude", lng);
-                }}
-                readonly={readonly}
-              />
-            </div>
-
-            {/* Row 5: รายการสินค้าที่ใช้ทดสอบสาธิต */}
+            {/* Row 4: รายการสินค้าที่ใช้ทดสอบสาธิต */}
             <div className="bg-emerald-50/30 border border-emerald-100 rounded-xl p-3.5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
