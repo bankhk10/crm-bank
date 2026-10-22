@@ -214,14 +214,14 @@ export function Type3DetailView({
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 text-xs">
                     {targetQty > 0 && (
                       <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200/70 space-y-0.5">
                         <span className="text-slate-400 font-medium block">
                           เป้าหมายตามแผน
                         </span>
                         <strong className="text-slate-700 text-sm">
-                          {targetQty.toLocaleString()} หน่วย
+                          {targetQty.toLocaleString()} ลัง
                         </strong>
                       </div>
                     )}
@@ -231,11 +231,12 @@ export function Type3DetailView({
                         จำนวนที่ขายได้จริง
                       </span>
                       <strong className="text-emerald-950 text-sm font-extrabold">
-                        {actualQty.toLocaleString()} หน่วย
+                        {actualQty.toLocaleString()} ลัง
                       </strong>
                     </div>
 
-                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200/70 space-y-0.5">
+                    {/* ปิดไว้ก่อนเดียวมาเปิด */}
+                    {/* <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200/70 space-y-0.5">
                       <span className="text-slate-400 font-medium block">
                         ราคาต่อหน่วย
                       </span>
@@ -244,7 +245,7 @@ export function Type3DetailView({
                           ? `฿${Number(item.unitPrice).toLocaleString()}`
                           : "ราคามาตรฐาน"}
                       </strong>
-                    </div>
+                    </div> */}
 
                     <div className="bg-emerald-50/40 p-2.5 rounded-lg border border-emerald-200/70 space-y-0.5">
                       <span className="text-emerald-700 font-medium block">
@@ -282,7 +283,7 @@ export function Type3DetailView({
               <TrendingUp className="w-4 h-4 text-emerald-600" />
               รวมผลการขายได้จริง:{" "}
               <strong className="text-slate-900 font-bold ml-1">
-                {totalActualQty.toLocaleString()} หน่วย
+                {totalActualQty.toLocaleString()} ลัง
               </strong>
             </span>
             <span className="text-emerald-900 font-extrabold flex items-center gap-1 text-sm sm:text-base">
