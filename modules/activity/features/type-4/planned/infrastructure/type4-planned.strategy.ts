@@ -160,29 +160,39 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 4 Actual Outcome (ActivityResultType4 & ActivityResultType4Item)
+   * Save Type 4 Actual Outcome (ActivityResultType4)
    */
   async saveActual(
     tx: PrismaTransaction,
     activityPlanId: string,
     outcomeData: any,
   ): Promise<void> {
-    let resultId = outcomeData.activityResultId;
-    if (!resultId) {
-      const result = await tx.activityResult.findFirst({
-        where: { activityPlanId },
-        select: { id: true },
+    let result = await tx.activityResult.findFirst({
+      where: { activityPlanId },
+      select: { id: true },
+    });
+
+    if (!result) {
+      const plan = await tx.activityPlan.findUnique({
+        where: { id: activityPlanId },
+        select: { startDate: true, endDate: true },
       });
-      resultId = result?.id;
+
+      if (plan) {
+        result = await tx.activityResult.create({
+          data: {
+            activityPlanId,
+            actualStartDate: outcomeData.actualStartDate || plan.startDate,
+            actualEndDate: outcomeData.actualEndDate || plan.endDate,
+            resultStatus: outcomeData.resultStatus || "COMPLETED",
+          },
+          select: { id: true },
+        });
+      }
     }
 
+    const resultId = outcomeData.activityResultId || result?.id;
     const t4Data = outcomeData.type4Result || outcomeData;
-    const receivedAmt =
-      t4Data.receivedAmount != null
-        ? Number(t4Data.receivedAmount)
-        : t4Data.t4ReceivedAmount != null
-          ? Number(t4Data.t4ReceivedAmount)
-          : null;
 
     // 1. Delete existing records for this activityPlanId
     await (tx as any).activityResultType4.deleteMany({
@@ -190,10 +200,22 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     });
 
     const multiItems: any[] =
+      outcomeData.type4Results ||
+      outcomeData.type4ActualItems ||
+      outcomeData.items ||
+      outcomeData.companyItems ||
+      outcomeData.t4Items ||
+      outcomeData.actualData?.type4Results ||
+      outcomeData.actualData?.type4ActualItems ||
+      outcomeData.actualData?.items ||
+      outcomeData.actualData?.t4Items ||
+      t4Data.type4Results ||
+      t4Data.type4ActualItems ||
       t4Data.items ||
       t4Data.companyItems ||
       t4Data.t4Items ||
-      outcomeData.t4Items ||
+      (Array.isArray(outcomeData.type4Result) ? outcomeData.type4Result : undefined) ||
+      (Array.isArray(t4Data) ? t4Data : undefined) ||
       [];
 
     const orderNo = t4Data.orderNo || t4Data.t4OrderNo || null;
@@ -214,20 +236,22 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
               ? Number(item.targetAmountNum)
               : item.targetAmount != null
                 ? Number(item.targetAmount)
-                : null;
+                : recAmt != null
+                  ? recAmt
+                  : null;
 
           return {
             activityPlanId,
             storeId: item.storeId || null,
-            companyName: item.companyName || item.customer || null,
+            companyName: item.companyName || item.customerName || item.customer || null,
             collectType: item.collectType || "COLLECT",
             targetAmount: targetAmt != null ? new Prisma.Decimal(targetAmt) : null,
             receivedAmount: recAmt != null ? new Prisma.Decimal(recAmt) : null,
-            orderNo: item.orderNo || orderNo,
+            orderNo: item.orderNo || item.invoiceNo || orderNo,
             billingStatus: item.billingStatus || null,
             billingDetail: item.billingDetail || null,
             collectDetail: item.collectDetail || null,
-            notes: item.detail || item.notes || null,
+            notes: item.notes || item.detail || null,
           };
         }),
       });
@@ -246,8 +270,9 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
         data: {
           activityPlanId,
           storeId: t4Data.storeId || null,
-          companyName: t4Data.companyName || t4Data.customer || null,
+          companyName: t4Data.companyName || t4Data.customerName || t4Data.customer || null,
           collectType: t4Data.collectType || "COLLECT",
+          targetAmount: t4Data.targetAmount != null ? new Prisma.Decimal(t4Data.targetAmount) : null,
           receivedAmount: recAmt != null ? new Prisma.Decimal(recAmt) : null,
           orderNo,
           billingStatus: t4Data.billingStatus || t4Data.t4BillingStatus || null,
@@ -265,6 +290,36 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
         data: {
           collectResultAmount: new Prisma.Decimal(totalReceivedAmt),
         },
+      });
+    }
+
+    // 3. Sync attachments to activityAttachment if present
+    const attachments =
+      outcomeData.attachments ||
+      outcomeData.type4PaymentImages ||
+      outcomeData.paymentImages ||
+      t4Data.attachments ||
+      [];
+
+    if (resultId && Array.isArray(attachments) && attachments.length > 0) {
+      await tx.activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          category: "GENERAL",
+        },
+      });
+
+      await tx.activityAttachment.createMany({
+        data: attachments.map((att: any) => ({
+          activityPlanId,
+          activityResultId: resultId,
+          workTypeCode: "TYPE_4",
+          category: "GENERAL",
+          fileUrl: att.fileUrl || att.url,
+          fileName: att.fileName || att.name || "หลักฐานการชำระเงิน",
+          fileSize: att.fileSize || att.size || 0,
+          mimeType: att.mimeType || att.type || "image/jpeg",
+        })),
       });
     }
   },

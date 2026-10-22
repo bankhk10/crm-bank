@@ -51,14 +51,21 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
   ) {
     return plan.type4Targets.map((t: any, idx: number) => {
       const isBilling = t.collectType === "BILLING";
-      const matchedItem = resultItems.find(
-        (ri: any) => (t.storeId && ri.storeId === t.storeId) || ri.companyName === t.store?.name,
-      );
+      const matchedItem =
+        resultItems.find(
+          (ri: any) =>
+            (t.storeId && ri.storeId === t.storeId) ||
+            (t.store?.name && ri.companyName === t.store?.name),
+        ) || resultItems[idx];
 
       return {
         id: t.id || String(idx + 1),
         storeId: t.storeId || undefined,
-        customerName: t.store?.name || "",
+        customerName:
+          t.store?.name ||
+          matchedItem?.companyName ||
+          plan.planStores?.[idx]?.storeName ||
+          "",
         collectType: isBilling ? "BILLING" : "COLLECT",
         invoiceNo: t.invoiceNo || matchedItem?.invoiceNo || "",
         targetAmount: t.targetAmount != null ? Number(t.targetAmount) : 0,
@@ -130,6 +137,27 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
     });
   }
 
+  // 3. From result items (ActivityResultType4) if targets were not populated
+  if (resultItems && resultItems.length > 0) {
+    return resultItems.map((ri: any, idx: number) => {
+      const isBilling = ri.collectType === "BILLING";
+      return {
+        id: ri.id || String(idx + 1),
+        storeId: ri.storeId || undefined,
+        customerName: ri.companyName || ri.store?.name || "",
+        collectType: isBilling ? "BILLING" : "COLLECT",
+        invoiceNo: ri.orderNo || "",
+        targetAmount: ri.targetAmount != null ? Number(ri.targetAmount) : 0,
+        receivedAmount: ri.receivedAmount != null ? Number(ri.receivedAmount) : 0,
+        billingStatus: ri.billingStatus || (isBilling ? "วางบิลสำเร็จ" : ""),
+        billingDetail: ri.billingDetail || "",
+        collectDetail: ri.collectDetail || "",
+        notes: ri.notes || "",
+        images: t4Images.filter((img) => !img.storeId || img.storeId === ri.storeId),
+      };
+    });
+  }
+
   // Fallback: Default single item
   return [
     {
@@ -138,7 +166,7 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
       collectType: "COLLECT",
       targetAmount: 0,
       receivedAmount: 0,
-      billingStatus: "",
+      billingStatus: "วางบิลสำเร็จ",
       billingDetail: "",
       collectDetail: "",
       notes: "",
@@ -166,25 +194,47 @@ export function mapType4UnplannedToPayload(
   const overallInvoices: string[] = [];
 
   items.forEach((item) => {
+    const rawCustomer = item.customerName || (item as any).customer || "";
     let resolvedStoreId = item.storeId;
-    if (!resolvedStoreId && item.customerName) {
-      const found = customersList.find((c) => c.name === item.customerName);
+    if (!resolvedStoreId && rawCustomer) {
+      const found = customersList.find(
+        (c) => c.name === rawCustomer || c.id === rawCustomer,
+      );
       if (found) resolvedStoreId = found.id;
     }
 
+    let resolvedCustomerName = rawCustomer;
+    if (
+      resolvedStoreId &&
+      (!resolvedCustomerName || resolvedCustomerName === resolvedStoreId)
+    ) {
+      const found = customersList.find((c) => c.id === resolvedStoreId);
+      if (found) resolvedCustomerName = found.name;
+    }
+
+    const invoiceOrOrderNo = item.invoiceNo || (item as any).orderNo || null;
     const isBilling = item.collectType === "BILLING";
-    const recAmt = item.receivedAmount != null ? Number(item.receivedAmount) : null;
-    const targetAmt =
+    const rawRec =
+      item.receivedAmount != null
+        ? String(item.receivedAmount).replace(/,/g, "").trim()
+        : "";
+    const recAmt =
+      rawRec !== "" && !isNaN(Number(rawRec)) ? Number(rawRec) : null;
+    const rawTarget =
       item.targetAmount != null
-        ? Number(item.targetAmount)
+        ? String(item.targetAmount).replace(/,/g, "").trim()
+        : "";
+    const targetAmt =
+      rawTarget !== "" && !isNaN(Number(rawTarget))
+        ? Number(rawTarget)
         : recAmt;
     const bStatus = isBilling ? item.billingStatus || "วางบิลสำเร็จ" : null;
 
-    if (!isBilling && recAmt != null) {
+    if (recAmt != null) {
       overallReceivedAmount += recAmt;
     }
 
-    if (item.invoiceNo) overallInvoices.push(item.invoiceNo);
+    if (invoiceOrOrderNo) overallInvoices.push(invoiceOrOrderNo);
     if (bStatus) overallBillingStatuses.push(bStatus);
     if (item.billingDetail) overallBillingDetails.push(item.billingDetail);
     if (item.collectDetail) overallCollectDetails.push(item.collectDetail);
@@ -193,9 +243,10 @@ export function mapType4UnplannedToPayload(
     // 1. Dedicated Target
     targets.push({
       storeId: resolvedStoreId || null,
+      storeName: resolvedCustomerName || null,
       collectType: isBilling ? "BILLING" : "COLLECT",
       targetAmount: targetAmt,
-      invoiceNo: item.invoiceNo || null,
+      invoiceNo: invoiceOrOrderNo,
       notes: item.notes || null,
     });
 
@@ -203,7 +254,7 @@ export function mapType4UnplannedToPayload(
     planStores.push({
       workTypeCode: "TYPE_4",
       storeId: resolvedStoreId || null,
-      storeName: item.customerName || null,
+      storeName: resolvedCustomerName || null,
       targetAmount: targetAmt,
       remarks: isBilling ? "BILLING" : "COLLECT",
       notes: item.notes || null,
@@ -212,10 +263,12 @@ export function mapType4UnplannedToPayload(
     // 3. Multi-Item Result
     resultItems.push({
       storeId: resolvedStoreId || null,
-      companyName: item.customerName || null,
+      companyName: resolvedCustomerName || null,
       collectType: isBilling ? "BILLING" : "COLLECT",
       targetAmount: targetAmt,
       receivedAmount: recAmt,
+      orderNo: invoiceOrOrderNo,
+      invoiceNo: invoiceOrOrderNo,
       billingStatus: bStatus,
       billingDetail: item.billingDetail || null,
       collectDetail: item.collectDetail || null,

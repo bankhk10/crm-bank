@@ -29,13 +29,40 @@ export const type4UnplannedStrategy: WorkTypeStrategy = {
       planData.type4Result ||
       planData.type4Results ||
       planData.result ||
-      planData.type4ActualData;
+      planData.type4ActualData ||
+      planData.actualData?.type4Result;
 
-    if (t4Result || planData.items || planData.type4Results) {
+    const t4Items =
+      planData.type4Results ||
+      planData.type4ActualItems ||
+      planData.items ||
+      planData.t4Items ||
+      planData.actualData?.type4Results ||
+      planData.actualData?.items ||
+      planData.actualData?.t4Items ||
+      (Array.isArray(t4Result) ? t4Result : t4Result?.items) ||
+      (Array.isArray(planData.type4Items) &&
+      planData.type4Items.length > 0 &&
+      (planData.type4Items[0]?.companyName || planData.type4Items[0]?.customerName || planData.type4Items[0]?.customer)
+        ? planData.type4Items
+        : undefined);
+
+    const attachments =
+      planData.attachments ||
+      planData.actualData?.attachments ||
+      planData.type4PaymentImages ||
+      [];
+
+    if (t4Result || t4Items || planData.items || planData.type4Results || planData.actualData) {
       await type4PlannedStrategy.saveActual!(tx, activityPlanId, {
         type4Result: t4Result,
-        items: planData.items || (Array.isArray(t4Result) ? t4Result : t4Result?.items),
+        type4Results: t4Items,
+        items: t4Items,
+        t4Items,
+        companyItems: t4Items,
         receivedAmount: t4Result?.receivedAmount ?? planData.receivedAmount,
+        notes: t4Result?.notes ?? planData.notes,
+        attachments,
         actualStartDate: planData.startDate,
         actualEndDate: planData.endDate,
         resultStatus: "COMPLETED",

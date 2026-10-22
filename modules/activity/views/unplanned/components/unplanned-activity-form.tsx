@@ -791,7 +791,9 @@ export function UnplannedActivityForm({
       actualData = {
         workTypeCode: "TYPE_4",
         type4Result: mapped.result,
+        type4Results: mapped.items,
         items: mapped.items,
+        t4Items: mapped.items,
         receivedAmount: mapped.result.receivedAmount,
         attachments: cleanType4Images.map((img) => ({
           category: "PAYMENT",
@@ -1691,8 +1693,11 @@ export function UnplannedActivityForm({
       saleResults: mappedType3?.saleResults,
       t3ProductSalesDetails: mappedType3?.productSalesDetails,
       type4Targets: mappedType4?.targets,
-      type4Items: mappedType4?.targets,
+      type4Items: mappedType4?.items || mappedType4?.targets,
       type4Result: mappedType4?.result,
+      type4Results: mappedType4?.items,
+      type4ActualItems: mappedType4?.items,
+      items: isType4Active ? mappedType4?.items : undefined,
       type5Targets: mappedType5?.type5Targets,
       type5SurveyRecords: mappedType5?.type5SurveyRecords,
       type6Targets: mappedType6?.type6Targets,

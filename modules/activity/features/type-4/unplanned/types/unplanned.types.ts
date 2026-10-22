@@ -36,6 +36,7 @@ export interface Type4UnplannedFormProps {
 export interface Type4UnplannedPayload {
   targets: Array<{
     storeId?: string | null;
+    storeName?: string | null;
     collectType: "BILLING" | "COLLECT";
     targetAmount?: number | null;
     invoiceNo?: string | null;
@@ -63,6 +64,8 @@ export interface Type4UnplannedPayload {
     collectType: "BILLING" | "COLLECT";
     targetAmount?: number | null;
     receivedAmount?: number | null;
+    orderNo?: string | null;
+    invoiceNo?: string | null;
     billingStatus?: string | null;
     billingDetail?: string | null;
     collectDetail?: string | null;
