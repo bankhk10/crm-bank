@@ -145,7 +145,11 @@ export function Type4UnplannedForm({
                         onChange={() => {
                           updateItem(item.id, "collectType", "BILLING");
                           if (!item.billingStatus) {
-                            updateItem(item.id, "billingStatus", "วางบิลสำเร็จ");
+                            updateItem(
+                              item.id,
+                              "billingStatus",
+                              "วางบิลสำเร็จ",
+                            );
                           }
                         }}
                         disabled={readonly}
@@ -323,56 +327,6 @@ export function Type4UnplannedForm({
                         disabled={readonly}
                         placeholder="ระบุรายละเอียด เช่น ชำระเงินสด, โอนเงิน, เช็ค..."
                       />
-                    </div>
-
-                    {/* แนบรูปภาพสลิป/หลักฐานการชำระเงิน */}
-                    <div className="space-y-1.5 pt-1">
-                      <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-                        <span>รูปหลักฐานการชำระเงิน / สลิปโอนเงิน</span>
-                        <span className="text-[11px] text-slate-400 font-normal">
-                          (ถ้ามี)
-                        </span>
-                      </label>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {item.images?.map((img) => (
-                          <div
-                            key={img.id}
-                            className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group bg-slate-50"
-                          >
-                            <img
-                              src={img.url || img.previewUrl}
-                              alt={img.name || "payment proof"}
-                              className="w-full h-full object-cover"
-                            />
-                            {!readonly && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRemoveImage(item.id, img.id)
-                                }
-                                className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4 text-rose-300" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        {!readonly && (
-                          <label className="w-16 h-16 rounded-lg border-2 border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/50 hover:bg-amber-100/50 flex flex-col items-center justify-center cursor-pointer transition-colors text-amber-700">
-                            <Upload className="w-4 h-4" />
-                            <span className="text-[10px] font-semibold mt-0.5">
-                              แนบรูป
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              onChange={(e) => handleImageUpload(item.id, e)}
-                              className="hidden"
-                            />
-                          </label>
-                        )}
-                      </div>
                     </div>
                   </div>
                 )}
