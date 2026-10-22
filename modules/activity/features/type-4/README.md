@@ -3,7 +3,7 @@
 > **Feature Slice**: `modules/activity/features/type-4`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามต้นแบบ Gold Standard Type 1, Type 2 และ Type 3  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType4Target`, `ActivityResultType4`, `ActivityResultType4Item`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType4Target`, `ActivityResultType4`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanAttachment`)  
 > **Status**: Production Ready / Active Reference (v1.0.0)
 
 ---
@@ -17,7 +17,7 @@
 3. รองรับการระบุเป้าหมายหลายร้านค้าในแผนเดียวกัน (Multi-target Collection)
 4. บันทึกผลการวางบิลจริง (สำเร็จ / เลื่อน / พบปัญหา) และยอดเงินที่รับชำระได้จริง (Received Amount vs Target Amount)
 5. บันทึกเลขที่เอกสาร/ใบเสร็จรับเงิน (Receipt / Invoice Number) พร้อมแนบหลักฐานสลิปการโอนหรือภาพถ่ายใบเสร็จ (Payment Receipts / Slips)
-6. รองรับการจัดเก็บข้อมูลผลงานลงใน Dedicated Tables (`ActivityResultType4` และ `ActivityResultType4Item`) พร้อมอัปเดตสรุปยอดเงิน `activity_results.collect_result_amount`
+6. รองรับการจัดเก็บข้อมูลผลงานลงใน Dedicated Table (`ActivityResultType4`) พร้อมอัปเดตสรุปยอดเงิน `activity_results.collect_result_amount`
 
 ### 1.2 ขอบเขตของ Type 4
 - **ประเภทการดำเนินการ (Collect Type):**
@@ -28,7 +28,7 @@
   - `เลื่อนวางบิล`: ร้านค้ายังไม่พร้อมรับวางบิล ให้ระบุเหตุผลและวันนัดใหม่
   - `พบปัญหา`: บิลไม่ถูกต้อง ยอดไม่ตรง สินค้ามีปัญหา ฯลฯ
 - **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - บันทึกลงใน Dedicated Tables: `ActivityPlanType4Target` (สำหรับแผน) และ `ActivityResultType4` / `ActivityResultType4Item` (สำหรับผลงาน)
+  - บันทึกลงใน Dedicated Tables: `ActivityPlanType4Target` (สำหรับแผน) และ `ActivityResultType4` (สำหรับผลงาน)
   - Sync สำเนาอัตโนมัติลงใน Generic Tables: `ActivityPlanStore` (`workTypeCode = "TYPE_4"`, `remarks = collectType`) เพื่อให้ระบบรายงานภาพรวมองค์กรและ Timeline ทำงานได้อย่างต่อเนื่อง
   - Sync ไฟล์สลิปหลักฐานการชำระเงินลงใน `ActivityPlanAttachment` (`category = "PAYMENT"`, `workTypeCode = "TYPE_4"`)
 
@@ -157,32 +157,30 @@ model ActivityPlanType4Target {
   ...
 }
 
-// 2. ผลการปฏิบัติงานจริง Type 4 (Dedicated Parent Table)
+// 2. ผลการปฏิบัติงานจริง Type 4 (Dedicated Table — 1 แถวต่อ 1 ร้านค้าในแผน)
 model ActivityResultType4 {
-  id              String   @id @default(uuid())
-  activityResultId String  @unique
-  orderNo         String?
-  receivedAmount  Decimal? @db.Decimal(12, 2)
-  billingStatus   String?  // "วางบิลสำเร็จ", "เลื่อนวางบิล", "พบปัญหา"
-  billingDetail   String?
-  collectDetail   String?
-  notes           String?
-  items           ActivityResultType4Item[]
-  ...
-}
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  storeId         String?  @map("store_id")
+  companyName     String?  @map("company_name")
+  collectType     String   @default("COLLECT") @map("collect_type") // "BILLING" หรือ "COLLECT"
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+  receivedAmount  Decimal? @map("received_amount") @db.Decimal(15, 2)
+  orderNo         String?  @map("order_no")
+  billingStatus   String?  @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
+  billingDetail   String?  @map("billing_detail")
+  collectDetail   String?  @map("collect_detail")
+  notes           String?  @map("notes")
 
-// 3. ผลการปฏิบัติงานจริงรายรายการ Type 4 (Dedicated Item Table)
-model ActivityResultType4Item {
-  id                    String   @id @default(uuid())
-  activityResultType4Id String
-  storeId               String?
-  customerName          String?
-  collectType           String   @default("COLLECT")
-  targetAmount          Decimal? @db.Decimal(12, 2)
-  receivedAmount        Decimal? @db.Decimal(12, 2)
-  billingStatus         String?
-  notes                 String?
-  ...
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store           Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_result_type_4")
 }
 ```
 

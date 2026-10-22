@@ -27,13 +27,14 @@ export const type4UnplannedStrategy: WorkTypeStrategy = {
     // 2. Save Actual Billing & Collection Results (if provided in payload)
     const t4Result =
       planData.type4Result ||
+      planData.type4Results ||
       planData.result ||
       planData.type4ActualData;
 
-    if (t4Result || planData.items) {
+    if (t4Result || planData.items || planData.type4Results) {
       await type4PlannedStrategy.saveActual!(tx, activityPlanId, {
         type4Result: t4Result,
-        items: planData.items,
+        items: planData.items || (Array.isArray(t4Result) ? t4Result : t4Result?.items),
         receivedAmount: t4Result?.receivedAmount ?? planData.receivedAmount,
         actualStartDate: planData.startDate,
         actualEndDate: planData.endDate,

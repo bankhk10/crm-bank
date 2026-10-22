@@ -290,7 +290,11 @@ export function ApprovalWorkTypeList({
 
   const hasType4ActualResults = useMemo(() => {
     if (isUnplanned) return true;
-    if (plan?.result?.activityResultType4 || plan?.result?.type4Result) {
+    if (
+      plan?.result?.activityResultType4 ||
+      plan?.result?.type4Result ||
+      plan?.type4Results?.length
+    ) {
       return true;
     }
     return Boolean(

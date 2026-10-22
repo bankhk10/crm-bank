@@ -31,44 +31,107 @@ export function parseType4ActualResult(resData: any): {
   if (!resData) return result;
 
   // 1. Direct from dedicated table ActivityResultType4 if present
-  const t4 =
-    resData.type4Result ||
-    resData.activityResultType4 ||
-    resData.activityPlan?.type4Result ||
-    (resData.result &&
-      (resData.result.type4Result || resData.result.activityResultType4));
+  const rawList: any[] =
+    Array.isArray(resData.type4Results)
+      ? resData.type4Results
+      : Array.isArray(resData.activityPlan?.type4Results)
+        ? resData.activityPlan.type4Results
+        : Array.isArray(resData)
+          ? resData
+          : [];
 
-  if (t4) {
-    result.t4OrderNo = t4.orderNo || undefined;
-    result.t4BillingStatus = t4.billingStatus || undefined;
-    result.t4ReceivedAmount =
-      t4.receivedAmount != null ? String(t4.receivedAmount) : undefined;
-    result.t4BillingDetail = t4.billingDetail || undefined;
-    result.t4CollectDetail = t4.collectDetail || undefined;
+  if (rawList.length > 0) {
+    const list: TargetCollectCompanyItem[] = rawList.map((it: any) => ({
+      id: it.id,
+      storeId: it.storeId || undefined,
+      customer: it.companyName || it.store?.name || undefined,
+      companyName: it.companyName || it.store?.name || "ร้านค้า / ลูกค้า",
+      collectType: (it.collectType === "BILLING" ? "BILLING" : "COLLECT") as
+        | "BILLING"
+        | "COLLECT",
+      targetAmountNum:
+        it.targetAmount != null ? Number(it.targetAmount) : undefined,
+      targetCollect:
+        it.targetAmount != null
+          ? `${Number(it.targetAmount).toLocaleString()} บาท`
+          : undefined,
+      receivedAmount:
+        it.receivedAmount != null ? String(it.receivedAmount) : undefined,
+      billingStatus: it.billingStatus || "",
+      billingDetail: it.billingDetail || "",
+      collectDetail: it.collectDetail || "",
+      detail: it.notes || "",
+    }));
+
+    result.t4Items = list;
+    result.t4OrderNo =
+      rawList.find((it: any) => it.orderNo)?.orderNo || undefined;
+
+    const totalRec = list
+      .filter((it) => it.collectType !== "BILLING")
+      .reduce((sum, it) => sum + (Number(it.receivedAmount) || 0), 0);
+    if (totalRec > 0) {
+      result.t4ReceivedAmount = String(totalRec);
+    } else if (rawList[0]?.receivedAmount != null) {
+      result.t4ReceivedAmount = String(rawList[0].receivedAmount);
+    }
+
+    const firstBilling = list.find(
+      (it) => it.collectType === "BILLING" && it.billingStatus,
+    );
+    if (firstBilling) {
+      result.t4BillingStatus = firstBilling.billingStatus;
+      result.t4BillingDetail = firstBilling.billingDetail;
+    }
+    const firstCollect = list.find(
+      (it) => it.collectType !== "BILLING" && it.collectDetail,
+    );
+    if (firstCollect) {
+      result.t4CollectDetail = firstCollect.collectDetail;
+    }
     result.t4Detail =
-      t4.notes || t4.collectDetail || t4.billingDetail || undefined;
+      result.t4CollectDetail || result.t4BillingDetail || undefined;
+  } else {
+    const t4 =
+      resData.type4Result ||
+      resData.activityResultType4 ||
+      resData.activityPlan?.type4Result ||
+      (resData.result &&
+        (resData.result.type4Result || resData.result.activityResultType4));
 
-    if (t4.items && Array.isArray(t4.items) && t4.items.length > 0) {
-      result.t4Items = t4.items.map((it: any) => ({
-        id: it.id,
-        storeId: it.storeId || undefined,
-        customer: it.companyName || it.store?.name || undefined,
-        companyName: it.companyName || it.store?.name || "ร้านค้า / ลูกค้า",
-        collectType: (it.collectType === "BILLING" ? "BILLING" : "COLLECT") as
-          | "BILLING"
-          | "COLLECT",
-        targetAmountNum: it.targetAmount != null ? Number(it.targetAmount) : undefined,
-        targetCollect:
-          it.targetAmount != null
-            ? `${Number(it.targetAmount).toLocaleString()} บาท`
-            : undefined,
-        receivedAmount:
-          it.receivedAmount != null ? String(it.receivedAmount) : undefined,
-        billingStatus: it.billingStatus || "",
-        billingDetail: it.billingDetail || "",
-        collectDetail: it.collectDetail || "",
-        detail: it.notes || "",
-      }));
+    if (t4) {
+      result.t4OrderNo = t4.orderNo || undefined;
+      result.t4BillingStatus = t4.billingStatus || undefined;
+      result.t4ReceivedAmount =
+        t4.receivedAmount != null ? String(t4.receivedAmount) : undefined;
+      result.t4BillingDetail = t4.billingDetail || undefined;
+      result.t4CollectDetail = t4.collectDetail || undefined;
+      result.t4Detail =
+        t4.notes || t4.collectDetail || t4.billingDetail || undefined;
+
+      if (t4.items && Array.isArray(t4.items) && t4.items.length > 0) {
+        result.t4Items = t4.items.map((it: any) => ({
+          id: it.id,
+          storeId: it.storeId || undefined,
+          customer: it.companyName || it.store?.name || undefined,
+          companyName: it.companyName || it.store?.name || "ร้านค้า / ลูกค้า",
+          collectType: (it.collectType === "BILLING" ? "BILLING" : "COLLECT") as
+            | "BILLING"
+            | "COLLECT",
+          targetAmountNum:
+            it.targetAmount != null ? Number(it.targetAmount) : undefined,
+          targetCollect:
+            it.targetAmount != null
+              ? `${Number(it.targetAmount).toLocaleString()} บาท`
+              : undefined,
+          receivedAmount:
+            it.receivedAmount != null ? String(it.receivedAmount) : undefined,
+          billingStatus: it.billingStatus || "",
+          billingDetail: it.billingDetail || "",
+          collectDetail: it.collectDetail || "",
+          detail: it.notes || "",
+        }));
+      }
     }
   }
 

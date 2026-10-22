@@ -184,51 +184,31 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
           ? Number(t4Data.t4ReceivedAmount)
           : null;
 
-    // Delete existing records
-    const existing = await (tx as any).activityResultType4.findUnique({
+    // 1. Delete existing records for this activityPlanId
+    await (tx as any).activityResultType4.deleteMany({
       where: { activityPlanId },
-      select: { id: true },
     });
 
-    if (existing) {
-      await (tx as any).activityResultType4Item.deleteMany({
-        where: { resultType4Id: existing.id },
-      });
-      await (tx as any).activityResultType4.delete({
-        where: { activityPlanId },
-      });
-    }
-
-    const orderNo = t4Data.orderNo || t4Data.t4OrderNo || null;
-    const billingStatus = t4Data.billingStatus || t4Data.t4BillingStatus || null;
-    const billingDetail = t4Data.billingDetail || t4Data.t4BillingDetail || null;
-    const collectDetail = t4Data.collectDetail || t4Data.t4CollectDetail || null;
-    const notes = t4Data.notes || t4Data.t4Detail || null;
-
-    const createdRecord = await (tx as any).activityResultType4.create({
-      data: {
-        activityPlanId,
-        orderNo,
-        billingStatus,
-        receivedAmount: receivedAmt != null ? new Prisma.Decimal(receivedAmt) : null,
-        billingDetail,
-        collectDetail,
-        notes,
-      },
-    });
-
-    // Save individual multi-items if present
     const multiItems: any[] =
       t4Data.items ||
       t4Data.companyItems ||
       t4Data.t4Items ||
       outcomeData.t4Items ||
       [];
+
+    const orderNo = t4Data.orderNo || t4Data.t4OrderNo || null;
+    let totalReceivedAmt = 0;
+
     if (multiItems.length > 0) {
-      await (tx as any).activityResultType4Item.createMany({
-        data: multiItems.map((item) => {
-          const itemAmt =
-            item.receivedAmount != null ? Number(item.receivedAmount) : null;
+      await (tx as any).activityResultType4.createMany({
+        data: multiItems.map((item: any) => {
+          const recAmt =
+            item.receivedAmount != null && String(item.receivedAmount).trim() !== ""
+              ? Number(String(item.receivedAmount).replace(/,/g, ""))
+              : null;
+          if (recAmt != null && !isNaN(recAmt)) {
+            totalReceivedAmt += recAmt;
+          }
           const targetAmt =
             item.targetAmountNum != null
               ? Number(item.targetAmountNum)
@@ -237,12 +217,13 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
                 : null;
 
           return {
-            resultType4Id: createdRecord.id,
+            activityPlanId,
             storeId: item.storeId || null,
             companyName: item.companyName || item.customer || null,
             collectType: item.collectType || "COLLECT",
             targetAmount: targetAmt != null ? new Prisma.Decimal(targetAmt) : null,
-            receivedAmount: itemAmt != null ? new Prisma.Decimal(itemAmt) : null,
+            receivedAmount: recAmt != null ? new Prisma.Decimal(recAmt) : null,
+            orderNo: item.orderNo || orderNo,
             billingStatus: item.billingStatus || null,
             billingDetail: item.billingDetail || null,
             collectDetail: item.collectDetail || null,
@@ -250,14 +231,39 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
           };
         }),
       });
+    } else {
+      const recAmt =
+        t4Data.receivedAmount != null && String(t4Data.receivedAmount).trim() !== ""
+          ? Number(String(t4Data.receivedAmount).replace(/,/g, ""))
+          : t4Data.t4ReceivedAmount != null && String(t4Data.t4ReceivedAmount).trim() !== ""
+            ? Number(String(t4Data.t4ReceivedAmount).replace(/,/g, ""))
+            : null;
+      if (recAmt != null && !isNaN(recAmt)) {
+        totalReceivedAmt = recAmt;
+      }
+
+      await (tx as any).activityResultType4.create({
+        data: {
+          activityPlanId,
+          storeId: t4Data.storeId || null,
+          companyName: t4Data.companyName || t4Data.customer || null,
+          collectType: t4Data.collectType || "COLLECT",
+          receivedAmount: recAmt != null ? new Prisma.Decimal(recAmt) : null,
+          orderNo,
+          billingStatus: t4Data.billingStatus || t4Data.t4BillingStatus || null,
+          billingDetail: t4Data.billingDetail || t4Data.t4BillingDetail || null,
+          collectDetail: t4Data.collectDetail || t4Data.t4CollectDetail || null,
+          notes: t4Data.notes || t4Data.t4Detail || null,
+        },
+      });
     }
 
-    // Sync to legacy collectResultAmount in activity_results
-    if (resultId && receivedAmt != null) {
+    // 2. Sync to legacy collectResultAmount in activity_results
+    if (resultId && totalReceivedAmt > 0) {
       await tx.activityResult.update({
         where: { id: resultId },
         data: {
-          collectResultAmount: new Prisma.Decimal(receivedAmt),
+          collectResultAmount: new Prisma.Decimal(totalReceivedAmt),
         },
       });
     }
@@ -313,18 +319,15 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
   async loadActual(
     tx: PrismaTransaction,
     activityPlanId: string,
-  ): Promise<any | null> {
-    const result = await (tx as any).activityResultType4.findUnique({
+  ): Promise<any[]> {
+    const results = await (tx as any).activityResultType4.findMany({
       where: { activityPlanId },
       include: {
-        items: {
-          include: {
-            store: true,
-          },
-        },
+        store: true,
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    return result;
+    return results;
   },
 };

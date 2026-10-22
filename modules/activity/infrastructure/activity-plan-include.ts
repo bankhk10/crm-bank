@@ -337,21 +337,17 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     },
     orderBy: { createdAt: "asc" },
   },
-  type4Result: {
+  type4Results: {
     include: {
-      items: {
-        include: {
-          store: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-            },
-          },
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
         },
-        orderBy: { createdAt: "asc" },
       },
     },
+    orderBy: { createdAt: "asc" },
   },
   type5Targets: {
     include: {

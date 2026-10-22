@@ -10,8 +10,17 @@ import type {
 export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
   if (!plan) return [];
 
-  const t4Result = plan.type4Result || plan.result?.type4Result;
-  const resultItems: any[] = t4Result?.items || [];
+  const rawResults: any[] =
+    Array.isArray(plan.type4Results)
+      ? plan.type4Results
+      : Array.isArray(plan.result?.type4Results)
+        ? plan.result.type4Results
+        : plan.type4Result
+          ? [plan.type4Result]
+          : [];
+  const t4Result = rawResults[0] || plan.type4Result || plan.result?.type4Result;
+  const resultItems: any[] =
+    rawResults.length > 0 ? rawResults : t4Result?.items || [];
   const attachments: any[] =
     plan.attachments || plan.result?.attachments || [];
 

@@ -255,6 +255,7 @@ export function ActivityPlanActualView({
       if (res) {
         const payloadToHydrate = {
           ...res,
+          type4Results: plan.type4Results || (res as any)?.type4Results,
           type4Result: plan.type4Result || (res as any)?.type4Result,
           activityPlan: plan,
           attachments:

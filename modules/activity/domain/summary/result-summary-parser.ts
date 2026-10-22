@@ -294,45 +294,102 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 4 Billing / Collect Results from dedicated table or outcome
-    const t4 =
-      resData.type4Result ||
-      resData.activityResultType4 ||
-      resData.activityPlan?.type4Result ||
-      (resData.result &&
-        (resData.result.type4Result || resData.result.activityResultType4));
+    const rawT4List: any[] =
+      Array.isArray(resData.type4Results)
+        ? resData.type4Results
+        : Array.isArray(resData.activityPlan?.type4Results)
+          ? resData.activityPlan.type4Results
+          : [];
 
-    if (t4) {
-      if (!result.t4OrderNo && t4.orderNo) result.t4OrderNo = t4.orderNo;
-      if (!result.t4BillingStatus && t4.billingStatus)
-        result.t4BillingStatus = t4.billingStatus;
-      if (!result.t4ReceivedAmount && t4.receivedAmount != null)
-        result.t4ReceivedAmount = String(t4.receivedAmount);
-      if (!result.t4BillingDetail && t4.billingDetail)
-        result.t4BillingDetail = t4.billingDetail;
-      if (!result.t4CollectDetail && t4.collectDetail)
-        result.t4CollectDetail = t4.collectDetail;
-      if (!result.t4Detail && t4.notes) result.t4Detail = t4.notes;
+    if (rawT4List.length > 0) {
+      result.t4Items = rawT4List.map((it: any) => ({
+        id: it.id,
+        storeId: it.storeId,
+        customer: it.companyName || it.store?.name || "",
+        companyName: it.companyName || it.store?.name || "",
+        collectType: it.collectType || "COLLECT",
+        targetAmountNum:
+          it.targetAmount != null ? Number(it.targetAmount) : undefined,
+        targetCollect:
+          it.targetAmount != null
+            ? `${Number(it.targetAmount).toLocaleString()} บาท`
+            : undefined,
+        receivedAmount:
+          it.receivedAmount != null ? String(it.receivedAmount) : undefined,
+        billingStatus: it.billingStatus || "",
+        billingDetail: it.billingDetail || "",
+        collectDetail: it.collectDetail || "",
+        detail: it.notes || "",
+      }));
 
-      if (Array.isArray(t4.items) && t4.items.length > 0 && !result.t4Items) {
-        result.t4Items = t4.items.map((it: any) => ({
-          id: it.id,
-          storeId: it.storeId,
-          customer: it.companyName || it.store?.name || "",
-          companyName: it.companyName || it.store?.name || "",
-          collectType: it.collectType || "COLLECT",
-          targetAmountNum:
-            it.targetAmount != null ? Number(it.targetAmount) : undefined,
-          targetCollect:
-            it.targetAmount != null
-              ? `${Number(it.targetAmount).toLocaleString()} บาท`
-              : undefined,
-          receivedAmount:
-            it.receivedAmount != null ? String(it.receivedAmount) : undefined,
-          billingStatus: it.billingStatus || "",
-          billingDetail: it.billingDetail || "",
-          collectDetail: it.collectDetail || "",
-          detail: it.notes || "",
-        }));
+      result.t4OrderNo =
+        rawT4List.find((it: any) => it.orderNo)?.orderNo || undefined;
+
+      const totalRec = result.t4Items
+        .filter((it) => it.collectType !== "BILLING")
+        .reduce((sum, it) => sum + (Number(it.receivedAmount) || 0), 0);
+      if (totalRec > 0) {
+        result.t4ReceivedAmount = String(totalRec);
+      } else if (rawT4List[0]?.receivedAmount != null) {
+        result.t4ReceivedAmount = String(rawT4List[0].receivedAmount);
+      }
+
+      const firstBilling = result.t4Items.find(
+        (it) => it.collectType === "BILLING" && it.billingStatus,
+      );
+      if (firstBilling) {
+        result.t4BillingStatus = firstBilling.billingStatus;
+        result.t4BillingDetail = firstBilling.billingDetail;
+      }
+      const firstCollect = result.t4Items.find(
+        (it) => it.collectType !== "BILLING" && it.collectDetail,
+      );
+      if (firstCollect) {
+        result.t4CollectDetail = firstCollect.collectDetail;
+      }
+      result.t4Detail =
+        result.t4CollectDetail || result.t4BillingDetail || undefined;
+    } else {
+      const t4 =
+        resData.type4Result ||
+        resData.activityResultType4 ||
+        resData.activityPlan?.type4Result ||
+        (resData.result &&
+          (resData.result.type4Result || resData.result.activityResultType4));
+
+      if (t4) {
+        if (!result.t4OrderNo && t4.orderNo) result.t4OrderNo = t4.orderNo;
+        if (!result.t4BillingStatus && t4.billingStatus)
+          result.t4BillingStatus = t4.billingStatus;
+        if (!result.t4ReceivedAmount && t4.receivedAmount != null)
+          result.t4ReceivedAmount = String(t4.receivedAmount);
+        if (!result.t4BillingDetail && t4.billingDetail)
+          result.t4BillingDetail = t4.billingDetail;
+        if (!result.t4CollectDetail && t4.collectDetail)
+          result.t4CollectDetail = t4.collectDetail;
+        if (!result.t4Detail && t4.notes) result.t4Detail = t4.notes;
+
+        if (Array.isArray(t4.items) && t4.items.length > 0 && !result.t4Items) {
+          result.t4Items = t4.items.map((it: any) => ({
+            id: it.id,
+            storeId: it.storeId,
+            customer: it.companyName || it.store?.name || "",
+            companyName: it.companyName || it.store?.name || "",
+            collectType: it.collectType || "COLLECT",
+            targetAmountNum:
+              it.targetAmount != null ? Number(it.targetAmount) : undefined,
+            targetCollect:
+              it.targetAmount != null
+                ? `${Number(it.targetAmount).toLocaleString()} บาท`
+                : undefined,
+            receivedAmount:
+              it.receivedAmount != null ? String(it.receivedAmount) : undefined,
+            billingStatus: it.billingStatus || "",
+            billingDetail: it.billingDetail || "",
+            collectDetail: it.collectDetail || "",
+            detail: it.notes || "",
+          }));
+        }
       }
     }
     if (!result.t4ReceivedAmount && resData.collectResultAmount != null) {

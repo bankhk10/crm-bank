@@ -412,7 +412,7 @@ model Customer {
   activityPlanType4Targets    ActivityPlanType4Target[]
   activityPlanType5Targets    ActivityPlanType5Target[]
   activityPlanType6Targets    ActivityPlanType6Target[]
-  activityResultType4Items    ActivityResultType4Item[]
+  activityResultType4s        ActivityResultType4[]
 }
 
 model CustomerAddress {
@@ -1766,7 +1766,7 @@ model ActivityPlan {
   type3Targets   ActivityPlanType3Target[]
   type3Products  ActivityPlanType3Product[]
   type4Targets   ActivityPlanType4Target[]
-  type4Result    ActivityResultType4?
+  type4Results   ActivityResultType4[]
   type5Targets   ActivityPlanType5Target[]
   type6Targets   ActivityPlanType6Target[]
 
@@ -3027,10 +3027,14 @@ model ActivityPlanType4Target {
 
 model ActivityResultType4 {
   id             String    @id @default(cuid())
-  activityPlanId String    @unique @map("activity_plan_id")
+  activityPlanId String    @map("activity_plan_id")
+  storeId        String?   @map("store_id")
+  companyName    String?   @map("company_name")
+  collectType    String    @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
+  targetAmount   Decimal?  @map("target_amount") @db.Decimal(15, 2)
+  receivedAmount Decimal?  @map("received_amount") @db.Decimal(15, 2)
   orderNo        String?   @map("order_no")
   billingStatus  String?   @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
-  receivedAmount Decimal?  @map("received_amount") @db.Decimal(15, 2)
   billingDetail  String?   @map("billing_detail")
   collectDetail  String?   @map("collect_detail")
   notes          String?   @map("notes")
@@ -3039,34 +3043,11 @@ model ActivityResultType4 {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  items          ActivityResultType4Item[]
+  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
-  @@map("activity_result_type_4")
-}
-
-model ActivityResultType4Item {
-  id             String   @id @default(cuid())
-  resultType4Id  String   @map("result_type_4_id")
-  storeId        String?  @map("store_id")
-  companyName    String?  @map("company_name")
-  collectType    String   @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
-  targetAmount   Decimal? @map("target_amount") @db.Decimal(15, 2)
-  receivedAmount Decimal? @map("received_amount") @db.Decimal(15, 2)
-  billingStatus  String?  @map("billing_status")
-  billingDetail  String?  @map("billing_detail")
-  collectDetail  String?  @map("collect_detail")
-  notes          String?  @map("notes")
-
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  resultType4    ActivityResultType4 @relation(fields: [resultType4Id], references: [id], onDelete: Cascade)
-  store          Customer?           @relation(fields: [storeId], references: [id], onDelete: SetNull)
-
-  @@index([resultType4Id])
   @@index([storeId])
-  @@map("activity_result_type_4_items")
+  @@map("activity_result_type_4")
 }
 
 // =============================================================================
