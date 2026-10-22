@@ -294,8 +294,14 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 4 Billing / Collect Results from dedicated table or outcome
-    if (resData.type4Result || resData.activityResultType4) {
-      const t4 = resData.type4Result || resData.activityResultType4;
+    const t4 =
+      resData.type4Result ||
+      resData.activityResultType4 ||
+      resData.activityPlan?.type4Result ||
+      (resData.result &&
+        (resData.result.type4Result || resData.result.activityResultType4));
+
+    if (t4) {
       if (!result.t4OrderNo && t4.orderNo) result.t4OrderNo = t4.orderNo;
       if (!result.t4BillingStatus && t4.billingStatus)
         result.t4BillingStatus = t4.billingStatus;

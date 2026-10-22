@@ -45,6 +45,7 @@ export function Type4DetailView({
   billingStatus,
   billingDetail,
   collectDetail,
+  items = [],
   paymentImages = [],
 }: Type4DetailViewProps) {
   if (!isVisible) return null;
@@ -125,19 +126,33 @@ export function Type4DetailView({
   );
 
   // Calculate totals (Only for COLLECT items)
-  const totalReceived = hasMultipleCompanies
-    ? resolvedTarget!.items!.reduce((sum, item) => {
+  const computedReceived = hasMultipleCompanies
+    ? resolvedTarget!.items!.reduce((sum, item, idx) => {
         const isBilling = item.collectType === "BILLING";
         if (isBilling) return sum;
+        const actualItem =
+          items?.find(
+            (it) =>
+              (it.id && it.id === item.id) ||
+              (it.storeId && it.storeId === item.storeId),
+          ) || items?.[idx];
         const itemVal =
+          parseCleanAmount(actualItem?.receivedAmount) ??
           parseCleanAmount(item.receivedAmount) ??
-          parseCleanAmount(receivedAmount) ??
+          (resolvedTarget!.items!.length === 1
+            ? parseCleanAmount(receivedAmount)
+            : null) ??
           0;
         return sum + itemVal;
       }, 0)
     : resolvedTarget?.collectType !== "BILLING"
       ? parseCleanAmount(receivedAmount) || 0
       : 0;
+
+  const totalReceived =
+    computedReceived > 0
+      ? computedReceived
+      : parseCleanAmount(receivedAmount) || 0;
 
   const totalTarget = hasMultipleCompanies
     ? resolvedTarget!.items!.reduce((sum, item) => {
@@ -172,10 +187,19 @@ export function Type4DetailView({
       : [];
 
   const billingSuccessCount = hasMultipleCompanies
-    ? resolvedTarget!.items!.filter((item) => {
+    ? resolvedTarget!.items!.filter((item, idx) => {
         const isBilling = item.collectType === "BILLING";
         if (!isBilling) return false;
-        const status = item.billingStatus || billingStatus;
+        const actualItem =
+          items?.find(
+            (it) =>
+              (it.id && it.id === item.id) ||
+              (it.storeId && it.storeId === item.storeId),
+          ) || items?.[idx];
+        const status =
+          actualItem?.billingStatus ||
+          item.billingStatus ||
+          (resolvedTarget!.items!.length === 1 ? billingStatus : "");
         return status === "วางบิลสำเร็จ";
       }).length
     : billingStatus === "วางบิลสำเร็จ"
@@ -215,31 +239,52 @@ export function Type4DetailView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {resolvedTarget!.items!.map((item, idx) => {
                 const isBilling = item.collectType === "BILLING";
+                const actualItem =
+                  items?.find(
+                    (it) =>
+                      (it.id && it.id === item.id) ||
+                      (it.storeId && it.storeId === item.storeId),
+                  ) || items?.[idx];
+
                 const targetVal =
                   item.targetAmountNum ??
                   (item as any).collectAmount ??
                   parseCleanAmount(item.targetCollect) ??
                   0;
                 const recVal =
+                  parseCleanAmount(actualItem?.receivedAmount) ??
                   parseCleanAmount(item.receivedAmount) ??
-                  (!isBilling && parseCleanAmount(receivedAmount) != null
+                  (!isBilling &&
+                  resolvedTarget!.items!.length === 1 &&
+                  parseCleanAmount(receivedAmount) != null
                     ? parseCleanAmount(receivedAmount)
                     : null) ??
                   0;
                 const remaining = Math.max(0, targetVal - recVal);
                 const itemBillingStatus =
+                  actualItem?.billingStatus ||
                   item.billingStatus ||
-                  (isBilling && billingStatus ? billingStatus : "");
+                  (isBilling && resolvedTarget!.items!.length === 1 && billingStatus
+                    ? billingStatus
+                    : "");
                 const itemBillingDetail =
+                  actualItem?.billingDetail ||
                   item.billingDetail ||
-                  (isBilling && billingDetail
+                  (isBilling && actualItem?.detail ? actualItem.detail : "") ||
+                  (isBilling &&
+                  resolvedTarget!.items!.length === 1 &&
+                  billingDetail
                     ? billingDetail
                     : isBilling && item.detail
                       ? item.detail
                       : "");
                 const itemCollectDetail =
+                  actualItem?.collectDetail ||
                   item.collectDetail ||
-                  (!isBilling && collectDetail
+                  (!isBilling && actualItem?.detail ? actualItem.detail : "") ||
+                  (!isBilling &&
+                  resolvedTarget!.items!.length === 1 &&
+                  collectDetail
                     ? collectDetail
                     : !isBilling && item.detail
                       ? item.detail

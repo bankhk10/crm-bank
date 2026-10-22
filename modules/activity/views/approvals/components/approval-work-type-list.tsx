@@ -959,6 +959,7 @@ export function ApprovalWorkTypeList({
             billingStatus={parsedResults?.t4BillingStatus}
             billingDetail={parsedResults?.t4BillingDetail}
             collectDetail={parsedResults?.t4CollectDetail}
+            items={parsedResults?.t4Items}
             paymentImages={effectiveT4Images}
           />
         ) : (

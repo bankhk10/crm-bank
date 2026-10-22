@@ -53,6 +53,7 @@ export interface Type4DetailViewProps {
   billingStatus?: string;
   billingDetail?: string;
   collectDetail?: string;
+  items?: TargetCollectCompanyItem[];
   paymentImages?: Type4ImageFile[];
 }
 

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import type { Type4ImageFile } from "../../shared/types";
 import type { TargetCollectCompanyItem } from "../types/planned.types";
 import { validateType4Actual } from "../application/actual-validation";
+import { parseType4ActualResult } from "../application/actual-mapper";
 import { uploadActivityPlanImageGroup } from "@/modules/activity/application/media/image-uploader";
 
 export function useType4Actual() {
@@ -69,8 +70,15 @@ export function useType4Actual() {
     [t4PaymentImages],
   );
 
-  const hydrate = useCallback((parsed: any) => {
-    if (!parsed) return;
+  const hydrate = useCallback((data: any) => {
+    if (!data) return;
+    const isAlreadyParsed = Boolean(
+      data.t4OrderNo ||
+        data.t4ReceivedAmount ||
+        data.t4Items ||
+        data.t4BillingStatus,
+    );
+    const parsed = isAlreadyParsed ? data : parseType4ActualResult(data);
     if (parsed.t4OrderNo) setT4OrderNo(parsed.t4OrderNo);
     if (parsed.t4ReceivedAmount) {
       setT4ReceivedAmount(parsed.t4ReceivedAmount);

@@ -31,8 +31,14 @@ export function parseType4ActualResult(resData: any): {
   if (!resData) return result;
 
   // 1. Direct from dedicated table ActivityResultType4 if present
-  if (resData.type4Result) {
-    const t4 = resData.type4Result;
+  const t4 =
+    resData.type4Result ||
+    resData.activityResultType4 ||
+    resData.activityPlan?.type4Result ||
+    (resData.result &&
+      (resData.result.type4Result || resData.result.activityResultType4));
+
+  if (t4) {
     result.t4OrderNo = t4.orderNo || undefined;
     result.t4BillingStatus = t4.billingStatus || undefined;
     result.t4ReceivedAmount =
@@ -122,8 +128,9 @@ export function parseType4ActualResult(resData: any): {
   }
 
   // 3. Attachments (receipts, slips, bills)
-  if (resData.attachments && Array.isArray(resData.attachments)) {
-    const t4Att = resData.attachments.filter(
+  const rawAtt = resData.attachments || resData.activityPlan?.attachments;
+  if (rawAtt && Array.isArray(rawAtt)) {
+    const t4Att = rawAtt.filter(
       (a: any) =>
         a.workTypeCode === "TYPE_4" ||
         a.workTypeCode === "วางบิล / เก็บเงิน" ||

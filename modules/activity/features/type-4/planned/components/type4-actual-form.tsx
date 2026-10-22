@@ -210,11 +210,29 @@ export function Type4ActualForm({
     if (!resolvedTarget?.items || resolvedTarget.items.length === 0) return;
 
     setCompanyItems((prev) => {
-      // 1. Initial hydration or change in number of items
+      // Check if items prop has actual data loaded from database
+      const hasActualInItems =
+        items &&
+        items.length > 0 &&
+        items.some(
+          (it) =>
+            it.receivedAmount ||
+            it.billingStatus ||
+            (it.billingDetail && it.billingDetail !== it.detail) ||
+            (it.collectDetail && it.collectDetail !== it.detail),
+        );
+
+      const isPrevEmpty =
+        !prev ||
+        prev.length === 0 ||
+        prev.every((it) => !it.receivedAmount && !it.billingStatus);
+
+      // 1. Initial hydration, item count change, or newly arrived actual data
       if (
         !prev ||
         prev.length === 0 ||
-        prev.length !== resolvedTarget.items!.length
+        prev.length !== resolvedTarget.items!.length ||
+        (hasActualInItems && isPrevEmpty)
       ) {
         const newItems = resolvedTarget.items!.map(
           (targetItem: TargetCollectCompanyItem, idx: number) => {
@@ -255,6 +273,15 @@ export function Type4ActualForm({
         );
 
         onUpdateItems?.(newItems);
+
+        // Sync total sum to parent if available
+        const totalSum = newItems
+          .filter((it) => it.collectType !== "BILLING")
+          .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
+        if (totalSum > 0) {
+          setReceivedAmount(String(totalSum));
+        }
+
         return newItems;
       }
 
