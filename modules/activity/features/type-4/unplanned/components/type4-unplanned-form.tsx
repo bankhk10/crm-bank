@@ -397,59 +397,6 @@ export function Type4UnplannedForm({
                     </div>
                   </div>
                 )}
-
-                {/* Attachments Section per store */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-amber-600" />
-                      <span>หลักฐานการชำระเงิน / รูปภาพบิล</span>
-                    </label>
-                    {!readonly && (
-                      <label className="cursor-pointer text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors">
-                        <Upload className="w-3 h-3" />
-                        <span>แนบรูป</span>
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(item.id, e)}
-                          className="hidden"
-                        />
-                      </label>
-                    )}
-                  </div>
-
-                  {item.images && item.images.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      {item.images.map((img) => (
-                        <div
-                          key={img.id}
-                          className="group relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
-                        >
-                          <img
-                            src={img.url || img.previewUrl}
-                            alt={img.name || "Payment Slip"}
-                            className="w-full h-full object-cover"
-                          />
-                          {!readonly && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveImage(item.id, img.id)}
-                              className="absolute top-1 right-1 p-1 rounded-md bg-black/60 text-white hover:bg-rose-600 transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-2.5 text-center text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200 text-[11px]">
-                      ยังไม่มีรูปภาพหลักฐานแนบ
-                    </div>
-                  )}
-                </div>
               </div>
             );
           })
