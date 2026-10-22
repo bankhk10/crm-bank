@@ -53,7 +53,12 @@ export function Type4ActualForm({
         if (t.items && t.items.length > 0) {
           return t.items.map((it) => ({
             ...it,
-            detail: it.detail || (it as any).notes || t.detail || (t as any).notes || "",
+            detail:
+              it.detail ||
+              (it as any).notes ||
+              t.detail ||
+              (t as any).notes ||
+              "",
           }));
         }
         const custDisplay =
@@ -237,8 +242,10 @@ export function Type4ActualForm({
         const newItems = resolvedTarget.items!.map(
           (targetItem: TargetCollectCompanyItem, idx: number) => {
             const isBilling =
-              (targetItem.collectType || resolvedTarget?.collectType) === "BILLING";
-            const planNotes = targetItem.detail || (targetItem as any).notes || "";
+              (targetItem.collectType || resolvedTarget?.collectType) ===
+              "BILLING";
+            const planNotes =
+              targetItem.detail || (targetItem as any).notes || "";
 
             const existingItem =
               items?.find(
@@ -252,7 +259,9 @@ export function Type4ActualForm({
             return {
               ...targetItem,
               collectType:
-                targetItem.collectType || resolvedTarget?.collectType || "COLLECT",
+                targetItem.collectType ||
+                resolvedTarget?.collectType ||
+                "COLLECT",
               receivedAmount:
                 existingItem?.receivedAmount ?? targetItem.receivedAmount ?? "",
               billingStatus:
@@ -860,59 +869,6 @@ export function Type4ActualForm({
           )}
         </div>
       )}
-
-      {/* PAYMENT IMAGES ATTACHMENT SECTION */}
-      <div className="space-y-3 pt-3 border-t border-slate-100">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
-            <span>หลักฐานการชำระเงิน / รูปภาพบิล / ใบเสร็จ</span>
-          </label>
-          {onUploadImages && (
-            <label className="cursor-pointer text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors">
-              <Upload className="w-3 h-3" />
-              <span>แนบรูปภาพ</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={onUploadImages}
-                className="hidden"
-              />
-            </label>
-          )}
-        </div>
-
-        {paymentImages && paymentImages.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-            {paymentImages.map((img) => (
-              <div
-                key={img.id}
-                className="group relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50 aspect-video flex items-center justify-center shadow-2xs"
-              >
-                <img
-                  src={img.url || img.previewUrl}
-                  alt={img.name || "Payment Receipt"}
-                  className="w-full h-full object-cover"
-                />
-                {onRemoveImage && (
-                  <button
-                    type="button"
-                    onClick={() => onRemoveImage(img.id)}
-                    className="absolute top-1 right-1 p-1 rounded-md bg-black/60 text-white hover:bg-rose-600 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-4 text-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-xs">
-            ยังไม่มีหลักฐานการชำระเงินแนบในระบบ
-          </div>
-        )}
-      </div>
     </div>
   );
 }

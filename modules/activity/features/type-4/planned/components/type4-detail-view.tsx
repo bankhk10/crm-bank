@@ -14,10 +14,7 @@ import type {
   TargetCollectCompanyItem,
   Type4TargetItem,
 } from "../types/planned.types";
-import type {
-  Type4DetailViewProps,
-} from "../types/actual.types";
-import type { Type4ImageFile } from "../../shared/types";
+import type { Type4DetailViewProps } from "../types/actual.types";
 
 function parseCleanAmount(val: unknown): number | null {
   if (val === null || val === undefined) return null;
@@ -31,10 +28,7 @@ function parseCleanAmount(val: unknown): number | null {
   return isNaN(num) ? null : num;
 }
 
-export type {
-  TargetCollectCompanyItem,
-  Type4DetailViewProps,
-};
+export type { TargetCollectCompanyItem, Type4DetailViewProps };
 
 export function Type4DetailView({
   isVisible,
@@ -57,13 +51,26 @@ export function Type4DetailView({
         t.items && t.items.length > 0
           ? t.items.map((it) => ({
               ...it,
-              detail: it.detail || (it as any).notes || t.detail || (t as any).notes || "",
+              detail:
+                it.detail ||
+                (it as any).notes ||
+                t.detail ||
+                (t as any).notes ||
+                "",
             }))
           : [
               {
                 id: t.id || `t4-item-${idx}`,
-                customer: t.customer || (t as any).store?.name || (t as any).companyName || "",
-                companyName: t.companyName || (t as any).store?.name || t.customer || "ร้านค้า / ลูกค้า",
+                customer:
+                  t.customer ||
+                  (t as any).store?.name ||
+                  (t as any).companyName ||
+                  "",
+                companyName:
+                  t.companyName ||
+                  (t as any).store?.name ||
+                  t.customer ||
+                  "ร้านค้า / ลูกค้า",
                 storeId: t.storeId,
                 collectType: t.collectType || "COLLECT",
                 targetCollect: t.targetCollect || "",
@@ -78,9 +85,17 @@ export function Type4DetailView({
       );
       return {
         ...targets[0],
-        customer: targets.map((t) => t.customer || (t as any).store?.name || (t as any).companyName).filter(Boolean).join(", "),
+        customer: targets
+          .map(
+            (t) =>
+              t.customer || (t as any).store?.name || (t as any).companyName,
+          )
+          .filter(Boolean)
+          .join(", "),
         targetCollect:
-          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+          totalAmount > 0
+            ? `${totalAmount.toLocaleString()} บาท`
+            : targets[0].targetCollect,
         targetAmountNum: totalAmount,
         collectAmount: totalAmount,
         items: allItems,
@@ -110,9 +125,14 @@ export function Type4DetailView({
       );
       return {
         ...targets[0],
-        customer: targets.map((t) => t.customer).filter(Boolean).join(", "),
+        customer: targets
+          .map((t) => t.customer)
+          .filter(Boolean)
+          .join(", "),
         targetCollect:
-          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+          totalAmount > 0
+            ? `${totalAmount.toLocaleString()} บาท`
+            : targets[0].targetCollect,
         targetAmountNum: totalAmount,
         collectAmount: totalAmount,
         items: allItems,
@@ -174,7 +194,8 @@ export function Type4DetailView({
 
   const hasActual = hasMultipleCompanies
     ? totalReceived > 0
-    : resolvedTarget?.collectType !== "BILLING" && parseCleanAmount(receivedAmount) != null;
+    : resolvedTarget?.collectType !== "BILLING" &&
+      parseCleanAmount(receivedAmount) != null;
 
   const totalRemaining = hasActual
     ? Math.max(0, totalTarget - totalReceived)
@@ -264,7 +285,9 @@ export function Type4DetailView({
                 const itemBillingStatus =
                   actualItem?.billingStatus ||
                   item.billingStatus ||
-                  (isBilling && resolvedTarget!.items!.length === 1 && billingStatus
+                  (isBilling &&
+                  resolvedTarget!.items!.length === 1 &&
+                  billingStatus
                     ? billingStatus
                     : "");
                 const itemBillingDetail =
@@ -417,7 +440,8 @@ export function Type4DetailView({
               <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs md:text-sm">
                 <CheckCircle2 className="w-4 h-4 text-indigo-600" />
                 <span>
-                  สรุปผลการปฏิบัติงาน ({resolvedTarget!.items!.length} บริษัท/ร้านค้า):
+                  สรุปผลการปฏิบัติงาน ({resolvedTarget!.items!.length}{" "}
+                  บริษัท/ร้านค้า):
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs">
