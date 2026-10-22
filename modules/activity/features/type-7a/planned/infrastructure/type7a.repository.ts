@@ -251,3 +251,233 @@ export async function findType7aByPlanId(activityPlanId: string) {
     products,
   };
 }
+
+/**
+ * Sync Type 7A Actual outcome data to DemoPlot, DemoPlotIrrigation,
+ * DemoPlotExternalProduct, DemoPlotProduct, and DemoPlotVisit (Visit #1)
+ */
+export async function syncType7aActualData(
+  tx: Prisma.TransactionClient,
+  activityPlanId: string,
+  actualData: any,
+): Promise<void> {
+  if (!actualData) return;
+
+  let demoPlotId = actualData.demoPlotId || actualData.t7DemoPlotId || null;
+
+  if (!demoPlotId) {
+    const plan7a = await (tx as any).activityPlanType7a?.findFirst({
+      where: { activityPlanId },
+      select: { demoPlotId: true },
+    });
+    if (plan7a?.demoPlotId) {
+      demoPlotId = plan7a.demoPlotId;
+    }
+  }
+
+  if (!demoPlotId) {
+    const matchedPlot = await tx.demoPlot.findFirst({
+      where: {
+        type7aPlots: { some: { activityPlanId } },
+      },
+      select: { id: true },
+    });
+    if (matchedPlot?.id) {
+      demoPlotId = matchedPlot.id;
+    }
+  }
+
+  if (!demoPlotId) return;
+
+  // 1. Update Master DemoPlot record
+  await tx.demoPlot.update({
+    where: { id: demoPlotId },
+    data: {
+      ownerName: actualData.t7FarmerName || undefined,
+      farmerCustomerId: actualData.t7FarmerCustomerId || null,
+      ownerPhone: actualData.t7FarmerPhone || null,
+      ownerProvince: actualData.t7FarmerProvince || null,
+      ownerDistrict: actualData.t7FarmerDistrict || null,
+      ownerSubdistrict: actualData.t7FarmerSubdistrict || null,
+      isUnregisteredFarmer: Boolean(actualData.t7IsUnregisteredFarmer),
+      latitude: parseDecimalCoord(actualData.t7Latitude),
+      longitude: parseDecimalCoord(actualData.t7Longitude),
+      mainCropInfo: actualData.t7MainCropInfo || null,
+      experimentDetail: actualData.t7ExperimentDetail || null,
+      plantingDate: actualData.t7PlantingDate ? new Date(actualData.t7PlantingDate) : null,
+      initialSprayDate: actualData.t7InitialSprayDate ? new Date(actualData.t7InitialSprayDate) : null,
+      nextSprayDate: actualData.t7NextSprayDate ? new Date(actualData.t7NextSprayDate) : null,
+      sprayMethod: actualData.t7SprayMethod || null,
+      sprayEquipment: actualData.t7SprayEquipment || null,
+      otherEquipment: actualData.t7OtherEquipment || null,
+      hasExternalChemicals: Boolean(actualData.t7HasExternalChemicals),
+      notes: actualData.t7Notes || null,
+    },
+  });
+
+  // 2. Sync DemoPlotIrrigation
+  await tx.demoPlotIrrigation.deleteMany({
+    where: { demoPlotId },
+  });
+  if (Array.isArray(actualData.t7Irrigations) && actualData.t7Irrigations.length > 0) {
+    const uniqueMethods = Array.from(new Set(actualData.t7Irrigations.filter(Boolean)));
+    if (uniqueMethods.length > 0) {
+      await tx.demoPlotIrrigation.createMany({
+        data: uniqueMethods.map((m: any) => ({
+          demoPlotId,
+          method: String(m),
+        })),
+      });
+    }
+  }
+
+  // 3. Sync DemoPlotExternalProduct
+  await tx.demoPlotExternalProduct.deleteMany({
+    where: { demoPlotId },
+  });
+  if (
+    actualData.t7HasExternalChemicals &&
+    Array.isArray(actualData.t7ExternalProducts) &&
+    actualData.t7ExternalProducts.length > 0
+  ) {
+    const validExternals = actualData.t7ExternalProducts.filter((p: any) =>
+      Boolean(p.productName?.trim()),
+    );
+    if (validExternals.length > 0) {
+      await tx.demoPlotExternalProduct.createMany({
+        data: validExternals.map((ext: any, idx: number) => ({
+          demoPlotId,
+          company: ext.company || "",
+          productName: ext.productName,
+          activeIngredient: ext.activeIngredient || null,
+          formula: ext.formula || "SL",
+          customFormula: ext.customFormula || null,
+          applicationRate: ext.applicationRate || "",
+          sortOrder: idx,
+        })),
+      });
+    }
+  }
+
+  // 4. Sync DemoPlotProduct (Planned + Additional)
+  await tx.demoPlotProduct.deleteMany({
+    where: { demoPlotId },
+  });
+
+  const productsToCreate: any[] = [];
+
+  // Planned products
+  if (Array.isArray(actualData.t7PlannedProducts) && actualData.t7PlannedProducts.length > 0) {
+    actualData.t7PlannedProducts.forEach((p: any, idx: number) => {
+      if (p.productId) {
+        productsToCreate.push({
+          demoPlotId,
+          productId: p.productId,
+          productName: p.productName || null,
+          quantity:
+            p.actualQuantity != null && p.actualQuantity !== ""
+              ? new Prisma.Decimal(p.actualQuantity)
+              : null,
+          extraQuantity:
+            p.extraQuantity != null && p.extraQuantity !== ""
+              ? new Prisma.Decimal(p.extraQuantity)
+              : null,
+          extraUnit: p.extraUnit || null,
+          applicationRate: p.applicationRate || "",
+          isAdditional: false,
+          withdrawnQuantity:
+            p.withdrawnQuantity != null && p.withdrawnQuantity !== ""
+              ? new Prisma.Decimal(p.withdrawnQuantity)
+              : null,
+          sortOrder: idx,
+        });
+      }
+    });
+  }
+
+  // Additional products
+  if (Array.isArray(actualData.t7AdditionalProducts) && actualData.t7AdditionalProducts.length > 0) {
+    actualData.t7AdditionalProducts.forEach((p: any, idx: number) => {
+      if (p.productId) {
+        productsToCreate.push({
+          demoPlotId,
+          productId: p.productId,
+          productName: p.productName || null,
+          quantity:
+            p.actualQuantity != null && p.actualQuantity !== ""
+              ? new Prisma.Decimal(p.actualQuantity)
+              : null,
+          extraQuantity:
+            p.extraQuantity != null && p.extraQuantity !== ""
+              ? new Prisma.Decimal(p.extraQuantity)
+              : null,
+          extraUnit: p.extraUnit || null,
+          applicationRate: p.applicationRate || "",
+          isAdditional: true,
+          sortOrder: productsToCreate.length + idx,
+        });
+      }
+    });
+  }
+
+  if (productsToCreate.length > 0) {
+    await tx.demoPlotProduct.createMany({
+      data: productsToCreate,
+    });
+  }
+
+  // 5. Sync DemoPlotVisit (Visit #1)
+  const photoUrls = (actualData.t7InitialPhotos || [])
+    .map((img: any) => img.url)
+    .filter(Boolean);
+
+  const visitNumber = 1;
+  const visitDate = actualData.t7InitialSprayDate
+    ? new Date(actualData.t7InitialSprayDate)
+    : new Date();
+  const cropAgeVal =
+    actualData.t7CropAgeValue != null &&
+    actualData.t7CropAgeValue !== "" &&
+    !isNaN(Number(actualData.t7CropAgeValue))
+      ? Number(actualData.t7CropAgeValue)
+      : null;
+
+  const existingVisit = await tx.demoPlotVisit.findFirst({
+    where: {
+      demoPlotId,
+      activityPlanId,
+      workTypeCode: "TYPE_7A",
+    },
+  });
+
+  const visitData = {
+    visitNumber,
+    visitDate,
+    daysSinceStart: 0,
+    cropAgeValue: cropAgeVal,
+    cropAgeUnit: actualData.t7CropAgeUnit || "วัน",
+    growthStage: actualData.t7GrowthStage || null,
+    sprayMethod: actualData.t7SprayMethod || null,
+    sprayEquipment: actualData.t7SprayEquipment || null,
+    otherEquipment: actualData.t7OtherEquipment || null,
+    plotImageUrls: photoUrls,
+    imageUrls: photoUrls,
+    notes: actualData.t7Notes || null,
+  };
+
+  if (existingVisit) {
+    await tx.demoPlotVisit.update({
+      where: { id: existingVisit.id },
+      data: visitData,
+    });
+  } else {
+    await tx.demoPlotVisit.create({
+      data: {
+        demoPlotId,
+        activityPlanId,
+        workTypeCode: "TYPE_7A",
+        ...visitData,
+      },
+    });
+  }
+}

@@ -6,6 +6,7 @@ import type {
 import {
   syncType7aPlots,
   findType7aByPlanId,
+  syncType7aActualData,
 } from "./type7a.repository";
 
 export const type7aPlannedStrategy: WorkTypeStrategy = {
@@ -90,18 +91,22 @@ export const type7aPlannedStrategy: WorkTypeStrategy = {
    */
   async saveActual(
     tx: PrismaTransaction,
-    resultId: string,
+    activityPlanId: string,
     actualData: any,
   ): Promise<void> {
+    // 1. Sync full actual outcome to DemoPlot, DemoPlotIrrigation, DemoPlotExternalProduct, DemoPlotProduct, DemoPlotVisit
+    await syncType7aActualData(tx as any, activityPlanId, actualData);
+
+    // 2. Sync to ActivityResultDemoItem for backward compatibility
     if (actualData.demoResults && Array.isArray(actualData.demoResults)) {
       await (tx as any).activityResultDemoItem.deleteMany({
-        where: { activityResultId: resultId },
+        where: { activityResultId: activityPlanId },
       });
 
       if (actualData.demoResults.length > 0) {
         await (tx as any).activityResultDemoItem.createMany({
           data: actualData.demoResults.map((item: any) => ({
-            activityResultId: resultId,
+            activityResultId: activityPlanId,
             plannedProductId: item.plannedProductId || null,
             actualProductId: item.actualProductId || null,
             changeReason: item.changeReason || null,

@@ -53,6 +53,9 @@ export { parseType7aActualResult } from "./planned/application/actual-mapper";
 export type {
   Type7aActualRecord,
   Type7aActualFormProps,
+  Type7aPlannedProductActualItem,
+  Type7aAdditionalProductItem,
+  Type7aExternalChemicalItem,
   ActualType7NewDemoProps,
   Type7aDetailViewProps,
   DetailType7NewDemoProps,

@@ -501,6 +501,13 @@ export function ActualWorkTypeList({
           customers={customers}
           actualState={type7aState.actualState}
           onUpdateField={type7aState.handleUpdateField}
+          onUpdatePlannedProduct={type7aState.updatePlannedProduct}
+          onAddAdditionalProduct={type7aState.addAdditionalProduct}
+          onUpdateAdditionalProduct={type7aState.updateAdditionalProduct}
+          onRemoveAdditionalProduct={type7aState.removeAdditionalProduct}
+          onAddExternalProduct={type7aState.addExternalProduct}
+          onUpdateExternalProduct={type7aState.updateExternalProduct}
+          onRemoveExternalProduct={type7aState.removeExternalProduct}
         />
       )}
 

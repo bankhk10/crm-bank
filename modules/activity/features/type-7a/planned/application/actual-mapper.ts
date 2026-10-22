@@ -9,8 +9,10 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
   const demoItems = rawResult.demoResults || rawResult.activityResultDemoItems || [];
 
   return {
+    t7SelectedProvince: rawResult.selectedProvince || rawResult.farmerProvince || rawResult.province,
     t7FarmerProvince: rawResult.farmerProvince || rawResult.province,
     t7FarmerDistrict: rawResult.farmerDistrict || rawResult.district,
+    t7FarmerSubdistrict: rawResult.farmerSubdistrict || rawResult.ownerSubdistrict || rawResult.subdistrict,
     t7FarmerCustomerId: rawResult.farmerCustomerId,
     t7FarmerName: rawResult.farmerName || rawResult.ownerName,
     t7FarmerPhone: rawResult.farmerPhone || rawResult.ownerPhone,
@@ -45,7 +47,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     t7SprayEquipment: rawResult.sprayEquipment,
     t7OtherEquipment: rawResult.otherEquipment,
     t7HasExternalChemicals: Boolean(rawResult.hasExternalChemicals),
-    t7ExternalProducts: rawResult.externalProducts || [],
+    t7ExternalProducts: rawResult.externalProducts || rawResult.t7ExternalProducts || [],
+    t7PlannedProducts: rawResult.plannedProducts || rawResult.t7PlannedProducts || [],
+    t7AdditionalProducts: rawResult.additionalProducts || rawResult.t7AdditionalProducts || [],
     t7InitialPhotos: rawResult.initialPhotos || [],
     t7PlotImages: rawResult.plotImages || [],
     t7CropImages: rawResult.cropImages || [],

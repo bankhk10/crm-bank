@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-7a`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`DemoPlot`, `ActivityPlanType7a`, `ActivityPlanType7aProduct`, `ActivityResultDemoItem`, `ActivityAttachment`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
-> **Status**: Production Ready / Active Reference (v1.7.0 — Updated 2026-10-22)
+> **Database Authority**: `prisma/schema.prisma` (`DemoPlot`, `DemoPlotIrrigation`, `DemoPlotExternalProduct`, `DemoPlotProduct`, `DemoPlotVisit`, `ActivityPlanType7a`, `ActivityPlanType7aProduct`, `ActivityResultDemoItem`, `ActivityAttachment`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
+> **Status**: Production Ready / Active Reference (v1.8.0 — Updated 2026-10-22)
 
 ---
 
@@ -16,12 +16,14 @@
 2. บันทึกข้อมูลแปลงสาธิตและเกษตรกรเจ้าของแปลง (ชื่อแปลง, เจ้าของแปลง, ร้านค้าตัวแทนจำหน่ายที่ร่วมโครงการ, พิกัดแปลง GPS และขนาดพื้นที่)
 3. ระบุชนิดพืชและเป้าหมายการทดสอบ (หมวดพืช, ชื่อพืช, วัตถุประสงค์การทดลอง, วันที่ปลูก และกำหนดการฉีดพ่น)
 4. วางแผนรายการผลิตภัณฑ์และจำนวนสินค้าตัวอย่างที่จะนำไปทดสอบสาธิต (`demoProducts` / `products`)
-5. บันทึกผลการจัดทำแปลงจริงหน้างาน (Actual Outcome):
-   - ยืนยันพิกัดแปลงจริง (GPS Lat/Long)
-   - ข้อมูลสภาพพื้นที่ปลูกเริ่มต้นและการเจริญเติบโตของพืช
-   - วิธีการฉีดพ่นและอุปกรณ์ที่ใช้ (เครื่องพ่นสะพายหลัง, เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร)
-   - สินค้าที่ใช้จริงเปรียบเทียบกับแผน พร้อมเหตุผลการปรับเปลี่ยน (`changeReason`)
-   - บันทึกภาพถ่ายแปลงสาธิตเริ่มต้น (Establishment Photos) สูงสุด 5 รูปต่อแปลง (หมวดหมู่ `PLOT`)
+5. บันทึกผลการจัดทำแปลงจริงหน้างาน (Actual Outcome) ครบ 7 หมวดหมู่:
+   - **เกษตรกรเจ้าของแปลงและพิกัดแปลง:** กรองเกษตรกรตามจังหวัดที่เลือก หรือบันทึกเกษตรกรนอกระบบ (ที่อยู่ระดับจังหวัด/อำเภอ/ตำบล ผ่าน `ActivityAddressSelect`, ชื่อ-สกุล, เบอร์โทรศัพท์) พร้อมปักหมุดพิกัด GPS จริงหน้างาน (`ActivityGpsPicker`)
+   - **ข้อมูลสภาพแปลงเริ่มต้น:** พืชประธาน, วิธีการทดลอง, ระบบน้ำ 8 ชนิด (`ActivityIrrigationCheckbox`), วันที่เริ่มปลูกจริง, วันที่ฉีดพ่นครั้งแรก, กำหนดพ่นครั้งต่อไป (`ActivityDatePicker`), อายุพืช (วัน/เดือน), ระยะการเจริญเติบโต และข้อมูลเพิ่มเติม
+   - **วิธีการฉีดพ่นและยาภายนอก:** รองรับทั้งแบบฉีดเดี่ยว (Single) และผสมถัง (Tank-mixed) พร้อมตารางระบุยาภายนอก (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร SL/SC/EC/อื่นๆ, อัตราการใช้)
+   - **อุปกรณ์ที่ใช้ฉีดพ่น:** เครื่องพ่นสะพายหลัง, เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส/รถพ่นยา, หรืออื่นๆ ระบุ
+   - **สินค้าที่เบิกตามแผน:** ดึงรายการยาตัวอย่างที่เบิกตามแผนมาแสดง พร้อมบันทึกจำนวนที่ใช้จริง (ขวด), ปริมาณที่ใช้เพิ่ม (ซีซี/กรัม) และอัตราการใช้
+   - **สินค้าเพิ่มเติมในการปฏิบัติงาน:** บันทึกยาที่ใช้นอกเหนือจากแผน โดยเลือกสินค้าจากระบบ และบันทึกจำนวนจริง, ปริมาณเพิ่ม, อัตราการใช้
+   - **ภาพถ่ายแปลงสาธิตเริ่มต้น:** อัปโหลดภาพถ่ายแปลงสาธิตเริ่มต้นสูงสุด 10 รูปต่อแปลง (หมวดหมู่ `PLOT`)
 
 ### 1.2 ขอบเขตของ Type 7A
 - **กลุ่มเป้าหมายที่รองรับ:**
@@ -39,15 +41,17 @@
   - **สินค้าที่นำไปทดสอบสาธิต (`demoProducts` / `products`):** มีตัวเลือก **`หมวดสินค้า`** (`categoryId` จาก `ProductCategory`) ก่อน แล้วช่อง **`เลือกสินค้า`** (`ActivityProductSelect`) จะกรองเฉพาะสินค้าที่อยู่ในหมวดสินค้านั้น
 - **ระบบออกรหัสแปลงสาธิตอัตโนมัติ (Automated DemoPlot Code Generation):**
   - สร้างรหัสแปลงรูปแบบ `DPYYMMXXXX` (เช่น `DP26100001`) ผ่านฟังก์ชัน `generateDemoPlotCode` โดยใช้ PostgreSQL Advisory Lock (`pg_advisory_xact_lock`) เพื่อรับประกันว่าจะไม่มีรหัสซ้ำกันแม้มีการบันทึกพร้อมกัน (Concurrent Requests)
-- **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - **Master Table:** สร้างระเบียนแปลงสาธิตหลักลงตาราง `DemoPlot` (`demo_plots`) มีสถานะเริ่มต้นเป็น `IN_PROGRESS`
+- **การจัดเก็บข้อมูลและการส่งต่อสู่ Type 7B (Persistence & Type 7B Handover):**
+  - **Master Table:** สร้างและอัปเดตระเบียนแปลงสาธิตหลักลงตาราง `DemoPlot` (`demo_plots`) มีสถานะเริ่มต้นเป็น `IN_PROGRESS`
+  - **Dedicated Child Tables:** บันทึกระบบน้ำลง `DemoPlotIrrigation`, ยาภายนอกลง `DemoPlotExternalProduct`, สินค้าที่ใช้จริงลง `DemoPlotProduct` และบันทึกประวัติลงพื้นที่รอบแรกเป็น `DemoPlotVisit` (Visit #1, `workTypeCode = "TYPE_7A"`)
   - **Dedicated Plan Tables:** บันทึกรายละเอียดแผนงานลง `ActivityPlanType7a` (`activity_plan_type_7a`) และรายการสินค้าลง `ActivityPlanType7aProduct` (`activity_plan_type_7a_products`)
   - **Generic Tables Sync:** ซิงค์สำเนาแปลงลง `ActivityPlanStore` และสินค้าตัวอย่างลง `ActivityPlanProduct` (`workTypeCode = "TYPE_7A"`) เพื่อให้ปฏิทินงาน รายงานภาพรวม และระบบเดิมทำงานร่วมกันได้อย่างสมบูรณ์
-  - **Actual Outcome Tables:** บันทึกผลการใช้สินค้าตัวอย่างลง `ActivityResultDemoItem` (`activity_result_demo_items`) และรูปภาพลง `ActivityAttachment` (`category = "PLOT"`)
+  - **Type 7B Integration:** เมื่อจัดทำแปลงสำเร็จ โมดูล Type 7B (ติดตามแปลงสาธิต) สามารถดึงข้อมูลแปลงนี้ขึ้นมาติดตามต่อในรอบที่ 2..N ได้ทันทีผ่าน `findMasterDemoPlots()` และ `getAvailableDemoPlots()`
+  - **Actual Outcome Tables:** บันทึกผลการใช้สินค้าตัวอย่างลง `ActivityResultDemoItem` (`activity_result_demo_items`) และรูปภาพลง `ActivityAttachment` (`category = "PLOT"`, สูงสุด 10 รูป)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน Trip Plan):** กำหนดเป้าหมายแปลงสาธิต ร้านค้า เกษตรกร ชนิดพืช และสินค้าตัวอย่างล่วงหน้า ส่งขออนุมัติตามสายงาน
-2. **Planned Actual (บันทึกผลงานตามแผน):** เมื่อแผนได้รับอนุมัติ นำแผนเดิมมารายงานผลการจัดตั้งแปลงจริง ปักหมุด GPS ยืนยันการใช้สินค้า และอัปโหลดภาพถ่ายแปลงเริ่มต้น
+2. **Planned Actual (บันทึกผลงานตามแผน):** เมื่อแผนได้รับอนุมัติ นำแผนเดิมมารายงานผลการจัดตั้งแปลงจริง ปักหมุด GPS ยืนยันเกษตรกร ระบุสภาพแปลงและระบบน้ำ บันทึกการใช้สินค้าจริง และอัปโหลดภาพถ่ายแปลงเริ่มต้นสูงสุด 10 รูป
 3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับกรณีเข้าจัดทำแปลงสาธิตหน้างานทันที สามารถกรอกข้อมูลแปลง เกษตรกร ชนิดพืช พิกัด GPS สินค้าตัวอย่าง และถ่ายรูปแปลงสาธิตจบในฟอร์มเดียว พร้อมสร้าง `DemoPlot` และแผนงานสถานะ `COMPLETED` ทันที
 4. **Detail View:** แสดงข้อมูลแปลงสาธิตเต็มรูปแบบผ่าน `Type7aDetailView` ทั้งชื่อแปลง เกษตรกร พิกัด ชนิดพืช สินค้าที่ใช้ และรูปถ่าย
 5. **Approval View:** การ์ดสำหรับผู้บังคับบัญชาพิจารณาอนุมัติผ่าน `Type7aApprovalCard` สรุปจำนวนแปลง เกษตรกร และชนิดพืชที่ขอจัดทำ
@@ -80,15 +84,18 @@ graph TD
     A["เปิดหน้า Activity Plan Actual"] --> B["โหลดแผนงานและ Hydrate เป้าหมายเดิม extractType7aPlanTargets"]
     B --> C["เลือกสถานะผลการทำกิจกรรม: COMPLETED / PARTIAL / POSTPONED / CANCELLED"]
     C -->|"COMPLETED หรือ PARTIAL"| D["แสดงฟอร์ม Type7aActualForm ตามแปลงสาธิตเดิม"]
-    D --> E["ปักหมุดพิกัด GPS แปลงสาธิตจริงผ่าน ActivityGpsPicker"]
-    E --> F["ยืนยันการใช้สินค้าตัวอย่าง หรือระบุสินค้าจริง + เหตุผลการเปลี่ยน (changeReason)"]
-    F --> G["ระบุวิธีการฉีดพ่นและอุปกรณ์ (sprayMethod / sprayEquipment)"]
-    G --> H["ถ่ายภาพแปลงสาธิตเริ่มต้น (ไม่เกิน 5 รูป) ผ่าน ActivityPhotoUpload"]
-    H --> I["กดบันทึกผลการปฏิบัติงาน"]
-    I --> J["uploadImages() อัปโหลดภาพไปยัง Storage หมวดหมู่ PLOT"]
-    J --> K["Server Action บันทึกลง activity_result_demo_items และ activity_attachments"]
-    C -->|"POSTPONED"| L["ระบุวันเวลานัดหมายใหม่และเหตุผลที่เลื่อน"]
-    C -->|"CANCELLED"| M["ระบุเหตุผลการยกเลิก"]
+    D --> E["1. ระบุเกษตรกร (กรองตามจังหวัด หรือ เกษตรกรนอกระบบ) + ปักหมุด GPS"]
+    E --> F["2. สภาพแปลงเริ่มต้น (พืชประธาน, วิธีทดลอง, ระบบน้ำ 8 ข้อ, วันที่ปลูก/พ่น, อายุพืช, ระยะโต)"]
+    F --> G["3. วิธีการฉีดพ่น (Single/Tank-mixed) + ยาภายนอก + อุปกรณ์ที่ใช้พ่น"]
+    G --> H["4. สินค้าที่ใช้จริง (ยาตามแผน + ยาเพิ่มเติม: จำนวนขวด, ปริมาณเพิ่ม ซีซี/กรัม, อัตราใช้)"]
+    H --> I["5. ถ่ายภาพแปลงสาธิตเริ่มต้น (สูงสุด 10 รูป) ผ่าน ActivityPhotoUpload"]
+    I --> J["กดบันทึกผลการปฏิบัติงาน"]
+    J --> K["uploadImages() อัปโหลดภาพไปยัง Storage หมวดหมู่ PLOT"]
+    K --> L["syncType7aActualData บันทึกลง DemoPlot, Irrigations, ExternalProducts, Products, DemoPlotVisit Round 1"]
+    L --> M["บันทึกสำเนาลง activity_result_demo_items และ activity_attachments"]
+    M --> N["แปลงพร้อมสำหรับให้ Type 7B ดึงไปติดตามต่อในรอบถัดไป"]
+    C -->|"POSTPONED"| O["ระบุวันเวลานัดหมายใหม่และเหตุผลที่เลื่อน"]
+    C -->|"CANCELLED"| P["ระบุเหตุผลการยกเลิก"]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
@@ -303,97 +310,188 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`demo_plots`**<br>(`DemoPlot`) | `syncType7aPlots()` ใน `savePlan()` | หน้ารายการแปลงสาธิต, Detail / Actual | อัปเดตข้อมูลแปลง / สถานะปิดแปลง | Cascade หรือ Soft-delete | ตารางหลัก Master Data แปลงสาธิต รหัส `DPYYMMXXXX` |
+| **`demo_plots`**<br>(`DemoPlot`) | `syncType7aPlots()` ใน `savePlan()` | หน้ารายการแปลงสาธิต, Detail / Actual | `syncType7aActualData()` ใน `saveActual()` | Cascade หรือ Soft-delete | ตารางหลัก Master Data แปลงสาธิต รหัส `DPYYMMXXXX` พร้อมฟิลด์พิกัด สภาพแปลง และเกษตรกร |
+| **`demo_plot_irrigations`**<br>(`DemoPlotIrrigation`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง (`deleteMany` + `createMany`) | Cascade เมื่อลบ `DemoPlot` | จัดเก็บระบบน้ำประจำแปลง เลือกได้มากกว่า 1 รูปแบบ (8 ตัวเลือกมาตรฐาน) |
+| **`demo_plot_external_products`**<br>(`DemoPlotExternalProduct`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง (`deleteMany` + `createMany`) | Cascade เมื่อลบ `DemoPlot` | จัดเก็บสารเคมีภายนอก/ยาคู่เปรียบเทียบกรณีฉีดพ่นแบบผสมถัง (Tank-mixed) |
+| **`demo_plot_products`**<br>(`DemoPlotProduct`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ซิงค์จำนวนเบิก ยอดใช้จริง ปริมาณเพิ่ม และสินค้าหน้างาน | Cascade เมื่อลบ `DemoPlot` | เก็บคลังสินค้าตัวอย่างประจำแปลง (ทั้งสินค้าตามแผนและสินค้าเพิ่มเติมหน้างาน) |
+| **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `syncType7aActualData()` ใน `saveActual()` (Visit #1) | หน้าไทม์ไลน์การตรวจแปลง / Type 7B | อัปเดตผลตรวจครั้งที่ 1 | Cascade เมื่อลบ `DemoPlot` | บันทึกประวัติการตรวจแปลงครั้งแรก (Baseline Visit) ส่งมอบฐานข้อมูลต่อเนื่องไปยัง Type 7B |
 | **`activity_plan_type_7a`**<br>(`ActivityPlanType7a`) | Dedicated Plan Table | โหลดรายละเอียดแผน Type 7A | อัปเดตข้อมูลแผนแปลง | Cascade เมื่อลบ `ActivityPlan` | เก็บรายละเอียดเป้าหมายแผนแปลงสาธิต |
 | **`activity_plan_type_7a_products`**<br>(`ActivityPlanType7aProduct`) | Dedicated Plan Table | รายการสินค้าตัวอย่างประจำแปลง | ลบและสร้างใหม่ตามแปลง | Cascade เมื่อลบ `ActivityPlanType7a` | เก็บสินค้าตัวอย่างประจำแผน |
 | **`activity_result_demo_items`**<br>(`ActivityResultDemoItem`) | `saveActual()` ใน Actual/Unplanned | `plan.result.demoResults` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityResult` | เก็บผลการใช้สินค้าตัวอย่างและการทดสอบ |
 | **`activity_plan_stores`**<br>(`ActivityPlanStore`) | Dual-write sync ใน `syncType7aPlots()` | Generic store queries | `deleteMany()` + `createMany()` (`workTypeCode: "TYPE_7A"`) | Cascade เมื่อลบ `ActivityPlan` | ซิงค์สำเนาเป้าหมายร้านค้า/แปลง |
 | **`activity_plan_products`**<br>(`ActivityPlanProduct`) | Dual-write sync ใน `syncType7aPlots()` | Generic product queries | `deleteMany()` + `createMany()` (`workTypeCode: "TYPE_7A"`) | Cascade เมื่อลบ `ActivityPlan` | ซิงค์สำเนาสินค้าตัวอย่าง |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ PLOT) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายแปลงสาธิต |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ PLOT) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายแปลงสาธิต (สูงสุด 10 รูป) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
-ไล่จาก **Form Field ➔ Type Field ➔ Mapper ➔ Prisma Model ➔ DB Column Name ➔ Data Type**:
+ไล่จาก **Form Field (UI) ➔ TypeScript Field ➔ Mapper / Hook ➔ Prisma Model ➔ DB Column Name ➔ Data Type**:
 
-| Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
+| Form Field (UI) | TypeScript Type Field | Mapper / Hook Handler | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
 | **ชื่อแปลงสาธิต** | `plotName` / `name` | `syncType7aPlots` / `extractType7aPlanTargets` | `DemoPlot` / `ActivityPlanType7a` | `name` / `plot_name` | `VARCHAR` | No | - |
 | **ชื่อ ร้านค้า Dealer** | `storeId`, `ownerName`, `farmerName` | `syncType7aPlots` / `extractType7aPlanTargets` | `DemoPlot` / `ActivityPlanType7a` | `customer_id` / `store_id`, `owner_name` | `VARCHAR` | Yes / No | `null` / `""` |
-| **จังหวัด** | `province` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `province` | `VARCHAR` | Yes | `null` |
-| **อำเภอ** | `district` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `district` | `VARCHAR` | Yes | `null` |
+| **จังหวัด** | `province` | `syncType7aPlots` / `syncType7aActualData` | `DemoPlot` / `ActivityPlanType7a` | `province` | `VARCHAR` | Yes | `null` |
+| **อำเภอ** | `district` | `syncType7aPlots` / `syncType7aActualData` | `DemoPlot` / `ActivityPlanType7a` | `district` | `VARCHAR` | Yes | `null` |
+| **ตำบล** | `ownerSubdistrict` | `syncType7aActualData` | `DemoPlot` | `owner_subdistrict` | `VARCHAR` | Yes | `null` |
+| **ชื่อ-สกุล เกษตรกร** | `farmerName` / `ownerName` | `syncType7aActualData` | `DemoPlot` | `owner_name` | `VARCHAR` | No | `""` |
+| **เบอร์โทรศัพท์เกษตรกร** | `farmerPhone` / `ownerPhone` | `syncType7aActualData` | `DemoPlot` | `owner_phone` | `VARCHAR` | Yes | `null` |
+| **เกษตรกรที่ไม่มีในระบบ** | `isUnregisteredFarmer` | `syncType7aActualData` | `DemoPlot` | `is_unregistered_farmer` | `BOOLEAN` | No | `false` |
 | **หมวดพืช** | `cropCategory` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `crop_category` | `VARCHAR` | Yes / No | `"พืชทั่วไป"` |
 | **ชื่อพืช** | `cropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `crop_name` | `VARCHAR` | Yes / No | `"พืชทั่วไป"` |
 | **ระบุชื่อพืชเพิ่มเติม** | `customCropName` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `custom_crop_name` | `VARCHAR` | Yes | `null` |
-| **พื้นที่ (ไร่)** *(กรณี ผัก/พืชไร่)* | `areaRai` | `syncType7aPlots` (`new Prisma.Decimal()`) | `DemoPlot` / `ActivityPlanType7a` | `area_rai` | `DECIMAL(10,2)` | Yes | `null` |
-| **จำนวนต้น** *(กรณี พืชสวน)* | `treeCount` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `tree_count` | `INTEGER` | Yes | `null` |
-| **วัตถุประสงค์การจัดทำแปลง** | `objective` / `plotObjective` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `objective` | `TEXT` | Yes / No | `""` |
-| **หมวดสินค้า** | `categoryId` | `syncType7aPlots` / `hydrateType7aPlannedData` | `ActivityPlanType7a` | `category_id` | `VARCHAR` | Yes | `null` |
-| **วันที่ปลูก / เริ่มแปลง** | `plantingDate` | `syncType7aPlots` | `DemoPlot` | `start_date` / `planting_date` | `TIMESTAMP` | No / Yes | `now()` |
-| **วันที่ฉีดพ่นครั้งแรก** | `initialSprayDate` | `syncType7aPlots` | `DemoPlot` | `initial_spray_date` | `TIMESTAMP` | Yes | `null` |
-| **กำหนดฉีดพ่นครั้งต่อไป** | `nextSprayDate` | `syncType7aPlots` | `DemoPlot` | `next_spray_date` | `TIMESTAMP` | Yes | `null` |
-| **พิกัดแปลง (GPS ละติจูด)** | `latitude` | `syncType7aPlots` (`parseDecimalCoord`) | `DemoPlot` | `latitude` | `DECIMAL(10,7)` | Yes | `null` |
-| **พิกัดแปลง (GPS ลองจิจูด)** | `longitude` | `syncType7aPlots` (`parseDecimalCoord`) | `DemoPlot` | `longitude` | `DECIMAL(10,7)` | Yes | `null` |
-| **สินค้าที่นำไปทดสอบสาธิต** | `demoProducts` / `products` | `syncType7aPlots` / `saveActual` | `ActivityPlanType7aProduct` / `ActivityPlanProduct` / `ActivityResultDemoItem` | `product_id`, `quantity` / `target_quantity` | `VARCHAR (FK)` | No | - |
-| **ภาพถ่ายแปลงสาธิต** | `initialPhotos` / `plotImages` | `uploadImages()` (`PLOT`, max 5) | `ActivityAttachment` | `file_url`, `category: "PLOT"` | `TEXT` | No | - |
+| **พื้นที่ (ไร่)** *(ผัก/พืชไร่)* | `areaRai` | `syncType7aPlots` (`Prisma.Decimal`) | `DemoPlot` / `ActivityPlanType7a` | `area_rai` | `DECIMAL(10,2)` | Yes | `null` |
+| **จำนวนต้น** *(พืชสวน)* | `treeCount` | `syncType7aPlots` | `DemoPlot` / `ActivityPlanType7a` | `tree_count` | `INTEGER` | Yes | `null` |
+| **พิกัดแปลง (GPS ละติจูด)** | `latitude` | `parseDecimalCoord` | `DemoPlot` | `latitude` | `DECIMAL(10,7)` | Yes | `null` |
+| **พิกัดแปลง (GPS ลองจิจูด)** | `longitude` | `parseDecimalCoord` | `DemoPlot` | `longitude` | `DECIMAL(10,7)` | Yes | `null` |
+| **ข้อมูลพืชประธาน** | `mainCropInfo` | `syncType7aActualData` | `DemoPlot` | `main_crop_info` | `VARCHAR` | Yes | `null` |
+| **วิธีการทดลอง** | `experimentDetail` | `syncType7aActualData` | `DemoPlot` | `experiment_detail` | `TEXT` | Yes | `null` |
+| **ระบบน้ำ (8 รูปแบบ)** | `irrigations` (`string[]`) | `syncType7aActualData` | `DemoPlotIrrigation` | `method` | `VARCHAR` | No | - |
+| **วันที่เริ่มปลูกจริง** | `plantingDate` | `syncType7aActualData` | `DemoPlot` | `planting_date` | `TIMESTAMP` | Yes | `null` |
+| **วันที่ฉีดพ่นครั้งแรก** | `initialSprayDate` | `syncType7aActualData` | `DemoPlot` | `initial_spray_date` | `TIMESTAMP` | Yes | `null` |
+| **กำหนดฉีดพ่นครั้งต่อไป** | `nextSprayDate` | `syncType7aActualData` | `DemoPlot` | `next_spray_date` | `TIMESTAMP` | Yes | `null` |
+| **อายุพืช (วันหลังปลูก)** | `cropAge` (`number`), `cropAgeUnit` | `syncType7aActualData` | `DemoPlotVisit` | `crop_age_value`, `crop_age_unit` | `INT`, `VARCHAR` | Yes | `null` |
+| **ระยะการเจริญเติบโต** | `growthStage` | `syncType7aActualData` | `DemoPlotVisit` | `growth_stage` | `VARCHAR` | Yes | `null` |
+| **ข้อมูลเพิ่มเติม** | `additionalNotes` / `notes` | `syncType7aActualData` | `DemoPlot` / `DemoPlotVisit` | `notes` | `TEXT` | Yes | `null` |
+| **วิธีการฉีดพ่น (Single/Tank)** | `sprayMethod` | `syncType7aActualData` | `DemoPlot` / `DemoPlotVisit` | `spray_method` | `VARCHAR` | Yes | `"SINGLE"` |
+| **อุปกรณ์ที่ใช้ฉีดพ่น** | `sprayEquipment`, `otherEquipment` | `syncType7aActualData` | `DemoPlot` / `DemoPlotVisit` | `spray_equipment`, `other_equipment` | `VARCHAR` | Yes | `null` |
+| **ยาภายนอก (บริษัท/ชื่อ/สูตร/อัตรา)** | `externalChemicals` | `syncType7aActualData` | `DemoPlotExternalProduct` | multiple columns | `VARCHAR` | Yes | - |
+| **สินค้าตามแผน (จำนวนเบิก/ใช้จริง/เพิ่ม/อัตรา)** | `plannedProducts` | `syncType7aActualData` | `DemoPlotProduct` | `quantity`, `extra_quantity`, etc. | `DECIMAL`, `VARCHAR` | Yes | - |
+| **สินค้าเพิ่มเติมหน้างาน** | `additionalProducts` | `syncType7aActualData` | `DemoPlotProduct` | `is_additional: true` | `BOOLEAN`, `DECIMAL` | Yes | `false` |
+| **ภาพถ่ายสภาพแปลงเริ่มต้น (10 รูป)** | `initialPhotos` / `plotImages` | `uploadImages()` (`PLOT`, max 10) | `ActivityAttachment` | `file_url`, `category: "PLOT"` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
 ```prisma
 // 1. ตาราง Master Data แปลงสาธิต
 model DemoPlot {
-  id             String         @id @default(cuid())
-  code           String         @unique // รหัสแปลงสาธิต เช่น DP26100001
-  name           String         // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
-  ownerName      String         @map("owner_name") // เจ้าของแปลง/ลูกค้า
-  customerId     String?        @map("customer_id") // FK -> Customer (ร้านค้า Dealer)
-  employeeId     String         @map("employee_id") // พนักงานผู้ดูแลแปลง
-  plotType       String         @default("GENERAL_DEMO") @map("plot_type")
+  id                   String         @id @default(cuid())
+  code                 String         @unique // รหัสแปลงสาธิต เช่น DP26100001
+  name                 String         // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
+  ownerName            String         @map("owner_name") // เจ้าของแปลง/ลูกค้า
+  customerId           String?        @map("customer_id") // FK -> Customer (ร้านค้า Dealer)
+  employeeId           String         @map("employee_id") // พนักงานผู้ดูแลแปลง
+  plotType             String         @default("GENERAL_DEMO") @map("plot_type")
 
-  cropCategory   String?        @map("crop_category")
-  cropName       String?        @map("crop_name")
-  customCropName String?        @map("custom_crop_name")
-  areaRai        Decimal?       @map("area_rai") @db.Decimal(10, 2)
-  treeCount      Int?           @map("tree_count")
-  province       String?        @map("province")
-  district       String?        @map("district")
-  objective      String?        @map("objective")
+  cropCategory         String?        @map("crop_category")
+  cropName             String?        @map("crop_name")
+  customCropName       String?        @map("custom_crop_name")
+  areaRai              Decimal?       @map("area_rai") @db.Decimal(10, 2)
+  treeCount            Int?           @map("tree_count")
+  province             String?        @map("province")
+  district             String?        @map("district")
+  objective            String?        @map("objective")
+  experimentDetail     String?        @map("experiment_detail") // วิธีการทดลอง
 
-  startDate      DateTime       @map("start_date")
-  plantingDate   DateTime?      @map("planting_date")
-  initialSprayDate DateTime?    @map("initial_spray_date")
-  nextSprayDate  DateTime?      @map("next_spray_date")
-  latitude       Decimal?       @map("latitude") @db.Decimal(10, 7)
-  longitude      Decimal?       @map("longitude") @db.Decimal(10, 7)
-  status         DemoPlotStatus @default(IN_PROGRESS)
+  startDate            DateTime       @map("start_date")
+  plantingDate         DateTime?      @map("planting_date")
+  initialSprayDate     DateTime?      @map("initial_spray_date")
+  nextSprayDate        DateTime?      @map("next_spray_date")
+  mainCropInfo         String?        @map("main_crop_info") // ข้อมูลพืชประธาน
+  sprayMethod          String?        @map("spray_method") // SINGLE / TANK_MIXED
+  sprayEquipment       String?        @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
+  otherEquipment       String?        @map("other_equipment") // ระบุอุปกรณ์กรณีเลือกอื่นๆ
+  hasExternalChemicals Boolean        @default(false) @map("has_external_chemicals")
+  notes                String?        @map("notes") // ข้อมูลเพิ่มเติม
+  ownerPhone           String?        @map("owner_phone") // เบอร์โทรศัพท์เกษตรกร
+  ownerProvince        String?        @map("owner_province") // จังหวัดเกษตรกร
+  ownerDistrict        String?        @map("owner_district") // อำเภอเกษตรกร
+  ownerSubdistrict     String?        @map("owner_subdistrict") // ตำบลเกษตรกร
+  isUnregisteredFarmer Boolean        @default(false) @map("is_unregistered_farmer")
+  latitude             Decimal?       @map("latitude") @db.Decimal(10, 7)
+  longitude            Decimal?       @map("longitude") @db.Decimal(10, 7)
+  status               DemoPlotStatus @default(IN_PROGRESS)
 
-  customer       Customer?      @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
+  customer             Customer?      @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
+  visits               DemoPlotVisit[]
+  demoProducts         DemoPlotProduct[]
+  externalProducts     DemoPlotExternalProduct[]
+  irrigations          DemoPlotIrrigation[]
+  attachments          ActivityAttachment[]
 
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  deletedAt      DateTime?      @map("deleted_at")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  deletedAt            DateTime?      @map("deleted_at")
 
   @@map("demo_plots")
 }
 
-// 2. ตารางเก็บผลการจัดทำแปลงและการใช้สินค้าจริง Type 7A
-model ActivityResultDemoItem {
-  id                 String         @id @default(cuid())
-  activityResultId   String         @map("activity_result_id")
-  demoPlotId         String?        @map("demo_plot_id")
-  plannedProductId   String?        @map("planned_product_id")
-  actualProductId    String?        @map("actual_product_id")
-  changeReason       String?        @map("change_reason")
-  plotObjective      String?        @map("plot_objective")
+// 2. ตารางระบบน้ำประจำแปลง (เลือกได้มากกว่า 1 รูปแบบ)
+model DemoPlotIrrigation {
+  id         String   @id @default(cuid())
+  demoPlotId String   @map("demo_plot_id")
+  method     String   @map("method") // น้ำหยด, สายยาง, สปิงเกอร์, ให้ตามร่อง, ปล่อยท่วม(flooding), รอน้ำฝน, นาหว่านน้ำตม, นาดำ
 
-  activityResult     ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  plannedProduct     Product?       @relation("ActivityResultDemoPlannedProductRef", fields: [plannedProductId], references: [id], onDelete: SetNull)
-  actualProduct      Product?       @relation("ActivityResultDemoActualProductRef", fields: [actualProductId], references: [id], onDelete: SetNull)
+  demoPlot   DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
 
-  @@index([activityResultId])
+  @@unique([demoPlotId, method])
   @@index([demoPlotId])
-  @@map("activity_result_demo_items")
+  @@map("demo_plot_irrigations")
 }
 
-// 3. ตารางบันทึกรูปภาพแปลงสาธิต
+// 3. ตารางสารเคมีภายนอก/ยาคู่เปรียบเทียบ (กรณีฉีดพ่นแบบ Tank-mixed)
+model DemoPlotExternalProduct {
+  id               String   @id @default(cuid())
+  demoPlotId       String   @map("demo_plot_id")
+  company          String   @map("company") // บริษัท
+  productName      String   @map("product_name") // ชื่อสินค้า
+  activeIngredient String?  @map("active_ingredient") // สารออกฤทธิ์
+  formula          String   @map("formula") // SL, SC, EC, อื่นๆ
+  customFormula    String?  @map("custom_formula") // ระบุสูตรถ้าเลือกอื่นๆ
+  applicationRate  String   @map("application_rate") // อัตราการใช้
+  sortOrder        Int      @default(0) @map("sort_order")
+
+  demoPlot         DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+
+  @@index([demoPlotId])
+  @@map("demo_plot_external_products")
+}
+
+// 4. ตารางสินค้าตัวอย่างประจำแปลง (สินค้าตามแผน + สินค้าเพิ่มเติมหน้างาน)
+model DemoPlotProduct {
+  id                String   @id @default(cuid())
+  demoPlotId        String   @map("demo_plot_id")
+  productId         String   @map("product_id")
+  productName       String?  @map("product_name")
+  applicationRate   String   @map("application_rate") // อัตราการใช้
+  quantity          Decimal? @map("quantity") @db.Decimal(10, 2) // จำนวนที่ใช้จริง
+  remainingQuantity Decimal? @map("remaining_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2) // ปริมาณที่ใช้เพิ่ม
+  extraUnit         String?  @map("extra_unit") // ซีซี หรือ กรัม
+  isAdditional      Boolean  @default(false) @map("is_additional") // เพิ่มเติมหน้างานหรือไม่
+  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2) // จำนวนที่เบิก
+  unit              String?  @map("unit") // หน่วยนับหลัก (ขวด/ซอง)
+  sortOrder         Int      @default(0) @map("sort_order")
+
+  demoPlot          DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+  product           Product  @relation("DemoPlotProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([demoPlotId])
+  @@index([productId])
+  @@map("demo_plot_products")
+}
+
+// 5. ตารางประวัติการตรวจเยี่ยมและบันทึกแปลง (Visit #1 สำหรับ Baseline Setup)
+model DemoPlotVisit {
+  id             String   @id @default(cuid())
+  demoPlotId     String   @map("demo_plot_id")
+  activityPlanId String?  @map("activity_plan_id")
+  workTypeCode   String?  @map("work_type_code") // "TYPE_7A", "TYPE_7B"
+  visitNumber    Int      @default(1) @map("visit_number") // ครั้งที่ 1
+  visitDate      DateTime @map("visit_date")
+  cropAgeValue   Int?     @map("crop_age_value") // อายุพืช
+  cropAgeUnit    String?  @map("crop_age_unit") // วัน / เดือน
+  growthStage    String?  @map("growth_stage") // ระยะการเจริญเติบโต
+  notes          String?
+  sprayMethod    String?  @map("spray_method") // SINGLE / TANK_MIXED
+  sprayEquipment String?  @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
+  otherEquipment String?  @map("other_equipment")
+
+  demoPlot       DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+
+  @@index([demoPlotId])
+  @@map("demo_plot_visits")
+}
+
+// 6. ตารางบันทึกรูปภาพแปลงสาธิต (สูงสุด 10 รูป)
 model ActivityAttachment {
   id               String         @id @default(cuid())
   activityPlanId   String         @map("activity_plan_id")
@@ -413,14 +511,21 @@ model ActivityAttachment {
 - **การจัดการ Transaction (Isolation & Atomicity):**
   - ทุกการบันทึกของ Type 7A ดำเนินการภายใต้ `tx` (`PrismaTransaction`) ของระบบ
   - มีการใช้ PostgreSQL Advisory Lock ใน `generateDemoPlotCode()` ป้องกันรหัสแปลงซ้ำซ้อน
-  - หากบันทึกรูปภาพ หรือข้อมูลสินค้าตัวอย่างล้มเหลว ระบบจะทำการ **Rollback ทั้งหมด**
+  - การบันทึก Actual ดำเนินการผ่านฟังก์ชัน `syncType7aActualData()` ซึ่งผูกข้อมูล 5 ตารางหลัก (`DemoPlot`, `DemoPlotIrrigation`, `DemoPlotExternalProduct`, `DemoPlotProduct`, `DemoPlotVisit`) ภายใน $transaction เดียวกันอย่างสมบูรณ์แบบ
 - **ขาเขียน (Write Flow):**
   1. *Planned:* ดึงรายการแปลงสาธิต ➔ รัน `syncType7aPlots()` เพื่อสร้างระเบียน `DemoPlot` ใหม่ (หากยังไม่มี `demoPlotId`) ➔ Dual-sync ข้อมูลร้านค้า/แปลงลง `activity_plan_stores` (`workTypeCode: "TYPE_7A"`) และสินค้าตัวอย่างลง `activity_plan_products`
-  2. *Actual:* อัปโหลดภาพถ่ายแปลงสาธิตหมวดหมู่ `PLOT` ➔ ลบระเบียนเดิมใน `activity_result_demo_items` ➔ สร้างระเบียนผลการใช้สินค้าตัวอย่างใหม่ ➔ บันทึกรูปภาพลง `activity_attachments`
+  2. *Actual:* อัปโหลดภาพถ่ายแปลงสาธิตหมวดหมู่ `PLOT` (สูงสุด 10 ภาพ) ➔ รัน `syncType7aActualData()` ใน `type7aPlannedStrategy.saveActual()`:
+     - อัปเดตพิกัด GPS, ข้อมูลพืชประธาน, วิธีการทดลอง, วันที่ปลูกจริง/ฉีดพ่น, วิธีการฉีดพ่น, อุปกรณ์ฉีดพ่น, และข้อมูลเกษตรกรลงใน `DemoPlot`
+     - ซิงค์ระบบน้ำลง `DemoPlotIrrigation` (ลบและสร้างใหม่ตามที่เลือก)
+     - ซิงค์ยาภายนอกลง `DemoPlotExternalProduct` (กรณีฉีดผสมถัง)
+     - ซิงค์ยอดใช้จริงและปริมาณใช้เพิ่มลง `DemoPlotProduct` (รวมสินค้าตามแผนและสินค้าเพิ่มเติมหน้างาน)
+     - บันทึกการตรวจเยี่ยมครั้งที่ 1 (Visit #1) ลง `DemoPlotVisit`
+     - ซิงค์ผลการใช้สินค้าตัวอย่างลง `ActivityResultDemoItem`
+     - บันทึก URL ภาพถ่ายลง `ActivityAttachment`
   3. *Unplanned:* สร้าง `DemoPlot` พร้อมรหัส `DPYYMMXXXX` ➔ บันทึกลง `activity_plan_stores` / `activity_plan_products` และบันทึกผลงานลง `activity_result_demo_items` ภายใน `$transaction` เดียวกัน
 - **ขาอ่าน (Read / Hydration Flow):**
   1. *Planned Edit:* ดึง `plan.type7aPlots` (หรือ fallback `stores`/`products`) ➔ ส่งผ่าน `hydrateType7aPlannedData()` เพื่อเติมลงใน State ของฟอร์ม
-  2. *Actual & Detail View:* ดึง `plan.type7aPlots` + `plan.result.demoResults` + `attachments` ➔ ส่งผ่าน `extractType7aPlanTargets()` และเรียก `type7aActual.hydrate()` เพื่อกู้คืนข้อมูลแปลง พิกัด และรูปภาพ
+  2. *Actual & Detail View:* ดึง `plan.type7aPlots` + `plan.result.demoResults` + `attachments` ➔ ส่งผ่าน `extractType7aPlanTargets()` และเรียก `type7aActual.hydrate()` เพื่อกู้คืนข้อมูลแปลง พิกัด สินค้าตามแผน และรูปภาพ
   3. *Unplanned Edit:* ดึงข้อมูลแผนผ่าน `getActivityPlanAction` ➔ ส่งผ่าน `hydrateType7aUnplannedData()` เพื่อกู้คืนข้อมูลแปลงและสินค้า
 - **การลบข้อมูล (Delete Policy):**
   - ใช้ **Cascade Delete** จาก `ActivityPlan` สำหรับระเบียนในแผนงาน และ Soft-delete / Keep Master สำหรับ `DemoPlot` ที่ถูกสร้างขึ้นแล้วเพื่อรักษาประวัติการติดตามใน Type 7B
@@ -462,8 +567,17 @@ model ActivityAttachment {
   - ถ้าไม่ใช่ `"พืชสวน"` แสดงช่อง **พื้นที่ (ไร่) \*** (`areaRai`)
 - **การกรองสินค้าตามหมวดสินค้า (`categoryId`):**
   - ในส่วน `สินค้าที่นำไปทดสอบสาธิต` ต้องเลือก **หมวดสินค้า** ก่อน แล้วช่อง **เลือกสินค้า** จะกรองแสดงเฉพาะสินค้าที่อยู่ในหมวดสินค้านั้น
-- **ข้อจำกัดจำนวนภาพถ่าย:**
-  - รูปภาพแปลงสาธิต (`PLOT`): รองรับสูงสุด 5 ภาพต่อแปลง
+- **การกรองเกษตรกรและการระบุเกษตรกรนอกระบบ (Unregistered Farmer Mode):**
+  - เมื่อเลือกจังหวัดในหน้า Actual ช่องเลือกเกษตรกรจะกรองแสดงเฉพาะเกษตรกรที่อยู่ในจังหวัดนั้น
+  - เมื่อติ๊ก **"เกษตรกรที่ไม่มีในระบบ"** ช่องเลือกลูกค้าจะถูกซ่อน และเปิดช่องให้กรอก จังหวัด/ตำบล (`ActivityAddressSelect`), ชื่อ-สกุล เกษตรกร, และเบอร์โทรศัพท์โดยตรง
+- **วิธีการฉีดพ่น (Spray Method) และตารางสารเคมีภายนอก (External Chemicals):**
+  - เลือกได้ระหว่าง `ฉีดเดี่ยว (Single)` หรือ `ผสมถัง (Tank-mixed)`
+  - เมื่อเลือก **`ผสมถัง (Tank-mixed)`** จะแสดงตัวเลือก **"มียาภายนอก"** เพื่อเปิดตารางกรอกข้อมูลสารเคมีภายนอก (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร: SL/SC/EC/อื่นๆ, และอัตราการใช้)
+- **หน่วยปริมาณที่ใช้เพิ่ม (Extra Quantity Units):**
+  - หากหน่วยนับหลักของสินค้าเป็น **"ขวด"** หน่วยปริมาณที่ใช้เพิ่มจะเป็น **"ซีซี"**
+  - หากหน่วยนับหลักของสินค้าเป็น **"ซอง"** หน่วยปริมาณที่ใช้เพิ่มจะเป็น **"กรัม"**
+- **ข้อจำกัดจำนวนภาพถ่ายสภาพแปลงเริ่มต้น:**
+  - รูปภาพแปลงสาธิต (`PLOT`): รองรับสูงสุด 10 ภาพต่อแปลง (`ActivityPhotoUpload maxFiles={10}`)
 
 ### 7.4 Status and Approval Rules
 - **การบันทึกผลงานจริง (Trip Plan Actual):** สามารถบันทึกได้เฉพาะเมื่อแผนมีสถานะเป็น `APPROVED` (อนุมัติแล้ว) เท่านั้น
@@ -477,12 +591,15 @@ model ActivityAttachment {
 โมดูล Type 7A ทำงานร่วมกับชิ้นส่วนส่วนกลางต่อไปนี้:
 1. **`@/modules/activity/ui`:**
    - `ActivityInput`: คอมโพเนนต์ Input มาตรฐานประจำโมดูล Activity
-   - `ActivityTextarea`: คอมโพเนนต์กรอกข้อความหลายบรรทัดสำหรับวัตถุประสงค์แปลง
+   - `ActivityTextarea`: คอมโพเนนต์กรอกข้อความหลายบรรทัดสำหรับวัตถุประสงค์แปลงและสภาพแปลง
    - `ActivityCombobox`: คอมโพเนนต์ตัวเลือกหมวดพืชและชนิดพืช
-   - `ActivityCustomerSelect`: คอมโพเนนต์ค้นหาและเลือกร้านค้าตัวแทนจำหน่าย/เกษตรกร
+   - `ActivityCustomerSelect`: คอมโพเนนต์ค้นหาและเลือกร้านค้าตัวแทนจำหน่าย/เกษตรกร (รองรับการกรองตามจังหวัด)
    - `ActivityProductSelect`: คอมโพเนนต์ค้นหาและเลือกสินค้าตัวอย่าง
-   - `ActivityPhotoUpload`: คอมโพเนนต์อัปโหลดรูปภาพแปลงสาธิตพร้อมบีบอัดไฟล์ในตัว
+   - `ActivityPhotoUpload`: คอมโพเนนต์อัปโหลดรูปภาพแปลงสาธิตพร้อมบีบอัดไฟล์ในตัว (รองรับสูงสุด 10 ภาพ)
    - `ActivityGpsPicker`: คอมโพเนนต์ดึงพิกัดแปลงสาธิตปัจจุบันผ่าน Geolocation
+   - `ActivityIrrigationCheckbox`: คอมโพเนนต์เลือกระบบน้ำประจำแปลง 8 รูปแบบ (เลือกได้มากกว่า 1 ข้อ)
+   - `ActivityDatePicker`: คอมโพเนนต์เลือกวันที่พร้อมปุ่มล้างค่า สำหรับวันเริ่มปลูกจริง วันฉีดพ่นแรก และกำหนดฉีดพ่นครั้งต่อไป
+   - `ActivityAddressSelect`: คอมโพเนนต์เลือกจังหวัด อำเภอ และตำบล สำหรับกรณีเกษตรกรนอกระบบ
 2. **`@/modules/activity/views`:**
    - `planned-activity-form.tsx`: ฟอร์มหลักสำหรับสร้าง/แก้ไขแผนงาน
    - `unplanned-activity-form.tsx`: ฟอร์มหลักสำหรับกิจกรรมนอกแผน 2-in-1
@@ -504,6 +621,15 @@ model ActivityAttachment {
 
 ## 9. How to Modify Type 7A
 
+### 9.0 โครงสร้างเอกสารงานพัฒนาแบบแยก Task (`modules/activity/features/type-7a/tasks/`)
+การพัฒนาและปรับปรุงโมดูล Type 7A ถูกแบ่งออกเป็น Task ย่อยและบันทึกไว้อย่างเป็นระบบในโฟลเดอร์ `tasks/`:
+- `task-1-schema.md`: การออกแบบ Database Schema และ Prisma Migration สำหรับรองรับ Actual Form และ Type 7B
+- `task-2-ui-components.md`: การสร้าง Reusable UI Components (`ActivityIrrigationCheckbox`, `ActivityDatePicker`)
+- `task-3-types-hook.md`: การสร้าง Type Definitions และ `useType7aActual` Custom Hook
+- `task-4-actual-form.md`: การจัดหน้าตา Form ใหม่ทั้ง 7 หัวข้อตามข้อกำหนด
+- `task-5-repo-strategy.md`: การเชื่อมต่อ Repository Transaction (`syncType7aActualData`) และ Strategy Save Actual
+- `task-6-validation.md`: การทำ Validation และทดสอบ E2E Type-check Zero Errors
+
 ### 9.1 การเพิ่มฟิลด์ใหม่บนฟอร์ม (Add a Form Field)
 1. เพิ่มฟิลด์ใน Type Definitions:
    - ฟอร์มในแผน: `planned/types/planned.types.ts` (`Type7aPlanItem`)
@@ -516,8 +642,8 @@ model ActivityAttachment {
    - ผลจริง: `planned/components/type7a-actual-form.tsx`
    - นอกแผน: `unplanned/components/type7a-unplanned-form.tsx`
    - หน้ารายละเอียด: `planned/components/type7a-detail-view.tsx`
-4. อัปเดต Mapper ใน `planned-mapper.ts`, `actual-mapper.ts`, หรือ `unplanned-mapper.ts`
-5. อัปเดต Repository และ Strategy ใน `type7a.repository.ts` และ `type7a-planned.strategy.ts` เพื่อบันทึกลงฐานข้อมูล
+4. อัปเดต Mapper และ Hook ใน `use-type7a-actual.ts`, `actual-mapper.ts`, หรือ `planned-mapper.ts`
+5. อัปเดต Repository และ Strategy ใน `type7a.repository.ts` (`syncType7aActualData`) และ `type7a-planned.strategy.ts` เพื่อบันทึกลงฐานข้อมูล
 
 ### 9.2 การปรับแก้ Validation (Change Validation)
 - ปรับแก้เงื่อนไขการตรวจสอบใน:
@@ -526,7 +652,9 @@ model ActivityAttachment {
   - `unplanned/application/unplanned-validation.ts` (`validateType7aUnplannedItems`)
 
 ### 9.3 การปรับ Database Mapping (Change Database Mapping)
-- หากมีการเปลี่ยนแปลงคอลัมน์ใน `DemoPlot` หรือ `ActivityPlanType7a` ให้แก้ไขใน `planned/infrastructure/type7a.repository.ts` ตรงฟังก์ชัน `syncType7aPlots` และ `type7a-planned.strategy.ts`
+- หากมีการเปลี่ยนแปลงคอลัมน์ใน `DemoPlot`, `DemoPlotIrrigation`, `DemoPlotExternalProduct`, `DemoPlotProduct` หรือ `DemoPlotVisit` ให้แก้ไขใน:
+  - `planned/infrastructure/type7a.repository.ts` ตรงฟังก์ชัน `syncType7aPlots` และ `syncType7aActualData`
+  - `planned/infrastructure/type7a-planned.strategy.ts` ตรง `saveActual`
 
 ### 9.4 การปรับแก้ Actual Loading or Hydration
 - ตรวจสอบฟังก์ชัน `extractType7aPlanTargets` และ `hydrateType7aPlannedData` ใน `planned/application/planned-mapper.ts` และ `hydrate` ใน `use-type7a-actual.ts` เพื่อให้รองรับ fallback ฟิลด์เดิมอย่างครอบคลุม
@@ -551,11 +679,11 @@ model ActivityAttachment {
         ↓
 [Step 4: Server Action] ➔ recordActivityResultAction ➔ recordActivityResultUseCase
         ↓
-[Step 5: Strategy Write] ➔ type7a-planned.strategy.ts: saveActual() / syncType7aPlots()
-                          (ตรวจว่าบันทึกลง DemoPlot และ ActivityResultDemoItem หรือไม่)
+[Step 5: Strategy Write] ➔ type7a-planned.strategy.ts: saveActual() ➔ syncType7aActualData()
+                          (ตรวจว่าบันทึกลง DemoPlot, Irrigations, Products, ExternalProducts, Visits หรือไม่)
         ↓
-[Step 6: Prisma Table] ➔ DemoPlot & ActivityResultDemoItem
-                          (คอลัมน์ latitude, longitude และ code ใน DB มีค่าจริงหรือไม่)
+[Step 6: Prisma Table] ➔ DemoPlot, DemoPlotIrrigation, DemoPlotExternalProduct, DemoPlotProduct, DemoPlotVisit
+                          (ข้อมูลใน DB แต่ละตารางมีค่าจริงหรือไม่)
         ↓
 [Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include type7aPlots, demoPlotData หรือไม่)
         ↓
@@ -583,12 +711,12 @@ model ActivityAttachment {
 - [ ] **TC-02 (Dual-write Sync Check):** ตรวจสอบว่าใน `activity_plan_stores` และ `activity_plan_products` มีระเบียนที่ซิงค์ `workTypeCode = "TYPE_7A"` ถูกต้องตรงกัน
 - [ ] **TC-03 (Planned Edit):** เข้าหน้าแก้ไข (`/activity-plans/[id]/edit`) ข้อมูลแปลงสาธิตและสินค้าตัวอย่างต้องแสดงครบถ้วน แก้ไขข้อมูลแล้วบันทึกสำเร็จ
 - [ ] **TC-04 (Detail View - Planned):** เข้าหน้ารายละเอียดก่อนเริ่มงาน การ์ดเป้าหมาย Type 7A (`Type7aPlanCard`) ต้องแสดงชื่อแปลง เกษตรกร และพืชที่ทดสอบถูกต้อง
-- [ ] **TC-05 (Actual - Completed):** บันทึกผลการจัดทำแปลงจริงแบบ "ปฏิบัติงานแล้วเสร็จ" พร้อมปักหมุด GPS ยืนยันการใช้สินค้าตัวอย่าง และอัปโหลดภาพถ่ายแปลง ตรวจสอบว่าบันทึกลง `activity_result_demo_items`
+- [ ] **TC-05 (Actual - Redesigned Form):** เข้าหน้าบันทึกผลจริง ตรวจสอบว่ามีครบทั้ง 7 ส่วน: กรองเกษตรกรตามจังหวัด/โหมดเกษตรกรนอกระบบ, ข้อมูลสภาพแปลงเริ่มต้น (พืชประธาน, วิธีการทดลอง, เช็คบ็อกซ์ระบบน้ำ 8 ข้อ, วันที่เริ่มปลูกจริง, วันที่ฉีดพ่นแรก/ถัดไป, อายุพืช+หน่วย, ระยะการเจริญเติบโต, วิธีฉีดพ่นเดี่ยว/ผสมถัง+ตารางยาภายนอก, รูปถ่าย 10 รูป), สินค้าตามแผน (เบิก/ใช้จริง/ใช้เพิ่ม ซีซีหรือกรัม/อัตราการใช้), สินค้าเพิ่มเติมหน้างาน, และอุปกรณ์ฉีดพ่น บันทึกผลสำเร็จ
 - [ ] **TC-06 (Actual - Partial):** บันทึกผลแบบ "สำเร็จบางส่วน" ตรวจสอบว่าฟอร์มยังคงแสดงและบันทึกผลได้ตามปกติ
 - [ ] **TC-07 (Unplanned 2-in-1):** สร้างกิจกรรมนอกแผน Type 7A ระบุแปลง เกษตรกร สินค้า พิกัด GPS และรูปถ่ายในหน้าเดียว บันทึกแล้วต้องได้สถานะ `COMPLETED` และสร้าง `DemoPlot` สำเร็จทันที
 - [ ] **TC-08 (Detail View - Actual):** เข้าหน้ารายละเอียดหลังบันทึกผลจริง ข้อมูลการจัดทำแปลง พิกัด GPS และรูปถ่ายแปลงต้องแสดงครบถ้วน
 - [ ] **TC-09 (Approval View):** ผู้บังคับบัญชาเข้าหน้าอนุมัติ ข้อมูลเป้าหมายแปลงสาธิตต้องแสดงในการ์ดอนุมัติอย่างถูกต้อง
-- [ ] **TC-10 (Type 7B Integration Check):** แปลงสาธิตที่สร้างเสร็จแล้วใน Type 7A ต้องปรากฏในตัวเลือกแปลงสาธิตของกิจกรรม Type 7B (ติดตามผลแปลงสาธิต)
+- [ ] **TC-10 (Type 7B Integration Check):** แปลงสาธิตที่บันทึกข้อมูลจัดทำเสร็จแล้วใน Type 7A ต้องมีประวัติ Baseline Visit (#1), ข้อมูลระบบน้ำ, และสินค้าตัวอย่างพร้อมสำหรับการติดตามผลต่อเนื่องใน Type 7B (ติดตามผลแปลงสาธิต)
 
 ---
 
@@ -599,7 +727,7 @@ model ActivityAttachment {
 2. **PostgreSQL Advisory Lock:**
    - การออกรหัสแปลงสาธิต `DPYYMMXXXX` อาศัย `pg_advisory_xact_lock` ซึ่งทำงานเฉพาะบนฐานข้อมูล PostgreSQL จริง ในสภาพแวดล้อมทดสอบที่ไม่มีฟังก์ชันนี้จะสลับไปใช้การสแกนหาเลขลำดับสูงสุดแทน
 3. **การจัดการรูปภาพแปลงสาธิต:**
-   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type7aActual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยกำหนดหมวดหมู่เป็น `PLOT` (สูงสุด 5 ภาพต่อแปลง)
+   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type7aActual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยกำหนดหมวดหมู่เป็น `PLOT` (สูงสุด 10 ภาพต่อแปลง)
 4. **Decoupling Dependency:**
    - ต้องนำเข้าค่าคงที่และฟังก์ชันจาก `@/modules/activity/constants` และคอมโพเนนต์จาก `@/modules/activity/ui` เท่านั้น ห้ามนำเข้าจาก `@/modules/activity-plans` โดยเด็ดขาด
 
@@ -617,3 +745,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.5.0 | ปรับปรุงการซิงค์ `ActivityPlanStore` และ `ActivityPlanProduct` พร้อมรองรับการเชื่อมต่อไปยัง Type 7B | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
 | **2026-10-22** | 1.7.0 | ปรับปรุงฟอร์ม `Type7aPlannedForm`: เปลี่ยนช่องลูกค้าเป็น `ชื่อ ร้านค้า Dealer` (`DEALER`), ปรับ `หมวดพืช` 3 หมวด (`ผักและพืชล้มลุก`, `พืชไร่`, `พืชสวน`) พร้อมตัวเลือก `ชื่อพืช` ตามหมวดและช่อง `ระบุชื่อพืชเพิ่มเติม`, สลับช่อง `จำนวนต้น *` / `พื้นที่ (ไร่) *` ตามหมวดพืช, ปรับ `วัตถุประสงค์การจัดทำแปลง` ให้พิมพ์เอง และเพิ่มตัวเลือก `หมวดสินค้า` เพื่อกรองรายการสินค้า | Antigravity AI |
+| **2026-10-22** | 1.8.0 | ออกแบบฟอร์มบันทึกผลงานจริง (`Type7aActualForm`) ใหม่ทั้งหมด 7 หัวข้อหลัก: 1) ลบฟิลด์เดิมออกทั้งหมด, 2) เกษตรกรเจ้าของแปลงและพิกัด (กรองเกษตรกรตามจังหวัด + โหมดเกษตรกรนอกระบบพร้อมที่อยู่/เบอร์), 3) พิกัดแปลง GPS, 4) สภาพแปลงเริ่มต้น (พืชประธาน, วิธีการทดลอง, เช็คบ็อกซ์ระบบน้ำ 8 แบบ, วันที่เริ่มปลูกจริง, วันฉีดพ่นแรก/ถัดไป, อายุพืช วัน/เดือน, ระยะเจริญเติบโต, วิธีฉีดพ่น เดี่ยว/ผสมถัง พร้อมตารางยาภายนอก, ภาพถ่ายแปลงเริ่มต้นสูงสุด 10 ภาพ), 5) สินค้าตามแผน (แสดงยอดเบิก, ช่องกรอกยอดใช้จริง, ปริมาณใช้เพิ่ม ซีซี/กรัม, อัตราการใช้), 6) สินค้าเพิ่มเติมหน้างาน, 7) อุปกรณ์ฉีดพ่น พร้อมซิงค์ฐานข้อมูล 5 ตารางหลัก (`DemoPlot`, `DemoPlotIrrigation`, `DemoPlotExternalProduct`, `DemoPlotProduct`, `DemoPlotVisit`) ส่งมอบให้ Type 7B ใช้งานต่อเนื่องได้อย่างสมบูรณ์แบบ | Antigravity AI |

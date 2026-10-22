@@ -20,14 +20,28 @@ export function validateType7aActual(
     };
   }
 
-  // 1. Farmer / Plot
-  if (!actual.t7PlotName && !actual.t7FarmerName) {
-    errors.push("กรุณาระบุชื่อแปลงสาธิตหรือชื่อเกษตรกร");
+  // 1. Farmer
+  if (actual.t7IsUnregisteredFarmer) {
+    if (!actual.t7FarmerName?.trim()) {
+      errors.push("กรุณาระบุชื่อ - สกุล เกษตรกร");
+    }
+    if (!actual.t7FarmerPhone?.trim()) {
+      errors.push("กรุณาระบุเบอร์โทรศัพท์เกษตรกร");
+    }
+  } else {
+    if (!actual.t7FarmerCustomerId && !actual.t7FarmerName?.trim()) {
+      errors.push("กรุณาเลือกเกษตรกรเจ้าของแปลง");
+    }
   }
 
-  // 2. Crop
-  if (!actual.t7CropName && !actual.t7CropCategory) {
-    errors.push("กรุณาระบุชนิดพืชที่ทำการสาธิต");
+  // 2. Crop Info
+  if (!actual.t7MainCropInfo?.trim() && !actual.t7CropName?.trim()) {
+    errors.push("กรุณาระบุข้อมูลพืชประธาน");
+  }
+
+  // 3. Experiment Detail
+  if (!actual.t7ExperimentDetail?.trim()) {
+    errors.push("กรุณาระบุวิธีการทดลอง");
   }
 
   return {

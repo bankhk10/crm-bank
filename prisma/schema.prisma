@@ -2433,12 +2433,15 @@ model DemoPlot {
   plantingAreaCondition String?        @map("planting_area_condition") // สภาพพื้นที่ปลูกตอนเริ่มต้น
   mainCropInfo          String?        @map("main_crop_info") // ข้อมูลพืชประธาน
   sprayMethod           String?        @map("spray_method") // วิธีการฉีดพ่น (SINGLE / TANK_MIXED)
+  sprayEquipment        String?        @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
+  otherEquipment        String?        @map("other_equipment") // อุปกรณ์อื่นๆ ระบุ
   hasExternalChemicals  Boolean        @default(false) @map("has_external_chemicals") // มียาภายนอกหรือไม่
   usageMethod           String?        @map("usage_method") // วิธีใช้/อัตราการใช้ตอนเริ่มต้น
   notes                 String?        @map("notes") // ข้อมูลเพิ่มเติม
   ownerPhone            String?        @map("owner_phone") // เบอร์โทรศัพท์เจ้าของแปลง
   ownerProvince         String?        @map("owner_province") // จังหวัดของเกษตรกรเจ้าของแปลง
   ownerDistrict         String?        @map("owner_district") // อำเภอของเกษตรกรเจ้าของแปลง
+  ownerSubdistrict      String?        @map("owner_subdistrict") // ตำบลของเกษตรกรเจ้าของแปลง
   isUnregisteredFarmer  Boolean        @default(false) @map("is_unregistered_farmer") // เกษตรกรนอกระบบ
   latitude              Decimal?       @map("latitude") @db.Decimal(10, 7) // พิกัดแปลง Lat
   longitude             Decimal?       @map("longitude") @db.Decimal(10, 7) // พิกัดแปลง Lng
@@ -2536,6 +2539,10 @@ model DemoPlotProduct {
   applicationRate   String   @map("application_rate") // e.g. "20 ml / 20 L"
   quantity          Decimal? @map("quantity") @db.Decimal(10, 2)
   remainingQuantity Decimal? @map("remaining_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  extraUnit         String?  @map("extra_unit")
+  isAdditional      Boolean  @default(false) @map("is_additional")
+  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
   unit              String?  @map("unit")
   sortOrder         Int      @default(0) @map("sort_order")
 
