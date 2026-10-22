@@ -157,88 +157,170 @@ export function UnplannedActivityForm({
 
   // 1. Work Types Selection State (Single Select: ค่าเริ่มต้นว่าง)
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(() => {
-    // 1. ตรวจสอบจาก Dedicated Target / Stores ของ Type 2 ก่อน (แม่นยำสูงสุด)
+    // 1. ตรวจสอบจาก workTypes ที่บันทึกไว้ในฐานข้อมูลโดยตรง (Canonical Source of Truth)
     if (
-      (initialData.type2Targets && initialData.type2Targets.length > 0) ||
-      (initialData.stores &&
+      Array.isArray(initialData.workTypes) &&
+      initialData.workTypes.length > 0
+    ) {
+      for (const wt of initialData.workTypes) {
+        const name = getWorkTypeName(wt);
+        if (name) return [name];
+      }
+    }
+
+    // 2. ตรวจสอบจาก workTypeCodes
+    if (
+      Array.isArray(initialData.workTypeCodes) &&
+      initialData.workTypeCodes.length > 0
+    ) {
+      for (const wt of initialData.workTypeCodes) {
+        const name = getWorkTypeName(wt);
+        if (name) return [name];
+      }
+    }
+
+    // 3. ตรวจสอบจาก activityType
+    if (initialData.activityType) {
+      const code = getWorkTypeCode(initialData.activityType);
+      if (code && WORK_TYPE_CONFIG[code]) return [WORK_TYPE_CONFIG[code].name];
+      const name = getWorkTypeName(initialData.activityType);
+      if (name) return [name];
+    }
+
+    // 4. ตรวจสอบจาก activityTypeId
+    if (
+      initialData.activityTypeId &&
+      Array.isArray(activityTypes) &&
+      activityTypes.length > 0
+    ) {
+      const matched = activityTypes.find(
+        (t: any) => t.id === initialData.activityTypeId,
+      );
+      if (matched) {
+        const code = getWorkTypeCode(matched.code || matched.name);
+        if (code && WORK_TYPE_CONFIG[code]) return [WORK_TYPE_CONFIG[code].name];
+        const name = getWorkTypeName(matched);
+        if (name) return [name];
+      }
+    }
+
+    // 5. Fallback ตรวจสอบจาก Dedicated Target / Stores สำหรับข้อมูลเก่า (Legacy Data)
+    // 5.1 Type 2
+    if (
+      (Array.isArray(initialData.type2Targets) &&
+        initialData.type2Targets.length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
-      (initialData.products &&
+      (Array.isArray(initialData.products) &&
         initialData.products.some((p: any) => p.workTypeCode === "TYPE_2"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_2.name];
     }
-    // 1.1 ตรวจสอบจาก Dedicated Target / Stores ของ Type 3
+
+    // 5.2 Type 3
     if (
-      (initialData.type3Targets && initialData.type3Targets.length > 0) ||
-      (initialData.stores &&
+      (Array.isArray(initialData.type3Targets) &&
+        initialData.type3Targets.length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
-      (initialData.products &&
+      (Array.isArray(initialData.products) &&
         initialData.products.some((p: any) => p.workTypeCode === "TYPE_3"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_3.name];
     }
-    // 1.2 ตรวจสอบจาก Dedicated Target / Stores ของ Type 5
+
+    // 5.3 Type 4
     if (
-      (initialData.type5Targets && initialData.type5Targets.length > 0) ||
-      (initialData.stores &&
+      (Array.isArray(initialData.type4Targets) &&
+        initialData.type4Targets.length > 0) ||
+      (Array.isArray(initialData.type4Items) &&
+        initialData.type4Items.length > 0) ||
+      (Array.isArray(initialData.stores) &&
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_4"))
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_4.name];
+    }
+
+    // 5.4 Type 5
+    if (
+      (Array.isArray(initialData.type5Targets) &&
+        initialData.type5Targets.length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
-      initialData.type5SurveyRecords ||
-      initialData.competitorBrand
+      (Array.isArray(initialData.type5SurveyRecords) &&
+        initialData.type5SurveyRecords.length > 0) ||
+      (typeof initialData.competitorBrand === "string" &&
+        initialData.competitorBrand.trim().length > 0)
     ) {
       return [WORK_TYPE_CONFIG.TYPE_5.name];
     }
-    // 1.3 ตรวจสอบจาก Dedicated Target / Stores ของ Type 6
+
+    // 5.5 Type 6
     if (
-      (initialData.type6Targets && initialData.type6Targets.length > 0) ||
-      (initialData.stores &&
+      (Array.isArray(initialData.type6Targets) &&
+        initialData.type6Targets.length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
-      initialData.type6ActualIssues ||
-      initialData.t6IssueRecord
+      (Array.isArray(initialData.type6ActualIssues) &&
+        initialData.type6ActualIssues.length > 0) ||
+      (initialData.t6IssueRecord &&
+        Object.keys(initialData.t6IssueRecord).length > 0)
     ) {
       return [WORK_TYPE_CONFIG.TYPE_6.name];
     }
-    // 1.4 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7A
+
+    // 5.6 Type 7A
     if (
-      (initialData.type7aPlots && initialData.type7aPlots.length > 0) ||
-      (initialData.demoPlots && initialData.demoPlots.length > 0) ||
-      (initialData.type7aUnplannedItems &&
+      (Array.isArray(initialData.type7aPlots) &&
+        initialData.type7aPlots.length > 0) ||
+      (Array.isArray(initialData.demoPlots) &&
+        initialData.demoPlots.length > 0) ||
+      (Array.isArray(initialData.type7aUnplannedItems) &&
         initialData.type7aUnplannedItems.length > 0) ||
-      (initialData.stores &&
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
-      initialData.demoPlotData
+      (initialData.demoPlotData &&
+        Object.keys(initialData.demoPlotData).length > 0)
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7A.name];
     }
-    // 1.5 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7B
+
+    // 5.7 Type 7B
     if (
-      (initialData.type7bPlots && initialData.type7bPlots.length > 0) ||
-      (initialData.type7bUnplannedItems &&
+      (Array.isArray(initialData.type7bPlots) &&
+        initialData.type7bPlots.length > 0) ||
+      (Array.isArray(initialData.type7bUnplannedItems) &&
         initialData.type7bUnplannedItems.length > 0) ||
-      initialData.type7b ||
-      initialData.type7bData ||
-      (initialData.stores &&
+      (initialData.type7b && Object.keys(initialData.type7b).length > 0) ||
+      (initialData.type7bData &&
+        Object.keys(initialData.type7bData).length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }
-    // 1.6 ตรวจสอบจาก Dedicated Target ของ Type 8
+
+    // 5.8 Type 8
     if (
-      (initialData.type8UnplannedItems &&
+      (Array.isArray(initialData.type8UnplannedItems) &&
         initialData.type8UnplannedItems.length > 0) ||
-      initialData.type8 ||
-      initialData.type8Data ||
-      (initialData.stores &&
+      (initialData.type8 && Object.keys(initialData.type8).length > 0) ||
+      (initialData.type8Data &&
+        Object.keys(initialData.type8Data).length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some((s: any) => s.workTypeCode === "TYPE_8"))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
     }
-    // 1.7 ตรวจสอบจาก Dedicated Target ของ Type 9
+
+    // 5.9 Type 9
     if (
-      (initialData.type9UnplannedItems &&
+      (Array.isArray(initialData.type9UnplannedItems) &&
         initialData.type9UnplannedItems.length > 0) ||
-      initialData.type9 ||
-      initialData.type9Data ||
-      (initialData.stores &&
+      (initialData.type9 && Object.keys(initialData.type9).length > 0) ||
+      (initialData.type9Data &&
+        Object.keys(initialData.type9Data).length > 0) ||
+      (Array.isArray(initialData.stores) &&
         initialData.stores.some(
           (s: any) =>
             s.workTypeCode === "TYPE_9" ||
@@ -249,13 +331,15 @@ export function UnplannedActivityForm({
         WORK_TYPE_CONFIG.TYPE_9?.name || "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
       ];
     }
-    // 1.8 ตรวจสอบจาก Dedicated Target ของ Type 10
+
+    // 5.10 Type 10
     if (
-      (initialData.type10UnplannedItems &&
+      (Array.isArray(initialData.type10UnplannedItems) &&
         initialData.type10UnplannedItems.length > 0) ||
-      initialData.type10 ||
-      initialData.type10Data ||
-      (initialData.demoPlotVisits &&
+      (initialData.type10 && Object.keys(initialData.type10).length > 0) ||
+      (initialData.type10Data &&
+        Object.keys(initialData.type10Data).length > 0) ||
+      (Array.isArray(initialData.demoPlotVisits) &&
         initialData.demoPlotVisits.some(
           (v: any) =>
             v.workTypeCode === "TYPE_10" ||
@@ -264,37 +348,16 @@ export function UnplannedActivityForm({
     ) {
       return [WORK_TYPE_CONFIG.TYPE_10?.name || "จัดงาน Field Day"];
     }
-    // 2. ตรวจสอบจาก workTypes หรือ workTypeCodes
-    if (initialData.workTypes && initialData.workTypes.length > 0) {
-      const first = initialData.workTypes[0];
-      const name = getWorkTypeName(first);
-      if (name) return [name];
-    }
-    if (initialData.workTypeCodes && initialData.workTypeCodes.length > 0) {
-      const first = initialData.workTypeCodes[0];
-      const name = getWorkTypeName(first);
-      if (name) return [name];
-    }
-    if (initialData.activityType) {
-      const code = getWorkTypeCode(initialData.activityType);
-      if (code === "TYPE_2") return [WORK_TYPE_CONFIG.TYPE_2.name];
-      if (code === "TYPE_3") return [WORK_TYPE_CONFIG.TYPE_3.name];
-      if (code === "TYPE_4") return [WORK_TYPE_CONFIG.TYPE_4.name];
-      if (code === "TYPE_5") return [WORK_TYPE_CONFIG.TYPE_5.name];
-      if (code === "TYPE_6") return [WORK_TYPE_CONFIG.TYPE_6.name];
-      if (code === "TYPE_7A") return [WORK_TYPE_CONFIG.TYPE_7A.name];
-      if (code === "TYPE_7B")
-        return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
-      if (code === "TYPE_8")
-        return [WORK_TYPE_CONFIG.TYPE_8?.name || "จัดประชุม"];
-    }
+
+    // 5.11 Type 1
     if (
-      initialData.type1Stores &&
+      Array.isArray(initialData.type1Stores) &&
       initialData.type1Stores.length > 0 &&
       isEdit
     ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
     }
+
     return [];
   });
 
@@ -1639,25 +1702,33 @@ export function UnplannedActivityForm({
       matchedType?.id ||
       (isType2Active
         ? "type-2"
-        : isType7aActive
-          ? "type-7a"
-          : isType7bActive
-            ? "type-7b"
-            : isType8Active
-              ? "type-8"
-              : isType9Active
-                ? "type-9"
-                : isType10Active
-                  ? "type-10"
-                  : isType11Active
-                    ? "type-11"
-                    : isType12Active
-                      ? "type-12"
-                      : isType13Active
-                        ? "type-13"
-                        : isType14Active
-                          ? "type-14"
-                          : "type-1");
+        : isType3Active
+          ? "type-3"
+          : isType4Active
+            ? "type-4"
+            : isType5Active
+              ? "type-5"
+              : isType6Active
+                ? "type-6"
+                : isType7aActive
+                  ? "type-7a"
+                  : isType7bActive
+                    ? "type-7b"
+                    : isType8Active
+                      ? "type-8"
+                      : isType9Active
+                        ? "type-9"
+                        : isType10Active
+                          ? "type-10"
+                          : isType11Active
+                            ? "type-11"
+                            : isType12Active
+                              ? "type-12"
+                              : isType13Active
+                                ? "type-13"
+                                : isType14Active
+                                  ? "type-14"
+                                  : "type-1");
 
     const budgetPayload = budget.buildBudgetPayload();
     const totalBudgetRequested =

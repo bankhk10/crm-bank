@@ -159,8 +159,9 @@ export function getWorkTypeCode(nameOrCode: any): string {
   } else if (typeof nameOrCode === "object") {
     raw =
       nameOrCode.workTypeCode ||
-      nameOrCode.code ||
+      nameOrCode.activityType?.code ||
       nameOrCode.activityType?.name ||
+      nameOrCode.code ||
       nameOrCode.name ||
       nameOrCode.activityTypeId ||
       "";
@@ -209,8 +210,9 @@ export function getWorkTypeName(codeOrName: any): string {
   } else if (typeof codeOrName === "object") {
     raw =
       codeOrName.workTypeCode ||
-      codeOrName.code ||
+      codeOrName.activityType?.code ||
       codeOrName.activityType?.name ||
+      codeOrName.code ||
       codeOrName.name ||
       codeOrName.activityTypeId ||
       "";
