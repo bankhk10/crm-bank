@@ -17,24 +17,15 @@ import type {
   TargetCollectCompanyItem,
   Type4TargetItem,
 } from "../types/planned.types";
-import type {
-  Type4ActualFormProps,
-} from "../types/actual.types";
-import type { Type4ImageFile } from "../../shared/types";
+import type { Type4ActualFormProps } from "../types/actual.types";
 
-export type {
-  TargetCollectCompanyItem,
-  Type4TargetItem,
-  Type4ActualFormProps,
-};
+export type { TargetCollectCompanyItem, Type4TargetItem, Type4ActualFormProps };
 
 export function Type4ActualForm({
   isVisible,
   planType,
   target,
   targets,
-  orderNo,
-  setOrderNo,
   receivedAmount,
   setReceivedAmount,
   billingStatus = "",
@@ -73,9 +64,14 @@ export function Type4ActualForm({
       );
       return {
         ...targets[0],
-        customer: targets.map((t) => t.customer).filter(Boolean).join(", "),
+        customer: targets
+          .map((t) => t.customer)
+          .filter(Boolean)
+          .join(", "),
         targetCollect:
-          totalAmount > 0 ? `${totalAmount.toLocaleString()} บาท` : targets[0].targetCollect,
+          totalAmount > 0
+            ? `${totalAmount.toLocaleString()} บาท`
+            : targets[0].targetCollect,
         targetAmountNum: totalAmount,
         collectAmount: totalAmount,
         items: allItems,
@@ -89,10 +85,12 @@ export function Type4ActualForm({
     () => {
       if (resolvedTarget?.items && resolvedTarget.items.length > 0) {
         return resolvedTarget.items.map((item: TargetCollectCompanyItem) => {
-          const isBilling = (item.collectType || resolvedTarget?.collectType) === "BILLING";
+          const isBilling =
+            (item.collectType || resolvedTarget?.collectType) === "BILLING";
           return {
             ...item,
-            collectType: item.collectType || resolvedTarget?.collectType || "COLLECT",
+            collectType:
+              item.collectType || resolvedTarget?.collectType || "COLLECT",
             receivedAmount:
               item.receivedAmount ||
               (!isBilling && receivedAmount ? receivedAmount : ""),
@@ -131,12 +129,18 @@ export function Type4ActualForm({
     if (!resolvedTarget?.items || resolvedTarget.items.length === 0) return;
 
     setCompanyItems((prev) => {
-      if (!prev || prev.length === 0 || prev.length !== resolvedTarget.items!.length) {
+      if (
+        !prev ||
+        prev.length === 0 ||
+        prev.length !== resolvedTarget.items!.length
+      ) {
         return resolvedTarget.items!.map((item: TargetCollectCompanyItem) => {
-          const isBilling = (item.collectType || resolvedTarget?.collectType) === "BILLING";
+          const isBilling =
+            (item.collectType || resolvedTarget?.collectType) === "BILLING";
           return {
             ...item,
-            collectType: item.collectType || resolvedTarget?.collectType || "COLLECT",
+            collectType:
+              item.collectType || resolvedTarget?.collectType || "COLLECT",
             receivedAmount:
               item.receivedAmount ||
               (!isBilling && receivedAmount ? receivedAmount : ""),
@@ -181,16 +185,28 @@ export function Type4ActualForm({
             newStatus = billingStatus as "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ";
             itemUpdated = true;
           }
-          if (billingDetail !== undefined && billingDetail !== "" && item.billingDetail !== billingDetail) {
+          if (
+            billingDetail !== undefined &&
+            billingDetail !== "" &&
+            item.billingDetail !== billingDetail
+          ) {
             newBillingDetail = billingDetail;
             itemUpdated = true;
           }
         } else {
-          if (collectDetail !== undefined && collectDetail !== "" && item.collectDetail !== collectDetail) {
+          if (
+            collectDetail !== undefined &&
+            collectDetail !== "" &&
+            item.collectDetail !== collectDetail
+          ) {
             newCollectDetail = collectDetail;
             itemUpdated = true;
           }
-          if (receivedAmount !== undefined && receivedAmount !== "" && item.receivedAmount !== receivedAmount) {
+          if (
+            receivedAmount !== undefined &&
+            receivedAmount !== "" &&
+            item.receivedAmount !== receivedAmount
+          ) {
             newRec = receivedAmount;
             itemUpdated = true;
           }
@@ -211,7 +227,14 @@ export function Type4ActualForm({
 
       return hasChanges ? updated : prev;
     });
-  }, [resolvedTarget?.items, resolvedTarget?.collectType, billingStatus, billingDetail, collectDetail, receivedAmount]);
+  }, [
+    resolvedTarget?.items,
+    resolvedTarget?.collectType,
+    billingStatus,
+    billingDetail,
+    collectDetail,
+    receivedAmount,
+  ]);
 
   if (!isVisible) return null;
 
@@ -225,10 +248,7 @@ export function Type4ActualForm({
     // Sync total sum of received amounts for collect items to parent
     const totalSum = updated
       .filter((it) => it.collectType !== "BILLING")
-      .reduce(
-        (sum, item) => sum + (Number(item.receivedAmount) || 0),
-        0,
-      );
+      .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
     setReceivedAmount(totalSum > 0 ? String(totalSum) : "");
   };
 
@@ -257,7 +277,9 @@ export function Type4ActualForm({
   };
 
   // Summaries (Calculated only for COLLECT items)
-  const collectItems = companyItems.filter((it) => it.collectType !== "BILLING");
+  const collectItems = companyItems.filter(
+    (it) => it.collectType !== "BILLING",
+  );
   const totalReceived = collectItems.reduce(
     (sum, item) => sum + (Number(item.receivedAmount) || 0),
     0,
@@ -383,8 +405,8 @@ export function Type4ActualForm({
                               className={cn(
                                 "w-4 h-4",
                                 item.billingStatus === "วางบิลสำเร็จ"
-                                ? "text-emerald-600"
-                                : "text-slate-400",
+                                  ? "text-emerald-600"
+                                  : "text-slate-400",
                               )}
                             />
                             <span>วางบิลสำเร็จ</span>
@@ -427,7 +449,10 @@ export function Type4ActualForm({
                           type="text"
                           value={item.billingDetail || ""}
                           onChange={(e) =>
-                            handleCompanyBillingDetailChange(idx, e.target.value)
+                            handleCompanyBillingDetailChange(
+                              idx,
+                              e.target.value,
+                            )
                           }
                           placeholder="ระบุรายละเอียดเพิ่มเติมการวางบิล เช่น กำหนดรับเช็ค, เอกสารที่ส่งมอบ..."
                           className="bg-white border-slate-300 text-xs h-9"
@@ -490,7 +515,10 @@ export function Type4ActualForm({
                           type="text"
                           value={item.collectDetail || ""}
                           onChange={(e) =>
-                            handleCompanyCollectDetailChange(idx, e.target.value)
+                            handleCompanyCollectDetailChange(
+                              idx,
+                              e.target.value,
+                            )
                           }
                           placeholder="ระบุรายละเอียดเพิ่มเติม เช่น ชำระเงินสด, โอนเงิน, เช็ค..."
                           className="bg-white border-slate-300 text-xs h-9"
