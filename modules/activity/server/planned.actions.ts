@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
-import { Prisma, ActivityPlanType, ActivityStatus } from "@prisma/client";
+import { Prisma, ActivityPlanType, ActivityStatus, DemoPlotStatus } from "@prisma/client";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -516,10 +516,17 @@ export async function deleteActivityPlanAction(id: string) {
       return { success: false, error: deleteCheck.error || "คุณไม่มีสิทธิ์ลบแผนกิจกรรมนี้" };
     }
 
-    await db.activityPlan.update({
-      where: { id },
-      data: { deletedAt: new Date(), status: ActivityStatus.CANCELLED },
-    });
+    const now = new Date();
+    await db.$transaction([
+      db.activityPlan.update({
+        where: { id },
+        data: { deletedAt: now, status: ActivityStatus.CANCELLED },
+      }),
+      db.demoPlot.updateMany({
+        where: { activityPlanId: id },
+        data: { deletedAt: now, status: DemoPlotStatus.CANCELLED },
+      }),
+    ]);
     revalidatePath("/activity-plans");
     return { success: true };
   } catch (err: any) {
