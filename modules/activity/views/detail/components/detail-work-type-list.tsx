@@ -297,8 +297,13 @@ export function DetailWorkTypeList({
     const rawAttachmentsList: any[] = [
       ...(plan?.attachments || []),
       ...(plan?.result?.attachments || []),
+      ...(plan?.type7aPlots?.flatMap((dp: any) => [
+        ...(dp?.attachments || []),
+        ...(dp?.visits?.flatMap((v: any) => v?.attachments || []) || []),
+      ]) || []),
     ];
-    return rawAttachmentsList
+
+    const mappedFromAttachments = rawAttachmentsList
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_7A" ||
@@ -310,10 +315,45 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
       }));
+
+    if (mappedFromAttachments.length > 0) {
+      return mappedFromAttachments;
+    }
+
+    // Fallback to plotImageUrls or imageUrls inside demoPlot visits
+    const visitUrls: string[] = [];
+    if (Array.isArray(plan?.type7aPlots)) {
+      for (const p of plan.type7aPlots) {
+        const dp = p.demoPlot || p;
+        if (Array.isArray(dp.visits)) {
+          for (const v of dp.visits) {
+            const urls = v.plotImageUrls || v.imageUrls;
+            if (Array.isArray(urls)) {
+              for (const u of urls) {
+                if (typeof u === "string" && u.trim()) {
+                  visitUrls.push(u.trim());
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (visitUrls.length > 0) {
+      return visitUrls.map((url, idx) => ({
+        id: `visit-img-${idx}`,
+        url,
+        name: "รูปถ่ายแปลงสาธิต",
+      }));
+    }
+
+    return [];
   }, [
     parsedResults?.t7InitialPhotos,
     plan?.attachments,
     plan?.result?.attachments,
+    plan?.type7aPlots,
   ]);
 
   // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
@@ -665,6 +705,7 @@ export function DetailWorkTypeList({
       {/* 🟢 TYPE 7A: จัดทำแปลงสาธิต (New Demo Plot Creation) */}
       <Type7aDetailView
         isVisible={isType7a}
+        plan={plan}
         target={targets?.t7a || targets?.t7}
         targets={targets?.t7aList || targets?.t7List}
         actualResult={parsedResults}

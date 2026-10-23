@@ -205,7 +205,16 @@ modules/activity/features/type-7a/
 - **`type7a-plan-card.tsx`:** การ์ดสรุปเป้าหมายแปลงสาธิตตามแผน แสดงชื่อแปลง เกษตรกร พืชที่ทดสอบ และขนาดพื้นที่
 - **`type7a-actual-form.tsx`:** ฟอร์มบันทึกผลการจัดทำแปลงจริงหน้างาน ปักหมุดพิกัด GPS ผ่าน `ActivityGpsPicker`, ยืนยันการใช้สินค้าตัวอย่าง, ระบุวิธีการฉีดพ่น, และอัปโหลดภาพถ่ายแปลงสาธิตเริ่มต้น (ไม่เกิน 5 รูป)
 - **`use-type7a-actual.ts`:** จัดการ State ผลการจัดทำแปลงจริง, รองรับการ Hydrate ข้อมูลเดิม, อัปโหลดภาพถ่ายแปลงสาธิตหมวดหมู่ `PLOT`, และสร้าง Payload สำหรับบันทึกผล
-- **`type7a-detail-view.tsx`:** การ์ดแสดงผลในหน้ารายละเอียด แสดงข้อมูลแปลงสาธิต เกษตรกร พิกัด ชนิดพืช และแกลเลอรีรูปถ่าย
+- **`type7a-detail-view.tsx`:** คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด Trip Plan:
+  - **ข้อมูลเป้าหมายตามแผนงาน:** แสดงการ์ดสรุปเป้าหมายผ่าน `Type7aPlanCard` (ชื่อแปลง, ร้านค้า Dealer, ชนิดพืช, วัตถุประสงค์, พื้นที่ไร่/ต้น, สินค้าที่วางแผน)
+  - **ข้อมูลผลการปฏิบัติงานจริง (เมื่อมี Actual Outcome):** แสดงผล 7 หมวดหมู่อย่างละเอียด:
+    1. ข้อมูลเกษตรกรเจ้าของแปลง (สถานะใน/นอกระบบ, ชื่อ, เบอร์โทร, ร้านค้า Dealer) และพิกัดแปลงสาธิต (GPS) พร้อมปุ่มเปิด Google Maps
+    2. สภาพแปลงเริ่มต้น (พืชประธาน, วิธีทดลอง, ระบบน้ำที่ใช้ Badges, วันที่ปลูกจริง, วันที่ฉีดพ่นครั้งแรก, กำหนดพ่นครั้งต่อไป, อายุพืช, ระยะการเจริญเติบโต, หมายเหตุ)
+    3. วิธีการฉีดพ่นและยาภายนอก (Single / Tank-mixed พร้อมตารางยาภายนอก: บริษัท, ชื่อยา, สารออกฤทธิ์, สูตร, อัตราใช้)
+    4. อุปกรณ์ที่ใช้ฉีดพ่น (อุปกรณ์หลักและอุปกรณ์เพิ่มเติม)
+    5. สินค้าที่เบิกตามแผน (ตารางเปรียบเทียบจำนวนเบิกตามแผน vs ใช้จริง, ปริมาณเพิ่ม, อัตราการใช้)
+    6. สินค้าเพิ่มเติมในการปฏิบัติงาน (ตารางสินค้าที่ใช้นอกเหนือจากแผน)
+    7. ภาพถ่ายสภาพแปลงเริ่มต้น (แกลเลอรีรูปภาพพร้อมเปิด `ImageLightboxModal` ซูม/เลื่อนดูขนาดเต็ม)
 - **`type7a-approval-card.tsx`:** การ์ดสำหรับหน้าพิจารณาอนุมัติของหัวหน้างาน สรุปจำนวนแปลงสาธิตและรายละเอียดเบื้องต้น
 - **`type7a.repository.ts`:** ฟังก์ชันระดับล่างสำหรับฐานข้อมูล:
   - `generateDemoPlotCode`: สร้างรหัสแปลง `DPYYMMXXXX` ด้วย Advisory Lock
@@ -254,11 +263,10 @@ sequenceDiagram
     Form->>Action: createActivityPlanAction(payload)
     Action->>Strategy: savePlan(tx, activityPlanId, planData)
     Strategy->>Repo: syncType7aPlots(tx, activityPlanId, rawPlots)
-    Repo->>DB: 1. generateDemoPlotCode() ➔ สร้าง Master Data แปลงสาธิตใน demo_plots (DPYYMMXXXX)
-    Repo->>DB: 2. create() บันทึกข้อมูลแผนแปลงลงตารางเฉพาะ activity_plan_type_7a
-    Repo->>DB: 3. createMany() บันทึกรายการสินค้าตัวอย่างลง activity_plan_type_7a_products
-    Repo->>DB: 4. create() Dual-sync สำเนาเป้าหมายลง activity_plan_stores (workTypeCode: "TYPE_7A")
-    Repo->>DB: 5. createMany() Dual-sync สำเนาสินค้าลง activity_plan_products (workTypeCode: "TYPE_7A")
+    Repo->>DB: 1. generateDemoPlotCode() ➔ สร้างระเบียนแปลงสาธิตหลักใน demo_plots (DPYYMMXXXX) ผูก activityPlanId โดยตรง
+    Repo->>DB: 2. createMany() บันทึกรายการสินค้าตัวอย่างลง demo_plot_products
+    Repo->>DB: 3. create() Dual-sync สำเนาเป้าหมายลง activity_plan_stores (workTypeCode: "TYPE_7A")
+    Repo->>DB: 4. createMany() Dual-sync สำเนาสินค้าลง activity_plan_products (workTypeCode: "TYPE_7A")
     DB-->>Repo: บันทึกสำเร็จทุกตาราง (Atomic Prisma Transaction)
     Repo-->>Strategy: Done
     Strategy-->>Action: Success

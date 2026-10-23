@@ -156,10 +156,12 @@ export type ActualType7NewDemoProps = Type7aActualFormProps;
 
 export interface Type7aDetailViewProps {
   isVisible?: boolean;
+  plan?: any;
   target?: Type7aTargetItem;
   targets?: Type7aTargetItem[];
   actualResult?: any;
   attachments?: any[];
+  className?: string;
 }
 
 export type DetailType7NewDemoProps = Type7aDetailViewProps;

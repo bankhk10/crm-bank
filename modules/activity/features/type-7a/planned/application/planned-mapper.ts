@@ -29,6 +29,8 @@ export function extractType7aPlanTargets(
     list = plan.type7aPlots.map((p: any) => {
       const dp = p.demoPlot || p;
       const rawProducts = dp.demoProducts?.length ? dp.demoProducts : (p.demoProducts || p.products || []);
+      const visit1 = dp.visits?.[0];
+
       return {
         id: p.id,
         demoPlotId: p.demoPlotId || dp.id,
@@ -39,7 +41,10 @@ export function extractType7aPlanTargets(
         farmerCustomerId: dp.farmerCustomerId || null,
         farmerCustomer: dp.farmerCustomer || null,
         farmerPhone: dp.ownerPhone || dp.farmerCustomer?.phone || "",
+        isUnregisteredFarmer: dp.isUnregisteredFarmer != null ? Boolean(dp.isUnregisteredFarmer) : false,
         storeId: dp.customerId || p.storeId || null,
+        dealerName: dp.customer?.name || p.store?.name || "",
+        dealerCode: dp.customer?.customerCode || p.store?.customerCode || "",
         province: dp.province || dp.ownerProvince || p.province || dp.customer?.province || p.store?.province || "",
         district: dp.district || dp.ownerDistrict || p.district || dp.customer?.district || p.store?.district || "",
         subdistrict: dp.ownerSubdistrict || p.subdistrict || "",
@@ -52,8 +57,27 @@ export function extractType7aPlanTargets(
         categoryId: dp.categoryId || p.categoryId || null,
         latitude: dp.latitude != null ? Number(dp.latitude) : null,
         longitude: dp.longitude != null ? Number(dp.longitude) : null,
+        // Actual outcome fields
+        mainCropInfo: dp.mainCropInfo || p.mainCropInfo || "",
+        experimentDetail: dp.experimentDetail || p.experimentDetail || "",
+        irrigations: (dp.irrigations || p.irrigations || []).map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean),
+        plantingDate: dp.plantingDate || p.plantingDate || dp.startDate || null,
+        initialSprayDate: dp.initialSprayDate || p.initialSprayDate || null,
+        nextSprayDate: dp.nextSprayDate || p.nextSprayDate || null,
+        cropAgeValue: visit1?.cropAgeValue ?? dp.cropAgeValue ?? null,
+        cropAgeUnit: visit1?.cropAgeUnit ?? dp.cropAgeUnit ?? "วัน",
+        growthStage: visit1?.growthStage ?? dp.growthStage ?? null,
+        sprayMethod: dp.sprayMethod || visit1?.sprayMethod || p.sprayMethod || "SINGLE",
+        sprayEquipment: dp.sprayEquipment || visit1?.sprayEquipment || p.sprayEquipment || null,
+        otherEquipment: dp.otherEquipment || visit1?.otherEquipment || p.otherEquipment || null,
+        hasExternalChemicals: Boolean(dp.hasExternalChemicals ?? p.hasExternalChemicals),
+        externalProducts: dp.externalProducts || p.externalProducts || [],
+        notes: dp.notes || visit1?.notes || p.notes || null,
+        visits: dp.visits || p.visits || [],
+        attachments: dp.attachments || p.attachments || [],
         demoProducts: rawProducts.map((prod: any) => ({
           ...prod,
+          id: prod.id,
           productId: prod.productId || prod.product?.id,
           productName: prod.productName || prod.product?.name,
           categoryId: prod.categoryId || prod.product?.categoryId || dp.categoryId || p.categoryId || null,
@@ -73,11 +97,30 @@ export function extractType7aPlanTargets(
                 : prod.withdrawnQuantity != null
                   ? Number(prod.withdrawnQuantity)
                   : 1,
+          withdrawnQuantity:
+            prod.withdrawnQuantity != null
+              ? Number(prod.withdrawnQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : 1,
+          actualQuantity:
+            prod.actualQuantity != null
+              ? Number(prod.actualQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : 1,
+          extraQuantity: prod.extraQuantity != null ? String(prod.extraQuantity) : "",
+          extraUnit: prod.extraUnit || (prod.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+          applicationRate: prod.applicationRate || "",
+          isAdditional: Boolean(prod.isAdditional),
         })),
       };
     });
   } else if (plan.demoPlotData || plan.demoPlot) {
     const dp = plan.demoPlotData || plan.demoPlot;
+    const rawProducts = dp.demoProducts?.length ? dp.demoProducts : (plan.demoProducts || []);
+    const visit1 = dp.visits?.[0];
+
     list = [
       {
         id: dp.id,
@@ -88,7 +131,10 @@ export function extractType7aPlanTargets(
         farmerName: dp.farmerName || dp.ownerName,
         farmerCustomerId: dp.farmerCustomerId,
         farmerPhone: dp.ownerPhone,
+        isUnregisteredFarmer: dp.isUnregisteredFarmer != null ? Boolean(dp.isUnregisteredFarmer) : false,
         storeId: dp.storeId || dp.customerId,
+        dealerName: dp.customer?.name || "",
+        dealerCode: dp.customer?.customerCode || "",
         province: dp.ownerProvince || dp.province,
         district: dp.ownerDistrict || dp.district,
         subdistrict: dp.ownerSubdistrict,
@@ -100,7 +146,61 @@ export function extractType7aPlanTargets(
         objective: dp.objective,
         latitude: dp.latitude != null ? Number(dp.latitude) : null,
         longitude: dp.longitude != null ? Number(dp.longitude) : null,
-        demoProducts: dp.demoProducts || plan.demoProducts || [],
+        mainCropInfo: dp.mainCropInfo || "",
+        experimentDetail: dp.experimentDetail || "",
+        irrigations: (dp.irrigations || []).map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean),
+        plantingDate: dp.plantingDate || dp.startDate || null,
+        initialSprayDate: dp.initialSprayDate || null,
+        nextSprayDate: dp.nextSprayDate || null,
+        cropAgeValue: visit1?.cropAgeValue ?? dp.cropAgeValue ?? null,
+        cropAgeUnit: visit1?.cropAgeUnit ?? dp.cropAgeUnit ?? "วัน",
+        growthStage: visit1?.growthStage ?? dp.growthStage ?? null,
+        sprayMethod: dp.sprayMethod || visit1?.sprayMethod || "SINGLE",
+        sprayEquipment: dp.sprayEquipment || visit1?.sprayEquipment || null,
+        otherEquipment: dp.otherEquipment || visit1?.otherEquipment || null,
+        hasExternalChemicals: Boolean(dp.hasExternalChemicals),
+        externalProducts: dp.externalProducts || [],
+        notes: dp.notes || visit1?.notes || null,
+        visits: dp.visits || [],
+        attachments: dp.attachments || [],
+        demoProducts: rawProducts.map((prod: any) => ({
+          ...prod,
+          id: prod.id,
+          productId: prod.productId || prod.product?.id,
+          productName: prod.productName || prod.product?.name,
+          quantity:
+            prod.quantity != null
+              ? Number(prod.quantity)
+              : prod.targetQuantity != null
+                ? Number(prod.targetQuantity)
+                : prod.withdrawnQuantity != null
+                  ? Number(prod.withdrawnQuantity)
+                  : 1,
+          targetQuantity:
+            prod.targetQuantity != null
+              ? Number(prod.targetQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : prod.withdrawnQuantity != null
+                  ? Number(prod.withdrawnQuantity)
+                  : 1,
+          withdrawnQuantity:
+            prod.withdrawnQuantity != null
+              ? Number(prod.withdrawnQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : 1,
+          actualQuantity:
+            prod.actualQuantity != null
+              ? Number(prod.actualQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : 1,
+          extraQuantity: prod.extraQuantity != null ? String(prod.extraQuantity) : "",
+          extraUnit: prod.extraUnit || (prod.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+          applicationRate: prod.applicationRate || "",
+          isAdditional: Boolean(prod.isAdditional),
+        })),
       },
     ];
   }

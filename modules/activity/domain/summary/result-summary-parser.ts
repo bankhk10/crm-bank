@@ -1,6 +1,7 @@
 import type { ParsedSummaryValues } from "./types";
 import { parseType1ActualResult } from "../../features/type-1";
 import { parseType5ActualResult } from "../../features/type-5";
+import { parseType7aActualResult } from "../../features/type-7a";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -58,6 +59,9 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     const t5Parsed = parseType5ActualResult(resData);
     Object.assign(result, t5Parsed);
+
+    const t7aParsed = parseType7aActualResult(resData);
+    Object.assign(result, t7aParsed);
 
     if (resData.problemFound && !result.problemFound) {
       result.problemFound = resData.problemFound;

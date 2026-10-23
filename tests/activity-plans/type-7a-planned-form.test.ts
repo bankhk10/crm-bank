@@ -5,7 +5,11 @@ import {
   OTHER_CROP_OPTIONS,
 } from "@/modules/activity/features/type-7a/shared/constants";
 import { validateType7aFormItems } from "@/modules/activity/features/type-7a/planned/application/planned-validation";
-import { hydrateType7aPlannedData } from "@/modules/activity/features/type-7a/planned/application/planned-mapper";
+import {
+  hydrateType7aPlannedData,
+  extractType7aPlanTargets,
+} from "@/modules/activity/features/type-7a/planned/application/planned-mapper";
+import { parseType7aActualResult } from "@/modules/activity/features/type-7a/planned/application/actual-mapper";
 import { syncType7aPlots } from "@/modules/activity/features/type-7a/planned/infrastructure/type7a.repository";
 
 async function runTests() {
@@ -236,6 +240,124 @@ async function runTests() {
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.categoryId, "cat-1");
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.productId, "p-1");
   console.log("✓ Test 4 passed: Single-Entity DemoPlot persistence and hydration work end-to-end");
+
+  // 5. Actual Outcome Extraction & Detail View Data Pipeline
+  const mockPlanWithActual = {
+    id: "plan-7a-actual-1",
+    type7aPlots: [
+      {
+        id: "dp-actual-1",
+        code: "DP26100099",
+        name: "แปลงข้าวโพดสาธิต แปลง 1",
+        ownerName: "สมชาย รักสงบ",
+        ownerPhone: "0812345678",
+        isUnregisteredFarmer: true,
+        customerId: "dealer-99",
+        customer: { id: "dealer-99", name: "ร้านรุ่งเรืองการเกษตร", customerCode: "CUST-099" },
+        province: "เชียงใหม่",
+        district: "ฝาง",
+        ownerSubdistrict: "เวียง",
+        cropCategory: "พืชไร่",
+        cropName: "ข้าวโพดเลี้ยงสัตว์",
+        areaRai: 5,
+        treeCount: null,
+        objective: "ทดสอบการคุมวัชพืช",
+        latitude: 19.921345,
+        longitude: 99.213456,
+        mainCropInfo: "ข้าวโพดพันธุ์ CP-888 ปลูกแบบหยอดเมล็ด",
+        experimentDetail: "เปรียบเทียบแปลงฉีดยาบริษัท กับแปลงของเกษตรกร",
+        plantingDate: new Date("2026-10-01"),
+        initialSprayDate: new Date("2026-10-15"),
+        nextSprayDate: new Date("2026-10-30"),
+        sprayMethod: "TANK_MIXED",
+        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        otherEquipment: "หัวฉีดพัดลมเบอร์ 2",
+        hasExternalChemicals: true,
+        notes: "สภาพดินร่วนปนทราย สภาพความชื้นในดินดีมาก",
+        irrigations: [{ id: "irr-1", method: "น้ำหยด" }, { id: "irr-2", method: "สปริงเกอร์" }],
+        externalProducts: [
+          {
+            id: "ext-1",
+            company: "บ.เคมีเกษตรไทย",
+            productName: "สารจับใบ ซูเปอร์สเปรด",
+            activeIngredient: "Alkyl aryl polyglycol ether",
+            formula: "SL",
+            applicationRate: "5 ซีซี ต่อน้ำ 20 ลิตร",
+          },
+        ],
+        demoProducts: [
+          {
+            id: "dpp-planned-1",
+            productId: "prod-herb-1",
+            productName: "ยาคุมหญ้าเอ็กซ์ตร้า",
+            quantity: 2,
+            withdrawnQuantity: 2,
+            actualQuantity: 2,
+            extraQuantity: "50",
+            extraUnit: "ซีซี",
+            applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
+            isAdditional: false,
+          },
+          {
+            id: "dpp-add-1",
+            productId: "prod-add-1",
+            productName: "ฮอร์โมนเร่งราก",
+            quantity: 1,
+            actualQuantity: 1,
+            extraQuantity: "",
+            extraUnit: "ซีซี",
+            applicationRate: "10 ซีซี ต่อน้ำ 20 ลิตร",
+            isAdditional: true,
+          },
+        ],
+        visits: [
+          {
+            id: "visit-1",
+            visitNumber: 1,
+            cropAgeValue: 14,
+            cropAgeUnit: "วัน",
+            growthStage: "ระยะ 3-4 ใบ",
+            plotImageUrls: ["https://example.com/plot1.jpg"],
+          },
+        ],
+      },
+    ],
+  };
+
+  const extractedTargets = extractType7aPlanTargets(mockPlanWithActual);
+  assert.strictEqual(extractedTargets.list.length, 1);
+  const target1 = extractedTargets.primary;
+  assert.strictEqual(target1.plotName, "แปลงข้าวโพดสาธิต แปลง 1");
+  assert.strictEqual(target1.farmerName, "สมชาย รักสงบ");
+  assert.strictEqual(target1.farmerPhone, "0812345678");
+  assert.strictEqual(target1.isUnregisteredFarmer, true);
+  assert.strictEqual(target1.dealerName, "ร้านรุ่งเรืองการเกษตร");
+  assert.strictEqual(target1.latitude, 19.921345);
+  assert.strictEqual(target1.longitude, 99.213456);
+  assert.strictEqual(target1.mainCropInfo, "ข้าวโพดพันธุ์ CP-888 ปลูกแบบหยอดเมล็ด");
+  assert.deepStrictEqual(target1.irrigations, ["น้ำหยด", "สปริงเกอร์"]);
+  assert.strictEqual(target1.sprayMethod, "TANK_MIXED");
+  assert.strictEqual(target1.cropAgeValue, 14);
+  assert.strictEqual(target1.growthStage, "ระยะ 3-4 ใบ");
+  assert.strictEqual(target1.externalProducts?.length, 1);
+  assert.strictEqual(target1.externalProducts[0].productName, "สารจับใบ ซูเปอร์สเปรด");
+  assert.strictEqual(target1.demoProducts?.length, 2);
+  assert.strictEqual(target1.demoProducts[0].actualQuantity, 2);
+  assert.strictEqual(target1.demoProducts[0].extraQuantity, "50");
+  assert.strictEqual(target1.demoProducts[1].isAdditional, true);
+
+  const parsedActual = parseType7aActualResult({ activityPlan: mockPlanWithActual });
+  assert.strictEqual(parsedActual.t7PlotName, "แปลงข้าวโพดสาธิต แปลง 1");
+  assert.strictEqual(parsedActual.t7FarmerName, "สมชาย รักสงบ");
+  assert.strictEqual(parsedActual.t7Latitude, 19.921345);
+  assert.strictEqual(parsedActual.t7SprayMethod, "TANK_MIXED");
+  assert.strictEqual(parsedActual.t7CropAgeValue, 14);
+  assert.strictEqual(parsedActual.t7ExternalProducts?.length, 1);
+  assert.strictEqual(parsedActual.t7PlannedProducts?.length, 1);
+  assert.strictEqual(parsedActual.t7AdditionalProducts?.length, 1);
+  assert.strictEqual(parsedActual.t7InitialPhotos?.length, 1);
+  assert.strictEqual(parsedActual.t7InitialPhotos[0].url, "https://example.com/plot1.jpg");
+  console.log("✓ Test 5 passed: Actual Outcome Extraction and Detail View Data Pipeline verified");
 
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
 }
