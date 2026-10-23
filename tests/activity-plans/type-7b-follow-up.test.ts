@@ -48,10 +48,11 @@ async function runTests() {
   }
   console.log("✓ Test 2 passed: No closed or cancelled plots were returned");
 
-  // Test 3: Standalone plots (without activityPlanId) are exposed as selectable options
-  const standaloneOptions = followUpPlans.filter((p) => !p.planCode?.startsWith("TP"));
-  assert(standaloneOptions.length > 0, "Should include standalone demo plots as options");
-  console.log(`✓ Test 3 passed: ${standaloneOptions.length} standalone demo plots successfully exposed as options`);
+  // Test 3: Returned options correspond to active TYPE_7A Activity Plans
+  for (const plan of followUpPlans) {
+    assert(plan.planCode?.startsWith("TP"), "Plan code should belong to an ActivityPlan");
+  }
+  console.log(`✓ Test 3 passed: All ${followUpPlans.length} options correspond to active TYPE_7A plans`);
 
   // Test 4: findFollowUpDemoPlots returns active plots
   const demoPlots = await findFollowUpDemoPlots();

@@ -305,18 +305,18 @@ export function Type7bPlannedForm({
       {/* 1. ส่วนเลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง */}
       <div className="space-y-3">
         <ActivityCombobox
-          label="เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง / แปลงสาธิต (ที่ยังไม่ปิดแปลง)"
+          label="เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง (ที่ยังไม่ปิดแปลง)"
           labelClassName="block text-xs font-semibold text-slate-800 mb-1 mx-0"
           value={item.selectedPlanId || selectedPlan?.planId || ""}
           onChange={(val) => handlePlanChange(val)}
           options={planOptions}
           placeholder={
             planOptions.length > 0
-              ? "เลือกแปลงสาธิต หรือ แผนกิจกรรมทำแปลง..."
-              : "ไม่พบแปลงสาธิตที่ยังไม่ปิดแปลง"
+              ? "เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง..."
+              : "ไม่พบแผนกิจกรรมทำแปลงสาธิตที่ยังไม่ปิดแปลง"
           }
-          searchPlaceholder="ค้นหาแปลงสาธิต หรือ แผนกิจกรรม (รหัส, ชื่อแปลง, เกษตรกร)..."
-          emptyText="ไม่พบแปลงสาธิตที่เปิดอยู่ (ยังไม่ปิดแปลง)"
+          searchPlaceholder="ค้นหาแผนกิจกรรมทำแปลง (รหัส, ชื่อแผน, หรือชื่อแปลง)..."
+          emptyText="ไม่พบแผนกิจกรรมทำแปลงสาธิตที่แปลงยังเปิดอยู่ (ยังไม่ปิดแปลง)"
           disabled={readonly}
           required
         />

@@ -152,14 +152,23 @@ export async function syncType7bData(
 
 /**
  * Fetch dedicated demo plots for TYPE_7B "ติดตามแปลงสาธิต"
- * Returns all active demo plots whose status is not closed/cancelled
+ * Returns active demo plots originating from non-cancelled TYPE_7A plans whose status is not closed/cancelled
  */
 export async function findFollowUpDemoPlots() {
   return db.demoPlot.findMany({
     where: {
       deletedAt: null,
+      plotType: "GENERAL_DEMO",
       status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
       closedDate: null,
+      activityPlan: {
+        deletedAt: null,
+        status: { not: ActivityStatus.CANCELLED },
+        OR: [
+          { activityType: { code: "TYPE_7A" } },
+          { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
+        ],
+      },
     },
     include: {
       customer: {
@@ -187,42 +196,53 @@ export async function findFollowUpDemoPlots() {
 
 /**
  * Fetch follow-up options for TYPE_7B:
- * Returns all active demo plots (status not CANCELLED/COMPLETED, closedDate is null),
- * grouped by their ActivityPlan (if linked) and including standalone demo plots.
+ * Returns TYPE_7A Activity Plans that have active demo plots (status not CANCELLED/COMPLETED, closedDate is null).
  */
 export async function findFollowUpActivityPlans(): Promise<Type7bFollowUpPlanOption[]> {
-  const plots = await db.demoPlot.findMany({
+  const plans = await db.activityPlan.findMany({
     where: {
       deletedAt: null,
-      status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
-      closedDate: null,
+      status: { not: ActivityStatus.CANCELLED },
+      OR: [
+        { activityType: { code: "TYPE_7A" } },
+        { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
+      ],
+      type7aPlots: {
+        some: {
+          deletedAt: null,
+          status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
+          closedDate: null,
+        },
+      },
     },
     include: {
-      customer: {
-        select: { id: true, name: true, customerCode: true },
-      },
-      farmerCustomer: {
-        select: { id: true, name: true, customerCode: true },
-      },
-      activityPlan: {
-        select: {
-          id: true,
-          code: true,
-          title: true,
-          startDate: true,
-          status: true,
-          deletedAt: true,
+      type7aPlots: {
+        where: {
+          deletedAt: null,
+          status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
+          closedDate: null,
+        },
+        include: {
+          customer: {
+            select: { id: true, name: true, customerCode: true },
+          },
+          farmerCustomer: {
+            select: { id: true, name: true, customerCode: true },
+          },
         },
       },
     },
     orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
 
-  const planMap = new Map<string, Type7bFollowUpPlanOption>();
-  const standalonePlots: Type7bFollowUpPlanOption[] = [];
-
-  for (const plot of plots) {
-    const plotItem = {
+  return plans.map((plan) => ({
+    planId: plan.id,
+    planCode: plan.code || undefined,
+    planTitle: plan.title,
+    planDate: plan.startDate
+      ? new Date(plan.startDate).toLocaleDateString("th-TH")
+      : undefined,
+    plots: plan.type7aPlots.map((plot) => ({
       id: plot.id,
       code: plot.code,
       name: plot.name,
@@ -235,40 +255,8 @@ export async function findFollowUpActivityPlans(): Promise<Type7bFollowUpPlanOpt
       treeCount: plot.treeCount ?? undefined,
       dealerName: plot.customer?.name,
       dealerId: plot.customerId || undefined,
-    };
-
-    if (
-      plot.activityPlan &&
-      !plot.activityPlan.deletedAt &&
-      plot.activityPlan.status !== ActivityStatus.CANCELLED
-    ) {
-      const plan = plot.activityPlan;
-      if (!planMap.has(plan.id)) {
-        planMap.set(plan.id, {
-          planId: plan.id,
-          planCode: plan.code || undefined,
-          planTitle: plan.title,
-          planDate: plan.startDate
-            ? new Date(plan.startDate).toLocaleDateString("th-TH")
-            : undefined,
-          plots: [],
-        });
-      }
-      planMap.get(plan.id)!.plots.push(plotItem);
-    } else {
-      standalonePlots.push({
-        planId: plot.id,
-        planCode: plot.code || "แปลงสาธิต",
-        planTitle: `${plot.name} (${plotItem.ownerName})`,
-        planDate: plot.startDate
-          ? new Date(plot.startDate).toLocaleDateString("th-TH")
-          : undefined,
-        plots: [plotItem],
-      });
-    }
-  }
-
-  return [...Array.from(planMap.values()), ...standalonePlots];
+    })),
+  }));
 }
 
 /**
