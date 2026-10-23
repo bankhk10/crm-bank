@@ -64,7 +64,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   },
   type7aPlots: {
     include: {
-      store: {
+      customer: {
         select: {
           id: true,
           name: true,
@@ -74,54 +74,18 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
-      demoPlot: {
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-            },
-          },
-          farmerCustomer: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-              phone: true,
-            },
-          },
-          demoProducts: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  unit: true,
-                  packageSizeUnit: true,
-                },
-              },
-            },
-            orderBy: { sortOrder: "asc" },
-          },
-          externalProducts: {
-            orderBy: { sortOrder: "asc" },
-          },
-          irrigations: true,
-          attachments: true,
-          visits: {
-            orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
-          },
+      farmerCustomer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+          phone: true,
         },
       },
-      products: {
+      demoProducts: {
         include: {
           product: {
             select: {
@@ -133,6 +97,15 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
             },
           },
         },
+        orderBy: { sortOrder: "asc" },
+      },
+      externalProducts: {
+        orderBy: { sortOrder: "asc" },
+      },
+      irrigations: true,
+      attachments: true,
+      visits: {
+        orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
       },
     },
   },

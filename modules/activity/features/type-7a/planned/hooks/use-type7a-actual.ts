@@ -55,7 +55,7 @@ export function useType7aActual() {
   const [t7ExternalProducts, setT7ExternalProducts] = useState<Type7aExternalChemicalItem[]>([]);
 
   // 4. อุปกรณ์ที่ใช้ฉีดพ่น
-  const [t7SprayEquipment, setT7SprayEquipment] = useState("เครื่องพ่นสะพายหลัง");
+  const [t7SprayEquipment, setT7SprayEquipment] = useState("เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)");
   const [t7OtherEquipment, setT7OtherEquipment] = useState("");
 
   // 5 & 6. สินค้าตามแผน และ สินค้าเพิ่มเติม
@@ -160,30 +160,332 @@ export function useType7aActual() {
   // Hydration from Plan and Parsed Actual Data
   // -------------------------------------------------------------
   const hydrate = useCallback((plan: any, parsed: any, extractedTargets?: any) => {
-    const t7aTarget = extractedTargets?.t7a || extractedTargets?.t7 || plan?.type7aPlots?.[0];
+    const firstPlot = plan?.type7aPlots?.[0];
+    const t7aTarget = extractedTargets?.t7a || extractedTargets?.t7 || firstPlot;
+    const demoPlot =
+      t7aTarget?.demoPlot ||
+      firstPlot?.demoPlot ||
+      (t7aTarget && (t7aTarget.id || t7aTarget.code) ? t7aTarget : null) ||
+      (firstPlot && (firstPlot.id || firstPlot.code) ? firstPlot : null) ||
+      plan?.demoPlot ||
+      parsed?.demoPlot ||
+      null;
+    const visit1 = demoPlot?.visits?.[0] || null;
 
-    // Hydrate targets from Plan
-    if (t7aTarget) {
-      if (t7aTarget.plotName || t7aTarget.name) setT7PlotName(t7aTarget.plotName || t7aTarget.name);
-      if (t7aTarget.farmerName || t7aTarget.ownerName) setT7FarmerName(t7aTarget.farmerName || t7aTarget.ownerName);
-      if (t7aTarget.farmerCustomerId) setT7FarmerCustomerId(t7aTarget.farmerCustomerId);
-      if (t7aTarget.cropName) setT7CropName(t7aTarget.cropName);
-      if (t7aTarget.cropCategory) setT7CropCategory(t7aTarget.cropCategory);
-      if (t7aTarget.province) {
-        setT7FarmerProvince(t7aTarget.province);
-        setT7SelectedProvince(t7aTarget.province);
+    // Helper for ISO date string YYYY-MM-DD
+    const toDateString = (d: any): string => {
+      if (!d) return "";
+      if (typeof d === "string") {
+        const match = d.match(/^\d{4}-\d{2}-\d{2}/);
+        if (match) return match[0];
+        const parsedD = new Date(d);
+        return !isNaN(parsedD.getTime()) ? parsedD.toISOString().slice(0, 10) : "";
       }
-      if (t7aTarget.district) setT7FarmerDistrict(t7aTarget.district);
-      if (t7aTarget.areaRai != null) setT7AreaRai(String(t7aTarget.areaRai));
-      if (t7aTarget.treeCount != null) setT7TreeCount(String(t7aTarget.treeCount));
-      if (t7aTarget.objective) setT7PlotObjective(t7aTarget.objective);
-      if (t7aTarget.demoPlotId) setT7DemoPlotId(t7aTarget.demoPlotId);
+      if (d instanceof Date && !isNaN(d.getTime())) {
+        return d.toISOString().slice(0, 10);
+      }
+      return "";
+    };
 
-      // Initialize planned products from plan target if not parsed yet
-      const prods = t7aTarget.products || t7aTarget.demoProducts || [];
-      if (Array.isArray(prods) && prods.length > 0) {
+    // 1. Farmer Owner & Coordinates
+    const resolvedProvince =
+      demoPlot?.ownerProvince ||
+      demoPlot?.farmerCustomer?.province ||
+      demoPlot?.province ||
+      demoPlot?.customer?.province ||
+      parsed?.t7FarmerProvince ||
+      parsed?.t7SelectedProvince ||
+      t7aTarget?.province ||
+      plan?.province ||
+      "";
+    if (resolvedProvince) {
+      setT7FarmerProvince(resolvedProvince);
+      setT7SelectedProvince(resolvedProvince);
+    }
+
+    const resolvedDistrict =
+      demoPlot?.ownerDistrict ||
+      demoPlot?.farmerCustomer?.district ||
+      demoPlot?.district ||
+      demoPlot?.customer?.district ||
+      parsed?.t7FarmerDistrict ||
+      t7aTarget?.district ||
+      "";
+    if (resolvedDistrict) setT7FarmerDistrict(resolvedDistrict);
+
+    const resolvedSubdistrict =
+      demoPlot?.ownerSubdistrict ||
+      demoPlot?.farmerCustomer?.subdistrict ||
+      parsed?.t7FarmerSubdistrict ||
+      "";
+    if (resolvedSubdistrict) setT7FarmerSubdistrict(resolvedSubdistrict);
+
+    const resolvedFarmerCustomerId =
+      demoPlot?.farmerCustomerId ||
+      t7aTarget?.farmerCustomerId ||
+      parsed?.t7FarmerCustomerId ||
+      null;
+    if (resolvedFarmerCustomerId) setT7FarmerCustomerId(resolvedFarmerCustomerId);
+
+    const resolvedFarmerName =
+      demoPlot?.ownerName ||
+      demoPlot?.farmerCustomer?.name ||
+      t7aTarget?.farmerName ||
+      t7aTarget?.ownerName ||
+      parsed?.t7FarmerName ||
+      "";
+    if (resolvedFarmerName) setT7FarmerName(resolvedFarmerName);
+
+    const resolvedFarmerPhone =
+      demoPlot?.ownerPhone ||
+      demoPlot?.farmerCustomer?.phone ||
+      parsed?.t7FarmerPhone ||
+      t7aTarget?.farmerPhone ||
+      "";
+    if (resolvedFarmerPhone) setT7FarmerPhone(resolvedFarmerPhone);
+
+    const resolvedDealer =
+      demoPlot?.customer ||
+      t7aTarget?.customer ||
+      t7aTarget?.store ||
+      null;
+    if (resolvedDealer) {
+      if (resolvedDealer.name) setT7DealerName(resolvedDealer.name);
+      if (resolvedDealer.customerCode) setT7DealerCode(resolvedDealer.customerCode);
+    }
+
+    const resolvedIsUnregistered =
+      demoPlot?.isUnregisteredFarmer != null
+        ? demoPlot.isUnregisteredFarmer
+        : parsed?.t7IsUnregisteredFarmer != null
+        ? parsed.t7IsUnregisteredFarmer
+        : false;
+    setT7IsUnregisteredFarmer(Boolean(resolvedIsUnregistered));
+
+    const resolvedLat =
+      demoPlot?.latitude != null
+        ? String(demoPlot.latitude)
+        : t7aTarget?.latitude != null
+        ? String(t7aTarget.latitude)
+        : parsed?.t7Latitude != null
+        ? String(parsed.t7Latitude)
+        : "";
+    if (resolvedLat) setT7Latitude(resolvedLat);
+
+    const resolvedLng =
+      demoPlot?.longitude != null
+        ? String(demoPlot.longitude)
+        : t7aTarget?.longitude != null
+        ? String(t7aTarget.longitude)
+        : parsed?.t7Longitude != null
+        ? String(parsed.t7Longitude)
+        : "";
+    if (resolvedLng) setT7Longitude(resolvedLng);
+
+    const resolvedPlotName =
+      demoPlot?.name ||
+      t7aTarget?.plotName ||
+      t7aTarget?.name ||
+      parsed?.t7PlotName ||
+      "";
+    if (resolvedPlotName) setT7PlotName(resolvedPlotName);
+
+    const resolvedCropCategory =
+      demoPlot?.cropCategory ||
+      t7aTarget?.cropCategory ||
+      parsed?.t7CropCategory ||
+      "";
+    if (resolvedCropCategory) setT7CropCategory(resolvedCropCategory);
+
+    const resolvedCropName =
+      demoPlot?.cropName ||
+      t7aTarget?.cropName ||
+      parsed?.t7CropName ||
+      "";
+    if (resolvedCropName) setT7CropName(resolvedCropName);
+
+    const resolvedCustomCropName =
+      demoPlot?.customCropName ||
+      t7aTarget?.customCropName ||
+      parsed?.t7CustomCropName ||
+      "";
+    if (resolvedCustomCropName) setT7CustomCropName(resolvedCustomCropName);
+
+    const resolvedAreaRai =
+      demoPlot?.areaRai != null
+        ? String(demoPlot.areaRai)
+        : t7aTarget?.areaRai != null
+        ? String(t7aTarget.areaRai)
+        : parsed?.t7AreaRai != null
+        ? String(parsed.t7AreaRai)
+        : "";
+    if (resolvedAreaRai) setT7AreaRai(resolvedAreaRai);
+
+    const resolvedTreeCount =
+      demoPlot?.treeCount != null
+        ? String(demoPlot.treeCount)
+        : t7aTarget?.treeCount != null
+        ? String(t7aTarget.treeCount)
+        : parsed?.t7TreeCount != null
+        ? String(parsed.t7TreeCount)
+        : "";
+    if (resolvedTreeCount) setT7TreeCount(resolvedTreeCount);
+
+    const resolvedObjective =
+      demoPlot?.objective ||
+      t7aTarget?.objective ||
+      parsed?.t7PlotObjective ||
+      "";
+    if (resolvedObjective) setT7PlotObjective(resolvedObjective);
+
+    const resolvedDemoPlotId =
+      demoPlot?.id ||
+      t7aTarget?.demoPlotId ||
+      parsed?.t7DemoPlotId ||
+      parsed?.demoPlotId ||
+      null;
+    if (resolvedDemoPlotId) setT7DemoPlotId(resolvedDemoPlotId);
+
+    // 2. Initial Plot Condition & Observations
+    const resolvedMainCropInfo =
+      demoPlot?.mainCropInfo ||
+      parsed?.t7MainCropInfo ||
+      "";
+    if (resolvedMainCropInfo) setT7MainCropInfo(resolvedMainCropInfo);
+
+    const resolvedExperimentDetail =
+      demoPlot?.experimentDetail ||
+      parsed?.t7ExperimentDetail ||
+      "";
+    if (resolvedExperimentDetail) setT7ExperimentDetail(resolvedExperimentDetail);
+
+    // Irrigations
+    if (demoPlot?.irrigations && Array.isArray(demoPlot.irrigations) && demoPlot.irrigations.length > 0) {
+      setT7Irrigations(demoPlot.irrigations.map((i: any) => i.method).filter(Boolean));
+    } else if (Array.isArray(parsed?.t7Irrigations) && parsed.t7Irrigations.length > 0) {
+      setT7Irrigations(parsed.t7Irrigations);
+    }
+
+    // Dates
+    const resolvedPlantingDate = toDateString(demoPlot?.plantingDate || demoPlot?.startDate || parsed?.t7PlantingDate);
+    if (resolvedPlantingDate) setT7PlantingDate(resolvedPlantingDate);
+
+    const resolvedInitialSprayDate = toDateString(demoPlot?.initialSprayDate || parsed?.t7InitialSprayDate);
+    if (resolvedInitialSprayDate) setT7InitialSprayDate(resolvedInitialSprayDate);
+
+    const resolvedNextSprayDate = toDateString(demoPlot?.nextSprayDate || parsed?.t7NextSprayDate);
+    if (resolvedNextSprayDate) setT7NextSprayDate(resolvedNextSprayDate);
+
+    // Crop Age & Stage
+    const resolvedCropAgeVal =
+      visit1?.cropAgeValue != null
+        ? String(visit1.cropAgeValue)
+        : parsed?.t7CropAgeValue != null
+        ? String(parsed.t7CropAgeValue)
+        : "";
+    if (resolvedCropAgeVal) setT7CropAgeValue(resolvedCropAgeVal);
+
+    const resolvedCropAgeUnit =
+      visit1?.cropAgeUnit ||
+      parsed?.t7CropAgeUnit ||
+      "วัน";
+    if (resolvedCropAgeUnit) setT7CropAgeUnit(resolvedCropAgeUnit);
+
+    const resolvedGrowthStage =
+      visit1?.growthStage ||
+      parsed?.t7GrowthStage ||
+      "";
+    if (resolvedGrowthStage) setT7GrowthStage(resolvedGrowthStage);
+
+    const resolvedNotes =
+      demoPlot?.notes ||
+      visit1?.notes ||
+      parsed?.t7Notes ||
+      "";
+    if (resolvedNotes) setT7Notes(resolvedNotes);
+
+    // 3. Spray Method & External Chemicals
+    const resolvedSprayMethod =
+      demoPlot?.sprayMethod ||
+      visit1?.sprayMethod ||
+      parsed?.t7SprayMethod ||
+      "SINGLE";
+    setT7SprayMethod(resolvedSprayMethod);
+
+    const resolvedHasExternal =
+      demoPlot?.hasExternalChemicals != null
+        ? demoPlot.hasExternalChemicals
+        : parsed?.t7HasExternalChemicals != null
+        ? parsed.t7HasExternalChemicals
+        : false;
+    setT7HasExternalChemicals(Boolean(resolvedHasExternal));
+
+    if (demoPlot?.externalProducts && Array.isArray(demoPlot.externalProducts) && demoPlot.externalProducts.length > 0) {
+      setT7ExternalProducts(
+        demoPlot.externalProducts.map((ext: any, idx: number) => ({
+          id: ext.id || `ext-${idx}`,
+          company: ext.company || "",
+          productName: ext.productName || "",
+          activeIngredient: ext.activeIngredient || "",
+          formula: ext.formula || "SL",
+          customFormula: ext.customFormula || "",
+          applicationRate: ext.applicationRate || "",
+        })),
+      );
+    } else if (Array.isArray(parsed?.t7ExternalProducts) && parsed.t7ExternalProducts.length > 0) {
+      setT7ExternalProducts(parsed.t7ExternalProducts);
+    }
+
+    // 4. Spray Equipment
+    const resolvedSprayEquipment =
+      demoPlot?.sprayEquipment ||
+      visit1?.sprayEquipment ||
+      parsed?.t7SprayEquipment ||
+      "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)";
+    setT7SprayEquipment(resolvedSprayEquipment);
+
+    const resolvedOtherEquipment =
+      demoPlot?.otherEquipment ||
+      visit1?.otherEquipment ||
+      parsed?.t7OtherEquipment ||
+      "";
+    if (resolvedOtherEquipment) setT7OtherEquipment(resolvedOtherEquipment);
+
+    // 5. Products (Planned & Additional)
+    const demoProds = demoPlot?.demoProducts || [];
+    const plannedFromDemo = demoProds.filter((p: any) => !p.isAdditional);
+    const additionalFromDemo = demoProds.filter((p: any) => p.isAdditional);
+
+    if (plannedFromDemo.length > 0) {
+      setT7PlannedProducts(
+        plannedFromDemo.map((p: any) => ({
+          productId: p.productId || p.product?.id || "",
+          productName: p.productName || p.product?.name || "",
+          withdrawnQuantity:
+            p.withdrawnQuantity != null
+              ? Number(p.withdrawnQuantity)
+              : p.quantity != null
+              ? Number(p.quantity)
+              : 1,
+          actualQuantity:
+            p.quantity != null
+              ? Number(p.quantity)
+              : p.withdrawnQuantity != null
+              ? Number(p.withdrawnQuantity)
+              : 1,
+          extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+          extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+          applicationRate: p.applicationRate || "",
+        })),
+      );
+    } else if (Array.isArray(parsed?.t7PlannedProducts) && parsed.t7PlannedProducts.length > 0) {
+      setT7PlannedProducts(parsed.t7PlannedProducts);
+    } else {
+      // Fallback: Populate from planned targets
+      const planProds = t7aTarget?.products || t7aTarget?.demoProducts || [];
+      if (Array.isArray(planProds) && planProds.length > 0) {
         setT7PlannedProducts(
-          prods.map((p: any) => ({
+          planProds.map((p: any) => ({
             productId: p.productId || p.id || "",
             productName: p.productName || p.name || "",
             withdrawnQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
@@ -196,51 +498,69 @@ export function useType7aActual() {
       }
     }
 
-    // Hydrate previous actual record
-    if (parsed) {
-      if (parsed.t7PlotName) setT7PlotName(parsed.t7PlotName);
-      if (parsed.t7FarmerName) setT7FarmerName(parsed.t7FarmerName);
-      if (parsed.t7FarmerCustomerId) setT7FarmerCustomerId(parsed.t7FarmerCustomerId);
-      if (parsed.t7FarmerPhone) setT7FarmerPhone(parsed.t7FarmerPhone);
-      if (parsed.t7FarmerProvince) {
-        setT7FarmerProvince(parsed.t7FarmerProvince);
-        setT7SelectedProvince(parsed.t7FarmerProvince);
-      }
-      if (parsed.t7FarmerDistrict) setT7FarmerDistrict(parsed.t7FarmerDistrict);
-      if (parsed.t7FarmerSubdistrict) setT7FarmerSubdistrict(parsed.t7FarmerSubdistrict);
-      if (parsed.t7IsUnregisteredFarmer != null) setT7IsUnregisteredFarmer(Boolean(parsed.t7IsUnregisteredFarmer));
+    if (additionalFromDemo.length > 0) {
+      setT7AdditionalProducts(
+        additionalFromDemo.map((p: any, idx: number) => ({
+          id: p.id || `add-${idx}`,
+          productId: p.productId || p.product?.id || "",
+          productName: p.productName || p.product?.name || "",
+          actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
+          extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+          extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+          applicationRate: p.applicationRate || "",
+        })),
+      );
+    } else if (Array.isArray(parsed?.t7AdditionalProducts)) {
+      setT7AdditionalProducts(parsed.t7AdditionalProducts);
+    }
 
-      if (parsed.t7Latitude != null) setT7Latitude(parsed.t7Latitude);
-      if (parsed.t7Longitude != null) setT7Longitude(parsed.t7Longitude);
-      if (parsed.t7MainCropInfo) setT7MainCropInfo(parsed.t7MainCropInfo);
-      if (parsed.t7ExperimentDetail) setT7ExperimentDetail(parsed.t7ExperimentDetail);
-      if (Array.isArray(parsed.t7Irrigations)) setT7Irrigations(parsed.t7Irrigations);
-
-      if (parsed.t7PlantingDate) setT7PlantingDate(parsed.t7PlantingDate);
-      if (parsed.t7InitialSprayDate) setT7InitialSprayDate(parsed.t7InitialSprayDate);
-      if (parsed.t7NextSprayDate) setT7NextSprayDate(parsed.t7NextSprayDate);
-      if (parsed.t7CropAgeValue != null) setT7CropAgeValue(parsed.t7CropAgeValue);
-      if (parsed.t7CropAgeUnit) setT7CropAgeUnit(parsed.t7CropAgeUnit);
-      if (parsed.t7GrowthStage) setT7GrowthStage(parsed.t7GrowthStage);
-      if (parsed.t7Notes) setT7Notes(parsed.t7Notes);
-
-      if (parsed.t7SprayMethod) setT7SprayMethod(parsed.t7SprayMethod);
-      if (parsed.t7HasExternalChemicals != null) setT7HasExternalChemicals(Boolean(parsed.t7HasExternalChemicals));
-      if (Array.isArray(parsed.t7ExternalProducts)) setT7ExternalProducts(parsed.t7ExternalProducts);
-
-      if (parsed.t7SprayEquipment) setT7SprayEquipment(parsed.t7SprayEquipment);
-      if (parsed.t7OtherEquipment) setT7OtherEquipment(parsed.t7OtherEquipment);
-
-      if (Array.isArray(parsed.t7PlannedProducts) && parsed.t7PlannedProducts.length > 0) {
-        setT7PlannedProducts(parsed.t7PlannedProducts);
-      }
-      if (Array.isArray(parsed.t7AdditionalProducts)) {
-        setT7AdditionalProducts(parsed.t7AdditionalProducts);
-      }
-
-      if (parsed.t7InitialPhotos) {
-        setT7InitialPhotos(parsed.t7InitialPhotos);
-        initialPhotosRef.current = parsed.t7InitialPhotos;
+    // 6. Initial Photos
+    if (Array.isArray(parsed?.t7InitialPhotos) && parsed.t7InitialPhotos.length > 0) {
+      setT7InitialPhotos(parsed.t7InitialPhotos);
+      initialPhotosRef.current = parsed.t7InitialPhotos;
+    } else {
+      const allAttachments = [
+        ...(demoPlot?.attachments || []),
+        ...(parsed?.attachments || []),
+        ...(plan?.attachments || []),
+      ];
+      const plotAttachments = allAttachments.filter(
+        (att: any) =>
+          att.category === "PLOT" ||
+          att.category === "type7a_plot" ||
+          (att.workTypeCode === "TYPE_7A" && att.fileUrl),
+      );
+      if (plotAttachments.length > 0) {
+        const seenUrls = new Set<string>();
+        const photos: Type7aImageFile[] = [];
+        for (const att of plotAttachments) {
+          const url = att.fileUrl || att.url;
+          if (url && !seenUrls.has(url)) {
+            seenUrls.add(url);
+            photos.push({
+              id: att.id || url,
+              url,
+              name: att.fileName || "รูปถ่ายสภาพแปลง",
+              size: att.fileSize || 0,
+            });
+          }
+        }
+        if (photos.length > 0) {
+          setT7InitialPhotos(photos);
+          initialPhotosRef.current = photos;
+        }
+      } else if (
+        visit1?.plotImageUrls &&
+        Array.isArray(visit1.plotImageUrls) &&
+        visit1.plotImageUrls.length > 0
+      ) {
+        const photos: Type7aImageFile[] = visit1.plotImageUrls.map((url: string, idx: number) => ({
+          id: `visit-img-${idx}`,
+          url,
+          name: `รูปถ่ายสภาพแปลง ${idx + 1}`,
+        }));
+        setT7InitialPhotos(photos);
+        initialPhotosRef.current = photos;
       }
     }
   }, []);

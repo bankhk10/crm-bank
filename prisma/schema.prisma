@@ -404,7 +404,7 @@ model Customer {
   activityAttachments         ActivityAttachment[]
   demoPlots                   DemoPlot[]                   @relation("CustomerDemoPlots")
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
-  activityPlanType7aPlots     ActivityPlanType7a[]         @relation("Type7aDealerStore")
+
   activityPlanType13Plots     ActivityPlanType13Plot[]     @relation("Type13DealerStore")
   activityPlanType1Stores     ActivityPlanType1Store[]
   activityPlanType2Targets    ActivityPlanType2Target[]
@@ -709,7 +709,7 @@ model Product {
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
   activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
-  activityPlanType7aProducts     ActivityPlanType7aProduct[]
+
   activityPlanType7bProducts     ActivityPlanType7bProduct[]
   activityPlanType13Products     ActivityPlanType13Product[]
   activityPlanType14Products     ActivityPlanType14Product[]
@@ -1752,7 +1752,7 @@ model ActivityPlan {
   demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
-  type7aPlots    ActivityPlanType7a[]
+  type7aPlots    DemoPlot[] @relation("ActivityPlanType7aDemoPlots")
   type7b         ActivityPlanType7b?
   type7bFollowUps ActivityPlanType7b[] @relation("Type7bSourcePlan")
   type13         ActivityPlanType13?
@@ -2399,7 +2399,12 @@ model DemoPlot {
   name       String // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
   ownerName  String  @map("owner_name") // เจ้าของแปลง/ลูกค้า
   customerId String? @map("customer_id") // FK -> Customer (ถ้ามี)
-  employeeId String  @map("employee_id") // พนักงานผู้ดูแลแปลง
+  employeeId     String        @map("employee_id") // พนักงานผู้ดูแลแปลง
+  activityPlanId String?       @map("activity_plan_id")
+  categoryId     String?       @map("category_id")
+  hasProducts    Boolean       @default(false) @map("has_products")
+
+  activityPlan ActivityPlan? @relation("ActivityPlanType7aDemoPlots", fields: [activityPlanId], references: [id], onDelete: Cascade)
 
   customer Customer? @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
 
@@ -2467,7 +2472,7 @@ model DemoPlot {
   irrigations         DemoPlotIrrigation[]
   attachments         ActivityAttachment[]
   sprayRounds         ActivityResultSprayRound[]
-  type7aPlots         ActivityPlanType7a[]
+
   type7bPlots         ActivityPlanType7bPlot[]
   type13Plots         ActivityPlanType13Plot[]
   type14Plots         ActivityPlanType14Plot[]
@@ -2481,6 +2486,7 @@ model DemoPlot {
   @@index([status])
   @@index([cropCategory])
   @@index([ownerName])
+  @@index([activityPlanId])
   @@map("demo_plots")
 }
 
@@ -2584,66 +2590,6 @@ model DemoPlotIrrigation {
   @@map("demo_plot_irrigations")
 }
 
-// =============================================================================
-// TYPE-7A: แผนทำแปลงสาธิตใหม่ (New Demo Plot Plan)
-// =============================================================================
-
-model ActivityPlanType7a {
-  id             String    @id @default(cuid())
-  activityPlanId String    @map("activity_plan_id")
-
-  // 1. ข้อมูลแปลงสาธิต
-  plotName       String    @map("plot_name") // ชื่อแปลง
-  storeId        String?   @map("store_id")  // ร้านค้า Dealer
-  ownerName      String?   @map("owner_name") // ชื่อเจ้าของแปลง / ร้านค้า
-  province       String?   @map("province")   // จังหวัด (Sync ตาม Dealer)
-  district       String?   @map("district")   // อำเภอ (Sync ตาม Dealer)
-  cropCategory   String    @map("crop_category") // หมวดพืช (พืชสวน, พืชไร่, ผัก ฯลฯ)
-  cropName       String    @map("crop_name")     // ชื่อพืช
-  customCropName String?   @map("custom_crop_name") // ระบุชื่อพืชเพิ่มเติม (กรณีเลือก อื่นๆ)
-  areaRai        Decimal?  @map("area_rai") @db.Decimal(10, 2) // พื้นที่ (ไร่)
-  treeCount      Int?      @map("tree_count") // จำนวนต้น
-
-  // 2. ข้อมูลการทดลองและวัตถุประสงค์
-  objective      String    @map("objective") @db.Text // วัตถุประสงค์การทำแปลง
-  categoryId     String?   @map("category_id") // หมวดสินค้าที่เลือก
-  hasProducts    Boolean   @default(false) @map("has_products") // มีการระบุสินค้า
-
-  // 3. การเชื่อมโยง Master DemoPlot
-  demoPlotId     String?   @map("demo_plot_id")
-
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?                   @relation("Type7aDealerStore", fields: [storeId], references: [id], onDelete: SetNull)
-  demoPlot       DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-  products       ActivityPlanType7aProduct[]
-
-  @@index([activityPlanId])
-  @@index([storeId])
-  @@index([demoPlotId])
-  @@map("activity_plan_type_7a")
-}
-
-model ActivityPlanType7aProduct {
-  id          String             @id @default(cuid())
-  type7aId    String             @map("type_7a_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit") // ขวด, กล่อง, ลิตร
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
-
-  type7a      ActivityPlanType7a @relation(fields: [type7aId], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([type7aId])
-  @@index([productId])
-  @@map("activity_plan_type_7a_products")
-}
 
 // =============================================================================
 // TYPE-7B: แผนติดตามแปลงสาธิต (Demo Plot Follow-up Plan)

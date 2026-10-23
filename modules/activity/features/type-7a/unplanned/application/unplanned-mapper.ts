@@ -22,7 +22,7 @@ export function hydrateType7aUnplannedData(initialData: any): Type7aUnplannedIte
         id: p.id || `type7a-unplanned-${Date.now()}-${idx}`,
         plotName: p.plotName || p.name || match.t7PlotName || "",
         farmerName: p.farmerName || p.ownerName || match.t7FarmerName || "",
-        storeId: p.storeId || match.t7FarmerCustomerId || null,
+        storeId: p.storeId || p.customerId || match.t7FarmerCustomerId || null,
         province: p.province || match.t7FarmerProvince || "",
         district: p.district || match.t7FarmerDistrict || "",
         cropCategory: p.cropCategory || match.t7CropCategory || "",

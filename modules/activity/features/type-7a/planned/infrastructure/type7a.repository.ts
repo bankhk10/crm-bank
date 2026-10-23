@@ -61,7 +61,7 @@ export async function generateDemoPlotCode(
 }
 
 /**
- * Sync Type 7A plots and products within a Prisma transaction
+ * Sync Type 7A plots and products directly into DemoPlot and DemoPlotProduct
  */
 export async function syncType7aPlots(
   tx: Prisma.TransactionClient,
@@ -72,12 +72,7 @@ export async function syncType7aPlots(
 ): Promise<void> {
   if (!rawPlots || rawPlots.length === 0) return;
 
-  // Clean up previous plan records for idempotent updates
-  if ((tx as any).activityPlanType7a) {
-    await (tx as any).activityPlanType7a.deleteMany({
-      where: { activityPlanId },
-    });
-  }
+  // Clean up previous dual-sync calendar/dashboard records
   await tx.activityPlanStore.deleteMany({
     where: { activityPlanId, workTypeCode: "TYPE_7A" },
   });
@@ -85,18 +80,39 @@ export async function syncType7aPlots(
     where: { activityPlanId, workTypeCode: "TYPE_7A" },
   });
 
+  // Find existing DemoPlots attached to this activity plan
+  const existingPlots = await tx.demoPlot.findMany({
+    where: { activityPlanId },
+    select: { id: true, code: true },
+  });
+  const existingPlotMap = new Map(existingPlots.map((p) => [p.id, p]));
+  const processedPlotIds = new Set<string>();
+
   for (let i = 0; i < rawPlots.length; i++) {
     const plot = rawPlots[i];
-    let demoPlotId = plot.demoPlotId || null;
+    let demoPlotId =
+      plot.demoPlotId ||
+      (plot.id && existingPlotMap.has(plot.id) ? plot.id : null);
 
-    // 1. Create or update DemoPlot
-    if (!demoPlotId) {
+    const prods = (plot.demoProducts || plot.products || []).filter((prod) =>
+      Boolean(prod.productId),
+    );
+    const categoryId =
+      plot.categoryId ||
+      prods.find((p) => p.categoryId)?.categoryId ||
+      null;
+
+    const plotName = plot.plotName || plot.name || "แปลงสาธิต";
+    const ownerName = plot.ownerName || plot.farmerName || "";
+
+    if (!demoPlotId || !existingPlotMap.has(demoPlotId)) {
       const code = await generateDemoPlotCode(tx, startDate, i);
       const createdPlot = await tx.demoPlot.create({
         data: {
           code,
-          name: plot.plotName || plot.name || "แปลงสาธิต",
-          ownerName: plot.ownerName || plot.farmerName || "",
+          activityPlanId,
+          name: plotName,
+          ownerName,
           customerId: plot.storeId || null,
           employeeId: employeeId || "system",
           province: plot.province || null,
@@ -104,12 +120,24 @@ export async function syncType7aPlots(
           cropCategory: plot.cropCategory || "พืชทั่วไป",
           cropName: plot.cropName || "พืชทั่วไป",
           customCropName: plot.customCropName || null,
-          areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
-          treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
+          areaRai:
+            plot.areaRai != null
+              ? new Prisma.Decimal(plot.areaRai)
+              : null,
+          treeCount:
+            plot.treeCount != null
+              ? Number(plot.treeCount)
+              : null,
           startDate: plot.plantingDate ? new Date(plot.plantingDate) : startDate,
-          initialSprayDate: plot.initialSprayDate ? new Date(plot.initialSprayDate) : null,
-          nextSprayDate: plot.nextSprayDate ? new Date(plot.nextSprayDate) : null,
+          initialSprayDate: plot.initialSprayDate
+            ? new Date(plot.initialSprayDate)
+            : null,
+          nextSprayDate: plot.nextSprayDate
+            ? new Date(plot.nextSprayDate)
+            : null,
           objective: plot.objective || null,
+          categoryId,
+          hasProducts: prods.length > 0,
           notes: plot.notes || null,
           latitude: parseDecimalCoord(plot.latitude),
           longitude: parseDecimalCoord(plot.longitude),
@@ -118,75 +146,61 @@ export async function syncType7aPlots(
       });
       demoPlotId = createdPlot.id;
     } else {
-      try {
-        await tx.demoPlot.update({
-          where: { id: demoPlotId },
-          data: {
-            name: plot.plotName || plot.name || "แปลงสาธิต",
-            ownerName: plot.ownerName || plot.farmerName || "",
-            customerId: plot.storeId || null,
-            province: plot.province || null,
-            district: plot.district || null,
-            cropCategory: plot.cropCategory || "พืชทั่วไป",
-            cropName: plot.cropName || "พืชทั่วไป",
-            customCropName: plot.customCropName || null,
-            areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
-            treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
-            objective: plot.objective || null,
-            notes: plot.notes || null,
-          },
-        });
-      } catch {
-        // Ignore if demoPlotId was not found
-      }
-    }
-
-    const prods = (plot.demoProducts || plot.products || []).filter((prod) =>
-      Boolean(prod.productId),
-    );
-
-    // 2. Save to Dedicated Plan Table (ActivityPlanType7a + ActivityPlanType7aProduct)
-    if ((tx as any).activityPlanType7a) {
-      await (tx as any).activityPlanType7a.create({
+      await tx.demoPlot.update({
+        where: { id: demoPlotId },
         data: {
-          activityPlanId,
-          plotName: plot.plotName || plot.name || "แปลงสาธิต",
-          storeId: plot.storeId || null,
-          ownerName: plot.ownerName || plot.farmerName || null,
+          name: plotName,
+          ownerName,
+          customerId: plot.storeId || null,
           province: plot.province || null,
           district: plot.district || null,
           cropCategory: plot.cropCategory || "พืชทั่วไป",
           cropName: plot.cropName || "พืชทั่วไป",
           customCropName: plot.customCropName || null,
-          areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
-          treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
-          objective: plot.objective || "",
-          categoryId:
-            plot.categoryId ||
-            prods.find((p) => p.categoryId)?.categoryId ||
-            null,
+          areaRai:
+            plot.areaRai != null
+              ? new Prisma.Decimal(plot.areaRai)
+              : null,
+          treeCount:
+            plot.treeCount != null
+              ? Number(plot.treeCount)
+              : null,
+          objective: plot.objective || null,
+          categoryId,
           hasProducts: prods.length > 0,
-          demoPlotId,
-          products:
-            prods.length > 0
-              ? {
-                  create: prods.map((prod, pIdx) => ({
-                    productId: prod.productId!,
-                    productName: prod.productName || null,
-                    quantity: new Prisma.Decimal(
-                      prod.quantity || prod.targetQuantity || 1,
-                    ),
-                    unit: prod.unit || "ขวด",
-                    sortOrder: pIdx,
-                  })),
-                }
-              : undefined,
+          notes: plot.notes || null,
         },
       });
     }
 
-    // 3. Also dual-sync to ActivityPlanStore for unified schedule queries
-    const storeName = plot.ownerName || plot.farmerName || plot.plotName || "แปลงสาธิต";
+    processedPlotIds.add(demoPlotId);
+
+    // Save planned products directly into DemoPlotProduct
+    await tx.demoPlotProduct.deleteMany({
+      where: { demoPlotId, isAdditional: false },
+    });
+
+    if (prods.length > 0) {
+      await tx.demoPlotProduct.createMany({
+        data: prods.map((prod, pIdx) => {
+          const qty = prod.quantity ?? prod.targetQuantity ?? 1;
+          return {
+            demoPlotId,
+            productId: prod.productId!,
+            productName: prod.productName || null,
+            applicationRate: prod.applicationRate || "",
+            quantity: new Prisma.Decimal(qty),
+            withdrawnQuantity: new Prisma.Decimal(qty),
+            unit: prod.unit || "ขวด",
+            sortOrder: pIdx,
+            isAdditional: false,
+          };
+        }),
+      });
+    }
+
+    // Dual-sync to ActivityPlanStore for unified schedule queries
+    const storeName = ownerName || plotName || "แปลงสาธิต";
     await tx.activityPlanStore.create({
       data: {
         activityPlanId,
@@ -197,7 +211,7 @@ export async function syncType7aPlots(
       },
     });
 
-    // 4. Dual-sync products to ActivityPlanProduct
+    // Dual-sync products to ActivityPlanProduct
     if (prods.length > 0) {
       for (const prod of prods) {
         if (prod.productId) {
@@ -217,22 +231,39 @@ export async function syncType7aPlots(
       }
     }
   }
+
+  // Delete any plots that belonged to this activityPlanId but were removed
+  for (const existing of existingPlots) {
+    if (!processedPlotIds.has(existing.id)) {
+      await tx.demoPlot.delete({
+        where: { id: existing.id },
+      });
+    }
+  }
 }
 
 /**
- * Find Type 7A data by Plan ID
+ * Find Type 7A data by Plan ID directly from DemoPlot
  */
 export async function findType7aByPlanId(activityPlanId: string) {
   const [type7aPlots, stores, products] = await Promise.all([
-    db.activityPlanType7a.findMany({
+    db.demoPlot.findMany({
       where: { activityPlanId },
       include: {
-        store: true,
-        demoPlot: true,
-        products: {
+        customer: true,
+        farmerCustomer: true,
+        irrigations: true,
+        externalProducts: {
           orderBy: { sortOrder: "asc" },
-          include: { product: true },
         },
+        demoProducts: {
+          include: { product: true },
+          orderBy: { sortOrder: "asc" },
+        },
+        visits: {
+          orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
+        },
+        attachments: true,
       },
       orderBy: { createdAt: "asc" },
     }),
@@ -266,20 +297,8 @@ export async function syncType7aActualData(
   let demoPlotId = actualData.demoPlotId || actualData.t7DemoPlotId || null;
 
   if (!demoPlotId) {
-    const plan7a = await (tx as any).activityPlanType7a?.findFirst({
-      where: { activityPlanId },
-      select: { demoPlotId: true },
-    });
-    if (plan7a?.demoPlotId) {
-      demoPlotId = plan7a.demoPlotId;
-    }
-  }
-
-  if (!demoPlotId) {
     const matchedPlot = await tx.demoPlot.findFirst({
-      where: {
-        type7aPlots: { some: { activityPlanId } },
-      },
+      where: { activityPlanId },
       select: { id: true },
     });
     if (matchedPlot?.id) {
@@ -287,12 +306,43 @@ export async function syncType7aActualData(
     }
   }
 
-  if (!demoPlotId) return;
+  if (!demoPlotId) {
+    const firstPlot = actualData.type7aPlots?.[0];
+    if (firstPlot?.demoPlotId) {
+      demoPlotId = firstPlot.demoPlotId;
+    } else if (firstPlot?.id && firstPlot.id !== "plot-0") {
+      const checkPlot = await tx.demoPlot.findUnique({
+        where: { id: firstPlot.id },
+        select: { id: true },
+      });
+      if (checkPlot?.id) {
+        demoPlotId = checkPlot.id;
+      }
+    }
+  }
+
+  // Fallback: If DemoPlot was never created for this plan, create one
+  if (!demoPlotId) {
+    const code = await generateDemoPlotCode(tx);
+    const createdPlot = await tx.demoPlot.create({
+      data: {
+        code,
+        activityPlanId,
+        name: actualData.t7PlotName || "แปลงสาธิต",
+        ownerName: actualData.t7FarmerName || "",
+        employeeId: "system",
+        status: DemoPlotStatus.IN_PROGRESS,
+        startDate: actualData.t7PlantingDate ? new Date(actualData.t7PlantingDate) : new Date(),
+      },
+    });
+    demoPlotId = createdPlot.id;
+  }
 
   // 1. Update Master DemoPlot record
   await tx.demoPlot.update({
     where: { id: demoPlotId },
     data: {
+      name: actualData.t7PlotName || undefined,
       ownerName: actualData.t7FarmerName || undefined,
       farmerCustomerId: actualData.t7FarmerCustomerId || null,
       ownerPhone: actualData.t7FarmerPhone || null,
@@ -302,6 +352,18 @@ export async function syncType7aActualData(
       isUnregisteredFarmer: Boolean(actualData.t7IsUnregisteredFarmer),
       latitude: parseDecimalCoord(actualData.t7Latitude),
       longitude: parseDecimalCoord(actualData.t7Longitude),
+      cropCategory: actualData.t7CropCategory || undefined,
+      cropName: actualData.t7CropName || undefined,
+      customCropName: actualData.t7CustomCropName || undefined,
+      areaRai:
+        actualData.t7AreaRai != null && actualData.t7AreaRai !== ""
+          ? new Prisma.Decimal(actualData.t7AreaRai)
+          : undefined,
+      treeCount:
+        actualData.t7TreeCount != null && actualData.t7TreeCount !== ""
+          ? Number(actualData.t7TreeCount)
+          : undefined,
+      objective: actualData.t7PlotObjective || undefined,
       mainCropInfo: actualData.t7MainCropInfo || null,
       experimentDetail: actualData.t7ExperimentDetail || null,
       plantingDate: actualData.t7PlantingDate ? new Date(actualData.t7PlantingDate) : null,
@@ -389,6 +451,7 @@ export async function syncType7aActualData(
             p.withdrawnQuantity != null && p.withdrawnQuantity !== ""
               ? new Prisma.Decimal(p.withdrawnQuantity)
               : null,
+          unit: p.unit || null,
           sortOrder: idx,
         });
       }
@@ -414,6 +477,7 @@ export async function syncType7aActualData(
           extraUnit: p.extraUnit || null,
           applicationRate: p.applicationRate || "",
           isAdditional: true,
+          unit: p.unit || null,
           sortOrder: productsToCreate.length + idx,
         });
       }

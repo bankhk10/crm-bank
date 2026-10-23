@@ -118,19 +118,25 @@ async function runTests() {
   assert.ok(missingAreaRai.error?.includes("กรุณาระบุพื้นที่ (ไร่)"));
   console.log("✓ Test 3 passed: Dynamic treeCount (พืชสวน) vs areaRai validation works");
 
-  // 4. Persistence & Hydration
-  const createdType7aRecords: any[] = [];
+  // 4. Persistence & Hydration (Single-Entity Architecture: DemoPlot + DemoPlotProduct)
+  const createdDemoPlots: any[] = [];
+  const createdDemoPlotProducts: any[] = [];
   const mockTx: any = {
     $executeRaw: async () => {},
     demoPlot: {
       findMany: async () => [],
-      create: async () => ({ id: "dp-1", code: "DP26100001" }),
-    },
-    activityPlanType7a: {
-      deleteMany: async () => ({ count: 0 }),
       create: async ({ data }: any) => {
-        createdType7aRecords.push(data);
-        return { id: "t7a-1", ...data };
+        createdDemoPlots.push(data);
+        return { id: "dp-1", code: data.code || "DP26100001", ...data };
+      },
+      update: async () => {},
+      delete: async () => {},
+    },
+    demoPlotProduct: {
+      deleteMany: async () => ({ count: 0 }),
+      createMany: async ({ data }: any) => {
+        createdDemoPlotProducts.push(...data);
+        return { count: data.length };
       },
     },
     activityPlanStore: {
@@ -173,23 +179,31 @@ async function runTests() {
     "emp-1",
   );
 
-  assert.strictEqual(createdType7aRecords.length, 1);
-  assert.strictEqual(createdType7aRecords[0].plotName, "แปลงทุเรียนสาธิต");
-  assert.strictEqual(createdType7aRecords[0].storeId, "dealer-1");
-  assert.strictEqual(createdType7aRecords[0].cropCategory, "พืชสวน");
-  assert.strictEqual(createdType7aRecords[0].cropName, "พืชสวนอื่นๆ");
-  assert.strictEqual(createdType7aRecords[0].customCropName, "มังคุด");
-  assert.strictEqual(createdType7aRecords[0].treeCount, 80);
-  assert.strictEqual(createdType7aRecords[0].objective, "ทดสอบการติดผลดก");
-  assert.strictEqual(createdType7aRecords[0].categoryId, "cat-1");
+  assert.strictEqual(createdDemoPlots.length, 1);
+  assert.strictEqual(createdDemoPlots[0].activityPlanId, "plan-7a-1");
+  assert.strictEqual(createdDemoPlots[0].name, "แปลงทุเรียนสาธิต");
+  assert.strictEqual(createdDemoPlots[0].customerId, "dealer-1");
+  assert.strictEqual(createdDemoPlots[0].cropCategory, "พืชสวน");
+  assert.strictEqual(createdDemoPlots[0].cropName, "พืชสวนอื่นๆ");
+  assert.strictEqual(createdDemoPlots[0].customCropName, "มังคุด");
+  assert.strictEqual(createdDemoPlots[0].treeCount, 80);
+  assert.strictEqual(createdDemoPlots[0].objective, "ทดสอบการติดผลดก");
+  assert.strictEqual(createdDemoPlots[0].categoryId, "cat-1");
+  assert.strictEqual(createdDemoPlots[0].hasProducts, true);
+
+  assert.strictEqual(createdDemoPlotProducts.length, 1);
+  assert.strictEqual(createdDemoPlotProducts[0].productId, "p-1");
+  assert.strictEqual(createdDemoPlotProducts[0].productName, "ยาบำรุง A");
+  assert.strictEqual(Number(createdDemoPlotProducts[0].quantity), 3);
+  assert.strictEqual(createdDemoPlotProducts[0].isAdditional, false);
 
   const hydrated = hydrateType7aPlannedData({
     type7aPlots: [
       {
-        id: "t7a-1",
-        demoPlotId: "dp-1",
-        plotName: "แปลงทุเรียนสาธิต",
-        storeId: "dealer-1",
+        id: "dp-1",
+        code: "DP26100001",
+        name: "แปลงทุเรียนสาธิต",
+        customerId: "dealer-1",
         ownerName: "ร้านดีลเลอร์เกษตร",
         cropCategory: "พืชสวน",
         cropName: "พืชสวนอื่นๆ",
@@ -198,9 +212,9 @@ async function runTests() {
         areaRai: null,
         objective: "ทดสอบการติดผลดก",
         categoryId: "cat-1",
-        products: [
+        demoProducts: [
           {
-            id: "tp-1",
+            id: "dpp-1",
             productId: "p-1",
             productName: "ยาบำรุง A",
             quantity: 3,
@@ -221,7 +235,7 @@ async function runTests() {
   assert.strictEqual(hydrated[0].categoryId, "cat-1");
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.categoryId, "cat-1");
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.productId, "p-1");
-  console.log("✓ Test 4 passed: Persistence and hydration work end-to-end");
+  console.log("✓ Test 4 passed: Single-Entity DemoPlot persistence and hydration work end-to-end");
 
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
 }

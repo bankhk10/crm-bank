@@ -26,47 +26,81 @@ export function extractType7aPlanTargets(
   let list: Type7aTargetItem[] = [];
 
   if (Array.isArray(plan.type7aPlots) && plan.type7aPlots.length > 0) {
-    list = plan.type7aPlots.map((p: any) => ({
-      id: p.id,
-      plotName: p.plotName || p.name,
-      ownerName: p.ownerName || p.farmerName || p.store?.name,
-      farmerName: p.farmerName || p.ownerName || p.store?.name,
-      storeId: p.storeId,
-      province: p.province,
-      district: p.district,
-      cropName: p.cropName || p.customCropName || p.cropCategory,
-      customCropName: p.customCropName,
-      cropCategory: p.cropCategory,
-      areaRai: p.areaRai != null ? Number(p.areaRai) : null,
-      treeCount: p.treeCount != null ? Number(p.treeCount) : null,
-      objective: p.objective,
-      categoryId: p.categoryId || null,
-      demoProducts: (p.demoProducts || p.products || []).map((prod: any) => ({
-        ...prod,
-        productId: prod.productId || prod.product?.id,
-        productName: prod.productName || prod.product?.name,
-        categoryId: prod.categoryId || prod.product?.categoryId || p.categoryId || null,
-        quantity: prod.quantity != null ? Number(prod.quantity) : Number(prod.targetQuantity || 1),
-        targetQuantity: prod.targetQuantity != null ? Number(prod.targetQuantity) : Number(prod.quantity || 1),
-      })),
-    }));
-  } else if (plan.demoPlotData) {
+    list = plan.type7aPlots.map((p: any) => {
+      const dp = p.demoPlot || p;
+      const rawProducts = dp.demoProducts?.length ? dp.demoProducts : (p.demoProducts || p.products || []);
+      return {
+        id: p.id,
+        demoPlotId: p.demoPlotId || dp.id,
+        demoPlot: dp,
+        plotName: dp.name || p.plotName || p.name || "",
+        ownerName: dp.ownerName || p.ownerName || p.farmerName || dp.customer?.name || p.store?.name || "",
+        farmerName: dp.ownerName || p.farmerName || p.ownerName || dp.customer?.name || p.store?.name || "",
+        farmerCustomerId: dp.farmerCustomerId || null,
+        farmerCustomer: dp.farmerCustomer || null,
+        farmerPhone: dp.ownerPhone || dp.farmerCustomer?.phone || "",
+        storeId: dp.customerId || p.storeId || null,
+        province: dp.province || dp.ownerProvince || p.province || dp.customer?.province || p.store?.province || "",
+        district: dp.district || dp.ownerDistrict || p.district || dp.customer?.district || p.store?.district || "",
+        subdistrict: dp.ownerSubdistrict || p.subdistrict || "",
+        cropName: dp.cropName || dp.customCropName || dp.cropCategory || p.cropName || "",
+        customCropName: dp.customCropName || p.customCropName || null,
+        cropCategory: dp.cropCategory || p.cropCategory || "",
+        areaRai: dp.areaRai != null ? Number(dp.areaRai) : (p.areaRai != null ? Number(p.areaRai) : null),
+        treeCount: dp.treeCount != null ? Number(dp.treeCount) : (p.treeCount != null ? Number(p.treeCount) : null),
+        objective: dp.objective || p.objective || "",
+        categoryId: dp.categoryId || p.categoryId || null,
+        latitude: dp.latitude != null ? Number(dp.latitude) : null,
+        longitude: dp.longitude != null ? Number(dp.longitude) : null,
+        demoProducts: rawProducts.map((prod: any) => ({
+          ...prod,
+          productId: prod.productId || prod.product?.id,
+          productName: prod.productName || prod.product?.name,
+          categoryId: prod.categoryId || prod.product?.categoryId || dp.categoryId || p.categoryId || null,
+          quantity:
+            prod.quantity != null
+              ? Number(prod.quantity)
+              : prod.targetQuantity != null
+                ? Number(prod.targetQuantity)
+                : prod.withdrawnQuantity != null
+                  ? Number(prod.withdrawnQuantity)
+                  : 1,
+          targetQuantity:
+            prod.targetQuantity != null
+              ? Number(prod.targetQuantity)
+              : prod.quantity != null
+                ? Number(prod.quantity)
+                : prod.withdrawnQuantity != null
+                  ? Number(prod.withdrawnQuantity)
+                  : 1,
+        })),
+      };
+    });
+  } else if (plan.demoPlotData || plan.demoPlot) {
+    const dp = plan.demoPlotData || plan.demoPlot;
     list = [
       {
-        id: plan.demoPlotData.id,
-        plotName: plan.demoPlotData.plotName || plan.demoPlotData.name,
-        ownerName: plan.demoPlotData.ownerName || plan.demoPlotData.farmerName,
-        farmerName: plan.demoPlotData.farmerName || plan.demoPlotData.ownerName,
-        storeId: plan.demoPlotData.storeId,
-        province: plan.demoPlotData.province,
-        district: plan.demoPlotData.district,
-        cropName: plan.demoPlotData.cropName || plan.demoPlotData.customCropName,
-        customCropName: plan.demoPlotData.customCropName,
-        cropCategory: plan.demoPlotData.cropCategory,
-        areaRai: plan.demoPlotData.areaRai,
-        treeCount: plan.demoPlotData.treeCount,
-        objective: plan.demoPlotData.objective,
-        demoProducts: plan.demoProducts || [],
+        id: dp.id,
+        demoPlotId: dp.id,
+        demoPlot: dp,
+        plotName: dp.plotName || dp.name,
+        ownerName: dp.ownerName || dp.farmerName,
+        farmerName: dp.farmerName || dp.ownerName,
+        farmerCustomerId: dp.farmerCustomerId,
+        farmerPhone: dp.ownerPhone,
+        storeId: dp.storeId || dp.customerId,
+        province: dp.ownerProvince || dp.province,
+        district: dp.ownerDistrict || dp.district,
+        subdistrict: dp.ownerSubdistrict,
+        cropName: dp.cropName || dp.customCropName,
+        customCropName: dp.customCropName,
+        cropCategory: dp.cropCategory,
+        areaRai: dp.areaRai != null ? Number(dp.areaRai) : null,
+        treeCount: dp.treeCount != null ? Number(dp.treeCount) : null,
+        objective: dp.objective,
+        latitude: dp.latitude != null ? Number(dp.latitude) : null,
+        longitude: dp.longitude != null ? Number(dp.longitude) : null,
+        demoProducts: dp.demoProducts || plan.demoProducts || [],
       },
     ];
   }
@@ -100,28 +134,32 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
             ? Number(prod.quantity)
             : prod.targetQuantity != null
               ? Number(prod.targetQuantity)
-              : 1,
+              : prod.withdrawnQuantity != null
+                ? Number(prod.withdrawnQuantity)
+                : 1,
         targetQuantity:
           prod.targetQuantity != null
             ? Number(prod.targetQuantity)
             : prod.quantity != null
               ? Number(prod.quantity)
-              : 1,
+              : prod.withdrawnQuantity != null
+                ? Number(prod.withdrawnQuantity)
+                : 1,
         unit: prod.unit || prod.product?.unit || "ขวด",
       }));
 
       return {
         id: p.id || `plot-${idx}`,
-        demoPlotId: p.demoPlotId || null,
+        demoPlotId: p.demoPlotId || p.id || null,
         plotName: p.plotName || p.name || "",
         name: p.name || p.plotName || "",
-        farmerName: p.farmerName || p.ownerName || p.store?.name || "",
-        ownerName: p.ownerName || p.farmerName || p.store?.name || "",
-        ownerPhone: p.ownerPhone || "",
-        storeId: p.storeId || null,
-        province: p.province || p.store?.province || "",
-        district: p.district || p.store?.district || "",
-        subdistrict: p.subdistrict || "",
+        farmerName: p.farmerName || p.ownerName || p.customer?.name || p.store?.name || "",
+        ownerName: p.ownerName || p.farmerName || p.customer?.name || p.store?.name || "",
+        ownerPhone: p.ownerPhone || p.farmerCustomer?.phone || "",
+        storeId: p.storeId || p.customerId || null,
+        province: p.province || p.customer?.province || p.store?.province || "",
+        district: p.district || p.customer?.district || p.store?.district || "",
+        subdistrict: p.ownerSubdistrict || p.subdistrict || "",
         cropCategory: p.cropCategory || "",
         cropName: p.cropName || "",
         customCropName: p.customCropName || "",
@@ -129,7 +167,9 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
         treeCount: p.treeCount != null ? Number(p.treeCount) : null,
         plantingDate: p.plantingDate
           ? new Date(p.plantingDate).toISOString().split("T")[0]
-          : null,
+          : p.startDate
+            ? new Date(p.startDate).toISOString().split("T")[0]
+            : null,
         initialSprayDate: p.initialSprayDate
           ? new Date(p.initialSprayDate).toISOString().split("T")[0]
           : null,
@@ -142,7 +182,7 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
         chemicalGroupId: p.chemicalGroupId || null,
         latitude: p.latitude || null,
         longitude: p.longitude || null,
-        hasProducts: p.hasProducts ?? true,
+        hasProducts: p.hasProducts ?? (mappedProducts.length > 0),
         demoProducts: mappedProducts,
         products: mappedProducts,
       };
