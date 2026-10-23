@@ -11,6 +11,7 @@ import {
   createActivityPlanAction,
   getCurrentUserEmployeeAction,
   getDemoPlotsAction,
+  getFollowUpPlansAction,
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
@@ -46,6 +47,7 @@ export function PlannedCreateView() {
   const [productCategories, setProductCategories] = useState<any[]>([]);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
+  const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
     useState<Record<string, any[]> | undefined>(undefined);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
@@ -62,6 +64,7 @@ export function PlannedCreateView() {
           custRes,
           prodRes,
           plotRes,
+          followUpRes,
           catRes,
           mktRes,
           actTypeRes,
@@ -75,6 +78,7 @@ export function PlannedCreateView() {
             products: [],
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
+          getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
           getProductCategoriesAction().catch(() => ({
             success: false,
             productCategories: [],
@@ -110,6 +114,10 @@ export function PlannedCreateView() {
 
         if (plotRes && plotRes.demoPlots) {
           setDemoPlots(plotRes.demoPlots);
+        }
+
+        if (followUpRes && followUpRes.followUpPlans) {
+          setFollowUpPlans(followUpRes.followUpPlans);
         }
 
         if (mktRes && mktRes.success && mktRes.grouped) {
@@ -175,6 +183,8 @@ export function PlannedCreateView() {
         productCategories={productCategories}
         activityTypes={activityTypes}
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
+        demoPlots={demoPlots}
+        followUpPlans={followUpPlans}
         onSubmit={handleSubmit}
         onBack={() => router.push("/activity-plans")}
       />

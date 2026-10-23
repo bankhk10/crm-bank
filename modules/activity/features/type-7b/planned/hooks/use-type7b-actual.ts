@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import type { Type7bActualRecord } from "../types/actual.types";
 import { validateType7bActual } from "../application/actual-validation";

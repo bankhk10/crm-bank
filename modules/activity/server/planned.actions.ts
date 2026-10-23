@@ -33,6 +33,7 @@ import {
   findDealerAndSubdealerCustomerOptions,
   findFarmerCustomerOptions,
 } from "../infrastructure/customer-lookup.repository";
+import { findFollowUpActivityPlans } from "../features/type-7b/planned/infrastructure/type7b.repository";
 import {
   createUnplannedActivityAction,
   updateUnplannedActivityAction,
@@ -390,6 +391,16 @@ export async function getDemoPlotsAction() {
   } catch (err: any) {
     console.error("Failed to get demo plots:", err);
     return serialize({ success: false, demoPlots: [], error: err.message });
+  }
+}
+
+export async function getFollowUpPlansAction() {
+  try {
+    const followUpPlans = await findFollowUpActivityPlans();
+    return serialize({ success: true, followUpPlans });
+  } catch (err: any) {
+    console.error("Failed to get follow-up plans:", err);
+    return serialize({ success: false, followUpPlans: [], error: err.message });
   }
 }
 

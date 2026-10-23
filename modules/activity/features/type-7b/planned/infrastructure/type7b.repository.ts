@@ -5,7 +5,10 @@ import {
   ActivityStatus,
   ActivityResultStatus,
 } from "@prisma/client";
-import type { Type7bDataInput } from "../../shared/types";
+import type {
+  Type7bDataInput,
+  Type7bFollowUpPlanOption,
+} from "../../shared/types";
 
 /**
  * Creates ActivityPlanType7b records, plots, products, and visits in a Prisma Transaction
@@ -18,10 +21,27 @@ export async function createType7bData(
 ) {
   if (!type7bData) return;
 
+  // Resolve valid sourceActivityPlanId to prevent Foreign Key constraint violations
+  let validSourcePlanId = type7bData.sourceActivityPlanId || null;
+  if (validSourcePlanId) {
+    const existingPlan = await tx.activityPlan.findUnique({
+      where: { id: validSourcePlanId },
+      select: { id: true },
+    });
+    if (!existingPlan) {
+      // Check if it's a demoPlotId with activityPlanId
+      const matchedPlot = await tx.demoPlot.findUnique({
+        where: { id: validSourcePlanId },
+        select: { activityPlanId: true },
+      });
+      validSourcePlanId = matchedPlot?.activityPlanId || null;
+    }
+  }
+
   const created7b = await tx.activityPlanType7b.create({
     data: {
       activityPlanId: planId,
-      sourceActivityPlanId: type7bData.sourceActivityPlanId || null,
+      sourceActivityPlanId: validSourcePlanId,
       hasProducts: Boolean(
         type7bData.products && type7bData.products.length > 0,
       ),
@@ -132,32 +152,20 @@ export async function syncType7bData(
 
 /**
  * Fetch dedicated demo plots for TYPE_7B "ติดตามแปลงสาธิต"
- * Only returns plots originating from TYPE_7A plans that are APPROVED and COMPLETED
+ * Returns all active demo plots whose status is not closed/cancelled
  */
 export async function findFollowUpDemoPlots() {
   return db.demoPlot.findMany({
     where: {
       deletedAt: null,
-      plotType: "GENERAL_DEMO",
-      status: { not: DemoPlotStatus.CANCELLED },
-      visits: {
-        some: {
-          activityPlan: {
-            deletedAt: null,
-            status: ActivityStatus.APPROVED,
-            result: {
-              resultStatus: ActivityResultStatus.COMPLETED,
-            },
-            OR: [
-              { activityType: { code: "TYPE_7A" } },
-              { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
-            ],
-          },
-        },
-      },
+      status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
+      closedDate: null,
     },
     include: {
       customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
+      farmerCustomer: {
         select: { id: true, name: true, customerCode: true },
       },
       demoProducts: {
@@ -173,47 +181,94 @@ export async function findFollowUpDemoPlots() {
         orderBy: { visitDate: "asc" },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
 }
 
 /**
- * Fetch approved TYPE_7A Activity Plans with completed results and their demo plots
+ * Fetch follow-up options for TYPE_7B:
+ * Returns all active demo plots (status not CANCELLED/COMPLETED, closedDate is null),
+ * grouped by their ActivityPlan (if linked) and including standalone demo plots.
  */
-export async function findFollowUpActivityPlans() {
-  return db.activityPlan.findMany({
+export async function findFollowUpActivityPlans(): Promise<Type7bFollowUpPlanOption[]> {
+  const plots = await db.demoPlot.findMany({
     where: {
       deletedAt: null,
-      status: ActivityStatus.APPROVED,
-      result: {
-        resultStatus: ActivityResultStatus.COMPLETED,
-      },
-      OR: [
-        { activityType: { code: "TYPE_7A" } },
-        { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
-      ],
+      status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
+      closedDate: null,
     },
     include: {
-      demoPlotVisits: {
-        where: {
-          demoPlot: {
-            deletedAt: null,
-            status: { not: DemoPlotStatus.CANCELLED },
-          },
-        },
-        include: {
-          demoPlot: {
-            include: {
-              customer: {
-                select: { id: true, name: true, customerCode: true },
-              },
-            },
-          },
+      customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
+      farmerCustomer: {
+        select: { id: true, name: true, customerCode: true },
+      },
+      activityPlan: {
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          startDate: true,
+          status: true,
+          deletedAt: true,
         },
       },
     },
-    orderBy: { startDate: "desc" },
+    orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
+
+  const planMap = new Map<string, Type7bFollowUpPlanOption>();
+  const standalonePlots: Type7bFollowUpPlanOption[] = [];
+
+  for (const plot of plots) {
+    const plotItem = {
+      id: plot.id,
+      code: plot.code,
+      name: plot.name,
+      cropName: plot.cropName || plot.customCropName || plot.cropCategory || "พืชเกษตร",
+      cropCategory: plot.cropCategory || undefined,
+      ownerName: plot.ownerName || plot.farmerCustomer?.name || "-",
+      province: plot.province || "",
+      district: plot.district || "",
+      areaRai: plot.areaRai ? Number(plot.areaRai) : undefined,
+      treeCount: plot.treeCount ?? undefined,
+      dealerName: plot.customer?.name,
+      dealerId: plot.customerId || undefined,
+    };
+
+    if (
+      plot.activityPlan &&
+      !plot.activityPlan.deletedAt &&
+      plot.activityPlan.status !== ActivityStatus.CANCELLED
+    ) {
+      const plan = plot.activityPlan;
+      if (!planMap.has(plan.id)) {
+        planMap.set(plan.id, {
+          planId: plan.id,
+          planCode: plan.code || undefined,
+          planTitle: plan.title,
+          planDate: plan.startDate
+            ? new Date(plan.startDate).toLocaleDateString("th-TH")
+            : undefined,
+          plots: [],
+        });
+      }
+      planMap.get(plan.id)!.plots.push(plotItem);
+    } else {
+      standalonePlots.push({
+        planId: plot.id,
+        planCode: plot.code || "แปลงสาธิต",
+        planTitle: `${plot.name} (${plotItem.ownerName})`,
+        planDate: plot.startDate
+          ? new Date(plot.startDate).toLocaleDateString("th-TH")
+          : undefined,
+        plots: [plotItem],
+      });
+    }
+  }
+
+  return [...Array.from(planMap.values()), ...standalonePlots];
 }
 
 /**

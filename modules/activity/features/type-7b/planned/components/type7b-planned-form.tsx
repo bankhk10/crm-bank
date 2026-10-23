@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Info, PackageCheck, Plus, Trash2, Sprout, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +9,11 @@ import {
   ActivityCombobox,
   ActivityProductSelect,
 } from "@/modules/activity/ui";
-import type { Type7bWithdrawnProductLine } from "../../shared/types";
+import { getFollowUpPlansAction } from "@/modules/activity/server/actions";
+import type {
+  Type7bWithdrawnProductLine,
+  Type7bFollowUpPlanOption,
+} from "../../shared/types";
 import type {
   Type7bPlannedFormProps,
   Type7bPlanFormProps,
@@ -26,15 +30,77 @@ export function Type7bPlannedForm({
   products = [],
   readonly = false,
 }: Type7bPlannedFormProps) {
+  const [dbPlans, setDbPlans] = useState<Type7bFollowUpPlanOption[]>([]);
+
+  // Self-healing fallback: Load open demo plots / follow-up plans if not provided by parent
+  useEffect(() => {
+    let isMounted = true;
+    if (followUpPlans.length === 0) {
+      getFollowUpPlansAction()
+        .then((res) => {
+          if (
+            isMounted &&
+            res?.success &&
+            res.followUpPlans &&
+            res.followUpPlans.length > 0
+          ) {
+            setDbPlans(res.followUpPlans);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load follow-up plans in Type7bPlannedForm:", err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [followUpPlans.length]);
+
+  // Combine followUpPlans, dbPlans, or synthesize from plotList if needed
+  const effectiveFollowUpPlans = useMemo(() => {
+    const plansSource = followUpPlans.length > 0 ? followUpPlans : dbPlans;
+    if (plansSource.length > 0) {
+      return plansSource;
+    }
+
+    // Fallback: If no followUpPlans, build options from plotList
+    return (plotList || [])
+      .filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED")
+      .map((p) => ({
+        planId: p.id,
+        planCode: p.code || "แปลงสาธิต",
+        planTitle: `${p.name} (${p.ownerName || "ไม่ระบุเจ้าของ"})`,
+        planDate: p.startDate
+          ? new Date(p.startDate).toLocaleDateString("th-TH")
+          : undefined,
+        plots: [
+          {
+            id: p.id,
+            code: p.code,
+            name: p.name,
+            cropName: p.cropName || p.targetCrop || "-",
+            cropCategory: p.cropCategory,
+            ownerName: p.ownerName || "-",
+            province: p.province || "",
+            district: p.district || "",
+            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+            treeCount: p.treeCount ?? undefined,
+            dealerName: p.dealerName,
+            dealerId: p.dealerId,
+          },
+        ],
+      }));
+  }, [followUpPlans, dbPlans, plotList]);
+
   // 1. Resolve selected plan
   const selectedPlan = useMemo(() => {
     if (item.selectedPlanId) {
-      return followUpPlans.find((p) => p.planId === item.selectedPlanId);
+      return effectiveFollowUpPlans.find((p) => p.planId === item.selectedPlanId);
     }
     const targetPlotId =
       item.selectedPlotIds?.[0] || item.existingPlotId || item.demoPlotId;
     if (targetPlotId) {
-      return followUpPlans.find((plan) =>
+      return effectiveFollowUpPlans.find((plan) =>
         plan.plots.some((pl) => pl.id === targetPlotId),
       );
     }
@@ -44,7 +110,7 @@ export function Type7bPlannedForm({
     item.selectedPlotIds,
     item.existingPlotId,
     item.demoPlotId,
-    followUpPlans,
+    effectiveFollowUpPlans,
   ]);
 
   // Selected plot IDs
@@ -61,15 +127,15 @@ export function Type7bPlannedForm({
 
   // Plan Combobox Options
   const planOptions = useMemo(() => {
-    return followUpPlans.map((plan) => {
+    return effectiveFollowUpPlans.map((plan) => {
       const uniquePlots = plan.plots || [];
       return {
         value: plan.planId,
-        label: `[${plan.planCode || "แผน"}] ${plan.planTitle}${plan.planDate ? ` (${plan.planDate})` : ""}`,
+        label: `[${plan.planCode || "แปลงสาธิต"}] ${plan.planTitle}${plan.planDate ? ` (${plan.planDate})` : ""}`,
         subLabel: `${uniquePlots.length} แปลงสาธิต: ${uniquePlots.map((p) => p.name).join(", ")}`,
       };
     });
-  }, [followUpPlans]);
+  }, [effectiveFollowUpPlans]);
 
   // Deduplicated plots from selectedPlan
   const planPlots = useMemo(() => {
@@ -115,7 +181,7 @@ export function Type7bPlannedForm({
   // Plan change handler
   const handlePlanChange = (planId: string) => {
     updateType7Row(item.id, "selectedPlanId", planId);
-    const targetPlan = followUpPlans.find((p) => p.planId === planId);
+    const targetPlan = effectiveFollowUpPlans.find((p) => p.planId === planId);
     if (!targetPlan || !targetPlan.plots || targetPlan.plots.length === 0) {
       syncPlotData("", []);
       return;
@@ -239,18 +305,18 @@ export function Type7bPlannedForm({
       {/* 1. ส่วนเลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง */}
       <div className="space-y-3">
         <ActivityCombobox
-          label="เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง (Approved & Completed)"
+          label="เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง / แปลงสาธิต (ที่ยังไม่ปิดแปลง)"
           labelClassName="block text-xs font-semibold text-slate-800 mb-1 mx-0"
           value={item.selectedPlanId || selectedPlan?.planId || ""}
           onChange={(val) => handlePlanChange(val)}
           options={planOptions}
           placeholder={
             planOptions.length > 0
-              ? "เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง..."
-              : "ไม่พบแผนกิจกรรมทำแปลงสาธิตที่ปฏิบัติงานแล้วเสร็จ"
+              ? "เลือกแปลงสาธิต หรือ แผนกิจกรรมทำแปลง..."
+              : "ไม่พบแปลงสาธิตที่ยังไม่ปิดแปลง"
           }
-          searchPlaceholder="ค้นหาแผนกิจกรรมทำแปลง (รหัส หรือ ชื่อแผน)..."
-          emptyText="ไม่พบแผนกิจกรรมทำแปลงสาธิตที่ตรงกับเงื่อนไข"
+          searchPlaceholder="ค้นหาแปลงสาธิต หรือ แผนกิจกรรม (รหัส, ชื่อแปลง, เกษตรกร)..."
+          emptyText="ไม่พบแปลงสาธิตที่เปิดอยู่ (ยังไม่ปิดแปลง)"
           disabled={readonly}
           required
         />

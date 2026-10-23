@@ -11,6 +11,7 @@ import {
   getActivityPlanAction,
   updateActivityPlanAction,
   getDemoPlotsAction,
+  getFollowUpPlansAction,
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
@@ -51,6 +52,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
   const [productCategories, setProductCategories] = useState<any[]>([]);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
+  const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
     useState<Record<string, any[]> | undefined>(undefined);
   const [initialData, setInitialData] = useState<any>(null);
@@ -67,6 +69,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           custRes,
           prodRes,
           plotRes,
+          followUpRes,
           catRes,
           mktRes,
           actTypeRes,
@@ -80,6 +83,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             products: [],
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
+          getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
           getProductCategoriesAction().catch(() => ({
             success: false,
             productCategories: [],
@@ -115,6 +119,10 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
 
         if (plotRes && plotRes.demoPlots) {
           setDemoPlots(plotRes.demoPlots);
+        }
+
+        if (followUpRes && followUpRes.followUpPlans) {
+          setFollowUpPlans(followUpRes.followUpPlans);
         }
 
         if (mktRes && mktRes.success && mktRes.grouped) {
@@ -280,6 +288,8 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           products={products}
           activityTypes={activityTypes}
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}
+          demoPlots={demoPlots}
+          followUpPlans={followUpPlans}
           onSubmit={handleSubmit}
           onBack={() => router.push("/activity-plans")}
           isEdit

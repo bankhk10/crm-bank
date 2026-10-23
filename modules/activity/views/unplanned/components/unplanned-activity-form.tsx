@@ -132,6 +132,7 @@ export interface UnplannedActivityFormProps {
   activityTypes?: any[];
   promotionalMaterialsByCategory?: Record<string, any[]>;
   plotList?: any[];
+  demoPlots?: any[];
   followUpPlans?: any[];
   onSubmit: (payload: any) => Promise<{ success: boolean; error?: string }>;
   onBack?: () => void;
@@ -147,6 +148,7 @@ export function UnplannedActivityForm({
   activityTypes = [],
   promotionalMaterialsByCategory,
   plotList = [],
+  demoPlots = [],
   followUpPlans = [],
   onSubmit,
   onBack,
@@ -2145,7 +2147,7 @@ export function UnplannedActivityForm({
           addWithdrawnProduct={type7b.addWithdrawnProduct}
           updateWithdrawnProduct={type7b.updateWithdrawnProduct}
           deleteWithdrawnProduct={type7b.deleteWithdrawnProduct}
-          plotList={plotList as any}
+          plotList={(plotList && plotList.length > 0 ? plotList : demoPlots) as any}
           followUpPlans={followUpPlans as any}
           products={products as any}
           readonly={readonly}

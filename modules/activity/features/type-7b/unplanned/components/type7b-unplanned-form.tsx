@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -19,6 +19,7 @@ import {
   ActivityProductSelect,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
+import { getFollowUpPlansAction } from "@/modules/activity/server/actions";
 import {
   CROP_CONDITIONS,
   PRODUCT_RESPONSES,
@@ -43,6 +44,32 @@ export function Type7bUnplannedForm({
   updateWithdrawnProduct,
   deleteWithdrawnProduct,
 }: Type7bUnplannedFormProps) {
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (followUpPlans.length === 0 && plotList.length === 0) {
+      getFollowUpPlansAction()
+        .then((res) => {
+          if (
+            isMounted &&
+            res?.success &&
+            res.followUpPlans &&
+            res.followUpPlans.length > 0
+          ) {
+            setDbPlans(res.followUpPlans);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load follow-up plans in Type7bUnplannedForm:", err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [followUpPlans.length, plotList.length]);
+
+  const effectivePlans = followUpPlans.length > 0 ? followUpPlans : dbPlans;
   const cropConditionOptions = CROP_CONDITIONS.map((c) => ({ value: c, label: c }));
   const responseOptions = PRODUCT_RESPONSES.map((r) => ({ value: r, label: r }));
   const sprayMethodOptions = SPRAY_METHODS.map((m) => ({ value: m, label: m }));
@@ -76,7 +103,7 @@ export function Type7bUnplannedForm({
       }
     }
 
-    for (const plan of followUpPlans) {
+    for (const plan of effectivePlans) {
       for (const p of plan.plots || []) {
         if (!seen.has(p.id)) {
           seen.add(p.id);
@@ -91,7 +118,7 @@ export function Type7bUnplannedForm({
     }
 
     return list;
-  }, [plotList, followUpPlans]);
+  }, [plotList, effectivePlans]);
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">

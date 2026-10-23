@@ -27,9 +27,9 @@
 5. บันทึกภาพถ่ายการเจริญเติบโตของพืชและสภาพแปลงสาธิต (หมวดหมู่ `PLOT`) สูงสุด 5 รูปต่อครั้ง
 
 ### 1.2 ขอบเขตของ Type 7B
-- **ความสัมพันธ์กับ Type 7A (Source Linkage):**
+- **ความสัมพันธ์กับแปลงสาธิตและ Type 7A (Source Linkage):**
   - Type 7B เชื่อมโยงกับ Type 7A ผ่านฟิลด์ `sourceActivityPlanId` หรืออ้างอิง `demoPlotId` ใน Master Table `DemoPlot`
-  - ดึงเฉพาะแปลงสาธิตที่มีสถานะไม่ถูกยกเลิก (`status != CANCELLED`) และมาจากแผน Type 7A ที่มีสถานะ `APPROVED` และผลงานเป็น `COMPLETED` เท่านั้น ผ่าน `findFollowUpDemoPlots()` และ `findFollowUpActivityPlans()`
+  - รองรับการเลือกแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบ (`status: { notIn: [CANCELLED, COMPLETED] }, closedDate: null`) ทั้งแปลงที่มีแผนกิจกรรมต้นทาง (Grouped by Plan) และแปลงสาธิตเดี่ยว (Standalone/Master Demo Plots) ผ่าน `findFollowUpDemoPlots()` และ `findFollowUpActivityPlans()`
 - **ระบบบันทึกประวัติการเข้าตรวจ (Demo Plot Visit Logging):**
   - ทุกครั้งที่มีการติดตาม ระบบจะบันทึกประวัติการลงพื้นที่เข้าสู่ตาราง `DemoPlotVisit` (`demo_plot_visits`) อัตโนมัติ โดยระบุรอบการเข้าตรวจ (`visitNumber`), วันที่ตรวจ (`visitDate`) และคำนวณจำนวนวันนับจากวันเริ่มแปลง (`daysSinceStart`)
 - **การจัดประเภทสภาพแปลงและการตอบสนอง (Evaluation Classifications):**
@@ -574,7 +574,7 @@ model DemoPlotVisit {
 
 | อาการ | จุดที่ต้องตรวจสอบ | ต้นตอและวิธีแก้ไข |
 | :--- | :--- | :--- |
-| **ไม่มีแปลงสาธิตให้เลือกในหน้าสร้างแผน 7B** | `type7b.repository.ts` ➔ `findFollowUpDemoPlots` | แปลงสาธิตต้องมาจากแผน Type 7A ที่มีสถานะ `APPROVED` และผลงานเป็น `COMPLETED` เท่านั้น หากแผน 7A ยังไม่อนุมัติจะไม่แสดงในตัวเลือก |
+| **ไม่มีแปลงสาธิตให้เลือกในหน้าสร้างแผน 7B** | `type7b.repository.ts` ➔ `findFollowUpActivityPlans` | ระบบจะแสดงเฉพาะแปลงสาธิตที่สถานะยังไม่ปิดแปลง (`status !== COMPLETED`, `status !== CANCELLED` และ `closedDate === null`) หากแปลงถูกปิดหรือยกเลิกแล้วจะไม่แสดงในตัวเลือก |
 | **ข้อมูลแปลงสาธิตไม่ขึ้นในหน้าแก้ไขแผน** | `planned-mapper.ts` ➔ `hydrateType7bPlannedData` | ตรวจสอบว่า `initialData.type7b` มีความสัมพันธ์ `plots` แนบมาด้วยหรือไม่ |
 | **หน้า Actual ไม่แสดงช่องกรอกข้อมูล Type 7B** | `activity-plan-actual-view.tsx` | ตรวจสอบเงื่อนไข `isType7bActive` ว่าครอบคลุมทั้ง `"TYPE_7B"`, `"ติดตามแปลงสาธิต"` และ `plan?.type7b` |
 | **บันทึกปิดแปลงแล้วสถานะ Master DemoPlot ไม่เปลี่ยน** | `type7b-planned.strategy.ts` ➔ `saveActual` | ตรวจสอบว่าใน `saveActual` มีการรันคำสั่ง `tx.demoPlot.update` เมื่อ `actualData.t7PlotStatus === "COMPLETED"` หรือไม่ |
@@ -600,8 +600,8 @@ model DemoPlotVisit {
 
 ## 12. Known Limitations and Important Notes
 
-1. **Source Dependency on Type 7A:**
-   - Type 7B ถูกออกแบบมาเพื่อทำงานต่อเนื่องจาก Type 7A จึงจำเป็นต้องมีแปลงสาธิตที่สร้างเสร็จสมบูรณ์แล้วในระบบก่อน จึงจะสามารถเปิดแผนงาน Type 7B ได้
+1. **Source Dependency & Plot Availability:**
+   - Type 7B รองรับการติดตามแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบ (`status !== COMPLETED` และ `closedDate === null`) ไม่จำกัดเฉพาะแปลงที่มีแผน Type 7A ที่ Approved/Completed อีกต่อไป
 2. **Visit Logging History:**
    - การบันทึกรอบใน `demo_plot_visits` เป็น Source of Truth สำหรับคำนวณประวัติการฉีดพ่นและจำนวนวันนับจากวันเริ่มแปลง (`daysSinceStart`)
 3. **การจัดการรูปภาพการติดตาม:**
@@ -622,3 +622,4 @@ model DemoPlotVisit {
 | **2026-10-21** | 1.4.0 | เชื่อมต่อเข้ากับ `strategy.registry.ts` และ Server Actions ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | เพิ่มระบบประเมินผลปิดแปลงสาธิต (Yield, Satisfaction, Commercial Potential) และบันทึกลง `DemoPlot` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
+| **2026-10-23** | 1.7.0 | ปรับปรุงระบบดึงแปลงสาธิต Type 7B ให้สามารถเลือกได้ทุกแปลงในระบบที่สถานะแปลงยังไม่ปิดแปลง (`findFollowUpActivityPlans`, `getFollowUpPlansAction`), เพิ่ม Self-healing และ Fallback ใน Form และรองรับ Standalone plots | Antigravity AI |
