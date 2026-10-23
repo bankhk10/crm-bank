@@ -112,12 +112,12 @@ export function Type7aActualForm({
     // Fallback extract from targets if hook state not initialized yet
     const targetProds = resolvedTargets[0]?.products || (resolvedTargets[0] as any)?.demoProducts || [];
     return targetProds.map((p: any) => ({
-      productId: p.productId || p.id || "",
-      productName: p.productName || p.name || "",
-      withdrawnQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
-      actualQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
-      extraQuantity: "",
-      extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+      productId: p.productId || p.product?.id || p.id || "",
+      productName: p.productName || p.product?.name || p.name || "",
+      withdrawnQuantity: Number(p.withdrawnQuantity ?? p.quantity ?? p.targetQuantity ?? 1) || 1,
+      actualQuantity: Number(p.quantity ?? p.targetQuantity ?? p.withdrawnQuantity ?? 1) || 1,
+      extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") || p.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
       applicationRate: p.applicationRate || "",
     }));
   }, [actualState.t7PlannedProducts, resolvedTargets]);
@@ -958,11 +958,16 @@ export function Type7aActualForm({
                       id={`additional-prod-${idx}`}
                       label="เลือกสินค้าจากระบบ"
                       value={prod.productId}
+                      valueKey="id"
                       products={products as any}
                       onChange={(val, selected) => {
-                        handleUpdateAdditionalProd(idx, "productId", val);
-                        if (selected?.name) {
-                          handleUpdateAdditionalProd(idx, "productName", selected.name);
+                        const resolvedId = selected?.id || val;
+                        const resolvedName = selected?.name || prod.productName || "";
+                        handleUpdateAdditionalProd(idx, "productId", resolvedId);
+                        handleUpdateAdditionalProd(idx, "productName", resolvedName);
+                        if (selected?.unit) {
+                          const defaultExtra = selected.unit.includes("ซอง") ? "กรัม" : "ซีซี";
+                          handleUpdateAdditionalProd(idx, "extraUnit", defaultExtra);
                         }
                       }}
                       disabled={readonly}

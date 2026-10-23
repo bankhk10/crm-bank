@@ -181,22 +181,57 @@ export async function syncType7aPlots(
     });
 
     if (prods.length > 0) {
-      await tx.demoPlotProduct.createMany({
-        data: prods.map((prod, pIdx) => {
-          const qty = prod.quantity ?? prod.targetQuantity ?? 1;
-          return {
-            demoPlotId,
-            productId: prod.productId!,
-            productName: prod.productName || null,
-            applicationRate: prod.applicationRate || "",
-            quantity: new Prisma.Decimal(qty),
-            withdrawnQuantity: new Prisma.Decimal(qty),
-            unit: prod.unit || "ขวด",
-            sortOrder: pIdx,
-            isAdditional: false,
-          };
-        }),
+      const rawProductKeys = prods.map((p) => p.productId!).filter(Boolean);
+      const productMap = new Map<string, { id: string; name: string }>();
+
+      if ((tx as any).product?.findMany && rawProductKeys.length > 0) {
+        const matchedProducts = await (tx as any).product.findMany({
+          where: {
+            OR: [
+              { id: { in: rawProductKeys } },
+              { name: { in: rawProductKeys } },
+              { productCode: { in: rawProductKeys } },
+            ],
+          },
+          select: { id: true, name: true },
+        });
+        for (const dp of matchedProducts) {
+          productMap.set(dp.id, dp);
+          productMap.set(dp.name, dp);
+        }
+      }
+
+      const validProductsToCreate: any[] = [];
+      prods.forEach((prod, pIdx) => {
+        let finalId = prod.productId!;
+        let finalName = prod.productName || null;
+
+        if ((tx as any).product?.findMany) {
+          const matched = productMap.get(prod.productId!);
+          if (!matched) return; // Skip invalid foreign key
+          finalId = matched.id;
+          finalName = prod.productName || matched.name;
+        }
+
+        const qty = prod.quantity ?? prod.targetQuantity ?? 1;
+        validProductsToCreate.push({
+          demoPlotId,
+          productId: finalId,
+          productName: finalName,
+          applicationRate: prod.applicationRate || "",
+          quantity: new Prisma.Decimal(qty),
+          withdrawnQuantity: new Prisma.Decimal(qty),
+          unit: prod.unit || "ขวด",
+          sortOrder: pIdx,
+          isAdditional: false,
+        });
       });
+
+      if (validProductsToCreate.length > 0) {
+        await tx.demoPlotProduct.createMany({
+          data: validProductsToCreate,
+        });
+      }
     }
 
     // Dual-sync to ActivityPlanStore for unified schedule queries
@@ -426,61 +461,103 @@ export async function syncType7aActualData(
     where: { demoPlotId },
   });
 
+  // Resolve and validate candidate products against DB to guarantee FK integrity
+  const rawCandidateKeys: string[] = [
+    ...(actualData.t7PlannedProducts || []).map((p: any) => p.productId).filter(Boolean),
+    ...(actualData.t7AdditionalProducts || []).map((p: any) => p.productId).filter(Boolean),
+  ];
+
+  const productMap = new Map<string, { id: string; name: string }>();
+  if ((tx as any).product?.findMany && rawCandidateKeys.length > 0) {
+    const matchedProducts = await (tx as any).product.findMany({
+      where: {
+        OR: [
+          { id: { in: rawCandidateKeys } },
+          { name: { in: rawCandidateKeys } },
+          { productCode: { in: rawCandidateKeys } },
+        ],
+      },
+      select: { id: true, name: true },
+    });
+    for (const prod of matchedProducts) {
+      productMap.set(prod.id, prod);
+      productMap.set(prod.name, prod);
+    }
+  }
+
   const productsToCreate: any[] = [];
 
   // Planned products
   if (Array.isArray(actualData.t7PlannedProducts) && actualData.t7PlannedProducts.length > 0) {
     actualData.t7PlannedProducts.forEach((p: any, idx: number) => {
-      if (p.productId) {
-        productsToCreate.push({
-          demoPlotId,
-          productId: p.productId,
-          productName: p.productName || null,
-          quantity:
-            p.actualQuantity != null && p.actualQuantity !== ""
-              ? new Prisma.Decimal(p.actualQuantity)
-              : null,
-          extraQuantity:
-            p.extraQuantity != null && p.extraQuantity !== ""
-              ? new Prisma.Decimal(p.extraQuantity)
-              : null,
-          extraUnit: p.extraUnit || null,
-          applicationRate: p.applicationRate || "",
-          isAdditional: false,
-          withdrawnQuantity:
-            p.withdrawnQuantity != null && p.withdrawnQuantity !== ""
-              ? new Prisma.Decimal(p.withdrawnQuantity)
-              : null,
-          unit: p.unit || null,
-          sortOrder: idx,
-        });
+      if (!p.productId) return;
+      let finalProductId = p.productId;
+      let finalProductName = p.productName || null;
+
+      if ((tx as any).product?.findMany) {
+        const matched = productMap.get(p.productId);
+        if (!matched) return; // Skip invalid foreign key to prevent DB crash
+        finalProductId = matched.id;
+        finalProductName = p.productName || matched.name;
       }
+
+      productsToCreate.push({
+        demoPlotId,
+        productId: finalProductId,
+        productName: finalProductName,
+        quantity:
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? new Prisma.Decimal(p.actualQuantity)
+            : null,
+        extraQuantity:
+          p.extraQuantity != null && p.extraQuantity !== ""
+            ? new Prisma.Decimal(p.extraQuantity)
+            : null,
+        extraUnit: p.extraUnit || null,
+        applicationRate: p.applicationRate || "",
+        isAdditional: false,
+        withdrawnQuantity:
+          p.withdrawnQuantity != null && p.withdrawnQuantity !== ""
+            ? new Prisma.Decimal(p.withdrawnQuantity)
+            : null,
+        unit: p.unit || null,
+        sortOrder: idx,
+      });
     });
   }
 
   // Additional products
   if (Array.isArray(actualData.t7AdditionalProducts) && actualData.t7AdditionalProducts.length > 0) {
     actualData.t7AdditionalProducts.forEach((p: any, idx: number) => {
-      if (p.productId) {
-        productsToCreate.push({
-          demoPlotId,
-          productId: p.productId,
-          productName: p.productName || null,
-          quantity:
-            p.actualQuantity != null && p.actualQuantity !== ""
-              ? new Prisma.Decimal(p.actualQuantity)
-              : null,
-          extraQuantity:
-            p.extraQuantity != null && p.extraQuantity !== ""
-              ? new Prisma.Decimal(p.extraQuantity)
-              : null,
-          extraUnit: p.extraUnit || null,
-          applicationRate: p.applicationRate || "",
-          isAdditional: true,
-          unit: p.unit || null,
-          sortOrder: productsToCreate.length + idx,
-        });
+      if (!p.productId) return;
+      let finalProductId = p.productId;
+      let finalProductName = p.productName || null;
+
+      if ((tx as any).product?.findMany) {
+        const matched = productMap.get(p.productId);
+        if (!matched) return; // Skip invalid foreign key to prevent DB crash
+        finalProductId = matched.id;
+        finalProductName = p.productName || matched.name;
       }
+
+      productsToCreate.push({
+        demoPlotId,
+        productId: finalProductId,
+        productName: finalProductName,
+        quantity:
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? new Prisma.Decimal(p.actualQuantity)
+            : null,
+        extraQuantity:
+          p.extraQuantity != null && p.extraQuantity !== ""
+            ? new Prisma.Decimal(p.extraQuantity)
+            : null,
+        extraUnit: p.extraUnit || null,
+        applicationRate: p.applicationRate || "",
+        isAdditional: true,
+        unit: p.unit || null,
+        sortOrder: productsToCreate.length + idx,
+      });
     });
   }
 
