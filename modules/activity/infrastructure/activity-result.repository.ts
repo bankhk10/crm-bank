@@ -316,25 +316,32 @@ export async function upsertActivityResult(
     // 9. Sync Attachments
     if (input.attachments !== undefined) {
       await (tx as any).activityAttachment.deleteMany({
-        where: { activityPlanId: input.activityPlanId },
+        where: {
+          activityPlanId: input.activityPlanId,
+          sprayRoundId: null, // Preserve round-level attachments managed by strategies (e.g. Type 7B spray rounds)
+        },
       });
       if (Array.isArray(input.attachments) && input.attachments.length > 0) {
-        await (tx as any).activityAttachment.createMany({
-          data: input.attachments.map((att) => ({
-            activityPlanId: input.activityPlanId,
-            activityResultId: result.id,
-            workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
-            category: att.category || "GENERAL",
-            storeId: att.storeId || null,
-            productId: att.productId || null,
-            surveyItemId: att.surveyItemId || null,
-            issueItemId: att.issueItemId || null,
-            fileUrl: att.fileUrl || att.url,
-            fileName: att.fileName || att.name || "รูปภาพ",
-            fileSize: att.fileSize || att.size || 0,
-            mimeType: att.mimeType || att.type || "image/jpeg",
-          })),
-        });
+        // Exclude attachments that belong to spray rounds to avoid duplicates without sprayRoundId
+        const generalAttachments = input.attachments.filter((att) => !att.sprayRoundId);
+        if (generalAttachments.length > 0) {
+          await (tx as any).activityAttachment.createMany({
+            data: generalAttachments.map((att) => ({
+              activityPlanId: input.activityPlanId,
+              activityResultId: result.id,
+              workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
+              category: att.category || "GENERAL",
+              storeId: att.storeId || null,
+              productId: att.productId || null,
+              surveyItemId: att.surveyItemId || null,
+              issueItemId: att.issueItemId || null,
+              fileUrl: att.fileUrl || att.url,
+              fileName: att.fileName || att.name || "รูปภาพ",
+              fileSize: att.fileSize || att.size || 0,
+              mimeType: att.mimeType || att.type || "image/jpeg",
+            })),
+          });
+        }
       }
     }
 

@@ -1031,7 +1031,6 @@ export function ActivityPlanActualView({
           // Upload images for each spraying round
           const rawRounds = type7bActual.actualState.t7SprayingRounds || [];
           const updatedRounds = [];
-          const roundAttachments: any[] = [];
 
           for (let i = 0; i < rawRounds.length; i++) {
             const r = rawRounds[i];
@@ -1044,16 +1043,6 @@ export function ActivityPlanActualView({
                 "round",
               );
               roundImgs = rUploadResult.updatedImages;
-              roundImgs.forEach((img: any) => {
-                roundAttachments.push({
-                  category: "PLOT",
-                  fileUrl: img.url,
-                  fileName: img.name || `ภาพการฉีดพ่นรอบที่ ${r.roundNumber || i + 1}`,
-                  fileSize: (img as any).size || 0,
-                  mimeType: (img as any).type || "image/jpeg",
-                  workTypeCode: "TYPE_7B",
-                });
-              });
             }
             updatedRounds.push({
               ...r,
@@ -1094,7 +1083,6 @@ export function ActivityPlanActualView({
                 mimeType: (img as any).type || "image/jpeg",
                 workTypeCode: "TYPE_7B",
               })),
-              ...roundAttachments,
             ],
           };
 

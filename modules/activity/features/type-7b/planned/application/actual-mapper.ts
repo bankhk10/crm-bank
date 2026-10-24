@@ -231,13 +231,18 @@ export function parseType7bActualResult(
             ? sr.attachments
             : allAttachments.filter((a: any) => a.sprayRoundId === sr.id);
 
-        const roundImages = roundAttachments.map((a: any, aIdx: number) => ({
-          id: a.id || `r-img-${aIdx}`,
-          url: a.fileUrl || a.url,
-          name: a.fileName || a.name || `ภาพการฉีดพ่นรอบที่ ${roundNumber}`,
-          size: a.fileSize || a.size || 0,
-          type: a.mimeType || a.type || "image/jpeg",
-        }));
+        let roundImages: any[] = [];
+        if (roundAttachments.length > 0) {
+          roundImages = roundAttachments.map((a: any, aIdx: number) => ({
+            id: a.id || `r-img-${aIdx}`,
+            url: a.fileUrl || a.url,
+            name: a.fileName || a.name || `ภาพการฉีดพ่นรอบที่ ${roundNumber}`,
+            size: a.fileSize || a.size || 0,
+            type: a.mimeType || a.type || "image/jpeg",
+          }));
+        } else if (Array.isArray(sr.roundImages) && sr.roundImages.length > 0) {
+          roundImages = sr.roundImages;
+        }
 
         return {
           id: roundId,
@@ -323,8 +328,9 @@ export function parseType7bActualResult(
       } else {
         const cropAtts = allAttachments.filter(
           (a: any) =>
-            a.category === "CROP" ||
-            (!a.sprayRoundId && (a.category === "PLOT" || a.category === "INITIAL")),
+            !a.sprayRoundId &&
+            (a.category === "CROP" || a.category === "PLOT" || a.category === "INITIAL") &&
+            !a.fileName?.includes("ภาพการฉีดพ่นรอบที่"),
         );
         if (cropAtts.length > 0) {
           result.t7CropImages = cropAtts.map((a: any, idx: number) => ({

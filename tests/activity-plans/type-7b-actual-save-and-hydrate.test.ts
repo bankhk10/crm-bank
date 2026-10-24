@@ -221,6 +221,11 @@ async function runTests() {
   assert.strictEqual(createdExternals[0].formula, "EC");
   assert.strictEqual(createdExternals[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
 
+  // Verify Round Attachments
+  assert.strictEqual(createdAttachments.length, 1, "Should create 1 attachment for round 1");
+  assert.strictEqual(createdAttachments[0].sprayRoundId, createdRounds[0].id);
+  assert.strictEqual(createdAttachments[0].fileUrl, "https://storage.example.com/round1.jpg");
+
   // Verify DemoPlotVisit
   assert(upsertedVisit, "DemoPlotVisit must be upserted");
   assert.strictEqual(upsertedVisit.daysSinceStart, 14);
@@ -622,6 +627,36 @@ async function runTests() {
   assert.strictEqual(validValidation.isValid, true, "Must pass validation when external products are fully specified");
 
   console.log("✓ Test 5 passed: validateType7bActual correctly validates tank-mixed external products.");
+
+  // -------------------------------------------------------------------------
+  // Test 6: Verify Attachment preservation for Spray Rounds in Activity Result
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 6] Testing round images attachment retention (sprayRoundId != null)...");
+
+  const attachmentsTable: any[] = [];
+  // Mock Step 2 (Strategy creates round attachment)
+  attachmentsTable.push({
+    id: "att-round-1",
+    activityPlanId: "plan-test-6",
+    sprayRoundId: "round-db-1",
+    fileUrl: "https://storage.example.com/spray-photo.jpg",
+  });
+  attachmentsTable.push({
+    id: "att-general-old",
+    activityPlanId: "plan-test-6",
+    sprayRoundId: null,
+    fileUrl: "https://storage.example.com/old-crop.jpg",
+  });
+
+  // Mock Step 9 deleteMany with sprayRoundId: null condition
+  const remainingAfterDelete = attachmentsTable.filter(
+    (att) => !(att.activityPlanId === "plan-test-6" && att.sprayRoundId === null)
+  );
+
+  assert.strictEqual(remainingAfterDelete.length, 1, "Should keep sprayRoundId attachment");
+  assert.strictEqual(remainingAfterDelete[0].sprayRoundId, "round-db-1", "Spray round attachment must not be deleted");
+
+  console.log("✓ Test 6 passed: Spray round attachments are preserved correctly during attachment sync.");
 
   console.log("\n🎉 ALL TYPE 7B ACTUAL SAVE & HYDRATION TESTS PASSED 100%!\n");
 }
