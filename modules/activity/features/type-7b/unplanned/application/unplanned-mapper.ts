@@ -1,6 +1,9 @@
 import type { Type7bUnplannedItem } from "../types/unplanned.types";
 import type { Type7bWithdrawnProductLine } from "../../shared/types";
-import type { Type7bSprayRoundState } from "../../planned/types/actual.types";
+import type {
+  Type7bSprayRoundState,
+  Type7bAdditionalProductItem,
+} from "../../planned/types/actual.types";
 import { createDefaultSprayRound, createDefaultType7bUnplannedItem } from "../hooks/use-type7b-unplanned-form";
 
 /**
@@ -40,12 +43,12 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
     unit: p.unit || p.product?.unit || "",
   }));
 
-  const baselineProductsFromWithdrawn = withdrawn.map((p) => ({
+  const productsFromWithdrawn: Type7bAdditionalProductItem[] = withdrawn.map((p, idx) => ({
+    id: p.id || `prod-withdrawn-${idx + 1}`,
     productId: p.productId,
     productName: p.productName,
-    withdrawnQuantity: p.quantity,
-    plannedQuantity: p.quantity,
     actualQuantity: p.quantity,
+    quantityUsed: p.quantity,
     extraQuantity: "",
     extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
     applicationRate: "ตามคำแนะนำ",
@@ -55,7 +58,14 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
   // Restore spray rounds from actual outcome if available
   let restoredRounds: Type7bSprayRoundState[] = [];
   if (Array.isArray(t7bActual.t7SprayingRounds) && t7bActual.t7SprayingRounds.length > 0) {
-    restoredRounds = t7bActual.t7SprayingRounds;
+    restoredRounds = t7bActual.t7SprayingRounds.map((r: any) => ({
+      ...r,
+      // In unplanned, products used are placed in additionalProducts; baselineProducts is []
+      baselineProducts: [],
+      additionalProducts: (r.additionalProducts && r.additionalProducts.length > 0)
+        ? r.additionalProducts
+        : (r.baselineProducts || []),
+    }));
   } else if (Array.isArray(initialData.sprayRounds) && initialData.sprayRounds.length > 0) {
     restoredRounds = initialData.sprayRounds.map((sr: any, idx: number) => ({
       id: sr.id || `round-${idx + 1}`,
@@ -78,40 +88,26 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
         customFormula: ext.customFormula || "",
         applicationRate: ext.applicationRate || "",
       })),
-      baselineProducts: (sr.products || [])
-        .filter((p: any) => !p.isAdditional)
-        .map((p: any) => ({
-          productId: p.productId,
-          productName: p.productName || p.product?.name || "",
-          withdrawnQuantity: p.withdrawnQuantity || p.quantityUsed,
-          plannedQuantity: p.quantityUsed,
-          actualQuantity: p.quantityUsed,
-          extraQuantity: "",
-          extraUnit: "ซีซี",
-          applicationRate: p.actualRate || "",
-          unit: p.unit || "ขวด",
-        })),
-      additionalProducts: (sr.products || [])
-        .filter((p: any) => p.isAdditional)
-        .map((p: any) => ({
-          id: p.id,
-          productId: p.productId,
-          productName: p.productName || p.product?.name || "",
-          actualQuantity: p.quantityUsed,
-          quantityUsed: p.quantityUsed,
-          extraQuantity: "",
-          extraUnit: "ซีซี",
-          applicationRate: p.actualRate || "",
-          unit: p.unit || "ขวด",
-        })),
+      baselineProducts: [],
+      additionalProducts: (sr.products || []).map((p: any) => ({
+        id: p.id || `prod-${Math.random().toString(36).substring(2, 7)}`,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        actualQuantity: p.actualQuantity || p.quantityUsed || 1,
+        quantityUsed: p.quantityUsed || p.actualQuantity || 1,
+        extraQuantity: p.extraQuantity || "",
+        extraUnit: p.extraUnit || "ซีซี",
+        applicationRate: p.actualRate || p.applicationRate || "",
+        unit: p.unit || "ขวด",
+      })),
       roundImages: [],
     }));
   }
 
   if (restoredRounds.length === 0) {
     const defaultRound = createDefaultSprayRound(1);
-    if (baselineProductsFromWithdrawn.length > 0) {
-      defaultRound.baselineProducts = baselineProductsFromWithdrawn;
+    if (productsFromWithdrawn.length > 0) {
+      defaultRound.additionalProducts = productsFromWithdrawn;
     }
     restoredRounds = [defaultRound];
   }

@@ -8,7 +8,6 @@ import {
   Clock,
   RotateCw,
   Package,
-  PackagePlus,
   Droplets,
   Wrench,
   TrendingUp,
@@ -36,7 +35,6 @@ import {
 import type {
   Type7bUnplannedFormProps,
   Type7bSprayRoundState,
-  Type7bBaselineProductItem,
   Type7bAdditionalProductItem,
   Type7bExternalChemicalItem,
 } from "../types/unplanned.types";
@@ -53,9 +51,9 @@ export function Type7bUnplannedForm({
   onAddRound,
   onRemoveRound,
   onUpdateRoundField,
-  onAddBaselineProduct,
-  onUpdateBaselineProduct,
-  onRemoveBaselineProduct,
+  onAddProduct,
+  onUpdateProduct,
+  onRemoveProduct,
   onAddAdditionalProduct,
   onUpdateAdditionalProduct,
   onRemoveAdditionalProduct,
@@ -163,7 +161,6 @@ export function Type7bUnplannedForm({
       if (!item) return;
       const currentRounds = item.sprayingRounds || [];
       const newRoundNumber = currentRounds.length + 1;
-      const baseProducts = currentRounds[0]?.baselineProducts || [];
       const newRound: Type7bSprayRoundState = {
         id: `round-${Date.now()}-${newRoundNumber}`,
         roundNumber: newRoundNumber,
@@ -173,13 +170,7 @@ export function Type7bUnplannedForm({
         otherEquipment: "",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         problemDetail: "",
-        baselineProducts: baseProducts.map((p) => ({
-          ...p,
-          actualRate: "",
-          applicationRate: "",
-          actualQuantity: p.withdrawnQuantity || p.plannedQuantity || 1,
-          extraQuantity: "",
-        })),
+        baselineProducts: [],
         additionalProducts: [],
         roundImages: [],
       };
@@ -222,88 +213,12 @@ export function Type7bUnplannedForm({
     [onUpdateRoundField, items, updateItem],
   );
 
-  const handleAddBaselineProduct = useCallback(
+  // Products used in round
+  const handleAddProduct = useCallback(
     (itemId: string, rIdx: number) => {
-      if (onAddBaselineProduct) {
-        onAddBaselineProduct(itemId, rIdx);
-        return;
-      }
-      const item = items.find((i) => i.id === itemId);
-      if (!item) return;
-      const rounds = [...(item.sprayingRounds || [])];
-      if (rounds[rIdx]) {
-        const newProd: Type7bBaselineProductItem = {
-          productId: "",
-          productName: "",
-          withdrawnQuantity: 1,
-          plannedQuantity: 1,
-          actualQuantity: 1,
-          quantityUsed: 1,
-          extraQuantity: "",
-          extraUnit: "ซีซี",
-          applicationRate: "",
-          actualRate: "",
-          unit: "ขวด",
-        };
-        rounds[rIdx] = {
-          ...rounds[rIdx],
-          baselineProducts: [...(rounds[rIdx].baselineProducts || []), newProd],
-        };
-        updateItem(itemId, "sprayingRounds", rounds);
-      }
-    },
-    [onAddBaselineProduct, items, updateItem],
-  );
-
-  const handleUpdateBaselineProduct = useCallback(
-    (itemId: string, rIdx: number, pIdx: number, field: string, value: any) => {
-      if (onUpdateBaselineProduct) {
-        onUpdateBaselineProduct(itemId, rIdx, pIdx, field, value);
-        return;
-      }
-      const item = items.find((i) => i.id === itemId);
-      if (!item) return;
-      const rounds = [...(item.sprayingRounds || [])];
-      if (rounds[rIdx]?.baselineProducts?.[pIdx]) {
-        const prods = [...rounds[rIdx].baselineProducts];
-        prods[pIdx] = { ...prods[pIdx], [field]: value };
-        if (field === "actualQuantity") {
-          prods[pIdx].plannedQuantity = value;
-          prods[pIdx].quantityUsed = value;
-        } else if (field === "applicationRate") {
-          prods[pIdx].actualRate = value;
-        } else if (field === "actualRate") {
-          prods[pIdx].applicationRate = value;
-        }
-        rounds[rIdx] = { ...rounds[rIdx], baselineProducts: prods };
-        updateItem(itemId, "sprayingRounds", rounds);
-      }
-    },
-    [onUpdateBaselineProduct, items, updateItem],
-  );
-
-  const handleRemoveBaselineProduct = useCallback(
-    (itemId: string, rIdx: number, pIdx: number) => {
-      if (onRemoveBaselineProduct) {
-        onRemoveBaselineProduct(itemId, rIdx, pIdx);
-        return;
-      }
-      const item = items.find((i) => i.id === itemId);
-      if (!item) return;
-      const rounds = [...(item.sprayingRounds || [])];
-      if (rounds[rIdx]) {
-        const prods = (rounds[rIdx].baselineProducts || []).filter((_, idx) => idx !== pIdx);
-        rounds[rIdx] = { ...rounds[rIdx], baselineProducts: prods };
-        updateItem(itemId, "sprayingRounds", rounds);
-      }
-    },
-    [onRemoveBaselineProduct, items, updateItem],
-  );
-
-  const handleAddAdditionalProduct = useCallback(
-    (itemId: string, rIdx: number) => {
-      if (onAddAdditionalProduct) {
-        onAddAdditionalProduct(itemId, rIdx);
+      const handler = onAddProduct || onAddAdditionalProduct;
+      if (handler) {
+        handler(itemId, rIdx);
         return;
       }
       const item = items.find((i) => i.id === itemId);
@@ -311,7 +226,7 @@ export function Type7bUnplannedForm({
       const rounds = [...(item.sprayingRounds || [])];
       if (rounds[rIdx]) {
         const newProd: Type7bAdditionalProductItem = {
-          id: `add-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           productId: "",
           productName: "",
           actualQuantity: 1,
@@ -329,13 +244,14 @@ export function Type7bUnplannedForm({
         updateItem(itemId, "sprayingRounds", rounds);
       }
     },
-    [onAddAdditionalProduct, items, updateItem],
+    [onAddProduct, onAddAdditionalProduct, items, updateItem],
   );
 
-  const handleUpdateAdditionalProduct = useCallback(
+  const handleUpdateProduct = useCallback(
     (itemId: string, rIdx: number, pIdx: number, field: string, value: any) => {
-      if (onUpdateAdditionalProduct) {
-        onUpdateAdditionalProduct(itemId, rIdx, pIdx, field, value);
+      const handler = onUpdateProduct || onUpdateAdditionalProduct;
+      if (handler) {
+        handler(itemId, rIdx, pIdx, field, value);
         return;
       }
       const item = items.find((i) => i.id === itemId);
@@ -357,13 +273,14 @@ export function Type7bUnplannedForm({
         updateItem(itemId, "sprayingRounds", rounds);
       }
     },
-    [onUpdateAdditionalProduct, items, updateItem],
+    [onUpdateProduct, onUpdateAdditionalProduct, items, updateItem],
   );
 
-  const handleRemoveAdditionalProduct = useCallback(
+  const handleRemoveProduct = useCallback(
     (itemId: string, rIdx: number, pIdx: number) => {
-      if (onRemoveAdditionalProduct) {
-        onRemoveAdditionalProduct(itemId, rIdx, pIdx);
+      const handler = onRemoveProduct || onRemoveAdditionalProduct;
+      if (handler) {
+        handler(itemId, rIdx, pIdx);
         return;
       }
       const item = items.find((i) => i.id === itemId);
@@ -375,7 +292,7 @@ export function Type7bUnplannedForm({
         updateItem(itemId, "sprayingRounds", rounds);
       }
     },
-    [onRemoveAdditionalProduct, items, updateItem],
+    [onRemoveProduct, onRemoveAdditionalProduct, items, updateItem],
   );
 
   const handleAddExternalProduct = useCallback(
@@ -761,8 +678,7 @@ export function Type7bUnplannedForm({
 
                 {/* Dynamic Round Cards */}
                 {rounds.map((round, rIdx) => {
-                  const baselineProds = round.baselineProducts || [];
-                  const additionalProds = round.additionalProducts || [];
+                  const prods = round.additionalProducts || [];
                   const roundNum = round.roundNumber || rIdx + 1;
 
                   return (
@@ -793,258 +709,59 @@ export function Type7bUnplannedForm({
                       </div>
 
                       {/* ===================================================== */}
-                      {/* 1.1 สินค้าที่เบิกตามแผน (Planned Demo Products)       */}
+                      {/* 1. รายการสินค้าที่ใช้ในการปฏิบัติงาน (Products Used)    */}
+                      {/* ในกิจกรรมนอกแผนจะไม่มีการเบิกสินค้าล่วงหน้า จึงระบุสินค้าที่ใช้หน้างานโดยตรง */}
                       {/* ===================================================== */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                           <div className="flex items-center gap-2">
                             <Package className="w-4 h-4 text-emerald-600" />
                             <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                              1.1 สินค้าที่เบิกตามแผน (Planned Demo Products)
+                              1. รายการสินค้าที่ใช้ในการปฏิบัติงาน (Products Used)
                             </h4>
                           </div>
+
                           <div className="flex items-center gap-2">
                             <Badge
                               variant="outline"
                               className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] font-semibold px-2 py-0.5"
                             >
-                              {baselineProds.length} รายการ
+                              {prods.length} รายการ
                             </Badge>
                             {!readonly && (
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleAddBaselineProduct(item.id, rIdx)}
-                                className="h-7 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
+                                onClick={() => handleAddProduct(item.id, rIdx)}
+                                className="h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
                               >
-                                <Plus className="w-3 h-3" />
-                                เพิ่มสินค้าตามแผน
+                                <Plus className="w-3.5 h-3.5" />
+                                เพิ่มสินค้า
                               </Button>
                             )}
                           </div>
                         </div>
 
-                        {baselineProds.length === 0 ? (
-                          <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
-                            ยังไม่มีรายการสินค้าตามแผน กดปุ่ม &quot;+ เพิ่มสินค้าตามแผน&quot; หากต้องการระบุสินค้าหลัก
+                        {prods.length === 0 ? (
+                          <p className="text-xs text-slate-400 italic py-3 text-center bg-slate-50 rounded-xl">
+                            ยังไม่มีรายการสินค้าที่ใช้ในการฉีดพ่นรอบนี้ กดปุ่ม &quot;+ เพิ่มสินค้า&quot; เพื่อเลือกสินค้าจากระบบ
                           </p>
                         ) : (
                           <div className="space-y-3">
-                            {baselineProds.map((prod, pIdx) => (
-                              <div
-                                key={prod.productId || pIdx}
-                                className="bg-emerald-50/40 border border-emerald-150 rounded-xl p-3.5 sm:p-4 space-y-3"
-                              >
-                                <div className="flex items-center justify-between flex-wrap gap-2">
-                                  <div className="flex-1 min-w-[200px]">
-                                    {prod.productId && prod.productName ? (
-                                      <span className="text-xs font-bold text-slate-900">
-                                        {pIdx + 1}. {prod.productName}
-                                      </span>
-                                    ) : (
-                                      <ActivityProductSelect
-                                        id={`item-${item.id}-round-${rIdx}-base-${pIdx}`}
-                                        label="เลือกสินค้า"
-                                        labelClassName="text-xs font-semibold text-slate-700 mb-1"
-                                        value={prod.productId}
-                                        valueKey="id"
-                                        products={effectiveProducts as any}
-                                        onChange={(val, selected) => {
-                                          handleUpdateBaselineProduct(
-                                            item.id,
-                                            rIdx,
-                                            pIdx,
-                                            "productId",
-                                            selected?.id || val,
-                                          );
-                                          handleUpdateBaselineProduct(
-                                            item.id,
-                                            rIdx,
-                                            pIdx,
-                                            "productName",
-                                            selected?.name || prod.productName || "",
-                                          );
-                                          if (selected?.unit) {
-                                            const defaultExtra = selected.unit.includes("ซอง")
-                                              ? "กรัม"
-                                              : "ซีซี";
-                                            handleUpdateBaselineProduct(
-                                              item.id,
-                                              rIdx,
-                                              pIdx,
-                                              "extraUnit",
-                                              defaultExtra,
-                                            );
-                                          }
-                                        }}
-                                        disabled={readonly}
-                                        placeholder="ค้นหาและเลือกสินค้า..."
-                                        required
-                                      />
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
-                                      จำนวนที่เบิก: {prod.withdrawnQuantity || prod.plannedQuantity || 1}
-                                    </span>
-                                    {!readonly && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveBaselineProduct(item.id, rIdx, pIdx)}
-                                        className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
-                                        title="ลบรายการ"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-700">
-                                      จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
-                                    </label>
-                                    <ActivityInput
-                                      type="number"
-                                      min="0"
-                                      value={
-                                        prod.actualQuantity != null ? String(prod.actualQuantity) : ""
-                                      }
-                                      onChange={(e) =>
-                                        handleUpdateBaselineProduct(
-                                          item.id,
-                                          rIdx,
-                                          pIdx,
-                                          "actualQuantity",
-                                          e.target.value,
-                                        )
-                                      }
-                                      disabled={readonly}
-                                      placeholder="เช่น 1"
-                                      required
-                                    />
-                                  </div>
-
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-700">
-                                      ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <ActivityInput
-                                        type="number"
-                                        min="0"
-                                        value={
-                                          prod.extraQuantity != null ? String(prod.extraQuantity) : ""
-                                        }
-                                        onChange={(e) =>
-                                          handleUpdateBaselineProduct(
-                                            item.id,
-                                            rIdx,
-                                            pIdx,
-                                            "extraQuantity",
-                                            e.target.value,
-                                          )
-                                        }
-                                        disabled={readonly}
-                                        placeholder="เช่น 250"
-                                      />
-                                      <ActivitySelect
-                                        value={prod.extraUnit || "ซีซี"}
-                                        onChange={(val) =>
-                                          handleUpdateBaselineProduct(
-                                            item.id,
-                                            rIdx,
-                                            pIdx,
-                                            "extraUnit",
-                                            val,
-                                          )
-                                        }
-                                        options={[
-                                          { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                          { value: "กรัม", label: "กรัม (ซอง)" },
-                                        ]}
-                                        disabled={readonly}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-slate-700">
-                                      อัตราการใช้ <span className="text-rose-500">*</span>
-                                    </label>
-                                    <ActivityInput
-                                      value={prod.applicationRate || prod.actualRate || ""}
-                                      onChange={(e) =>
-                                        handleUpdateBaselineProduct(
-                                          item.id,
-                                          rIdx,
-                                          pIdx,
-                                          "applicationRate",
-                                          e.target.value,
-                                        )
-                                      }
-                                      disabled={readonly}
-                                      placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
-                                      required
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* ===================================================== */}
-                      {/* 1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products) */}
-                      {/* ===================================================== */}
-                      <div className="space-y-3 pt-2 border-t border-slate-100">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                          <div className="flex items-center gap-2">
-                            <PackagePlus className="w-4 h-4 text-emerald-600" />
-                            <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                              1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (กรณีไม่ได้ใช้ยาที่เบิกไป)
-                            </h4>
-                          </div>
-
-                          {!readonly && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAddAdditionalProduct(item.id, rIdx)}
-                              className="h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              เพิ่มสินค้า
-                            </Button>
-                          )}
-                        </div>
-
-                        {additionalProds.length === 0 ? (
-                          <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
-                            ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+ เพิ่มสินค้า&quot; หากมีการใช้ยาตัวอื่น
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {additionalProds.map((prod, pIdx) => (
+                            {prods.map((prod, pIdx) => (
                               <div
                                 key={prod.id || pIdx}
                                 className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 space-y-3"
                               >
                                 <div className="flex items-center justify-between">
                                   <span className="text-xs font-bold text-slate-800">
-                                    สินค้าเพิ่มเติมลำดับที่ {pIdx + 1}
+                                    สินค้าลำดับที่ {pIdx + 1}
                                   </span>
                                   {!readonly && (
                                     <button
                                       type="button"
-                                      onClick={() =>
-                                        handleRemoveAdditionalProduct(item.id, rIdx, pIdx)
-                                      }
+                                      onClick={() => handleRemoveProduct(item.id, rIdx, pIdx)}
                                       className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
                                       title="ลบรายการ"
                                     >
@@ -1055,7 +772,7 @@ export function Type7bUnplannedForm({
 
                                 <div className="space-y-2">
                                   <ActivityProductSelect
-                                    id={`item-${item.id}-round-${rIdx}-add-${pIdx}`}
+                                    id={`item-${item.id}-round-${rIdx}-prod-${pIdx}`}
                                     label="เลือกสินค้าจากระบบ"
                                     value={prod.productId}
                                     valueKey="id"
@@ -1064,14 +781,14 @@ export function Type7bUnplannedForm({
                                       const resolvedId = selected?.id || val;
                                       const resolvedName =
                                         selected?.name || prod.productName || "";
-                                      handleUpdateAdditionalProduct(
+                                      handleUpdateProduct(
                                         item.id,
                                         rIdx,
                                         pIdx,
                                         "productId",
                                         resolvedId,
                                       );
-                                      handleUpdateAdditionalProduct(
+                                      handleUpdateProduct(
                                         item.id,
                                         rIdx,
                                         pIdx,
@@ -1082,7 +799,7 @@ export function Type7bUnplannedForm({
                                         const defaultExtra = selected.unit.includes("ซอง")
                                           ? "กรัม"
                                           : "ซีซี";
-                                        handleUpdateAdditionalProduct(
+                                        handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
@@ -1113,14 +830,14 @@ export function Type7bUnplannedForm({
                                             : ""
                                       }
                                       onChange={(e) => {
-                                        handleUpdateAdditionalProduct(
+                                        handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
                                           "actualQuantity",
                                           e.target.value,
                                         );
-                                        handleUpdateAdditionalProduct(
+                                        handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
@@ -1148,7 +865,7 @@ export function Type7bUnplannedForm({
                                             : ""
                                         }
                                         onChange={(e) =>
-                                          handleUpdateAdditionalProduct(
+                                          handleUpdateProduct(
                                             item.id,
                                             rIdx,
                                             pIdx,
@@ -1162,7 +879,7 @@ export function Type7bUnplannedForm({
                                       <ActivitySelect
                                         value={prod.extraUnit || "ซีซี"}
                                         onChange={(val) =>
-                                          handleUpdateAdditionalProduct(
+                                          handleUpdateProduct(
                                             item.id,
                                             rIdx,
                                             pIdx,
@@ -1186,14 +903,14 @@ export function Type7bUnplannedForm({
                                     <ActivityInput
                                       value={prod.applicationRate || prod.actualRate || ""}
                                       onChange={(e) => {
-                                        handleUpdateAdditionalProduct(
+                                        handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
                                           "applicationRate",
                                           e.target.value,
                                         );
-                                        handleUpdateAdditionalProduct(
+                                        handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,

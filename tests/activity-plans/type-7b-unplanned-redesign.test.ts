@@ -66,8 +66,8 @@ async function runTests() {
   };
   const resBadRound = validateType7bUnplannedItems([itemWithBadRound]);
   assert.strictEqual(resBadRound.isValid, false);
-  assert.ok(resBadRound.errors?.some((e) => e.includes("จำนวนที่ใช้จริงของสินค้าเพิ่มเติม")));
-  assert.ok(resBadRound.errors?.some((e) => e.includes("อัตราการใช้ของสินค้าเพิ่มเติม")));
+  assert.ok(resBadRound.errors?.some((e) => e.includes("จำนวนที่ใช้จริงของสินค้า")));
+  assert.ok(resBadRound.errors?.some((e) => e.includes("อัตราการใช้ของสินค้า")));
 
   // 1.4 Tank-mixed external chemicals validation
   const itemWithBadExternal: Type7bUnplannedItem = {
@@ -124,17 +124,17 @@ async function runTests() {
         sprayMethod: "SINGLE",
         sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-        baselineProducts: [
+        baselineProducts: [],
+        additionalProducts: [
           {
+            id: "prod-1",
             productId: "prod-base-1",
             productName: "ไตรโคเดอร์มา",
             actualQuantity: 2,
             applicationRate: "20 ซีซี / น้ำ 20 ลิตร",
           },
-        ],
-        additionalProducts: [
           {
-            id: "add-1",
+            id: "prod-2",
             productId: "prod-add-1",
             productName: "เอ็กซ์ตร้าโกร",
             actualQuantity: 1,
@@ -187,18 +187,18 @@ async function runTests() {
         sprayEquipment: "โดรนเพื่อการเกษตร",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         problemDetail: "",
-        baselineProducts: [
+        baselineProducts: [],
+        additionalProducts: [
           {
+            id: "prod-1",
             productId: "prod-base-1",
             productName: "ยาบำรุงข้าว A",
             actualQuantity: 2,
             applicationRate: "25 ซีซี / น้ำ 20 ลิตร",
             unit: "ขวด",
           },
-        ],
-        additionalProducts: [
           {
-            id: "add-1",
+            id: "prod-2",
             productId: "prod-add-2",
             productName: "ฮอร์โมนเร่งรวง B",
             actualQuantity: 1,
@@ -239,8 +239,8 @@ async function runTests() {
   const mappedRound = t7bActual.t7SprayingRounds[0];
   assert.strictEqual(mappedRound.sprayMethod, "TANK_MIXED");
   assert.strictEqual(mappedRound.sprayEquipment, "โดรนเพื่อการเกษตร");
-  assert.strictEqual(mappedRound.baselineProducts.length, 1);
-  assert.strictEqual(mappedRound.additionalProducts.length, 1);
+  assert.strictEqual(mappedRound.baselineProducts.length, 0); // Unplanned has no baseline products
+  assert.strictEqual(mappedRound.additionalProducts.length, 2);
   assert.strictEqual(mappedRound.externalProducts?.length, 1);
   assert.strictEqual(mappedRound.roundImages.length, 1);
 
@@ -294,15 +294,16 @@ async function runTests() {
             sprayMethod: "SINGLE",
             sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
             productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-            baselineProducts: [
+            baselineProducts: [],
+            additionalProducts: [
               {
+                id: "prod-1",
                 productId: "prod-base-1",
                 productName: "ยาบำรุงข้าว A",
                 actualQuantity: 2,
                 applicationRate: "25 ซีซี / น้ำ 20 ลิตร",
               },
             ],
-            additionalProducts: [],
             roundImages: [],
           },
         ],
@@ -321,7 +322,8 @@ async function runTests() {
   assert.strictEqual(hItem.visitDate, "2026-10-24");
   assert.strictEqual(hItem.daysAfterSpray, 14);
   assert.strictEqual(hItem.sprayingRounds.length, 1);
-  assert.strictEqual(hItem.sprayingRounds[0].baselineProducts.length, 1);
+  assert.strictEqual(hItem.sprayingRounds[0].baselineProducts.length, 0); // No baseline products in unplanned
+  assert.strictEqual(hItem.sprayingRounds[0].additionalProducts.length, 1);
   assert.strictEqual(hItem.plotStatus, "COMPLETED");
   assert.strictEqual(hItem.finalYieldKg, "8500");
 

@@ -50,7 +50,24 @@ export function validateType7bUnplannedItems(
       const rNum = round.roundNumber || rIdx + 1;
       const rPrefix = `${prefix} (รอบที่ ${rNum})`;
 
-      // 1.1 Baseline Products
+      // 1. สินค้าที่ใช้ในการปฏิบัติงาน (Products Used)
+      const additionalProds = round.additionalProducts || [];
+      for (let aIdx = 0; aIdx < additionalProds.length; aIdx++) {
+        const ap = additionalProds[aIdx];
+        if (!ap.productId?.trim()) {
+          errors.push(`${rPrefix}: กรุณาเลือกสินค้าลำดับที่ ${aIdx + 1}`);
+        }
+        const qty = ap.actualQuantity ?? ap.quantityUsed;
+        if (qty == null || qty === "" || Number(qty) < 0) {
+          errors.push(`${rPrefix}: กรุณาระบุจำนวนที่ใช้จริงของสินค้าลำดับที่ ${aIdx + 1}`);
+        }
+        const rate = ap.applicationRate || ap.actualRate;
+        if (!rate?.trim()) {
+          errors.push(`${rPrefix}: กรุณาระบุอัตราการใช้ของสินค้าลำดับที่ ${aIdx + 1}`);
+        }
+      }
+
+      // ตรวจสอบ baseline products หากมีส่งเข้ามา (เพื่อรองรับ backward compatibility)
       const baselineProds = round.baselineProducts || [];
       for (let pIdx = 0; pIdx < baselineProds.length; pIdx++) {
         const bp = baselineProds[pIdx];
@@ -63,23 +80,6 @@ export function validateType7bUnplannedItems(
           if (!rate?.trim()) {
             errors.push(`${rPrefix}: กรุณาระบุอัตราการใช้ของ "${bp.productName || 'สินค้าตามแผน'}"`);
           }
-        }
-      }
-
-      // 1.2 Additional Products
-      const additionalProds = round.additionalProducts || [];
-      for (let aIdx = 0; aIdx < additionalProds.length; aIdx++) {
-        const ap = additionalProds[aIdx];
-        if (!ap.productId?.trim()) {
-          errors.push(`${rPrefix}: กรุณาเลือกสินค้าเพิ่มเติมลำดับที่ ${aIdx + 1}`);
-        }
-        const qty = ap.actualQuantity ?? ap.quantityUsed;
-        if (qty == null || qty === "" || Number(qty) < 0) {
-          errors.push(`${rPrefix}: กรุณาระบุจำนวนที่ใช้จริงของสินค้าเพิ่มเติมลำดับที่ ${aIdx + 1}`);
-        }
-        const rate = ap.applicationRate || ap.actualRate;
-        if (!rate?.trim()) {
-          errors.push(`${rPrefix}: กรุณาระบุอัตราการใช้ของสินค้าเพิ่มเติมลำดับที่ ${aIdx + 1}`);
         }
       }
 

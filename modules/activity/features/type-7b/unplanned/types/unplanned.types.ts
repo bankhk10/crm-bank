@@ -87,15 +87,17 @@ export interface Type7bUnplannedFormProps {
   onAddRound?: (itemId: string) => void;
   onRemoveRound?: (itemId: string, roundIndex: number) => void;
   onUpdateRoundField?: (itemId: string, roundIndex: number, field: string, value: any) => void;
-  onAddBaselineProduct?: (itemId: string, roundIndex: number) => void;
-  onUpdateBaselineProduct?: (
+
+  // Products Used in Round Handlers
+  onAddProduct?: (itemId: string, roundIndex: number) => void;
+  onUpdateProduct?: (
     itemId: string,
     roundIndex: number,
     prodIndex: number,
     field: string,
     value: any,
   ) => void;
-  onRemoveBaselineProduct?: (
+  onRemoveProduct?: (
     itemId: string,
     roundIndex: number,
     prodIndex: number,
@@ -113,6 +115,21 @@ export interface Type7bUnplannedFormProps {
     roundIndex: number,
     prodIndex: number,
   ) => void;
+  onAddBaselineProduct?: (itemId: string, roundIndex: number) => void;
+  onUpdateBaselineProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+    field: string,
+    value: any,
+  ) => void;
+  onRemoveBaselineProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+  ) => void;
+
+  // Tank-mix & Round Images Handlers
   onAddExternalProduct?: (itemId: string, roundIndex: number) => void;
   onUpdateExternalProduct?: (
     itemId: string,

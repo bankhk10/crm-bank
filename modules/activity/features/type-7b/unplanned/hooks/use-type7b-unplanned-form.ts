@@ -17,6 +17,11 @@ export interface UseType7bUnplannedFormOptions {
   initialItems?: Type7bUnplannedItem[];
 }
 
+/**
+ * Creates default spray round for unplanned follow-up.
+ * In unplanned activities, there is NO planned product withdrawal (ไม่มีสินค้าที่เบิกตามแผนล่วงหน้า),
+ * so baselineProducts is always empty ([]), and all products used on-site are recorded in additionalProducts.
+ */
 export const createDefaultSprayRound = (
   roundNumber = 1,
   sprayDate = "",
@@ -74,7 +79,11 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
       return options.initialItems.map((item) => {
         const itemRounds =
           Array.isArray(item.sprayingRounds) && item.sprayingRounds.length > 0
-            ? item.sprayingRounds
+            ? item.sprayingRounds.map((r) => ({
+                ...r,
+                // In unplanned, baseline products are always empty
+                baselineProducts: [],
+              }))
             : [createDefaultSprayRound(1, item.visitDate)];
         return {
           ...item,
@@ -145,7 +154,7 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
         if (item.id !== itemId) return item;
         const currentRounds = item.sprayingRounds || [];
         const newRoundNumber = currentRounds.length + 1;
-        const baseProducts = currentRounds[0]?.baselineProducts || [];
+        // In unplanned activities, baselineProducts is empty
         const newRound: Type7bSprayRoundState = {
           id: `round-${Date.now()}-${newRoundNumber}`,
           roundNumber: newRoundNumber,
@@ -155,13 +164,7 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           otherEquipment: "",
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
           problemDetail: "",
-          baselineProducts: baseProducts.map((p) => ({
-            ...p,
-            actualRate: "",
-            applicationRate: "",
-            actualQuantity: p.withdrawnQuantity || p.plannedQuantity || 1,
-            extraQuantity: "",
-          })),
+          baselineProducts: [],
           additionalProducts: [],
           roundImages: [],
         };
@@ -204,83 +207,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
     );
   };
 
-  const addBaselineProduct = (itemId: string, roundIndex: number) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== itemId) return item;
-        const rounds = [...(item.sprayingRounds || [])];
-        if (rounds[roundIndex]) {
-          const newProd: Type7bBaselineProductItem = {
-            productId: "",
-            productName: "",
-            withdrawnQuantity: 1,
-            plannedQuantity: 1,
-            actualQuantity: 1,
-            quantityUsed: 1,
-            extraQuantity: "",
-            extraUnit: "ซีซี",
-            applicationRate: "",
-            actualRate: "",
-            unit: "ขวด",
-          };
-          rounds[roundIndex] = {
-            ...rounds[roundIndex],
-            baselineProducts: [...(rounds[roundIndex].baselineProducts || []), newProd],
-          };
-        }
-        return { ...item, sprayingRounds: rounds };
-      }),
-    );
-  };
-
-  const updateBaselineProduct = (
-    itemId: string,
-    roundIndex: number,
-    prodIndex: number,
-    field: string,
-    value: any,
-  ) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== itemId) return item;
-        const rounds = [...(item.sprayingRounds || [])];
-        if (rounds[roundIndex]?.baselineProducts?.[prodIndex]) {
-          const prods = [...rounds[roundIndex].baselineProducts];
-          prods[prodIndex] = { ...prods[prodIndex], [field]: value };
-          if (field === "actualQuantity") {
-            prods[prodIndex].plannedQuantity = value;
-            prods[prodIndex].quantityUsed = value;
-          } else if (field === "applicationRate") {
-            prods[prodIndex].actualRate = value;
-          } else if (field === "actualRate") {
-            prods[prodIndex].applicationRate = value;
-          }
-          rounds[roundIndex] = { ...rounds[roundIndex], baselineProducts: prods };
-        }
-        return { ...item, sprayingRounds: rounds };
-      }),
-    );
-  };
-
-  const removeBaselineProduct = (
-    itemId: string,
-    roundIndex: number,
-    prodIndex: number,
-  ) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== itemId) return item;
-        const rounds = [...(item.sprayingRounds || [])];
-        if (rounds[roundIndex]) {
-          const prods = (rounds[roundIndex].baselineProducts || []).filter(
-            (_, idx) => idx !== prodIndex,
-          );
-          rounds[roundIndex] = { ...rounds[roundIndex], baselineProducts: prods };
-        }
-        return { ...item, sprayingRounds: rounds };
-      }),
-    );
-  };
+  // =========================================================================
+  // Products Used in Round Actions (Additional Products)
+  // In unplanned activities, all products are added directly into additionalProducts
+  // =========================================================================
 
   const addAdditionalProduct = (itemId: string, roundIndex: number) => {
     setItems((prev) =>
@@ -289,7 +219,7 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
         const rounds = [...(item.sprayingRounds || [])];
         if (rounds[roundIndex]) {
           const newProd: Type7bAdditionalProductItem = {
-            id: `add-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
             productId: "",
             productName: "",
             actualQuantity: 1,
@@ -359,6 +289,20 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
       }),
     );
   };
+
+  // Aliases for unified product handling in unplanned
+  const addProduct = addAdditionalProduct;
+  const updateProduct = updateAdditionalProduct;
+  const removeProduct = removeAdditionalProduct;
+
+  // Backward-compatibility stubs for baselineProducts (redirect to additionalProducts)
+  const addBaselineProduct = addAdditionalProduct;
+  const updateBaselineProduct = updateAdditionalProduct;
+  const removeBaselineProduct = removeAdditionalProduct;
+
+  // =========================================================================
+  // Tank-mix External Chemicals Actions
+  // =========================================================================
 
   const addExternalProduct = (itemId: string, roundIndex: number) => {
     setItems((prev) =>
@@ -521,12 +465,15 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
     addRound,
     removeRound,
     updateRoundField,
-    addBaselineProduct,
-    updateBaselineProduct,
-    removeBaselineProduct,
+    addProduct,
+    updateProduct,
+    removeProduct,
     addAdditionalProduct,
     updateAdditionalProduct,
     removeAdditionalProduct,
+    addBaselineProduct,
+    updateBaselineProduct,
+    removeBaselineProduct,
     addExternalProduct,
     updateExternalProduct,
     removeExternalProduct,
