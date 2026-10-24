@@ -326,6 +326,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
               s.workTypeCode === "TYPE_11" ||
               s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
           )) ||
+        (rawData.type11Targets && rawData.type11Targets.length > 0) ||
+        (rawData.type11Products && rawData.type11Products.length > 0) ||
+        (rawData.type11Results && rawData.type11Results.length > 0) ||
         (rawData.type11Stores && rawData.type11Stores.length > 0) ||
         (rawData.type11UnplannedItems &&
           rawData.type11UnplannedItems.length > 0) ||

@@ -9,6 +9,9 @@ import type {
 import type { Type11TargetItem, Type11PlanTarget } from "./planned.types";
 
 export interface Type11ActualRecord {
+  targetId?: string;
+  storeId?: string | null;
+  storeName?: string;
   t11StockItems: Type11StockItem[];
   t11ProductList?: string;
   t11RemainingQty?: string;
@@ -16,6 +19,8 @@ export interface Type11ActualRecord {
   t11StockStatus?: StockStatus | "";
   t11ReorderOpportunity?: ReorderOpportunity | "";
   t11NextAction?: string;
+  t11Summary?: string;
+  t11Feedback?: string;
   t11Images?: Type11ImageFile[];
 }
 
@@ -35,6 +40,10 @@ export interface Type11ActualFormProps {
   setStockItems?: (items: Type11StockItem[]) => void;
   nextAction?: string;
   setNextAction?: (v: string) => void;
+  summary?: string;
+  setSummary?: (v: string) => void;
+  feedback?: string;
+  setFeedback?: (v: string) => void;
   images?: Type11ImageFile[];
   setImages?: (v: Type11ImageFile[]) => void;
 }
@@ -52,6 +61,8 @@ export interface Type11DetailViewProps {
   stockStatus?: StockStatus | string;
   reorderOpportunity?: ReorderOpportunity | string;
   nextAction?: string;
+  summary?: string;
+  feedback?: string;
   images?: Type11ImageFile[];
 }
 

@@ -214,7 +214,8 @@ export function extractPlanTargets(
   // Always attempt Type 11 if relation exists
   if (
     !targets.t11?.store &&
-    ((plan as any).stores?.some((s: any) => s.workTypeCode === "TYPE_11") ||
+    ((plan as any).type11Targets?.length ||
+      (plan as any).stores?.some((s: any) => s.workTypeCode === "TYPE_11") ||
       (plan as any).type11Stores?.length ||
       (plan as any).type11Data ||
       (plan as any).type11)

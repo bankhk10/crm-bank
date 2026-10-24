@@ -417,6 +417,8 @@ model Customer {
   activityPlanType8TargetsSubdealer ActivityPlanType8Target[]    @relation("Type8SubdealerStore")
   activityPlanType9TargetsDealer    ActivityPlanType9Target[]    @relation("Type9DealerStore")
   activityPlanType9TargetsSubdealer ActivityPlanType9Target[]    @relation("Type9SubdealerStore")
+  activityPlanType11TargetsStore    ActivityPlanType11Target[]   @relation("Type11TargetStore")
+  activityPlanType11TargetsDealer   ActivityPlanType11Target[]   @relation("Type11ParentDealer")
 }
 
 model CustomerAddress {
@@ -725,6 +727,7 @@ model Product {
   activityPlanType9Products      ActivityPlanType9Product[]
   activityPlanType10Products     ActivityPlanType10Product[]
   activityPlanType10Showcase     ActivityPlanType10Target[]   @relation("Type10ShowcaseProduct")
+  activityPlanType11Products     ActivityPlanType11Product[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1786,6 +1789,9 @@ model ActivityPlan {
   type10Targets  ActivityPlanType10Target[]
   type10Products ActivityPlanType10Product[]
   type10Results  ActivityResultType10[]
+  type11Targets  ActivityPlanType11Target[]
+  type11Products ActivityPlanType11Product[]
+  type11Results  ActivityResultType11[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -3356,4 +3362,102 @@ model ActivityResultType10 {
   @@index([activityPlanId])
   @@index([targetId])
   @@map("activity_type_10_result")
+}
+
+// =============================================================================
+// TYPE 11: Dedicated Tables (Store Stock Check / ตรวจเช็คสต๊อกหน้าร้าน)
+// =============================================================================
+
+model ActivityPlanType11Target {
+  id                  String   @id @default(cuid())
+  activityPlanId      String   @map("activity_plan_id")
+
+  // Target Store Info (รองรับทั้งร้านในระบบและนอกระบบ)
+  storeId             String?  @map("store_id")
+  storeName           String?  @map("store_name")
+  isUnregisteredStore Boolean  @default(false) @map("is_unregistered_store")
+  storeCode           String?  @map("store_code")
+  province            String?  @map("province")
+  district            String?  @map("district")
+
+  // Parent Dealer (ถ้ามี)
+  dealerId            String?  @map("dealer_id")
+  dealerName          String?  @map("dealer_name")
+
+  // Planned details
+  visitPurpose        String?  @default("ตรวจเช็คสต๊อกหน้าร้าน") @map("visit_purpose")
+  notes               String?  @map("notes") @db.Text
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan        ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store               Customer?                   @relation("Type11TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  dealer              Customer?                   @relation("Type11ParentDealer", fields: [dealerId], references: [id], onDelete: SetNull)
+  products            ActivityPlanType11Product[]
+  result              ActivityResultType11?
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([dealerId])
+  @@map("activity_type_11_targets")
+}
+
+model ActivityPlanType11Product {
+  id                 String   @id @default(cuid())
+  activityPlanId     String   @map("activity_plan_id")
+  targetId           String   @map("target_id")
+  productId          String?  @map("product_id")
+  productName        String?  @map("product_name")
+  productRole        String   @default("TARGET") @map("product_role") // "TARGET" | "ADDITIONAL_AUDIT"
+
+  // Planned fields
+  targetQuantity     Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetNotes        String?  @map("target_notes")
+
+  // Actual fields
+  actualQuantity     Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  stockStatus        String?  @map("stock_status") // "ปกติ" | "ใกล้หมด" | "ขาดสต็อก"
+  reorderOpportunity String?  @map("reorder_opportunity") // "สูง" | "ยังไม่แน่ใจ" | "ต่ำ"
+  suggestedOrderQty  Decimal? @map("suggested_order_qty") @db.Decimal(10, 2)
+  remarks            String?  @map("remarks")
+  nextAction         String?  @map("next_action")
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan       ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target             ActivityPlanType11Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product            Product?                 @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([productId])
+  @@map("activity_type_11_products")
+}
+
+model ActivityResultType11 {
+  id                        String   @id @default(cuid())
+  activityPlanId            String   @map("activity_plan_id")
+  targetId                  String   @unique @map("target_id")
+
+  // Actual Outcome
+  overallStockStatus        String?  @map("overall_stock_status")
+  overallReorderOpportunity String?  @map("overall_reorder_opportunity")
+  feedback                  String?  @map("feedback") @db.Text
+  nextAction                String?  @map("next_action") @db.Text
+  summary                   String?  @map("summary") @db.Text
+
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan              ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target                    ActivityPlanType11Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_11_result")
 }

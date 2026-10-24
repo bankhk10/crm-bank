@@ -1,20 +1,75 @@
 import type { Type11ActualRecord } from "../types/actual.types";
 
 /**
- * Parses Type 11 actual outcome data from server response or summary text.
+ * Parses Type 11 actual outcome data from dedicated tables or server response.
+ * Supports dedicated relational tables (type11Targets, type11Products, type11Results)
+ * with backward-compatible fallback to stockResults and resultSummary text.
  */
 export function parseType11ActualResult(
   resData: any,
+  plan?: any,
 ): Partial<Type11ActualRecord> {
   const result: Partial<Type11ActualRecord> = {};
 
-  // 1. Normalized stockResults relation
+  const sourceData = resData || plan;
+
+  // 1. Dedicated relational tables support (type11Products / type11Results / type11Targets)
+  const dedicatedProducts =
+    sourceData?.type11Products ||
+    sourceData?.type11Targets?.flatMap((t: any) => t.products || []);
+
+  const dedicatedResults =
+    sourceData?.type11Results ||
+    sourceData?.type11Targets?.map((t: any) => t.result).filter(Boolean);
+
+  if (Array.isArray(dedicatedProducts) && dedicatedProducts.length > 0) {
+    result.t11StockItems = dedicatedProducts.map((p: any) => ({
+      id: p.id,
+      targetId: p.targetId,
+      storeId: p.target?.storeId,
+      storeName: p.target?.storeName || p.target?.store?.name || "ร้านค้า",
+      productId: p.productId,
+      productName: p.productName || p.product?.name || "สินค้า",
+      productCode: p.product?.productCode || undefined,
+      productRole: p.productRole,
+      targetQuantity: p.targetQuantity,
+      targetNotes: p.targetNotes,
+      remainingQty: p.actualQuantity != null ? String(p.actualQuantity) : "0",
+      remainingQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
+      remainingStockQty: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
+      actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
+      stockStatus: p.stockStatus || "",
+      reorderOpportunity: p.reorderOpportunity || "",
+      suggestedOrderQty: p.suggestedOrderQty != null ? Number(p.suggestedOrderQty) : undefined,
+      remarks: p.remarks || "",
+      nextAction: p.nextAction || "",
+    }));
+
+    const foundNextAction = dedicatedProducts.find((p: any) => p.nextAction)?.nextAction;
+    if (foundNextAction) {
+      result.t11NextAction = foundNextAction;
+    }
+  }
+
+  if (Array.isArray(dedicatedResults) && dedicatedResults.length > 0) {
+    const firstRes = dedicatedResults[0];
+    if (firstRes) {
+      if (firstRes.overallStockStatus) result.t11StockStatus = firstRes.overallStockStatus as any;
+      if (firstRes.overallReorderOpportunity) result.t11ReorderOpportunity = firstRes.overallReorderOpportunity as any;
+      if (firstRes.nextAction) result.t11NextAction = firstRes.nextAction;
+      if (firstRes.summary) result.t11Summary = firstRes.summary;
+      if (firstRes.feedback) result.t11Feedback = firstRes.feedback;
+    }
+  }
+
+  // 2. Fallback: Normalized stockResults relation (activity_result_stock_items)
   if (
-    resData?.stockResults &&
-    Array.isArray(resData.stockResults) &&
-    resData.stockResults.length > 0
+    (!result.t11StockItems || result.t11StockItems.length === 0) &&
+    sourceData?.stockResults &&
+    Array.isArray(sourceData.stockResults) &&
+    sourceData.stockResults.length > 0
   ) {
-    result.t11StockItems = resData.stockResults.map((sr: any) => ({
+    result.t11StockItems = sourceData.stockResults.map((sr: any) => ({
       id: sr.id,
       storeId: sr.storeId,
       storeName: sr.store?.name || sr.storeName || "ร้านค้า",
@@ -28,7 +83,7 @@ export function parseType11ActualResult(
       reorderOpportunity: sr.reorderOpportunity || "",
       remarks: sr.remarks || "",
     }));
-    const foundNextAction = resData.stockResults.find(
+    const foundNextAction = sourceData.stockResults.find(
       (sr: any) => sr.nextAction,
     )?.nextAction;
     if (foundNextAction) {
@@ -36,9 +91,9 @@ export function parseType11ActualResult(
     }
   }
 
-  // 2. Attachments
-  if (resData?.attachments && Array.isArray(resData.attachments)) {
-    const stockImgs = resData.attachments
+  // 3. Attachments
+  if (sourceData?.attachments && Array.isArray(sourceData.attachments)) {
+    const stockImgs = sourceData.attachments
       .filter(
         (att: any) =>
           att.workTypeCode === "TYPE_11" ||
@@ -58,8 +113,8 @@ export function parseType11ActualResult(
     }
   }
 
-  // 3. Text block fallback from resultSummary
-  const summaryText = resData?.resultSummary || "";
+  // 4. Text block fallback from resultSummary
+  const summaryText = sourceData?.resultSummary || "";
   if (summaryText) {
     if (!result.t11StockItems || result.t11StockItems.length === 0) {
       const match = summaryText.match(/รายการตรวจเช็คสต๊อก:\s*(\[.+\])/);

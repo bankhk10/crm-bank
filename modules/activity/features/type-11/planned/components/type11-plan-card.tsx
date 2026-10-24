@@ -75,6 +75,25 @@ export function Type11PlanCard({
             <span className="text-slate-700">{target.detail}</span>
           </div>
         ) : null}
+
+        {target.products && target.products.length > 0 ? (
+          <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-2 md:col-span-3">
+            <span className="text-slate-500 block text-[11px] font-medium mb-1">
+              สินค้าโฟกัสเป้าหมาย ({target.products.length} รายการ)
+            </span>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {target.products.map((p: any, idx: number) => (
+                <span
+                  key={p.id || idx}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800 text-xs font-medium"
+                >
+                  {p.productName || p.product?.name || `สินค้า #${idx + 1}`}
+                  {p.targetQuantity ? ` (${p.targetQuantity} ชิ้น)` : ""}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

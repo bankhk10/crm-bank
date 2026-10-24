@@ -339,6 +339,45 @@ export async function findApprovalQueueData() {
       },
       orderBy: { createdAt: "asc" as const },
     },
+    // Dedicated Type 11 targets for approval
+    type11Targets: {
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
+        },
+        dealer: {
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" as const },
+        },
+        result: true,
+      },
+      orderBy: { createdAt: "asc" as const },
+    },
     type13: {
       include: {
         plots: {

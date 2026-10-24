@@ -25,6 +25,8 @@ export function Type11DetailView({
   remarks = "",
   stockItems = [],
   nextAction,
+  summary,
+  feedback,
   images = [],
 }: DetailType11StockProps) {
   const [lightboxState, setLightboxState] = useState<{
@@ -253,6 +255,29 @@ export function Type11DetailView({
                 {remarks || "-"}
               </span>
             </div>
+          </div>
+        ) : null}
+
+        {/* SUMMARY & FEEDBACK */}
+        {summary ? (
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+            <span className="text-xs text-slate-500 font-medium block">
+              สรุปผลการตรวจนับสต็อก
+            </span>
+            <span className="text-xs sm:text-sm text-slate-800 block">
+              {summary}
+            </span>
+          </div>
+        ) : null}
+
+        {feedback ? (
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+            <span className="text-xs text-slate-500 font-medium block">
+              ความคิดเห็น / ผลตอบรับจากร้านค้า
+            </span>
+            <span className="text-xs sm:text-sm text-slate-800 block">
+              {feedback}
+            </span>
           </div>
         ) : null}
 

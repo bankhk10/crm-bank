@@ -1,28 +1,59 @@
 import type React from "react";
-import type { Type11StoreItem, Type11CustomerOption } from "../../shared/types";
+import type {
+  Type11StoreItem,
+  Type11CustomerOption,
+  Type11ProductEntity,
+  Type11ResultEntity,
+} from "../../shared/types";
 
 export interface Type11TargetStoreItem {
+  id?: string;
+  targetId?: string;
   storeId?: string;
   store?: string;
   storeName?: string;
   detail?: string;
+  notes?: string;
 }
 
 export interface Type11TargetItem {
   id?: string;
+  targetId?: string;
+  storeId?: string | null;
   store: string;
-  detail: string;
+  storeName?: string;
+  isUnregisteredStore?: boolean;
+  storeCode?: string | null;
+  province?: string | null;
+  district?: string | null;
+  dealerId?: string | null;
+  dealerName?: string | null;
+  visitPurpose?: string | null;
+  detail?: string;
   targetOpportunity?: string;
+  notes?: string;
   items?: Type11TargetStoreItem[];
+  products?: Type11ProductEntity[];
+  result?: Type11ResultEntity | null;
   [key: string]: any;
 }
 
 export type Type11PlanTarget = Type11TargetItem;
 
 export interface Type11PlanItem {
-  storeId: string;
+  id?: string;
+  targetId?: string;
+  storeId?: string | null;
   storeName?: string | null;
+  isUnregisteredStore?: boolean;
+  storeCode?: string | null;
+  province?: string | null;
+  district?: string | null;
+  dealerId?: string | null;
+  dealerName?: string | null;
+  visitPurpose?: string | null;
   notes?: string | null;
+  products?: Type11ProductEntity[];
 }
 
 export interface Type11PlannedFormProps {

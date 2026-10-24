@@ -8,11 +8,23 @@ import type {
 
 export interface Type11UnplannedItem {
   id: string;
+  targetId?: string;
   storeId?: string | null;
   storeName: string;
+  isUnregisteredStore?: boolean;
+  storeCode?: string | null;
+  province?: string | null;
+  district?: string | null;
+  dealerId?: string | null;
+  dealerName?: string | null;
+  visitPurpose?: string | null;
   stockItems: Type11StockItem[];
+  overallStockStatus?: string | null;
+  overallReorderOpportunity?: string | null;
+  feedback?: string | null;
   nextAction?: string;
   remarks?: string;
+  summary?: string;
   images: Type11ImageFile[];
 }
 

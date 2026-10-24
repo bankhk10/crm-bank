@@ -304,79 +304,132 @@ sequenceDiagram
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตารางหลักของกิจกรรม |
-| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType11PlanTargets` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบแผน | เก็บรหัสร้านค้าที่ตรวจเช็คสต๊อก (`workTypeCode = "TYPE_11"`) |
-| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType11ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | เก็บ `resultSummary` |
-| **`activity_result_stock_items`**<br>(`ActivityResultStockItem`) | `saveType11ActualStockItems` | `parseType11ActualResult` (`stockResults`) | `deleteMany()` + `createMany()` ใน Repo | Cascade เมื่อลบผลงาน | ตารางเฉพาะเก็บผลการตรวจนับสต็อกหน้าร้าน |
+| **`activity_type_11_targets`**<br>(`ActivityPlanType11Target`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType11PlanTargets` | `deleteMany()` + `create()` ใน `savePlan()` | Cascade เมื่อลบแผน | ตารางเฉพาะเก็บร้านค้าเป้าหมายและข้อมูลตรวจเช็คสต๊อกรายร้าน |
+| **`activity_type_11_products`**<br>(`ActivityPlanType11Product`) | `savePlan()` / `saveActual()` | `loadPlan()`, `parseType11ActualResult` | `update()` หรือ `create()` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | ตารางเก็บสินค้าโฟกัสตามแผน (`TARGET`) และสินค้าที่ตรวจนับจริง (`ADDITIONAL_AUDIT`) |
+| **`activity_type_11_result`**<br>(`ActivityResultType11`) | `saveActual()` หรือ 2-in-1 Unplanned | `loadActual()`, `parseType11ActualResult` | `deleteMany()` + `create()` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | ตารางเก็บผลการตรวจสต็อกรายร้าน (`targetId` 1:1) |
+| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | Mirror ใน `savePlan()` | Fallback compatibility | Mirror ใน `savePlan()` | Cascade เมื่อลบแผน | ตารางเดิม (Legacy Mirror) เพื่อความเข้ากันได้ย้อนหลัง 100% |
+| **`activity_result_stock_items`**<br>(`ActivityResultStockItem`) | Mirror ใน `saveActual()` | Fallback compatibility | Mirror ใน `saveActual()` | Cascade เมื่อลบผลงาน | ตารางเดิม (Legacy Mirror) เพื่อความเข้ากันได้ย้อนหลัง 100% |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปภาพชั้นวางสินค้าและคลังสินค้าหน้าร้าน |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **รหัสร้านค้าเป้าหมาย** | `storeId` | `planned-mapper` ➔ `type11Stores` | `ActivityPlanStore` | `store_id` | `VARCHAR (FK)` | No | - |
-| **ชื่อร้านค้าเป้าหมาย** | `storeName` | `planned-mapper` ➔ `type11Stores` | `ActivityPlanStore` | `store_name` | `VARCHAR` | Yes | `null` |
-| **วัตถุประสงค์ร้านค้า** | `remarks` / `notes` | `type11PlannedStrategy.savePlan` | `ActivityPlanStore` | `remarks`, `notes` | `TEXT` | Yes | `"ตรวจเช็คสต๊อกหน้าร้าน"` |
-| **รหัสร้านค้าที่ตรวจนับจริง** | `storeId` (ใน `Type11StockItem`) | `saveType11ActualStockItems` | `ActivityResultStockItem` | `store_id` | `VARCHAR (FK)` | No | - |
-| **รหัสสินค้าที่ตรวจนับ** | `productId` | `saveType11ActualStockItems` | `ActivityResultStockItem` | `product_id` | `VARCHAR (FK)` | No | - |
-| **จำนวนคงเหลือจริง** | `remainingQty` / `remainingQuantity` | `saveType11ActualStockItems` | `ActivityResultStockItem` | `remaining_quantity` | `INTEGER` | No | `0` |
-| **สถานะสต็อก** | `stockStatus` | `saveType11ActualStockItems` | `ActivityResultStockItem` | `stock_status` | `VARCHAR` | Yes | `null` |
-| **โอกาสสั่งซื้อรอบใหม่** | `reorderOpportunity` | `saveType11ActualStockItems` | `ActivityResultStockItem` | `reorder_opportunity` | `VARCHAR` | Yes | `null` |
-| **ข้อสังเกตสต็อก** | `remarks` (ใน `Type11StockItem`) | `saveType11ActualStockItems` | `ActivityResultStockItem` | `remarks` | `TEXT` | Yes | `null` |
-| **สิ่งที่ต้องดำเนินการต่อ** | `nextAction` | `saveType11ActualStockItems` | `ActivityResultStockItem` | `next_action` | `TEXT` | Yes | `null` |
+| **รหัสร้านค้าเป้าหมาย** | `storeId` | `planned-mapper` ➔ `type11Stores` | `ActivityPlanType11Target` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อร้านค้า** | `storeName` | `planned-mapper` ➔ `type11Stores` | `ActivityPlanType11Target` | `store_name` | `VARCHAR` | Yes | `null` |
+| **เป็นร้านนอกระบบ?** | `isUnregisteredStore` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType11Target` | `is_unregistered_store` | `BOOLEAN` | No | `false` |
+| **รหัสร้านค้า (Code)** | `storeCode` | Auto-enriched / Manual | `ActivityPlanType11Target` | `store_code` | `VARCHAR` | Yes | `null` |
+| **จังหวัด / อำเภอ** | `province`, `district` | Auto-enriched / Manual | `ActivityPlanType11Target` | `province`, `district` | `VARCHAR` | Yes | `null` |
+| **ดีลเลอร์แม่ข่าย** | `dealerId`, `dealerName` | Auto-enriched / Manual | `ActivityPlanType11Target` | `dealer_id`, `dealer_name` | `VARCHAR` | Yes | `null` |
+| **วัตถุประสงค์การเข้าตรวจ** | `visitPurpose` | Form input | `ActivityPlanType11Target` | `visit_purpose` | `TEXT` | Yes | `null` |
+| **หมายเหตุร้านค้า** | `notes` / `remarks` | Form input | `ActivityPlanType11Target` | `notes` | `TEXT` | Yes | `null` |
+| **รหัสสินค้าตรวจนับ** | `productId` | `stockItems` | `ActivityPlanType11Product` | `product_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อสินค้าตรวจนับ** | `productName` | `stockItems` | `ActivityPlanType11Product` | `product_name` | `VARCHAR` | Yes | `null` |
+| **บทบาทสินค้า** | `productRole` | `stockItems` (`TARGET` / `ADDITIONAL_AUDIT`) | `ActivityPlanType11Product` | `product_role` | `VARCHAR` | No | `"TARGET"` |
+| **จำนวนเป้าหมายตามแผน** | `targetQuantity` | Planned form input | `ActivityPlanType11Product` | `target_quantity` | `DECIMAL(12,2)` | Yes | `null` |
+| **จำนวนคงเหลือจริง** | `actualQuantity` / `remainingQty` | Actual form input | `ActivityPlanType11Product` | `actual_quantity` | `DECIMAL(12,2)` | Yes | `null` |
+| **สถานะสต็อกสินค้า** | `stockStatus` | Actual form input | `ActivityPlanType11Product` | `stock_status` | `VARCHAR` | Yes | `null` |
+| **โอกาสสั่งซื้อรอบใหม่** | `reorderOpportunity` | Actual form input | `ActivityPlanType11Product` | `reorder_opportunity` | `VARCHAR` | Yes | `null` |
+| **จำนวนที่แนะนำสั่งซื้อ** | `suggestedOrderQty` | Actual form input | `ActivityPlanType11Product` | `suggested_order_qty` | `DECIMAL(12,2)` | Yes | `null` |
+| **ข้อสังเกตสต็อกรายตัว** | `remarks` | Actual form input | `ActivityPlanType11Product` | `remarks` | `TEXT` | Yes | `null` |
+| **สิ่งที่ต้องดำเนินการต่อ** | `nextAction` | Actual form input | `ActivityPlanType11Product` / `ActivityResultType11` | `next_action` | `TEXT` | Yes | `null` |
+| **สถานะสต็อกภาพรวมร้าน** | `overallStockStatus` | Actual outcome | `ActivityResultType11` | `overall_stock_status` | `VARCHAR` | Yes | `null` |
+| **โอกาสสั่งซื้อภาพรวมร้าน** | `overallReorderOpportunity` | Actual outcome | `ActivityResultType11` | `overall_reorder_opportunity` | `VARCHAR` | Yes | `null` |
+| **ผลตอบรับจากร้านค้า** | `feedback` | Actual outcome | `ActivityResultType11` | `feedback` | `TEXT` | Yes | `null` |
+| **สรุปผลการตรวจสต็อก** | `summary` | Actual outcome | `ActivityResultType11` | `summary` | `TEXT` | Yes | `null` |
 | **รูปถ่ายชั้นวางสินค้า** | `images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_11'` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
 ```prisma
-// 1. ตารางเก็บร้านค้าเป้าหมายที่เข้าตรวจเช็คสต๊อก
-model ActivityPlanStore {
-  id                      String   @id @default(cuid())
-  activityPlanId          String   @map("activity_plan_id")
-  workTypeCode            String   @map("work_type_code") // "TYPE_11"
-  visitPurpose            String?  @map("visit_purpose")
-  storeId                 String?  @map("store_id")
-  storeName               String?  @map("store_name")
-  remarks                 String?
-  notes                   String?
+// 1. ตารางเฉพาะเก็บร้านค้าเป้าหมายและข้อมูลตรวจเช็คสต๊อกรายร้าน
+model ActivityPlanType11Target {
+  id                  String   @id @default(cuid())
+  activityPlanId      String   @map("activity_plan_id")
+  storeId             String?  @map("store_id")
+  storeName           String?  @map("store_name")
+  isUnregisteredStore Boolean  @default(false) @map("is_unregistered_store")
+  storeCode           String?  @map("store_code")
+  province            String?
+  district            String?
+  dealerId            String?  @map("dealer_id")
+  dealerName          String?  @map("dealer_name")
+  visitPurpose        String?  @map("visit_purpose")
+  notes               String?
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
-  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan        ActivityPlan                @relation("ActivityPlanType11Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store               Customer?                   @relation("Type11TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  dealer              Customer?                   @relation("Type11ParentDealer", fields: [dealerId], references: [id], onDelete: SetNull)
+  products            ActivityPlanType11Product[] @relation("Type11TargetProducts")
+  result              ActivityResultType11?       @relation("Type11TargetResult")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_stores")
+  @@index([dealerId])
+  @@map("activity_type_11_targets")
 }
 
-// 2. ตารางเฉพาะกิจเก็บผลการตรวจนับสต็อกสินค้าหน้าร้าน
-model ActivityResultStockItem {
-  id                 String  @id @default(cuid())
-  activityResultId   String  @map("activity_result_id")
-  storeId            String  @map("store_id")
-  productId          String  @map("product_id")
-  remainingQuantity  Int     @default(0) @map("remaining_quantity")
-  stockStatus        String? @map("stock_status") // "ปกติ", "ใกล้หมด", "ขาดสต็อก"
+// 2. ตารางเฉพาะเก็บสินค้าโฟกัสและสินค้าตรวจนับสต็อก
+model ActivityPlanType11Product {
+  id                String   @id @default(cuid())
+  activityPlanId    String   @map("activity_plan_id")
+  targetId          String   @map("target_id")
+  productId         String?  @map("product_id")
+  productName       String?  @map("product_name")
+  productRole       String   @default("TARGET") @map("product_role") // "TARGET", "ADDITIONAL_AUDIT"
+  targetQuantity    Decimal? @map("target_quantity") @db.Decimal(12, 2)
+  targetNotes       String?  @map("target_notes")
+  actualQuantity    Decimal? @map("actual_quantity") @db.Decimal(12, 2)
+  stockStatus       String?  @map("stock_status") // "ปกติ", "ใกล้หมด", "ขาดสต็อก"
   reorderOpportunity String? @map("reorder_opportunity") // "สูง", "ยังไม่แน่ใจ", "ต่ำ"
-  remarks            String? // ข้อสังเกตสต็อก
-  nextAction         String? @map("next_action") // สิ่งที่ต้องทำต่อ
+  suggestedOrderQty Decimal? @map("suggested_order_qty") @db.Decimal(12, 2)
+  remarks           String?
+  nextAction        String?  @map("next_action")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
-  activityResult     ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store              Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  product            Product        @relation("ActivityResultStockProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan      ActivityPlan             @relation("ActivityPlanType11Products", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target            ActivityPlanType11Target @relation("Type11TargetProducts", fields: [targetId], references: [id], onDelete: Cascade)
+  product           Product?                 @relation(fields: [productId], references: [id], onDelete: SetNull)
 
-  @@index([activityResultId])
-  @@index([storeId])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_result_stock_items")
+  @@map("activity_type_11_products")
+}
+
+// 3. ตารางเฉพาะเก็บผลลัพธ์การตรวจเช็คสต๊อกรายร้านค้า
+model ActivityResultType11 {
+  id                        String   @id @default(cuid())
+  activityPlanId            String   @map("activity_plan_id")
+  targetId                  String   @unique @map("target_id")
+  overallStockStatus        String?  @map("overall_stock_status")
+  overallReorderOpportunity String?  @map("overall_reorder_opportunity")
+  feedback                  String?
+  nextAction                String?  @map("next_action")
+  summary                   String?
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  activityPlan              ActivityPlan             @relation("ActivityResultType11s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target                    ActivityPlanType11Target @relation("Type11TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@map("activity_type_11_result")
 }
 ```
 
 ### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
 - **การจัดการ Transaction (Isolation & Atomicity):**
   - ทุกการบันทึกของ Type 11 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
-  - หากการบันทึกภาพถ่าย หรือการบันทึกรายการตรวจนับสต็อกใน `activity_result_stock_items` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
-- **Persistence ขาเขียนรายการสต็อก (Stock Persistence):**
-  - ในฟังก์ชัน `saveType11ActualStockItems` จะสั่ง `deleteMany` ระเบียนเดิมใน `activity_result_stock_items` ที่มี `activityResultId` นั้นๆ ก่อน แล้วทำการคัดกรองเฉพาะแถวที่มีทั้ง `storeId` และ `productId` ครบถ้วน เพื่อสร้างระเบียนใหม่ด้วย `createMany`
+  - หากการบันทึกภาพถ่าย หรือการบันทึกรายการตรวจนับสต็อกในตารางใดล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
+- **Persistence ขาเขียนรายการสต็อก (Dedicated + Mirror):**
+  - ในฟังก์ชัน `type11PlannedStrategy.savePlan` จะบันทึกร้านค้าเป้าหมายลงใน `activity_type_11_targets` และบันทึกสินค้าโฟกัสลงใน `activity_type_11_products` พร้อม mirror ข้อมูลลงใน `activity_plan_stores` เพื่อความเข้ากันได้ย้อนหลัง
+  - ในฟังก์ชัน `type11PlannedStrategy.saveActual` จะบันทึกผลการตรวจสต็อกรายร้านลงใน `activity_type_11_result` และอัปเดตปริมาณคงเหลือจริงใน `activity_type_11_products` พร้อม mirror ลงใน `activity_result_stock_items`
 - **Cascade Delete Policy:**
-  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `ActivityPlanStore`, `ActivityResult`, `ActivityResultStockItem`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
+  - เมื่อลบเป้าหมาย `ActivityPlanType11Target` ระเบียนลูกใน `ActivityPlanType11Product` และ `ActivityResultType11` จะถูกลบออกแบบ Cascade อัตโนมัติ
+  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนทั้งหมดที่เกี่ยวข้องจะถูกลบ Cascade ทั้งหมด
 
 ---
 

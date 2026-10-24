@@ -597,6 +597,64 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   type10Results: {
     orderBy: { createdAt: "asc" },
   },
+  // Dedicated Type 11 relations
+  type11Targets: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+        },
+      },
+      dealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+        },
+      },
+      products: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              price: true,
+              unit: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      result: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type11Products: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+          price: true,
+          unit: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type11Results: {
+    orderBy: { createdAt: "asc" },
+  },
   marketingItems: {
     orderBy: { createdAt: "asc" },
   },

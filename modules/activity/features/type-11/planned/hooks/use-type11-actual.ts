@@ -24,6 +24,8 @@ export function useType11Actual() {
   const [t11StockStatus, setT11StockStatus] = useState<StockStatus | "">("");
   const [t11ReorderOpportunity, setT11ReorderOpportunity] = useState<ReorderOpportunity | "">("");
   const [t11NextAction, setT11NextAction] = useState("");
+  const [t11Summary, setT11Summary] = useState("");
+  const [t11Feedback, setT11Feedback] = useState("");
   const [t11Images, setT11Images] = useState<Type11ImageFile[]>([]);
   const initialT11ImagesRef = useRef<Type11ImageFile[]>([]);
 
@@ -68,6 +70,24 @@ export function useType11Actual() {
       parsed.nextAction;
     if (nextAct) {
       setT11NextAction(nextAct);
+    }
+
+    const sum =
+      actualData.t11Summary ||
+      actualData.summary ||
+      parsed.t11Summary ||
+      parsed.summary;
+    if (sum) {
+      setT11Summary(sum);
+    }
+
+    const fb =
+      actualData.t11Feedback ||
+      actualData.feedback ||
+      parsed.t11Feedback ||
+      parsed.feedback;
+    if (fb) {
+      setT11Feedback(fb);
     }
 
     const imgs =
@@ -128,6 +148,8 @@ export function useType11Actual() {
         t11StockStatus,
         t11ReorderOpportunity,
         t11NextAction,
+        t11Summary,
+        t11Feedback,
         t11Images: cleanImages,
       };
     },
@@ -139,6 +161,8 @@ export function useType11Actual() {
       t11StockStatus,
       t11ReorderOpportunity,
       t11NextAction,
+      t11Summary,
+      t11Feedback,
       t11Images,
     ],
   );
@@ -172,6 +196,14 @@ export function useType11Actual() {
     setT11NextAction,
     nextAction: t11NextAction,
     setNextAction: setT11NextAction,
+    t11Summary,
+    setT11Summary,
+    summary: t11Summary,
+    setSummary: setT11Summary,
+    t11Feedback,
+    setT11Feedback,
+    feedback: t11Feedback,
+    setFeedback: setT11Feedback,
     t11Images,
     setT11Images,
     images: t11Images,

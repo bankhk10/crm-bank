@@ -41,6 +41,7 @@ export function useType11PlannedForm({
   const mapType11Payload = () => {
     return {
       type11Stores,
+      type11Targets: type11Stores,
     };
   };
 
