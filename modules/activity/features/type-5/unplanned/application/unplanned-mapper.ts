@@ -16,22 +16,27 @@ export function hydrateType5UnplannedData(initialData: any): Type5UnplannedItem[
 
   // 2. Extract survey results from any available property
   const actualResults: any[] =
-    Array.isArray(initialData.type5SurveyRecords) &&
-    initialData.type5SurveyRecords.length > 0
-      ? initialData.type5SurveyRecords
-      : Array.isArray(initialData.targetActualResults) &&
-          initialData.targetActualResults.length > 0
-        ? initialData.targetActualResults
-        : Array.isArray(initialData.result?.surveyResults) &&
-            initialData.result.surveyResults.length > 0
-          ? initialData.result.surveyResults
-          : Array.isArray(initialData.surveyResults) &&
-              initialData.surveyResults.length > 0
-            ? initialData.surveyResults
-            : Array.isArray(initialData.t5SurveyDetails) &&
-                initialData.t5SurveyDetails.length > 0
-              ? initialData.t5SurveyDetails
-              : [];
+    Array.isArray(initialData.type5Results) && initialData.type5Results.length > 0
+      ? initialData.type5Results
+      : Array.isArray(initialData.result?.type5Results) &&
+          initialData.result.type5Results.length > 0
+        ? initialData.result.type5Results
+        : Array.isArray(initialData.type5SurveyRecords) &&
+            initialData.type5SurveyRecords.length > 0
+          ? initialData.type5SurveyRecords
+          : Array.isArray(initialData.targetActualResults) &&
+              initialData.targetActualResults.length > 0
+            ? initialData.targetActualResults
+            : Array.isArray(initialData.result?.surveyResults) &&
+                initialData.result.surveyResults.length > 0
+              ? initialData.result.surveyResults
+              : Array.isArray(initialData.surveyResults) &&
+                  initialData.surveyResults.length > 0
+                ? initialData.surveyResults
+                : Array.isArray(initialData.t5SurveyDetails) &&
+                    initialData.t5SurveyDetails.length > 0
+                  ? initialData.t5SurveyDetails
+                  : [];
 
   // Extract all attachments from plan or result
   const allAttachments: any[] =
@@ -55,8 +60,18 @@ export function hydrateType5UnplannedData(initialData: any): Type5UnplannedItem[
 
     if (itemAtts.length === 0 && allAttachments.length > 0) {
       itemAtts = allAttachments.filter((att: any) => {
-        if (att.surveyItemId && (att.surveyItemId === item.id || att.surveyItemId === dbId)) return true;
-        if (att.surveyItemId && att.surveyItemId !== item.id && att.surveyItemId !== dbId) return false;
+        if (
+          (att.type5ResultId && (att.type5ResultId === item.id || att.type5ResultId === dbId)) ||
+          (att.surveyItemId && (att.surveyItemId === item.id || att.surveyItemId === dbId))
+        ) {
+          return true;
+        }
+        if (
+          (att.type5ResultId && att.type5ResultId !== item.id && att.type5ResultId !== dbId) ||
+          (att.surveyItemId && att.surveyItemId !== item.id && att.surveyItemId !== dbId)
+        ) {
+          return false;
+        }
         if (actualResults.length === 1) return true;
         return (
           (att.storeId && att.storeId === item.storeId) ||
@@ -302,6 +317,7 @@ export function mapType5UnplannedToPayload(items: Type5UnplannedItem[]) {
 
   return {
     type5Targets,
+    type5Results: actualSurveyRecords,
     type5SurveyRecords: actualSurveyRecords,
     targetActualResults: actualSurveyRecords,
     type5UnplannedItems: items,

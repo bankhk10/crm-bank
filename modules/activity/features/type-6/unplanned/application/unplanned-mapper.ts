@@ -16,19 +16,24 @@ export function hydrateType6UnplannedData(initialData: any): Type6UnplannedItem[
 
   // 2. Extract actual issue results
   const actualResults: any[] =
-    Array.isArray(initialData.type6ActualIssues) &&
-    initialData.type6ActualIssues.length > 0
-      ? initialData.type6ActualIssues
-      : Array.isArray(initialData.issueResults) &&
-          initialData.issueResults.length > 0
-        ? initialData.issueResults
-        : Array.isArray(initialData.result?.issueResults) &&
-            initialData.result.issueResults.length > 0
-          ? initialData.result.issueResults
-          : Array.isArray(initialData.targetActualResults) &&
-              initialData.targetActualResults.length > 0
-            ? initialData.targetActualResults
-            : [];
+    Array.isArray(initialData.type6Results) && initialData.type6Results.length > 0
+      ? initialData.type6Results
+      : Array.isArray(initialData.result?.type6Results) &&
+          initialData.result.type6Results.length > 0
+        ? initialData.result.type6Results
+        : Array.isArray(initialData.type6ActualIssues) &&
+            initialData.type6ActualIssues.length > 0
+          ? initialData.type6ActualIssues
+          : Array.isArray(initialData.issueResults) &&
+              initialData.issueResults.length > 0
+            ? initialData.issueResults
+            : Array.isArray(initialData.result?.issueResults) &&
+                initialData.result.issueResults.length > 0
+              ? initialData.result.issueResults
+              : Array.isArray(initialData.targetActualResults) &&
+                  initialData.targetActualResults.length > 0
+                ? initialData.targetActualResults
+                : [];
 
   const allAttachments: any[] =
     Array.isArray(initialData.attachments) && initialData.attachments.length > 0
@@ -51,8 +56,18 @@ export function hydrateType6UnplannedData(initialData: any): Type6UnplannedItem[
 
     if (itemAtts.length === 0 && allAttachments.length > 0) {
       itemAtts = allAttachments.filter((att: any) => {
-        if (att.issueItemId && (att.issueItemId === item.id || att.issueItemId === dbId)) return true;
-        if (att.issueItemId && att.issueItemId !== item.id && att.issueItemId !== dbId) return false;
+        if (
+          (att.type6ResultId && (att.type6ResultId === item.id || att.type6ResultId === dbId)) ||
+          (att.issueItemId && (att.issueItemId === item.id || att.issueItemId === dbId))
+        ) {
+          return true;
+        }
+        if (
+          (att.type6ResultId && att.type6ResultId !== item.id && att.type6ResultId !== dbId) ||
+          (att.issueItemId && att.issueItemId !== item.id && att.issueItemId !== dbId)
+        ) {
+          return false;
+        }
         if (actualResults.length === 1) return true;
         return att.category === "ISSUE" || att.workTypeCode === "TYPE_6";
       });
@@ -259,6 +274,7 @@ export function mapType6UnplannedToPayload(items: Type6UnplannedItem[]) {
 
   return {
     type6Targets,
+    type6Results: actualIssues,
     type6ActualIssues: actualIssues,
     targetActualResults: actualIssues,
     type6UnplannedItems: items,

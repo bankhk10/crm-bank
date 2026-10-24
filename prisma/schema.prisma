@@ -412,8 +412,10 @@ model Customer {
   activityPlanType3Targets    ActivityPlanType3Target[]    @relation("Type3TargetStore")
   activityResultType3s        ActivityResultType3[]        @relation("Type3ResultStore")
   activityPlanType4Targets    ActivityPlanType4Target[]    @relation("Type4TargetStore")
-  activityPlanType5Targets    ActivityPlanType5Target[]
-  activityPlanType6Targets    ActivityPlanType6Target[]
+  activityPlanType5Targets    ActivityPlanType5Target[]    @relation("Type5TargetStore")
+  activityResultType5s        ActivityResultType5[]        @relation("Type5ResultStore")
+  activityPlanType6Targets    ActivityPlanType6Target[]    @relation("Type6TargetStore")
+  activityResultType6s        ActivityResultType6[]        @relation("Type6ResultStore")
   activityResultType4s        ActivityResultType4[]        @relation("Type4ResultStore")
   activityPlanType8TargetsDealer    ActivityPlanType8Target[]    @relation("Type8DealerStore")
   activityPlanType8TargetsSubdealer ActivityPlanType8Target[]    @relation("Type8SubdealerStore")
@@ -725,7 +727,9 @@ model Product {
   activityResultType2s           ActivityResultType2[]        @relation("Type2ResultProduct")
   activityPlanType3Products      ActivityPlanType3Product[]   @relation("Type3ProductRef")
   activityResultType3s           ActivityResultType3[]        @relation("Type3ResultProduct")
-  activityPlanType5Targets       ActivityPlanType5Target[]
+  activityPlanType5Targets       ActivityPlanType5Target[]    @relation("Type5TargetProduct")
+  activityResultType5s           ActivityResultType5[]        @relation("Type5ResultProduct")
+  activityResultType6s           ActivityResultType6[]        @relation("Type6ResultProduct")
   activityPlanType1Products      ActivityPlanType1Product[]
   activityPlanType8Products      ActivityPlanType8Product[]
   activityPlanType9Products      ActivityPlanType9Product[]
@@ -1784,8 +1788,10 @@ model ActivityPlan {
   type3Products  ActivityPlanType3Product[] @relation("ActivityPlanType3Products")
   type4Targets   ActivityPlanType4Target[]  @relation("ActivityPlanType4Targets")
   type4Results   ActivityResultType4[]      @relation("ActivityResultType4s")
-  type5Targets   ActivityPlanType5Target[]
-  type6Targets   ActivityPlanType6Target[]
+  type5Targets   ActivityPlanType5Target[]  @relation("ActivityPlanType5Targets")
+  type5Results   ActivityResultType5[]      @relation("ActivityResultType5s")
+  type6Targets   ActivityPlanType6Target[]  @relation("ActivityPlanType6Targets")
+  type6Results   ActivityResultType6[]      @relation("ActivityResultType6s")
   type8Targets   ActivityPlanType8Target[]
   type8Products  ActivityPlanType8Product[]
   type8Results   ActivityResultType8[]
@@ -2325,6 +2331,8 @@ model ActivityAttachment {
   productId        String?            @map("product_id")
   surveyItemId     String?            @map("survey_item_id")
   issueItemId      String?            @map("issue_item_id")
+  type5ResultId    String?            @map("type_5_result_id")
+  type6ResultId    String?            @map("type_6_result_id")
   category         AttachmentCategory @default(GENERAL)
   fileUrl          String             @map("file_url")
   fileName         String             @map("file_name")
@@ -2338,6 +2346,8 @@ model ActivityAttachment {
   product         Product?                  @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
   surveyItem      ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
   issueItem       ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
+  type5Result     ActivityResultType5?      @relation(fields: [type5ResultId], references: [id], onDelete: Cascade)
+  type6Result     ActivityResultType6?      @relation(fields: [type6ResultId], references: [id], onDelete: Cascade)
   demoPlotId      String?                   @map("demo_plot_id")
   demoPlot        DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   sprayRoundId    String?                   @map("spray_round_id")
@@ -2355,6 +2365,8 @@ model ActivityAttachment {
   @@index([productId])
   @@index([surveyItemId])
   @@index([issueItemId])
+  @@index([type5ResultId])
+  @@index([type6ResultId])
   @@map("activity_attachments")
 }
 
@@ -3112,14 +3124,49 @@ model ActivityPlanType5Target {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan          @relation("ActivityPlanType5Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?             @relation("Type5TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product?              @relation("Type5TargetProduct", fields: [productId], references: [id], onDelete: SetNull)
+  results        ActivityResultType5[]
 
   @@index([activityPlanId])
   @@index([storeId])
   @@index([productId])
-  @@map("activity_plan_type_5_targets")
+  @@map("activity_type_5_targets")
+}
+
+model ActivityResultType5 {
+  id                String   @id @default(cuid())
+  activityPlanId    String   @map("activity_plan_id")
+  targetId          String?  @map("target_id")
+  storeId           String?  @map("store_id")
+  productId         String?  @map("product_id")
+  competitorBrand   String?  @map("competitor_brand")
+  competitorProduct String?  @map("competitor_product")
+  posPrice          Decimal? @map("pos_price") @db.Decimal(15, 2)
+  dealerPrice       Decimal? @map("dealer_price") @db.Decimal(15, 2)
+  subdealerPrice    Decimal? @map("subdealer_price") @db.Decimal(15, 2)
+  farmerPrice       Decimal? @map("farmer_price") @db.Decimal(15, 2)
+  competitorPrice   Decimal? @map("competitor_price") @db.Decimal(15, 2)
+  competitorUnit    String?  @map("competitor_unit")
+  sellingPoints     String?  @map("selling_points") @db.Text
+  promotionDetail   String?  @map("promotion_detail") @db.Text
+  isAdditional      Boolean  @default(false) @map("is_additional")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  activityPlan      ActivityPlan             @relation("ActivityResultType5s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target            ActivityPlanType5Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  store             Customer?                @relation("Type5ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product           Product?                 @relation("Type5ResultProduct", fields: [productId], references: [id], onDelete: SetNull)
+  attachments       ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([storeId])
+  @@index([productId])
+  @@map("activity_type_5_result")
 }
 
 // =============================================================================
@@ -3138,12 +3185,49 @@ model ActivityPlanType6Target {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  activityPlan       ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store              Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan       ActivityPlan          @relation("ActivityPlanType6Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store              Customer?             @relation("Type6TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  results            ActivityResultType6[]
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_type_6_targets")
+  @@map("activity_type_6_targets")
+}
+
+model ActivityResultType6 {
+  id               String   @id @default(cuid())
+  activityPlanId   String   @map("activity_plan_id")
+  targetId         String?  @map("target_id")
+  productId        String?  @map("product_id")
+  productName      String?  @map("product_name")
+  lotNumber        String?  @map("lot_number")
+  purchaseChannel  String   @default("ร้านค้าตัวแทนจำหน่าย") @map("purchase_channel")
+  storeId          String?  @map("store_id")
+  storeName        String?  @map("store_name")
+  customerName     String?  @map("customer_name")
+  isManualCustomer Boolean  @default(false) @map("is_manual_customer")
+  issueType        String   @default("สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย") @map("issue_type")
+  detail           String?  @map("detail") @db.Text
+  status           String   @default("เสร็จสิ้น") @map("status")
+  problemFound     String?  @map("problem_found") @db.Text
+  initialSolution  String?  @map("initial_solution") @db.Text
+  nextAction       String?  @map("next_action")
+  isAdditional     Boolean  @default(false) @map("is_additional")
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  activityPlan     ActivityPlan             @relation("ActivityResultType6s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target           ActivityPlanType6Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  store            Customer?                @relation("Type6ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product          Product?                 @relation("Type6ResultProduct", fields: [productId], references: [id], onDelete: SetNull)
+  attachments      ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([storeId])
+  @@index([productId])
+  @@map("activity_type_6_result")
 }
 
 // =============================================================================

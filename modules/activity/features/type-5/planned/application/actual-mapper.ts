@@ -33,26 +33,37 @@ export function parseType5ActualResult(resData: any): {
           : [];
 
   const rawSurveyResults: any[] =
-    Array.isArray(resData.surveyResults) && resData.surveyResults.length > 0
-      ? resData.surveyResults
-      : Array.isArray(resData.result?.surveyResults) &&
-          resData.result.surveyResults.length > 0
-        ? resData.result.surveyResults
-        : Array.isArray(resData.activityPlan?.result?.surveyResults) &&
-            resData.activityPlan.result.surveyResults.length > 0
-          ? resData.activityPlan.result.surveyResults
-          : Array.isArray(resData.t5SurveyDetails) &&
-              resData.t5SurveyDetails.length > 0
-            ? resData.t5SurveyDetails
-            : [];
+    Array.isArray(resData.type5Results) && resData.type5Results.length > 0
+      ? resData.type5Results
+      : Array.isArray(resData.result?.type5Results) &&
+          resData.result.type5Results.length > 0
+        ? resData.result.type5Results
+        : Array.isArray(resData.activityPlan?.type5Results) &&
+            resData.activityPlan.type5Results.length > 0
+          ? resData.activityPlan.type5Results
+          : Array.isArray(resData.surveyResults) && resData.surveyResults.length > 0
+            ? resData.surveyResults
+            : Array.isArray(resData.result?.surveyResults) &&
+                resData.result.surveyResults.length > 0
+              ? resData.result.surveyResults
+              : Array.isArray(resData.activityPlan?.result?.surveyResults) &&
+                  resData.activityPlan.result.surveyResults.length > 0
+                ? resData.activityPlan.result.surveyResults
+                : Array.isArray(resData.t5SurveyDetails) &&
+                    resData.t5SurveyDetails.length > 0
+                  ? resData.t5SurveyDetails
+                  : [];
 
-  // 1. Direct from surveyResults relation
+  // 1. Direct from surveyResults or type5Results relation
   if (rawSurveyResults.length > 0) {
     result.t5SurveyDetails = rawSurveyResults.map((sv: any) => {
       let itemAttachments =
         Array.isArray(sv.attachments) && sv.attachments.length > 0
           ? sv.attachments
-          : allAttachments.filter((att: any) => att.surveyItemId === sv.id);
+          : allAttachments.filter(
+              (att: any) =>
+                att.type5ResultId === sv.id || att.surveyItemId === sv.id,
+            );
 
       if (itemAttachments.length === 0) {
         itemAttachments = allAttachments.filter((att: any) => {
@@ -64,8 +75,18 @@ export function parseType5ActualResult(resData: any): {
             att.category === "PROMOTION" ||
             att.category === "promo";
           if (!isSurveyCat) return false;
-          if (att.surveyItemId && att.surveyItemId === sv.id) return true;
-          if (att.surveyItemId && att.surveyItemId !== sv.id) return false;
+          if (
+            (att.type5ResultId && att.type5ResultId === sv.id) ||
+            (att.surveyItemId && att.surveyItemId === sv.id)
+          ) {
+            return true;
+          }
+          if (
+            (att.type5ResultId && att.type5ResultId !== sv.id) ||
+            (att.surveyItemId && att.surveyItemId !== sv.id)
+          ) {
+            return false;
+          }
           if (rawSurveyResults.length === 1) return true;
           return (
             (att.storeId && att.storeId === sv.storeId) ||
@@ -110,6 +131,7 @@ export function parseType5ActualResult(resData: any): {
 
       return {
         id: sv.id,
+        targetId: sv.targetId || undefined,
         storeId: sv.storeId,
         store: sv.store?.shopName || sv.store?.name || sv.storeName || sv.store || "",
         productId: sv.productId,

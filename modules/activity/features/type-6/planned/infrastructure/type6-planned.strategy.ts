@@ -105,7 +105,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
         const detail = item.detail || item.notes || null;
 
         return {
-          id: randomUUID(),
+          id: item.id || randomUUID(),
           activityPlanId,
           storeId: isManual ? null : item.storeId || null,
           customerName: custName,
@@ -119,47 +119,10 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
         data: targetsToCreate,
       });
     }
-
-    // 2. Dual-Write Sync to activity_plan_stores for backward compatibility
-    await tx.activityPlanStore.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_6",
-      },
-    });
-
-    if (items.length > 0) {
-      const storesToCreate = items.map((item: any) => {
-        const isManual =
-          item.isManualCustomer !== undefined
-            ? Boolean(item.isManualCustomer)
-            : !item.storeId &&
-              Boolean(item.manualCustomerName || item.customerName || item.storeName);
-
-        const storeName =
-          (isManual ? item.manualCustomerName || item.customerName || item.storeName : item.customerName || item.storeName) ||
-          null;
-
-        return {
-          id: randomUUID(),
-          activityPlanId,
-          workTypeCode: "TYPE_6",
-          storeId: isManual ? null : item.storeId || null,
-          storeName,
-          isUnregisteredFarmer: isManual,
-          remarks: item.issueType || item.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-          notes: item.detail || item.notes || null,
-        };
-      });
-
-      await tx.activityPlanStore.createMany({
-        data: storesToCreate,
-      });
-    }
   },
 
   /**
-   * Save Type 6 Actual outcome data (ActivityResultIssueItem & attachments)
+   * Save Type 6 Actual outcome data (activityResultType6 & attachments)
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -197,7 +160,9 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
 
     // Collect issue items
     let issueItems: any[] = [];
-    if (actualData.issueResults && Array.isArray(actualData.issueResults)) {
+    if (actualData.type6Results && Array.isArray(actualData.type6Results)) {
+      issueItems = actualData.type6Results;
+    } else if (actualData.issueResults && Array.isArray(actualData.issueResults)) {
       issueItems = actualData.issueResults;
     } else if (actualData.type6ActualIssues && Array.isArray(actualData.type6ActualIssues)) {
       issueItems = actualData.type6ActualIssues;
@@ -213,36 +178,66 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
 
     if (issueItems.length === 0) return;
 
-    // Clean existing records
-    await (tx as any).activityResultIssueItem.deleteMany({
-      where: { activityResultId: resultId },
+    // Clean existing records in dedicated table
+    await (tx as any).activityResultType6.deleteMany({
+      where: { activityPlanId },
+    });
+
+    const existingTargets = await (tx as any).activityPlanType6Target.findMany({
+      where: { activityPlanId },
+      select: { id: true, storeId: true, customerName: true },
     });
 
     const clientIssueMap = new Map<string, string>();
     const itemsToCreate = issueItems.map((item: any) => {
-      const dbId = randomUUID();
+      const dbId = item.id || randomUUID();
       if (item.id) {
         clientIssueMap.set(item.id, dbId);
       }
+
+      const matchedTarget =
+        item.targetId ||
+        existingTargets.find(
+          (t: any) =>
+            (item.storeId && t.storeId === item.storeId) ||
+            (item.customerName && t.customerName === item.customerName),
+        )?.id ||
+        null;
+
+      const isManual =
+        item.isManualCustomer !== undefined
+          ? Boolean(item.isManualCustomer)
+          : !item.storeId &&
+            Boolean(item.manualCustomerName || item.customerName || item.storeName);
+
+      const custName =
+        (isManual
+          ? item.manualCustomerName || item.customerName || item.storeName
+          : item.customerName || item.storeName) || null;
+
       return {
         id: dbId,
-        activityResultId: resultId,
+        activityPlanId,
+        targetId: matchedTarget,
         productId: item.productId ?? null,
         productName: item.productName ?? null,
         lotNumber: item.lotNumber ?? null,
         purchaseChannel: item.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย",
-        storeId: item.storeId ?? null,
+        storeId: isManual ? null : item.storeId ?? null,
         storeName: item.storeName ?? null,
+        customerName: custName,
+        isManualCustomer: isManual,
         issueType: item.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: item.detail ?? null,
         status: item.status || "เสร็จสิ้น",
         problemFound: item.problemFound ?? item.detail ?? actualData.t6ProblemDetail ?? null,
         initialSolution: item.initialSolution ?? actualData.t6InitialSolution ?? null,
         nextAction: item.nextAction ?? actualData.t6NextAction ?? null,
+        isAdditional: Boolean(item.isAdditional || !matchedTarget),
       };
     });
 
-    await (tx as any).activityResultIssueItem.createMany({
+    await (tx as any).activityResultType6.createMany({
       data: itemsToCreate,
     });
 
@@ -259,7 +254,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             category: "ISSUE",
             storeId: item.storeId || null,
             productId: item.productId || null,
-            issueItemId: dbId,
+            type6ResultId: dbId,
             fileUrl: img.url || img.fileUrl,
             fileName: img.name || img.fileName || "รูปถ่ายหลักฐานปัญหา",
             fileSize: img.size || img.fileSize || 0,
@@ -282,7 +277,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             category: "ISSUE",
             storeId: att.storeId || itemsToCreate[0]?.storeId || null,
             productId: att.productId || itemsToCreate[0]?.productId || null,
-            issueItemId: att.issueItemId || itemsToCreate[0]?.id || null,
+            type6ResultId: att.type6ResultId || itemsToCreate[0]?.id || null,
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปถ่ายหลักฐานปัญหา",
             fileSize: att.fileSize || att.size || 0,
@@ -313,45 +308,42 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
       include: {
         store: true,
+        results: true,
       },
       orderBy: { createdAt: "asc" },
     });
 
-    if (targets.length > 0) {
-      return {
-        type6Items: targets.map((t: any) => ({
-          id: t.id,
-          storeId: t.storeId,
-          customerName: t.customerName || t.store?.name || "",
-          manualCustomerName: t.isManualCustomer ? t.customerName || "" : "",
-          isManualCustomer: t.isManualCustomer,
-          issueType: t.issueType,
-          detail: t.detail || "",
-        })),
-      };
-    }
+    return {
+      type6Items: targets.map((t: any) => ({
+        id: t.id,
+        storeId: t.storeId,
+        customerName: t.customerName || t.store?.name || "",
+        manualCustomerName: t.isManualCustomer ? t.customerName || "" : "",
+        isManualCustomer: t.isManualCustomer,
+        issueType: t.issueType,
+        detail: t.detail || "",
+        results: t.results || [],
+      })),
+    };
+  },
 
-    // Fallback: Legacy activity_plan_stores
-    const stores = await tx.activityPlanStore.findMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_6",
-      },
+  /**
+   * Load Type 6 Actual outcome data from database
+   */
+  async loadActual(tx: PrismaTransaction, activityPlanId: string): Promise<any> {
+    const results = await (tx as any).activityResultType6.findMany({
+      where: { activityPlanId },
       include: {
         store: true,
+        product: true,
+        attachments: true,
       },
+      orderBy: { createdAt: "asc" },
     });
 
     return {
-      type6Items: stores.map((s: any, idx: number) => ({
-        id: s.id || String(idx + 1),
-        storeId: s.storeId || null,
-        customerName: s.store?.name || s.storeName || "",
-        manualCustomerName: s.isUnregisteredFarmer ? s.storeName || "" : "",
-        isManualCustomer: Boolean(s.isUnregisteredFarmer || !s.storeId),
-        issueType: s.remarks || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-        detail: s.notes || "",
-      })),
+      issueResults: results,
+      type6Results: results,
     };
   },
 };

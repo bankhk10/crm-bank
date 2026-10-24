@@ -953,6 +953,7 @@ export function UnplannedActivityForm({
 
       actualData = {
         workTypeCode: "TYPE_5",
+        type5Results: mapped.type5Results || mapped.type5SurveyRecords,
         type5SurveyRecords: mapped.type5SurveyRecords,
         surveyResults: mapped.type5SurveyRecords,
         t5SurveyDetails: mapped.type5SurveyRecords,
@@ -1027,6 +1028,7 @@ export function UnplannedActivityForm({
 
       actualData = {
         workTypeCode: "TYPE_6",
+        type6Results: mapped.type6Results || mapped.type6ActualIssues,
         issueResults: mapped.type6ActualIssues,
         type6ActualIssues: mapped.type6ActualIssues,
         targetActualResults: mapped.type6ActualIssues,
@@ -1815,11 +1817,13 @@ export function UnplannedActivityForm({
       items: isType4Active ? mappedType4?.items : undefined,
       type5Targets: mappedType5?.type5Targets,
       type5Items: mappedType5?.type5Targets,
+      type5Results: mappedType5?.type5Results,
       type5SurveyRecords: mappedType5?.type5SurveyRecords,
       surveyResults: mappedType5?.type5SurveyRecords,
       t5SurveyDetails: mappedType5?.type5SurveyRecords,
       type6Targets: mappedType6?.type6Targets,
       type6Items: mappedType6?.type6Targets,
+      type6Results: mappedType6?.type6Results,
       type6ActualIssues: mappedType6?.type6ActualIssues,
       issueResults: mappedType6?.type6ActualIssues,
       type7aPlots: mappedType7a?.type7aPlots,

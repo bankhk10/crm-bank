@@ -444,6 +444,27 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           productCode: true,
         },
       },
+      results: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type5Results: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+        },
+      },
+      attachments: true,
     },
     orderBy: { createdAt: "asc" },
   },
@@ -459,6 +480,27 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
+      results: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type6Results: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+        },
+      },
+      attachments: true,
     },
     orderBy: { createdAt: "asc" },
   },

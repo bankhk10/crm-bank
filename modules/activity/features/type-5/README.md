@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-5`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType5Target`, `ActivityResultSurveyItem`, `ActivityAttachment`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
-> **Status**: Production Ready / Active Reference (v1.6.0 — Updated 2026-10-22)
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType5Target` [@@map("activity_type_5_targets")], `ActivityResultType5` [@@map("activity_type_5_result")], `ActivityAttachment` [type_5_result_id])  
+> **Status**: Production Ready / Standalone Dedicated Architecture (v2.0.0 — Updated 2026-10-24)
 
 ---
 
@@ -28,10 +28,11 @@
 - **กลุ่มเป้าหมายที่รองรับ:**
   - **ร้านค้าตัวแทนจำหน่าย (STORE):** ตัวแทนจำหน่ายหลัก (`DEALER`) และตัวแทนจำหน่ายย่อย (`SUBDEALER`) ที่ขึ้นทะเบียนในระบบ
   - **สินค้าเปรียบเทียบ (COMPARED PRODUCTS):** รายการผลิตภัณฑ์เคมีเกษตร ฮอร์โมน หรือปุ๋ยของบริษัท โดยระบบกรองเฉพาะหน่วยมาตรฐาน (เช่น หน่วย "กล่อง")
-- **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - **Dedicated Tables:** บันทึกเป้าหมายลงตารางเฉพาะกิจ `ActivityPlanType5Target` (`activity_plan_type_5_targets`) และผลสำรวจจริงลง `ActivityResultSurveyItem` (`activity_result_survey_items`)
-  - **Generic Tables Sync:** ซิงค์สำเนาเป้าหมายลงใน `ActivityPlanStore` และ `ActivityPlanProduct` (`workTypeCode = "TYPE_5"`) เพื่อให้ระบบส่วนกลางและรายงานเดิมทำงานร่วมกันได้อย่างราบรื่น
-  - **Evidence Attachments:** รูปถ่ายขวดผลิตภัณฑ์และสื่อโปรโมชั่นผูกเข้ากับ `ActivityAttachment` โดยระบุ `surveyItemId` ตรงกับ ID ผลสำรวจจริง
+- **การจัดเก็บข้อมูลแบบ Standalone Dedicated Tables 100%:**
+  - **Dedicated Plan Table:** บันทึกเป้าหมายลงตารางเฉพาะกิจ `ActivityPlanType5Target` (`activity_type_5_targets`)
+  - **Dedicated Actual Table:** บันทึกผลสำรวจจริงลง `ActivityResultType5` (`activity_type_5_result`) ผูก `targetId` ตรงกับเป้าหมายแผนงาน
+  - **Evidence Attachments:** รูปถ่ายขวดผลิตภัณฑ์และสื่อโปรโมชั่นผูกเข้ากับ `ActivityAttachment` โดยระบุ `type5ResultId` ตรงกับ ID ผลสำรวจจริง
+  - **Zero Dual-Writes:** ตัดการเขียนสำเนาลง generic tables (`activity_plan_stores`, `activity_plan_products`, `activity_result_survey_items`) ออก 100% บน Dev Environment
 - **การจัดเก็บผลสำรวจจริง (Actual Outcome):**
   - ระบุแบรนด์และชื่อสินค้าคู่แข่งที่พบหน้างาน
   - บันทึกโครงสร้างราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer) และจุดเด่นสินค้า
@@ -316,11 +317,11 @@ sequenceDiagram
 | **ราคาขายให้ Subdealer** | `subdealerPrice` | `saveActual` (`new Prisma.Decimal()`) / `parseType5ActualResult` | `ActivityResultSurveyItem` | `subdealer_price` | `DECIMAL(15,2)` | Yes | `null` |
 | **ราคาขายให้เกษตรกร** | `farmerPrice` | `saveActual` (`new Prisma.Decimal()`) / `parseType5ActualResult` | `ActivityResultSurveyItem` | `farmer_price` | `DECIMAL(15,2)` | Yes | `null` |
 | **จุดเด่น/จุดขายสินค้าคู่แข่ง** | `sellingPoints` | `saveActual` / `parseType5ActualResult` | `ActivityResultSurveyItem` | `selling_points` | `TEXT` | Yes | `null` |
-| **ราคาคู่แข่งเดิม/ทั่วไป** | `competitorPrice` | `saveActual` (`new Prisma.Decimal()`) / `parseType5ActualResult` | `ActivityResultSurveyItem` | `competitor_price` | `DECIMAL(15,2)` | Yes | `null` |
-| **หน่วยสินค้าคู่แข่ง** | `competitorUnit` | `saveActual` / `parseType5ActualResult` | `ActivityResultSurveyItem` | `competitor_unit` | `VARCHAR` | Yes | `null` |
-| **รายละเอียดโปรโมชั่น** | `promotionDetail` | `saveActual` / `parseType5ActualResult` | `ActivityResultSurveyItem` | `promotion_detail` | `TEXT` | Yes | `null` |
-| **ภาพถ่ายขวดผลิตภัณฑ์** | `bottleImages` | `uploadImages()` (`SURVEY_BOTTLE`, max 2) | `ActivityAttachment` | `file_url`, `survey_item_id` | `TEXT` | No | - |
-| **ภาพสื่อส่งเสริมการขาย** | `promotionalImages` | `uploadImages()` (`SURVEY_PROMO_MATERIAL`, max 3) | `ActivityAttachment` | `file_url`, `survey_item_id` | `TEXT` | No | - |
+| **ราคาคู่แข่งเดิม/ทั่วไป** | `competitorPrice` | `saveActual` (`new Prisma.Decimal()`) / `parseType5ActualResult` | `ActivityResultType5` | `competitor_price` | `DECIMAL(15,2)` | Yes | `null` |
+| **หน่วยสินค้าคู่แข่ง** | `competitorUnit` | `saveActual` / `parseType5ActualResult` | `ActivityResultType5` | `competitor_unit` | `VARCHAR` | Yes | `null` |
+| **รายละเอียดโปรโมชั่น** | `promotionDetail` | `saveActual` / `parseType5ActualResult` | `ActivityResultType5` | `promotion_detail` | `TEXT` | Yes | `null` |
+| **ภาพถ่ายขวดผลิตภัณฑ์** | `bottleImages` | `uploadImages()` (`SURVEY_BOTTLE`, max 2) | `ActivityAttachment` | `file_url`, `type_5_result_id` | `TEXT` | No | - |
+| **ภาพสื่อส่งเสริมการขาย** | `promotionalImages` | `uploadImages()` (`SURVEY_PROMO_MATERIAL`, max 3) | `ActivityAttachment` | `file_url`, `type_5_result_id` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
@@ -336,44 +337,50 @@ model ActivityPlanType5Target {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product        Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan          @relation("ActivityPlanType5Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?             @relation("Type5TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product        Product?              @relation("Type5TargetProduct", fields: [productId], references: [id], onDelete: SetNull)
+  results        ActivityResultType5[]
 
   @@index([activityPlanId])
   @@index([storeId])
   @@index([productId])
-  @@map("activity_plan_type_5_targets")
+  @@map("activity_type_5_targets")
 }
 
-// 2. ตารางเก็บผลการสำรวจคู่แข่งจริง Type 5
-model ActivityResultSurveyItem {
+// 2. ตารางเก็บผลการสำรวจคู่แข่งจริง Type 5 (Dedicated Standalone Result)
+model ActivityResultType5 {
   id                String   @id @default(cuid())
-  activityResultId  String   @map("activity_result_id")
-  storeId           String   @map("store_id")
+  activityPlanId    String   @map("activity_plan_id")
+  targetId          String?  @map("target_id")
+  storeId           String?  @map("store_id")
   productId         String?  @map("product_id")
-  competitorBrand   String   @map("competitor_brand")
-  competitorProduct String   @map("competitor_product")
+  competitorBrand   String?  @map("competitor_brand")
+  competitorProduct String?  @map("competitor_product")
+  posPrice          Decimal? @map("pos_price") @db.Decimal(15, 2)
+  dealerPrice       Decimal? @map("dealer_price") @db.Decimal(15, 2)
+  subdealerPrice    Decimal? @map("subdealer_price") @db.Decimal(15, 2)
+  farmerPrice       Decimal? @map("farmer_price") @db.Decimal(15, 2)
   competitorPrice   Decimal? @map("competitor_price") @db.Decimal(15, 2)
   competitorUnit    String?  @map("competitor_unit")
-  promotionDetail   String?  @map("promotion_detail")
+  sellingPoints     String?  @map("selling_points") @db.Text
+  promotionDetail   String?  @map("promotion_detail") @db.Text
+  isAdditional      Boolean  @default(false) @map("is_additional")
 
-  // โครงสร้างราคา 4 ระดับ และจุดเด่นสินค้า (TYPE_5 requirement)
-  posPrice       Decimal? @map("pos_price") @db.Decimal(15, 2)
-  dealerPrice    Decimal? @map("dealer_price") @db.Decimal(15, 2)
-  subdealerPrice Decimal? @map("subdealer_price") @db.Decimal(15, 2)
-  farmerPrice    Decimal? @map("farmer_price") @db.Decimal(15, 2)
-  sellingPoints  String?  @map("selling_points") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
-  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer             @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  product        Product?             @relation("ActivityResultSurveyProductRef", fields: [productId], references: [id], onDelete: SetNull)
-  attachments    ActivityAttachment[]
+  activityPlan      ActivityPlan             @relation("ActivityResultType5s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target            ActivityPlanType5Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  store             Customer?                @relation("Type5ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product           Product?                 @relation("Type5ResultProduct", fields: [productId], references: [id], onDelete: SetNull)
+  attachments       ActivityAttachment[]
 
-  @@index([activityResultId])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([storeId])
-  @@index([competitorBrand])
-  @@map("activity_result_survey_items")
+  @@index([productId])
+  @@map("activity_type_5_result")
 }
 
 // 3. ตารางบันทึกรูปภาพหลักฐานที่ผูกกับผลสำรวจ
@@ -381,17 +388,17 @@ model ActivityAttachment {
   id             String                    @id @default(cuid())
   activityPlanId String                    @map("activity_plan_id")
   activityResultId String?                 @map("activity_result_id")
-  surveyItemId   String?                   @map("survey_item_id")
-  category       String                    @map("category") // "SURVEY_BOTTLE" | "SURVEY_PROMO_MATERIAL"
+  type5ResultId  String?                   @map("type_5_result_id")
+  category       AttachmentCategory        @default(GENERAL)
   fileUrl        String                    @map("file_url")
   fileName       String?                   @map("file_name")
   fileSize       Int?                      @map("file_size")
   mimeType       String?                   @map("mime_type")
 
-  surveyItem     ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
+  type5Result    ActivityResultType5?      @relation(fields: [type5ResultId], references: [id], onDelete: Cascade)
   // ... ความสัมพันธ์อื่น ๆ ในระบบหลัก
 
-  @@index([surveyItemId])
+  @@index([type5ResultId])
   @@map("activity_attachments")
 }
 ```
@@ -401,15 +408,15 @@ model ActivityAttachment {
   - ทุกการบันทึกของ Type 5 ดำเนินการภายใต้ `tx` (`PrismaTransaction`) ของระบบ
   - หากบันทึกรูปภาพ หรือข้อมูลราคา หรือสินค้าเปรียบเทียบล้มเหลว ระบบจะทำการ **Rollback ทั้งหมด** ป้องกันไม่ให้มีข้อมูลกำพร้า (Orphaned records) ตกค้าง
 - **ขาเขียน (Write Flow):**
-  1. *Planned:* ลบระเบียนเดิมใน `activity_plan_type_5_targets` ที่ผูกกับ `activityPlanId` ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()` ➔ ทำการ Dual-write sync ไปยัง `activity_plan_stores` และ `activity_plan_products`
-  2. *Actual:* อัปโหลดรูปภาพแยกโฟลเดอร์ตาม `surveyItemId` ➔ ลบระเบียนเดิมใน `activity_result_survey_items` ➔ สร้างระเบียนผลสำรวจใหม่พร้อมแปลงค่าราคาเป็น `Prisma.Decimal` ➔ ผูกรูปภาพใน `activity_attachments`
-  3. *Unplanned:* บันทึกเป้าหมายและผลสำรวจพร้อมกันใน `$transaction` เดียวกัน โดยผูก `surveyItemId` เข้ากับ ID ใหม่ทันที
+  1. *Planned:* ลบระเบียนเดิมใน `activity_type_5_targets` ที่ผูกกับ `activityPlanId` ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()` โดยตรง (Zero dual-writes)
+  2. *Actual:* อัปโหลดรูปภาพแยกโฟลเดอร์ ➔ ลบระเบียนเดิมใน `activity_type_5_result` ➔ สร้างระเบียนผลสำรวจใหม่พร้อมแปลงค่าราคาเป็น `Prisma.Decimal` และผูก `targetId` ➔ ผูกรูปภาพใน `activity_attachments` ผ่าน `type_5_result_id`
+  3. *Unplanned:* บันทึกเป้าหมายและผลสำรวจพร้อมกันใน `$transaction` เดียวกัน โดยผูก `targetId` และ `type_5_result_id` ทันที
 - **ขาอ่าน (Read / Hydration Flow):**
-  1. *Planned Edit:* ดึง `plan.type5Targets` (พร้อม include `store` และ `product`) ➔ ส่งผ่าน `hydrateType5PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
-  2. *Actual & Detail View:* ดึง `plan.type5Targets` + `plan.result.surveyResults` + `attachments` ➔ ส่งผ่าน `extractType5PlanTargets()` และเรียก `type5Actual.hydrate()` เพื่อกู้คืนข้อมูลเป้าหมาย ราคา 4 ระดับ และรูปภาพพร้อมใช้งาน
+  1. *Planned Edit:* ดึง `plan.type5Targets` (พร้อม include `store`, `product`, `results`) ➔ ส่งผ่าน `hydrateType5PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
+  2. *Actual & Detail View:* ดึง `plan.type5Targets` + `plan.type5Results` + `attachments` ➔ ส่งผ่าน `extractType5PlanTargets()` และเรียก `type5Actual.hydrate()` เพื่อกู้คืนข้อมูลเป้าหมาย ราคา 4 ระดับ และรูปภาพพร้อมใช้งาน
   3. *Unplanned Edit:* ดึงข้อมูลแผนผ่าน `getActivityPlanAction` ➔ ส่งผ่าน `hydrateType5UnplannedData()` เพื่อกู้คืนทั้งเป้าหมายและผลสำรวจคู่แข่ง
 - **การลบข้อมูล (Delete Policy):**
-  - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_plan_type_5_targets`, `activity_result_survey_items`, และรูปภาพใน `activity_attachments` จะถูกลบออกอัตโนมัติ
+  - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_type_5_targets`, `activity_type_5_result`, และรูปภาพใน `activity_attachments` จะถูกลบออกอัตโนมัติ
 
 ---
 
@@ -570,9 +577,9 @@ model ActivityAttachment {
 ## 12. Known Limitations and Important Notes
 
 1. **Prisma Dedicated Table Architecture:**
-   - Type 5 จัดเก็บเป้าหมายหลักไว้ที่ `activity_plan_type_5_targets` และผลสำรวจที่ `activity_result_survey_items` โดยรักษาการซิงค์ข้อมูลลง `activity_plan_stores` และ `activity_plan_products` เพื่อความเข้ากันได้แบบ Backward-compatible 100%
+   - Type 5 จัดเก็บเป้าหมายหลักไว้ที่ `activity_type_5_targets` และผลสำรวจที่ `activity_type_5_result` โดยเป็น Standalone Dedicated Table 100% พร้อมตัดการเขียนสำเนาลง generic stores/products ออกทั้งหมดบน Dev Environment 100%
 2. **การจัดการรูปภาพภาคสนาม:**
-   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type5Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยแยกหมวดหมู่เป็น `SURVEY_BOTTLE` (ขวดสินค้า สูงสุด 2 รูป) และ `SURVEY_PROMO_MATERIAL` (สื่อโปรโมชั่น สูงสุด 3 รูป)
+   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type5Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยแยกหมวดหมู่เป็น `SURVEY_BOTTLE` (ขวดสินค้า สูงสุด 2 รูป) และ `SURVEY_PROMO_MATERIAL` (สื่อโปรโมชั่น สูงสุด 3 รูป) และบันทึกลง `activity_attachments` ผ่าน `type_5_result_id`
 3. **Decoupling Dependency:**
    - ต้องนำเข้าค่าคงที่และฟังก์ชันจาก `@/modules/activity/constants` และคอมโพเนนต์จาก `@/modules/activity/ui` เท่านั้น ห้ามนำเข้าจาก `@/modules/activity-plans` โดยเด็ดขาด
 
@@ -589,3 +596,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.4.0 | เชื่อมต่อเข้ากับ `strategy.registry.ts` และ Server Actions ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type5DetailView` และ `Type5ApprovalCard` พร้อมปรับปรุงการแยกรูปภาพตาม `surveyItemId` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
+| **2026-10-24** | 2.0.0 | **Batch C Redesign**: ยกระดับสู่ Standalone Dedicated Architecture 100% โดยเปลี่ยนชื่อตารางเป้าหมายเป็น `activity_type_5_targets`, สร้าง `activity_type_5_result` ทดแทน `activity_result_survey_items`, เพิ่ม `type_5_result_id` ใน `activity_attachments` และตัด Generic Dual-Writes ออกทั้งหมด | Antigravity AI |

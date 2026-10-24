@@ -55,20 +55,28 @@ export function parseType6ActualResult(resData: any): {
           : [];
 
   const rawIssueResults: any[] =
-    Array.isArray(resData.issueResults) && resData.issueResults.length > 0
-      ? resData.issueResults
-      : Array.isArray(resData.result?.issueResults) &&
-          resData.result.issueResults.length > 0
-        ? resData.result.issueResults
-        : Array.isArray(resData.activityPlan?.result?.issueResults) &&
-            resData.activityPlan.result.issueResults.length > 0
-          ? resData.activityPlan.result.issueResults
-          : Array.isArray(resData.t6IssueDetails) &&
-              resData.t6IssueDetails.length > 0
-            ? resData.t6IssueDetails
-            : [];
+    Array.isArray(resData.type6Results) && resData.type6Results.length > 0
+      ? resData.type6Results
+      : Array.isArray(resData.result?.type6Results) &&
+          resData.result.type6Results.length > 0
+        ? resData.result.type6Results
+        : Array.isArray(resData.activityPlan?.type6Results) &&
+            resData.activityPlan.type6Results.length > 0
+          ? resData.activityPlan.type6Results
+          : Array.isArray(resData.issueResults) && resData.issueResults.length > 0
+            ? resData.issueResults
+            : Array.isArray(resData.result?.issueResults) &&
+                resData.result.issueResults.length > 0
+              ? resData.result.issueResults
+              : Array.isArray(resData.activityPlan?.result?.issueResults) &&
+                  resData.activityPlan.result.issueResults.length > 0
+                ? resData.activityPlan.result.issueResults
+                : Array.isArray(resData.t6IssueDetails) &&
+                    resData.t6IssueDetails.length > 0
+                  ? resData.t6IssueDetails
+                  : [];
 
-  // 1. Direct from issueResults relation
+  // 1. Direct from issueResults or type6Results relation
   if (rawIssueResults.length > 0) {
     result.t6IssueDetails = rawIssueResults.map((iss: any) => {
       let itemAttachments =
@@ -76,6 +84,7 @@ export function parseType6ActualResult(resData: any): {
           ? iss.attachments
           : allAttachments.filter(
               (att: any) =>
+                att.type6ResultId === iss.id ||
                 att.issueItemId === iss.id ||
                 (att.workTypeCode === "TYPE_6" && att.category === "ISSUE") ||
                 att.category === "ISSUE",
@@ -89,14 +98,24 @@ export function parseType6ActualResult(resData: any): {
         type: att.mimeType || att.type || undefined,
       }));
 
+      const isManual =
+        iss.isManualCustomer != null
+          ? Boolean(iss.isManualCustomer)
+          : !iss.storeId;
+      const custName =
+        iss.customerName || iss.store?.name || iss.storeName || "";
+
       return {
         id: iss.id,
+        targetId: iss.targetId || undefined,
         productId: iss.productId || null,
         productName: iss.product?.name || iss.productName || "",
         lotNumber: iss.lotNumber || "",
         purchaseChannel: iss.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย",
-        storeId: iss.storeId || null,
-        storeName: iss.store?.name || iss.storeName || "",
+        storeId: isManual ? null : iss.storeId || null,
+        storeName: custName,
+        customerName: custName,
+        isManualCustomer: isManual,
         issueType: iss.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
         detail: iss.detail || "",
         status: (iss.status === "รอติดตาม" ? "รอติดตาม" : "เสร็จสิ้น") as "เสร็จสิ้น" | "รอติดตาม",

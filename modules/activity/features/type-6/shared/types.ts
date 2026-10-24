@@ -44,12 +44,15 @@ export interface TargetIssueItem {
 
 export interface Type6IssueRecord {
   id?: string;
+  targetId?: string;
   productId?: string | null;
   productName?: string | null;
   lotNumber?: string | null;
   purchaseChannel: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" | string;
   storeId?: string | null;
   storeName?: string | null;
+  customerName?: string | null;
+  isManualCustomer?: boolean;
   issueType: string;
   detail?: string | null;
   status: "เสร็จสิ้น" | "รอติดตาม" | string;

@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-6`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType6Target`, `ActivityResultIssueItem`, `ActivityAttachment`, พร้อม sync สู่ `ActivityPlanStore`)  
-> **Status**: Production Ready / Active Reference (v1.6.0 — Updated 2026-10-22)
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType6Target` [@@map("activity_type_6_targets")], `ActivityResultType6` [@@map("activity_type_6_result")], `ActivityAttachment` [type_6_result_id])  
+> **Status**: Production Ready / Standalone Dedicated Architecture (v2.0.0 — Updated 2026-10-24)
 
 ---
 
@@ -37,11 +37,11 @@
 - **สถานะการแก้ไขปัญหา (Resolution Statuses):**
   - **เสร็จสิ้น** (Resolved / Closed)
   - **รอติดตาม** (Pending Follow-up)
-- **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - **Dedicated Plan Table:** บันทึกเป้าหมายลงตารางเฉพาะกิจ `ActivityPlanType6Target` (`activity_plan_type_6_targets`)
-  - **Dedicated Actual Table:** บันทึกผลการตรวจสอบจริงลง `ActivityResultIssueItem` (`activity_result_issue_items`)
-  - **Generic Store Sync:** ซิงค์สำเนาเป้าหมายลงใน `ActivityPlanStore` (`workTypeCode = "TYPE_6"`) เพื่อให้ระบบรายงานภาพรวมทำงานร่วมกันได้อย่างราบรื่น
-  - **Evidence Attachments:** รูปถ่ายหลักฐานผูกเข้ากับ `ActivityAttachment` โดยระบุ `issueItemId` ตรงกับ ID ผลการตรวจสอบจริง
+- **การจัดเก็บข้อมูลแบบ Standalone Dedicated Tables 100%:**
+  - **Dedicated Plan Table:** บันทึกเป้าหมายลงตารางเฉพาะกิจ `ActivityPlanType6Target` (`activity_type_6_targets`)
+  - **Dedicated Actual Table:** บันทึกผลการตรวจสอบจริงลง `ActivityResultType6` (`activity_type_6_result`) พร้อมผูก `targetId` เข้ากับเป้าหมายแผนงานโดยตรง
+  - **Evidence Attachments:** รูปถ่ายหลักฐานผูกเข้ากับ `ActivityAttachment` โดยระบุ `type6ResultId` ตรงกับ ID ผลการตรวจสอบจริง
+  - **Zero Dual-Writes:** ตัดการเขียนสำเนาลง generic tables (`activity_plan_stores`, `activity_result_issue_items`) ออก 100% บน Dev Environment
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน Trip Plan):** กำหนดเป้าหมายลูกค้าที่มีเรื่องร้องเรียนและประเภทปัญหาล่วงหน้า ส่งขออนุมัติตามสายงานก่อนออกปฏิบัติงาน
@@ -327,12 +327,12 @@ sequenceDiagram
 | **ชื่อสินค้าที่พบปัญหา** | `productName` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `product_name` | `VARCHAR` | Yes | `null` |
 | **หมายเลข Lot Number** | `lotNumber` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `lot_number` | `VARCHAR` | Yes | `null` |
 | **ช่องทางการซื้อ** | `purchaseChannel` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `purchase_channel` | `VARCHAR` | No | `"ร้านค้าตัวแทนจำหน่าย"` |
-| **ร้านค้าที่ซื้อสินค้า** | `storeId` / `storeName` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `store_id`, `store_name` | `VARCHAR` | Yes | `null` |
-| **ปัญหาที่ตรวจพบจริง** | `problemFound` / `detail` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `problem_found`, `detail` | `TEXT` | Yes | `null` |
-| **แนวทางแก้ไขเบื้องต้น** | `initialSolution` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `initial_solution` | `TEXT` | Yes | `null` |
-| **การปฏิบัติการถัดไป** | `nextAction` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `next_action` | `VARCHAR` | Yes | `null` |
-| **สถานะการแก้ไขปัญหา** | `status` | `collectPayload` / `parseType6ActualResult` | `ActivityResultIssueItem` | `status` | `VARCHAR` | No | `"เสร็จสิ้น"` |
-| **ภาพถ่ายหลักฐาน** | `images` | `uploadImages()` (`ISSUE`, max 5) | `ActivityAttachment` | `file_url`, `issue_item_id` | `TEXT` | No | - |
+| **ร้านค้าที่ซื้อสินค้า** | `storeId` / `storeName` | `collectPayload` / `parseType6ActualResult` | `ActivityResultType6` | `store_id`, `store_name` | `VARCHAR` | Yes | `null` |
+| **ปัญหาที่ตรวจพบจริง** | `problemFound` / `detail` | `collectPayload` / `parseType6ActualResult` | `ActivityResultType6` | `problem_found`, `detail` | `TEXT` | Yes | `null` |
+| **แนวทางแก้ไขเบื้องต้น** | `initialSolution` | `collectPayload` / `parseType6ActualResult` | `ActivityResultType6` | `initial_solution` | `TEXT` | Yes | `null` |
+| **การปฏิบัติการถัดไป** | `nextAction` | `collectPayload` / `parseType6ActualResult` | `ActivityResultType6` | `next_action` | `VARCHAR` | Yes | `null` |
+| **สถานะการแก้ไขปัญหา** | `status` | `collectPayload` / `parseType6ActualResult` | `ActivityResultType6` | `status` | `VARCHAR` | No | `"เสร็จสิ้น"` |
+| **ภาพถ่ายหลักฐาน** | `images` | `uploadImages()` (`ISSUE`, max 5) | `ActivityAttachment` | `file_url`, `type_6_result_id` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
@@ -350,59 +350,68 @@ model ActivityPlanType6Target {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  activityPlan       ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store              Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan       ActivityPlan          @relation("ActivityPlanType6Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store              Customer?             @relation("Type6TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  results            ActivityResultType6[]
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_type_6_targets")
+  @@map("activity_type_6_targets")
 }
 
-// 2. ตารางเก็บผลการตรวจสอบเรื่องร้องเรียนจริง Type 6
-model ActivityResultIssueItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  productId        String? @map("product_id")
-  productName      String? @map("product_name")
-  lotNumber        String? @map("lot_number")
-  purchaseChannel  String  @map("purchase_channel") // "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์"
-  storeId          String? @map("store_id")
-  storeName        String? @map("store_name")
-  issueType        String  @map("issue_type") // "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย" | "เกิดความเสียหายหลังการใช้สินค้า" | "อื่นๆ ระบุ"
-  detail           String? @map("detail") @db.Text
-  status           String  @default("เสร็จสิ้น") @map("status") // "เสร็จสิ้น" | "รอติดตาม"
-  problemFound     String? @map("problem_found") @db.Text
-  initialSolution  String? @map("initial_solution") @db.Text
-  nextAction       String? @map("next_action")
+// 2. ตารางเก็บผลการตรวจสอบเรื่องร้องเรียนจริง Type 6 (Dedicated Standalone Result)
+model ActivityResultType6 {
+  id               String   @id @default(cuid())
+  activityPlanId   String   @map("activity_plan_id")
+  targetId         String?  @map("target_id")
+  productId        String?  @map("product_id")
+  productName      String?  @map("product_name")
+  lotNumber        String?  @map("lot_number")
+  purchaseChannel  String   @default("ร้านค้าตัวแทนจำหน่าย") @map("purchase_channel")
+  storeId          String?  @map("store_id")
+  storeName        String?  @map("store_name")
+  customerName     String?  @map("customer_name")
+  isManualCustomer Boolean  @default(false) @map("is_manual_customer")
+  issueType        String   @default("สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย") @map("issue_type")
+  detail           String?  @map("detail") @db.Text
+  status           String   @default("เสร็จสิ้น") @map("status")
+  problemFound     String?  @map("problem_found") @db.Text
+  initialSolution  String?  @map("initial_solution") @db.Text
+  nextAction       String?  @map("next_action")
+  isAdditional     Boolean  @default(false) @map("is_additional")
 
-  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  product        Product?             @relation("ActivityResultIssueProductRef", fields: [productId], references: [id], onDelete: SetNull)
-  store          Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  attachments    ActivityAttachment[]
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
-  @@index([activityResultId])
-  @@index([productId])
+  activityPlan     ActivityPlan             @relation("ActivityResultType6s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target           ActivityPlanType6Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  store            Customer?                @relation("Type6ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product          Product?                 @relation("Type6ResultProduct", fields: [productId], references: [id], onDelete: SetNull)
+  attachments      ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([storeId])
-  @@index([purchaseChannel])
-  @@map("activity_result_issue_items")
+  @@index([productId])
+  @@map("activity_type_6_result")
 }
 
 // 3. ตารางบันทึกรูปภาพหลักฐานที่ผูกกับผลการตรวจสอบ
 model ActivityAttachment {
-  id             String                   @id @default(cuid())
-  activityPlanId String                   @map("activity_plan_id")
-  activityResultId String?                @map("activity_result_id")
-  issueItemId    String?                  @map("issue_item_id")
-  category       String                   @map("category") // "ISSUE"
-  fileUrl        String                   @map("file_url")
-  fileName       String?                  @map("file_name")
-  fileSize       Int?                     @map("file_size")
-  mimeType       String?                  @map("mime_type")
+  id               String                   @id @default(cuid())
+  activityPlanId   String                   @map("activity_plan_id")
+  activityResultId String?                  @map("activity_result_id")
+  type6ResultId    String?                  @map("type_6_result_id")
+  category         AttachmentCategory       @default(GENERAL)
+  fileUrl          String                   @map("file_url")
+  fileName         String?                  @map("file_name")
+  fileSize         Int?                     @map("file_size")
+  mimeType         String?                  @map("mime_type")
 
-  issueItem      ActivityResultIssueItem? @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
+  type6Result      ActivityResultType6?     @relation(fields: [type6ResultId], references: [id], onDelete: Cascade)
   // ... ความสัมพันธ์อื่น ๆ ในระบบหลัก
 
-  @@index([issueItemId])
+  @@index([type6ResultId])
   @@map("activity_attachments")
 }
 ```
@@ -412,15 +421,15 @@ model ActivityAttachment {
   - ทุกการบันทึกของ Type 6 ดำเนินการภายใต้ `tx` (`PrismaTransaction`) ของระบบ
   - หากบันทึกรูปภาพหลักฐาน หรือข้อมูลเลข Lot หรือรายละเอียดการแก้ไขล้มเหลว ระบบจะทำการ **Rollback ทั้งหมด** ป้องกันข้อมูลตกค้าง
 - **ขาเขียน (Write Flow):**
-  1. *Planned:* ลบระเบียนเดิมใน `activity_plan_type_6_targets` ที่ผูกกับ `activityPlanId` ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()` ➔ ทำการ Dual-write sync ไปยัง `activity_plan_stores` (`workTypeCode: "TYPE_6"`)
-  2. *Actual:* อัปโหลดรูปภาพหลักฐานหมวดหมู่ `ISSUE` ➔ ลบระเบียนเดิมใน `activity_result_issue_items` ➔ สร้างระเบียนผลตรวจใหม่ ➔ ผูกรูปภาพใน `activity_attachments` โดยระบุ `issueItemId`
-  3. *Unplanned:* บันทึกเป้าหมายและผลตรวจพร้อมกันใน `$transaction` เดียวกัน โดยผูก `issueItemId` เข้ากับ ID ใหม่ทันที
+  1. *Planned:* ลบระเบียนเดิมใน `activity_type_6_targets` ที่ผูกกับ `activityPlanId` ➔ สร้างระเบียนเป้าหมายใหม่ด้วย `createMany()` โดยตรง (Zero dual-writes)
+  2. *Actual:* อัปโหลดรูปภาพหลักฐานหมวดหมู่ `ISSUE` ➔ ลบระเบียนเดิมใน `activity_type_6_result` ➔ สร้างระเบียนผลตรวจใหม่พร้อมผูก `targetId` ➔ ผูกรูปภาพใน `activity_attachments` โดยระบุ `type_6_result_id`
+  3. *Unplanned:* บันทึกเป้าหมายและผลตรวจพร้อมกันใน `$transaction` เดียวกัน โดยผูก `targetId` และ `type_6_result_id` เข้ากับ ID ใหม่ทันที
 - **ขาอ่าน (Read / Hydration Flow):**
-  1. *Planned Edit:* ดึง `plan.type6Targets` (พร้อม include `store`) ➔ ส่งผ่าน `hydrateType6PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
-  2. *Actual & Detail View:* ดึง `plan.type6Targets` + `plan.result.issueResults` + `attachments` ➔ ส่งผ่าน `extractType6PlanTargets()` และเรียก `type6Actual.hydrate()` เพื่อกู้คืนข้อมูลเป้าหมาย สินค้า เลข Lot และรูปภาพพร้อมใช้งาน
+  1. *Planned Edit:* ดึง `plan.type6Targets` (พร้อม include `store`, `results`) ➔ ส่งผ่าน `hydrateType6PlannedData()` เพื่อเติมลงใน State ของฟอร์ม
+  2. *Actual & Detail View:* ดึง `plan.type6Targets` + `plan.type6Results` + `attachments` ➔ ส่งผ่าน `extractType6PlanTargets()` และเรียก `type6Actual.hydrate()` เพื่อกู้คืนข้อมูลเป้าหมาย สินค้า เลข Lot และรูปภาพพร้อมใช้งาน
   3. *Unplanned Edit:* ดึงข้อมูลแผนผ่าน `getActivityPlanAction` ➔ ส่งผ่าน `hydrateType6UnplannedData()` เพื่อกู้คืนทั้งเป้าหมายและผลการตรวจสอบ
 - **การลบข้อมูล (Delete Policy):**
-  - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_plan_type_6_targets`, `activity_result_issue_items`, และรูปภาพใน `activity_attachments` จะถูกลบออกอัตโนมัติ
+  - ใช้ **Cascade Delete** จาก `ActivityPlan`: เมื่อลบแผนงาน ระเบียนใน `activity_type_6_targets`, `activity_type_6_result`, และรูปภาพใน `activity_attachments` จะถูกลบออกอัตโนมัติ
 
 ---
 
@@ -590,9 +599,9 @@ model ActivityAttachment {
 ## 12. Known Limitations and Important Notes
 
 1. **Prisma Dedicated Table Architecture:**
-   - Type 6 จัดเก็บเป้าหมายหลักไว้ที่ `activity_plan_type_6_targets` และผลการตรวจสอบที่ `activity_result_issue_items` โดยรักษาการซิงค์ข้อมูลลง `activity_plan_stores` เพื่อความเข้ากันได้แบบ Backward-compatible 100%
+   - Type 6 จัดเก็บเป้าหมายหลักไว้ที่ `activity_type_6_targets` และผลการตรวจสอบที่ `activity_type_6_result` โดยเป็น Standalone Dedicated Table 100% พร้อมตัดการเขียนสำเนาลง generic stores ออกทั้งหมดบน Dev Environment 100%
 2. **การจัดการรูปภาพหลักฐาน:**
-   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type6Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยกำหนดหมวดหมู่เป็น `ISSUE` (สูงสุด 5 ภาพต่อรายการ)
+   - ก่อนส่ง Payload บันทึกผลจริง ระบบต้องเรียก `type6Actual.uploadImages()` เสมอ เพื่อแปลงไฟล์รูปภาพจาก `Blob/File` ให้กลายเป็น `URL String` ก่อนบันทึกลงฐานข้อมูล โดยกำหนดหมวดหมู่เป็น `ISSUE` (สูงสุด 5 ภาพต่อรายการ) และบันทึกลง `activity_attachments` ผ่าน `type_6_result_id`
 3. **Decoupling Dependency:**
    - ต้องนำเข้าค่าคงที่และฟังก์ชันจาก `@/modules/activity/constants` และคอมโพเนนต์จาก `@/modules/activity/ui` เท่านั้น ห้ามนำเข้าจาก `@/modules/activity-plans` โดยเด็ดขาด
 
@@ -609,3 +618,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.4.0 | เชื่อมต่อเข้ากับ `strategy.registry.ts` และ Server Actions ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type6DetailView` และ `Type6ApprovalCard` พร้อมปรับปรุงการผูกรูปภาพกับ `issueItemId` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
+| **2026-10-24** | 2.0.0 | **Batch C Redesign**: ยกระดับสู่ Standalone Dedicated Architecture 100% โดยเปลี่ยนชื่อตารางเป้าหมายเป็น `activity_type_6_targets`, สร้าง `activity_type_6_result` ทดแทน `activity_result_issue_items`, เพิ่ม `type_6_result_id` ใน `activity_attachments` และตัด Generic Dual-Writes ออกทั้งหมด | Antigravity AI |

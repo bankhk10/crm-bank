@@ -259,6 +259,8 @@ export function ActivityPlanActualView({
           ...res,
           type4Results: plan.type4Results || (res as any)?.type4Results,
           type4Result: plan.type4Result || (res as any)?.type4Result,
+          type5Results: plan.type5Results || (res as any)?.type5Results,
+          type6Results: plan.type6Results || (res as any)?.type6Results,
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
@@ -872,6 +874,7 @@ export function ActivityPlanActualView({
             ...payload,
             ...t5Payload,
             surveyResults: t5Payload.t5SurveyDetails || [],
+            type5Results: t5Payload.t5SurveyDetails || [],
             attachments: [
               ...(payload.attachments || []),
               ...cleanDetails.flatMap((d) => [
@@ -928,6 +931,9 @@ export function ActivityPlanActualView({
             ...payload,
             ...t6Payload,
             issueResults: t6Payload.t6IssueRecord
+              ? [t6Payload.t6IssueRecord]
+              : [],
+            type6Results: t6Payload.t6IssueRecord
               ? [t6Payload.t6IssueRecord]
               : [],
             attachments: [

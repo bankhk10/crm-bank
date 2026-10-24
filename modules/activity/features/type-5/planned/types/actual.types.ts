@@ -3,6 +3,7 @@ import type { Type5TargetItem } from "./planned.types";
 
 export interface Type5SurveyRecord {
   id?: string;
+  targetId?: string;
   storeId?: string;
   store: string;
   productId?: string;

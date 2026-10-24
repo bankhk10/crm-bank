@@ -167,54 +167,10 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
         })),
       });
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // 2. DUAL-WRITE SYNC TO GENERIC TABLES (ActivityPlanStore & ActivityPlanProduct)
-    // ─────────────────────────────────────────────────────────────
-    if (planData._syncLegacy !== false) {
-      await tx.activityPlanStore.deleteMany({
-        where: {
-          activityPlanId,
-          workTypeCode: "TYPE_5",
-        },
-      });
-
-      if (itemsToSave.length > 0) {
-        await tx.activityPlanStore.createMany({
-          data: itemsToSave.map((it) => ({
-            activityPlanId,
-            workTypeCode: "TYPE_5",
-            storeId: it.storeId,
-            storeName: it.storeName,
-            notes: it.detail,
-          })),
-        });
-      }
-
-      await tx.activityPlanProduct.deleteMany({
-        where: {
-          activityPlanId,
-          workTypeCode: "TYPE_5",
-        },
-      });
-
-      if (itemsToSave.length > 0) {
-        await tx.activityPlanProduct.createMany({
-          data: itemsToSave.map((it) => ({
-            activityPlanId,
-            workTypeCode: "TYPE_5",
-            storeId: it.storeId,
-            productId: it.productId || "",
-            productName: it.productName,
-            notes: it.detail,
-          })),
-        });
-      }
-    }
   },
 
   /**
-   * Save Type 5 Actual outcome data (surveyResults)
+   * Save Type 5 Actual outcome data (activityResultType5)
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -259,15 +215,31 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
       [];
     if (!surveyResults || surveyResults.length === 0) return;
 
-    await (tx as any).activityResultSurveyItem.deleteMany({
-      where: { activityResultId: resultId },
+    // Delete existing records from dedicated table
+    await (tx as any).activityResultType5.deleteMany({
+      where: { activityPlanId },
+    });
+
+    const existingTargets = await (tx as any).activityPlanType5Target.findMany({
+      where: { activityPlanId },
+      select: { id: true, storeId: true, productId: true },
     });
 
     const itemsToCreate = surveyResults.map((item: any) => {
       const dbId = item.id || randomUUID();
+      const matchedTarget =
+        item.targetId ||
+        existingTargets.find(
+          (t: any) =>
+            t.storeId === item.storeId &&
+            (!item.productId || t.productId === item.productId),
+        )?.id ||
+        null;
+
       return {
         id: dbId,
-        activityResultId: resultId,
+        activityPlanId,
+        targetId: matchedTarget,
         storeId: item.storeId || null,
         productId: item.productId ?? null,
         competitorBrand: item.competitorBrand || "-",
@@ -280,10 +252,11 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
         competitorPrice: toDecimalSafe(item.competitorPrice),
         competitorUnit: item.competitorUnit ?? null,
         promotionDetail: item.promotionDetail ?? null,
+        isAdditional: Boolean(item.isAdditional || !matchedTarget),
       };
     });
 
-    await (tx as any).activityResultSurveyItem.createMany({
+    await (tx as any).activityResultType5.createMany({
       data: itemsToCreate,
     });
 
@@ -300,7 +273,7 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
             category: "SURVEY_BOTTLE",
             storeId: item.storeId || null,
             productId: item.productId || null,
-            surveyItemId: dbId,
+            type5ResultId: dbId,
             fileUrl: img.url || img.fileUrl,
             fileName: img.name || img.fileName || "รูปถ่ายขวดผลิตภัณฑ์",
             fileSize: img.size || img.fileSize || 0,
@@ -317,7 +290,7 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
             category: "SURVEY_PROMO_MATERIAL",
             storeId: item.storeId || null,
             productId: item.productId || null,
-            surveyItemId: dbId,
+            type5ResultId: dbId,
             fileUrl: img.url || img.fileUrl,
             fileName: img.name || img.fileName || "รูปภาพสื่อโปรโมท",
             fileSize: img.size || img.fileSize || 0,
@@ -353,7 +326,7 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
             category: cat,
             storeId: att.storeId || null,
             productId: att.productId || null,
-            surveyItemId: att.surveyItemId || itemsToCreate[0]?.id || null,
+            type5ResultId: att.type5ResultId || itemsToCreate[0]?.id || null,
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปภาพสำรวจตลาด",
             fileSize: att.fileSize || att.size || 0,
@@ -388,35 +361,44 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
       include: {
         store: true,
         product: true,
+        results: true,
       },
       orderBy: { createdAt: "asc" },
     });
 
-    if (targets.length > 0) {
-      return {
-        targets: targets.map((t: any) => ({
-          id: t.id,
-          storeId: t.storeId,
-          storeName: t.store?.shopName || t.store?.name || "",
-          productId: t.productId,
-          productName: t.product?.name || "",
-          detail: t.detail,
-        })),
-      };
-    }
+    return {
+      targets: targets.map((t: any) => ({
+        id: t.id,
+        storeId: t.storeId,
+        storeName: t.store?.shopName || t.store?.name || "",
+        productId: t.productId,
+        productName: t.product?.name || "",
+        detail: t.detail,
+        results: t.results || [],
+      })),
+    };
+  },
 
-    // Fallback: Generic tables
-    const [planStores, planProducts] = await Promise.all([
-      tx.activityPlanStore.findMany({
-        where: { activityPlanId, workTypeCode: "TYPE_5" },
-        include: { store: true },
-      }),
-      tx.activityPlanProduct.findMany({
-        where: { activityPlanId, workTypeCode: "TYPE_5" },
-        include: { product: true },
-      }),
-    ]);
+  /**
+   * Load Type 5 Actual outcome data from database
+   */
+  async loadActual(
+    tx: PrismaTransaction,
+    activityPlanId: string,
+  ): Promise<any> {
+    const results = await (tx as any).activityResultType5.findMany({
+      where: { activityPlanId },
+      include: {
+        store: true,
+        product: true,
+        attachments: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
 
-    return { planStores, planProducts };
+    return {
+      surveyResults: results,
+      type5Results: results,
+    };
   },
 };
