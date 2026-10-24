@@ -108,11 +108,23 @@ graph TD
     L --> M["Server Action บันทึกลง ActivityResultSprayRound, ActivityResultSprayProduct, DemoPlotVisit และอัปเดต DemoPlot"]
 ```
 
-### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
-- ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new`
-- ฟอร์ม `Type7bUnplannedForm` ผสานทั้งส่วนเลือกแปลงสาธิตเดิม (เลือกจากรายการแปลงสาธิตที่กำลังดำเนินการ) และส่วนบันทึกผลการติดตามจริง จบในฟอร์มเดียว
-- เมื่อกดบันทึก ระบบตรวจสอบผ่าน `validateType7bUnplannedItems` และแปลง Payload ผ่าน `mapType7bUnplannedToPayload`
-- `type7bUnplannedStrategy.savePlan()` จะบันทึกเป้าหมายแปลง บันทึกประวัติรอบการตรวจลง `DemoPlotVisit` และบันทึกผลงานลงฐานข้อมูลพร้อมกันใน `$transaction` เดียวกัน โดยแผนงานมีสถานะเสร็จสิ้นสมบูรณ์
+### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1 ปรับโฉมตรงกับ Type7bActualForm 100%)
+- ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` หรือ `/activity-plans/unplanned/[id]/edit`
+- ฟอร์ม `Type7bUnplannedForm` ได้รับการปรับโครงสร้างใหม่แบบ 3 ส่วนมาตรฐานตรงกันกับ `Type7bActualForm` ครบถ้วนทุกฟิลด์:
+  - **ส่วนระบุแปลงสาธิต:** เลือกแปลงสาธิตเดิมในระบบผ่าน `ActivityCombobox` หรือกรอกข้อมูลแปลงใหม่ (ชื่อแปลง, เกษตรกร, พืช, พื้นที่, จังหวัด/อำเภอ)
+  - **ส่วนที่ 1: ข้อมูลการติดตามแปลง (Tracking Details):** วันที่ติดตามจริง (`visitDate`), จำนวนวันหลังฉีดพ่น (`daysAfterSpray`), และภาพถ่ายสภาพพืช (`cropImages`, สูงสุด 5 รูป)
+  - **ส่วนที่ 2: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds):**
+    - ปุ่ม `+ เพิ่มรอบการฉีดพ่น` รองรับการติดตามได้หลายรอบ
+    - **1.1 สินค้าที่เบิกตามแผน (Baseline Products):** แสดงจำนวนที่เบิก พร้อมช่องบันทึก 3 คอลัมน์ (จำนวนที่ใช้จริง, ปริมาณที่ใช้เพิ่ม ซีซี/กรัม, อัตราการใช้) และปุ่ม `+ เพิ่มสินค้าตามแผน`
+    - **1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products):** ค้นหาสินค้าจากระบบผ่าน `ActivityProductSelect` พร้อมช่องบันทึก 3 คอลัมน์มาตรฐาน
+    - **2. วิธีการฉีดพ่น:** ปุ่มสลับ 2-Button Toggle ("ฉีดเดี่ยว Single" vs "ผสมถัง Tank-mixed") พร้อม Checkbox "มียาใช้ภายนอก" และตารางยาภายนอก 6 ฟิลด์
+    - **3. อุปกรณ์ที่ใช้ฉีดพ่น:** ดรอปดาวน์ `SPRAY_EQUIPMENT_OPTIONS` 5 ตัวเลือก พร้อมช่องระบุเพิ่มเติมเมื่อเลือก "อื่นๆ (ระบุ)"
+    - **4. ผลหลังการฉีดพ่นรอบนี้:** ดรอปดาวน์ `SPRAY_RESPONSE_OPTIONS` พร้อมกล่องระบุปัญหาที่พบเมื่อพืชมีอาการผิดปกติ
+    - **5. รูปถ่ายการฉีดพ่นรอบนี้:** ภาพถ่ายการปฏิบัติงานประจำรอบ (`roundImages`, สูงสุด 5 รูป)
+    - ท้ายส่วนที่ 2: กำหนดฉีดพ่นครั้งถัดไป (`nextSprayDate`) และข้อสังเกตเพิ่มเติม (`notes`)
+  - **ส่วนที่ 3: สถานะแปลงสาธิตและการปิดแปลง:** เลือกสถานะแปลง (`DEMO_PLOT_STATUS_OPTIONS`) หากเลือกเสร็จสิ้นหรือยกเลิก (`COMPLETED` หรือ `CANCELLED`) จะแสดงฟอร์มประเมินผลผลิต (ผลผลิตแปลงสาธิต กก., ผลผลิตแปลงควบคุม กก., คะแนนความพึงพอใจ 1-5 ดาว, โอกาสทางการค้า, วันเก็บเกี่ยว, สรุปผลภาพรวม)
+- ตรวจสอบความถูกต้องผ่าน `validateType7bUnplannedItems` ครบถ้วน
+- รวบรวมข้อมูล แปลงภาพถ่ายและสินค้าผ่าน `mapType7bUnplannedToPayload` ส่งต่อให้ `type7bUnplannedStrategy.savePlan()` บันทึกลงตารางจริง (`ActivityResultSprayRound`, `ActivityResultSprayProduct`, `ActivityResultSprayExternal`, `DemoPlotVisit`, `DemoPlot`, `ActivityAttachment`) จบใน `$transaction` เดียวกันอย่างสมบูรณ์แบบ
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** `DetailWorkTypeList` เรียกใช้ `Type7bDetailView` เพื่อแสดงข้อมูลแปลงสาธิต ข้อมูลการติดตามแปลง (ส่วนที่ 1) รายการรอบการฉีดพ่นพร้อมสินค้า Baseline/Additional และอุปกรณ์พ่น (ส่วนที่ 2) สถานะแปลงสาธิตและผลสรุปปิดแปลง (ส่วนที่ 3) และแกลเลอรีรูปถ่าย

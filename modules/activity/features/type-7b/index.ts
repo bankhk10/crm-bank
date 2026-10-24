@@ -74,6 +74,8 @@ export * from "./shared/types";
 export { Type7bUnplannedForm } from "./unplanned/components/type7b-unplanned-form";
 export {
   useType7bUnplannedForm,
+  createDefaultSprayRound,
+  createDefaultType7bUnplannedItem,
   type UseType7bUnplannedFormOptions,
 } from "./unplanned/hooks/use-type7b-unplanned-form";
 export {

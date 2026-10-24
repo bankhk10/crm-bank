@@ -5,6 +5,19 @@ import type {
   Type7bImageFile,
   Type7bFollowUpPlanOption,
 } from "../../shared/types";
+import type {
+  Type7bSprayRoundState,
+  Type7bBaselineProductItem,
+  Type7bAdditionalProductItem,
+  Type7bExternalChemicalItem,
+} from "../../planned/types/actual.types";
+
+export type {
+  Type7bSprayRoundState,
+  Type7bBaselineProductItem,
+  Type7bAdditionalProductItem,
+  Type7bExternalChemicalItem,
+};
 
 export interface Type7bUnplannedItem {
   id: string;
@@ -22,31 +35,36 @@ export interface Type7bUnplannedItem {
   treeCount?: number | null;
   dealerName?: string;
 
-  // On-the-spot Follow-up Evaluation
-  cropCondition: string;
-  growthStage: string;
-  productResponse?: string;
-  cropProblemDescription?: string;
-  sprayMethod?: string;
-  sprayEquipment?: string;
+  // Section 1: ข้อมูลการติดตามแปลง (Tracking Details)
+  visitDate?: string;
+  daysAfterSpray?: number | string | null;
+  cropImages?: Type7bImageFile[];
+
+  // Section 2: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds)
+  sprayingRounds: Type7bSprayRoundState[];
   nextSprayDate?: string;
   notes?: string;
-  objective?: string;
 
-  // Products
-  hasProductWithdrawal?: boolean;
-  withdrawnProducts?: Type7bWithdrawnProductLine[];
-
-  // Photos
-  photos?: Type7bImageFile[];
-
-  // Final evaluation if completed
-  plotStatus?: "IN_PROGRESS" | "COMPLETED" | "FAILED";
+  // Section 3: สถานะแปลงสาธิตและการปิดแปลง
+  plotStatus?: "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "FAILED" | string;
   finalYieldKg?: string;
   controlYieldKg?: string;
   farmerSatisfaction?: number;
   commercialPotential?: string;
   finalSummaryNotes?: string;
+  finalHarvestDate?: string;
+
+  // Backward compatibility / optional legacy fields
+  cropCondition?: string;
+  growthStage?: string;
+  productResponse?: string;
+  cropProblemDescription?: string;
+  sprayMethod?: string;
+  sprayEquipment?: string;
+  objective?: string;
+  hasProductWithdrawal?: boolean;
+  withdrawnProducts?: Type7bWithdrawnProductLine[];
+  photos?: Type7bImageFile[];
 }
 
 export interface Type7bUnplannedValidationResult {
@@ -64,6 +82,53 @@ export interface Type7bUnplannedFormProps {
   addItem?: () => void;
   updateItem: (id: string, field: keyof Type7bUnplannedItem | string, val: any) => void;
   deleteItem?: (id: string) => void;
+
+  // Round Action Handlers
+  onAddRound?: (itemId: string) => void;
+  onRemoveRound?: (itemId: string, roundIndex: number) => void;
+  onUpdateRoundField?: (itemId: string, roundIndex: number, field: string, value: any) => void;
+  onAddBaselineProduct?: (itemId: string, roundIndex: number) => void;
+  onUpdateBaselineProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+    field: string,
+    value: any,
+  ) => void;
+  onRemoveBaselineProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+  ) => void;
+  onAddAdditionalProduct?: (itemId: string, roundIndex: number) => void;
+  onUpdateAdditionalProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+    field: string,
+    value: any,
+  ) => void;
+  onRemoveAdditionalProduct?: (
+    itemId: string,
+    roundIndex: number,
+    prodIndex: number,
+  ) => void;
+  onAddExternalProduct?: (itemId: string, roundIndex: number) => void;
+  onUpdateExternalProduct?: (
+    itemId: string,
+    roundIndex: number,
+    extIndex: number,
+    field: string,
+    value: any,
+  ) => void;
+  onRemoveExternalProduct?: (
+    itemId: string,
+    roundIndex: number,
+    extIndex: number,
+  ) => void;
+  onUpdateRoundImages?: (itemId: string, roundIndex: number, images: any[]) => void;
+
+  // Legacy product handlers for backward compatibility
   addWithdrawnProduct?: (itemId: string) => void;
   updateWithdrawnProduct?: (
     itemId: string,
