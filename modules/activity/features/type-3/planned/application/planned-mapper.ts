@@ -28,6 +28,8 @@ export function extractType3PlanTargets(
 
   const genericProducts: any[] = plan?.planProducts || plan?.products || [];
   const rawSaleResults: any[] =
+    plan?.type3Results ||
+    plan?.result?.type3Results ||
     plan?.result?.saleResults ||
     plan?.actualResult?.saleResults ||
     plan?.saleResults ||
@@ -45,9 +47,13 @@ export function extractType3PlanTargets(
     productId?: string,
     productName?: string,
     storeId?: string,
+    targetId?: string,
   ) => {
     const idx = t3SavedSales.findIndex((s: any, i: number) => {
       if (usedSavedSaleIdx.has(i)) return false;
+      if (targetId && s.targetId && s.targetId === targetId && productId && s.productId === productId) {
+        return true;
+      }
       const storeMatch = !storeId || !s.storeId || s.storeId === storeId;
       if (!storeMatch) return false;
       if (productId && s.productId && s.productId === productId) return true;

@@ -90,13 +90,15 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 2 Follow-up Results from relation table
+    const t2RawList = resData.type2Results || resData.followupResults;
     if (
-      Array.isArray(resData.followupResults) &&
-      resData.followupResults.length > 0 &&
+      Array.isArray(t2RawList) &&
+      t2RawList.length > 0 &&
       !result.t2FollowupResults
     ) {
-      result.t2FollowupResults = resData.followupResults.map((item: any) => ({
+      result.t2FollowupResults = t2RawList.map((item: any) => ({
         id: item.id,
+        targetId: item.targetId,
         productId: item.productId,
         productName: item.productName || item.product?.name || "สินค้า",
         storeId: item.storeId,
@@ -120,12 +122,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 3 Sale Results from relation table
+    const t3RawList = resData.type3Results || resData.saleResults;
     if (
-      Array.isArray(resData.saleResults) &&
-      resData.saleResults.length > 0 &&
+      Array.isArray(t3RawList) &&
+      t3RawList.length > 0 &&
       !result.t3ProductSalesDetails
     ) {
-      const t3Sales = resData.saleResults.filter(
+      const t3Sales = t3RawList.filter(
         (s: any) =>
           !s.workTypeCode ||
           s.workTypeCode === "TYPE_3" ||
@@ -135,6 +138,7 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       if (t3Sales.length > 0) {
         result.t3ProductSalesDetails = t3Sales.map((item: any) => ({
           id: item.id,
+          targetId: item.targetId,
           productId: item.productId,
           productName: item.productName || item.product?.name || "สินค้า",
           storeId: item.storeId,

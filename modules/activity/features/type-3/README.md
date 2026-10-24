@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-3`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามต้นแบบ Gold Standard Type 1 และ Type 2  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType3Target`, `ActivityPlanType3Product`, `ActivityResultSaleItem`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
-> **Status**: Production Ready / Active Reference (v1.2.0 — Updated 2026-10-21)
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType3Target`, `ActivityPlanType3Product`, `ActivityResultType3`)  
+> **Status**: Production Ready / Active Reference (v2.0.0 Standalone)
 
 ---
 
@@ -17,6 +17,7 @@
 3. บันทึกผลการปิดการขายจริงหน้างาน (Actual Sales Outcome) เปรียบเทียบกับเป้าหมาย (Target vs Actual)
 4. บันทึกเหตุผลในกรณีที่ไม่สามารถปิดการขายได้ หรือปิดได้ไม่ครบตามเป้าหมาย (`unclosedReason`) เพื่อนำไปวิเคราะห์คู่แข่งและการตลาด
 5. รองรับการเพิ่มสินค้าที่ขายได้จริงนอกเหนือจากแผนเดิมหน้างาน (`isAdditional`)
+6. จัดเก็บข้อมูลลงใน Dedicated Tables (`activity_type_3_targets`, `activity_type_3_products`, `activity_type_3_result`) 100% พร้อมอัปเดตสรุปยอดขาย `sales_result_amount` และ `sales_orders_count` ใน `activity_results`
 
 ### 1.2 ขอบเขตของ Type 3
 - **กลุ่มเป้าหมายที่รองรับ:**
@@ -26,10 +27,11 @@
   - ผูกแคตตาล็อกสินค้าเคมีเกษตร (`ProductOption`) ผ่าน `ActivityProductSelect` (`unitFilter="box"`)
   - ดึงราคาตั้งต้นจากมาสเตอร์สินค้า (`Product.price` -> `masterPrice` / `unitPrice`) โดยคำนวณยอดรวมรายรายการ (`price = quantity × unitPrice`) และยอดรวมเป้าหมายรายร้าน (`targetAmount`) อัตโนมัติ
   - มีระบบ **Catalog Price Fallback**: หากข้อมูลแผนเดิมในฐานข้อมูลมี `unitPrice` เป็น `0` หรือ `null` ระบบจะค้นหาราคาจาก `product.price` ใน Relation หรือ `products` Catalog มาคำนวณแสดงผลให้อัตโนมัติทั้งใน `Type3PlannedForm`, `Type3PlanCard`, และ `Type3ActualForm`
-- **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - บันทึกลงใน Dedicated Tables: `ActivityPlanType3Target` และ `ActivityPlanType3Product`
-  - ทำการ Sync สำเนาอัตโนมัติลงใน Generic Tables: `ActivityPlanStore` และ `ActivityPlanProduct` เพื่อให้รายงานภาพรวมและระบบเดิมทำงานร่วมกันได้อย่างราบรื่น 100%
-  - บันทึกผลงานจริงลงใน `ActivityResultSaleItem` โดยกำหนด `workTypeCode = "TYPE_3"` พร้อมรองรับ Dual-Key Payload (`actualQty / unitPrice / actualSales` และ `actualQuantity / actualUnitPrice / actualTotal`)
+- **การจัดเก็บข้อมูลแบบ Standalone 100%:**
+  - บันทึกลงใน Dedicated Tables: `ActivityPlanType3Target` (`activity_type_3_targets`) และ `ActivityPlanType3Product` (`activity_type_3_products`)
+  - บันทึกผลงานจริงลงใน Dedicated Table: `ActivityResultType3` (`activity_type_3_result`) ผูกกับ `targetId`
+  - อัปเดตสรุปยอดขายรวมใน `activity_results.sales_result_amount` และจำนวนออเดอร์ใน `activity_results.sales_orders_count`
+  - ปราศจากการเขียน dual-write ซ้ำซ้อนไปยัง generic tables
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน Trip Plan):** วางแผนเสนอขายสินค้าล่วงหน้า เลือกร้านค้า Dealer/Subdealer กำหนดจำนวนและแสดงราคา/ยอดรวมอัตโนมัติ
@@ -55,8 +57,7 @@ graph TD
     G --> H
     H --> I["ระบบดึงราคาต่อหน่วย unitPrice และคำนวณยอดรวม quantity × unitPrice อัตโนมัติ"]
     I --> J["กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ"]
-    J --> K["type3PlannedStrategy บันทึกลง ActivityPlanType3Target & ActivityPlanType3Product"]
-    K --> L["Sync สำเนาสู่ ActivityPlanStore & ActivityPlanProduct"]
+    J --> K["type3PlannedStrategy บันทึกลง activity_type_3_targets & activity_type_3_products"]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -73,8 +74,9 @@ graph TD
     H --> I
     I --> J["สามารถกดเพิ่มสินค้าที่ปิดการขายได้เพิ่มเติมหน้างาน isAdditional"]
     J --> K["กดบันทึกผลการปฏิบัติงาน"]
-    K --> L["บันทึกลง ActivityResultSaleItem workTypeCode = TYPE_3"]
-    C -->|"POSTPONED / CANCELLED"| M["ระบุวันเวลานัดใหม่ หรือเหตุผลการยกเลิก"]
+    K --> L["บันทึกลง activity_type_3_result ผูก targetId"]
+    L --> M["อัปเดต sales_result_amount และ sales_orders_count ใน ActivityResult"]
+    C -->|"POSTPONED / CANCELLED"| N["ระบุวันเวลานัดใหม่ หรือเหตุผลการยกเลิก"]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
@@ -88,8 +90,8 @@ graph TD
     F --> G["กดบันทึกกิจกรรมนอกแผน"]
     G --> H["type3UnplannedStrategy ทำงานใน 1 Atomic Transaction"]
     H --> I["บันทึก ActivityPlan สถานะ COMPLETED"]
-    H --> J["บันทึก Plan Targets & Products (Dedicated + Generic Sync)"]
-    H --> K["บันทึก ActivityResultSaleItem และ ActivityResult"]
+    H --> J["บันทึกลง activity_type_3_targets และ activity_type_3_products"]
+    H --> K["บันทึกลง activity_type_3_result + อัปเดต ActivityResult summary"]
 ```
 
 ### 2.4 Detail and Approval
@@ -152,43 +154,78 @@ modules/activity/features/type-3/
 ```prisma
 // 1. เป้าหมายร้านค้า Type 3 (Dedicated Table)
 model ActivityPlanType3Target {
-  id              String   @id @default(uuid())
-  activityPlanId  String
-  storeId         String?  // ID ของ Dealer (หรือ Dealer ต้นสังกัดกรณี Subdealer)
-  isSubDealer     Boolean  @default(false)
-  subDealerStore  String?  // ชื่อร้านค้า Subdealer
-  notes           String?
-  products        ActivityPlanType3Product[]
-  ...
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  storeId                 String?  @map("store_id")
+  isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
+  subDealerStore          String?  @map("sub_dealer_store")
+  notes                   String?  @map("notes")
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan               @relation("ActivityPlanType3Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?                  @relation("Type3TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType3Product[] @relation("Type3TargetProducts")
+  results                 ActivityResultType3[]      @relation("Type3TargetResults")
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_type_3_targets")
 }
 
 // 2. รายการสินค้าเป้าหมาย Type 3 (Dedicated Table)
 model ActivityPlanType3Product {
-  id              String   @id @default(uuid())
-  targetId        String
-  activityPlanId  String
-  productId       String
-  targetQuantity  Int      @default(1)
-  unitPrice       Decimal? @db.Decimal(10, 2)
-  targetAmount    Decimal? @db.Decimal(12, 2)
-  notes           String?
-  ...
+  id                      String   @id @default(cuid())
+  targetId                String   @map("target_id")
+  activityPlanId          String   @map("activity_plan_id")
+  productId               String   @map("product_id")
+  targetQuantity          Int?     @map("target_quantity")
+  unitPrice               Decimal? @map("unit_price") @db.Decimal(15, 2)
+  targetAmount            Decimal? @map("target_amount") @db.Decimal(15, 2)
+  notes                   String?  @map("notes")
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  target                  ActivityPlanType3Target @relation("Type3TargetProducts", fields: [targetId], references: [id], onDelete: Cascade)
+  activityPlan            ActivityPlan            @relation("ActivityPlanType3Products", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  product                 Product                 @relation("Type3ProductRef", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([targetId])
+  @@index([activityPlanId])
+  @@index([productId])
+  @@map("activity_type_3_products")
 }
 
-// 3. ผลการขายจริงรายสินค้า (Actual Outcome Table)
-model ActivityResultSaleItem {
-  id              String   @id @default(uuid())
-  activityResultId String
-  workTypeCode    String   // "TYPE_3"
-  storeId         String?
-  productId       String
-  productName     String?
-  actualQuantity  Int      @default(0)
-  actualUnitPrice Decimal  @default(0) @db.Decimal(10, 2)
-  actualTotal     Decimal  @default(0) @db.Decimal(12, 2)
-  unclosedReason  String?
-  isAdditional    Boolean  @default(false)
-  ...
+// 3. ผลการขายจริงรายสินค้า (Dedicated Result Table)
+model ActivityResultType3 {
+  id              String                   @id @default(cuid())
+  activityPlanId  String                   @map("activity_plan_id")
+  targetId        String?                  @map("target_id")
+  storeId         String?                  @map("store_id")
+  productId       String                   @map("product_id")
+  productName     String?                  @map("product_name")
+  actualQuantity  Int                      @default(0) @map("actual_quantity")
+  actualUnitPrice Decimal                  @default(0) @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal                  @default(0) @map("actual_total") @db.Decimal(15, 2)
+  unclosedReason  String?                  @map("unclosed_reason")
+  isAdditional    Boolean                  @default(false) @map("is_additional")
+
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan             @relation("ActivityResultType3s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType3Target? @relation("Type3TargetResults", fields: [targetId], references: [id], onDelete: Cascade)
+  store           Customer?                @relation("Type3ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product         Product                  @relation("Type3ResultProduct", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([storeId])
+  @@index([productId])
+  @@index([isAdditional])
+  @@map("activity_type_3_result")
 }
 ```
 
@@ -200,21 +237,14 @@ model ActivityResultSaleItem {
 2. **ฝั่งบันทึกผลจริง (`Actual`):**
    - `Type3ProductSaleDetail` รองรับฟิลด์คู่ขนานเพื่อความเข้ากันได้ระหว่าง UI State และ Prisma Repository:
      - **UI Fields:** `actualQty`, `unitPrice`, `actualSales`
-     - **Database / Repository Fields:** `actualQuantity`, `actualUnitPrice`, `actualTotal`
-   - ใน `Type3ActualForm` มี `useEffect` ทำการ sync รายการเริ่มต้น (`initialPlannedItems` + `extraItems`) ไปยัง `useType3Actual` ทันทีที่เปิดหน้า ทำให้กดบันทึกได้ทันทีโดยไม่เกิดปัญหา `actualQuantity is missing`
-   - ใน `upsertActivityResult` (`activity-result.repository.ts`) อ่านค่าแบบปลอดภัยด้วย Fallback:
-     - `actualQuantity`: `Number(item.actualQuantity ?? item.actualQty ?? 0)`
-     - `actualUnitPrice`: `new Prisma.Decimal(item.actualUnitPrice ?? item.unitPrice ?? 0)`
-     - `actualTotal`: `new Prisma.Decimal(item.actualTotal ?? item.actualSales ?? qty * unitPrice)`
+     - **Database / Repository Fields:** `actualQuantity`, `actualUnitPrice`, `actualTotal`, `targetId`
+   - บันทึกลงในตาราง `activity_type_3_result` โดยตรง และอัปเดตสรุปยอดรวม `sales_result_amount` และจำนวนออเดอร์ `sales_orders_count` ใน `activity_results`
 
-### 4.3 Generic Tables Sync (Dual Persistence)
-เมื่อผู้ใช้บันทึก Type 3 Strategy จะทำการ sync สำเนาข้อมูลลงตาราง generic:
-- `ActivityPlanStore`: บันทึก `storeId`, `storeName`, `subDealerStore`, `workTypeCode: "TYPE_3"`
-- `ActivityPlanProduct`: บันทึก `storeId`, `productId`, `productName`, `targetQuantity`, `unitPrice`, `targetAmount`, `workTypeCode: "TYPE_3"`
-
-ประโยชน์ของการทำ Dual Persistence:
-1. การันตีว่ารายงานสรุปภาพรวมขององค์กร (Cross-type Reporting) ที่อ่านจาก `ActivityPlanStore` และ `ActivityPlanProduct` ยังคงทำงานได้ครบถ้วน
-2. รักษาข้อมูลเชิงลึกเฉพาะงาน Type 3 ไว้ในตารางเฉพาะได้อย่างสมบูรณ์
+### 4.3 Standalone Table Architecture (Zero Dual Persistence)
+Type 3 ได้รับการปรับปรุงเป็น Standalone 100% โดย:
+- บันทึกและโหลดข้อมูลแผนงานลง `activity_type_3_targets` และ `activity_type_3_products` โดยตรง โดยไม่มีการเขียน dual-write ไปยัง `activity_plan_stores` หรือ `activity_plan_products`
+- บันทึกและโหลดข้อมูลผลงานลง `activity_type_3_result` โดยผูกกับเป้าหมายผ่าน `targetId`
+- อัปเดตสรุปยอดเงินขายจริงและจำนวนออเดอร์ลงใน `activity_results`
 
 ---
 
@@ -222,10 +252,9 @@ model ActivityResultSaleItem {
 
 | จุดเชื่อมต่อ (Integration Point) | ไฟล์เป้าหมาย (Target File) | สิ่งที่เชื่อมต่อ (Integration Content) |
 |---|---|---|
-| **Prisma Plan Include** | `modules/activity/infrastructure/activity-plan-include.ts` | ดึง `type3Targets.include.products.include.product` พร้อม `id, code, name, price, unit, packageSizeUnit` |
-| **Result Repository** | `modules/activity/infrastructure/activity-result.repository.ts` | บันทึก `activityResultSaleItem.createMany` โดยรองรับทั้ง `actualQuantity / actualQty`, `actualUnitPrice / unitPrice`, `actualTotal / actualSales` |
+| **Prisma Plan Include** | `modules/activity/infrastructure/activity-plan-include.ts` | ดึง `type3Targets` (รวม `products` และ `results`), `type3Results` |
 | **Target Registry** | `modules/activity/domain/summary/plan-targets-registry.ts` | ลงทะเบียน `extractType3PlanTargets` ใน `TARGET_EXTRACTORS` และ fallback extraction |
-| **Result Parser** | `modules/activity/domain/summary/result-summary-parser.ts` | แปลงผลงานจริง `saleResults` (`workTypeCode = TYPE_3`) สู่ `t3ProductSalesDetails`, `t3ActualSales`, `t3ActualQuantity` |
+| **Result Parser** | `modules/activity/domain/summary/result-summary-parser.ts` | แปลงผลงานจริง `type3Results` / `saleResults` สู่ `t3ProductSalesDetails`, `t3ActualSales`, `t3ActualQuantity` |
 | **Server Actions** | `modules/activity/server/actions.ts` | ผูก `type3PlannedStrategy` และ `type3UnplannedStrategy` ใน `createActivityPlanAction` และ `updateActivityPlanAction` |
 | **Planned Form View** | `modules/activity/views/planned/components/planned-activity-form.tsx` | ผูก `useType3Form` และเรนเดอร์ `Type3PlanForm` |
 | **Unplanned Form View** | `modules/activity/views/unplanned/components/unplanned-activity-form.tsx` | ผูก `useType3UnplannedForm` และเรนเดอร์ `Type3UnplannedForm` |
@@ -240,3 +269,14 @@ model ActivityResultSaleItem {
 - **TypeScript Compilation:** ผ่านการตรวจสอบด้วย `npx tsc --noEmit` โดยมี Error = 0
 - **Boundary Check:** ทุก Import ภายใน `modules/activity/features/type-3/` เรียกใช้เฉพาะโค้ดภายใน Slice ตัวเอง หรือ `@/modules/activity/*`, `@/components/*`, `@/lib/*` โดยไม่มีการเรียกข้ามไปยัง `@/modules/activity-plans`
 - **Unit & Price Calculation:** ตรวจสอบสูตรคำนวณราคาขาย (`Quantity × Unit Price = Total`), การดึงราคาจาก Catalog Fallback กรณีข้อมูลแผนเดิมไม่มีราคาต่อหน่วย และการจัดการทศนิยมผ่าน `Prisma.Decimal` ครบถ้วน
+
+---
+
+## 7. Change Log
+
+| วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
+| :--- | :--- | :--- | :--- |
+| **2026-10-24** | 2.0.0 | **Batch B Standardization**: ปรับปรุงโครงสร้างตารางเป็น Dedicated Tables (`activity_type_3_targets`, `activity_type_3_products`, `activity_type_3_result`), ผูก `targetId` กับผลการขาย, อัปเดตยอดสรุป `sales_result_amount` / `sales_orders_count`, และตัด Generic Dual-writes ไปยัง `activity_plan_stores` / `activity_plan_products` / `activity_result_sale_items` ออก 100% | Antigravity AI |
+| **2026-10-21** | 1.2.0 | ปรับปรุงระบบราคาและหน่วยนับ (Catalog Price Fallback), เพิ่ม Auto-sync ข้อมูลเริ่มต้นใน `Type3ActualForm` | Antigravity AI |
+| **2026-10-19** | 1.1.0 | พัฒนา Sub-slice `unplanned/` สำหรับกิจกรรมนอกแผน 2-in-1 และเชื่อมต่อ Server Actions | Antigravity AI |
+| **2026-10-18** | 1.0.0 | สร้างโมดูล Type 3 ตามมาตรฐาน Vertical Slice Architecture | Antigravity AI |

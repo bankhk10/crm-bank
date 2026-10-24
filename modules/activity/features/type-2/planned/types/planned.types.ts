@@ -26,6 +26,7 @@ export type Type2PlannedItem = Type2ProductFollowupItem;
 
 export interface FollowupProductItem {
   id?: string;
+  targetId?: string;
   productId?: string;
   productName: string;
   customer?: string;

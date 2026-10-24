@@ -210,53 +210,6 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
         }
       }
     }
-
-    // 2. BACKWARD COMPATIBILITY: Sync with ActivityPlanStore & ActivityPlanProduct
-    await tx.activityPlanStore.deleteMany({
-      where: { activityPlanId, workTypeCode: "TYPE_2" },
-    });
-    await tx.activityPlanProduct.deleteMany({
-      where: { activityPlanId, workTypeCode: "TYPE_2" },
-    });
-
-    if (t2Stores.length > 0) {
-      await tx.activityPlanStore.createMany({
-        data: t2Stores.map((s) => ({
-          activityPlanId,
-          workTypeCode: "TYPE_2",
-          visitPurpose: s.visitPurpose || "FARMER",
-          storeId: s.isUnregisteredFarmer ? null : s.storeId || null,
-          storeName: s.isUnregisteredFarmer ? null : s.storeName || null,
-          province: s.province || "",
-          isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
-          unregisteredFarmerName: s.isUnregisteredFarmer
-            ? s.unregisteredFarmerName || null
-            : null,
-          unregisteredFarmerPhone: s.isUnregisteredFarmer
-            ? s.unregisteredFarmerPhone || null
-            : null,
-          notes: s.notes || s.remarks || null,
-        })),
-      });
-    }
-
-    if (t2Products.length > 0) {
-      const validT2Products = t2Products.filter(
-        (p: any) => p && p.productId,
-      );
-      if (validT2Products.length > 0) {
-        await tx.activityPlanProduct.createMany({
-          data: validT2Products.map((p) => ({
-            activityPlanId,
-            workTypeCode: "TYPE_2",
-            productId: p.productId,
-            productName: p.productName || null,
-            storeId: p.storeId || null,
-            notes: p.notes || null,
-          })),
-        });
-      }
-    }
   },
 
   /**
@@ -294,10 +247,9 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
-    if (!result) return;
-
-    await tx.activityResultFollowupItem.deleteMany({
-      where: { activityResultId: result.id },
+    // 1. DEDICATED TABLE: ActivityResultType2
+    await (tx as any).activityResultType2.deleteMany({
+      where: { activityPlanId },
     });
 
     const validFollowups = followupResults.filter(
@@ -305,20 +257,38 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
     );
 
     if (validFollowups.length > 0) {
-      await tx.activityResultFollowupItem.createMany({
-        data: validFollowups.map((item: any) => ({
-          activityResultId: result.id,
-          storeId: item.storeId || null,
-          productId: item.productId,
-          productName: item.productName || null,
-          usageResult: item.usageResult || null,
-          followupDetail: item.followupDetail || null,
-          problemDetail: item.problemDetail || null,
-          isAdditional: Boolean(item.isAdditional),
-        })),
+      const targets = await (tx as any).activityPlanType2Target.findMany({
+        where: { activityPlanId },
+        select: { id: true, storeId: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      await (tx as any).activityResultType2.createMany({
+        data: validFollowups.map((item: any, idx: number) => {
+          let targetId = item.targetId || null;
+          if (!targetId && targets.length > 0) {
+            const matched = targets.find(
+              (t: any) => t.storeId && t.storeId === item.storeId,
+            );
+            targetId = matched ? matched.id : targets[idx]?.id || targets[0].id;
+          }
+
+          return {
+            activityPlanId,
+            targetId,
+            storeId: item.storeId || null,
+            productId: item.productId,
+            productName: item.productName || null,
+            usageResult: item.usageResult || null,
+            followupDetail: item.followupDetail || null,
+            problemDetail: item.problemDetail || null,
+            isAdditional: Boolean(item.isAdditional),
+          };
+        }),
       });
     }
 
+    // 2. Attachments
     const attachments =
       actualData.attachments ||
       actualData.images ||
@@ -341,7 +311,7 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
         await tx.activityAttachment.createMany({
           data: attachments.map((att: any) => ({
             activityPlanId,
-            activityResultId: result.id,
+            activityResultId: result?.id || null,
             workTypeCode: "TYPE_2",
             category: att.category || "PLOT",
             fileUrl: att.fileUrl || att.url,
@@ -358,28 +328,37 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
     tx: PrismaTransaction,
     activityPlanId: string,
   ): Promise<any | null> {
-    const result = await tx.activityResult.findFirst({
+    const followupResults = await (tx as any).activityResultType2.findMany({
       where: { activityPlanId },
       include: {
-        followupResults: {
-          include: {
-            product: true,
-            store: true,
-          },
-        },
+        product: true,
+        store: true,
+        target: true,
       },
     });
-    return result;
+
+    const attachments = await tx.activityAttachment.findMany({
+      where: {
+        activityPlanId,
+        workTypeCode: "TYPE_2",
+      },
+    });
+
+    return {
+      followupResults,
+      type2Results: followupResults,
+      attachments,
+    };
   },
 
   /**
-   * Load Type 2 Stores and Products from Dedicated Tables with fallback
+   * Load Type 2 Stores and Products from Dedicated Tables
    */
   async loadPlan(
     tx: PrismaTransaction,
     activityPlanId: string,
-  ): Promise<{ stores: any[]; products: any[] }> {
-    const dedicatedTargets = await (tx as any).activityPlanType2Target.findMany({
+  ): Promise<{ targets: any[]; stores: any[]; products: any[] }> {
+    const targets = await (tx as any).activityPlanType2Target.findMany({
       where: { activityPlanId },
       include: {
         store: true,
@@ -388,49 +367,41 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
             product: true,
           },
         },
+        results: {
+          include: {
+            product: true,
+          },
+        },
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    if (dedicatedTargets && dedicatedTargets.length > 0) {
-      const stores = dedicatedTargets.map((t: any) => ({
-        id: t.id,
+    const stores = targets.map((t: any) => ({
+      id: t.id,
+      workTypeCode: "TYPE_2",
+      visitPurpose: t.visitPurpose,
+      storeId: t.storeId,
+      storeName: t.store?.name || null,
+      province: t.province,
+      isUnregisteredFarmer: t.isUnregisteredFarmer,
+      unregisteredFarmerName: t.unregisteredFarmerName,
+      unregisteredFarmerPhone: t.unregisteredFarmerPhone,
+      notes: t.notes,
+      store: t.store,
+    }));
+
+    const products = targets.flatMap((t: any) =>
+      (t.products || []).map((p: any) => ({
+        id: p.id,
         workTypeCode: "TYPE_2",
-        visitPurpose: t.visitPurpose,
+        productId: p.productId,
+        productName: p.product?.name || null,
         storeId: t.storeId,
-        storeName: t.store?.name || null,
-        province: t.province,
-        isUnregisteredFarmer: t.isUnregisteredFarmer,
-        unregisteredFarmerName: t.unregisteredFarmerName,
-        unregisteredFarmerPhone: t.unregisteredFarmerPhone,
-        notes: t.notes,
-        store: t.store,
-      }));
+        notes: p.notes,
+        product: p.product,
+      })),
+    );
 
-      const products = dedicatedTargets.flatMap((t: any) =>
-        (t.products || []).map((p: any) => ({
-          id: p.id,
-          workTypeCode: "TYPE_2",
-          productId: p.productId,
-          productName: p.product?.name || null,
-          storeId: t.storeId,
-          notes: p.notes,
-          product: p.product,
-        })),
-      );
-
-      return { stores, products };
-    }
-
-    const stores = await tx.activityPlanStore.findMany({
-      where: { activityPlanId, workTypeCode: "TYPE_2" },
-      include: { store: true },
-    });
-
-    const products = await tx.activityPlanProduct.findMany({
-      where: { activityPlanId, workTypeCode: "TYPE_2" },
-      include: { product: true },
-    });
-
-    return { stores, products };
+    return { targets, stores, products };
   },
 };

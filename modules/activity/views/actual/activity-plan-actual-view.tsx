@@ -793,6 +793,7 @@ export function ActivityPlanActualView({
             ...payload,
             ...t2Payload,
             followupResults: t2Payload.t2FollowupResults || [],
+            type2Results: t2Payload.t2FollowupResults || [],
             attachments: [
               ...(payload.attachments || []),
               ...cleanImages.map((img) => ({
@@ -819,6 +820,7 @@ export function ActivityPlanActualView({
             productSalesDetails: t3Payload.productSalesDetails || [],
             saleResults: t3Payload.productSalesDetails || [],
             t3ProductSalesDetails: t3Payload.productSalesDetails || [],
+            type3Results: t3Payload.productSalesDetails || [],
           };
           if (!isType1Active && !isType2Active && t3Payload.soldProducts) {
             payload.resultSummary = `เสนอขายสินค้า: ${t3Payload.soldProducts}`;

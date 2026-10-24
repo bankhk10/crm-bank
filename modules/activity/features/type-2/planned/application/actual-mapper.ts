@@ -15,13 +15,16 @@ export function parseType2ActualResult(result: any): {
     return { followupResults: [] };
   }
 
-  // 1. From dedicated relation result.followupResults or result.t2FollowupResults
+  // 1. From dedicated relation result.type2Results, result.followupResults or result.t2FollowupResults
   const rawFollowupList =
-    result.followupResults || result.t2FollowupResults;
+    result.type2Results ||
+    result.followupResults ||
+    result.t2FollowupResults;
 
   if (rawFollowupList && Array.isArray(rawFollowupList) && rawFollowupList.length > 0) {
     const list: FollowupProductItem[] = rawFollowupList.map((item: any) => ({
       id: item.id,
+      targetId: item.targetId || undefined,
       productId: item.productId,
       productName: item.productName || item.product?.name || "สินค้า",
       storeId: item.storeId,
@@ -72,6 +75,7 @@ export function parseType2ActualResult(result: any): {
  */
 export function mapType2ActualFormToDb(followupResults: FollowupProductItem[]) {
   return followupResults.map((item) => ({
+    targetId: item.targetId || null,
     storeId: item.storeId || null,
     productId: item.productId,
     productName: item.productName || null,

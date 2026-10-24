@@ -24,8 +24,12 @@ export function parseType3ActualResult(resData: any): {
 
   if (!resData) return result;
 
-  // 1. From relation table: ActivityResultSaleItem
-  const rawSaleResults: any[] = resData.saleResults || resData.activityResultSaleItems || [];
+  // 1. From relation table: ActivityResultType3 or legacy ActivityResultSaleItem
+  const rawSaleResults: any[] =
+    resData.type3Results ||
+    resData.saleResults ||
+    resData.activityResultSaleItems ||
+    [];
   const t3SaleResults = rawSaleResults.filter(
     (s) =>
       !s.workTypeCode ||
@@ -36,12 +40,15 @@ export function parseType3ActualResult(resData: any): {
   if (t3SaleResults.length > 0) {
     const details: Type3ProductSaleDetail[] = t3SaleResults.map((item) => {
       const pName = item.productName || item.product?.name || "สินค้า";
-      const actualQty = Number(item.actualQuantity ?? 0);
-      const unitPrice = Number(item.actualUnitPrice ?? 0);
-      const actualTotal = Number(item.actualTotal ?? actualQty * unitPrice);
+      const actualQty = Number(item.actualQuantity ?? item.actualQty ?? 0);
+      const unitPrice = Number(item.actualUnitPrice ?? item.unitPrice ?? 0);
+      const actualTotal = Number(
+        item.actualTotal ?? item.actualSales ?? actualQty * unitPrice,
+      );
 
       return {
         id: item.id,
+        targetId: item.targetId || undefined,
         productId: item.productId,
         productName: pName,
         customer: item.store?.name || item.customerName || "",
@@ -116,6 +123,7 @@ export function mapType3ActualFormToDb(
 
     return {
       id: d.id,
+      targetId: d.targetId || null,
       productId: d.productId || "",
       productName: d.productName || null,
       storeId: d.storeId || null,

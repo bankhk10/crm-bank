@@ -781,6 +781,7 @@ export function UnplannedActivityForm({
 
       actualData = {
         workTypeCode: "TYPE_2",
+        followupResults: mapped.followupResults,
         attachments: cleanType2Images.map((img) => ({
           category: "PLOT",
           fileUrl: img.url,

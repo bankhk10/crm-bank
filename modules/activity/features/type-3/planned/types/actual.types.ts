@@ -6,6 +6,7 @@ import type { Type3TargetItem } from "./planned.types";
 
 export interface Type3ProductSaleDetail {
   id?: string;
+  targetId?: string;
   productId?: string;
   productName: string;
   customer?: string;
@@ -25,6 +26,7 @@ export interface Type3ProductSaleDetail {
 
 export interface Type3SaleResultItem {
   id?: string;
+  targetId?: string | null;
   productId: string;
   productName?: string | null;
   storeId?: string | null;

@@ -83,26 +83,15 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
     );
 
     // 1. Clean up existing dedicated tables
+    await (tx as any).activityPlanType3Product.deleteMany({
+      where: { activityPlanId },
+    });
+
     await (tx as any).activityPlanType3Target.deleteMany({
       where: { activityPlanId },
     });
 
-    // 2. Clean up existing generic relation tables
-    await tx.activityPlanProduct.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_3",
-      },
-    });
-
-    await tx.activityPlanStore.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_3",
-      },
-    });
-
-    // 3. Save into Dedicated Tables
+    // 2. Save into Dedicated Tables
     if (rawTargets.length > 0) {
       for (const t of rawTargets) {
         const isSubDealer = Boolean(t.isSubDealer);
@@ -211,52 +200,10 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
         }
       }
     }
-
-    // 4. Sync to Generic Tables (activity_plan_stores & activity_plan_products)
-    if (t3Stores.length > 0) {
-      await tx.activityPlanStore.createMany({
-        data: t3Stores.map((s) => ({
-          activityPlanId,
-          workTypeCode: "TYPE_3",
-          storeId: s.storeId || null,
-          storeName: s.storeName || null,
-          subDealerStore: s.subDealerStore || null,
-          notes: s.notes || null,
-        })),
-      });
-    }
-
-    if (t3Products.length > 0) {
-      await tx.activityPlanProduct.createMany({
-        data: t3Products.map((p) => {
-          const qty = p.targetQuantity != null ? Number(p.targetQuantity) : 1;
-          const unitPrice =
-            p.unitPrice != null ? new Prisma.Decimal(p.unitPrice) : null;
-          const targetAmount =
-            p.targetAmount != null
-              ? new Prisma.Decimal(p.targetAmount)
-              : unitPrice != null
-                ? unitPrice.mul(qty)
-                : null;
-
-          return {
-            activityPlanId,
-            workTypeCode: "TYPE_3",
-            storeId: p.storeId || null,
-            productId: p.productId,
-            productName: p.productName || null,
-            targetQuantity: qty,
-            unitPrice,
-            targetAmount,
-            notes: p.notes || null,
-          };
-        }),
-      });
-    }
   },
 
   /**
-   * Save Type 3 Actual Outcome (ActivityResultSaleItem)
+   * Save Type 3 Actual Outcome (Dedicated Table: ActivityResultType3)
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -300,46 +247,81 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
-    if (!result) return;
-
-    await (tx as any).activityResultSaleItem.deleteMany({
-      where: {
-        activityResultId: result.id,
-        workTypeCode: "TYPE_3",
-      },
+    // 1. DEDICATED TABLE: ActivityResultType3
+    await (tx as any).activityResultType3.deleteMany({
+      where: { activityPlanId },
     });
 
-    if (t3SaleResults.length > 0) {
-      await (tx as any).activityResultSaleItem.createMany({
-        data: t3SaleResults.map((item) => {
-          const qty = Number(item.actualQty ?? item.actualQuantity ?? 0);
-          const unitPrice = new Prisma.Decimal(
-            item.unitPrice ?? item.actualUnitPrice ?? 0,
-          );
-          const total =
-            item.actualSales != null || item.actualTotal != null
-              ? new Prisma.Decimal(item.actualSales ?? item.actualTotal)
-              : unitPrice.mul(qty);
+    const validSaleResults = t3SaleResults.filter(
+      (item: any) => item && Boolean(item.productId),
+    );
 
-          return {
-            activityResultId: result.id,
-            workTypeCode: "TYPE_3",
-            storeId: item.storeId || null,
-            productId: item.productId,
-            productName: item.productName || null,
-            actualQuantity: qty,
-            actualUnitPrice: unitPrice,
-            actualTotal: total,
-            unclosedReason: item.unclosedReason || null,
-            isAdditional: Boolean(item.isAdditional),
-          };
-        }),
+    if (validSaleResults.length > 0) {
+      const targets = await (tx as any).activityPlanType3Target.findMany({
+        where: { activityPlanId },
+        select: { id: true, storeId: true },
+        orderBy: { createdAt: "asc" },
       });
+
+      let totalSalesAmount = new Prisma.Decimal(0);
+      let ordersCount = 0;
+
+      const recordsToCreate = validSaleResults.map((item: any, idx: number) => {
+        const qty = Number(item.actualQty ?? item.actualQuantity ?? 0);
+        const unitPrice = new Prisma.Decimal(
+          item.unitPrice ?? item.actualUnitPrice ?? 0,
+        );
+        const total =
+          item.actualSales != null || item.actualTotal != null
+            ? new Prisma.Decimal(item.actualSales ?? item.actualTotal)
+            : unitPrice.mul(qty);
+
+        if (total.greaterThan(0) || qty > 0) {
+          totalSalesAmount = totalSalesAmount.add(total);
+          ordersCount += 1;
+        }
+
+        let targetId = item.targetId || null;
+        if (!targetId && targets.length > 0) {
+          const matched = targets.find(
+            (t: any) => t.storeId && t.storeId === item.storeId,
+          );
+          targetId = matched ? matched.id : targets[idx]?.id || targets[0].id;
+        }
+
+        return {
+          activityPlanId,
+          targetId,
+          storeId: item.storeId || null,
+          productId: item.productId,
+          productName: item.productName || null,
+          actualQuantity: qty,
+          actualUnitPrice: unitPrice,
+          actualTotal: total,
+          unclosedReason: item.unclosedReason || null,
+          isAdditional: Boolean(item.isAdditional),
+        };
+      });
+
+      await (tx as any).activityResultType3.createMany({
+        data: recordsToCreate,
+      });
+
+      // Update ActivityResult summary fields
+      if (result) {
+        await tx.activityResult.update({
+          where: { id: result.id },
+          data: {
+            salesResultAmount: totalSalesAmount,
+            salesOrdersCount: ordersCount,
+          },
+        });
+      }
     }
   },
 
   /**
-   * Load Type 3 Stores and Products from Dedicated Tables with fallback
+   * Load Type 3 Stores and Products from Dedicated Tables
    */
   async loadPlan(
     tx: PrismaTransaction,
@@ -354,54 +336,41 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
             product: true,
           },
         },
+        results: {
+          include: {
+            product: true,
+          },
+        },
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    if (dedicatedTargets && dedicatedTargets.length > 0) {
-      const stores = dedicatedTargets.map((t: any) => ({
-        id: t.id,
+    const stores = dedicatedTargets.map((t: any) => ({
+      id: t.id,
+      workTypeCode: "TYPE_3",
+      storeId: t.storeId,
+      storeName: t.store?.name || null,
+      subDealerStore: t.subDealerStore,
+      notes: t.notes,
+      store: t.store,
+    }));
+
+    const products = dedicatedTargets.flatMap((t: any) =>
+      (t.products || []).map((p: any) => ({
+        id: p.id,
         workTypeCode: "TYPE_3",
         storeId: t.storeId,
-        storeName: t.store?.name || null,
-        subDealerStore: t.subDealerStore,
-        notes: t.notes,
-      }));
+        productId: p.productId,
+        productName: p.product?.name || null,
+        targetQuantity: p.targetQuantity,
+        unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
+        targetAmount: p.targetAmount ? Number(p.targetAmount) : null,
+        notes: p.notes,
+        product: p.product,
+      })),
+    );
 
-      const products = dedicatedTargets.flatMap((t: any) =>
-        (t.products || []).map((p: any) => ({
-          id: p.id,
-          workTypeCode: "TYPE_3",
-          storeId: t.storeId,
-          productId: p.productId,
-          productName: p.product?.name || null,
-          targetQuantity: p.targetQuantity,
-          unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
-          targetAmount: p.targetAmount ? Number(p.targetAmount) : null,
-          notes: p.notes,
-        })),
-      );
-
-      return { targets: dedicatedTargets, stores, products };
-    }
-
-    // Fallback: load from generic tables
-    const stores = await tx.activityPlanStore.findMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_3",
-      },
-      include: { store: true },
-    });
-
-    const products = await tx.activityPlanProduct.findMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_3",
-      },
-      include: { product: true },
-    });
-
-    return { targets: [], stores, products };
+    return { targets: dedicatedTargets, stores, products };
   },
 
   /**
@@ -411,19 +380,19 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
     tx: PrismaTransaction,
     activityPlanId: string,
   ): Promise<any | null> {
-    const result = await tx.activityResult.findFirst({
+    const saleResults = await (tx as any).activityResultType3.findMany({
       where: { activityPlanId },
       include: {
-        saleResults: {
-          where: { workTypeCode: "TYPE_3" },
-          include: {
-            product: true,
-            store: true,
-          },
-        },
+        product: true,
+        store: true,
+        target: true,
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    return result;
+    return {
+      saleResults,
+      type3Results: saleResults,
+    };
   },
 };

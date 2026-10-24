@@ -57,16 +57,47 @@ export function extractType2PlanTargets(
         ? t.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"
         : t.store?.name || "ร้านค้า/เกษตรกร";
 
-      const items: FollowupProductItem[] = (t.products || []).map((p: any) => ({
-        id: p.id,
-        productId: p.productId,
-        productName: p.product?.name || p.productName || "สินค้า",
-        customer: customerDisplayName,
-        storeId: t.storeId || undefined,
-        detail: p.notes || t.notes || "",
-        expectedResult: "พืชตอบสนองดี",
-        isAdditional: false,
-      }));
+      const targetResults = Array.isArray(t.results) ? t.results : [];
+      const items: FollowupProductItem[] = (t.products || []).map((p: any) => {
+        const matchedResult = targetResults.find(
+          (r: any) => r.productId === p.productId,
+        );
+
+        return {
+          id: p.id,
+          targetId: t.id,
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "สินค้า",
+          customer: customerDisplayName,
+          storeId: t.storeId || undefined,
+          detail: p.notes || t.notes || "",
+          expectedResult: "พืชตอบสนองดี",
+          usageResult: (matchedResult?.usageResult as any) || undefined,
+          followupDetail: matchedResult?.followupDetail || "",
+          problemDetail: matchedResult?.problemDetail || "",
+          isAdditional: false,
+        };
+      });
+
+      // Include additional result items if recorded
+      targetResults
+        .filter((r: any) => r.isAdditional)
+        .forEach((r: any) => {
+          items.push({
+            id: r.id,
+            targetId: t.id,
+            productId: r.productId,
+            productName: r.productName || r.product?.name || "สินค้า",
+            customer: customerDisplayName,
+            storeId: t.storeId || undefined,
+            detail: "",
+            expectedResult: "พืชตอบสนองดี",
+            usageResult: r.usageResult as any,
+            followupDetail: r.followupDetail || "",
+            problemDetail: r.problemDetail || "",
+            isAdditional: true,
+          });
+        });
 
       return {
         id: t.id,

@@ -321,6 +321,25 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           },
         },
       },
+      results: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type2Results: {
+    include: {
+      product: true,
+      store: true,
+      target: true,
     },
     orderBy: { createdAt: "asc" },
   },
@@ -355,6 +374,25 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           },
         },
       },
+      results: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type3Results: {
+    include: {
+      product: true,
+      store: true,
+      target: true,
     },
     orderBy: { createdAt: "asc" },
   },

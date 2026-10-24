@@ -56,8 +56,7 @@ graph TD
     G --> H
     H --> I[ระบบคำนวณยอดเงินเป้าหมายรวมอัตโนมัติ]
     I --> J[กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ]
-    J --> K[type4PlannedStrategy บันทึกลง ActivityPlanType4Target]
-    K --> L[Sync สำเนาสู่ ActivityPlanStore workTypeCode = TYPE_4]
+    J --> K[type4PlannedStrategy บันทึกลง activity_type_4_targets]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -71,8 +70,8 @@ graph TD
     D --> G[เลือกสถานะการวางบิล billingStatus และระบุรายละเอียด]
     D --> H[แนบรูปภาพสลิปหลักฐานการชำระเงิน paymentImages]
     E & F & G & H --> I[กดบันทึกผลการปฏิบัติงาน]
-    I --> J[อัปโหลดรูปภาพลง Storage และ sync ลง ActivityPlanAttachment]
-    J --> K[บันทึกลง ActivityResultType4 & ActivityResultType4Item]
+    I --> J[อัปโหลดรูปภาพลง Storage และบันทึกลง ActivityAttachment]
+    J --> K[บันทึกลง activity_type_4_result ผูก targetId]
     K --> L[อัปเดต collect_result_amount ใน ActivityResult]
     C -->|POSTPONED / CANCELLED| M[ระบุวันเวลานัดใหม่ หรือเหตุผลการยกเลิก]
 ```
@@ -88,8 +87,8 @@ graph TD
     F --> G[กดบันทึกกิจกรรมนอกแผน]
     G --> H[type4UnplannedStrategy ทำงานใน 1 Atomic Transaction]
     H --> I[บันทึก ActivityPlan สถานะ COMPLETED]
-    H --> J[บันทึก ActivityPlanType4Target + Sync ลง ActivityPlanStore]
-    H --> K[บันทึก ActivityResultType4 + ActivityResultType4Item + Attachments]
+    H --> J[บันทึก ActivityPlanType4Target ลง activity_type_4_targets]
+    H --> K[บันทึก ActivityResultType4 ลง activity_type_4_result + Attachments]
 ```
 
 ---
@@ -148,37 +147,48 @@ modules/activity/features/type-4/
 ```prisma
 // 1. เป้าหมายวางบิล/เก็บเงิน Type 4 (Dedicated Table)
 model ActivityPlanType4Target {
-  id              String   @id @default(uuid())
-  activityPlanId  String
-  storeId         String?
-  collectType     String   @default("COLLECT") // "BILLING" หรือ "COLLECT"
-  targetAmount    Decimal? @db.Decimal(12, 2)
-  notes           String?
-  ...
+  id             String                @id @default(cuid())
+  activityPlanId String                @map("activity_plan_id")
+  collectType    String                @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
+  storeId        String?               @map("store_id")
+  targetAmount   Decimal?              @map("target_amount") @db.Decimal(15, 2)
+  invoiceNo      String?               @map("invoice_no")
+  notes          String?               @map("notes")
+
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan          @relation("ActivityPlanType4Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?             @relation("Type4TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  result         ActivityResultType4?  @relation("Type4TargetResult")
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@map("activity_type_4_targets")
 }
 
 // 2. ผลการปฏิบัติงานจริง Type 4 (Dedicated Table — 1 แถวต่อ 1 ร้านค้าในแผน ผูกผ่าน targetId)
 model ActivityResultType4 {
-  id              String   @id @default(cuid())
-  activityPlanId  String   @map("activity_plan_id")
-  targetId        String?  @unique @map("target_id")
-  storeId         String?  @map("store_id")
-  companyName     String?  @map("company_name")
-  collectType     String   @default("COLLECT") @map("collect_type") // "BILLING" หรือ "COLLECT"
-  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
-  receivedAmount  Decimal? @map("received_amount") @db.Decimal(15, 2)
-  orderNo         String?  @map("order_no")
-  billingStatus   String?  @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
-  billingDetail   String?  @map("billing_detail")
-  collectDetail   String?  @map("collect_detail")
-  notes           String?  @map("notes")
+  id             String                   @id @default(cuid())
+  activityPlanId String                   @map("activity_plan_id")
+  targetId       String?                  @unique @map("target_id")
+  storeId        String?                  @map("store_id")
+  companyName    String?                  @map("company_name")
+  collectType    String                   @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
+  targetAmount   Decimal?                 @map("target_amount") @db.Decimal(15, 2)
+  receivedAmount Decimal?                 @map("received_amount") @db.Decimal(15, 2)
+  orderNo        String?                  @map("order_no")
+  billingStatus  String?                  @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
+  billingDetail  String?                  @map("billing_detail")
+  collectDetail  String?                  @map("collect_detail")
+  notes          String?                  @map("notes")
 
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
 
-  activityPlan    ActivityPlan             @relation("ActivityResultType4s", fields: [activityPlanId], references: [id], onDelete: Cascade)
-  target          ActivityPlanType4Target? @relation("Type4TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
-  store           Customer?                @relation("Type4ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan             @relation("ActivityResultType4s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType4Target? @relation("Type4TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
+  store          Customer?                @relation("Type4ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
   @@index([targetId])
@@ -190,9 +200,9 @@ model ActivityResultType4 {
 ### 4.2 Standalone Table Architecture (Zero Dual Persistence)
 Type 4 ได้รับการปรับปรุงเป็น Standalone 100% โดย:
 - บันทึกและโหลดข้อมูลแผนงานลง `activity_type_4_targets` โดยตรง โดยไม่มีการเขียน dual-write ไปยัง `activity_plan_stores`
-- บันทึกและโหลดข้อมูลผลงานลง `activity_type_4_result` โดยผูกกับเป้าหมายผ่าน `targetId`
+- บันทึกและโหลดข้อมูลผลงานลง `activity_type_4_result` โดยผูกกับเป้าหมายผ่าน `targetId` (1:1 relation)
 - อัปเดตสรุปยอดเงิน `activity_results.collect_result_amount = receivedAmount`
-- จัดเก็บรูปภาพหลักฐานการชำระเงินลงใน `activity_attachments` (`workTypeCode = "TYPE_4"`)
+- จัดเก็บรูปภาพหลักฐานการชำระเงินลงใน `activity_attachments` (`workTypeCode = "TYPE_4"`, `category = "GENERAL"`)
 
 ---
 
@@ -217,3 +227,12 @@ Type 4 ได้รับการปรับปรุงเป็น Standalon
 - **Boundary Check:** ทุก Import ภายใน `modules/activity/features/type-4/` เรียกใช้เฉพาะโค้ดภายใน Slice ตัวเอง หรือ `@/modules/activity/*`, `@/components/*`, `@/lib/*` โดยไม่มีการเรียกข้ามไปยัง `@/modules/activity-plans` โดยเด็ดขาด
 - **Multi-target Validation:** รองรับการกำหนดเป้าหมายเก็บเงินหลายร้านค้า พร้อมตรวจเช็คความถูกต้องของยอดเงิน (`targetAmount > 0` เมื่อเลือกประเภท `COLLECT`)
 - **Image Upload Integration:** รองรับการอัปโหลดไฟล์หลักฐานสลิปการชำระเงินหลายไฟล์พร้อมกัน แสดงพรีวิว และจัดเก็บถาวรใน Cloud Storage
+
+---
+
+## 7. Change Log
+
+| วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
+| :--- | :--- | :--- | :--- |
+| **2026-10-18** | 1.0.0 | สร้างโมดูล Type 4 ตาม Vertical Slice Architecture เชื่อมต่อฟอร์ม Planned / Actual / Unplanned | Antigravity AI |
+| **2026-10-24** | 2.0.0 | **Batch A Standardization**: ปรับโครงสร้างตารางเป็น Standalone Dedicated Tables (`activity_type_4_targets`, `activity_type_4_result`), ผูก `targetId` 1:1 ระหว่างเป้าหมายและผลการปฏิบัติงาน, ตัด Generic Dual-write ไปยัง `activity_plan_stores` ออก 100%, และอัปเดต Views/Mappers/Strategies ทั้งหมดให้ตรงกัน | Antigravity AI |

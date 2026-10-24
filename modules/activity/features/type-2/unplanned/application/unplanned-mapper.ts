@@ -38,6 +38,8 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
     }));
 
   const followupResults: any[] =
+    plan.type2Results ||
+    plan.result?.type2Results ||
     plan.result?.followupResults ||
     plan.followupResults ||
     [];
@@ -54,13 +56,16 @@ export function hydrateType2UnplannedData(plan: any): Type2UnplannedItem[] {
         ? t.unregisteredFarmerName || ""
         : t.store?.name || "";
 
+      const targetResults = Array.isArray(t.results) ? t.results : [];
       let targetProducts: Type2UnplannedProductItem[] = (t.products || []).map(
         (p: any, pIdx: number) => {
-          const matchedResult = followupResults.find(
-            (f: any) =>
-              (f.productId && f.productId === p.productId) ||
-              (f.productName && f.productName === p.product?.name),
-          );
+          const matchedResult =
+            targetResults.find((r: any) => r.productId === p.productId) ||
+            followupResults.find(
+              (f: any) =>
+                (f.productId && f.productId === p.productId) ||
+                (f.productName && f.productName === p.product?.name),
+            );
 
           return {
             id: p.id || `p-${idx}-${pIdx}`,

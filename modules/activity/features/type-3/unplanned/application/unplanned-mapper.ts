@@ -11,6 +11,8 @@ export function hydrateType3UnplannedData(plan: any): Type3UnplannedItem[] {
   if (!plan) return [];
 
   const saleResults: any[] =
+    plan.type3Results ||
+    plan.result?.type3Results ||
     plan.result?.saleResults ||
     plan.saleResults ||
     plan.productSalesDetails ||
@@ -28,15 +30,18 @@ export function hydrateType3UnplannedData(plan: any): Type3UnplannedItem[] {
         ? t.subDealerStore || ""
         : t.store?.name || "";
 
+      const targetResults = Array.isArray(t.results) ? t.results : [];
       let targetProducts: Type3UnplannedProductItem[] = (t.products || []).map(
         (p: any, pIdx: number) => {
-          const matchedSale = saleResults.find(
-            (s: any) =>
-              (s.productId && s.productId === p.productId) ||
-              (s.productName &&
-                (s.productName === p.product?.name ||
-                  s.productName === p.productName)),
-          );
+          const matchedSale =
+            targetResults.find((r: any) => r.productId === p.productId) ||
+            saleResults.find(
+              (s: any) =>
+                (s.productId && s.productId === p.productId) ||
+                (s.productName &&
+                  (s.productName === p.product?.name ||
+                    s.productName === p.productName)),
+            );
 
           const targetQty = Number(p.targetQuantity) || 1;
           const actualQty = matchedSale

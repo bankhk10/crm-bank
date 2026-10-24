@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-2`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงต้นแบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType2Target`, `ActivityPlanType2Product`, `ActivityResultFollowupItem`)  
-> **Status**: Production Ready / Active Reference
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType2Target`, `ActivityPlanType2Product`, `ActivityResultType2`, `ActivityAttachment`)  
+> **Status**: Production Ready / Active Reference (v2.0.0 Standalone)
 
 ---
 
@@ -21,14 +21,14 @@
 - **กลุ่มเป้าหมายที่รองรับ:**
   - **ร้านค้า (STORE):** ติดตาม feedback ผ่านร้านค้าตัวแทนจำหน่ายหลัก (`DEALER`) และตัวแทนจำหน่ายย่อย (`SUBDEALER`)
   - **เกษตรกร (FARMER):** เกษตรกรที่มีประวัติในฐานข้อมูลลูกค้า (Registered Customer) และเกษตรกรรายใหม่ที่ยังไม่ได้ลงทะเบียนในระบบ (Unregistered Farmer)
-- **การจัดเก็บข้อมูล:**
-  - **วางแผนเป้าหมายล่วงหน้า (Planned Targets & Products):** กำหนดร้านค้าหรือเกษตรกรเป้าหมาย พร้อมผูกรายการสินค้าเคมีเกษตรที่ต้องการติดตามผล (Multi-Product per Target)
-  - **บันทึกผลการปฏิบัติงานจริง (Actual Outcome):** ประเมินผลลัพธ์รายสินค้า (`usageResult`: "พืชตอบสนองดี", "ลูกค้าพึงพอใจ", "พบปัญหา"), บันทึกรายละเอียดการติดตาม (`followupDetail`), รายละเอียดปัญหา (`problemDetail`), รองรับการเพิ่มสินค้าที่ติดตามหน้างานจริง (`isAdditional`) และอัปโหลดภาพถ่ายแปลงพืช
+- **การจัดเก็บข้อมูล (Standalone 100%):**
+  - **วางแผนเป้าหมายล่วงหน้า (Planned Targets & Products):** กำหนดร้านค้าหรือเกษตรกรเป้าหมายลง `activity_type_2_targets` พร้อมผูกรายการสินค้าเคมีเกษตรที่ต้องการติดตามผลลง `activity_type_2_products` (Multi-Product per Target)
+  - **บันทึกผลการปฏิบัติงานจริง (Actual Outcome):** บันทึกลง Dedicated Table `activity_type_2_result` โดยประเมินผลลัพธ์รายสินค้า (`usageResult`: "พืชตอบสนองดี", "ลูกค้าพึงพอใจ", "พบปัญหา"), บันทึกรายละเอียดการติดตาม (`followupDetail`), รายละเอียดปัญหา (`problemDetail`), รองรับการเพิ่มสินค้าที่ติดตามหน้างานจริง (`isAdditional`) และอัปโหลดภาพถ่ายแปลงพืชลง `ActivityAttachment` (`category = "PLOT"`, `workTypeCode = "TYPE_2"`)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน):** วางแผนการเดินทางเข้าพบเพื่อติดตามผลลัพธ์สินค้าล่วงหน้า ส่งขออนุมัติตามสายงาน
 2. **Planned Actual (บันทึกผลงานตามแผน):** เมื่อแผนได้รับอนุมัติ นำแผนเดิมมารายงานผลการตอบสนองของพืช ระบุปัญหาที่พบ และอัปโหลดภาพถ่ายหลักฐาน
-3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับการลงพื้นที่ติดตามผลการใช้สินค้ากะทันหัน ระบุเป้าหมาย ร้านค้า/เกษตรกร พร้อมประเมินผลการตอบสนองของสินค้าและแนบภาพถ่ายจบในหน้าเดียว
+3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับการลงพื้นที่ติดตามผลการใช้สินค้ากะทันหัน ระบุเป้าหมาย ร้านค้า/เกษตรกร พร้อมประเมินผลการตอบสนองของสินค้าและแนบภาพถ่ายจบในหน้าเดียว สถานะแผนเป็น `COMPLETED` ทันที
 4. **Detail and Approval Views:** แสดงสรุปเป้าหมาย สินค้าที่ติดตาม และผลการใช้งานเพื่อการตรวจสอบและพิจารณาอนุมัติ
 
 ---
@@ -48,7 +48,7 @@ graph TD
     G --> H
     H --> I[ระบุหมายเหตุ/รายละเอียดเป้าหมาย]
     I --> J[กดบันทึกร่าง DRAFT หรือ ส่งขออนุมัติ]
-    J --> K[Strategy บันทึกลง activity_plan_type_2_targets และ activity_plan_type_2_products]
+    J --> K[Strategy บันทึกลง activity_type_2_targets และ activity_type_2_products โดยตรง]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -64,7 +64,7 @@ graph TD
     G --> I[อัปโหลดรูปภาพสภาพพืช/แปลง ActivityPhotoUpload]
     H --> I
     I --> J[กดบันทึกผลการปฏิบัติงาน]
-    J --> K[Server Action บันทึกลง activity_result_followup_items และ activity_attachments]
+    J --> K[Strategy บันทึกลง activity_type_2_result ผูก targetId และ activity_attachments]
     C -->|POSTPONED| L[ระบุวันเวลานัดหมายใหม่และเหตุผลที่เลื่อน]
     C -->|CANCELLED| M[ระบุเหตุผลการยกเลิก]
 ```
@@ -259,9 +259,9 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plan_type_2_targets`**<br>(`ActivityPlanType2Target`) | `savePlan()` ใน Planned | `loadPlan()`, `plan.type2Targets` ใน Detail / Edit / Actual | `deleteMany()` + `create()` ใน `savePlan()` | Cascade เมื่อลบ `ActivityPlan` | เก็บเป้าหมายร้านค้า/เกษตรกร |
-| **`activity_plan_type_2_products`**<br>(`ActivityPlanType2Product`) | `savePlan()` ใน Planned | `loadPlan()`, `target.products` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบ `Target` หรือ `Plan` | เก็บรายการสินค้าที่ผูกกับเป้าหมาย |
-| **`activity_result_followup_items`**<br>(`ActivityResultFollowupItem`) | `saveActual()` ใน Actual | `result.followupResults` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityResult` | เก็บผลการตอบสนองและปัญหาของสินค้า |
+| **`activity_type_2_targets`**<br>(`ActivityPlanType2Target`) | `savePlan()` ใน Planned | `loadPlan()`, `plan.type2Targets` ใน Detail / Edit / Actual | `deleteMany()` + `create()` ใน `savePlan()` | Cascade เมื่อลบ `ActivityPlan` | เก็บเป้าหมายร้านค้า/เกษตรกร |
+| **`activity_type_2_products`**<br>(`ActivityPlanType2Product`) | `savePlan()` ใน Planned | `loadPlan()`, `target.products` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบ `Target` หรือ `Plan` | เก็บรายการสินค้าที่ผูกกับเป้าหมาย |
+| **`activity_type_2_result`**<br>(`ActivityResultType2`) | `saveActual()` ใน Actual | `result.type2Results` / `target.results` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` หรือ `Target` | เก็บผลการตอบสนองและปัญหาของสินค้า |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + Action | `plan.attachments` | ลบรายการเก่าและสร้างระเบียนใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายแปลง |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
@@ -278,10 +278,11 @@ sequenceDiagram
 | **รายละเอียดเป้าหมาย** | `notes` | `savePlan` / `hydrateType2PlannedData` | `ActivityPlanType2Target` | `notes` | `TEXT` | Yes | `null` |
 | **รหัสสินค้าในแผน** | `productId` | `savePlan` | `ActivityPlanType2Product` | `product_id` | `VARCHAR (FK)` | No | - |
 | **หมายเหตุสินค้าในแผน**| `notes` | `savePlan` | `ActivityPlanType2Product` | `notes` | `TEXT` | Yes | `null` |
-| **ผลการใช้สินค้า** | `usageResult` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `usage_result` | `VARCHAR` | Yes | `null` |
-| **รายละเอียดการติดตาม**| `followupDetail` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `followup_detail` | `TEXT` | Yes | `null` |
-| **ปัญหาที่พบ** | `problemDetail` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `problem_detail` | `TEXT` | Yes | `null` |
-| **สินค้าเพิ่มหน้างาน** | `isAdditional` | `mapType2ActualFormToDb` | `ActivityResultFollowupItem`| `is_additional` | `BOOLEAN` | No | `false` |
+| **รหัสเป้าหมายผลงาน** | `targetId` | `mapType2ActualFormToDb` | `ActivityResultType2` | `target_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ผลการใช้สินค้า** | `usageResult` | `mapType2ActualFormToDb` | `ActivityResultType2` | `usage_result` | `VARCHAR` | Yes | `null` |
+| **รายละเอียดการติดตาม**| `followupDetail` | `mapType2ActualFormToDb` | `ActivityResultType2` | `followup_detail` | `TEXT` | Yes | `null` |
+| **ปัญหาที่พบ** | `problemDetail` | `mapType2ActualFormToDb` | `ActivityResultType2` | `problem_detail` | `TEXT` | Yes | `null` |
+| **สินค้าเพิ่มหน้างาน** | `isAdditional` | `mapType2ActualFormToDb` | `ActivityResultType2` | `is_additional` | `BOOLEAN` | No | `false` |
 | **รูปภาพสภาพแปลง/พืช** | `images` / `attachments` | `uploadImages` / `saveActual` | `ActivityAttachment` | `file_url` | `VARCHAR` | No | - |
 | **ชื่อไฟล์รูปภาพ** | `fileName` / `name` | `saveActual` | `ActivityAttachment` | `file_name` | `VARCHAR` | No | `"รูปภาพ"` |
 | **หมวดหมู่รูปภาพ** | `category` | `saveActual` | `ActivityAttachment` | `category` | `ENUM (AttachmentCategory)` | No | `PLOT` |
@@ -290,7 +291,7 @@ sequenceDiagram
 ### 6.3 รายละเอียดตารางและความสัมพันธ์ (Prisma Schema)
 
 ```prisma
-// 1. ตารางเก็บเป้าหมาย Type 2
+// 1. ตารางเก็บเป้าหมาย Type 2 (Dedicated Table)
 model ActivityPlanType2Target {
   id                      String   @id @default(cuid())
   activityPlanId          String   @map("activity_plan_id")
@@ -305,13 +306,14 @@ model ActivityPlanType2Target {
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
 
-  activityPlan            ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?                  @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  products                ActivityPlanType2Product[]
+  activityPlan            ActivityPlan               @relation("ActivityPlanType2Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?                  @relation("Type2TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType2Product[] @relation("Type2TargetProducts")
+  results                 ActivityResultType2[]      @relation("Type2TargetResults")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_type_2_targets")
+  @@map("activity_type_2_targets")
 }
 
 // 2. ตารางเก็บสินค้าที่ติดตามตามเป้าหมาย Type 2
@@ -325,37 +327,43 @@ model ActivityPlanType2Product {
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
 
-  target                  ActivityPlanType2Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  activityPlan            ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  product                 Product                 @relation(fields: [productId], references: [id], onDelete: Restrict)
+  target                  ActivityPlanType2Target @relation("Type2TargetProducts", fields: [targetId], references: [id], onDelete: Cascade)
+  activityPlan            ActivityPlan            @relation("ActivityPlanType2Products", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  product                 Product                 @relation("Type2ProductRef", fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([targetId])
   @@index([activityPlanId])
   @@index([productId])
-  @@map("activity_plan_type_2_products")
+  @@map("activity_type_2_products")
 }
 
-// 3. ตารางเก็บผลการติดตามผลการใช้สินค้าจริง
-model ActivityResultFollowupItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  storeId          String? @map("store_id")
-  productId        String  @map("product_id")
-  productName      String? @map("product_name")
-  usageResult      String? @map("usage_result") // "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา"
-  followupDetail   String? @map("followup_detail")
-  problemDetail    String? @map("problem_detail")
-  isAdditional     Boolean @default(false) @map("is_additional")
+// 3. ตารางเก็บผลการติดตามผลการใช้สินค้าจริง (Dedicated Result Table)
+model ActivityResultType2 {
+  id              String                   @id @default(cuid())
+  activityPlanId  String                   @map("activity_plan_id")
+  targetId        String?                  @map("target_id")
+  storeId         String?                  @map("store_id")
+  productId       String                   @map("product_id")
+  productName     String?                  @map("product_name")
+  usageResult     String?                  @map("usage_result") // "ลูกค้าพึงพอใจ" | "พืชตอบสนองดี" | "พบปัญหา"
+  followupDetail  String?                  @map("followup_detail") @db.Text
+  problemDetail   String?                  @map("problem_detail") @db.Text
+  isAdditional    Boolean                  @default(false) @map("is_additional")
 
-  activityResult   ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store            Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product          Product        @relation("ActivityResultFollowupProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
 
-  @@index([activityResultId])
-  @@index([productId])
+  activityPlan    ActivityPlan             @relation("ActivityResultType2s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType2Target? @relation("Type2TargetResults", fields: [targetId], references: [id], onDelete: Cascade)
+  store           Customer?                @relation("Type2ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
+  product         Product                  @relation("Type2ResultProduct", fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([storeId])
+  @@index([productId])
   @@index([isAdditional])
-  @@map("activity_result_followup_items")
+  @@map("activity_type_2_result")
 }
 
 // 4. ตารางเก็บรูปภาพประกอบกิจกรรม (ภาพสภาพแปลง / ผลิตภัณฑ์)
@@ -456,9 +464,9 @@ model ActivityAttachment {
         ↓
 [Step 5: Strategy Write] ➔ type2-planned.strategy.ts: saveActual()
         ↓
-[Step 6: Prisma Table] ➔ ActivityResultFollowupItem (ตรวจว่าข้อมูลลง DB ถูกต้อง)
+[Step 6: Prisma Table] ➔ ActivityResultType2 (ตรวจว่าข้อมูลลงตาราง activity_type_2_result ถูกต้อง)
         ↓
-[Step 7: Loader & Include] ➔ ACTIVITY_PLAN_FULL_INCLUDE (ตรวจว่า include type2Targets และ followupResults ครบ)
+[Step 7: Loader & Include] ➔ ACTIVITY_PLAN_FULL_INCLUDE (ตรวจว่า include type2Targets และ type2Results ครบ)
         ↓
 [Step 8: Load Hydrator] ➔ planned-mapper.ts: extractType2PlanTargets() & parseType2ActualResult()
 ```
@@ -479,7 +487,7 @@ model ActivityAttachment {
 - [ ] **TC-02 (Planned Create - Farmer):** สร้างแผนเข้าพบเกษตรกรนอกระบบ ระบุชื่อ เบอร์โทร และสินค้า บันทึกสำเร็จ
 - [ ] **TC-03 (Planned Edit):** เข้าหน้าแก้ไข แผน Type 2 ข้อมูลเป้าหมายและรายการสินค้าต้องโหลดขึ้นมาครบถ้วน
 - [ ] **TC-04 (Detail View):** เข้าหน้ารายละเอียด การ์ด Type 2 ต้องแสดงเป้าหมายและรายการสินค้าครบถ้วน
-- [ ] **TC-05 (Actual - Normal):** บันทึกผลการใช้สินค้าแบบ "พืชตอบสนองดี" หรือ "ลูกค้าพึงพอใจ" พร้อมภาพถ่าย บันทึกสำเร็จ
+- [ ] **TC-05 (Actual - Normal):** บันทึกผลการใช้สินค้าแบบ "พืชตอบสนองดี" หรือ "ลูกค้าพึงพอใจ" พร้อมภาพถ่าย บันทึกสำเร็จลง `activity_type_2_result`
 - [ ] **TC-06 (Actual - Problem):** บันทึกผลแบบ "พบปัญหา" ตรวจสอบว่าระบบบังคับกรอก `problemDetail` และบันทึกลง DB สำเร็จ
 - [ ] **TC-07 (Actual - Additional Product):** กดปุ่มเพิ่มสินค้าหน้างาน (`isAdditional = true`) และบันทึกผลได้จริง
 - [ ] **TC-08 (Approval View):** หัวหน้างานเปิดหน้าพิจารณาอนุมัติ การ์ด Type 2 ต้องแสดงเป้าหมายชัดเจน
@@ -491,6 +499,11 @@ model ActivityAttachment {
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-24** | 2.0.0 | **Batch B Standardization**: ปรับปรุงโครงสร้างตารางเป็น Dedicated Tables (`activity_type_2_targets`, `activity_type_2_products`, `activity_type_2_result`), ผูก `targetId` กับผลงานติดตาม, ตัด Generic Dual-writes ไปยัง `activity_plan_stores` / `activity_plan_products` / `activity_result_followup_items` ออก 100% | Antigravity AI |
+| **2026-10-20** | 1.3.0 | แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ (Image Deduplication) ใน `Type2DetailView`, `result-summary-parser.ts` และ `useType2Actual` | Antigravity AI |
+| **2026-10-19** | 1.2.0 | พัฒนา Sub-slice `unplanned/` (2-in-1 Form, Hook, Mapper, Validation, Strategy) สำหรับการติดตามผลการใช้สินค้านอกแผน | Antigravity AI |
+| **2026-10-19** | 1.1.0 | จัดทำเอกสารคู่มือสถาปัตยกรรมฉบับสมบูรณ์ตามรูปแบบมาตรฐาน Type 1 Gold Standard | Antigravity AI |
+| **2026-10-19** | 1.0.0 | พัฒนา Type 2 Vertical Slice ฉบับสมบูรณ์ พร้อมเชื่อมโยง Dedicated Tables และ Targets Registry | Antigravity AI |
 | **2026-10-20** | 1.3.0 | แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ (Image Deduplication) ใน `Type2DetailView`, `result-summary-parser.ts` และ `useType2Actual` | Antigravity AI |
 | **2026-10-19** | 1.2.0 | พัฒนา Sub-slice `unplanned/` (2-in-1 Form, Hook, Mapper, Validation, Strategy) สำหรับการติดตามผลการใช้สินค้านอกแผน | Antigravity AI |
 | **2026-10-19** | 1.1.0 | จัดทำเอกสารคู่มือสถาปัตยกรรมฉบับสมบูรณ์ตามรูปแบบมาตรฐาน Type 1 Gold Standard | Antigravity AI |
