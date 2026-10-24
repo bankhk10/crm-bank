@@ -19,7 +19,7 @@ function createDefaultRound(
     roundNumber,
     sprayDate: new Date().toISOString().split("T")[0],
     sprayMethod: "SINGLE",
-    sprayEquipment: "เป้สะพายหลัง",
+    sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
     otherEquipment: "",
     productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
     problemDetail: "",
@@ -90,11 +90,15 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
         const formattedBaselines: Type7bBaselineProductItem[] = plannedProducts.map((p) => ({
           productId: p.productId,
           productName: p.productName || "สินค้าตามแผน",
+          withdrawnQuantity: p.quantity ?? 1,
           plannedQuantity: p.quantity ?? 1,
           actualQuantity: p.quantity ?? 1,
+          extraQuantity: "",
+          extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+          applicationRate: "",
           plannedRate: "",
           actualRate: "",
-          unit: p.unit || "หน่วย",
+          unit: p.unit || "ขวด",
         }));
 
         // Check if baselineProducts already set
@@ -183,8 +187,12 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
         id: `add-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         productId: "",
         productName: "",
-        actualRate: "",
+        actualQuantity: 1,
         quantityUsed: 1,
+        extraQuantity: "",
+        extraUnit: "ซีซี",
+        applicationRate: "",
+        actualRate: "",
         unit: "ขวด",
       };
 

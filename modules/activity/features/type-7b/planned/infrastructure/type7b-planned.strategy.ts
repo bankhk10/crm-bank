@@ -238,17 +238,27 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           // 1.1 Baseline Products
           for (const bp of round.baselineProducts || []) {
             if (bp.productId) {
+              const rate = bp.applicationRate || bp.actualRate || bp.plannedRate || "ตามคำแนะนำ";
+              const qty =
+                bp.actualQuantity != null && bp.actualQuantity !== ""
+                  ? bp.actualQuantity
+                  : bp.quantityUsed != null && bp.quantityUsed !== ""
+                    ? bp.quantityUsed
+                    : bp.plannedQuantity || 1;
+              const unit = bp.unit || null;
+              const detail = bp.extraQuantity
+                ? `ใช้เพิ่ม ${bp.extraQuantity} ${bp.extraUnit || "ซีซี"}`
+                : bp.detail || null;
+
               productsToInsert.push({
                 sprayRoundId: createdRound.id,
                 productId: bp.productId,
                 productName: bp.productName || null,
                 baselineRate: bp.plannedRate || null,
-                actualRate: bp.actualRate || bp.plannedRate || "ตามคำแนะนำ",
-                quantityUsed: new Prisma.Decimal(
-                  String(bp.actualQuantity || bp.plannedQuantity || 1),
-                ),
-                unit: bp.unit || null,
-                detail: bp.detail || null,
+                actualRate: rate,
+                quantityUsed: new Prisma.Decimal(String(qty)),
+                unit: unit,
+                detail: detail,
               });
             }
           }
@@ -256,15 +266,27 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           // 1.2 Additional Products
           for (const ap of round.additionalProducts || []) {
             if (ap.productId) {
+              const rate = ap.applicationRate || ap.actualRate || "ตามคำแนะนำ";
+              const qty =
+                ap.actualQuantity != null && ap.actualQuantity !== ""
+                  ? ap.actualQuantity
+                  : ap.quantityUsed != null && ap.quantityUsed !== ""
+                    ? ap.quantityUsed
+                    : 1;
+              const unit = ap.unit || null;
+              const detail = ap.extraQuantity
+                ? `ใช้เพิ่ม ${ap.extraQuantity} ${ap.extraUnit || "ซีซี"}`
+                : ap.detail || null;
+
               productsToInsert.push({
                 sprayRoundId: createdRound.id,
                 productId: ap.productId,
                 productName: ap.productName || null,
                 baselineRate: null,
-                actualRate: ap.actualRate || "ตามคำแนะนำ",
-                quantityUsed: new Prisma.Decimal(String(ap.quantityUsed || 1)),
-                unit: ap.unit || null,
-                detail: ap.detail || null,
+                actualRate: rate,
+                quantityUsed: new Prisma.Decimal(String(qty)),
+                unit: unit,
+                detail: detail,
               });
             }
           }

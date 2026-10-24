@@ -7,10 +7,14 @@ import type { Type7bTargetItem, Type7bPlanCardTarget } from "./planned.types";
 export interface Type7bBaselineProductItem {
   productId: string;
   productName: string;
-  plannedRate?: string;
-  actualRate?: string;
+  withdrawnQuantity?: number | string;
   plannedQuantity?: number | string;
   actualQuantity?: number | string;
+  extraQuantity?: number | string;
+  extraUnit?: string;
+  applicationRate?: string;
+  plannedRate?: string;
+  actualRate?: string;
   unit?: string;
   detail?: string;
 }
@@ -22,9 +26,13 @@ export interface Type7bAdditionalProductItem {
   id: string;
   productId: string;
   productName?: string;
-  actualRate: string;
-  quantityUsed: number | string;
-  unit: string;
+  actualQuantity?: number | string;
+  quantityUsed?: number | string;
+  extraQuantity?: number | string;
+  extraUnit?: string;
+  applicationRate?: string;
+  actualRate?: string;
+  unit?: string;
   detail?: string;
 }
 

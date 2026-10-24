@@ -6,8 +6,9 @@ import {
   RotateCw,
   Plus,
   Trash2,
+  Package,
   PackagePlus,
-  PackageCheck,
+  Wrench,
   TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -20,8 +21,7 @@ import {
   ActivityProductSelect,
 } from "@/modules/activity/ui";
 import {
-  SPRAY_METHOD_RADIO_OPTIONS,
-  SPRAY_EQUIPMENT_RADIO_OPTIONS,
+  SPRAY_EQUIPMENT_OPTIONS,
   SPRAY_RESPONSE_OPTIONS,
   DEMO_PLOT_STATUS_OPTIONS,
 } from "../../shared/constants";
@@ -63,8 +63,8 @@ export function Type7bActualForm({
       prods.forEach((p: any) => {
         const pId = p.productId || p.product?.id || p.id;
         const pName = p.productName || p.product?.name || p.name || "สินค้าตามแผน";
-        const qty = p.quantity ?? p.targetQuantity ?? 1;
-        const unit = p.unit || p.product?.unit || "หน่วย";
+        const qty = p.quantity ?? p.targetQuantity ?? p.withdrawnQuantity ?? 1;
+        const unit = p.unit || p.product?.unit || "ขวด";
         if (pId) {
           list.push({ productId: pId, productName: pName, quantity: qty, unit });
         }
@@ -84,15 +84,19 @@ export function Type7bActualForm({
         roundNumber: 1,
         sprayDate: actualState.t7VisitDate || new Date().toISOString().split("T")[0],
         sprayMethod: "SINGLE",
-        sprayEquipment: "เป้สะพายหลัง",
+        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
         otherEquipment: "",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         problemDetail: "",
         baselineProducts: targetDemoProducts.map((p) => ({
           productId: p.productId,
           productName: p.productName,
+          withdrawnQuantity: p.quantity,
           plannedQuantity: p.quantity,
           actualQuantity: p.quantity,
+          extraQuantity: "",
+          extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+          applicationRate: "",
           plannedRate: "",
           actualRate: "",
           unit: p.unit,
@@ -117,8 +121,12 @@ export function Type7bActualForm({
               baselineProducts: targetDemoProducts.map((p) => ({
                 productId: p.productId,
                 productName: p.productName,
+                withdrawnQuantity: p.quantity,
                 plannedQuantity: p.quantity,
                 actualQuantity: p.quantity,
+                extraQuantity: "",
+                extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+                applicationRate: "",
                 plannedRate: "",
                 actualRate: "",
                 unit: p.unit,
@@ -146,11 +154,17 @@ export function Type7bActualForm({
       roundNumber: newRoundNumber,
       sprayDate: actualState.t7VisitDate || new Date().toISOString().split("T")[0],
       sprayMethod: "SINGLE",
-      sprayEquipment: "เป้สะพายหลัง",
+      sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
       otherEquipment: "",
       productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       problemDetail: "",
-      baselineProducts: baseProducts.map((p) => ({ ...p, actualRate: "", actualQuantity: p.plannedQuantity })),
+      baselineProducts: baseProducts.map((p) => ({
+        ...p,
+        actualRate: "",
+        applicationRate: "",
+        actualQuantity: p.withdrawnQuantity || p.plannedQuantity,
+        extraQuantity: "",
+      })),
       additionalProducts: [],
       roundImages: [],
     };
@@ -198,8 +212,12 @@ export function Type7bActualForm({
           id: `add-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           productId: "",
           productName: "",
-          actualRate: "",
+          actualQuantity: 1,
           quantityUsed: 1,
+          extraQuantity: "",
+          extraUnit: "ซีซี",
+          applicationRate: "",
+          actualRate: "",
           unit: "ขวด",
         };
         updated[rIdx] = {
@@ -222,6 +240,16 @@ export function Type7bActualForm({
       if (updated[rIdx] && updated[rIdx].additionalProducts?.[pIdx]) {
         const prods = [...updated[rIdx].additionalProducts];
         prods[pIdx] = { ...prods[pIdx], [field]: value };
+        // Sync aliases
+        if (field === "actualQuantity") {
+          prods[pIdx].quantityUsed = value;
+        } else if (field === "quantityUsed") {
+          prods[pIdx].actualQuantity = value;
+        } else if (field === "applicationRate") {
+          prods[pIdx].actualRate = value;
+        } else if (field === "actualRate") {
+          prods[pIdx].applicationRate = value;
+        }
         updated[rIdx] = { ...updated[rIdx], additionalProducts: prods };
         onUpdateField?.("t7SprayingRounds", updated);
       }
@@ -255,6 +283,14 @@ export function Type7bActualForm({
       if (updated[rIdx] && updated[rIdx].baselineProducts?.[pIdx]) {
         const prods = [...updated[rIdx].baselineProducts];
         prods[pIdx] = { ...prods[pIdx], [field]: value };
+        // Sync aliases
+        if (field === "actualQuantity") {
+          prods[pIdx].plannedQuantity = value;
+        } else if (field === "applicationRate") {
+          prods[pIdx].actualRate = value;
+        } else if (field === "actualRate") {
+          prods[pIdx].applicationRate = value;
+        }
         updated[rIdx] = { ...updated[rIdx], baselineProducts: prods };
         onUpdateField?.("t7SprayingRounds", updated);
       }
@@ -430,12 +466,18 @@ export function Type7bActualForm({
                 )}
               </div>
 
-              {/* 1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products) */}
+              {/* ================================================================= */}
+              {/* 1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products)              */}
+              {/* รูปแบบตามหน้า Type 7A                                           */}
+              {/* ================================================================= */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-800">
-                    1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products)
-                  </span>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+                      1.1 สินค้าที่เบิกตามแผน (Planned Demo Products)
+                    </h4>
+                  </div>
                   <Badge
                     variant="outline"
                     className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] font-semibold px-2 py-0.2"
@@ -443,193 +485,86 @@ export function Type7bActualForm({
                     {baselineProds.length} รายการ
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-500 -mt-1.5">
-                  รายการสินค้าที่เบิกตามแผนและอัตราที่ใช้พ่นในรอบนี้
-                </p>
 
-                {baselineProds.length > 0 ? (
-                  <div className="space-y-2">
-                    {baselineProds.map((bp, bpIdx) => (
-                      <div
-                        key={bp.productId || bpIdx}
-                        className="bg-slate-50/80 border border-slate-200 rounded-xl p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center text-xs"
-                      >
-                        <div>
-                          <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                            <PackageCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span>{bp.productName}</span>
-                          </div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">
-                            เบิกตามแผน: {bp.plannedQuantity || 1} {bp.unit || "หน่วย"}
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-600">
-                            อัตราที่ใช้จริงรอบนี้
-                          </label>
-                          <ActivityInput
-                            value={bp.actualRate || ""}
-                            onChange={(e) =>
-                              handleUpdateBaselineProduct(rIdx, bpIdx, "actualRate", e.target.value)
-                            }
-                            disabled={readonly}
-                            placeholder="เช่น 20 ซีซี/น้ำ 20 ลิตร"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-600">
-                            ปริมาณที่ใช้จริง ({bp.unit || "หน่วย"})
-                          </label>
-                          <ActivityInput
-                            type="number"
-                            min={0}
-                            step="any"
-                            value={bp.actualQuantity ?? bp.plannedQuantity ?? 1}
-                            onChange={(e) =>
-                              handleUpdateBaselineProduct(
-                                rIdx,
-                                bpIdx,
-                                "actualQuantity",
-                                e.target.value,
-                              )
-                            }
-                            disabled={readonly}
-                            placeholder="1"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* 1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products) */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                      <PackagePlus className="w-4 h-4 text-purple-600" />
-                      <span>1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products)</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">
-                      รายการสินค้าที่ใช้จริงเพิ่มเติมรอบนี้ (ไม่อยู่ในแผนตอนเบิก)
-                    </p>
-                  </div>
-                  {!readonly && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handleAddAdditionalProduct(rIdx)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium px-2.5 py-1 flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>เพิ่มสินค้าจริง</span>
-                    </Button>
-                  )}
-                </div>
-
-                {additionalProds.length === 0 ? (
-                  <div className="bg-slate-50/50 border border-dashed border-slate-200 rounded-xl p-5 text-center text-xs text-slate-400 space-y-1">
-                    <p className="font-medium text-slate-600">ยังไม่มีรายการสินค้าเพิ่มเติมในรอบนี้</p>
-                    <p className="text-[11px] text-slate-400">
-                      หากมีการใช้สินค้าอื่นหรือยาเสริมเพิ่มเติมรอบนี้ สามารถกดปุ่ม &quot;+ เพิ่มสินค้าจริง&quot; ได้
-                    </p>
-                  </div>
+                {baselineProds.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
+                    ไม่มีรายการสินค้าตัวอย่างที่ขอเบิกไว้ในแผนงาน
+                  </p>
                 ) : (
-                  <div className="space-y-2.5">
-                    {additionalProds.map((ap, apIdx) => (
+                  <div className="space-y-3">
+                    {baselineProds.map((prod, idx) => (
                       <div
-                        key={ap.id || apIdx}
-                        className="bg-slate-50/80 border border-slate-200 rounded-xl p-3 sm:p-4 space-y-3"
+                        key={prod.productId || idx}
+                        className="bg-emerald-50/40 border border-emerald-150 rounded-xl p-3.5 sm:p-4 space-y-3"
                       >
-                        <div className="flex items-center justify-between border-b border-slate-150 pb-2">
-                          <span className="text-xs font-bold text-slate-700">
-                            สินค้าเพิ่มเติม #{apIdx + 1}
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-xs font-bold text-slate-900">
+                            {idx + 1}. {prod.productName || "สินค้าตัวอย่าง"}
                           </span>
-                          {!readonly && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveAdditionalProduct(rIdx, apIdx)}
-                              className="text-rose-500 hover:text-rose-700 text-xs flex items-center gap-1 font-medium transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>ลบ</span>
-                            </button>
-                          )}
+                          <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
+                            จำนวนที่เบิก: {prod.withdrawnQuantity || prod.plannedQuantity || 1}
+                          </span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-600">
-                              เลือกสินค้า <span className="text-rose-500">*</span>
+                            <label className="text-xs font-semibold text-slate-700">
+                              จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityProductSelect
-                              products={products as any}
-                              value={ap.productId}
-                              onChange={(val, prod) => {
-                                handleUpdateAdditionalProduct(rIdx, apIdx, "productId", val);
-                                if (prod) {
-                                  handleUpdateAdditionalProduct(rIdx, apIdx, "productName", prod.name);
-                                  if (prod.unit) {
-                                    handleUpdateAdditionalProduct(rIdx, apIdx, "unit", prod.unit);
-                                  }
-                                }
-                              }}
+                            <ActivityInput
+                              type="number"
+                              min="0"
+                              value={prod.actualQuantity != null ? String(prod.actualQuantity) : ""}
+                              onChange={(e) =>
+                                handleUpdateBaselineProduct(rIdx, idx, "actualQuantity", e.target.value)
+                              }
                               disabled={readonly}
+                              placeholder="เช่น 1"
+                              required
                             />
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-600">
-                              ปริมาณที่ใช้ <span className="text-rose-500">*</span>
+                            <label className="text-xs font-semibold text-slate-700">
+                              ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                               <ActivityInput
                                 type="number"
-                                min={0}
-                                step="any"
-                                value={ap.quantityUsed ?? 1}
+                                min="0"
+                                value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
                                 onChange={(e) =>
-                                  handleUpdateAdditionalProduct(
-                                    rIdx,
-                                    apIdx,
-                                    "quantityUsed",
-                                    e.target.value,
-                                  )
+                                  handleUpdateBaselineProduct(rIdx, idx, "extraQuantity", e.target.value)
                                 }
                                 disabled={readonly}
-                                placeholder="1"
+                                placeholder="เช่น 250"
                               />
-                              <ActivityInput
-                                value={ap.unit || "ขวด"}
-                                onChange={(e) =>
-                                  handleUpdateAdditionalProduct(rIdx, apIdx, "unit", e.target.value)
+                              <ActivitySelect
+                                value={prod.extraUnit || "ซีซี"}
+                                onChange={(val) =>
+                                  handleUpdateBaselineProduct(rIdx, idx, "extraUnit", val)
                                 }
+                                options={[
+                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
+                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                ]}
                                 disabled={readonly}
-                                className="w-24 shrink-0"
-                                placeholder="หน่วย"
                               />
                             </div>
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-600">
-                              อัตราที่ใช้จริง
+                            <label className="text-xs font-semibold text-slate-700">
+                              อัตราการใช้ <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
-                              value={ap.actualRate || ""}
+                              value={prod.applicationRate || prod.actualRate || ""}
                               onChange={(e) =>
-                                handleUpdateAdditionalProduct(
-                                  rIdx,
-                                  apIdx,
-                                  "actualRate",
-                                  e.target.value,
-                                )
+                                handleUpdateBaselineProduct(rIdx, idx, "applicationRate", e.target.value)
                               }
                               disabled={readonly}
-                              placeholder="เช่น 20 ซีซี/น้ำ 20 ลิตร"
+                              placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                              required
                             />
                           </div>
                         </div>
@@ -639,73 +574,236 @@ export function Type7bActualForm({
                 )}
               </div>
 
-              {/* 2. วิธีการฉีดพ่น */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-semibold text-slate-700">
-                  2. วิธีการฉีดพ่น <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex flex-wrap items-center gap-6 pt-0.5">
-                  {SPRAY_METHOD_RADIO_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-800"
-                    >
-                      <input
-                        type="radio"
-                        name={`spray-method-${round.id || rIdx}`}
-                        value={opt.value}
-                        checked={round.sprayMethod === opt.value}
-                        disabled={readonly}
-                        onChange={() => handleUpdateRoundField(rIdx, "sprayMethod", opt.value)}
-                        className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 accent-emerald-600"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+              {/* ================================================================= */}
+              {/* 1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products)            */}
+              {/* รูปแบบตามหน้า Type 7A                                           */}
+              {/* ================================================================= */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <PackagePlus className="w-4 h-4 text-emerald-600" />
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+                      1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (กรณีไม่ได้ใช้ยาที่เบิกไป)
+                    </h4>
+                  </div>
 
-              {/* 3. อุปกรณ์ที่ใช้ฉีดพ่น */}
-              <div className="space-y-2 pt-1">
-                <label className="text-xs font-semibold text-slate-700">
-                  3. อุปกรณ์ที่ใช้ฉีดพ่น <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-0.5">
-                  {SPRAY_EQUIPMENT_RADIO_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-800"
+                  {!readonly && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddAdditionalProduct(rIdx)}
+                      className="h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
                     >
-                      <input
-                        type="radio"
-                        name={`spray-equip-${round.id || rIdx}`}
-                        value={opt.value}
-                        checked={round.sprayEquipment === opt.value}
-                        disabled={readonly}
-                        onChange={() => handleUpdateRoundField(rIdx, "sprayEquipment", opt.value)}
-                        className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500 accent-emerald-600"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
+                      <Plus className="w-3.5 h-3.5" />
+                      เพิ่มสินค้า
+                    </Button>
+                  )}
                 </div>
 
-                {round.sprayEquipment === "อื่นๆ ระบุ..." && (
-                  <div className="pt-1 max-w-md">
-                    <ActivityInput
-                      value={round.otherEquipment || ""}
-                      onChange={(e) =>
-                        handleUpdateRoundField(rIdx, "otherEquipment", e.target.value)
-                      }
-                      placeholder="ระบุอุปกรณ์ฉีดพ่น..."
-                      disabled={readonly}
-                    />
+                {additionalProds.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
+                    ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+ เพิ่มสินค้า&quot; หากมีการใช้ยาตัวอื่น
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {additionalProds.map((prod, idx) => (
+                      <div
+                        key={prod.id || idx}
+                        className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800">
+                            สินค้าเพิ่มเติมลำดับที่ {idx + 1}
+                          </span>
+                          {!readonly && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAdditionalProduct(rIdx, idx)}
+                              className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
+                              title="ลบรายการ"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <ActivityProductSelect
+                            id={`round-${round.id || rIdx}-additional-prod-${idx}`}
+                            label="เลือกสินค้าจากระบบ"
+                            value={prod.productId}
+                            valueKey="id"
+                            products={products as any}
+                            onChange={(val, selected) => {
+                              const resolvedId = selected?.id || val;
+                              const resolvedName = selected?.name || prod.productName || "";
+                              handleUpdateAdditionalProduct(rIdx, idx, "productId", resolvedId);
+                              handleUpdateAdditionalProduct(rIdx, idx, "productName", resolvedName);
+                              if (selected?.unit) {
+                                const defaultExtra = selected.unit.includes("ซอง") ? "กรัม" : "ซีซี";
+                                handleUpdateAdditionalProduct(rIdx, idx, "extraUnit", defaultExtra);
+                              }
+                            }}
+                            disabled={readonly}
+                            placeholder="ค้นหาและเลือกสินค้า..."
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-semibold text-slate-700">
+                              จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                            </label>
+                            <ActivityInput
+                              type="number"
+                              min="0"
+                              value={
+                                prod.actualQuantity != null
+                                  ? String(prod.actualQuantity)
+                                  : prod.quantityUsed != null
+                                    ? String(prod.quantityUsed)
+                                    : ""
+                              }
+                              onChange={(e) => {
+                                handleUpdateAdditionalProduct(rIdx, idx, "actualQuantity", e.target.value);
+                                handleUpdateAdditionalProduct(rIdx, idx, "quantityUsed", e.target.value);
+                              }}
+                              disabled={readonly}
+                              placeholder="เช่น 1"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-semibold text-slate-700">
+                              ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <ActivityInput
+                                type="number"
+                                min="0"
+                                value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
+                                onChange={(e) =>
+                                  handleUpdateAdditionalProduct(rIdx, idx, "extraQuantity", e.target.value)
+                                }
+                                disabled={readonly}
+                                placeholder="เช่น 250"
+                              />
+                              <ActivitySelect
+                                value={prod.extraUnit || "ซีซี"}
+                                onChange={(val) =>
+                                  handleUpdateAdditionalProduct(rIdx, idx, "extraUnit", val)
+                                }
+                                options={[
+                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
+                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                ]}
+                                disabled={readonly}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-xs font-semibold text-slate-700">
+                              อัตราการใช้ <span className="text-rose-500">*</span>
+                            </label>
+                            <ActivityInput
+                              value={prod.applicationRate || prod.actualRate || ""}
+                              onChange={(e) => {
+                                handleUpdateAdditionalProduct(rIdx, idx, "applicationRate", e.target.value);
+                                handleUpdateAdditionalProduct(rIdx, idx, "actualRate", e.target.value);
+                              }}
+                              disabled={readonly}
+                              placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
+              {/* ================================================================= */}
+              {/* 2. วิธีการฉีดพ่น (Single vs Tank-mixed)                             */}
+              {/* รูปแบบ 2-button toggle ตามหน้า Type 7A                            */}
+              {/* ================================================================= */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="text-xs font-semibold text-slate-700">
+                  วิธีการฉีดพ่น <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3 max-w-md">
+                  <button
+                    type="button"
+                    disabled={readonly}
+                    onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "SINGLE")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      round.sprayMethod !== "TANK_MIXED"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    ฉีดเดี่ยว (Single)
+                  </button>
+                  <button
+                    type="button"
+                    disabled={readonly}
+                    onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "TANK_MIXED")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      round.sprayMethod === "TANK_MIXED"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    ผสมถัง (Tank-mixed)
+                  </button>
+                </div>
+              </div>
+
+              {/* ================================================================= */}
+              {/* 3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment)                            */}
+              {/* รูปแบบ ActivitySelect Dropdown ตามหน้า Type 7A                    */}
+              {/* ================================================================= */}
+              <div className="space-y-2 pt-1 border-t border-slate-100">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <Wrench className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+                    3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <ActivitySelect
+                    label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
+                    value={round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
+                    onChange={(val) => handleUpdateRoundField(rIdx, "sprayEquipment", val)}
+                    options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({ value: equip, label: equip }))}
+                    disabled={readonly}
+                  />
+
+                  {(round.sprayEquipment === "อื่นๆ (ระบุ)" || round.sprayEquipment === "อื่นๆ ระบุ...") && (
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-700">
+                        ระบุอุปกรณ์เพิ่มเติม <span className="text-rose-500">*</span>
+                      </label>
+                      <ActivityInput
+                        value={round.otherEquipment || ""}
+                        onChange={(e) =>
+                          handleUpdateRoundField(rIdx, "otherEquipment", e.target.value)
+                        }
+                        placeholder="พิมพ์ระบุอุปกรณ์ฉีดพ่น..."
+                        disabled={readonly}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* 4. ผลหลังการฉีดพ่นรอบนี้ */}
-              <div className="space-y-2 pt-1">
+              <div className="space-y-2 pt-1 border-t border-slate-100">
                 <label className="text-xs font-semibold text-slate-700">
                   4. ผลหลังการฉีดพ่นรอบนี้ <span className="text-rose-500">*</span>
                 </label>
@@ -737,7 +835,7 @@ export function Type7bActualForm({
               </div>
 
               {/* 5. รูปถ่ายการฉีดพ่นรอบนี้ */}
-              <div className="space-y-2 pt-1">
+              <div className="space-y-2 pt-1 border-t border-slate-100">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-slate-700">
                     5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปการผสม / ขณะปฏิบัติงาน)

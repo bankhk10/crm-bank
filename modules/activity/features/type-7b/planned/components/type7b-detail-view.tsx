@@ -238,12 +238,19 @@ export function Type7bDetailView({
                               >
                                 <div>
                                   <span className="font-bold text-slate-800 block">{bp.productName}</span>
-                                  {bp.actualRate && (
-                                    <span className="text-[11px] text-slate-500">อัตราใช้: {bp.actualRate}</span>
+                                  {(bp.applicationRate || bp.actualRate) && (
+                                    <span className="text-[11px] text-slate-500 block">
+                                      อัตราใช้: {bp.applicationRate || bp.actualRate}
+                                    </span>
+                                  )}
+                                  {bp.extraQuantity && (
+                                    <span className="text-[10px] text-slate-400 block">
+                                      ใช้เพิ่ม: {bp.extraQuantity} {bp.extraUnit || "ซีซี"}
+                                    </span>
                                   )}
                                 </div>
                                 <span className="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded text-[11px]">
-                                  {bp.actualQuantity || bp.plannedQuantity || 1} {bp.unit || "หน่วย"}
+                                  {bp.actualQuantity || bp.plannedQuantity || 1} {bp.unit || "ขวด"}
                                 </span>
                               </div>
                             ))}
@@ -266,12 +273,19 @@ export function Type7bDetailView({
                               >
                                 <div>
                                   <span className="font-bold text-slate-800 block">{ap.productName || "สินค้า"}</span>
-                                  {ap.actualRate && (
-                                    <span className="text-[11px] text-slate-500">อัตราใช้: {ap.actualRate}</span>
+                                  {(ap.applicationRate || ap.actualRate) && (
+                                    <span className="text-[11px] text-slate-500 block">
+                                      อัตราใช้: {ap.applicationRate || ap.actualRate}
+                                    </span>
+                                  )}
+                                  {ap.extraQuantity && (
+                                    <span className="text-[10px] text-slate-400 block">
+                                      ใช้เพิ่ม: {ap.extraQuantity} {ap.extraUnit || "ซีซี"}
+                                    </span>
                                   )}
                                 </div>
                                 <span className="bg-purple-50 text-purple-800 font-bold px-2 py-0.5 rounded text-[11px]">
-                                  {ap.quantityUsed || 1} {ap.unit || "หน่วย"}
+                                  {ap.actualQuantity || ap.quantityUsed || 1} {ap.unit || "ขวด"}
                                 </span>
                               </div>
                             ))}

@@ -33,7 +33,10 @@ export function validateType7bActual(
       if (!round.sprayEquipment) {
         errors.push(`รอบที่ ${rNum}: กรุณาเลือกอุปกรณ์ที่ใช้ฉีดพ่น`);
       }
-      if (round.sprayEquipment === "อื่นๆ ระบุ..." && !round.otherEquipment?.trim()) {
+      if (
+        (round.sprayEquipment === "อื่นๆ ระบุ..." || round.sprayEquipment === "อื่นๆ (ระบุ)") &&
+        !round.otherEquipment?.trim()
+      ) {
         errors.push(`รอบที่ ${rNum}: กรุณาระบุชื่ออุปกรณ์ฉีดพ่นเพิ่มเติม`);
       }
       if (round.productResponse === "พบปัญหา / พืชมีอาการผิดปกติ" && !round.problemDetail?.trim()) {
@@ -46,8 +49,12 @@ export function validateType7bActual(
           if (!ap.productId) {
             errors.push(`รอบที่ ${rNum} สินค้าเพิ่มเติมรายการที่ ${pIdx + 1}: กรุณาเลือกสินค้า`);
           }
-          if (ap.quantityUsed == null || ap.quantityUsed === "" || Number(ap.quantityUsed) <= 0) {
-            errors.push(`รอบที่ ${rNum} สินค้าเพิ่มเติมรายการที่ ${pIdx + 1}: กรุณาระบุปริมาณที่ใช้`);
+          const qty =
+            ap.actualQuantity != null && ap.actualQuantity !== ""
+              ? ap.actualQuantity
+              : ap.quantityUsed;
+          if (qty == null || qty === "" || Number(qty) <= 0) {
+            errors.push(`รอบที่ ${rNum} สินค้าเพิ่มเติมรายการที่ ${pIdx + 1}: กรุณาระบุจำนวนที่ใช้จริง`);
           }
         });
       }
