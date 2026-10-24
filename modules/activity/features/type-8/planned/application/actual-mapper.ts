@@ -89,5 +89,57 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
     }
   }
 
+  // 4. Attachments fallback
+  const rawAtts: any[] = Array.isArray(resData.attachments) ? resData.attachments : [];
+  if ((!result.t8Images || result.t8Images.length === 0) && rawAtts.length > 0) {
+    const atmos = rawAtts
+      .filter(
+        (a) =>
+          a.workTypeCode === "TYPE_8" &&
+          (a.category === "ATMOSPHERE" ||
+            a.category === "MEETING" ||
+            a.group === "ATMOSPHERE" ||
+            a.fileUrl?.includes("/atmosphere/") ||
+            a.fileUrl?.includes("/meeting/") ||
+            a.fileName?.includes("บรรยากาศ")),
+      )
+      .map((a) => ({
+        id: a.id,
+        url: a.fileUrl || a.url,
+        name: a.fileName || a.name || "ภาพถ่ายบรรยากาศการประชุม",
+        size: a.fileSize || a.size || 0,
+        type: a.mimeType || a.type || "image/jpeg",
+      }));
+    if (atmos.length > 0) {
+      result.t8Images = atmos;
+    }
+  }
+
+  if (
+    (!result.t8RegistrationImages || result.t8RegistrationImages.length === 0) &&
+    rawAtts.length > 0
+  ) {
+    const reg = rawAtts
+      .filter(
+        (a) =>
+          a.workTypeCode === "TYPE_8" &&
+          (a.category === "REGISTRATION" ||
+            a.group === "REGISTRATION" ||
+            a.fileUrl?.includes("/registration/") ||
+            a.fileName?.includes("ใบลงทะเบียน") ||
+            a.fileName?.includes("registration")),
+      )
+      .map((a) => ({
+        id: a.id,
+        url: a.fileUrl || a.url,
+        name: a.fileName || a.name || "รูปใบลงทะเบียนผู้เข้าร่วมงาน",
+        size: a.fileSize || a.size || 0,
+        type: a.mimeType || a.type || "image/jpeg",
+      }));
+    if (reg.length > 0) {
+      result.t8RegistrationImages = reg;
+    }
+  }
+
   return result;
 }

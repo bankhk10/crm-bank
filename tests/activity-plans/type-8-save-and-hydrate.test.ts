@@ -212,6 +212,60 @@ async function runTests() {
 
   console.log("✓ Test 3 passed: type8PlannedStrategy.savePlan correctly saves stores, products, and targetAttendeesCount.");
 
+  // -------------------------------------------------------------------------
+  // Test 4: Type 8 Actual Result Parsing & Attachment Mapping
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 4] Testing Type 8 Actual Result Parsing & Attachment Mapping...");
+
+  const { parseType8ActualResult } = await import(
+    "../../modules/activity/features/type-8/planned/application/actual-mapper"
+  );
+
+  const mockActualData = {
+    actualAttendeesCount: 45,
+    resultSummary: "จัดประชุม: อบรมการใช้ปุ๋ยเคมี (ผู้เข้าร่วมจริง: 45 คน)\nQ&A: เกษตรกรสอบถามเรื่องระยะเวลาการใส่ปุ๋ย",
+    saleResults: [
+      {
+        id: "sale-1",
+        productId: "prod-bigkill",
+        productName: "บิ๊กกิล",
+        actualQuantity: 10,
+        unclosedReason: "ขายพร้อมแถมเสื้อ",
+        workTypeCode: "TYPE_8",
+      },
+    ],
+    attachments: [
+      {
+        id: "att-reg-1",
+        workTypeCode: "TYPE_8",
+        category: "GENERAL",
+        fileUrl: "/uploads/activity-plans/plan-1/registration/type8_registration/reg.jpg",
+        fileName: "ใบลงทะเบียนเกษตรกร.jpg",
+      },
+      {
+        id: "att-atmos-1",
+        workTypeCode: "TYPE_8",
+        category: "ATMOSPHERE",
+        fileUrl: "/uploads/activity-plans/plan-1/atmosphere/type8_atmosphere/atmos.jpg",
+        fileName: "ภาพบรรยากาศการประชุม.jpg",
+      },
+    ],
+  };
+
+  const parsedActual = parseType8ActualResult(mockActualData);
+  assert.strictEqual(parsedActual.t8ActualAttendees, "45", "t8ActualAttendees should be 45");
+  assert.strictEqual(parsedActual.t8FeedbackQnA, "เกษตรกรสอบถามเรื่องระยะเวลาการใส่ปุ๋ย", "Q&A should match");
+  assert.strictEqual(parsedActual.t8ProductSalesDetails?.length, 1, "Should have 1 sale item");
+  assert.strictEqual(parsedActual.t8ProductSalesDetails?.[0].productName, "บิ๊กกิล");
+  assert.strictEqual(parsedActual.t8ProductSalesDetails?.[0].actualQty, "10");
+
+  assert.strictEqual(parsedActual.t8RegistrationImages?.length, 1, "Should map registration image correctly");
+  assert.strictEqual(parsedActual.t8RegistrationImages?.[0].name, "ใบลงทะเบียนเกษตรกร.jpg");
+  assert.strictEqual(parsedActual.t8Images?.length, 1, "Should map atmosphere image correctly");
+  assert.strictEqual(parsedActual.t8Images?.[0].name, "ภาพบรรยากาศการประชุม.jpg");
+
+  console.log("✓ Test 4 passed: Type 8 Actual results, attendees, sales, and attachments parsed successfully.");
+
   console.log("\n🎉 ALL TYPE 8 SAVE & HYDRATION TESTS PASSED 100%!");
 }
 

@@ -94,7 +94,7 @@ export const type12UnplannedStrategy: WorkTypeStrategy = {
               fileName: img.name || "ภาพกิจกรรมศึกษาดูงาน",
               fileSize: img.size || 0,
               mimeType: img.type || "image/jpeg",
-              category: "TOUR",
+              category: "ATMOSPHERE",
               workTypeCode: WORK_TYPE_CODE,
             },
           });

@@ -283,7 +283,7 @@ export function ActivityPlanActualView({
         if (Object.keys(parsedT7b).length > 0) {
           type7bActual.hydrate(parsedT7b);
         }
-        type8Actual.hydrate(payloadToHydrate);
+        type8Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type9Actual.hydrate(payloadToHydrate);
         type10Actual.hydrate(payloadToHydrate);
         type11Actual.hydrate(payloadToHydrate);

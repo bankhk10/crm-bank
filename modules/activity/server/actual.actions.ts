@@ -74,12 +74,25 @@ export async function recordActivityResultAction(
       ? new Date(payload.actualEndDate)
       : plan.endDate;
 
+    const rawAttendeesCount =
+      payload.actualAttendeesCount ??
+      payload.actualAttendees ??
+      payload.t8ActualAttendees ??
+      payload.type8Actual?.t8ActualAttendees ??
+      payload.type8Actual?.actualAttendees ??
+      payload.t9ActualAttendees ??
+      payload.type9Actual?.actualAttendees;
+    const actualAttendeesCount =
+      rawAttendeesCount != null && rawAttendeesCount !== ""
+        ? Number(rawAttendeesCount)
+        : null;
+
     // 4. Upsert ActivityResult and sync strategies inside atomic transaction
     const activityResult = await upsertActivityResult({
       activityPlanId: planId,
       actualStartDate,
       actualEndDate,
-      actualAttendeesCount: payload.actualAttendeesCount ?? null,
+      actualAttendeesCount,
       resultStatus: payload.resultStatus ?? "COMPLETED",
       resultSummary: payload.resultSummary ?? null,
       cancelReason: payload.cancelReason ?? null,

@@ -411,7 +411,11 @@ export function DetailWorkTypeList({
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
-          (att?.category === "REGISTRATION" || att?.group === "REGISTRATION"),
+          (att?.category === "REGISTRATION" ||
+            att?.group === "REGISTRATION" ||
+            att?.fileUrl?.includes("/registration/") ||
+            att?.fileName?.includes("ใบลงทะเบียน") ||
+            att?.fileName?.includes("registration")),
       )
       .map((att) => ({
         id: att.id,

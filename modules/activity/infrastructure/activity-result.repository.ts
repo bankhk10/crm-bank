@@ -1,9 +1,30 @@
 import { randomUUID } from "crypto";
-import { Prisma, ActivityResultStatus, CalendarEventStatus } from "@prisma/client";
+import { Prisma, ActivityResultStatus, CalendarEventStatus, AttachmentCategory } from "@prisma/client";
 import { db } from "@/lib/db";
 import type { PrismaTransaction } from "../types/strategy.interface";
 import { saveStrategiesForActual } from "./strategy.registry";
 import { getWorkTypeCode } from "../constants";
+
+const VALID_ATTACHMENT_CATEGORIES: Record<string, AttachmentCategory> = {
+  PRICE_TAG: AttachmentCategory.PRICE_TAG,
+  SHELF: AttachmentCategory.SHELF,
+  CROP: AttachmentCategory.CROP,
+  PLOT: AttachmentCategory.PLOT,
+  ATMOSPHERE: AttachmentCategory.ATMOSPHERE,
+  MEETING: AttachmentCategory.ATMOSPHERE,
+  ISSUE: AttachmentCategory.ISSUE,
+  SURVEY_BOTTLE: AttachmentCategory.SURVEY_BOTTLE,
+  SURVEY_PROMO_MATERIAL: AttachmentCategory.SURVEY_PROMO_MATERIAL,
+  GENERAL: AttachmentCategory.GENERAL,
+};
+
+function normalizeAttachmentCategory(rawCategory: any): AttachmentCategory {
+  if (!rawCategory || typeof rawCategory !== "string") {
+    return AttachmentCategory.GENERAL;
+  }
+  const upper = rawCategory.trim().toUpperCase();
+  return VALID_ATTACHMENT_CATEGORIES[upper] || AttachmentCategory.GENERAL;
+}
 
 function toDecimalSafe(val: any): Prisma.Decimal | null {
   if (val == null) return null;
@@ -330,7 +351,7 @@ export async function upsertActivityResult(
               activityPlanId: input.activityPlanId,
               activityResultId: result.id,
               workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
-              category: att.category || "GENERAL",
+              category: normalizeAttachmentCategory(att.category),
               storeId: att.storeId || null,
               productId: att.productId || null,
               surveyItemId: att.surveyItemId || null,

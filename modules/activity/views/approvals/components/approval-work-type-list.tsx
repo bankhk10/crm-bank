@@ -375,7 +375,10 @@ export function ApprovalWorkTypeList({
             a.workTypeCode === "TYPE_8" &&
             (a.category === "REGISTRATION" ||
               a.category === "ATMOSPHERE" ||
-              a.group === "REGISTRATION"),
+              a.group === "REGISTRATION" ||
+              a.fileUrl?.includes("/registration/") ||
+              a.fileName?.includes("ใบลงทะเบียน") ||
+              a.fileName?.includes("registration")),
         )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -667,7 +670,11 @@ export function ApprovalWorkTypeList({
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
-          (att?.category === "REGISTRATION" || att?.group === "REGISTRATION"),
+          (att?.category === "REGISTRATION" ||
+            att?.group === "REGISTRATION" ||
+            att?.fileUrl?.includes("/registration/") ||
+            att?.fileName?.includes("ใบลงทะเบียน") ||
+            att?.fileName?.includes("registration")),
       )
       .map((att) => ({
         id: att.id,

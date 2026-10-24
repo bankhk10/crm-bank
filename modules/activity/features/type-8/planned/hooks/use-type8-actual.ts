@@ -19,49 +19,137 @@ export function useType8Actual() {
   const [t8RegistrationImages, setT8RegistrationImages] = useState<Type8ImageFile[]>([]);
   const initialT8RegistrationImagesRef = useRef<Type8ImageFile[]>([]);
 
-  const hydrate = useCallback((parsed: any) => {
+  const hydrate = useCallback((parsed: any, attachments: any[] = []) => {
     if (!parsed) return;
     const actualData = parsed.type8Actual || parsed;
-    const attendees =
+    const summaryText = parsed.resultSummary || parsed.summary || "";
+
+    // 1. Attendees
+    let attendees =
       actualData.actualAttendees ??
       actualData.t8ActualAttendees ??
+      parsed.actualAttendeesCount ??
       parsed.actualAttendees ??
       parsed.t8ActualAttendees;
+
+    if ((attendees == null || attendees === "") && summaryText) {
+      const match = summaryText.match(/(?:จำนวนผู้เข้าร่วม(?:ประชุม)?จริง|ผู้เข้าร่วมจริง|ผู้เข้าร่วม):\s*(\d+)/);
+      if (match) attendees = match[1];
+    }
+
     if (attendees != null && attendees !== "") {
       setT8ActualAttendees(String(attendees));
     }
 
-    const feedback =
+    // 2. Feedback / Q&A
+    let feedback =
       actualData.feedbackQnA ??
       actualData.t8FeedbackQnA ??
       parsed.feedbackQnA ??
       parsed.t8FeedbackQnA;
+
+    if (!feedback && summaryText) {
+      const match = summaryText.match(/Q&A:\s*([^|\n]+)/);
+      if (match) feedback = match[1].trim();
+    }
+
     if (feedback) setT8FeedbackQnA(feedback);
 
-    const salesDetails =
+    // 3. Sales Details
+    let salesDetails =
       actualData.productSalesDetails ??
       actualData.t8ProductSalesDetails ??
       parsed.productSalesDetails ??
       parsed.t8ProductSalesDetails;
-    if (salesDetails) {
+
+    if (!salesDetails && Array.isArray(parsed.saleResults) && parsed.saleResults.length > 0) {
+      const t8Sales = parsed.saleResults.filter(
+        (s: any) =>
+          s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",
+      );
+      if (t8Sales.length > 0) {
+        salesDetails = t8Sales.map((s: any) => ({
+          id: s.id,
+          productId: s.productId,
+          productName: s.productName || s.product?.name || "",
+          actualQty: String(s.actualQuantity ?? ""),
+          notes: s.unclosedReason || s.notes || "",
+          isAdditional: Boolean(s.isAdditional),
+        }));
+      }
+    }
+
+    if (salesDetails && Array.isArray(salesDetails)) {
       setT8ProductSalesDetails(salesDetails);
     }
 
-    const imgs =
+    // 4. Atmosphere Images
+    let imgs =
       actualData.images ??
       actualData.t8Images ??
       parsed.images ??
       parsed.t8Images;
+
+    const allAtts: any[] =
+      Array.isArray(attachments) && attachments.length > 0
+        ? attachments
+        : Array.isArray(parsed.attachments)
+          ? parsed.attachments
+          : [];
+
+    if ((!imgs || imgs.length === 0) && allAtts.length > 0) {
+      imgs = allAtts
+        .filter(
+          (a) =>
+            a.workTypeCode === "TYPE_8" &&
+            (a.category === "ATMOSPHERE" ||
+              a.category === "MEETING" ||
+              a.group === "ATMOSPHERE" ||
+              a.fileUrl?.includes("/atmosphere/") ||
+              a.fileUrl?.includes("/meeting/") ||
+              a.fileName?.includes("บรรยากาศ")),
+        )
+        .map((a) => ({
+          id: a.id,
+          url: a.fileUrl || a.url,
+          name: a.fileName || a.name || "ภาพถ่ายบรรยากาศการประชุม",
+          size: a.fileSize || a.size || 0,
+          type: a.mimeType || a.type || "image/jpeg",
+        }));
+    }
+
     if (imgs && imgs.length > 0) {
       setT8Images(imgs);
       initialT8ImagesRef.current = JSON.parse(JSON.stringify(imgs));
     }
 
-    const regImgs =
+    // 5. Registration Images
+    let regImgs =
       actualData.registrationImages ??
       actualData.t8RegistrationImages ??
       parsed.registrationImages ??
       parsed.t8RegistrationImages;
+
+    if ((!regImgs || regImgs.length === 0) && allAtts.length > 0) {
+      regImgs = allAtts
+        .filter(
+          (a) =>
+            a.workTypeCode === "TYPE_8" &&
+            (a.category === "REGISTRATION" ||
+              a.group === "REGISTRATION" ||
+              a.fileUrl?.includes("/registration/") ||
+              a.fileName?.includes("ใบลงทะเบียน") ||
+              a.fileName?.includes("registration")),
+        )
+        .map((a) => ({
+          id: a.id,
+          url: a.fileUrl || a.url,
+          name: a.fileName || a.name || "รูปใบลงทะเบียนผู้เข้าร่วมงาน",
+          size: a.fileSize || a.size || 0,
+          type: a.mimeType || a.type || "image/jpeg",
+        }));
+    }
+
     if (regImgs && regImgs.length > 0) {
       setT8RegistrationImages(regImgs);
       initialT8RegistrationImagesRef.current = JSON.parse(
