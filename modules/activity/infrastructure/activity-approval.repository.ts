@@ -303,6 +303,42 @@ export async function findApprovalQueueData() {
       },
       orderBy: { createdAt: "asc" as const },
     },
+    type10Targets: {
+      include: {
+        demoPlot: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            ownerName: true,
+            location: true,
+            province: true,
+            district: true,
+          },
+        },
+        showcaseProduct: {
+          select: {
+            id: true,
+            name: true,
+            productCode: true,
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" as const },
+        },
+        result: true,
+      },
+      orderBy: { createdAt: "asc" as const },
+    },
     type13: {
       include: {
         plots: {

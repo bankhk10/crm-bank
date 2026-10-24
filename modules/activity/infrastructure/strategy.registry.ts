@@ -298,6 +298,7 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
               s.workTypeCode === "TYPE_10" ||
               s.workTypeCode === "จัดงาน Field Day",
           )) ||
+        (rawData.type10Targets && rawData.type10Targets.length > 0) ||
         (rawData.type10Plots && rawData.type10Plots.length > 0) ||
         (rawData.type10UnplannedItems &&
           rawData.type10UnplannedItems.length > 0) ||

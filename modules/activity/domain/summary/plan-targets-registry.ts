@@ -200,7 +200,8 @@ export function extractPlanTargets(
   if (
     !targets.t10?.location &&
     !targets.t10?.plotName &&
-    ((plan as any).demoPlotVisits?.some((v: any) => v.workTypeCode === "TYPE_10") ||
+    ((plan as any).type10Targets?.length ||
+      (plan as any).demoPlotVisits?.some((v: any) => v.workTypeCode === "TYPE_10") ||
       (plan as any).type10Plots?.length ||
       (plan as any).type10Data ||
       (plan as any).type10)

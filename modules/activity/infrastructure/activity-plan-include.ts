@@ -537,6 +537,66 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   type9Results: {
     orderBy: { createdAt: "asc" },
   },
+  // Dedicated Type 10 relations
+  type10Targets: {
+    include: {
+      demoPlot: {
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          ownerName: true,
+          location: true,
+          province: true,
+          district: true,
+          cropCategory: true,
+          cropName: true,
+        },
+      },
+      showcaseProduct: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+          price: true,
+          unit: true,
+        },
+      },
+      products: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              price: true,
+              unit: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      result: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type10Products: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+          price: true,
+          unit: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type10Results: {
+    orderBy: { createdAt: "asc" },
+  },
   marketingItems: {
     orderBy: { createdAt: "asc" },
   },

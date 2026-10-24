@@ -3,7 +3,8 @@ import { decodeType10Notes } from "../../shared/notes";
 
 /**
  * Extracts Type 10 (จัดงาน Field Day) Plan Targets from Activity Plan.
- * Supports multiple plot targets or single fallback.
+ * Checks dedicated relational storage (type10Targets) first,
+ * with fallback to demoPlotVisits and legacy tags.
  */
 export function extractType10PlanTargets(
   plan: any,
@@ -24,86 +25,172 @@ export function extractType10PlanTargets(
     return { primary: fallback, list: [fallback] };
   }
 
-  const visits = (plan.demoPlotVisits || []).filter(
-    (v: any) => v.workTypeCode === "TYPE_10" || !v.workTypeCode,
-  );
-
-  const products = (plan.products || plan.planProducts || []).filter(
-    (pr: any) => pr.workTypeCode === "TYPE_10" || !pr.workTypeCode,
-  );
-
-  const defaultShowcase =
-    products[0]?.productName ||
-    products[0]?.product?.name ||
-    prevTarget?.showcase ||
-    "";
-
-  const targetAttendeesStr = plan.targetAttendeesCount
-    ? `${plan.targetAttendeesCount} คน`
-    : prevTarget?.targetAttendees || "";
-
-  const targetSalesStr = plan.targetBookingSales
-    ? `฿${Number(plan.targetBookingSales).toLocaleString()}`
-    : prevTarget?.targetSales || "";
-
   const list: Type10TargetItem[] = [];
 
-  if (visits.length > 0) {
-    for (const v of visits) {
-      const plot = v.demoPlot || plan.demoPlot;
-      const plotName = plot?.ownerName
-        ? `${plot.ownerName}${plot.name ? ` (${plot.name})` : ""}`
-        : plot?.name || "";
+  // 1. Dedicated Relational Storage support (type10Targets)
+  const dedicatedTargets: any[] =
+    plan.type10Targets ||
+    plan.type10Data?.targets ||
+    [];
 
-      const location =
-        plot?.location || plan.location || prevTarget?.location || "";
+  if (Array.isArray(dedicatedTargets) && dedicatedTargets.length > 0) {
+    for (const t of dedicatedTargets) {
+      const plotTitle =
+        t.plotName ||
+        (t.demoPlot
+          ? t.demoPlot.ownerName
+            ? `${t.demoPlot.ownerName} (${t.demoPlot.name || "แปลงสาธิต"})`
+            : t.demoPlot.name || "แปลงสาธิต"
+          : "งาน Field Day");
 
-      const showcase =
-        plot?.primaryProductName ||
-        plot?.showcase ||
-        defaultShowcase;
+      const showcaseStr =
+        t.showcaseProductName ||
+        t.showcaseProduct?.name ||
+        t.showcase ||
+        t.demoPlot?.primaryProductName ||
+        t.demoPlot?.showcase ||
+        "";
 
-      const crop = plot?.targetCrop || plot?.cropName || prevTarget?.crop || "";
+      const cropStr =
+        t.cropName ||
+        t.cropCategory ||
+        t.crop ||
+        t.demoPlot?.targetCrop ||
+        t.demoPlot?.cropName ||
+        "";
+
+      const attendeesCount =
+        t.targetAttendeesCount != null
+          ? Number(t.targetAttendeesCount)
+          : plan.targetAttendeesCount != null
+            ? Number(plan.targetAttendeesCount)
+            : 0;
+
+      const bookingSalesNum =
+        t.targetBookingSales != null
+          ? Number(t.targetBookingSales)
+          : plan.targetBookingSales != null
+            ? Number(plan.targetBookingSales)
+            : 0;
 
       list.push({
-        id: v.id || plot?.id,
-        demoPlotId: v.demoPlotId || plot?.id || null,
-        plot: plotName,
+        id: t.id,
+        targetId: t.id,
+        demoPlotId: t.demoPlotId || null,
+        plot: plotTitle,
+        plotName: t.plotName || t.demoPlot?.name || "",
+        farmerName: t.farmerName || t.demoPlot?.ownerName || "",
+        location: t.location || t.demoPlot?.location || plan.location || "",
+        province: t.province || t.demoPlot?.province || "",
+        district: t.district || t.demoPlot?.district || "",
+        subdistrict: t.subdistrict || "",
+        latitude: t.latitude || "",
+        longitude: t.longitude || "",
+        showcase: showcaseStr,
+        showcaseProductId: t.showcaseProductId || null,
+        showcaseProductName: t.showcaseProductName || null,
+        crop: cropStr,
+        cropName: t.cropName || "",
+        cropCategory: t.cropCategory || "",
+        targetAttendees: attendeesCount ? `${attendeesCount} คน` : prevTarget?.targetAttendees || "",
+        targetAttendeesCount: attendeesCount,
+        targetSales: bookingSalesNum ? `฿${bookingSalesNum.toLocaleString()}` : prevTarget?.targetSales || "",
+        targetBookingSales: bookingSalesNum,
+        products: t.products || [],
+        result: t.result || null,
+      });
+    }
+  }
+
+  // 2. Fallback to legacy demoPlotVisits / demoPlot
+  if (list.length === 0) {
+    const visits = (plan.demoPlotVisits || []).filter(
+      (v: any) => v.workTypeCode === "TYPE_10" || !v.workTypeCode,
+    );
+
+    const products = (plan.products || plan.planProducts || []).filter(
+      (pr: any) => pr.workTypeCode === "TYPE_10" || !pr.workTypeCode,
+    );
+
+    const defaultShowcase =
+      products[0]?.productName ||
+      products[0]?.product?.name ||
+      prevTarget?.showcase ||
+      "";
+
+    const targetAttendeesStr = plan.targetAttendeesCount
+      ? `${plan.targetAttendeesCount} คน`
+      : prevTarget?.targetAttendees || "";
+
+    const targetSalesStr = plan.targetBookingSales
+      ? `฿${Number(plan.targetBookingSales).toLocaleString()}`
+      : prevTarget?.targetSales || "";
+
+    if (visits.length > 0) {
+      for (const v of visits) {
+        const plot = v.demoPlot || plan.demoPlot;
+        const plotName = plot?.ownerName
+          ? `${plot.ownerName}${plot.name ? ` (${plot.name})` : ""}`
+          : plot?.name || "";
+
+        const location =
+          plot?.location || plan.location || prevTarget?.location || "";
+
+        const showcase =
+          plot?.primaryProductName ||
+          plot?.showcase ||
+          defaultShowcase;
+
+        const crop = plot?.targetCrop || plot?.cropName || prevTarget?.crop || "";
+
+        list.push({
+          id: v.id || plot?.id,
+          targetId: v.id,
+          demoPlotId: v.demoPlotId || plot?.id || null,
+          plot: plotName || "งาน Field Day",
+          plotName: plot?.name || "",
+          farmerName: plot?.ownerName || "",
+          location,
+          showcase,
+          crop,
+          targetAttendees: targetAttendeesStr,
+          targetAttendeesCount: plan.targetAttendeesCount || 0,
+          targetSales: targetSalesStr,
+          targetBookingSales: plan.targetBookingSales ? Number(plan.targetBookingSales) : 0,
+        });
+      }
+    } else if (plan.demoPlot) {
+      const plot = plan.demoPlot;
+      const plotName = plot.ownerName
+        ? `${plot.ownerName}${plot.name ? ` (${plot.name})` : ""}`
+        : plot.name || "";
+
+      const location =
+        plot.location || plan.location || prevTarget?.location || "";
+
+      const showcase =
+        plot.primaryProductName ||
+        plot.showcase ||
+        defaultShowcase;
+
+      const crop = plot.targetCrop || plot.cropName || prevTarget?.crop || "";
+
+      list.push({
+        id: plot.id,
+        targetId: plot.id,
+        demoPlotId: plot.id || null,
+        plot: plotName || "งาน Field Day",
+        plotName: plot.name || "",
+        farmerName: plot.ownerName || "",
         location,
         showcase,
         crop,
         targetAttendees: targetAttendeesStr,
+        targetAttendeesCount: plan.targetAttendeesCount || 0,
         targetSales: targetSalesStr,
+        targetBookingSales: plan.targetBookingSales ? Number(plan.targetBookingSales) : 0,
       });
     }
-  } else if (plan.demoPlot) {
-    const plot = plan.demoPlot;
-    const plotName = plot.ownerName
-      ? `${plot.ownerName}${plot.name ? ` (${plot.name})` : ""}`
-      : plot.name || "";
-
-    const location =
-      plot.location || plan.location || prevTarget?.location || "";
-
-    const showcase =
-      plot.primaryProductName ||
-      plot.showcase ||
-      defaultShowcase;
-
-    const crop = plot.targetCrop || plot.cropName || prevTarget?.crop || "";
-
-    list.push({
-      id: plot.id,
-      demoPlotId: plot.id || null,
-      plot: plotName,
-      location,
-      showcase,
-      crop,
-      targetAttendees: targetAttendeesStr,
-      targetSales: targetSalesStr,
-    });
-  } else if (plan.type10Targets && Array.isArray(plan.type10Targets) && plan.type10Targets.length > 0) {
-    list.push(...plan.type10Targets);
   }
 
   const decoded = decodeType10Notes(plan.notes);
@@ -112,10 +199,12 @@ export function extractType10PlanTargets(
     list[0] || {
       plot: prevTarget?.plot || (plan.title ? `งาน Field Day: ${plan.title}` : "จัดงาน Field Day"),
       location: plan.location || prevTarget?.location || "",
-      showcase: decoded.showcase || defaultShowcase || prevTarget?.showcase || "",
+      showcase: decoded.showcase || prevTarget?.showcase || "",
       crop: decoded.targetCrop || prevTarget?.crop || "",
-      targetAttendees: targetAttendeesStr,
-      targetSales: targetSalesStr,
+      targetAttendees: plan.targetAttendeesCount ? `${plan.targetAttendeesCount} คน` : prevTarget?.targetAttendees || "",
+      targetAttendeesCount: plan.targetAttendeesCount || 0,
+      targetSales: plan.targetBookingSales ? `฿${Number(plan.targetBookingSales).toLocaleString()}` : prevTarget?.targetSales || "",
+      targetBookingSales: plan.targetBookingSales ? Number(plan.targetBookingSales) : 0,
       demoPlotId: plan.demoPlotId || null,
     };
 
@@ -147,6 +236,23 @@ export function hydrateType10PlannedData(initialData: any): {
     };
   }
 
+  // 1. Check dedicated type10Targets
+  const firstTarget =
+    initialData.type10Targets?.[0] ||
+    initialData.type10Data?.targets?.[0];
+
+  if (firstTarget) {
+    return {
+      demoPlotId: firstTarget.demoPlotId || "",
+      location: firstTarget.location || firstTarget.demoPlot?.location || "",
+      targetCrop: firstTarget.cropName || firstTarget.cropCategory || firstTarget.demoPlot?.targetCrop || "",
+      showcase: firstTarget.showcaseProductName || firstTarget.showcaseProduct?.name || firstTarget.demoPlot?.primaryProductName || "",
+      attendees: firstTarget.targetAttendeesCount != null ? Number(firstTarget.targetAttendeesCount) : 0,
+      bookingSales: firstTarget.targetBookingSales != null ? Number(firstTarget.targetBookingSales) : 0,
+    };
+  }
+
+  // 2. Legacy fallback
   const visits = initialData.demoPlotVisits || [];
   const matchedVisit = visits.find((v: any) => v.workTypeCode === "TYPE_10");
   const demoPlot = matchedVisit?.demoPlot || initialData.demoPlot;

@@ -303,27 +303,29 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | เก็บ `targetAttendeesCount`, `targetBookingSales`, `location`, `notes` |
-| **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `savePlan()` ใน Planned/Unplanned | `findType10ByPlanId`, `extractType10PlanTargets` | อัปเดต `demoPlotId` ใน `savePlan()` | Cascade เมื่อลบแปลง | บันทึกประวัติการจัดงาน Field Day ที่ผูกกับแปลงสาธิต (`workTypeCode = 'TYPE_10'`) |
+| **`activity_type_10_targets`**<br>(`ActivityPlanType10Target`) | `savePlan()` ใน Planned/Unplanned | `findType10ByPlanId`, `extractType10PlanTargets` | `savePlan()` | Cascade เมื่อลบแผน | เก็บแปลง/สถานที่, ผู้เข้าร่วมเป้าหมาย, ยอดจองเป้าหมาย, สินค้าจัดแสดงหลัก |
+| **`activity_type_10_products`**<br>(`ActivityPlanType10Product`) | `savePlan()` / `saveActual()` | `findType10ByPlanId`, `parseType10ActualResult` | `saveActual()` | Cascade เมื่อลบเป้าหมาย | เก็บสินค้าจัดแสดง (`SHOWCASE`), สินค้าเป้าหมาย (`TARGET`), และสินค้าที่ขายจริง (`ADDITIONAL_SALE`) พร้อมยอดเงิน |
+| **`activity_type_10_result`**<br>(`ActivityResultType10`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType10ActualResult` | `saveActual()` | Cascade เมื่อลบเป้าหมาย | เก็บผลงานจริงรายแปลง: ผู้เข้าร่วมจริง, ยอดขายจริง, ความสนใจเกษตรกร, สรุปผลงาน |
+| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตารางแผนงานหลัก (Header) |
+| **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `savePlan()` (sync mirror) | หน้าดูแปลงสาธิต | - | Cascade เมื่อลบแปลง | บันทึกประวัติการจัดงาน Field Day ลงใน Timeline ของแปลงสาธิต |
 | **`demo_plots`**<br>(`DemoPlot`) | - (สร้างจาก 7A) | include ใน `findType10ByPlanId` | - | - | แปลงสาธิตอ้างอิง (ชื่อแปลง, เจ้าของ, สินค้าหลัก, พืช, พิกัด) |
-| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType10ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | เก็บ `actualAttendeesCount`, `salesResultAmount`, `resultSummary` |
-| **`activity_result_sale_items`**<br>(`ActivityResultSaleItem`) | `saveType10ActualSaleItems` | `parseType10ActualResult` (`saleResults`) | `deleteMany()` + `createMany()` ใน Repo | Cascade เมื่อลบผลงาน | เก็บรายการสินค้าที่ขายหรือจองได้ในงาน (`workTypeCode = "TYPE_10"`) |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปภาพบรรยากาศการจัดงาน Field Day (`group = 'atmosphere'`) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **แปลงสาธิตที่จัดงาน** | `type10DemoPlot` / `demoPlotId` | `mapType10Payload` ➔ `submittedDemoPlotId` | `DemoPlotVisit` | `demo_plot_id` | `VARCHAR (FK)` | No | - |
-| **สถานที่จัดงาน** | `type10Location` / `location` | `planned-mapper` / `unplanned-mapper` | `ActivityPlan` | `location` | `VARCHAR` | Yes | `null` |
-| **สินค้าจัดแสดงหลัก** | `type10Showcase` / `showcase` | `encodeType10Notes` / `decodeType10Notes` | `ActivityPlan` | `notes` (`[สินค้าสาธิต: ...]`) | `TEXT` | Yes | `null` |
-| **พืชเป้าหมาย** | `type10TargetCrop` / `crop` | `encodeType10Notes` / `decodeType10Notes` | `ActivityPlan` | `notes` (`[พืชเป้าหมาย: ...]`) | `TEXT` | Yes | `null` |
-| **เป้าหมายผู้เข้าร่วม** | `type10Attendees` | `mapType10Payload` | `ActivityPlan` | `target_attendees_count` | `INTEGER` | Yes | `0` |
-| **เป้ายอดขายหรือสั่งจอง** | `type10BookingSales` | `mapType10Payload` | `ActivityPlan` | `target_booking_sales` | `DECIMAL(15,2)` | Yes | `0` |
-| **ผู้เข้าร่วมงานจริง** | `actualAttendees` | `parseType10ActualResult` / `saveActual` | `ActivityResult` | `actual_attendees_count` | `INTEGER` | Yes | `null` |
-| **ยอดขายหรือยอดจองจริง**| `actualSalesOrBooking` | `parseType10ActualResult` / `saveActual` | `ActivityResult` | `sales_result_amount` | `DECIMAL(15,2)` | Yes | `null` |
-| **ผลตอบรับจากเกษตรกร** | `farmerFeedback` | `actual-mapper` / `unplanned-mapper` | `ActivityResult` | `result_summary` (บรรทัด Feedback) | `TEXT` | Yes | `null` |
-| **รายชื่อเกษตรกรเป้าหมาย**| `targetFarmersList` | `encodeType10Notes` / `decodeType10Notes` | `ActivityPlan` / `ActivityResult` | `notes` / `result_summary` | `TEXT` | Yes | `null` |
-| **สินค้าที่ขายหรือจองได้**| `soldProducts` | `saveType10ActualSaleItems` | `ActivityResultSaleItem` | `product_id`, `actual_quantity`, `actual_amount` | `INTEGER / DECIMAL` | No | - |
+| **แปลงสาธิตที่จัดงาน** | `type10DemoPlot` / `demoPlotId` | `mapType10Payload` ➔ `type10Targets` | `ActivityPlanType10Target` | `demo_plot_id` | `VARCHAR (FK)` | Yes | `null` |
+| **สถานที่จัดงาน** | `type10Location` / `location` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `location` | `VARCHAR` | Yes | `null` |
+| **สินค้าจัดแสดงหลัก** | `type10Showcase` / `showcase` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `showcase_product_name` | `VARCHAR` | Yes | `null` |
+| **พืชเป้าหมาย** | `type10TargetCrop` / `crop` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `crop_name` | `VARCHAR` | Yes | `null` |
+| **เป้าหมายผู้เข้าร่วม** | `type10Attendees` | `mapType10Payload` | `ActivityPlanType10Target` | `target_attendees_count` | `INTEGER` | Yes | `0` |
+| **เป้ายอดขายหรือสั่งจอง** | `type10BookingSales` | `mapType10Payload` | `ActivityPlanType10Target` | `target_booking_sales` | `DECIMAL(15,2)` | Yes | `0` |
+| **ผู้เข้าร่วมงานจริง** | `actualAttendees` | `parseType10ActualResult` / `saveActual` | `ActivityResultType10` | `actual_attendees_count` | `INTEGER` | Yes | `0` |
+| **ยอดขายหรือยอดจองจริง**| `actualSalesOrBooking` | `parseType10ActualResult` / `saveActual` | `ActivityResultType10` | `actual_total_sales` | `DECIMAL(15,2)` | Yes | `null` |
+| **ผลตอบรับจากเกษตรกร** | `farmerFeedback` | `actual-mapper` / `unplanned-mapper` | `ActivityResultType10` | `farmer_feedback` | `VARCHAR` | Yes | `null` |
+| **รายชื่อเกษตรกรเป้าหมาย**| `targetFarmersList` | `actual-mapper` / `unplanned-mapper` | `ActivityResultType10` | `target_farmers_list` | `TEXT` | Yes | `null` |
+| **สรุปผลการจัดงาน/Q&A** | `summary` | `actual-mapper` / `unplanned-mapper` | `ActivityResultType10` | `summary` | `TEXT` | Yes | `null` |
+| **สินค้าที่ขายหรือจองได้**| `soldProducts` | `saveActual()` / `savePlan()` | `ActivityPlanType10Product` | `actual_quantity`, `actual_total` | `DECIMAL(10,2) / (15,2)` | Yes | `null` |
 | **รูปถ่ายบรรยากาศงาน** | `images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_10'` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)

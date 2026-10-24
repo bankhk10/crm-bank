@@ -8,12 +8,14 @@ import type {
 import type { Type10TargetItem, Type10PlanTarget } from "./planned.types";
 
 export interface Type10ActualRecord {
+  targetId?: string;
   actualAttendees?: string;
   actualSalesOrBooking?: string;
   farmerFeedback?: FarmerFeedback | "";
   targetFarmersList?: string;
   productSalesDetails?: Type10SoldProductItem[];
   soldProducts?: Type10SoldProductItem[];
+  summary?: string;
   images?: Type10ImageFile[];
 }
 
@@ -46,6 +48,8 @@ export interface Type10ActualFormProps {
   setSoldDetails?: (v: string) => void;
   targetFarmersList?: string;
   setTargetFarmersList?: (v: string) => void;
+  summary?: string;
+  setSummary?: (v: string) => void;
 }
 
 export type ActualType10FieldDayProps = Type10ActualFormProps;
@@ -59,6 +63,7 @@ export interface Type10DetailViewProps {
   salesResultAmount?: string;
   targetFarmersList?: string;
   farmerFeedback?: FarmerFeedback | "";
+  summary?: string;
   images?: Type10ImageFile[];
   productSalesDetails?: Type10SoldProductItem[];
   soldProducts?: Type10SoldProductItem[];
@@ -82,4 +87,5 @@ export interface Type10ActualValidationInput {
   farmerFeedback?: string;
   hasSales?: boolean;
   soldProducts?: Type10SoldProductItem[];
+  summary?: string;
 }

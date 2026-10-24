@@ -723,6 +723,8 @@ model Product {
   activityResultType1Products    ActivityResultType1Product[]
   activityPlanType8Products      ActivityPlanType8Product[]
   activityPlanType9Products      ActivityPlanType9Product[]
+  activityPlanType10Products     ActivityPlanType10Product[]
+  activityPlanType10Showcase     ActivityPlanType10Target[]   @relation("Type10ShowcaseProduct")
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1781,6 +1783,9 @@ model ActivityPlan {
   type9Targets   ActivityPlanType9Target[]
   type9Products  ActivityPlanType9Product[]
   type9Results   ActivityResultType9[]
+  type10Targets  ActivityPlanType10Target[]
+  type10Products ActivityPlanType10Product[]
+  type10Results  ActivityResultType10[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2488,6 +2493,7 @@ model DemoPlot {
   type7bPlots         ActivityPlanType7bPlot[]
   type13Plots         ActivityPlanType13Plot[]
   type14Plots         ActivityPlanType14Plot[]
+  type10Targets       ActivityPlanType10Target[]
 
   @@index([plotType])
   @@index([customerId])
@@ -3244,4 +3250,110 @@ model ActivityResultType9 {
   @@index([activityPlanId])
   @@index([targetId])
   @@map("activity_type_9_result")
+}
+
+// =============================================================================
+// TYPE 10: Dedicated Tables (Field Day Event / จัดงาน Field Day)
+// =============================================================================
+
+model ActivityPlanType10Target {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+
+  // Demo Plot Reference (Optional - กรณีจัด ณ แปลงสาธิตในระบบ)
+  demoPlotId           String?   @map("demo_plot_id")
+
+  // Venue & Plot Details (รองรับทั้งแปลงในระบบและระบุเอง)
+  plotName             String?   @map("plot_name")
+  farmerName           String?   @map("farmer_name")
+  cropCategory         String?   @map("crop_category")
+  cropName             String?   @map("crop_name")
+  location             String?   @map("location")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  subdistrict          String?   @map("subdistrict")
+  latitude             String?   @map("latitude")
+  longitude            String?   @map("longitude")
+
+  // Showcase product (สินค้าจัดแสดงหลัก)
+  showcaseProductId    String?   @map("showcase_product_id")
+  showcaseProductName  String?   @map("showcase_product_name")
+
+  // Target metrics (เป้าหมายตามแผน)
+  targetAttendeesCount Int?      @default(0) @map("target_attendees_count")
+  targetBookingSales   Decimal?  @map("target_booking_sales") @db.Decimal(15, 2)
+  eventDate            DateTime? @map("event_date")
+  notes                String?   @map("notes") @db.Text
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan                 @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  demoPlot             DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  showcaseProduct      Product?                     @relation("Type10ShowcaseProduct", fields: [showcaseProductId], references: [id], onDelete: SetNull)
+  products             ActivityPlanType10Product[]
+  result               ActivityResultType10?
+
+  @@index([activityPlanId])
+  @@index([demoPlotId])
+  @@index([showcaseProductId])
+  @@map("activity_type_10_targets")
+}
+
+model ActivityPlanType10Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "SHOWCASE" | "TARGET" | "ADDITIONAL_SALE"
+
+  // Planned fields
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+
+  // Actual fields
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan    ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType10Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                 @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([productId])
+  @@map("activity_type_10_products")
+}
+
+model ActivityResultType10 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+
+  // Actual Metrics
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
+  actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
+  farmerFeedback       String?  @map("farmer_feedback") // "สูง" | "กลาง" | "ต่ำ"
+  targetFarmersList    String?  @map("target_farmers_list") @db.Text
+  summary              String?  @map("summary") @db.Text
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType10Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_10_result")
 }

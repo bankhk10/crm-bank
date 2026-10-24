@@ -3,23 +3,19 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import { saveType10ActualSaleItems } from "../../planned/infrastructure/type10.repository";
+import { type10PlannedStrategy } from "../../planned/infrastructure/type10-planned.strategy";
 
+/**
+ * Strategy for TYPE_10 Unplanned Activities (Field Day Event)
+ * In an unplanned field day, field day plan details and actual outcome records
+ * are saved together 2-in-1 into activity_type_10_targets, activity_type_10_products,
+ * and activity_type_10_result.
+ */
 export const type10UnplannedStrategy: WorkTypeStrategy = {
   code: "TYPE_10",
 
-  async validatePlan(
-    planData: any,
-    _db: any,
-  ): Promise<StrategyValidationResult> {
-    const events = planData.type10Data?.events || [];
-    if (events.length === 0 && !planData.demoPlotId && !planData.location) {
-      return {
-        valid: false,
-        error: "กรุณาระบุแปลงสาธิตหรือสถานที่สำหรับการจัดงาน Field Day",
-      };
-    }
-    return { valid: true };
+  async validatePlan(planData: any, db: any): Promise<StrategyValidationResult> {
+    return type10PlannedStrategy.validatePlan!(planData, db);
   },
 
   async savePlan(
@@ -27,34 +23,33 @@ export const type10UnplannedStrategy: WorkTypeStrategy = {
     activityPlanId: string,
     planData: any,
   ): Promise<void> {
-    const visits = planData.demoPlotVisits || [];
-    for (const v of visits) {
-      if (v.demoPlotId) {
-        await (tx as any).demoPlotVisit.create({
-          data: {
-            activityPlanId,
-            demoPlotId: v.demoPlotId,
-            workTypeCode: "TYPE_10",
-            visitNumber: 1,
-            visitDate: new Date(),
-          },
-        });
-      }
+    // 1. Save Type 10 Plan targets, products, and 2-in-1 results per target
+    await type10PlannedStrategy.savePlan(tx, activityPlanId, planData);
+
+    // 2. If actual outcome passed (top-level 2-in-1 unplanned submission), save actual outcome
+    if (planData.actualOutcome || planData.actualData) {
+      await type10PlannedStrategy.saveActual!(tx, activityPlanId, {
+        ...(planData.actualOutcome || planData.actualData),
+      });
     }
+  },
+
+  async loadPlan(tx: PrismaTransaction, activityPlanId: string): Promise<any[]> {
+    return type10PlannedStrategy.loadPlan!(tx, activityPlanId);
   },
 
   async saveActual(
     tx: PrismaTransaction,
-    resultId: string,
+    activityPlanId: string,
     actualData: any,
   ): Promise<void> {
-    const items =
-      actualData.soldProducts ||
-      actualData.productSalesDetails ||
-      actualData.type10Actual?.soldProducts;
+    return type10PlannedStrategy.saveActual!(tx, activityPlanId, actualData);
+  },
 
-    if (items && Array.isArray(items)) {
-      await saveType10ActualSaleItems(tx, resultId, items);
-    }
+  async loadActual(
+    tx: PrismaTransaction,
+    activityPlanId: string,
+  ): Promise<any | null> {
+    return type10PlannedStrategy.loadActual!(tx, activityPlanId);
   },
 };

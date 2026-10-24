@@ -1,37 +1,66 @@
 import type React from "react";
-import type { Type10DemoPlotOption } from "../../shared/types";
+import type {
+  Type10DemoPlotOption,
+  Type10ProductEntity,
+  Type10ResultEntity,
+} from "../../shared/types";
 
 export interface Type10TargetItem {
   id?: string;
+  targetId?: string;
   demoPlotId?: string | null;
   plot?: string;
+  plotName?: string;
+  farmerName?: string;
   location?: string;
+  province?: string;
+  district?: string;
   showcase?: string;
+  showcaseProductId?: string | null;
+  showcaseProductName?: string | null;
   crop?: string;
+  cropName?: string;
   targetAttendees?: string;
+  targetAttendeesCount?: number;
   targetSales?: string;
+  targetBookingSales?: number;
+  products?: Type10ProductEntity[];
+  result?: Type10ResultEntity | null;
   [key: string]: any;
 }
 
 export interface Type10PlanItem {
+  id?: string;
   demoPlotId?: string | null;
+  plotName?: string;
   location?: string;
   targetAttendeesCount?: number;
   targetBookingSales?: number;
   products?: Array<{
-    productId: string;
+    productId?: string | null;
     productName?: string | null;
+    productRole?: string;
   }>;
 }
 
 export interface Type10PlanTarget {
   id?: string;
+  targetId?: string;
+  demoPlotId?: string | null;
   plot?: string;
+  plotName?: string;
+  farmerName?: string;
   location?: string;
+  province?: string;
+  district?: string;
   showcase?: string;
   crop?: string;
   targetAttendees?: number | string;
+  targetAttendeesCount?: number;
   targetSales?: number | string;
+  targetBookingSales?: number;
+  products?: Type10ProductEntity[];
+  result?: Type10ResultEntity | null;
   [key: string]: any;
 }
 
@@ -99,5 +128,9 @@ export interface UseType10PlannedFormResult {
     submittedDemoPlotId: string | null;
     targetAttendees: number | null;
     targetBookingSales: number | null;
+    location?: string | null;
+    showcase?: string | null;
+    targetCrop?: string | null;
+    type10Targets?: any[];
   };
 }

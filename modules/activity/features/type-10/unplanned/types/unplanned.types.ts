@@ -8,17 +8,25 @@ import type {
 
 export interface Type10UnplannedItem {
   id: string;
+  targetId?: string;
   demoPlotId?: string | null;
   plotName: string;
   farmerName?: string;
   location?: string;
+  province?: string;
+  district?: string;
+  subdistrict?: string;
+  cropCategory?: string;
   cropName?: string;
+  showcaseProductId?: string | null;
   showcaseProduct?: string;
   expectedAttendees?: number | string;
   actualAttendees: number | string;
   targetBookingSales?: number | string;
   actualSalesOrBooking: number | string;
   farmerFeedback: FarmerFeedback | "";
+  targetFarmersList?: string;
+  summary?: string;
   soldProducts: Type10SoldProductItem[];
   notes?: string;
   images: Type10ImageFile[];

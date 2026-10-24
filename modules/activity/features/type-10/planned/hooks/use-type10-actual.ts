@@ -15,9 +15,12 @@ import { validateType10Actual } from "../application/actual-validation";
 export { validateType10Actual };
 
 export function useType10Actual() {
+  const [targetId, setTargetId] = useState<string | undefined>(undefined);
   const [actualAttendees, setActualAttendees] = useState("");
   const [actualSalesOrBooking, setActualSalesOrBooking] = useState("");
   const [farmerFeedback, setFarmerFeedback] = useState<FarmerFeedback | "">("");
+  const [targetFarmersList, setTargetFarmersList] = useState("");
+  const [summary, setSummary] = useState("");
   const [hasSales, setHasSales] = useState(false);
   const [soldProducts, setSoldProducts] = useState<Type10SoldProductItem[]>([]);
   const [images, setImages] = useState<Type10ImageFile[]>([]);
@@ -26,6 +29,10 @@ export function useType10Actual() {
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
     const actualData = parsed.type10Actual || parsed;
+
+    if (actualData.targetId || parsed.targetId) {
+      setTargetId(actualData.targetId || parsed.targetId);
+    }
 
     const attendees =
       actualData.actualAttendees ??
@@ -50,6 +57,12 @@ export function useType10Actual() {
 
     const feedback = actualData.farmerFeedback ?? parsed.farmerFeedback;
     if (feedback) setFarmerFeedback(feedback);
+
+    const farmers = actualData.targetFarmersList ?? parsed.targetFarmersList;
+    if (farmers) setTargetFarmersList(farmers);
+
+    const sum = actualData.summary ?? parsed.summary ?? parsed.resultSummary;
+    if (sum) setSummary(sum);
 
     const prods =
       actualData.soldProducts ??
@@ -113,18 +126,23 @@ export function useType10Actual() {
         t10SoldProducts: soldProducts,
         t10Images: cleanImages,
         type10Actual: {
+          targetId,
           actualAttendees,
           actualSalesOrBooking,
           farmerFeedback,
+          targetFarmersList,
+          summary,
           soldProducts,
           images: cleanImages,
         },
       };
     },
-    [actualAttendees, actualSalesOrBooking, farmerFeedback, soldProducts, images],
+    [targetId, actualAttendees, actualSalesOrBooking, farmerFeedback, targetFarmersList, summary, soldProducts, images],
   );
 
   return {
+    targetId,
+    setTargetId,
     actualAttendees,
     setActualAttendees,
     t10ActualAttendees: actualAttendees,
@@ -134,6 +152,10 @@ export function useType10Actual() {
     farmerFeedback,
     setFarmerFeedback,
     t10FarmerFeedback: farmerFeedback,
+    targetFarmersList,
+    setTargetFarmersList,
+    summary,
+    setSummary,
     hasSales,
     setHasSales,
     soldProducts,
