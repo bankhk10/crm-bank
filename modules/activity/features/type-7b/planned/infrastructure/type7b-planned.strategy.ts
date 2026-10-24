@@ -35,7 +35,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 7B Plan targets in dedicated tables (ActivityPlanType7b, ActivityPlanType7bPlot, ActivityPlanType7bProduct, DemoPlotVisit)
+   * Save Type 7B Plan targets in dedicated tables (ActivityPlanType7bTarget, ActivityPlanType7bProduct, DemoPlotVisit)
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -63,7 +63,8 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 7B Actual outcome data
+   * Save Type 7B Actual outcome data in dedicated tables (ActivityResultType7b, SprayRound, SprayProduct, SprayExternal)
+   * And sync master DemoPlot & DemoPlotVisit
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -72,25 +73,13 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     const t7b = actualData.type7bActual || actualData;
 
-    // 1. Resolve ActivityResult
-    let resultId = actualData.activityResultId || actualData.id || null;
-    if (!resultId) {
-      const res = await (tx as any).activityResult.findUnique({
-        where: { activityPlanId },
-        select: { id: true },
-      });
-      resultId = res?.id || null;
-    }
+    // 1. Resolve target & DemoPlotId
+    const target = await (tx as any).activityPlanType7bTarget.findFirst({
+      where: { activityPlanId },
+      select: { id: true, demoPlotId: true },
+    });
 
-    // 2. Resolve DemoPlotId
-    let demoPlotId = t7b.t7DemoPlotId || t7b.demoPlotId || actualData.demoPlotId || null;
-    if (!demoPlotId) {
-      const matchedPlanPlot = await (tx as any).activityPlanType7bPlot.findFirst({
-        where: { type7b: { activityPlanId } },
-        select: { demoPlotId: true },
-      });
-      demoPlotId = matchedPlanPlot?.demoPlotId || null;
-    }
+    let demoPlotId = t7b.t7DemoPlotId || t7b.demoPlotId || actualData.demoPlotId || target?.demoPlotId || null;
     if (!demoPlotId) {
       const matchedVisit = await (tx as any).demoPlotVisit.findFirst({
         where: { activityPlanId },
@@ -106,320 +95,265 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       demoPlotId = matchedPlot?.id || null;
     }
 
+    if (!demoPlotId) {
+      console.warn(`[Type7B saveActual] Cannot find demoPlotId for activityPlanId: ${activityPlanId}. Skipping.`);
+      return;
+    }
+
     const visitDate = t7b.t7VisitDate ? new Date(t7b.t7VisitDate) : new Date();
     const daysSinceStart = Number(t7b.t7DaysAfterSpray) || 0;
     const cropImageUrls = (t7b.t7CropImages || []).map((img: any) => img.url).filter(Boolean);
     const sprayingRounds: any[] = t7b.t7SprayingRounds || [];
     const firstRound = sprayingRounds[0];
 
-    // 3. Update DemoPlot status
-    if (demoPlotId) {
-      let mappedStatus: DemoPlotStatus = DemoPlotStatus.IN_PROGRESS;
-      if (t7b.t7PlotStatus === "COMPLETED") {
-        mappedStatus = DemoPlotStatus.COMPLETED;
-      } else if (t7b.t7PlotStatus === "CANCELLED" || t7b.t7PlotStatus === "FAILED") {
-        mappedStatus = DemoPlotStatus.CANCELLED;
-      }
+    // 2. Update DemoPlot status & yield metadata
+    let mappedStatus: DemoPlotStatus = DemoPlotStatus.IN_PROGRESS;
+    if (t7b.t7PlotStatus === "COMPLETED") {
+      mappedStatus = DemoPlotStatus.COMPLETED;
+    } else if (t7b.t7PlotStatus === "CANCELLED" || t7b.t7PlotStatus === "FAILED") {
+      mappedStatus = DemoPlotStatus.CANCELLED;
+    }
 
-      const isClosing = mappedStatus === DemoPlotStatus.COMPLETED || mappedStatus === DemoPlotStatus.CANCELLED;
+    const isClosing = mappedStatus === DemoPlotStatus.COMPLETED || mappedStatus === DemoPlotStatus.CANCELLED;
 
-      const demoPlotUpdateData: any = {
-        status: mappedStatus,
-        closedDate: isClosing ? new Date() : null,
-      };
+    const demoPlotUpdateData: any = {
+      status: mappedStatus,
+      closedDate: isClosing ? new Date() : null,
+    };
 
-      if (t7b.t7NextSprayDate) {
-        demoPlotUpdateData.nextSprayDate = new Date(t7b.t7NextSprayDate);
-      }
-      if (t7b.t7FinalYieldKg) {
-        demoPlotUpdateData.demoYieldKg = new Prisma.Decimal(String(t7b.t7FinalYieldKg));
-      }
-      if (t7b.t7ControlYieldKg) {
-        demoPlotUpdateData.controlYieldKg = new Prisma.Decimal(String(t7b.t7ControlYieldKg));
-      }
-      if (t7b.t7FarmerSatisfaction) {
-        demoPlotUpdateData.farmerSatisfaction = Number(t7b.t7FarmerSatisfaction);
-      }
-      if (t7b.t7CommercialPotential) {
-        demoPlotUpdateData.commercialPotential = t7b.t7CommercialPotential;
-      }
-      if (t7b.t7FinalSummaryNotes) {
-        demoPlotUpdateData.finalSummaryNotes = t7b.t7FinalSummaryNotes;
-      }
-      if (firstRound?.sprayMethod === "TANK_MIXED") {
-        demoPlotUpdateData.hasExternalChemicals = Boolean(firstRound?.hasExternalChemicals);
-      }
+    if (t7b.t7NextSprayDate) {
+      demoPlotUpdateData.nextSprayDate = new Date(t7b.t7NextSprayDate);
+    }
+    if (t7b.t7FinalYieldKg) {
+      demoPlotUpdateData.demoYieldKg = new Prisma.Decimal(String(t7b.t7FinalYieldKg));
+    }
+    if (t7b.t7ControlYieldKg) {
+      demoPlotUpdateData.controlYieldKg = new Prisma.Decimal(String(t7b.t7ControlYieldKg));
+    }
+    if (t7b.t7FarmerSatisfaction) {
+      demoPlotUpdateData.farmerSatisfaction = Number(t7b.t7FarmerSatisfaction);
+    }
+    if (t7b.t7CommercialPotential) {
+      demoPlotUpdateData.commercialPotential = t7b.t7CommercialPotential;
+    }
+    if (t7b.t7FinalSummaryNotes) {
+      demoPlotUpdateData.finalSummaryNotes = t7b.t7FinalSummaryNotes;
+    }
+    if (firstRound?.sprayMethod === "TANK_MIXED") {
+      demoPlotUpdateData.hasExternalChemicals = Boolean(firstRound?.hasExternalChemicals);
+    }
 
-      await (tx as any).demoPlot.update({
-        where: { id: demoPlotId },
-        data: demoPlotUpdateData,
+    await (tx as any).demoPlot.update({
+      where: { id: demoPlotId },
+      data: demoPlotUpdateData,
+    });
+
+    // 3. Upsert DemoPlotVisit for timeline tracking
+    const existingVisit = await (tx as any).demoPlotVisit.findFirst({
+      where: {
+        activityPlanId,
+        demoPlotId,
+      },
+    });
+
+    if (existingVisit) {
+      await (tx as any).demoPlotVisit.update({
+        where: { id: existingVisit.id },
+        data: {
+          visitDate,
+          daysSinceStart,
+          cropImageUrls,
+          imageUrls: cropImageUrls,
+          notes: t7b.t7Notes || null,
+          cropCondition: t7b.t7CropCondition || "สมบูรณ์",
+          growthStage: t7b.t7GrowthStage || "",
+          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
+          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
+          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
+          sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
+          sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
+          otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
+        },
+      });
+    } else {
+      const count = await (tx as any).demoPlotVisit.count({
+        where: { demoPlotId },
       });
 
-      // 4. Upsert DemoPlotVisit for this activity plan
-      const existingVisit = await (tx as any).demoPlotVisit.findFirst({
-        where: {
-          activityPlanId,
+      await (tx as any).demoPlotVisit.create({
+        data: {
           demoPlotId,
+          activityPlanId,
+          workTypeCode: "TYPE_7B",
+          visitNumber: count + 1,
+          visitDate,
+          daysSinceStart,
+          cropImageUrls,
+          imageUrls: cropImageUrls,
+          notes: t7b.t7Notes || null,
+          cropCondition: t7b.t7CropCondition || "สมบูรณ์",
+          growthStage: t7b.t7GrowthStage || "",
+          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
+          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
+          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
+          sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
+          sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
+          otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
+        },
+      });
+    }
+
+    // 4. Save into dedicated ActivityResultType7b table
+    await (tx as any).activityResultType7b.deleteMany({
+      where: { activityPlanId },
+    });
+
+    const createdResult = await (tx as any).activityResultType7b.create({
+      data: {
+        activityPlanId,
+        targetId: target?.id || null,
+        demoPlotId,
+        visitDate,
+        daysSinceStart,
+        cropCondition: t7b.t7CropCondition || "สมบูรณ์",
+        growthStage: t7b.t7GrowthStage || "",
+        cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
+        productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
+        productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
+        nextSprayDate: t7b.t7NextSprayDate ? new Date(t7b.t7NextSprayDate) : null,
+        notes: t7b.t7Notes || null,
+        plotStatus: mappedStatus,
+        finalHarvestDate: t7b.t7FinalHarvestDate ? new Date(t7b.t7FinalHarvestDate) : null,
+        demoYieldKg: t7b.t7FinalYieldKg ? new Prisma.Decimal(String(t7b.t7FinalYieldKg)) : null,
+        controlYieldKg: t7b.t7ControlYieldKg ? new Prisma.Decimal(String(t7b.t7ControlYieldKg)) : null,
+        farmerSatisfaction: t7b.t7FarmerSatisfaction ? Number(t7b.t7FarmerSatisfaction) : null,
+        commercialPotential: t7b.t7CommercialPotential || null,
+        finalSummaryNotes: t7b.t7FinalSummaryNotes || null,
+      },
+    });
+
+    // 5. Save Spray Rounds into dedicated ActivityResultType7bSprayRound
+    for (const round of sprayingRounds) {
+      const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
+
+      const createdRound = await (tx as any).activityResultType7bSprayRound.create({
+        data: {
+          resultId: createdResult.id,
+          roundNumber: round.roundNumber || 1,
+          sprayDate: roundSprayDate,
+          sprayMethod: round.sprayMethod || "SINGLE",
+          hasExternalChemicals: Boolean(round.hasExternalChemicals),
+          sprayEquipment: round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+          otherEquipment: round.otherEquipment || null,
+          productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+          problemDetail: round.problemDetail || null,
+          notes: t7b.t7Notes || null,
         },
       });
 
-      if (existingVisit) {
-        await (tx as any).demoPlotVisit.update({
-          where: { id: existingVisit.id },
-          data: {
-            visitDate,
-            daysSinceStart,
-            cropImageUrls,
-            imageUrls: cropImageUrls,
-            notes: t7b.t7Notes || null,
-            cropCondition: t7b.t7CropCondition || "สมบูรณ์",
-            growthStage: t7b.t7GrowthStage || "",
-            cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-            productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-            productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-            sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
-            sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
-            otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
+      // Products (Baseline & Additional)
+      const allProducts = [
+        ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
+        ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
+      ];
+
+      const validProducts = allProducts.filter((p) => Boolean(p.productId || p.productName));
+      if (validProducts.length > 0) {
+        const prodIds = validProducts.map((p) => p.productId).filter(Boolean);
+        const prodNames = validProducts.map((p) => p.productName).filter(Boolean);
+
+        const dbProds = await (tx as any).product.findMany({
+          where: {
+            OR: [
+              ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
+              ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
+            ],
           },
-        });
-      } else {
-        const count = await (tx as any).demoPlotVisit.count({
-          where: { demoPlotId },
+          select: { id: true, name: true, unit: true },
         });
 
-        await (tx as any).demoPlotVisit.create({
-          data: {
-            demoPlotId,
-            activityPlanId,
-            workTypeCode: "TYPE_7B",
-            visitNumber: count + 1,
-            visitDate,
-            daysSinceStart,
-            cropImageUrls,
-            imageUrls: cropImageUrls,
-            notes: t7b.t7Notes || null,
-            cropCondition: t7b.t7CropCondition || "สมบูรณ์",
-            growthStage: t7b.t7GrowthStage || "",
-            cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-            productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-            productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-            sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
-            sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
-            otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
-          },
-        });
-      }
-    }
+        const pMapById = new Map(dbProds.map((p: any) => [p.id, p]));
+        const pMapByName = new Map(dbProds.map((p: any) => [p.name, p]));
 
-    // 5. Sync ActivityResultSprayRound & ActivityResultSprayProduct (independent of demoPlotId)
-    if (resultId) {
-      await (tx as any).activityResultSprayRound.deleteMany({
-        where: { activityResultId: resultId },
-      });
+        const prodsToInsert = validProducts
+          .map((p: any, pIdx: number) => {
+            const dbP: any =
+              pMapById.get(p.productId) ||
+              pMapByName.get(p.productId) ||
+              (p.productName ? pMapByName.get(p.productName) : undefined);
+            if (!dbP) return null;
 
-      for (const round of sprayingRounds) {
-        const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
-
-        const createdRound = await (tx as any).activityResultSprayRound.create({
-          data: {
-            activityResultId: resultId,
-            demoPlotId: demoPlotId || null,
-            roundNumber: round.roundNumber || 1,
-            sprayDate: roundSprayDate,
-            sprayMethod: round.sprayMethod || "SINGLE",
-            sprayEquipment:
-              round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
-            otherEquipment: round.otherEquipment || null,
-            productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-            problemDetail: round.problemDetail || null,
-            daysSinceStart,
-            notes: t7b.t7Notes || null,
-            workTypeCode: "TYPE_7B",
-          },
-        });
-
-        const productsToInsert: any[] = [];
-
-        // 1.1 Baseline Products
-        for (const bp of round.baselineProducts || []) {
-          if (bp.productId) {
-            let prodName = bp.productName || null;
-            let resolvedId = bp.productId;
-
-            if ((tx as any).product) {
-              const pRecord = await (tx as any).product.findFirst({
-                where: {
-                  OR: [
-                    { id: bp.productId },
-                    { name: bp.productId },
-                    ...(bp.productName ? [{ name: bp.productName }] : []),
-                  ],
-                },
-                select: { id: true, name: true },
-              });
-              if (pRecord) {
-                resolvedId = pRecord.id;
-                prodName = prodName || pRecord.name;
-              } else {
-                console.warn(
-                  `[Type7B saveActual] Baseline product "${bp.productId}" not found in database. Skipped to prevent foreign key violation.`,
-                );
-                continue;
-              }
-            } else if (!prodName) {
-              prodName = "สินค้าตามแผน";
-            }
-
-            const rate = bp.applicationRate || bp.actualRate || bp.plannedRate || "ตามคำแนะนำ";
             const qty =
-              bp.actualQuantity != null && bp.actualQuantity !== ""
-                ? bp.actualQuantity
-                : bp.quantityUsed != null && bp.quantityUsed !== ""
-                  ? bp.quantityUsed
-                  : bp.plannedQuantity || 1;
-            const unit = bp.unit || null;
-            const detail = bp.extraQuantity
-              ? `ใช้เพิ่ม ${bp.extraQuantity} ${bp.extraUnit || "ซีซี"}`
-              : bp.detail || null;
+              p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
+                ? p.actualQuantity
+                : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
+                  ? p.quantityUsed
+                  : p.plannedQuantity || 1;
 
-            productsToInsert.push({
+            return {
               sprayRoundId: createdRound.id,
-              productId: resolvedId,
-              productName: prodName,
-              baselineRate: bp.plannedRate || "ตามแผน",
-              actualRate: rate,
-              quantityUsed: new Prisma.Decimal(String(qty)),
-              unit: unit,
-              detail: detail,
-            });
-          }
-        }
+              productId: dbP.id,
+              productName: p.productName || dbP.name || null,
+              isPlanned: Boolean(p.isPlanned),
+              withdrawnQuantity: p.plannedQuantity ? new Prisma.Decimal(String(p.plannedQuantity)) : null,
+              actualQuantity: new Prisma.Decimal(String(qty)),
+              extraQuantity: p.extraQuantity ? new Prisma.Decimal(String(p.extraQuantity)) : null,
+              actualRate: p.applicationRate || p.actualRate || p.plannedRate || "ตามคำแนะนำ",
+              unit: p.unit || dbP.unit || null,
+              sortOrder: pIdx,
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null);
 
-        // 1.2 Additional Products
-        for (const ap of round.additionalProducts || []) {
-          if (ap.productId) {
-            let prodName = ap.productName || null;
-            let resolvedId = ap.productId;
-
-            if ((tx as any).product) {
-              const pRecord = await (tx as any).product.findFirst({
-                where: {
-                  OR: [
-                    { id: ap.productId },
-                    { name: ap.productId },
-                    ...(ap.productName ? [{ name: ap.productName }] : []),
-                  ],
-                },
-                select: { id: true, name: true },
-              });
-              if (pRecord) {
-                resolvedId = pRecord.id;
-                prodName = prodName || pRecord.name;
-              } else {
-                console.warn(
-                  `[Type7B saveActual] Additional product "${ap.productId}" not found in database. Skipped to prevent foreign key violation.`,
-                );
-                continue;
-              }
-            } else if (!prodName) {
-              prodName = "สินค้าเพิ่มเติม";
-            }
-
-            const rate = ap.applicationRate || ap.actualRate || "ตามคำแนะนำ";
-            const qty =
-              ap.actualQuantity != null && ap.actualQuantity !== ""
-                ? ap.actualQuantity
-                : ap.quantityUsed != null && ap.quantityUsed !== ""
-                  ? ap.quantityUsed
-                  : 1;
-            const unit = ap.unit || null;
-            const detail = ap.extraQuantity
-              ? `ใช้เพิ่ม ${ap.extraQuantity} ${ap.extraUnit || "ซีซี"}`
-              : ap.detail || null;
-
-            productsToInsert.push({
-              sprayRoundId: createdRound.id,
-              productId: resolvedId,
-              productName: prodName,
-              baselineRate: null,
-              actualRate: rate,
-              quantityUsed: new Prisma.Decimal(String(qty)),
-              unit: unit,
-              detail: detail,
-            });
-          }
-        }
-
-        if (productsToInsert.length > 0) {
-          await (tx as any).activityResultSprayProduct.createMany({
-            data: productsToInsert,
+        if (prodsToInsert.length > 0) {
+          await (tx as any).activityResultType7bSprayProduct.createMany({
+            data: prodsToInsert,
           });
         }
+      }
 
-        // 1.3 External Chemical Products (Tank-mixed)
-        if (
-          round.sprayMethod === "TANK_MIXED" &&
-          round.hasExternalChemicals &&
-          Array.isArray(round.externalProducts) &&
-          round.externalProducts.length > 0
-        ) {
-          const externalsToInsert = round.externalProducts
-            .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
-            .map((ext: any) => ({
-              sprayRoundId: createdRound.id,
-              company: ext.company || "",
-              productName: ext.productName.trim(),
-              activeIngredient: ext.activeIngredient || null,
-              formula: ext.formula || "SL",
-              customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
-              applicationRate: ext.applicationRate || "",
-            }));
+      // External Chemical Products
+      if (
+        round.sprayMethod === "TANK_MIXED" &&
+        round.hasExternalChemicals &&
+        Array.isArray(round.externalProducts) &&
+        round.externalProducts.length > 0
+      ) {
+        const externalsToInsert = round.externalProducts
+          .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
+          .map((ext: any, extIdx: number) => ({
+            sprayRoundId: createdRound.id,
+            company: ext.company || "",
+            productName: ext.productName.trim(),
+            activeIngredient: ext.activeIngredient || null,
+            formula: ext.formula || "SL",
+            customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
+            applicationRate: ext.applicationRate || "",
+            sortOrder: extIdx,
+          }));
 
-          if (externalsToInsert.length > 0) {
-            await (tx as any).activityResultSprayExternal.createMany({
-              data: externalsToInsert,
-            });
-          }
-        }
-
-        // Attachments per Round
-        if (Array.isArray(round.roundImages) && round.roundImages.length > 0) {
-          const validImages = round.roundImages.filter((img: any) => img && (img.url || img.fileUrl));
-          if (validImages.length > 0) {
-            await (tx as any).activityAttachment.createMany({
-              data: validImages.map((img: any) => ({
-                activityPlanId,
-                activityResultId: resultId,
-                demoPlotId: demoPlotId || null,
-                sprayRoundId: createdRound.id,
-                workTypeCode: "TYPE_7B",
-                category: "PLOT",
-                fileUrl: img.url || img.fileUrl,
-                fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
-                fileSize: img.size || img.fileSize || 0,
-                mimeType: img.type || img.mimeType || "image/jpeg",
-              })),
-            });
-          }
+        if (externalsToInsert.length > 0) {
+          await (tx as any).activityResultType7bSprayExternal.createMany({
+            data: externalsToInsert,
+          });
         }
       }
-    }
 
-    // 6. Backward compatibility sync to ActivityResultDemoItem
-    if (resultId && actualData.demoResults && Array.isArray(actualData.demoResults)) {
-      await (tx as any).activityResultDemoItem.deleteMany({
-        where: { activityResultId: resultId },
-      });
-
-      if (actualData.demoResults.length > 0) {
-        await (tx as any).activityResultDemoItem.createMany({
-          data: actualData.demoResults.map((item: any) => ({
-            activityResultId: resultId,
-            plannedProductId: item.plannedProductId || null,
-            actualProductId: item.actualProductId || null,
-            changeReason: item.changeReason || null,
-            plotObjective: item.plotObjective || null,
-            demoPlotId: item.demoPlotId || null,
+      // Round Attachments
+      const roundImages = round.roundImages || round.attachments || [];
+      const validImages = roundImages.filter((img: any) => img && (img.url || img.fileUrl));
+      if (validImages.length > 0) {
+        await (tx as any).activityAttachment.createMany({
+          data: validImages.map((img: any) => ({
+            activityPlanId,
+            type7bResultId: createdResult.id,
+            demoPlotId,
+            workTypeCode: "TYPE_7B",
+            category: "PLOT",
+            fileUrl: img.url || img.fileUrl,
+            fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
+            fileSize: img.size || img.fileSize || 0,
+            mimeType: img.type || img.mimeType || "image/jpeg",
           })),
         });
       }

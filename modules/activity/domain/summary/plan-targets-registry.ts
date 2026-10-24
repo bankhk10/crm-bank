@@ -150,7 +150,7 @@ export function extractPlanTargets(
   if (
     !targets.t7a?.plotName &&
     !targets.t7?.plotName &&
-    ((plan as any).type7aPlots?.length || (plan as any).demoPlots?.length)
+    ((plan as any).type7aTargets?.length || (plan as any).type7aPlots?.length || (plan as any).demoPlots?.length)
   ) {
     const extracted = extractType7aPlanTargets(plan);
     targets.t7a = extracted.primary;
@@ -162,7 +162,7 @@ export function extractPlanTargets(
   // Always attempt Type 7B if relation exists
   if (
     !targets.t7b?.plotName &&
-    ((plan as any).type7b || (plan as any).type7bData)
+    ((plan as any).type7bTargets?.length || (plan as any).type7b || (plan as any).type7bData)
   ) {
     const extracted = extractType7bPlanTargets(plan, prevTargets.t7b);
     targets.t7b = extracted.primary;
@@ -240,7 +240,8 @@ export function extractPlanTargets(
   // Always attempt Type 13 if relation exists
   if (
     !targets.t13?.name &&
-    ((plan as any).type13?.plots?.length ||
+    ((plan as any).type13Targets?.length ||
+      (plan as any).type13?.plots?.length ||
       (plan as any).type13Plots?.length ||
       (plan as any).demoPlotVisits?.some(
         (v: any) => v.workTypeCode === "TYPE_13" || v.demoPlot?.plotType === "HATTACK",
@@ -254,7 +255,8 @@ export function extractPlanTargets(
   // Always attempt Type 14 if relation exists
   if (
     !targets.t14?.name &&
-    ((plan as any).type14?.plots?.length ||
+    ((plan as any).type14Targets?.length ||
+      (plan as any).type14?.plots?.length ||
       (plan as any).type14Plots?.length ||
       (plan as any).demoPlotVisits?.some(
         (v: any) => v.workTypeCode === "TYPE_14",

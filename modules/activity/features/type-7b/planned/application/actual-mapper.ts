@@ -47,7 +47,82 @@ export function parseType7bActualResult(
 
   if (!summaryText && !resData) return result;
 
-  // 1. Structured data in resData.type7bActual
+  // 1. Structured data in resData.type7bActual or resData.type7bResults / plan.type7bResults
+  const t7bDedicatedResult =
+    resData.type7bResults?.[0] ||
+    resData.activityPlan?.type7bResults?.[0] ||
+    resData.plan?.type7bResults?.[0];
+
+  if (t7bDedicatedResult) {
+    if (t7bDedicatedResult.plotStatus) result.t7PlotStatus = t7bDedicatedResult.plotStatus;
+    if (t7bDedicatedResult.visitDate) result.t7VisitDate = toDateStr(t7bDedicatedResult.visitDate);
+    if (t7bDedicatedResult.daysSinceStart != null) result.t7DaysAfterSpray = String(t7bDedicatedResult.daysSinceStart);
+    if (t7bDedicatedResult.cropCondition) result.t7CropCondition = t7bDedicatedResult.cropCondition;
+    if (t7bDedicatedResult.growthStage) result.t7GrowthStage = t7bDedicatedResult.growthStage;
+    if (t7bDedicatedResult.productResponse) result.t7ProductResponse = t7bDedicatedResult.productResponse;
+    if (t7bDedicatedResult.cropProblemDesc) result.t7CropProblemDescription = t7bDedicatedResult.cropProblemDesc;
+    if (t7bDedicatedResult.productProblemDesc) result.t7ProblemDescription = t7bDedicatedResult.productProblemDesc;
+    if (t7bDedicatedResult.nextSprayDate) result.t7NextSprayDate = toDateStr(t7bDedicatedResult.nextSprayDate);
+    if (t7bDedicatedResult.finalHarvestDate) result.t7FinalHarvestDate = toDateStr(t7bDedicatedResult.finalHarvestDate);
+    if (t7bDedicatedResult.demoYieldKg != null) result.t7FinalYieldKg = String(t7bDedicatedResult.demoYieldKg);
+    if (t7bDedicatedResult.controlYieldKg != null) result.t7ControlYieldKg = String(t7bDedicatedResult.controlYieldKg);
+    if (t7bDedicatedResult.farmerSatisfaction != null) result.t7FarmerSatisfaction = Number(t7bDedicatedResult.farmerSatisfaction);
+    if (t7bDedicatedResult.commercialPotential) result.t7CommercialPotential = t7bDedicatedResult.commercialPotential;
+    if (t7bDedicatedResult.finalSummaryNotes) result.t7FinalSummaryNotes = t7bDedicatedResult.finalSummaryNotes;
+    if (t7bDedicatedResult.notes) result.t7Notes = t7bDedicatedResult.notes;
+
+    if (Array.isArray(t7bDedicatedResult.sprayRounds) && t7bDedicatedResult.sprayRounds.length > 0) {
+      result.t7SprayingRounds = t7bDedicatedResult.sprayRounds.map((r: any, rIdx: number) => ({
+        roundNumber: r.roundNumber || rIdx + 1,
+        sprayDate: toDateStr(r.sprayDate) || "",
+        sprayMethod: r.sprayMethod || "SINGLE",
+        hasExternalChemicals: Boolean(r.hasExternalChemicals),
+        sprayEquipment: r.sprayEquipment || "",
+        otherEquipment: r.otherEquipment || "",
+        productResponse: r.productResponse || "",
+        problemDetail: r.problemDetail || "",
+        baselineProducts: (r.sprayProducts || [])
+          .filter((sp: any) => sp.isPlanned)
+          .map((sp: any) => ({
+            productId: sp.productId,
+            productName: sp.productName || sp.product?.name || "",
+            plannedQuantity: sp.withdrawnQuantity != null ? Number(sp.withdrawnQuantity) : undefined,
+            actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+            extraQuantity: sp.extraQuantity != null ? Number(sp.extraQuantity) : undefined,
+            actualRate: sp.actualRate || "",
+            unit: sp.unit || sp.product?.unit || "",
+          })),
+        additionalProducts: (r.sprayProducts || [])
+          .filter((sp: any) => !sp.isPlanned)
+          .map((sp: any) => ({
+            productId: sp.productId,
+            productName: sp.productName || sp.product?.name || "",
+            actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+            extraQuantity: sp.extraQuantity != null ? Number(sp.extraQuantity) : undefined,
+            actualRate: sp.actualRate || "",
+            unit: sp.unit || sp.product?.unit || "",
+          })),
+        externalProducts: (r.sprayExternals || []).map((ext: any) => ({
+          company: ext.company || "",
+          productName: ext.productName || "",
+          activeIngredient: ext.activeIngredient || "",
+          formula: ext.formula || "SL",
+          customFormula: ext.customFormula || "",
+          applicationRate: ext.applicationRate || "",
+        })),
+        roundImages: (t7bDedicatedResult.attachments || [])
+          .filter((att: any) => att.category === "PLOT" || att.workTypeCode === "TYPE_7B")
+          .map((att: any, attIdx: number) => ({
+            id: att.id || `att-${attIdx}`,
+            url: att.fileUrl || att.url,
+            name: att.fileName || "รูปภาพการฉีดพ่น",
+            size: att.fileSize || 0,
+            type: att.mimeType || "image/jpeg",
+          })),
+      }));
+    }
+  }
+
   if (resData.type7bActual && typeof resData.type7bActual === "object") {
     Object.assign(result, resData.type7bActual);
   }

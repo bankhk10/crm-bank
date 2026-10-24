@@ -93,7 +93,7 @@ export async function generateDemoPlotCode(
 }
 
 /**
- * Creates ActivityPlanType13 records, plots, products, and associated DemoPlot + Visits in a Prisma Transaction
+ * Creates ActivityPlanType13Target & Product records, and associated DemoPlot + Visits in a Prisma Transaction
  */
 export async function createType13Data(
   tx: PrismaTransaction,
@@ -106,19 +106,10 @@ export async function createType13Data(
 
   const rawProducts = type13Data.products || type13Data.withdrawnProducts || [];
   const validProducts = rawProducts.filter((p) => Boolean(p.productId));
-  const hasProducts = Boolean(
-    type13Data.hasProducts || type13Data.hasProductWithdrawal || validProducts.length > 0,
-  );
-
-  const t13 = await tx.activityPlanType13.create({
-    data: {
-      activityPlanId: planId,
-      hasProducts,
-      notes: type13Data.notes || null,
-    },
-  });
 
   const plots = type13Data.plots || [];
+  let primaryTargetId: string | null = null;
+
   if (plots.length > 0) {
     const existingVisits = await tx.demoPlotVisit.findMany({
       where: {
@@ -190,17 +181,24 @@ export async function createType13Data(
             employeeId,
             province: plotItem.province || null,
             district: plotItem.district || null,
-            location: [
-              plotItem.subdistrict ? `ต.${plotItem.subdistrict}` : null,
-              plotItem.village ? `ม.${plotItem.village}` : null,
-              plotItem.plannedPlotsCount ? `แผน ${plotItem.plannedPlotsCount} แปลง` : null,
-            ].filter(Boolean).join(" ") || null,
+            location:
+              [
+                plotItem.subdistrict ? `ต.${plotItem.subdistrict}` : null,
+                plotItem.village ? `ม.${plotItem.village}` : null,
+                plotItem.plannedPlotsCount
+                  ? `แผน ${plotItem.plannedPlotsCount} แปลง`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" ") || null,
             latitude:
-              plotItem.latitude != null && String(plotItem.latitude).trim() !== ""
+              plotItem.latitude != null &&
+              String(plotItem.latitude).trim() !== ""
                 ? new Prisma.Decimal(Number(plotItem.latitude))
                 : null,
             longitude:
-              plotItem.longitude != null && String(plotItem.longitude).trim() !== ""
+              plotItem.longitude != null &&
+              String(plotItem.longitude).trim() !== ""
                 ? new Prisma.Decimal(Number(plotItem.longitude))
                 : null,
             plotType: "HATTACK",
@@ -211,27 +209,39 @@ export async function createType13Data(
         demoPlotId = demoPlot.id;
       }
 
-      await tx.activityPlanType13Plot.create({
+      const createdTarget = await tx.activityPlanType13Target.create({
         data: {
-          type13Id: t13.id,
+          activityPlanId: planId,
           plotIndex: plotItem.plotIndex || i + 1,
           plotName: plotItem.name || plotItem.plotName || `แปลงแฮตแทค ${i + 1}`,
           storeId: plotItem.storeId || null,
           dealerName: plotItem.dealerName || null,
           ownerName: plotItem.ownerName || null,
-          province: plotItem.province || null,
-          district: plotItem.district || null,
+          province: plotItem.province || "",
+          district: plotItem.district || "",
+          subdistrict: plotItem.subdistrict || null,
+          village: plotItem.village || null,
+          plannedPlotsCount:
+            plotItem.plannedPlotsCount != null
+              ? Number(plotItem.plannedPlotsCount)
+              : null,
           latitude:
             plotItem.latitude != null && String(plotItem.latitude).trim() !== ""
               ? new Prisma.Decimal(Number(plotItem.latitude))
               : null,
           longitude:
-            plotItem.longitude != null && String(plotItem.longitude).trim() !== ""
+            plotItem.longitude != null &&
+            String(plotItem.longitude).trim() !== ""
               ? new Prisma.Decimal(Number(plotItem.longitude))
               : null,
           demoPlotId,
+          notes: type13Data.notes || null,
         },
       });
+
+      if (i === 0) {
+        primaryTargetId = createdTarget.id;
+      }
 
       if (demoPlotId) {
         const existingVisit = await tx.demoPlotVisit.findFirst({
@@ -268,7 +278,8 @@ export async function createType13Data(
       data: validProducts.map((p, idx) => {
         const dbP = pMap.get(p.productId);
         return {
-          type13Id: t13.id,
+          activityPlanId: planId,
+          targetId: primaryTargetId,
           productId: p.productId,
           productName: p.productName || dbP?.name || null,
           quantity:
@@ -284,7 +295,7 @@ export async function createType13Data(
 }
 
 /**
- * Synchronizes ActivityPlanType13 records when updating an ActivityPlan
+ * Synchronizes ActivityPlanType13Target & Product records when updating an ActivityPlan
  */
 export async function syncType13Data(
   tx: PrismaTransaction,
@@ -295,7 +306,10 @@ export async function syncType13Data(
 ) {
   if (type13Data === undefined) return;
 
-  await tx.activityPlanType13.deleteMany({
+  await tx.activityPlanType13Product.deleteMany({
+    where: { activityPlanId: planId },
+  });
+  await tx.activityPlanType13Target.deleteMany({
     where: { activityPlanId: planId },
   });
 
@@ -308,39 +322,70 @@ export async function syncType13Data(
  * Fetch TYPE_13 records with relations for a given plan
  */
 export async function findType13ByPlanId(planId: string) {
-  return db.activityPlanType13.findUnique({
-    where: { activityPlanId: planId },
-    include: {
-      plots: {
-        include: {
-          store: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-            },
-          },
-          demoPlot: true,
-        },
-        orderBy: { plotIndex: "asc" },
-      },
-      products: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
+  const [targets, products, results] = await Promise.all([
+    db.activityPlanType13Target.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+            customerType: true,
+            province: true,
+            district: true,
           },
         },
-        orderBy: { sortOrder: "asc" },
+        demoPlot: true,
       },
-    },
-  });
+      orderBy: { plotIndex: "asc" },
+    }),
+    db.activityPlanType13Product.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            productCode: true,
+            unit: true,
+            packageSizeUnit: true,
+          },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.activityResultType13.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        sprayRounds: {
+          include: {
+            sprayProducts: {
+              include: { product: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            sprayExternals: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+          orderBy: { roundNumber: "asc" },
+        },
+        attachments: true,
+      },
+    }),
+  ]);
+
+  if (targets.length === 0 && products.length === 0 && results.length === 0) {
+    return null;
+  }
+
+  return {
+    id: targets[0]?.id || planId,
+    activityPlanId: planId,
+    hasProducts: products.length > 0,
+    notes: targets[0]?.notes || null,
+    plots: targets,
+    products,
+    results,
+  };
 }

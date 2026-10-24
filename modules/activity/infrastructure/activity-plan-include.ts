@@ -123,29 +123,25 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
         },
         orderBy: [{ visitNumber: "asc" }, { visitDate: "asc" }, { createdAt: "asc" }],
       },
-      type7bPlots: {
+      type7bTargets: {
         include: {
-          type7b: {
-            include: {
-              activityPlan: {
-                select: {
-                  id: true,
-                  code: true,
-                  title: true,
-                  status: true,
-                  startDate: true,
-                  endDate: true,
-                  employee: {
-                    select: { id: true, name: true },
-                  },
-                },
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              employee: {
+                select: { id: true, name: true },
               },
-              products: {
-                include: {
-                  product: {
-                    select: { id: true, name: true, unit: true },
-                  },
-                },
+            },
+          },
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, unit: true },
               },
             },
           },
@@ -167,101 +163,262 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       },
     },
   },
-  type7b: {
+  // Dedicated Type 7A relations
+  type7aTargets: {
     include: {
-      sourceActivityPlan: {
+      store: {
         select: {
           id: true,
-          code: true,
-          title: true,
-          startDate: true,
-          endDate: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
         },
       },
-      plots: {
-        include: {
-          demoPlot: true,
-        },
-      },
+      demoPlot: true,
       products: {
         include: {
           product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
-          },
-        },
-      },
-    },
-  },
-  type13: {
-    include: {
-      plots: {
-        include: {
-          store: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-            },
-          },
-          demoPlot: true,
-        },
-        orderBy: { plotIndex: "asc" },
-      },
-      products: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
+            select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
           },
         },
         orderBy: { sortOrder: "asc" },
       },
-    },
-  },
-  type14: {
-    include: {
-      sourceActivityPlan: {
-        select: {
-          id: true,
-          code: true,
-          title: true,
-          startDate: true,
-          endDate: true,
+      results: {
+        include: {
+          irrigations: true,
+          actualProducts: {
+            include: {
+              product: {
+                select: { id: true, name: true, unit: true },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          sprayExternals: {
+            orderBy: { sortOrder: "asc" },
+          },
+          attachments: true,
         },
       },
-      plots: {
+    },
+  },
+  type7aProducts: {
+    include: {
+      product: {
+        select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+  type7aResults: {
+    include: {
+      irrigations: true,
+      actualProducts: {
         include: {
-          demoPlot: true,
+          product: {
+            select: { id: true, name: true, unit: true },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      sprayExternals: {
+        orderBy: { sortOrder: "asc" },
+      },
+      attachments: true,
+    },
+  },
+
+  // Dedicated Type 7B relations
+  type7bTargets: {
+    include: {
+      demoPlot: true,
+      sourceActivityPlan: {
+        select: { id: true, code: true, title: true, startDate: true, endDate: true },
+      },
+      products: {
+        include: {
+          product: {
+            select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      results: {
+        include: {
+          sprayRounds: {
+            include: {
+              sprayProducts: {
+                include: {
+                  product: { select: { id: true, name: true, unit: true } },
+                },
+                orderBy: { sortOrder: "asc" },
+              },
+              sprayExternals: {
+                orderBy: { sortOrder: "asc" },
+              },
+            },
+            orderBy: { roundNumber: "asc" },
+          },
+          attachments: true,
+        },
+      },
+    },
+  },
+  type7bProducts: {
+    include: {
+      product: {
+        select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+  type7bResults: {
+    include: {
+      sprayRounds: {
+        include: {
+          sprayProducts: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          sprayExternals: {
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+        orderBy: { roundNumber: "asc" },
+      },
+      attachments: true,
+    },
+  },
+
+  // Dedicated Type 13 relations
+  type13Targets: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+        },
+      },
+      demoPlot: true,
+      products: {
+        include: {
+          product: {
+            select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      results: {
+        include: {
+          sprayRounds: {
+            include: {
+              sprayProducts: {
+                include: {
+                  product: { select: { id: true, name: true, unit: true } },
+                },
+                orderBy: { sortOrder: "asc" },
+              },
+              sprayExternals: {
+                orderBy: { sortOrder: "asc" },
+              },
+            },
+            orderBy: { roundNumber: "asc" },
+          },
+          attachments: true,
+        },
+      },
+    },
+    orderBy: { plotIndex: "asc" },
+  },
+  type13Products: {
+    include: {
+      product: {
+        select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+  type13Results: {
+    include: {
+      sprayRounds: {
+        include: {
+          sprayProducts: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          sprayExternals: {
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+        orderBy: { roundNumber: "asc" },
+      },
+      attachments: true,
+    },
+  },
+
+  // Dedicated Type 14 relations
+  type14Targets: {
+    include: {
+      sourceActivityPlan: {
+        select: { id: true, code: true, title: true, startDate: true, endDate: true },
+      },
+      demoPlot: true,
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
         },
       },
       products: {
         include: {
           product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
+            select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
           },
         },
         orderBy: { sortOrder: "asc" },
       },
+      results: {
+        include: {
+          productsUsed: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          attachments: true,
+        },
+      },
+    },
+  },
+  type14Products: {
+    include: {
+      product: {
+        select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+  type14Results: {
+    include: {
+      productsUsed: {
+        include: {
+          product: { select: { id: true, name: true, unit: true } },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      attachments: true,
     },
   },
   // Dedicated Type 1 relations

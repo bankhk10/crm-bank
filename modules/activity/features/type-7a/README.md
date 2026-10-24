@@ -3,7 +3,7 @@
 > **Feature Slice**: `modules/activity/features/type-7a`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`DemoPlot`, `DemoPlotIrrigation`, `DemoPlotExternalProduct`, `DemoPlotProduct`, `DemoPlotVisit`, `ActivityAttachment`, พร้อม dual-sync สู่ `ActivityPlanStore`, `ActivityPlanProduct`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7aTarget`, `ActivityPlanType7aProduct`, `ActivityResultType7a`, `ActivityResultType7aIrrigation`, `ActivityResultType7aProduct`, `ActivityResultType7aExternal`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-23 Single-Entity Architecture)
 
 ---
@@ -357,13 +357,17 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (Single-Entity Architecture)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | สถาปัตยกรรมและการใช้งาน |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`demo_plots`**<br>(`DemoPlot`) | `syncType7aPlots()` ใน `savePlan()` | `getActivityPlanAction()` (ผ่าน relation `type7aPlots`), `findType7aByPlanId()`, Detail / Actual | `syncType7aActualData()` ใน `saveActual()` / `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Single Source of Truth:** เชื่อมตรงกับ `ActivityPlan` ผ่าน `activityPlanId` เก็บทั้งเป้าหมายแปลงตามแผนและข้อมูลผลงานจริงหน้างาน รหัสแปลง `DPYYMMXXXX` |
-| **`demo_plot_products`**<br>(`DemoPlotProduct`) | `syncType7aPlots()` (สินค้าตามแผน) / `syncType7aActualData()` (สินค้าเพิ่ม) | `type7aPlots.demoProducts`, Actual / Detail | ซิงค์จำนวนตามแผน (`withdrawnQuantity`) และยอดใช้จริง (`quantity`) | Cascade เมื่อลบ `DemoPlot` | **Single Source of Truth (Products):** ตารางเดียวสำหรับทั้งสินค้าที่วางแผนและสินค้าที่ใช้จริงหน้างาน (`isAdditional`) |
-| **`demo_plot_irrigations`**<br>(`DemoPlotIrrigation`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง (`deleteMany` + `createMany`) | Cascade เมื่อลบ `DemoPlot` | จัดเก็บระบบน้ำประจำแปลง เลือกได้มากกว่า 1 รูปแบบ (8 ตัวเลือกมาตรฐาน) |
-| **`demo_plot_external_products`**<br>(`DemoPlotExternalProduct`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง (`deleteMany` + `createMany`) | Cascade เมื่อลบ `DemoPlot` | จัดเก็บสารเคมีภายนอก/ยาคู่เปรียบเทียบกรณีฉีดพ่นแบบผสมถัง (Tank-mixed) |
+| **`activity_type_7a_targets`**<br>(`ActivityPlanType7aTarget`) | `syncType7aPlots()` ใน `savePlan()` | `findType7aByPlanId()`, `plan.type7aTargets` | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Plan Targets:** เก็บข้อมูลเป้าหมายแปลงตามแผน ชนิดพืช และร้านค้า Dealer |
+| **`activity_type_7a_products`**<br>(`ActivityPlanType7aProduct`) | `syncType7aPlots()` ใน `savePlan()` | `plan.type7aProducts` | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Plan Products:** สินค้าตัวอย่างที่ขอเบิกล่วงหน้า |
+| **`activity_type_7a_results`**<br>(`ActivityResultType7a`) | `syncType7aActualData()` ใน `saveActual()` | `findType7aByPlanId()`, `plan.type7aResults` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Actual Results:** บันทึกผลงานจัดทำแปลงจริง เกษตรกร พิกัด GPS วิธีพ่น |
+| **`activity_type_7a_irrigations`**<br>(`ActivityResultType7aIrrigation`) | `syncType7aActualData()` ใน `saveActual()` | `result.irrigations` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บระบบน้ำประจำแปลง (8 รูปแบบมาตรฐาน) |
+| **`activity_type_7a_actual_products`**<br>(`ActivityResultType7aProduct`) | `syncType7aActualData()` ใน `saveActual()` | `result.actualProducts` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสินค้าที่ใช้จริงหน้างาน ทั้งสินค้าตามแผนและสินค้าที่เพิ่ม |
+| **`activity_type_7a_spray_externals`**<br>(`ActivityResultType7aExternal`) | `syncType7aActualData()` ใน `saveActual()` | `result.sprayExternals` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสารเคมีภายนอก/ยาคู่เปรียบเทียบกรณีฉีดพ่นแบบผสมถัง (Tank-mixed) |
+| **`demo_plots`**<br>(`DemoPlot`) | `syncType7aPlots()` ใน `savePlan()` | `getActivityPlanAction()` (ผ่าน relation `type7aPlots`), `findType7aByPlanId()`, Detail / Actual | `syncType7aActualData()` ใน `saveActual()` / `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Operational Master Asset:** เชื่อมตรงกับ `ActivityPlan` ผ่าน `activityPlanId` รหัสแปลง `DPYYMMXXXX` |
+| **`demo_plot_products`**<br>(`DemoPlotProduct`) | `syncType7aPlots()` / `syncType7aActualData()` | `type7aPlots.demoProducts`, Actual / Detail | ซิงค์จำนวนตามแผน (`withdrawnQuantity`) และยอดใช้จริง (`quantity`) | Cascade เมื่อลบ `DemoPlot` | สินค้าประจำแปลงสำหรับ Master Asset Timeline |
+| **`demo_plot_irrigations`**<br>(`DemoPlotIrrigation`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง | Cascade เมื่อลบ `DemoPlot` | ระบบน้ำประจำแปลงของ Master Asset |
+| **`demo_plot_external_products`**<br>(`DemoPlotExternalProduct`) | `syncType7aActualData()` ใน `saveActual()` | Actual / Detail / Type 7B | ลบและสร้างใหม่ตามแปลง | Cascade เมื่อลบ `DemoPlot` | สารเคมีภายนอกประจำแปลงของ Master Asset |
 | **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `syncType7aActualData()` ใน `saveActual()` (Visit #1) | หน้าไทม์ไลน์การตรวจแปลง / Type 7B | อัปเดตผลตรวจครั้งที่ 1 | Cascade เมื่อลบ `DemoPlot` | บันทึกประวัติการตรวจแปลงครั้งแรก (Baseline Visit) ส่งมอบฐานข้อมูลต่อเนื่องไปยัง Type 7B |
-| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | Dual-write sync ใน `syncType7aPlots()` | Generic store queries | `deleteMany()` + `createMany()` (`workTypeCode: "TYPE_7A"`) | Cascade เมื่อลบ `ActivityPlan` | ซิงค์สำเนาเป้าหมายร้านค้า/แปลง (Generic Calendar & Dashboard Queries) |
-| **`activity_plan_products`**<br>(`ActivityPlanProduct`) | Dual-write sync ใน `syncType7aPlots()` | Generic product queries | `deleteMany()` + `createMany()` (`workTypeCode: "TYPE_7A"`) | Cascade เมื่อลบ `ActivityPlan` | ซิงค์สำเนาสินค้าตัวอย่าง (Generic Calendar & Dashboard Queries) |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ PLOT) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายแปลงสาธิต (สูงสุด 10 รูป) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)

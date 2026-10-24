@@ -603,12 +603,20 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
 export function checkPlanHasProductWithdrawal(plan: {
   hasProductWithdrawal?: boolean | null;
   type7aPlots?: Array<{ hasProducts?: boolean | null; products?: any[]; demoProducts?: any[] }>;
-  type7b?: { hasProducts?: boolean | null; products?: any[] } | null;
-  type13?: { hasProducts?: boolean | null; products?: any[] } | null;
-  type14?: { hasProducts?: boolean | null; products?: any[] } | null;
+  type7aProducts?: any[];
+  type7bProducts?: any[];
+  type13Products?: any[];
+  type14Products?: any[];
+  type7b?: any;
+  type13?: any;
+  type14?: any;
   products?: Array<{ workTypeCode?: string | null }>;
 }): boolean {
   if (plan.hasProductWithdrawal === true) return true;
+  if (plan.type7aProducts && plan.type7aProducts.length > 0) return true;
+  if (plan.type7bProducts && plan.type7bProducts.length > 0) return true;
+  if (plan.type13Products && plan.type13Products.length > 0) return true;
+  if (plan.type14Products && plan.type14Products.length > 0) return true;
   if (
     plan.type7aPlots &&
     plan.type7aPlots.length > 0 &&
@@ -767,9 +775,10 @@ export async function submitActivityPlanUseCase(
         },
         products: true,
         type7aPlots: { include: { demoProducts: true } },
-        type7b: { include: { products: true } },
-        type13: { include: { products: true } },
-        type14: { include: { products: true } },
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 
@@ -903,9 +912,10 @@ export async function approveActivityPlanUseCase(
         },
         products: true,
         type7aPlots: { include: { demoProducts: true } },
-        type7b: { include: { products: true } },
-        type13: { include: { products: true } },
-        type14: { include: { products: true } },
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 
@@ -1707,9 +1717,10 @@ export async function cancelActivityPlanUseCase(
         employee: true,
         products: true,
         type7aPlots: { include: { demoProducts: true } },
-        type7b: { include: { products: true } },
-        type13: { include: { products: true } },
-        type14: { include: { products: true } },
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 
@@ -1791,9 +1802,10 @@ export async function requestCancelActivityPlanUseCase(
         employee: true,
         products: true,
         type7aPlots: { include: { demoProducts: true } },
-        type7b: { include: { products: true } },
-        type13: { include: { products: true } },
-        type14: { include: { products: true } },
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 
@@ -1912,9 +1924,10 @@ export async function approveCancelActivityPlanUseCase(
         employee: true,
         products: true,
         type7aPlots: { include: { demoProducts: true } },
-        type7b: { include: { products: true } },
-        type13: { include: { products: true } },
-        type14: { include: { products: true } },
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 
@@ -2087,9 +2100,10 @@ export async function rejectCancelActivityPlanUseCase(
       include: {
         employee: true,
         type7aPlots: true,
-        type7b: true,
-        type13: true,
-        type14: true,
+        type7aProducts: true,
+        type7bProducts: true,
+        type13Products: true,
+        type14Products: true,
       },
     });
 

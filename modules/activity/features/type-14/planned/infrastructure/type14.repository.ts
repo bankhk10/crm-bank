@@ -32,6 +32,14 @@ export async function findHattackFollowUpActivityPlans() {
           },
         },
       },
+      type13Targets: {
+        include: {
+          store: {
+            select: { id: true, name: true, customerCode: true },
+          },
+          demoPlot: true,
+        },
+      },
       demoPlotVisits: {
         where: {
           demoPlot: {
@@ -107,7 +115,7 @@ export async function findHattackFollowUpDemoPlots() {
 }
 
 /**
- * Creates ActivityPlanType14 records, plots, products, and visits in a Prisma Transaction
+ * Creates ActivityPlanType14Target & Product records, and visits in a Prisma Transaction
  */
 export async function createType14Data(
   tx: Prisma.TransactionClient,
@@ -117,17 +125,17 @@ export async function createType14Data(
 ) {
   if (!type14Data) return;
 
-  const created14 = await tx.activityPlanType14.create({
-    data: {
-      activityPlanId: planId,
-      sourceActivityPlanId: type14Data.selectedPlanId || null,
-      mode: type14Data.mode || "EXISTING_PLOT",
-      hasProducts: Boolean(
-        type14Data.withdrawnProducts && type14Data.withdrawnProducts.length > 0,
-      ),
-      notes: type14Data.notes || null,
-    },
-  });
+  // Resolve valid sourceActivityPlanId to prevent foreign key errors
+  let validSourcePlanId = type14Data.selectedPlanId || null;
+  if (validSourcePlanId) {
+    const existingPlan = await tx.activityPlan.findUnique({
+      where: { id: validSourcePlanId },
+      select: { id: true },
+    });
+    if (!existingPlan) {
+      validSourcePlanId = null;
+    }
+  }
 
   // Handle plots
   const plotIds =
@@ -135,22 +143,28 @@ export async function createType14Data(
     type14Data.demoPlotIds ||
     (type14Data.demoPlotId ? [type14Data.demoPlotId] : []);
 
+  let primaryTargetId: string | null = null;
+
   if (plotIds.length > 0) {
     const existingDemoPlots = await tx.demoPlot.findMany({
       where: { id: { in: plotIds } },
     });
 
-    for (const plotId of plotIds) {
+    for (let i = 0; i < plotIds.length; i++) {
+      const plotId = plotIds[i];
       const demoPlot = existingDemoPlots.find((p) => p.id === plotId);
-      await tx.activityPlanType14Plot.create({
+
+      const target = await tx.activityPlanType14Target.create({
         data: {
-          type14Id: created14.id,
+          activityPlanId: planId,
+          mode: type14Data.mode || "EXISTING_PLOT",
+          sourceActivityPlanId: validSourcePlanId,
           demoPlotId: plotId,
           plotName: demoPlot?.name || type14Data.name || null,
+          storeId: demoPlot?.customerId || null,
           dealerName: demoPlot?.ownerName || type14Data.dealerName || null,
           ownerName: demoPlot?.ownerName || type14Data.ownerName || null,
-          cropCategory:
-            demoPlot?.cropCategory || type14Data.cropCategory || null,
+          cropCategory: demoPlot?.cropCategory || type14Data.cropCategory || null,
           cropName: demoPlot?.cropName || type14Data.cropName || null,
           province: demoPlot?.province || type14Data.province || null,
           district: demoPlot?.district || type14Data.district || null,
@@ -164,8 +178,13 @@ export async function createType14Data(
             (type14Data.longitude
               ? new Prisma.Decimal(type14Data.longitude)
               : null),
+          notes: type14Data.notes || null,
         },
       });
+
+      if (i === 0) {
+        primaryTargetId = target.id;
+      }
 
       // Ensure DemoPlotVisit is created or linked for TYPE_14
       const existingVisit = await tx.demoPlotVisit.findFirst({
@@ -195,9 +214,11 @@ export async function createType14Data(
       }
     }
   } else if (type14Data.mode === "NEW_PLOT" && type14Data.name) {
-    await tx.activityPlanType14Plot.create({
+    const target = await tx.activityPlanType14Target.create({
       data: {
-        type14Id: created14.id,
+        activityPlanId: planId,
+        mode: "NEW_PLOT",
+        sourceActivityPlanId: validSourcePlanId,
         demoPlotId: null,
         plotName: type14Data.name,
         dealerName: type14Data.dealerName || null,
@@ -212,29 +233,43 @@ export async function createType14Data(
         longitude: type14Data.longitude
           ? new Prisma.Decimal(type14Data.longitude)
           : null,
+        notes: type14Data.notes || null,
       },
     });
+    primaryTargetId = target.id;
   }
 
   // Handle withdrawn products
   if (type14Data.withdrawnProducts && type14Data.withdrawnProducts.length > 0) {
-    await tx.activityPlanType14Product.createMany({
-      data: type14Data.withdrawnProducts
-        .filter((p) => Boolean(p.productId))
-        .map((p, idx) => ({
-          type14Id: created14.id,
-          productId: p.productId,
-          productName: p.productName || null,
-          quantity: new Prisma.Decimal(p.quantity || 1),
-          unit: p.unit || "ขวด",
-          sortOrder: idx + 1,
-        })),
-    });
+    const validProds = type14Data.withdrawnProducts.filter((p) => Boolean(p.productId));
+    if (validProds.length > 0) {
+      const pIds = validProds.map((p) => p.productId);
+      const dbProds = await tx.product.findMany({
+        where: { id: { in: pIds } },
+        select: { id: true, name: true, unit: true },
+      });
+      const pMap = new Map(dbProds.map((p) => [p.id, p]));
+
+      await tx.activityPlanType14Product.createMany({
+        data: validProds.map((p, idx) => {
+          const dbP = pMap.get(p.productId);
+          return {
+            activityPlanId: planId,
+            targetId: primaryTargetId,
+            productId: p.productId,
+            productName: p.productName || dbP?.name || null,
+            quantity: new Prisma.Decimal(p.quantity || 1),
+            unit: p.unit || dbP?.unit || "ขวด",
+            sortOrder: idx + 1,
+          };
+        }),
+      });
+    }
   }
 }
 
 /**
- * Syncs (Updates) ActivityPlanType14 records in a transaction
+ * Syncs (Updates) ActivityPlanType14Target & Product records in a transaction
  */
 export async function syncType14Data(
   tx: Prisma.TransactionClient,
@@ -243,21 +278,14 @@ export async function syncType14Data(
   startDate: Date = new Date(),
   _employeeId?: string,
 ) {
-  const existing = await tx.activityPlanType14.findUnique({
+  if (type14Data === undefined) return;
+
+  await tx.activityPlanType14Product.deleteMany({
     where: { activityPlanId: planId },
   });
-
-  if (existing) {
-    await tx.activityPlanType14Product.deleteMany({
-      where: { type14Id: existing.id },
-    });
-    await tx.activityPlanType14Plot.deleteMany({
-      where: { type14Id: existing.id },
-    });
-    await tx.activityPlanType14.delete({
-      where: { id: existing.id },
-    });
-  }
+  await tx.activityPlanType14Target.deleteMany({
+    where: { activityPlanId: planId },
+  });
 
   if (type14Data) {
     await createType14Data(tx, planId, type14Data, startDate);
@@ -268,23 +296,51 @@ export async function syncType14Data(
  * Fetch TYPE_14 records with relations for a given plan
  */
 export async function findType14ByPlanId(planId: string) {
-  return db.activityPlanType14.findUnique({
-    where: { activityPlanId: planId },
-    include: {
-      plots: {
-        include: {
-          demoPlot: true,
+  const [targets, products, results] = await Promise.all([
+    db.activityPlanType14Target.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        demoPlot: true,
+        sourceActivityPlan: {
+          select: { id: true, title: true, code: true },
         },
       },
-      products: {
-        include: {
-          product: true,
+      orderBy: { createdAt: "asc" },
+    }),
+    db.activityPlanType14Product.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        product: true,
+      },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.activityResultType14.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        productsUsed: {
+          include: { product: true },
+          orderBy: { sortOrder: "asc" },
         },
-        orderBy: { sortOrder: "asc" },
+        attachments: true,
       },
-      sourceActivityPlan: {
-        select: { id: true, title: true, code: true },
-      },
-    },
-  });
+    }),
+  ]);
+
+  if (targets.length === 0 && products.length === 0 && results.length === 0) {
+    return null;
+  }
+
+  const primaryTarget = targets[0];
+  return {
+    id: primaryTarget?.id || planId,
+    activityPlanId: planId,
+    sourceActivityPlanId: primaryTarget?.sourceActivityPlanId || null,
+    sourceActivityPlan: primaryTarget?.sourceActivityPlan || null,
+    mode: primaryTarget?.mode || "EXISTING_PLOT",
+    hasProducts: products.length > 0,
+    notes: primaryTarget?.notes || null,
+    plots: targets,
+    products,
+    results,
+  };
 }

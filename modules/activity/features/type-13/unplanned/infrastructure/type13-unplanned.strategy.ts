@@ -4,6 +4,7 @@ import type {
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
 import { syncType13Data, findType13ByPlanId } from "../../planned/infrastructure/type13.repository";
+import { type13PlannedStrategy } from "../../planned/infrastructure/type13-planned.strategy";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
 export const type13UnplannedStrategy: WorkTypeStrategy = {
@@ -72,6 +73,19 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
         startDate,
         planData.employeeId || "",
       );
+    }
+  },
+
+  /**
+   * Save Type 13 Unplanned Actual Data
+   */
+  async saveActual(
+    tx: PrismaTransaction,
+    activityPlanId: string,
+    actualData: any,
+  ): Promise<void> {
+    if (typeof type13PlannedStrategy.saveActual === "function") {
+      await type13PlannedStrategy.saveActual(tx, activityPlanId, actualData);
     }
   },
 

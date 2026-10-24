@@ -33,12 +33,14 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
   }
 
   const plot =
+    initial.type14Targets?.[0] ||
     initial.type14Plots?.[0] ||
     initial.type14?.plots?.[0] ||
     initial.type14UnplannedItem ||
     initial;
 
   const round =
+    initial.type14Results?.[0] ||
     initial.type14Actual?.rounds?.[0] ||
     initial.type14Actual?.sprayRounds?.[0] ||
     initial.rounds?.[0] ||

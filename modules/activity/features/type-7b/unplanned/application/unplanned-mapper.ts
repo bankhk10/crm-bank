@@ -26,7 +26,13 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
     }));
   }
 
-  const t7b = initialData.type7b || initialData.type7bData;
+  const t7b =
+    initialData.type7bTargets && initialData.type7bTargets.length > 0
+      ? {
+          plots: initialData.type7bTargets,
+          products: initialData.type7bProducts || [],
+        }
+      : initialData.type7b || initialData.type7bData;
   if (!t7b) return [];
 
   const rawPlots: any[] = t7b.plots || [];

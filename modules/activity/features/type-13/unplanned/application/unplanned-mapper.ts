@@ -27,7 +27,7 @@ export function hydrateType13UnplannedData(initial?: any): Type13UnplannedItem {
     };
   }
 
-  const plot = initial.type13Plots?.[0] || initial.type13?.plots?.[0] || initial;
+  const plot = initial.type13Targets?.[0] || initial.type13Plots?.[0] || initial.type13?.plots?.[0] || initial;
 
   return {
     id: plot.id || `unplanned-plot-${Date.now()}`,

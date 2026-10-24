@@ -24,9 +24,13 @@ export function extractType7aPlanTargets(
   if (!plan) return { primary: fallbackItem, list: [] };
 
   let list: Type7aTargetItem[] = [];
+  const sourcePlots =
+    Array.isArray(plan.type7aTargets) && plan.type7aTargets.length > 0
+      ? plan.type7aTargets
+      : plan.type7aPlots;
 
-  if (Array.isArray(plan.type7aPlots) && plan.type7aPlots.length > 0) {
-    list = plan.type7aPlots.map((p: any) => {
+  if (Array.isArray(sourcePlots) && sourcePlots.length > 0) {
+    list = sourcePlots.map((p: any) => {
       const dp = p.demoPlot || p;
       const rawProducts = dp.demoProducts?.length ? dp.demoProducts : (p.demoProducts || p.products || []);
       const visit1 = dp.visits?.[0];

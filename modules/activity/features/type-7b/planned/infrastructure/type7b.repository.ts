@@ -3,7 +3,6 @@ import {
   Prisma,
   DemoPlotStatus,
   ActivityStatus,
-  ActivityResultStatus,
 } from "@prisma/client";
 import type {
   Type7bDataInput,
@@ -11,7 +10,7 @@ import type {
 } from "../../shared/types";
 
 /**
- * Creates ActivityPlanType7b records, plots, products, and visits in a Prisma Transaction
+ * Creates ActivityPlanType7bTarget records, products, and visits in a Prisma Transaction
  */
 export async function createType7bData(
   tx: Prisma.TransactionClient,
@@ -38,58 +37,53 @@ export async function createType7bData(
     }
   }
 
-  const created7b = await tx.activityPlanType7b.create({
-    data: {
-      activityPlanId: planId,
-      sourceActivityPlanId: validSourcePlanId,
-      hasProducts: Boolean(
-        type7bData.products && type7bData.products.length > 0,
-      ),
-      objective: type7bData.objective || type7bData.notes || null,
-      notes: type7bData.objective || type7bData.notes || null,
-    },
-  });
+  const rawPlots = type7bData.plots || (type7bData.demoPlotId ? [{ demoPlotId: type7bData.demoPlotId }] : []);
+  const validPlots = rawPlots.filter((p) => Boolean(p.demoPlotId));
+  let createdTargetId: string | null = null;
 
-  if (type7bData.plots && type7bData.plots.length > 0) {
-    await tx.activityPlanType7bPlot.createMany({
-      data: type7bData.plots
-        .filter((p) => Boolean(p.demoPlotId))
-        .map((plot) => ({
-          type7bId: created7b.id,
+  if (validPlots.length > 0) {
+    for (let i = 0; i < validPlots.length; i++) {
+      const plot = validPlots[i];
+      const target = await tx.activityPlanType7bTarget.create({
+        data: {
+          activityPlanId: planId,
           demoPlotId: plot.demoPlotId!,
+          sourceActivityPlanId: validSourcePlanId,
           plotName: plot.plotName || null,
           cropName: plot.cropName || null,
           ownerName: plot.farmerName || plot.ownerName || null,
           province: plot.province || null,
           district: plot.district || null,
-          areaRai:
-            plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
+          areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
           treeCount: plot.treeCount || null,
           dealerName: plot.dealerStoreName || plot.dealerName || null,
-        })),
-    });
+          objective: type7bData.objective || type7bData.notes || null,
+          notes: type7bData.notes || null,
+        },
+      });
+      if (i === 0) {
+        createdTargetId = target.id;
+      }
 
-    for (const p of type7bData.plots) {
-      if (p.demoPlotId) {
-        const existingVisit = await tx.demoPlotVisit.findFirst({
-          where: {
+      // Sync initial visit in DemoPlotVisit timeline
+      const existingVisit = await tx.demoPlotVisit.findFirst({
+        where: {
+          activityPlanId: planId,
+          demoPlotId: plot.demoPlotId!,
+          workTypeCode: "TYPE_7B",
+        },
+      });
+      if (!existingVisit) {
+        await tx.demoPlotVisit.create({
+          data: {
+            demoPlotId: plot.demoPlotId!,
             activityPlanId: planId,
-            demoPlotId: p.demoPlotId,
             workTypeCode: "TYPE_7B",
+            visitNumber: type7bData.sprayRound || 1,
+            visitDate: startDate,
+            daysSinceStart: type7bData.daysSinceStart || 0,
           },
         });
-        if (!existingVisit) {
-          await tx.demoPlotVisit.create({
-            data: {
-              demoPlotId: p.demoPlotId,
-              activityPlanId: planId,
-              workTypeCode: "TYPE_7B",
-              visitNumber: type7bData.sprayRound || 1,
-              visitDate: startDate,
-              daysSinceStart: type7bData.daysSinceStart || 0,
-            },
-          });
-        }
       }
     }
   }
@@ -134,7 +128,8 @@ export async function createType7bData(
         }
 
         return {
-          type7bId: created7b.id,
+          activityPlanId: planId,
+          targetId: createdTargetId,
           productId: dbProd.id,
           productName: p.productName || dbProd.name || null,
           quantity:
@@ -158,7 +153,7 @@ export async function createType7bData(
 }
 
 /**
- * Synchronizes ActivityPlanType7b records when updating an ActivityPlan
+ * Synchronizes ActivityPlanType7bTarget & Product records when updating an ActivityPlan
  */
 export async function syncType7bData(
   tx: Prisma.TransactionClient,
@@ -168,7 +163,10 @@ export async function syncType7bData(
 ) {
   if (type7bData === undefined) return;
 
-  await tx.activityPlanType7b.deleteMany({
+  await tx.activityPlanType7bProduct.deleteMany({
+    where: { activityPlanId: planId },
+  });
+  await tx.activityPlanType7bTarget.deleteMany({
     where: { activityPlanId: planId },
   });
 
@@ -290,36 +288,72 @@ export async function findFollowUpActivityPlans(): Promise<Type7bFollowUpPlanOpt
  * Fetch TYPE_7B records with relations for a given plan
  */
 export async function findType7bByPlanId(planId: string) {
-  return db.activityPlanType7b.findUnique({
-    where: { activityPlanId: planId },
-    include: {
-      sourceActivityPlan: {
-        select: {
-          id: true,
-          code: true,
-          title: true,
-          startDate: true,
-          endDate: true,
-        },
-      },
-      plots: {
-        include: {
-          demoPlot: true,
-        },
-      },
-      products: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
+  const [targets, products, results] = await Promise.all([
+    db.activityPlanType7bTarget.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        demoPlot: true,
+        sourceActivityPlan: {
+          select: {
+            id: true,
+            code: true,
+            title: true,
+            startDate: true,
+            endDate: true,
           },
         },
       },
-    },
-  });
+    }),
+    db.activityPlanType7bProduct.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            productCode: true,
+            unit: true,
+            packageSizeUnit: true,
+          },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.activityResultType7b.findMany({
+      where: { activityPlanId: planId },
+      include: {
+        sprayRounds: {
+          include: {
+            sprayProducts: {
+              include: { product: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            sprayExternals: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+          orderBy: { roundNumber: "asc" },
+        },
+        attachments: true,
+      },
+    }),
+  ]);
+
+  if (targets.length === 0 && products.length === 0 && results.length === 0) {
+    return null;
+  }
+
+  const primaryTarget = targets[0];
+  return {
+    id: primaryTarget?.id || planId,
+    activityPlanId: planId,
+    sourceActivityPlanId: primaryTarget?.sourceActivityPlanId || null,
+    sourceActivityPlan: primaryTarget?.sourceActivityPlan || null,
+    hasProducts: products.length > 0,
+    objective: primaryTarget?.objective || null,
+    notes: primaryTarget?.notes || null,
+    plots: targets,
+    products,
+    results,
+  };
 }

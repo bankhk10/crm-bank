@@ -8,6 +8,7 @@ export function extractType13PlanTargets(
   prevTarget?: Type13PlotItem,
 ): { primary: Type13PlotItem; list: Type13PlotItem[] } {
   const plots: any[] =
+    plan?.type13Targets ||
     plan?.type13?.plots ||
     plan?.type13Plots ||
     (plan?.demoPlotVisits || [])
@@ -79,7 +80,7 @@ export function mapType13ToSectionItems(
     (l) => l.includes("[ฉีดแปลงแฮตแทค") || l.includes("แฮตแทค") || l.includes("TYPE_13"),
   );
 
-  const plots = type13?.plots || [];
+  const plots = type13?.plots || (Array.isArray(type13) ? type13 : []);
 
   if (!type13 && !t13Line && plots.length === 0) {
     return null;

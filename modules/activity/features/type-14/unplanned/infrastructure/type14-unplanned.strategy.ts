@@ -7,6 +7,7 @@ import {
   syncType14Data,
   findType14ByPlanId,
 } from "../../planned/infrastructure/type14.repository";
+import { type14PlannedStrategy } from "../../planned/infrastructure/type14-planned.strategy";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
 export const type14UnplannedStrategy: WorkTypeStrategy = {
@@ -94,37 +95,8 @@ export const type14UnplannedStrategy: WorkTypeStrategy = {
     activityPlanId: string,
     actualData: any,
   ): Promise<void> {
-    const t14Actual = actualData.type14Actual || actualData;
-    const rounds: any[] = t14Actual.rounds || t14Actual.sprayRounds || [];
-
-    for (const round of rounds) {
-      if (!round.actualVisitDate) continue;
-
-      const visitDate = new Date(round.actualVisitDate);
-      const daysSinceStart = round.daysAfterSpray
-        ? parseInt(String(round.daysAfterSpray), 10)
-        : 0;
-
-      const visits = await tx.demoPlotVisit.findMany({
-        where: {
-          activityPlanId,
-          workTypeCode: "TYPE_14",
-        },
-      });
-
-      for (const visit of visits) {
-        await tx.demoPlotVisit.update({
-          where: { id: visit.id },
-          data: {
-            visitDate,
-            daysSinceStart: isNaN(daysSinceStart) ? 0 : daysSinceStart,
-            productResponse:
-              round.productResponse || round.trackingResult || "ปกติ",
-            productProblemDesc: round.trackingResult || null,
-            notes: round.additionalNotes || null,
-          },
-        });
-      }
+    if (typeof type14PlannedStrategy.saveActual === "function") {
+      await type14PlannedStrategy.saveActual(tx, activityPlanId, actualData);
     }
   },
 
@@ -138,3 +110,4 @@ export const type14UnplannedStrategy: WorkTypeStrategy = {
     return findType14ByPlanId(activityPlanId);
   },
 };
+

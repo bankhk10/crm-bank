@@ -405,7 +405,10 @@ model Customer {
   demoPlots                   DemoPlot[]                   @relation("CustomerDemoPlots")
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
 
-  activityPlanType13Plots     ActivityPlanType13Plot[]     @relation("Type13DealerStore")
+  activityPlanType7aTargets   ActivityPlanType7aTarget[]   @relation("Type7aTargetStore")
+  activityResultType7aFarmers ActivityResultType7a[]       @relation("Type7aFarmerCustomer")
+  activityPlanType13Targets   ActivityPlanType13Target[]   @relation("Type13TargetStore")
+  activityPlanType14Targets   ActivityPlanType14Target[]   @relation("Type14TargetStore")
   activityPlanType1Targets    ActivityPlanType1Target[]    @relation("Type1TargetStore")
   activityPlanType2Targets    ActivityPlanType2Target[]    @relation("Type2TargetStore")
   activityResultType2s        ActivityResultType2[]        @relation("Type2ResultStore")
@@ -720,9 +723,14 @@ model Product {
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
   activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
 
-  activityPlanType7bProducts     ActivityPlanType7bProduct[]
-  activityPlanType13Products     ActivityPlanType13Product[]
-  activityPlanType14Products     ActivityPlanType14Product[]
+  activityPlanType7aProducts         ActivityPlanType7aProduct[]
+  activityResultType7aProducts       ActivityResultType7aProduct[]
+  activityPlanType7bProducts         ActivityPlanType7bProduct[]
+  activityResultType7bSprayProducts  ActivityResultType7bSprayProduct[]
+  activityPlanType13Products         ActivityPlanType13Product[]
+  activityResultType13SprayProducts  ActivityResultType13SprayProduct[]
+  activityPlanType14Products         ActivityPlanType14Product[]
+  activityResultType14ProductsUsed   ActivityResultType14ProductUsed[]
   activityPlanType2Products      ActivityPlanType2Product[]   @relation("Type2ProductRef")
   activityResultType2s           ActivityResultType2[]        @relation("Type2ResultProduct")
   activityPlanType3Products      ActivityPlanType3Product[]   @relation("Type3ProductRef")
@@ -1771,12 +1779,21 @@ model ActivityPlan {
   demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
-  type7aPlots    DemoPlot[] @relation("ActivityPlanType7aDemoPlots")
-  type7b         ActivityPlanType7b?
-  type7bFollowUps ActivityPlanType7b[] @relation("Type7bSourcePlan")
-  type13         ActivityPlanType13?
-  type14         ActivityPlanType14?
-  type14FollowUps ActivityPlanType14[] @relation("Type14SourcePlan")
+  type7aPlots           DemoPlot[]                 @relation("ActivityPlanType7aDemoPlots")
+  type7aTargets         ActivityPlanType7aTarget[]
+  type7aProducts        ActivityPlanType7aProduct[]
+  type7aResults         ActivityResultType7a[]
+  type7bTargets         ActivityPlanType7bTarget[]
+  type7bProducts        ActivityPlanType7bProduct[]
+  type7bResults         ActivityResultType7b[]
+  type7bSourceFollowUps ActivityPlanType7bTarget[] @relation("Type7bSourcePlan")
+  type13Targets         ActivityPlanType13Target[]
+  type13Products        ActivityPlanType13Product[]
+  type13Results         ActivityResultType13[]
+  type14Targets         ActivityPlanType14Target[]
+  type14Products        ActivityPlanType14Product[]
+  type14Results         ActivityResultType14[]
+  type14SourceFollowUps ActivityPlanType14Target[] @relation("Type14SourcePlan")
   type1Targets   ActivityPlanType1Target[]  @relation("ActivityPlanType1Targets")
   type1Results   ActivityResultType1[]      @relation("ActivityResultType1s")
   type1Products  ActivityPlanType1Product[] @relation("ActivityPlanType1Products")
@@ -2333,6 +2350,10 @@ model ActivityAttachment {
   issueItemId      String?            @map("issue_item_id")
   type5ResultId    String?            @map("type_5_result_id")
   type6ResultId    String?            @map("type_6_result_id")
+  type7aResultId   String?            @map("type_7a_result_id")
+  type7bResultId   String?            @map("type_7b_result_id")
+  type13ResultId   String?            @map("type_13_result_id")
+  type14ResultId   String?            @map("type_14_result_id")
   category         AttachmentCategory @default(GENERAL)
   fileUrl          String             @map("file_url")
   fileName         String             @map("file_name")
@@ -2348,6 +2369,10 @@ model ActivityAttachment {
   issueItem       ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
   type5Result     ActivityResultType5?      @relation(fields: [type5ResultId], references: [id], onDelete: Cascade)
   type6Result     ActivityResultType6?      @relation(fields: [type6ResultId], references: [id], onDelete: Cascade)
+  type7aResult    ActivityResultType7a?     @relation(fields: [type7aResultId], references: [id], onDelete: Cascade)
+  type7bResult    ActivityResultType7b?     @relation(fields: [type7bResultId], references: [id], onDelete: Cascade)
+  type13Result    ActivityResultType13?     @relation(fields: [type13ResultId], references: [id], onDelete: Cascade)
+  type14Result    ActivityResultType14?     @relation(fields: [type14ResultId], references: [id], onDelete: Cascade)
   demoPlotId      String?                   @map("demo_plot_id")
   demoPlot        DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   sprayRoundId    String?                   @map("spray_round_id")
@@ -2367,6 +2392,10 @@ model ActivityAttachment {
   @@index([issueItemId])
   @@index([type5ResultId])
   @@index([type6ResultId])
+  @@index([type7aResultId])
+  @@index([type7bResultId])
+  @@index([type13ResultId])
+  @@index([type14ResultId])
   @@map("activity_attachments")
 }
 
@@ -2514,9 +2543,14 @@ model DemoPlot {
   attachments         ActivityAttachment[]
   sprayRounds         ActivityResultSprayRound[]
 
-  type7bPlots         ActivityPlanType7bPlot[]
-  type13Plots         ActivityPlanType13Plot[]
-  type14Plots         ActivityPlanType14Plot[]
+  type7aTargets       ActivityPlanType7aTarget[]
+  type7aResults       ActivityResultType7a[]
+  type7bTargets       ActivityPlanType7bTarget[]
+  type7bResults       ActivityResultType7b[]
+  type13Targets       ActivityPlanType13Target[]
+  type13Results       ActivityResultType13[]
+  type14Targets       ActivityPlanType14Target[]
+  type14Results       ActivityResultType14[]
   type10Targets       ActivityPlanType10Target[]
 
   @@index([plotType])
@@ -2634,201 +2668,554 @@ model DemoPlotIrrigation {
 
 
 // =============================================================================
+// TYPE-7A: แผนจัดทำแปลงสาธิต (Demo Plot Establishment)
+// =============================================================================
+
+model ActivityPlanType7aTarget {
+  id             String    @id @default(cuid())
+  activityPlanId String    @map("activity_plan_id")
+  plotName       String    @map("plot_name") // ชื่อแปลงสาธิต
+  storeId        String?   @map("store_id") // ร้านค้า Dealer ที่ร่วมโครงการ
+  dealerName     String?   @map("dealer_name")
+  cropCategory   String?   @map("crop_category") // ผักและพืชล้มลุก, พืชไร่, พืชสวน
+  cropName       String?   @map("crop_name")
+  customCropName String?   @map("custom_crop_name")
+  areaRai        Decimal?  @map("area_rai") @db.Decimal(10, 2)
+  treeCount      Int?      @map("tree_count")
+  objective      String?   @map("objective") @db.Text // วัตถุประสงค์
+  demoPlotId     String?   @map("demo_plot_id") // เชื่อมโยงรหัสแปลง DPYYMMXXXX
+  notes          String?   @map("notes") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?                   @relation("Type7aTargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  demoPlot       DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  products       ActivityPlanType7aProduct[]
+  results        ActivityResultType7a[]
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([demoPlotId])
+  @@map("activity_type_7a_targets")
+}
+
+model ActivityPlanType7aProduct {
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  productId      String   @map("product_id")
+  productName    String?  @map("product_name")
+  quantity       Decimal  @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?  @map("unit")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType7aTarget? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([productId])
+  @@map("activity_type_7a_products")
+}
+
+model ActivityResultType7a {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  targetId             String?   @map("target_id")
+  demoPlotId           String?   @map("demo_plot_id")
+  farmerCustomerId     String?   @map("farmer_customer_id")
+  farmerName           String?   @map("farmer_name")
+  farmerPhone          String?   @map("farmer_phone")
+  isUnregisteredFarmer Boolean   @default(false) @map("is_unregistered_farmer")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  subdistrict          String?   @map("subdistrict")
+  latitude             Decimal?  @map("latitude") @db.Decimal(10, 7)
+  longitude            Decimal?  @map("longitude") @db.Decimal(10, 7)
+  mainCropInfo         String?   @map("main_crop_info") // ข้อมูลพืชประธาน
+  plantingDate         DateTime? @map("planting_date")
+  firstSprayDate       DateTime? @map("first_spray_date")
+  nextSprayDate        DateTime? @map("next_spray_date")
+  cropAgeValue         Int?      @map("crop_age_value")
+  cropAgeUnit          String?   @map("crop_age_unit")
+  growthStage          String?   @map("growth_stage")
+  sprayMethod          String?   @map("spray_method") // SINGLE / TANK_MIXED
+  hasExternalChemicals Boolean   @default(false) @map("has_external_chemicals")
+  sprayEquipment       String?   @map("spray_equipment")
+  otherEquipment       String?   @map("other_equipment")
+  notes                String?   @map("notes") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType7aTarget?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  demoPlot             DemoPlot?                        @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  farmerCustomer       Customer?                        @relation("Type7aFarmerCustomer", fields: [farmerCustomerId], references: [id], onDelete: SetNull)
+  irrigations          ActivityResultType7aIrrigation[]
+  actualProducts       ActivityResultType7aProduct[]
+  sprayExternals       ActivityResultType7aExternal[]
+  attachments          ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([demoPlotId])
+  @@index([farmerCustomerId])
+  @@map("activity_type_7a_results")
+}
+
+model ActivityResultType7aIrrigation {
+  id        String   @id @default(cuid())
+  resultId  String   @map("result_id")
+  method    String   @map("method")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  result    ActivityResultType7a @relation(fields: [resultId], references: [id], onDelete: Cascade)
+
+  @@index([resultId])
+  @@map("activity_type_7a_irrigations")
+}
+
+model ActivityResultType7aProduct {
+  id                String   @id @default(cuid())
+  resultId          String   @map("result_id")
+  productId         String   @map("product_id")
+  productName       String?  @map("product_name")
+  isPlanned         Boolean  @default(false) @map("is_planned")
+  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
+  actualQuantity    Decimal  @default(0) @map("actual_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  actualRate        String?  @map("actual_rate")
+  unit              String?  @map("unit")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  result            ActivityResultType7a @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  product           Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([resultId])
+  @@index([productId])
+  @@map("activity_type_7a_actual_products")
+}
+
+model ActivityResultType7aExternal {
+  id               String   @id @default(cuid())
+  resultId         String   @map("result_id")
+  company          String   @map("company")
+  productName      String   @map("product_name")
+  activeIngredient String?  @map("active_ingredient")
+  formula          String   @map("formula")
+  customFormula    String?  @map("custom_formula")
+  applicationRate  String   @map("application_rate")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  result           ActivityResultType7a @relation(fields: [resultId], references: [id], onDelete: Cascade)
+
+  @@index([resultId])
+  @@map("activity_type_7a_spray_externals")
+}
+
+// =============================================================================
 // TYPE-7B: แผนติดตามแปลงสาธิต (Demo Plot Follow-up Plan)
 // =============================================================================
 
-model ActivityPlanType7b {
-  id                   String                      @id @default(cuid())
-  activityPlanId       String                      @unique @map("activity_plan_id")
-  sourceActivityPlanId String?                     @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
-  hasProducts          Boolean                     @default(false) @map("has_products")
-  objective            String?                     @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
-  notes                String?                     @map("notes") @db.Text
+model ActivityPlanType7bTarget {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  demoPlotId           String    @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม
+  sourceActivityPlanId String?   @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
+  plotName             String?   @map("plot_name")
+  cropName             String?   @map("crop_name")
+  ownerName            String?   @map("owner_name")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  areaRai              Decimal?  @map("area_rai") @db.Decimal(10, 2)
+  treeCount            Int?      @map("tree_count")
+  dealerName           String?   @map("dealer_name")
+  objective            String?   @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
+  notes                String?   @map("notes") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  createdAt            DateTime                    @default(now()) @map("created_at")
-  updatedAt            DateTime                    @updatedAt @map("updated_at")
-
-  // Relations
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  demoPlot             DemoPlot                    @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
   sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
-  plots                ActivityPlanType7bPlot[]
   products             ActivityPlanType7bProduct[]
+  results              ActivityResultType7b[]
 
   @@index([activityPlanId])
-  @@index([sourceActivityPlanId])
-  @@map("activity_plan_type_7b")
-}
-
-model ActivityPlanType7bPlot {
-  id         String             @id @default(cuid())
-  type7bId   String             @map("type_7b_id")
-  demoPlotId String             @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม
-  plotName   String?            @map("plot_name")
-  cropName   String?            @map("crop_name")
-  ownerName  String?            @map("owner_name")
-  province   String?            @map("province")
-  district   String?            @map("district")
-  areaRai    Decimal?           @map("area_rai") @db.Decimal(10, 2)
-  treeCount  Int?               @map("tree_count")
-  dealerName String?            @map("dealer_name")
-  createdAt  DateTime           @default(now()) @map("created_at")
-
-  type7b     ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
-  demoPlot   DemoPlot           @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
-
-  @@index([type7bId])
   @@index([demoPlotId])
-  @@map("activity_plan_type_7b_plots")
+  @@index([sourceActivityPlanId])
+  @@map("activity_type_7b_targets")
 }
 
 model ActivityPlanType7bProduct {
-  id          String             @id @default(cuid())
-  type7bId    String             @map("type_7b_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  productId      String   @map("product_id")
+  productName    String?  @map("product_name")
+  quantity       Decimal  @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?  @map("unit")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  type7b      ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType7bTarget? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type7bId])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_7b_products")
+  @@map("activity_type_7b_products")
+}
+
+model ActivityResultType7b {
+  id                  String         @id @default(cuid())
+  activityPlanId      String         @map("activity_plan_id")
+  targetId            String?        @map("target_id")
+  demoPlotId          String         @map("demo_plot_id")
+  visitDate           DateTime       @map("visit_date")
+  daysSinceStart      Int            @default(0) @map("days_since_start")
+  cropCondition       String?        @map("crop_condition")
+  growthStage         String?        @map("growth_stage")
+  cropProblemDesc     String?        @map("crop_problem_desc") @db.Text
+  productResponse     String?        @map("product_response")
+  productProblemDesc  String?        @map("product_problem_desc") @db.Text
+  nextSprayDate       DateTime?      @map("next_spray_date")
+  notes               String?        @map("notes") @db.Text
+  plotStatus          DemoPlotStatus @default(IN_PROGRESS) @map("plot_status")
+  finalHarvestDate    DateTime?      @map("final_harvest_date")
+  demoYieldKg         Decimal?       @map("demo_yield_kg") @db.Decimal(12, 2)
+  controlYieldKg      Decimal?       @map("control_yield_kg") @db.Decimal(12, 2)
+  farmerSatisfaction  Int?           @map("farmer_satisfaction")
+  commercialPotential String?        @map("commercial_potential")
+  finalSummaryNotes   String?        @map("final_summary_notes") @db.Text
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  activityPlan        ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target              ActivityPlanType7bTarget?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  demoPlot            DemoPlot                         @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
+  sprayRounds         ActivityResultType7bSprayRound[]
+  attachments         ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([demoPlotId])
+  @@map("activity_type_7b_results")
+}
+
+model ActivityResultType7bSprayRound {
+  id                   String   @id @default(cuid())
+  resultId             String   @map("result_id")
+  roundNumber          Int      @default(1) @map("round_number")
+  sprayDate            DateTime @map("spray_date")
+  sprayMethod          String   @default("SINGLE") @map("spray_method")
+  hasExternalChemicals Boolean  @default(false) @map("has_external_chemicals")
+  sprayEquipment       String   @map("spray_equipment")
+  otherEquipment       String?  @map("other_equipment")
+  productResponse      String?  @map("product_response")
+  problemDetail        String?  @map("problem_detail") @db.Text
+  notes                String?  @map("notes") @db.Text
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  result               ActivityResultType7b                @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  sprayProducts        ActivityResultType7bSprayProduct[]
+  sprayExternals       ActivityResultType7bSprayExternal[]
+
+  @@index([resultId])
+  @@map("activity_type_7b_spray_rounds")
+}
+
+model ActivityResultType7bSprayProduct {
+  id                String   @id @default(cuid())
+  sprayRoundId      String   @map("spray_round_id")
+  productId         String   @map("product_id")
+  productName       String?  @map("product_name")
+  isPlanned         Boolean  @default(false) @map("is_planned")
+  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
+  actualQuantity    Decimal  @default(0) @map("actual_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  actualRate        String?  @map("actual_rate")
+  unit              String?  @map("unit")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  sprayRound        ActivityResultType7bSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product           Product                        @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([sprayRoundId])
+  @@index([productId])
+  @@map("activity_type_7b_spray_products")
+}
+
+model ActivityResultType7bSprayExternal {
+  id               String   @id @default(cuid())
+  sprayRoundId     String   @map("spray_round_id")
+  company          String   @map("company")
+  productName      String   @map("product_name")
+  activeIngredient String?  @map("active_ingredient")
+  formula          String   @map("formula")
+  customFormula    String?  @map("custom_formula")
+  applicationRate  String   @map("application_rate")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  sprayRound       ActivityResultType7bSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+
+  @@index([sprayRoundId])
+  @@map("activity_type_7b_spray_externals")
 }
 
 // =============================================================================
 // TYPE-13: แผนฉีดแปลงแฮตแทค (Hattack Spraying Plan)
 // =============================================================================
 
-model ActivityPlanType13 {
-  id             String                      @id @default(cuid())
-  activityPlanId String                      @unique @map("activity_plan_id")
-  hasProducts    Boolean                     @default(false) @map("has_products")
-  notes          String?                     @map("notes") @db.Text
+model ActivityPlanType13Target {
+  id                String    @id @default(cuid())
+  activityPlanId    String    @map("activity_plan_id")
+  plotIndex         Int       @default(1) @map("plot_index")
+  plotName          String    @map("plot_name")
+  storeId           String?   @map("store_id")
+  dealerName        String?   @map("dealer_name")
+  ownerName         String?   @map("owner_name")
+  province          String    @map("province")
+  district          String    @map("district")
+  subdistrict       String?   @map("subdistrict")
+  village           String?   @map("village")
+  plannedPlotsCount Int?      @map("planned_plots_count")
+  latitude          Decimal?  @map("latitude") @db.Decimal(10, 7)
+  longitude         Decimal?  @map("longitude") @db.Decimal(10, 7)
+  demoPlotId        String?   @map("demo_plot_id")
+  notes             String?   @map("notes") @db.Text
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  createdAt      DateTime                    @default(now()) @map("created_at")
-  updatedAt      DateTime                    @updatedAt @map("updated_at")
-
-  // Relations
-  activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  plots          ActivityPlanType13Plot[]
-  products       ActivityPlanType13Product[]
+  activityPlan      ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store             Customer?                   @relation("Type13TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  demoPlot          DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  products          ActivityPlanType13Product[]
+  results           ActivityResultType13[]
 
   @@index([activityPlanId])
-  @@map("activity_plan_type_13")
-}
-
-model ActivityPlanType13Plot {
-  id          String             @id @default(cuid())
-  type13Id    String             @map("type_13_id")
-  plotIndex   Int                @default(1) @map("plot_index")
-  plotName    String             @map("plot_name")
-  storeId     String?            @map("store_id")
-  dealerName  String?            @map("dealer_name")
-  ownerName   String?            @map("owner_name")
-  province    String?            @map("province")
-  district    String?            @map("district")
-  latitude    Decimal?           @map("latitude") @db.Decimal(10, 7)
-  longitude   Decimal?           @map("longitude") @db.Decimal(10, 7)
-  demoPlotId  String?            @map("demo_plot_id")
-  createdAt   DateTime           @default(now()) @map("created_at")
-
-  type13      ActivityPlanType13 @relation(fields: [type13Id], references: [id], onDelete: Cascade)
-  store       Customer?          @relation("Type13DealerStore", fields: [storeId], references: [id], onDelete: SetNull)
-  demoPlot    DemoPlot?          @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-
-  @@index([type13Id])
   @@index([storeId])
   @@index([demoPlotId])
-  @@map("activity_plan_type_13_plots")
+  @@map("activity_type_13_targets")
 }
 
 model ActivityPlanType13Product {
-  id          String             @id @default(cuid())
-  type13Id    String             @map("type_13_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  productId      String   @map("product_id")
+  productName    String?  @map("product_name")
+  quantity       Decimal  @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?  @map("unit")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  type13      ActivityPlanType13 @relation(fields: [type13Id], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType13Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type13Id])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_13_products")
+  @@map("activity_type_13_products")
+}
+
+model ActivityResultType13 {
+  id               String    @id @default(cuid())
+  activityPlanId   String    @map("activity_plan_id")
+  targetId         String?   @map("target_id")
+  demoPlotId       String?   @map("demo_plot_id")
+  plotName         String?   @map("plot_name")
+  actualPlotsCount Int?      @map("actual_plots_count")
+  actualLatitude   Decimal?  @map("actual_latitude") @db.Decimal(10, 7)
+  actualLongitude  Decimal?  @map("actual_longitude") @db.Decimal(10, 7)
+  notes            String?   @map("notes") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  activityPlan     ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target           ActivityPlanType13Target?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  demoPlot         DemoPlot?                        @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  sprayRounds      ActivityResultType13SprayRound[]
+  attachments      ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([demoPlotId])
+  @@map("activity_type_13_results")
+}
+
+model ActivityResultType13SprayRound {
+  id              String   @id @default(cuid())
+  resultId        String   @map("result_id")
+  roundNumber     Int      @default(1) @map("round_number")
+  sprayDate       DateTime @map("spray_date")
+  sprayMethod     String   @default("SINGLE") @map("spray_method")
+  sprayEquipment  String   @map("spray_equipment")
+  otherEquipment  String?  @map("other_equipment")
+  productResponse String   @default("ปกติ") @map("product_response")
+  problemDetail   String?  @map("problem_detail") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  result          ActivityResultType13                @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  sprayProducts   ActivityResultType13SprayProduct[]
+  sprayExternals  ActivityResultType13SprayExternal[]
+
+  @@index([resultId])
+  @@map("activity_type_13_spray_rounds")
+}
+
+model ActivityResultType13SprayProduct {
+  id           String   @id @default(cuid())
+  sprayRoundId String   @map("spray_round_id")
+  productId    String   @map("product_id")
+  productName  String?  @map("product_name")
+  quantityUsed Decimal  @map("quantity_used") @db.Decimal(10, 2)
+  actualRate   String   @map("actual_rate")
+  unit         String?  @map("unit")
+  detail       String?  @map("detail")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  sprayRound   ActivityResultType13SprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product      Product                        @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([sprayRoundId])
+  @@index([productId])
+  @@map("activity_type_13_spray_products")
+}
+
+model ActivityResultType13SprayExternal {
+  id               String   @id @default(cuid())
+  sprayRoundId     String   @map("spray_round_id")
+  company          String   @map("company")
+  productName      String   @map("product_name")
+  activeIngredient String?  @map("active_ingredient")
+  formula          String   @map("formula")
+  customFormula    String?  @map("custom_formula")
+  applicationRate  String   @map("application_rate")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  sprayRound       ActivityResultType13SprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+
+  @@index([sprayRoundId])
+  @@map("activity_type_13_spray_externals")
 }
 
 // =============================================================================
 // TYPE-14: แผนติดตามแปลงแฮตแทค (Hattack Follow-up Plan)
 // =============================================================================
 
-model ActivityPlanType14 {
-  id                   String                      @id @default(cuid())
-  activityPlanId       String                      @unique @map("activity_plan_id")
-  sourceActivityPlanId String?                     @map("source_activity_plan_id")
-  mode                 String                      @default("EXISTING_PLOT") @map("mode")
-  hasProducts          Boolean                     @default(false) @map("has_products")
-  notes                String?                     @map("notes") @db.Text
+model ActivityPlanType14Target {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  mode                 String    @default("EXISTING_PLOT") @map("mode") // EXISTING_PLOT / NEW_PLOT
+  sourceActivityPlanId String?   @map("source_activity_plan_id")
+  demoPlotId           String?   @map("demo_plot_id")
+  plotName             String?   @map("plot_name")
+  storeId              String?   @map("store_id")
+  dealerName           String?   @map("dealer_name")
+  ownerName            String?   @map("owner_name")
+  cropCategory         String?   @map("crop_category")
+  cropName             String?   @map("crop_name")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  latitude             Decimal?  @map("latitude") @db.Decimal(10, 7)
+  longitude            Decimal?  @map("longitude") @db.Decimal(10, 7)
+  notes                String?   @map("notes") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  createdAt            DateTime                    @default(now()) @map("created_at")
-  updatedAt            DateTime                    @updatedAt @map("updated_at")
-
-  // Relations
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   sourceActivityPlan   ActivityPlan?               @relation("Type14SourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
-  plots                ActivityPlanType14Plot[]
+  demoPlot             DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  store                Customer?                   @relation("Type14TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
   products             ActivityPlanType14Product[]
+  results              ActivityResultType14[]
 
   @@index([activityPlanId])
   @@index([sourceActivityPlanId])
-  @@map("activity_plan_type_14")
-}
-
-model ActivityPlanType14Plot {
-  id           String             @id @default(cuid())
-  type14Id     String             @map("type_14_id")
-  demoPlotId   String?            @map("demo_plot_id")
-  plotName     String?            @map("plot_name")
-  dealerName   String?            @map("dealer_name")
-  ownerName    String?            @map("owner_name")
-  cropCategory String?            @map("crop_category")
-  cropName     String?            @map("crop_name")
-  province     String?            @map("province")
-  district     String?            @map("district")
-  latitude     Decimal?           @map("latitude") @db.Decimal(10, 7)
-  longitude    Decimal?           @map("longitude") @db.Decimal(10, 7)
-  createdAt    DateTime           @default(now()) @map("created_at")
-
-  type14       ActivityPlanType14 @relation(fields: [type14Id], references: [id], onDelete: Cascade)
-  demoPlot     DemoPlot?          @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-
-  @@index([type14Id])
   @@index([demoPlotId])
-  @@map("activity_plan_type_14_plots")
+  @@index([storeId])
+  @@map("activity_type_14_targets")
 }
 
 model ActivityPlanType14Product {
-  id          String             @id @default(cuid())
-  type14Id    String             @map("type_14_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  productId      String   @map("product_id")
+  productName    String?  @map("product_name")
+  quantity       Decimal  @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?  @map("unit")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  type14      ActivityPlanType14 @relation(fields: [type14Id], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType14Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type14Id])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_14_products")
+  @@map("activity_type_14_products")
+}
+
+model ActivityResultType14 {
+  id              String    @id @default(cuid())
+  activityPlanId  String    @map("activity_plan_id")
+  targetId        String?   @map("target_id")
+  demoPlotId      String?   @map("demo_plot_id")
+  roundNumber     Int       @default(1) @map("round_number")
+  actualVisitDate DateTime  @map("actual_visit_date")
+  daysAfterSpray  Int?      @map("days_after_spray")
+  trackingResult  String    @default("ปกติ") @map("tracking_result")
+  productResponse String    @default("ปกติ") @map("product_response")
+  actualLatitude  Decimal?  @map("actual_latitude") @db.Decimal(10, 7)
+  actualLongitude Decimal?  @map("actual_longitude") @db.Decimal(10, 7)
+  additionalNotes String?   @map("additional_notes") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan                      @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType14Target?         @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  demoPlot        DemoPlot?                         @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  productsUsed    ActivityResultType14ProductUsed[]
+  attachments     ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([demoPlotId])
+  @@map("activity_type_14_results")
+}
+
+model ActivityResultType14ProductUsed {
+  id           String   @id @default(cuid())
+  resultId     String   @map("result_id")
+  productId    String   @map("product_id")
+  productName  String?  @map("product_name")
+  quantityUsed Decimal  @map("quantity_used") @db.Decimal(10, 2)
+  actualRate   String?  @map("actual_rate")
+  unit         String?  @map("unit")
+  detail       String?  @map("detail")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  result       ActivityResultType14 @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  product      Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([resultId])
+  @@index([productId])
+  @@map("activity_type_14_products_used")
 }
 
 // =============================================================================

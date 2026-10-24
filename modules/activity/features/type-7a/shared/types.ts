@@ -67,9 +67,12 @@ export interface Type7aPlotInput {
   name?: string | null;
   plotName?: string | null;
   farmerName?: string | null;
+  farmerCustomerId?: string | null;
+  farmerPhone?: string | null;
   ownerName?: string | null;
   ownerPhone?: string | null;
   storeId?: string | null;
+  dealerName?: string | null;
   province?: string | null;
   district?: string | null;
   subdistrict?: string | null;

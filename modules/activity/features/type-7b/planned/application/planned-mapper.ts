@@ -37,7 +37,15 @@ export function extractType7bPlanTargets(
 
   if (!plan) return { primary: fallbackItem, list: [] };
 
-  const t7bRecord: any = plan.type7b || plan.type7bData;
+  const t7bRecord: any =
+    plan.type7bTargets && plan.type7bTargets.length > 0
+      ? {
+          plots: plan.type7bTargets,
+          products: plan.type7bProducts || [],
+          objective: plan.type7bTargets[0]?.objective || plan.type7bTargets[0]?.notes || "",
+          notes: plan.type7bTargets[0]?.notes || "",
+        }
+      : plan.type7b || plan.type7bData;
   const rawPlots: any[] = t7bRecord?.plots || plan.type7bPlots || [];
 
   if (t7bRecord && Array.isArray(rawPlots) && rawPlots.length > 0) {

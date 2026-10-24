@@ -17,6 +17,7 @@ export function parseType14ActualResult(
   };
 
   const rawRounds: any[] =
+    payloadToHydrate.type14Results ||
     payloadToHydrate.type14Actual?.rounds ||
     payloadToHydrate.type14Actual?.sprayRounds ||
     payloadToHydrate.rounds ||
@@ -43,7 +44,7 @@ export function parseType14ActualResult(
       size: img.size || img.fileSize || 0,
       type: img.type || img.mimeType || "image/jpeg",
     })),
-    products: (r.products || []).map((p: any) => ({
+    products: (r.productsUsed || r.products || []).map((p: any) => ({
       productId: p.productId,
       productName: p.productName || p.product?.name || "",
       unit: p.unit || p.product?.unit || "ขวด",

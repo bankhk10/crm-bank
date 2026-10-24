@@ -13,6 +13,7 @@ export function extractType14PlanTargets(
   prevTarget?: Type14PlotItem,
 ): { primary: Type14PlotItem; list: Type14PlotItem[] } {
   const plots: any[] =
+    plan?.type14Targets ||
     plan?.type14?.plots ||
     plan?.type14Plots ||
     (plan?.demoPlotVisits || [])
@@ -80,8 +81,20 @@ export function hydrateType14PlannedData(
   defaultDistrict = "",
   fetchedHattackPlansWithPlots: FollowUpPlanOption[] = [],
 ): Type14PlanInput {
-  if (initial?.type14) {
-    const t14 = initial.type14;
+  const resolvedT14 =
+    initial?.type14 ||
+    (initial?.type14Targets && initial.type14Targets.length > 0
+      ? {
+          plots: initial.type14Targets,
+          products: initial.type14Products || [],
+          mode: initial.type14Targets[0]?.mode,
+          sourceActivityPlanId: initial.type14Targets[0]?.sourceActivityPlanId,
+          hasProducts: (initial.type14Products || []).length > 0,
+        }
+      : null);
+
+  if (resolvedT14) {
+    const t14 = resolvedT14;
     const plots = t14.plots || [];
     const primaryPlot = plots[0] || {};
     const prods = (t14.products || []).map((p: any, idx: number) => ({

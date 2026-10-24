@@ -6,6 +6,10 @@ import type { Type7aActualRecord } from "../types/actual.types";
 export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
   if (!rawResult) return {};
 
+  const dedicated7a =
+    rawResult.type7aResults?.[0] ||
+    rawResult.activityPlan?.type7aResults?.[0];
+
   const dp =
     rawResult.demoPlot ||
     rawResult.activityPlan?.type7aPlots?.[0]?.demoPlot ||
@@ -27,9 +31,33 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     return undefined;
   };
 
-  // Planned & Additional products from demoPlot.demoProducts
+  // Planned & Additional products from dedicated7a.actualProducts or demoPlot.demoProducts
+  const dedicatedPlanned = (dedicated7a?.actualProducts || [])
+    .filter((p: any) => p.isPlanned)
+    .map((p: any) => ({
+      productId: p.productId || p.product?.id || "",
+      productName: p.productName || p.product?.name || "",
+      withdrawnQuantity: p.withdrawnQuantity != null ? Number(p.withdrawnQuantity) : 1,
+      actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
+      extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+      applicationRate: p.actualRate || "",
+    }));
+
+  const dedicatedAdditional = (dedicated7a?.actualProducts || [])
+    .filter((p: any) => !p.isPlanned)
+    .map((p: any, idx: number) => ({
+      id: p.id || `add-${idx}`,
+      productId: p.productId || p.product?.id || "",
+      productName: p.productName || p.product?.name || "",
+      actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
+      extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+      applicationRate: p.actualRate || "",
+    }));
+
   const demoProds = dp?.demoProducts || [];
-  const plannedFromDemo = demoProds
+  const plannedFromDemo = dedicatedPlanned.length > 0 ? dedicatedPlanned : demoProds
     .filter((p: any) => !p.isAdditional)
     .map((p: any) => ({
       productId: p.productId || p.product?.id || "",
@@ -51,7 +79,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       applicationRate: p.applicationRate || "",
     }));
 
-  const additionalFromDemo = demoProds
+  const additionalFromDemo = dedicatedAdditional.length > 0 ? dedicatedAdditional : demoProds
     .filter((p: any) => p.isAdditional)
     .map((p: any, idx: number) => ({
       id: p.id || `add-${idx}`,

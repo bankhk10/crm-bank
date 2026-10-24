@@ -3,7 +3,7 @@
 > **Feature Slice**: `modules/activity/features/type-7b`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7b`, `ActivityPlanType7bPlot`, `ActivityPlanType7bProduct`, `DemoPlotVisit`, `DemoPlot`, `ActivityResultSprayRound`, `ActivityResultSprayProduct`, `ActivityResultSprayExternal`, `ActivityResultDemoItem`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, `ActivityResultType7bSprayExternal`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference (v2.2.0 — Updated 2026-10-24)
 
 ---
@@ -347,67 +347,57 @@ sequenceDiagram
 ใช้สำหรับบันทึกเป้าหมายแปลงที่จะไปติดตาม และรายการสินค้าที่ขอเบิกเพิ่มล่วงหน้าเพื่อส่งขออนุมัติ:
 
 ```prisma
-// ตารางหลักแผนงานติดตามแปลงสาธิต (1:1 กับ ActivityPlan)
-model ActivityPlanType7b {
+// ตารางเป้าหมายแผนงานติดตามแปลงสาธิต (activity_type_7b_targets)
+model ActivityPlanType7bTarget {
   id                   String                      @id @default(cuid())
-  activityPlanId       String                      @unique @map("activity_plan_id")
+  activityPlanId       String                      @map("activity_plan_id")
+  demoPlotId           String                      @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม (Master DemoPlot)
   sourceActivityPlanId String?                     @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
-  hasProducts          Boolean                     @default(false) @map("has_products")
+  plotName             String?                     @map("plot_name")
+  cropName             String?                     @map("crop_name")
+  ownerName            String?                     @map("owner_name")
+  province             String?                     @map("province")
+  district             String?                     @map("district")
+  areaRai              Decimal?                    @map("area_rai") @db.Decimal(10, 2)
+  treeCount            Int?                        @map("tree_count")
+  dealerName           String?                     @map("dealer_name")
   objective            String?                     @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
   notes                String?                     @map("notes") @db.Text
   createdAt            DateTime                    @default(now()) @map("created_at")
   updatedAt            DateTime                    @updatedAt @map("updated_at")
 
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  demoPlot             DemoPlot                    @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
   sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
-  plots                ActivityPlanType7bPlot[]
   products             ActivityPlanType7bProduct[]
+  results              ActivityResultType7b[]
 
   @@index([activityPlanId])
-  @@index([sourceActivityPlanId])
-  @@map("activity_plan_type_7b")
-}
-
-// ตารางแปลงสาธิตที่เลือกติดตามตามแผน
-model ActivityPlanType7bPlot {
-  id         String             @id @default(cuid())
-  type7bId   String             @map("type_7b_id")
-  demoPlotId String             @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม (Master DemoPlot)
-  plotName   String?            @map("plot_name")
-  cropName   String?            @map("crop_name")
-  ownerName  String?            @map("owner_name")
-  province   String?            @map("province")
-  district   String?            @map("district")
-  areaRai    Decimal?           @map("area_rai") @db.Decimal(10, 2)
-  treeCount  Int?               @map("tree_count")
-  dealerName String?            @map("dealer_name")
-  createdAt  DateTime           @default(now()) @map("created_at")
-
-  type7b     ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
-  demoPlot   DemoPlot           @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
-
-  @@index([type7bId])
   @@index([demoPlotId])
-  @@map("activity_plan_type_7b_plots")
+  @@index([sourceActivityPlanId])
+  @@map("activity_type_7b_targets")
 }
 
-// ตารางสินค้าตัวอย่างที่ขอเบิกเพิ่มเติมตามแผน (Baseline Planned Products)
+// ตารางสินค้าตัวอย่างที่ขอเบิกเพิ่มเติมตามแผน (activity_type_7b_products)
 model ActivityPlanType7bProduct {
-  id          String             @id @default(cuid())
-  type7bId    String             @map("type_7b_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String                    @id @default(cuid())
+  activityPlanId String                    @map("activity_plan_id")
+  targetId       String?                   @map("target_id")
+  productId      String                    @map("product_id")
+  productName    String?                   @map("product_name")
+  quantity       Decimal                   @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?                   @map("unit")
+  sortOrder      Int                       @default(0) @map("sort_order")
+  createdAt      DateTime                  @default(now()) @map("created_at")
 
-  type7b      ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType7bTarget? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type7bId])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_7b_products")
+  @@map("activity_type_7b_products")
 }
 ```
 

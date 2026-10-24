@@ -61,7 +61,8 @@ export async function generateDemoPlotCode(
 }
 
 /**
- * Sync Type 7A plots and products directly into DemoPlot and DemoPlotProduct
+ * Sync Type 7A plots and products directly into DemoPlot, DemoPlotProduct,
+ * and dedicated ActivityPlanType7aTarget & ActivityPlanType7aProduct tables
  */
 export async function syncType7aPlots(
   tx: Prisma.TransactionClient,
@@ -72,12 +73,20 @@ export async function syncType7aPlots(
 ): Promise<void> {
   if (!rawPlots || rawPlots.length === 0) return;
 
-  // Clean up previous dual-sync calendar/dashboard records
+  // Clean up previous dual-sync calendar/dashboard records if any
   await tx.activityPlanStore.deleteMany({
     where: { activityPlanId, workTypeCode: "TYPE_7A" },
   });
   await tx.activityPlanProduct.deleteMany({
     where: { activityPlanId, workTypeCode: "TYPE_7A" },
+  });
+
+  // Clean up existing dedicated targets & products for this plan
+  await tx.activityPlanType7aProduct.deleteMany({
+    where: { activityPlanId },
+  });
+  await tx.activityPlanType7aTarget.deleteMany({
+    where: { activityPlanId },
   });
 
   // Find existing DemoPlots attached to this activity plan
@@ -175,6 +184,30 @@ export async function syncType7aPlots(
 
     processedPlotIds.add(demoPlotId);
 
+    // Create Dedicated ActivityPlanType7aTarget
+    const createdTarget = await tx.activityPlanType7aTarget.create({
+      data: {
+        activityPlanId,
+        plotName,
+        storeId: plot.storeId || null,
+        dealerName: plot.dealerName || null,
+        cropCategory: plot.cropCategory || "พืชทั่วไป",
+        cropName: plot.cropName || "พืชทั่วไป",
+        customCropName: plot.customCropName || null,
+        areaRai:
+          plot.areaRai != null
+            ? new Prisma.Decimal(plot.areaRai)
+            : null,
+        treeCount:
+          plot.treeCount != null
+            ? Number(plot.treeCount)
+            : null,
+        objective: plot.objective || null,
+        demoPlotId,
+        notes: plot.notes || null,
+      },
+    });
+
     // Save planned products directly into DemoPlotProduct
     await tx.demoPlotProduct.deleteMany({
       where: { demoPlotId, isAdditional: false },
@@ -202,6 +235,8 @@ export async function syncType7aPlots(
       }
 
       const validProductsToCreate: any[] = [];
+      const dedicatedProductsToCreate: any[] = [];
+
       prods.forEach((prod, pIdx) => {
         let finalId = prod.productId!;
         let finalName = prod.productName || null;
@@ -214,6 +249,7 @@ export async function syncType7aPlots(
         }
 
         const qty = prod.quantity ?? prod.targetQuantity ?? 1;
+
         validProductsToCreate.push({
           demoPlotId,
           productId: finalId,
@@ -225,6 +261,16 @@ export async function syncType7aPlots(
           sortOrder: pIdx,
           isAdditional: false,
         });
+
+        dedicatedProductsToCreate.push({
+          activityPlanId,
+          targetId: createdTarget.id,
+          productId: finalId,
+          productName: finalName,
+          quantity: new Prisma.Decimal(qty),
+          unit: prod.unit || "ขวด",
+          sortOrder: pIdx,
+        });
       });
 
       if (validProductsToCreate.length > 0) {
@@ -232,37 +278,11 @@ export async function syncType7aPlots(
           data: validProductsToCreate,
         });
       }
-    }
 
-    // Dual-sync to ActivityPlanStore for unified schedule queries
-    const storeName = ownerName || plotName || "แปลงสาธิต";
-    await tx.activityPlanStore.create({
-      data: {
-        activityPlanId,
-        storeId: plot.storeId || null,
-        storeName,
-        workTypeCode: "TYPE_7A",
-        notes: plot.objective || plot.notes || null,
-      },
-    });
-
-    // Dual-sync products to ActivityPlanProduct
-    if (prods.length > 0) {
-      for (const prod of prods) {
-        if (prod.productId) {
-          await tx.activityPlanProduct.create({
-            data: {
-              activityPlanId,
-              productId: prod.productId,
-              targetQuantity:
-                prod.quantity || prod.targetQuantity
-                  ? Number(prod.quantity || prod.targetQuantity)
-                  : 0,
-              notes: prod.notes || null,
-              workTypeCode: "TYPE_7A",
-            },
-          });
-        }
+      if (dedicatedProductsToCreate.length > 0) {
+        await tx.activityPlanType7aProduct.createMany({
+          data: dedicatedProductsToCreate,
+        });
       }
     }
   }
@@ -278,10 +298,10 @@ export async function syncType7aPlots(
 }
 
 /**
- * Find Type 7A data by Plan ID directly from DemoPlot
+ * Find Type 7A data by Plan ID directly from dedicated tables and DemoPlot
  */
 export async function findType7aByPlanId(activityPlanId: string) {
-  const [type7aPlots, stores, products] = await Promise.all([
+  const [type7aPlots, targets, products, results] = await Promise.all([
     db.demoPlot.findMany({
       where: { activityPlanId },
       include: {
@@ -302,25 +322,53 @@ export async function findType7aByPlanId(activityPlanId: string) {
       },
       orderBy: { createdAt: "asc" },
     }),
-    db.activityPlanStore.findMany({
-      where: { activityPlanId, workTypeCode: "TYPE_7A" },
+    db.activityPlanType7aTarget.findMany({
+      where: { activityPlanId },
+      include: {
+        store: true,
+        demoPlot: true,
+        products: {
+          include: { product: true },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+      orderBy: { createdAt: "asc" },
     }),
-    db.activityPlanProduct.findMany({
-      where: { activityPlanId, workTypeCode: "TYPE_7A" },
+    db.activityPlanType7aProduct.findMany({
+      where: { activityPlanId },
       include: { product: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.activityResultType7a.findMany({
+      where: { activityPlanId },
+      include: {
+        irrigations: true,
+        actualProducts: {
+          include: { product: true },
+          orderBy: { sortOrder: "asc" },
+        },
+        sprayExternals: {
+          orderBy: { sortOrder: "asc" },
+        },
+        attachments: true,
+      },
     }),
   ]);
 
   return {
     type7aPlots,
-    stores,
+    targets,
     products,
+    results,
+    stores: [],
   };
 }
 
 /**
  * Sync Type 7A Actual outcome data to DemoPlot, DemoPlotIrrigation,
- * DemoPlotExternalProduct, DemoPlotProduct, and DemoPlotVisit (Visit #1)
+ * DemoPlotExternalProduct, DemoPlotProduct, DemoPlotVisit (Visit #1)
+ * AND dedicated ActivityResultType7a, ActivityResultType7aIrrigation,
+ * ActivityResultType7aProduct, ActivityResultType7aExternal
  */
 export async function syncType7aActualData(
   tx: Prisma.TransactionClient,
@@ -329,7 +377,13 @@ export async function syncType7aActualData(
 ): Promise<void> {
   if (!actualData) return;
 
-  let demoPlotId = actualData.demoPlotId || actualData.t7DemoPlotId || null;
+  // Resolve target & DemoPlotId
+  const target = await tx.activityPlanType7aTarget.findFirst({
+    where: { activityPlanId },
+    select: { id: true, demoPlotId: true },
+  });
+
+  let demoPlotId = actualData.demoPlotId || actualData.t7DemoPlotId || target?.demoPlotId || null;
 
   if (!demoPlotId) {
     const matchedPlot = await tx.demoPlot.findFirst({
@@ -461,7 +515,6 @@ export async function syncType7aActualData(
     where: { demoPlotId },
   });
 
-  // Resolve and validate candidate products against DB to guarantee FK integrity
   const rawCandidateKeys: string[] = [
     ...(actualData.t7PlannedProducts || []).map((p: any) => p.productId).filter(Boolean),
     ...(actualData.t7AdditionalProducts || []).map((p: any) => p.productId).filter(Boolean),
@@ -486,6 +539,7 @@ export async function syncType7aActualData(
   }
 
   const productsToCreate: any[] = [];
+  const dedicatedActualProducts: any[] = [];
 
   // Planned products
   if (Array.isArray(actualData.t7PlannedProducts) && actualData.t7PlannedProducts.length > 0) {
@@ -496,12 +550,12 @@ export async function syncType7aActualData(
 
       if ((tx as any).product?.findMany) {
         const matched = productMap.get(p.productId);
-        if (!matched) return; // Skip invalid foreign key to prevent DB crash
+        if (!matched) return;
         finalProductId = matched.id;
         finalProductName = p.productName || matched.name;
       }
 
-      productsToCreate.push({
+      const item = {
         demoPlotId,
         productId: finalProductId,
         productName: finalProductName,
@@ -522,6 +576,19 @@ export async function syncType7aActualData(
             : null,
         unit: p.unit || null,
         sortOrder: idx,
+      };
+
+      productsToCreate.push(item);
+      dedicatedActualProducts.push({
+        productId: finalProductId,
+        productName: finalProductName,
+        isPlanned: true,
+        withdrawnQuantity: item.withdrawnQuantity,
+        actualQuantity: item.quantity || new Prisma.Decimal(0),
+        extraQuantity: item.extraQuantity,
+        actualRate: item.applicationRate,
+        unit: item.unit,
+        sortOrder: idx,
       });
     });
   }
@@ -535,12 +602,12 @@ export async function syncType7aActualData(
 
       if ((tx as any).product?.findMany) {
         const matched = productMap.get(p.productId);
-        if (!matched) return; // Skip invalid foreign key to prevent DB crash
+        if (!matched) return;
         finalProductId = matched.id;
         finalProductName = p.productName || matched.name;
       }
 
-      productsToCreate.push({
+      const item = {
         demoPlotId,
         productId: finalProductId,
         productName: finalProductName,
@@ -556,6 +623,19 @@ export async function syncType7aActualData(
         applicationRate: p.applicationRate || "",
         isAdditional: true,
         unit: p.unit || null,
+        sortOrder: productsToCreate.length + idx,
+      };
+
+      productsToCreate.push(item);
+      dedicatedActualProducts.push({
+        productId: finalProductId,
+        productName: finalProductName,
+        isPlanned: false,
+        withdrawnQuantity: null,
+        actualQuantity: item.quantity || new Prisma.Decimal(0),
+        extraQuantity: item.extraQuantity,
+        actualRate: item.applicationRate,
+        unit: item.unit,
         sortOrder: productsToCreate.length + idx,
       });
     });
@@ -619,6 +699,107 @@ export async function syncType7aActualData(
         workTypeCode: "TYPE_7A",
         ...visitData,
       },
+    });
+  }
+
+  // 6. Save Dedicated ActivityResultType7a record
+  await tx.activityResultType7a.deleteMany({
+    where: { activityPlanId },
+  });
+
+  const createdResult = await tx.activityResultType7a.create({
+    data: {
+      activityPlanId,
+      targetId: target?.id || null,
+      demoPlotId,
+      farmerCustomerId: actualData.t7FarmerCustomerId || null,
+      farmerName: actualData.t7FarmerName || null,
+      farmerPhone: actualData.t7FarmerPhone || null,
+      isUnregisteredFarmer: Boolean(actualData.t7IsUnregisteredFarmer),
+      province: actualData.t7FarmerProvince || actualData.t7Province || null,
+      district: actualData.t7FarmerDistrict || actualData.t7District || null,
+      subdistrict: actualData.t7FarmerSubdistrict || null,
+      latitude: parseDecimalCoord(actualData.t7Latitude),
+      longitude: parseDecimalCoord(actualData.t7Longitude),
+      mainCropInfo: actualData.t7MainCropInfo || null,
+      plantingDate: actualData.t7PlantingDate ? new Date(actualData.t7PlantingDate) : null,
+      firstSprayDate: actualData.t7InitialSprayDate ? new Date(actualData.t7InitialSprayDate) : null,
+      nextSprayDate: actualData.t7NextSprayDate ? new Date(actualData.t7NextSprayDate) : null,
+      cropAgeValue: cropAgeVal,
+      cropAgeUnit: actualData.t7CropAgeUnit || "วัน",
+      growthStage: actualData.t7GrowthStage || null,
+      sprayMethod: actualData.t7SprayMethod || null,
+      hasExternalChemicals: Boolean(actualData.t7HasExternalChemicals),
+      sprayEquipment: actualData.t7SprayEquipment || null,
+      otherEquipment: actualData.t7OtherEquipment || null,
+      notes: actualData.t7Notes || null,
+    },
+  });
+
+  // Dedicated Irrigations
+  if (Array.isArray(actualData.t7Irrigations) && actualData.t7Irrigations.length > 0) {
+    const uniqueMethods = Array.from(new Set(actualData.t7Irrigations.filter(Boolean)));
+    if (uniqueMethods.length > 0) {
+      await tx.activityResultType7aIrrigation.createMany({
+        data: uniqueMethods.map((m: any) => ({
+          resultId: createdResult.id,
+          method: String(m),
+        })),
+      });
+    }
+  }
+
+  // Dedicated Products
+  if (dedicatedActualProducts.length > 0) {
+    await tx.activityResultType7aProduct.createMany({
+      data: dedicatedActualProducts.map((p) => ({
+        resultId: createdResult.id,
+        ...p,
+      })),
+    });
+  }
+
+  // Dedicated External Chemicals
+  if (
+    actualData.t7HasExternalChemicals &&
+    Array.isArray(actualData.t7ExternalProducts) &&
+    actualData.t7ExternalProducts.length > 0
+  ) {
+    const validExternals = actualData.t7ExternalProducts.filter((p: any) =>
+      Boolean(p.productName?.trim()),
+    );
+    if (validExternals.length > 0) {
+      await tx.activityResultType7aExternal.createMany({
+        data: validExternals.map((ext: any, idx: number) => ({
+          resultId: createdResult.id,
+          company: ext.company || "",
+          productName: ext.productName,
+          activeIngredient: ext.activeIngredient || null,
+          formula: ext.formula || "SL",
+          customFormula: ext.customFormula || null,
+          applicationRate: ext.applicationRate || "",
+          sortOrder: idx,
+        })),
+      });
+    }
+  }
+
+  // Dedicated Attachments
+  const initialPhotos = actualData.t7InitialPhotos || [];
+  const validPhotos = initialPhotos.filter((img: any) => img && (img.url || img.fileUrl));
+  if (validPhotos.length > 0) {
+    await tx.activityAttachment.createMany({
+      data: validPhotos.map((img: any) => ({
+        activityPlanId,
+        type7aResultId: createdResult.id,
+        demoPlotId,
+        workTypeCode: "TYPE_7A",
+        category: "PLOT",
+        fileUrl: img.url || img.fileUrl,
+        fileName: img.name || img.fileName || "ภาพแปลงสาธิตครั้งแรก",
+        fileSize: img.size || img.fileSize || 0,
+        mimeType: img.type || img.mimeType || "image/jpeg",
+      })),
     });
   }
 }

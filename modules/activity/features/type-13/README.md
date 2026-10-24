@@ -4,7 +4,7 @@
 > **Work Type Code**: `TYPE_13`  
 > **Work Type Name**: ฉีดแปลงแฮตแทค (Hattack Spraying)  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13`, `ActivityPlanType13Plot`, `ActivityPlanType13Product`, `DemoPlot`, `DemoPlotVisit`, `ActivityResultSprayRound`, `ActivityResultSprayProduct`, `ActivityResultSprayExternal`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference
 
 ---
@@ -283,15 +283,15 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plan_type_13`**<br>(`ActivityPlanType13`) | `savePlan()` ใน Planned/Unplanned | `findType13ByPlanId()`, `plan.type13` | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlan` | ตารางหลัก Type 13 เก็บสถานะเบิกสินค้าและบันทึกช่วยจำ |
-| **`activity_plan_type_13_plots`**<br>(`ActivityPlanType13Plot`) | `savePlan()` ใน Planned/Unplanned | `plan.type13.plots` ใน Edit / Detail / Actual | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlanType13` | เก็บรายการแปลงแฮตแทค 1–10 แปลง พร้อมรหัส Dealer และ DemoPlot |
-| **`activity_plan_type_13_products`**<br>(`ActivityPlanType13Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type13.products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlanType13` | เก็บรายการสินค้าและจำนวนที่ขอเบิกสำหรับฉีดพ่น |
+| **`activity_type_13_targets`**<br>(`ActivityPlanType13Target`) | `savePlan()` ใน Planned/Unplanned | `findType13ByPlanId()`, `plan.type13Targets` | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการแปลงแฮตแทค 1–10 แปลง พร้อมรหัส Dealer และเชื่อมโยง DemoPlot |
+| **`activity_type_13_products`**<br>(`ActivityPlanType13Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type13Products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการสินค้าและจำนวนที่ขอเบิกสำหรับฉีดพ่น |
+| **`activity_type_13_results`**<br>(`ActivityResultType13`) | `saveActual()` ใน Actual/Unplanned | `plan.type13Results` ใน Detail / Actual | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | ผลการปฏิบัติงานจริงรายแปลง พร้อมพิกัด GPS จริง |
+| **`activity_type_13_spray_rounds`**<br>(`ActivityResultType13SprayRound`) | `saveActual()` | `result.sprayRounds` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13` | เก็บรอบการฉีดพ่น วิธีพ่น อุปกรณ์ และผลการตอบสนองของพืช |
+| **`activity_type_13_spray_products`**<br>(`ActivityResultType13SprayProduct`) | `saveActual()` | `sprayRound.sprayProducts` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13SprayRound` | เก็บสินค้าของบริษัทที่ใช้ อัตราพ่นจริง และจำนวนที่ใช้ |
+| **`activity_type_13_spray_externals`**<br>(`ActivityResultType13SprayExternal`) | `saveActual()` | `sprayRound.sprayExternals` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13SprayRound` | เก็บสารเคมีภายนอก บริษัท สูตรยา และอัตราการใช้ |
 | **`demo_plots`**<br>(`DemoPlot`) | สร้างอัตโนมัติหากยังไม่มีแปลง (`generateDemoPlotCode`) | `plan.demoPlotVisits.demoPlot` | ปรับปรุงพิกัดและข้อมูลแปลง | Cascade เมื่อลบ Customer หรือตามนโยบายระบบ | เก็บข้อมูล Master แปลงสาธิต รหัส `DPYYMMXXXX` ประเภท `HATTACK` |
 | **`demo_plot_visits`**<br>(`DemoPlotVisit`) | สร้างอัตโนมัติคู่กับ `DemoPlot` | `plan.demoPlotVisits` | - | Cascade เมื่อลบ `ActivityPlan` หรือ `DemoPlot` | บันทึกประวัติการเข้าปฏิบัติงานในแปลงสาธิต |
-| **`activity_result_spray_rounds`**<br>(`ActivityResultSprayRound`) | `recordActivityResultAction()` | `actualData.sprayRounds` ใน Detail / Actual | ลบและสร้างใหม่ใน `upsertActivityResult()` | Cascade เมื่อลบ `ActivityResult` | เก็บรอบการฉีดพ่น วิธีพ่น อุปกรณ์ และผลการตอบสนองของพืช |
-| **`activity_result_spray_products`**<br>(`ActivityResultSprayProduct`) | `recordActivityResultAction()` | `sprayRound.products` | ลบและสร้างใหม่ใน `upsertActivityResult()` | Cascade เมื่อลบ `ActivityResultSprayRound` | เก็บสินค้าของบริษัทที่ใช้ อัตราพ่นจริง และจำนวนที่ใช้ |
-| **`activity_result_spray_externals`**<br>(`ActivityResultSprayExternal`) | `recordActivityResultAction()` | `sprayRound.externalProducts` | ลบและสร้างใหม่ใน `upsertActivityResult()` | Cascade เมื่อลบ `ActivityResultSprayRound` | เก็บสารเคมีภายนอก บริษัท สูตรยา และอัตราการใช้ |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | อัปโหลดภาพหลังฉีดพ่น ➔ `upsertActivityResult()` | `actualData.attachments` (หมวดหมู่ AFTER_SPRAY) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บรูปภาพหลังฉีดพ่น สูงสุด 20 ภาพต่อหมู่บ้าน |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | อัปโหลดภาพหลังฉีดพ่น ➔ `saveActual()` | `actualData.attachments` (หมวดหมู่ PLOT) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บรูปภาพหลังฉีดพ่น สูงสุด 20 ภาพต่อแปลง |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 

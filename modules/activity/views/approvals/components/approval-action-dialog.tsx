@@ -227,9 +227,13 @@ export function ApprovalActionDialog({
   const hasWithdrawal =
     Boolean(plan.hasProductWithdrawal) ||
     (plan.type7aPlots && plan.type7aPlots.length > 0) ||
-    Boolean(plan.type7b?.hasProducts) ||
-    Boolean(plan.type13?.hasProducts) ||
-    Boolean(plan.type14?.hasProducts);
+    Boolean(plan.type7aProducts && plan.type7aProducts.length > 0) ||
+    Boolean(plan.type7bProducts && plan.type7bProducts.length > 0) ||
+    Boolean(plan.type13Products && plan.type13Products.length > 0) ||
+    Boolean(plan.type14Products && plan.type14Products.length > 0) ||
+    Boolean((plan as any).type7b?.hasProducts) ||
+    Boolean((plan as any).type13?.hasProducts) ||
+    Boolean((plan as any).type14?.hasProducts);
 
   // Responsibilities being approved in this one-shot turn
   const isLineApprover =

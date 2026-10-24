@@ -12,6 +12,20 @@ export function parseType13ActualResult(
 } {
   const result: any = {};
 
+  if (planPayload?.type13Results && Array.isArray(planPayload.type13Results) && planPayload.type13Results.length > 0) {
+    const allRounds = planPayload.type13Results.flatMap((r: any) => r.sprayRounds || []);
+    return {
+      type13Actual: {
+        plots: planPayload.type13Results,
+        sprayRounds: allRounds,
+        totalPlots: planPayload.type13Results.length,
+      },
+      plotCount: planPayload.type13Results.length,
+      sprayRounds: allRounds,
+      roundsCount: allRounds.length,
+    };
+  }
+
   if (planPayload?.type13Actual) {
     return {
       type13Actual: planPayload.type13Actual,

@@ -4,7 +4,7 @@
 > **Work Type Code**: `TYPE_14`  
 > **Work Type Name**: ติดตามแปลงแฮตแทค (Hattack Follow-up)  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14`, `ActivityPlanType14Plot`, `ActivityPlanType14Product`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference
 
 ---
@@ -283,11 +283,13 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plan_type_14`**<br>(`ActivityPlanType14`) | `savePlan()` ใน Planned/Unplanned | `findType14ByPlanId()`, `plan.type14` | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | ตารางหลัก Type 14 เก็บโหมดแปลง ลิงก์แผนต้นทาง และสถานะเบิกสินค้า |
-| **`activity_plan_type_14_plots`**<br>(`ActivityPlanType14Plot`) | `savePlan()` ใน Planned/Unplanned | `plan.type14.plots` ใน Edit / Detail / Actual | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlanType14` | เก็บรายการแปลงที่ติดตาม เชื่อมโยงกับ `DemoPlot` หรือแปลงระบุเอง |
-| **`activity_plan_type_14_products`**<br>(`ActivityPlanType14Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type14.products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlanType14` | เก็บรายการสินค้าและจำนวนที่ขอเบิกสำหรับพ่นซ้ำ |
+| **`activity_type_14_targets`**<br>(`ActivityPlanType14Target`) | `savePlan()` ใน Planned/Unplanned | `findType14ByPlanId()`, `plan.type14Targets` | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | ตารางหลักเป้าหมาย Type 14 เก็บโหมดแปลง ลิงก์แผนต้นทาง Dealer และ DemoPlot |
+| **`activity_type_14_products`**<br>(`ActivityPlanType14Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type14Products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการสินค้าและจำนวนที่ขอเบิกสำหรับพ่นซ้ำ |
+| **`activity_type_14_results`**<br>(`ActivityResultType14`) | `saveActual()` ใน Actual/Unplanned | `plan.type14Results` ใน Detail / Actual | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บผลการตรวจติดตามจริง วันหลังฉีดพ่น ผลตอบสนองของพืช และพิกัด GPS |
+| **`activity_type_14_products_used`**<br>(`ActivityResultType14ProductUsed`) | `saveActual()` | `result.productsUsed` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType14` | เก็บสินค้าที่ใช้พ่นซ้ำจริง อัตราพ่น และปริมาณที่ใช้ |
 | **`demo_plots`**<br>(`DemoPlot`) | Read-only สำหรับโหมด Existing Plot | `findHattackFollowUpDemoPlots` | อัปเดตพิกัด/ข้อมูลแปลง | - | แปลงสาธิตแฮตแทคที่เคยสร้างไว้จาก Type 13 |
 | **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `createType14Data()` | `plan.demoPlotVisits` ใน Detail / Actual | อัปเดตผลติดตามใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรอบการเข้าติดตาม วันหลังฉีดพ่น ผลการตอบสนองของพืช |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | `saveActual()` | `actualData.attachments` (หมวดหมู่ PLOT) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บรูปภาพหลังการติดตาม |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | อัปโหลดภาพหลังฉีด ➔ `saveActual()` | `actualData.attachments` (หมวดหมู่ AFTER_SPRAY) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บภาพถ่ายสภาพแปลง สูงสุด 20 ภาพต่อหมู่บ้าน |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
