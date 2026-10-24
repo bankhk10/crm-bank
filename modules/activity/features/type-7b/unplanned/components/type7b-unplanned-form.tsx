@@ -20,6 +20,7 @@ import {
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
 import { getFollowUpPlansAction } from "@/modules/activity/server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
 import {
   CROP_CONDITIONS,
   PRODUCT_RESPONSES,
@@ -68,6 +69,30 @@ export function Type7bUnplannedForm({
       isMounted = false;
     };
   }, [followUpPlans.length, plotList.length]);
+
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (products.length === 0) {
+      listProductsAction({ status: "ACTIVE", perPage: 1000 })
+        .then((res) => {
+          if (isMounted && res?.products && res.products.length > 0) {
+            setDbProducts(res.products);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load products in Type7bUnplannedForm:", err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [products.length]);
+
+  const effectiveProducts = useMemo(() => {
+    return products.length > 0 ? products : dbProducts;
+  }, [products, dbProducts]);
 
   const effectivePlans = followUpPlans.length > 0 ? followUpPlans : dbPlans;
   const cropConditionOptions = CROP_CONDITIONS.map((c) => ({ value: c, label: c }));
@@ -394,8 +419,11 @@ export function Type7bUnplannedForm({
                           <ActivityProductSelect
                             id={`unplanned-prod-${prod.id}`}
                             value={prod.productId || ""}
-                            onChange={(val) => updateWithdrawnProduct?.(item.id, prod.id, "productId", val)}
-                            products={products as any}
+                            valueKey="id"
+                            onChange={(val, selected) =>
+                              updateWithdrawnProduct?.(item.id, prod.id, "productId", val, selected)
+                            }
+                            products={effectiveProducts as any}
                             placeholder="เลือกสินค้า..."
                             disabled={readonly}
                           />

@@ -186,13 +186,29 @@ export function extractType7bPlanTargets(
 export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
   if (!initialData) return [];
 
-  const t7b = initialData.type7b || initialData.type7bData;
+  const t7b =
+    initialData.type7b ||
+    initialData.type7bData ||
+    (initialData.type7bPlots && initialData.type7bPlots.length > 0
+      ? {
+          id: initialData.id,
+          sourceActivityPlanId: initialData.sourceActivityPlanId,
+          demoPlotId: initialData.demoPlotId,
+          objective: initialData.objective || initialData.notes,
+          notes: initialData.notes || initialData.objective,
+          plots: initialData.type7bPlots,
+          products: initialData.products || initialData.type7bProducts,
+          hasProducts: initialData.hasProductWithdrawal,
+        }
+      : null);
+
   if (!t7b) return [];
 
-  const type7bProds: Type7bWithdrawnProductLine[] = (t7b.products || []).map(
+  const rawProducts = t7b.products || initialData.type7bProducts || [];
+  const type7bProds: Type7bWithdrawnProductLine[] = rawProducts.map(
     (p: any, idx: number) => ({
       id: p.id || String(idx + 1),
-      productId: p.productId,
+      productId: p.productId || p.product?.id || "",
       productName: p.product?.name || p.productName || "",
       quantity:
         p.quantity != null
@@ -205,35 +221,109 @@ export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
     }),
   );
 
-  const has7bWithdrawal = type7bProds.length > 0;
-  const initialPlotIds: string[] = (t7b.plots || [])
-    .map((p: any) => p.demoPlotId)
+  const has7bWithdrawal = Boolean(
+    t7b.hasProducts ||
+    initialData.hasProductWithdrawal ||
+    type7bProds.length > 0,
+  );
+
+  const rawPlots = t7b.plots || [];
+  const initialPlotIds: string[] = rawPlots
+    .map((p: any) => p.demoPlotId || p.id)
     .filter(Boolean);
-  const fallbackPlotId = t7b.demoPlotId || initialPlotIds[0] || "";
-  const firstPlot = t7b.plots?.[0];
+
+  const firstPlot = rawPlots[0];
+  const demoPlot = firstPlot?.demoPlot || {};
+  const fallbackPlotId =
+    t7b.demoPlotId ||
+    firstPlot?.demoPlotId ||
+    firstPlot?.id ||
+    demoPlot.id ||
+    initialPlotIds[0] ||
+    "";
+
+  const selectedPlanId =
+    t7b.sourceActivityPlanId ||
+    t7b.sourceActivityPlan?.id ||
+    demoPlot.activityPlanId ||
+    "";
+
+  const plotName =
+    firstPlot?.plotName ||
+    demoPlot.name ||
+    "";
+
+  const ownerName =
+    firstPlot?.ownerName ||
+    firstPlot?.farmerName ||
+    demoPlot.ownerName ||
+    "";
+
+  const cropName =
+    firstPlot?.cropName ||
+    demoPlot.cropName ||
+    demoPlot.customCropName ||
+    "";
+
+  const cropCategory =
+    firstPlot?.cropCategory ||
+    demoPlot.cropCategory ||
+    "";
+
+  const province =
+    firstPlot?.province ||
+    demoPlot.province ||
+    initialData.province ||
+    "";
+
+  const district =
+    firstPlot?.district ||
+    demoPlot.district ||
+    initialData.district ||
+    "";
+
+  const areaRai =
+    firstPlot?.areaRai != null
+      ? Number(firstPlot.areaRai)
+      : demoPlot.areaRai != null
+        ? Number(demoPlot.areaRai)
+        : null;
+
+  const treeCount =
+    firstPlot?.treeCount ??
+    demoPlot.treeCount ??
+    null;
+
+  const objective =
+    t7b.objective ||
+    t7b.notes ||
+    initialData.objective ||
+    initialData.notes ||
+    "";
 
   return [
     {
       id: t7b.id || fallbackPlotId || "1",
       plotActivityType: "FOLLOW_UP",
-      selectedPlanId: t7b.sourceActivityPlanId || "",
+      selectedPlanId,
       selectedPlotIds: initialPlotIds,
       demoPlotId: fallbackPlotId,
       existingPlotId: fallbackPlotId,
-      existingPlotName: firstPlot?.plotName || "",
+      existingPlotName: plotName,
       hasProductWithdrawal: has7bWithdrawal,
       withdrawnProducts: has7bWithdrawal ? type7bProds : [],
-      plotName: firstPlot?.plotName || "",
+      plotName,
       storeId: "",
-      ownerName: firstPlot?.ownerName || firstPlot?.farmerName || "",
-      cropCategory: firstPlot?.cropCategory || "",
-      cropName: firstPlot?.cropName || "",
-      areaRai: firstPlot?.areaRai != null ? Number(firstPlot.areaRai) : null,
-      treeCount: firstPlot?.treeCount ?? null,
-      province: firstPlot?.province || "",
-      district: firstPlot?.district || "",
-      objective: t7b.objective || t7b.notes || "",
-      detail: t7b.objective || t7b.notes || "",
+      ownerName,
+      farmerName: ownerName,
+      cropCategory,
+      cropName,
+      areaRai,
+      treeCount,
+      province,
+      district,
+      objective,
+      detail: objective,
       productId: type7bProds[0]?.productId || "",
       productName: type7bProds[0]?.productName || "",
       demoProducts: [],

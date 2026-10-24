@@ -55,7 +55,10 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
 /**
  * Maps Type 7B Unplanned Items to payload for saving plan & actual outcome together
  */
-export function mapType7bUnplannedToPayload(items: Type7bUnplannedItem[]) {
+export function mapType7bUnplannedToPayload(
+  items: Type7bUnplannedItem[],
+  allProducts: any[] = [],
+) {
   if (!items || items.length === 0) {
     return {
       type7bData: null,
@@ -87,13 +90,18 @@ export function mapType7bUnplannedToPayload(items: Type7bUnplannedItem[]) {
 
   const validWithdrawn = allWithdrawn.filter((p) => Boolean(p.productId));
 
-  const planProducts = validWithdrawn.map((p) => ({
-    workTypeCode: "TYPE_7B",
-    productId: p.productId,
-    productName: p.productName || null,
-    targetQuantity: Number(p.quantity) || 1,
-    isPriceOverridden: false,
-  }));
+  const planProducts = validWithdrawn.map((p) => {
+    const match = allProducts.find(
+      (prod) => prod.id === p.productId || prod.name === p.productId,
+    );
+    return {
+      workTypeCode: "TYPE_7B",
+      productId: match?.id || p.productId,
+      productName: p.productName || match?.name || null,
+      targetQuantity: Number(p.quantity) || 1,
+      isPriceOverridden: false,
+    };
+  });
 
   const type7bData = {
     sourceActivityPlanId: firstItem.sourceActivityPlanId || null,
@@ -101,13 +109,18 @@ export function mapType7bUnplannedToPayload(items: Type7bUnplannedItem[]) {
     notes: firstItem.notes || firstItem.objective || null,
     objective: firstItem.objective || firstItem.notes || null,
     plots,
-    products: validWithdrawn.map((p) => ({
-      productId: p.productId,
-      productName: p.productName || null,
-      quantity: Number(p.quantity) || 1,
-      unit: p.unit || null,
-      notes: p.notes || null,
-    })),
+    products: validWithdrawn.map((p) => {
+      const match = allProducts.find(
+        (prod) => prod.id === p.productId || prod.name === p.productId,
+      );
+      return {
+        productId: match?.id || p.productId,
+        productName: p.productName || match?.name || null,
+        quantity: Number(p.quantity) || 1,
+        unit: p.unit || match?.unit || null,
+        notes: p.notes || null,
+      };
+    }),
   };
 
   // Build Actual Summary Text

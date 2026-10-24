@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type {
   Type7bPlanItem,
   Type7bValidationResult,
@@ -12,6 +12,7 @@ import type {
   Type7bProductOption,
 } from "../../shared/types";
 import { validateType7bFormItems } from "../application/planned-validation";
+import { hydrateType7bPlannedData } from "../application/planned-mapper";
 
 export interface UseType7bPlannedFormOptions {
   initial?: any;
@@ -108,11 +109,35 @@ export function useType7bPlannedForm({
     if (initialItems && initialItems.length > 0) {
       return initialItems;
     }
+    if (initial) {
+      const hydrated = hydrateType7bPlannedData(initial);
+      if (hydrated.length > 0) return hydrated;
+    }
     if (initial?.type7bPlots && initial.type7bPlots.length > 0) {
       return initial.type7bPlots;
     }
     return [{ ...defaultItem, id: Date.now().toString() }];
   });
+
+  const prevItemsRef = useRef<string>("");
+  useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      const serialized = JSON.stringify(initialItems);
+      if (serialized !== prevItemsRef.current) {
+        prevItemsRef.current = serialized;
+        setType7bItems(initialItems);
+      }
+    } else if (initial) {
+      const hydrated = hydrateType7bPlannedData(initial);
+      if (hydrated.length > 0) {
+        const serialized = JSON.stringify(hydrated);
+        if (serialized !== prevItemsRef.current) {
+          prevItemsRef.current = serialized;
+          setType7bItems(hydrated);
+        }
+      }
+    }
+  }, [initialItems, initial]);
 
   const addType7bRow = () => {
     const newItem: Type7bPlanItem = {
@@ -202,10 +227,12 @@ export function useType7bPlannedForm({
     const validWithdrawn = withdrawnProds.filter((p) => Boolean(p.productId));
 
     const planProducts = validWithdrawn.map((p) => {
-      const match = allProducts.find((prod) => prod.id === p.productId);
+      const match = allProducts.find(
+        (prod) => prod.id === p.productId || prod.name === p.productId,
+      );
       return {
         workTypeCode: "TYPE_7B",
-        productId: p.productId,
+        productId: match?.id || p.productId,
         productName: p.productName || match?.name || null,
         targetQuantity: Number(p.quantity) || 1,
         isPriceOverridden: false,
@@ -220,13 +247,18 @@ export function useType7bPlannedForm({
       notes: objective || null,
       objective: objective || null,
       plots: plotsPayload,
-      products: validWithdrawn.map((p) => ({
-        productId: p.productId,
-        productName: p.productName || null,
-        quantity: Number(p.quantity) || 1,
-        unit: p.unit || null,
-        notes: p.notes || null,
-      })),
+      products: validWithdrawn.map((p) => {
+        const match = allProducts.find(
+          (prod) => prod.id === p.productId || prod.name === p.productId,
+        );
+        return {
+          productId: match?.id || p.productId,
+          productName: p.productName || match?.name || null,
+          quantity: Number(p.quantity) || 1,
+          unit: p.unit || match?.unit || null,
+          notes: p.notes || null,
+        };
+      }),
     };
 
     return {

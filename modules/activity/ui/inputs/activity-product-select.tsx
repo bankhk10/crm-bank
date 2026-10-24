@@ -178,7 +178,7 @@ export function ActivityProductSelect({
     // If current value is not in filtered list, preserve it
     if (value && !list.some((o) => o.value === value)) {
       const matched = (products || []).find((p) =>
-        valueKey === "id" ? p.id === value : p.name === value || p.id === value,
+        p.id === value || p.name === value,
       );
       if (matched) {
         const optionVal = valueKey === "id" ? matched.id : matched.name;
@@ -200,8 +200,8 @@ export function ActivityProductSelect({
     return formattedOptions.find(
       (opt) =>
         opt.value === value ||
-        (valueKey === "name" && opt.item.name === value) ||
-        (valueKey === "id" && opt.item.id === value),
+        opt.item.id === value ||
+        opt.item.name === value,
     );
   }, [formattedOptions, value, valueKey]);
 

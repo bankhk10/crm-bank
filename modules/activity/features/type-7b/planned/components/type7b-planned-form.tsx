@@ -10,6 +10,7 @@ import {
   ActivityProductSelect,
 } from "@/modules/activity/ui";
 import { getFollowUpPlansAction } from "@/modules/activity/server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
 import type {
   Type7bWithdrawnProductLine,
   Type7bFollowUpPlanOption,
@@ -56,41 +57,120 @@ export function Type7bPlannedForm({
     };
   }, [followUpPlans.length]);
 
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+
+  // Self-healing fallback: Load active products from master catalog if not provided by parent
+  useEffect(() => {
+    let isMounted = true;
+    if (products.length === 0) {
+      listProductsAction({ status: "ACTIVE", perPage: 1000 })
+        .then((res) => {
+          if (isMounted && res?.products && res.products.length > 0) {
+            setDbProducts(res.products);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load products in Type7bPlannedForm:", err);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [products.length]);
+
+  const effectiveProducts = useMemo(() => {
+    return products.length > 0 ? products : dbProducts;
+  }, [products, dbProducts]);
+
   // Combine followUpPlans, dbPlans, or synthesize from plotList if needed
   const effectiveFollowUpPlans = useMemo(() => {
-    const plansSource = followUpPlans.length > 0 ? followUpPlans : dbPlans;
-    if (plansSource.length > 0) {
-      return plansSource;
+    let plansSource = followUpPlans.length > 0 ? followUpPlans : dbPlans;
+    if (plansSource.length === 0) {
+      // Fallback: If no followUpPlans, build options from plotList
+      plansSource = (plotList || [])
+        .filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED")
+        .map((p) => ({
+          planId: p.id,
+          planCode: p.code || "แปลงสาธิต",
+          planTitle: `${p.name} (${p.ownerName || "ไม่ระบุเจ้าของ"})`,
+          planDate: p.startDate
+            ? new Date(p.startDate).toLocaleDateString("th-TH")
+            : undefined,
+          plots: [
+            {
+              id: p.id,
+              code: p.code,
+              name: p.name,
+              cropName: p.cropName || p.targetCrop || "-",
+              cropCategory: p.cropCategory,
+              ownerName: p.ownerName || "-",
+              province: p.province || "",
+              district: p.district || "",
+              areaRai: p.areaRai ? Number(p.areaRai) : undefined,
+              treeCount: p.treeCount ?? undefined,
+              dealerName: p.dealerName,
+              dealerId: p.dealerId,
+            },
+          ],
+        }));
     }
 
-    // Fallback: If no followUpPlans, build options from plotList
-    return (plotList || [])
-      .filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED")
-      .map((p) => ({
-        planId: p.id,
-        planCode: p.code || "แปลงสาธิต",
-        planTitle: `${p.name} (${p.ownerName || "ไม่ระบุเจ้าของ"})`,
-        planDate: p.startDate
-          ? new Date(p.startDate).toLocaleDateString("th-TH")
-          : undefined,
-        plots: [
-          {
-            id: p.id,
-            code: p.code,
-            name: p.name,
-            cropName: p.cropName || p.targetCrop || "-",
-            cropCategory: p.cropCategory,
-            ownerName: p.ownerName || "-",
-            province: p.province || "",
-            district: p.district || "",
-            areaRai: p.areaRai ? Number(p.areaRai) : undefined,
-            treeCount: p.treeCount ?? undefined,
-            dealerName: p.dealerName,
-            dealerId: p.dealerId,
-          },
-        ],
+    // Resilience: If item has a selectedPlanId or selectedPlotIds but it's not present in plansSource
+    // (e.g. source plan was completed, closed, or not returned by getFollowUpPlansAction)
+    const hasSelectedPlan = plansSource.some(
+      (p) => p.planId === item.selectedPlanId,
+    );
+    if (
+      !hasSelectedPlan &&
+      (item.selectedPlanId || item.existingPlotId || item.demoPlotId)
+    ) {
+      const syntheticPlots = (
+        item.selectedPlotIds && item.selectedPlotIds.length > 0
+          ? item.selectedPlotIds
+          : [item.existingPlotId || item.demoPlotId].filter(Boolean)
+      ).map((plotId, idx) => ({
+        id: plotId as string,
+        code: "",
+        name: item.plotName || item.existingPlotName || `แปลงสาธิต #${idx + 1}`,
+        cropName: item.cropName || "-",
+        cropCategory: item.cropCategory,
+        ownerName: item.ownerName || item.farmerName || "-",
+        province: item.province || "",
+        district: item.district || "",
+        areaRai: item.areaRai != null ? Number(item.areaRai) : undefined,
+        treeCount: item.treeCount ?? undefined,
       }));
-  }, [followUpPlans, dbPlans, plotList]);
+
+      const syntheticPlan: Type7bFollowUpPlanOption = {
+        planId: item.selectedPlanId || "existing-source-plan",
+        planCode: "แผนต้นทาง",
+        planTitle: item.plotName || item.existingPlotName || "แผนแปลงสาธิตที่เลือก",
+        plots: syntheticPlots,
+      };
+
+      return [syntheticPlan, ...plansSource];
+    }
+
+    return plansSource;
+  }, [
+    followUpPlans,
+    dbPlans,
+    plotList,
+    item.selectedPlanId,
+    item.selectedPlotIds,
+    item.existingPlotId,
+    item.demoPlotId,
+    item.plotName,
+    item.existingPlotName,
+    item.cropName,
+    item.cropCategory,
+    item.ownerName,
+    item.farmerName,
+    item.province,
+    item.district,
+    item.areaRai,
+    item.treeCount,
+  ]);
 
   // 1. Resolve selected plan
   const selectedPlan = useMemo(() => {
@@ -137,16 +217,44 @@ export function Type7bPlannedForm({
     });
   }, [effectiveFollowUpPlans]);
 
-  // Deduplicated plots from selectedPlan
+  // Deduplicated plots from selectedPlan + selectedPlotIds resilience
   const planPlots = useMemo(() => {
-    if (!selectedPlan?.plots) return [];
-    const seen = new Set<string>();
-    return selectedPlan.plots.filter((p) => {
-      if (seen.has(p.id)) return false;
-      seen.add(p.id);
-      return true;
-    });
-  }, [selectedPlan]);
+    const list = [...(selectedPlan?.plots || [])];
+    const seen = new Set<string>(list.map((p) => p.id));
+    if (Array.isArray(item.selectedPlotIds)) {
+      for (const plotId of item.selectedPlotIds) {
+        if (!seen.has(plotId)) {
+          seen.add(plotId);
+          list.push({
+            id: plotId,
+            code: "",
+            name: item.plotName || item.existingPlotName || "แปลงสาธิตที่เลือก",
+            cropName: item.cropName || "-",
+            cropCategory: item.cropCategory,
+            ownerName: item.ownerName || item.farmerName || "-",
+            province: item.province || "",
+            district: item.district || "",
+            areaRai: item.areaRai != null ? Number(item.areaRai) : undefined,
+            treeCount: item.treeCount ?? undefined,
+          });
+        }
+      }
+    }
+    return list;
+  }, [
+    selectedPlan,
+    item.selectedPlotIds,
+    item.plotName,
+    item.existingPlotName,
+    item.cropName,
+    item.cropCategory,
+    item.ownerName,
+    item.farmerName,
+    item.province,
+    item.district,
+    item.areaRai,
+    item.treeCount,
+  ]);
 
   // Sync plot details helper
   const syncPlotData = (firstPlotId: string, allPlotIds: string[]) => {
@@ -258,15 +366,20 @@ export function Type7bPlannedForm({
     rowId: string,
     field: keyof Type7bWithdrawnProductLine,
     value: any,
+    selectedProduct?: any,
   ) => {
     const updated = withdrawnProducts.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
-        const matched = products.find((prod) => prod.id === value);
+        const matched =
+          selectedProduct ||
+          effectiveProducts.find(
+            (prod) => prod.id === value || prod.name === value,
+          );
         return {
           ...p,
-          productId: value,
-          productName: matched?.name || "",
+          productId: matched?.id || value,
+          productName: matched?.name || p.productName || "",
           unit: matched?.unit || p.unit || "ขวด",
         };
       }
@@ -509,8 +622,11 @@ export function Type7bPlannedForm({
                           <ActivityProductSelect
                             id={`withdrawn-prod-${item.id}-${pLine.id}`}
                             value={pLine.productId || ""}
-                            onChange={(val) => updateWithdrawnProductRow(pLine.id, "productId", val)}
-                            products={products as any}
+                            valueKey="id"
+                            onChange={(val, selected) =>
+                              updateWithdrawnProductRow(pLine.id, "productId", val, selected)
+                            }
+                            products={effectiveProducts as any}
                             placeholder="เลือกสินค้าที่ต้องการเบิก..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"

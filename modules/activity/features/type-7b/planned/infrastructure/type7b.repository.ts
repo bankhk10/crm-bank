@@ -95,38 +95,65 @@ export async function createType7bData(
   }
 
   const validProducts = (type7bData.products || []).filter(
-    (p): p is typeof p & { productId: string } => Boolean(p.productId),
+    (p): p is typeof p & { productId: string } => Boolean(p.productId || p.productName),
   );
 
   if (validProducts.length > 0) {
-    const bProdIds = validProducts.map((p) => p.productId);
+    const bProdIds = validProducts.map((p) => p.productId).filter(Boolean);
+    const bProdNames = validProducts.map((p) => p.productName).filter(Boolean) as string[];
+
     const dbBProducts =
-      bProdIds.length > 0
+      bProdIds.length > 0 || bProdNames.length > 0
         ? await tx.product.findMany({
-            where: { id: { in: bProdIds } },
+            where: {
+              OR: [
+                ...(bProdIds.length > 0 ? [{ id: { in: bProdIds } }] : []),
+                ...(bProdIds.length > 0 ? [{ name: { in: bProdIds } }] : []),
+                ...(bProdNames.length > 0 ? [{ name: { in: bProdNames } }] : []),
+              ],
+            },
             select: { id: true, name: true, unit: true },
           })
         : [];
-    const bProductMap = new Map(dbBProducts.map((p) => [p.id, p]));
 
-    await tx.activityPlanType7bProduct.createMany({
-      data: validProducts.map((p, idx) => {
-        const dbProd = bProductMap.get(p.productId);
+    const bProductMapById = new Map(dbBProducts.map((p) => [p.id, p]));
+    const bProductMapByName = new Map(dbBProducts.map((p) => [p.name, p]));
+
+    const productsToInsert = validProducts
+      .map((p, idx) => {
+        const dbProd =
+          bProductMapById.get(p.productId) ||
+          bProductMapByName.get(p.productId) ||
+          (p.productName ? bProductMapByName.get(p.productName) : undefined);
+
+        if (!dbProd) {
+          console.warn(
+            `[Type7B createType7bData] Product "${p.productId || p.productName}" not found in database. Skipped to prevent foreign key violation.`,
+          );
+          return null;
+        }
+
         return {
           type7bId: created7b.id,
-          productId: p.productId,
-          productName: p.productName || dbProd?.name || null,
+          productId: dbProd.id,
+          productName: p.productName || dbProd.name || null,
           quantity:
             p.quantity != null
               ? new Prisma.Decimal(p.quantity)
               : p.quantityUsed != null
                 ? new Prisma.Decimal(p.quantityUsed)
                 : new Prisma.Decimal(1),
-          unit: p.unit || dbProd?.unit || null,
+          unit: p.unit || dbProd.unit || null,
           sortOrder: idx,
         };
-      }),
-    });
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    if (productsToInsert.length > 0) {
+      await tx.activityPlanType7bProduct.createMany({
+        data: productsToInsert,
+      });
+    }
   }
 }
 

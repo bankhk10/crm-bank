@@ -244,12 +244,30 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         for (const bp of round.baselineProducts || []) {
           if (bp.productId) {
             let prodName = bp.productName || null;
-            if (!prodName) {
-              const pRecord = await (tx as any).product.findUnique({
-                where: { id: bp.productId },
-                select: { name: true },
+            let resolvedId = bp.productId;
+
+            if ((tx as any).product) {
+              const pRecord = await (tx as any).product.findFirst({
+                where: {
+                  OR: [
+                    { id: bp.productId },
+                    { name: bp.productId },
+                    ...(bp.productName ? [{ name: bp.productName }] : []),
+                  ],
+                },
+                select: { id: true, name: true },
               });
-              prodName = pRecord?.name || "สินค้าตามแผน";
+              if (pRecord) {
+                resolvedId = pRecord.id;
+                prodName = prodName || pRecord.name;
+              } else {
+                console.warn(
+                  `[Type7B saveActual] Baseline product "${bp.productId}" not found in database. Skipped to prevent foreign key violation.`,
+                );
+                continue;
+              }
+            } else if (!prodName) {
+              prodName = "สินค้าตามแผน";
             }
 
             const rate = bp.applicationRate || bp.actualRate || bp.plannedRate || "ตามคำแนะนำ";
@@ -266,7 +284,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
             productsToInsert.push({
               sprayRoundId: createdRound.id,
-              productId: bp.productId,
+              productId: resolvedId,
               productName: prodName,
               baselineRate: bp.plannedRate || "ตามแผน",
               actualRate: rate,
@@ -281,12 +299,30 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         for (const ap of round.additionalProducts || []) {
           if (ap.productId) {
             let prodName = ap.productName || null;
-            if (!prodName) {
-              const pRecord = await (tx as any).product.findUnique({
-                where: { id: ap.productId },
-                select: { name: true },
+            let resolvedId = ap.productId;
+
+            if ((tx as any).product) {
+              const pRecord = await (tx as any).product.findFirst({
+                where: {
+                  OR: [
+                    { id: ap.productId },
+                    { name: ap.productId },
+                    ...(ap.productName ? [{ name: ap.productName }] : []),
+                  ],
+                },
+                select: { id: true, name: true },
               });
-              prodName = pRecord?.name || "สินค้าเพิ่มเติม";
+              if (pRecord) {
+                resolvedId = pRecord.id;
+                prodName = prodName || pRecord.name;
+              } else {
+                console.warn(
+                  `[Type7B saveActual] Additional product "${ap.productId}" not found in database. Skipped to prevent foreign key violation.`,
+                );
+                continue;
+              }
+            } else if (!prodName) {
+              prodName = "สินค้าเพิ่มเติม";
             }
 
             const rate = ap.applicationRate || ap.actualRate || "ตามคำแนะนำ";
@@ -303,7 +339,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
             productsToInsert.push({
               sprayRoundId: createdRound.id,
-              productId: ap.productId,
+              productId: resolvedId,
               productName: prodName,
               baselineRate: null,
               actualRate: rate,

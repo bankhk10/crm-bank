@@ -137,6 +137,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             : [];
 
           setInitialData({
+            ...plan,
             id: plan.id,
             status: plan.status,
             approvalLogs: plan.approvalLogs || [],
@@ -198,7 +199,24 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type5Targets: (plan as any).type5Targets || [],
             type6Targets: (plan as any).type6Targets || [],
             type7aPlots: (plan as any).type7aPlots || [],
-            type7bPlots: (plan as any).type7bPlots || [],
+            type7b: (plan as any).type7b || null,
+            type7bData: (plan as any).type7b || null,
+            type7bPlots: (plan as any).type7b?.plots || (plan as any).type7bPlots || [],
+            type7bProducts: (plan as any).type7b?.products || [],
+            type8: (plan as any).type8 || null,
+            type8Data: (plan as any).type8 || null,
+            type9: (plan as any).type9 || null,
+            type9Data: (plan as any).type9 || null,
+            type10: (plan as any).type10 || null,
+            type10Data: (plan as any).type10 || null,
+            type11: (plan as any).type11 || null,
+            type11Data: (plan as any).type11 || null,
+            type13: (plan as any).type13 || null,
+            type13Data: (plan as any).type13 || null,
+            type13Plots: (plan as any).type13?.plots || [],
+            type14: (plan as any).type14 || null,
+            type14Data: (plan as any).type14 || null,
+            type14Plots: (plan as any).type14?.plots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
           });

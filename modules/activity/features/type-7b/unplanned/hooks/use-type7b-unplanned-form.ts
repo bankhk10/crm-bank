@@ -100,13 +100,26 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
     prodId: string,
     field: keyof Type7bWithdrawnProductLine,
     val: any,
+    selectedProduct?: any,
   ) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== itemId) return item;
-        const updated = (item.withdrawnProducts || []).map((p) =>
-          p.id === prodId ? { ...p, [field]: val } : p,
-        );
+        const updated = (item.withdrawnProducts || []).map((p) => {
+          if (p.id !== prodId) return p;
+          if (field === "productId") {
+            const resolvedId = selectedProduct?.id || val;
+            const resolvedName = selectedProduct?.name || p.productName || "";
+            const resolvedUnit = selectedProduct?.unit || p.unit || "ขวด";
+            return {
+              ...p,
+              productId: resolvedId,
+              productName: resolvedName,
+              unit: resolvedUnit,
+            };
+          }
+          return { ...p, [field]: val };
+        });
         return { ...item, withdrawnProducts: updated };
       }),
     );

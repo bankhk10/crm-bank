@@ -70,6 +70,7 @@ export interface Type7bUnplannedFormProps {
     prodId: string,
     field: keyof Type7bWithdrawnProductLine,
     val: any,
+    selectedProduct?: any,
   ) => void;
   deleteWithdrawnProduct?: (itemId: string, prodId: string) => void;
 }
