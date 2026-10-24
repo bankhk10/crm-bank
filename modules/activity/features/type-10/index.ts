@@ -65,17 +65,6 @@ export * from "./shared/constants";
 export * from "./shared/types";
 export * from "./shared/notes";
 
-// 🏛️ Strategies & Repository
-export {
-  type10PlannedStrategy,
-  type10Strategy,
-} from "./planned/infrastructure/type10-planned.strategy";
-export { type10UnplannedStrategy } from "./unplanned/infrastructure/type10-unplanned.strategy";
-export {
-  findType10ByPlanId,
-  saveType10ActualSaleItems,
-} from "./planned/infrastructure/type10.repository";
-
 // 🟠 4. โซน "นอกแผน" (Unplanned Sub-slice)
 export { Type10UnplannedForm } from "./unplanned/components/type10-unplanned-form";
 export {
