@@ -329,16 +329,117 @@ sequenceDiagram
 
 ### 6.3 รายละเอียดตารางและความสัมพันธ์ (Prisma Schema Reference)
 
+โครงสร้างฐานข้อมูลของ Type 7B แบ่งออกเป็น 2 ฝั่งตามวงจรการทำงาน (Plan vs Actual) ชัดเจน:
+
+#### 1. ฝั่งแผนงาน (Planned Targets)
+ใช้สำหรับบันทึกเป้าหมายแปลงที่จะไปติดตาม และรายการสินค้าที่ขอเบิกเพิ่มล่วงหน้าเพื่อส่งขออนุมัติ:
+
 ```prisma
-// ตารางรอบการฉีดพ่น
+// ตารางหลักแผนงานติดตามแปลงสาธิต (1:1 กับ ActivityPlan)
+model ActivityPlanType7b {
+  id                   String                      @id @default(cuid())
+  activityPlanId       String                      @unique @map("activity_plan_id")
+  sourceActivityPlanId String?                     @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
+  hasProducts          Boolean                     @default(false) @map("has_products")
+  objective            String?                     @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
+  notes                String?                     @map("notes") @db.Text
+  createdAt            DateTime                    @default(now()) @map("created_at")
+  updatedAt            DateTime                    @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
+  plots                ActivityPlanType7bPlot[]
+  products             ActivityPlanType7bProduct[]
+
+  @@index([activityPlanId])
+  @@index([sourceActivityPlanId])
+  @@map("activity_plan_type_7b")
+}
+
+// ตารางแปลงสาธิตที่เลือกติดตามตามแผน
+model ActivityPlanType7bPlot {
+  id         String             @id @default(cuid())
+  type7bId   String             @map("type_7b_id")
+  demoPlotId String             @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม (Master DemoPlot)
+  plotName   String?            @map("plot_name")
+  cropName   String?            @map("crop_name")
+  ownerName  String?            @map("owner_name")
+  province   String?            @map("province")
+  district   String?            @map("district")
+  areaRai    Decimal?           @map("area_rai") @db.Decimal(10, 2)
+  treeCount  Int?               @map("tree_count")
+  dealerName String?            @map("dealer_name")
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  type7b     ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
+  demoPlot   DemoPlot           @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
+
+  @@index([type7bId])
+  @@index([demoPlotId])
+  @@map("activity_plan_type_7b_plots")
+}
+
+// ตารางสินค้าตัวอย่างที่ขอเบิกเพิ่มเติมตามแผน (Baseline Planned Products)
+model ActivityPlanType7bProduct {
+  id          String             @id @default(cuid())
+  type7bId    String             @map("type_7b_id")
+  productId   String             @map("product_id")
+  productName String?            @map("product_name")
+  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit        String?            @map("unit")
+  sortOrder   Int                @default(0) @map("sort_order")
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  type7b      ActivityPlanType7b @relation(fields: [type7bId], references: [id], onDelete: Cascade)
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([type7bId])
+  @@index([productId])
+  @@map("activity_plan_type_7b_products")
+}
+```
+
+#### 2. ฝั่งผลการปฏิบัติงานจริง (Actual Outcome)
+ใช้สำหรับบันทึกผลการเข้าตรวจจริงในแปลง, รอบการฉีดพ่นสาร, สารเคมีที่ใช้จริง (ตามแผน/เพิ่มเติม/ยาภายนอก) และการปิดแปลง:
+
+```prisma
+// ตารางประวัติการเข้าตรวจแปลง (Visit Logging)
+model DemoPlotVisit {
+  id                 String    @id @default(cuid())
+  demoPlotId         String    @map("demo_plot_id")
+  activityPlanId     String?   @map("activity_plan_id")
+  workTypeCode       String?   @map("work_type_code") // "TYPE_7B"
+  visitNumber        Int       @map("visit_number")
+  visitDate          DateTime  @default(now()) @map("visit_date")
+  daysSinceStart     Int?      @map("days_since_start")
+  cropCondition      String?   @map("crop_condition")
+  growthStage        String?   @map("growth_stage")
+  cropProblemDesc    String?   @map("crop_problem_desc")
+  productResponse    String?   @map("product_response")
+  productProblemDesc String?   @map("product_problem_desc")
+  sprayMethod        String?   @map("spray_method")
+  sprayEquipment     String?   @map("spray_equipment")
+  otherEquipment     String?   @map("other_equipment")
+  cropImageUrls      String[]  @default([]) @map("crop_image_urls")
+  notes              String?   @map("notes")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  demoPlot           DemoPlot  @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
+
+  @@index([demoPlotId])
+  @@index([activityPlanId])
+  @@map("demo_plot_visits")
+}
+
+// ตารางรอบการฉีดพ่นประจำครั้งนี้ (Multiple Spraying Rounds)
 model ActivityResultSprayRound {
   id               String                        @id @default(cuid())
   activityResultId String                        @map("activity_result_id")
   demoPlotId       String?                       @map("demo_plot_id")
   roundNumber      Int                           @default(1) @map("round_number")
   sprayDate        DateTime                      @map("spray_date")
-  sprayMethod      String                        @default("SINGLE") @map("spray_method")
-  sprayEquipment   String                        @default("เป้สะพายหลัง") @map("spray_equipment")
+  sprayMethod      String                        @default("SINGLE") @map("spray_method") // "SINGLE" | "TANK_MIXED"
+  sprayEquipment   String                        @default("เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)") @map("spray_equipment")
   otherEquipment   String?                       @map("other_equipment")
   productResponse  String                        @default("พืชตอบสนองดี (เห็นผลตามเป้าหมาย)") @map("product_response")
   problemDetail    String?                       @map("problem_detail") @db.Text
@@ -346,32 +447,48 @@ model ActivityResultSprayRound {
   notes            String?                       @map("notes") @db.Text
   workTypeCode     String?                       @map("work_type_code") // "TYPE_7B"
   createdAt        DateTime                      @default(now()) @map("created_at")
-  updatedAt        DateTime                      @updatedAt @map("updated_at")
 
   activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   products         ActivityResultSprayProduct[]
+  externalProducts ActivityResultSprayExternal[]
   attachments      ActivityAttachment[]
 
   @@map("activity_result_spray_rounds")
 }
 
-// ตารางสินค้าในการฉีดพ่นแต่ละรอบ
+// ตารางสินค้าในการฉีดพ่นแต่ละรอบ (ทั้ง 1.1 Baseline และ 1.2 Additional Products)
 model ActivityResultSprayProduct {
   id               String                   @id @default(cuid())
   sprayRoundId     String                   @map("spray_round_id")
   productId        String                   @map("product_id")
   productName      String?                  @map("product_name")
-  baselineRate     String?                  @map("baseline_rate")
-  actualRate       String?                  @map("actual_rate")
+  baselineRate     String?                  @map("baseline_rate") // มีค่า = สินค้าตามแผน (1.1), null = สินค้าเพิ่มเติมหน้างาน (1.2)
+  actualRate       String                   @map("actual_rate")
   quantityUsed     Decimal                  @default(1) @map("quantity_used") @db.Decimal(10, 2)
   unit             String?                  @map("unit")
-  detail           String?                  @map("detail") @db.Text
+  detail           String?                  @map("detail") @db.Text // เก็บข้อความการใช้เพิ่ม เช่น "ใช้เพิ่ม 50 ซีซี"
   createdAt        DateTime                 @default(now()) @map("created_at")
 
   sprayRound       ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
   product          Product                  @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@map("activity_result_spray_products")
+}
+
+// ตารางรายการยาภายนอกที่ใช้ร่วม กรณีผสมถัง (Tank-mixed External Chemicals)
+model ActivityResultSprayExternal {
+  id               String                   @id @default(cuid())
+  sprayRoundId     String                   @map("spray_round_id")
+  company          String                   @map("company")
+  productName      String                   @map("product_name")
+  activeIngredient String?                  @map("active_ingredient")
+  formula          String                   @map("formula") // SL, SC, EC, อื่นๆ
+  customFormula    String?                  @map("custom_formula")
+  applicationRate  String                   @map("application_rate")
+
+  sprayRound       ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+
+  @@map("activity_result_spray_externals")
 }
 ```
 
