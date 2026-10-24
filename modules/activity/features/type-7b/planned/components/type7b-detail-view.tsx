@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Search,
   User,
@@ -16,12 +17,14 @@ import {
   TrendingUp,
   PackageCheck,
   PackagePlus,
+  ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Type7bDetailViewProps } from "../types/actual.types";
 
 export function Type7bDetailView({
   isVisible = true,
+  plan,
   target,
   targets = [],
   actualResult,
@@ -30,8 +33,10 @@ export function Type7bDetailView({
   if (!isVisible) return null;
 
   const plotList = targets.length > 0 ? targets : target ? [target] : [];
-
   const rounds = actualResult?.t7SprayingRounds || [];
+
+  const sourcePlan = plan?.type7b?.sourceActivityPlan || null;
+  const sourcePlanId = plan?.type7b?.sourceActivityPlanId || sourcePlan?.id || null;
 
   return (
     <div className="space-y-5">
@@ -39,6 +44,34 @@ export function Type7bDetailView({
         <Search className="h-5 w-5 text-emerald-600" />
         <span>ข้อมูลการติดตามแปลงสาธิต (Type 7B)</span>
       </div>
+
+      {/* ─── Backlink to Source 7A Plan (Cross-Plan Linkage) ─── */}
+      {sourcePlanId && (
+        <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
+              <Sprout className="w-4 h-4" />
+            </span>
+            <div>
+              <span className="text-slate-500 font-medium">ติดตามต่อเนื่องจากแผนจัดทำแปลงสาธิต:</span>
+              <span className="font-bold text-slate-800 ml-1.5">
+                [{sourcePlan?.code || "Trip Plan"}] {sourcePlan?.title || "ทำแปลงสาธิต"}
+              </span>
+            </div>
+          </div>
+
+          <Link
+            href={`/activity-plans/${sourcePlanId}`}
+            className="inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800 hover:underline bg-white px-3 py-1.5 rounded-lg border border-emerald-200 shadow-2xs self-start sm:self-auto cursor-pointer transition-colors"
+            target="_blank"
+            rel="noreferrer"
+            title="คลิกเพื่อเปิดดูแผนจัดทำแปลงสาธิตต้นทาง (Type 7A) ในแท็บใหม่"
+          >
+            <span>ดูแผนจัดทำแปลงสาธิตต้นทาง</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {plotList.map((p, idx) => {
         const withdrawnProds = p.demoProducts || p.withdrawnProducts || [];

@@ -45,6 +45,18 @@ export {
   DetailType7NewDemo, // Backward-compatible alias
 } from "./planned/components/type7a-detail-view";
 export {
+  Type7aPlotFollowUpTimeline,
+  type Type7aPlotFollowUpTimelineProps,
+} from "./planned/components/type7a-plot-follow-up-timeline";
+export {
+  extractPlotFollowUpTimeline,
+  type PlotFollowUpTimelineResult,
+  type PlotFollowUpItem,
+  type PlotFollowUpProduct,
+  type PlotFollowUpExternalProduct,
+  type PlotFollowUpPhoto,
+} from "./planned/application/follow-up-mapper";
+export {
   Type7aApprovalCard,
   ApprovalType7aDemo, // Backward-compatible alias
 } from "./planned/components/type7a-approval-card";

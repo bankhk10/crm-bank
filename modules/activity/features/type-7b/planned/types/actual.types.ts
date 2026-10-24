@@ -184,6 +184,7 @@ export type ActualType7FollowUpProps = Type7bActualFormProps;
 
 export interface Type7bDetailViewProps {
   isVisible?: boolean;
+  plan?: any;
   target?: Type7bTargetItem;
   targets?: Type7bTargetItem[];
   actualResult?: Type7bActualRecord;

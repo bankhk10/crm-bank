@@ -105,7 +105,65 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       irrigations: true,
       attachments: true,
       visits: {
-        orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              employee: {
+                select: { id: true, name: true },
+              },
+            },
+          },
+          attachments: true,
+        },
+        orderBy: [{ visitNumber: "asc" }, { visitDate: "asc" }, { createdAt: "asc" }],
+      },
+      type7bPlots: {
+        include: {
+          type7b: {
+            include: {
+              activityPlan: {
+                select: {
+                  id: true,
+                  code: true,
+                  title: true,
+                  status: true,
+                  startDate: true,
+                  endDate: true,
+                  employee: {
+                    select: { id: true, name: true },
+                  },
+                },
+              },
+              products: {
+                include: {
+                  product: {
+                    select: { id: true, name: true, unit: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      sprayRounds: {
+        include: {
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, unit: true },
+              },
+            },
+          },
+          externalProducts: true,
+          attachments: true,
+        },
+        orderBy: [{ roundNumber: "asc" }, { sprayDate: "asc" }],
       },
     },
   },

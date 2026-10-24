@@ -715,6 +715,7 @@ export function DetailWorkTypeList({
       {/* 🟢 TYPE 7B: ติดตามแปลงสาธิต (Demo Plot Follow-up) */}
       <Type7bDetailView
         isVisible={isType7b}
+        plan={plan}
         target={targets?.t7b || targets?.t7bList?.[0]}
         targets={targets?.t7bList}
         actualResult={parsedResults?.type7bActual || parsedResults}

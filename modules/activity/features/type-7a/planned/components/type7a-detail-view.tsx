@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Type7aDetailViewProps } from "../types/actual.types";
 import { Type7aPlanCard } from "./type7a-plan-card";
+import { Type7aPlotFollowUpTimeline } from "./type7a-plot-follow-up-timeline";
 import {
   ImageLightboxModal,
   type LightboxImage,
@@ -431,9 +432,16 @@ export function Type7aDetailView({
           }
         }
 
-        // Check whether actual outcome data exists
+        // Check whether actual outcome data or follow-up visits exist
+        const hasFollowUps = Boolean(
+          (dp?.visits && dp.visits.length > 0) ||
+            (dp?.type7bPlots && dp.type7bPlots.length > 0) ||
+            (dp?.sprayRounds && dp.sprayRounds.length > 0),
+        );
+
         const hasActualData = Boolean(
-          plantingDate ||
+          hasFollowUps ||
+            plantingDate ||
             initialSprayDate ||
             nextSprayDate ||
             mainCropInfo ||
@@ -986,6 +994,11 @@ export function Type7aDetailView({
                 </div>
               </section>
             )}
+
+            {/* ─── หมวดที่ 8: ประวัติการลงพื้นที่ติดตามแปลงสาธิต (Follow-Up Timeline) ─── */}
+            <section className="space-y-3 pt-4 border-t border-slate-200">
+              <Type7aPlotFollowUpTimeline demoPlot={dp || plot} />
+            </section>
           </div>
         );
       })}
