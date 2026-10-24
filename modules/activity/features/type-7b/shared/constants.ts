@@ -10,6 +10,13 @@ export const SPRAY_METHOD_RADIO_OPTIONS = [
   { value: "TANK_MIXED", label: "ผสมถัง (Tank-mixed)" },
 ] as const;
 
+export const EXTERNAL_FORMULA_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "SL", label: "SL (Soluble Liquid)" },
+  { value: "SC", label: "SC (Suspension Concentrate)" },
+  { value: "EC", label: "EC (Emulsifiable Concentrate)" },
+  { value: "อื่นๆ", label: "อื่นๆ (ระบุ)" },
+];
+
 export const SPRAY_EQUIPMENT_RADIO_OPTIONS = [
   { value: "เป้สะพายหลัง", label: "เป้สะพายหลัง" },
   { value: "ถัง + สายลาก", label: "ถัง + สายลาก" },

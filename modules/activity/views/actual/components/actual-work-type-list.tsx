@@ -538,6 +538,9 @@ export function ActualWorkTypeList({
           onRemoveAdditionalProduct={type7bState.removeAdditionalProduct}
           onUpdateBaselineProduct={type7bState.updateBaselineProduct}
           onUpdateRoundImages={type7bState.updateRoundImages}
+          onAddExternalProduct={type7bState.addExternalProductToRound}
+          onUpdateExternalProduct={type7bState.updateExternalProductInRound}
+          onRemoveExternalProduct={type7bState.removeExternalProductFromRound}
         />
       )}
 

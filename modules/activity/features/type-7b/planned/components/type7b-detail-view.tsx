@@ -293,6 +293,48 @@ export function Type7bDetailView({
                         </div>
                       )}
 
+                      {/* External chemical products (Tank-mixed) */}
+                      {round.sprayMethod === "TANK_MIXED" &&
+                        Array.isArray(round.externalProducts) &&
+                        round.externalProducts.length > 0 && (
+                          <div className="space-y-1.5">
+                            <span className="font-semibold text-slate-700 flex items-center gap-1">
+                              <Droplets className="w-3.5 h-3.5 text-blue-600" />
+                              รายการยาภายนอกที่ใช้ร่วม (ผสมถัง):
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {round.externalProducts.map((ext, extIdx) => (
+                                <div
+                                  key={ext.id || extIdx}
+                                  className="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-slate-800 block text-xs">
+                                      {ext.productName}
+                                    </span>
+                                    <span className="bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded text-[10px]">
+                                      สูตร {ext.formula === "อื่นๆ" ? ext.customFormula || "อื่นๆ" : ext.formula}
+                                    </span>
+                                  </div>
+                                  {ext.company && (
+                                    <span className="text-[11px] text-slate-500 block">
+                                      บริษัท: {ext.company}
+                                    </span>
+                                  )}
+                                  {ext.activeIngredient && (
+                                    <span className="text-[11px] text-slate-500 block">
+                                      สารออกฤทธิ์: {ext.activeIngredient}
+                                    </span>
+                                  )}
+                                  <span className="text-[11px] text-emerald-700 font-medium block">
+                                    อัตราใช้: {ext.applicationRate}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                       {/* Method, Equip, Response */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-200/80">
                         <div className="bg-white p-2 rounded-lg border border-slate-100">

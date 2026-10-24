@@ -61,6 +61,7 @@ export type {
   Type7bSprayingRoundItem,
   Type7bBaselineProductItem,
   Type7bAdditionalProductItem,
+  Type7bExternalChemicalItem,
   Type7bSprayRoundState,
   DemoPlotVisitHistoryItem,
 } from "./planned/types/actual.types";

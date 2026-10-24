@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-7b`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7b`, `ActivityPlanType7bPlot`, `ActivityPlanType7bProduct`, `DemoPlotVisit`, `DemoPlot`, `ActivityResultSprayRound`, `ActivityResultSprayProduct`, `ActivityResultDemoItem`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-24)
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7b`, `ActivityPlanType7bPlot`, `ActivityPlanType7bProduct`, `DemoPlotVisit`, `DemoPlot`, `ActivityResultSprayRound`, `ActivityResultSprayProduct`, `ActivityResultSprayExternal`, `ActivityResultDemoItem`, `ActivityAttachment`)  
+> **Status**: Production Ready / Active Reference (v2.1.0 — Updated 2026-10-24)
 
 ---
 
@@ -24,6 +24,8 @@
      - **1.1 รายการสินค้าตามแผนงาน (Planned Baseline Products):** แสดงรายการสินค้าที่เบิกตามแผนพร้อมจำนวนที่เบิก (`withdrawnQuantity`) พร้อมช่องบันทึก 3 คอลัมน์มาตรฐาน ได้แก่ จำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม ซีซี/กรัม (`extraQuantity`), และอัตราการใช้ (`applicationRate`)
      - **1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (Additional Products):** รองรับการเพิ่มสินค้าที่ใช้นอกแผนหน้างาน ค้นหาผ่าน `ActivityProductSelect` เต็มความกว้าง พร้อมบันทึก 3 คอลัมน์มาตรฐานเช่นเดียวกับ Baseline
      - **2. วิธีการฉีดพ่น (Spray Method):** ปุ่มสลับ 2 ตัวเลือก (2-Button Pill Toggle) ระหว่าง "ฉีดเดี่ยว (Single)" และ "ผสมถัง (Tank-mixed)"
+        - กรณีเลือก "ผสมถัง (Tank-mixed)": แสดง Checkbox "มียาใช้ภายนอก (ไม่บังคับ)" (`hasExternalChemicals`)
+        - เมื่อติ๊กเลือก "มียาใช้ภายนอก": แสดงกล่องรายการยาภายนอกที่ใช้ร่วม พร้อมปุ่ม "+ เพิ่มยาภายนอก" และกริด 6 ฟิลด์มาตรฐานตามแบบ Type 7A (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร SL/SC/EC/อื่นๆ, ระบุสูตรเพิ่มเติม, อัตราการใช้)
      - **3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment):** เมนูดรอปดาวน์ `ActivitySelect` 5 ตัวเลือกมาตรฐาน (`SPRAY_EQUIPMENT_OPTIONS`) ได้แก่ เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่), เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส / รถพ่นยา, และ อื่นๆ (ระบุ) (พร้อม input กรอกระบุอุปกรณ์เพิ่มเติม)
      - **4. ผลหลังการฉีดพ่นรอบนี้ (Spray Response):** พืชตอบสนองดี (เห็นผลตามเป้าหมาย), เกิดความเป็นพิษต่อพืช (Phytotoxicity), ไม่เห็นความแตกต่างอย่างมีนัยสำคัญ, อื่นๆ
      - **5. รูปถ่ายการฉีดพ่นประจำรอบ (Spray Round Images):** ภาพถ่ายการปฏิบัติงานและสภาพแปลงประจำรอบนั้นๆ สูงสุด 5 รูปต่อรอบ

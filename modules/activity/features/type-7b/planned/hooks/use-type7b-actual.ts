@@ -6,6 +6,7 @@ import type {
   Type7bSprayRoundState,
   Type7bBaselineProductItem,
   Type7bAdditionalProductItem,
+  Type7bExternalChemicalItem,
 } from "../types/actual.types";
 import type { ImageFile } from "../../shared/types";
 import { validateType7bActual } from "../application/actual-validation";
@@ -21,6 +22,8 @@ function createDefaultRound(
     sprayMethod: "SINGLE",
     sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
     otherEquipment: "",
+    hasExternalChemicals: false,
+    externalProducts: [],
     productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
     problemDetail: "",
     baselineProducts: baselineProducts.map((p) => ({ ...p })),
@@ -270,6 +273,85 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
     });
   }, []);
 
+  // Add External Product to a round
+  const addExternalProductToRound = useCallback((roundIdx: number) => {
+    setActualState((prev) => {
+      const currentRounds = [...(prev.t7SprayingRounds || [])];
+      if (!currentRounds[roundIdx]) return prev;
+
+      const newExtProd: Type7bExternalChemicalItem = {
+        id: `ext-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        company: "",
+        productName: "",
+        activeIngredient: "",
+        formula: "SL",
+        customFormula: "",
+        applicationRate: "",
+      };
+
+      currentRounds[roundIdx] = {
+        ...currentRounds[roundIdx],
+        externalProducts: [...(currentRounds[roundIdx].externalProducts || []), newExtProd],
+      };
+
+      return {
+        ...prev,
+        t7SprayingRounds: currentRounds,
+      };
+    });
+  }, []);
+
+  // Update External Product in a round
+  const updateExternalProductInRound = useCallback(
+    (roundIdx: number, extIdx: number, field: string, value: any) => {
+      setActualState((prev) => {
+        const currentRounds = [...(prev.t7SprayingRounds || [])];
+        if (!currentRounds[roundIdx]) return prev;
+
+        const exts = [...(currentRounds[roundIdx].externalProducts || [])];
+        if (!exts[extIdx]) return prev;
+
+        exts[extIdx] = {
+          ...exts[extIdx],
+          [field]: value,
+        };
+
+        currentRounds[roundIdx] = {
+          ...currentRounds[roundIdx],
+          externalProducts: exts,
+        };
+
+        return {
+          ...prev,
+          t7SprayingRounds: currentRounds,
+        };
+      });
+    },
+    [],
+  );
+
+  // Remove External Product from a round
+  const removeExternalProductFromRound = useCallback((roundIdx: number, extIdx: number) => {
+    setActualState((prev) => {
+      const currentRounds = [...(prev.t7SprayingRounds || [])];
+      if (!currentRounds[roundIdx]) return prev;
+
+      const exts = (currentRounds[roundIdx].externalProducts || []).filter(
+        (_, idx) => idx !== extIdx,
+      );
+
+      currentRounds[roundIdx] = {
+        ...currentRounds[roundIdx],
+        externalProducts: exts,
+      };
+
+      return {
+        ...prev,
+        t7SprayingRounds: currentRounds,
+      };
+    });
+  }, []);
+
   // Update Baseline Product in a round
   const updateBaselineProduct = useCallback(
     (roundIdx: number, prodIdx: number, field: string, value: any) => {
@@ -354,6 +436,9 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
     removeAdditionalProduct,
     updateBaselineProduct,
     updateRoundImages,
+    addExternalProductToRound,
+    updateExternalProductInRound,
+    removeExternalProductFromRound,
     validate,
   };
 }

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { parseType7bActualResult } from "@/modules/activity/features/type-7b/planned/application/actual-mapper";
 import { type7bPlannedStrategy } from "@/modules/activity/features/type-7b/planned/infrastructure/type7b-planned.strategy";
 import { parseResultSummary } from "@/modules/activity/domain/summary/result-summary-parser";
+import { validateType7bActual } from "@/modules/activity/features/type-7b/planned/application/actual-validation";
 
 async function runTests() {
   console.log("=== Running Type 7B Actual Save & Hydration Unit Tests ===");
@@ -15,6 +16,7 @@ async function runTests() {
   const createdRounds: any[] = [];
   const createdProducts: any[] = [];
   const createdAttachments: any[] = [];
+  const createdExternals: any[] = [];
   let updatedDemoPlot: any = null;
   let upsertedVisit: any = null;
 
@@ -52,6 +54,11 @@ async function runTests() {
         createdProducts.push(...args.data);
       },
     },
+    activityResultSprayExternal: {
+      createMany: async (args: any) => {
+        createdExternals.push(...args.data);
+      },
+    },
     activityAttachment: {
       createMany: async (args: any) => {
         createdAttachments.push(...args.data);
@@ -77,6 +84,16 @@ async function runTests() {
           roundNumber: 1,
           sprayDate: "2026-10-24",
           sprayMethod: "TANK_MIXED",
+          hasExternalChemicals: true,
+          externalProducts: [
+            {
+              company: "บริษัท เคมีภัณฑ์สยาม จำกัด",
+              productName: "ไตรอะโซฟอส 40%",
+              activeIngredient: "Triazophos",
+              formula: "EC",
+              applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
+            },
+          ],
           sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
           otherEquipment: "",
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
@@ -192,7 +209,17 @@ async function runTests() {
   assert(updatedDemoPlot, "DemoPlot update must be called");
   assert.strictEqual(updatedDemoPlot.status, "IN_PROGRESS");
   assert.strictEqual(updatedDemoPlot.closedDate, null);
+  assert.strictEqual(updatedDemoPlot.hasExternalChemicals, true, "hasExternalChemicals must be synced to demo plot");
   assert(updatedDemoPlot.nextSprayDate instanceof Date);
+
+  // Verify External Product in Round 1
+  assert.strictEqual(createdExternals.length, 1, "Should create 1 external chemical record");
+  assert.strictEqual(createdExternals[0].sprayRoundId, createdRounds[0].id);
+  assert.strictEqual(createdExternals[0].company, "บริษัท เคมีภัณฑ์สยาม จำกัด");
+  assert.strictEqual(createdExternals[0].productName, "ไตรอะโซฟอส 40%");
+  assert.strictEqual(createdExternals[0].activeIngredient, "Triazophos");
+  assert.strictEqual(createdExternals[0].formula, "EC");
+  assert.strictEqual(createdExternals[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
 
   // Verify DemoPlotVisit
   assert(upsertedVisit, "DemoPlotVisit must be upserted");
@@ -258,6 +285,19 @@ async function runTests() {
           roundNumber: 1,
           sprayDate: new Date("2026-10-24T00:00:00.000Z"),
           sprayMethod: "TANK_MIXED",
+          hasExternalChemicals: true,
+          externalProducts: [
+            {
+              id: "ext-db-1",
+              sprayRoundId: "round-db-1",
+              company: "บริษัท เคมีภัณฑ์สยาม จำกัด",
+              productName: "ไตรอะโซฟอส 40%",
+              activeIngredient: "Triazophos",
+              formula: "EC",
+              customFormula: null,
+              applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
+            },
+          ],
           sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
           otherEquipment: null,
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
@@ -365,10 +405,20 @@ async function runTests() {
   const round1 = hydratedResult.t7SprayingRounds[0];
   assert.strictEqual(round1.roundNumber, 1);
   assert.strictEqual(round1.sprayMethod, "TANK_MIXED");
+  assert.strictEqual(round1.hasExternalChemicals, true, "hasExternalChemicals must be true");
   assert.strictEqual(round1.sprayEquipment, "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)");
   assert.strictEqual(round1.productResponse, "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)");
   assert.strictEqual(round1.roundImages.length, 1);
   assert.strictEqual(round1.roundImages[0].url, "https://storage.example.com/round1.jpg");
+
+  // Verify Round 1 External Products
+  assert(round1.externalProducts, "externalProducts must be present");
+  assert.strictEqual(round1.externalProducts.length, 1, "Must restore 1 external product in Round 1");
+  assert.strictEqual(round1.externalProducts[0].company, "บริษัท เคมีภัณฑ์สยาม จำกัด");
+  assert.strictEqual(round1.externalProducts[0].productName, "ไตรอะโซฟอส 40%");
+  assert.strictEqual(round1.externalProducts[0].activeIngredient, "Triazophos");
+  assert.strictEqual(round1.externalProducts[0].formula, "EC");
+  assert.strictEqual(round1.externalProducts[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
 
   // Verify Round 1 Baseline Product
   assert.strictEqual(round1.baselineProducts.length, 1);
@@ -508,6 +558,70 @@ async function runTests() {
   );
 
   console.log("✓ Test 4 passed: parseResultSummary seamlessly exposes Type 7B spray rounds and additional products.");
+
+  // -------------------------------------------------------------------------
+  // Test 5: Validation for Tank-mixed External Chemical Products
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 5] Testing validateType7bActual with Tank-mixed External Products...");
+
+  const invalidExternalPayload: any = {
+    t7SprayingRounds: [
+      {
+        roundNumber: 1,
+        sprayMethod: "TANK_MIXED",
+        sprayEquipment: "โดรน",
+        hasExternalChemicals: true,
+        externalProducts: [
+          {
+            company: "บริษัท ทดสอบ",
+            productName: "", // Missing product name
+            formula: "อื่นๆ",
+            customFormula: "", // Missing custom formula
+            applicationRate: "", // Missing rate
+          },
+        ],
+      },
+    ],
+  };
+
+  const invalidValidation = validateType7bActual(invalidExternalPayload);
+  assert.strictEqual(invalidValidation.isValid, false, "Must fail validation when external product fields are missing");
+  assert(
+    invalidValidation.errors.some((e) => e.includes("กรุณาระบุชื่อสินค้า")),
+    "Should report missing productName",
+  );
+  assert(
+    invalidValidation.errors.some((e) => e.includes("กรุณาระบุอัตราการใช้")),
+    "Should report missing applicationRate",
+  );
+  assert(
+    invalidValidation.errors.some((e) => e.includes("กรุณาระบุสูตรเพิ่มเติม")),
+    "Should report missing customFormula",
+  );
+
+  const validExternalPayload: any = {
+    t7SprayingRounds: [
+      {
+        roundNumber: 1,
+        sprayMethod: "TANK_MIXED",
+        sprayEquipment: "โดรน",
+        hasExternalChemicals: true,
+        externalProducts: [
+          {
+            company: "บริษัท ทดสอบ",
+            productName: "สารเคมี X",
+            formula: "SL",
+            applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
+          },
+        ],
+      },
+    ],
+  };
+
+  const validValidation = validateType7bActual(validExternalPayload);
+  assert.strictEqual(validValidation.isValid, true, "Must pass validation when external products are fully specified");
+
+  console.log("✓ Test 5 passed: validateType7bActual correctly validates tank-mixed external products.");
 
   console.log("\n🎉 ALL TYPE 7B ACTUAL SAVE & HYDRATION TESTS PASSED 100%!\n");
 }

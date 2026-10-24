@@ -58,6 +58,24 @@ export function validateType7bActual(
           }
         });
       }
+
+      // Check external products (Tank-mixed)
+      if (round.sprayMethod === "TANK_MIXED" && round.hasExternalChemicals) {
+        if (Array.isArray(round.externalProducts) && round.externalProducts.length > 0) {
+          round.externalProducts.forEach((ext, extIdx) => {
+            const extNum = extIdx + 1;
+            if (!ext.productName?.trim()) {
+              errors.push(`รอบที่ ${rNum} ยาภายนอกลำดับที่ ${extNum}: กรุณาระบุชื่อสินค้า`);
+            }
+            if (!ext.applicationRate?.trim()) {
+              errors.push(`รอบที่ ${rNum} ยาภายนอกลำดับที่ ${extNum}: กรุณาระบุอัตราการใช้`);
+            }
+            if (ext.formula === "อื่นๆ" && !ext.customFormula?.trim()) {
+              errors.push(`รอบที่ ${rNum} ยาภายนอกลำดับที่ ${extNum}: กรุณาระบุสูตรเพิ่มเติม`);
+            }
+          });
+        }
+      }
     });
   }
 

@@ -10,6 +10,7 @@ import {
   PackagePlus,
   Wrench,
   TrendingUp,
+  Droplets,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,11 +25,13 @@ import {
   SPRAY_EQUIPMENT_OPTIONS,
   SPRAY_RESPONSE_OPTIONS,
   DEMO_PLOT_STATUS_OPTIONS,
+  EXTERNAL_FORMULA_OPTIONS,
 } from "../../shared/constants";
 import type {
   Type7bActualFormProps,
   Type7bSprayRoundState,
   Type7bAdditionalProductItem,
+  Type7bExternalChemicalItem,
 } from "../types/actual.types";
 import { Type7bPlanCard } from "./type7b-plan-card";
 
@@ -49,6 +52,9 @@ export function Type7bActualForm({
   onRemoveAdditionalProduct,
   onUpdateBaselineProduct,
   onUpdateRoundImages,
+  onAddExternalProduct,
+  onUpdateExternalProduct,
+  onRemoveExternalProduct,
 }: Type7bActualFormProps) {
   if (!isVisible) return null;
 
@@ -311,6 +317,66 @@ export function Type7bActualForm({
       }
     },
     [onUpdateRoundImages, rounds, onUpdateField],
+  );
+
+  const handleAddExternalProduct = useCallback(
+    (rIdx: number) => {
+      if (onAddExternalProduct) {
+        onAddExternalProduct(rIdx);
+        return;
+      }
+      const updated = [...rounds];
+      if (updated[rIdx]) {
+        const newExt: Type7bExternalChemicalItem = {
+          id: `ext-prod-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          company: "",
+          productName: "",
+          activeIngredient: "",
+          formula: "SL",
+          customFormula: "",
+          applicationRate: "",
+        };
+        updated[rIdx] = {
+          ...updated[rIdx],
+          externalProducts: [...(updated[rIdx].externalProducts || []), newExt],
+        };
+        onUpdateField?.("t7SprayingRounds", updated);
+      }
+    },
+    [onAddExternalProduct, rounds, onUpdateField],
+  );
+
+  const handleUpdateExternalProduct = useCallback(
+    (rIdx: number, extIdx: number, field: string, value: any) => {
+      if (onUpdateExternalProduct) {
+        onUpdateExternalProduct(rIdx, extIdx, field, value);
+        return;
+      }
+      const updated = [...rounds];
+      if (updated[rIdx] && updated[rIdx].externalProducts?.[extIdx]) {
+        const exts = [...(updated[rIdx].externalProducts || [])];
+        exts[extIdx] = { ...exts[extIdx], [field]: value };
+        updated[rIdx] = { ...updated[rIdx], externalProducts: exts };
+        onUpdateField?.("t7SprayingRounds", updated);
+      }
+    },
+    [onUpdateExternalProduct, rounds, onUpdateField],
+  );
+
+  const handleRemoveExternalProduct = useCallback(
+    (rIdx: number, extIdx: number) => {
+      if (onRemoveExternalProduct) {
+        onRemoveExternalProduct(rIdx, extIdx);
+        return;
+      }
+      const updated = [...rounds];
+      if (updated[rIdx]) {
+        const exts = (updated[rIdx].externalProducts || []).filter((_, idx) => idx !== extIdx);
+        updated[rIdx] = { ...updated[rIdx], externalProducts: exts };
+        onUpdateField?.("t7SprayingRounds", updated);
+      }
+    },
+    [onRemoveExternalProduct, rounds, onUpdateField],
   );
 
   return (
@@ -731,36 +797,203 @@ export function Type7bActualForm({
               {/* 2. วิธีการฉีดพ่น (Single vs Tank-mixed)                             */}
               {/* รูปแบบ 2-button toggle ตามหน้า Type 7A                            */}
               {/* ================================================================= */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-semibold text-slate-700">
-                  วิธีการฉีดพ่น <span className="text-rose-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3 max-w-md">
-                  <button
-                    type="button"
-                    disabled={readonly}
-                    onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "SINGLE")}
-                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                      round.sprayMethod !== "TANK_MIXED"
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    ฉีดเดี่ยว (Single)
-                  </button>
-                  <button
-                    type="button"
-                    disabled={readonly}
-                    onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "TANK_MIXED")}
-                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                      round.sprayMethod === "TANK_MIXED"
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    ผสมถัง (Tank-mixed)
-                  </button>
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-700">
+                    วิธีการฉีดพ่น <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 max-w-md">
+                    <button
+                      type="button"
+                      disabled={readonly}
+                      onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "SINGLE")}
+                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        round.sprayMethod !== "TANK_MIXED"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      ฉีดเดี่ยว (Single)
+                    </button>
+                    <button
+                      type="button"
+                      disabled={readonly}
+                      onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "TANK_MIXED")}
+                      className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        round.sprayMethod === "TANK_MIXED"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      ผสมถัง (Tank-mixed)
+                    </button>
+                  </div>
                 </div>
+
+                {/* Checkbox มียาใช้ภายนอก (แสดงเฉพาะเมื่อเลือก Tank-mixed ตามแบบ Type 7A) */}
+                {round.sprayMethod === "TANK_MIXED" && (
+                  <div className="pt-2 border-t border-slate-200/60 space-y-3">
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(round.hasExternalChemicals)}
+                        onChange={(e) =>
+                          handleUpdateRoundField(rIdx, "hasExternalChemicals", e.target.checked)
+                        }
+                        disabled={readonly}
+                        className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-xs font-medium text-slate-800">
+                        มียาใช้ภายนอก (ไม่บังคับ)
+                      </span>
+                    </label>
+
+                    {/* รายการยาภายนอกที่ใช้ร่วม */}
+                    {round.hasExternalChemicals && (
+                      <div className="space-y-3 bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <Droplets className="w-3.5 h-3.5 text-emerald-600" />
+                            รายการยาภายนอกที่ใช้ร่วม
+                          </h5>
+                          {!readonly && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddExternalProduct(rIdx)}
+                              className="h-7 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              เพิ่มยาภายนอก
+                            </Button>
+                          )}
+                        </div>
+
+                        {(!round.externalProducts || round.externalProducts.length === 0) ? (
+                          <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-lg">
+                            ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+ เพิ่มยาภายนอก&quot; เพื่อระบุ
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {round.externalProducts.map((ext, extIdx) => (
+                              <div
+                                key={ext.id || extIdx}
+                                className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-emerald-800">
+                                    ยาภายนอกลำดับที่ {extIdx + 1}
+                                  </span>
+                                  {!readonly && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveExternalProduct(rIdx, extIdx)}
+                                      className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
+                                      title="ลบรายการ"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-medium text-slate-600">
+                                      บริษัท
+                                    </label>
+                                    <ActivityInput
+                                      value={ext.company || ""}
+                                      onChange={(e) =>
+                                        handleUpdateExternalProduct(rIdx, extIdx, "company", e.target.value)
+                                      }
+                                      disabled={readonly}
+                                      placeholder="ระบุบริษัท..."
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-medium text-slate-600">
+                                      ชื่อสินค้า <span className="text-rose-500">*</span>
+                                    </label>
+                                    <ActivityInput
+                                      value={ext.productName || ""}
+                                      onChange={(e) =>
+                                        handleUpdateExternalProduct(rIdx, extIdx, "productName", e.target.value)
+                                      }
+                                      disabled={readonly}
+                                      placeholder="ระบุชื่อสินค้า..."
+                                      required
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-medium text-slate-600">
+                                      สารออกฤทธิ์
+                                    </label>
+                                    <ActivityInput
+                                      value={ext.activeIngredient || ""}
+                                      onChange={(e) =>
+                                        handleUpdateExternalProduct(rIdx, extIdx, "activeIngredient", e.target.value)
+                                      }
+                                      disabled={readonly}
+                                      placeholder="ระบุสารออกฤทธิ์..."
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <ActivitySelect
+                                      label="สูตร"
+                                      labelClassName="text-[11px] font-medium text-slate-600 mb-0"
+                                      value={ext.formula || "SL"}
+                                      onChange={(val) =>
+                                        handleUpdateExternalProduct(rIdx, extIdx, "formula", val)
+                                      }
+                                      options={EXTERNAL_FORMULA_OPTIONS}
+                                      disabled={readonly}
+                                    />
+                                  </div>
+
+                                  {ext.formula === "อื่นๆ" && (
+                                    <div className="space-y-1">
+                                      <label className="text-[11px] font-medium text-slate-600">
+                                        ระบุสูตรเพิ่มเติม <span className="text-rose-500">*</span>
+                                      </label>
+                                      <ActivityInput
+                                        value={ext.customFormula || ""}
+                                        onChange={(e) =>
+                                          handleUpdateExternalProduct(rIdx, extIdx, "customFormula", e.target.value)
+                                        }
+                                        disabled={readonly}
+                                        placeholder="ระบุสูตร..."
+                                        required
+                                      />
+                                    </div>
+                                  )}
+
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-medium text-slate-600">
+                                      อัตราการใช้ <span className="text-rose-500">*</span>
+                                    </label>
+                                    <ActivityInput
+                                      value={ext.applicationRate || ""}
+                                      onChange={(e) =>
+                                        handleUpdateExternalProduct(rIdx, extIdx, "applicationRate", e.target.value)
+                                      }
+                                      disabled={readonly}
+                                      placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ================================================================= */}

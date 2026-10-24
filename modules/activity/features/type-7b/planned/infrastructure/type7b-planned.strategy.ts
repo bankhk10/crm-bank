@@ -146,6 +146,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       if (t7b.t7FinalSummaryNotes) {
         demoPlotUpdateData.finalSummaryNotes = t7b.t7FinalSummaryNotes;
       }
+      if (firstRound?.sprayMethod === "TANK_MIXED") {
+        demoPlotUpdateData.hasExternalChemicals = Boolean(firstRound?.hasExternalChemicals);
+      }
 
       await (tx as any).demoPlot.update({
         where: { id: demoPlotId },
@@ -315,6 +318,32 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           await (tx as any).activityResultSprayProduct.createMany({
             data: productsToInsert,
           });
+        }
+
+        // 1.3 External Chemical Products (Tank-mixed)
+        if (
+          round.sprayMethod === "TANK_MIXED" &&
+          round.hasExternalChemicals &&
+          Array.isArray(round.externalProducts) &&
+          round.externalProducts.length > 0
+        ) {
+          const externalsToInsert = round.externalProducts
+            .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
+            .map((ext: any) => ({
+              sprayRoundId: createdRound.id,
+              company: ext.company || "",
+              productName: ext.productName.trim(),
+              activeIngredient: ext.activeIngredient || null,
+              formula: ext.formula || "SL",
+              customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
+              applicationRate: ext.applicationRate || "",
+            }));
+
+          if (externalsToInsert.length > 0) {
+            await (tx as any).activityResultSprayExternal.createMany({
+              data: externalsToInsert,
+            });
+          }
         }
 
         // Attachments per Round

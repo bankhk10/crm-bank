@@ -208,6 +208,23 @@ export function parseType7bActualResult(
           }
         });
 
+        // External chemical products (Tank-mixed)
+        const hasExternalChemicals = Boolean(
+          sr.hasExternalChemicals ??
+            (Array.isArray(sr.externalProducts) && sr.externalProducts.length > 0)
+        );
+        const externalProducts = Array.isArray(sr.externalProducts)
+          ? sr.externalProducts.map((ext: any, extIdx: number) => ({
+              id: ext.id || `ext-${roundId}-${extIdx}`,
+              company: ext.company || "",
+              productName: ext.productName || "",
+              activeIngredient: ext.activeIngredient || "",
+              formula: ext.formula || "SL",
+              customFormula: ext.customFormula || "",
+              applicationRate: ext.applicationRate || "",
+            }))
+          : [];
+
         // Round attachments
         const roundAttachments =
           Array.isArray(sr.attachments) && sr.attachments.length > 0
@@ -229,6 +246,8 @@ export function parseType7bActualResult(
           sprayMethod,
           sprayEquipment,
           otherEquipment,
+          hasExternalChemicals,
+          externalProducts,
           productResponse,
           problemDetail,
           baselineProducts,

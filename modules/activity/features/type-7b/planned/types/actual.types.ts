@@ -38,6 +38,19 @@ export interface Type7bAdditionalProductItem {
 }
 
 /**
+ * รายการยาภายนอก กรณีเลือกผสมถัง (Tank-mixed)
+ */
+export interface Type7bExternalChemicalItem {
+  id?: string;
+  company: string;
+  productName: string;
+  activeIngredient: string;
+  formula: "SL" | "SC" | "EC" | "อื่นๆ" | string;
+  customFormula?: string;
+  applicationRate: string;
+}
+
+/**
  * Section 2: Single Spraying Round State
  */
 export interface Type7bSprayRoundState {
@@ -47,6 +60,8 @@ export interface Type7bSprayRoundState {
   sprayMethod: "SINGLE" | "TANK_MIXED" | string;
   sprayEquipment: string;
   otherEquipment?: string;
+  hasExternalChemicals?: boolean;
+  externalProducts?: Type7bExternalChemicalItem[];
   productResponse: string;
   problemDetail?: string;
   baselineProducts: Type7bBaselineProductItem[];
@@ -160,6 +175,9 @@ export interface Type7bActualFormProps {
   onRemoveAdditionalProduct?: (roundIndex: number, productIndex: number) => void;
   onUpdateBaselineProduct?: (roundIndex: number, productIndex: number, field: string, value: any) => void;
   onUpdateRoundImages?: (roundIndex: number, images: ImageFile[]) => void;
+  onAddExternalProduct?: (roundIndex: number) => void;
+  onUpdateExternalProduct?: (roundIndex: number, extIndex: number, field: string, value: any) => void;
+  onRemoveExternalProduct?: (roundIndex: number, extIndex: number) => void;
 }
 
 export type ActualType7FollowUpProps = Type7bActualFormProps;
