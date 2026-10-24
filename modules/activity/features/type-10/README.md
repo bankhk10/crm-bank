@@ -2,7 +2,7 @@
 
 > **Feature Slice**: `modules/activity/features/type-10`  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `DemoPlotVisit`, `DemoPlot`, `ActivityPlanProduct`, `ActivityResult`, `ActivityResultSaleItem`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType10Target`, `ActivityPlanType10Product`, `ActivityResultType10`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
 > **Status**: Production Ready / Active Reference
 
@@ -72,7 +72,7 @@ graph TD
     K --> L[อัปโหลดรูปภาพบรรยากาศการจัดงาน Field Day]
     L --> M[กดบันทึกผลการปฏิบัติงาน]
     M --> N[useType10Actual.uploadImages อัปโหลดรูปภาพไปยัง Storage]
-    N --> O[type10PlannedStrategy บันทึกลง ActivityResult และ ActivityResultSaleItem]
+    N --> O[type10PlannedStrategy บันทึกลง ActivityResultType10 และ ActivityPlanType10Product]
     D -->|POSTPONED| P[ระบุวันเวลาที่เลื่อนและเหตุผล]
     D -->|CANCELLED| Q[ระบุสาเหตุการยกเลิก]
 ```
@@ -81,7 +81,7 @@ graph TD
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **จัดงาน Field Day (Type 10)**
 - ฟอร์ม `Type10UnplannedForm` รวมขั้นตอนการเลือกแปลงสาธิต/ระบุสถานที่, สินค้าจัดแสดง, พืชเป้าหมาย, ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ผลตอบรับจากเกษตรกร, ตารางสินค้าที่ขายได้ และรูปถ่ายบรรยากาศไว้ในหน้าเดียว
 - รองรับการจัดงานหลายจุดพร้อมกันในทริปเดียว (`items: Type10UnplannedItem[]`)
-- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type10UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกประวัติการจัดงานลงใน `DemoPlotVisit` และบันทึกผลการจัดงานจริงลงใน `ActivityResult`, `ActivityResultSaleItem`, และ `ActivityAttachment` พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
+- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type10UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกข้อมูลลงในตารางเฉพาะ `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` พร้อมซิงค์ประวัติการจัดงานลงใน `DemoPlotVisit` และบันทึกรูปภาพลงใน `ActivityAttachment` พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:**
@@ -147,9 +147,9 @@ modules/activity/features/type-10/
 | **ข้อมูลทั่วไปของแผน** | - | ชื่องาน, วันที่เริ่ม-สิ้นสุด, วัตถุประสงค์หลักของทริป |
 | **พื้นที่ & ทีมงาน** | แปลงสาธิต, พิกัดแปลง, สถานที่จัดงาน | จังหวัดหลักของทริป, พนักงานร่วมเดินทาง |
 | **งบประมาณรวม** | - | งบเบิกสินค้าตัวอย่าง, งบจัดเลี้ยงเกษตรกร, เบี้ยเลี้ยงเดินทาง |
-| **ข้อมูลกิจกรรมตามแผน** | แปลงสาธิต (`DemoPlot`), สินค้าจัดแสดง, พืชเป้าหมาย, เป้าหมายผู้เข้าร่วม, เป้ายอดสั่งจอง | บันทึกลง `ActivityPlan.targetAttendeesCount` และ `targetBookingSales` |
-| **ผลการจัดกิจกรรมจริง** | ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ระดับความสนใจ (สูง/กลาง/ต่ำ), รายการสินค้าที่ขายได้, รูปถ่ายบรรยากาศ | ผลสรุปภาพรวมแผน (`resultStatus`: COMPLETED/PARTIAL/etc.) |
-| **Database Persistence** | ตาราง `DemoPlotVisit`, `ActivityResultSaleItem` (ผ่าน `saveType10ActualSaleItems`) | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
+| **ข้อมูลกิจกรรมตามแผน** | แปลงสาธิต/สถานที่, สินค้าจัดแสดง, พืชเป้าหมาย, เป้าหมายผู้เข้าร่วม, เป้ายอดสั่งจอง | บันทึกลงตาราง `activity_type_10_targets` และ `activity_type_10_products` |
+| **ผลการจัดกิจกรรมจริง** | ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ระดับความสนใจ (สูง/กลาง/ต่ำ), รายการสินค้าที่ขายได้, รูปถ่ายบรรยากาศ | บันทึกลงตาราง `activity_type_10_result` และ `activity_type_10_products` |
+| **Database Persistence** | ตาราง `activity_type_10_targets`, `activity_type_10_products`, `activity_type_10_result` (พร้อม sync mirror `DemoPlotVisit`) | ตารางหลัก `ActivityPlan`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ที่อนุญาต (Allowed Dependencies):**
@@ -195,25 +195,25 @@ modules/activity/features/type-10/
 - **`type10-detail-view.tsx`:** คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด แสดงการ์ดแผน `Type10PlanCard`, สรุปผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ป้ายแสดงระดับความสนใจของเกษตรกร, ตารางรายการสินค้าที่ขายได้, และแกลเลอรีรูปถ่ายบรรยากาศพร้อม Lightbox
 - **`type10-approval-card.tsx`:** การ์ดสรุปสำหรับหน้าจอพิจารณาอนุมัติ เรนเดอร์ `Type10PlanCard` เพื่อให้ผู้อนุมัติตรวจสอบแปลงสาธิตและเป้าหมาย
 - **`planned-mapper.ts`:**
-  - `extractType10PlanTargets`: แกะข้อมูลแปลงสาธิตจาก `demoPlotVisits` หรือ `demoPlot` แปลงออกมาเป็น `Type10TargetItem`
+  - `extractType10PlanTargets`: ดึงข้อมูลจาก `activity_type_10_targets` แปลงออกมาเป็น `Type10TargetItem` (พร้อม fallback ไปยัง `demoPlotVisits`)
   - `hydrateType10PlannedData`: กู้คืนข้อมูลแผนเดิมเข้าฟอร์มแก้ไข
   - `mapType10ToSectionItems`: แปลงข้อมูลเป้าหมายเป็นข้อความสรุปสำหรับแสดงใน Section รวม
 - **`actual-mapper.ts`:**
-  - `parseType10ActualResult`: แปลงข้อมูลผลงานจาก `ActivityResult` และ `ActivityResultSaleItem` รวมถึง Regex fallback จาก `resultSummary`
+  - `parseType10ActualResult`: แปลงข้อมูลผลงานจาก `activity_type_10_result` และ `activity_type_10_products` รวมถึง fallback จาก `ActivityResult` และ `resultSummary`
 - **`planned-validation.ts` & `actual-validation.ts`:**
   - `validateType10Form`: ตรวจสอบว่าได้เลือกแปลงสาธิตหรือระบุสถานที่จัดงานแล้ว และตัวเลขผู้เข้าร่วม $\ge 0$
   - `validateType10Actual`: ตรวจสอบความถูกต้องของตัวเลขผู้เข้าร่วม ยอดขาย/จอง และชื่อสินค้าในรายการขาย
 - **`type10.repository.ts` & `type10-planned.strategy.ts`:**
-  - `findType10ByPlanId`: ค้นหาประวัติแปลงสาธิต สินค้า และเป้าหมายของ ActivityPlan
-  - `saveType10ActualSaleItems`: ลบและบันทึกระเบียนสินค้าที่ขาย/จองได้ลงตาราง `activity_result_sale_items`
-  - `type10PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกความเชื่อมโยงลง `DemoPlotVisit` และผลงานจริงตามมาตรฐาน `WorkTypeStrategy`
+  - `findType10ByPlanId`: ค้นหาประวัติแปลงสาธิต สินค้า และเป้าหมายจาก `activity_type_10_targets`, `activity_type_10_products`, `activity_type_10_result`
+  - `saveType10ActualSaleItems`: ลบและบันทึกระเบียนสินค้าที่ขาย/จองได้ลงตาราง legacy mirror `activity_result_sale_items`
+  - `type10PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกลงตารางเฉพาะ `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` พร้อม sync ระเบียนเบาๆ ลง `DemoPlotVisit` ตามมาตรฐาน `WorkTypeStrategy`
 
 ### 4.2 Unplanned
 - **`type10-unplanned-form.tsx`:** ฟอร์มกิจกรรม Field Day นอกแผน 2-in-1 แสดงอินพุตครบถ้วนทั้งแปลงสาธิต/สถานที่, พืช, สินค้าจัดแสดง, ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ผลตอบรับ, ตารางสินค้าที่ขายได้ และรูปถ่ายบรรยากาศ
 - **`use-type10-unplanned-form.ts`:** จัดการ State อาร์เรย์ `Type10UnplannedItem[]` รองรับการเพิ่ม ลบ แก้ไขจุดจัดงาน Field Day หลายจุดในทริปเดียวกัน
 - **`unplanned-validation.ts`:** ตรวจสอบความถูกต้องของกิจกรรมนอกแผน (แปลงสาธิต/สถานที่, ผู้เข้าร่วมจริง, ยอดขายจริง และชื่อสินค้า)
-- **`unplanned-mapper.ts`:** Hydrate ข้อมูลเดิม และ Map ข้อมูลฟอร์ม 2-in-1 ออกมาเป็น Payload แผนงาน (`demoPlotVisits`, `targets`) และผลงานจริง (`actualOutcome`) พร้อมสร้างข้อความสรุปผลงาน
-- **`type10-unplanned.strategy.ts`:** ดำเนินการบันทึกกิจกรรมนอกแผนผ่านการสร้างระเบียน `DemoPlotVisit` และบันทึกผลงานจริงใน Transaction เดียวกัน
+- **`unplanned-mapper.ts`:** Hydrate ข้อมูลเดิม และ Map ข้อมูลฟอร์ม 2-in-1 ออกมาเป็น Payload สำหรับ 3 ตารางเฉพาะ (`type10Targets`, `products`, `actualOutcome`) พร้อมสร้างข้อความสรุปผลงาน
+- **`type10-unplanned.strategy.ts`:** ดำเนินการบันทึกกิจกรรมนอกแผนลงใน `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` พร้อมกันแบบ Atomic ใน 1 Transaction เดียวกัน
 
 ### 4.3 Shared Types, Constants, and Notes
 - **`constants.ts`:** กำหนด `WORK_TYPE_CODE = "TYPE_10"`, `WORK_TYPE_NAME`, และตัวเลือกระดับความสนใจของเกษตรกร `FARMER_FEEDBACK_OPTIONS` (`"สูง"`, `"กลาง"`, `"ต่ำ"`)
@@ -328,83 +328,127 @@ sequenceDiagram
 | **สินค้าที่ขายหรือจองได้**| `soldProducts` | `saveActual()` / `savePlan()` | `ActivityPlanType10Product` | `actual_quantity`, `actual_total` | `DECIMAL(10,2) / (15,2)` | Yes | `null` |
 | **รูปถ่ายบรรยากาศงาน** | `images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_10'` | `TEXT` | No | - |
 
-### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
+### 6.3 รายละเอียดตารางเฉพาะ (Dedicated Tables Schema)
 
 ```prisma
-// 1. ตารางเก็บประวัติการจัดงาน Field Day ที่เชื่อมโยงกับแปลงสาธิต
-model DemoPlotVisit {
-  id             String    @id @default(cuid())
-  demoPlotId     String    @map("demo_plot_id")
-  activityPlanId String?   @map("activity_plan_id")
-  workTypeCode   String?   @map("work_type_code") // "TYPE_10"
-  visitNumber    Int       @default(1) @map("visit_number")
-  visitDate      DateTime  @map("visit_date")
-  daysSinceStart Int       @default(0) @map("days_since_start")
+// 1. ตารางเป้าหมายการจัดงาน Field Day (แปลงสาธิต / สถานที่จัดงาน)
+model ActivityPlanType10Target {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
 
-  demoPlot       DemoPlot  @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  activityPlan   ActivityPlan? @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  // Demo Plot Reference (Optional - กรณีจัด ณ แปลงสาธิตในระบบ)
+  demoPlotId           String?   @map("demo_plot_id")
 
-  @@index([demoPlotId])
+  // Venue & Plot Details (รองรับทั้งแปลงในระบบและระบุเอง)
+  plotName             String?   @map("plot_name")
+  farmerName           String?   @map("farmer_name")
+  cropCategory         String?   @map("crop_category")
+  cropName             String?   @map("crop_name")
+  location             String?   @map("location")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  subdistrict          String?   @map("subdistrict")
+  latitude             String?   @map("latitude")
+  longitude            String?   @map("longitude")
+
+  // Showcase product (สินค้าจัดแสดงหลัก)
+  showcaseProductId    String?   @map("showcase_product_id")
+  showcaseProductName  String?   @map("showcase_product_name")
+
+  // Target metrics (เป้าหมายตามแผน)
+  targetAttendeesCount Int?      @default(0) @map("target_attendees_count")
+  targetBookingSales   Decimal?  @map("target_booking_sales") @db.Decimal(15, 2)
+  eventDate            DateTime? @map("event_date")
+  notes                String?   @map("notes") @db.Text
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan                 @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  demoPlot             DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  showcaseProduct      Product?                     @relation("Type10ShowcaseProduct", fields: [showcaseProductId], references: [id], onDelete: SetNull)
+  products             ActivityPlanType10Product[]
+  result               ActivityResultType10?
+
   @@index([activityPlanId])
-  @@map("demo_plot_visits")
+  @@index([demoPlotId])
+  @@index([showcaseProductId])
+  @@map("activity_type_10_targets")
 }
 
-// 2. ตารางแปลงสาธิตหลัก (อ้างอิงข้อมูล)
-model DemoPlot {
-  id                 String          @id @default(cuid())
-  code               String          @unique
-  name               String
-  ownerName          String?         @map("owner_name")
-  farmerPhone        String?         @map("farmer_phone")
-  location           String?
-  latitude           Decimal?        @db.Decimal(10, 7)
-  longitude          Decimal?        @db.Decimal(10, 7)
-  province           String?
-  district           String?
-  targetCrop         String?         @map("target_crop")
-  cropName           String?         @map("crop_name")
-  primaryProductName String?         @map("primary_product_name")
-  status             DemoPlotStatus  @default(IN_PROGRESS)
+// 2. ตารางสินค้าจัดแสดง สินค้าเป้าหมาย และยอดขายจริงในงาน
+model ActivityPlanType10Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "SHOWCASE" | "TARGET" | "ADDITIONAL_SALE"
 
-  visits             DemoPlotVisit[]
+  // Planned fields (สร้างแผน)
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
 
-  @@map("demo_plots")
-}
+  // Actual fields (บันทึกผลจริง)
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
 
-// 3. ตารางเก็บรายการสินค้าที่ขายหรือสั่งจองได้ในงาน Field Day
-model ActivityResultSaleItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  workTypeCode     String  @map("work_type_code") // "TYPE_10"
-  storeId          String? @map("store_id")
-  productId        String? @map("product_id")
-  productName      String? @map("product_name")
-  actualQuantity   Int     @default(0) @map("actual_quantity")
-  actualUnitPrice  Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
-  actualTotal      Decimal? @map("actual_total") @db.Decimal(15, 2)
-  actualAmount     Decimal? @map("actual_amount") @db.Decimal(15, 2)
-  remarks          String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  activityResult   ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  product          Product?       @relation("ActivityResultSaleProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  // Relations
+  activityPlan    ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType10Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                 @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([activityResultId])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@index([workTypeCode])
-  @@map("activity_result_sale_items")
+  @@map("activity_type_10_products")
+}
+
+// 3. ตารางผลสรุปการจัดงาน Field Day จริงรายแปลง
+model ActivityResultType10 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+
+  // Actual Metrics
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
+  actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
+  farmerFeedback       String?  @map("farmer_feedback") // "สูง" | "กลาง" | "ต่ำ"
+  targetFarmersList    String?  @map("target_farmers_list") @db.Text
+  summary              String?  @map("summary") @db.Text
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan             @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType10Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_10_result")
 }
 ```
 
 ### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
-- **การจัดการ Transaction (Isolation & Atomicity):**
-  - ทุกการบันทึกของ Type 10 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
-  - หากการบันทึกภาพถ่าย หรือการบันทึกรายการสินค้าที่ขายได้ใน `activity_result_sale_items` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
-- **การเชื่อมโยง DemoPlotVisit แบบ Upsert:**
-  - ในฟังก์ชัน `savePlan` ของ `type10PlannedStrategy` จะทำการตรวจสอบว่ามี `DemoPlotVisit` เดิมที่ผูกกับ `activityPlanId` และ `workTypeCode = "TYPE_10"` หรือไม่ หากมีจะทำการ `update` หากไม่มีจะทำการ `create` ใหม่
-- **การเข้ารหัส Tag ข้อมูลใน Notes:**
-  - สินค้าจัดแสดงหลัก, พืชเป้าหมาย, และรายชื่อเกษตรกรจะถูกเข้ารหัสเป็น Tag ปลอดภัย เช่น `[สินค้าสาธิต: ...]`, `[พืชเป้าหมาย: ...]` ในคอลัมน์ `notes` ของตาราง `ActivityPlan` ทำให้สามารถรองรับฟิลด์เพิ่มเติมได้โดยไม่ต้องปรับเปลี่ยน Schema หลัก
+- **การจัดการ Transaction (Atomic Execution):**
+  - ทุกการบันทึกของ Type 10 ดำเนินการภายใต้ Prisma Transaction (`tx`) แบบ Atomic
+  - ใน Planned: `savePlan()` จะบันทึก `activity_type_10_targets` และ `activity_type_10_products` ในตอนสร้างแผน และ `saveActual()` จะบันทึก `activity_type_10_result` และอัปเดตยอดจริงลง `activity_type_10_products`
+  - ใน Unplanned (2-in-1): `savePlan()` จะบันทึกข้อมูลลงทั้ง 3 ตารางพร้อมกันใน Transaction เดียว รองรับการบันทึกหลายแปลง (`Type10UnplannedItem[]`) หากมีข้อผิดพลาดระบบจะ Rollback ทันที
+- **โครงสร้างแบบ Dedicated (ไม่มี Text Notes Tag ปะปน):**
+  - ข้อมูลแปลงสาธิต, สถานที่, สินค้าจัดแสดง, พืชเป้าหมาย, เป้ายอดจอง, ผู้เข้าร่วมจริง และผลการขายจริงรายสินค้า ถูกแยกเก็บในคอลัมน์ของ 3 ตารางเฉพาะตรงๆ มี Indexing ครบถ้วน รองรับการทำ Analytics และ Query Target vs Actual ได้อย่างมีประสิทธิภาพ
+- **การซิงค์ข้อมูลย้อนหลัง (Backward Compatibility):**
+  - มีการ Sync ระเบียนไปยัง `DemoPlotVisit` สำหรับประวัติ Timeline ของแปลงสาธิต (เมื่อมีการระบุ `demoPlotId`)
+  - มีการ Sync ข้อมูลรายการขายไปยังตารางกลางเดิม `activity_result_sale_items` เพื่อไม่ให้กระทบรายงานเก่า
 - **Cascade Delete Policy:**
-  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `DemoPlotVisit`, `ActivityResult`, `ActivityResultSaleItem`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
+  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `activity_type_10_targets`, `activity_type_10_products`, `activity_type_10_result`, และ `activity_attachments` จะถูกลบออกแบบ Cascade ทั้งหมด
 
 ---
 
