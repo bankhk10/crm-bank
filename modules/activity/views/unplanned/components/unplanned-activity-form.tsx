@@ -1412,17 +1412,13 @@ export function UnplannedActivityForm({
         })),
       );
 
-      if (mapped.planStores?.length) {
-        planStores = [...planStores, ...mapped.planStores];
-      }
-
       const firstItem = type11.items[0];
       actualData = {
         workTypeCode: "TYPE_11",
         notes: firstItem?.remarks || "",
         t11StockItems: mapped.t11StockItems,
-        stockResults: mapped.stockResults,
         t11NextAction: mapped.t11NextAction,
+        type11Targets: mapped.type11Targets,
         attachments: cleanType11Images.map((img) => ({
           category: "STOCK",
           fileUrl: img.url,
@@ -1837,13 +1833,13 @@ export function UnplannedActivityForm({
       type10Plots: mappedType10?.type10Plots,
       type10Targets: mappedType10?.targets,
       type11Data: isType11Active
-        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        ? mapType11UnplannedToPayload(type11.items).type11Targets
         : undefined,
       type11Stores: isType11Active
         ? mapType11UnplannedToPayload(type11.items).type11Stores
         : undefined,
       type11Targets: isType11Active
-        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        ? mapType11UnplannedToPayload(type11.items).type11Targets
         : undefined,
       tourData: isType12Active
         ? mapType12UnplannedToPayload(type12.item).tourData

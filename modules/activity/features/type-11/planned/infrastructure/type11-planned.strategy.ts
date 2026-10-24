@@ -4,10 +4,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import {
-  findType11ByPlanId,
-  saveType11ActualStockItems,
-} from "./type11.repository";
+import { findType11ByPlanId } from "./type11.repository";
 import { parseType11ActualResult } from "../application/actual-mapper";
 
 export const type11PlannedStrategy: WorkTypeStrategy = {
@@ -39,11 +36,10 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 11 Plan data into dedicated tables:
+   * Save Type 11 Plan data exclusively into dedicated tables:
    * 1. activity_type_11_targets
    * 2. activity_type_11_products
    * 3. activity_type_11_result (if 2-in-1 unplanned outcome provided)
-   * And mirror to activityPlanStore for backward compatibility.
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -61,14 +57,6 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
 
     await (tx as any).activityResultType11.deleteMany({
       where: { activityPlanId },
-    });
-
-    // Mirror clean legacy activity plan stores for this type
-    await (tx as any).activityPlanStore.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_11",
-      },
     });
 
     // 2. Extract targets array
@@ -257,37 +245,14 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             },
           });
         }
-
-        // 2.4 Mirror legacy ActivityPlanStore
-        if (storeId) {
-          await (tx as any).activityPlanStore.create({
-            data: {
-              activityPlanId,
-              workTypeCode: "TYPE_11",
-              storeId,
-              storeName: storeName || null,
-              remarks:
-                item.remarks ||
-                item.notes ||
-                item.detail ||
-                "ตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้าน",
-              notes:
-                item.notes ||
-                item.remarks ||
-                item.detail ||
-                "ตรวจเช็คสต๊อกสินค้าคงเหลือหน้าร้าน",
-            },
-          });
-        }
       }
     }
   },
 
   /**
-   * Save Type 11 Actual outcome data into:
+   * Save Type 11 Actual outcome data exclusively into:
    * 1. activity_type_11_result (per target)
    * 2. activity_type_11_products (updating stock actuals or creating audit items)
-   * 3. activity_result_stock_items (legacy mirror)
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -313,7 +278,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
       orderBy: { createdAt: "asc" },
     });
 
-    // If no dedicated target exists (legacy plan), create one
+    // If no dedicated target exists, create one
     if (targets.length === 0) {
       const storeId =
         actualData.storeId ||
@@ -483,16 +448,6 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
           });
         }
       }
-    }
-
-    // 3. Mirror legacy activity_result_stock_items
-    if (resultId && Array.isArray(stockItems) && stockItems.length > 0) {
-      await saveType11ActualStockItems(
-        tx,
-        resultId,
-        stockItems,
-        nextAction || undefined,
-      );
     }
   },
 

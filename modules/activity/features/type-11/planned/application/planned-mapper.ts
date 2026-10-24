@@ -6,13 +6,12 @@ import type { Type11StoreItem } from "../../shared/types";
 
 /**
  * Extracts Type 11 plan targets (Store stock check list) from activity plan relations.
- * Reads dedicated relational storage (type11Targets) first, with fallback to legacy stores.
+ * Reads strictly from dedicated relational storage (type11Targets).
  */
 export function extractType11PlanTargets(
   plan: any,
   prevTarget?: Type11TargetItem,
 ): { primary: Type11TargetItem; list: Type11TargetItem[] } {
-  // 1. Dedicated relational storage support (type11Targets)
   const dedicatedTargets: any[] =
     plan?.type11Targets ||
     plan?.type11Data?.targets ||
@@ -88,54 +87,14 @@ export function extractType11PlanTargets(
     return { primary, list };
   }
 
-  // 2. Legacy fallback to plan.stores (activity_plan_stores)
-  const stores = Array.isArray(plan?.stores) ? plan.stores : [];
-  const t11Stores = stores.filter(
-    (s: any) => s.workTypeCode === "TYPE_11" || !s.workTypeCode,
-  );
-
-  const items: Type11TargetStoreItem[] = t11Stores.map((s: any) => ({
-    storeId: s.storeId || s.id,
-    store: s.storeName || s.store?.name || "",
-    storeName: s.storeName || s.store?.name || "",
-    detail: s.remarks || s.notes || "",
-  }));
-
-  const list: Type11TargetItem[] = t11Stores.map((s: any) => ({
-    id: s.storeId || s.id,
-    storeId: s.storeId || s.id,
-    store: s.storeName || s.store?.name || "",
-    storeName: s.storeName || s.store?.name || "",
-    detail: s.remarks || s.notes || "",
+  const fallback: Type11TargetItem = {
+    store: prevTarget?.store || "",
+    detail: prevTarget?.detail || "",
     targetOpportunity: prevTarget?.targetOpportunity || "",
-    items: [
-      {
-        storeId: s.storeId || s.id,
-        store: s.storeName || s.store?.name || "",
-        storeName: s.storeName || s.store?.name || "",
-        detail: s.remarks || s.notes || "",
-      },
-    ],
-  }));
-
-  const t11StoreNames = items
-    .map((i) => i.store || i.storeName)
-    .filter(Boolean)
-    .join(", ");
-
-  const t11Details = items
-    .map((i) => i.detail)
-    .filter(Boolean)
-    .join(" | ");
-
-  const primary: Type11TargetItem = {
-    store: t11StoreNames || prevTarget?.store || "",
-    detail: t11Details || prevTarget?.detail || "",
-    targetOpportunity: prevTarget?.targetOpportunity || "",
-    items: items.length > 0 ? items : prevTarget?.items || [],
+    items: prevTarget?.items || [],
   };
 
-  return { primary, list };
+  return { primary: fallback, list: [] };
 }
 
 /**
@@ -145,7 +104,7 @@ export function hydrateType11PlannedData(
   initial: any,
   initDetails?: any,
 ): Type11StoreItem[] {
-  // 1. Check dedicated type11Targets first
+  // Check dedicated type11Targets first
   const dedicatedTargets =
     initial?.type11Targets ||
     initDetails?.type11Targets ||
@@ -171,30 +130,9 @@ export function hydrateType11PlannedData(
     }));
   }
 
-  // 2. Check type11Stores
+  // Check type11Stores from form state
   if (Array.isArray(initial?.type11Stores) && initial.type11Stores.length > 0) {
     return initial.type11Stores;
-  }
-
-  // 3. Check legacy stores
-  const stores =
-    initial?.stores ||
-    initDetails?.stores ||
-    initDetails?.activityPlanStores ||
-    [];
-
-  if (Array.isArray(stores) && stores.length > 0) {
-    const t11Stores = stores
-      .filter((s: any) => s.workTypeCode === "TYPE_11" || !s.workTypeCode)
-      .map((s: any) => ({
-        storeId: s.storeId || s.id,
-        storeName: s.storeName || s.store?.name || s.name || "ร้านค้า",
-        remarks: s.remarks || s.notes || undefined,
-        notes: s.notes || s.remarks || undefined,
-      }));
-    if (t11Stores.length > 0) {
-      return t11Stores;
-    }
   }
 
   return [];

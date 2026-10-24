@@ -307,8 +307,6 @@ sequenceDiagram
 | **`activity_type_11_targets`**<br>(`ActivityPlanType11Target`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType11PlanTargets` | `deleteMany()` + `create()` ใน `savePlan()` | Cascade เมื่อลบแผน | ตารางเฉพาะเก็บร้านค้าเป้าหมายและข้อมูลตรวจเช็คสต๊อกรายร้าน |
 | **`activity_type_11_products`**<br>(`ActivityPlanType11Product`) | `savePlan()` / `saveActual()` | `loadPlan()`, `parseType11ActualResult` | `update()` หรือ `create()` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | ตารางเก็บสินค้าโฟกัสตามแผน (`TARGET`) และสินค้าที่ตรวจนับจริง (`ADDITIONAL_AUDIT`) |
 | **`activity_type_11_result`**<br>(`ActivityResultType11`) | `saveActual()` หรือ 2-in-1 Unplanned | `loadActual()`, `parseType11ActualResult` | `deleteMany()` + `create()` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | ตารางเก็บผลการตรวจสต็อกรายร้าน (`targetId` 1:1) |
-| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | Mirror ใน `savePlan()` | Fallback compatibility | Mirror ใน `savePlan()` | Cascade เมื่อลบแผน | ตารางเดิม (Legacy Mirror) เพื่อความเข้ากันได้ย้อนหลัง 100% |
-| **`activity_result_stock_items`**<br>(`ActivityResultStockItem`) | Mirror ใน `saveActual()` | Fallback compatibility | Mirror ใน `saveActual()` | Cascade เมื่อลบผลงาน | ตารางเดิม (Legacy Mirror) เพื่อความเข้ากันได้ย้อนหลัง 100% |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปภาพชั้นวางสินค้าและคลังสินค้าหน้าร้าน |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
@@ -424,9 +422,9 @@ model ActivityResultType11 {
 - **การจัดการ Transaction (Isolation & Atomicity):**
   - ทุกการบันทึกของ Type 11 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
   - หากการบันทึกภาพถ่าย หรือการบันทึกรายการตรวจนับสต็อกในตารางใดล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
-- **Persistence ขาเขียนรายการสต็อก (Dedicated + Mirror):**
-  - ในฟังก์ชัน `type11PlannedStrategy.savePlan` จะบันทึกร้านค้าเป้าหมายลงใน `activity_type_11_targets` และบันทึกสินค้าโฟกัสลงใน `activity_type_11_products` พร้อม mirror ข้อมูลลงใน `activity_plan_stores` เพื่อความเข้ากันได้ย้อนหลัง
-  - ในฟังก์ชัน `type11PlannedStrategy.saveActual` จะบันทึกผลการตรวจสต็อกรายร้านลงใน `activity_type_11_result` และอัปเดตปริมาณคงเหลือจริงใน `activity_type_11_products` พร้อม mirror ลงใน `activity_result_stock_items`
+- **Persistence ขาเขียนรายการสต็อก (Dedicated 100% Standalone):**
+  - ในฟังก์ชัน `type11PlannedStrategy.savePlan` บันทึกร้านค้าเป้าหมายลงใน `activity_type_11_targets` และบันทึกสินค้าโฟกัสลงใน `activity_type_11_products` โดยตรง (ไม่เขียนลงตาราง generic activity_plan_stores อีกต่อไป)
+  - ในฟังก์ชัน `type11PlannedStrategy.saveActual` บันทึกผลการตรวจสต็อกรายร้านลงใน `activity_type_11_result` และอัปเดตปริมาณคงเหลือจริงใน `activity_type_11_products` โดยตรง (ไม่เขียนลงตาราง generic activity_result_stock_items อีกต่อไป)
 - **Cascade Delete Policy:**
   - เมื่อลบเป้าหมาย `ActivityPlanType11Target` ระเบียนลูกใน `ActivityPlanType11Product` และ `ActivityResultType11` จะถูกลบออกแบบ Cascade อัตโนมัติ
   - เมื่อลบแผนงาน `ActivityPlan` ระเบียนทั้งหมดที่เกี่ยวข้องจะถูกลบ Cascade ทั้งหมด

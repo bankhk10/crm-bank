@@ -1295,7 +1295,6 @@ export function ActivityPlanActualView({
             ...payload,
             ...t11Payload,
             type11Actual: t11Payload,
-            stockResults: t11Payload.t11StockItems,
             attachments: [
               ...(payload.attachments || []),
               ...finalStockImages.map((img: any) => ({

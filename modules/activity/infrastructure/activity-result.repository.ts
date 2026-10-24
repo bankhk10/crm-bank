@@ -200,8 +200,11 @@ export async function upsertActivityResult(
       }
     }
 
-    // 4. Sync Stock Results
-    if (input.stockResults !== undefined) {
+    // 4. Sync Stock Results (skipped when TYPE_11 is handled by dedicated strategy)
+    const isType11HandledByStrategy = input.planWorkTypeCodes?.some(
+      (c: string) => getWorkTypeCode(c) === "TYPE_11",
+    );
+    if (input.stockResults !== undefined && !isType11HandledByStrategy) {
       await (tx as any).activityResultStockItem.deleteMany({
         where: { activityResultId: result.id },
       });
