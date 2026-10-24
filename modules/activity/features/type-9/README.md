@@ -2,7 +2,7 @@
 
 > **Feature Slice**: `modules/activity/features/type-9`  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResult`, `ActivityResultSaleItem`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
 > **Status**: Production Ready / Active Reference
 
@@ -299,119 +299,142 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตารางหลักของกิจกรรม |
-| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType9PlanTargets` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบแผน | เก็บรหัสร้านค้า Dealer/Subdealer, `subDealerStore`, `targetAmount`, `province` |
-| **`activity_plan_products`**<br>(`ActivityPlanProduct`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType9PlanTargets` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบแผน | เก็บสินค้าโปรโมชันเป้าหมาย (`workTypeCode = "TYPE_9"`) |
-| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType9ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | เก็บ `actualAttendeesCount`, `salesResultAmount`, `resultSummary` |
-| **`activity_result_sale_items`**<br>(`ActivityResultSaleItem`) | `saveType9ActualSales` | `parseType9ActualResult` (`saleResults`) | `deleteMany()` + `createMany()` ใน Repo | Cascade เมื่อลบผลงาน | เก็บยอดขายจริงแยกตามรายการสินค้า (`workTypeCode = "TYPE_9"`) |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปภาพบรรยากาศการจัดกิจกรรมหน้าร้าน |
+| **`activity_type_9_targets`**<br>(`ActivityPlanType9Target`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType9PlanTargets` | `savePlan()` (Atomic recreation) | Cascade เมื่อลบแผน | ข้อมูลร้านค้า Subdealer, Dealer ต้นสังกัด, ที่ตั้ง, เป้ายอดขายรวม, ผู้เข้าร่วม |
+| **`activity_type_9_products`**<br>(`ActivityPlanType9Product`) | `savePlan()` / `saveActual()` | `loadPlan()`, `loadActual()`, `extractType9PlanTargets` | `savePlan()`, `saveActual()` | Cascade เมื่อลบเป้า | สินค้าตามแผน (`TARGET`), ยอดขายจริง และสินค้าขายเพิ่มหน้างาน (`ADDITIONAL_SALE`) |
+| **`activity_type_9_result`**<br>(`ActivityResultType9`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType9ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบเป้า | ผู้เข้าร่วมจริง (`actualAttendeesCount`), ยอดขายจริงรวม, ผลตอบรับลูกค้า/ร้าน |
+| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตาราง Header หลัก |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | รูปถ่ายบรรยากาศหน้าร้านและป้ายโปรโมชัน |
+| **`activity_plan_stores` / `products`** | `savePlan()` (Mirror) | Fallback | Mirror | Cascade | รองรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
+| **`activity_result_sale_items`** | `saveActual()` (Mirror) | Fallback | Mirror | Cascade | รองรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **ร้านค้า Subdealer นอกระบบ** | `isUnregisteredSubdealer` | `planned-mapper` / `unplanned-mapper` | Form State / Logic | - | `BOOLEAN` | No | `false` |
-| **รหัสร้านค้า Subdealer ในระบบ** | `subdealerId` | `planned-mapper` ➔ `planStores` | `ActivityPlanStore` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
-| **ชื่อร้านค้า Subdealer ในระบบ** | `subdealerName` | `planned-mapper` ➔ `planStores` | `ActivityPlanStore` | `store_name` | `VARCHAR` | Yes | `null` |
-| **ชื่อร้านค้า Subdealer นอกระบบ**| `subDealerStore` | `planned-mapper` ➔ `planStores` | `ActivityPlanStore` | `sub_dealer_store` | `VARCHAR` | Yes | `null` |
-| **จังหวัดของร้านค้า** | `province` / `subDealerProvince` | `planned-mapper` ➔ `planStores` | `ActivityPlanStore` | `province` | `VARCHAR` | Yes | `""` |
-| **รหัส Dealer ต้นสังกัด** | `parentDealerId` | `useType9PlannedForm` (เก็บเป็น `storeId` เมื่อเป็นร้านนอกระบบ) | `ActivityPlanStore` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
-| **เป้ายอดขายรวมหน้าร้าน** | `type9Sales` / `targetSales` | `planned-mapper` ➔ `planStores` | `ActivityPlanStore` | `target_amount` | `DECIMAL(15,2)` | Yes | `0` |
-| **รายการสินค้าโปรโมชัน** | `type9ProductItems` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `product_id`, `product_name` | `VARCHAR` | No | - |
-| **จำนวนลังเป้าหมาย** | `quantityCases` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `target_quantity` | `INTEGER` | Yes | `0` |
-| **ราคาต่อลังเป้าหมาย** | `pricePerCase` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `unit_price` | `DECIMAL(15,2)` | Yes | `0` |
-| **ยอดขายรวมเป้าหมายสินค้านั้น**| `totalAmount` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `target_amount` | `DECIMAL(15,2)` | Yes | `0` |
-| **ยอดขายจริงรวมหน้าร้าน** | `actualSales` / `t9ActualSales` | `actual-mapper` / `saveActual` | `ActivityResult` | `sales_result_amount` / `result_summary` | `DECIMAL(15,2) / TEXT` | Yes | `null` |
-| **ผู้เข้าร่วมกิจกรรมจริง** | `actualAttendees` / `t9ActualAttendees` | `actual-mapper` / `saveActual` | `ActivityResult` | `actual_attendees_count` | `INTEGER` | Yes | `null` |
-| **ยอดขายจริงแยกรายการสินค้า** | `productSalesDetails` | `saveType9ActualSales` / `parseType9ActualResult` | `ActivityResultSaleItem` | `product_id`, `actual_quantity`, `actual_total` | `INTEGER / DECIMAL` | No | - |
+| **ร้านค้า Subdealer นอกระบบ** | `isUnregisteredSubdealer` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType9Target` | `is_unregistered_subdealer` | `BOOLEAN` | No | `false` |
+| **รหัสร้านค้า Subdealer ในระบบ** | `subdealerId` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `subdealer_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อร้านค้า Subdealer ในระบบ** | `subdealerName` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `subdealer_name` | `VARCHAR` | Yes | `null` |
+| **ชื่อร้านค้า Subdealer นอกระบบ**| `subDealerStore` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `sub_dealer_store` | `VARCHAR` | Yes | `null` |
+| **จังหวัดของร้านค้า** | `province` / `subDealerProvince` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `province` | `VARCHAR` | Yes | `null` |
+| **อำเภอของร้านค้า** | `district` / `subDealerDistrict` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `district` | `VARCHAR` | Yes | `null` |
+| **รหัส Dealer ต้นสังกัด** | `parentDealerId` / `dealerId` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `dealer_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อ Dealer ต้นสังกัด** | `parentDealerName` / `dealerName` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `dealer_name` | `VARCHAR` | Yes | `null` |
+| **เป้ายอดขายรวมหน้าร้าน** | `type9Sales` / `targetSales` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `target_sales` | `DECIMAL(15,2)` | Yes | `null` |
+| **รายการสินค้าโปรโมชัน** | `type9ProductItems` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `product_id`, `product_name` | `VARCHAR` | No | - |
+| **บทบาทสินค้า** | `productRole` | Strategy | `ActivityPlanType9Product` | `product_role` | `VARCHAR` | No | `'TARGET'` |
+| **จำนวนลังเป้าหมาย** | `quantityCases` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `target_quantity` | `DECIMAL(10,2)` | Yes | `0` |
+| **ราคาต่อลังเป้าหมาย** | `pricePerCase` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `target_unit_price` | `DECIMAL(15,2)` | Yes | `0` |
+| **ยอดขายรวมเป้าหมายสินค้านั้น**| `totalAmount` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `target_amount` | `DECIMAL(15,2)` | Yes | `0` |
+| **จำนวนลังขายได้จริง** | `actualQuantityCases` | `actual-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `actual_quantity` | `DECIMAL(10,2)` | Yes | `null` |
+| **ราคาขายจริงต่อลัง** | `pricePerCase` (actual) | `actual-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `actual_unit_price` | `DECIMAL(15,2)` | Yes | `null` |
+| **ยอดขายจริงสินค้านั้น** | `actualSales` (per product) | `actual-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `actual_total` | `DECIMAL(15,2)` | Yes | `null` |
+| **ยอดขายจริงรวมหน้าร้าน** | `actualSales` / `t9ActualSales` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `actual_total_sales` | `DECIMAL(15,2)` | Yes | `null` |
+| **ผู้เข้าร่วมกิจกรรมจริง** | `actualAttendees` / `t9ActualAttendees` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `actual_attendees_count` | `INTEGER` | Yes | `0` |
+| **ผลตอบรับลูกค้า / ร้านค้า** | `customerFeedback` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `customer_feedback` | `TEXT` | Yes | `null` |
+| **สรุปผลกิจกรรม** | `summary` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `summary` | `TEXT` | Yes | `null` |
 | **รูปถ่ายบรรยากาศหน้าร้าน** | `images` / `t9Images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_9'` | `TEXT` | No | - |
 
-### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
+### 6.3 รายละเอียดตารางเฉพาะ (Dedicated Tables Schema)
 
 ```prisma
-// 1. ตารางเก็บข้อมูลร้านค้า Subdealer และ Dealer ต้นสังกัด
-model ActivityPlanStore {
+// 1. ตารางเป้าหมายกิจกรรมหน้าร้าน
+model ActivityPlanType9Target {
   id                      String   @id @default(cuid())
   activityPlanId          String   @map("activity_plan_id")
-  workTypeCode            String   @map("work_type_code") // "TYPE_9"
-  visitPurpose            String?  @map("visit_purpose")
-  storeId                 String?  @map("store_id") // Subdealer ID หรือ Parent Dealer ID
-  storeName               String?  @map("store_name")
-  province                String?  @map("province") // จังหวัดของร้านค้า
-  isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
-  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
-  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
-  targetAmount            Decimal? @map("target_amount") @db.Decimal(15, 2) // เป้ายอดขายรวมหน้าร้าน
-  subDealerStore          String?  @map("sub_dealer_store") // ชื่อร้าน Subdealer (กรณีนอกระบบ)
-  remarks                 String?
-  notes                   String?
+  subdealerId             String?  @map("subdealer_id")
+  subdealerName           String?  @map("subdealer_name")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  subDealerStore          String?  @map("sub_dealer_store")
+  province                String?  @map("province")
+  district                String?  @map("district")
+  dealerId                String?  @map("dealer_id")
+  dealerName              String?  @map("dealer_name")
+  targetSales             Decimal? @map("target_sales") @db.Decimal(15, 2)
+  targetAttendeesCount    Int?     @default(0) @map("target_attendees_count")
+  notes                   String?  @map("notes") @db.Text
 
-  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
-  @@index([activityPlanId])
-  @@index([storeId])
-  @@map("activity_plan_stores")
-}
-
-// 2. ตารางเก็บสินค้าโปรโมชันเป้าหมายหน้าร้าน
-model ActivityPlanProduct {
-  id                String   @id @default(cuid())
-  activityPlanId    String   @map("activity_plan_id")
-  workTypeCode      String   @map("work_type_code") // "TYPE_9"
-  storeId           String?  @map("store_id")
-  productId         String   @map("product_id")
-  productName       String?  @map("product_name")
-  masterPrice       Decimal? @map("master_price") @db.Decimal(15, 2)
-  unitPrice         Decimal? @map("unit_price") @db.Decimal(15, 2) // ราคาขายต่อลัง
-  isPriceOverridden Boolean  @default(false) @map("is_price_overridden")
-  targetQuantity    Int?     @map("target_quantity") // จำนวนลังเป้าหมาย
-  targetAmount      Decimal? @map("target_amount") @db.Decimal(15, 2) // targetQuantity * unitPrice
-  notes             String?
-
-  activityPlan      ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store             Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product           Product      @relation("ActivityPlanProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan            ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  subdealer               Customer?                  @relation("Type9SubdealerStore", fields: [subdealerId], references: [id], onDelete: SetNull)
+  dealer                  Customer?                  @relation("Type9DealerStore", fields: [dealerId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType9Product[]
+  result                  ActivityResultType9?
 
   @@index([activityPlanId])
-  @@index([productId])
-  @@index([storeId])
-  @@map("activity_plan_products")
+  @@index([subdealerId])
+  @@index([dealerId])
+  @@map("activity_type_9_targets")
 }
 
-// 3. ตารางเก็บผลยอดขายจริงแยกตามรายการสินค้า
-model ActivityResultSaleItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  workTypeCode     String  @map("work_type_code") // "TYPE_9"
-  storeId          String? @map("store_id")
-  productId        String  @map("product_id")
-  productName      String? @map("product_name")
-  actualQuantity   Int     @map("actual_quantity") // จำนวนลังที่ขายได้จริง
-  actualUnitPrice  Decimal @map("actual_unit_price") @db.Decimal(15, 2)
-  actualTotal      Decimal @map("actual_total") @db.Decimal(15, 2) // ยอดขายจริง
-  unclosedReason   String? @map("unclosed_reason")
-  isAdditional     Boolean @default(false) @map("is_additional")
+// 2. ตารางสินค้าเป้าหมายและยอดขายจริง
+model ActivityPlanType9Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "ADDITIONAL_SALE"
 
-  activityResult   ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store            Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product          Product        @relation("ActivityResultSaleProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  // Planned fields
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
 
-  @@index([activityResultId])
+  // Actual fields
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType9Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@index([storeId])
-  @@index([workTypeCode])
-  @@map("activity_result_sale_items")
+  @@map("activity_type_9_products")
+}
+
+// 3. ตารางผลสรุปกิจกรรมหน้าร้าน
+model ActivityResultType9 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
+  actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
+  customerFeedback     String?  @map("customer_feedback") @db.Text
+  summary              String?  @map("summary") @db.Text
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType9Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_9_result")
 }
 ```
 
 ### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
-- **การจัดการ Transaction (Isolation & Atomicity):**
-  - ทุกการบันทึกของ Type 9 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
-  - หากการบันทึกภาพถ่าย หรือการบันทึกยอดขายแยกสินค้าใน `activity_result_sale_items` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
-- **Persistence ขาเขียนยอดขายจริง (Sales Persistence):**
-  - ในฟังก์ชัน `saveType9ActualSales` จะสั่ง `deleteMany` ระเบียนเดิมใน `activity_result_sale_items` ที่มี `workTypeCode = "TYPE_9"` และ `activityResultId` นั้นๆ ก่อน แล้วสร้างระเบียนใหม่ด้วย `createMany`
+- **การจัดการ Transaction (Atomic Execution):**
+  - ทุกการบันทึกของ Type 9 ดำเนินการภายใต้ Prisma Transaction (`tx`) แบบ Atomic
+  - ใน Planned: `savePlan()` จะบันทึก `activity_type_9_targets` และ `activity_type_9_products` ในตอนสร้างแผน และ `saveActual()` จะบันทึก `activity_type_9_result` และอัปเดตยอดจริงลง `activity_type_9_products`
+  - ใน Unplanned (2-in-1): `savePlan()` จะบันทึกข้อมูลลงทั้ง 3 ตารางพร้อมกันใน Transaction เดียว หากมีข้อผิดพลาดระบบจะ Rollback ทันที
+- **โครงสร้างแบบ Dedicated (ไม่มี JSON Notes ปะปน):**
+  - ข้อมูลร้านค้า Subdealer, Dealer ต้นสังกัด, ที่ตั้ง, เป้ายอดขาย, ผลการขายจริงรายสินค้า และผู้เข้าร่วม ถูกแยกเก็บในคอลัมน์ของตารางเฉพาะตรงๆ รองรับการทำ BI/Analytics และมี Indexing ครบถ้วน
+- **การเก็บบันทึกยอดขายจริง (Sales Persistence):**
+  - ยอดขายตามแผนจะถูกอัปเดตลงสินค้าตามแผน (`productRole = "TARGET"`) เพื่อเปรียบเทียบยอดตามแผน vs ยอดจริงได้ทันที
+  - สินค้าที่ขายได้เพิ่มเติมหน้างานจะถูกบันทึกเป็นรายการใหม่ด้วย `productRole = "ADDITIONAL_SALE"`
+  - มีการ Sync ข้อมูลไปยังตารางกลางเดิม (`activity_plan_stores`, `activity_plan_products`, `activity_result_sale_items`) เพื่อรักษาความเข้ากันได้ย้อนหลัง (Backward Compatibility)
 - **Cascade Delete Policy:**
-  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResult`, `ActivityResultSaleItem`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
+  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result`, และ `activity_attachments` จะถูกลบออกแบบ Cascade ทั้งหมด
 
 ---
 
@@ -577,3 +600,4 @@ model ActivityResultSaleItem {
 | **2026-10-20** | 1.4.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type9DetailView` สำหรับดูภาพถ่ายบรรยากาศหน้าร้าน | Antigravity AI |
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type9UnplannedForm` ให้รองรับการจัดกิจกรรมหลายจุดในทริปเดียวแบบ 2-in-1 | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
+| **2026-10-24** | 2.0.0 | **ยกระดับระบบจัดเก็บข้อมูล Type 9 เป็น Dedicated Relational Storage (3 ตารางเฉพาะ):**<br>1. สร้างตาราง `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result` ใน Prisma Schema<br>2. รองรับทั้ง Planned และ Unplanned แบบ Dual-Mode 100%<br>3. ตาราง Products จัดเก็บทั้งเป้าตามแผน (`TARGET`) และยอดขายจริงรวมถึงสินค้าขายนอกแผน (`ADDITIONAL_SALE`) ในตารางเดียว<br>4. อัปเดต `type9PlannedStrategy`, `type9UnplannedStrategy`, `type9.repository`, และ Mappers ครบถ้วน พร้อม Mirroring ตารางเดิมเพื่อความเข้ากันได้ย้อนหลัง | Antigravity AI |

@@ -270,6 +270,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
               s.workTypeCode === "TYPE_9" ||
               s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
           )) ||
+        (rawData.type9Targets && rawData.type9Targets.length > 0) ||
+        (rawData.type9Products && rawData.type9Products.length > 0) ||
+        (rawData.type9Results && rawData.type9Results.length > 0) ||
         (rawData.type9Stores && rawData.type9Stores.length > 0) ||
         (rawData.type9UnplannedItems &&
           rawData.type9UnplannedItems.length > 0) ||

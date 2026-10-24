@@ -3,11 +3,34 @@ import { Prisma } from "@prisma/client";
 import type { PrismaTransaction } from "@/modules/activity/types/strategy.interface";
 import type { Type9ProductSaleDetail } from "../../shared/types";
 
+/**
+ * Find Type 9 plan and all dedicated relational data (targets, products, results)
+ */
 export async function findType9ByPlanId(activityPlanId: string, tx?: PrismaTransaction) {
   const db = tx || prisma;
   return (db as any).activityPlan.findUnique({
     where: { id: activityPlanId },
     include: {
+      type9Targets: {
+        include: {
+          dealer: true,
+          subdealer: true,
+          products: {
+            include: { product: true },
+            orderBy: { createdAt: "asc" },
+          },
+          result: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      type9Products: {
+        include: { product: true },
+        orderBy: { createdAt: "asc" },
+      },
+      type9Results: {
+        orderBy: { createdAt: "asc" },
+      },
+      // Backward compatibility fallback
       stores: {
         where: {
           OR: [
@@ -30,6 +53,9 @@ export async function findType9ByPlanId(activityPlanId: string, tx?: PrismaTrans
   });
 }
 
+/**
+ * Backward compatibility: Save sale records into activity_result_sale_items
+ */
 export async function saveType9ActualSales(
   tx: PrismaTransaction,
   resultId: string,

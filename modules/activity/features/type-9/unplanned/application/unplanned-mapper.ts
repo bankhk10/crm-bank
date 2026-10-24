@@ -1,12 +1,25 @@
 import type { Type9UnplannedItem } from "../types/unplanned.types";
 import { WORK_TYPE_CODE, WORK_TYPE_NAME } from "../../shared/constants";
+import type { Type9ImageFile, Type9ProductItem, Type9ProductSaleDetail } from "../../shared/types";
+
+function toImage(att: any): Type9ImageFile {
+  return {
+    id: att.id,
+    url: att.fileUrl || att.url,
+    name: att.fileName || att.name || "รูปภาพหน้าร้าน",
+    size: att.fileSize ?? att.size ?? undefined,
+    type: att.fileType ?? att.mimeType ?? undefined,
+  };
+}
 
 /**
  * Hydrates Type 9 Unplanned Form Items from initial state or pre-existing data
+ * Supports dedicated tables (activity_type_9_targets, products, result) with legacy fallback.
  */
 export function hydrateType9UnplannedData(initialData: any): Type9UnplannedItem[] {
   if (!initialData) return [];
 
+  // 1. Direct form items state
   if (
     Array.isArray(initialData.type9UnplannedItems) &&
     initialData.type9UnplannedItems.length > 0
@@ -14,6 +27,75 @@ export function hydrateType9UnplannedData(initialData: any): Type9UnplannedItem[
     return initialData.type9UnplannedItems;
   }
 
+  // 2. Dedicated Relational Storage (type9Targets & type9Products & type9Results)
+  if (Array.isArray(initialData.type9Targets) && initialData.type9Targets.length > 0) {
+    const images: Type9ImageFile[] = Array.isArray(initialData.attachments)
+      ? initialData.attachments
+          .filter((a: any) => a.workTypeCode === WORK_TYPE_CODE || a.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน")
+          .map(toImage)
+      : [];
+
+    return initialData.type9Targets.map((t: any, idx: number) => {
+      const allProds: any[] = t.products || (initialData.type9Products || []).filter((p: any) => p.targetId === t.id);
+
+      const products: Type9ProductItem[] = allProds.map((p: any) => ({
+        id: p.id,
+        productId: p.productId || "",
+        productName: p.productName || p.product?.name || "",
+        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
+        pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+      }));
+
+      const salesDetails: Type9ProductSaleDetail[] = allProds
+        .filter((p: any) => p.actualQuantity != null || p.actualTotal != null)
+        .map((p: any) => ({
+          id: p.id,
+          targetId: t.id,
+          productId: p.productId || "",
+          productName: p.productName || p.product?.name || "",
+          productRole: p.productRole || "TARGET",
+          actualQuantityCases: p.actualQuantity != null ? Number(p.actualQuantity) : "",
+          pricePerCase: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : (p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0),
+          actualSales: p.actualTotal != null ? Number(p.actualTotal) : "",
+          actualNotes: p.actualNotes || undefined,
+        }));
+
+      const result = t.result || (initialData.type9Results || []).find((r: any) => r.targetId === t.id) || (initialData.type9Results || [])[idx];
+
+      const actSales = result?.actualTotalSales != null
+        ? String(result.actualTotalSales)
+        : salesDetails.length > 0
+          ? String(salesDetails.reduce((sum, s) => sum + (Number(s.actualSales) || 0), 0))
+          : "";
+
+      const actAttendees = result?.actualAttendeesCount != null
+        ? String(result.actualAttendeesCount)
+        : initialData.actualAttendeesCount != null
+          ? String(initialData.actualAttendeesCount)
+          : "";
+
+      return {
+        id: t.id || String(idx + 1),
+        isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+        subdealerId: t.subdealerId || "",
+        subdealerName: t.subdealer?.name || t.subdealerName || "",
+        subDealerStore: t.subDealerStore || "",
+        province: t.province || "",
+        district: t.district || "",
+        parentDealerId: t.dealerId || "",
+        parentDealerName: t.dealer?.name || t.dealerName || "",
+        targetSales: t.targetSales != null ? Number(t.targetSales) : 0,
+        actualSales: actSales,
+        actualAttendees: actAttendees,
+        products,
+        productSalesDetails: salesDetails,
+        notes: t.notes || result?.summary || "",
+        images: idx === 0 ? images : [],
+      };
+    });
+  }
+
+  // 3. Legacy Fallback (type9 or type9Data)
   const t9 = initialData.type9 || initialData.type9Data;
   if (!t9) return [];
 
@@ -44,12 +126,14 @@ export function hydrateType9UnplannedData(initialData: any): Type9UnplannedItem[
 }
 
 /**
- * Maps Type 9 Unplanned items to payload for saving plan & actual outcome together
+ * Maps Type 9 Unplanned items to payload for saving plan & actual outcome together 2-in-1
  */
 export function mapType9UnplannedToPayload(items: Type9UnplannedItem[]) {
   if (!items || items.length === 0) {
     return {
       type9Data: null,
+      type9Targets: [],
+      type9UnplannedItems: [],
       actualOutcome: null,
       planStores: [],
       planProducts: [],
@@ -197,6 +281,8 @@ export function mapType9UnplannedToPayload(items: Type9UnplannedItem[]) {
   };
 
   return {
+    type9Targets: items,
+    type9UnplannedItems: items,
     type9Data: {
       stores: planStores,
       products: planProducts,

@@ -39,26 +39,87 @@ export interface Type9ProductOption {
   unit?: string | null;
 }
 
+export type Type9ProductRole = "TARGET" | "ADDITIONAL_SALE";
+
 export interface Type9TargetProductItem {
   id?: string;
+  targetId?: string;
   productId?: string;
   storeId?: string | null;
   productName: string;
+  productRole?: Type9ProductRole | string;
   quantityCases?: number;
   pricePerCase?: number;
   totalAmount?: number;
   actualQuantityCases?: number | string;
   actualSales?: number | string;
+  actualNotes?: string;
 }
 
 export interface Type9ProductSaleDetail {
   id?: string;
+  targetId?: string;
   productId?: string;
   storeId?: string | null;
   productName: string;
+  productRole?: Type9ProductRole | string;
   pricePerCase?: number;
   quantityCases?: number;
   totalAmount?: number;
   actualQuantityCases?: string | number;
   actualSales?: string | number;
+  actualNotes?: string;
+}
+
+export interface Type9DbTarget {
+  id: string;
+  activityPlanId: string;
+  subdealerId?: string | null;
+  subdealerName?: string | null;
+  isUnregisteredSubdealer: boolean;
+  subDealerStore?: string | null;
+  province?: string | null;
+  district?: string | null;
+  dealerId?: string | null;
+  dealerName?: string | null;
+  targetSales?: any;
+  targetAttendeesCount?: number;
+  notes?: string | null;
+  subdealer?: any;
+  dealer?: any;
+  products?: Type9DbProduct[];
+  result?: Type9DbResult | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Type9DbProduct {
+  id: string;
+  activityPlanId: string;
+  targetId: string;
+  productId?: string | null;
+  productName?: string | null;
+  productRole: Type9ProductRole | string;
+  targetQuantity?: any;
+  targetUnitPrice?: any;
+  targetAmount?: any;
+  actualQuantity?: any;
+  actualUnitPrice?: any;
+  actualTotal?: any;
+  actualNotes?: string | null;
+  product?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Type9DbResult {
+  id: string;
+  activityPlanId: string;
+  targetId: string;
+  actualAttendeesCount: number;
+  actualTotalSales?: any;
+  customerFeedback?: string | null;
+  summary?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

@@ -13,6 +13,8 @@ function toImage(att: any): Type9ImageFile {
 
 /**
  * Pure parser for Type 9 Actual Outcome Data
+ * Supports dedicated relational storage (activity_type_9_products, activity_type_9_result)
+ * with backward-compatible fallback to legacy tables.
  */
 export function parseType9ActualResult(resData: any): Partial<
   Type9ActualRecord & {
@@ -20,6 +22,8 @@ export function parseType9ActualResult(resData: any): Partial<
     t9ActualAttendees?: string;
     t9ProductSalesDetails?: Type9ProductSaleDetail[];
     t9Images?: Type9ImageFile[];
+    t9CustomerFeedback?: string;
+    t9Summary?: string;
   }
 > {
   const parsed: Partial<
@@ -28,13 +32,78 @@ export function parseType9ActualResult(resData: any): Partial<
       t9ActualAttendees?: string;
       t9ProductSalesDetails?: Type9ProductSaleDetail[];
       t9Images?: Type9ImageFile[];
+      t9CustomerFeedback?: string;
+      t9Summary?: string;
     }
   > = {};
 
   if (!resData) return parsed;
 
-  // 1. Direct collections from normalized relations (saleResults)
-  if (Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
+  const planRef = resData.plan || resData.activityPlan || resData;
+
+  // 1. Dedicated Relational Storage: Products actual outcomes
+  const dedicatedProducts = planRef?.type9Products || resData?.type9Products;
+  if (Array.isArray(dedicatedProducts) && dedicatedProducts.length > 0) {
+    const productsWithActuals = dedicatedProducts.filter(
+      (p: any) =>
+        (p.actualQuantity != null && p.actualQuantity !== "") ||
+        (p.actualTotal != null && p.actualTotal !== ""),
+    );
+
+    if (productsWithActuals.length > 0) {
+      const details: Type9ProductSaleDetail[] = productsWithActuals.map((p: any) => {
+        const qty = Number(p.actualQuantity || 0);
+        const price = Number(p.actualUnitPrice || p.targetUnitPrice || 0);
+        const total = p.actualTotal != null ? Number(p.actualTotal) : qty * price;
+
+        return {
+          id: p.id,
+          targetId: p.targetId,
+          productId: p.productId,
+          productName: p.productName || p.product?.name || "",
+          productRole: p.productRole || "TARGET",
+          actualQuantityCases: qty,
+          pricePerCase: price,
+          actualSales: total,
+          actualNotes: p.actualNotes || undefined,
+        };
+      });
+
+      parsed.productSalesDetails = details;
+      parsed.t9ProductSalesDetails = details;
+
+      const sumActualSales = details.reduce((sum, it) => sum + (Number(it.actualSales) || 0), 0);
+      if (sumActualSales > 0) {
+        parsed.actualSales = String(sumActualSales);
+        parsed.t9ActualSales = String(sumActualSales);
+      }
+    }
+  }
+
+  // 2. Dedicated Relational Storage: Results
+  const dedicatedResults = planRef?.type9Results || resData?.type9Results;
+  if (Array.isArray(dedicatedResults) && dedicatedResults.length > 0) {
+    const firstResult = dedicatedResults[0];
+    if (firstResult.actualAttendeesCount != null) {
+      const attStr = String(firstResult.actualAttendeesCount);
+      parsed.actualAttendees = attStr;
+      parsed.t9ActualAttendees = attStr;
+    }
+    if (firstResult.actualTotalSales != null && !parsed.actualSales) {
+      const salesStr = String(firstResult.actualTotalSales);
+      parsed.actualSales = salesStr;
+      parsed.t9ActualSales = salesStr;
+    }
+    if (firstResult.customerFeedback) {
+      parsed.t9CustomerFeedback = firstResult.customerFeedback;
+    }
+    if (firstResult.summary) {
+      parsed.t9Summary = firstResult.summary;
+    }
+  }
+
+  // 3. Fallback: Legacy collections from normalized relations (saleResults)
+  if (!parsed.productSalesDetails && Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
     const t9Sales = resData.saleResults.filter(
       (s: any) =>
         s.workTypeCode === "TYPE_9" ||
@@ -57,14 +126,14 @@ export function parseType9ActualResult(resData: any): Partial<
         (sum, it) => sum + (Number(it.actualSales) || 0),
         0,
       );
-      if (totalSales > 0) {
+      if (totalSales > 0 && !parsed.actualSales) {
         parsed.actualSales = String(totalSales);
         parsed.t9ActualSales = String(totalSales);
       }
     }
   }
 
-  // 2. Attachments
+  // 4. Attachments (Images)
   if (Array.isArray(resData.attachments) && resData.attachments.length > 0) {
     const t9Att = resData.attachments.filter(
       (a: any) =>
@@ -78,8 +147,8 @@ export function parseType9ActualResult(resData: any): Partial<
     }
   }
 
-  // 3. Header fields
-  if (resData.actualAttendeesCount != null) {
+  // 5. Fallback Header fields
+  if (resData.actualAttendeesCount != null && !parsed.actualAttendees) {
     const attendees = String(resData.actualAttendeesCount);
     parsed.actualAttendees = attendees;
     parsed.t9ActualAttendees = attendees;
@@ -90,7 +159,7 @@ export function parseType9ActualResult(resData: any): Partial<
     parsed.t9ActualSales = sales;
   }
 
-  // 4. Regex fallback from resultSummary text
+  // 6. Regex fallback from resultSummary text
   const summaryText = resData.resultSummary || "";
   if (summaryText && typeof summaryText === "string") {
     const t9SalesMatch = summaryText.match(/ยอดขายหน้าร้านจริง:\s*(.+)/);
@@ -100,51 +169,10 @@ export function parseType9ActualResult(resData: any): Partial<
       parsed.actualSales = sales;
     }
 
-    const t9ProductsMatch = summaryText.match(
-      /(?:ยอดขายแยกสินค้าหน้าร้าน|t9ProductSalesDetails):\s*(\[.+\])/,
-    );
-    if (
-      t9ProductsMatch &&
-      t9ProductsMatch[1] &&
-      (!parsed.t9ProductSalesDetails || parsed.t9ProductSalesDetails.length === 0)
-    ) {
-      try {
-        const json = JSON.parse(t9ProductsMatch[1].trim());
-        if (Array.isArray(json)) {
-          parsed.t9ProductSalesDetails = json;
-          parsed.productSalesDetails = json;
-        }
-      } catch (e) {
-        console.error("Failed to parse t9ProductSalesDetails JSON:", e);
-      }
-    }
-
-    const t9AttendeesMatch = summaryText.match(
-      /(?:เกษตรกรที่เข้าร่วมจริง|ผู้เข้าร่วมหน้าร้านจริง|t9ActualAttendees):\s*(.+)/,
-    );
-    if (t9AttendeesMatch && t9AttendeesMatch[1] && !parsed.t9ActualAttendees) {
-      const att = t9AttendeesMatch[1].split("\n")[0].trim();
-      parsed.t9ActualAttendees = att;
-      parsed.actualAttendees = att;
-    }
-
-    const t9ImagesMatch = summaryText.match(
-      /(?:รูปภาพกิจกรรมส่งเสริมการขายหน้าร้าน|ภาพถ่ายกิจกรรมส่งเสริมการขายหน้าร้าน|รูปภาพหน้าร้าน|t9Images):\s*(\[.+\])/,
-    );
-    if (
-      t9ImagesMatch &&
-      t9ImagesMatch[1] &&
-      (!parsed.t9Images || parsed.t9Images.length === 0)
-    ) {
-      try {
-        const json = JSON.parse(t9ImagesMatch[1].trim());
-        if (Array.isArray(json)) {
-          parsed.t9Images = json;
-          parsed.images = json;
-        }
-      } catch (e) {
-        console.error("Failed to parse t9Images JSON:", e);
-      }
+    const t9AttMatch = summaryText.match(/ผู้เข้าร่วมหน้าร้านจริง:\s*(\d+)/);
+    if (t9AttMatch && t9AttMatch[1] && !parsed.t9ActualAttendees) {
+      parsed.t9ActualAttendees = t9AttMatch[1];
+      parsed.actualAttendees = t9AttMatch[1];
     }
   }
 

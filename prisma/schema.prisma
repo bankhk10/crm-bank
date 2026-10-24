@@ -415,6 +415,8 @@ model Customer {
   activityResultType4s        ActivityResultType4[]
   activityPlanType8TargetsDealer    ActivityPlanType8Target[]    @relation("Type8DealerStore")
   activityPlanType8TargetsSubdealer ActivityPlanType8Target[]    @relation("Type8SubdealerStore")
+  activityPlanType9TargetsDealer    ActivityPlanType9Target[]    @relation("Type9DealerStore")
+  activityPlanType9TargetsSubdealer ActivityPlanType9Target[]    @relation("Type9SubdealerStore")
 }
 
 model CustomerAddress {
@@ -720,6 +722,7 @@ model Product {
   activityPlanType5Targets       ActivityPlanType5Target[]
   activityResultType1Products    ActivityResultType1Product[]
   activityPlanType8Products      ActivityPlanType8Product[]
+  activityPlanType9Products      ActivityPlanType9Product[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1775,6 +1778,9 @@ model ActivityPlan {
   type8Targets   ActivityPlanType8Target[]
   type8Products  ActivityPlanType8Product[]
   type8Results   ActivityResultType8[]
+  type9Targets   ActivityPlanType9Target[]
+  type9Products  ActivityPlanType9Product[]
+  type9Results   ActivityResultType9[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -3101,7 +3107,7 @@ model ActivityPlanType8Product {
   productId       String?  @map("product_id")
   productName     String?  @map("product_name")
   productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "PROMOTION" | "ADDITIONAL_SALE"
-  
+
   // Planned fields
   targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
   targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
@@ -3144,4 +3150,98 @@ model ActivityResultType8 {
   @@index([activityPlanId])
   @@index([targetId])
   @@map("activity_type_8_result")
+}
+
+// =============================================================================
+// TYPE 9: Dedicated Tables (Store Promotion / จัดกิจกรรมส่งเสริมการขายหน้าร้าน)
+// =============================================================================
+
+model ActivityPlanType9Target {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+
+  // Sub Dealer Info
+  subdealerId             String?  @map("subdealer_id")
+  subdealerName           String?  @map("subdealer_name")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  subDealerStore          String?  @map("sub_dealer_store")
+
+  // Location
+  province                String?  @map("province")
+  district                String?  @map("district")
+
+  // Parent Dealer Info
+  dealerId                String?  @map("dealer_id")
+  dealerName              String?  @map("dealer_name")
+
+  // Target metrics
+  targetSales             Decimal? @map("target_sales") @db.Decimal(15, 2)
+  targetAttendeesCount    Int?     @default(0) @map("target_attendees_count")
+  notes                   String?  @map("notes") @db.Text
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  subdealer               Customer?                  @relation("Type9SubdealerStore", fields: [subdealerId], references: [id], onDelete: SetNull)
+  dealer                  Customer?                  @relation("Type9DealerStore", fields: [dealerId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType9Product[]
+  result                  ActivityResultType9?
+
+  @@index([activityPlanId])
+  @@index([subdealerId])
+  @@index([dealerId])
+  @@map("activity_type_9_targets")
+}
+
+model ActivityPlanType9Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "ADDITIONAL_SALE"
+
+  // Planned fields
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+
+  // Actual fields
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType9Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([productId])
+  @@map("activity_type_9_products")
+}
+
+model ActivityResultType9 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
+  actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
+  customerFeedback     String?  @map("customer_feedback") @db.Text
+  summary              String?  @map("summary") @db.Text
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType9Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_9_result")
 }

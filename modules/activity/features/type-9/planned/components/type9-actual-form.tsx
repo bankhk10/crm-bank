@@ -94,6 +94,7 @@ export function Type9ActualForm({
       setProductSalesDetails(
         updated.map((item) => ({
           id: item.id,
+          targetId: item.targetId,
           productId: item.productId || item.id,
           storeId: item.storeId,
           productName: item.productName,
