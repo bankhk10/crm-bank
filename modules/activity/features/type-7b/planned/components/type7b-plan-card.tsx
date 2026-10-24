@@ -69,7 +69,7 @@ export function Type7bPlanCard({
               {item.crop ? (
                 <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100">
                   <span className="text-slate-500 block text-[11px] font-medium mb-1">
-                    พืชที่ติดตาม
+                    พืชเป้าหมาย
                   </span>
                   <span className="font-bold text-slate-800 block text-xs sm:text-sm">
                     {item.crop}

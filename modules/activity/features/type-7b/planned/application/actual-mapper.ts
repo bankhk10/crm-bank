@@ -11,12 +11,32 @@ export function parseType7bActualResult(
 
   if (!summaryText && !resData) return result;
 
-  // 1. Structured data in resData
+  // 1. Structured data in resData.type7bActual
   if (resData.type7bActual) {
     Object.assign(result, resData.type7bActual);
   }
 
-  // 2. Parse from summary text
+  // 2. Direct fields in resData
+  if (resData.t7VisitDate && !result.t7VisitDate) {
+    result.t7VisitDate = resData.t7VisitDate;
+  }
+  if (resData.t7DaysAfterSpray !== undefined && result.t7DaysAfterSpray === undefined) {
+    result.t7DaysAfterSpray = resData.t7DaysAfterSpray;
+  }
+  if (resData.t7SprayingRounds && Array.isArray(resData.t7SprayingRounds) && !result.t7SprayingRounds) {
+    result.t7SprayingRounds = resData.t7SprayingRounds;
+  }
+  if (resData.t7PlotStatus && !result.t7PlotStatus) {
+    result.t7PlotStatus = resData.t7PlotStatus;
+  }
+  if (resData.t7NextSprayDate && !result.t7NextSprayDate) {
+    result.t7NextSprayDate = resData.t7NextSprayDate;
+  }
+  if (resData.t7Notes && !result.t7Notes) {
+    result.t7Notes = resData.t7Notes;
+  }
+
+  // 3. Parse from summary text (fallback)
   const plotNameMatch = summaryText.match(/(?:แปลงสาธิต|ชื่อแปลง):\s*(.+)/);
   if (plotNameMatch && plotNameMatch[1]) {
     result.t7PlotName = plotNameMatch[1].split("\n")[0].trim();
@@ -47,10 +67,7 @@ export function parseType7bActualResult(
 
   const responseMatch = summaryText.match(/(?:ผลหลังการฉีดพ่น|ผลการใช้ผลิตภัณฑ์):\s*(.+)/);
   if (responseMatch && responseMatch[1]) {
-    const resp = responseMatch[1].split("\n")[0].trim();
-    if (resp === "พืชตอบสนองดี" || resp === "พบปัญหา") {
-      result.t7ProductResponse = resp;
-    }
+    result.t7ProductResponse = responseMatch[1].split("\n")[0].trim();
   }
 
   const sprayMethodMatch = summaryText.match(/(?:วิธีการฉีดพ่น|วิธีพ่น):\s*(.+)/);
@@ -69,32 +86,7 @@ export function parseType7bActualResult(
     result.t7NextSprayDate = result.t7NextFollowUpDate;
   }
 
-  const finalYieldMatch = summaryText.match(/ผลผลิตแปลงสาธิต:\s*([\d.]+)/);
-  if (finalYieldMatch && finalYieldMatch[1]) {
-    result.t7FinalYieldKg = finalYieldMatch[1].trim();
-  }
-
-  const controlYieldMatch = summaryText.match(/ผลผลิตแปลงเปรียบเทียบ:\s*([\d.]+)/);
-  if (controlYieldMatch && controlYieldMatch[1]) {
-    result.t7ControlYieldKg = controlYieldMatch[1].trim();
-  }
-
-  const satisfactionMatch = summaryText.match(/ความพึงพอใจของเกษตรกร:\s*(\d)/);
-  if (satisfactionMatch && satisfactionMatch[1]) {
-    result.t7FarmerSatisfaction = parseInt(satisfactionMatch[1], 10);
-  }
-
-  const commercialMatch = summaryText.match(/โอกาสขยายผลเชิงพาณิชย์:\s*(.+)/);
-  if (commercialMatch && commercialMatch[1]) {
-    result.t7CommercialPotential = commercialMatch[1].split("\n")[0].trim();
-  }
-
-  const finalNotesMatch = summaryText.match(/สรุปผลภาพรวม:\s*(.+)/);
-  if (finalNotesMatch && finalNotesMatch[1]) {
-    result.t7FinalSummaryNotes = finalNotesMatch[1].split("\n")[0].trim();
-  }
-
-  // 3. Structured attachments or image files
+  // 4. Structured attachments or image files
   if (resData.t7CropImages && Array.isArray(resData.t7CropImages)) {
     result.t7CropImages = resData.t7CropImages;
   }

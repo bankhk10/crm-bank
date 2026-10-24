@@ -16,34 +16,55 @@ export function validateType7bActual(
 
   const errors: string[] = [];
 
-  // 1. Condition & Growth
-  if (!actualState.t7CropCondition?.trim()) {
-    errors.push("สภาพแปลง / สภาพพืช (สมบูรณ์, มีปัญหา, ปานกลาง, ทรุดโทรม)");
+  // 1. Visit Date & Days after spray
+  if (!actualState.t7VisitDate && !actualState.actualStartDate) {
+    // If neither is present, warn or validate
+    // Note: It's recommended to have visit date
   }
 
-  if (!actualState.t7GrowthStage?.trim()) {
-    errors.push("ระยะการเจริญเติบโตของพืช");
+  // 2. Validate Spraying Rounds
+  const rounds = actualState.t7SprayingRounds;
+  if (Array.isArray(rounds) && rounds.length > 0) {
+    rounds.forEach((round, rIdx) => {
+      const rNum = round.roundNumber || rIdx + 1;
+      if (!round.sprayMethod) {
+        errors.push(`รอบที่ ${rNum}: กรุณาเลือกวิธีการฉีดพ่น`);
+      }
+      if (!round.sprayEquipment) {
+        errors.push(`รอบที่ ${rNum}: กรุณาเลือกอุปกรณ์ที่ใช้ฉีดพ่น`);
+      }
+      if (round.sprayEquipment === "อื่นๆ ระบุ..." && !round.otherEquipment?.trim()) {
+        errors.push(`รอบที่ ${rNum}: กรุณาระบุชื่ออุปกรณ์ฉีดพ่นเพิ่มเติม`);
+      }
+      if (round.productResponse === "พบปัญหา / พืชมีอาการผิดปกติ" && !round.problemDetail?.trim()) {
+        errors.push(`รอบที่ ${rNum}: กรุณาระบุรายละเอียดปัญหาหรืออาการผิดปกติ`);
+      }
+
+      // Check additional products
+      if (Array.isArray(round.additionalProducts)) {
+        round.additionalProducts.forEach((ap, pIdx) => {
+          if (!ap.productId) {
+            errors.push(`รอบที่ ${rNum} สินค้าเพิ่มเติมรายการที่ ${pIdx + 1}: กรุณาเลือกสินค้า`);
+          }
+          if (ap.quantityUsed == null || ap.quantityUsed === "" || Number(ap.quantityUsed) <= 0) {
+            errors.push(`รอบที่ ${rNum} สินค้าเพิ่มเติมรายการที่ ${pIdx + 1}: กรุณาระบุปริมาณที่ใช้`);
+          }
+        });
+      }
+    });
   }
 
-  // 2. If problem found, require problem description
-  if (
-    actualState.t7CropCondition === "มีปัญหา" ||
-    actualState.t7CropCondition === "ทรุดโทรม" ||
-    actualState.t7ProductResponse === "พบปัญหา"
-  ) {
-    const hasDesc = Boolean(
-      actualState.t7CropProblemDescription?.trim() ||
-      actualState.t7ProblemDescription?.trim(),
-    );
-    if (!hasDesc) {
-      errors.push("รายละเอียดปัญหาของสภาพพืช / การใช้ผลิตภัณฑ์");
+  // 3. Backward-compatible validation for crop condition if round not used
+  if (!rounds || rounds.length === 0) {
+    if (!actualState.t7CropCondition?.trim()) {
+      errors.push("สภาพแปลง / สภาพพืช (สมบูรณ์, มีปัญหา, ปานกลาง, ทรุดโทรม)");
     }
   }
 
-  // 3. If final completion (yield recorded)
+  // 4. If final completion (COMPLETED status)
   if (actualState.t7PlotStatus === "COMPLETED") {
-    if (!actualState.t7FinalYieldKg && !actualState.t7FinalSummaryNotes?.trim()) {
-      errors.push("ผลผลิตจริง หรือ บทสรุปผลการจัดทำแปลงสาธิตเมื่อเสร็จสิ้นโครงการ");
+    if (!actualState.t7FinalYieldKg && !actualState.t7FinalSummaryNotes?.trim() && !actualState.t7Notes?.trim()) {
+      // Optional advisory or note
     }
   }
 

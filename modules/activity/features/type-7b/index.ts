@@ -59,6 +59,9 @@ export type {
   Type7bApprovalCardProps,
   Type7bProductRateItem,
   Type7bSprayingRoundItem,
+  Type7bBaselineProductItem,
+  Type7bAdditionalProductItem,
+  Type7bSprayRoundState,
   DemoPlotVisitHistoryItem,
 } from "./planned/types/actual.types";
 

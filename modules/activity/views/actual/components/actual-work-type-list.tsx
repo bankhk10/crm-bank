@@ -530,6 +530,14 @@ export function ActualWorkTypeList({
           customers={customers}
           actualState={type7bState.actualState}
           onUpdateField={type7bState.handleUpdateField}
+          onAddRound={type7bState.addSprayingRound}
+          onRemoveRound={type7bState.removeSprayingRound}
+          onUpdateRoundField={type7bState.updateSprayingRoundField}
+          onAddAdditionalProduct={type7bState.addAdditionalProductToRound}
+          onUpdateAdditionalProduct={type7bState.updateAdditionalProduct}
+          onRemoveAdditionalProduct={type7bState.removeAdditionalProduct}
+          onUpdateBaselineProduct={type7bState.updateBaselineProduct}
+          onUpdateRoundImages={type7bState.updateRoundImages}
         />
       )}
 
