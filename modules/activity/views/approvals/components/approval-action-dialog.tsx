@@ -468,6 +468,29 @@ export function ApprovalActionDialog({
           )}
 
           <div className="space-y-2">
+            {/* Previous comment history reference */}
+            {plan.approvalLogs &&
+              plan.approvalLogs.filter((l: any) => l.comment).length > 0 && (
+                <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 space-y-1.5 text-xs mb-2">
+                  <span className="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
+                    <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    ประวัติความเห็นล่าสุด:
+                  </span>
+                  {(() => {
+                    const latest = plan.approvalLogs.filter(
+                      (l: any) => l.comment,
+                    )[0];
+                    return (
+                      <div className="text-slate-600 italic bg-white p-2 rounded-lg border border-slate-100">
+                        &quot;{latest.comment}&quot;
+                        <span className="text-[10px] text-slate-400 not-italic block mt-1 font-medium">
+                          โดย {latest.user?.name || "ผู้อนุมัติ"}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             <Label
               htmlFor="approval-comment"
               className="text-xs font-semibold text-slate-700"

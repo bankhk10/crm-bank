@@ -33,6 +33,25 @@ interface DetailWorkTypeListProps {
   isTypeActive: (code: string, label: string) => boolean;
 }
 
+function getDeduplicatedAttachments(plan: any): any[] {
+  const rawAttachmentsList: any[] = [
+    ...(plan?.attachments || []),
+    ...(plan?.result?.attachments || []),
+  ];
+  const seenIds = new Set<string>();
+  const seenUrls = new Set<string>();
+  return rawAttachmentsList.filter((att) => {
+    if (!att) return false;
+    const attId = att.id;
+    const attUrl = att.fileUrl || att.url;
+    if (attId && seenIds.has(attId)) return false;
+    if (attUrl && seenUrls.has(attUrl)) return false;
+    if (attId) seenIds.add(attId);
+    if (attUrl) seenUrls.add(attUrl);
+    return true;
+  });
+}
+
 /**
  * Component กลางสำหรับแสดงรายละเอียดของประเภทงานในหน้ารายละเอียดแผนงาน (Detail)
  * สอดคล้องกับ ApprovalWorkTypeList และ ActualWorkTypeList โดยยึด Type 1 เป็น Gold Standard
@@ -44,6 +63,10 @@ export function DetailWorkTypeList({
   parsedResults,
   isTypeActive,
 }: DetailWorkTypeListProps) {
+  const deduplicatedAttachments = useMemo(
+    () => getDeduplicatedAttachments(plan),
+    [plan?.attachments, plan?.result?.attachments],
+  );
   const isType1 =
     isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
     isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer");
@@ -209,24 +232,7 @@ export function DetailWorkTypeList({
     if (parsedResults?.t2Images && parsedResults.t2Images.length > 0) {
       return parsedResults.t2Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    const seenIds = new Set<string>();
-    const seenUrls = new Set<string>();
-    const rawAttachments = rawAttachmentsList.filter((att) => {
-      if (!att) return false;
-      const attId = att.id;
-      const attUrl = att.fileUrl || att.url;
-      if (attId && seenIds.has(attId)) return false;
-      if (attUrl && seenUrls.has(attUrl)) return false;
-      if (attId) seenIds.add(attId);
-      if (attUrl) seenUrls.add(attUrl);
-      return true;
-    });
-
-    return rawAttachments
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att.workTypeCode === "TYPE_2" ||
@@ -238,7 +244,7 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปภาพ",
       }));
-  }, [parsedResults?.t2Images, plan?.attachments, plan?.result?.attachments]);
+  }, [parsedResults?.t2Images, deduplicatedAttachments]);
 
   // รวบรวมรูปภาพ Type 4 (Payment Images)
   const effectiveT4Images = useMemo(() => {
@@ -248,11 +254,7 @@ export function DetailWorkTypeList({
     ) {
       return parsedResults.t4PaymentImages;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) => att?.workTypeCode === "TYPE_4" || att?.category === "PAYMENT",
       )
@@ -261,21 +263,13 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "หลักฐานการชำระเงิน",
       }));
-  }, [
-    parsedResults?.t4PaymentImages,
-    plan?.attachments,
-    plan?.result?.attachments,
-  ]);
+  }, [parsedResults?.t4PaymentImages, deduplicatedAttachments]);
 
   const effectiveT6Images = useMemo(() => {
     if (parsedResults?.t6Images && parsedResults.t6Images.length > 0) {
       return parsedResults.t6Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) => att?.workTypeCode === "TYPE_6" || att?.category === "ISSUE",
       )
@@ -284,7 +278,7 @@ export function DetailWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปภาพปัญหา",
       }));
-  }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
+  }, [parsedResults?.t6Images, deduplicatedAttachments]);
 
   // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
   const effectiveT7aImages = useMemo(() => {
@@ -294,22 +288,28 @@ export function DetailWorkTypeList({
     ) {
       return parsedResults.t7InitialPhotos;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-      ...(plan?.type7aPlots?.flatMap((dp: any) => [
-        ...(dp?.attachments || []),
-        ...(dp?.visits?.flatMap((v: any) => v?.attachments || []) || []),
-      ]) || []),
-    ];
-
-    const mappedFromAttachments = rawAttachmentsList
-      .filter(
-        (att) =>
+    const plotAtts = plan?.type7aPlots?.flatMap((dp: any) => [
+      ...(dp?.attachments || []),
+      ...(dp?.visits?.flatMap((v: any) => v?.attachments || []) || []),
+    ]) || [];
+    const all = [...deduplicatedAttachments, ...plotAtts];
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+    const mappedFromAttachments = all
+      .filter((att) => {
+        if (!att) return false;
+        const attId = att.id;
+        const attUrl = att.fileUrl || att.url;
+        if (attId && seenIds.has(attId)) return false;
+        if (attUrl && seenUrls.has(attUrl)) return false;
+        if (attId) seenIds.add(attId);
+        if (attUrl) seenUrls.add(attUrl);
+        return (
           att?.workTypeCode === "TYPE_7A" ||
           att?.category === "PLOT" ||
-          att?.category === "INITIAL",
-      )
+          att?.category === "INITIAL"
+        );
+      })
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
@@ -351,8 +351,7 @@ export function DetailWorkTypeList({
     return [];
   }, [
     parsedResults?.t7InitialPhotos,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
     plan?.type7aPlots,
   ]);
 
@@ -364,11 +363,7 @@ export function DetailWorkTypeList({
         ...(parsedResults.t7PlotImages || []),
       ];
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_7B" ||
@@ -383,8 +378,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.t7CropImages,
     parsedResults?.t7PlotImages,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
     isType7b,
     isType7a,
   ]);
@@ -403,11 +397,7 @@ export function DetailWorkTypeList({
     ) {
       return parsedResults.t8RegistrationImages;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
@@ -425,8 +415,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.type8Actual?.t8RegistrationImages,
     parsedResults?.t8RegistrationImages,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   const effectiveT8AtmosphereImages = useMemo(() => {
@@ -439,11 +428,7 @@ export function DetailWorkTypeList({
     if (parsedResults?.t8Images && parsedResults.t8Images.length > 0) {
       return parsedResults.t8Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
@@ -459,8 +444,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.type8Actual?.t8Images,
     parsedResults?.t8Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
@@ -474,11 +458,7 @@ export function DetailWorkTypeList({
     if (parsedResults?.t9Images && parsedResults.t9Images.length > 0) {
       return parsedResults.t9Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_9" ||
@@ -494,8 +474,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.type9Actual?.images,
     parsedResults?.t9Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 10 (Attachments / Atmosphere)
@@ -509,11 +488,7 @@ export function DetailWorkTypeList({
     if (parsedResults?.t10Images && parsedResults.t10Images.length > 0) {
       return parsedResults.t10Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_10" ||
@@ -529,8 +504,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.type10Actual?.images,
     parsedResults?.t10Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 11 (Attachments / Stock Photos)
@@ -544,11 +518,7 @@ export function DetailWorkTypeList({
     if (parsedResults?.t11Images && parsedResults.t11Images.length > 0) {
       return parsedResults.t11Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_11" ||
@@ -564,8 +534,7 @@ export function DetailWorkTypeList({
   }, [
     parsedResults?.type11Actual?.images,
     parsedResults?.t11Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
@@ -579,27 +548,24 @@ export function DetailWorkTypeList({
     if (parsedResults?.t12Images && parsedResults.t12Images.length > 0) {
       return parsedResults.t12Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_12" ||
           att?.category === "TOUR" ||
+          att?.category === "ATMOSPHERE" ||
+          att?.category === "tour" ||
           att?.category === "type12",
       )
       .map((att) => ({
         id: att.id,
         url: att.fileUrl || att.url,
-        name: att.fileName || att.name || "ภาพกิจกรรมศึกษาดูงาน",
+        name: att.fileName || att.name || "รูปภาพศึกษาดูงาน",
       }));
   }, [
     parsedResults?.type12Actual?.images,
     parsedResults?.t12Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   return (
@@ -737,11 +703,18 @@ export function DetailWorkTypeList({
         }
         targets={targets?.t8List || plan?.type8Targets || plan?.type8Meetings}
         actualAttendees={
-          parsedResults?.type8Actual?.t8ActualAttendees != null
+          parsedResults?.type8Actual?.t8ActualAttendees != null &&
+          parsedResults.type8Actual.t8ActualAttendees !== ""
             ? String(parsedResults.type8Actual.t8ActualAttendees)
-            : parsedResults?.t8ActualAttendees != null
+            : parsedResults?.t8ActualAttendees != null &&
+              parsedResults.t8ActualAttendees !== ""
               ? String(parsedResults.t8ActualAttendees)
-              : undefined
+              : parsedResults?.actualAttendeesCount != null &&
+                parsedResults.actualAttendeesCount !== ""
+                ? String(parsedResults.actualAttendeesCount)
+                : plan?.result?.actualAttendeesCount != null
+                  ? String(plan.result.actualAttendeesCount)
+                  : undefined
         }
         feedbackQnA={
           parsedResults?.type8Actual?.t8FeedbackQnA ||
@@ -750,7 +723,23 @@ export function DetailWorkTypeList({
         productSalesDetails={
           parsedResults?.type8Actual?.t8ProductSalesDetails ||
           parsedResults?.t8ProductSalesDetails ||
-          plan?.productSalesDetails
+          plan?.productSalesDetails ||
+          (plan?.result?.saleResults
+            ? plan.result.saleResults
+                .filter(
+                  (s: any) =>
+                    s.workTypeCode === "TYPE_8_PROMOTION" ||
+                    s.workTypeCode === "TYPE_8",
+                )
+                .map((s: any) => ({
+                  id: s.id,
+                  productId: s.productId,
+                  productName: s.productName || s.product?.name || "",
+                  actualQty: String(s.actualQuantity ?? ""),
+                  notes: s.unclosedReason || s.notes || "",
+                  isAdditional: Boolean(s.isAdditional),
+                }))
+            : undefined)
         }
         registrationImages={effectiveT8RegistrationImages}
         images={effectiveT8AtmosphereImages}

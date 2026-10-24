@@ -77,6 +77,25 @@ interface ApprovalWorkTypeListProps {
   isTypeActive: (code: string, label: string) => boolean;
 }
 
+function getDeduplicatedAttachments(plan: any): any[] {
+  const rawAttachmentsList: any[] = [
+    ...(plan?.attachments || []),
+    ...(plan?.result?.attachments || []),
+  ];
+  const seenIds = new Set<string>();
+  const seenUrls = new Set<string>();
+  return rawAttachmentsList.filter((att) => {
+    if (!att) return false;
+    const attId = att.id;
+    const attUrl = att.fileUrl || att.url;
+    if (attId && seenIds.has(attId)) return false;
+    if (attUrl && seenUrls.has(attUrl)) return false;
+    if (attId) seenIds.add(attId);
+    if (attUrl) seenUrls.add(attUrl);
+    return true;
+  });
+}
+
 /**
  * Component กลางสำหรับแสดงรายละเอียดของประเภทงานในหน้าพิจารณาอนุมัติ (Approvals)
  * รองรับทั้งแผนงานปกติ (Trip Plan) และกิจกรรมนอกแผน (Unplanned Activity 2-in-1 ที่มีผลงานจริง)
@@ -89,6 +108,10 @@ export function ApprovalWorkTypeList({
   parsedResults,
   isTypeActive,
 }: ApprovalWorkTypeListProps) {
+  const deduplicatedAttachments = useMemo(
+    () => getDeduplicatedAttachments(plan),
+    [plan?.attachments, plan?.result?.attachments],
+  );
   const isType1 =
     isTypeActive("TYPE_1", "เข้าพบเกษตรกร") ||
     isTypeActive("TYPE_1", "เข้าพบร้านค้า / Key Farmer");
@@ -362,10 +385,11 @@ export function ApprovalWorkTypeList({
 
   const hasType8ActualResults = useMemo(() => {
     if (isUnplanned) return true;
-    if (plan?.result?.type8Actual) return true;
+    if (plan?.result?.type8Actual || plan?.result?.actualAttendeesCount != null) return true;
     return Boolean(
       parsedResults?.type8Actual ||
       parsedResults?.t8ActualAttendees ||
+      parsedResults?.actualAttendeesCount != null ||
       parsedResults?.t8FeedbackQnA ||
       (parsedResults?.t8RegistrationImages &&
         parsedResults.t8RegistrationImages.length > 0) ||
@@ -546,11 +570,7 @@ export function ApprovalWorkTypeList({
     ) {
       return parsedResults.t4PaymentImages;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) => att?.workTypeCode === "TYPE_4" || att?.category === "PAYMENT",
       )
@@ -559,22 +579,14 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "หลักฐานการชำระเงิน",
       }));
-  }, [
-    parsedResults?.t4PaymentImages,
-    plan?.attachments,
-    plan?.result?.attachments,
-  ]);
+  }, [parsedResults?.t4PaymentImages, deduplicatedAttachments]);
 
   // รวบรวมรูปภาพ Type 6 (Issue Images)
   const effectiveT6Images = useMemo(() => {
     if (parsedResults?.t6Images && parsedResults.t6Images.length > 0) {
       return parsedResults.t6Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) => att?.workTypeCode === "TYPE_6" || att?.category === "ISSUE",
       )
@@ -583,7 +595,7 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปภาพปัญหา",
       }));
-  }, [parsedResults?.t6Images, plan?.attachments, plan?.result?.attachments]);
+  }, [parsedResults?.t6Images, deduplicatedAttachments]);
 
   // รวบรวมรูปภาพ Type 7A (Attachments / Plot Photos)
   const effectiveT7aImages = useMemo(() => {
@@ -593,11 +605,7 @@ export function ApprovalWorkTypeList({
     ) {
       return parsedResults.t7InitialPhotos;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_7A" ||
@@ -609,11 +617,7 @@ export function ApprovalWorkTypeList({
         url: att.fileUrl || att.url,
         name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
       }));
-  }, [
-    parsedResults?.t7InitialPhotos,
-    plan?.attachments,
-    plan?.result?.attachments,
-  ]);
+  }, [parsedResults?.t7InitialPhotos, deduplicatedAttachments]);
 
   // รวบรวมรูปภาพ Type 7B (Attachments / Follow-up Photos)
   const effectiveT7bImages = useMemo(() => {
@@ -623,11 +627,7 @@ export function ApprovalWorkTypeList({
         ...(parsedResults.t7PlotImages || []),
       ];
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_7B" ||
@@ -642,8 +642,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.t7CropImages,
     parsedResults?.t7PlotImages,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
     isType7b,
     isType7a,
   ]);
@@ -662,11 +661,7 @@ export function ApprovalWorkTypeList({
     ) {
       return parsedResults.t8RegistrationImages;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
@@ -684,8 +679,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type8Actual?.t8RegistrationImages,
     parsedResults?.t8RegistrationImages,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   const effectiveT8AtmosphereImages = useMemo(() => {
@@ -698,11 +692,7 @@ export function ApprovalWorkTypeList({
     if (parsedResults?.t8Images && parsedResults.t8Images.length > 0) {
       return parsedResults.t8Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_8" &&
@@ -718,8 +708,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type8Actual?.t8Images,
     parsedResults?.t8Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 9 (Attachments / Atmosphere)
@@ -733,11 +722,7 @@ export function ApprovalWorkTypeList({
     if (parsedResults?.t9Images && parsedResults.t9Images.length > 0) {
       return parsedResults.t9Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_9" ||
@@ -753,8 +738,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type9Actual?.images,
     parsedResults?.t9Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 10 (Attachments / Atmosphere)
@@ -768,11 +752,7 @@ export function ApprovalWorkTypeList({
     if (parsedResults?.t10Images && parsedResults.t10Images.length > 0) {
       return parsedResults.t10Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_10" ||
@@ -788,8 +768,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type10Actual?.images,
     parsedResults?.t10Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 11 (Attachments / Stock Photos)
@@ -803,11 +782,7 @@ export function ApprovalWorkTypeList({
     if (parsedResults?.t11Images && parsedResults.t11Images.length > 0) {
       return parsedResults.t11Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_11" ||
@@ -823,8 +798,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type11Actual?.images,
     parsedResults?.t11Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   // รวบรวมรูปภาพ Type 12 (Attachments / Tour Photos)
@@ -838,11 +812,7 @@ export function ApprovalWorkTypeList({
     if (parsedResults?.t12Images && parsedResults.t12Images.length > 0) {
       return parsedResults.t12Images;
     }
-    const rawAttachmentsList: any[] = [
-      ...(plan?.attachments || []),
-      ...(plan?.result?.attachments || []),
-    ];
-    return rawAttachmentsList
+    return deduplicatedAttachments
       .filter(
         (att) =>
           att?.workTypeCode === "TYPE_12" ||
@@ -857,8 +827,7 @@ export function ApprovalWorkTypeList({
   }, [
     parsedResults?.type12Actual?.images,
     parsedResults?.t12Images,
-    plan?.attachments,
-    plan?.result?.attachments,
+    deduplicatedAttachments,
   ]);
 
   return (
@@ -1080,11 +1049,18 @@ export function ApprovalWorkTypeList({
               targets?.t8List || plan?.type8Targets || plan?.type8Meetings
             }
             actualAttendees={
-              parsedResults?.type8Actual?.t8ActualAttendees != null
+              parsedResults?.type8Actual?.t8ActualAttendees != null &&
+              parsedResults.type8Actual.t8ActualAttendees !== ""
                 ? String(parsedResults.type8Actual.t8ActualAttendees)
-                : parsedResults?.t8ActualAttendees != null
+                : parsedResults?.t8ActualAttendees != null &&
+                  parsedResults.t8ActualAttendees !== ""
                   ? String(parsedResults.t8ActualAttendees)
-                  : undefined
+                  : parsedResults?.actualAttendeesCount != null &&
+                    parsedResults.actualAttendeesCount !== ""
+                    ? String(parsedResults.actualAttendeesCount)
+                    : plan?.result?.actualAttendeesCount != null
+                      ? String(plan.result.actualAttendeesCount)
+                      : undefined
             }
             feedbackQnA={
               parsedResults?.type8Actual?.t8FeedbackQnA ||
@@ -1093,7 +1069,23 @@ export function ApprovalWorkTypeList({
             productSalesDetails={
               parsedResults?.type8Actual?.t8ProductSalesDetails ||
               parsedResults?.t8ProductSalesDetails ||
-              plan?.productSalesDetails
+              plan?.productSalesDetails ||
+              (plan?.result?.saleResults
+                ? plan.result.saleResults
+                    .filter(
+                      (s: any) =>
+                        s.workTypeCode === "TYPE_8_PROMOTION" ||
+                        s.workTypeCode === "TYPE_8",
+                    )
+                    .map((s: any) => ({
+                      id: s.id,
+                      productId: s.productId,
+                      productName: s.productName || s.product?.name || "",
+                      actualQty: String(s.actualQuantity ?? ""),
+                      notes: s.unclosedReason || s.notes || "",
+                      isAdditional: Boolean(s.isAdditional),
+                    }))
+                : undefined)
             }
             registrationImages={effectiveT8RegistrationImages}
             images={effectiveT8AtmosphereImages}

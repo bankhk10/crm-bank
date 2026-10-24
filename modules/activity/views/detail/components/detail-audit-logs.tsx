@@ -37,8 +37,88 @@ function formatActivityResultStatus(status?: string | null): string {
   }
 }
 
+function renderAuditActionBadge(action: string) {
+  switch (action) {
+    case "APPROVE":
+    case "APPROVED":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-emerald-50 text-emerald-700 border-emerald-200"
+        >
+          อนุมัติ
+        </Badge>
+      );
+    case "REJECT":
+    case "REJECTED":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-red-50 text-red-700 border-red-200"
+        >
+          ปฏิเสธ
+        </Badge>
+      );
+    case "REQUEST_CORRECTION":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-amber-50 text-amber-700 border-amber-200"
+        >
+          ส่งกลับแก้ไข
+        </Badge>
+      );
+    case "SUBMIT":
+    case "SUBMITTED":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-blue-50 text-blue-700 border-blue-200"
+        >
+          ยื่นขออนุมัติ
+        </Badge>
+      );
+    case "RECORD_ACTUAL":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-emerald-50 text-emerald-700 border-emerald-200"
+        >
+          บันทึกผลงาน
+        </Badge>
+      );
+    case "UPDATE_ACTUAL":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-blue-50 text-blue-700 border-blue-200"
+        >
+          แก้ไขผลงาน
+        </Badge>
+      );
+    case "CHANGE_ACTUAL_STATUS":
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-bold bg-purple-50 text-purple-700 border-purple-200"
+        >
+          เปลี่ยนสถานะผลงาน
+        </Badge>
+      );
+    default:
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] px-1.5 py-0 font-medium bg-slate-50 text-slate-700 border-slate-200"
+        >
+          {action}
+        </Badge>
+      );
+  }
+}
+
 export function DetailAuditLogs({ logs }: DetailAuditLogsProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   if (!logs || logs.length === 0) return null;
 
@@ -92,39 +172,7 @@ export function DetailAuditLogs({ logs }: DetailAuditLogsProps) {
                   <span className="font-bold text-slate-900">
                     {log.user?.name || "ผู้ใช้งาน"}
                   </span>
-                  {!log.isActual ? (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[10px] px-1.5 py-0 font-bold",
-                        log.action === "APPROVE" &&
-                          "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        log.action === "REJECT" &&
-                          "bg-red-50 text-red-700 border-red-200",
-                        log.action === "REQUEST_CORRECTION" &&
-                          "bg-amber-50 text-amber-700 border-amber-200",
-                        log.action === "SUBMIT" &&
-                          "bg-blue-50 text-blue-700 border-blue-200",
-                      )}
-                    >
-                      {log.action}
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[10px] px-1.5 py-0 font-bold",
-                        log.action === "RECORD_ACTUAL" &&
-                          "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        log.action === "UPDATE_ACTUAL" &&
-                          "bg-blue-50 text-blue-700 border-blue-200",
-                        log.action === "CHANGE_ACTUAL_STATUS" &&
-                          "bg-purple-50 text-purple-700 border-purple-200",
-                      )}
-                    >
-                      {log.action}
-                    </Badge>
-                  )}
+                  {renderAuditActionBadge(log.action)}
                 </div>
 
                 {!log.isActual ? (

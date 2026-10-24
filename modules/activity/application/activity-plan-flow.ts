@@ -1231,7 +1231,10 @@ export async function approveActivityPlanUseCase(
           userId,
           action: ActivityApprovalAction.APPROVE,
           step: ActivityApprovalStep.BUDGET_APPROVAL,
-          comment: comment || budgetNotes.join(", "),
+          comment:
+            comment?.trim() && budgetNotes.length > 0
+              ? `${comment.trim()} (${budgetNotes.join(", ")})`
+              : comment?.trim() || budgetNotes.join(", "),
         },
       });
     }
@@ -1256,7 +1259,9 @@ export async function approveActivityPlanUseCase(
           userId,
           action: ActivityApprovalAction.APPROVE,
           step: ActivityApprovalStep.HELPER_APPROVAL,
-          comment: helperLogComment,
+          comment: comment?.trim()
+            ? `${helperLogComment} | หมายเหตุ: ${comment.trim()}`
+            : helperLogComment,
         },
       });
     }

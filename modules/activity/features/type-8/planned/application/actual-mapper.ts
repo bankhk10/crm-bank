@@ -15,6 +15,21 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
     if (!isNaN(num)) {
       result.t8ActualAttendees = String(num);
     }
+  } else if (resData.type8Actual?.t8ActualAttendees) {
+    result.t8ActualAttendees = String(resData.type8Actual.t8ActualAttendees);
+  } else if (resData.t8ActualAttendees) {
+    result.t8ActualAttendees = String(resData.t8ActualAttendees);
+  } else if (resData.actualAttendees) {
+    result.t8ActualAttendees = String(resData.actualAttendees);
+  }
+
+  // 1.1 Direct feedbackQnA
+  if (resData.type8Actual?.t8FeedbackQnA) {
+    result.t8FeedbackQnA = resData.type8Actual.t8FeedbackQnA;
+  } else if (resData.t8FeedbackQnA) {
+    result.t8FeedbackQnA = resData.t8FeedbackQnA;
+  } else if (resData.feedbackQnA) {
+    result.t8FeedbackQnA = resData.feedbackQnA;
   }
 
   // 2. Structured Sale Results
@@ -37,15 +52,15 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
 
   // 3. Text Parsing from summaryText
   const t8AttendeesMatch = summaryText.match(
-    /จำนวนผู้เข้าร่วมประชุมจริง:\s*(.+)/,
+    /(?:จำนวนผู้เข้าร่วมประชุมจริง|จำนวนผู้เข้าร่วมจริง|ผู้เข้าร่วมจริง):\s*([0-9]+)/,
   );
   if (t8AttendeesMatch && t8AttendeesMatch[1] && !result.t8ActualAttendees) {
-    result.t8ActualAttendees = t8AttendeesMatch[1].split("\n")[0].trim();
+    result.t8ActualAttendees = t8AttendeesMatch[1].trim();
   }
 
-  const qnaMatch = summaryText.match(/Q&A:\s*(.+)/);
-  if (qnaMatch && qnaMatch[1]) {
-    result.t8FeedbackQnA = qnaMatch[1].split("\n")[0].trim();
+  const qnaMatch = summaryText.match(/(?:Q&A|ข้อเสนอแนะ):\s*([^|\n]+)/);
+  if (qnaMatch && qnaMatch[1] && !result.t8FeedbackQnA) {
+    result.t8FeedbackQnA = qnaMatch[1].trim();
   }
 
   const t8SalesMatch = summaryText.match(

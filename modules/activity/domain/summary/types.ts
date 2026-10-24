@@ -250,6 +250,16 @@ export interface ParsedSummaryValues {
   t7IssuesFound?: string;
   t7bSprayingRounds?: Type7bSprayingRoundItem[];
 
+  // Type 8
+  actualAttendeesCount?: number | string;
+  actualAttendees?: number | string;
+  t8ActualAttendees?: string;
+  t8FeedbackQnA?: string;
+  t8ProductSalesDetails?: any[];
+  t8Images?: ImageFile[];
+  t8RegistrationImages?: ImageFile[];
+  type8Actual?: any;
+
   // Type 12
   t12ActualAttendees?: number | string;
   t12TourHighlights?: string;

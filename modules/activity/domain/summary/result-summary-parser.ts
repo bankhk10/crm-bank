@@ -3,6 +3,7 @@ import { parseType1ActualResult } from "../../features/type-1";
 import { parseType5ActualResult } from "../../features/type-5";
 import { parseType7aActualResult } from "../../features/type-7a";
 import { parseType7bActualResult } from "../../features/type-7b";
+import { parseType8ActualResult } from "../../features/type-8";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -36,6 +37,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (resData.postponedReason)
       result.postponedReason = resData.postponedReason;
     if (resData.postponedNotes) result.postponedNotes = resData.postponedNotes;
+    if (resData.actualAttendeesCount != null) {
+      result.actualAttendeesCount = resData.actualAttendeesCount;
+      result.actualAttendees = resData.actualAttendeesCount;
+      result.t8ActualAttendees = String(resData.actualAttendeesCount);
+    }
   }
 
   // 2. Parse resultSummary JSON payload (if exists)
@@ -174,6 +180,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           }
         }
       }
+    }
+
+    // Type 8 Meeting Actual Results
+    const t8Parsed = parseType8ActualResult(resData);
+    if (Object.keys(t8Parsed).length > 0) {
+      result.type8Actual = t8Parsed;
+      Object.assign(result, t8Parsed);
+    }
+    if (resData.actualAttendeesCount != null && !result.t8ActualAttendees) {
+      result.t8ActualAttendees = String(resData.actualAttendeesCount);
+    }
+    if (t8Parsed.t8ActualAttendees && result.actualAttendeesCount == null) {
+      result.actualAttendeesCount = t8Parsed.t8ActualAttendees;
+      result.actualAttendees = t8Parsed.t8ActualAttendees;
     }
 
     // Type 9 Sale Results from relation table

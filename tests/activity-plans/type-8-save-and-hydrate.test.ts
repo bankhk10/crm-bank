@@ -266,6 +266,38 @@ async function runTests() {
 
   console.log("✓ Test 4 passed: Type 8 Actual results, attendees, sales, and attachments parsed successfully.");
 
+  // -------------------------------------------------------------
+  // Test 5: Verify parseResultSummary parses Type 8 data accurately
+  // -------------------------------------------------------------
+  console.log("\n[Test 5] Testing parseResultSummary with Type 8 data...");
+  const { parseResultSummary } = await import(
+    "../../modules/activity/domain/summary/result-summary-parser"
+  );
+
+  const mockPlanResult = {
+    actualAttendeesCount: 30,
+    resultSummary: "จัดประชุม: อบรมเทคนิคการใช้ฮอร์โมน (ผู้เข้าร่วมจริง: 30 คน) | Q&A: เกษตรกรสนใจสินค้าใหม่",
+    saleResults: [
+      {
+        id: "sale-t8-1",
+        productId: "prod-1",
+        productName: "เอ็นไซม์พลัส",
+        actualQuantity: 15,
+        workTypeCode: "TYPE_8",
+      },
+    ],
+  };
+
+  const parsedSummary = parseResultSummary(mockPlanResult);
+  assert.strictEqual(parsedSummary.actualAttendeesCount, 30, "actualAttendeesCount should be 30");
+  assert.strictEqual(parsedSummary.actualAttendees, 30, "actualAttendees should be 30");
+  assert.strictEqual(parsedSummary.t8ActualAttendees, "30", "t8ActualAttendees should be '30'");
+  assert.strictEqual(parsedSummary.type8Actual?.t8ActualAttendees, "30", "type8Actual.t8ActualAttendees should be '30'");
+  assert.strictEqual(parsedSummary.t8FeedbackQnA, "เกษตรกรสนใจสินค้าใหม่", "t8FeedbackQnA should match");
+  assert.strictEqual(parsedSummary.t8ProductSalesDetails?.length, 1, "Should have 1 sale item");
+
+  console.log("✓ Test 5 passed: parseResultSummary seamlessly parses Type 8 actual attendees, Q&A, and sales.");
+
   console.log("\n🎉 ALL TYPE 8 SAVE & HYDRATION TESTS PASSED 100%!");
 }
 

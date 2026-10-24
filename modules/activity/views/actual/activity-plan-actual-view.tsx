@@ -1168,7 +1168,10 @@ export function ActivityPlanActualView({
               type8Targets[0]?.topic ||
               (plan as any)?.type8Targets?.[0]?.topic ||
               "จัดประชุม";
-            payload.resultSummary = `จัดประชุม: ${meetingTopic} (ผู้เข้าร่วมจริง: ${type8Actual.actualAttendees || "-"} คน)`;
+            const qnaPart = type8Actual.feedbackQnA?.trim()
+              ? ` | Q&A: ${type8Actual.feedbackQnA.trim()}`
+              : "";
+            payload.resultSummary = `จัดประชุม: ${meetingTopic} (ผู้เข้าร่วมจริง: ${type8Actual.actualAttendees || "-"} คน)${qnaPart}`;
           }
         }
 

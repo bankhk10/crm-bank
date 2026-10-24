@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Users,
   ShoppingBag,
@@ -71,6 +71,29 @@ export function Type8DetailView({
     setLightboxState((prev) => ({ ...prev, isOpen: false }));
   };
 
+  // Deduplicate images to prevent duplicate keys or duplicate lightbox items
+  const uniqueRegistrationImages = useMemo<Type8ImageFile[]>(() => {
+    if (!registrationImages || registrationImages.length === 0) return [];
+    const seen = new Set<string>();
+    return registrationImages.filter((img, idx) => {
+      const key = img.id || img.url || String(idx);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [registrationImages]);
+
+  const uniqueImages = useMemo<Type8ImageFile[]>(() => {
+    if (!images || images.length === 0) return [];
+    const seen = new Set<string>();
+    return images.filter((img, idx) => {
+      const key = img.id || img.url || String(idx);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [images]);
+
   if (!isVisible) return null;
 
   const promotionalProducts =
@@ -122,7 +145,9 @@ export function Type8DetailView({
               จำนวนผู้เข้าร่วมจริง
             </span>
             <span className="text-sm sm:text-base font-extrabold text-purple-900 block">
-              {actualAttendees ? `${actualAttendees} คน` : "-"}
+              {actualAttendees != null && actualAttendees !== ""
+                ? `${actualAttendees} คน`
+                : "-"}
             </span>
           </div>
 
@@ -271,23 +296,23 @@ export function Type8DetailView({
               <ClipboardCheck className="w-4 h-4 text-purple-600" />
               รูปใบลงทะเบียนผู้เข้าร่วมงาน
             </span>
-            {registrationImages && registrationImages.length > 0 ? (
+            {uniqueRegistrationImages && uniqueRegistrationImages.length > 0 ? (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                {registrationImages.length} รูป
+                {uniqueRegistrationImages.length} รูป
               </span>
             ) : null}
           </div>
 
-          {registrationImages && registrationImages.length > 0 ? (
+          {uniqueRegistrationImages && uniqueRegistrationImages.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {registrationImages.map((img, imgIdx) => (
+              {uniqueRegistrationImages.map((img, imgIdx) => (
                 <button
-                  key={img.id || imgIdx}
+                  key={img.id ? `${img.id}-${imgIdx}` : `reg-${imgIdx}`}
                   type="button"
                   onClick={() =>
                     openLightbox(
                       `รูปใบลงทะเบียนผู้เข้าร่วมงาน - ${topicTitle}`,
-                      registrationImages,
+                      uniqueRegistrationImages,
                       imgIdx,
                     )
                   }
@@ -323,23 +348,23 @@ export function Type8DetailView({
               <Camera className="w-4 h-4 text-purple-600" />
               ภาพถ่ายบรรยากาศการประชุม
             </span>
-            {images && images.length > 0 ? (
+            {uniqueImages && uniqueImages.length > 0 ? (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                {images.length} รูป
+                {uniqueImages.length} รูป
               </span>
             ) : null}
           </div>
 
-          {images && images.length > 0 ? (
+          {uniqueImages && uniqueImages.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-              {images.map((img, imgIdx) => (
+              {uniqueImages.map((img, imgIdx) => (
                 <button
-                  key={img.id || imgIdx}
+                  key={img.id ? `${img.id}-${imgIdx}` : `img-${imgIdx}`}
                   type="button"
                   onClick={() =>
                     openLightbox(
                       `ภาพถ่ายบรรยากาศการประชุม - ${topicTitle}`,
-                      images,
+                      uniqueImages,
                       imgIdx,
                     )
                   }
