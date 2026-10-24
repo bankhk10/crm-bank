@@ -96,6 +96,10 @@ export async function createUnplannedActivityAction(
           objective: rawData.objective || "",
           description: rawData.description ?? null,
           notes: rawData.notes ?? null,
+          targetAttendeesCount:
+            rawData.targetAttendeesCount != null
+              ? Number(rawData.targetAttendeesCount)
+              : null,
           salesPromotionBudgetRequested: rawData.salesPromotionBudgetRequested
             ? new Prisma.Decimal(rawData.salesPromotionBudgetRequested)
             : null,
@@ -211,6 +215,12 @@ export async function updateUnplannedActivityAction(
           province: rawData.province ?? null,
           district: rawData.district ?? null,
           notes: rawData.notes ?? null,
+          targetAttendeesCount:
+            rawData.targetAttendeesCount !== undefined
+              ? rawData.targetAttendeesCount != null
+                ? Number(rawData.targetAttendeesCount)
+                : null
+              : undefined,
           salesPromotionBudgetRequested: rawData.salesPromotionBudgetRequested
             ? new Prisma.Decimal(rawData.salesPromotionBudgetRequested)
             : null,

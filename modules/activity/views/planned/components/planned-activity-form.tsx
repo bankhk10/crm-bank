@@ -478,7 +478,11 @@ export function PlannedActivityForm({
   );
 
   const type8 = useType8PlannedForm({
+    initial: initialData,
     initialItems: hydratedInitialType8Items,
+    customersList: customers as any,
+    productsList: products as any,
+    selectedWorkTypes,
   });
 
   // 5.9 Type 9 Planned Hook
@@ -759,10 +763,16 @@ export function PlannedActivityForm({
         return;
       }
 
-      const t8Mapped = type8.mapType8Payload(customers as any);
+      const t8Mapped = type8.mapType8Payload(
+        customers as any,
+        products as any,
+      );
       type8Payload = t8Mapped.type8Data;
       if (t8Mapped.stores?.length) {
         planStores = [...planStores, ...t8Mapped.stores];
+      }
+      if (t8Mapped.planProducts?.length) {
+        planProducts = [...planProducts, ...t8Mapped.planProducts];
       }
     }
 
@@ -986,6 +996,13 @@ export function PlannedActivityForm({
       (budgetPayload.marketingBudgetRequested || 0) +
       (budgetPayload.salesPromotionBudgetRequested || 0);
 
+    const type8TotalAttendees = isType8Active
+      ? type8.type8Items.reduce(
+          (sum, it) => sum + (Number(it.attendeesCount) || 0),
+          0,
+        )
+      : null;
+
     // 5. Assemble Payload
     const payload = {
       planType: "PLANNED",
@@ -1003,6 +1020,12 @@ export function PlannedActivityForm({
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
       totalBudgetRequested:
         totalBudgetRequested > 0 ? totalBudgetRequested : null,
+      targetAttendeesCount:
+        type8TotalAttendees != null && type8TotalAttendees > 0
+          ? type8TotalAttendees
+          : isType10Active && type10Payload?.targetAttendees
+            ? type10Payload.targetAttendees
+            : initialData.targetAttendeesCount ?? null,
       notes: notes.trim() || null,
       planStores,
       planProducts,

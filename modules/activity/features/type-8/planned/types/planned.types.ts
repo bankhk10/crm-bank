@@ -191,5 +191,25 @@ export interface UseType8PlannedFormResult {
       notes?: string | null;
       [key: string]: any;
     }>;
+    products?: Array<{
+      workTypeCode?: string;
+      storeId?: string | null;
+      productId: string;
+      productName?: string | null;
+      targetQuantity?: number | null;
+      unitPrice?: number | null;
+      notes?: string | null;
+      [key: string]: any;
+    }>;
+    planProducts?: Array<{
+      workTypeCode?: string;
+      storeId?: string | null;
+      productId: string;
+      productName?: string | null;
+      targetQuantity?: number | null;
+      unitPrice?: number | null;
+      notes?: string | null;
+      [key: string]: any;
+    }>;
   };
 }
