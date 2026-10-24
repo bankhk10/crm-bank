@@ -220,6 +220,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
           rawData.type7bUnplannedItems.length > 0) ||
         rawData.type7bData ||
         rawData.type7b ||
+        rawData.type7bActual ||
+        rawData.t7SprayingRounds ||
+        rawData.t7PlotStatus ||
         rawData.t7GrowthStage,
       ),
   },

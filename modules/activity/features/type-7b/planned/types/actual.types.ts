@@ -10,6 +10,7 @@ export interface Type7bBaselineProductItem {
   withdrawnQuantity?: number | string;
   plannedQuantity?: number | string;
   actualQuantity?: number | string;
+  quantityUsed?: number | string;
   extraQuantity?: number | string;
   extraUnit?: string;
   applicationRate?: string;

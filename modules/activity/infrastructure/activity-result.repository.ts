@@ -138,7 +138,10 @@ export async function upsertActivityResult(
     await saveStrategiesForActual(
       tx,
       input.activityPlanId,
-      input,
+      {
+        ...input,
+        activityResultId: result.id,
+      },
       input.planWorkTypeCodes || []
     );
 

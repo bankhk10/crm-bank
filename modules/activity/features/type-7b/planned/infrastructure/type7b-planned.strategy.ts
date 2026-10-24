@@ -206,116 +206,135 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           },
         });
       }
+    }
 
-      // 5. Sync ActivityResultSprayRound & ActivityResultSprayProduct
-      if (resultId) {
-        await (tx as any).activityResultSprayRound.deleteMany({
-          where: { activityResultId: resultId },
+    // 5. Sync ActivityResultSprayRound & ActivityResultSprayProduct (independent of demoPlotId)
+    if (resultId) {
+      await (tx as any).activityResultSprayRound.deleteMany({
+        where: { activityResultId: resultId },
+      });
+
+      for (const round of sprayingRounds) {
+        const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
+
+        const createdRound = await (tx as any).activityResultSprayRound.create({
+          data: {
+            activityResultId: resultId,
+            demoPlotId: demoPlotId || null,
+            roundNumber: round.roundNumber || 1,
+            sprayDate: roundSprayDate,
+            sprayMethod: round.sprayMethod || "SINGLE",
+            sprayEquipment:
+              round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+            otherEquipment: round.otherEquipment || null,
+            productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+            problemDetail: round.problemDetail || null,
+            daysSinceStart,
+            notes: t7b.t7Notes || null,
+            workTypeCode: "TYPE_7B",
+          },
         });
 
-        for (const round of sprayingRounds) {
-          const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
+        const productsToInsert: any[] = [];
 
-          const createdRound = await (tx as any).activityResultSprayRound.create({
-            data: {
-              activityResultId: resultId,
-              demoPlotId,
-              roundNumber: round.roundNumber || 1,
-              sprayDate: roundSprayDate,
-              sprayMethod: round.sprayMethod || "SINGLE",
-              sprayEquipment: round.sprayEquipment || "เป้สะพายหลัง",
-              otherEquipment: round.otherEquipment || null,
-              productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-              problemDetail: round.problemDetail || null,
-              daysSinceStart,
-              notes: t7b.t7Notes || null,
-              workTypeCode: "TYPE_7B",
-            },
-          });
-
-          const productsToInsert: any[] = [];
-
-          // 1.1 Baseline Products
-          for (const bp of round.baselineProducts || []) {
-            if (bp.productId) {
-              const rate = bp.applicationRate || bp.actualRate || bp.plannedRate || "ตามคำแนะนำ";
-              const qty =
-                bp.actualQuantity != null && bp.actualQuantity !== ""
-                  ? bp.actualQuantity
-                  : bp.quantityUsed != null && bp.quantityUsed !== ""
-                    ? bp.quantityUsed
-                    : bp.plannedQuantity || 1;
-              const unit = bp.unit || null;
-              const detail = bp.extraQuantity
-                ? `ใช้เพิ่ม ${bp.extraQuantity} ${bp.extraUnit || "ซีซี"}`
-                : bp.detail || null;
-
-              productsToInsert.push({
-                sprayRoundId: createdRound.id,
-                productId: bp.productId,
-                productName: bp.productName || null,
-                baselineRate: bp.plannedRate || null,
-                actualRate: rate,
-                quantityUsed: new Prisma.Decimal(String(qty)),
-                unit: unit,
-                detail: detail,
+        // 1.1 Baseline Products
+        for (const bp of round.baselineProducts || []) {
+          if (bp.productId) {
+            let prodName = bp.productName || null;
+            if (!prodName) {
+              const pRecord = await (tx as any).product.findUnique({
+                where: { id: bp.productId },
+                select: { name: true },
               });
+              prodName = pRecord?.name || "สินค้าตามแผน";
             }
-          }
 
-          // 1.2 Additional Products
-          for (const ap of round.additionalProducts || []) {
-            if (ap.productId) {
-              const rate = ap.applicationRate || ap.actualRate || "ตามคำแนะนำ";
-              const qty =
-                ap.actualQuantity != null && ap.actualQuantity !== ""
-                  ? ap.actualQuantity
-                  : ap.quantityUsed != null && ap.quantityUsed !== ""
-                    ? ap.quantityUsed
-                    : 1;
-              const unit = ap.unit || null;
-              const detail = ap.extraQuantity
-                ? `ใช้เพิ่ม ${ap.extraQuantity} ${ap.extraUnit || "ซีซี"}`
-                : ap.detail || null;
+            const rate = bp.applicationRate || bp.actualRate || bp.plannedRate || "ตามคำแนะนำ";
+            const qty =
+              bp.actualQuantity != null && bp.actualQuantity !== ""
+                ? bp.actualQuantity
+                : bp.quantityUsed != null && bp.quantityUsed !== ""
+                  ? bp.quantityUsed
+                  : bp.plannedQuantity || 1;
+            const unit = bp.unit || null;
+            const detail = bp.extraQuantity
+              ? `ใช้เพิ่ม ${bp.extraQuantity} ${bp.extraUnit || "ซีซี"}`
+              : bp.detail || null;
 
-              productsToInsert.push({
-                sprayRoundId: createdRound.id,
-                productId: ap.productId,
-                productName: ap.productName || null,
-                baselineRate: null,
-                actualRate: rate,
-                quantityUsed: new Prisma.Decimal(String(qty)),
-                unit: unit,
-                detail: detail,
-              });
-            }
-          }
-
-          if (productsToInsert.length > 0) {
-            await (tx as any).activityResultSprayProduct.createMany({
-              data: productsToInsert,
+            productsToInsert.push({
+              sprayRoundId: createdRound.id,
+              productId: bp.productId,
+              productName: prodName,
+              baselineRate: bp.plannedRate || "ตามแผน",
+              actualRate: rate,
+              quantityUsed: new Prisma.Decimal(String(qty)),
+              unit: unit,
+              detail: detail,
             });
           }
+        }
 
-          // Attachments per Round
-          if (Array.isArray(round.roundImages) && round.roundImages.length > 0) {
-            const validImages = round.roundImages.filter((img: any) => img && (img.url || img.fileUrl));
-            if (validImages.length > 0) {
-              await (tx as any).activityAttachment.createMany({
-                data: validImages.map((img: any) => ({
-                  activityPlanId,
-                  activityResultId: resultId,
-                  demoPlotId,
-                  sprayRoundId: createdRound.id,
-                  workTypeCode: "TYPE_7B",
-                  category: "PLOT",
-                  fileUrl: img.url || img.fileUrl,
-                  fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
-                  fileSize: img.size || img.fileSize || 0,
-                  mimeType: img.type || img.mimeType || "image/jpeg",
-                })),
+        // 1.2 Additional Products
+        for (const ap of round.additionalProducts || []) {
+          if (ap.productId) {
+            let prodName = ap.productName || null;
+            if (!prodName) {
+              const pRecord = await (tx as any).product.findUnique({
+                where: { id: ap.productId },
+                select: { name: true },
               });
+              prodName = pRecord?.name || "สินค้าเพิ่มเติม";
             }
+
+            const rate = ap.applicationRate || ap.actualRate || "ตามคำแนะนำ";
+            const qty =
+              ap.actualQuantity != null && ap.actualQuantity !== ""
+                ? ap.actualQuantity
+                : ap.quantityUsed != null && ap.quantityUsed !== ""
+                  ? ap.quantityUsed
+                  : 1;
+            const unit = ap.unit || null;
+            const detail = ap.extraQuantity
+              ? `ใช้เพิ่ม ${ap.extraQuantity} ${ap.extraUnit || "ซีซี"}`
+              : ap.detail || null;
+
+            productsToInsert.push({
+              sprayRoundId: createdRound.id,
+              productId: ap.productId,
+              productName: prodName,
+              baselineRate: null,
+              actualRate: rate,
+              quantityUsed: new Prisma.Decimal(String(qty)),
+              unit: unit,
+              detail: detail,
+            });
+          }
+        }
+
+        if (productsToInsert.length > 0) {
+          await (tx as any).activityResultSprayProduct.createMany({
+            data: productsToInsert,
+          });
+        }
+
+        // Attachments per Round
+        if (Array.isArray(round.roundImages) && round.roundImages.length > 0) {
+          const validImages = round.roundImages.filter((img: any) => img && (img.url || img.fileUrl));
+          if (validImages.length > 0) {
+            await (tx as any).activityAttachment.createMany({
+              data: validImages.map((img: any) => ({
+                activityPlanId,
+                activityResultId: resultId,
+                demoPlotId: demoPlotId || null,
+                sprayRoundId: createdRound.id,
+                workTypeCode: "TYPE_7B",
+                category: "PLOT",
+                fileUrl: img.url || img.fileUrl,
+                fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
+                fileSize: img.size || img.fileSize || 0,
+                mimeType: img.type || img.mimeType || "image/jpeg",
+              })),
+            });
           }
         }
       }

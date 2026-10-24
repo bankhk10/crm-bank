@@ -2,6 +2,7 @@ import type { ParsedSummaryValues } from "./types";
 import { parseType1ActualResult } from "../../features/type-1";
 import { parseType5ActualResult } from "../../features/type-5";
 import { parseType7aActualResult } from "../../features/type-7a";
+import { parseType7bActualResult } from "../../features/type-7b";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -41,14 +42,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
   const rawSummary =
     typeof resData === "string" ? resData : resData?.resultSummary;
   if (rawSummary) {
-    try {
-      const parsed =
-        typeof rawSummary === "string" ? JSON.parse(rawSummary) : rawSummary;
-      if (parsed && typeof parsed === "object") {
-        Object.assign(result, parsed);
+    if (
+      typeof rawSummary === "object" ||
+      (typeof rawSummary === "string" &&
+        (rawSummary.trim().startsWith("{") || rawSummary.trim().startsWith("[")))
+    ) {
+      try {
+        const parsed =
+          typeof rawSummary === "string" ? JSON.parse(rawSummary) : rawSummary;
+        if (parsed && typeof parsed === "object") {
+          Object.assign(result, parsed);
+        }
+      } catch (err) {
+        console.error("Failed to parse resultSummary JSON:", err);
       }
-    } catch (err) {
-      console.error("Failed to parse resultSummary JSON:", err);
     }
   }
 
@@ -62,6 +69,12 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     const t7aParsed = parseType7aActualResult(resData);
     Object.assign(result, t7aParsed);
+
+    const t7bParsed = parseType7bActualResult(rawSummary || "", resData);
+    if (Object.keys(t7bParsed).length > 0) {
+      result.type7bActual = t7bParsed;
+      Object.assign(result, t7bParsed);
+    }
 
     if (resData.problemFound && !result.problemFound) {
       result.problemFound = resData.problemFound;

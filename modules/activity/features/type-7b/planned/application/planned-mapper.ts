@@ -111,6 +111,7 @@ export function extractType7bPlanTargets(
 
       return {
         id: plot.id || plot.demoPlotId || `plot-${idx}`,
+        demoPlotId: plot.demoPlotId || demoPlot.id || plot.id,
         plotName,
         plotCode: demoPlot.code || "",
         owner: ownerName,

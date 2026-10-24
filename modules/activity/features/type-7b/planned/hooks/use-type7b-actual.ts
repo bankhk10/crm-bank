@@ -223,6 +223,17 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
           [field]: value,
         };
 
+        // Sync field aliases
+        if (field === "actualQuantity") {
+          prods[prodIdx].quantityUsed = value;
+        } else if (field === "quantityUsed") {
+          prods[prodIdx].actualQuantity = value;
+        } else if (field === "applicationRate") {
+          prods[prodIdx].actualRate = value;
+        } else if (field === "actualRate") {
+          prods[prodIdx].applicationRate = value;
+        }
+
         currentRounds[roundIdx] = {
           ...currentRounds[roundIdx],
           additionalProducts: prods,
@@ -274,6 +285,13 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
           [field]: value,
         };
 
+        // Sync field aliases
+        if (field === "actualQuantity") {
+          prods[prodIdx].quantityUsed = value;
+        } else if (field === "applicationRate") {
+          prods[prodIdx].actualRate = value;
+        }
+
         currentRounds[roundIdx] = {
           ...currentRounds[roundIdx],
           baselineProducts: prods,
@@ -306,6 +324,18 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
     });
   }, []);
 
+  const hydrate = useCallback((parsedData: Type7bActualRecord) => {
+    if (!parsedData || Object.keys(parsedData).length === 0) return;
+    setActualState((prev) => ({
+      ...prev,
+      ...parsedData,
+      t7SprayingRounds:
+        Array.isArray(parsedData.t7SprayingRounds) && parsedData.t7SprayingRounds.length > 0
+          ? parsedData.t7SprayingRounds
+          : prev.t7SprayingRounds,
+    }));
+  }, []);
+
   const validate = useCallback(() => {
     return validateType7bActual(actualState);
   }, [actualState]);
@@ -313,6 +343,7 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
   return {
     actualState,
     setActualState,
+    hydrate,
     handleUpdateField,
     initBaselineProducts,
     addSprayingRound,

@@ -281,7 +281,7 @@ export function ActivityPlanActualView({
           payloadToHydrate,
         );
         if (Object.keys(parsedT7b).length > 0) {
-          type7bActual.setActualState((prev) => ({ ...prev, ...parsedT7b }));
+          type7bActual.hydrate(parsedT7b);
         }
         type8Actual.hydrate(payloadToHydrate);
         type9Actual.hydrate(payloadToHydrate);
@@ -1063,6 +1063,11 @@ export function ActivityPlanActualView({
 
           const t7bRecord = {
             ...type7bActual.actualState,
+            t7DemoPlotId:
+              type7bActual.actualState.t7DemoPlotId ||
+              type7bTargets[0]?.demoPlotId ||
+              type7bTargets[0]?.id ||
+              plan?.type7b?.plots?.[0]?.demoPlotId,
             t7CropImages: finalCropImages,
             t7PlotImages: finalPlotImages,
             t7SprayingRounds: updatedRounds,
