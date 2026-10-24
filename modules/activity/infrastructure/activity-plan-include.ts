@@ -417,6 +417,66 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     },
     orderBy: { createdAt: "asc" },
   },
+  // Dedicated Type 8 relations
+  type8Targets: {
+    include: {
+      dealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+          phone: true,
+        },
+      },
+      subdealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+          phone: true,
+        },
+      },
+      products: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              price: true,
+              unit: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      result: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type8Products: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+          price: true,
+          unit: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type8Results: {
+    orderBy: { createdAt: "asc" },
+  },
   marketingItems: {
     orderBy: { createdAt: "asc" },
   },

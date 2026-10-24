@@ -9,8 +9,22 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
 
   const summaryText = resData.resultSummary || "";
 
-  // 1. Direct fields from ActivityResult
-  if (resData.actualAttendeesCount != null) {
+  // 1. Direct fields from ActivityResult & Dedicated Tables (activity_type_8_result)
+  const dedicatedResult =
+    resData.type8Results?.[0] ||
+    resData.result?.type8Results?.[0] ||
+    resData.type8Targets?.[0]?.result;
+
+  if (dedicatedResult) {
+    if (dedicatedResult.actualAttendeesCount != null) {
+      result.t8ActualAttendees = String(dedicatedResult.actualAttendeesCount);
+    }
+    if (dedicatedResult.feedbackQnA) {
+      result.t8FeedbackQnA = dedicatedResult.feedbackQnA;
+    }
+  }
+
+  if (resData.actualAttendeesCount != null && !result.t8ActualAttendees) {
     const num = Number(resData.actualAttendeesCount);
     if (!isNaN(num)) {
       result.t8ActualAttendees = String(num);
@@ -32,8 +46,33 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
     result.t8FeedbackQnA = resData.feedbackQnA;
   }
 
-  // 2. Structured Sale Results
-  if (Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
+  // 2. Structured Sale Results (Dedicated Table: activity_type_8_products & Legacy saleResults)
+  const dedicatedProducts =
+    resData.type8Products ||
+    resData.type8Targets?.[0]?.products ||
+    [];
+
+  const dedicatedSales = Array.isArray(dedicatedProducts)
+    ? dedicatedProducts.filter(
+        (p: any) =>
+          p.actualQuantity != null ||
+          p.productRole === "ADDITIONAL_SALE" ||
+          p.actualTotal != null,
+      )
+    : [];
+
+  if (dedicatedSales.length > 0) {
+    result.t8ProductSalesDetails = dedicatedSales.map((s: any) => ({
+      id: s.id,
+      productId: s.productId || s.product?.id,
+      productName: s.productName || s.product?.name || "",
+      actualQty: s.actualQuantity != null ? String(s.actualQuantity) : "",
+      actualSales: s.actualTotal != null ? String(s.actualTotal) : "",
+      unitPrice: s.actualUnitPrice != null ? Number(s.actualUnitPrice) : undefined,
+      notes: s.actualNotes || "",
+      isAdditional: s.productRole === "ADDITIONAL_SALE",
+    }));
+  } else if (Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
     const t8Sales = resData.saleResults.filter(
       (s: any) =>
         s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",

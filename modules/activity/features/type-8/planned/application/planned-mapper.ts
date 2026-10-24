@@ -34,6 +34,82 @@ export function extractType8PlanTargets(
     ...prevTarget,
   };
 
+  // 1. Dedicated Relational Storage support (activity_type_8_targets & activity_type_8_products)
+  if (plan?.type8Targets && Array.isArray(plan.type8Targets) && plan.type8Targets.length > 0) {
+    const list: Type8TargetItem[] = plan.type8Targets.map((t: any, idx: number) => {
+      const dealerName = t.dealerName || t.dealer?.name || "";
+      const subDealerName = t.subDealerStore || t.subdealer?.name || "";
+      const customerDisplay = subDealerName
+        ? `${subDealerName} (Dealer: ${dealerName || "-"})`
+        : (dealerName || t.location || "");
+
+      const allProds: any[] = t.products || (plan.type8Products || []).filter((p: any) => p.targetId === t.id);
+      const targetProds = allProds.filter((p: any) => p.productRole === "TARGET" || !p.productRole);
+      const promoProds = allProds.filter((p: any) => p.productRole === "PROMOTION");
+
+      const targetProductNames = targetProds
+        .map((p: any) => p.productName || p.product?.name)
+        .filter(Boolean) as string[];
+
+      const targetProductItems = targetProds.map((p: any, pIdx: number) => ({
+        id: p.id || `t8-prod-${pIdx}`,
+        productId: p.productId || p.product?.id,
+        productName: p.productName || p.product?.name || "",
+      }));
+
+      const promotionalProducts: Type8PromotionalProductLine[] = promoProds.map((p: any, pIdx: number) => ({
+        id: p.id || `t8-promo-${pIdx}`,
+        productId: p.productId || p.product?.id || "",
+        productName: p.productName || p.product?.name || "สินค้าโปรโมชัน",
+        quantity: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+        unitPrice: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+        pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+        totalAmount: p.targetAmount != null ? Number(p.targetAmount) : 0,
+        notes: p.promotionNotes || "",
+        storeId: t.dealerId || null,
+      }));
+
+      const targetAttendees =
+        t.targetAttendeesCount != null && Number(t.targetAttendeesCount) > 0
+          ? `${t.targetAttendeesCount} คน`
+          : (plan?.targetAttendeesCount != null && Number(plan.targetAttendeesCount) > 0 ? `${plan.targetAttendeesCount} คน` : "");
+
+      return {
+        id: t.id || `t8-target-${idx}`,
+        storeId: t.dealerId || t.subdealerId,
+        topic: t.topic || "",
+        customer: customerDisplay,
+        dealerName,
+        subDealerStore: subDealerName,
+        detail: t.detail || "",
+        targetProducts: targetProductNames,
+        targetProductItems,
+        products: targetProductNames.join(", "),
+        promotionalProducts,
+        targetAttendees,
+        venueType: t.venueType,
+        location: t.location,
+        meetingDate: t.meetingDate,
+        meetingTime: t.meetingTime,
+        items: targetProductItems.map((tp) => ({
+          productName: tp.productName,
+          targetQty: "-",
+        })),
+      };
+    });
+
+    const primaryTarget: Type8TargetItem = {
+      ...list[0],
+      items: list.flatMap((l) => l.items || []),
+    };
+
+    return {
+      primary: primaryTarget,
+      list,
+    };
+  }
+
   const rawStores: any[] = plan?.stores || plan?.planStores || [];
   const rawProducts: any[] = plan?.products || plan?.planProducts || [];
 
@@ -191,6 +267,49 @@ export function extractType8PlanTargets(
  */
 export function hydrateType8PlannedData(plan: any): Type8MeetingItem[] {
   if (!plan) return [];
+
+  // Dedicated Relational Storage support (activity_type_8_targets & activity_type_8_products)
+  if (plan?.type8Targets && Array.isArray(plan.type8Targets) && plan.type8Targets.length > 0) {
+    return plan.type8Targets.map((t: any, idx: number) => {
+      const allProds: any[] = t.products || (plan.type8Products || []).filter((p: any) => p.targetId === t.id);
+      const targetProds = allProds.filter((p: any) => p.productRole === "TARGET" || !p.productRole);
+      const promoProds = allProds.filter((p: any) => p.productRole === "PROMOTION");
+
+      const targetProducts = targetProds
+        .map((p: any) => p.productName || p.product?.name || "")
+        .filter(Boolean);
+      const targetProductIds = targetProds
+        .map((p: any) => p.productId || p.product?.id || "")
+        .filter(Boolean);
+
+      const promotionProducts: Type8PromotionProductItem[] = promoProds.map((p: any, pIdx: number) => ({
+        id: p.id || `promo-${idx}-${pIdx + 1}`,
+        productId: p.productId || p.product?.id || "",
+        productName: p.productName || p.product?.name || "",
+        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+        pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+        notes: p.promotionNotes || "",
+      }));
+
+      return {
+        id: t.id || `t8-${Date.now()}-${idx}`,
+        meetingTarget: (t.meetingTarget as Type8MeetingTarget) || "FARMER",
+        farmerChannel: (t.farmerChannel as Type8FarmerChannel) || "DEALER",
+        dealerId: t.dealerId || "",
+        dealerName: t.dealerName || t.dealer?.name || "",
+        subdealerId: t.subdealerId || "",
+        subDealerStore: t.subDealerStore || t.subdealer?.name || "",
+        isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+        topic: t.topic || "",
+        targetProducts,
+        targetProductIds,
+        attendeesCount: t.targetAttendeesCount != null ? Number(t.targetAttendeesCount) : (plan?.targetAttendeesCount != null ? Number(plan.targetAttendeesCount) : 10),
+        detail: t.detail || "",
+        venueType: (t.venueType as Type8VenueType) || "STORE",
+        promotionProducts,
+      };
+    });
+  }
 
   if (plan.type8Items && Array.isArray(plan.type8Items) && plan.type8Items.length > 0) {
     return plan.type8Items;

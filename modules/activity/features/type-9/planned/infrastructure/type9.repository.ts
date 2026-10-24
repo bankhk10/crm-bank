@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import type { PrismaTransaction } from "@/modules/activity/types/strategy.interface";
 import type { Type9ProductSaleDetail } from "../../shared/types";
 
@@ -41,20 +42,36 @@ export async function saveType9ActualSales(
     },
   });
 
-  if (saleDetails.length > 0) {
+  const validSales = (saleDetails || []).filter(
+    (item) => item && typeof item.productId === "string" && item.productId.trim() !== "",
+  );
+
+  if (validSales.length > 0) {
     await (tx as any).activityResultSaleItem.createMany({
-      data: saleDetails.map((item: Type9ProductSaleDetail) => ({
-        activityResultId: resultId,
-        workTypeCode: "TYPE_9",
-        storeId: item.storeId || null,
-        productId: item.productId || null,
-        productName: item.productName || null,
-        actualQuantity: item.actualQuantityCases
-          ? Number(item.actualQuantityCases)
-          : 0,
-        actualUnitPrice: item.pricePerCase ? Number(item.pricePerCase) : null,
-        actualTotal: item.actualSales ? Number(item.actualSales) : null,
-      })),
+      data: validSales.map((item: Type9ProductSaleDetail) => {
+        const qty = item.actualQuantityCases
+          ? Math.max(0, parseInt(String(item.actualQuantityCases), 10) || 0)
+          : 0;
+        const unitPrice =
+          item.pricePerCase != null && !isNaN(Number(item.pricePerCase))
+            ? Number(item.pricePerCase)
+            : 0;
+        const total =
+          item.actualSales != null && !isNaN(Number(item.actualSales))
+            ? Number(item.actualSales)
+            : qty * unitPrice;
+
+        return {
+          activityResultId: resultId,
+          workTypeCode: "TYPE_9",
+          storeId: item.storeId || null,
+          productId: item.productId!,
+          productName: item.productName || null,
+          actualQuantity: qty,
+          actualUnitPrice: new Prisma.Decimal(unitPrice),
+          actualTotal: new Prisma.Decimal(total),
+        };
+      }),
     });
   }
 }

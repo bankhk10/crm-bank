@@ -12,6 +12,58 @@ export function hydrateType8UnplannedData(initialData: any): Type8UnplannedItem[
     return initialData.type8UnplannedItems;
   }
 
+  // Dedicated Relational Storage support (activity_type_8_targets, activity_type_8_products, activity_type_8_result)
+  if (Array.isArray(initialData.type8Targets) && initialData.type8Targets.length > 0) {
+    return initialData.type8Targets.map((t: any, idx: number) => {
+      const allProds: any[] = t.products || (initialData.type8Products || []).filter((p: any) => p.targetId === t.id);
+      const promoProds = allProds.filter((p: any) => p.productRole === "PROMOTION");
+      const saleProds = allProds.filter((p: any) => p.actualQuantity != null || p.productRole === "ADDITIONAL_SALE");
+      const targetResult = t.result || (initialData.type8Results || []).find((r: any) => r.targetId === t.id);
+
+      return {
+        id: t.id || String(idx + 1),
+        topic: t.topic || "",
+        meetingTarget: t.meetingTarget || "FARMER",
+        farmerChannel: t.farmerChannel || undefined,
+        customerId: t.dealerId || null,
+        customerName: t.dealerName || t.dealer?.name || null,
+        subdealerId: t.subdealerId || null,
+        subdealerName: t.subDealerStore || t.subdealer?.name || null,
+        isNewSubdealer: Boolean(t.isUnregisteredSubdealer),
+        venueType: t.venueType || "STORE",
+        location: t.location || "",
+        meetingDate: t.meetingDate ? (typeof t.meetingDate === "string" ? t.meetingDate.slice(0, 10) : new Date(t.meetingDate).toISOString().slice(0, 10)) : "",
+        meetingTime: t.meetingTime || "",
+        expectedAttendees: t.targetAttendeesCount ?? "",
+        actualAttendees: targetResult?.actualAttendeesCount ?? "",
+        promotions: promoProds.map((p: any, pIdx: number) => ({
+          id: p.id || `promo-${pIdx}`,
+          productId: p.productId || "",
+          productName: p.productName || "",
+          quantity: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+          quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+          unitPrice: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+          pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
+          notes: p.promotionNotes || "",
+        })),
+        productSalesDetails: saleProds.map((p: any, sIdx: number) => ({
+          id: p.id || `sale-${sIdx}`,
+          productId: p.productId || "",
+          productName: p.productName || "",
+          actualQty: p.actualQuantity != null ? String(p.actualQuantity) : "",
+          actualSales: p.actualTotal != null ? String(p.actualTotal) : "",
+          unitPrice: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : undefined,
+          notes: p.actualNotes || "",
+          isAdditional: p.productRole === "ADDITIONAL_SALE",
+        })),
+        feedbackQnA: targetResult?.feedbackQnA || "",
+        notes: t.detail || "",
+        registrationImages: [],
+        images: [],
+      };
+    });
+  }
+
   const t8 = initialData.type8 || initialData.type8Data;
   if (!t8) return [];
 
@@ -163,16 +215,25 @@ export function mapType8UnplannedToPayload(items: Type8UnplannedItem[]) {
       farmerChannel: i.farmerChannel,
       customerId: i.customerId,
       customerName: i.customerName,
+      dealerId: i.customerId,
+      dealerName: i.customerName,
       subdealerId: i.subdealerId,
       subdealerName: i.subdealerName,
+      subDealerStore: i.subdealerName,
+      isUnregisteredSubdealer: Boolean(i.isNewSubdealer),
       venueType: i.venueType,
       location: i.location,
       meetingDate: i.meetingDate,
       meetingTime: i.meetingTime,
       expectedAttendees: i.expectedAttendees,
       actualAttendees: i.actualAttendees,
+      attendeesCount: i.expectedAttendees ? Number(i.expectedAttendees) : (i.actualAttendees ? Number(i.actualAttendees) : 10),
       notes: i.notes,
+      detail: i.notes,
       promotions: i.promotions,
+      promotionProducts: i.promotions,
+      productSalesDetails: i.productSalesDetails,
+      feedbackQnA: i.feedbackQnA,
     })),
   };
 
@@ -180,6 +241,8 @@ export function mapType8UnplannedToPayload(items: Type8UnplannedItem[]) {
     workTypeCode: WORK_TYPE_CODE,
     workTypeName: WORK_TYPE_NAME,
     type8Data,
+    type8Meetings: type8Data.meetings,
+    type8Items: type8Data.meetings,
     stores,
     targets,
     actualOutcome,

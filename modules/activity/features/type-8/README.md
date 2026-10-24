@@ -2,7 +2,7 @@
 
 > **Feature Slice**: `modules/activity/features/type-8`  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResult`, `ActivityResultSaleItem`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType8Target`, `ActivityPlanType8Product`, `ActivityResultType8`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
 > **Status**: Production Ready / Active Reference
 
@@ -62,7 +62,7 @@ graph TD
     J --> K[ระบุสถานที่จัด venueType: STORE หรือ OTHER]
     K --> L[เพิ่มรายการโปรโมชัน promotionProducts: สินค้า/จำนวนลัง/ราคาพิเศษ]
     L --> M[กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ SUBMITTED]
-    M --> N[type8PlannedStrategy บันทึกลง ActivityPlanStore และ ActivityPlanProduct]
+    M --> N[type8PlannedStrategy บันทึกลง ActivityPlanType8Target และ ActivityPlanType8Product]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -80,7 +80,7 @@ graph TD
     J --> K[อัปโหลดรูปภาพบรรยากาศการประชุม ไม่บังคับ]
     K --> L[กดบันทึกผลการปฏิบัติงาน]
     L --> M[useType8Actual.uploadImages อัปโหลดรูปไปยัง Storage]
-    M --> N[type8PlannedStrategy บันทึกลง ActivityResult และ ActivityResultSaleItem]
+    M --> N[type8PlannedStrategy บันทึกลง ActivityResultType8 และ ActivityPlanType8Product]
     D -->|POSTPONED| O[ระบุวันเวลาที่เลื่อนและเหตุผล]
     D -->|CANCELLED| P[ระบุสาเหตุการยกเลิก]
 ```
@@ -88,7 +88,7 @@ graph TD
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` แล้วเลือกประเภทงาน **จัดประชุม (Type 8)**
 - ฟอร์ม `Type8UnplannedForm` รวมขั้นตอนการกำหนดเป้าหมาย (หัวข้อ, กลุ่มเป้าหมาย, ร้านค้า Dealer/Subdealer, วันเวลา, สถานที่, โปรโมชัน) และการบันทึกผลสัมฤทธิ์จริง (ผู้เข้าร่วมจริง, ยอดขายสินค้า, Q&A, รูปถ่ายใบลงทะเบียน, รูปบรรยากาศ) เข้าไว้ในหน้าจอเดียว
-- เมื่อกดบันทึก ระบบจะส่ง Payload ผ่าน `unplanned.actions.ts` ➔ รัน `type8UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกข้อมูลแผน (`ActivityPlanStore`, `ActivityPlanProduct`) และบันทึกผลงานจริง (`ActivityResult`, `ActivityResultSaleItem`, `ActivityAttachment`) พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
+- เมื่อกดบันทึก ระบบจะส่ง Payload ผ่าน `unplanned.actions.ts` ➔ รัน `type8UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกข้อมูลแผน (`ActivityPlanType8Target`, `ActivityPlanType8Product`) และบันทึกผลงานจริง (`ActivityResultType8`, `ActivityPlanType8Product`, `ActivityAttachment`) พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:**
@@ -110,7 +110,7 @@ modules/activity/features/type-8/
 ├── shared/                                 # ชิ้นส่วนที่ใช้ร่วมกันภายใน Type 8
 │   ├── constants.ts                        # ค่าคงที่: รหัสงาน, กลุ่มเป้าหมาย, ช่องทาง, ประเภทสถานที่
 │   ├── types.ts                            # อินเตอร์เฟซข้อมูล: Type8ImageFile, ProductSaleDetail, Options
-│   └── notes.ts                            # Helper เข้ารหัส/ถอดรหัส JSON ใน ActivityPlanStore.notes
+│   └── notes.ts                            # Helper เข้ารหัส/ถอดรหัส JSON (สำหรับ Backward Compatibility)
 │
 ├── planned/                                # Sub-slice: กิจกรรมในแผนและบันทึกผลตามแผน
 │   ├── application/                        # Business Logic, Mappers, Validators
@@ -156,7 +156,7 @@ modules/activity/features/type-8/
 | **งบประมาณรวม** | - | งบเบิกสินค้าสาธิต, งบส่งเสริมการขาย, เบี้ยเลี้ยงเดินทาง |
 | **ข้อมูลการประชุมตามแผน** | หัวข้อ, กลุ่มเป้าหมาย (Farmer/Dealer/Subdealer), ร้านค้า, สถานที่จัด, สินค้าเป้าหมาย (<=5), รายการโปรโมชัน | จำนวนผู้เข้าร่วมเป้าหมายรวม (`ActivityPlan.targetAttendeesCount`) |
 | **ผลการจัดประชุมจริง** | ผู้เข้าร่วมจริง, ข้อเสนอแนะ/Q&A, ยอดขายสินค้าเป้าหมาย/เพิ่มเติม, รูปใบลงทะเบียน, รูปบรรยากาศ | ผลสรุปภาพรวมแผน (`resultStatus`: COMPLETED/PARTIAL/etc.) |
-| **Database Persistence** | ตาราง `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResultSaleItem` (ผ่าน `saveType8ActualSales`) | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
+| **Database Persistence** | ตารางเฉพาะ `ActivityPlanType8Target`, `ActivityPlanType8Product`, `ActivityResultType8` | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ที่อนุญาต (Allowed Dependencies):**
@@ -194,25 +194,25 @@ modules/activity/features/type-8/
 
 ### 4.1 Planned & Actual
 - **`type8-planned-form.tsx`:** เรนเดอร์ฟอร์มวางแผนจัดประชุม รองรับการเพิ่มหลายรายการประชุม (`type8Items`), เลือกระดับเป้าหมาย (Farmer / Dealer / Subdealer), ค้นหาร้านค้าผ่าน `ActivityCustomerSelect`, เลือกสินค้าเป้าหมายผ่าน `ActivityProductSelect`, ระบุสถานที่ และเพิ่มแถวโปรโมชันสินค้า
-- **`use-type8-planned-form.ts`:** จัดการ State ของรายการประชุมตามแผน แปลงข้อมูลเดิมจาก `ActivityPlanStore` และ `ActivityPlanProduct` หรือ Payload JSON เข้าระบบ พร้อมฟังก์ชัน `addType8Row`, `updateType8Row`, `deleteType8Row`, `addPromotionProduct`, `updatePromotionProduct`, และ `deletePromotionProduct`
+- **`use-type8-planned-form.ts`:** จัดการ State ของรายการประชุมตามแผน แปลงข้อมูลเดิมจาก `ActivityPlanType8Target` และ `ActivityPlanType8Product` หรือ Payload JSON เข้าระบบ พร้อมฟังก์ชัน `addType8Row`, `updateType8Row`, `deleteType8Row`, `addPromotionProduct`, `updatePromotionProduct`, และ `deletePromotionProduct`
 - **`type8-plan-card.tsx`:** การ์ดแสดงรายละเอียดแผนงานจัดประชุม ทั้งหัวข้อ, ร้านค้า/ตัวแทนจำหน่าย, จำนวนคนเป้าหมาย, สินค้าเป้าหมาย, และตารางโปรโมชันแสดงชื่อสินค้า จำนวนลัง ราคาต่อลัง และเงื่อนไข
 - **`type8-actual-form.tsx`:** ฟอร์มบันทึกผลการจัดประชุมจริง แสดงยอดขายสินค้าเป้าหมายตามแผนอัตโนมัติ (Target Product Sales), เพิ่มสินค้านอกแผนเพิ่มเติม (Additional Product Sales), ระบุ Q&A/ข้อเสนอแนะ, อัปโหลดรูปใบลงทะเบียน (`registrationImages`), และอัปโหลดรูปบรรยากาศ (`images`)
 - **`use-type8-actual.ts`:** จัดการ State ผลจริง ฟังก์ชัน `uploadImages` เพื่อแยกอัปโหลดหมวดหมู่ `"registration"` และ `"meeting"`, ฟังก์ชัน `collectPayload` รวบรวมข้อมูลผลงาน, และ `validate` ตรวจสอบเงื่อนไขรูปใบลงทะเบียน
 - **`type8-detail-view.tsx`:** คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด แสดงการ์ดแผน `Type8PlanCard`, สรุปผู้เข้าร่วมจริง, ตารางสรุปยอดขายสินค้า, กล่องข้อความ Q&A, และแกลเลอรีรูปภาพพร้อม Lightbox
 - **`type8-approval-card.tsx`:** การ์ดสรุปสำหรับหน้าจอพิจารณาอนุมัติ เรนเดอร์ `Type8PlanCard` สำหรับทุกรายการประชุมที่มีในแผน
 - **`planned-mapper.ts`:**
-  - `extractType8PlanTargets`: แปลงระเบียน `ActivityPlanStore` และ `ActivityPlanProduct` ออกมาเป็น `Type8TargetItem` พร้อมถอดรหัสโปรโมชันจาก `notes`
+  - `extractType8PlanTargets`: แปลงระเบียน `ActivityPlanType8Target` และ `ActivityPlanType8Product` ออกมาเป็น `Type8TargetItem`
   - `hydrateType8PlannedData`: กู้คืนข้อมูลแผนเดิมเข้าฟอร์มแก้ไข
   - `mapType8ToSectionItems`: แปลงข้อมูลแผนเป็นหัวข้อและฟิลด์ย่อยสำหรับแสดงผลใน Section รวม
 - **`actual-mapper.ts`:**
-  - `parseType8ActualResult`: แปลงข้อมูลผลงานจาก `ActivityResult` และ `ActivityResultSaleItem` รวมถึง Regex fallback จาก `resultSummary` เพื่อ Hydrate ผลงานจริง
+  - `parseType8ActualResult`: แปลงข้อมูลผลงานจาก `ActivityResultType8` และ `ActivityPlanType8Product` เพื่อ Hydrate ผลงานจริง
 - **`planned-validation.ts` & `actual-validation.ts`:**
   - `validateType8FormItems`: ตรวจสอบความถูกต้องของร้านค้าตามกลุ่มเป้าหมาย, หัวข้อประชุม, จำนวนคนเป้าหมาย (>=1), จำนวนสินค้าเป้าหมาย (<=5 รายการ), และรายละเอียดโปรโมชัน
   - `validateType8Actual`: ตรวจสอบว่ามีรูปถ่ายใบลงทะเบียน 1-5 รูป เมื่อสถานะกิจกรรมเป็น `COMPLETED`
 - **`type8.repository.ts` & `type8-planned.strategy.ts`:**
-  - `findType8ByPlanId`: ค้นหาข้อมูลแผนและร้านค้า/สินค้า Type 8
-  - `saveType8ActualSales`: ลบและบันทึกยอดขายสินค้าลงตาราง `activity_result_sale_items`
-  - `type8PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลตามมาตรฐาน `WorkTypeStrategy`
+  - `findType8ByPlanId`: ค้นหาข้อมูลแผนและร้านค้า/สินค้า Type 8 จาก Dedicated Tables
+  - `saveType8ActualSales`: บันทึกยอดขายสินค้า (รองรับความเข้ากันได้ย้อนหลัง)
+  - `type8PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลลง Dedicated Tables ตามมาตรฐาน `WorkTypeStrategy`
 
 ### 4.2 Unplanned
 - **`type8-unplanned-form.tsx`:** ฟอร์มกิจกรรมนอกแผน 2-in-1 แสดงอินพุตครบถ้วนทั้งหัวข้อ, เลือกร้านค้า Dealer/Subdealer, วันเวลา, สถานที่จัด, โปรโมชัน, จำนวนผู้เข้าร่วมจริง, บันทึกยอดขายสินค้า, Q&A, อัปโหลดใบลงทะเบียน และรูปบรรยากาศ
@@ -224,7 +224,7 @@ modules/activity/features/type-8/
 ### 4.3 Shared Types, Constants, and Notes
 - **`constants.ts`:** กำหนดรหัสประเภทงาน (`TYPE_8`, `TYPE_8_PROMOTION`), ตัวเลือกกลุ่มเป้าหมาย (`MEETING_TARGET_OPTIONS`), ช่องทางจัดประชุม (`FARMER_CHANNEL_OPTIONS`), และประเภทสถานที่ (`VENUE_TYPE_OPTIONS`)
 - **`types.ts`:** กำหนดโครงสร้าง TypeScript สำหรับสินค้าโปรโมชัน (`Type8PromotionProductItem`, `Type8PromotionalProductLine`), ยอดขายสินค้า (`ProductSaleDetail`), และตัวเลือก (`Type8CustomerOption`, `Type8ProductOption`)
-- **`notes.ts`:** ฟังก์ชัน `encodeType8StoreNotes` และ `decodeType8StoreNotes` สำหรับจัดเก็บข้อมูลรายละเอียดการประชุมและรายการโปรโมชันร่วมกันในคอลัมน์ `notes` ของตาราง `ActivityPlanStore` ในรูปแบบ JSON ที่ปลอดภัยและรองรับ Backward Compatibility กับ Plain Text เดิม
+- **`notes.ts`:** ฟังก์ชัน `encodeType8StoreNotes` และ `decodeType8StoreNotes` สำหรับรองรับ Backward Compatibility กับข้อมูลแผนงานเดิมที่เคยจัดเก็บในคอลัมน์ `notes` ในรูปแบบ JSON หรือ Plain Text เดิม
 
 ### 4.4 Shared UI and Views
 - คอมโพเนนต์ `ActualWorkTypeList`, `DetailWorkTypeList`, และ `ApprovalWorkTypeList` ใน `modules/activity/views/` ทำหน้าที่เป็น Orchestrator สลับมาแสดงผลคอมโพเนนต์ของ Type 8 ตาม Work Type Code `"TYPE_8"`
@@ -269,7 +269,7 @@ sequenceDiagram
 2. ผู้ใช้ระบุข้อมูลการประชุมผ่าน `Type8PlannedForm` (กลุ่มเป้าหมาย, ร้านค้า Dealer/Subdealer, หัวข้อ, จำนวนคนเป้าหมาย, สินค้าเป้าหมาย, และโปรโมชัน)
 3. ระบบตรวจสอบความถูกต้องด้วย `validateType8FormItems()`
 4. Form Orchestrator รวม Payload และส่งไปยัง `createActivityPlanAction`
-5. `type8PlannedStrategy.savePlan()` บันทึกเป้าหมายร้านค้าลงใน `ActivityPlanStore` (พร้อมเข้ารหัสโปรโมชันลงใน `notes` ผ่าน `encodeType8StoreNotes`) และบันทึกสินค้าเป้าหมายลงใน `ActivityPlanProduct` (`workTypeCode = "TYPE_8"`) และสินค้าโปรโมชัน (`workTypeCode = "TYPE_8_PROMOTION"`)
+5. `type8PlannedStrategy.savePlan()` บันทึกเป้าหมายการประชุมลงใน `ActivityPlanType8Target` และบันทึกสินค้าเป้าหมาย/โปรโมชันลงใน `ActivityPlanType8Product`
 6. บันทึกจำนวนผู้เข้าร่วมเป้าหมายรวมลงใน `ActivityPlan.targetAttendeesCount`
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
@@ -285,7 +285,7 @@ sequenceDiagram
    - หมวดหมู่ `meeting`: รูปถ่ายบรรยากาศการประชุม
 3. เรียก `type8Actual.collectPayload()` เพื่อจัดกลุ่มข้อมูลผลงานและแนบ Clean URLs ของรูปภาพ
 4. ส่ง Payload เข้า Server Action `recordActivityResultAction`
-5. `type8PlannedStrategy.saveActual()` อัปเดต `actualAttendeesCount` ใน `ActivityResult` และเรียก `saveType8ActualSales` เพื่อลบและบันทึกระเบียนยอดขายสินค้าใหม่ลงใน `activity_result_sale_items`
+5. `type8PlannedStrategy.saveActual()` บันทึกผลลัพธ์ลงใน `ActivityResultType8`, บันทึกยอดขายสินค้าจริงลงใน `ActivityPlanType8Product` และอัปเดต `actualAttendeesCount` ใน `ActivityResult`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. `useActualPlanLoader` ดึงข้อมูลแผนงานและผลงานเดิม
@@ -311,126 +311,153 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | เก็บ `targetAttendeesCount`, `objective`, `location`, `description` |
-| **`activity_plan_stores`**<br>(`ActivityPlanStore`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType8PlanTargets` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบแผน | เก็บร้านค้า Dealer/Subdealer, `remarks` (หัวข้อ), `notes` (JSON โปรโมชัน) |
-| **`activity_plan_products`**<br>(`ActivityPlanProduct`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType8PlanTargets` | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบแผน | เก็บสินค้าเป้าหมาย (`TYPE_8`) และโปรโมชัน (`TYPE_8_PROMOTION`) |
-| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType8ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | เก็บ `actualAttendeesCount`, `resultSummary` |
-| **`activity_result_sale_items`**<br>(`ActivityResultSaleItem`) | `saveType8ActualSales` | `parseType8ActualResult` (`saleResults`) | `deleteMany()` + `createMany()` ใน Repo | Cascade เมื่อลบผลงาน | เก็บยอดขายสินค้าจริงแยกตามสินค้า (`workTypeCode = "TYPE_8"`) |
+| **`activity_type_8_targets`**<br>(`ActivityPlanType8Target`) | `savePlan()` ใน Planned/Unplanned | `loadPlan()`, `extractType8PlanTargets` | `savePlan()` (Atomic recreation) | Cascade เมื่อลบแผน | เก็บหัวข้อประชุม, กลุ่มเป้าหมาย (Farmer/Dealer/Subdealer), ร้านค้า, สถานที่จัด, จำนวนคนเป้าหมาย |
+| **`activity_type_8_products`**<br>(`ActivityPlanType8Product`) | `savePlan()` / `saveActual()` | `loadPlan()`, `loadActual()`, `extractType8PlanTargets` | `savePlan()`, `saveActual()` | Cascade เมื่อลบเป้าหมาย | เก็บสินค้าเป้าหมาย (`TARGET`), โปรโมชัน (`PROMOTION`), และยอดขายจริง (`ADDITIONAL_SALE`) |
+| **`activity_type_8_result`**<br>(`ActivityResultType8`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType8ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | เก็บจำนวนผู้เข้าร่วมประชุมจริง (`actualAttendeesCount`), ข้อเสนอแนะ/Q&A |
+| **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | เก็บ Header รวม, `targetAttendeesCount` |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปใบลงทะเบียน (`REGISTRATION`) และบรรยากาศ (`ATMOSPHERE`) |
+| **`activity_plan_stores` / `products`** | `savePlan()` (Mirror) | Fallback | Mirror | Cascade | สำรองข้อมูลสำหรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **กลุ่มเป้าหมาย** | `meetingTarget` | `planned-mapper` / `unplanned-mapper` | Form State / `type8Data` | - | `VARCHAR` | No | `"FARMER"` |
-| **ช่องทางเกษตรกร** | `farmerChannel` | `planned-mapper` / `unplanned-mapper` | Form State / `type8Data` | - | `VARCHAR` | Yes | `"DEALER"` |
-| **รหัสร้านค้า Dealer** | `dealerId` / `storeId` | `planned-mapper` / `useType8PlannedForm` | `ActivityPlanStore` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
-| **ชื่อร้านค้า Dealer** | `dealerName` / `storeName` | `planned-mapper` | `ActivityPlanStore` | `store_name` | `VARCHAR` | Yes | `null` |
-| **ชื่อร้านค้าย่อย Subdealer** | `subDealerStore` | `planned-mapper` | `ActivityPlanStore` | `sub_dealer_store` | `VARCHAR` | Yes | `null` |
-| **หัวข้อการประชุม** | `topic` | `planned-mapper` (`remarks`) | `ActivityPlanStore` | `remarks` | `VARCHAR` | Yes | `""` |
-| **รายละเอียดและโปรโมชัน** | `detail` + `promotions` | `encodeType8StoreNotes` / `decodeType8StoreNotes` | `ActivityPlanStore` | `notes` | `TEXT (JSON)` | Yes | `null` |
-| **ประเภทสถานที่** | `venueType` | `planned-mapper` / `unplanned-mapper` | Form State / `type8Data` | - | `VARCHAR` | Yes | `"STORE"` |
-| **ผู้เข้าร่วมเป้าหมาย** | `attendeesCount` | `planned-mapper` | `ActivityPlan` | `target_attendees_count` | `INTEGER` | Yes | `10` |
-| **สินค้าเป้าหมาย** | `targetProducts` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `product_id`, `work_type_code` | `VARCHAR` | No | `"TYPE_8"` |
-| **สินค้าโปรโมชัน** | `promotionProducts` | `planned-mapper` ➔ `planProducts` | `ActivityPlanProduct` | `product_id`, `work_type_code` | `VARCHAR` | No | `"TYPE_8_PROMOTION"` |
-| **จำนวนลังโปรโมชัน** | `quantityCases` | `planned-mapper` | `ActivityPlanProduct` | `target_quantity` | `INTEGER` | Yes | `1` |
-| **ราคาต่อลังโปรโมชัน** | `pricePerCase` | `planned-mapper` | `ActivityPlanProduct` | `unit_price` | `DECIMAL(15,2)` | Yes | `0` |
-| **ผู้เข้าร่วมประชุมจริง** | `actualAttendees` / `t8ActualAttendees` | `parseType8ActualResult` / `saveActual` | `ActivityResult` | `actual_attendees_count` | `INTEGER` | Yes | `null` |
-| **ข้อเสนอแนะ / Q&A** | `feedbackQnA` / `t8FeedbackQnA` | `actual-mapper` / `unplanned-mapper` | `ActivityResult` | `result_summary` (บรรทัด Q&A) | `TEXT` | Yes | `null` |
-| **ยอดขายสินค้าจริง** | `productSalesDetails` | `saveType8ActualSales` / `parseType8ActualResult` | `ActivityResultSaleItem` | `product_id`, `actual_quantity`, `actual_total` | `INTEGER / DECIMAL` | No | - |
-| **หมายเหตุยอดขาย** | `notes` (ใน `ProductSaleDetail`) | `saveType8ActualSales` | `ActivityResultSaleItem` | `unclosed_reason` | `TEXT` | Yes | `null` |
+| **กลุ่มเป้าหมาย** | `meetingTarget` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `meeting_target` | `VARCHAR` | No | `"FARMER"` |
+| **ช่องทางเกษตรกร** | `farmerChannel` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `farmer_channel` | `VARCHAR` | Yes | `"DEALER"` |
+| **รหัสร้านค้า Dealer** | `dealerId` / `customerId` | `planned-mapper` / `useType8PlannedForm` | `ActivityPlanType8Target` | `dealer_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อร้านค้า Dealer** | `dealerName` / `customerName` | `planned-mapper` | `ActivityPlanType8Target` | `dealer_name` | `VARCHAR` | Yes | `null` |
+| **รหัสร้านค้าย่อย Subdealer** | `subdealerId` | `planned-mapper` / `useType8PlannedForm` | `ActivityPlanType8Target` | `subdealer_id` | `VARCHAR (FK)` | Yes | `null` |
+| **ชื่อร้านค้าย่อย Subdealer** | `subDealerStore` / `subdealerName` | `planned-mapper` | `ActivityPlanType8Target` | `sub_dealer_store` | `VARCHAR` | Yes | `null` |
+| **ร้านค้าย่อยนอกระบบ** | `isUnregisteredSubdealer` / `isNewSubdealer` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `is_unregistered_subdealer` | `BOOLEAN` | No | `false` |
+| **หัวข้อการประชุม** | `topic` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `topic` | `VARCHAR` | No | `"จัดประชุม"` |
+| **ประเภทสถานที่** | `venueType` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `venue_type` | `VARCHAR` | No | `"STORE"` |
+| **สถานที่จัด / ที่อยู่** | `location` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `location` | `VARCHAR` | Yes | `null` |
+| **วันที่จัดประชุม** | `meetingDate` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `meeting_date` | `TIMESTAMP(3)` | Yes | `null` |
+| **เวลาจัดประชุม** | `meetingTime` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `meeting_time` | `VARCHAR` | Yes | `null` |
+| **ผู้เข้าร่วมเป้าหมาย** | `attendeesCount` / `expectedAttendees` | `planned-mapper` | `ActivityPlanType8Target` | `target_attendees_count` | `INTEGER` | No | `0` |
+| **รายละเอียดเพิ่มเติม** | `detail` / `notes` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType8Target` | `detail` | `TEXT` | Yes | `null` |
+| **สินค้าเป้าหมาย** | `targetProducts` | `planned-mapper` ➔ `type8Products` | `ActivityPlanType8Product` | `product_id`, `product_role = 'TARGET'` | `VARCHAR (FK)` | Yes | `null` |
+| **สินค้าโปรโมชัน** | `promotionProducts` / `promotions` | `planned-mapper` ➔ `type8Products` | `ActivityPlanType8Product` | `product_id`, `product_role = 'PROMOTION'` | `VARCHAR (FK)` | Yes | `null` |
+| **จำนวนลังโปรโมชัน** | `quantityCases` / `quantity` | `planned-mapper` | `ActivityPlanType8Product` | `target_quantity` | `DECIMAL(10,2)` | Yes | `null` |
+| **ราคาต่อลังโปรโมชัน** | `pricePerCase` / `unitPrice` | `planned-mapper` | `ActivityPlanType8Product` | `target_unit_price` | `DECIMAL(15,2)` | Yes | `null` |
+| **เงื่อนไขโปรโมชัน** | `notes` (ใน promotion) | `planned-mapper` | `ActivityPlanType8Product` | `promotion_notes` | `TEXT` | Yes | `null` |
+| **ผู้เข้าร่วมประชุมจริง** | `actualAttendees` / `t8ActualAttendees` | `saveActual` / `parseType8ActualResult` | `ActivityResultType8` | `actual_attendees_count` | `INTEGER` | No | `0` |
+| **ข้อเสนอแนะ / Q&A** | `feedbackQnA` / `t8FeedbackQnA` | `saveActual` / `parseType8ActualResult` | `ActivityResultType8` | `feedback_qna` | `TEXT` | Yes | `null` |
+| **ยอดขายสินค้าจริง** | `actualQty` (ใน `productSalesDetails`) | `saveActual` / `parseType8ActualResult` | `ActivityPlanType8Product` | `actual_quantity` | `DECIMAL(10,2)` | Yes | `null` |
+| **ราคาขายจริงต่อหน่วย** | `unitPrice` (ใน `productSalesDetails`) | `saveActual` / `parseType8ActualResult` | `ActivityPlanType8Product` | `actual_unit_price` | `DECIMAL(15,2)` | Yes | `null` |
+| **ยอดขายจริงรวม** | `actualSales` (ใน `productSalesDetails`) | `saveActual` / `parseType8ActualResult` | `ActivityPlanType8Product` | `actual_total` | `DECIMAL(15,2)` | Yes | `null` |
+| **หมายเหตุยอดขาย** | `notes` (ใน `productSalesDetails`) | `saveActual` / `parseType8ActualResult` | `ActivityPlanType8Product` | `actual_notes` | `TEXT` | Yes | `null` |
 | **รูปใบลงทะเบียน** | `registrationImages` | `uploadImages("registration")` ➔ `attachments` | `ActivityAttachment` | `file_url`, `group = 'REGISTRATION'` | `TEXT` | No | - |
 | **รูปบรรยากาศการประชุม** | `images` | `uploadImages("meeting")` ➔ `attachments` | `ActivityAttachment` | `file_url`, `group = 'ATMOSPHERE'` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
 ```prisma
-// 1. ตารางเก็บเป้าหมายร้านค้าและหัวข้อการประชุม
-model ActivityPlanStore {
+// =============================================================================
+// TYPE 8: จัดประชุม (Meeting & Seminar - Dedicated Relational Storage)
+// =============================================================================
+
+/// 1. ตารางเก็บข้อมูลเป้าหมายการจัดประชุม (สร้างแผนงาน)
+model ActivityPlanType8Target {
   id                      String   @id @default(cuid())
   activityPlanId          String   @map("activity_plan_id")
-  workTypeCode            String   @map("work_type_code") // "TYPE_8"
-  visitPurpose            String?  @map("visit_purpose")
-  storeId                 String?  @map("store_id")
-  storeName               String?  @map("store_name")
-  province                String?  @map("province")
-  isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
-  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
-  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
-  targetAmount            Decimal? @map("target_amount") @db.Decimal(15, 2)
-  subDealerStore          String?  @map("sub_dealer_store") // ร้านค้าย่อย
-  remarks                 String?  // หัวข้อการประชุม (topic)
-  notes                   String?  // JSON เก็บ { detail, promotions: string[] }
+  meetingTarget           String   @default("FARMER") @map("meeting_target") // "FARMER" | "DEALER" | "SUBDEALER"
+  farmerChannel           String?  @map("farmer_channel") // "DEALER" | "SUBDEALER"
+  dealerId                String?  @map("dealer_id")
+  dealerName              String?  @map("dealer_name")
+  subdealerId             String?  @map("subdealer_id")
+  subDealerStore          String?  @map("sub_dealer_store") // กรณีร้านค้าย่อยนอกระบบ
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  topic                   String   @map("topic") // หัวข้อการประชุม
+  venueType               String   @default("STORE") @map("venue_type") // "STORE" | "OTHER"
+  location                String?  @map("location") // สถานที่จัดงาน / ที่อยู่
+  meetingDate             DateTime? @map("meeting_date")
+  meetingTime             String?  @map("meeting_time")
+  targetAttendeesCount    Int      @default(0) @map("target_attendees_count")
+  detail                  String?  @map("detail") @db.Text // รายละเอียดเพิ่มเติม
 
-  activityPlan            ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
-  @@index([activityPlanId])
-  @@index([storeId])
-  @@map("activity_plan_stores")
-}
-
-// 2. ตารางเก็บสินค้าเป้าหมายและสินค้าโปรโมชัน
-model ActivityPlanProduct {
-  id                String   @id @default(cuid())
-  activityPlanId    String   @map("activity_plan_id")
-  workTypeCode      String   @map("work_type_code") // "TYPE_8" หรือ "TYPE_8_PROMOTION"
-  storeId           String?  @map("store_id")
-  productId         String   @map("product_id")
-  productName       String?  @map("product_name")
-  masterPrice       Decimal? @map("master_price") @db.Decimal(15, 2)
-  unitPrice         Decimal? @map("unit_price") @db.Decimal(15, 2)
-  isPriceOverridden Boolean  @default(false) @map("is_price_overridden")
-  targetQuantity    Int?     @map("target_quantity")
-  targetAmount      Decimal? @map("target_amount") @db.Decimal(15, 2)
-  notes             String?  // เงื่อนไขโปรโมชัน
-
-  activityPlan      ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store             Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product           Product      @relation("ActivityPlanProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan            ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  dealer                  Customer?                  @relation("Type8DealerStore", fields: [dealerId], references: [id], onDelete: SetNull)
+  subdealer               Customer?                  @relation("Type8SubdealerStore", fields: [subdealerId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType8Product[]
+  result                  ActivityResultType8?
 
   @@index([activityPlanId])
-  @@index([productId])
-  @@index([storeId])
-  @@map("activity_plan_products")
+  @@index([dealerId])
+  @@index([subdealerId])
+  @@map("activity_type_8_targets")
 }
 
-// 3. ตารางเก็บยอดขายจริงแยกตามสินค้าในการประชุม
-model ActivityResultSaleItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  workTypeCode     String  @map("work_type_code") // "TYPE_8"
-  storeId          String? @map("store_id")
-  productId        String  @map("product_id")
-  productName      String? @map("product_name")
-  actualQuantity   Int     @map("actual_quantity")
-  actualUnitPrice  Decimal @map("actual_unit_price") @db.Decimal(15, 2)
-  actualTotal      Decimal @map("actual_total") @db.Decimal(15, 2)
-  unclosedReason   String? @map("unclosed_reason") // หมายเหตุยอดขาย
-  isAdditional     Boolean @default(false) @map("is_additional") // สินค้าตามแผน vs สินค้าเพิ่มเติม
+/// 2. ตารางเก็บสินค้าเป้าหมาย โปรโมชัน และยอดขายจริง
+model ActivityPlanType8Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "PROMOTION" | "ADDITIONAL_SALE"
+  
+  // Planned fields
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+  promotionNotes  String?  @map("promotion_notes")
 
-  activityResult   ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store            Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product          Product        @relation("ActivityResultSaleProductRef", fields: [productId], references: [id], onDelete: Restrict)
+  // Actual fields
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
 
-  @@index([activityResultId])
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType8Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@index([storeId])
-  @@index([workTypeCode])
-  @@map("activity_result_sale_items")
+  @@map("activity_type_8_products")
+}
+
+/// 3. ตารางเก็บผลลัพธ์การจัดประชุมจริง
+model ActivityResultType8 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count") // จำนวนผู้เข้าร่วมประชุมจริง
+  feedbackQnA          String?  @map("feedback_qna") @db.Text // ข้อเสนอแนะ / ประเด็น Q&A
+  summary              String?  @map("summary") @db.Text // สรุปภาพรวม
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType8Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_8_result")
 }
 ```
 
 ### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
 - **การจัดการ Transaction (Atomic Execution):**
-  - ทุกการบันทึกของ Type 8 อยู่ภายใต้ `db.$transaction(async (tx) => { ... })`
-  - หากการบันทึกภาพถ่าย หรือการบันทึกยอดขายสินค้าใน `activity_result_sale_items` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที ป้องกันข้อมูลขัดแย้ง
-- **การเข้ารหัส Notes (Safe JSON Storage):**
-  - ข้อมูลรายละเอียดการประชุมและรายการโปรโมชันจะถูกแปลงเป็น JSON สตริง `{ detail: string, promotions: string[] }` ผ่าน `encodeType8StoreNotes` ก่อนบันทึกลงคอลัมน์ `notes` ของตาราง `ActivityPlanStore`
-  - ขาอ่านจะใช้ `decodeType8StoreNotes` ซึ่งรองรับทั้ง JSON Format และ Plain Text เดิมอย่างปลอดภัย (Backward Compatible)
+  - ทุกการบันทึกของ Type 8 ทำงานภายใต้ Prisma Transaction (`tx`) แบบ Atomic
+  - ใน Planned: `savePlan()` จะบันทึก `activity_type_8_targets` และ `activity_type_8_products` เมื่อกดส่งแผน และ `saveActual()` จะบันทึก `activity_type_8_result` พร้อมอัปเดตยอดขายลง `activity_type_8_products`
+  - ใน Unplanned (2-in-1): `savePlan()` และ `saveActual()` จะบันทึกลงทั้ง 3 ตารางพร้อมรูปภาพใน Transaction เดียวกัน หากมีข้อผิดพลาดระบบจะ Rollback ทันที
+- **โครงสร้างข้อมูลแบบ Dedicated (ไม่ต้องใช้ JSON Notes):**
+  - ข้อมูลหัวข้อการประชุม, กลุ่มเป้าหมาย, ร้านค้า, สถานที่, และโปรโมชัน ถูกแยกเก็บในคอลัมน์ของตารางเฉพาะโดยตรง ไม่ต้องผ่าน JSON Stringify/Parse ทำให้รองรับการทำ BI/Analytics และสร้าง Indexing ได้อย่างมีประสิทธิภาพ
 - **ขาเขียนยอดขายจริง (Sales Persistence):**
-  - ในฟังก์ชัน `saveType8ActualSales` จะสั่ง `deleteMany` ระเบียนเดิมใน `activity_result_sale_items` ที่มี `workTypeCode = "TYPE_8"` และ `activityResultId` นั้นๆ ก่อน แล้วสร้างระเบียนใหม่ด้วย `createMany`
+  - ยอดขายสินค้าเป้าหมายจะถูกอัปเดตลงในแถวสินค้าเดิม (`productRole = "TARGET"`) ทำให้เปรียบเทียบยอดตามแผน vs ยอดจริงได้ทันที
+  - หากมีสินค้านอกแผนขายได้จริง ระบบจะเพิ่มแถวใหม่เป็น `productRole = "ADDITIONAL_SALE"`
+  - มีการ Sync ข้อมูลไปยังตารางกลาง `activity_result_sale_items` เพื่อรักษาความเข้ากันได้ย้อนหลัง (Backward Compatibility)
 - **Cascade Delete Policy:**
-  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResult`, `ActivityResultSaleItem`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
+  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `activity_type_8_targets`, `activity_type_8_products`, `activity_type_8_result`, และ `activity_attachments` จะถูกลบออกแบบ Cascade ทั้งหมดอย่างปลอดภัย
 
 ---
 
@@ -581,8 +608,8 @@ model ActivityResultSaleItem {
 
 ## 12. Known Limitations and Important Notes
 
-1. **การจัดเก็บข้อมูลแบบ Hybrid ใน Notes (JSON in Store Notes):**
-   - เนื่องจากตาราง `ActivityPlanStore` ของระบบไม่มีฟิลด์เฉพาะสำหรับเก็บรายการโปรโมชันแบบสัมพันธ์ โมดูล Type 8 จึงใช้เทคนิคเข้ารหัส JSON ปลอดภัยในคอลัมน์ `notes` ผ่าน `encodeType8StoreNotes` และ `decodeType8StoreNotes` ซึ่งทำให้สามารถรองรับข้อมูลโปรโมชันได้หลายรายการโดยไม่ต้องแก้ไขฐานข้อมูลหลัก
+1. **การจัดเก็บข้อมูลแบบ Dedicated Relational Storage (3 ตารางเฉพาะ):**
+   - โมดูล Type 8 ได้รับการยกระดับโครงสร้างฐานข้อมูลจากตารางกลางมาใช้ตารางเฉพาะ 3 ตาราง ได้แก่ `activity_type_8_targets`, `activity_type_8_products`, และ `activity_type_8_result` ทำให้ไม่ต้องอาศัยการจัดเก็บ JSON ใน notes อีกต่อไป และมี Foreign Keys พร้อม Indexing ที่สมบูรณ์
 2. **การบังคับแนบรูปใบลงทะเบียน:**
    - การแนบรูปใบลงทะเบียนเป็นเงื่อนไขบังคับสำหรับกิจกรรมที่เสร็จสิ้นสมบูรณ์ (`COMPLETED`) เพื่อป้องกันการรายงานผลเท็จ โดยระบบจะจำกัดให้อัปโหลดได้ระหว่าง 1 ถึง 5 รูป
 3. **การแยกหมวดหมู่รูปภาพใน Storage:**
@@ -603,4 +630,5 @@ model ActivityResultSaleItem {
 | **2026-10-20** | 1.4.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type8DetailView` แยกดูรูปใบลงทะเบียนและรูปบรรยากาศการประชุม | Antigravity AI |
 | **2026-10-21** | 1.5.0 | อัปเดตการทำงานกิจกรรมนอกแผน `Type8UnplannedForm` แบบ 2-in-1 และเชื่อมต่อ Server Actions แบบแยกไฟล์ | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
-| **2026-10-24** | 1.7.0 | แก้ไขปัญหาข้อมูลที่กรอกใน `Type8PlannedForm` ไม่ถูกนำกลับมาใส่ช่องเมื่อกลับเข้ามาดู/แก้ไข:<br>1. พัฒนาฟังก์ชัน `savePlan` ใน `type8PlannedStrategy` ให้บันทึก `ActivityPlanStore`, `ActivityPlanProduct` (ทั้งสินค้าเป้าหมายและสินค้าโปรโมชัน) และ `targetAttendeesCount` อย่างสมบูรณ์<br>2. ปรับปรุง `encodeType8StoreNotes` และ `decodeType8StoreNotes` ให้จัดเก็บและถอดรหัส metadata (กลุ่มเป้าหมาย, ช่องทาง, ร้านค้า Dealer/Subdealer, สถานที่, ผู้เข้าร่วม) ร่วมกับโปรโมชัน<br>3. ปรับปรุง `hydrateType8PlannedData` ให้สามารถกู้คืนข้อมูลครบทุกฟิลด์ (ร้านค้า, ซับดีลเลอร์ทั้งในและนอกระบบ, สินค้าเป้าหมาย, โปรโมชัน) จาก DB เข้าสู่ฟอร์มแก้ไข<br>4. เพิ่มการซิงค์ `useType8PlannedForm` เมื่อข้อมูล `initialData` หรือ `customersList` โหลดแบบ Asynchronous<br>5. ผูก `targetAttendeesCount` และ `planProducts` ใน Form Orchestrator และ Server Actions | Antigravity AI |
+| **2026-10-24** | 1.7.0 | แก้ไขปัญหาข้อมูลที่กรอกใน `Type8PlannedForm` ไม่ถูกนำกลับมาใส่ช่องเมื่อกลับเข้ามาดู/แก้ไข | Antigravity AI |
+| **2026-10-24** | 2.0.0 | **ยกเครื่องระบบจัดเก็บข้อมูล Type 8 เป็น Dedicated Relational Storage (3 ตารางเฉพาะ):**<br>1. สร้างตาราง `activity_type_8_targets`, `activity_type_8_products`, `activity_type_8_result` ใน Prisma Schema<br>2. รองรับทั้ง Planned และ Unplanned แบบ Dual-Mode 100%<br>3. ตาราง Products รวมการจัดเก็บสินค้าเป้าหมาย (`TARGET`), โปรโมชัน (`PROMOTION`), และยอดขายจริง (`ADDITIONAL_SALE`) ในแถวเดียวกัน<br>4. อัปเดต `type8PlannedStrategy`, `type8UnplannedStrategy`, `type8.repository`, และ Mappers ครบถ้วน | Antigravity AI |

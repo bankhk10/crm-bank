@@ -61,3 +61,61 @@ export interface Type8ProductOption {
   price?: number | null;
   unit?: string | null;
 }
+
+export type Type8ProductRole = "TARGET" | "PROMOTION" | "ADDITIONAL_SALE";
+
+export interface Type8DbTarget {
+  id: string;
+  activityPlanId: string;
+  meetingTarget: Type8MeetingTarget | string;
+  farmerChannel?: Type8FarmerChannel | string | null;
+  dealerId?: string | null;
+  dealerName?: string | null;
+  subdealerId?: string | null;
+  subDealerStore?: string | null;
+  isUnregisteredSubdealer: boolean;
+  topic: string;
+  venueType: Type8VenueType | string;
+  location?: string | null;
+  meetingDate?: Date | string | null;
+  meetingTime?: string | null;
+  targetAttendeesCount: number;
+  detail?: string | null;
+  dealer?: any;
+  subdealer?: any;
+  products?: Type8DbProduct[];
+  result?: Type8DbResult | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Type8DbProduct {
+  id: string;
+  activityPlanId: string;
+  targetId: string;
+  productId?: string | null;
+  productName?: string | null;
+  productRole: Type8ProductRole | string;
+  targetQuantity?: any;
+  targetUnitPrice?: any;
+  targetAmount?: any;
+  promotionNotes?: string | null;
+  actualQuantity?: any;
+  actualUnitPrice?: any;
+  actualTotal?: any;
+  actualNotes?: string | null;
+  product?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Type8DbResult {
+  id: string;
+  activityPlanId: string;
+  targetId: string;
+  actualAttendeesCount: number;
+  feedbackQnA?: string | null;
+  summary?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

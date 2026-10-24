@@ -413,6 +413,8 @@ model Customer {
   activityPlanType5Targets    ActivityPlanType5Target[]
   activityPlanType6Targets    ActivityPlanType6Target[]
   activityResultType4s        ActivityResultType4[]
+  activityPlanType8TargetsDealer    ActivityPlanType8Target[]    @relation("Type8DealerStore")
+  activityPlanType8TargetsSubdealer ActivityPlanType8Target[]    @relation("Type8SubdealerStore")
 }
 
 model CustomerAddress {
@@ -717,6 +719,7 @@ model Product {
   activityPlanType3Products      ActivityPlanType3Product[]
   activityPlanType5Targets       ActivityPlanType5Target[]
   activityResultType1Products    ActivityResultType1Product[]
+  activityPlanType8Products      ActivityPlanType8Product[]
 
   parentId String?
   parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
@@ -1769,6 +1772,9 @@ model ActivityPlan {
   type4Results   ActivityResultType4[]
   type5Targets   ActivityPlanType5Target[]
   type6Targets   ActivityPlanType6Target[]
+  type8Targets   ActivityPlanType8Target[]
+  type8Products  ActivityPlanType8Product[]
+  type8Results   ActivityResultType8[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -3049,4 +3055,93 @@ model ActivityPlanType6Target {
   @@index([activityPlanId])
   @@index([storeId])
   @@map("activity_plan_type_6_targets")
+}
+
+// =============================================================================
+// TYPE 8: จัดประชุม (Meeting & Seminar - Dedicated Relational Storage)
+// =============================================================================
+
+model ActivityPlanType8Target {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  meetingTarget           String   @default("FARMER") @map("meeting_target") // "FARMER" | "DEALER" | "SUBDEALER"
+  farmerChannel           String?  @map("farmer_channel") // "DEALER" | "SUBDEALER"
+  dealerId                String?  @map("dealer_id")
+  dealerName              String?  @map("dealer_name")
+  subdealerId             String?  @map("subdealer_id")
+  subDealerStore          String?  @map("sub_dealer_store")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  topic                   String   @map("topic")
+  venueType               String   @default("STORE") @map("venue_type") // "STORE" | "OTHER"
+  location                String?  @map("location")
+  meetingDate             DateTime? @map("meeting_date")
+  meetingTime             String?  @map("meeting_time")
+  targetAttendeesCount    Int      @default(0) @map("target_attendees_count")
+  detail                  String?  @map("detail") @db.Text
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  activityPlan            ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  dealer                  Customer?                  @relation("Type8DealerStore", fields: [dealerId], references: [id], onDelete: SetNull)
+  subdealer               Customer?                  @relation("Type8SubdealerStore", fields: [subdealerId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType8Product[]
+  result                  ActivityResultType8?
+
+  @@index([activityPlanId])
+  @@index([dealerId])
+  @@index([subdealerId])
+  @@map("activity_type_8_targets")
+}
+
+model ActivityPlanType8Product {
+  id              String   @id @default(cuid())
+  activityPlanId  String   @map("activity_plan_id")
+  targetId        String   @map("target_id")
+  productId       String?  @map("product_id")
+  productName     String?  @map("product_name")
+  productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "PROMOTION" | "ADDITIONAL_SALE"
+  
+  // Planned fields
+  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+  promotionNotes  String?  @map("promotion_notes")
+
+  // Actual fields
+  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes     String?  @map("actual_notes")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  activityPlan    ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType8Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product         Product?                @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@index([productId])
+  @@map("activity_type_8_products")
+}
+
+model ActivityResultType8 {
+  id                   String   @id @default(cuid())
+  activityPlanId       String   @map("activity_plan_id")
+  targetId             String   @unique @map("target_id")
+  actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
+  feedbackQnA          String?  @map("feedback_qna") @db.Text
+  summary              String?  @map("summary") @db.Text
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  activityPlan         ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType8Target @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_8_result")
 }

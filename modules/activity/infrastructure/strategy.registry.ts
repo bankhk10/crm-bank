@@ -238,6 +238,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
             rawData.workTypeCodes.includes("จัดประชุม"))) ||
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_8")) ||
+        (rawData.type8Targets && rawData.type8Targets.length > 0) ||
+        (rawData.type8Products && rawData.type8Products.length > 0) ||
+        (rawData.type8Results && rawData.type8Results.length > 0) ||
         (rawData.type8Meetings && rawData.type8Meetings.length > 0) ||
         (rawData.type8UnplannedItems &&
           rawData.type8UnplannedItems.length > 0) ||
