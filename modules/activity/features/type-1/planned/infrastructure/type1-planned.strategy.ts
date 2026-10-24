@@ -72,7 +72,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 1 Plan Stores exclusively into dedicated `activity_plan_type_1_stores` table
+   * Save Type 1 Plan Targets exclusively into dedicated `activity_type_1_targets` table
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -80,6 +80,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
     planData: any,
   ): Promise<void> {
     const rawStores: any[] =
+      planData.type1Targets ||
       planData.planStores ||
       planData.type1Stores ||
       planData.stores ||
@@ -92,13 +93,13 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
         s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",
     );
 
-    // Persist exclusively to dedicated table activity_plan_type_1_stores
-    await tx.activityPlanType1Store.deleteMany({
+    // Persist exclusively to dedicated table activity_type_1_targets
+    await (tx as any).activityPlanType1Target.deleteMany({
       where: { activityPlanId },
     });
 
     if (type1Stores.length > 0) {
-      await tx.activityPlanType1Store.createMany({
+      await (tx as any).activityPlanType1Target.createMany({
         data: type1Stores.map((s) => ({
           activityPlanId,
           visitPurpose: s.visitPurpose || "FARMER",
@@ -115,16 +116,20 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Load Plan Stores exclusively from dedicated `activity_plan_type_1_stores` table
+   * Load Plan Targets exclusively from dedicated `activity_type_1_targets` table
    */
   async loadPlan(tx: PrismaTransaction, activityPlanId: string): Promise<any[]> {
-    const dedicated = await tx.activityPlanType1Store.findMany({
+    const dedicated = await (tx as any).activityPlanType1Target.findMany({
       where: { activityPlanId },
-      include: { store: true },
+      include: {
+        store: true,
+        products: { include: { product: true } },
+        result: true,
+      },
       orderBy: { createdAt: "asc" },
     });
 
-    return dedicated.map((d) => ({
+    return dedicated.map((d: any) => ({
       id: d.id,
       workTypeCode: "TYPE_1",
       visitPurpose: d.visitPurpose,
@@ -137,11 +142,13 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       topic: d.topic,
       remarks: d.topic,
       notes: d.notes,
+      products: d.products,
+      result: d.result,
     }));
   },
 
   /**
-   * Persist Actual outcome into dedicated `activity_result_type_1` and `activity_result_type_1_products` tables.
+   * Persist Actual outcome into dedicated `activity_type_1_result` and `activity_type_1_products` tables.
    */
   async saveActual(tx: PrismaTransaction, activityPlanId: string, actualData: any): Promise<void> {
     if (!actualData) return;
@@ -149,7 +156,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
     const data = actualData.type1Actual || actualData;
 
     // 1. Query target stores for this plan
-    const planStores = await (tx as any).activityPlanType1Store.findMany({
+    const planTargets = await (tx as any).activityPlanType1Target.findMany({
       where: { activityPlanId },
       orderBy: { createdAt: "asc" },
     });
@@ -167,15 +174,15 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
 
     const matchedTargetProducts: any[] = [];
 
-    if (planStores.length > 0) {
-      for (let idx = 0; idx < planStores.length; idx++) {
-        const store = planStores[idx];
+    if (planTargets.length > 0) {
+      for (let idx = 0; idx < planTargets.length; idx++) {
+        const target = planTargets[idx];
         const match =
           targetResults.find((t: any) =>
-            (t.id && t.id === store.id) ||
-            (t.targetId && t.targetId === store.id) ||
-            (t.planStoreId && t.planStoreId === store.id) ||
-            (store.storeId && t.storeId === store.storeId),
+            (t.id && t.id === target.id) ||
+            (t.targetId && t.targetId === target.id) ||
+            (t.planStoreId && t.planStoreId === target.id) ||
+            (target.storeId && t.storeId === target.storeId),
           ) ||
           targetResults[idx] ||
           {};
@@ -185,37 +192,37 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
             if (p && p.productId) {
               matchedTargetProducts.push({
                 ...p,
-                targetId: store.id,
+                targetId: target.id,
               });
             }
           }
         }
 
         const prodAdvice =
-          match.productAdvice || (planStores.length === 1 ? data.productAdvice : null) || null;
+          match.productAdvice || (planTargets.length === 1 ? data.productAdvice : null) || null;
         const discResult =
-          match.discussionResult || (planStores.length === 1 ? data.discussionResult : null) || null;
+          match.discussionResult || (planTargets.length === 1 ? data.discussionResult : null) || null;
         const salesOpp =
-          match.salesOpportunity || (planStores.length === 1 ? data.salesOpportunity : null) || null;
+          match.salesOpportunity || (planTargets.length === 1 ? data.salesOpportunity : null) || null;
         const nextActionVal =
-          match.nextAction || (planStores.length === 1 ? data.nextAction : null) || null;
+          match.nextAction || (planTargets.length === 1 ? data.nextAction : null) || null;
         const nextDateVal =
-          match.nextMeetingDate || (planStores.length === 1 ? data.nextMeetingDate : null);
+          match.nextMeetingDate || (planTargets.length === 1 ? data.nextMeetingDate : null);
         const address =
-          match.farmerHomeAddress || (planStores.length === 1 ? data.farmerHomeAddress : null) || null;
+          match.farmerHomeAddress || (planTargets.length === 1 ? data.farmerHomeAddress : null) || null;
         const latVal =
           match.plotLatitude != null && match.plotLatitude !== ""
             ? match.plotLatitude
-            : (planStores.length === 1 && data.plotLatitude != null && data.plotLatitude !== "" ? data.plotLatitude : null);
+            : (planTargets.length === 1 && data.plotLatitude != null && data.plotLatitude !== "" ? data.plotLatitude : null);
         const lngVal =
           match.plotLongitude != null && match.plotLongitude !== ""
             ? match.plotLongitude
-            : (planStores.length === 1 && data.plotLongitude != null && data.plotLongitude !== "" ? data.plotLongitude : null);
+            : (planTargets.length === 1 && data.plotLongitude != null && data.plotLongitude !== "" ? data.plotLongitude : null);
 
         await (tx as any).activityResultType1.create({
           data: {
             activityPlanId,
-            planStoreId: store.id,
+            targetId: target.id,
             productAdvice: prodAdvice,
             discussionResult: discResult,
             salesOpportunity: salesOpp,
@@ -231,7 +238,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       await (tx as any).activityResultType1.create({
         data: {
           activityPlanId,
-          planStoreId: null,
+          targetId: null,
           productAdvice: data.productAdvice || null,
           discussionResult: data.discussionResult || null,
           salesOpportunity: data.salesOpportunity || null,
@@ -244,19 +251,19 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       });
     }
 
-    // Persist normalized advised products into dedicated activity_result_type_1_products
-    await (tx as any).activityResultType1Product.deleteMany({
+    // Persist normalized advised products into dedicated activity_type_1_products
+    await (tx as any).activityPlanType1Product.deleteMany({
       where: { activityPlanId },
     });
 
-    const validStoreIds = new Set(planStores.map((s: any) => s.id));
-    const fallbackSingleStoreId = planStores.length === 1 ? planStores[0].id : null;
+    const validTargetIds = new Set(planTargets.map((s: any) => s.id));
+    const fallbackSingleTargetId = planTargets.length === 1 ? planTargets[0].id : null;
 
     const normalizeProductTargetId = (p: any) => {
       if (!p) return p;
-      if (p.targetId && validStoreIds.has(p.targetId)) return p;
-      if (fallbackSingleStoreId) {
-        return { ...p, targetId: fallbackSingleStoreId };
+      if (p.targetId && validTargetIds.has(p.targetId)) return p;
+      if (fallbackSingleTargetId) {
+        return { ...p, targetId: fallbackSingleTargetId };
       }
       return p;
     };
@@ -281,14 +288,16 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       return true;
     });
 
-    if (productsList.length > 0) {
-      await (tx as any).activityResultType1Product.createMany({
-        data: productsList.map((p) => ({
-          activityPlanId,
-          targetId: p.targetId || null,
-          productId: p.productId,
-          productName: p.productName || null,
-        })),
+    if (productsList.length > 0 && (planTargets.length > 0 || fallbackSingleTargetId)) {
+      await (tx as any).activityPlanType1Product.createMany({
+        data: productsList
+          .filter((p) => p.targetId || fallbackSingleTargetId)
+          .map((p) => ({
+            activityPlanId,
+            targetId: p.targetId || fallbackSingleTargetId,
+            productId: p.productId,
+            productName: p.productName || null,
+          })),
       });
     }
   },
@@ -300,10 +309,10 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
     const [results, products] = await Promise.all([
       (tx as any).activityResultType1.findMany({
         where: { activityPlanId },
-        include: { planStore: true },
+        include: { target: { include: { store: true } } },
         orderBy: { createdAt: "asc" },
       }),
-      (tx as any).activityResultType1Product.findMany({
+      (tx as any).activityPlanType1Product.findMany({
         where: { activityPlanId },
         include: { product: true },
         orderBy: { createdAt: "asc" },

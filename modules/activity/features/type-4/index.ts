@@ -97,4 +97,6 @@ export type {
   CustomerOption,
   Type4ImageFile,
   ImageFile,
+  Type4TargetEntity,
+  Type4ResultEntity,
 } from "./shared/types";

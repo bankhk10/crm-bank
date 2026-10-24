@@ -3,7 +3,7 @@
 > **Feature Slice**: `modules/activity/features/type-1`  
 > **Gold Standard Reference**: ต้นแบบ Vertical Slice Architecture สำหรับประเภทงานอื่น (Work Types 2 - 14)  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType1Store`, `ActivityResultType1`, `ActivityResultType1Product`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType1Target`, `ActivityResultType1`, `ActivityPlanType1Product`, `ActivityAttachment`)  
 > **Status**: Production Ready / Active Reference
 
 ---
@@ -239,7 +239,7 @@ sequenceDiagram
 2. เรียก `type1Actual.uploadImages(id)` เพื่ออัปโหลดไฟล์ภาพไปยัง Storage ได้ URLs กลับมา
 3. เรียก `type1Actual.getPayload(cleanImages)` รวบรวมผลการเข้าพบทุกเป้าหมาย
 4. ส่ง Payload เข้า `recordActivityResultAction(id, payload)`
-5. `type1PlannedStrategy.saveActual()` ลบผลงานเก่าแล้วสร้างระเบียนใหม่ลงตาราง `activity_result_type_1` และบันทึกสินค้าแนะนำลง `activity_result_type_1_products`
+5. `type1PlannedStrategy.saveActual()` ลบผลงานเก่าแล้วสร้างระเบียนใหม่ลงตาราง `activity_type_1_result` และบันทึกสินค้าแนะนำลง `activity_type_1_products`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. `useActualPlanLoader` โหลดแผนและข้อมูล `plan.result`
@@ -250,7 +250,7 @@ sequenceDiagram
 ### 5.5 Create/Edit Unplanned (กิจกรรมนอกแผน)
 1. ผู้ใช้กรอกฟอร์ม `Type1UnplannedForm`
 2. ข้อมูลเป้าหมายและผลงานถูกตรวจสอบพร้อมกันด้วย `type1UnplannedSchema`
-3. `type1UnplannedStrategy.savePlan()` บันทึกเป้าหมายลง `activity_plan_type_1_stores` และผลงานลง `activity_result_type_1` ใน $transaction เดียวกัน
+3. `type1UnplannedStrategy.savePlan()` บันทึกเป้าหมายลง `activity_type_1_targets` และผลงานลง `activity_type_1_result` ใน $transaction เดียวกัน
 
 ### 5.6 Detail and Approval (การแสดงผลหน้ารายละเอียดและพิจารณาอนุมัติ)
 1. โหลดข้อมูลแผนงานผ่าน `useDetailPlanLoader` หรือ `useApprovalDetailLoader`
@@ -265,9 +265,9 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_plan_type_1_stores`**<br>(`ActivityPlanType1Store`) | `savePlan()`<br>ใน Planned/Unplanned | `loadPlan()`, `plan.type1Stores` ใน Detail / Edit / Actual | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการเป้าหมายตามแผนงาน |
-| **`activity_result_type_1`**<br>(`ActivityResultType1`) | `saveActual()`<br>ใน Actual/Unplanned | `plan.type1Stores[].result` หรือ `plan.result` | `deleteMany()` + `create()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` หรือ `PlanStore` | เก็บผลการเข้าพบจริง พิกัด GPS ผลพูดคุย |
-| **`activity_result_type_1_products`**<br>(`ActivityResultType1Product`) | `saveActual()` | `plan.type1Products` หรือ `target.advisedProducts` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บสินค้าแนะนำที่ผูกกับเป้าหมาย |
+| **`activity_type_1_targets`**<br>(`ActivityPlanType1Target`) | `savePlan()`<br>ใน Planned/Unplanned | `loadPlan()`, `plan.type1Targets` ใน Detail / Edit / Actual | `deleteMany()` + `createMany()` ใน `savePlan()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการเป้าหมายตามแผนงาน |
+| **`activity_type_1_result`**<br>(`ActivityResultType1`) | `saveActual()`<br>ใน Actual/Unplanned | `plan.type1Targets[].result` หรือ `plan.result` | `deleteMany()` + `create()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` หรือ `Target` | เก็บผลการเข้าพบจริง พิกัด GPS ผลพูดคุย (ผูกผ่าน `targetId`) |
+| **`activity_type_1_products`**<br>(`ActivityPlanType1Product`) | `saveActual()` | `plan.type1Products` หรือ `target.products` | `deleteMany()` + `createMany()` ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บสินค้าแนะนำที่ผูกกับเป้าหมาย (`targetId`) |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `upsertActivityResult()` | `plan.attachments` (หมวดหมู่ GENERAL/PLOT) | ลบรายการเก่าและสร้างระเบียนใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายจริง |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)

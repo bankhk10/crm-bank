@@ -265,7 +265,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     },
   },
   // Dedicated Type 1 relations
-  type1Stores: {
+  type1Targets: {
     include: {
       store: {
         select: {
@@ -278,6 +278,11 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           latitude: true,
           longitude: true,
           addressLine: true,
+        },
+      },
+      products: {
+        include: {
+          product: true,
         },
       },
       result: true,
@@ -365,6 +370,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
+      result: true,
     },
     orderBy: { createdAt: "asc" },
   },
@@ -377,6 +383,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerCode: true,
         },
       },
+      target: true,
     },
     orderBy: { createdAt: "asc" },
   },

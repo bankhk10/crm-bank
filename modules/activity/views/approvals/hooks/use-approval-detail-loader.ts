@@ -186,7 +186,7 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
       return Boolean(
         resolvedWorkTypes.some((wt: any) => wt.code === code || wt.name === name) ||
         planWorkTypes.includes(name) ||
-        (code === "TYPE_1" && ((plan as any)?.type1Stores?.length > 0 || plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_1")))
+        (code === "TYPE_1" && (((plan as any)?.type1Targets?.length > 0 || (plan as any)?.type1Stores?.length > 0) || plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_1")))
       );
     },
     [resolvedWorkTypes, planWorkTypes, plan],

@@ -132,9 +132,9 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
       }
     });
 
-    // 4. From type1Stores
+    // 4. From type1Targets / type1Stores
     if (
-      ((plan as any).type1Stores?.length > 0 || list.some((i) => i.code === "TYPE_1")) &&
+      (((plan as any).type1Targets?.length > 0 || (plan as any).type1Stores?.length > 0) || list.some((i) => i.code === "TYPE_1")) &&
       !list.some((i) => i.code === "TYPE_1")
     ) {
       list.unshift({ code: "TYPE_1", name: "เข้าพบร้านค้า / Key Farmer" });
@@ -202,6 +202,7 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
       if (planWorkTypes.includes(code) || planWorkTypes.includes(label)) return true;
       if (code === "TYPE_1") {
         if (
+          (plan as any)?.type1Targets?.length > 0 ||
           (plan as any)?.type1Stores?.length > 0 ||
           plan?.stores?.some(
             (s: any) =>

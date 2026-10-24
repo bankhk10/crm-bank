@@ -33,3 +33,36 @@ export interface Type4ImageFile {
 
 // Backward-compatible alias
 export type ImageFile = Type4ImageFile;
+
+export interface Type4TargetEntity {
+  id: string;
+  activityPlanId: string;
+  collectType: "BILLING" | "COLLECT" | string;
+  storeId?: string | null;
+  targetAmount?: number | string | any | null;
+  invoiceNo?: string | null;
+  notes?: string | null;
+  store?: any | null;
+  result?: Type4ResultEntity | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface Type4ResultEntity {
+  id: string;
+  activityPlanId: string;
+  targetId?: string | null;
+  storeId?: string | null;
+  companyName?: string | null;
+  collectType: "BILLING" | "COLLECT" | string;
+  targetAmount?: number | string | any | null;
+  receivedAmount?: number | string | any | null;
+  orderNo?: string | null;
+  billingStatus?: string | null;
+  billingDetail?: string | null;
+  collectDetail?: string | null;
+  notes?: string | null;
+  store?: any | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}

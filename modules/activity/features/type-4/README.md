@@ -3,8 +3,8 @@
 > **Feature Slice**: `modules/activity/features/type-4`  
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามต้นแบบ Gold Standard Type 1, Type 2 และ Type 3  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType4Target`, `ActivityResultType4`, พร้อม sync สู่ `ActivityPlanStore`, `ActivityPlanAttachment`)  
-> **Status**: Production Ready / Active Reference (v1.0.0)
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType4Target`, `ActivityResultType4`, `ActivityAttachment`)  
+> **Status**: Production Ready / Active Reference (v2.0.0 Standalone)
 
 ---
 
@@ -27,10 +27,10 @@
   - `วางบิลสำเร็จ`: ร้านค้ารับวางบิลเรียบร้อย นัดหมายวันรับเงินตามรอบ
   - `เลื่อนวางบิล`: ร้านค้ายังไม่พร้อมรับวางบิล ให้ระบุเหตุผลและวันนัดใหม่
   - `พบปัญหา`: บิลไม่ถูกต้อง ยอดไม่ตรง สินค้ามีปัญหา ฯลฯ
-- **การจัดเก็บข้อมูลแบบ Dual Persistence:**
-  - บันทึกลงใน Dedicated Tables: `ActivityPlanType4Target` (สำหรับแผน) และ `ActivityResultType4` (สำหรับผลงาน)
-  - Sync สำเนาอัตโนมัติลงใน Generic Tables: `ActivityPlanStore` (`workTypeCode = "TYPE_4"`, `remarks = collectType`) เพื่อให้ระบบรายงานภาพรวมองค์กรและ Timeline ทำงานได้อย่างต่อเนื่อง
-  - Sync ไฟล์สลิปหลักฐานการชำระเงินลงใน `ActivityPlanAttachment` (`category = "PAYMENT"`, `workTypeCode = "TYPE_4"`)
+- **การจัดเก็บข้อมูลแบบ Standalone 100%:**
+  - บันทึกลงใน Dedicated Tables: `ActivityPlanType4Target` (`activity_type_4_targets` สำหรับแผน) และ `ActivityResultType4` (`activity_type_4_result` สำหรับผลงาน ผูกกับ `targetId`)
+  - จัดเก็บไฟล์สลิปหลักฐานการชำระเงินลงใน `ActivityAttachment` (`category = "GENERAL"`, `workTypeCode = "TYPE_4"`)
+  - อัปเดตสรุปยอดเงินจริงลงใน `activity_results.collect_result_amount`
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน Trip Plan):** วางแผนวางบิลหรือเก็บเงินล่วงหน้า เลือกร้านค้า กำหนดยอดเงินเป้าหมายและหมายเหตุ
@@ -157,10 +157,11 @@ model ActivityPlanType4Target {
   ...
 }
 
-// 2. ผลการปฏิบัติงานจริง Type 4 (Dedicated Table — 1 แถวต่อ 1 ร้านค้าในแผน)
+// 2. ผลการปฏิบัติงานจริง Type 4 (Dedicated Table — 1 แถวต่อ 1 ร้านค้าในแผน ผูกผ่าน targetId)
 model ActivityResultType4 {
   id              String   @id @default(cuid())
   activityPlanId  String   @map("activity_plan_id")
+  targetId        String?  @unique @map("target_id")
   storeId         String?  @map("store_id")
   companyName     String?  @map("company_name")
   collectType     String   @default("COLLECT") @map("collect_type") // "BILLING" หรือ "COLLECT"
@@ -175,20 +176,23 @@ model ActivityResultType4 {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  activityPlan    ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store           Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan    ActivityPlan             @relation("ActivityResultType4s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType4Target? @relation("Type4TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
+  store           Customer?                @relation("Type4ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
+  @@index([targetId])
   @@index([storeId])
-  @@map("activity_result_type_4")
+  @@map("activity_type_4_result")
 }
 ```
 
-### 4.2 Generic Tables Sync (Dual Persistence)
-เมื่อผู้ใช้บันทึก Type 4 Strategy จะทำการ sync สำเนาข้อมูลลงตาราง generic:
-- `ActivityPlanStore`: บันทึก `storeId`, `storeName`, `workTypeCode: "TYPE_4"`, `remarks: collectType`
-- `ActivityResult`: บันทึกและอัปเดต `collect_result_amount = receivedAmount`
-- `ActivityPlanAttachment`: จัดเก็บรูปภาพหลักฐานการชำระเงิน (`category = "PAYMENT"`, `workTypeCode = "TYPE_4"`)
+### 4.2 Standalone Table Architecture (Zero Dual Persistence)
+Type 4 ได้รับการปรับปรุงเป็น Standalone 100% โดย:
+- บันทึกและโหลดข้อมูลแผนงานลง `activity_type_4_targets` โดยตรง โดยไม่มีการเขียน dual-write ไปยัง `activity_plan_stores`
+- บันทึกและโหลดข้อมูลผลงานลง `activity_type_4_result` โดยผูกกับเป้าหมายผ่าน `targetId`
+- อัปเดตสรุปยอดเงิน `activity_results.collect_result_amount = receivedAmount`
+- จัดเก็บรูปภาพหลักฐานการชำระเงินลงใน `activity_attachments` (`workTypeCode = "TYPE_4"`)
 
 ---
 

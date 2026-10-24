@@ -8,8 +8,10 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
   if (!plan) return [];
 
   const rawStores: any[] =
-    plan.type1Stores && plan.type1Stores.length > 0
-      ? plan.type1Stores
+    plan.type1Targets && plan.type1Targets.length > 0
+      ? plan.type1Targets
+      : plan.type1Stores && plan.type1Stores.length > 0
+        ? plan.type1Stores
       : plan.items && plan.items.length > 0
         ? plan.items
         : plan.stores && plan.stores.length > 0
@@ -82,7 +84,7 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
 
     const targetResult =
       s.result ||
-      (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
+      (plan.type1Results || []).find((r: any) => r.targetId === s.id || r.planStoreId === s.id) ||
       (plan.type1Results && plan.type1Results[idx]) ||
       (rawStores.length === 1 ? actualResult : {});
 

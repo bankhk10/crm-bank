@@ -185,7 +185,8 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
             planType: plan.planType || "PLANNED",
-            type1Stores: (plan as any).type1Stores || plan.stores || [],
+            type1Targets: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
+            type1Stores: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
             type1Results: (plan as any).type1Results || [],
             type1Result:
               (plan as any).type1Results?.[0] ||

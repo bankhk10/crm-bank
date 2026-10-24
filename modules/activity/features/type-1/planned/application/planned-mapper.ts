@@ -116,8 +116,10 @@ export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
   if (!plan) return [];
 
   const rawStores: any[] =
-    plan.type1Stores && plan.type1Stores.length > 0
-      ? plan.type1Stores
+    plan.type1Targets && plan.type1Targets.length > 0
+      ? plan.type1Targets
+      : plan.type1Stores && plan.type1Stores.length > 0
+        ? plan.type1Stores
       : plan.items && plan.items.length > 0
         ? plan.items
         : plan.stores && plan.stores.length > 0
@@ -170,15 +172,18 @@ export function extractType1PlanTargets(
 } {
   const stores = plan.stores || [];
   const rawT1Stores: any[] =
-    (plan as any).type1Stores && (plan as any).type1Stores.length > 0
-      ? (plan as any).type1Stores
-      : (plan as any).items && (plan as any).items.length > 0
-        ? (plan as any).items
-        : stores.filter((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1" || s.workTypeCode === "เข้าพบร้านค้า / Key Farmer");
+    (plan as any).type1Targets && (plan as any).type1Targets.length > 0
+      ? (plan as any).type1Targets
+      : (plan as any).type1Stores && (plan as any).type1Stores.length > 0
+        ? (plan as any).type1Stores
+        : (plan as any).items && (plan as any).items.length > 0
+          ? (plan as any).items
+          : stores.filter((s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1" || s.workTypeCode === "เข้าพบร้านค้า / Key Farmer");
 
   const firstT1Result =
     (plan.type1Results && plan.type1Results[0]) ||
     plan.type1Result ||
+    plan.type1Targets?.[0]?.result ||
     plan.type1Stores?.[0]?.result;
 
   const resultLat =
@@ -241,7 +246,7 @@ export function extractType1PlanTargets(
   const list: Type1TargetItem[] = rawT1Stores.map((s: any, idx: number) => {
     const targetResult =
       s.result ||
-      (plan.type1Results || []).find((r: any) => r.planStoreId === s.id) ||
+      (plan.type1Results || []).find((r: any) => r.targetId === s.id || r.planStoreId === s.id) ||
       (plan.type1Results && plan.type1Results[idx]) ||
       (firstT1Result && (idx === 0 || rawT1Stores.length === 1) ? firstT1Result : null);
 

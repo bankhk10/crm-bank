@@ -159,7 +159,7 @@ export async function findApprovalQueueData() {
     promotionItems: {
       orderBy: { createdAt: "asc" as const },
     },
-    type1Stores: {
+    type1Targets: {
       include: {
         store: {
           select: {
@@ -171,10 +171,21 @@ export async function findApprovalQueueData() {
             district: true,
           },
         },
+        products: {
+          include: {
+            product: true,
+          },
+        },
+        result: true,
       },
       orderBy: { createdAt: "asc" as const },
     },
     type1Results: true,
+    type1Products: {
+      include: {
+        product: true,
+      },
+    },
     type2Targets: {
       include: {
         store: {
@@ -224,6 +235,35 @@ export async function findApprovalQueueData() {
             },
           },
         },
+      },
+      orderBy: { createdAt: "asc" as const },
+    },
+    type4Targets: {
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+            customerType: true,
+            province: true,
+            district: true,
+          },
+        },
+        result: true,
+      },
+      orderBy: { createdAt: "asc" as const },
+    },
+    type4Results: {
+      include: {
+        store: {
+          select: {
+            id: true,
+            name: true,
+            customerCode: true,
+          },
+        },
+        target: true,
       },
       orderBy: { createdAt: "asc" as const },
     },

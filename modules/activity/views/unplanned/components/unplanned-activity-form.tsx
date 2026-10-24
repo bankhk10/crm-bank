@@ -353,8 +353,8 @@ export function UnplannedActivityForm({
 
     // 5.11 Type 1
     if (
-      Array.isArray(initialData.type1Stores) &&
-      initialData.type1Stores.length > 0 &&
+      ((Array.isArray(initialData.type1Targets) && initialData.type1Targets.length > 0) ||
+        (Array.isArray(initialData.type1Stores) && initialData.type1Stores.length > 0)) &&
       isEdit
     ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -1795,7 +1795,9 @@ export function UnplannedActivityForm({
       totalBudgetRequested:
         totalBudgetRequested > 0 ? totalBudgetRequested : null,
       notes: notes.trim() || null,
-      planStores,
+      planStores: isType1Active ? [] : planStores,
+      type1Targets: isType1Active ? planStores : undefined,
+      type1Items: isType1Active ? type1.items : undefined,
       planProducts,
       followupResults,
       t2FollowupResults: followupResults,

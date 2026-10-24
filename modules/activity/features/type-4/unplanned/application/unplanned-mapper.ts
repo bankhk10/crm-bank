@@ -250,17 +250,7 @@ export function mapType4UnplannedToPayload(
       notes: item.notes || null,
     });
 
-    // 2. Generic Plan Store
-    planStores.push({
-      workTypeCode: "TYPE_4",
-      storeId: resolvedStoreId || null,
-      storeName: resolvedCustomerName || null,
-      targetAmount: targetAmt,
-      remarks: isBilling ? "BILLING" : "COLLECT",
-      notes: item.notes || null,
-    });
-
-    // 3. Multi-Item Result
+    // 2. Multi-Item Result
     resultItems.push({
       storeId: resolvedStoreId || null,
       companyName: resolvedCustomerName || null,

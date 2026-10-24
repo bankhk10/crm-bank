@@ -273,17 +273,6 @@ export function mapType4FormToPayload(
       invoiceNo: item.invoiceNo || null,
       notes: item.detail || null,
     });
-
-    if (sId || storeName) {
-      planStores.push({
-        workTypeCode: "TYPE_4",
-        storeId: sId || null,
-        storeName,
-        targetAmount: amt,
-        remarks: isBilling ? "BILLING" : "COLLECT",
-        notes: item.detail || null,
-      });
-    }
   });
 
   return { type4Targets, planStores };

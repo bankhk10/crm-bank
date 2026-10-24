@@ -83,4 +83,7 @@ export type {
   Type1ImageFile,
   ImageFile,
   Type1AdviceProductItem,
+  Type1TargetEntity,
+  Type1ProductEntity,
+  Type1ResultEntity,
 } from "./shared/types";

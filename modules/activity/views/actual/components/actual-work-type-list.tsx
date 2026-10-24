@@ -158,7 +158,8 @@ export function ActualWorkTypeList({
     planWorkTypes.includes("TYPE_1") ||
     planWorkTypes.includes("VISIT") ||
     planWorkTypes.includes("เข้าพบร้านค้า / Key Farmer") ||
-    Boolean(plan?.type1Stores?.length) ||
+    Boolean((plan as any)?.type1Targets?.length) ||
+    Boolean((plan as any)?.type1Stores?.length) ||
     Boolean(
       plan?.stores?.some(
         (s: any) => s.workTypeCode === "TYPE_1" || s.workTypeCode === "VISIT",

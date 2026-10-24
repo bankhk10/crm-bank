@@ -192,7 +192,8 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             type13Plots: (plan as any).type13?.plots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
-            type1Stores: (plan as any).type1Stores || plan.stores || [],
+            type1Targets: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
+            type1Stores: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
             type1Results: (plan as any).type1Results || [],
             type1Result:
               (plan as any).type1Results?.[0] ||

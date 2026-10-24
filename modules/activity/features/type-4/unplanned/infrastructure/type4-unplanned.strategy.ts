@@ -21,7 +21,7 @@ export const type4UnplannedStrategy: WorkTypeStrategy = {
     activityPlanId: string,
     planData: any,
   ): Promise<void> {
-    // 1. Save Plan Targets (into dedicated and generic tables)
+    // 1. Save Plan Targets (into dedicated activity_type_4_targets table)
     await type4PlannedStrategy.savePlan(tx, activityPlanId, planData);
 
     // 2. Save Actual Billing & Collection Results (if provided in payload)

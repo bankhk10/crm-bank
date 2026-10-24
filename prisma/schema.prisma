@@ -406,13 +406,13 @@ model Customer {
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
 
   activityPlanType13Plots     ActivityPlanType13Plot[]     @relation("Type13DealerStore")
-  activityPlanType1Stores     ActivityPlanType1Store[]
+  activityPlanType1Targets    ActivityPlanType1Target[]    @relation("Type1TargetStore")
   activityPlanType2Targets    ActivityPlanType2Target[]
   activityPlanType3Targets    ActivityPlanType3Target[]
-  activityPlanType4Targets    ActivityPlanType4Target[]
+  activityPlanType4Targets    ActivityPlanType4Target[]    @relation("Type4TargetStore")
   activityPlanType5Targets    ActivityPlanType5Target[]
   activityPlanType6Targets    ActivityPlanType6Target[]
-  activityResultType4s        ActivityResultType4[]
+  activityResultType4s        ActivityResultType4[]        @relation("Type4ResultStore")
   activityPlanType8TargetsDealer    ActivityPlanType8Target[]    @relation("Type8DealerStore")
   activityPlanType8TargetsSubdealer ActivityPlanType8Target[]    @relation("Type8SubdealerStore")
   activityPlanType9TargetsDealer    ActivityPlanType9Target[]    @relation("Type9DealerStore")
@@ -722,7 +722,7 @@ model Product {
   activityPlanType2Products      ActivityPlanType2Product[]
   activityPlanType3Products      ActivityPlanType3Product[]
   activityPlanType5Targets       ActivityPlanType5Target[]
-  activityResultType1Products    ActivityResultType1Product[]
+  activityPlanType1Products      ActivityPlanType1Product[]
   activityPlanType8Products      ActivityPlanType8Product[]
   activityPlanType9Products      ActivityPlanType9Product[]
   activityPlanType10Products     ActivityPlanType10Product[]
@@ -1769,15 +1769,15 @@ model ActivityPlan {
   type13         ActivityPlanType13?
   type14         ActivityPlanType14?
   type14FollowUps ActivityPlanType14[] @relation("Type14SourcePlan")
-  type1Stores    ActivityPlanType1Store[]
-  type1Results   ActivityResultType1[]
-  type1Products  ActivityResultType1Product[]
+  type1Targets   ActivityPlanType1Target[]  @relation("ActivityPlanType1Targets")
+  type1Results   ActivityResultType1[]      @relation("ActivityResultType1s")
+  type1Products  ActivityPlanType1Product[] @relation("ActivityPlanType1Products")
   type2Targets   ActivityPlanType2Target[]
   type2Products  ActivityPlanType2Product[]
   type3Targets   ActivityPlanType3Target[]
   type3Products  ActivityPlanType3Product[]
-  type4Targets   ActivityPlanType4Target[]
-  type4Results   ActivityResultType4[]
+  type4Targets   ActivityPlanType4Target[]  @relation("ActivityPlanType4Targets")
+  type4Results   ActivityResultType4[]      @relation("ActivityResultType4s")
   type5Targets   ActivityPlanType5Target[]
   type6Targets   ActivityPlanType6Target[]
   type8Targets   ActivityPlanType8Target[]
@@ -2817,7 +2817,7 @@ model ActivityPlanType14Product {
 // TYPE 1: เข้าพบร้านค้า / Key Farmer (Dedicated Relational Storage)
 // =============================================================================
 
-model ActivityPlanType1Store {
+model ActivityPlanType1Target {
   id                      String   @id @default(cuid())
   activityPlanId          String   @map("activity_plan_id")
   visitPurpose            String   @map("visit_purpose") // "FARMER" | "STORE"
@@ -2832,56 +2832,58 @@ model ActivityPlanType1Store {
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
 
-  activityPlan            ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store                   Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  result                  ActivityResultType1?
+  activityPlan            ActivityPlan               @relation("ActivityPlanType1Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?                  @relation("Type1TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  products                ActivityPlanType1Product[] @relation("Type1TargetProducts")
+  result                  ActivityResultType1?       @relation("Type1TargetResult")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_type_1_stores")
+  @@map("activity_type_1_targets")
 }
 
 model ActivityResultType1 {
-  id                String    @id @default(cuid())
-  activityPlanId    String    @map("activity_plan_id")
-  planStoreId       String?   @unique @map("plan_store_id")
-  productAdvice     String?   @map("product_advice")
-  discussionResult  String?   @map("discussion_result")
-  salesOpportunity  String?   @map("sales_opportunity")
-  nextAction        String?   @map("next_action")
-  nextMeetingDate   DateTime? @map("next_meeting_date")
-  farmerHomeAddress String?   @map("farmer_home_address")
-  plotLatitude      Decimal?  @map("plot_latitude") @db.Decimal(10, 7)
-  plotLongitude     Decimal?  @map("plot_longitude") @db.Decimal(10, 7)
+  id                String                   @id @default(cuid())
+  activityPlanId    String                   @map("activity_plan_id")
+  targetId          String?                  @unique @map("target_id")
+  productAdvice     String?                  @map("product_advice")
+  discussionResult  String?                  @map("discussion_result")
+  salesOpportunity  String?                  @map("sales_opportunity")
+  nextAction        String?                  @map("next_action")
+  nextMeetingDate   DateTime?                @map("next_meeting_date")
+  farmerHomeAddress String?                  @map("farmer_home_address")
+  plotLatitude      Decimal?                 @map("plot_latitude") @db.Decimal(10, 7)
+  plotLongitude     Decimal?                 @map("plot_longitude") @db.Decimal(10, 7)
 
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
 
-  activityPlan      ActivityPlan            @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  planStore         ActivityPlanType1Store? @relation(fields: [planStoreId], references: [id], onDelete: Cascade)
+  activityPlan      ActivityPlan             @relation("ActivityResultType1s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target            ActivityPlanType1Target? @relation("Type1TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
-  @@index([planStoreId])
-  @@map("activity_result_type_1")
+  @@index([targetId])
+  @@map("activity_type_1_result")
 }
 
-model ActivityResultType1Product {
-  id             String       @id @default(cuid())
-  activityPlanId String       @map("activity_plan_id")
-  targetId       String?      @map("target_id")
-  productId      String       @map("product_id")
-  productName    String?      @map("product_name")
+model ActivityPlanType1Product {
+  id             String                  @id @default(cuid())
+  activityPlanId String                  @map("activity_plan_id")
+  targetId       String                  @map("target_id")
+  productId      String                  @map("product_id")
+  productName    String?                 @map("product_name")
 
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  product        Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan            @relation("ActivityPlanType1Products", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType1Target @relation("Type1TargetProducts", fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                 @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([activityPlanId])
-  @@index([productId])
   @@index([targetId])
-  @@map("activity_result_type_1_products")
+  @@index([productId])
+  @@map("activity_type_1_products")
 }
 
 // =============================================================================
@@ -2983,48 +2985,52 @@ model ActivityPlanType3Product {
 // =============================================================================
 
 model ActivityPlanType4Target {
-  id             String   @id @default(cuid())
-  activityPlanId String   @map("activity_plan_id")
-  collectType    String   @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
-  storeId        String?  @map("store_id")
-  targetAmount   Decimal? @map("target_amount") @db.Decimal(15, 2)
-  invoiceNo      String?  @map("invoice_no")
-  notes          String?  @map("notes")
+  id             String                @id @default(cuid())
+  activityPlanId String                @map("activity_plan_id")
+  collectType    String                @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
+  storeId        String?               @map("store_id")
+  targetAmount   Decimal?              @map("target_amount") @db.Decimal(15, 2)
+  invoiceNo      String?               @map("invoice_no")
+  notes          String?               @map("notes")
 
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan          @relation("ActivityPlanType4Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?             @relation("Type4TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  result         ActivityResultType4?  @relation("Type4TargetResult")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@map("activity_plan_type_4_targets")
+  @@map("activity_type_4_targets")
 }
 
 model ActivityResultType4 {
-  id             String    @id @default(cuid())
-  activityPlanId String    @map("activity_plan_id")
-  storeId        String?   @map("store_id")
-  companyName    String?   @map("company_name")
-  collectType    String    @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
-  targetAmount   Decimal?  @map("target_amount") @db.Decimal(15, 2)
-  receivedAmount Decimal?  @map("received_amount") @db.Decimal(15, 2)
-  orderNo        String?   @map("order_no")
-  billingStatus  String?   @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
-  billingDetail  String?   @map("billing_detail")
-  collectDetail  String?   @map("collect_detail")
-  notes          String?   @map("notes")
+  id             String                   @id @default(cuid())
+  activityPlanId String                   @map("activity_plan_id")
+  targetId       String?                  @unique @map("target_id")
+  storeId        String?                  @map("store_id")
+  companyName    String?                  @map("company_name")
+  collectType    String                   @default("COLLECT") @map("collect_type") // "BILLING" | "COLLECT"
+  targetAmount   Decimal?                 @map("target_amount") @db.Decimal(15, 2)
+  receivedAmount Decimal?                 @map("received_amount") @db.Decimal(15, 2)
+  orderNo        String?                  @map("order_no")
+  billingStatus  String?                  @map("billing_status") // "วางบิลสำเร็จ" | "วางบิลไม่สำเร็จ"
+  billingDetail  String?                  @map("billing_detail")
+  collectDetail  String?                  @map("collect_detail")
+  notes          String?                  @map("notes")
 
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  activityPlan   ActivityPlan             @relation("ActivityResultType4s", fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType4Target? @relation("Type4TargetResult", fields: [targetId], references: [id], onDelete: Cascade)
+  store          Customer?                @relation("Type4ResultStore", fields: [storeId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
+  @@index([targetId])
   @@index([storeId])
-  @@map("activity_result_type_4")
+  @@map("activity_type_4_result")
 }
 
 // =============================================================================

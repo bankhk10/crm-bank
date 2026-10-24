@@ -104,7 +104,7 @@ export function extractPlanTargets(
   // Always attempt Type 1 if relation exists
   if (
     !targets.t1?.customer &&
-    (plan.type1Stores?.length || plan.type1Results?.length)
+    ((plan as any).type1Targets?.length || (plan as any).type1Stores?.length || plan.type1Results?.length)
   ) {
     const extracted = extractType1PlanTargets(plan, prevTargets.t1);
     targets.t1 = extracted.primary;

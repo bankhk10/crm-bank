@@ -235,8 +235,8 @@ export function PlannedActivityForm({
       return [WORK_TYPE_CONFIG.TYPE_14.name];
     }
     if (
-      initialData.type1Stores &&
-      initialData.type1Stores.length > 0 &&
+      ((initialData.type1Targets && initialData.type1Targets.length > 0) ||
+        (initialData.type1Stores && initialData.type1Stores.length > 0)) &&
       isEdit
     ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -582,6 +582,7 @@ export function PlannedActivityForm({
 
     let planStores: any[] = [];
     let planProducts: any[] = [];
+    let type1TargetsPayload: any[] = [];
 
     // 2. Validation & Mapping - Type 1 Items
     if (isType1Active) {
@@ -598,11 +599,9 @@ export function PlannedActivityForm({
         return;
       }
 
-      const t1Stores = type1.items
+      type1TargetsPayload = type1.items
         .map((item) => mapType1PlannedItemToDb(item, customers))
         .filter(Boolean);
-
-      planStores = [...planStores, ...t1Stores];
     }
 
     // 3. Validation & Mapping - Type 2 Items
@@ -1029,6 +1028,8 @@ export function PlannedActivityForm({
       notes: notes.trim() || null,
       planStores,
       planProducts,
+      type1Targets: type1TargetsPayload,
+      type1Items: type1.items,
       type2Targets: type2TargetsPayload,
       type3Targets: type3TargetsPayload,
       type3Items: type3TargetsPayload,

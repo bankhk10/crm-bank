@@ -66,8 +66,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
 
   /**
    * Save Type 4 Plan data inside an atomic transaction
-   * Persists to dedicated table (ActivityPlanType4Target)
-   * while keeping backward-compatible sync with legacy tables.
+   * Persists exclusively to dedicated table (ActivityPlanType4Target)
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -85,7 +84,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     );
 
     // ─────────────────────────────────────────────────────────────
-    // 1. DEDICATED TABLE: ActivityPlanType4Target
+    // DEDICATED TABLE: ActivityPlanType4Target
     // ─────────────────────────────────────────────────────────────
     await (tx as any).activityPlanType4Target.deleteMany({
       where: { activityPlanId },
@@ -118,44 +117,6 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
           };
         }),
       });
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 2. DUAL-WRITE SYNC TO LEGACY TABLES (activityPlanStore)
-    // ─────────────────────────────────────────────────────────────
-    if (planData._syncLegacy !== false) {
-      await tx.activityPlanStore.deleteMany({
-        where: {
-          activityPlanId,
-          workTypeCode: "TYPE_4",
-        },
-      });
-
-      if (itemsToSave.length > 0) {
-        await tx.activityPlanStore.createMany({
-          data: itemsToSave.map((s) => {
-            const isBilling =
-              s.collectType === "BILLING" ||
-              s.remarks === "BILLING" ||
-              s.remarks === "วางบิล";
-            const amt =
-              s.targetAmount != null
-                ? s.targetAmount
-                : s.collectAmount != null
-                  ? s.collectAmount
-                  : null;
-
-            return {
-              activityPlanId,
-              workTypeCode: "TYPE_4",
-              storeId: s.storeId || null,
-              targetAmount: amt != null ? new Prisma.Decimal(amt) : null,
-              remarks: isBilling ? "BILLING" : "COLLECT",
-              notes: s.notes || s.detail || null,
-            };
-          }),
-        });
-      }
     }
   },
 
@@ -194,7 +155,13 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     const resultId = outcomeData.activityResultId || result?.id;
     const t4Data = outcomeData.type4Result || outcomeData;
 
-    // 1. Delete existing records for this activityPlanId
+    // 1. Fetch plan targets for targetId matching
+    const planTargets = await (tx as any).activityPlanType4Target.findMany({
+      where: { activityPlanId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    // 2. Delete existing records for this activityPlanId
     await (tx as any).activityResultType4.deleteMany({
       where: { activityPlanId },
     });
@@ -221,9 +188,22 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     const orderNo = t4Data.orderNo || t4Data.t4OrderNo || null;
     let totalReceivedAmt = 0;
 
+    const findMatchingTargetId = (item: any, idx: number) => {
+      if (item.targetId) return item.targetId;
+      const matched = planTargets.find(
+        (pt: any) =>
+          (pt.id && (pt.id === item.id || pt.id === item.targetId)) ||
+          (item.storeId && pt.storeId === item.storeId),
+      );
+      if (matched) return matched.id;
+      if (planTargets.length === 1) return planTargets[0].id;
+      if (planTargets[idx]) return planTargets[idx].id;
+      return null;
+    };
+
     if (multiItems.length > 0) {
       await (tx as any).activityResultType4.createMany({
-        data: multiItems.map((item: any) => {
+        data: multiItems.map((item: any, idx: number) => {
           const recAmt =
             item.receivedAmount != null && String(item.receivedAmount).trim() !== ""
               ? Number(String(item.receivedAmount).replace(/,/g, ""))
@@ -242,6 +222,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
 
           return {
             activityPlanId,
+            targetId: findMatchingTargetId(item, idx),
             storeId: item.storeId || null,
             companyName: item.companyName || item.customerName || item.customer || null,
             collectType: item.collectType || "COLLECT",
@@ -269,6 +250,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
       await (tx as any).activityResultType4.create({
         data: {
           activityPlanId,
+          targetId: findMatchingTargetId(t4Data, 0),
           storeId: t4Data.storeId || null,
           companyName: t4Data.companyName || t4Data.customerName || t4Data.customer || null,
           collectType: t4Data.collectType || "COLLECT",
@@ -325,7 +307,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Load Type 4 Stores from Dedicated Table with fallback to legacy
+   * Load Type 4 Stores from Dedicated Table (activity_type_4_targets)
    */
   async loadPlan(
     tx: PrismaTransaction,
@@ -335,41 +317,29 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
       include: {
         store: true,
+        result: true,
       },
+      orderBy: { createdAt: "asc" },
     });
 
-    if (dedicatedTargets && dedicatedTargets.length > 0) {
-      const stores = dedicatedTargets.map((t: any) => ({
-        id: t.id,
-        workTypeCode: "TYPE_4",
-        collectType: t.collectType,
-        storeId: t.storeId,
-        storeName: t.store?.name || null,
-        targetAmount: t.targetAmount,
-        invoiceNo: t.invoiceNo,
-        notes: t.notes,
-        store: t.store,
-      }));
+    const stores = (dedicatedTargets || []).map((t: any) => ({
+      id: t.id,
+      workTypeCode: "TYPE_4",
+      collectType: t.collectType,
+      storeId: t.storeId,
+      storeName: t.store?.name || null,
+      targetAmount: t.targetAmount,
+      invoiceNo: t.invoiceNo,
+      notes: t.notes,
+      store: t.store,
+      result: t.result,
+    }));
 
-      return { targets: dedicatedTargets, stores };
-    }
-
-    // Fallback: Legacy table
-    const stores = await tx.activityPlanStore.findMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_4",
-      },
-      include: {
-        store: true,
-      },
-    });
-
-    return { targets: [], stores };
+    return { targets: dedicatedTargets || [], stores };
   },
 
   /**
-   * Load Type 4 Actual Results
+   * Load Type 4 Actual Results from Dedicated Table (activity_type_4_result)
    */
   async loadActual(
     tx: PrismaTransaction,
@@ -379,6 +349,7 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
       include: {
         store: true,
+        target: true,
       },
       orderBy: { createdAt: "asc" },
     });

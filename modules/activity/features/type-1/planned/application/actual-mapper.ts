@@ -70,6 +70,8 @@ export function parseType1ActualResult(resData: any): {
     resData.type1Results?.[0] ||
     resData.activityPlan?.type1Results?.[0] ||
     resData.activityPlan?.type1Result ||
+    resData.activityPlan?.type1Targets?.[0]?.result ||
+    resData.type1Targets?.[0]?.result ||
     resData.activityPlan?.type1Stores?.[0]?.result ||
     resData.type1Stores?.[0]?.result;
 
@@ -97,14 +99,14 @@ export function parseType1ActualResult(resData: any): {
   const allT1Results =
     resData.type1Results ||
     resData.activityPlan?.type1Results ||
-    (resData.activityPlan?.type1Stores || [])
+    (resData.activityPlan?.type1Targets || resData.activityPlan?.type1Stores || [])
       .map((s: any) => s.result)
       .filter(Boolean);
 
   if (allT1Results && allT1Results.length > 1) {
-    const stores = resData.activityPlan?.type1Stores || [];
+    const stores = resData.activityPlan?.type1Targets || resData.activityPlan?.type1Stores || [];
     const getStoreName = (idx: number, r: any) => {
-      const match = stores.find((s: any) => s.id === r.planStoreId);
+      const match = stores.find((s: any) => s.id === r.targetId || s.id === r.planStoreId);
       return match?.isUnregisteredFarmer
         ? match?.unregisteredFarmerName
         : match?.store?.name || match?.storeName || `เป้าหมายที่ ${idx + 1}`;
