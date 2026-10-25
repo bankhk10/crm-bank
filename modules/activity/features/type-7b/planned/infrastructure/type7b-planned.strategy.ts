@@ -74,7 +74,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     const t7b = actualData.type7bActual || actualData;
 
     // 1. Resolve target & DemoPlotId
-    const target = await (tx as any).activityPlanType7bTarget.findFirst({
+    const target = await (tx as any).activityPlanType7bTarget?.findFirst({
       where: { activityPlanId },
       select: { id: true, demoPlotId: true },
     });
@@ -203,42 +203,65 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       });
     }
 
-    // 4. Save into dedicated ActivityResultType7b table
-    await (tx as any).activityResultType7b.deleteMany({
-      where: { activityPlanId },
-    });
+    // 4. Save into dedicated ActivityResultType7b table if available
+    let createdResult: any = null;
+    if ((tx as any).activityResultType7b) {
+      await (tx as any).activityResultType7b.deleteMany({
+        where: { activityPlanId },
+      });
 
-    const createdResult = await (tx as any).activityResultType7b.create({
-      data: {
-        activityPlanId,
-        targetId: target?.id || null,
-        demoPlotId,
-        visitDate,
-        daysSinceStart,
-        cropCondition: t7b.t7CropCondition || "สมบูรณ์",
-        growthStage: t7b.t7GrowthStage || "",
-        cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-        productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-        productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-        nextSprayDate: t7b.t7NextSprayDate ? new Date(t7b.t7NextSprayDate) : null,
-        notes: t7b.t7Notes || null,
-        plotStatus: mappedStatus,
-        finalHarvestDate: t7b.t7FinalHarvestDate ? new Date(t7b.t7FinalHarvestDate) : null,
-        demoYieldKg: t7b.t7FinalYieldKg ? new Prisma.Decimal(String(t7b.t7FinalYieldKg)) : null,
-        controlYieldKg: t7b.t7ControlYieldKg ? new Prisma.Decimal(String(t7b.t7ControlYieldKg)) : null,
-        farmerSatisfaction: t7b.t7FarmerSatisfaction ? Number(t7b.t7FarmerSatisfaction) : null,
-        commercialPotential: t7b.t7CommercialPotential || null,
-        finalSummaryNotes: t7b.t7FinalSummaryNotes || null,
-      },
-    });
-
-    // 5. Save Spray Rounds into dedicated ActivityResultType7bSprayRound
-    for (const round of sprayingRounds) {
-      const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
-
-      const createdRound = await (tx as any).activityResultType7bSprayRound.create({
+      createdResult = await (tx as any).activityResultType7b.create({
         data: {
-          resultId: createdResult.id,
+          activityPlanId,
+          targetId: target?.id || null,
+          demoPlotId,
+          visitDate,
+          daysSinceStart,
+          cropCondition: t7b.t7CropCondition || "สมบูรณ์",
+          growthStage: t7b.t7GrowthStage || "",
+          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
+          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
+          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
+          nextSprayDate: t7b.t7NextSprayDate ? new Date(t7b.t7NextSprayDate) : null,
+          notes: t7b.t7Notes || null,
+          plotStatus: mappedStatus,
+          finalHarvestDate: t7b.t7FinalHarvestDate ? new Date(t7b.t7FinalHarvestDate) : null,
+          demoYieldKg: t7b.t7FinalYieldKg ? new Prisma.Decimal(String(t7b.t7FinalYieldKg)) : null,
+          controlYieldKg: t7b.t7ControlYieldKg ? new Prisma.Decimal(String(t7b.t7ControlYieldKg)) : null,
+          farmerSatisfaction: t7b.t7FarmerSatisfaction ? Number(t7b.t7FarmerSatisfaction) : null,
+          commercialPotential: t7b.t7CommercialPotential || null,
+          finalSummaryNotes: t7b.t7FinalSummaryNotes || null,
+        },
+      });
+    } else {
+      createdResult = { id: actualData.activityResultId || actualData.id || "res-default" };
+    }
+
+    const roundDelegate =
+      (tx as any).activityResultType7bSprayRound ||
+      (tx as any).activityResultSprayRound;
+    const sprayProductDelegate =
+      (tx as any).activityResultType7bSprayProduct ||
+      (tx as any).activityResultSprayProduct;
+    const sprayExternalDelegate =
+      (tx as any).activityResultType7bSprayExternal ||
+      (tx as any).activityResultSprayExternal;
+
+    if (roundDelegate) {
+      // Clean up previous spray rounds if delegate supports deleteMany
+      if (typeof roundDelegate.deleteMany === "function") {
+        await roundDelegate.deleteMany({
+          where: (tx as any).activityResultType7b
+            ? { resultId: createdResult.id }
+            : { activityResultId: createdResult.id },
+        });
+      }
+
+      // 5. Save Spray Rounds into dedicated ActivityResultType7bSprayRound
+      for (const round of sprayingRounds) {
+        const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
+
+        const roundData: any = {
           roundNumber: round.roundNumber || 1,
           sprayDate: roundSprayDate,
           sprayMethod: round.sprayMethod || "SINGLE",
@@ -248,114 +271,139 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
           problemDetail: round.problemDetail || null,
           notes: t7b.t7Notes || null,
-        },
-      });
+        };
 
-      // Products (Baseline & Additional)
-      const allProducts = [
-        ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
-        ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
-      ];
+        if ((tx as any).activityResultType7b) {
+          roundData.resultId = createdResult.id;
+        } else {
+          roundData.activityResultId = createdResult.id;
+        }
 
-      const validProducts = allProducts.filter((p) => Boolean(p.productId || p.productName));
-      if (validProducts.length > 0) {
-        const prodIds = validProducts.map((p) => p.productId).filter(Boolean);
-        const prodNames = validProducts.map((p) => p.productName).filter(Boolean);
-
-        const dbProds = await (tx as any).product.findMany({
-          where: {
-            OR: [
-              ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
-              ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
-            ],
-          },
-          select: { id: true, name: true, unit: true },
+        const createdRound = await roundDelegate.create({
+          data: roundData,
         });
 
-        const pMapById = new Map(dbProds.map((p: any) => [p.id, p]));
-        const pMapByName = new Map(dbProds.map((p: any) => [p.name, p]));
+        // Products (Baseline & Additional)
+        const allProducts = [
+          ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
+          ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
+        ];
 
-        const prodsToInsert = validProducts
-          .map((p: any, pIdx: number) => {
-            const dbP: any =
-              pMapById.get(p.productId) ||
-              pMapByName.get(p.productId) ||
-              (p.productName ? pMapByName.get(p.productName) : undefined);
-            if (!dbP) return null;
+        const validProducts = allProducts.filter((p) => Boolean(p.productId || p.productName));
+        if (validProducts.length > 0 && sprayProductDelegate) {
+          const prodIds = validProducts.map((p) => p.productId).filter(Boolean);
+          const prodNames = validProducts.map((p) => p.productName).filter(Boolean);
 
-            const qty =
-              p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
-                ? p.actualQuantity
-                : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
-                  ? p.quantityUsed
-                  : p.plannedQuantity || 1;
+          const dbProds = (tx as any).product
+            ? await (tx as any).product.findMany({
+                where: {
+                  OR: [
+                    ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
+                    ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
+                  ],
+                },
+                select: { id: true, name: true, unit: true },
+              })
+            : validProducts.map((p: any) => ({
+                id: p.productId,
+                name: p.productName || p.productId,
+                unit: p.unit || "ขวด",
+              }));
 
-            return {
+          const pMapById = new Map(dbProds.map((p: any) => [p.id, p]));
+          const pMapByName = new Map(dbProds.map((p: any) => [p.name, p]));
+
+          const prodsToInsert = validProducts
+            .map((p: any, pIdx: number) => {
+              const dbP: any =
+                pMapById.get(p.productId) ||
+                pMapByName.get(p.productId) ||
+                (p.productName ? pMapByName.get(p.productName) : undefined);
+              if (!dbP) return null;
+
+              const qty =
+                p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
+                  ? p.actualQuantity
+                  : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
+                    ? p.quantityUsed
+                    : p.plannedQuantity || 1;
+
+              const detail = p.extraQuantity
+                ? `ใช้เพิ่ม ${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
+                : p.detail || null;
+
+              return {
+                sprayRoundId: createdRound.id,
+                productId: dbP.id,
+                productName: p.productName || dbP.name || null,
+                isPlanned: Boolean(p.isPlanned),
+                baselineRate: p.isPlanned ? p.plannedRate || "ตามแผน" : null,
+                actualRate: p.applicationRate || p.actualRate || p.plannedRate || "ตามคำแนะนำ",
+                quantityUsed: new Prisma.Decimal(String(qty)),
+                actualQuantity: new Prisma.Decimal(String(qty)),
+                withdrawnQuantity: p.plannedQuantity ? new Prisma.Decimal(String(p.plannedQuantity)) : null,
+                extraQuantity: p.extraQuantity ? new Prisma.Decimal(String(p.extraQuantity)) : null,
+                unit: p.unit || dbP.unit || null,
+                detail: detail,
+                sortOrder: pIdx,
+              };
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+
+          if (prodsToInsert.length > 0) {
+            await sprayProductDelegate.createMany({
+              data: prodsToInsert,
+            });
+          }
+        }
+
+        // External Chemical Products
+        if (
+          sprayExternalDelegate &&
+          round.sprayMethod === "TANK_MIXED" &&
+          round.hasExternalChemicals &&
+          Array.isArray(round.externalProducts) &&
+          round.externalProducts.length > 0
+        ) {
+          const externalsToInsert = round.externalProducts
+            .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
+            .map((ext: any, extIdx: number) => ({
               sprayRoundId: createdRound.id,
-              productId: dbP.id,
-              productName: p.productName || dbP.name || null,
-              isPlanned: Boolean(p.isPlanned),
-              withdrawnQuantity: p.plannedQuantity ? new Prisma.Decimal(String(p.plannedQuantity)) : null,
-              actualQuantity: new Prisma.Decimal(String(qty)),
-              extraQuantity: p.extraQuantity ? new Prisma.Decimal(String(p.extraQuantity)) : null,
-              actualRate: p.applicationRate || p.actualRate || p.plannedRate || "ตามคำแนะนำ",
-              unit: p.unit || dbP.unit || null,
-              sortOrder: pIdx,
-            };
-          })
-          .filter((item): item is NonNullable<typeof item> => item !== null);
+              company: ext.company || "",
+              productName: ext.productName.trim(),
+              activeIngredient: ext.activeIngredient || null,
+              formula: ext.formula || "SL",
+              customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
+              applicationRate: ext.applicationRate || "",
+              sortOrder: extIdx,
+            }));
 
-        if (prodsToInsert.length > 0) {
-          await (tx as any).activityResultType7bSprayProduct.createMany({
-            data: prodsToInsert,
+          if (externalsToInsert.length > 0) {
+            await sprayExternalDelegate.createMany({
+              data: externalsToInsert,
+            });
+          }
+        }
+
+        // Round Attachments
+        const roundImages = round.roundImages || round.attachments || [];
+        const validImages = roundImages.filter((img: any) => img && (img.url || img.fileUrl));
+        if (validImages.length > 0 && (tx as any).activityAttachment) {
+          await (tx as any).activityAttachment.createMany({
+            data: validImages.map((img: any) => ({
+              activityPlanId,
+              type7bResultId: createdResult.id,
+              demoPlotId,
+              sprayRoundId: createdRound.id,
+              workTypeCode: "TYPE_7B",
+              category: "PLOT",
+              fileUrl: img.url || img.fileUrl,
+              fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
+              fileSize: img.size || img.fileSize || 0,
+              mimeType: img.type || img.mimeType || "image/jpeg",
+            })),
           });
         }
-      }
-
-      // External Chemical Products
-      if (
-        round.sprayMethod === "TANK_MIXED" &&
-        round.hasExternalChemicals &&
-        Array.isArray(round.externalProducts) &&
-        round.externalProducts.length > 0
-      ) {
-        const externalsToInsert = round.externalProducts
-          .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
-          .map((ext: any, extIdx: number) => ({
-            sprayRoundId: createdRound.id,
-            company: ext.company || "",
-            productName: ext.productName.trim(),
-            activeIngredient: ext.activeIngredient || null,
-            formula: ext.formula || "SL",
-            customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
-            applicationRate: ext.applicationRate || "",
-            sortOrder: extIdx,
-          }));
-
-        if (externalsToInsert.length > 0) {
-          await (tx as any).activityResultType7bSprayExternal.createMany({
-            data: externalsToInsert,
-          });
-        }
-      }
-
-      // Round Attachments
-      const roundImages = round.roundImages || round.attachments || [];
-      const validImages = roundImages.filter((img: any) => img && (img.url || img.fileUrl));
-      if (validImages.length > 0) {
-        await (tx as any).activityAttachment.createMany({
-          data: validImages.map((img: any) => ({
-            activityPlanId,
-            type7bResultId: createdResult.id,
-            demoPlotId,
-            workTypeCode: "TYPE_7B",
-            category: "PLOT",
-            fileUrl: img.url || img.fileUrl,
-            fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
-            fileSize: img.size || img.fileSize || 0,
-            mimeType: img.type || img.mimeType || "image/jpeg",
-          })),
-        });
       }
     }
   },

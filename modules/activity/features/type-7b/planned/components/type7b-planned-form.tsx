@@ -79,8 +79,23 @@ export function Type7bPlannedForm({
   }, [products.length]);
 
   const effectiveProducts = useMemo(() => {
-    return products.length > 0 ? products : dbProducts;
-  }, [products, dbProducts]);
+    const base = products.length > 0 ? products : dbProducts;
+    const withdrawnList = item.withdrawnProducts || [];
+    if (withdrawnList.length === 0) return base;
+    const existingIds = new Set(base.map((p) => p.id));
+    const extra: any[] = [];
+    for (const wp of withdrawnList) {
+      if (wp.productId && !existingIds.has(wp.productId)) {
+        existingIds.add(wp.productId);
+        extra.push({
+          id: wp.productId,
+          name: wp.productName || "สินค้าที่เบิก",
+          unit: wp.unit || "ขวด",
+        });
+      }
+    }
+    return extra.length > 0 ? [...extra, ...base] : base;
+  }, [products, dbProducts, item.withdrawnProducts]);
 
   // Combine followUpPlans, dbPlans, or synthesize from plotList if needed
   const effectiveFollowUpPlans = useMemo(() => {
@@ -122,29 +137,89 @@ export function Type7bPlannedForm({
     );
     if (
       !hasSelectedPlan &&
-      (item.selectedPlanId || item.existingPlotId || item.demoPlotId)
+      (item.selectedPlanId ||
+        item.existingPlotId ||
+        item.demoPlotId ||
+        (item.selectedPlotIds && item.selectedPlotIds.length > 0))
     ) {
+      const targetPlotsSource = Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
       const syntheticPlots = (
         item.selectedPlotIds && item.selectedPlotIds.length > 0
           ? item.selectedPlotIds
           : [item.existingPlotId || item.demoPlotId].filter(Boolean)
-      ).map((plotId, idx) => ({
-        id: plotId as string,
-        code: "",
-        name: item.plotName || item.existingPlotName || `แปลงสาธิต #${idx + 1}`,
-        cropName: item.cropName || "-",
-        cropCategory: item.cropCategory,
-        ownerName: item.ownerName || item.farmerName || "-",
-        province: item.province || "",
-        district: item.district || "",
-        areaRai: item.areaRai != null ? Number(item.areaRai) : undefined,
-        treeCount: item.treeCount ?? undefined,
-      }));
+      ).map((plotId, idx) => {
+        const matchedTarget = targetPlotsSource.find(
+          (tp: any) => tp.demoPlotId === plotId || tp.id === plotId,
+        );
+        const demoP = matchedTarget?.demoPlot || {};
+        return {
+          id: plotId as string,
+          code: demoP.code || matchedTarget?.plotCode || "",
+          name:
+            matchedTarget?.plotName ||
+            demoP.name ||
+            item.plotName ||
+            item.existingPlotName ||
+            `แปลงสาธิต #${idx + 1}`,
+          cropName:
+            matchedTarget?.cropName ||
+            demoP.cropName ||
+            demoP.customCropName ||
+            item.cropName ||
+            "-",
+          cropCategory:
+            matchedTarget?.cropCategory ||
+            demoP.cropCategory ||
+            item.cropCategory,
+          ownerName:
+            matchedTarget?.ownerName ||
+            matchedTarget?.farmerName ||
+            demoP.ownerName ||
+            item.ownerName ||
+            item.farmerName ||
+            "-",
+          province:
+            matchedTarget?.province ||
+            demoP.province ||
+            item.province ||
+            "",
+          district:
+            matchedTarget?.district ||
+            demoP.district ||
+            item.district ||
+            "",
+          areaRai:
+            matchedTarget?.areaRai != null
+              ? Number(matchedTarget.areaRai)
+              : demoP.areaRai != null
+                ? Number(demoP.areaRai)
+                : item.areaRai != null
+                  ? Number(item.areaRai)
+                  : undefined,
+          treeCount:
+            matchedTarget?.treeCount ??
+            demoP.treeCount ??
+            item.treeCount ??
+            undefined,
+          dealerName:
+            matchedTarget?.dealerName ||
+            demoP.customer?.name ||
+            demoP.dealerName ||
+            undefined,
+        };
+      });
 
       const syntheticPlan: Type7bFollowUpPlanOption = {
         planId: item.selectedPlanId || "existing-source-plan",
-        planCode: "แผนต้นทาง",
-        planTitle: item.plotName || item.existingPlotName || "แผนแปลงสาธิตที่เลือก",
+        planCode: item.sourcePlanCode || "แผนต้นทาง",
+        planTitle:
+          item.sourcePlanTitle ||
+          item.plotName ||
+          item.existingPlotName ||
+          "แผนแปลงสาธิตที่เลือก",
+        planDate: item.sourcePlanDate
+          ? new Date(item.sourcePlanDate).toLocaleDateString("th-TH")
+          : undefined,
         plots: syntheticPlots,
       };
 
@@ -170,6 +245,10 @@ export function Type7bPlannedForm({
     item.district,
     item.areaRai,
     item.treeCount,
+    item.sourcePlanCode,
+    item.sourcePlanTitle,
+    item.sourcePlanDate,
+    item.plots,
   ]);
 
   // 1. Resolve selected plan
@@ -221,21 +300,70 @@ export function Type7bPlannedForm({
   const planPlots = useMemo(() => {
     const list = [...(selectedPlan?.plots || [])];
     const seen = new Set<string>(list.map((p) => p.id));
+    const targetPlotsSource = Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
+
     if (Array.isArray(item.selectedPlotIds)) {
       for (const plotId of item.selectedPlotIds) {
         if (!seen.has(plotId)) {
           seen.add(plotId);
+          const matchedTarget = targetPlotsSource.find(
+            (tp: any) => tp.demoPlotId === plotId || tp.id === plotId,
+          );
+          const demoP = matchedTarget?.demoPlot || {};
           list.push({
             id: plotId,
-            code: "",
-            name: item.plotName || item.existingPlotName || "แปลงสาธิตที่เลือก",
-            cropName: item.cropName || "-",
-            cropCategory: item.cropCategory,
-            ownerName: item.ownerName || item.farmerName || "-",
-            province: item.province || "",
-            district: item.district || "",
-            areaRai: item.areaRai != null ? Number(item.areaRai) : undefined,
-            treeCount: item.treeCount ?? undefined,
+            code: demoP.code || matchedTarget?.plotCode || "",
+            name:
+              matchedTarget?.plotName ||
+              demoP.name ||
+              item.plotName ||
+              item.existingPlotName ||
+              "แปลงสาธิตที่เลือก",
+            cropName:
+              matchedTarget?.cropName ||
+              demoP.cropName ||
+              demoP.customCropName ||
+              item.cropName ||
+              "-",
+            cropCategory:
+              matchedTarget?.cropCategory ||
+              demoP.cropCategory ||
+              item.cropCategory,
+            ownerName:
+              matchedTarget?.ownerName ||
+              matchedTarget?.farmerName ||
+              demoP.ownerName ||
+              item.ownerName ||
+              item.farmerName ||
+              "-",
+            province:
+              matchedTarget?.province ||
+              demoP.province ||
+              item.province ||
+              "",
+            district:
+              matchedTarget?.district ||
+              demoP.district ||
+              item.district ||
+              "",
+            areaRai:
+              matchedTarget?.areaRai != null
+                ? Number(matchedTarget.areaRai)
+                : demoP.areaRai != null
+                  ? Number(demoP.areaRai)
+                  : item.areaRai != null
+                    ? Number(item.areaRai)
+                    : undefined,
+            treeCount:
+              matchedTarget?.treeCount ??
+              demoP.treeCount ??
+              item.treeCount ??
+              undefined,
+            dealerName:
+              matchedTarget?.dealerName ||
+              demoP.customer?.name ||
+              demoP.dealerName ||
+              undefined,
           });
         }
       }
@@ -244,6 +372,7 @@ export function Type7bPlannedForm({
   }, [
     selectedPlan,
     item.selectedPlotIds,
+    item.plots,
     item.plotName,
     item.existingPlotName,
     item.cropName,

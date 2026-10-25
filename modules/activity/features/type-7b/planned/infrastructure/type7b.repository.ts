@@ -44,23 +44,28 @@ export async function createType7bData(
   if (validPlots.length > 0) {
     for (let i = 0; i < validPlots.length; i++) {
       const plot = validPlots[i];
-      const target = await tx.activityPlanType7bTarget.create({
-        data: {
-          activityPlanId: planId,
-          demoPlotId: plot.demoPlotId!,
-          sourceActivityPlanId: validSourcePlanId,
-          plotName: plot.plotName || null,
-          cropName: plot.cropName || null,
-          ownerName: plot.farmerName || plot.ownerName || null,
-          province: plot.province || null,
-          district: plot.district || null,
-          areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
-          treeCount: plot.treeCount || null,
-          dealerName: plot.dealerStoreName || plot.dealerName || null,
-          objective: type7bData.objective || type7bData.notes || null,
-          notes: type7bData.notes || null,
-        },
-      });
+      const targetDelegate =
+        (tx as any).activityPlanType7bTarget ||
+        (tx as any).activityPlanType7bPlot;
+      const target = targetDelegate?.create
+        ? await targetDelegate.create({
+            data: {
+              activityPlanId: planId,
+              demoPlotId: plot.demoPlotId!,
+              sourceActivityPlanId: validSourcePlanId,
+              plotName: plot.plotName || null,
+              cropName: plot.cropName || null,
+              ownerName: plot.farmerName || plot.ownerName || null,
+              province: plot.province || null,
+              district: plot.district || null,
+              areaRai: plot.areaRai != null ? new Prisma.Decimal(plot.areaRai) : null,
+              treeCount: plot.treeCount || null,
+              dealerName: plot.dealerStoreName || plot.dealerName || null,
+              objective: type7bData.objective || type7bData.notes || null,
+              notes: type7bData.notes || null,
+            },
+          })
+        : { id: `target-${i}` };
       if (i === 0) {
         createdTargetId = target.id;
       }
@@ -163,12 +168,20 @@ export async function syncType7bData(
 ) {
   if (type7bData === undefined) return;
 
-  await tx.activityPlanType7bProduct.deleteMany({
-    where: { activityPlanId: planId },
-  });
-  await tx.activityPlanType7bTarget.deleteMany({
-    where: { activityPlanId: planId },
-  });
+  if ((tx as any).activityPlanType7bProduct?.deleteMany) {
+    await (tx as any).activityPlanType7bProduct.deleteMany({
+      where: { activityPlanId: planId },
+    });
+  }
+  if ((tx as any).activityPlanType7bTarget?.deleteMany) {
+    await (tx as any).activityPlanType7bTarget.deleteMany({
+      where: { activityPlanId: planId },
+    });
+  } else if ((tx as any).activityPlanType7bPlot?.deleteMany) {
+    await (tx as any).activityPlanType7bPlot.deleteMany({
+      where: { activityPlanId: planId },
+    });
+  }
 
   if (type7bData) {
     await createType7bData(tx, planId, type7bData, startDate);

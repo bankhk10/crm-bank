@@ -468,6 +468,7 @@ export function PlannedActivityForm({
   );
 
   const type7b = useType7bPlannedForm({
+    initial: initialData,
     initialItems: hydratedInitialType7bItems,
   });
 

@@ -27,6 +27,13 @@ async function runTests() {
     activityPlanType7bPlot: {
       findFirst: async () => ({ demoPlotId: "demo-plot-101" }),
     },
+    activityPlanType7bTarget: {
+      findFirst: async () => ({ id: "target-101", demoPlotId: "demo-plot-101" }),
+    },
+    activityResultType7b: {
+      deleteMany: async () => {},
+      create: async (args: any) => ({ id: "res-7b-1", ...args.data }),
+    },
     demoPlot: {
       update: async (args: any) => {
         updatedDemoPlot = args.data;
@@ -41,6 +48,14 @@ async function runTests() {
         return { id: "visit-1", ...args.data };
       },
     },
+    activityResultType7bSprayRound: {
+      deleteMany: async () => {},
+      create: async (args: any) => {
+        const roundRecord = { id: `round-db-${createdRounds.length + 1}`, ...args.data };
+        createdRounds.push(roundRecord);
+        return roundRecord;
+      },
+    },
     activityResultSprayRound: {
       deleteMany: async () => {},
       create: async (args: any) => {
@@ -49,15 +64,33 @@ async function runTests() {
         return roundRecord;
       },
     },
+    activityResultType7bSprayProduct: {
+      createMany: async (args: any) => {
+        createdProducts.push(...args.data);
+      },
+    },
     activityResultSprayProduct: {
       createMany: async (args: any) => {
         createdProducts.push(...args.data);
+      },
+    },
+    activityResultType7bSprayExternal: {
+      createMany: async (args: any) => {
+        createdExternals.push(...args.data);
       },
     },
     activityResultSprayExternal: {
       createMany: async (args: any) => {
         createdExternals.push(...args.data);
       },
+    },
+    product: {
+      findMany: async () => [
+        { id: "prod-uuid-1", name: "เอ็กซอล", unit: "ขวด" },
+        { id: "prod-uuid-2", name: "นูริชแคลเซียมโบรอน", unit: "ขวด" },
+        { id: "prod-add-101", name: "แคลเซียม-โบรอน พลัส", unit: "ลิตร" },
+        { id: "prod-add-102", name: "ปุ๋ยเกล็ด 20-20-20 พ่นทางใบ", unit: "ซอง" },
+      ],
     },
     activityAttachment: {
       createMany: async (args: any) => {

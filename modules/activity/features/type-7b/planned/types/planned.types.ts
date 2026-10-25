@@ -78,6 +78,10 @@ export interface Type7bPlanItem {
   startDate?: string;
   notes?: string;
   sprayingRoundNumber?: number;
+  sourcePlanCode?: string;
+  sourcePlanTitle?: string;
+  sourcePlanDate?: string | Date;
+  plots?: any[];
   [key: string]: any;
 }
 

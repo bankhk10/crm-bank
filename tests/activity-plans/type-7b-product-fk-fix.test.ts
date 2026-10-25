@@ -27,6 +27,12 @@ async function runTests() {
         insertedPlots.push(...args.data);
       },
     },
+    activityPlanType7bTarget: {
+      create: async (args: any) => {
+        insertedPlots.push(args.data);
+        return { id: "target-1", ...args.data };
+      },
+    },
     demoPlotVisit: {
       findFirst: async () => ({ id: "visit-existing" }),
       create: async (args: any) => args.data,

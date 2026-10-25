@@ -194,124 +194,204 @@ export function extractType7bPlanTargets(
 export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
   if (!initialData) return [];
 
-  const t7b =
+  // 1. Resolve raw targets/plots from all possible relations/sources
+  const rawTargets: any[] =
+    (Array.isArray(initialData.type7bTargets) && initialData.type7bTargets.length > 0
+      ? initialData.type7bTargets
+      : null) ||
+    (Array.isArray(initialData.type7b?.plots) && initialData.type7b.plots.length > 0
+      ? initialData.type7b.plots
+      : null) ||
+    (Array.isArray(initialData.type7bData?.plots) && initialData.type7bData.plots.length > 0
+      ? initialData.type7bData.plots
+      : null) ||
+    (Array.isArray(initialData.type7bPlots) && initialData.type7bPlots.length > 0
+      ? initialData.type7bPlots
+      : null) ||
+    (Array.isArray(initialData.plots) && initialData.plots.length > 0
+      ? initialData.plots
+      : null) ||
+    [];
+
+  // 2. Fallback to demoPlotVisits if no direct targets
+  const rawVisits: any[] =
+    rawTargets.length === 0 && Array.isArray(initialData.demoPlotVisits) && initialData.demoPlotVisits.length > 0
+      ? initialData.demoPlotVisits
+      : [];
+
+  const t7bRecord: any =
     initialData.type7b ||
     initialData.type7bData ||
-    (initialData.type7bPlots && initialData.type7bPlots.length > 0
-      ? {
-          id: initialData.id,
-          sourceActivityPlanId: initialData.sourceActivityPlanId,
-          demoPlotId: initialData.demoPlotId,
-          objective: initialData.objective || initialData.notes,
-          notes: initialData.notes || initialData.objective,
-          plots: initialData.type7bPlots,
-          products: initialData.products || initialData.type7bProducts,
-          hasProducts: initialData.hasProductWithdrawal,
-        }
-      : null);
+    null;
 
-  if (!t7b) return [];
+  // If no targets, no visits, and no t7b record or demoPlotId, return empty
+  if (
+    rawTargets.length === 0 &&
+    rawVisits.length === 0 &&
+    !t7bRecord &&
+    !initialData.demoPlotId &&
+    !initialData.existingPlotId
+  ) {
+    return [];
+  }
 
-  const rawProducts = t7b.products || initialData.type7bProducts || [];
+  // 3. Resolve raw products from all possible relations
+  const rawProducts: any[] =
+    (Array.isArray(initialData.type7bProducts) && initialData.type7bProducts.length > 0
+      ? initialData.type7bProducts
+      : null) ||
+    (Array.isArray(t7bRecord?.products) && t7bRecord.products.length > 0
+      ? t7bRecord.products
+      : null) ||
+    (rawTargets.length > 0 && Array.isArray(rawTargets[0]?.products) && rawTargets[0].products.length > 0
+      ? rawTargets[0].products
+      : null) ||
+    (Array.isArray(initialData.products) && initialData.products.length > 0
+      ? initialData.products.filter((p: any) => p.workTypeCode === "TYPE_7B" || !p.workTypeCode)
+      : null) ||
+    [];
+
   const type7bProds: Type7bWithdrawnProductLine[] = rawProducts.map(
-    (p: any, idx: number) => ({
-      id: p.id || String(idx + 1),
-      productId: p.productId || p.product?.id || "",
-      productName: p.product?.name || p.productName || "",
-      quantity:
+    (p: any, idx: number) => {
+      const prod = p.product || {};
+      const pName = p.productName || prod.name || "";
+      const pId = p.productId || prod.id || "";
+      const qty =
         p.quantity != null
           ? Number(p.quantity)
           : p.targetQuantity != null
             ? Number(p.targetQuantity)
-            : 1,
-      unit: p.unit || p.product?.unit || "",
-      notes: p.notes || "",
-    }),
+            : 1;
+      const unit = p.unit || prod.unit || "";
+      return {
+        id: p.id || String(idx + 1),
+        productId: pId,
+        productName: pName,
+        quantity: qty,
+        unit,
+        notes: p.notes || "",
+      };
+    },
   );
 
   const has7bWithdrawal = Boolean(
-    t7b.hasProducts ||
-    initialData.hasProductWithdrawal ||
-    type7bProds.length > 0,
+    type7bProds.length > 0 ||
+    t7bRecord?.hasProducts ||
+    initialData.hasProductWithdrawal,
   );
 
-  const rawPlots = t7b.plots || [];
-  const initialPlotIds: string[] = rawPlots
-    .map((p: any) => p.demoPlotId || p.id)
-    .filter(Boolean);
+  const firstTarget = rawTargets[0];
+  const firstVisit = rawVisits[0];
+  const demoPlot = firstTarget?.demoPlot || firstVisit?.demoPlot || initialData.demoPlot || {};
 
-  const firstPlot = rawPlots[0];
-  const demoPlot = firstPlot?.demoPlot || {};
+  const initialPlotIds: string[] =
+    rawTargets.length > 0
+      ? rawTargets.map((p: any) => p.demoPlotId || p.demoPlot?.id || p.id).filter(Boolean)
+      : rawVisits.length > 0
+        ? rawVisits.map((v: any) => v.demoPlotId || v.demoPlot?.id || v.id).filter(Boolean)
+        : [initialData.demoPlotId || initialData.existingPlotId].filter(Boolean);
+
   const fallbackPlotId =
-    t7b.demoPlotId ||
-    firstPlot?.demoPlotId ||
-    firstPlot?.id ||
+    firstTarget?.demoPlotId ||
     demoPlot.id ||
+    firstVisit?.demoPlotId ||
+    t7bRecord?.demoPlotId ||
+    initialData.demoPlotId ||
+    initialData.existingPlotId ||
     initialPlotIds[0] ||
     "";
 
+  const sourcePlan = firstTarget?.sourceActivityPlan || t7bRecord?.sourceActivityPlan || null;
+
   const selectedPlanId =
-    t7b.sourceActivityPlanId ||
-    t7b.sourceActivityPlan?.id ||
+    firstTarget?.sourceActivityPlanId ||
+    sourcePlan?.id ||
+    t7bRecord?.sourceActivityPlanId ||
     demoPlot.activityPlanId ||
+    initialData.sourceActivityPlanId ||
     "";
 
   const plotName =
-    firstPlot?.plotName ||
+    firstTarget?.plotName ||
     demoPlot.name ||
+    firstVisit?.plotName ||
+    t7bRecord?.plotName ||
+    initialData.plotName ||
+    initialData.existingPlotName ||
     "";
 
   const ownerName =
-    firstPlot?.ownerName ||
-    firstPlot?.farmerName ||
+    firstTarget?.ownerName ||
+    firstTarget?.farmerName ||
     demoPlot.ownerName ||
+    firstVisit?.ownerName ||
+    t7bRecord?.ownerName ||
+    initialData.ownerName ||
+    initialData.farmerName ||
     "";
 
   const cropName =
-    firstPlot?.cropName ||
+    firstTarget?.cropName ||
     demoPlot.cropName ||
     demoPlot.customCropName ||
+    firstVisit?.cropName ||
+    t7bRecord?.cropName ||
+    initialData.cropName ||
     "";
 
   const cropCategory =
-    firstPlot?.cropCategory ||
+    firstTarget?.cropCategory ||
     demoPlot.cropCategory ||
+    t7bRecord?.cropCategory ||
+    initialData.cropCategory ||
     "";
 
   const province =
-    firstPlot?.province ||
+    firstTarget?.province ||
     demoPlot.province ||
+    t7bRecord?.province ||
     initialData.province ||
     "";
 
   const district =
-    firstPlot?.district ||
+    firstTarget?.district ||
     demoPlot.district ||
+    t7bRecord?.district ||
     initialData.district ||
     "";
 
   const areaRai =
-    firstPlot?.areaRai != null
-      ? Number(firstPlot.areaRai)
+    firstTarget?.areaRai != null
+      ? Number(firstTarget.areaRai)
       : demoPlot.areaRai != null
         ? Number(demoPlot.areaRai)
-        : null;
+        : initialData.areaRai != null
+          ? Number(initialData.areaRai)
+          : null;
 
   const treeCount =
-    firstPlot?.treeCount ??
+    firstTarget?.treeCount ??
     demoPlot.treeCount ??
+    initialData.treeCount ??
     null;
 
   const objective =
-    t7b.objective ||
-    t7b.notes ||
+    firstTarget?.objective ||
+    firstTarget?.notes ||
+    t7bRecord?.objective ||
+    t7bRecord?.notes ||
+    firstVisit?.notes ||
     initialData.objective ||
     initialData.notes ||
     "";
 
+  const sourcePlanCode = sourcePlan?.code || t7bRecord?.sourcePlanCode || initialData.sourcePlanCode || "";
+  const sourcePlanTitle = sourcePlan?.title || t7bRecord?.sourcePlanTitle || initialData.sourcePlanTitle || "";
+  const sourcePlanDate = sourcePlan?.startDate || t7bRecord?.sourcePlanDate || initialData.sourcePlanDate || undefined;
+
   return [
     {
-      id: t7b.id || fallbackPlotId || "1",
+      id: firstTarget?.id || t7bRecord?.id || fallbackPlotId || "1",
       plotActivityType: "FOLLOW_UP",
       selectedPlanId,
       selectedPlotIds: initialPlotIds,
@@ -335,6 +415,10 @@ export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
       productId: type7bProds[0]?.productId || "",
       productName: type7bProds[0]?.productName || "",
       demoProducts: [],
+      sourcePlanCode,
+      sourcePlanTitle,
+      sourcePlanDate,
+      plots: rawTargets.length > 0 ? rawTargets : rawVisits,
     },
   ];
 }

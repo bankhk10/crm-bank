@@ -200,10 +200,79 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type5Targets: (plan as any).type5Targets || [],
             type6Targets: (plan as any).type6Targets || [],
             type7aPlots: (plan as any).type7aPlots || [],
-            type7b: (plan as any).type7b || null,
-            type7bData: (plan as any).type7b || null,
-            type7bPlots: (plan as any).type7b?.plots || (plan as any).type7bPlots || [],
-            type7bProducts: (plan as any).type7b?.products || [],
+            type7bTargets: (plan as any).type7bTargets || [],
+            type7bProducts:
+              ((plan as any).type7bProducts && (plan as any).type7bProducts.length > 0)
+                ? (plan as any).type7bProducts
+                : (plan as any).type7b?.products || [],
+            type7b:
+              (plan as any).type7b ||
+              ((plan as any).type7bTargets && (plan as any).type7bTargets.length > 0
+                ? {
+                    id: (plan as any).type7bTargets[0]?.id || plan.id,
+                    sourceActivityPlanId:
+                      (plan as any).type7bTargets[0]?.sourceActivityPlanId ||
+                      (plan as any).type7bTargets[0]?.sourceActivityPlan?.id ||
+                      (plan as any).type7bTargets[0]?.demoPlot?.activityPlanId ||
+                      null,
+                    demoPlotId: (plan as any).type7bTargets[0]?.demoPlotId || null,
+                    objective:
+                      (plan as any).type7bTargets[0]?.objective ||
+                      (plan as any).type7bTargets[0]?.notes ||
+                      plan.objective ||
+                      "",
+                    notes:
+                      (plan as any).type7bTargets[0]?.notes ||
+                      (plan as any).type7bTargets[0]?.objective ||
+                      plan.notes ||
+                      "",
+                    plots: (plan as any).type7bTargets,
+                    products:
+                      (plan as any).type7bProducts && (plan as any).type7bProducts.length > 0
+                        ? (plan as any).type7bProducts
+                        : (plan as any).type7bTargets[0]?.products || [],
+                    hasProducts:
+                      Boolean(
+                        ((plan as any).type7bProducts && (plan as any).type7bProducts.length > 0) ||
+                        ((plan as any).type7bTargets[0]?.products &&
+                          (plan as any).type7bTargets[0].products.length > 0),
+                      ),
+                  }
+                : null),
+            type7bData:
+              (plan as any).type7bData ||
+              (plan as any).type7b ||
+              ((plan as any).type7bTargets && (plan as any).type7bTargets.length > 0
+                ? {
+                    id: (plan as any).type7bTargets[0]?.id || plan.id,
+                    sourceActivityPlanId:
+                      (plan as any).type7bTargets[0]?.sourceActivityPlanId ||
+                      (plan as any).type7bTargets[0]?.sourceActivityPlan?.id ||
+                      (plan as any).type7bTargets[0]?.demoPlot?.activityPlanId ||
+                      null,
+                    demoPlotId: (plan as any).type7bTargets[0]?.demoPlotId || null,
+                    objective:
+                      (plan as any).type7bTargets[0]?.objective ||
+                      (plan as any).type7bTargets[0]?.notes ||
+                      plan.objective ||
+                      "",
+                    notes:
+                      (plan as any).type7bTargets[0]?.notes ||
+                      (plan as any).type7bTargets[0]?.objective ||
+                      plan.notes ||
+                      "",
+                    plots: (plan as any).type7bTargets,
+                    products:
+                      (plan as any).type7bProducts && (plan as any).type7bProducts.length > 0
+                        ? (plan as any).type7bProducts
+                        : (plan as any).type7bTargets[0]?.products || [],
+                  }
+                : null),
+            type7bPlots:
+              (plan as any).type7b?.plots ||
+              (plan as any).type7bPlots ||
+              (plan as any).type7bTargets ||
+              [],
             type8: (plan as any).type8 || null,
             type8Data: (plan as any).type8 || null,
             type9: (plan as any).type9 || null,
