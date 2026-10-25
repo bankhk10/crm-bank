@@ -38,13 +38,6 @@ export function extractType2PlanTargets(
     ...prevTarget,
   };
 
-  if (t2Stores.length === 0 && t2Products.length === 0) {
-    return {
-      primary: fallbackItem,
-      list: [],
-    };
-  }
-
   // 1. Support loading directly from dedicated table ActivityPlanType2Target
   if (
     plan?.type2Targets &&

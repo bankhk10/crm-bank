@@ -53,13 +53,17 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     // 1. Clean previous dedicated records for this plan
     // Cascades delete activity_type_8_products and activity_type_8_result
-    await (tx as any).activityPlanType8Target.deleteMany({
-      where: { activityPlanId },
-    });
+    if ((tx as any).activityPlanType8Target?.deleteMany) {
+      await (tx as any).activityPlanType8Target.deleteMany({
+        where: { activityPlanId },
+      });
+    }
 
-    await (tx as any).activityPlanType8Product.deleteMany({
-      where: { activityPlanId },
-    });
+    if ((tx as any).activityPlanType8Product?.deleteMany) {
+      await (tx as any).activityPlanType8Product.deleteMany({
+        where: { activityPlanId },
+      });
+    }
 
     // 2. Extract meetings array
     const meetings: any[] =
@@ -130,25 +134,27 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
         const detail = item.detail || item.notes || null;
 
         // 2.1 Create Dedicated Target in activity_type_8_targets
-        const target = await (tx as any).activityPlanType8Target.create({
-          data: {
-            activityPlanId,
-            meetingTarget,
-            farmerChannel,
-            dealerId,
-            dealerName,
-            subdealerId,
-            subDealerStore,
-            isUnregisteredSubdealer: isUnregistered,
-            topic,
-            venueType,
-            location,
-            meetingDate,
-            meetingTime,
-            targetAttendeesCount: attendees,
-            detail,
-          },
-        });
+        const target = (tx as any).activityPlanType8Target?.create
+          ? await (tx as any).activityPlanType8Target.create({
+              data: {
+                activityPlanId,
+                meetingTarget,
+                farmerChannel,
+                dealerId,
+                dealerName,
+                subdealerId,
+                subDealerStore,
+                isUnregisteredSubdealer: isUnregistered,
+                topic,
+                venueType,
+                location,
+                meetingDate,
+                meetingTime,
+                targetAttendeesCount: attendees,
+                detail,
+              },
+            })
+          : null;
 
         // 2.2 Create Planned Target Products (up to 5 items)
         const targetProducts: string[] = item.targetProducts || [];
@@ -157,24 +163,28 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
           const prodName = targetProducts[pIdx];
           let prodId = targetProductIds[pIdx];
           if (!prodId || prodId === prodName) {
-            const dbProd = await (tx as any).product.findFirst({
-              where: { OR: [{ id: prodName }, { name: prodName }] },
-              select: { id: true, name: true },
-            });
+            const dbProd = (tx as any).product?.findFirst
+              ? await (tx as any).product.findFirst({
+                  where: { OR: [{ id: prodName }, { name: prodName }] },
+                  select: { id: true, name: true },
+                })
+              : null;
             if (dbProd) {
               prodId = dbProd.id;
             }
           }
 
-          await (tx as any).activityPlanType8Product.create({
-            data: {
-              activityPlanId,
-              targetId: target.id,
-              productId: prodId || null,
-              productName: prodName,
-              productRole: "TARGET",
-            },
-          });
+          if (target?.id && (tx as any).activityPlanType8Product?.create) {
+            await (tx as any).activityPlanType8Product.create({
+              data: {
+                activityPlanId,
+                targetId: target.id,
+                productId: prodId || null,
+                productName: prodName,
+                productRole: "TARGET",
+              },
+            });
+          }
         }
 
         // 2.3 Create Promotional Products
@@ -186,19 +196,21 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
             const promoTotal = promo.totalAmount ? new Prisma.Decimal(promo.totalAmount) : null;
             const promoNotes = promo.notes || null;
 
-            await (tx as any).activityPlanType8Product.create({
-              data: {
-                activityPlanId,
-                targetId: target.id,
-                productId: promo.productId || null,
-                productName: promo.productName || null,
-                productRole: "PROMOTION",
-                targetQuantity: promoQty,
-                targetUnitPrice: promoPrice,
-                targetAmount: promoTotal,
-                promotionNotes: promoNotes,
-              },
-            });
+            if (target?.id && (tx as any).activityPlanType8Product?.create) {
+              await (tx as any).activityPlanType8Product.create({
+                data: {
+                  activityPlanId,
+                  targetId: target.id,
+                  productId: promo.productId || null,
+                  productName: promo.productName || null,
+                  productRole: "PROMOTION",
+                  targetQuantity: promoQty,
+                  targetUnitPrice: promoPrice,
+                  targetAmount: promoTotal,
+                  promotionNotes: promoNotes,
+                },
+              });
+            }
           }
         }
 
@@ -208,18 +220,20 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
           if (!sale.productName && !sale.productId) continue;
 
           // Check if matches an existing TARGET product in this target
-          const existingTargetProduct = await (tx as any).activityPlanType8Product.findFirst({
-            where: {
-              targetId: target.id,
-              productRole: "TARGET",
-              OR: [
-                sale.productId ? { productId: sale.productId } : undefined,
-                sale.productName ? { productName: sale.productName } : undefined,
-              ].filter(Boolean) as any,
-            },
-          });
+          const existingTargetProduct = target?.id && (tx as any).activityPlanType8Product?.findFirst
+            ? await (tx as any).activityPlanType8Product.findFirst({
+                where: {
+                  targetId: target.id,
+                  productRole: "TARGET",
+                  OR: [
+                    sale.productId ? { productId: sale.productId } : undefined,
+                    sale.productName ? { productName: sale.productName } : undefined,
+                  ].filter(Boolean) as any,
+                },
+              })
+            : null;
 
-          if (existingTargetProduct) {
+          if (existingTargetProduct && (tx as any).activityPlanType8Product?.update) {
             await (tx as any).activityPlanType8Product.update({
               where: { id: existingTargetProduct.id },
               data: {
@@ -229,7 +243,7 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
                 actualNotes: sale.notes || null,
               },
             });
-          } else {
+          } else if (target?.id && (tx as any).activityPlanType8Product?.create) {
             await (tx as any).activityPlanType8Product.create({
               data: {
                 activityPlanId,

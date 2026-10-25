@@ -71,11 +71,17 @@ export function extractType11PlanTargets(
 
     const first = list[0];
     const primary: Type11TargetItem = {
+      ...first,
       id: first?.id,
       targetId: first?.targetId,
       storeId: first?.storeId,
       store: t11StoreNames || prevTarget?.store || "",
       storeName: t11StoreNames || prevTarget?.storeName || "",
+      isUnregisteredStore: first?.isUnregisteredStore ?? false,
+      dealerId: first?.dealerId || null,
+      dealerName: first?.dealerName || null,
+      province: first?.province || null,
+      district: first?.district || null,
       detail: t11Details || prevTarget?.detail || "",
       notes: t11Details || prevTarget?.notes || "",
       targetOpportunity: prevTarget?.targetOpportunity || "",

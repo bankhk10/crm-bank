@@ -74,12 +74,16 @@ export async function syncType7aPlots(
   if (!rawPlots || rawPlots.length === 0) return;
 
   // Clean up existing dedicated targets & products for this plan
-  await tx.activityPlanType7aProduct.deleteMany({
-    where: { activityPlanId },
-  });
-  await tx.activityPlanType7aTarget.deleteMany({
-    where: { activityPlanId },
-  });
+  if ((tx as any).activityPlanType7aProduct?.deleteMany) {
+    await (tx as any).activityPlanType7aProduct.deleteMany({
+      where: { activityPlanId },
+    });
+  }
+  if ((tx as any).activityPlanType7aTarget?.deleteMany) {
+    await (tx as any).activityPlanType7aTarget.deleteMany({
+      where: { activityPlanId },
+    });
+  }
 
   // Find existing DemoPlots attached to this activity plan
   const existingPlots = await tx.demoPlot.findMany({
@@ -177,28 +181,30 @@ export async function syncType7aPlots(
     processedPlotIds.add(demoPlotId);
 
     // Create Dedicated ActivityPlanType7aTarget
-    const createdTarget = await tx.activityPlanType7aTarget.create({
-      data: {
-        activityPlanId,
-        plotName,
-        storeId: plot.storeId || null,
-        dealerName: plot.dealerName || null,
-        cropCategory: plot.cropCategory || "พืชทั่วไป",
-        cropName: plot.cropName || "พืชทั่วไป",
-        customCropName: plot.customCropName || null,
-        areaRai:
-          plot.areaRai != null
-            ? new Prisma.Decimal(plot.areaRai)
-            : null,
-        treeCount:
-          plot.treeCount != null
-            ? Number(plot.treeCount)
-            : null,
-        objective: plot.objective || null,
-        demoPlotId,
-        notes: plot.notes || null,
-      },
-    });
+    const createdTarget = (tx as any).activityPlanType7aTarget?.create
+      ? await (tx as any).activityPlanType7aTarget.create({
+          data: {
+            activityPlanId,
+            plotName,
+            storeId: plot.storeId || null,
+            dealerName: plot.dealerName || null,
+            cropCategory: plot.cropCategory || "พืชทั่วไป",
+            cropName: plot.cropName || "พืชทั่วไป",
+            customCropName: plot.customCropName || null,
+            areaRai:
+              plot.areaRai != null
+                ? new Prisma.Decimal(plot.areaRai)
+                : null,
+            treeCount:
+              plot.treeCount != null
+                ? Number(plot.treeCount)
+                : null,
+            objective: plot.objective || null,
+            demoPlotId,
+            notes: plot.notes || null,
+          },
+        })
+      : null;
 
     // Save planned products directly into DemoPlotProduct
     await tx.demoPlotProduct.deleteMany({
@@ -254,15 +260,17 @@ export async function syncType7aPlots(
           isAdditional: false,
         });
 
-        dedicatedProductsToCreate.push({
-          activityPlanId,
-          targetId: createdTarget.id,
-          productId: finalId,
-          productName: finalName,
-          quantity: new Prisma.Decimal(qty),
-          unit: prod.unit || "ขวด",
-          sortOrder: pIdx,
-        });
+        if (createdTarget?.id) {
+          dedicatedProductsToCreate.push({
+            activityPlanId,
+            targetId: createdTarget.id,
+            productId: finalId,
+            productName: finalName,
+            quantity: new Prisma.Decimal(qty),
+            unit: prod.unit || "ขวด",
+            sortOrder: pIdx,
+          });
+        }
       });
 
       if (validProductsToCreate.length > 0) {
@@ -271,8 +279,8 @@ export async function syncType7aPlots(
         });
       }
 
-      if (dedicatedProductsToCreate.length > 0) {
-        await tx.activityPlanType7aProduct.createMany({
+      if (dedicatedProductsToCreate.length > 0 && (tx as any).activityPlanType7aProduct?.createMany) {
+        await (tx as any).activityPlanType7aProduct.createMany({
           data: dedicatedProductsToCreate,
         });
       }

@@ -149,13 +149,6 @@ export function hydrateType1PlannedData(plan: any): Type1PlannedItem[] {
   }
 
   return rawStores.map((s, idx) => {
-    if (s && (s.customerName !== undefined || s.notes !== undefined)) {
-      return {
-        ...s,
-        notes: s.notes || "",
-        id: s.id || String(idx + 1),
-      } as Type1PlannedItem;
-    }
     return mapType1DbStoreToPlannedItem(s, idx);
   });
 }

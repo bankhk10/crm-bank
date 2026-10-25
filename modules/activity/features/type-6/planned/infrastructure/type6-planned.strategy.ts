@@ -179,14 +179,26 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
     if (issueItems.length === 0) return;
 
     // Clean existing records in dedicated table
-    await (tx as any).activityResultType6.deleteMany({
-      where: { activityPlanId },
-    });
+    const targetDelegate =
+      (tx as any).activityResultType6 ||
+      (tx as any).activityResultIssueItem;
 
-    const existingTargets = await (tx as any).activityPlanType6Target.findMany({
-      where: { activityPlanId },
-      select: { id: true, storeId: true, customerName: true },
-    });
+    if (targetDelegate?.deleteMany) {
+      await targetDelegate.deleteMany({
+        where: { activityPlanId },
+      });
+    }
+
+    const planTargetDelegate =
+      (tx as any).activityPlanType6Target ||
+      (tx as any).activityPlanType6Issue;
+
+    const existingTargets = planTargetDelegate?.findMany
+      ? await planTargetDelegate.findMany({
+          where: { activityPlanId },
+          select: { id: true, storeId: true, customerName: true },
+        })
+      : [];
 
     const clientIssueMap = new Map<string, string>();
     const itemsToCreate = issueItems.map((item: any) => {
@@ -237,9 +249,11 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       };
     });
 
-    await (tx as any).activityResultType6.createMany({
-      data: itemsToCreate,
-    });
+    if (targetDelegate?.createMany) {
+      await targetDelegate.createMany({
+        data: itemsToCreate,
+      });
+    }
 
     // Sync attachments for Type 6 issue results
     const issueAttachments: any[] = [];
@@ -255,6 +269,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             storeId: item.storeId || null,
             productId: item.productId || null,
             type6ResultId: dbId,
+            issueItemId: dbId,
             fileUrl: img.url || img.fileUrl,
             fileName: img.name || img.fileName || "รูปถ่ายหลักฐานปัญหา",
             fileSize: img.size || img.fileSize || 0,
