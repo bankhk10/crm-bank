@@ -19,7 +19,7 @@ Activity Module ได้รับการออกแบบตามสถา�
 1. **Pure Declarative Orchestrators (Views)**: หน้าจอทุกหน้าใน `views/` ทำหน้าที่เป็นเพียง "ผู้กำกับเวที" (Orchestrator) นำชิ้นส่วน UI ส่วนกลาง (`ui/`) และชิ้นส่วนเฉพาะงาน (`features/type-X`) มาวางเรียงกันอย่างอ่านง่าย โดยไม่มี Business Logic หรือการดึงข้อมูลตรงแทรกอยู่ใน JSX
 2. **Gold Standard Vertical Slice (`features/type-1`)**: แต่ละประเภทงานแยกอิสระเป็นโมดูลย่อย มีทั้ง `planned`, `unplanned`, และ `actual` ของตัวเองอย่างชัดเจน พร้อม Strategy บันทึกฐานข้อมูล และ Mapper
 3. **Common Reusable UI Blocks (`ui/`)**: ส่วนประกอบที่เป็นของกลาง เช่น ข้อมูลทั่วไป, วันที่/เวลา, พื้นที่และทีมงานร่วมทาง, งบประมาณ, หมายเหตุ และปุ่ม Action ถูกแยกออกมาเพื่อใช้ร่วมกันข้ามทุกประเภทงาน
-4. **Dedicated Type Tables + Legacy Compatibility**: แต่ละประเภทงานบันทึกลงตารางเฉพาะของตัวเอง (`ActivityPlanType1Store`, `ActivityResultType1`, `ActivityPlanType4Target`, `ActivityResultType4`, ฯลฯ) ผ่าน Strategy ภายใน Transaction เดียว พร้อม Dual-Write ไปยังตาราง Generic เดิม (`ActivityPlanStore`, `ActivityPlanProduct`) เพื่อความเข้ากันได้ย้อนหลัง
+4. **Pure Dedicated Relational Storage (100% Dedicated Tables)**: แต่ละประเภทงานจัดเก็บลงตารางเฉพาะของตัวเอง (`activity_type_{code}_*`) ทั้งฝั่งเป้าหมายแผนงาน (`targets`, `products`) และผลการปฏิบัติงานจริง (`result`) ผ่าน Strategy ภายใน Transaction เดียว โดยตัดขาดจากตาราง Generic เดิม (`ActivityPlanStore`, `ActivityPlanProduct`) และไม่มี Dual-Write/Mirroring ตกค้างในระบบอีกต่อไป — ตาราง Generic เก่าทั้ง 12 ตารางถูก Drop ออกจากฐานข้อมูลอย่างถาวร
 
 ---
 
@@ -32,26 +32,26 @@ modules/activity/
 │   └── ROADMAP.md                        # แผนการพัฒนา เกณฑ์ตรวจรับงาน (Quality Gates) และสถานะปัจจุบัน
 │
 ├── features/                             # Vertical Slices แยกตามประเภทงาน (Work Types 1 - 14 ครบ 15 Slices)
-│   ├── type-1/                           # ⭐ GOLD STANDARD SLICE: เข้าพบร้านค้า / Key Farmer
+│   ├── type-1/                           # ⭐ เข้าพบเกษตรกร / ร้านค้า (Farmer & Store Visit) [activity_type_1_targets, activity_type_1_result]
 │   │   ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan & Actual Result)
 │   │   ├── unplanned/                    # กิจกรรม "นอกแผน" (Unplanned 2-in-1: สร้างพร้อมบันทึกผล)
 │   │   ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
 │   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 1
 │   │   └── index.ts                      # Client-Safe Unified Public API Contract
-│   ├── type-2/                           # 🌾 ติดตามผลการใช้สินค้า (Product Follow-up) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-3/                           # 💼 เสนอขายสินค้า (Product Sales Proposal) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-4/                           # 💰 วางบิล / เก็บเงิน (Billing & Payment Collection) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-5/                           # 📊 สำรวจตลาดของคู่แข่ง (Competitor Market Survey) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-6/                           # 🛠️ ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา (Issue Complaint) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-7a/                          # 🌱 จัดทำแปลงสาธิต (Demo Plot Establishment) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-7b/                          # 🔍 ติดตามแปลงสาธิต (Demo Plot Follow-up) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-8/                           # 👥 จัดประชุม (Meeting) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-9/                           # 🏪 จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Store Event) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-10/                          # 🎪 จัดงาน Field Day (Field Day Event) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-11/                          # 📦 ตรวจเช็คสต๊อกหน้าร้าน (Store Stock Check) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-12/                          # 🚌 พาลูกค้าศึกษาดูงาน / ทัวร์ (Customer Study Tour) [planned / unplanned / shared / README.md / index.ts]
-│   ├── type-13/                          # 💦 ฉีดแปลงแฮตแทค (Hattack Spraying) [planned / unplanned / shared / README.md / index.ts]
-│   └── type-14/                          # 📈 ติดตามแปลงแฮตแทค (Hattack Follow-up) [planned / unplanned / shared / README.md / index.ts]
+│   ├── type-2/                           # 🌾 เข้าพบตัวแทนจำหน่าย (Dealer Visit) [activity_type_2_targets, activity_type_2_products, activity_type_2_result]
+│   ├── type-3/                           # 🏪 เข้าพบร้านค้าย่อย (Subdealer Visit) [activity_type_3_targets, activity_type_3_products, activity_type_3_result]
+│   ├── type-4/                           # 💰 วางบิล / เก็บเงิน (Billing & Payment Collection) [activity_type_4_targets, activity_type_4_result]
+│   ├── type-5/                           # 🤝 ส่งเสริมการขายร่วมร้านค้า (Joint Field Day / Promotion with Store) [activity_type_5_targets, activity_type_5_products, activity_type_5_result]
+│   ├── type-6/                           # 📊 สรุปผลแปลงสาธิต (Demo Plot Evaluation) [activity_type_6_targets, activity_type_6_result]
+│   ├── type-7a/                          # 🚜 จัดทำแปลงสาธิต / ให้บริการฉีดพ่น (Demo Plot & Spray Service) [activity_type_7a_targets, activity_type_7a_products, activity_type_7a_result]
+│   ├── type-7b/                          # 🔍 ติดตามแปลงสาธิต / สำรวจศัตรูพืช (Multiple Spray Rounds) [activity_type_7b_targets, activity_type_7b_products, activity_type_7b_result]
+│   ├── type-8/                           # 👥 จัดประชุม (Meeting & Seminar) [activity_type_8_targets, activity_type_8_products, activity_type_8_result]
+│   ├── type-9/                           # 🎪 กิจกรรมส่งเสริมการขายหน้าร้าน (Store Event & Sales Promotion) [activity_type_9_targets, activity_type_9_products, activity_type_9_result]
+│   ├── type-10/                          # 🌾 สาธิตแปลง / จัดแปลงสาธิต (Field Demonstration) [activity_type_10_targets, activity_type_10_products, activity_type_10_result]
+│   ├── type-11/                          # 📦 จัดอบรมถ่ายทอดความรู้ (Knowledge Sharing / Training) [activity_type_11_targets, activity_type_11_result]
+│   ├── type-12/                          # 🚌 พาลูกค้าศึกษาดูงาน / ทัวร์ (Tour / Study Trip) [activity_type_12_targets, activity_type_12_result]
+│   ├── type-13/                          # 📈 ติดตามผลการใช้ผลิตภัณฑ์ (Product Follow-up) [activity_type_13_targets, activity_type_13_products, activity_type_13_result]
+│   └── type-14/                          # 🛠️ แก้ไขปัญหาการใช้ผลิตภัณฑ์ (Issue Handling & Complaint) [activity_type_14_targets, activity_type_14_products, activity_type_14_result]
 │
 ├── server/                               # Server Actions Gateways (หมวดหมู่แยกหน้าที่ชัดเจน)
 │   ├── planned.actions.ts                # Actions สำหรับแผนงานในแผน (Planned: สร้าง/แก้ไข/ดึง/ลบ/ยกเลิก)
@@ -534,10 +534,52 @@ export function ActivityPlanApprovalDetailView({ id }) {
 - [x] **Phase 2 — Core Field & Demo Plot Slices (Type 5 to Type 7B)**: สำรวจตลาดคู่แข่ง (`type-5`), ตรวจสอบเรื่องร้องเรียน (`type-6`), จัดทำแปลงสาธิต (`type-7a`), ติดตามแปลงสาธิต (`type-7b`)
 - [x] **Phase 3 — Specialized & Academic Slices (Type 8 to Type 14)**: จัดประชุม (`type-8`), กิจกรรมหน้าร้าน (`type-9`), งาน Field Day (`type-10`), เช็คสต๊อกหน้าร้าน (`type-11`), พาลูกค้าทัวร์ (`type-12`), ฉีดแปลงแฮตแทค (`type-13`), ติดตามแปลงแฮตแทค (`type-14`)
 - [x] **Phase 4 — Final Decommission & Production Verification**: ลบโฟลเดอร์เก่า `modules/activity-plans/` (466 ไฟล์) ออกจากระบบ 100%, ปรับปรุง Client-Safe Barrels และผ่าน `npm run build` สมบูรณ์แบบ
+- [x] **Phase 5 — Full Database Modernization & 12 Legacy Tables Drop (Batches A to E Completed 100%)**:
+  - **Batch A**: ยกระดับ Type 1 (เข้าพบร้านค้า/เกษตรกร) และ Type 4 (วางบิล/เก็บเงิน)
+  - **Batch B**: ยกระดับ Type 2 (เข้าพบตัวแทนจำหน่าย) และ Type 3 (เข้าพบร้านค้าย่อย) สู่ Dedicated Relational Tables
+  - **Batch C**: ยกระดับ Type 5 (ส่งเสริมการขายร่วมร้านค้า) และ Type 6 (สรุปผลแปลงสาธิต) สู่ Dedicated Relational Tables
+  - **Batch D**: ยกระดับ Type 7A (จัดทำแปลงสาธิต/ฉีดพ่น), Type 7B (ติดตามแปลงสาธิต / Multiple Spray Rounds), Type 13 (ติดตามผลผลิตภัณฑ์) และ Type 14 (แก้ไขปัญหาผลิตภัณฑ์)
+  - **Batch E**: ยกระดับ Type 8 (จัดประชุม), Type 9 (ส่งเสริมการขายหน้าร้าน) และ Type 12 (ศึกษาดูงาน/ทัวร์)
+  - **12 Legacy Generic Tables Drop**: ลบตาราง generic เก่าทั้ง 12 ตาราง (`activity_plan_stores`, `activity_plan_products`, `activity_plan_tours`, `activity_result_sale_items`, `activity_result_stock_items`, `activity_result_survey_items`, `activity_result_demo_items`, `activity_result_spray_rounds`, `activity_result_spray_products`, `activity_result_spray_externals`, `activity_result_followup_items`, `activity_result_issue_items`) ออกจาก PostgreSQL Schema อย่างถาวร
+  - **Zero Dual-Writes**: ขจัดคำสั่ง mirror write / dual-write ตกค้างทั้งหมดใน Strategy, Repository และ Seed Helpers
 
 ---
 
 ## 7. ประวัติการปรับปรุง (Change Log)
+
+### Version 2.2.0 (2026-10-25)
+
+- **Complete Database Modernization, Pure Dedicated Relational Storage & 12 Legacy Tables Drop (Batches A, B, C, D, E Complete)**:
+  - **100% Dedicated Relational Architecture (All 15 Activity Types)**:
+    - ปรับปรุงและยกระดับโครงสร้างฐานข้อมูลของทุก Activity Type สู่ Dedicated Tables (`activity_type_{code}_*`) ทั้งฝั่งเป้าหมายแผนงาน (`targets`, `products`) และผลการปฏิบัติงานจริง (`result`)
+    - ยุติการจัดเก็บ JSON string ใน `notes` หรือตาราง generic กลางอย่างถาวร ทุกฟิลด์ถูกแยกเป็น Strongly-typed columns พร้อม Foreign Keys และ Database Indexing อย่างสมบูรณ์
+  - **ถอดถอนและ Drop ตาราง Generic เก่า 12 ตารางอย่างถาวร**:
+    - ลบ 12 โมเดลที่ล้าสมัยออกจาก `prisma/schema.prisma` และฐานข้อมูล PostgreSQL:
+      - `ActivityPlanStore` (`activity_plan_stores`)
+      - `ActivityPlanProduct` (`activity_plan_products`)
+      - `ActivityPlanTour` (`activity_plan_tours`)
+      - `ActivityResultSaleItem` (`activity_result_sale_items`)
+      - `ActivityResultStockItem` (`activity_result_stock_items`)
+      - `ActivityResultSurveyItem` (`activity_result_survey_items`)
+      - `ActivityResultDemoItem` (`activity_result_demo_items`)
+      - `ActivityResultSprayRound` (`activity_result_spray_rounds`)
+      - `ActivityResultSprayProduct` (`activity_result_spray_products`)
+      - `ActivityResultSprayExternal` (`activity_result_spray_externals`)
+      - `ActivityResultFollowupItem` (`activity_result_followup_items`)
+      - `ActivityResultIssueItem` (`activity_result_issue_items`)
+    - ทำความสะอาด Array ความสัมพันธ์บน `Customer`, `Product`, `ActivityPlan`, `ActivityResult`, `DemoPlot` และ `ActivityAttachment`
+  - **ขจัด Dual-Writes / Mirror Writes ทั้งระบบ**:
+    - ยกเลิกการ sync ไปยังตาราง generic ใน Strategies ทุก Type (`type8-planned.strategy.ts`, `type9-planned.strategy.ts`, `type7a-planned.strategy.ts`, `type10-planned.strategy.ts` ฯลฯ)
+    - ปรับปรุง `modules/activity/infrastructure/activity-result.repository.ts` ให้บันทึกผ่าน Dedicated Strategies ของแต่ละ Type 100% โดยไม่มีคำสั่ง sync ย้อนกลับไปยัง generic child tables
+    - ปรับปรุง `prisma/seed/activity/seed-helpers.ts` ให้ปลอดภัย ไม่เรียกโมเดลที่ถูก drop
+  - **Infrastructure & Registry Optimization**:
+    - ปรับปรุง `modules/activity/infrastructure/activity-plan-include.ts` ถอด relations generic เก่าออก และรวม relations เฉพาะ Type ครบถ้วน
+    - ปรับปรุง `modules/activity/application/activity-plan-flow.ts` ถอด fallback check และ `products: true` ทำให้ Prisma inference คืนค่าแบบ relational เต็มรูป
+    - ปรับปรุง `modules/activity/domain/summary/plan-targets-registry.ts` ดึงข้อมูลจาก dedicated tables 100%
+  - **Quality Assurance & Verification**:
+    - ผ่านการตรวจสอบ TypeScript (`npx tsc --noEmit`) **0 errors** ทั่วทั้งโปรเจกต์
+    - ผ่าน Next.js 16 Turbopack Production Build (`npm run build`) **สร้างหน้า Static Pages ครบทั้ง 112/112 routes**
+
 
 ### Version 2.1.0 (2026-10-22)
 

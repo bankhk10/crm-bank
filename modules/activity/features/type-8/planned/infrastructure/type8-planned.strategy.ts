@@ -262,36 +262,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
             },
           });
         }
-
-        // Mirror to legacy activityPlanStore
-        const promoNotes = (item.promotions || item.promotionProducts || [])
-          .map((p: any) => (typeof p === "string" ? p : p.notes?.trim() || ""))
-          .filter(Boolean);
-
-        const encodedNotes = encodeType8StoreNotes(item.detail, promoNotes, {
-          meetingTarget,
-          farmerChannel,
-          venueType,
-          isUnregisteredSubdealer: isUnregistered,
-          subdealerId: subdealerId || undefined,
-          subDealerStore: subDealerStore || undefined,
-          dealerId: dealerId || undefined,
-          dealerName: dealerName || undefined,
-          attendeesCount: attendees,
-        });
-
-        await (tx as any).activityPlanStore.create({
-          data: {
-            activityPlanId,
-            workTypeCode: "TYPE_8",
-            visitPurpose: meetingTarget === "FARMER" ? "FARMER" : "STORE",
-            storeId: storeId || null,
-            storeName: storeName || null,
-            subDealerStore: subDealerStore || null,
-            remarks: topic,
-            notes: encodedNotes,
-          },
-        });
       }
     } else {
       // Fallback: If legacy planStores was passed directly

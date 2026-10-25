@@ -166,210 +166,39 @@ export async function upsertActivityResult(
       input.planWorkTypeCodes || []
     );
 
-    // 3. Sync Sale Results
-    if (input.saleResults !== undefined) {
-      await (tx as any).activityResultSaleItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.saleResults) && input.saleResults.length > 0) {
-        await (tx as any).activityResultSaleItem.createMany({
-          data: input.saleResults.map((item: any) => {
-            const qty =
-              Number(item.actualQuantity ?? item.actualQty ?? 0) || 0;
-            const unitPrice =
-              Number(item.actualUnitPrice ?? item.unitPrice ?? 0) || 0;
-            const total =
-              item.actualTotal != null || item.actualSales != null
-                ? Number(item.actualTotal ?? item.actualSales) || 0
-                : qty * unitPrice;
-
-            return {
-              activityResultId: result.id,
-              workTypeCode: getWorkTypeCode(item.workTypeCode || "TYPE_3"),
-              storeId: item.storeId ?? null,
-              productId: item.productId,
-              productName: item.productName ?? null,
-              actualQuantity: qty,
-              actualUnitPrice: new Prisma.Decimal(unitPrice),
-              actualTotal: new Prisma.Decimal(total),
-              unclosedReason: item.unclosedReason ?? null,
-              isAdditional: Boolean(item.isAdditional),
-            };
-          }),
-        });
-      }
-    }
-
-    // 4. Sync Stock Results (skipped when TYPE_11 is handled by dedicated strategy)
-    const isType11HandledByStrategy = input.planWorkTypeCodes?.some(
-      (c: string) => getWorkTypeCode(c) === "TYPE_11",
-    );
-    if (input.stockResults !== undefined && !isType11HandledByStrategy) {
-      await (tx as any).activityResultStockItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.stockResults) && input.stockResults.length > 0) {
-        await (tx as any).activityResultStockItem.createMany({
-          data: input.stockResults.map((item) => ({
-            activityResultId: result.id,
-            storeId: item.storeId,
-            productId: item.productId,
-            remainingQuantity: item.remainingQuantity,
-            stockStatus: item.stockStatus ?? null,
-            reorderOpportunity: item.reorderOpportunity ?? null,
-            remarks: item.remarks ?? null,
-            nextAction: item.nextAction ?? null,
-          })),
-        });
-      }
-    }
-
-    // 5. Sync Survey Results (fallback if not handled by strategy)
-    const isType5HandledByStrategy = input.planWorkTypeCodes?.some(
-      (c: string) => getWorkTypeCode(c) === "TYPE_5",
-    );
-    if (input.surveyResults !== undefined && !isType5HandledByStrategy) {
-      await (tx as any).activityResultSurveyItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.surveyResults) && input.surveyResults.length > 0) {
-        await (tx as any).activityResultSurveyItem.createMany({
-          data: input.surveyResults.map((item: any) => ({
-            id: item.id || randomUUID(),
-            activityResultId: result.id,
-            storeId: item.storeId || null,
-            productId: item.productId ?? null,
-            competitorBrand: item.competitorBrand || "-",
-            competitorProduct: item.competitorProduct || "-",
-            posPrice: toDecimalSafe(item.posPrice),
-            dealerPrice: toDecimalSafe(item.dealerPrice),
-            subdealerPrice: toDecimalSafe(item.subdealerPrice),
-            farmerPrice: toDecimalSafe(item.farmerPrice),
-            sellingPoints: item.sellingPoints ?? null,
-            competitorPrice: toDecimalSafe(item.competitorPrice),
-            competitorUnit: item.competitorUnit ?? null,
-            promotionDetail: item.promotionDetail ?? null,
-          })),
-        });
-      }
-    }
-
-    // 6. Sync Demo Results
-    if (input.demoResults !== undefined) {
-      await (tx as any).activityResultDemoItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.demoResults) && input.demoResults.length > 0) {
-        await (tx as any).activityResultDemoItem.createMany({
-          data: input.demoResults.map((item) => ({
-            activityResultId: result.id,
-            demoPlotId: item.demoPlotId ?? null,
-            plannedProductId: item.plannedProductId ?? null,
-            actualProductId: item.actualProductId ?? null,
-            changeReason: item.changeReason ?? null,
-            plotObjective: item.plotObjective ?? null,
-            cropAgeValue: item.cropAgeValue ?? null,
-            cropAgeUnit: item.cropAgeUnit ?? null,
-            growthStage: item.growthStage ?? null,
-            cropCondition: item.cropCondition ?? null,
-            productResponse: item.productResponse ?? null,
-            problemDescription: item.problemDescription ?? null,
-            finalYieldKg:
-              item.finalYieldKg != null
-                ? new Prisma.Decimal(item.finalYieldKg)
-                : null,
-            controlYieldKg:
-              item.controlYieldKg != null
-                ? new Prisma.Decimal(item.controlYieldKg)
-                : null,
-            satisfactionScore: item.satisfactionScore ?? null,
-            applicationRate: item.applicationRate ?? null,
-          })),
-        });
-      }
-    }
-
-    // 7. Sync Followup Results
-    if (input.followupResults !== undefined) {
-      await (tx as any).activityResultFollowupItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.followupResults) && input.followupResults.length > 0) {
-        await (tx as any).activityResultFollowupItem.createMany({
-          data: input.followupResults.map((item) => ({
-            activityResultId: result.id,
-            storeId: item.storeId ?? null,
-            productId: item.productId,
-            productName: item.productName ?? null,
-            usageResult: item.usageResult ?? null,
-            followupDetail: item.followupDetail ?? null,
-            problemDetail: item.problemDetail ?? null,
-            isAdditional: Boolean(item.isAdditional),
-          })),
-        });
-      }
-    }
-
-    // 8. Sync Issue Results
-    if (input.issueResults !== undefined) {
-      await (tx as any).activityResultIssueItem.deleteMany({
-        where: { activityResultId: result.id },
-      });
-      if (Array.isArray(input.issueResults) && input.issueResults.length > 0) {
-        await (tx as any).activityResultIssueItem.createMany({
-          data: input.issueResults.map((item) => ({
-            id: randomUUID(),
-            activityResultId: result.id,
-            productId: item.productId ?? null,
-            productName: item.productName ?? null,
-            lotNumber: item.lotNumber ?? null,
-            purchaseChannel: item.purchaseChannel,
-            storeId: item.storeId ?? null,
-            storeName: item.storeName ?? null,
-            issueType: item.issueType,
-            detail: item.detail ?? null,
-            status: item.status || "เสร็จสิ้น",
-            problemFound: item.problemFound ?? item.detail ?? null,
-            initialSolution: item.initialSolution ?? null,
-            nextAction: item.nextAction ?? null,
-          })),
-        });
-      }
-    }
-
-    // 9. Sync Attachments
+    // 3. Sync Attachments (general plan-level attachments)
     if (input.attachments !== undefined) {
       await (tx as any).activityAttachment.deleteMany({
         where: {
           activityPlanId: input.activityPlanId,
-          sprayRoundId: null, // Preserve round-level attachments managed by strategies (e.g. Type 7B spray rounds)
+          type5ResultId: null,
+          type6ResultId: null,
+          type7aResultId: null,
+          type7bResultId: null,
+          type12ResultId: null,
+          type13ResultId: null,
+          type14ResultId: null,
         },
       });
       if (Array.isArray(input.attachments) && input.attachments.length > 0) {
-        // Exclude attachments that belong to spray rounds to avoid duplicates without sprayRoundId
-        const generalAttachments = input.attachments.filter((att) => !att.sprayRoundId);
-        if (generalAttachments.length > 0) {
-          await (tx as any).activityAttachment.createMany({
-            data: generalAttachments.map((att) => ({
-              activityPlanId: input.activityPlanId,
-              activityResultId: result.id,
-              workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
-              category: normalizeAttachmentCategory(att.category),
-              storeId: att.storeId || null,
-              productId: att.productId || null,
-              surveyItemId: att.surveyItemId || null,
-              issueItemId: att.issueItemId || null,
-              fileUrl: att.fileUrl || att.url,
-              fileName: att.fileName || att.name || "รูปภาพ",
-              fileSize: att.fileSize || att.size || 0,
-              mimeType: att.mimeType || att.type || "image/jpeg",
-            })),
-          });
-        }
+        await (tx as any).activityAttachment.createMany({
+          data: input.attachments.map((att: any) => ({
+            activityPlanId: input.activityPlanId,
+            activityResultId: result.id,
+            workTypeCode: att.workTypeCode ? getWorkTypeCode(att.workTypeCode) : null,
+            category: normalizeAttachmentCategory(att.category),
+            storeId: att.storeId || null,
+            productId: att.productId || null,
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปภาพ",
+            fileSize: att.fileSize || att.size || 0,
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          })),
+        });
       }
     }
 
-    // 10. Sync Calendar Status
+    // 4. Sync Calendar Status
     let calendarStatus: CalendarEventStatus | null = null;
     if (
       resultStatus === ActivityResultStatus.COMPLETED ||

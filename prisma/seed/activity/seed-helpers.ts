@@ -365,9 +365,6 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // Clear previous sub-relations for this specific plan to ensure clean update
     await tx.activityPlanWorkType.deleteMany({ where: { activityPlanId: plan.id } });
-    await (tx as any).activityPlanStore.deleteMany({ where: { activityPlanId: plan.id } });
-    await (tx as any).activityPlanProduct.deleteMany({ where: { activityPlanId: plan.id } });
-    await (tx as any).activityPlanTour.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityHelper.deleteMany({ where: { activityPlanId: plan.id } });
@@ -393,7 +390,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
     }
 
     // 3. Plan Stores
-    if (input.stores && input.stores.length > 0) {
+    if (input.stores && input.stores.length > 0 && (tx as any).activityPlanStore) {
       await (tx as any).activityPlanStore.createMany({
         data: input.stores.map((s) => ({
           activityPlanId: plan.id,
@@ -409,7 +406,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
     }
 
     // 4. Plan Products
-    if (input.products && input.products.length > 0) {
+    if (input.products && input.products.length > 0 && (tx as any).activityPlanProduct) {
       await (tx as any).activityPlanProduct.createMany({
         data: input.products.map((p) => {
           const qty = p.targetQuantity != null ? Number(p.targetQuantity) : null;
@@ -495,7 +492,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // 7. Tour (TYPE_12)
     if (input.tour) {
-      await (tx as any).activityPlanTour.create({
+      await (tx as any).activityPlanType12Target.create({
         data: {
           activityPlanId: plan.id,
           tourType: input.tour.tourType,
@@ -571,7 +568,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
       });
 
       // 9.1 Sale Results
-      if (act.saleResults && act.saleResults.length > 0) {
+      if (act.saleResults && act.saleResults.length > 0 && (tx as any).activityResultSaleItem) {
         await (tx as any).activityResultSaleItem.createMany({
           data: act.saleResults.map((s) => ({
             activityResultId: result.id,
@@ -588,7 +585,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
       }
 
       // 9.2 Stock Results
-      if (act.stockResults && act.stockResults.length > 0) {
+      if (act.stockResults && act.stockResults.length > 0 && (tx as any).activityResultStockItem) {
         await (tx as any).activityResultStockItem.createMany({
           data: act.stockResults.map((st) => ({
             activityResultId: result.id,
@@ -603,7 +600,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
       }
 
       // 9.3 Survey Results
-      if (act.surveyResults && act.surveyResults.length > 0) {
+      if (act.surveyResults && act.surveyResults.length > 0 && (tx as any).activityResultSurveyItem) {
         await (tx as any).activityResultSurveyItem.createMany({
           data: act.surveyResults.map((sv) => ({
             activityResultId: result.id,
@@ -619,7 +616,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
       }
 
       // 9.4 Demo Results
-      if (act.demoResults && act.demoResults.length > 0) {
+      if (act.demoResults && act.demoResults.length > 0 && (tx as any).activityResultDemoItem) {
         await (tx as any).activityResultDemoItem.createMany({
           data: act.demoResults.map((d) => ({
             activityResultId: result.id,
