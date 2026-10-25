@@ -393,14 +393,6 @@ model Customer {
   addresses                   CustomerAddress[]
   contacts                    CustomerContact[]
   promotionalBudgets          PromotionalBudget[]
-  activityPlanStores          ActivityPlanStore[]
-  activityPlanProducts        ActivityPlanProduct[]
-  activityPlanTours           ActivityPlanTour[]
-  activityResultSaleItems     ActivityResultSaleItem[]
-  activityResultStockItems    ActivityResultStockItem[]
-  activityResultSurveyItems   ActivityResultSurveyItem[]
-  activityResultFollowupItems ActivityResultFollowupItem[]
-  activityResultIssueItems    ActivityResultIssueItem[]
   activityAttachments         ActivityAttachment[]
   demoPlots                   DemoPlot[]                   @relation("CustomerDemoPlots")
   farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
@@ -426,6 +418,7 @@ model Customer {
   activityPlanType9TargetsSubdealer ActivityPlanType9Target[]    @relation("Type9SubdealerStore")
   activityPlanType11TargetsStore    ActivityPlanType11Target[]   @relation("Type11TargetStore")
   activityPlanType11TargetsDealer   ActivityPlanType11Target[]   @relation("Type11ParentDealer")
+  activityPlanType12Targets         ActivityPlanType12Target[]   @relation("Type12TargetStore")
 }
 
 model CustomerAddress {
@@ -711,17 +704,8 @@ model Product {
   stock                          ProductStock?
   detailedSalesTargets           SalesTargetItem[]
   pointHistories                 EmployeePointHistory[]
-  activityPlanProducts           ActivityPlanProduct[]        @relation("ActivityPlanProductRef")
-  activityResultSaleItems        ActivityResultSaleItem[]     @relation("ActivityResultSaleProductRef")
-  activityResultStockItems       ActivityResultStockItem[]    @relation("ActivityResultStockProductRef")
-  activityResultSurveyItems      ActivityResultSurveyItem[]   @relation("ActivityResultSurveyProductRef")
-  activityResultDemoPlannedItems ActivityResultDemoItem[]     @relation("ActivityResultDemoPlannedProductRef")
-  activityResultDemoActualItems  ActivityResultDemoItem[]     @relation("ActivityResultDemoActualProductRef")
-  activityResultFollowupItems    ActivityResultFollowupItem[] @relation("ActivityResultFollowupProductRef")
-  activityResultIssueItems       ActivityResultIssueItem[]    @relation("ActivityResultIssueProductRef")
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
   demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
-  activityResultSprayProducts    ActivityResultSprayProduct[] @relation("ActivityResultSprayProductRef")
 
   activityPlanType7aProducts         ActivityPlanType7aProduct[]
   activityResultType7aProducts       ActivityResultType7aProduct[]
@@ -1768,11 +1752,8 @@ model ActivityPlan {
 
   // Sub-relations (Normalized)
   workTypes      ActivityPlanWorkType[]
-  stores         ActivityPlanStore[]
-  products       ActivityPlanProduct[]
   marketingItems ActivityPlanMarketingItem[]
   promotionItems ActivityPlanPromotionItem[]
-  tour           ActivityPlanTour?
   helpers        ActivityHelper[]
   approvalLogs   ActivityApprovalLog[]
   result         ActivityResult? // 1:1 บันทึกผลหลังกิจกรรม
@@ -1821,6 +1802,8 @@ model ActivityPlan {
   type11Targets  ActivityPlanType11Target[]
   type11Products ActivityPlanType11Product[]
   type11Results  ActivityResultType11[]
+  type12Targets  ActivityPlanType12Target[]
+  type12Results  ActivityResultType12[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -1845,74 +1828,6 @@ model ActivityPlanWorkType {
   @@index([activityPlanId])
   @@index([activityTypeId])
   @@map("activity_plan_work_types")
-}
-
-model ActivityPlanStore {
-  id                      String   @id @default(cuid())
-  activityPlanId          String   @map("activity_plan_id")
-  workTypeCode            String   @map("work_type_code") // e.g. "TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4", "TYPE_5", "TYPE_6", "TYPE_9", "TYPE_11"
-  visitPurpose            String?  @map("visit_purpose") // "FARMER" | "STORE"
-  storeId                 String?  @map("store_id")
-  storeName               String?  @map("store_name")
-  province                String?  @map("province")
-  isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
-  unregisteredFarmerName  String?  @map("unregistered_farmer_name")
-  unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
-  targetAmount            Decimal? @map("target_amount") @db.Decimal(15, 2) // สำหรับ TYPE_4 ยอดเงินที่ต้องเก็บ
-  subDealerStore          String?  @map("sub_dealer_store") // สำหรับ TYPE_9 ร้านค้าช่วง / Sub Dealer
-  remarks                 String? // สำหรับ topic (TYPE_1) หรือ issueType (TYPE_6)
-  notes                   String? // บันทึกรายละเอียดเพิ่มเติม
-
-  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store        Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-
-  @@index([activityPlanId])
-  @@index([storeId])
-  @@index([workTypeCode])
-  @@map("activity_plan_stores")
-}
-
-model ActivityPlanProduct {
-  id                String   @id @default(cuid())
-  activityPlanId    String   @map("activity_plan_id")
-  workTypeCode      String   @map("work_type_code") // e.g. "TYPE_2", "TYPE_3", "TYPE_5", "TYPE_8", "TYPE_9"
-  storeId           String?  @map("store_id")
-  productId         String   @map("product_id")
-  productName       String?  @map("product_name")
-  masterPrice       Decimal? @map("master_price") @db.Decimal(15, 2) // ราคาแนะนำ / ราคา Master จาก Product Catalog
-  unitPrice         Decimal? @map("unit_price") @db.Decimal(15, 2) // ราคาเสนอขายต่อหน่วย
-  isPriceOverridden Boolean  @default(false) @map("is_price_overridden") // แฟล็กระบุว่าแก้ไขราคาต่างจาก Master
-  targetQuantity    Int?     @map("target_quantity") // จำนวนเป้าหมาย (ลัง/หน่วย)
-  targetAmount      Decimal? @map("target_amount") @db.Decimal(15, 2) // ยอดเงินเป้าหมาย = targetQuantity * unitPrice
-  notes             String? // รายละเอียดเพิ่มเติมเฉพาะรายการสินค้า (สำหรับ TYPE_3 ฯลฯ)
-
-  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store        Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product      Product      @relation("ActivityPlanProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([activityPlanId])
-  @@index([productId])
-  @@index([storeId])
-  @@index([workTypeCode])
-  @@map("activity_plan_products")
-}
-
-model ActivityPlanTour {
-  id             String    @id @default(cuid())
-  activityPlanId String    @unique @map("activity_plan_id")
-  tourType       TourType  @map("tour_type")
-  tourSize       TourSize? @map("tour_size")
-  country        String?   @map("country")
-  storeId        String?   @map("store_id")
-  destination    String?   @map("destination")
-
-  activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store        Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
-
-  @@index([tourType])
-  @@index([country])
-  @@index([storeId])
-  @@map("activity_plan_tours")
 }
 
 model ActivityPlanMarketingItem {
@@ -2104,13 +2019,6 @@ model ActivityResult {
   activityPlan ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   recordedBy   User?        @relation("UserActivityResults", fields: [recordedById], references: [id], onDelete: SetNull)
 
-  saleResults     ActivityResultSaleItem[]
-  stockResults    ActivityResultStockItem[]
-  surveyResults   ActivityResultSurveyItem[]
-  demoResults     ActivityResultDemoItem[]
-  followupResults ActivityResultFollowupItem[]
-  issueResults    ActivityResultIssueItem[]
-  sprayRounds     ActivityResultSprayRound[]
   attachments     ActivityAttachment[]
   logs            ActivityResultLog[]
 
@@ -2120,225 +2028,6 @@ model ActivityResult {
   @@map("activity_results")
 }
 
-model ActivityResultSaleItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  workTypeCode     String  @map("work_type_code") // "TYPE_3", "TYPE_9", "TYPE_10"
-  storeId          String? @map("store_id")
-  productId        String  @map("product_id")
-  productName      String? @map("product_name")
-  actualQuantity   Int     @map("actual_quantity")
-  actualUnitPrice  Decimal @map("actual_unit_price") @db.Decimal(15, 2)
-  actualTotal      Decimal @map("actual_total") @db.Decimal(15, 2)
-  unclosedReason   String? @map("unclosed_reason")
-  isAdditional     Boolean @default(false) @map("is_additional")
-
-  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product        Product        @relation("ActivityResultSaleProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([activityResultId])
-  @@index([productId])
-  @@index([storeId])
-  @@index([workTypeCode])
-  @@index([isAdditional])
-  @@map("activity_result_sale_items")
-}
-
-model ActivityResultStockItem {
-  id                 String  @id @default(cuid())
-  activityResultId   String  @map("activity_result_id")
-  storeId            String  @map("store_id")
-  productId          String  @map("product_id")
-  remainingQuantity  Int     @default(0) @map("remaining_quantity")
-  stockStatus        String? @map("stock_status") // "ปกติ", "ใกล้หมด", "ของขาด"
-  reorderOpportunity String? @map("reorder_opportunity") // "สูง", "ต่ำ"
-  remarks            String?
-  nextAction         String? @map("next_action")
-
-  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  product        Product        @relation("ActivityResultStockProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([activityResultId])
-  @@index([storeId])
-  @@index([productId])
-  @@map("activity_result_stock_items")
-}
-
-model ActivityResultSurveyItem {
-  id                String   @id @default(cuid())
-  activityResultId  String   @map("activity_result_id")
-  storeId           String   @map("store_id")
-  productId         String?  @map("product_id")
-  competitorBrand   String   @map("competitor_brand")
-  competitorProduct String   @map("competitor_product")
-  competitorPrice   Decimal? @map("competitor_price") @db.Decimal(15, 2)
-  competitorUnit    String?  @map("competitor_unit")
-  promotionDetail   String?  @map("promotion_detail")
-
-  // Normalized 4-tier pricing & product highlights (TYPE_5 requirement)
-  posPrice       Decimal? @map("pos_price") @db.Decimal(15, 2)
-  dealerPrice    Decimal? @map("dealer_price") @db.Decimal(15, 2)
-  subdealerPrice Decimal? @map("subdealer_price") @db.Decimal(15, 2)
-  farmerPrice    Decimal? @map("farmer_price") @db.Decimal(15, 2)
-  sellingPoints  String?  @map("selling_points") @db.Text
-
-  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer             @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  product        Product?             @relation("ActivityResultSurveyProductRef", fields: [productId], references: [id], onDelete: SetNull)
-  attachments    ActivityAttachment[]
-
-  @@index([activityResultId])
-  @@index([storeId])
-  @@index([competitorBrand])
-  @@map("activity_result_survey_items")
-}
-
-model ActivityResultDemoItem {
-  id                 String   @id @default(cuid())
-  activityResultId   String   @map("activity_result_id")
-  demoPlotId         String?  @map("demo_plot_id")
-  plannedProductId   String?  @map("planned_product_id")
-  actualProductId    String?  @map("actual_product_id")
-  changeReason       String?  @map("change_reason")
-  plotObjective      String?  @map("plot_objective") // วัตถุประสงค์ของแปลงสาธิตจริง
-  cropAgeValue       String?  @map("crop_age_value")
-  cropAgeUnit        String?  @map("crop_age_unit")
-  growthStage        String?  @map("growth_stage")
-  cropCondition      String?  @map("crop_condition")
-  productResponse    String?  @map("product_response")
-  problemDescription String?  @map("problem_description")
-  finalYieldKg       Decimal? @map("final_yield_kg") @db.Decimal(10, 2)
-  controlYieldKg     Decimal? @map("control_yield_kg") @db.Decimal(10, 2)
-  satisfactionScore  Int?     @map("satisfaction_score")
-  applicationRate    String?  @map("application_rate") // อัตราการฉีดพ่นจริงรอบนี้
-
-  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  plannedProduct Product?       @relation("ActivityResultDemoPlannedProductRef", fields: [plannedProductId], references: [id], onDelete: SetNull)
-  actualProduct  Product?       @relation("ActivityResultDemoActualProductRef", fields: [actualProductId], references: [id], onDelete: SetNull)
-
-  @@index([activityResultId])
-  @@index([demoPlotId])
-  @@index([plannedProductId])
-  @@index([actualProductId])
-  @@map("activity_result_demo_items")
-}
-
-model ActivityResultSprayRound {
-  id               String   @id @default(cuid())
-  activityResultId String   @map("activity_result_id")
-  demoPlotId       String   @map("demo_plot_id")
-  roundNumber      Int      @map("round_number") // รอบที่ 1, 2, 3...
-  sprayDate        DateTime @default(now()) @map("spray_date") // วันที่ฉีดพ่นรอบนี้
-  sprayMethod      String   @map("spray_method") // SINGLE / TANK_MIXED
-  sprayEquipment   String   @map("spray_equipment") // เป้สะพายหลัง, คน+สายลาก, โดรน, แอร์บัส, อื่นๆ ระบุ..
-  otherEquipment   String?  @map("other_equipment") // ระบุอุปกรณ์กรณีเลือกอื่นๆ
-  productResponse  String   @map("product_response") // พืชตอบสนองดี / ยังไม่เห็นผลชัดเจน / พบปัญหา
-  problemDetail    String?  @map("problem_detail") // รายละเอียดกรณีพบปัญหา
-  daysSinceStart   Int?     @map("days_since_start") // จำนวนวันหลังฉีดของรอบนี้ (Source of Truth)
-  notes            String?  @map("notes") // บันทึกเพิ่มเติมของรอบนี้
-  workTypeCode     String?  @map("work_type_code") // e.g. "TYPE_14", "TYPE_13", "TYPE_7B"
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  demoPlot         DemoPlot                      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  products         ActivityResultSprayProduct[]
-  externalProducts ActivityResultSprayExternal[]
-  attachments      ActivityAttachment[]
-
-  @@index([activityResultId])
-  @@index([demoPlotId])
-  @@index([roundNumber])
-  @@index([workTypeCode])
-  @@map("activity_result_spray_rounds")
-}
-
-model ActivityResultSprayProduct {
-  id                               String                          @id @default(cuid())
-  sprayRoundId                     String                          @map("spray_round_id")
-  productId                        String                          @map("product_id")
-  productName                      String?                         @map("product_name")
-  baselineRate                     String?                         @map("baseline_rate") // อัตราตั้งต้นเดิม (Read-only Snapshot)
-  actualRate                       String                          @map("actual_rate") // อัตราที่ฉีดพ่นจริงรอบนี้
-  quantityUsed                     Decimal                         @map("quantity_used") @db.Decimal(10, 2) // จำนวนที่ใช้ยาในรอบนี้
-  unit                             String?                         @map("unit")
-  detail                           String?                         @map("detail")
-
-  sprayRound                     ActivityResultSprayRound        @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
-  product                        Product                         @relation("ActivityResultSprayProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([sprayRoundId])
-  @@index([productId])
-  @@map("activity_result_spray_products")
-}
-
-model ActivityResultSprayExternal {
-  id               String  @id @default(cuid())
-  sprayRoundId     String  @map("spray_round_id")
-  company          String  @map("company")
-  productName      String  @map("product_name")
-  activeIngredient String? @map("active_ingredient")
-  formula          String  @map("formula")
-  customFormula    String? @map("custom_formula")
-  applicationRate  String  @map("application_rate")
-
-  sprayRound ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
-
-  @@index([sprayRoundId])
-  @@map("activity_result_spray_externals")
-}
-
-model ActivityResultFollowupItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  storeId          String? @map("store_id")
-  productId        String  @map("product_id")
-  productName      String? @map("product_name")
-  usageResult      String? @map("usage_result") // "ลูกค้าพึงพอใจ" | "พบปัญหา"
-  followupDetail   String? @map("followup_detail")
-  problemDetail    String? @map("problem_detail")
-  isAdditional     Boolean @default(false) @map("is_additional")
-
-  activityResult ActivityResult @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  store          Customer?      @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  product        Product        @relation("ActivityResultFollowupProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([activityResultId])
-  @@index([productId])
-  @@index([storeId])
-  @@index([isAdditional])
-  @@map("activity_result_followup_items")
-}
-
-model ActivityResultIssueItem {
-  id               String  @id @default(cuid())
-  activityResultId String  @map("activity_result_id")
-  productId        String? @map("product_id")
-  productName      String? @map("product_name")
-  lotNumber        String? @map("lot_number")
-  purchaseChannel  String  @map("purchase_channel") // "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์"
-  storeId          String? @map("store_id")
-  storeName        String? @map("store_name")
-  issueType        String  @map("issue_type") // "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย" | "เกิดความเสียหายหลังการใช้สินค้า" | "อื่นๆ ระบุ"
-  detail           String? @map("detail") @db.Text
-  status           String  @default("เสร็จสิ้น") @map("status") // "เสร็จสิ้น" | "รอติดตาม"
-  problemFound     String? @map("problem_found") @db.Text
-  initialSolution  String? @map("initial_solution") @db.Text
-  nextAction       String? @map("next_action")
-
-  activityResult ActivityResult       @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  product        Product?             @relation("ActivityResultIssueProductRef", fields: [productId], references: [id], onDelete: SetNull)
-  store          Customer?            @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  attachments    ActivityAttachment[]
-
-  @@index([activityResultId])
-  @@index([productId])
-  @@index([storeId])
-  @@index([purchaseChannel])
-  @@map("activity_result_issue_items")
-}
-
 model ActivityAttachment {
   id               String             @id @default(cuid())
   activityPlanId   String             @map("activity_plan_id")
@@ -2346,12 +2035,11 @@ model ActivityAttachment {
   workTypeCode     String?            @map("work_type_code")
   storeId          String?            @map("store_id")
   productId        String?            @map("product_id")
-  surveyItemId     String?            @map("survey_item_id")
-  issueItemId      String?            @map("issue_item_id")
   type5ResultId    String?            @map("type_5_result_id")
   type6ResultId    String?            @map("type_6_result_id")
   type7aResultId   String?            @map("type_7a_result_id")
   type7bResultId   String?            @map("type_7b_result_id")
+  type12ResultId   String?            @map("type_12_result_id")
   type13ResultId   String?            @map("type_13_result_id")
   type14ResultId   String?            @map("type_14_result_id")
   category         AttachmentCategory @default(GENERAL)
@@ -2365,35 +2053,30 @@ model ActivityAttachment {
   activityResult  ActivityResult?           @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
   store           Customer?                 @relation(fields: [storeId], references: [id], onDelete: SetNull)
   product         Product?                  @relation("ActivityAttachmentProductRef", fields: [productId], references: [id], onDelete: SetNull)
-  surveyItem      ActivityResultSurveyItem? @relation(fields: [surveyItemId], references: [id], onDelete: Cascade)
-  issueItem       ActivityResultIssueItem?  @relation(fields: [issueItemId], references: [id], onDelete: Cascade)
   type5Result     ActivityResultType5?      @relation(fields: [type5ResultId], references: [id], onDelete: Cascade)
   type6Result     ActivityResultType6?      @relation(fields: [type6ResultId], references: [id], onDelete: Cascade)
   type7aResult    ActivityResultType7a?     @relation(fields: [type7aResultId], references: [id], onDelete: Cascade)
   type7bResult    ActivityResultType7b?     @relation(fields: [type7bResultId], references: [id], onDelete: Cascade)
+  type12Result    ActivityResultType12?     @relation(fields: [type12ResultId], references: [id], onDelete: Cascade)
   type13Result    ActivityResultType13?     @relation(fields: [type13ResultId], references: [id], onDelete: Cascade)
   type14Result    ActivityResultType14?     @relation(fields: [type14ResultId], references: [id], onDelete: Cascade)
   demoPlotId      String?                   @map("demo_plot_id")
   demoPlot        DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-  sprayRoundId    String?                   @map("spray_round_id")
-  sprayRound      ActivityResultSprayRound? @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
   demoPlotVisitId String?                   @map("demo_plot_visit_id")
   demoPlotVisit   DemoPlotVisit?            @relation(fields: [demoPlotVisitId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
   @@index([demoPlotId])
-  @@index([sprayRoundId])
   @@index([demoPlotVisitId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
-  @@index([surveyItemId])
-  @@index([issueItemId])
   @@index([type5ResultId])
   @@index([type6ResultId])
   @@index([type7aResultId])
   @@index([type7bResultId])
+  @@index([type12ResultId])
   @@index([type13ResultId])
   @@index([type14ResultId])
   @@map("activity_attachments")
@@ -2541,7 +2224,6 @@ model DemoPlot {
   externalProducts    DemoPlotExternalProduct[]
   irrigations         DemoPlotIrrigation[]
   attachments         ActivityAttachment[]
-  sprayRounds         ActivityResultSprayRound[]
 
   type7aTargets       ActivityPlanType7aTarget[]
   type7aResults       ActivityResultType7a[]
@@ -4002,4 +3684,55 @@ model ActivityResultType11 {
   @@index([activityPlanId])
   @@index([targetId])
   @@map("activity_type_11_result")
+}
+
+// =============================================================================
+// TYPE 12: ศึกษาดูงาน (Tour / Study Trip - Dedicated Relational Storage)
+// =============================================================================
+
+model ActivityPlanType12Target {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  tourType             TourType  @default(CENTRAL) @map("tour_type")
+  tourSize             TourSize? @map("tour_size")
+  country              String?   @map("country")
+  storeId              String?   @map("store_id")
+  destination          String?   @map("destination")
+  targetAttendeesCount Int       @default(0) @map("target_attendees_count")
+  detail               String?   @map("detail") @db.Text
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                Customer?            @relation("Type12TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  result               ActivityResultType12?
+
+  @@index([activityPlanId])
+  @@index([tourType])
+  @@index([storeId])
+  @@map("activity_type_12_targets")
+}
+
+model ActivityResultType12 {
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  targetId             String    @unique @map("target_id")
+  actualAttendeesCount Int       @default(0) @map("actual_attendees_count")
+  tourHighlights       String?   @map("tour_highlights") @db.Text
+  feedbackIssues       String?   @map("feedback_issues") @db.Text
+  summary              String?   @map("summary") @db.Text
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan         ActivityPlan               @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType12Target   @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  attachments          ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_12_result")
 }

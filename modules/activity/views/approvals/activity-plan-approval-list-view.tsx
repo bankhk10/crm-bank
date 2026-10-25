@@ -229,12 +229,7 @@ export default function ActivityPlanApprovalListView() {
           p.employee?.name.toLowerCase().includes(q) ||
           (p.location && p.location.toLowerCase().includes(q)) ||
           (p.province && p.province.toLowerCase().includes(q)) ||
-          (p.stores &&
-            p.stores.some((s: any) =>
-              (s.store?.name || s.storeName || "").toLowerCase().includes(q),
-            )) ||
-          (p.tour?.store?.name &&
-            p.tour.store.name.toLowerCase().includes(q)),
+          (((p as any).stores && (p as any).stores.some((s: any) => (s.store?.name || s.storeName || "").toLowerCase().includes(q))) || ((p as any).type12Targets?.[0]?.store?.name && (p as any).type12Targets[0].store.name.toLowerCase().includes(q)) || ((p as any).tour?.store?.name && (p as any).tour.store.name.toLowerCase().includes(q))),
       );
     }
 
@@ -1361,8 +1356,8 @@ function PlanCard({
     });
   }
 
-  const storesCount = (plan.stores?.length || 0) + (plan.tour?.store ? 1 : 0);
-  const productsCount = plan.products?.length || 0;
+  const storesCount = ((plan as any).stores?.length || 0) + ((plan as any).type12Targets?.[0]?.store ? 1 : (plan as any).tour?.store ? 1 : 0);
+  const productsCount = (plan as any).products?.length || 0;
 
   return (
     <div

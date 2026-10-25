@@ -251,7 +251,7 @@ export async function listActivityCalendarEventsUseCase(
               activityType: { select: { id: true, name: true, code: true } },
             },
           },
-          tour: true,
+          type12Targets: true,
           result: { select: { id: true, resultStatus: true } },
         },
       },

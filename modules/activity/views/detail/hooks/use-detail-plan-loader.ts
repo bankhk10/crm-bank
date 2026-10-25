@@ -126,7 +126,7 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
     }
 
     // 3. From stores
-    (plan.stores || []).forEach((s: any) => {
+    ((plan as any).stores || []).forEach((s: any) => {
       if (s.workTypeCode && !list.some((i) => i.code === s.workTypeCode)) {
         list.push({ code: s.workTypeCode, name: s.workType?.name || s.workTypeCode });
       }
@@ -204,7 +204,7 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
         if (
           (plan as any)?.type1Targets?.length > 0 ||
           (plan as any)?.type1Stores?.length > 0 ||
-          plan?.stores?.some(
+          (plan as any)?.stores?.some(
             (s: any) =>
               s.workTypeCode === "TYPE_1" ||
               s.workTypeCode === "เข้าพบร้านค้า / Key Farmer",

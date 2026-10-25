@@ -7,7 +7,10 @@ export function extractType12PlanTargets(
   plan: any,
   prevTarget?: Type12TargetItem,
 ): { primary: Type12TargetItem; list: Type12TargetItem[] } {
-  const tour = plan?.tour || plan?.tourData;
+  const tour =
+    (plan?.type12Targets && plan.type12Targets.length > 0 ? plan.type12Targets[0] : null) ||
+    plan?.tour ||
+    plan?.tourData;
 
   const primary: Type12TargetItem = {
     id: tour?.id,
@@ -18,6 +21,7 @@ export function extractType12PlanTargets(
     storeName:
       tour?.store?.name || tour?.storeName || prevTarget?.storeName || null,
     destination: tour?.destination || prevTarget?.destination || null,
+    targetAttendeesCount: tour?.targetAttendeesCount || prevTarget?.targetAttendeesCount || 0,
     detail: tour?.destination || tour?.country || prevTarget?.detail || "",
   };
 
@@ -38,7 +42,10 @@ export function hydrateType12PlannedData(initial: any, initDetails: any) {
   let storeId = "";
   let destination = "";
 
-  const tour = initial?.tour || initial?.tourData;
+  const tour =
+    (initial?.type12Targets && initial.type12Targets.length > 0 ? initial.type12Targets[0] : null) ||
+    initial?.tour ||
+    initial?.tourData;
   if (tour) {
     tourType = tour.tourType === "STORE" ? "ทัวร์ร้านค้า" : "ทัวร์กลาง";
     tourSize = tour.tourSize === "LARGE" ? "ทัวร์ใหญ่" : "ทัวร์เล็ก";

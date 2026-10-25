@@ -72,21 +72,6 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
       notes: s.actualNotes || "",
       isAdditional: s.productRole === "ADDITIONAL_SALE",
     }));
-  } else if (Array.isArray(resData.saleResults) && resData.saleResults.length > 0) {
-    const t8Sales = resData.saleResults.filter(
-      (s: any) =>
-        s.workTypeCode === "TYPE_8_PROMOTION" || s.workTypeCode === "TYPE_8",
-    );
-    if (t8Sales.length > 0) {
-      result.t8ProductSalesDetails = t8Sales.map((s: any) => ({
-        id: s.id,
-        productId: s.productId,
-        productName: s.productName || s.product?.name || "",
-        actualQty: String(s.actualQuantity ?? ""),
-        notes: s.unclosedReason || s.notes || "",
-        isAdditional: Boolean(s.isAdditional),
-      }));
-    }
   }
 
   // 3. Text Parsing from summaryText

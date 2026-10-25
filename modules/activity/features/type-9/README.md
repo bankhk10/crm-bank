@@ -31,7 +31,7 @@
 | โหมดการทำงาน | คำอธิบาย | หน้าที่รับผิดชอบหลักใน Slice |
 | :--- | :--- | :--- |
 | **1. Planned** | สร้างและแก้ไขแผนจัดกิจกรรมหน้าร้าน ระบุร้านค้า Subdealer/Dealer, เป้าหมายยอดขาย และสินค้าโปรโมชัน | `Type9PlannedForm`, `useType9PlannedForm`, `type9PlannedStrategy` |
-| **2. Planned Actual** | บันทึกผลการจัดกิจกรรมจริง ยอดขายรวมหน้าร้าน ยอดขายแยกตามสินค้า ผู้เข้าร่วม และรูปถ่ายบรรยากาศ | `Type9ActualForm`, `useType9Actual`, `saveType9ActualSales` |
+| **2. Planned Actual** | บันทึกผลการจัดกิจกรรมจริง ยอดขายรวมหน้าร้าน ยอดขายแยกตามสินค้า ผู้เข้าร่วม และรูปถ่ายบรรยากาศ | `Type9ActualForm`, `useType9Actual`, `type9PlannedStrategy` |
 | **3. Unplanned (2-in-1)** | จัดกิจกรรมหน้าร้านกะทันหัน บันทึกทั้งข้อมูลร้านค้า สินค้าโปรโมชัน ผลยอดขายจริง และรูปภาพในขั้นตอนเดียว | `Type9UnplannedForm`, `useType9UnplannedForm`, `type9UnplannedStrategy` |
 | **4. Detail View** | แสดงรายละเอียดแผนงานเป้าหมาย (`Type9PlanCard`) และผลลัพธ์การจัดกิจกรรมจริง พร้อมระบบ Lightbox ดูภาพ | `Type9PlanCard`, `Type9DetailView` |
 | **5. Approval View** | สรุปร้านค้า ยอดขายเป้าหมาย และรายการสินค้า เพื่อให้หัวหน้างานพิจารณาอนุมัติแผนงาน | `Type9ApprovalCard`, `Type9PlanCard` |
@@ -55,7 +55,7 @@ graph TD
     I --> J
     J --> K[เพิ่มรายการสินค้าโปรโมชัน: เลือกสินค้า, จำนวนลัง, ราคาต่อลัง]
     K --> L[กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ SUBMITTED]
-    L --> M[type9PlannedStrategy บันทึกลง ActivityPlanStore และ ActivityPlanProduct]
+    L --> M[type9PlannedStrategy บันทึกลง ActivityPlanType9Target และ ActivityPlanType9Product]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -71,7 +71,7 @@ graph TD
     H --> I[อัปโหลดรูปภาพบรรยากาศการจัดกิจกรรมหน้าร้าน]
     I --> J[กดบันทึกผลการปฏิบัติงาน]
     J --> K[useType9Actual.uploadImages อัปโหลดรูปภาพไปยัง Storage]
-    K --> L[type9PlannedStrategy บันทึกลง ActivityResult และ ActivityResultSaleItem]
+    K --> L[type9PlannedStrategy บันทึกลง ActivityResultType9 และ ActivityPlanType9Product]
     D -->|POSTPONED| M[ระบุวันเวลาที่เลื่อนและเหตุผล]
     D -->|CANCELLED| N[ระบุสาเหตุการยกเลิก]
 ```
@@ -80,7 +80,7 @@ graph TD
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **จัดกิจกรรมส่งเสริมการขายหน้าร้าน (Type 9)**
 - ฟอร์ม `Type9UnplannedForm` รวมขั้นตอนการระบุข้อมูลร้านค้า (Subdealer ในระบบ หรือระบุชื่อร้านนอกระบบ พร้อม Dealer ต้นสังกัด), สินค้าโปรโมชันเป้าหมาย, ยอดขายจริงรวม, ยอดขายจริงแยกตามสินค้า, จำนวนผู้เข้าร่วม และรูปภาพบรรยากาศหน้าร้านไว้ในหน้าจอเดียว
 - รองรับการจัดกิจกรรมหลายจุดพร้อมกันในทริปเดียว (`items: Type9UnplannedItem[]`)
-- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type9UnplannedStrategy.savePlan()` บันทึกทั้งข้อมูลร้านค้า (`ActivityPlanStore`), สินค้าเป้าหมาย (`ActivityPlanProduct`), ผลงานจริง (`ActivityResult`), ยอดขายจริงรายสินค้า (`ActivityResultSaleItem`) และรูปภาพ (`ActivityAttachment`) พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
+- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type9UnplannedStrategy.savePlan()` บันทึกทั้งข้อมูลเป้าหมายหน้าร้าน (`ActivityPlanType9Target`), สินค้าเป้าหมายและยอดขาย (`ActivityPlanType9Product`), ผลงานจริง (`ActivityResultType9`) และรูปภาพ (`ActivityAttachment`) พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:**
@@ -120,7 +120,7 @@ modules/activity/features/type-9/
 │   │   ├── use-type9-planned-form.ts       # จัดการ State กิจกรรมหน้าร้านตามแผน
 │   │   └── use-type9-actual.ts             # จัดการ State ผลจริง ยอดขาย ผู้เข้าร่วม รูปภาพ และ Upload
 │   ├── infrastructure/                     # การเชื่อมต่อฐานข้อมูล
-│   │   ├── type9.repository.ts             # Direct Prisma queries (findType9ByPlanId, saveType9ActualSales)
+│   │   ├── type9.repository.ts             # Direct Prisma queries (findType9ByPlanId)
 │   │   └── type9-planned.strategy.ts       # WorkTypeStrategy สำหรับ Type 9 ตามแผน
 │   └── types/                              # ประเภทข้อมูลเฉพาะกิจกรรมในแผน
 │       ├── planned.types.ts                # Type9TargetItem, Type9PlanTarget, Form Props
@@ -148,7 +148,7 @@ modules/activity/features/type-9/
 | **งบประมาณรวม** | - | งบเบิกสินค้าสาธิต, ของแถมโปรโมชัน, เบี้ยเลี้ยงเดินทาง |
 | **ข้อมูลกิจกรรมตามแผน** | ร้านค้า Subdealer (ใน/นอกระบบ), Dealer ต้นสังกัด, รายการสินค้าโปรโมชัน, เป้าหมายยอดขายหน้าร้าน | จำนวนผู้เข้าร่วมเป้าหมายรวม (`ActivityPlan.targetAttendeesCount`) |
 | **ผลการจัดกิจกรรมจริง** | ยอดขายจริงรวมหน้าร้าน, ผู้เข้าร่วมจริง, ยอดขายจริงแยกตามสินค้า, รูปภาพบรรยากาศหน้าร้าน | ผลสรุปภาพรวมแผน (`resultStatus`: COMPLETED/PARTIAL/etc.) |
-| **Database Persistence** | ตาราง `ActivityPlanStore`, `ActivityPlanProduct`, `ActivityResultSaleItem` (ผ่าน `saveType9ActualSales`) | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
+| **Database Persistence** | ตารางเฉพาะ `ActivityPlanType9Target`, `ActivityPlanType9Product`, `ActivityResultType9` | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ที่อนุญาต (Allowed Dependencies):**
@@ -201,9 +201,8 @@ modules/activity/features/type-9/
   - `validateType9FormItems`: ตรวจสอบว่าเลือกร้านค้า Subdealer ในระบบ หรือระบุชื่อร้านนอกระบบพร้อมจังหวัด/อำเภอครบถ้วน
   - `validateType9Actual`: ตรวจสอบความถูกต้องของตัวเลขยอดขายจริงและผู้เข้าร่วมจริง
 - **`type9.repository.ts` & `type9-planned.strategy.ts`:**
-  - `findType9ByPlanId`: ค้นหาข้อมูลร้านค้าและสินค้า Type 9 จาก ActivityPlan
-  - `saveType9ActualSales`: ลบและบันทึกระเบียนยอดขายแยกสินค้าลงตาราง `activity_result_sale_items`
-  - `type9PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลตามมาตรฐาน `WorkTypeStrategy`
+  - `findType9ByPlanId`: ค้นหาข้อมูลร้านค้าและสินค้า Type 9 จาก Dedicated Tables (`activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result`)
+  - `type9PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลตามมาตรฐาน `WorkTypeStrategy` ลงตารางเฉพาะ Type 9 โดยตรง 100%
 
 ### 4.2 Unplanned
 - **`type9-unplanned-form.tsx`:** ฟอร์มกิจกรรมหน้าร้านนอกแผน 2-in-1 แสดงอินพุตครบถ้วนทั้งข้อมูลร้านค้า Subdealer, Dealer ต้นสังกัด, สินค้าโปรโมชัน, ผลยอดขายรวมจริง, ผู้เข้าร่วมจริง, ยอดขายจริงแยกสินค้า และรูปถ่ายบรรยากาศ
@@ -246,9 +245,8 @@ sequenceDiagram
     Action->>Registry: ดึง Strategy สำหรับ "TYPE_9"
     Registry->>Strategy: saveActual(tx, planId, actualData)
     Strategy->>DB: upsert ActivityResult (actualAttendeesCount, resultSummary)
-    Strategy->>Repo: saveType9ActualSales(tx, resultId, productSalesDetails)
-    Repo->>DB: deleteMany activity_result_sale_items (TYPE_9)
-    Repo->>DB: createMany activity_result_sale_items (บันทึกยอดขายแยกสินค้า)
+    Strategy->>DB: upsert ActivityResultType9 (actualTotalSales, actualAttendeesCount, customerFeedback)
+    Strategy->>DB: update / create ActivityPlanType9Product (บันทึกยอดขายแยกสินค้า TARGET และ ADDITIONAL_SALE)
     Strategy->>DB: บันทึก ActivityAttachment (รูปถ่ายบรรยากาศหน้าร้าน)
     DB-->>Strategy: Transaction Commit สำเร็จ
     Strategy-->>Action: Success
@@ -260,7 +258,7 @@ sequenceDiagram
 2. ผู้ใช้ระบุข้อมูลร้านค้า Subdealer (ในระบบหรือนอกระบบ), Dealer ต้นสังกัด, จังหวัด/อำเภอ, เป้ายอดขายรวม, และรายการสินค้าโปรโมชัน
 3. ระบบตรวจสอบความถูกต้องด้วย `validateType9FormItems()`
 4. Form Orchestrator รวม Payload และส่งไปยัง Server Action `createActivityPlanAction`
-5. `type9PlannedStrategy.savePlan()` บันทึกข้อมูลร้านค้าลงใน `ActivityPlanStore` (`subDealerStore`, `storeId`, `targetAmount`, `province`) และบันทึกสินค้าโปรโมชันลงใน `ActivityPlanProduct` (`workTypeCode = "TYPE_9"`)
+5. `type9PlannedStrategy.savePlan()` บันทึกข้อมูลร้านค้าลงใน `ActivityPlanType9Target` (`subDealerStore`, `subdealerId`, `targetSales`, `province`, `district`) และบันทึกสินค้าโปรโมชันลงใน `ActivityPlanType9Product` (`productRole = "TARGET"`)
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
 1. `edit-view.tsx` โหลดข้อมูลแผนงานจากฐานข้อมูล
@@ -273,7 +271,7 @@ sequenceDiagram
 2. เรียก `type9Actual.uploadImages(planId)` เพื่ออัปโหลดไฟล์ภาพบรรยากาศไปยัง Storage
 3. เรียก `type9Actual.collectPayload(cleanImages)` จัดกลุ่มข้อมูลยอดขายรวม, ผู้เข้าร่วม, ยอดขายแยกสินค้า, และ Clean URLs
 4. ส่ง Payload เข้า Server Action `recordActivityResultAction`
-5. `type9PlannedStrategy.saveActual()` อัปเดต `ActivityResult` และเรียก `saveType9ActualSales` เพื่อลบและบันทึกระเบียนยอดขายแยกสินค้าใหม่ลงใน `activity_result_sale_items`
+5. `type9PlannedStrategy.saveActual()` อัปเดต `ActivityResultType9` และอัปเดตยอดขายแยกสินค้าลงใน `ActivityPlanType9Product` โดยตรง (ไม่มีการ sync generic tables อีกต่อไป)
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. `useActualPlanLoader` ดึงข้อมูลแผนงานและผลงานเดิม
@@ -304,8 +302,6 @@ sequenceDiagram
 | **`activity_type_9_result`**<br>(`ActivityResultType9`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType9ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบเป้า | ผู้เข้าร่วมจริง (`actualAttendeesCount`), ยอดขายจริงรวม, ผลตอบรับลูกค้า/ร้าน |
 | **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตาราง Header หลัก |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | รูปถ่ายบรรยากาศหน้าร้านและป้ายโปรโมชัน |
-| **`activity_plan_stores` / `products`** | `savePlan()` (Mirror) | Fallback | Mirror | Cascade | รองรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
-| **`activity_result_sale_items`** | `saveActual()` (Mirror) | Fallback | Mirror | Cascade | รองรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
@@ -432,7 +428,7 @@ model ActivityResultType9 {
 - **การเก็บบันทึกยอดขายจริง (Sales Persistence):**
   - ยอดขายตามแผนจะถูกอัปเดตลงสินค้าตามแผน (`productRole = "TARGET"`) เพื่อเปรียบเทียบยอดตามแผน vs ยอดจริงได้ทันที
   - สินค้าที่ขายได้เพิ่มเติมหน้างานจะถูกบันทึกเป็นรายการใหม่ด้วย `productRole = "ADDITIONAL_SALE"`
-  - มีการ Sync ข้อมูลไปยังตารางกลางเดิม (`activity_plan_stores`, `activity_plan_products`, `activity_result_sale_items`) เพื่อรักษาความเข้ากันได้ย้อนหลัง (Backward Compatibility)
+  - บันทึกลงตารางเฉพาะ `activity_type_9_products` 100% โดยตัดขาดจากการ sync ตาราง generic tables เดิม
 - **Cascade Delete Policy:**
   - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result`, และ `activity_attachments` จะถูกลบออกแบบ Cascade ทั้งหมด
 
@@ -539,11 +535,11 @@ model ActivityResultType9 {
         ↓
 [Step 4: Server Action] ➔ recordActivityResultAction ➔ recordActivityResultUseCase
         ↓
-[Step 5: Strategy Write] ➔ type9-planned.strategy.ts: saveActual() ➔ เรียก saveType9ActualSales()
+[Step 5: Strategy Write] ➔ type9-planned.strategy.ts: saveActual() ➔ บันทึก ActivityResultType9 & ActivityPlanType9Product
         ↓
-[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_result_sale_items ใน DB ว่ามีระเบียน work_type_code = 'TYPE_9' ถูกสร้างหรือไม่
+[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_type_9_products และ activity_type_9_result ใน DB ว่ามีระเบียนถูกสร้าง/อัปเดตหรือไม่
         ↓
-[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include saleResults และ attachments ครบถ้วนหรือไม่)
+[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include type9Targets.products และ attachments ครบถ้วนหรือไม่)
         ↓
 [Step 8: Load Hydrator] ➔ actual-mapper.ts: parseType9ActualResult() ➔ useType9Actual.hydrate()
 ```
@@ -552,9 +548,9 @@ model ActivityResultType9 {
 
 | อาการ | จุดที่ต้องตรวจสอบ | สาเหตุและแนวทางแก้ไข |
 | :--- | :--- | :--- |
-| **บันทึกผลสำเร็จแต่ยอดขายแยกสินค้าไม่ลงตาราง `activity_result_sale_items`** | `type9.repository.ts` ➔ `saveType9ActualSales` | รายการสินค้าใน `productSalesDetails` ขาดฟิลด์ `productId` หรือ `actualQuantityCases` มีค่าเป็น 0 หรือว่าง ให้ตรวจสอบว่าคอมโพเนนต์แปลงตัวเลขถูกต้อง |
-| **ร้านค้า Subdealer นอกระบบที่เคยกรอกไว้หายไปหลังบันทึกแผน** | `use-type9-planned-form.ts` ➔ `mapType9Payload` | เมื่อเป็นร้านนอกระบบ ต้องนำ `subDealerStore` ไปเก็บในคอลัมน์ `subDealerStore` ของ `ActivityPlanStore` และนำ `parentDealerId` ไปเก็บใน `storeId` |
-| **จังหวัดและอำเภอของร้านค้านอกระบบไม่แสดงเมื่อเปิดแก้ไข** | `planned-mapper.ts` ➔ `hydrateType9PlannedData` | ตรวจสอบว่าฟังก์ชัน Hydrate อ่านฟิลด์ `province` จาก `primaryStore.province` หรือ fallback `initialData.province` ครบถ้วนหรือไม่ |
+| **บันทึกผลสำเร็จแต่ยอดขายแยกสินค้าไม่ลงตาราง `activity_type_9_products`** | `type9-planned.strategy.ts` ➔ `saveActual` | รายการสินค้าใน `productSalesDetails` ขาดฟิลด์ `productId` หรือ `actualQuantityCases` มีค่าเป็น 0 หรือว่าง ให้ตรวจสอบว่าคอมโพเนนต์แปลงตัวเลขถูกต้อง |
+| **ร้านค้า Subdealer นอกระบบที่เคยกรอกไว้หายไปหลังบันทึกแผน** | `use-type9-planned-form.ts` ➔ `mapType9Payload` | เมื่อเป็นร้านนอกระบบ ต้องนำ `subDealerStore` ไปเก็บในคอลัมน์ `subDealerStore` ของ `ActivityPlanType9Target` และนำ `parentDealerId` ไปเก็บใน `dealerId` |
+| **จังหวัดและอำเภอของร้านค้านอกระบบไม่แสดงเมื่อเปิดแก้ไข** | `planned-mapper.ts` ➔ `hydrateType9PlannedData` | ตรวจสอบว่าฟังก์ชัน Hydrate อ่านฟิลด์ `province` จาก `type9Targets` ครบถ้วนหรือไม่ |
 | **รูปถ่ายบรรยากาศหน้าร้านหายหลัง Reload หน้าจอ** | `use-type9-actual.ts` ➔ `uploadImages` | ตรวจสอบว่า `uploadActivityPlanImageGroup` ทำงานสำเร็จและส่ง Clean URLs กลับมาบันทึกลง `attachments` หรือไม่ |
 | **ผลรวมเป้ายอดขายไม่ตรงกับจำนวนลังและราคาที่กรอก** | `use-type9-planned-form.ts` | ตรวจสอบฟังก์ชันคำนวณ `type9Sales` ว่าได้รวม `quantityCases * pricePerCase` ของทุกแถวสินค้าอย่างถูกต้องหรือไม่ |
 
@@ -564,7 +560,7 @@ model ActivityResultType9 {
 
 ### แผนการทดสอบแบบครบวงจร (End-to-End Test Checklist):
 - [ ] **TC-01 (Planned Create - Registered Subdealer):** สร้างแผนจัดกิจกรรมหน้าร้าน เลือกร้านค้า Subdealer จาก Customer Master ระบบต้องดึง Dealer ต้นสังกัด จังหวัด และอำเภอขึ้นมาให้อัตโนมัติ ระบุสินค้าโปรโมชัน 2 รายการ บันทึกแบบร่างและส่งขออนุมัติได้สำเร็จ
-- [ ] **TC-02 (Planned Create - Unregistered Subdealer):** สร้างแผนโดยติ๊กเลือกร้านค้านอกระบบ กรอกชื่อร้านค้า เลือกจังหวัด อำเภอ และเลือกร้านค้า Dealer ต้นสังกัด บันทึกแล้วตรวจสอบความถูกต้องในตาราง `activity_plan_stores`
+- [ ] **TC-02 (Planned Create - Unregistered Subdealer):** สร้างแผนโดยติ๊กเลือกร้านค้านอกระบบ กรอกชื่อร้านค้า เลือกจังหวัด อำเภอ และเลือกร้านค้า Dealer ต้นสังกัด บันทึกแล้วตรวจสอบความถูกต้องในตาราง `activity_type_9_targets`
 - [ ] **TC-03 (Planned Validation Check):** ทดสอบเลือกร้านค้านอกระบบแต่ไม่กรอกชื่อร้าน ไม่เลือกจังหวัด หรือไม่เลือกอำเภอ ระบบต้องปฏิเสธและแสดงข้อความแจ้งเตือนอย่างถูกต้อง
 - [ ] **TC-04 (Planned Edit):** เปิดหน้าแก้ไขแผนงาน (`/activity-plans/[id]/edit`) ตรวจสอบว่าข้อมูลร้านค้า Subdealer, Dealer ต้นสังกัด, จังหวัด, อำเภอ, เป้ายอดขาย และรายการสินค้าโปรโมชันถูก Hydrate ขึ้นมาครบถ้วน
 - [ ] **TC-05 (Detail & Approval View):** ตรวจสอบการแสดงผลการ์ด `Type9PlanCard` ในหน้ารายละเอียดและหน้าพิจารณาอนุมัติ ข้อมูลร้านค้าและตารางสินค้าต้องแสดงผลอย่างสวยงาม
@@ -601,3 +597,4 @@ model ActivityResultType9 {
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type9UnplannedForm` ให้รองรับการจัดกิจกรรมหลายจุดในทริปเดียวแบบ 2-in-1 | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **ยกระดับระบบจัดเก็บข้อมูล Type 9 เป็น Dedicated Relational Storage (3 ตารางเฉพาะ):**<br>1. สร้างตาราง `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result` ใน Prisma Schema<br>2. รองรับทั้ง Planned และ Unplanned แบบ Dual-Mode 100%<br>3. ตาราง Products จัดเก็บทั้งเป้าตามแผน (`TARGET`) และยอดขายจริงรวมถึงสินค้าขายนอกแผน (`ADDITIONAL_SALE`) ในตารางเดียว<br>4. อัปเดต `type9PlannedStrategy`, `type9UnplannedStrategy`, `type9.repository`, และ Mappers ครบถ้วน พร้อม Mirroring ตารางเดิมเพื่อความเข้ากันได้ย้อนหลัง | Antigravity AI |
+| **2026-10-25** | 2.1.0 | **Batch E Standardization & Legacy Generic Tables Cleanup:**<br>1. ยกเลิก dual-write / mirror writes ไปยัง generic tables ทุกตัวอย่างถาวร<br>2. ลบ `saveType9ActualSales` และการ sync ตาราง `activity_result_sale_items`<br>3. ตารางเฉพาะ Type 9 (`activity_type_9_*`) เป็น single source of truth 100% | Antigravity AI |

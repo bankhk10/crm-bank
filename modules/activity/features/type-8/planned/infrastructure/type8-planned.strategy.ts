@@ -6,7 +6,7 @@ import type {
 } from "@/modules/activity/types/strategy.interface";
 import type { ProductSaleDetail } from "../../shared/types";
 import { encodeType8StoreNotes } from "../../shared/notes";
-import { findType8ByPlanId, saveType8ActualSales } from "./type8.repository";
+import { findType8ByPlanId } from "./type8.repository";
 
 export const type8PlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_8",
@@ -59,24 +59,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
 
     await (tx as any).activityPlanType8Product.deleteMany({
       where: { activityPlanId },
-    });
-
-    // Mirror clean legacy tables
-    await (tx as any).activityPlanStore.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_8",
-      },
-    });
-
-    await (tx as any).activityPlanProduct.deleteMany({
-      where: {
-        activityPlanId,
-        OR: [
-          { workTypeCode: "TYPE_8" },
-          { workTypeCode: "TYPE_8_PROMOTION" },
-        ],
-      },
     });
 
     // 2. Extract meetings array
@@ -193,19 +175,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
               productRole: "TARGET",
             },
           });
-
-          // Mirror to legacy activityPlanProduct
-          if (prodId) {
-            await (tx as any).activityPlanProduct.create({
-              data: {
-                activityPlanId,
-                workTypeCode: "TYPE_8",
-                storeId: storeId || null,
-                productId: prodId,
-                productName: prodName,
-              },
-            });
-          }
         }
 
         // 2.3 Create Promotional Products
@@ -230,22 +199,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
                 promotionNotes: promoNotes,
               },
             });
-
-            // Mirror to legacy activityPlanProduct
-            if (promo.productId) {
-              await (tx as any).activityPlanProduct.create({
-                data: {
-                  activityPlanId,
-                  workTypeCode: "TYPE_8_PROMOTION",
-                  storeId: storeId || null,
-                  productId: promo.productId,
-                  productName: promo.productName || null,
-                  targetQuantity: Number(promoQty),
-                  unitPrice: promoPrice,
-                  notes: promoNotes,
-                },
-              });
-            }
           }
         }
 
@@ -356,19 +309,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
             topic: s.remarks || "จัดประชุม",
             venueType: "STORE",
             detail: s.notes || null,
-          },
-        });
-
-        await (tx as any).activityPlanStore.create({
-          data: {
-            activityPlanId,
-            workTypeCode: "TYPE_8",
-            visitPurpose: s.visitPurpose || "FARMER",
-            storeId: s.storeId || null,
-            storeName: s.storeName || null,
-            subDealerStore: s.subDealerStore || null,
-            remarks: s.remarks || null,
-            notes: s.notes || null,
           },
         });
       }
@@ -545,7 +485,7 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
-    // Mirror to central ActivityResult and legacy activity_result_sale_items
+    // Mirror to central ActivityResult
     if (activityResultId) {
       if (actualAttendees != null) {
         await (tx as any).activityResult.update({
@@ -554,10 +494,6 @@ export const type8PlannedStrategy: WorkTypeStrategy = {
             actualAttendeesCount: Number(actualAttendees),
           },
         });
-      }
-
-      if (salesDetails && Array.isArray(salesDetails)) {
-        await saveType8ActualSales(tx, activityResultId, salesDetails);
       }
     }
   },

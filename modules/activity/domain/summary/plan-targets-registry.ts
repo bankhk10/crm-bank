@@ -215,7 +215,6 @@ export function extractPlanTargets(
   if (
     !targets.t11?.store &&
     ((plan as any).type11Targets?.length ||
-      (plan as any).stores?.some((s: any) => s.workTypeCode === "TYPE_11") ||
       (plan as any).type11Stores?.length ||
       (plan as any).type11Data ||
       (plan as any).type11)
@@ -230,7 +229,7 @@ export function extractPlanTargets(
     !targets.t12?.country &&
     !targets.t12?.storeName &&
     !targets.t12?.destination &&
-    ((plan as any).tour || (plan as any).tourData)
+    ((plan as any).type12Targets?.length || (plan as any).type12Results?.length || (plan as any).tour || (plan as any).tourData)
   ) {
     const extracted = extractType12PlanTargets(plan, prevTargets.t12);
     targets.t12 = extracted.primary;

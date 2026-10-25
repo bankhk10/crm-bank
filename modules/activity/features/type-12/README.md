@@ -2,7 +2,7 @@
 
 > **Feature Slice**: `modules/activity/features/type-12`  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanTour`, `Customer`, `ActivityResult`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType12Target`, `ActivityResultType12`, `Customer`, `ActivityResult`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
 > **Status**: Production Ready / Active Reference
 
@@ -57,7 +57,7 @@ graph TD
     H --> I[กรอกสถานที่หรือประเทศปลายทาง destination]
     G --> J[กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ SUBMITTED]
     I --> J
-    J --> K[type12PlannedStrategy บันทึกลง ActivityPlanTour]
+    J --> K[type12PlannedStrategy บันทึกลง ActivityPlanType12Target]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -73,7 +73,7 @@ graph TD
     H --> I[อัปโหลดรูปภาพกิจกรรมการเดินทางและการศึกษาดูงาน]
     I --> J[กดบันทึกผลการปฏิบัติงาน]
     J --> K[useType12Actual.uploadImages อัปโหลดรูปภาพไปยัง Storage]
-    K --> L[type12PlannedStrategy บันทึกลง ActivityResult และ ActivityAttachment category = TOUR]
+    K --> L[type12PlannedStrategy บันทึกลง ActivityResultType12, ActivityResult และ ActivityAttachment category = TOUR]
     D -->|POSTPONED| M[ระบุวันเวลาที่เลื่อนและเหตุผล]
     D -->|CANCELLED| N[ระบุสาเหตุการยกเลิก]
 ```
@@ -81,7 +81,7 @@ graph TD
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **ทัวร์ (Type 12)**
 - ฟอร์ม `Type12UnplannedForm` รวมขั้นตอนการเลือกประเภททัวร์ (ทัวร์กลาง/ทัวร์ร้านค้า), ขนาดทัวร์หรือร้านค้า, สถานที่ปลายทาง, จำนวนผู้ร่วมเดินทางจริง, ไฮไลท์การดูงาน, ปัญหาอุปสรรค และรูปถ่ายกิจกรรมไว้ในหน้าเดียว
-- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type12UnplannedStrategy.savePlan()` บันทึกข้อมูลแผนลงในตารางเฉพาะกิจ `ActivityPlanTour` และบันทึกผลงานจริงลงใน `ActivityResult` พร้อมรูปถ่ายลงใน `ActivityAttachment` ภายใต้ Prisma Transaction เดียวกัน
+- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type12UnplannedStrategy.savePlan()` บันทึกข้อมูลแผนลงในตารางเฉพาะกิจ `ActivityPlanType12Target` และบันทึกผลงานจริงลงใน `ActivityResultType12` พร้อมรูปถ่ายลงใน `ActivityAttachment` ภายใต้ Prisma Transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:**
@@ -121,7 +121,7 @@ modules/activity/features/type-12/
 │   │   ├── use-type12-planned-form.ts      # จัดการ State ทัวร์ตามแผน
 │   │   └── use-type12-actual.ts            # จัดการ State ผลจริง ผู้เข้าร่วม ไฮไลท์ และรูปถ่าย
 │   ├── infrastructure/                     # การเชื่อมต่อฐานข้อมูล
-│   │   ├── type12.repository.ts            # Direct Prisma queries (findType12TourByPlanId, saveType12Tour)
+│   │   ├── type12.repository.ts            # Direct Prisma queries (findType12ByPlanId, saveType12PlannedTargets, saveType12ActualResult)
 │   │   └── type12-planned.strategy.ts      # WorkTypeStrategy สำหรับ Type 12 ตามแผน
 │   └── types/                              # ประเภทข้อมูลเฉพาะกิจกรรมในแผน
 │       ├── planned.types.ts                # Type12TargetItem, Type12TourProps, Form Props
@@ -147,9 +147,9 @@ modules/activity/features/type-12/
 | **ข้อมูลทั่วไปของแผน** | - | ชื่องาน, วันที่เริ่ม-สิ้นสุด, วัตถุประสงค์หลักของทริป |
 | **พื้นที่ & ทีมงาน** | ประเทศ หรือ ร้านค้าและสถานที่ปลายทาง | จังหวัดหลักของทริป, พนักงานร่วมเดินทาง |
 | **งบประมาณรวม** | - | งบประมาณเดินทาง, ค่าตั๋วเครื่องบิน/ที่พัก, เบี้ยเลี้ยง |
-| **ข้อมูลกิจกรรมตามแผน** | ประเภททัวร์ (กลาง/ร้านค้า), ขนาดทัวร์ (เล็ก/ใหญ่), ประเทศ, ร้านค้า, สถานที่ | บันทึกลงตารางเฉพาะกิจ `ActivityPlanTour` |
-| **ผลการเดินทางจริง** | ผู้ร่วมเดินทางจริง, ไฮไลท์การดูงาน, ปัญหาอุปสรรค, ภาพถ่ายกิจกรรม | ผลสรุปภาพรวมแผน (`resultStatus`: COMPLETED/PARTIAL/etc.) |
-| **Database Persistence** | ตาราง `ActivityPlanTour` (ผ่าน `saveType12Tour`) | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
+| **ข้อมูลกิจกรรมตามแผน** | ประเภททัวร์ (กลาง/ร้านค้า), ขนาดทัวร์ (เล็ก/ใหญ่), ประเทศ, ร้านค้า, สถานที่ | บันทึกลงตารางเฉพาะ `ActivityPlanType12Target` |
+| **ผลการเดินทางจริง** | ผู้ร่วมเดินทางจริง, ไฮไลท์การดูงาน, ปัญหาอุปสรรค, ภาพถ่ายกิจกรรม | บันทึกลงตารางเฉพาะ `ActivityResultType12` และตารางภาพถ่าย |
+| **Database Persistence** | ตาราง `ActivityPlanType12Target` และ `ActivityResultType12` (ผ่าน `type12.repository.ts`) | ตารางหลัก `ActivityPlan`, `ActivityResult`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ที่อนุญาต (Allowed Dependencies):**
@@ -193,17 +193,18 @@ modules/activity/features/type-12/
 - **`type12-detail-view.tsx`:** คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด แสดงการ์ดแผน `Type12PlanCard`, ผู้ร่วมเดินทางจริง, ไฮไลท์การดูงาน, ข้อคิดเห็น/ปัญหา, และแกลเลอรีรูปถ่ายพร้อม Lightbox
 - **`type12-approval-card.tsx`:** การ์ดสรุปสำหรับหน้าจอพิจารณาอนุมัติ เรนเดอร์ `Type12PlanCard` ให้หัวหน้างานพิจารณา
 - **`planned-mapper.ts`:**
-  - `extractType12PlanTargets`: ดึงข้อมูลจาก `plan.tour` แปลงออกมาเป็น `Type12TargetItem`
+  - `extractType12PlanTargets`: ดึงข้อมูลจาก `plan.type12Targets` แปลงออกมาเป็น `Type12TargetItem`
   - `hydrateType12PlannedData`: กู้คืนข้อมูลแผนเดิมเข้าฟอร์มแก้ไข
   - `mapType12ToSectionItems`: แปลงข้อมูลแผนเป็นหัวข้อสำหรับแสดงใน Section รวม
 - **`actual-mapper.ts`:**
-  - `parseType12ActualResult`: แปลงข้อมูลผลงานจาก `ActivityResult` และ `attachments` รวมถึง Regex fallback จากข้อความสรุป
+  - `parseType12ActualResult`: แปลงข้อมูลผลงานจาก `ActivityResultType12` (หรือ `plan.result.type12Results`) และ `attachments`
 - **`planned-validation.ts` & `actual-validation.ts`:**
   - `validateType12FormValues`: ตรวจสอบความครบถ้วนของข้อมูลตามเงื่อนไขประเภททัวร์ (ทัวร์กลางต้องมีประเทศ, ทัวร์ร้านค้าต้องมีร้านค้าและสถานที่)
   - `validateType12Actual`: ตรวจสอบความถูกต้องของตัวเลขผู้ร่วมเดินทางจริง
 - **`type12.repository.ts` & `type12-planned.strategy.ts`:**
-  - `findType12TourByPlanId`: ค้นหาข้อมูลทัวร์จากตาราง `activity_plan_tours`
-  - `saveType12Tour`: ลบและสร้างระเบียนใหม่ลงตาราง `activity_plan_tours`
+  - `findType12ByPlanId`: ค้นหาข้อมูลทัวร์จากตาราง `activity_type_12_targets` และ `activity_type_12_result`
+  - `saveType12PlannedTargets`: บันทึกระเบียนลงตาราง `activity_type_12_targets`
+  - `saveType12ActualResult`: บันทึกระเบียนลงตาราง `activity_type_12_result`
   - `type12PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลตามมาตรฐาน `WorkTypeStrategy`
 
 ### 4.2 Unplanned
@@ -246,6 +247,8 @@ sequenceDiagram
     Form->>Action: ส่ง Payload เข้า recordActivityResultAction(planId, payload)
     Action->>Registry: ดึง Strategy สำหรับ "TYPE_12"
     Registry->>Strategy: saveActual(tx, planId, actualData)
+    Strategy->>Repo: saveType12ActualResult(tx, planId, actualData)
+    Repo->>DB: upsert activity_type_12_result (actualAttendeesCount, highlights, feedbackIssues)
     Strategy->>DB: upsert ActivityResult (resultSummary)
     Strategy->>DB: บันทึก ActivityAttachment (รูปถ่ายกิจกรรม Category = TOUR)
     DB-->>Strategy: Transaction Commit สำเร็จ
@@ -258,7 +261,7 @@ sequenceDiagram
 2. ผู้ใช้เลือกประเภททัวร์ (ทัวร์กลาง/ทัวร์ร้านค้า) และกรอกข้อมูลปลายทางตามเงื่อนไข
 3. ระบบตรวจสอบความถูกต้องด้วย `validateType12FormValues()`
 4. Form Orchestrator รวม Payload และส่งไปยัง Server Action `createActivityPlanAction`
-5. `type12PlannedStrategy.savePlan()` เรียกใช้ `saveType12Tour` เพื่อบันทึกข้อมูลลงในตารางเฉพาะกิจ `ActivityPlanTour` (`activity_plan_tours`)
+5. `type12PlannedStrategy.savePlan()` เรียกใช้ `saveType12PlannedTargets` เพื่อบันทึกข้อมูลลงในตารางเฉพาะกิจ `ActivityPlanType12Target` (`activity_type_12_targets`)
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
 1. `edit-view.tsx` โหลดข้อมูลแผนงานจากฐานข้อมูล
@@ -271,7 +274,7 @@ sequenceDiagram
 2. เรียก `type12Actual.uploadImages(files)` เพื่ออัปโหลดไฟล์ภาพกิจกรรมไปยัง Storage
 3. เรียก `type12Actual.collectPayload()` จัดกลุ่มข้อมูลผู้ร่วมเดินทาง ไฮไลท์ ปัญหาอุปสรรค และ Clean URLs
 4. ส่ง Payload เข้า Server Action `recordActivityResultAction`
-5. `type12PlannedStrategy.saveActual()` อัปเดต `ActivityResult` และบันทึกรูปภาพกิจกรรมลงใน `ActivityAttachment`
+5. `type12PlannedStrategy.saveActual()` บันทึกลง `ActivityResultType12`, อัปเดต `ActivityResult` และบันทึกรูปภาพกิจกรรมลงใน `ActivityAttachment`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. `useActualPlanLoader` ดึงข้อมูลแผนงานและผลงานเดิม
@@ -283,7 +286,7 @@ sequenceDiagram
 1. ผู้ใช้กรอกฟอร์ม `Type12UnplannedForm` ครบทั้งส่วนรายละเอียดทัวร์ ผลการเดินทาง และรูปภาพในหน้าเดียว
 2. ตรวจสอบความถูกต้องด้วย `validateType12UnplannedItem(item)`
 3. `mapType12UnplannedToPayload` แปลงข้อมูลออกมาเป็น `tourData` และ `type12Actual`
-4. `type12UnplannedStrategy.savePlan()` บันทึกข้อมูลทัวร์และผลงานจริงพร้อมกันแบบ Atomic
+4. `type12UnplannedStrategy.savePlan()` บันทึกข้อมูลทัวร์ (`ActivityPlanType12Target`) และผลงานจริง (`ActivityResultType12`) พร้อมกันแบบ Atomic
 
 ### 5.6 Detail and Approval (การแสดงผลหน้ารายละเอียดและพิจารณาอนุมัติ)
 1. หน้า Detail / Approval โหลดข้อมูลแผนงานผ่าน Loader
@@ -297,48 +300,76 @@ sequenceDiagram
 ### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| **`activity_type_12_targets`**<br>(`ActivityPlanType12Target`) | `savePlan()` ใน Planned/Unplanned | `findType12ByPlanId`, `extractType12PlanTargets` | `savePlan()` (Atomic recreation) | Cascade เมื่อลบแผน | ตารางเฉพาะเก็บข้อมูลเป้าหมายทัวร์การศึกษาดูงาน |
+| **`activity_type_12_result`**<br>(`ActivityResultType12`) | `saveActual()` ใน Actual/Unplanned | `findType12ByPlanId`, `parseType12ActualResult` | `saveActual()` (Atomic recreation) | Cascade เมื่อลบเป้าหมาย | ตารางเฉพาะเก็บผลลัพธ์การศึกษาดูงานจริง |
+| **`customers`**<br>(`Customer`) | - (Customer Master) | include ใน `findType12ByPlanId` | - | - | ร้านค้าผู้ร่วมเดินทางกรณีทัวร์ร้านค้า |
 | **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | ตารางหลักของกิจกรรม |
-| **`activity_plan_tours`**<br>(`ActivityPlanTour`) | `saveType12Tour` ใน Planned/Unplanned | `findType12TourByPlanId`, `extractType12PlanTargets` | `deleteMany()` + `create()` ใน `saveType12Tour` | Cascade เมื่อลบแผน | ตารางเฉพาะเก็บข้อมูลทัวร์การศึกษาดูงาน |
-| **`customers`**<br>(`Customer`) | - (Customer Master) | include ใน `findType12TourByPlanId` | - | - | ร้านค้าผู้ร่วมเดินทางกรณีทัวร์ร้านค้า |
-| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType12ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | เก็บข้อความสรุปผลการเดินทาง |
+| **`activity_results`**<br>(`ActivityResult`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType12ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบแผน | ตาราง Header สรุปผลงาน |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปภาพกิจกรรมการเดินทาง (`category = 'TOUR'`) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
-| :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **ประเภททัวร์** | `type12TourType` / `tourType` | `saveType12Tour` ➔ `tourType` | `ActivityPlanTour` | `tour_type` | `ENUM (TourType)` | No | - |
-| **ขนาดทัวร์** | `type12TourSize` / `tourSize` | `saveType12Tour` ➔ `tourSize` | `ActivityPlanTour` | `tour_size` | `ENUM (TourSize)` | Yes | `null` |
-| **ประเทศปลายทาง** | `type12Country` / `country` | `saveType12Tour` ➔ `country` | `ActivityPlanTour` | `country` | `VARCHAR` | Yes | `null` |
-| **ร้านค้าผู้ร่วมเดินทาง** | `type12StoreId` / `storeId` | `saveType12Tour` ➔ `storeId` | `ActivityPlanTour` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
-| **สถานที่ปลายทาง** | `type12Destination` / `destination`| `saveType12Tour` ➔ `destination` | `ActivityPlanTour` | `destination` | `VARCHAR` | Yes | `null` |
-| **ผู้ร่วมเดินทางจริง** | `actualAttendees` | `parseType12ActualResult` / `saveActual` | `ActivityResult` | `summary` (บรรทัดผู้ร่วมเดินทาง) | `TEXT` | Yes | `null` |
-| **ไฮไลท์การดูงาน** | `tourHighlights` | `parseType12ActualResult` / `saveActual` | `ActivityResult` | `summary` (บรรทัดไฮไลท์) | `TEXT` | Yes | `null` |
-| **ข้อคิดเห็น/ปัญหา** | `feedbackIssues` | `parseType12ActualResult` / `saveActual` | `ActivityResult` | `summary` (บรรทัดข้อคิดเห็น) | `TEXT` | Yes | `null` |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
+| **ประเภททัวร์** | `type12TourType` / `tourType` | `savePlan` ➔ `tourType` | `ActivityPlanType12Target` | `tour_type` | `ENUM (TourType)` | No | - |
+| **ขนาดทัวร์** | `type12TourSize` / `tourSize` | `savePlan` ➔ `tourSize` | `ActivityPlanType12Target` | `tour_size` | `ENUM (TourSize)` | Yes | `null` |
+| **ประเทศปลายทาง** | `type12Country` / `country` | `savePlan` ➔ `country` | `ActivityPlanType12Target` | `country` | `VARCHAR` | Yes | `null` |
+| **ร้านค้าผู้ร่วมเดินทาง** | `type12StoreId` / `storeId` | `savePlan` ➔ `storeId` | `ActivityPlanType12Target` | `store_id` | `VARCHAR (FK)` | Yes | `null` |
+| **สถานที่ปลายทาง** | `type12Destination` / `destination`| `savePlan` ➔ `destination` | `ActivityPlanType12Target` | `destination` | `VARCHAR` | Yes | `null` |
+| **ผู้ร่วมเดินทางจริง** | `actualAttendees` | `saveActual` / `parseType12ActualResult` | `ActivityResultType12` | `attendees_count` | `INTEGER` | Yes | `0` |
+| **ไฮไลท์การดูงาน** | `tourHighlights` | `saveActual` / `parseType12ActualResult` | `ActivityResultType12` | `highlights` | `TEXT` | Yes | `null` |
+| **ข้อคิดเห็น/ปัญหา** | `feedbackIssues` | `saveActual` / `parseType12ActualResult` | `ActivityResultType12` | `feedback_issues` | `TEXT` | Yes | `null` |
 | **รูปถ่ายกิจกรรม** | `images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `category = 'TOUR'` | `TEXT` | No | - |
 
-### 6.3 รายละเอียดตารางสินค้า รูปภาพ และความสัมพันธ์ (Relations & Schema)
+### 6.3 รายละเอียดตารางเฉพาะ รูปภาพ และความสัมพันธ์ (Relations & Schema)
 
 ```prisma
-// 1. ตารางเฉพาะกิจเก็บข้อมูลทัวร์การศึกษาดูงาน
-model ActivityPlanTour {
+// 1. ตารางเฉพาะเก็บข้อมูลเป้าหมายทัวร์การศึกษาดูงาน
+model ActivityPlanType12Target {
   id             String    @id @default(cuid())
-  activityPlanId String    @unique @map("activity_plan_id")
+  activityPlanId String    @map("activity_plan_id")
   tourType       TourType  @map("tour_type") // CENTRAL | STORE
   tourSize       TourSize? @map("tour_size") // SMALL | LARGE
-  country        String?   @map("country")   // ประเทศปลายทางสำหรับทัวร์กลาง
-  storeId        String?   @map("store_id")  // ร้านค้าสำหรับทัวร์ร้านค้า
-  destination    String?   @map("destination") // สถานที่ปลายทางสำหรับทัวร์ร้านค้า
+  country        String?   @map("country")
+  storeId        String?   @map("store_id")
+  destination    String?   @map("destination")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  store          Customer?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
+  activityPlan   ActivityPlan          @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store          Customer?             @relation("Type12Store", fields: [storeId], references: [id], onDelete: SetNull)
+  results        ActivityResultType12[]
+
+  @@index([activityPlanId])
   @@index([tourType])
   @@index([country])
   @@index([storeId])
-  @@map("activity_plan_tours")
+  @@map("activity_type_12_targets")
 }
 
-// 2. ตารางเก็บรูปภาพกิจกรรมการเดินทาง
+// 2. ตารางเฉพาะเก็บผลลัพธ์การศึกษาดูงานจริง
+model ActivityResultType12 {
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  attendeesCount Int      @default(0) @map("attendees_count")
+  highlights     String?  @map("highlights") @db.Text
+  feedbackIssues String?  @map("feedback_issues") @db.Text
+  summary        String?  @map("summary") @db.Text
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType12Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  attachments    ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_12_result")
+}
+
+// 3. ตารางเก็บรูปภาพกิจกรรมการเดินทาง
 model ActivityAttachment {
   id             String   @id @default(cuid())
   activityPlanId String   @map("activity_plan_id")
@@ -348,22 +379,26 @@ model ActivityAttachment {
   mimeType       String   @default("image/jpeg") @map("mime_type")
   category       String?  @map("category") // "TOUR"
   workTypeCode   String?  @map("work_type_code") // "TYPE_12"
+  type12ResultId String?  @map("type_12_result_id")
 
-  activityPlan   ActivityPlan @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityPlan   ActivityPlan          @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  type12Result   ActivityResultType12? @relation(fields: [type12ResultId], references: [id], onDelete: SetNull)
 
   @@index([activityPlanId])
+  @@index([type12ResultId])
   @@map("activity_attachments")
 }
 ```
 
 ### 6.4 Transaction & Persistence Strategy (ขาเขียนและขาอ่าน)
 - **การจัดการ Transaction (Isolation & Atomicity):**
-  - ทุกการบันทึกของ Type 12 ดำเนินการภายใต้ `db.$transaction(async (tx) => { ... })`
-  - หากการบันทึกภาพถ่าย หรือการบันทึกข้อมูลทัวร์ใน `activity_plan_tours` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
+  - ทุกการบันทึกของ Type 12 ดำเนินการภายใต้ `tx` (`prisma.$transaction`) แบบ Atomic
+  - หากการบันทึกภาพถ่าย หรือการบันทึกข้อมูลทัวร์ใน `activity_type_12_targets` หรือ `activity_type_12_result` ล้มเหลว ระบบจะ Rollback การเปลี่ยนแปลงทั้งหมดทันที
 - **Persistence ขาเขียนข้อมูลทัวร์:**
-  - ในฟังก์ชัน `saveType12Tour` จะสั่ง `deleteMany` ระเบียนเดิมใน `activity_plan_tours` ที่ผูกกับ `activityPlanId` ก่อน แล้วสร้างระเบียนใหม่ด้วย `create` พร้อม Map ค่า Enum `TourType` และ `TourSize` อย่างแม่นยำ
+  - ในฟังก์ชัน `saveType12PlannedTargets` จะสั่ง `deleteMany` ระเบียนเดิมใน `activity_type_12_targets` ที่ผูกกับ `activityPlanId` ก่อน แล้วสร้างระเบียนใหม่ด้วย `create` พร้อม Map ค่า Enum `TourType` และ `TourSize` อย่างแม่นยำ
+  - ในฟังก์ชัน `saveType12ActualResult` จะบันทึกผลงานลงใน `activity_type_12_result`
 - **Cascade Delete Policy:**
-  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `ActivityPlanTour`, `ActivityResult`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
+  - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `ActivityPlanType12Target`, `ActivityResultType12`, `ActivityResult`, และ `ActivityAttachment` จะถูกลบออกแบบ Cascade ทั้งหมด
 
 ---
 
@@ -462,11 +497,11 @@ model ActivityAttachment {
         ↓
 [Step 4: Server Action] ➔ recordActivityResultAction ➔ recordActivityResultUseCase
         ↓
-[Step 5: Strategy Write] ➔ type12-planned.strategy.ts: saveActual()
+[Step 5: Strategy Write] ➔ type12-planned.strategy.ts: saveActual() ➔ saveType12ActualResult()
         ↓
-[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_plan_tours และ activity_attachments ใน DB
+[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_type_12_result และ activity_attachments ใน DB
         ↓
-[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include tour และ attachments ครบถ้วนหรือไม่)
+[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include type12Targets, type12Results และ attachments ครบถ้วนหรือไม่)
         ↓
 [Step 8: Load Hydrator] ➔ actual-mapper.ts: parseType12ActualResult() ➔ useType12Actual.hydrate()
 ```
@@ -475,7 +510,7 @@ model ActivityAttachment {
 
 | อาการ | จุดที่ต้องตรวจสอบ | สาเหตุและแนวทางแก้ไข |
 | :--- | :--- | :--- |
-| **บันทึกแผนงานแล้วข้อมูลทัวร์ไม่ลงตาราง `activity_plan_tours`** | `type12-planned.strategy.ts` ➔ `savePlan` | ตรวจสอบว่า `tourData` ส่งมาใน Payload และมีฟิลด์ `tourType` หรือไม่ |
+| **บันทึกแผนงานแล้วข้อมูลทัวร์ไม่ลงตาราง `activity_type_12_targets`** | `type12-planned.strategy.ts` ➔ `savePlan` | ตรวจสอบว่า `tourData` ส่งมาใน Payload และมีฟิลด์ `tourType` หรือไม่ |
 | **สลับเป็นทัวร์ร้านค้าแล้วฟอร์มฟ้องว่าต้องกรอกประเทศ** | `planned-validation.ts` ➔ `validateType12FormValues` | ตรวจสอบค่า `type12TourType` ว่าเป็นสตริง `"ทัวร์ร้านค้า"` หรือ `"STORE"` |
 | **รูปถ่ายกิจกรรมการเดินทางหายหลัง Reload หน้าจอ** | `use-type12-actual.ts` ➔ `uploadImages` | ตรวจสอบว่ารูปภาพถูกอัปโหลดและบันทึกลงใน `ActivityAttachment` โดยมี `category = "TOUR"` หรือไม่ |
 | **ตัวเลขผู้ร่วมเดินทางจริงไม่แสดงในหน้ารายละเอียด** | `actual-mapper.ts` ➔ `parseType12ActualResult` | ตรวจสอบ Regex การดึงตัวเลข `ผู้ร่วมเดินทางจริง:\s*(\d+)` จากข้อความสรุป |
@@ -501,8 +536,8 @@ model ActivityAttachment {
 
 ## 12. Known Limitations and Important Notes
 
-1. **ตารางเฉพาะกิจ ActivityPlanTour:**
-   - Type 12 มีตารางจัดเก็บข้อมูลแผนเฉพาะตัวคือ `activity_plan_tours` ซึ่งมีความสัมพันธ์แบบ 1:1 กับ `ActivityPlan` ทำให้สามารถจัดเก็บโครงสร้างข้อมูลทัวร์ที่มีความแตกต่างกันระหว่างทัวร์กลางกับทัวร์ร้านค้าได้อย่างเป็นระเบียบ
+1. **ตารางเฉพาะ ActivityPlanType12Target และ ActivityResultType12:**
+   - Type 12 ได้รับการยกระดับมาใช้ตารางเฉพาะ `activity_type_12_targets` สำหรับเป้าหมายแผนงาน และ `activity_type_12_result` สำหรับผลการปฏิบัติงานจริง ทำให้โครงสร้างข้อมูลทัวร์เป็นไปตามมาตรฐาน Vertical Slice เดียวกับ Activity Types อื่นๆ
 2. **การจัดเก็บรูปภาพใน Storage:**
    - รูปภาพกิจกรรมการเดินทางและการศึกษาดูงานจะถูกจัดเก็บในหมวดหมู่ `TOUR` ภายใต้ไดเรกทอรีของแผนงานนั้นๆ
 3. **ความเข้ากันได้ย้อนหลัง (Backward Compatibility):**
@@ -521,3 +556,4 @@ model ActivityAttachment {
 | **2026-10-20** | 1.4.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type12DetailView` สำหรับดูภาพถ่ายกิจกรรมการเดินทาง | Antigravity AI |
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type12UnplannedForm` แบบ 2-in-1 รวมแผนและผลงานในขั้นตอนเดียว | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
+| **2026-10-25** | 2.0.0 | **Batch E Standardization & Dedicated Relational Storage:**<br>1. ยกเครื่องระบบจัดเก็บข้อมูล Type 12 มาใช้ตารางเฉพาะ `activity_type_12_targets` และ `activity_type_12_result`<br>2. ยกเลิกและลบตารางเฉพาะกิจเดิม `activity_plan_tours` ออกจากฐานข้อมูลอย่างถาวร<br>3. ปรับปรุง `type12.repository.ts`, Strategies และ Mappers ให้อ่านและเขียนตารางเฉพาะอย่างสมบูรณ์ | Antigravity AI |

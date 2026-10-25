@@ -126,7 +126,7 @@ export async function GET(request: Request) {
     ];
 
     if (matchedCodes.includes("TYPE_12") || workTypeFilters.includes("ทัวร์")) {
-      workTypeOrConditions.push({ tour: { isNot: null } });
+      workTypeOrConditions.push({ type12Targets: { some: {} } });
     }
 
     andConditions.push({ OR: workTypeOrConditions });
@@ -181,7 +181,7 @@ export async function GET(request: Request) {
             activityType: true,
           },
         },
-        tour: true,
+        type12Targets: true,
         result: true,
         employee: {
           select: {

@@ -11,57 +11,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       activityType: true,
     },
   },
-  stores: {
-    include: {
-      store: {
-        select: {
-          id: true,
-          name: true,
-          customerCode: true,
-          customerType: true,
-          province: true,
-          district: true,
-        },
-      },
-    },
-  },
-  products: {
-    include: {
-      product: {
-        select: {
-          id: true,
-          name: true,
-          productCode: true,
-          price: true,
-          unit: true,
-          packageSizeUnit: true,
-          categoryId: true,
-          category: {
-            select: { id: true, code: true, description: true },
-          },
-          productGroupId: true,
-          productGroup: {
-            select: { id: true, code: true, name: true },
-          },
-        },
-      },
-      store: {
-        select: { id: true, name: true, customerCode: true },
-      },
-    },
-  },
-  tour: {
-    include: {
-      store: {
-        select: {
-          id: true,
-          name: true,
-          customerCode: true,
-          province: true,
-        },
-      },
-    },
-  },
   type7aPlots: {
     include: {
       customer: {
@@ -146,20 +95,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
             },
           },
         },
-      },
-      sprayRounds: {
-        include: {
-          products: {
-            include: {
-              product: {
-                select: { id: true, name: true, unit: true },
-              },
-            },
-          },
-          externalProducts: true,
-          attachments: true,
-        },
-        orderBy: [{ roundNumber: "asc" }, { sprayDate: "asc" }],
       },
     },
   },
@@ -899,6 +834,27 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   type11Results: {
     orderBy: { createdAt: "asc" },
   },
+  type12Targets: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
+        },
+      },
+      result: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type12Results: {
+    include: {
+      attachments: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
   marketingItems: {
     orderBy: { createdAt: "asc" },
   },
@@ -1002,100 +958,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       },
       recordedBy: {
         select: { id: true, name: true, email: true },
-      },
-      saleResults: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true },
-          },
-          store: {
-            select: { id: true, name: true, customerCode: true },
-          },
-        },
-      },
-      stockResults: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true },
-          },
-          store: {
-            select: { id: true, name: true, customerCode: true },
-          },
-        },
-      },
-      surveyResults: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true },
-          },
-          store: {
-            select: { id: true, name: true, customerCode: true },
-          },
-          attachments: true,
-        },
-      },
-      demoResults: {
-        include: {
-          plannedProduct: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
-          },
-          actualProduct: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
-          },
-        },
-      },
-      followupResults: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true },
-          },
-          store: {
-            select: { id: true, name: true, customerCode: true },
-          },
-        },
-      },
-      issueResults: {
-        include: {
-          product: {
-            select: { id: true, name: true, productCode: true },
-          },
-          store: {
-            select: { id: true, name: true, customerCode: true },
-          },
-          attachments: true,
-        },
-      },
-      sprayRounds: {
-        include: {
-          products: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  unit: true,
-                  packageSizeUnit: true,
-                },
-              },
-            },
-          },
-          externalProducts: true,
-          attachments: true,
-        },
-        orderBy: { roundNumber: "asc" },
       },
       attachments: true,
     },

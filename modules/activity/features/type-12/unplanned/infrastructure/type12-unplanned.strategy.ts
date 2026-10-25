@@ -3,9 +3,8 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import { saveType12Tour, findType12TourByPlanId } from "../../planned/infrastructure/type12.repository";
+import { saveType12Tour, saveType12Actual, findType12TourByPlanId } from "../../planned/infrastructure/type12.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
-import { formatType12ActualSummary } from "../../shared/notes";
 
 export const type12UnplannedStrategy: WorkTypeStrategy = {
   code: WORK_TYPE_CODE,
@@ -54,52 +53,7 @@ export const type12UnplannedStrategy: WorkTypeStrategy = {
 
     const actual = planData.type12Actual || planData.t12Actual;
     if (actual) {
-      const summaryText = formatType12ActualSummary({
-        actualAttendees: actual.actualAttendees,
-        tourHighlights: actual.tourHighlights,
-        feedbackIssues: actual.feedbackIssues,
-      });
-
-      // Save or update activity_plan_results
-      const existingResult = await (tx as any).activityPlanResult.findFirst({
-        where: { activityPlanId },
-      });
-
-      if (existingResult) {
-        await (tx as any).activityPlanResult.update({
-          where: { id: existingResult.id },
-          data: {
-            summary: existingResult.summary
-              ? `${existingResult.summary}\n${summaryText}`
-              : summaryText,
-          },
-        });
-      } else {
-        await (tx as any).activityPlanResult.create({
-          data: {
-            activityPlanId,
-            summary: summaryText,
-          },
-        });
-      }
-
-      // Save attachments if any
-      if (Array.isArray(actual.images) && actual.images.length > 0) {
-        for (const img of actual.images) {
-          if (!img.url) continue;
-          await (tx as any).activityAttachment.create({
-            data: {
-              activityPlanId,
-              fileUrl: img.url,
-              fileName: img.name || "ภาพกิจกรรมศึกษาดูงาน",
-              fileSize: img.size || 0,
-              mimeType: img.type || "image/jpeg",
-              category: "ATMOSPHERE",
-              workTypeCode: WORK_TYPE_CODE,
-            },
-          });
-        }
-      }
+      await saveType12Actual(tx, activityPlanId, { type12Actual: actual });
     }
   },
 

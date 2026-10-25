@@ -365,9 +365,9 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // Clear previous sub-relations for this specific plan to ensure clean update
     await tx.activityPlanWorkType.deleteMany({ where: { activityPlanId: plan.id } });
-    await tx.activityPlanStore.deleteMany({ where: { activityPlanId: plan.id } });
-    await tx.activityPlanProduct.deleteMany({ where: { activityPlanId: plan.id } });
-    await tx.activityPlanTour.deleteMany({ where: { activityPlanId: plan.id } });
+    await (tx as any).activityPlanStore.deleteMany({ where: { activityPlanId: plan.id } });
+    await (tx as any).activityPlanProduct.deleteMany({ where: { activityPlanId: plan.id } });
+    await (tx as any).activityPlanTour.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanMarketingItem.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityPlanPromotionItem.deleteMany({ where: { activityPlanId: plan.id } });
     await tx.activityHelper.deleteMany({ where: { activityPlanId: plan.id } });
@@ -394,7 +394,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // 3. Plan Stores
     if (input.stores && input.stores.length > 0) {
-      await tx.activityPlanStore.createMany({
+      await (tx as any).activityPlanStore.createMany({
         data: input.stores.map((s) => ({
           activityPlanId: plan.id,
           workTypeCode: s.workTypeCode,
@@ -410,7 +410,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // 4. Plan Products
     if (input.products && input.products.length > 0) {
-      await tx.activityPlanProduct.createMany({
+      await (tx as any).activityPlanProduct.createMany({
         data: input.products.map((p) => {
           const qty = p.targetQuantity != null ? Number(p.targetQuantity) : null;
           const uPrice = p.unitPrice != null ? Number(p.unitPrice) : null;
@@ -495,7 +495,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
     // 7. Tour (TYPE_12)
     if (input.tour) {
-      await tx.activityPlanTour.create({
+      await (tx as any).activityPlanTour.create({
         data: {
           activityPlanId: plan.id,
           tourType: input.tour.tourType,
@@ -572,7 +572,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
       // 9.1 Sale Results
       if (act.saleResults && act.saleResults.length > 0) {
-        await tx.activityResultSaleItem.createMany({
+        await (tx as any).activityResultSaleItem.createMany({
           data: act.saleResults.map((s) => ({
             activityResultId: result.id,
             workTypeCode: s.workTypeCode,
@@ -589,7 +589,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
       // 9.2 Stock Results
       if (act.stockResults && act.stockResults.length > 0) {
-        await tx.activityResultStockItem.createMany({
+        await (tx as any).activityResultStockItem.createMany({
           data: act.stockResults.map((st) => ({
             activityResultId: result.id,
             storeId: st.storeId,
@@ -604,7 +604,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
       // 9.3 Survey Results
       if (act.surveyResults && act.surveyResults.length > 0) {
-        await tx.activityResultSurveyItem.createMany({
+        await (tx as any).activityResultSurveyItem.createMany({
           data: act.surveyResults.map((sv) => ({
             activityResultId: result.id,
             storeId: sv.storeId,
@@ -620,7 +620,7 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
 
       // 9.4 Demo Results
       if (act.demoResults && act.demoResults.length > 0) {
-        await tx.activityResultDemoItem.createMany({
+        await (tx as any).activityResultDemoItem.createMany({
           data: act.demoResults.map((d) => ({
             activityResultId: result.id,
             demoPlotId: d.demoPlotId ?? null,

@@ -73,14 +73,6 @@ export async function syncType7aPlots(
 ): Promise<void> {
   if (!rawPlots || rawPlots.length === 0) return;
 
-  // Clean up previous dual-sync calendar/dashboard records if any
-  await tx.activityPlanStore.deleteMany({
-    where: { activityPlanId, workTypeCode: "TYPE_7A" },
-  });
-  await tx.activityPlanProduct.deleteMany({
-    where: { activityPlanId, workTypeCode: "TYPE_7A" },
-  });
-
   // Clean up existing dedicated targets & products for this plan
   await tx.activityPlanType7aProduct.deleteMany({
     where: { activityPlanId },

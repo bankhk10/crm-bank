@@ -5,7 +5,7 @@ import type {
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
 import type { Type9ProductSaleDetail } from "../../shared/types";
-import { findType9ByPlanId, saveType9ActualSales } from "./type9.repository";
+import { findType9ByPlanId } from "./type9.repository";
 
 export const type9PlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_9",
@@ -60,27 +60,6 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
 
     await (tx as any).activityPlanType9Product.deleteMany({
       where: { activityPlanId },
-    });
-
-    // Mirror clean legacy tables
-    await (tx as any).activityPlanStore.deleteMany({
-      where: {
-        activityPlanId,
-        OR: [
-          { workTypeCode: "TYPE_9" },
-          { workTypeCode: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน" },
-        ],
-      },
-    });
-
-    await (tx as any).activityPlanProduct.deleteMany({
-      where: {
-        activityPlanId,
-        OR: [
-          { workTypeCode: "TYPE_9" },
-          { workTypeCode: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน" },
-        ],
-      },
     });
 
     // 2. Extract targets/stores array
@@ -207,22 +186,6 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
               actualNotes: p.actualNotes || p.notes || null,
             },
           });
-
-          // Mirror to legacy activityPlanProduct
-          if (p.productId) {
-            await (tx as any).activityPlanProduct.create({
-              data: {
-                activityPlanId,
-                workTypeCode: "TYPE_9",
-                storeId: subdealerId || dealerId || null,
-                productId: p.productId,
-                productName: p.productName || null,
-                targetQuantity: qty,
-                unitPrice: targetPriceDec,
-                targetAmount: targetAmountDec,
-              },
-            });
-          }
         }
 
         // 2.3 Additional Sales (e.g. from Unplanned 2-in-1 ProductSalesDetails)
@@ -306,21 +269,6 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
             },
           });
         }
-
-        // Mirror to legacy activityPlanStore
-        await (tx as any).activityPlanStore.create({
-          data: {
-            activityPlanId,
-            workTypeCode: "TYPE_9",
-            visitPurpose: "STORE",
-            storeId: subdealerId || dealerId || null,
-            storeName: subdealerName || dealerName || subDealerStore || null,
-            subDealerStore,
-            province,
-            targetAmount: targetSalesDec,
-            notes,
-          },
-        });
       }
     }
   },
@@ -484,11 +432,6 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
           }
         }
       }
-    }
-
-    // Mirror to legacy activity_result_sale_items for backward compatibility
-    if (activityResultId && salesDetails.length > 0) {
-      await saveType9ActualSales(tx, activityResultId, salesDetails);
     }
   },
 

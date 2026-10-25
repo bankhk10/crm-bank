@@ -35,7 +35,7 @@
 | โหมดการทำงาน | คำอธิบาย | หน้าที่รับผิดชอบหลักใน Slice |
 | :--- | :--- | :--- |
 | **1. Planned** | สร้างและแก้ไขแผนงานจัดประชุมล่วงหน้า ระบุกลุ่มเป้าหมาย ร้านค้า หัวข้อ และโปรโมชัน | `Type8PlannedForm`, `useType8PlannedForm`, `type8PlannedStrategy` |
-| **2. Planned Actual** | บันทึกผลการจัดงานจริง ยอดขายสินค้าเป้าหมายและสินค้าเพิ่มเติม แนบรูปใบลงทะเบียนและรูปบรรยากาศ | `Type8ActualForm`, `useType8Actual`, `saveType8ActualSales` |
+| **2. Planned Actual** | บันทึกผลการจัดงานจริง ยอดขายสินค้าเป้าหมายและสินค้าเพิ่มเติม แนบรูปใบลงทะเบียนและรูปบรรยากาศ | `Type8ActualForm`, `useType8Actual`, `type8PlannedStrategy` |
 | **3. Unplanned (2-in-1)** | จัดประชุมกะทันหันหรือบันทึกย้อนหลัง บันทึกทั้งหัวข้อ ร้านค้า โปรโมชัน ยอดขาย และรูปภาพจบในขั้นตอนเดียว | `Type8UnplannedForm`, `useType8UnplannedForm`, `type8UnplannedStrategy` |
 | **4. Detail View** | แสดงรายละเอียดเป้าหมายตามแผนงานและผลลัพธ์การจัดงานจริง พร้อมระบบ Lightbox ดูรูปภาพแยกหมวดหมู่ | `Type8PlanCard`, `Type8DetailView` |
 | **5. Approval View** | สรุปข้อมูลการจัดประชุมและรายการโปรโมชันเพื่อให้หัวหน้างานพิจารณาอนุมัติแผนงาน | `Type8ApprovalCard`, `Type8PlanCard` |
@@ -128,7 +128,7 @@ modules/activity/features/type-8/
 │   │   ├── use-type8-planned-form.ts       # จัดการ State รายการประชุมตามแผน (Type8MeetingItem[])
 │   │   └── use-type8-actual.ts             # จัดการ State ผลจริง ผู้เข้าร่วม ยอดขาย รูปภาพ และ Upload
 │   ├── infrastructure/                     # การเชื่อมต่อฐานข้อมูล
-│   │   ├── type8.repository.ts             # Direct Prisma queries (findType8ByPlanId, saveType8ActualSales)
+│   │   ├── type8.repository.ts             # Direct Prisma queries (findType8ByPlanId)
 │   │   └── type8-planned.strategy.ts       # WorkTypeStrategy สำหรับ Type 8 ตามแผน
 │   └── types/                              # ประเภทข้อมูลเฉพาะกิจกรรมในแผน
 │       ├── planned.types.ts                # Type8MeetingItem, Type8PlanTarget, Form Props
@@ -210,9 +210,8 @@ modules/activity/features/type-8/
   - `validateType8FormItems`: ตรวจสอบความถูกต้องของร้านค้าตามกลุ่มเป้าหมาย, หัวข้อประชุม, จำนวนคนเป้าหมาย (>=1), จำนวนสินค้าเป้าหมาย (<=5 รายการ), และรายละเอียดโปรโมชัน
   - `validateType8Actual`: ตรวจสอบว่ามีรูปถ่ายใบลงทะเบียน 1-5 รูป เมื่อสถานะกิจกรรมเป็น `COMPLETED`
 - **`type8.repository.ts` & `type8-planned.strategy.ts`:**
-  - `findType8ByPlanId`: ค้นหาข้อมูลแผนและร้านค้า/สินค้า Type 8 จาก Dedicated Tables
-  - `saveType8ActualSales`: บันทึกยอดขายสินค้า (รองรับความเข้ากันได้ย้อนหลัง)
-  - `type8PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลลง Dedicated Tables ตามมาตรฐาน `WorkTypeStrategy`
+  - `findType8ByPlanId`: ค้นหาข้อมูลแผนและร้านค้า/สินค้า Type 8 จาก Dedicated Tables (`activity_type_8_targets`, `activity_type_8_products`, `activity_type_8_result`)
+  - `type8PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกข้อมูลลง Dedicated Tables ตามมาตรฐาน `WorkTypeStrategy` โดยไม่มีการเขียนลงตาราง Generic เก่า
 
 ### 4.2 Unplanned
 - **`type8-unplanned-form.tsx`:** ฟอร์มกิจกรรมนอกแผน 2-in-1 แสดงอินพุตครบถ้วนทั้งหัวข้อ, เลือกร้านค้า Dealer/Subdealer, วันเวลา, สถานที่จัด, โปรโมชัน, จำนวนผู้เข้าร่วมจริง, บันทึกยอดขายสินค้า, Q&A, อัปโหลดใบลงทะเบียน และรูปบรรยากาศ
@@ -255,9 +254,8 @@ sequenceDiagram
     Action->>Registry: ดึง Strategy สำหรับ "TYPE_8"
     Registry->>Strategy: saveActual(tx, planId, actualData)
     Strategy->>DB: upsert ActivityResult (actualAttendeesCount, resultSummary)
-    Strategy->>Repo: saveType8ActualSales(tx, resultId, productSalesDetails)
-    Repo->>DB: deleteMany activity_result_sale_items (TYPE_8)
-    Repo->>DB: createMany activity_result_sale_items (บันทึกยอดขายสินค้า)
+    Strategy->>DB: upsert ActivityResultType8 (actualAttendeesCount, feedbackQnA)
+    Strategy->>DB: update / create ActivityPlanType8Product (ยอดขายจริงตามแผน TARGET และนอกแผน ADDITIONAL_SALE)
     Strategy->>DB: บันทึก ActivityAttachment (รูปใบลงทะเบียน & รูปบรรยากาศ)
     DB-->>Strategy: Transaction Commit สำเร็จ
     Strategy-->>Action: Success
@@ -316,7 +314,6 @@ sequenceDiagram
 | **`activity_type_8_result`**<br>(`ActivityResultType8`) | `saveActual()` ใน Actual/Unplanned | `loadActual()`, `parseType8ActualResult` | `upsert` ใน `saveActual()` | Cascade เมื่อลบเป้าหมาย | เก็บจำนวนผู้เข้าร่วมประชุมจริง (`actualAttendeesCount`), ข้อเสนอแนะ/Q&A |
 | **`activity_plans`**<br>(`ActivityPlan`) | ตอนสร้างแผน | ในทุกมุมมอง | เมื่อแก้ไขแผน | Cascade Delete | เก็บ Header รวม, `targetAttendeesCount` |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | `uploadImages()` + Server Action | `plan.attachments` | สร้างใหม่/ลบรูปที่ไม่ได้ใช้ | Cascade เมื่อลบผลงาน | เก็บรูปใบลงทะเบียน (`REGISTRATION`) และบรรยากาศ (`ATMOSPHERE`) |
-| **`activity_plan_stores` / `products`** | `savePlan()` (Mirror) | Fallback | Mirror | Cascade | สำรองข้อมูลสำหรับความเข้ากันได้ย้อนหลัง (Backward Compatibility) |
 
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
@@ -455,7 +452,7 @@ model ActivityResultType8 {
 - **ขาเขียนยอดขายจริง (Sales Persistence):**
   - ยอดขายสินค้าเป้าหมายจะถูกอัปเดตลงในแถวสินค้าเดิม (`productRole = "TARGET"`) ทำให้เปรียบเทียบยอดตามแผน vs ยอดจริงได้ทันที
   - หากมีสินค้านอกแผนขายได้จริง ระบบจะเพิ่มแถวใหม่เป็น `productRole = "ADDITIONAL_SALE"`
-  - มีการ Sync ข้อมูลไปยังตารางกลาง `activity_result_sale_items` เพื่อรักษาความเข้ากันได้ย้อนหลัง (Backward Compatibility)
+  - การจัดเก็บใช้ตารางเฉพาะ `activity_type_8_products` 100% โดยตัดการ sync ไปยัง generic tables ที่ถูก drop ออกไปแล้ว
 - **Cascade Delete Policy:**
   - เมื่อลบแผนงาน `ActivityPlan` ระเบียนที่เกี่ยวข้องใน `activity_type_8_targets`, `activity_type_8_products`, `activity_type_8_result`, และ `activity_attachments` จะถูกลบออกแบบ Cascade ทั้งหมดอย่างปลอดภัย
 
@@ -568,11 +565,11 @@ model ActivityResultType8 {
         ↓
 [Step 4: Server Action] ➔ recordActivityResultAction ➔ recordActivityResultUseCase
         ↓
-[Step 5: Strategy Write] ➔ type8-planned.strategy.ts: saveActual() ➔ เรียก saveType8ActualSales()
+[Step 5: Strategy Write] ➔ type8-planned.strategy.ts: saveActual() ➔ บันทึก ActivityResultType8 & ActivityPlanType8Product
         ↓
-[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_result_sale_items และ activity_attachments ใน DB ว่ามีระเบียนถูกสร้างจริงหรือไม่
+[Step 6: Prisma Table] ➔ ตรวจสอบตาราง activity_type_8_products และ activity_type_8_result ใน DB ว่ามีระเบียนถูกสร้าง/อัปเดตจริงหรือไม่
         ↓
-[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include saleResults และ attachments ครบถ้วนหรือไม่)
+[Step 7: Loader & Include] ➔ getActivityPlanAction (ตรวจว่า include type8Targets.products และ attachments ครบถ้วนหรือไม่)
         ↓
 [Step 8: Load Hydrator] ➔ actual-mapper.ts: parseType8ActualResult() ➔ useType8Actual.hydrate()
 ```
@@ -582,7 +579,7 @@ model ActivityResultType8 {
 | อาการ | จุดที่ต้องตรวจสอบ | สาเหตุและแนวทางแก้ไข |
 | :--- | :--- | :--- |
 | **กดบันทึกผลงานแล้วแจ้งเตือนว่าต้องแนบรูปใบลงทะเบียน ทั้งที่เลือกรูปแล้ว** | `use-type8-actual.ts` ➔ `validate` | รูปภาพยังอยู่ในสถานะ Object ไฟล์ชั่วคราวและยังไม่ได้เรียก `uploadImages` หรือ State `t8RegistrationImages` ว่างเปล่า ให้ตรวจสอบว่า `setRegistrationImages` ทำงานถูกต้อง |
-| **บันทึกผลสำเร็จแต่ยอดขายสินค้าไม่ลงตาราง `activity_result_sale_items`** | `type8.repository.ts` ➔ `saveType8ActualSales` | รายการสินค้าใน `productSalesDetails` ขาดฟิลด์ `productId` ตรวจสอบว่าคอมโพเนนต์ `ActivityProductSelect` ส่ง Product Object ที่มี `id` มาครบถ้วน |
+| **บันทึกผลสำเร็จแต่ยอดขายสินค้าไม่ลงตาราง `activity_type_8_products`** | `type8-planned.strategy.ts` ➔ `saveActual` | รายการสินค้าใน `productSalesDetails` ขาดฟิลด์ `productId` ตรวจสอบว่าคอมโพเนนต์ `ActivityProductSelect` ส่ง Product Object ที่มี `id` มาครบถ้วน |
 | **รายการโปรโมชันที่วางแผนไว้หายไปหลังบันทึกแผนงาน** | `shared/notes.ts` ➔ `encodeType8StoreNotes` | ฟังก์ชันเข้ารหัส JSON ใน `notes` ทำงานไม่ถูกต้อง หรือ `ActivityPlanStore.notes` ถูกเขียนทับด้วยข้อความธรรมดา ให้ตรวจสอบการทำงานของ `encodeType8StoreNotes` |
 | **รูปภาพบรรยากาศกับรูปใบลงทะเบียนปนกันในหน้าแสดงผล** | `use-type8-actual.ts` ➔ `uploadImages` | ตรวจสอบว่าพารามิเตอร์ `group` ใน `uploadActivityPlanImageGroup` ถูกส่งแยกเป็น `"registration"` และ `"meeting"` อย่างชัดเจนหรือไม่ |
 | **หน้าแก้ไขกิจกรรมนอกแผนไม่ดึงร้านค้า Subdealer ที่เคยกรอกไว้** | `unplanned-mapper.ts` ➔ `hydrateType8UnplannedData` | ตรวจสอบว่าฟังก์ชัน Hydrate ได้อ่านฟิลด์ `subdealerId`, `subdealerName` และ `isNewSubdealer` ครบถ้วนหรือไม่ |
@@ -632,3 +629,4 @@ model ActivityResultType8 {
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
 | **2026-10-24** | 1.7.0 | แก้ไขปัญหาข้อมูลที่กรอกใน `Type8PlannedForm` ไม่ถูกนำกลับมาใส่ช่องเมื่อกลับเข้ามาดู/แก้ไข | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **ยกเครื่องระบบจัดเก็บข้อมูล Type 8 เป็น Dedicated Relational Storage (3 ตารางเฉพาะ):**<br>1. สร้างตาราง `activity_type_8_targets`, `activity_type_8_products`, `activity_type_8_result` ใน Prisma Schema<br>2. รองรับทั้ง Planned และ Unplanned แบบ Dual-Mode 100%<br>3. ตาราง Products รวมการจัดเก็บสินค้าเป้าหมาย (`TARGET`), โปรโมชัน (`PROMOTION`), และยอดขายจริง (`ADDITIONAL_SALE`) ในแถวเดียวกัน<br>4. อัปเดต `type8PlannedStrategy`, `type8UnplannedStrategy`, `type8.repository`, และ Mappers ครบถ้วน | Antigravity AI |
+| **2026-10-25** | 2.1.0 | **Batch E Standardization & Legacy Generic Tables Cleanup:**<br>1. ยกเลิก dual-write / mirror writes ไปยังตาราง Generic ทั้งหมดอย่างถาวร<br>2. ลบ `saveType8ActualSales` และการ sync ตาราง `activity_result_sale_items`<br>3. ยืนยันการตัดขาดตาราง generic และการทำงานบนตารางเฉพาะ `activity_type_8_*` 100% | Antigravity AI |

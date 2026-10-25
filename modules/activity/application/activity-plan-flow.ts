@@ -610,7 +610,6 @@ export function checkPlanHasProductWithdrawal(plan: {
   type7b?: any;
   type13?: any;
   type14?: any;
-  products?: Array<{ workTypeCode?: string | null }>;
 }): boolean {
   if (plan.hasProductWithdrawal === true) return true;
   if (plan.type7aProducts && plan.type7aProducts.length > 0) return true;
@@ -643,17 +642,6 @@ export function checkPlanHasProductWithdrawal(plan: {
   if (
     plan.type14?.hasProducts ||
     (plan.type14?.products && plan.type14.products.length > 0)
-  ) {
-    return true;
-  }
-  if (
-    plan.products?.some(
-      (p) =>
-        p.workTypeCode === "TYPE_7A" ||
-        p.workTypeCode === "TYPE_7B" ||
-        p.workTypeCode === "TYPE_13" ||
-        p.workTypeCode === "TYPE_14",
-    )
   ) {
     return true;
   }
@@ -773,7 +761,6 @@ export async function submitActivityPlanUseCase(
             department: true,
           },
         },
-        products: true,
         type7aPlots: { include: { demoProducts: true } },
         type7aProducts: true,
         type7bProducts: true,
@@ -910,7 +897,6 @@ export async function approveActivityPlanUseCase(
             activityType: true,
           },
         },
-        products: true,
         type7aPlots: { include: { demoProducts: true } },
         type7aProducts: true,
         type7bProducts: true,
@@ -1715,7 +1701,6 @@ export async function cancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        products: true,
         type7aPlots: { include: { demoProducts: true } },
         type7aProducts: true,
         type7bProducts: true,
@@ -1800,7 +1785,6 @@ export async function requestCancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        products: true,
         type7aPlots: { include: { demoProducts: true } },
         type7aProducts: true,
         type7bProducts: true,
@@ -1922,7 +1906,6 @@ export async function approveCancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        products: true,
         type7aPlots: { include: { demoProducts: true } },
         type7aProducts: true,
         type7bProducts: true,

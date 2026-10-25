@@ -98,8 +98,8 @@ export function extractCorePlanSummary(
       ? Number(p.salesPromotionBudgetRequested)
       : undefined,
     targetSales:
-      (p.products || []).reduce(
-        (sum, pr) =>
+      ((p as any).products || []).reduce(
+        (sum: number, pr: any) =>
           sum +
           (Number(pr.targetAmount) ||
             (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0)),
@@ -117,7 +117,7 @@ export function extractCorePlanSummary(
     objective: p.objective || undefined,
     helpers: extractedHelpers.length > 0 ? extractedHelpers : undefined,
     helperEmployeeNames: helperNames,
-    stores: (p.stores || []).map((s: any) => ({
+    stores: ((p as any).stores || []).map((s: any) => ({
       storeId: s.storeId,
       storeName: s.storeName,
       workTypeCode: s.workTypeCode,

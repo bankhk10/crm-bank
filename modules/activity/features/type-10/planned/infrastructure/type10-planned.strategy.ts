@@ -5,7 +5,7 @@ import type {
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
 import type { Type10SoldProductItem } from "../../shared/types";
-import { findType10ByPlanId, saveType10ActualSaleItems } from "./type10.repository";
+import { findType10ByPlanId } from "./type10.repository";
 import { parseType10ActualResult } from "../application/actual-mapper";
 
 export const type10PlannedStrategy: WorkTypeStrategy = {
@@ -519,11 +519,6 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
           }
         }
       }
-    }
-
-    // Mirror to legacy activity_result_sale_items
-    if (activityResultId && Array.isArray(soldProducts) && soldProducts.length > 0) {
-      await saveType10ActualSaleItems(tx, activityResultId, soldProducts);
     }
   },
 

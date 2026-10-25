@@ -3,7 +3,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import { findType12TourByPlanId, saveType12Tour } from "./type12.repository";
+import { findType12ByPlanId, findType12TourByPlanId, saveType12Tour, saveType12Actual } from "./type12.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
 export const type12PlannedStrategy: WorkTypeStrategy = {
@@ -41,7 +41,7 @@ export const type12PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 12 Plan tour details in ActivityPlanTour
+   * Save Type 12 Plan tour details into activity_type_12_targets
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -63,33 +63,40 @@ export const type12PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 12 Actual Execution
+   * Save Type 12 Actual Execution into activity_type_12_result and attachments
    */
   async saveActual(
     tx: PrismaTransaction,
     activityPlanId: string,
     actualData: any,
   ): Promise<void> {
-    const t12Actual = actualData.type12Actual || actualData.t12Actual;
-    if (!t12Actual) return;
+    await saveType12Actual(tx, activityPlanId, actualData);
+  },
 
-    // Attachments are handled centrally or via activity attachments
-    if (Array.isArray(t12Actual.images) && t12Actual.images.length > 0) {
-      for (const img of t12Actual.images) {
-        if (!img.url) continue;
-        await (tx as any).activityAttachment.create({
-          data: {
-            activityPlanId,
-            fileUrl: img.url,
-            fileName: img.name || "ภาพกิจกรรมศึกษาดูงาน",
-            fileSize: img.size || 0,
-            mimeType: img.type || "image/jpeg",
-            category: "ATMOSPHERE",
-            workTypeCode: WORK_TYPE_CODE,
-          },
-        });
-      }
-    }
+  /**
+   * Load Type 12 Actual outcome data from dedicated tables
+   */
+  async loadActual(
+    tx: PrismaTransaction,
+    activityPlanId: string,
+  ): Promise<any | null> {
+    const res = await findType12ByPlanId(activityPlanId, tx);
+    const target = res?.type12Targets?.[0];
+    const result = target?.result || res?.type12Results?.[0];
+    if (!target && !result) return null;
+
+    return {
+      actualAttendees: result?.actualAttendeesCount ? String(result.actualAttendeesCount) : "",
+      tourHighlights: result?.tourHighlights || "",
+      feedbackIssues: result?.feedbackIssues || "",
+      images: (result?.attachments || []).map((a: any) => ({
+        id: a.id,
+        url: a.fileUrl,
+        name: a.fileName,
+        size: a.fileSize || 0,
+        type: a.mimeType || "image/jpeg",
+      })),
+    };
   },
 };
 
