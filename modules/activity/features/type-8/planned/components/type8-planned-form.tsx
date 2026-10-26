@@ -41,6 +41,8 @@ export function Type8PlannedForm({
           <span>จัดประชุม (Type 8)</span>
         </div>
 
+        {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+        {/*
         {!readonly && addType8Row && (
           <Button
             type="button"
@@ -51,7 +53,7 @@ export function Type8PlannedForm({
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มรายการประชุม
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* List of Meeting Cards */}
@@ -367,7 +369,8 @@ export function Type8PlannedForm({
                                       "dealerName",
                                       parent.name,
                                     );
-                                    if (onDealerSelect) onDealerSelect(parent as any);
+                                    if (onDealerSelect)
+                                      onDealerSelect(parent as any);
                                   }
                                 }
                               } else {
@@ -579,7 +582,8 @@ export function Type8PlannedForm({
                                       "dealerName",
                                       parent.name,
                                     );
-                                    if (onDealerSelect) onDealerSelect(parent as any);
+                                    if (onDealerSelect)
+                                      onDealerSelect(parent as any);
                                   }
                                 }
                               } else {
