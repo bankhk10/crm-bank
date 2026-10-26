@@ -57,7 +57,7 @@ graph TD
     B --> C["เลือกประเภทงาน Type 5: สำรวจตลาดของคู่แข่ง"]
     C --> D["กรอกฟอร์ม Type5PlannedForm"]
     D --> E["เลือกร้านค้าเป้าหมายผ่าน ActivityCustomerSelect"]
-    E --> F["เลือกสินค้าบริษัทที่นำไปเปรียบเทียบผ่าน ActivityCombobox"]
+    E --> F["เลือกสินค้าบริษัทที่นำไปเปรียบเทียบผ่าน ActivityProductSelect"]
     F --> G["ระบุรายละเอียดเพิ่มเติมการสำรวจ (detail/notes)"]
     G --> H{"ต้องการเพิ่มร้านค้า/สินค้าอื่น?"}
     H -->|"เพิ่มรายการ"| D
@@ -186,7 +186,7 @@ modules/activity/features/type-5/
 
 ### 4.1 Planned & Actual
 - **`use-type5-planned-form.ts`:** จัดการ State รายการสำรวจในแผน (Array of `Type5SurveyItem`), รองรับการเพิ่ม (`addType5Row`), แก้ไข (`updateType5Row`), ลบ (`deleteType5Row`), เติมชื่อร้านค้าและสินค้าอัตโนมัติเมื่อเลือก ID, ตรวจสอบความถูกต้อง (`validateType5`), และสร้าง Payload (`mapType5Payload`)
-- **`type5-planned-form.tsx`:** ฟอร์มสร้าง/แก้ไขแผนงาน แสดงรายการสำรวจแต่ละการ์ด เลือกร้านค้าผ่าน `ActivityCustomerSelect` และเลือกสินค้าบริษัทผ่าน `ActivityCombobox` (กรองสินค้าหน่วย "กล่อง")
+- **`type5-planned-form.tsx`:** ฟอร์มสร้าง/แก้ไขแผนงาน แสดงรายการสำรวจแต่ละการ์ด เลือกร้านค้าผ่าน `ActivityCustomerSelect` และเลือกสินค้าบริษัทผ่าน `ActivityProductSelect` (กรองสินค้าหน่วย "กล่อง" อัตโนมัติด้วย `unitFilter="box"`)
 - **`type5-plan-card.tsx`:** การ์ดสรุปเป้าหมายสำรวจตลาดตามแผน แสดงชื่อร้านค้า สินค้าที่นำไปเปรียบเทียบ และรายละเอียด
 - **`type5-actual-form.tsx`:** ฟอร์มบันทึกผลการสำรวจคู่แข่งจริงหน้างาน รองรับการระบุแบรนด์และชื่อสินค้าคู่แข่ง, โครงสร้างราคา 4 ระดับ (POS, Dealer, Subdealer, Farmer), จุดขายสินค้า, และอัปโหลดภาพถ่ายขวด (สูงสุด 2 รูป) และสื่อโปรโมชั่น (สูงสุด 3 รูป)
 - **`use-type5-actual.ts`:** จัดการ State ผลการสำรวจจริงรายเป้าหมาย, รองรับการ Hydrate ข้อมูลเดิม, อัปโหลดรูปภาพแยกโฟลเดอร์ตาม `surveyItemId` ผ่าน `uploadActivityPlanImageGroup`, คืนค่า URL ภาพเก่าเพื่อลบ, และสร้าง Payload สำหรับบันทึกผล
@@ -596,4 +596,5 @@ model ActivityAttachment {
 | **2026-10-21** | 1.4.0 | เชื่อมต่อเข้ากับ `strategy.registry.ts` และ Server Actions ใหม่ (`planned.actions.ts`, `unplanned.actions.ts`, `actual.actions.ts`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type5DetailView` และ `Type5ApprovalCard` พร้อมปรับปรุงการแยกรูปภาพตาม `surveyItemId` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
+| **2026-10-26** | 2.1.0 | ปรับปรุง `type5-planned-form.tsx` เปลี่ยนคอมโพเนนต์เลือกสินค้าที่นำไปเปรียบเทียบจาก `ActivityCombobox` เป็น `ActivityProductSelect` พร้อมรองรับ `unitFilter="box"` | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **Batch C Redesign**: ยกระดับสู่ Standalone Dedicated Architecture 100% โดยเปลี่ยนชื่อตารางเป้าหมายเป็น `activity_type_5_targets`, สร้าง `activity_type_5_result` ทดแทน `activity_result_survey_items`, เพิ่ม `type_5_result_id` ใน `activity_attachments` และตัด Generic Dual-Writes ออกทั้งหมด | Antigravity AI |
