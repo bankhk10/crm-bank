@@ -557,11 +557,10 @@ export function ActivityPlanActualView({
       }
     }
 
-    // 3. Validation for COMPLETED or PARTIAL
-    if (
-      activityResultStatus === "COMPLETED" ||
-      activityResultStatus === "PARTIAL"
-    ) {
+    // 3. Validation for Work Types (Type 1 - Type 14) - ONLY required when status is COMPLETED
+    // When status is PARTIAL (สำเร็จบางส่วน), POSTPONED (เลื่อนกำหนดการปฏิบัติงาน), or CANCELLED (ยกเลิก),
+    // bypass all work type validations so users can save immediately.
+    if (activityResultStatus === "COMPLETED") {
       let missingFields: string[] = [];
 
       // Delegate Type 1 validation to features/type-1 domain logic
