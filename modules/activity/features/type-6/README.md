@@ -4,7 +4,7 @@
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType6Target` [@@map("activity_type_6_targets")], `ActivityResultType6` [@@map("activity_type_6_result")], `ActivityAttachment` [type_6_result_id])  
-> **Status**: Production Ready / Standalone Dedicated Architecture (v2.0.0 — Updated 2026-10-24)
+> **Status**: Production Ready / Standalone Dedicated Architecture (v2.1.0 — Updated 2026-10-26)
 
 ---
 
@@ -619,3 +619,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.5.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type6DetailView` และ `Type6ApprovalCard` พร้อมปรับปรุงการผูกรูปภาพกับ `issueItemId` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ (`README.md`) ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard Type 1 พร้อมรายละเอียดสถาปัตยกรรม แผนภาพ Flow และ Data Models ครบถ้วน 100% | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **Batch C Redesign**: ยกระดับสู่ Standalone Dedicated Architecture 100% โดยเปลี่ยนชื่อตารางเป้าหมายเป็น `activity_type_6_targets`, สร้าง `activity_type_6_result` ทดแทน `activity_result_issue_items`, เพิ่ม `type_6_result_id` ใน `activity_attachments` และตัด Generic Dual-Writes ออกทั้งหมด | Antigravity AI |
+| **2026-10-26** | 2.1.0 | **Bug Fix**: แก้ไขข้อผิดพลาด `Unique constraint failed on the fields: (id)` ใน `ActivityPlanType6Target.createMany()` โดยยกเลิกการส่ง client `id` ชั่วคราว (เช่น `"1"`) จากหน้าฟอร์ม และเปิดให้ Prisma CUID generator (`@default(cuid())`) สร้าง Primary Key อัตโนมัติ พร้อมปรับ `saveActual` ให้ใช้ `randomUUID()` และผูกรูปภาพหลักฐานอย่างถูกต้อง | Antigravity AI |

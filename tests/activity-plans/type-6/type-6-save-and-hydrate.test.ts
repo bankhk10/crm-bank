@@ -357,6 +357,46 @@ async function runTests() {
 
   console.log("✓ Test 5 passed: hydrateType6UnplannedData restores targets, issue details, and images.");
 
+  // -------------------------------------------------------------
+  // Test 6: type6PlannedStrategy.savePlan does not pass client id to createMany
+  // -------------------------------------------------------------
+  console.log("\n[Test 6] Verifying type6PlannedStrategy.savePlan leaves ID generation to Prisma...");
+
+  const planId1 = "plan-type6-planned-1";
+  const createdTargetsBatch1: any[] = [];
+  const mockPlanTx: any = {
+    activityPlanType6Target: {
+      deleteMany: async () => {},
+      createMany: async (args: any) => {
+        createdTargetsBatch1.push(...args.data);
+      },
+    },
+  };
+
+  // User form sends id: "1" from initial form state
+  await type6PlannedStrategy.savePlan(mockPlanTx, planId1, {
+    type6Targets: [
+      {
+        id: "1",
+        customerName: "ร้านทดสอบ",
+        storeId: "store-test",
+        issueType: "สินค้าชำรุด",
+        detail: "กล่องบุบ",
+      },
+    ],
+  });
+
+  assert.strictEqual(createdTargetsBatch1.length, 1);
+  assert.strictEqual(
+    createdTargetsBatch1[0].id,
+    undefined,
+    "Target data sent to createMany must NOT specify client id '1', allowing Prisma @default(cuid()) to generate unique IDs"
+  );
+  assert.strictEqual(createdTargetsBatch1[0].activityPlanId, planId1);
+  assert.strictEqual(createdTargetsBatch1[0].customerName, "ร้านทดสอบ");
+
+  console.log("✓ Test 6 passed: savePlan leaves id undefined so Prisma generates unique CUIDs.");
+
   console.log("\n🎉 ALL TYPE 6 TESTS PASSED SUCCESSFULLY!");
 }
 

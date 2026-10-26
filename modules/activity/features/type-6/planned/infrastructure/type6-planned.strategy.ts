@@ -105,7 +105,6 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
         const detail = item.detail || item.notes || null;
 
         return {
-          id: item.id || randomUUID(),
           activityPlanId,
           storeId: isManual ? null : item.storeId || null,
           customerName: custName,
@@ -201,8 +200,8 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       : [];
 
     const clientIssueMap = new Map<string, string>();
-    const itemsToCreate = issueItems.map((item: any) => {
-      const dbId = item.id || randomUUID();
+    const itemsToCreate = issueItems.map((item: any, idx: number) => {
+      const dbId = randomUUID();
       if (item.id) {
         clientIssueMap.set(item.id, dbId);
       }
@@ -214,6 +213,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             (item.storeId && t.storeId === item.storeId) ||
             (item.customerName && t.customerName === item.customerName),
         )?.id ||
+        existingTargets[idx]?.id ||
         null;
 
       const isManual =
@@ -292,7 +292,11 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             category: "ISSUE",
             storeId: att.storeId || itemsToCreate[0]?.storeId || null,
             productId: att.productId || itemsToCreate[0]?.productId || null,
-            type6ResultId: att.type6ResultId || itemsToCreate[0]?.id || null,
+            type6ResultId:
+              (att.type6ResultId && clientIssueMap.get(att.type6ResultId)) ||
+              att.type6ResultId ||
+              itemsToCreate[0]?.id ||
+              null,
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปถ่ายหลักฐานปัญหา",
             fileSize: att.fileSize || att.size || 0,
