@@ -13,6 +13,7 @@ import {
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType11Actual } from "../application/actual-validation";
+import { parseType11ActualResult } from "../application/actual-mapper";
 
 export { validateType11Actual };
 
@@ -29,9 +30,18 @@ export function useType11Actual() {
   const [t11Images, setT11Images] = useState<Type11ImageFile[]>([]);
   const initialT11ImagesRef = useRef<Type11ImageFile[]>([]);
 
-  const hydrate = useCallback((parsed: any) => {
+  const commitSavedImages = useCallback((savedImages: Type11ImageFile[] = t11Images) => {
+    initialT11ImagesRef.current = JSON.parse(JSON.stringify(savedImages));
+  }, [t11Images]);
+
+  const hydrate = useCallback((parsed: any, attachments?: any[]) => {
     if (!parsed) return;
-    const actualData = parsed.type11Actual || parsed;
+
+    // Self-healing: if parsed does not already contain parsed t11StockItems, parse it
+    const actualData =
+      parsed.t11StockItems || parsed.type11Actual?.t11StockItems
+        ? parsed.type11Actual || parsed
+        : parseType11ActualResult(parsed, parsed.activityPlan);
 
     const items =
       actualData.t11StockItems ??
@@ -97,9 +107,28 @@ export function useType11Actual() {
       parsed.images;
     if (imgs && Array.isArray(imgs) && imgs.length > 0) {
       setT11Images(imgs);
-      initialT11ImagesRef.current = JSON.parse(JSON.stringify(imgs));
+      commitSavedImages(imgs);
+    } else if (attachments && Array.isArray(attachments)) {
+      const stockImgs = attachments
+        .filter(
+          (att: any) =>
+            att.workTypeCode === "TYPE_11" ||
+            att.category === "stock" ||
+            att.category === "STOCK",
+        )
+        .map((att: any) => ({
+          id: att.id,
+          url: att.fileUrl || att.url,
+          name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+          size: att.fileSize,
+          type: att.fileType || "image/jpeg",
+        }));
+      if (stockImgs.length > 0) {
+        setT11Images(stockImgs);
+        commitSavedImages(stockImgs);
+      }
     }
-  }, []);
+  }, [commitSavedImages]);
 
   const validate = useCallback((): string | null => {
     const res = validateType11Actual(t11StockItems);
@@ -133,10 +162,6 @@ export function useType11Actual() {
     },
     [t11Images],
   );
-
-  const commitSavedImages = useCallback((savedImages: Type11ImageFile[] = t11Images) => {
-    initialT11ImagesRef.current = JSON.parse(JSON.stringify(savedImages));
-  }, [t11Images]);
 
   const collectPayload = useCallback(
     (cleanImages: Type11ImageFile[] = t11Images): Type11ActualRecord => {

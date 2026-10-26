@@ -11,59 +11,159 @@ export function parseType11ActualResult(
   const result: Partial<Type11ActualRecord> = {};
 
   const sourceData = resData || plan;
+  const planData = plan || resData?.activityPlan || sourceData;
 
-  // 1. Dedicated relational tables support (type11Products / type11Results / type11Targets)
-  const dedicatedProducts =
+  // 1. Gather all targets and build target lookup map
+  const targets: any[] =
+    sourceData?.type11Targets ||
+    planData?.type11Targets ||
+    sourceData?.type11Data?.targets ||
+    planData?.type11Data?.targets ||
+    [];
+
+  const targetMap = new Map<string, any>();
+  targets.forEach((t) => {
+    if (t?.id) targetMap.set(t.id, t);
+  });
+
+  // 2. Extract products from targets (most reliable source of store info)
+  const rawProducts: any[] = [];
+
+  if (targets.length > 0) {
+    targets.forEach((t: any) => {
+      if (Array.isArray(t.products) && t.products.length > 0) {
+        t.products.forEach((p: any) => {
+          rawProducts.push({
+            ...p,
+            targetId: p.targetId || t.id,
+            target: p.target || t,
+            _parentTarget: t,
+          });
+        });
+      }
+    });
+  }
+
+  // Also check direct type11Products (e.g. standalone audit items)
+  const directProducts: any[] =
     sourceData?.type11Products ||
-    sourceData?.type11Targets?.flatMap((t: any) => t.products || []);
+    planData?.type11Products ||
+    [];
 
-  const dedicatedResults =
-    sourceData?.type11Results ||
-    sourceData?.type11Targets?.map((t: any) => t.result).filter(Boolean);
+  if (directProducts.length > 0) {
+    directProducts.forEach((dp: any) => {
+      const alreadyIncluded = rawProducts.some((p) => p.id === dp.id);
+      if (!alreadyIncluded) {
+        const matchedTarget = dp.target || targetMap.get(dp.targetId);
+        rawProducts.push({
+          ...dp,
+          target: matchedTarget,
+          _parentTarget: matchedTarget,
+        });
+      }
+    });
+  }
 
-  if (Array.isArray(dedicatedProducts) && dedicatedProducts.length > 0) {
-    result.t11StockItems = dedicatedProducts.map((p: any) => ({
-      id: p.id,
-      targetId: p.targetId,
-      storeId: p.target?.storeId,
-      storeName: p.target?.storeName || p.target?.store?.name || "ร้านค้า",
-      productId: p.productId,
-      productName: p.productName || p.product?.name || "สินค้า",
-      productCode: p.product?.productCode || undefined,
-      productRole: p.productRole,
-      targetQuantity: p.targetQuantity,
-      targetNotes: p.targetNotes,
-      remainingQty: p.actualQuantity != null ? String(p.actualQuantity) : "0",
-      remainingQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
-      remainingStockQty: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
-      actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 0,
-      stockStatus: p.stockStatus || "",
-      reorderOpportunity: p.reorderOpportunity || "",
-      suggestedOrderQty: p.suggestedOrderQty != null ? Number(p.suggestedOrderQty) : undefined,
-      remarks: p.remarks || "",
-      nextAction: p.nextAction || "",
-    }));
+  // Fallback to stockResults or legacy stock items if present
+  if (rawProducts.length === 0) {
+    const legacyStock =
+      sourceData?.stockResults ||
+      sourceData?.stockItems ||
+      sourceData?.t11StockItems ||
+      planData?.stockResults;
+    if (Array.isArray(legacyStock) && legacyStock.length > 0) {
+      rawProducts.push(...legacyStock);
+    }
+  }
 
-    const foundNextAction = dedicatedProducts.find((p: any) => p.nextAction)?.nextAction;
+  if (rawProducts.length > 0) {
+    result.t11StockItems = rawProducts.map((p: any) => {
+      const parentTarget =
+        p._parentTarget || p.target || (p.targetId ? targetMap.get(p.targetId) : undefined);
+      const storeName =
+        p.storeName ||
+        parentTarget?.storeName ||
+        parentTarget?.store?.name ||
+        (typeof parentTarget?.store === "string" ? parentTarget.store : "") ||
+        "ร้านค้า";
+
+      const storeId =
+        p.storeId ||
+        parentTarget?.storeId ||
+        parentTarget?.store?.id ||
+        null;
+
+      const actQty =
+        p.actualQuantity != null
+          ? p.actualQuantity
+          : p.remainingQty != null
+            ? p.remainingQty
+            : p.remainingQuantity != null
+              ? p.remainingQuantity
+              : p.remainingStockQty;
+
+      return {
+        id: p.id || crypto.randomUUID(),
+        targetId: p.targetId || parentTarget?.id,
+        storeId,
+        storeName,
+        productId: p.productId || null,
+        productName: p.productName || p.product?.name || "สินค้า",
+        productCode: p.product?.productCode || p.productCode || undefined,
+        productRole: p.productRole || "TARGET",
+        targetQuantity: p.targetQuantity != null ? Number(p.targetQuantity) : null,
+        targetNotes: p.targetNotes || null,
+        remainingQty:
+          actQty != null && String(actQty).trim() !== "" ? String(actQty) : "",
+        remainingQuantity:
+          actQty != null && !isNaN(Number(actQty)) ? Number(actQty) : undefined,
+        remainingStockQty:
+          actQty != null && !isNaN(Number(actQty)) ? Number(actQty) : undefined,
+        actualQuantity:
+          actQty != null && !isNaN(Number(actQty)) ? Number(actQty) : undefined,
+        stockStatus: p.stockStatus || "ปกติ",
+        reorderOpportunity: p.reorderOpportunity || "",
+        suggestedOrderQty:
+          p.suggestedOrderQty != null ? Number(p.suggestedOrderQty) : undefined,
+        remarks: p.remarks || "",
+        nextAction: p.nextAction || "",
+        isCustom: p.productRole === "ADDITIONAL_AUDIT",
+      };
+    });
+
+    const foundNextAction = rawProducts.find((p: any) => p.nextAction)?.nextAction;
     if (foundNextAction) {
       result.t11NextAction = foundNextAction;
     }
   }
 
+  // 3. Dedicated relational results (type11Results / target.result)
+  const dedicatedResults =
+    sourceData?.type11Results ||
+    planData?.type11Results ||
+    targets.map((t: any) => t.result).filter(Boolean);
+
   if (Array.isArray(dedicatedResults) && dedicatedResults.length > 0) {
     const firstRes = dedicatedResults[0];
     if (firstRes) {
-      if (firstRes.overallStockStatus) result.t11StockStatus = firstRes.overallStockStatus as any;
-      if (firstRes.overallReorderOpportunity) result.t11ReorderOpportunity = firstRes.overallReorderOpportunity as any;
+      if (firstRes.overallStockStatus)
+        result.t11StockStatus = firstRes.overallStockStatus as any;
+      if (firstRes.overallReorderOpportunity)
+        result.t11ReorderOpportunity = firstRes.overallReorderOpportunity as any;
       if (firstRes.nextAction) result.t11NextAction = firstRes.nextAction;
       if (firstRes.summary) result.t11Summary = firstRes.summary;
       if (firstRes.feedback) result.t11Feedback = firstRes.feedback;
     }
   }
 
-  // 2. Attachments
-  if (sourceData?.attachments && Array.isArray(sourceData.attachments)) {
-    const stockImgs = sourceData.attachments
+  // 4. Attachments
+  const allAttachments =
+    sourceData?.attachments ||
+    planData?.attachments ||
+    [];
+
+  if (Array.isArray(allAttachments) && allAttachments.length > 0) {
+    const stockImgs = allAttachments
       .filter(
         (att: any) =>
           att.workTypeCode === "TYPE_11" ||

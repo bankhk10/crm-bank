@@ -70,21 +70,7 @@ export function Type11ActualForm({
     };
   }, [products]);
 
-  // Parse list of planned stores
-  const storesList = useMemo(() => {
-    if (targets && targets.length > 0) {
-      const fromTargets = targets.map((t) => t.store?.trim()).filter(Boolean);
-      if (fromTargets.length > 0) return Array.from(new Set(fromTargets));
-    }
-    if (!target?.store || !target.store.trim()) return ["ร้านค้า"];
-    const parsed = target.store
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    return parsed.length > 0 ? parsed : [target.store.trim()];
-  }, [target?.store, targets]);
-
-  // Normalized product options
+    // Normalized product options
   const productOptions: Type11ProductOption[] = useMemo(() => {
     if (products && products.length > 0) {
       return products.map((p) => {
@@ -110,9 +96,12 @@ export function Type11ActualForm({
 
   // Local state for stock items
   const [items, setItems] = useState<Type11StockItem[]>(() => {
-    const primaryStore = target?.store
-      ? target.store.split(",")[0]?.trim() || "ร้านค้า"
-      : "ร้านค้า";
+    const primaryStore =
+      (target as any)?.storeName ||
+      (typeof target?.store === "string"
+        ? target.store.split(",")[0]?.trim()
+        : (target as any)?.store?.name) ||
+      "ร้านค้า";
 
     if (stockItems && stockItems.length > 0) {
       return stockItems.map((item) => ({
@@ -153,6 +142,72 @@ export function Type11ActualForm({
 
     return [];
   });
+
+  // Sync internal items when stockItems prop changes from parent hydration
+  useEffect(() => {
+    if (stockItems && stockItems.length > 0) {
+      const primaryStore =
+        (target as any)?.storeName ||
+        (typeof target?.store === "string"
+          ? target.store.split(",")[0]?.trim()
+          : (target as any)?.store?.name) ||
+        "ร้านค้า";
+
+      setItems(
+        stockItems.map((item) => ({
+          ...item,
+          id: item.id || crypto.randomUUID(),
+          storeName: item.storeName || primaryStore,
+          remainingQty:
+            item.remainingQty != null ? String(item.remainingQty) : "",
+          reorderOpportunity: item.reorderOpportunity || "",
+          remarks: item.remarks || "",
+        })),
+      );
+    }
+  }, [stockItems, target]);
+
+  // Parse list of planned stores (including targets, target, and stock items)
+  const storesList = useMemo(() => {
+    const list: string[] = [];
+
+    // 1. From targets
+    if (targets && targets.length > 0) {
+      targets.forEach((t: any) => {
+        const name =
+          t.storeName ||
+          (typeof t.store === "string" ? t.store : t.store?.name) ||
+          "";
+        if (name && name.trim()) list.push(name.trim());
+      });
+    } else if (target) {
+      const targetName =
+        (target as any).storeName ||
+        (typeof (target as any).store === "string"
+          ? (target as any).store
+          : (target as any).store?.name) ||
+        "";
+      if (targetName && targetName.trim()) {
+        targetName
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+          .forEach((s: string) => list.push(s));
+      }
+    }
+
+    // 2. From items (in case items belong to stores not in targets)
+    if (items && items.length > 0) {
+      items.forEach((i) => {
+        if (i.storeName && i.storeName.trim() && !list.includes(i.storeName.trim())) {
+          list.push(i.storeName.trim());
+        }
+      });
+    }
+
+    if (list.length === 0) return ["ร้านค้า"];
+    return Array.from(new Set(list));
+  }, [target, targets, items]);
 
   // Sync internal items back to parent props
   const updateItems = (newItems: Type11StockItem[]) => {
@@ -205,8 +260,11 @@ export function Type11ActualForm({
     );
     if (isDuplicate) return;
 
-    const matchedStore = (target?.items || []).find(
-      (s) => s.store?.trim() === storeName.trim(),
+    const matchedStore = (targets || target?.items || []).find(
+      (s: any) =>
+        (s.storeName && s.storeName.trim() === storeName.trim()) ||
+        (typeof s.store === "string" && s.store.trim() === storeName.trim()) ||
+        (s.store?.name && s.store.name.trim() === storeName.trim()),
     );
 
     const newItem: Type11StockItem = {

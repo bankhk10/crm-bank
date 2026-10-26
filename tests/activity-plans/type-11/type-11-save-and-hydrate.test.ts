@@ -3,6 +3,7 @@ import {
   hydrateType11PlannedData,
   extractType11PlanTargets,
 } from "@/modules/activity/features/type-11/planned/application/planned-mapper";
+import { parseType11ActualResult } from "@/modules/activity/features/type-11/planned/application/actual-mapper";
 
 async function runTests() {
   console.log("=== Running Type 11 Save & Hydration Unit Tests ===");
@@ -141,6 +142,99 @@ async function runTests() {
   assert.strictEqual(keys[1], "target-cuid-2");
   assert.notStrictEqual(keys[0], keys[1], "Keys must be completely unique and non-null");
   console.log("✓ Test 3 passed: Multiple stores with null storeId produce unique non-null keys.");
+
+  // -------------------------------------------------------------------------
+  // Test 4: Hydrating Type 11 Actual Results (Products & Stock Data)
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 4] Hydrating Type 11 Actual Results from DB models...");
+
+  const planWithActualData = {
+    id: "plan-t11-004",
+    code: "TP26100112",
+    title: "ตรวจเช็คสต๊อกสินค้าหน้าร้านจริง",
+    type11Targets: [
+      {
+        id: "target-t11-004",
+        activityPlanId: "plan-t11-004",
+        storeId: "store-uuid-004",
+        storeName: "ร้านมงคลการเกษตร",
+        products: [
+          {
+            id: "t11-prod-act-1",
+            activityPlanId: "plan-t11-004",
+            targetId: "target-t11-004",
+            productId: "prod-uuid-1",
+            productName: "บิ๊กกิล 1 ลิตร",
+            productRole: "TARGET",
+            actualQuantity: 12,
+            stockStatus: "ปกติ",
+            reorderOpportunity: "สูง",
+            suggestedOrderQty: 24,
+            remarks: "สต็อกขายดี ลูกค้าถามหาบ่อย",
+            nextAction: "นัดเปิดบิลเพิ่ม 2 ลัง",
+          },
+          {
+            id: "t11-prod-act-2",
+            activityPlanId: "plan-t11-004",
+            targetId: "target-t11-004",
+            productId: "prod-uuid-2",
+            productName: "ซุปเปอร์โกร",
+            productRole: "ADDITIONAL_AUDIT",
+            actualQuantity: 3,
+            stockStatus: "ใกล้หมด",
+            reorderOpportunity: "สูง",
+            suggestedOrderQty: 10,
+            remarks: "เหลือเพียง 3 ขวดบนชั้นวาง",
+            nextAction: "นัดเปิดบิลเพิ่ม 2 ลัง",
+          },
+        ],
+        result: {
+          id: "t11-res-004",
+          activityPlanId: "plan-t11-004",
+          targetId: "target-t11-004",
+          overallStockStatus: "ปกติ",
+          overallReorderOpportunity: "สูง",
+          nextAction: "นัดเปิดบิลเพิ่ม 2 ลัง",
+          summary: "ตรวจนับสต๊อกร้านมงคลการเกษตร เรียบร้อยดี สินค้าขายดี",
+        },
+      },
+    ],
+    attachments: [
+      {
+        id: "att-t11-1",
+        fileUrl: "/uploads/activity-plans/plan-t11-004/stock-shelf.jpg",
+        fileName: "stock-shelf.jpg",
+        category: "STOCK",
+        workTypeCode: "TYPE_11",
+      },
+    ],
+  };
+
+  const actualParsed = parseType11ActualResult(planWithActualData);
+  assert.ok(actualParsed.t11StockItems, "t11StockItems must be parsed");
+  assert.strictEqual(actualParsed.t11StockItems.length, 2, "Should parse 2 stock items");
+
+  const item1 = actualParsed.t11StockItems[0];
+  assert.strictEqual(item1.storeName, "ร้านมงคลการเกษตร", "storeName should resolve from target");
+  assert.strictEqual(item1.productName, "บิ๊กกิล 1 ลิตร");
+  assert.strictEqual(item1.remainingQty, "12", "remainingQty should be '12'");
+  assert.strictEqual(item1.actualQuantity, 12, "actualQuantity should be 12");
+  assert.strictEqual(item1.stockStatus, "ปกติ");
+  assert.strictEqual(item1.reorderOpportunity, "สูง");
+  assert.strictEqual(item1.remarks, "สต็อกขายดี ลูกค้าถามหาบ่อย");
+
+  const item2 = actualParsed.t11StockItems[1];
+  assert.strictEqual(item2.storeName, "ร้านมงคลการเกษตร");
+  assert.strictEqual(item2.productName, "ซุปเปอร์โกร");
+  assert.strictEqual(item2.remainingQty, "3");
+  assert.strictEqual(item2.reorderOpportunity, "สูง");
+  assert.strictEqual(item2.isCustom, true, "ADDITIONAL_AUDIT should have isCustom true");
+
+  assert.strictEqual(actualParsed.t11StockStatus, "ปกติ");
+  assert.strictEqual(actualParsed.t11ReorderOpportunity, "สูง");
+  assert.strictEqual(actualParsed.t11NextAction, "นัดเปิดบิลเพิ่ม 2 ลัง");
+  assert.ok(actualParsed.t11Images && actualParsed.t11Images.length === 1, "Should hydrate 1 attachment image");
+  console.log("✓ Test 4 passed: Actual stock products & outcome hydrated completely from DB models.");
 
   console.log("\n All Type 11 Save & Hydration Unit Tests Passed!\n");
 }

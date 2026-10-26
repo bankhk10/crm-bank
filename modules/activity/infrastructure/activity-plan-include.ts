@@ -819,6 +819,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   },
   type11Products: {
     include: {
+      target: true,
       product: {
         select: {
           id: true,

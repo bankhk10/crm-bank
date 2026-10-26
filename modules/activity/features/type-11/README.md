@@ -280,10 +280,11 @@ sequenceDiagram
 5. `type11PlannedStrategy.saveActual()` อัปเดต `ActivityResult` และเรียก `saveType11ActualStockItems` เพื่อลบและบันทึกระเบียนตรวจนับสต็อกใหม่ลงใน `activity_result_stock_items`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
-1. `useActualPlanLoader` ดึงข้อมูลแผนงานและผลงานเดิม
+1. `useActualPlanLoader` ดึงข้อมูลแผนงานและผลงานเดิมผ่าน `getActivityPlanAction()` ซึ่งรวมความสัมพันธ์ `type11Targets`, `type11Products`, `type11Results` ครบถ้วน
 2. `extractType11PlanTargets(plan)` แกะข้อมูลร้านค้าเป้าหมายเดิมออกมาแสดงในการ์ด `Type11PlanCard`
-3. `parseType11ActualResult(plan.result)` ดึงข้อมูลรายการสินค้าคงเหลือจาก `stockResults`, สิ่งที่ต้องทำต่อ, และรูปภาพเดิม
-4. เรียก `type11Actual.hydrate()` เติมข้อมูลลง State ของฟอร์มพร้อมให้แก้ไขเพิ่มเติม
+3. `parseType11ActualResult(payloadToHydrate, plan)` ดึงข้อมูลรายการสินค้าคงเหลือจาก `type11Targets.products` และ `type11Products`, ปริมาณคงเหลือจริง, โอกาสสั่งซื้อรอบใหม่, สถานะสต็อก, สิ่งที่ต้องทำต่อ และรูปภาพเดิม
+4. เรียก `type11Actual.hydrate(parsedT11, attachments)` เติมข้อมูลลง State ของ Hook
+5. `Type11ActualForm` ซิงค์ `stockItems` เข้าสู่ State ภายในฟอร์มอัตโนมัติ พร้อมจัดกลุ่มแสดงผลตามร้านค้าเป้าหมายได้อย่างแม่นยำ
 
 ### 5.5 Create/Edit Unplanned (กิจกรรมนอกแผน 2-in-1)
 1. ผู้ใช้กรอกฟอร์ม `Type11UnplannedForm` เลือกร้านค้าและกรอกตารางตรวจนับสต็อกพร้อมรูปถ่ายในหน้าเดียว

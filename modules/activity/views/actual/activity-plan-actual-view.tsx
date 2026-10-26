@@ -94,6 +94,7 @@ import {
   useType11Actual,
   validateType11Actual,
   extractType11PlanTargets,
+  parseType11ActualResult,
   type Type11TargetItem,
 } from "@/modules/activity/features/type-11";
 import {
@@ -286,6 +287,9 @@ export function ActivityPlanActualView({
           type9Results: plan.type9Results || (res as any)?.type9Results,
           type9Products: plan.type9Products || (res as any)?.type9Products,
           type9Targets: plan.type9Targets || (res as any)?.type9Targets,
+          type11Targets: plan.type11Targets || (res as any)?.type11Targets,
+          type11Products: plan.type11Products || (res as any)?.type11Products,
+          type11Results: plan.type11Results || (res as any)?.type11Results,
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
@@ -315,7 +319,8 @@ export function ActivityPlanActualView({
         const parsedT9 = parseType9ActualResult(payloadToHydrate);
         type9Actual.hydrate(parsedT9);
         type10Actual.hydrate(payloadToHydrate);
-        type11Actual.hydrate(payloadToHydrate);
+        const parsedT11 = parseType11ActualResult(payloadToHydrate, plan);
+        type11Actual.hydrate(parsedT11, payloadToHydrate.attachments);
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type13Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type14Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
