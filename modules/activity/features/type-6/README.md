@@ -4,7 +4,7 @@
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType6Target` [@@map("activity_type_6_targets")], `ActivityResultType6` [@@map("activity_type_6_result")], `ActivityAttachment` [type_6_result_id])  
-> **Status**: Production Ready / Standalone Dedicated Architecture (v2.2.0 — Updated 2026-10-26)
+> **Status**: Production Ready / Standalone Dedicated Architecture (v2.2.1 — Updated 2026-10-26)
 
 ---
 
@@ -621,3 +621,4 @@ model ActivityAttachment {
 | **2026-10-24** | 2.0.0 | **Batch C Redesign**: ยกระดับสู่ Standalone Dedicated Architecture 100% โดยเปลี่ยนชื่อตารางเป้าหมายเป็น `activity_type_6_targets`, สร้าง `activity_type_6_result` ทดแทน `activity_result_issue_items`, เพิ่ม `type_6_result_id` ใน `activity_attachments` และตัด Generic Dual-Writes ออกทั้งหมด | Antigravity AI |
 | **2026-10-26** | 2.1.0 | **Bug Fix**: แก้ไขข้อผิดพลาด `Unique constraint failed on the fields: (id)` ใน `ActivityPlanType6Target.createMany()` โดยยกเลิกการส่ง client `id` ชั่วคราว (เช่น `"1"`) จากหน้าฟอร์ม และเปิดให้ Prisma CUID generator (`@default(cuid())`) สร้าง Primary Key อัตโนมัติ พร้อมปรับ `saveActual` ให้ใช้ `randomUUID()` และผูกรูปภาพหลักฐานอย่างถูกต้อง | Antigravity AI |
 | **2026-10-26** | 2.2.0 | **Feature Enhancement**: ปรับปรุง `Type6ActualForm`, `useType6Actual`, และ `Type6DetailView` ให้รองรับการบันทึกผลตามเป้าหมายแผนงานแบบหลายรายการ (Multi-Target Actual Outcomes) สอดคล้องกับจำนวนเป้าหมายที่กรอกในหน้าสร้างแผน (`activity_type_6_targets`) โดยแสดงการ์ดบันทึกผลแยกตามแต่ละเป้าหมาย พร้อมผูกเลข Lot สินค้า ร้านค้า รูปภาพ และสถานะครบทุกรายการ | Antigravity AI |
+| **2026-10-26** | 2.2.1 | **Bug Fix**: แก้ไขข้อผิดพลาดใน `Type6ActualForm` ไม่สามารถเลือก "ช่องทางการซื้อสินค้า", "เลือกร้านค้าตัวแทนจำหน่าย" และ "ชื่อสินค้า" เนื่องจาก race condition ในการเรียก `handleItemFieldChange` ซ้ำซ้อน ซึ่งนำ stale object มาทับ state กลับเป็นค่าว่าง/ค่าเดิม โดยปรับปรุงให้ใช้ `handleItemUpdates` แบบ Atomic Batch Update, เพิ่ม `localIssueDetails` state สำหรับ sync และ fallback, และปรับปรุงให้ `value` รองรับการจับคู่ทั้ง ID และชื่อ | Antigravity AI |

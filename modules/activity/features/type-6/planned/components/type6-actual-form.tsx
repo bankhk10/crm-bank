@@ -64,6 +64,9 @@ export function Type6ActualForm({
 }: ActualType6IssueProps) {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [dbCustomers, setDbCustomers] = useState<any[]>([]);
+  const [localIssueDetails, setLocalIssueDetails] = useState<
+    Type6IssueRecord[]
+  >([]);
 
   // Fallback load products from master if not passed via props
   useEffect(() => {
@@ -122,7 +125,12 @@ export function Type6ActualForm({
 
   // Multi-item synchronization: ensure one entry per target
   const itemsToRender = useMemo(() => {
-    const count = Math.max(effectiveTargets.length, issueDetails?.length || 0, 1);
+    const count = Math.max(
+      effectiveTargets.length,
+      issueDetails?.length || 0,
+      localIssueDetails.length,
+      1,
+    );
     const list: Array<{
       item: Type6IssueRecord;
       target?: Type6TargetItem;
@@ -131,33 +139,97 @@ export function Type6ActualForm({
 
     for (let i = 0; i < count; i++) {
       const tgt = effectiveTargets[i];
-      const fromDetails = issueDetails?.[i];
+      const fromParent = issueDetails?.[i];
+      const fromLocal = localIssueDetails[i];
+      // Merge local updates with parent details
+      const fromDetails: Type6IssueRecord | undefined = fromParent
+        ? { ...fromLocal, ...fromParent }
+        : fromLocal;
 
-      const item: Type6IssueRecord = fromDetails || {
-        id: tgt?.id ? `issue-${tgt.id}` : `issue-${i + 1}`,
-        targetId: tgt?.id,
-        storeId:
-          (i === 0 ? storeId : null) ??
-          (tgt?.isManualCustomer ? null : tgt?.storeId || null),
-        storeName:
-          (i === 0 ? storeName : null) ??
+      const effectiveChannel: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์" =
+        fromDetails?.purchaseChannel ||
+        (i === 0 && purchaseChannel ? (purchaseChannel as any) : null) ||
+        "ร้านค้าตัวแทนจำหน่าย";
+
+      const isChannelOnline = effectiveChannel === "ออนไลน์";
+
+      const fallbackStoreId = isChannelOnline
+        ? null
+        : (i === 0 ? storeId : null) ??
+          (tgt?.isManualCustomer ? null : tgt?.storeId || null);
+
+      const fallbackStoreName = isChannelOnline
+        ? null
+        : (i === 0 ? storeName : null) ??
           (tgt?.isManualCustomer
             ? null
-            : tgt?.customerName || tgt?.customer || null),
-        customerName: tgt?.customerName || tgt?.customer || null,
-        isManualCustomer: Boolean(tgt?.isManualCustomer),
-        purchaseChannel:
-          (i === 0 ? purchaseChannel : null) || "ร้านค้าตัวแทนจำหน่าย",
-        productId: i === 0 ? productId : null,
-        productName: i === 0 ? productName : "",
-        lotNumber: i === 0 ? lotNumber : "",
+            : tgt?.customerName || tgt?.customer || null);
+
+      const resolvedStoreId = isChannelOnline
+        ? null
+        : fromDetails?.storeId !== undefined
+          ? fromDetails.storeId
+          : fallbackStoreId;
+
+      const resolvedStoreName = isChannelOnline
+        ? null
+        : fromDetails?.storeName !== undefined
+          ? fromDetails.storeName
+          : fallbackStoreName;
+
+      const item: Type6IssueRecord = {
+        id:
+          fromDetails?.id ||
+          (tgt?.id ? `issue-${tgt.id}` : `issue-${i + 1}`),
+        targetId: fromDetails?.targetId || tgt?.id,
+        storeId: resolvedStoreId,
+        storeName: resolvedStoreName,
+        customerName:
+          fromDetails?.customerName ||
+          tgt?.customerName ||
+          tgt?.customer ||
+          null,
+        isManualCustomer: Boolean(
+          fromDetails?.isManualCustomer !== undefined
+            ? fromDetails.isManualCustomer
+            : tgt?.isManualCustomer,
+        ),
+        purchaseChannel: effectiveChannel,
+        productId:
+          fromDetails?.productId !== undefined
+            ? fromDetails.productId
+            : i === 0
+              ? productId
+              : null,
+        productName:
+          fromDetails?.productName !== undefined
+            ? fromDetails.productName
+            : i === 0
+              ? productName
+              : "",
+        lotNumber:
+          fromDetails?.lotNumber !== undefined
+            ? fromDetails.lotNumber
+            : i === 0
+              ? lotNumber
+              : "",
         issueType:
+          fromDetails?.issueType ||
           (i === 0 ? issueType : null) ||
           tgt?.issueType ||
           "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-        detail: (i === 0 ? detail : null) || tgt?.detail || "",
-        status: (i === 0 ? status : null) || "เสร็จสิ้น",
-        images: (i === 0 ? images : null) || [],
+        detail:
+          fromDetails?.detail !== undefined
+            ? fromDetails.detail
+            : (i === 0 ? detail : null) || tgt?.detail || "",
+        status:
+          fromDetails?.status ||
+          (i === 0 ? status : null) ||
+          "เสร็จสิ้น",
+        images:
+          fromDetails?.images !== undefined
+            ? fromDetails.images
+            : (i === 0 ? images : null) || [],
       };
 
       list.push({ item, target: tgt, index: i });
@@ -167,6 +239,7 @@ export function Type6ActualForm({
   }, [
     effectiveTargets,
     issueDetails,
+    localIssueDetails,
     productId,
     productName,
     lotNumber,
@@ -181,48 +254,88 @@ export function Type6ActualForm({
 
   if (!isVisible) return null;
 
+  const handleItemUpdates = (
+    index: number,
+    updates: Partial<Type6IssueRecord>,
+  ) => {
+    // 1. Update internal state for instant UI responsiveness
+    setLocalIssueDetails((prev) => {
+      const next = [...prev];
+      while (next.length <= index) {
+        next.push({
+          id: `issue-${next.length + 1}`,
+          purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+          issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+          status: "เสร็จสิ้น",
+          images: [],
+        });
+      }
+      next[index] = { ...next[index], ...updates };
+      return next;
+    });
+
+    // 2. Notify parent handler with partial updates
+    if (onUpdateIssueItem) {
+      onUpdateIssueItem(index, updates);
+    }
+
+    // 3. Sync item 0 to scalar props for backward compatibility
+    if (index === 0) {
+      if ("productId" in updates && setProductId) {
+        setProductId(updates.productId ?? null);
+      }
+      if ("productName" in updates && setProductName) {
+        setProductName(updates.productName ?? null);
+      }
+      if ("lotNumber" in updates && setLotNumber) {
+        setLotNumber(updates.lotNumber || "");
+      }
+      if ("purchaseChannel" in updates && setPurchaseChannel) {
+        setPurchaseChannel(updates.purchaseChannel as any);
+      }
+      if ("storeId" in updates && setStoreId) {
+        setStoreId(updates.storeId ?? null);
+      }
+      if ("storeName" in updates && setStoreName) {
+        setStoreName(updates.storeName ?? null);
+      }
+      if ("issueType" in updates && setIssueType) {
+        setIssueType(updates.issueType || "");
+      }
+      if ("detail" in updates && setDetail) {
+        setDetail(updates.detail || "");
+      }
+      if ("status" in updates && setStatus) {
+        setStatus(updates.status as any);
+      }
+      if ("images" in updates && setImages) {
+        setImages(updates.images || []);
+      }
+    }
+  };
+
   const handleItemFieldChange = (
     index: number,
     field: keyof Type6IssueRecord,
     val: any,
   ) => {
-    const currentItem = itemsToRender[index]?.item;
-    const updated: Type6IssueRecord = {
-      ...(currentItem || {
-        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
-        issueType: "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
-        status: "เสร็จสิ้น",
-      }),
-      [field]: val,
-    };
-
-    if (onUpdateIssueItem) {
-      onUpdateIssueItem(index, updated);
-    }
-
-    // Sync item 0 to scalar props for backward compatibility
-    if (index === 0) {
-      if (field === "productId" && setProductId) setProductId(val);
-      if (field === "productName" && setProductName) setProductName(val);
-      if (field === "lotNumber" && setLotNumber) setLotNumber(val);
-      if (field === "purchaseChannel" && setPurchaseChannel) setPurchaseChannel(val);
-      if (field === "storeId" && setStoreId) setStoreId(val);
-      if (field === "storeName" && setStoreName) setStoreName(val);
-      if (field === "issueType" && setIssueType) setIssueType(val);
-      if (field === "detail" && setDetail) setDetail(val);
-      if (field === "status" && setStatus) setStatus(val);
-      if (field === "images" && setImages) setImages(val);
-    }
+    handleItemUpdates(index, { [field]: val });
   };
 
   const handleItemChannelChange = (
     index: number,
     ch: "ร้านค้าตัวแทนจำหน่าย" | "ออนไลน์",
   ) => {
-    handleItemFieldChange(index, "purchaseChannel", ch);
     if (ch === "ออนไลน์") {
-      handleItemFieldChange(index, "storeId", null);
-      handleItemFieldChange(index, "storeName", null);
+      handleItemUpdates(index, {
+        purchaseChannel: "ออนไลน์",
+        storeId: null,
+        storeName: null,
+      });
+    } else {
+      handleItemUpdates(index, {
+        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+      });
     }
   };
 
@@ -382,12 +495,14 @@ export function Type6ActualForm({
                     label="เลือกร้านค้าตัวแทนจำหน่าย"
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                    value={item.storeId || ""}
+                    value={item.storeId || item.storeName || ""}
                     valueKey="id"
                     customers={activeCustomers}
                     onChange={(val: string, customer?: ActivityCustomerItem) => {
-                      handleItemFieldChange(index, "storeId", val || null);
-                      handleItemFieldChange(index, "storeName", customer?.name || "");
+                      handleItemUpdates(index, {
+                        storeId: val || null,
+                        storeName: customer?.name || "",
+                      });
                     }}
                     placeholder="ค้นหาร้านค้าตัวแทนจำหน่ายจาก Customer Master..."
                     searchPlaceholder="พิมพ์ชื่อหรือรหัสร้านค้า..."
@@ -406,12 +521,14 @@ export function Type6ActualForm({
                     label="ชื่อสินค้า"
                     labelClassName="block text-xs font-semibold text-slate-800 mb-1 mx-0"
                     triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                    value={item.productId || ""}
+                    value={item.productId || item.productName || ""}
                     valueKey="id"
                     products={activeProducts}
                     onChange={(val: string, product?: ActivityProductItem) => {
-                      handleItemFieldChange(index, "productId", val || null);
-                      handleItemFieldChange(index, "productName", product?.name || "");
+                      handleItemUpdates(index, {
+                        productId: val || null,
+                        productName: product?.name || "",
+                      });
                     }}
                     placeholder="เลือกสินค้าจาก Product Master..."
                     searchPlaceholder="พิมพ์ชื่อหรือรหัสสินค้า..."
