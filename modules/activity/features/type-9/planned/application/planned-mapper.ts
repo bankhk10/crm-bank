@@ -79,6 +79,15 @@ export function extractType9PlanTargets(
         salesRatio: t.salesRatio != null ? Number(t.salesRatio) : undefined,
         targetAttendees: attendees,
         items,
+        result: t.result || null,
+        actualAttendees:
+          t.result?.actualAttendeesCount != null
+            ? String(t.result.actualAttendeesCount)
+            : undefined,
+        actualSales:
+          t.result?.actualTotalSales != null
+            ? String(t.result.actualTotalSales)
+            : undefined,
       };
     });
 

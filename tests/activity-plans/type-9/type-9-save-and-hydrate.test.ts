@@ -193,6 +193,66 @@ async function runTests() {
   assert.strictEqual(parsedActual.productSalesDetails?.length, 2, "Product sales details should be extracted");
   console.log("✓ Test 3 passed: ActivityResultType9 actualAttendeesCount and actualTotalSales parsed correctly without summary.");
 
+  // -------------------------------------------------------------------------
+  // Test 4: Parse Actual Result from nested type9Targets with products and attachments
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 4] Parsing Actual Result from nested type9Targets and attachments...");
+
+  const planWithNestedActual = {
+    id: "plan-t9-004",
+    type9Targets: [
+      {
+        id: "t9-target-nested-1",
+        subdealerId: "cust-sub-1",
+        subdealerName: "ร้าน สมศักดิ์การเกษตร",
+        dealerName: "ร้าน ชัยเจริญ (Dealer)",
+        targetSales: 100000,
+        result: {
+          id: "res-nested-1",
+          actualAttendeesCount: 30,
+          actualTotalSales: 95000,
+          customerFeedback: "ยอดเยี่ยมมาก",
+        },
+        products: [
+          {
+            id: "prod-item-1",
+            productId: "prod-1",
+            productName: "ปุ๋ยสูตร 1",
+            targetQuantity: 20,
+            targetUnitPrice: 1000,
+            targetAmount: 20000,
+            actualQuantity: 18,
+            actualUnitPrice: 1000,
+            actualTotal: 18000,
+          },
+        ],
+      },
+    ],
+    attachments: [
+      {
+        id: "att-1",
+        fileUrl: "https://storage.example.com/t9-photo.jpg",
+        fileName: "event-photo.jpg",
+        workTypeCode: "TYPE_9",
+      },
+    ],
+  };
+
+  const parsedNested = parseType9ActualResult(planWithNestedActual);
+  assert.strictEqual(parsedNested.actualAttendees, "30", "Nested result actualAttendeesCount parsed");
+  assert.strictEqual(parsedNested.actualSales, "95000", "Nested result actualTotalSales parsed");
+  assert.strictEqual(parsedNested.images?.length, 1, "Attachment should be parsed as image");
+  assert.strictEqual(parsedNested.images?.[0].url, "https://storage.example.com/t9-photo.jpg");
+  assert.strictEqual(parsedNested.productSalesDetails?.length, 1, "Nested products actual extracted");
+  assert.strictEqual(parsedNested.productSalesDetails?.[0].actualQuantityCases, 18);
+
+  const targetExtract4 = extractType9PlanTargets(planWithNestedActual);
+  assert.strictEqual(targetExtract4.primary.actualAttendees, "30");
+  assert.strictEqual(targetExtract4.primary.actualSales, "95000");
+  assert.strictEqual(targetExtract4.primary.items?.[0].actualQuantityCases, "18");
+  assert.strictEqual(targetExtract4.primary.items?.[0].actualSales, "18000");
+  console.log("✓ Test 4 passed: Nested target results, products, and attachments parsed and extracted perfectly.");
+
   console.log("\n All Type 9 Save & Hydration Unit Tests Passed!\n");
 }
 

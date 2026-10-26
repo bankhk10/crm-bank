@@ -7,8 +7,9 @@ import {
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType9Actual } from "../application/actual-validation";
+import { parseType9ActualResult } from "../application/actual-mapper";
 
-export { validateType9Actual };
+export { validateType9Actual, parseType9ActualResult };
 
 export function useType9Actual() {
   const [t9Formats, setT9Formats] = useState<string[]>([]);
@@ -20,20 +21,29 @@ export function useType9Actual() {
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
-    const actualData = parsed.type9Actual || parsed;
+    const resolvedParsed =
+      parsed.type9Actual ||
+      parsed.t9ActualSales !== undefined ||
+      parsed.actualSales !== undefined ||
+      parsed.productSalesDetails !== undefined ||
+      parsed.t9ProductSalesDetails !== undefined
+        ? parsed
+        : { ...parseType9ActualResult(parsed), ...parsed };
+
+    const actualData = resolvedParsed.type9Actual || resolvedParsed;
 
     const sales =
       actualData.actualSales ??
       actualData.t9ActualSales ??
-      parsed.actualSales ??
-      parsed.t9ActualSales;
+      resolvedParsed.actualSales ??
+      resolvedParsed.t9ActualSales;
     if (sales != null && sales !== "") setT9ActualSales(String(sales));
 
     const salesDetails =
       actualData.productSalesDetails ??
       actualData.t9ProductSalesDetails ??
-      parsed.productSalesDetails ??
-      parsed.t9ProductSalesDetails;
+      resolvedParsed.productSalesDetails ??
+      resolvedParsed.t9ProductSalesDetails;
     if (salesDetails && Array.isArray(salesDetails)) {
       setT9ProductSalesDetails(salesDetails);
     }
@@ -41,8 +51,8 @@ export function useType9Actual() {
     const attendees =
       actualData.actualAttendees ??
       actualData.t9ActualAttendees ??
-      parsed.actualAttendees ??
-      parsed.t9ActualAttendees;
+      resolvedParsed.actualAttendees ??
+      resolvedParsed.t9ActualAttendees;
     if (attendees != null && attendees !== "") {
       setT9ActualAttendees(String(attendees));
     }
@@ -50,8 +60,8 @@ export function useType9Actual() {
     const imgs =
       actualData.images ??
       actualData.t9Images ??
-      parsed.images ??
-      parsed.t9Images;
+      resolvedParsed.images ??
+      resolvedParsed.t9Images;
     if (imgs && Array.isArray(imgs) && imgs.length > 0) {
       setT9Images(imgs);
       initialT9ImagesRef.current = JSON.parse(JSON.stringify(imgs));

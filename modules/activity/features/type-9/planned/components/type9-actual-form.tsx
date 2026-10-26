@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, ShoppingBag, Users } from "lucide-react";
 import { ActivityPhotoUpload, ActivityInput } from "@/modules/activity/ui";
 import { Type9PlanCard } from "./type9-plan-card";
@@ -34,10 +34,51 @@ export function Type9ActualForm({
   images = [],
   setImages,
 }: Type9ActualFormProps) {
-  const itemsSource =
-    targets && targets.length > 0
-      ? targets.flatMap((t) => t.items || [])
-      : target?.items || [];
+  const itemsSource = useMemo(() => {
+    const rawList =
+      targets && targets.length > 0
+        ? targets
+        : target
+          ? [target]
+          : [];
+
+    return rawList.flatMap((t: any) => {
+      if (t.items && t.items.length > 0) return t.items;
+      if (t.products && t.products.length > 0) {
+        return t.products.map((p: any) => ({
+          id: p.id,
+          targetId: t.id,
+          productId: p.productId,
+          storeId: t.subdealerId || t.dealerId || null,
+          productName: p.productName || p.product?.name || "",
+          productRole: p.productRole || "TARGET",
+          quantityCases:
+            p.targetQuantity != null
+              ? Number(p.targetQuantity)
+              : p.quantityCases != null
+                ? Number(p.quantityCases)
+                : 0,
+          pricePerCase:
+            p.targetUnitPrice != null
+              ? Number(p.targetUnitPrice)
+              : p.pricePerCase != null
+                ? Number(p.pricePerCase)
+                : 0,
+          totalAmount:
+            p.targetAmount != null
+              ? Number(p.targetAmount)
+              : p.totalAmount != null
+                ? Number(p.totalAmount)
+                : 0,
+          actualQuantityCases:
+            p.actualQuantity != null ? String(p.actualQuantity) : "",
+          actualSales: p.actualTotal != null ? String(p.actualTotal) : "",
+          actualNotes: p.actualNotes || undefined,
+        }));
+      }
+      return [];
+    });
+  }, [targets, target]);
 
   const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(() => {
     if (itemsSource.length > 0) {
@@ -61,6 +102,105 @@ export function Type9ActualForm({
     }
     return [];
   });
+
+  // Sync state whenever external productSalesDetails or itemsSource changes
+  useEffect(() => {
+    if (itemsSource.length > 0) {
+      setLocalItems((prev) => {
+        return itemsSource.map((item, idx) => {
+          const existing =
+            prev.find(
+              (p) =>
+                (item.id && p.id === item.id) ||
+                (item.productId &&
+                  (p.productId === item.productId || p.id === item.productId)) ||
+                p.productName === item.productName,
+            ) || prev[idx];
+
+          const saved =
+            productSalesDetails?.find(
+              (d) =>
+                (item.id && d.id === item.id) ||
+                (item.productId &&
+                  (d.productId === item.productId || d.id === item.productId)) ||
+                d.productName === item.productName,
+            ) || productSalesDetails?.[idx];
+
+          const actualQty =
+            existing?.actualQuantityCases !== undefined &&
+            existing?.actualQuantityCases !== ""
+              ? existing.actualQuantityCases
+              : (saved?.actualQuantityCases ?? item.actualQuantityCases ?? "");
+
+          const actualTot =
+            existing?.actualSales !== undefined && existing?.actualSales !== ""
+              ? existing.actualSales
+              : (saved?.actualSales ?? item.actualSales ?? "");
+
+          return {
+            ...item,
+            actualQuantityCases: actualQty,
+            actualSales: actualTot,
+          };
+        });
+      });
+    }
+  }, [itemsSource, productSalesDetails]);
+
+  // Sync loaded actuals to parent form state if parent is unpopulated
+  useEffect(() => {
+    if (
+      setProductSalesDetails &&
+      localItems.length > 0 &&
+      (!productSalesDetails || productSalesDetails.length === 0)
+    ) {
+      const hasActuals = localItems.some(
+        (it) =>
+          (it.actualQuantityCases != null && it.actualQuantityCases !== "") ||
+          (it.actualSales != null && it.actualSales !== ""),
+      );
+      if (hasActuals) {
+        setProductSalesDetails(
+          localItems.map((item) => ({
+            id: item.id,
+            targetId: item.targetId,
+            productId: item.productId || item.id,
+            storeId: item.storeId,
+            productName: item.productName,
+            pricePerCase: item.pricePerCase,
+            quantityCases: item.quantityCases,
+            totalAmount: item.totalAmount,
+            actualQuantityCases: item.actualQuantityCases,
+            actualSales: item.actualSales,
+          })),
+        );
+      }
+    }
+  }, [localItems, productSalesDetails, setProductSalesDetails]);
+
+  // Fallback hydration for actualSales and actualAttendees from target or target.result
+  useEffect(() => {
+    const primaryTarget = targets?.[0] || target;
+    const targetResult = primaryTarget?.result;
+
+    if ((!actualSales || actualSales === "") && setActualSales) {
+      if (targetResult?.actualTotalSales != null) {
+        const num = Number(targetResult.actualTotalSales);
+        setActualSales(!isNaN(num) ? num.toLocaleString() : String(targetResult.actualTotalSales));
+      } else if (primaryTarget?.actualSales != null && primaryTarget.actualSales !== "") {
+        const num = Number(primaryTarget.actualSales);
+        setActualSales(!isNaN(num) ? num.toLocaleString() : String(primaryTarget.actualSales));
+      }
+    }
+
+    if ((!actualAttendees || actualAttendees === "") && setActualAttendees) {
+      if (targetResult?.actualAttendeesCount != null && Number(targetResult.actualAttendeesCount) > 0) {
+        setActualAttendees(String(targetResult.actualAttendeesCount));
+      } else if (primaryTarget?.actualAttendees != null && primaryTarget.actualAttendees !== "") {
+        setActualAttendees(String(primaryTarget.actualAttendees));
+      }
+    }
+  }, [targets, target, actualSales, actualAttendees, setActualSales, setActualAttendees]);
 
   if (!isVisible) return null;
 

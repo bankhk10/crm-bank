@@ -40,7 +40,7 @@ export function parseType9ActualResult(resData: any): Partial<
   const planRef = resData.plan || resData.activityPlan || resData;
 
   // 1. Dedicated Relational Storage: Products actual outcomes
-  const dedicatedProducts = planRef?.type9Products || resData?.type9Products;
+  const dedicatedProducts = planRef?.type9Products || resData?.type9Products || planRef?.type9Targets?.flatMap((t: any) => t.products || []) || resData?.type9Targets?.flatMap((t: any) => t.products || []);
   if (Array.isArray(dedicatedProducts) && dedicatedProducts.length > 0) {
     const productsWithActuals = dedicatedProducts.filter(
       (p: any) =>
@@ -79,7 +79,7 @@ export function parseType9ActualResult(resData: any): Partial<
   }
 
   // 2. Dedicated Relational Storage: Results
-  const dedicatedResults = planRef?.type9Results || resData?.type9Results;
+  const dedicatedResults = planRef?.type9Results || resData?.type9Results || (planRef?.type9Targets?.[0]?.result ? [planRef.type9Targets[0].result] : []) || (resData?.type9Targets?.[0]?.result ? [resData.type9Targets[0].result] : []);
   if (Array.isArray(dedicatedResults) && dedicatedResults.length > 0) {
     const firstResult = dedicatedResults[0];
     if (firstResult.actualAttendeesCount != null) {
@@ -129,8 +129,9 @@ export function parseType9ActualResult(resData: any): Partial<
   }
 
   // 4. Attachments (Images)
-  if (Array.isArray(resData.attachments) && resData.attachments.length > 0) {
-    const t9Att = resData.attachments.filter(
+  const allAttachments = resData?.attachments || planRef?.attachments || [];
+  if (Array.isArray(allAttachments) && allAttachments.length > 0) {
+    const t9Att = allAttachments.filter(
       (a: any) =>
         a.workTypeCode === "TYPE_9" ||
         a.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",

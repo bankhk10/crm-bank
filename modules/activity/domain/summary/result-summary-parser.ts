@@ -5,6 +5,7 @@ import { parseType6ActualResult } from "../../features/type-6";
 import { parseType7aActualResult } from "../../features/type-7a";
 import { parseType7bActualResult } from "../../features/type-7b";
 import { parseType8ActualResult } from "../../features/type-8";
+import { parseType9ActualResult } from "../../features/type-9";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -208,6 +209,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     if (t8Parsed.t8ActualAttendees && result.actualAttendeesCount == null) {
       result.actualAttendeesCount = t8Parsed.t8ActualAttendees;
       result.actualAttendees = t8Parsed.t8ActualAttendees;
+    }
+
+    // Type 9 Store Event Actual Results
+    const t9Parsed = parseType9ActualResult(resData);
+    if (Object.keys(t9Parsed).length > 0) {
+      result.type9Actual = t9Parsed;
+      Object.assign(result, t9Parsed);
     }
 
     // Type 9 Sale Results from relation table
