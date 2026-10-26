@@ -34,6 +34,13 @@ export function useSalesPromotion({
       if (initDetails?.isSalesPromotionSelected !== undefined) {
         return initDetails.isSalesPromotionSelected;
       }
+      if (
+        (initial as any)?.promotionItems &&
+        Array.isArray((initial as any).promotionItems) &&
+        (initial as any).promotionItems.length > 0
+      ) {
+        return true;
+      }
       if (Array.isArray(initDetails) && initDetails.length > 0) {
         const hasSp = initDetails.some(
           (item: any) =>

@@ -1788,6 +1788,8 @@ export function UnplannedActivityForm({
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
       totalBudgetRequested:
         totalBudgetRequested > 0 ? totalBudgetRequested : null,
+      marketingItems: budgetPayload.marketingItems,
+      promotionItems: budgetPayload.promotionItems,
       notes: notes.trim() || null,
       planStores: isType1Active ? [] : planStores,
       type1Targets: isType1Active ? planStores : undefined,

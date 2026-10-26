@@ -160,6 +160,37 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
         });
       }
 
+      // 3.1 Save Marketing Items (สื่อส่งเสริมการขาย)
+      if (Array.isArray(rawData.marketingItems) && rawData.marketingItems.length > 0) {
+        await tx.activityPlanMarketingItem.createMany({
+          data: rawData.marketingItems.map((item: any) => ({
+            activityPlanId: createdPlan.id,
+            category: String(item.category || "อื่นๆ"),
+            materialName: String(item.materialName || ""),
+            unit: item.unit ? String(item.unit) : "ชิ้น",
+            unitPrice: new Prisma.Decimal(item.unitPrice || 0),
+            quantity: Number(item.quantity || 1),
+            totalAmount: new Prisma.Decimal(
+              item.totalAmount != null
+                ? item.totalAmount
+                : Number(item.quantity || 1) * Number(item.unitPrice || 0),
+            ),
+          })),
+        });
+      }
+
+      // 3.2 Save Promotion Items (รายการส่งเสริมการขาย)
+      if (Array.isArray(rawData.promotionItems) && rawData.promotionItems.length > 0) {
+        await tx.activityPlanPromotionItem.createMany({
+          data: rawData.promotionItems.map((item: any) => ({
+            activityPlanId: createdPlan.id,
+            budgetType: String(item.budgetType || "งบการตลาด"),
+            detail: String(item.detail || ""),
+            amount: new Prisma.Decimal(item.amount || 0),
+          })),
+        });
+      }
+
       // 4. Save Feature-specific target items via Strategy Registry
       await saveStrategiesForPlan(tx, createdPlan.id, {
         ...rawData,
@@ -298,6 +329,43 @@ export async function updateActivityPlanAction(
             })),
           });
         }
+      }
+
+      // 2.1 Update Marketing Items (สื่อส่งเสริมการขาย)
+      await tx.activityPlanMarketingItem.deleteMany({
+        where: { activityPlanId: id },
+      });
+      if (Array.isArray(rawData.marketingItems) && rawData.marketingItems.length > 0) {
+        await tx.activityPlanMarketingItem.createMany({
+          data: rawData.marketingItems.map((item: any) => ({
+            activityPlanId: id,
+            category: String(item.category || "อื่นๆ"),
+            materialName: String(item.materialName || ""),
+            unit: item.unit ? String(item.unit) : "ชิ้น",
+            unitPrice: new Prisma.Decimal(item.unitPrice || 0),
+            quantity: Number(item.quantity || 1),
+            totalAmount: new Prisma.Decimal(
+              item.totalAmount != null
+                ? item.totalAmount
+                : Number(item.quantity || 1) * Number(item.unitPrice || 0),
+            ),
+          })),
+        });
+      }
+
+      // 2.2 Update Promotion Items (รายการส่งเสริมการขาย)
+      await tx.activityPlanPromotionItem.deleteMany({
+        where: { activityPlanId: id },
+      });
+      if (Array.isArray(rawData.promotionItems) && rawData.promotionItems.length > 0) {
+        await tx.activityPlanPromotionItem.createMany({
+          data: rawData.promotionItems.map((item: any) => ({
+            activityPlanId: id,
+            budgetType: String(item.budgetType || "งบการตลาด"),
+            detail: String(item.detail || ""),
+            amount: new Prisma.Decimal(item.amount || 0),
+          })),
+        });
       }
 
       // 3. Save Feature-specific target items via Strategy Registry
@@ -598,6 +666,19 @@ export async function duplicateActivityPlanAction(id: string) {
         .map((wt) => wt.activityType?.code)
         .filter(Boolean),
       helperEmployeeIds: (originalPlan.helpers || []).map((h) => h.employeeId),
+      marketingItems: (originalPlan.marketingItems || []).map((m: any) => ({
+        category: m.category,
+        materialName: m.materialName,
+        unit: m.unit,
+        unitPrice: Number(m.unitPrice),
+        quantity: m.quantity,
+        totalAmount: Number(m.totalAmount),
+      })),
+      promotionItems: (originalPlan.promotionItems || []).map((p: any) => ({
+        budgetType: p.budgetType,
+        detail: p.detail,
+        amount: Number(p.amount),
+      })),
     });
 
     return serialize(duplicated);

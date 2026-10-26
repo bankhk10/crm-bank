@@ -37,6 +37,13 @@ export function usePromotionalMedia({
       if (initDetails?.isPromotionalMediaSelected !== undefined) {
         return initDetails.isPromotionalMediaSelected;
       }
+      if (
+        (initial as any)?.marketingItems &&
+        Array.isArray((initial as any).marketingItems) &&
+        (initial as any).marketingItems.length > 0
+      ) {
+        return true;
+      }
       if (Array.isArray(initDetails) && initDetails.length > 0) {
         const hasMkt = initDetails.some(
           (item: any) =>

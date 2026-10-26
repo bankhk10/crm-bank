@@ -1041,6 +1041,8 @@ export function PlannedActivityForm({
       marketingBudgetRequested: budgetPayload.marketingBudgetRequested,
       totalBudgetRequested:
         totalBudgetRequested > 0 ? totalBudgetRequested : null,
+      marketingItems: budgetPayload.marketingItems,
+      promotionItems: budgetPayload.promotionItems,
       targetAttendeesCount:
         type8TotalAttendees != null && type8TotalAttendees > 0
           ? type8TotalAttendees
