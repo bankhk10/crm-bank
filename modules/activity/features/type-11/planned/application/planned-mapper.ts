@@ -18,8 +18,8 @@ export function extractType11PlanTargets(
     [];
 
   if (Array.isArray(dedicatedTargets) && dedicatedTargets.length > 0) {
-    const items: Type11TargetStoreItem[] = dedicatedTargets.map((t: any) => ({
-      id: t.id,
+    const items: Type11TargetStoreItem[] = dedicatedTargets.map((t: any, idx: number) => ({
+      id: t.id || `t11-item-${idx}`,
       targetId: t.id,
       storeId: t.storeId || t.id,
       store: t.storeName || t.store?.name || "",
@@ -28,8 +28,8 @@ export function extractType11PlanTargets(
       notes: t.notes || "",
     }));
 
-    const list: Type11TargetItem[] = dedicatedTargets.map((t: any) => ({
-      id: t.id,
+    const list: Type11TargetItem[] = dedicatedTargets.map((t: any, idx: number) => ({
+      id: t.id || `t11-target-${idx}`,
       targetId: t.id,
       storeId: t.storeId || null,
       store: t.storeName || t.store?.name || "",
@@ -48,7 +48,7 @@ export function extractType11PlanTargets(
       result: t.result || null,
       items: [
         {
-          id: t.id,
+          id: t.id || `t11-item-${idx}`,
           targetId: t.id,
           storeId: t.storeId || t.id,
           store: t.storeName || t.store?.name || "",
@@ -117,10 +117,10 @@ export function hydrateType11PlannedData(
     initial?.type11Data?.targets;
 
   if (Array.isArray(dedicatedTargets) && dedicatedTargets.length > 0) {
-    return dedicatedTargets.map((t: any) => ({
-      id: t.id,
+    return dedicatedTargets.map((t: any, idx: number) => ({
+      id: t.id || `t11-target-${idx}`,
       targetId: t.id,
-      storeId: t.storeId,
+      storeId: t.storeId ?? null,
       storeName: t.storeName || t.store?.name || "ร้านค้า",
       isUnregisteredStore: Boolean(t.isUnregisteredStore),
       storeCode: t.storeCode || t.store?.customerCode || null,
@@ -136,9 +136,23 @@ export function hydrateType11PlannedData(
     }));
   }
 
+  // If initDetails is already a hydrated array of Type11StoreItem, return it directly
+  if (Array.isArray(initDetails) && initDetails.length > 0) {
+    return initDetails.map((t: any, idx: number) => ({
+      ...t,
+      id: t.id || t.targetId || (t.storeId ? `store-${t.storeId}` : `t11-init-${idx}`),
+      targetId: t.targetId || t.id,
+      storeName: t.storeName || t.store || t.name || "ร้านค้า",
+    }));
+  }
+
   // Check type11Stores from form state
   if (Array.isArray(initial?.type11Stores) && initial.type11Stores.length > 0) {
-    return initial.type11Stores;
+    return initial.type11Stores.map((s: any, idx: number) => ({
+      ...s,
+      id: s.id || s.targetId || (s.storeId ? `store-${s.storeId}` : `t11-store-${idx}`),
+      storeName: s.storeName || s.name || "ร้านค้า",
+    }));
   }
 
   return [];

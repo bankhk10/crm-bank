@@ -27,7 +27,14 @@ export function Type11PlannedForm({
   }, [type11Stores]);
 
   const selectedStoreIds = React.useMemo(
-    () => new Set(selectedStores.map((s) => s.storeId)),
+    () =>
+      new Set(
+        selectedStores
+          .map((s) => s.storeId)
+          .filter(
+            (id): id is string => typeof id === "string" && id.trim().length > 0,
+          ),
+      ),
     [selectedStores],
   );
 
@@ -52,28 +59,36 @@ export function Type11PlannedForm({
         {/* Selected Store Badges */}
         {selectedStores.length > 0 && (
           <div className="flex flex-wrap gap-1.5 p-2.5 rounded-lg border border-slate-200 bg-white">
-            {selectedStores.map((store) => (
-              <span
-                key={store.storeId}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium border border-slate-200"
-              >
-                {store.storeName}
-                {!readonly && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = selectedStores.filter(
-                        (s) => s.storeId !== store.storeId,
-                      );
-                      setType11Stores(updated);
-                    }}
-                    className="text-slate-400 hover:text-red-500 font-bold transition-colors cursor-pointer"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </span>
-            ))}
+            {selectedStores.map((store, index) => {
+              const uniqueKey =
+                store.id ||
+                store.targetId ||
+                (store.storeId ? `store-${store.storeId}-${index}` : null) ||
+                `store-idx-${index}-${store.storeName || "unnamed"}`;
+
+              return (
+                <span
+                  key={uniqueKey}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-medium border border-slate-200"
+                >
+                  {store.storeName}
+                  {!readonly && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = selectedStores.filter(
+                          (_, i) => i !== index,
+                        );
+                        setType11Stores(updated);
+                      }}
+                      className="text-slate-400 hover:text-red-500 font-bold transition-colors cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -94,6 +109,7 @@ export function Type11PlannedForm({
                 const updated: Type11StoreItem[] = [
                   ...selectedStores,
                   {
+                    id: crypto.randomUUID(),
                     storeId: selectedId,
                     storeName: customerName,
                   },

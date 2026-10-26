@@ -99,6 +99,49 @@ async function runTests() {
   assert.strictEqual(targetExtract2.primary.store, "ร้านลุงปาน การเกษตร (นอกระบบ)");
   console.log("✓ Test 2 passed: Unregistered store hydrated perfectly.");
 
+  // -------------------------------------------------------------------------
+  // Test 3: Multiple stores with null storeId (verifying unique IDs & keys)
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 3] Hydrating multiple stores with null storeId...");
+
+  const planWithMultipleNullStoreIds = {
+    id: "plan-t11-003",
+    type11Targets: [
+      {
+        id: "target-cuid-1",
+        storeId: null,
+        storeName: "ร้าน A นอกระบบ",
+      },
+      {
+        id: "target-cuid-2",
+        storeId: null,
+        storeName: "ร้าน B นอกระบบ",
+      },
+    ],
+  };
+
+  const hydrated3 = hydrateType11PlannedData(planWithMultipleNullStoreIds);
+  assert.strictEqual(hydrated3.length, 2);
+  assert.strictEqual(hydrated3[0].storeId, null);
+  assert.strictEqual(hydrated3[1].storeId, null);
+  assert.strictEqual(hydrated3[0].id, "target-cuid-1");
+  assert.strictEqual(hydrated3[1].id, "target-cuid-2");
+  assert.notStrictEqual(hydrated3[0].id, hydrated3[1].id, "Hydrated targets must have unique IDs");
+
+  // Verify key resolution logic for Type11PlannedForm
+  const keys = hydrated3.map((store, index) => {
+    return (
+      store.id ||
+      store.targetId ||
+      (store.storeId ? `store-${store.storeId}-${index}` : null) ||
+      `store-idx-${index}-${store.storeName || "unnamed"}`
+    );
+  });
+  assert.strictEqual(keys[0], "target-cuid-1");
+  assert.strictEqual(keys[1], "target-cuid-2");
+  assert.notStrictEqual(keys[0], keys[1], "Keys must be completely unique and non-null");
+  console.log("✓ Test 3 passed: Multiple stores with null storeId produce unique non-null keys.");
+
   console.log("\n All Type 11 Save & Hydration Unit Tests Passed!\n");
 }
 
@@ -106,4 +149,3 @@ runTests().catch((err) => {
   console.error("Test failed:", err);
   process.exit(1);
 });
-

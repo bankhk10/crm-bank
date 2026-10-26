@@ -273,12 +273,12 @@ export function Type11ActualForm({
 
         {/* Per Store Stock List */}
         <div className="space-y-6">
-          {storesList.map((storeName) => {
+          {storesList.map((storeName, sIdx) => {
             const storeItems = items.filter((i) => i.storeName === storeName);
 
             return (
               <div
-                key={storeName}
+                key={`${storeName}-${sIdx}`}
                 className="bg-slate-50/60 rounded-xl p-4 border border-slate-200/80 space-y-4"
               >
                 {/* Store Header & Add Product */}
@@ -314,9 +314,9 @@ export function Type11ActualForm({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {storeItems.map((item) => (
+                    {storeItems.map((item, itemIdx) => (
                       <div
-                        key={item.id}
+                        key={item.id || `stock-item-${sIdx}-${itemIdx}`}
                         className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-3 shadow-2xs"
                       >
                         <div className="flex items-center justify-between">
