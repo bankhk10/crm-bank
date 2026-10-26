@@ -126,6 +126,7 @@ import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
 } from "@/modules/activity/application/media/image-uploader";
+import { formatUserFriendlyError } from "@/lib/error-utils";
 
 /**
  * Recursively strips in-memory binary objects (File, Blob, rawFile, file) from payload
@@ -1551,12 +1552,14 @@ export function ActivityPlanActualView({
         if (onSuccess) onSuccess();
         else router.push(`/activity-plans/${id}`);
       } else {
-        setFormError(res.error || "เกิดข้อผิดพลาดในการบันทึกผล");
-        toast.error(res.error || "เกิดข้อผิดพลาดในการบันทึกผล");
+        const friendlyMsg = formatUserFriendlyError(res.error, "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน");
+        setFormError(friendlyMsg);
+        toast.error(friendlyMsg);
       }
     } catch (err: any) {
-      setFormError(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
-      toast.error(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+      const friendlyMsg = formatUserFriendlyError(err, "เกิดข้อผิดพลาดไม่คาดคิด กรุณาลองใหม่อีกครั้ง");
+      setFormError(friendlyMsg);
+      toast.error(friendlyMsg);
     } finally {
       setIsSubmitting(false);
     }

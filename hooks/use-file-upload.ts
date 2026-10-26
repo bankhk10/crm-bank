@@ -108,15 +108,11 @@ export const useFileUpload = (
     (file: File | FileMetadata): string | null => {
       if (file instanceof File) {
         if (file.size > maxSize) {
-          return `File "${file.name}" exceeds the maximum size of ${formatBytes(
-            maxSize
-          )}.`;
+          return `ไฟล์ "${file.name}" มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`;
         }
       } else {
         if (file.size > maxSize) {
-          return `File "${file.name}" exceeds the maximum size of ${formatBytes(
-            maxSize
-          )}.`;
+          return `ไฟล์ "${file.name}" มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`;
         }
       }
 
@@ -141,9 +137,9 @@ export const useFileUpload = (
         });
 
         if (!isAccepted) {
-          return `File "${
+          return `ไฟล์ "${
             file instanceof File ? file.name : file.name
-          }" is not an accepted file type.`;
+          }" ไม่ใช่ประเภทไฟล์ที่รองรับ`;
         }
       }
 
@@ -244,8 +240,8 @@ export const useFileUpload = (
         if (file.size > maxSize) {
           errors.push(
             multiple
-              ? `Some files exceed the maximum size of ${formatBytes(maxSize)}.`
-              : `File exceeds the maximum size of ${formatBytes(maxSize)}.`
+              ? `ไฟล์บางไฟล์มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`
+              : `ไฟล์มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`
           );
           continue;
         }
