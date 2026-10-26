@@ -27,6 +27,12 @@ export function useType1Actual() {
   const [t1PlotImages, setT1PlotImages] = useState<Type1ImageFile[]>([]);
   const [t1TargetItems, setT1TargetItems] = useState<Type1TargetActualItem[]>([]);
   const initialT1PlotImagesRef = useRef<Type1ImageFile[]>([]);
+  const cleanTargetsRef = useRef<Type1TargetActualItem[]>([]);
+
+  const updateTargetItemsState = useCallback((items: Type1TargetActualItem[]) => {
+    cleanTargetsRef.current = items;
+    setT1TargetItems(items);
+  }, []);
 
   const hydrate = useCallback((parsedInput: any) => {
     if (!parsedInput) return;
@@ -61,6 +67,13 @@ export function useType1Actual() {
     if (lat != null && lat !== "") setT1PlotLatitude(String(lat));
     const lng = parsed.plotLongitude ?? parsed.t1PlotLongitude;
     if (lng != null && lng !== "") setT1PlotLongitude(String(lng));
+
+    const targets = parsed.targetActualResults || parsed.targetItems;
+    if (targets && Array.isArray(targets) && targets.length > 0) {
+      cleanTargetsRef.current = targets;
+      setT1TargetItems(targets);
+    }
+
     let imgs = parsed.plotImages || parsed.t1PlotImages;
     if ((!imgs || imgs.length === 0) && Array.isArray(parsed.attachments)) {
       imgs = parsed.attachments
@@ -88,6 +101,7 @@ export function useType1Actual() {
   }, []);
 
   const syncFromTargetItems = useCallback((items: any[]) => {
+    cleanTargetsRef.current = items;
     setT1TargetItems(items);
     const agg = aggregateType1TargetItems(items);
     setT1DiscussionResult(agg.discussionResult);
@@ -104,11 +118,13 @@ export function useType1Actual() {
 
   const uploadImages = useCallback(
     async (planId: string, newlyUploadedUrls: string[]): Promise<Type1ImageFile[]> => {
-      if (t1TargetItems && t1TargetItems.length > 0) {
+      const currentTargets = cleanTargetsRef.current.length > 0 ? cleanTargetsRef.current : t1TargetItems;
+
+      if (currentTargets && currentTargets.length > 0) {
         const updatedTargets: Type1TargetActualItem[] = [];
         const allUploaded: Type1ImageFile[] = [];
 
-        for (const target of t1TargetItems) {
+        for (const target of currentTargets) {
           const targetKey = target.id || target.targetId || "plot";
           if (target.plotImages && target.plotImages.length > 0) {
             const res = await uploadActivityPlanImageGroup(
@@ -117,8 +133,12 @@ export function useType1Actual() {
               "type1",
               targetKey,
             );
-            const tagged = res.updatedImages.map((img) => ({
-              ...img,
+            const tagged: Type1ImageFile[] = res.updatedImages.map((img) => ({
+              id: img.id,
+              url: img.url,
+              name: img.name || "รูปแปลงเกษตรกร",
+              size: img.size || 0,
+              type: img.type || "image/jpeg",
               targetId: targetKey,
               storeId: target.storeId || undefined,
             }));
@@ -130,6 +150,7 @@ export function useType1Actual() {
           }
         }
 
+        cleanTargetsRef.current = updatedTargets;
         setT1TargetItems(updatedTargets);
         setT1PlotImages(allUploaded);
         return allUploaded;
@@ -143,7 +164,13 @@ export function useType1Actual() {
           "type1",
           "plot",
         );
-        cleanImages = res.updatedImages;
+        cleanImages = res.updatedImages.map((img) => ({
+          id: img.id,
+          url: img.url,
+          name: img.name || "รูปแปลงเกษตรกร",
+          size: img.size || 0,
+          type: img.type || "image/jpeg",
+        }));
         newlyUploadedUrls.push(...res.newlyUploadedUrls);
         setT1PlotImages(cleanImages);
       }
@@ -162,33 +189,81 @@ export function useType1Actual() {
   );
 
   const getPayload = useCallback(
-    (uploadedImages: any[] = t1PlotImages) => ({
-      t1ProductAdvice,
-      t1Products: t1AdvisedProducts,
-      t1SalesOpportunity,
-      t1DiscussionResult,
-      t1Detail,
-      t1NextAction,
-      t1NextMeetingDate,
-      t1FarmerHomeAddress,
-      t1PlotLatitude: t1PlotLatitude || "",
-      t1PlotLongitude: t1PlotLongitude || "",
-      t1PlotImages: uploadedImages,
-      targetActualResults: t1TargetItems,
-      // Clean normalized aliases:
-      productAdvice: t1ProductAdvice,
-      products: t1AdvisedProducts,
-      notes: t1Detail,
-      detail: t1Detail,
-      discussionResult: t1DiscussionResult,
-      salesOpportunity: t1SalesOpportunity,
-      nextAction: t1NextAction,
-      nextMeetingDate: t1NextMeetingDate,
-      farmerHomeAddress: t1FarmerHomeAddress,
-      plotLatitude: t1PlotLatitude ? Number(t1PlotLatitude) : null,
-      plotLongitude: t1PlotLongitude ? Number(t1PlotLongitude) : null,
-      plotImages: uploadedImages,
-    }),
+    (
+      uploadedImages: any[] = t1PlotImages,
+      overrideTargets?: Type1TargetActualItem[],
+    ) => {
+      const sourceTargets =
+        overrideTargets ||
+        (cleanTargetsRef.current.length > 0
+          ? cleanTargetsRef.current
+          : t1TargetItems);
+
+      const sanitizedPlotImages = (uploadedImages || t1PlotImages || []).map(
+        (img: any) => ({
+          id: img.id,
+          url: img.url || img.fileUrl,
+          name: img.name || img.fileName || "รูปแปลงเกษตรกร",
+          size: img.size || img.fileSize || 0,
+          type: img.type || img.mimeType || "image/jpeg",
+          targetId: img.targetId,
+          storeId: img.storeId,
+        }),
+      );
+
+      const sanitizedTargets = sourceTargets.map((target) => {
+        let tImages = (target.plotImages || []).map((img: any) => ({
+          id: img.id,
+          url: img.url || img.fileUrl,
+          name: img.name || img.fileName || "รูปแปลงเกษตรกร",
+          size: img.size || img.fileSize || 0,
+          type: img.type || img.mimeType || "image/jpeg",
+          targetId: img.targetId || target.id,
+          storeId: img.storeId || target.storeId,
+        }));
+
+        if (
+          tImages.length === 0 &&
+          sourceTargets.length === 1 &&
+          sanitizedPlotImages.length > 0
+        ) {
+          tImages = sanitizedPlotImages;
+        }
+
+        return {
+          ...target,
+          plotImages: tImages,
+        };
+      });
+
+      return {
+        t1ProductAdvice,
+        t1Products: t1AdvisedProducts,
+        t1SalesOpportunity,
+        t1DiscussionResult,
+        t1Detail,
+        t1NextAction,
+        t1NextMeetingDate,
+        t1FarmerHomeAddress,
+        t1PlotLatitude: t1PlotLatitude || "",
+        t1PlotLongitude: t1PlotLongitude || "",
+        t1PlotImages: sanitizedPlotImages,
+        targetActualResults: sanitizedTargets,
+        // Clean normalized aliases:
+        productAdvice: t1ProductAdvice,
+        products: t1AdvisedProducts,
+        notes: t1Detail,
+        detail: t1Detail,
+        discussionResult: t1DiscussionResult,
+        salesOpportunity: t1SalesOpportunity,
+        nextAction: t1NextAction,
+        nextMeetingDate: t1NextMeetingDate,
+        farmerHomeAddress: t1FarmerHomeAddress,
+        plotLatitude: t1PlotLatitude ? Number(t1PlotLatitude) : null,
+        plotLongitude: t1PlotLongitude ? Number(t1PlotLongitude) : null,
+        plotImages: sanitizedPlotImages,
+      };
+    },
     [
       t1ProductAdvice,
       t1AdvisedProducts,
@@ -230,7 +305,7 @@ export function useType1Actual() {
     plotImages: t1PlotImages,
     setPlotImages: setT1PlotImages,
     targetItems: t1TargetItems,
-    setTargetItems: setT1TargetItems,
+    setTargetItems: updateTargetItemsState,
 
     // Legacy t1* Prefixed Properties (Backward Compatibility)
     t1ProductAdvice,
@@ -256,7 +331,7 @@ export function useType1Actual() {
     t1PlotImages,
     setT1PlotImages,
     t1TargetItems,
-    setT1TargetItems,
+    setT1TargetItems: updateTargetItemsState,
 
     hydrate,
     syncFromTargetItems,
@@ -271,7 +346,7 @@ export function useType1Actual() {
             discussionResult: t1DiscussionResult,
             salesOpportunity: t1SalesOpportunity,
             productAdvice: t1ProductAdvice,
-            targetItems: t1TargetItems,
+            targetItems: cleanTargetsRef.current.length > 0 ? cleanTargetsRef.current : t1TargetItems,
           },
           targets,
         ),

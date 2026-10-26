@@ -127,6 +127,29 @@ import {
   deleteActivityPlanImagePaths,
 } from "@/modules/activity/application/media/image-uploader";
 
+/**
+ * Recursively strips in-memory binary objects (File, Blob, rawFile, file) from payload
+ * to prevent Next.js Server Action 413 Payload Too Large / Body exceeded 1 MB limit.
+ */
+function stripBinaryFiles<T = any>(obj: T): T {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") return obj;
+  if (obj instanceof Date) return obj;
+  if (typeof File !== "undefined" && obj instanceof File) return undefined as any;
+  if (typeof Blob !== "undefined" && obj instanceof Blob) return undefined as any;
+  if (Array.isArray(obj)) {
+    return obj.map(stripBinaryFiles).filter((item) => item !== undefined) as any;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === "rawFile" || key === "file") continue;
+    if (typeof File !== "undefined" && value instanceof File) continue;
+    if (typeof Blob !== "undefined" && value instanceof Blob) continue;
+    clean[key] = stripBinaryFiles(value);
+  }
+  return clean as any;
+}
+
 interface ActivityPlanActualViewProps {
   id?: string;
   onCancel?: () => void;
@@ -1517,7 +1540,8 @@ export function ActivityPlanActualView({
         (u: string) => !currentUrls.has(u),
       );
 
-      const res = await recordActivityResultAction(id, payload);
+      const safePayload = stripBinaryFiles(payload);
+      const res = await recordActivityResultAction(id, safePayload);
       if (res.success) {
         if (oldUrlsToDelete.length > 0 && id) {
           await deleteActivityPlanImagePaths(id, oldUrlsToDelete);
