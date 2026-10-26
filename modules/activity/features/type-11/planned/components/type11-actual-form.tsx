@@ -218,7 +218,7 @@ export function Type11ActualForm({
       productCode: matchedOpt?.productCode || undefined,
       remainingQty: "",
       stockStatus: "ปกติ",
-      reorderOpportunity: "",
+      reorderOpportunity: "สูง (พร้อมสั่งซื้อทันที / สต็อกต่ำ)",
       remarks: "",
       isCustom: false,
     };
@@ -293,7 +293,7 @@ export function Type11ActualForm({
                     </span>
                   </div>
 
-                  <div className="w-full sm:w-72">
+                  <div className="w-full sm:w-125">
                     <ActivityProductSelect
                       products={productOptions as any}
                       value=""
@@ -362,8 +362,8 @@ export function Type11ActualForm({
                             />
                           </div>
 
-                          {/* Stock Status */}
-                          <div>
+                          {/*ปิดไว้ก่อนเดียวมาเปิดเอง Stock Status */}
+                          {/* <div>
                             <label className="text-[11px] font-medium text-slate-600 block mb-1">
                               สถานะสต็อก
                             </label>
@@ -377,7 +377,7 @@ export function Type11ActualForm({
                               placeholder="เลือกสถานะสต็อก"
                               triggerClassName="h-9 text-xs"
                             />
-                          </div>
+                          </div> */}
 
                           {/* Reorder Opportunity */}
                           <div>
