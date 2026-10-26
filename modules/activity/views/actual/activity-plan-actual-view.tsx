@@ -20,6 +20,7 @@ import {
 } from "./components";
 
 import { useActualPlanLoader, useActualStatusState } from "./hooks";
+import { getWorkTypeCode, WORK_TYPE_CONFIG } from "@/modules/activity/constants";
 import {
   useType1Actual,
   extractType1PlanTargets,
@@ -1648,6 +1649,45 @@ export function ActivityPlanActualView({
               </h3>
               <p className="text-sm text-slate-600">
                 สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="gap-2 font-semibold border-slate-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                กลับหน้ารายละเอียดแผนงาน
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const hasAnyActualWorkType = planWorkTypes.some((raw) => {
+    const code = getWorkTypeCode(raw);
+    return code ? WORK_TYPE_CONFIG[code as keyof typeof WORK_TYPE_CONFIG]?.hasActual : true;
+  });
+
+  if (plan && !hasAnyActualWorkType) {
+    return (
+      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
+          <ActualViewHeader planNo={planSummary.planNo} />
+
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
+              <Check className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                แผนกิจกรรมนี้ไม่ต้องบันทึกผลการปฏิบัติงาน
+              </h3>
+              <p className="text-sm text-slate-600">
+                กิจกรรมประเภทนี้ (ทัวร์ / ศึกษาดูงาน) มีขั้นตอนเฉพาะสร้างแผนและอนุมัติตาม Flow แผนงานนี้ได้รับการอนุมัติเรียบร้อยแล้ว
               </p>
             </div>
             <div className="pt-2">

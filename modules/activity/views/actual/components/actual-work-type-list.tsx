@@ -62,7 +62,6 @@ import {
   type useType11Actual,
 } from "@/modules/activity/features/type-11";
 import {
-  Type12ActualForm,
   type Type12TargetItem,
   type useType12Actual,
 } from "@/modules/activity/features/type-12";
@@ -665,30 +664,7 @@ export function ActualWorkTypeList({
         />
       )}
 
-      {/* 🟢 TYPE 12: ทัวร์ */}
-      {isType12Active && type12State && (
-        <Type12ActualForm
-          isVisible={true}
-          targets={
-            type12Targets?.length
-              ? type12Targets
-              : plan?.tour
-                ? [plan.tour]
-                : undefined
-          }
-          target={type12Targets?.[0] || plan?.tour || plan?.tourData}
-          planType={plan?.planType}
-          actualAttendees={type12State.actualAttendees}
-          setActualAttendees={type12State.setActualAttendees}
-          tourHighlights={type12State.tourHighlights}
-          setTourHighlights={type12State.setTourHighlights}
-          feedbackIssues={type12State.feedbackIssues}
-          setFeedbackIssues={type12State.setFeedbackIssues}
-          images={type12State.images}
-          setImages={type12State.setImages}
-          onUploadImages={type12State.uploadImages}
-        />
-      )}
+      {/* 🟢 TYPE 12: ทัวร์ (ไม่มีการกรอกผลการปฏิบัติงาน - สิ้นสุดที่ขั้นตอนอนุมัติ) */}
 
       {/* 🟢 TYPE 13: ฉีดแปลงแฮตแทค */}
       {isType13Active && type13State && (

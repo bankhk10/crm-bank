@@ -114,7 +114,7 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     name: "ทัวร์",
     shortName: "Tour",
     sortOrder: 13,
-    hasActual: true,
+    hasActual: false,
     requiresApproval: true,
   },
   TYPE_13: {

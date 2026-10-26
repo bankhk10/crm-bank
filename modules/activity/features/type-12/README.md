@@ -35,7 +35,7 @@
 | โหมดการทำงาน | คำอธิบาย | หน้าที่รับผิดชอบหลักใน Slice |
 | :--- | :--- | :--- |
 | **1. Planned** | สร้างและแก้ไขแผนงานศึกษาดูงานล่วงหน้า ระบุประเภททัวร์ ขนาดทัวร์ ประเทศ หรือร้านค้าและสถานที่ | `Type12PlannedForm`, `useType12PlannedForm`, `type12PlannedStrategy` |
-| **2. Planned Actual** | บันทึกผลการเดินทางจริง ผู้ร่วมเดินทาง ไฮไลท์การดูงาน ปัญหาอุปสรรค และรูปถ่ายกิจกรรม | `Type12ActualForm`, `useType12Actual`, `type12PlannedStrategy.saveActual` |
+| **2. Planned Actual** | *ยกเลิกการกรอกผลการปฏิบัติงานจริง* (Type 12 สิ้นสุดที่ขั้นตอนอนุมัติแผนงาน) | `hasActual = false` (ไม่มีปุ่มบันทึกผล) |
 | **3. Unplanned (2-in-1)** | บันทึกทัวร์หรือการศึกษาดูงานนอกแผนในขั้นตอนเดียว ทั้งประเภททัวร์ ผลลัพธ์จริง และรูปภาพ | `Type12UnplannedForm`, `useType12UnplannedForm`, `type12UnplannedStrategy` |
 | **4. Detail View** | แสดงรายละเอียดแผนงานทัวร์ (`Type12PlanCard`) และผลลัพธ์การเดินทางจริง พร้อมระบบ Lightbox ดูภาพ | `Type12PlanCard`, `Type12DetailView` |
 | **5. Approval View** | สรุปรายละเอียดทัวร์และเป้าหมายการเดินทางเพื่อให้หัวหน้างานพิจารณาอนุมัติ | `Type12ApprovalCard`, `Type12PlanCard` |
@@ -60,22 +60,15 @@ graph TD
     J --> K[type12PlannedStrategy บันทึกลง ActivityPlanType12Target]
 ```
 
-### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
+### 2.2 Planned Approval Flow (ไม่มีการกรอกผลการปฏิบัติงานจริง)
+> **หมายเหตุสำคัญ:** Type 12 (ทัวร์ / ศึกษาดูงาน) ถูกตั้งค่าเป็น `hasActual: false` ในระบบ ทำให้ไม่มีขั้นตอนการบันทึกผลจริง (Trip Plan Actual) ผู้ใช้เพียงสร้างแผนงานและส่งเข้าสู่ Approval Flow เมื่อได้รับการอนุมัติครบถ้วน แผนงานจะถือว่าเสร็จสิ้นสมบูรณ์ทันที
+
 ```mermaid
 graph TD
-    A[เปิดหน้าบันทึกผลงาน Trip Plan Actual] --> B[โหลดแผนและ Hydrate ข้อมูลทัวร์เดิม]
-    B --> C[แสดงการ์ดสรุปแผนงาน Type12PlanCard]
-    C --> D[เลือกสถานะผลลัพธ์: COMPLETED / PARTIAL / POSTPONED / CANCELLED]
-    D -->|COMPLETED หรือ PARTIAL| E[แสดงฟอร์ม Type12ActualForm]
-    E --> F[ระบุจำนวนผู้ร่วมเดินทางจริง actualAttendees]
-    F --> G[ระบุไฮไลท์และผลลัพธ์การศึกษาดูงาน tourHighlights]
-    G --> H[ระบุข้อคิดเห็น ข้อเสนอแนะ หรือปัญหาอุปสรรค feedbackIssues]
-    H --> I[อัปโหลดรูปภาพกิจกรรมการเดินทางและการศึกษาดูงาน]
-    I --> J[กดบันทึกผลการปฏิบัติงาน]
-    J --> K[useType12Actual.uploadImages อัปโหลดรูปภาพไปยัง Storage]
-    K --> L[type12PlannedStrategy บันทึกลง ActivityResultType12, ActivityResult และ ActivityAttachment category = TOUR]
-    D -->|POSTPONED| M[ระบุวันเวลาที่เลื่อนและเหตุผล]
-    D -->|CANCELLED| N[ระบุสาเหตุการยกเลิก]
+    A[สร้างแผนงาน Type 12] --> B[ส่งขออนุมัติ SUBMITTED]
+    B --> C[Line Approval / Budget Approval ตามลำดับ]
+    C --> D[อนุมัติครบถ้วน APPROVED]
+    D --> E[สิ้นสุด Flow - ไม่ต้องบันทึกผลการปฏิบัติงาน]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
@@ -557,3 +550,4 @@ model ActivityAttachment {
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type12UnplannedForm` แบบ 2-in-1 รวมแผนและผลงานในขั้นตอนเดียว | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
 | **2026-10-25** | 2.0.0 | **Batch E Standardization & Dedicated Relational Storage:**<br>1. ยกเครื่องระบบจัดเก็บข้อมูล Type 12 มาใช้ตารางเฉพาะ `activity_type_12_targets` และ `activity_type_12_result`<br>2. ยกเลิกและลบตารางเฉพาะกิจเดิม `activity_plan_tours` ออกจากฐานข้อมูลอย่างถาวร<br>3. ปรับปรุง `type12.repository.ts`, Strategies และ Mappers ให้อ่านและเขียนตารางเฉพาะอย่างสมบูรณ์ | Antigravity AI |
+| **2026-10-26** | 2.1.0 | **ปรับเปลี่ยน Workflow Type 12 (ไม่มีขั้นตอนบันทึกผลจริง):**<br>1. ตั้งค่า `hasActual: false` ใน `WORK_TYPE_CONFIG.TYPE_12` ใน `constants.ts`<br>2. ซ่อนปุ่ม "บันทึกผล" สำหรับแผน Type 12 ในตารางกิจกรรมและ Action Dropdown<br>3. นำ `Type12ActualForm` ออกจาก `ActualWorkTypeList` และยกเลิกการ Validate ผลจริงในหน้า Actual View<br>4. เพิ่มการแจ้งเตือนและปุ่มนำทางกลับอย่างปลอดภัยหากมีผู้เข้าถึง URL `/actual` ของ Type 12 | Antigravity AI |
