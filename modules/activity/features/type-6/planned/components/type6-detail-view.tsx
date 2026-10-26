@@ -14,13 +14,13 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ImageFile } from "@/modules/activity/domain/summary/types";
 import {
   ImageLightboxModal,
   type LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 import { Type6PlanCard } from "./type6-plan-card";
 import type { DetailType6IssueProps, Type6DetailViewProps } from "../types/actual.types";
+import type { Type6IssueRecord } from "../../shared/types";
 
 export type { DetailType6IssueProps, Type6DetailViewProps };
 
@@ -29,6 +29,7 @@ export function Type6DetailView({
   target,
   targets,
   issueRecord,
+  issueDetails,
   productName,
   lotNumber,
   purchaseChannel,
@@ -77,23 +78,52 @@ export function Type6DetailView({
     initialIndex: 0,
   });
 
-  if (!isVisible) return null;
+  const recordsToDisplay: Type6IssueRecord[] = React.useMemo(() => {
+    if (issueDetails && Array.isArray(issueDetails) && issueDetails.length > 0) {
+      return issueDetails;
+    }
+    if (issueRecord) {
+      return [issueRecord];
+    }
+    if (
+      productName ||
+      lotNumber ||
+      purchaseChannel ||
+      issueType ||
+      detail ||
+      status ||
+      (images && images.length > 0)
+    ) {
+      return [
+        {
+          productName,
+          lotNumber,
+          purchaseChannel: purchaseChannel || "ร้านค้าตัวแทนจำหน่าย",
+          storeName,
+          issueType: issueType || resolvedTarget?.issueType || "สินค้าหรือบรรจุภัณฑ์ชำรุด / เสียหาย",
+          detail: detail || problemDetail || resolvedTarget?.detail || "",
+          status: status || "เสร็จสิ้น",
+          images: Array.isArray(images) ? (images as any) : [],
+        },
+      ];
+    }
+    return [];
+  }, [
+    issueDetails,
+    issueRecord,
+    productName,
+    lotNumber,
+    purchaseChannel,
+    storeName,
+    issueType,
+    detail,
+    status,
+    images,
+    problemDetail,
+    resolvedTarget,
+  ]);
 
-  // Resolve values prioritizing issueRecord then individual props then target/fallback
-  const resolvedProductName = issueRecord?.productName || productName || "";
-  const resolvedLotNumber = issueRecord?.lotNumber || lotNumber || "";
-  const resolvedPurchaseChannel =
-    issueRecord?.purchaseChannel || purchaseChannel || "";
-  const resolvedStoreName = issueRecord?.storeName || storeName || "";
-  const resolvedIssueType =
-    issueRecord?.issueType || issueType || resolvedTarget?.issueType || "";
-  const resolvedDetail =
-    issueRecord?.detail || detail || problemDetail || resolvedTarget?.detail || "";
-  const resolvedStatus = issueRecord?.status || status || "";
-  const resolvedImages =
-    issueRecord?.images && issueRecord.images.length > 0
-      ? issueRecord.images
-      : images;
+  if (!isVisible) return null;
 
   const openLightbox = (
     title: string,
@@ -134,164 +164,215 @@ export function Type6DetailView({
       <Type6PlanCard target={resolvedTarget} />
 
       {/* READ-ONLY RESULT DISPLAY */}
-      <div className="space-y-3.5 pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-          <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-          <span>ผลการตรวจสอบและแก้ไขปัญหาจริง</span>
+      <div className="space-y-4 pt-1 border-t border-slate-100">
+        <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>
+              ผลการตรวจสอบและแก้ไขปัญหาจริง ({recordsToDisplay.length} รายการ)
+            </span>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {/* ชื่อสินค้า */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1">
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              <Package className="w-3.5 h-3.5 text-rose-600" />
-              ชื่อสินค้า
-            </span>
-            <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
-              {resolvedProductName || "-"}
-            </p>
-          </div>
+        {recordsToDisplay.map((rec, idx) => {
+          const recName = rec.productName || "-";
+          const recLot = rec.lotNumber || "-";
+          const recChannel = rec.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย";
+          const recStore = rec.storeName || "-";
+          const recIssue = rec.issueType || "-";
+          const recDetail = rec.detail || rec.problemFound || "";
+          const recStatus = rec.status || "เสร็จสิ้น";
+          const recImages = rec.images || [];
 
-          {/* เลข Lot */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1">
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              <Barcode className="w-3.5 h-3.5 text-rose-600" />
-              เลข Lot
-            </span>
-            <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
-              {resolvedLotNumber || "-"}
-            </p>
-          </div>
-
-          {/* ช่องทางการซื้อ */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1">
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              {resolvedPurchaseChannel === "ออนไลน์" ? (
-                <Globe className="w-3.5 h-3.5 text-rose-600" />
-              ) : (
-                <Store className="w-3.5 h-3.5 text-rose-600" />
-              )}
-              ช่องทางการซื้อ
-            </span>
-            <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
-              {resolvedPurchaseChannel || "-"}
-            </p>
-          </div>
-
-          {/* ร้านค้าตัวแทนจำหน่าย (ถ้ามี) */}
-          {resolvedPurchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1 sm:col-span-2 md:col-span-2">
-              <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                <Store className="w-3.5 h-3.5 text-rose-600" />
-                ร้านค้าตัวแทนจำหน่าย
-              </span>
-              <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
-                {resolvedStoreName || "-"}
-              </p>
-            </div>
-          )}
-
-          {/* ประเภทปัญหา */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1 sm:col-span-2 md:col-span-2">
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-              ประเภทปัญหา
-            </span>
-            <p className="text-xs sm:text-sm text-slate-800 font-bold">
-              {resolvedIssueType || "-"}
-            </p>
-          </div>
-
-          {/* สถานะการดำเนินการ */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 space-y-1">
-            <span className="text-xs text-slate-500 font-medium block">
-              สถานะการดำเนินการ
-            </span>
-            {resolvedStatus ? (
-              <Badge
-                variant="outline"
-                className={
-                  resolvedStatus === "เสร็จสิ้น"
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1 mt-1"
-                    : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs px-3 py-1 mt-1"
-                }
-              >
-                {resolvedStatus === "เสร็จสิ้น" ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                ) : (
-                  <Clock className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                )}
-                {resolvedStatus === "เสร็จสิ้น"
-                  ? "แก้ไขปัญหาเสร็จสิ้น"
-                  : "รอติดตามผล"}
-              </Badge>
-            ) : (
-              <span className="text-xs text-slate-700 font-semibold">-</span>
-            )}
-          </div>
-
-          {/* รายละเอียด (ถ้ามี) */}
-          {resolvedDetail && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
-              <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-rose-600" />
-                รายละเอียดปัญหาเพิ่มเติม
-              </span>
-              <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
-                {resolvedDetail}
-              </p>
-            </div>
-          )}
-
-          {/* Legacy Initial Solution (ถ้ามีจาก record เก่า) */}
-          {initialSolution && (
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
-              <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-rose-600" />
-                แนวทางแก้ไขเบื้องต้น
-              </span>
-              <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
-                {initialSolution}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* รูปภาพผลการตรวจสอบ (ถ้ามี) */}
-        {resolvedImages && resolvedImages.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5 text-rose-600" />
-              รูปภาพประกอบการตรวจสอบเรื่องร้องเรียน ({resolvedImages.length} รูป)
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {resolvedImages.map((img: any, idx: number) => (
-                <div
-                  key={img.id || idx}
-                  className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-md transition-all"
-                  onClick={() =>
-                    openLightbox(
-                      `รูปภาพประกอบการตรวจสอบเรื่องร้องเรียน (${idx + 1}/${resolvedImages.length})`,
-                      resolvedImages as any,
-                      idx,
-                    )
-                  }
-                >
-                  <img
-                    src={img.url}
-                    alt={img.name || `issue-image-${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="p-2 rounded-full bg-white/90 text-slate-800 shadow-sm">
-                      <Eye className="w-4 h-4" />
+          return (
+            <div
+              key={rec.id || idx}
+              className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-3.5"
+            >
+              {/* Item Header */}
+              {recordsToDisplay.length > 1 && (
+                <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-md bg-rose-600 text-white flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800">
+                      {rec.customerName || `รายการร้องเรียนที่ ${idx + 1}`}
                     </span>
                   </div>
+                  <Badge
+                    variant="outline"
+                    className={
+                      recStatus === "เสร็จสิ้น"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-[11px] px-2.5 py-0.5"
+                        : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-[11px] px-2.5 py-0.5"
+                    }
+                  >
+                    {recStatus === "เสร็จสิ้น" ? (
+                      <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
+                    ) : (
+                      <Clock className="w-3 h-3 mr-1 text-amber-600" />
+                    )}
+                    {recStatus === "เสร็จสิ้น"
+                      ? "แก้ไขปัญหาเสร็จสิ้น"
+                      : "รอติดตามผล"}
+                  </Badge>
                 </div>
-              ))}
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {/* ชื่อสินค้า */}
+                <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1">
+                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5 text-rose-600" />
+                    ชื่อสินค้า
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
+                    {recName}
+                  </p>
+                </div>
+
+                {/* เลข Lot */}
+                <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1">
+                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <Barcode className="w-3.5 h-3.5 text-rose-600" />
+                    เลข Lot
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
+                    {recLot}
+                  </p>
+                </div>
+
+                {/* ช่องทางการซื้อ */}
+                <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1">
+                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    {recChannel === "ออนไลน์" ? (
+                      <Globe className="w-3.5 h-3.5 text-rose-600" />
+                    ) : (
+                      <Store className="w-3.5 h-3.5 text-rose-600" />
+                    )}
+                    ช่องทางการซื้อ
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
+                    {recChannel}
+                  </p>
+                </div>
+
+                {/* ร้านค้าตัวแทนจำหน่าย (ถ้ามี) */}
+                {recChannel === "ร้านค้าตัวแทนจำหน่าย" && (
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1 sm:col-span-2 md:col-span-2">
+                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                      <Store className="w-3.5 h-3.5 text-rose-600" />
+                      ร้านค้าตัวแทนจำหน่าย
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-800 font-bold truncate">
+                      {recStore}
+                    </p>
+                  </div>
+                )}
+
+                {/* ประเภทปัญหา */}
+                <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1 sm:col-span-2 md:col-span-2">
+                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                    ประเภทปัญหาจริง
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-800 font-bold">
+                    {recIssue}
+                  </p>
+                </div>
+
+                {/* สถานะการดำเนินการ (เฉพาะกรณีรายการเดียว) */}
+                {recordsToDisplay.length === 1 && (
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-3 space-y-1">
+                    <span className="text-xs text-slate-500 font-medium block">
+                      สถานะการดำเนินการ
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={
+                        recStatus === "เสร็จสิ้น"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs px-3 py-1 mt-1"
+                          : "bg-amber-50 text-amber-800 border-amber-300 font-bold text-xs px-3 py-1 mt-1"
+                      }
+                    >
+                      {recStatus === "เสร็จสิ้น" ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                      ) : (
+                        <Clock className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                      )}
+                      {recStatus === "เสร็จสิ้น"
+                        ? "แก้ไขปัญหาเสร็จสิ้น"
+                        : "รอติดตามผล"}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* รายละเอียด (ถ้ามี) */}
+                {recDetail && (
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
+                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-rose-600" />
+                      รายละเอียดปัญหา / ผลตรวจจริง
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
+                      {recDetail}
+                    </p>
+                  </div>
+                )}
+
+                {/* Legacy Initial Solution */}
+                {initialSolution && (
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 space-y-1 sm:col-span-2 md:col-span-3">
+                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-rose-600" />
+                      แนวทางแก้ไขเบื้องต้น
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-800 font-medium whitespace-pre-wrap leading-relaxed">
+                      {initialSolution}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* รูปภาพผลการตรวจสอบสำหรับรายการนี้ */}
+              {recImages && recImages.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-slate-200/60">
+                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-rose-600" />
+                    รูปภาพประกอบการตรวจสอบ ({recImages.length} รูป)
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {recImages.map((img: any, iIdx: number) => (
+                      <div
+                        key={img.id || iIdx}
+                        className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-md transition-all"
+                        onClick={() =>
+                          openLightbox(
+                            `รูปภาพประกอบรายการที่ ${idx + 1} (${iIdx + 1}/${recImages.length})`,
+                            recImages as any,
+                            iIdx,
+                          )
+                        }
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.name || `issue-image-${iIdx + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="p-2 rounded-full bg-white/90 text-slate-800 shadow-sm">
+                            <Eye className="w-4 h-4" />
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })}
       </div>
 
       {/* Lightbox Modal */}

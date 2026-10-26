@@ -299,7 +299,7 @@ export function ActivityPlanActualView({
         const parsedT5 = parseType5ActualResult(payloadToHydrate);
         type5Actual.hydrate(parsedT5, { t5: extractedT5.primary });
         const parsedT6 = parseType6ActualResult(payloadToHydrate);
-        type6Actual.hydrate(parsedT6);
+        type6Actual.hydrate(parsedT6, { targets: extractedT6.list });
         type7aActual.hydrate(plan, payloadToHydrate, {
           t7a: extractedT7a.primary,
         });
@@ -952,15 +952,19 @@ export function ActivityPlanActualView({
             customers,
             cleanImages,
           });
+          const t6Results =
+            t6Payload.type6Results && t6Payload.type6Results.length > 0
+              ? t6Payload.type6Results
+              : t6Payload.t6IssueDetails && t6Payload.t6IssueDetails.length > 0
+                ? t6Payload.t6IssueDetails
+                : t6Payload.t6IssueRecord
+                  ? [t6Payload.t6IssueRecord]
+                  : [];
           payload = {
             ...payload,
             ...t6Payload,
-            issueResults: t6Payload.t6IssueRecord
-              ? [t6Payload.t6IssueRecord]
-              : [],
-            type6Results: t6Payload.t6IssueRecord
-              ? [t6Payload.t6IssueRecord]
-              : [],
+            issueResults: t6Results,
+            type6Results: t6Results,
             attachments: [
               ...(payload.attachments || []),
               ...cleanImages.map((img) => ({

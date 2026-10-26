@@ -18,7 +18,11 @@ export interface Type6ActualFormProps {
   products?: Array<{ id: string; name: string; productCode?: string | null }>;
   customers?: Array<{ id: string; name: string; customerCode?: string | null }>;
 
-  // Form Fields
+  // Multi-item Support
+  issueDetails?: Type6IssueRecord[];
+  onUpdateIssueItem?: (index: number, updated: Partial<Type6IssueRecord>) => void;
+
+  // Form Fields (Backward-compatible single-item)
   productId?: string | null;
   setProductId?: (v: string | null) => void;
   productName?: string | null;
@@ -55,6 +59,7 @@ export interface Type6DetailViewProps {
   target?: Type6TargetItem;
   targets?: Type6TargetItem[];
   issueRecord?: Type6IssueRecord;
+  issueDetails?: Type6IssueRecord[];
   productName?: string;
   lotNumber?: string;
   purchaseChannel?: string;
@@ -76,6 +81,7 @@ export interface Type6ApprovalCardProps {
   target?: Type6TargetItem;
   targets?: Type6TargetItem[];
   issueRecord?: Type6IssueRecord;
+  issueDetails?: Type6IssueRecord[];
   productName?: string;
   lotNumber?: string;
   purchaseChannel?: string;
@@ -97,4 +103,5 @@ export interface Type6ActualValidationInput {
   t6LotNumber?: string;
   t6IssueType?: string;
   t6Detail?: string;
+  items?: Type6IssueRecord[];
 }

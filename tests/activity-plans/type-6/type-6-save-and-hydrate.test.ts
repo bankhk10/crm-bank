@@ -397,6 +397,134 @@ async function runTests() {
 
   console.log("✓ Test 6 passed: savePlan leaves id undefined so Prisma generates unique CUIDs.");
 
+  // -------------------------------------------------------------
+  // Test 7: Multi-Target Actual Form validation and saveActual
+  // -------------------------------------------------------------
+  console.log("\n[Test 7] Verifying multi-target Actual validation and saveActual for 2 targets...");
+
+  const { validateType6Actual } = await import(
+    "@/modules/activity/features/type-6/planned/application/actual-validation"
+  );
+
+  // Validation with 2 targets: first valid, second missing lot number
+  const invalidMultiCheck = validateType6Actual({
+    items: [
+      {
+        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+        storeId: "store-1",
+        productId: "prod-1",
+        lotNumber: "LOT-111",
+        issueType: "สินค้าชำรุด",
+        detail: "ฝาแตก",
+        status: "เสร็จสิ้น",
+      },
+      {
+        customerName: "เกษตรกรทดสอบ",
+        purchaseChannel: "ออนไลน์",
+        productId: "prod-2",
+        lotNumber: "", // Missing
+        issueType: "เกิดความเสียหายหลังการใช้สินค้า",
+        detail: "ใบไหม้",
+        status: "รอติดตาม",
+      },
+    ],
+  });
+
+  assert.strictEqual(invalidMultiCheck.isValid, false);
+  assert.ok(
+    invalidMultiCheck.error?.includes("รายการที่ 2"),
+    "Error should indicate item 2 missing lot number",
+  );
+
+  // Valid 2 targets
+  const validMultiCheck = validateType6Actual({
+    items: [
+      {
+        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+        storeId: "store-1",
+        productId: "prod-1",
+        lotNumber: "LOT-111",
+        issueType: "สินค้าชำรุด",
+        status: "เสร็จสิ้น",
+      },
+      {
+        customerName: "เกษตรกรทดสอบ",
+        purchaseChannel: "ออนไลน์",
+        productId: "prod-2",
+        lotNumber: "LOT-222",
+        issueType: "เกิดความเสียหายหลังการใช้สินค้า",
+        status: "รอติดตาม",
+      },
+    ],
+  });
+
+  assert.strictEqual(validMultiCheck.isValid, true);
+
+  // saveActual with 2 targets
+  const planId2 = "plan-type6-multi-actual";
+  const createdMultiActuals: any[] = [];
+  const createdMultiAttachments: any[] = [];
+  const mockMultiActualTx: any = {
+    activityResult: {
+      findFirst: async () => ({ id: "res-multi-6" }),
+    },
+    activityResultType6: {
+      deleteMany: async () => {},
+      createMany: async (args: any) => {
+        createdMultiActuals.push(...args.data);
+      },
+    },
+    activityPlanType6Target: {
+      findMany: async () => [
+        { id: "target-db-1", storeId: "store-1", customerName: "ร้านค้า 1" },
+        { id: "target-db-2", storeId: null, customerName: "เกษตรกร 2" },
+      ],
+    },
+    activityAttachment: {
+      deleteMany: async () => {},
+      createMany: async (args: any) => {
+        createdMultiAttachments.push(...args.data);
+      },
+    },
+  };
+
+  await type6PlannedStrategy.saveActual!(mockMultiActualTx, planId2, {
+    type6Results: [
+      {
+        id: "issue-client-1",
+        targetId: "target-db-1",
+        storeId: "store-1",
+        productId: "prod-1",
+        lotNumber: "LOT-111",
+        purchaseChannel: "ร้านค้าตัวแทนจำหน่าย",
+        issueType: "สินค้าชำรุด",
+        status: "เสร็จสิ้น",
+        images: [{ url: "/img1.jpg", name: "1.jpg" }],
+      },
+      {
+        id: "issue-client-2",
+        targetId: "target-db-2",
+        storeId: null,
+        customerName: "เกษตรกร 2",
+        productId: "prod-2",
+        lotNumber: "LOT-222",
+        purchaseChannel: "ออนไลน์",
+        issueType: "เกิดความเสียหายหลังการใช้สินค้า",
+        status: "รอติดตาม",
+        images: [{ url: "/img2.jpg", name: "2.jpg" }],
+      },
+    ],
+  });
+
+  assert.strictEqual(createdMultiActuals.length, 2, "Must save 2 actual issue records");
+  assert.strictEqual(createdMultiActuals[0].targetId, "target-db-1");
+  assert.strictEqual(createdMultiActuals[1].targetId, "target-db-2");
+  assert.strictEqual(createdMultiAttachments.length, 2, "Must save 2 attachments linked to their records");
+  assert.strictEqual(createdMultiAttachments[0].type6ResultId, createdMultiActuals[0].id);
+  assert.strictEqual(createdMultiAttachments[1].type6ResultId, createdMultiActuals[1].id);
+
+  console.log("✓ Test 7 passed: Multi-target validation and saveActual successfully handles 2 targets.");
+
   console.log("\n🎉 ALL TYPE 6 TESTS PASSED SUCCESSFULLY!");
 }
 

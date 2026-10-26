@@ -464,6 +464,8 @@ export function ActualWorkTypeList({
           planType={plan?.planType}
           products={products}
           customers={customers}
+          issueDetails={type6State.t6IssueDetails}
+          onUpdateIssueItem={type6State.handleUpdateT6IssueItem}
           productId={type6State.t6ProductId}
           setProductId={type6State.setT6ProductId}
           productName={type6State.t6ProductName}

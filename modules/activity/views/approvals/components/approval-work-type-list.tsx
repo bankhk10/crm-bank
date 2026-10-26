@@ -977,6 +977,7 @@ export function ApprovalWorkTypeList({
             target={targets?.t6}
             targets={targets?.t6List}
             issueRecord={parsedResults?.t6IssueRecord}
+            issueDetails={parsedResults?.t6IssueDetails}
             productName={parsedResults?.t6ProductName}
             lotNumber={parsedResults?.t6LotNumber}
             purchaseChannel={parsedResults?.t6PurchaseChannel}
