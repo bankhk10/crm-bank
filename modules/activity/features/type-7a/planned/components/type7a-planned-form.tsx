@@ -160,7 +160,9 @@ export function Type7aPlannedForm({
                   label="ชื่อ ร้านค้า Dealer"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
-                  value={plot.storeId || plot.ownerName || plot.farmerName || ""}
+                  value={
+                    plot.storeId || plot.ownerName || plot.farmerName || ""
+                  }
                   onChange={(val, cust) => {
                     updateType7aRow(
                       plot.id,
@@ -310,7 +312,7 @@ export function Type7aPlannedForm({
               </div>
 
               {/* Row 3: วัตถุประสงค์การจัดทำแปลง (พิมพ์เอง) & หมายเหตุ */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700">
                     วัตถุประสงค์การจัดทำแปลง
@@ -324,8 +326,8 @@ export function Type7aPlannedForm({
                     placeholder="ระบุวัตถุประสงค์การจัดทำแปลง..."
                   />
                 </div>
-
-                <div className="space-y-1">
+                {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+                {/* <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700">
                     หมายเหตุ / แผนการทดสอบ
                   </label>
@@ -337,7 +339,7 @@ export function Type7aPlannedForm({
                     disabled={readonly}
                     placeholder="ระบุแนวทางการทดสอบหรือรายละเอียดเพิ่มเติม..."
                   />
-                </div>
+                </div> */}
               </div>
 
               {/* Row 4: รายการสินค้าที่ใช้ทดสอบสาธิต */}
@@ -461,7 +463,7 @@ export function Type7aPlannedForm({
 
                           <div className="sm:col-span-2">
                             <label className="text-[11px] text-slate-600 block mb-0.5">
-                              จำนวนที่ใช้
+                              จำนวนที่เบิก
                             </label>
                             <ActivityInput
                               type="number"
