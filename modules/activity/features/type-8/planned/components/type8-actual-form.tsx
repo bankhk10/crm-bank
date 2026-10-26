@@ -94,9 +94,11 @@ export function Type8ActualForm({
   // Resolve Target Products from Plan
   const plannedTargetProducts = useMemo(() => {
     if (target?.targetProductItems && target.targetProductItems.length > 0) {
-      return target.targetProductItems.map((p) => ({
+      return target.targetProductItems.map((p: any) => ({
         productId: p.productId,
         productName: p.productName,
+        actualQty: p.actualQty || "",
+        notes: p.notes || "",
       }));
     }
     if (target?.targetProducts && target.targetProducts.length > 0) {
@@ -105,6 +107,8 @@ export function Type8ActualForm({
         return {
           productId: matched?.id,
           productName: pName,
+          actualQty: "",
+          notes: "",
         };
       });
     }
@@ -117,6 +121,8 @@ export function Type8ActualForm({
           return {
             productId: matched?.id,
             productName: pName,
+            actualQty: "",
+            notes: "",
           };
         });
     }
@@ -130,7 +136,7 @@ export function Type8ActualForm({
 
   // Target Products Actual Sales State
   const [targetSales, setTargetSales] = useState<TargetSaleRow[]>(() => {
-    return plannedTargetProducts.map((p) => {
+    return plannedTargetProducts.map((p: any) => {
       const saved = productSalesDetails?.find(
         (d) =>
           !d.isAdditional &&
@@ -140,8 +146,8 @@ export function Type8ActualForm({
       return {
         productId: p.productId,
         productName: p.productName,
-        actualQty: saved?.actualQty ?? "",
-        notes: saved?.notes ?? "",
+        actualQty: saved?.actualQty || p.actualQty || "",
+        notes: saved?.notes || p.notes || "",
       };
     });
   });
@@ -159,6 +165,15 @@ export function Type8ActualForm({
           notes: d.notes ?? "",
         }));
       }
+      if (target?.additionalProductItems && target.additionalProductItems.length > 0) {
+        return target.additionalProductItems.map((d: any, idx: number) => ({
+          id: d.id || `add-${idx + 1}`,
+          productId: d.productId,
+          productName: d.productName,
+          actualQty: d.actualQty ?? "",
+          notes: d.notes ?? "",
+        }));
+      }
       return [];
     },
   );
@@ -168,7 +183,7 @@ export function Type8ActualForm({
   useEffect(() => {
     if (plannedTargetProducts.length > 0) {
       setTargetSales((prev) =>
-        plannedTargetProducts.map((p, idx) => {
+        plannedTargetProducts.map((p: any, idx) => {
           const saved = productSalesDetails?.find(
             (d) =>
               !d.isAdditional &&
@@ -179,29 +194,47 @@ export function Type8ActualForm({
           return {
             productId: p.productId || existing?.productId,
             productName: p.productName,
-            actualQty: saved?.actualQty ?? existing?.actualQty ?? "",
-            notes: saved?.notes ?? existing?.notes ?? "",
+            actualQty: saved?.actualQty ?? existing?.actualQty ?? p.actualQty ?? "",
+            notes: saved?.notes ?? existing?.notes ?? p.notes ?? "",
           };
         }),
       );
     }
 
-    if (productSalesDetails && productSalesDetails.length > 0) {
-      const savedAdditional = productSalesDetails.filter((d) => d.isAdditional);
-      if (savedAdditional.length > 0 && !isHydratedRef.current) {
-        isHydratedRef.current = true;
-        setAdditionalSales(
-          savedAdditional.map((d, idx) => ({
-            id: d.id || `add-${idx + 1}`,
-            productId: d.productId,
-            productName: d.productName,
-            actualQty: d.actualQty ?? "",
-            notes: d.notes ?? "",
-          })),
-        );
-      }
+    const additionalFromProps = productSalesDetails?.filter((d) => d.isAdditional);
+    const additionalFromTarget = target?.additionalProductItems || [];
+    const sourceAdditional =
+      additionalFromProps && additionalFromProps.length > 0
+        ? additionalFromProps
+        : additionalFromTarget;
+
+    if (sourceAdditional && sourceAdditional.length > 0 && !isHydratedRef.current) {
+      isHydratedRef.current = true;
+      setAdditionalSales(
+        sourceAdditional.map((d: any, idx: number) => ({
+          id: d.id || `add-${idx + 1}`,
+          productId: d.productId,
+          productName: d.productName,
+          actualQty: d.actualQty ?? "",
+          notes: d.notes ?? "",
+        })),
+      );
     }
-  }, [productSalesDetails, plannedTargetProducts]);
+  }, [productSalesDetails, plannedTargetProducts, target?.additionalProductItems]);
+
+  // Fallback hydration for actualAttendees and feedbackQnA directly from target.result if not yet populated
+  useEffect(() => {
+    if (
+      (!actualAttendees || actualAttendees === "") &&
+      target?.result?.actualAttendeesCount != null &&
+      Number(target.result.actualAttendeesCount) > 0
+    ) {
+      setActualAttendees(String(target.result.actualAttendeesCount));
+    }
+    if ((!feedbackQnA || feedbackQnA === "") && target?.result?.feedbackQnA) {
+      setFeedbackQnA(target.result.feedbackQnA);
+    }
+  }, [target?.result, actualAttendees, feedbackQnA, setActualAttendees, setFeedbackQnA]);
 
   // Synchronize both datasets to parent Form State
   const syncToParent = (

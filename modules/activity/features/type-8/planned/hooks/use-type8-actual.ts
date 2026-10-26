@@ -7,6 +7,7 @@ import {
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType8Actual } from "../application/actual-validation";
+import { parseType8ActualResult } from "../application/actual-mapper";
 
 export { validateType8Actual };
 
@@ -24,8 +25,12 @@ export function useType8Actual() {
     const actualData = parsed.type8Actual || parsed;
     const summaryText = parsed.resultSummary || parsed.summary || "";
 
+    // Always run parseType8ActualResult to extract dedicated DB records if present
+    const mapped = parseType8ActualResult(parsed);
+
     // 1. Attendees
     let attendees =
+      mapped.t8ActualAttendees ??
       actualData.actualAttendees ??
       actualData.t8ActualAttendees ??
       parsed.actualAttendeesCount ??
@@ -43,6 +48,7 @@ export function useType8Actual() {
 
     // 2. Feedback / Q&A
     let feedback =
+      mapped.t8FeedbackQnA ??
       actualData.feedbackQnA ??
       actualData.t8FeedbackQnA ??
       parsed.feedbackQnA ??
@@ -57,6 +63,7 @@ export function useType8Actual() {
 
     // 3. Sales Details
     let salesDetails =
+      mapped.t8ProductSalesDetails ??
       actualData.productSalesDetails ??
       actualData.t8ProductSalesDetails ??
       parsed.productSalesDetails ??
@@ -85,6 +92,7 @@ export function useType8Actual() {
 
     // 4. Atmosphere Images
     let imgs =
+      mapped.t8Images ??
       actualData.images ??
       actualData.t8Images ??
       parsed.images ??
@@ -101,7 +109,7 @@ export function useType8Actual() {
       imgs = allAtts
         .filter(
           (a) =>
-            a.workTypeCode === "TYPE_8" &&
+            (a.workTypeCode === "TYPE_8" || !a.workTypeCode) &&
             (a.category === "ATMOSPHERE" ||
               a.category === "MEETING" ||
               a.group === "ATMOSPHERE" ||
@@ -125,6 +133,7 @@ export function useType8Actual() {
 
     // 5. Registration Images
     let regImgs =
+      mapped.t8RegistrationImages ??
       actualData.registrationImages ??
       actualData.t8RegistrationImages ??
       parsed.registrationImages ??
@@ -134,7 +143,7 @@ export function useType8Actual() {
       regImgs = allAtts
         .filter(
           (a) =>
-            a.workTypeCode === "TYPE_8" &&
+            (a.workTypeCode === "TYPE_8" || !a.workTypeCode) &&
             (a.category === "REGISTRATION" ||
               a.group === "REGISTRATION" ||
               a.fileUrl?.includes("/registration/") ||

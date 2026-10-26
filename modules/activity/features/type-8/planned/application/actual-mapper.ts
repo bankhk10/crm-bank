@@ -13,10 +13,16 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
   const dedicatedResult =
     resData.type8Results?.[0] ||
     resData.result?.type8Results?.[0] ||
-    resData.type8Targets?.[0]?.result;
+    resData.type8Targets?.[0]?.result ||
+    resData.type8Targets?.find?.((t: any) => t.result)?.result ||
+    resData.activityPlan?.type8Results?.[0] ||
+    resData.activityPlan?.type8Targets?.[0]?.result ||
+    resData.activityPlan?.type8Targets?.find?.((t: any) => t.result)?.result ||
+    resData.dedicatedResult ||
+    null;
 
   if (dedicatedResult) {
-    if (dedicatedResult.actualAttendeesCount != null) {
+    if (dedicatedResult.actualAttendeesCount != null && dedicatedResult.actualAttendeesCount !== "") {
       result.t8ActualAttendees = String(dedicatedResult.actualAttendeesCount);
     }
     if (dedicatedResult.feedbackQnA) {
@@ -24,38 +30,49 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
     }
   }
 
-  if (resData.actualAttendeesCount != null && !result.t8ActualAttendees) {
-    const num = Number(resData.actualAttendeesCount);
-    if (!isNaN(num)) {
-      result.t8ActualAttendees = String(num);
+  if (result.t8ActualAttendees == null || result.t8ActualAttendees === "") {
+    const rawAttendees =
+      resData.actualAttendeesCount ??
+      resData.result?.actualAttendeesCount ??
+      resData.activityPlan?.result?.actualAttendeesCount ??
+      resData.activityPlan?.actualAttendeesCount ??
+      resData.actualAttendees ??
+      resData.t8ActualAttendees ??
+      resData.type8Actual?.t8ActualAttendees ??
+      resData.type8Actual?.actualAttendees;
+    if (rawAttendees != null && rawAttendees !== "") {
+      const num = Number(rawAttendees);
+      result.t8ActualAttendees = isNaN(num) ? String(rawAttendees) : String(num);
     }
-  } else if (resData.type8Actual?.t8ActualAttendees) {
-    result.t8ActualAttendees = String(resData.type8Actual.t8ActualAttendees);
-  } else if (resData.t8ActualAttendees) {
-    result.t8ActualAttendees = String(resData.t8ActualAttendees);
-  } else if (resData.actualAttendees) {
-    result.t8ActualAttendees = String(resData.actualAttendees);
   }
 
   // 1.1 Direct feedbackQnA
-  if (resData.type8Actual?.t8FeedbackQnA) {
-    result.t8FeedbackQnA = resData.type8Actual.t8FeedbackQnA;
-  } else if (resData.t8FeedbackQnA) {
-    result.t8FeedbackQnA = resData.t8FeedbackQnA;
-  } else if (resData.feedbackQnA) {
-    result.t8FeedbackQnA = resData.feedbackQnA;
+  if (!result.t8FeedbackQnA) {
+    result.t8FeedbackQnA =
+      resData.feedbackQnA ||
+      resData.t8FeedbackQnA ||
+      resData.type8Actual?.t8FeedbackQnA ||
+      resData.type8Actual?.feedbackQnA ||
+      resData.activityPlan?.result?.feedbackQnA;
   }
 
   // 2. Structured Sale Results (Dedicated Table: activity_type_8_products & Legacy saleResults)
-  const dedicatedProducts =
-    resData.type8Products ||
-    resData.type8Targets?.[0]?.products ||
-    [];
+  let dedicatedProducts: any[] = [];
+  if (Array.isArray(resData.type8Products) && resData.type8Products.length > 0) {
+    dedicatedProducts = resData.type8Products;
+  } else if (Array.isArray(resData.activityPlan?.type8Products) && resData.activityPlan.type8Products.length > 0) {
+    dedicatedProducts = resData.activityPlan.type8Products;
+  } else if (Array.isArray(resData.type8Targets) && resData.type8Targets.length > 0) {
+    dedicatedProducts = resData.type8Targets.flatMap((t: any) => t.products || []);
+  } else if (Array.isArray(resData.activityPlan?.type8Targets) && resData.activityPlan.type8Targets.length > 0) {
+    dedicatedProducts = resData.activityPlan.type8Targets.flatMap((t: any) => t.products || []);
+  }
 
   const dedicatedSales = Array.isArray(dedicatedProducts)
     ? dedicatedProducts.filter(
         (p: any) =>
           p.actualQuantity != null ||
+          p.actualNotes != null ||
           p.productRole === "ADDITIONAL_SALE" ||
           p.actualTotal != null,
       )
@@ -66,12 +83,29 @@ export function parseType8ActualResult(resData: any): Partial<Type8ActualRecord>
       id: s.id,
       productId: s.productId || s.product?.id,
       productName: s.productName || s.product?.name || "",
-      actualQty: s.actualQuantity != null ? String(s.actualQuantity) : "",
-      actualSales: s.actualTotal != null ? String(s.actualTotal) : "",
+      actualQty:
+        s.actualQuantity != null && s.actualQuantity !== ""
+          ? String(isNaN(Number(s.actualQuantity)) ? s.actualQuantity : Number(s.actualQuantity))
+          : "",
+      actualSales:
+        s.actualTotal != null && s.actualTotal !== ""
+          ? String(isNaN(Number(s.actualTotal)) ? s.actualTotal : Number(s.actualTotal))
+          : "",
       unitPrice: s.actualUnitPrice != null ? Number(s.actualUnitPrice) : undefined,
       notes: s.actualNotes || "",
       isAdditional: s.productRole === "ADDITIONAL_SALE",
     }));
+  }
+
+  if (!result.t8ProductSalesDetails) {
+    const existingSales =
+      resData.t8ProductSalesDetails ||
+      resData.productSalesDetails ||
+      resData.type8Actual?.t8ProductSalesDetails ||
+      resData.type8Actual?.productSalesDetails;
+    if (Array.isArray(existingSales) && existingSales.length > 0) {
+      result.t8ProductSalesDetails = existingSales;
+    }
   }
 
   // 3. Text Parsing from summaryText

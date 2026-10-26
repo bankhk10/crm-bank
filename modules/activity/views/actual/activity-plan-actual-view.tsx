@@ -73,6 +73,7 @@ import {
   useType8Actual,
   validateType8Actual,
   extractType8PlanTargets,
+  parseType8ActualResult,
   type Type8TargetItem,
 } from "@/modules/activity/features/type-8";
 import {
@@ -277,6 +278,9 @@ export function ActivityPlanActualView({
           type4Result: plan.type4Result || (res as any)?.type4Result,
           type5Results: plan.type5Results || (res as any)?.type5Results,
           type6Results: plan.type6Results || (res as any)?.type6Results,
+          type8Results: plan.type8Results || (res as any)?.type8Results,
+          type8Products: plan.type8Products || (res as any)?.type8Products,
+          type8Targets: plan.type8Targets || (res as any)?.type8Targets,
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
@@ -301,7 +305,8 @@ export function ActivityPlanActualView({
         if (Object.keys(parsedT7b).length > 0) {
           type7bActual.hydrate(parsedT7b);
         }
-        type8Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
+        const parsedT8 = parseType8ActualResult(payloadToHydrate);
+        type8Actual.hydrate(parsedT8, payloadToHydrate.attachments);
         type9Actual.hydrate(payloadToHydrate);
         type10Actual.hydrate(payloadToHydrate);
         type11Actual.hydrate(payloadToHydrate);

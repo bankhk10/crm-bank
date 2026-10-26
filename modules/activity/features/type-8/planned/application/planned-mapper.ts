@@ -46,6 +46,7 @@ export function extractType8PlanTargets(
       const allProds: any[] = t.products || (plan.type8Products || []).filter((p: any) => p.targetId === t.id);
       const targetProds = allProds.filter((p: any) => p.productRole === "TARGET" || !p.productRole);
       const promoProds = allProds.filter((p: any) => p.productRole === "PROMOTION");
+      const additionalProds = allProds.filter((p: any) => p.productRole === "ADDITIONAL_SALE");
 
       const targetProductNames = targetProds
         .map((p: any) => p.productName || p.product?.name)
@@ -55,6 +56,23 @@ export function extractType8PlanTargets(
         id: p.id || `t8-prod-${pIdx}`,
         productId: p.productId || p.product?.id,
         productName: p.productName || p.product?.name || "",
+        actualQty:
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? String(isNaN(Number(p.actualQuantity)) ? p.actualQuantity : Number(p.actualQuantity))
+            : "",
+        notes: p.actualNotes || "",
+      }));
+
+      const additionalProductItems = additionalProds.map((p: any, pIdx: number) => ({
+        id: p.id || `t8-add-${pIdx}`,
+        productId: p.productId || p.product?.id,
+        productName: p.productName || p.product?.name || "",
+        actualQty:
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? String(isNaN(Number(p.actualQuantity)) ? p.actualQuantity : Number(p.actualQuantity))
+            : "",
+        notes: p.actualNotes || "",
+        isAdditional: true,
       }));
 
       const promotionalProducts: Type8PromotionalProductLine[] = promoProds.map((p: any, pIdx: number) => ({
@@ -85,6 +103,8 @@ export function extractType8PlanTargets(
         detail: t.detail || "",
         targetProducts: targetProductNames,
         targetProductItems,
+        additionalProductItems,
+        result: t.result || plan.type8Results?.[0],
         products: targetProductNames.join(", "),
         promotionalProducts,
         targetAttendees,
