@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
 import { SectionHeader } from "@/components/custom/section-header";
 import type { MarketingBudgetProductItem, SalesPromotionItem } from "./types";
-import { MARKETING_UNITS } from "@/modules/activity/constants";
+import { MARKETING_UNITS, getWorkTypeCode } from "@/modules/activity/constants";
 
 export interface PromotionalProductOption {
   name: string;
@@ -42,7 +42,7 @@ function getCategoryForProduct(
 }
 
 interface Props {
-  selectedWorkTypes: string[];
+  selectedWorkTypes?: string[];
   readonly?: boolean;
   isPromotionalMediaSelected: boolean;
   setIsPromotionalMediaSelected: (val: boolean) => void;
@@ -71,6 +71,7 @@ interface Props {
 }
 
 export function BudgetSection({
+  selectedWorkTypes = [],
   readonly = false,
   isPromotionalMediaSelected,
   setIsPromotionalMediaSelected,
@@ -88,6 +89,27 @@ export function BudgetSection({
   targetSales = 0,
   promotionalMaterialsByCategory,
 }: Props) {
+  // แสดงตัวเลือก "รายการส่งเสริมการขาย" ให้ติ๊กเฉพาะเมื่อเลือกประเภทงาน:
+  // TYPE_8 (จัดประชุม), TYPE_9 (จัดกิจกรรมหน้าร้าน), TYPE_10 (Field Day), TYPE_12 (ทัวร์/ดูงาน)
+  const isSalesPromotionAllowed = useMemo(() => {
+    if (!selectedWorkTypes || selectedWorkTypes.length === 0) return false;
+    return selectedWorkTypes.some((wt) => {
+      const code = getWorkTypeCode(wt);
+      return (
+        code === "TYPE_8" ||
+        code === "TYPE_9" ||
+        code === "TYPE_10" ||
+        code === "TYPE_12"
+      );
+    });
+  }, [selectedWorkTypes]);
+
+  // หากประเภทงานที่เลือกไม่มีสิทธิ์แสดงรายการส่งเสริมการขาย ให้ยกเลิกการเลือกโดยอัตโนมัติ
+  React.useEffect(() => {
+    if (!isSalesPromotionAllowed && isSalesPromotionSelected) {
+      setIsSalesPromotionSelected(false);
+    }
+  }, [isSalesPromotionAllowed, isSalesPromotionSelected, setIsSalesPromotionSelected]);
   const availableCategories = useMemo(() => {
     const set = new Set<string>();
     if (promotionalMaterialsByCategory) {
@@ -113,7 +135,12 @@ export function BudgetSection({
       />
 
       {/* Checkbox Options Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-3",
+          isSalesPromotionAllowed ? "md:grid-cols-2" : "max-w-md",
+        )}
+      >
         {/* Checkbox 1: สื่อส่งเสริมการขาย */}
         <button
           type="button"
@@ -148,33 +175,35 @@ export function BudgetSection({
           <span>สื่อส่งเสริมการขาย</span>
         </button>
 
-        {/* Checkbox 2: รายการส่งเสริมการขาย */}
-        <button
-          type="button"
-          onClick={() =>
-            !readonly && setIsSalesPromotionSelected(!isSalesPromotionSelected)
-          }
-          className={cn(
-            "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
-            isSalesPromotionSelected
-              ? "bg-blue-50/60 border-blue-500 text-blue-800 shadow-sm"
-              : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
-          )}
-        >
-          <div
+        {/* Checkbox 2: รายการส่งเสริมการขาย (แสดงให้ติ๊กเฉพาะ TYPE_8, TYPE_9, TYPE_10, TYPE_12) */}
+        {isSalesPromotionAllowed && (
+          <button
+            type="button"
+            onClick={() =>
+              !readonly && setIsSalesPromotionSelected(!isSalesPromotionSelected)
+            }
             className={cn(
-              "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
+              "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition-all text-left",
               isSalesPromotionSelected
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "border-slate-300 bg-white",
+                ? "bg-blue-50/60 border-blue-500 text-blue-800 shadow-sm"
+                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50",
             )}
           >
-            {isSalesPromotionSelected && (
-              <Check className="h-3 w-3 stroke-[3]" />
-            )}
-          </div>
-          <span>รายการส่งเสริมการขาย</span>
-        </button>
+            <div
+              className={cn(
+                "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
+                isSalesPromotionSelected
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-300 bg-white",
+              )}
+            >
+              {isSalesPromotionSelected && (
+                <Check className="h-3 w-3 stroke-[3]" />
+              )}
+            </div>
+            <span>รายการส่งเสริมการขาย</span>
+          </button>
+        )}
       </div>
 
       {/* Details Card 1: รายละเอียดงบการตลาด & สัดส่วนต่อยอดขาย */}
@@ -581,8 +610,8 @@ export function BudgetSection({
         </div>
       )}
 
-      {/* Details Card 2: รายการส่งเสริมการขาย */}
-      {isSalesPromotionSelected && (
+      {/* Details Card 2: รายการส่งเสริมการขาย (เฉพาะ TYPE_8, TYPE_9, TYPE_10, TYPE_12) */}
+      {isSalesPromotionAllowed && isSalesPromotionSelected && (
         <div className="bg-blue-50/40 border border-blue-200/70 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-blue-200/60 pb-2">
             <span className="text-xs font-bold text-blue-800 flex items-center gap-1.5">

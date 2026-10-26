@@ -147,7 +147,6 @@ export function PlannedCreateView() {
       router.push("/activity-plans");
       return { success: true };
     }
-    toast.error(res.error || "ไม่สามารถบันทึกข้อมูลได้");
     return { success: false, error: res.error };
   };
 

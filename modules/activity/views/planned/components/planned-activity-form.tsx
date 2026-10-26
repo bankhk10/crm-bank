@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from "react";
 import { Calendar, Info } from "lucide-react";
-import { toast } from "sonner";
 import {
   PlanBasicInfoCard,
   PlanLocationTeamCard,
@@ -12,6 +11,8 @@ import {
   PlanNotesCard,
   FormActionButtons,
   PlanWorkTypeSelector,
+  ValidationAlertDialog,
+  type ValidationAlertState,
 } from "@/modules/activity/ui";
 import {
   Type1PlannedForm,
@@ -128,6 +129,24 @@ export function PlannedActivityForm({
   isEdit = false,
 }: PlannedActivityFormProps) {
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [validationAlert, setValidationAlert] = useState<ValidationAlertState>({
+    isOpen: false,
+    title: "",
+    messages: [],
+  });
+
+  const showValidationError = (
+    title: string,
+    description?: string,
+    messages: string[] = [],
+  ) => {
+    setValidationAlert({
+      isOpen: true,
+      title,
+      description,
+      messages,
+    });
+  };
 
   // 1. Work Types Selection State (Single Select: ค่าเริ่มต้นว่าง)
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>(() => {
@@ -562,22 +581,22 @@ export function PlannedActivityForm({
 
     // 1. Validation - Basic Info
     if (!title.trim()) {
-      toast.error("กรุณาระบุชื่อกิจกรรม");
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุชื่อกิจกรรม"]);
       return;
     }
     if (!startDate || !endDate) {
-      toast.error("กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด");
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด"]);
       return;
     }
     const startDateTime = new Date(`${startDate}T${startTime || "08:30"}:00`);
     const endDateTime = new Date(`${endDate}T${endTime || "17:30"}:00`);
     if (endDateTime <= startDateTime) {
-      toast.error("วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น");
+      showValidationError("ข้อมูลวันเวลาไม่ถูกต้อง", "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น");
       return;
     }
 
     if (selectedWorkTypes.length === 0) {
-      toast.error("กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      showValidationError("กรุณาเลือกประเภทงาน", "กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
       return;
     }
 
@@ -588,15 +607,17 @@ export function PlannedActivityForm({
     // 2. Validation & Mapping - Type 1 Items
     if (isType1Active) {
       if (type1.items.length === 0) {
-        toast.error(
+        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ครบถ้วน", undefined, [
           "กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ (Type 1)",
-        );
+        ]);
         return;
       }
 
       const type1Validation = type1.validate(customers);
       if (!type1Validation.isValid) {
-        toast.error(type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง");
+        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง", undefined, [
+          type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -610,10 +631,10 @@ export function PlannedActivityForm({
     if (isType2Active) {
       const type2Validation = type2.validateType2();
       if (!type2Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type2Validation.error ||
             "ข้อมูลติดตามผลการใช้สินค้าไม่ถูกต้อง (Type 2)",
-        );
+        ]);
         return;
       }
 
@@ -628,9 +649,9 @@ export function PlannedActivityForm({
     if (isType3Active) {
       const type3Validation = type3.validateType3();
       if (!type3Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type3Validation.error || "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง (Type 3)",
-        );
+        ]);
         return;
       }
 
@@ -648,9 +669,9 @@ export function PlannedActivityForm({
     if (isType4Active) {
       const type4Validation = type4.validateType4();
       if (!type4Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง (Type 4)",
-        );
+        ]);
         return;
       }
 
@@ -664,10 +685,10 @@ export function PlannedActivityForm({
     if (isType5Active) {
       const type5Validation = type5.validateType5();
       if (!type5Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type5Validation.error ||
             "ข้อมูลสำรวจตลาดของคู่แข่งไม่ถูกต้อง (Type 5)",
-        );
+        ]);
         return;
       }
 
@@ -685,10 +706,10 @@ export function PlannedActivityForm({
     if (isType6Active) {
       const type6Validation = type6.validateType6();
       if (!type6Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type6Validation.error ||
             "ข้อมูลตรวจสอบเรื่องร้องเรียน / แก้ปัญหาไม่ถูกต้อง (Type 6)",
-        );
+        ]);
         return;
       }
 
@@ -702,9 +723,9 @@ export function PlannedActivityForm({
     if (isType7aActive) {
       const type7aValidation = type7a.validate();
       if (!type7aValidation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type7aValidation.error || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง (Type 7A)",
-        );
+        ]);
         return;
       }
 
@@ -739,9 +760,9 @@ export function PlannedActivityForm({
     if (isType7bActive) {
       const type7bValidation = type7b.validateType7b();
       if (!type7bValidation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type7bValidation.error || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง (Type 7B)",
-        );
+        ]);
         return;
       }
 
@@ -757,9 +778,9 @@ export function PlannedActivityForm({
     if (isType8Active) {
       const type8Validation = type8.validateType8();
       if (!type8Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type8Validation.error || "ข้อมูลจัดประชุมไม่ถูกต้อง (Type 8)",
-        );
+        ]);
         return;
       }
 
@@ -781,10 +802,10 @@ export function PlannedActivityForm({
     if (isType9Active) {
       const type9Validation = type9.validateType9();
       if (!type9Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type9Validation.error ||
             "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)",
-        );
+        ]);
         return;
       }
 
@@ -814,10 +835,10 @@ export function PlannedActivityForm({
     if (isType10Active) {
       const type10Validation = type10.validateType10();
       if (!type10Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type10Validation.error ||
             "ข้อมูลจัดงาน Field Day ไม่ถูกต้อง (Type 10)",
-        );
+        ]);
         return;
       }
       const t10Mapped = type10.mapType10Payload();
@@ -846,10 +867,10 @@ export function PlannedActivityForm({
     if (isType11Active) {
       const type11Validation = type11.validateType11();
       if (!type11Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type11Validation.error ||
             "ข้อมูลตรวจเช็คสต๊อกหน้าร้านไม่ถูกต้อง (Type 11)",
-        );
+        ]);
         return;
       }
       const t11Mapped = type11.mapType11Payload();
@@ -870,10 +891,10 @@ export function PlannedActivityForm({
     if (isType12Active) {
       const type12Validation = type12.validateType12();
       if (!type12Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type12Validation.error ||
             "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)",
-        );
+        ]);
         return;
       }
       const t12Mapped = type12.mapType12Payload(customers as any);
@@ -897,10 +918,10 @@ export function PlannedActivityForm({
     if (isType13Active) {
       const type13Validation = type13.validateType13();
       if (!type13Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type13Validation.error ||
             "กรุณาระบุข้อมูลฉีดแปลงแฮตแทค (Type 13) ให้ครบถ้วน",
-        );
+        ]);
         return;
       }
       const t13Mapped = type13.mapType13Payload(
@@ -922,10 +943,10 @@ export function PlannedActivityForm({
     if (isType14Active) {
       const type14Validation = type14.validateType14();
       if (!type14Validation.isValid) {
-        toast.error(
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
           type14Validation.error ||
             "กรุณาระบุข้อมูลติดตามแปลงแฮตแทค (Type 14) ให้ครบถ้วน",
-        );
+        ]);
         return;
       }
       const t14Mapped = type14.mapType14Payload(
@@ -1073,10 +1094,16 @@ export function PlannedActivityForm({
       setSubmitting(true);
       const res = await onSubmit(payload);
       if (!res.success) {
-        toast.error(res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        showValidationError(
+          "เกิดข้อผิดพลาดในการบันทึก",
+          res.error || "เกิดข้อผิดพลาดในการบันทึก",
+        );
       }
     } catch (err: any) {
-      toast.error(err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+      showValidationError(
+        "เกิดข้อผิดพลาดไม่คาดคิด",
+        err.message || "เกิดข้อผิดพลาดไม่คาดคิด",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -1445,6 +1472,14 @@ export function PlannedActivityForm({
         loading={submitting}
         readonly={readonly}
         submitLabel={isEdit ? "บันทึกการแก้ไข" : "บันทึก Trip Plan"}
+      />
+
+      {/* Popup Modal แจ้งเตือนเมื่อข้อมูลไม่ถูกต้องหรือไม่ครบถ้วน */}
+      <ValidationAlertDialog
+        alert={validationAlert}
+        onClose={() =>
+          setValidationAlert((prev) => ({ ...prev, isOpen: false }))
+        }
       />
     </form>
   );

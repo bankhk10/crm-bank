@@ -7,19 +7,10 @@ import {
   AlertTriangle,
   Check,
   ArrowLeft,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+
 
 import {
   ActualViewHeader,
@@ -120,7 +111,7 @@ import {
   extractType14PlanTargets,
   type Type14TargetItem,
 } from "@/modules/activity/features/type-14";
-import { FormActionButtons } from "@/modules/activity/ui";
+import { FormActionButtons, ValidationAlertDialog } from "@/modules/activity/ui";
 import { recordActivityResultAction } from "@/modules/activity/server/actions";
 import {
   uploadActivityPlanImageGroup,
@@ -534,7 +525,6 @@ export function ActivityPlanActualView({
         messages: ["เหตุผลการยกเลิกกิจกรรม"],
       });
       setFormError("กรุณาระบุเหตุผลการยกเลิก");
-      toast.error("กรุณาระบุเหตุผลการยกเลิก");
       return;
     }
 
@@ -552,7 +542,6 @@ export function ActivityPlanActualView({
           messages: missing,
         });
         setFormError(`กรุณาระบุ${missing[0]}`);
-        toast.error(`กรุณาระบุ${missing[0]}`);
         return;
       }
     }
@@ -720,7 +709,6 @@ export function ActivityPlanActualView({
           messages: missingFields,
         });
         setFormError(`กรุณากรอก ${missingFields[0]}`);
-        toast.error(`กรุณากรอก ${missingFields[0]}`);
         return;
       }
     }
@@ -1558,12 +1546,22 @@ export function ActivityPlanActualView({
       } else {
         const friendlyMsg = formatUserFriendlyError(res.error, "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน");
         setFormError(friendlyMsg);
-        toast.error(friendlyMsg);
+        setValidationAlert({
+          isOpen: true,
+          title: "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน",
+          description: friendlyMsg,
+          messages: [],
+        });
       }
     } catch (err: any) {
       const friendlyMsg = formatUserFriendlyError(err, "เกิดข้อผิดพลาดไม่คาดคิด กรุณาลองใหม่อีกครั้ง");
       setFormError(friendlyMsg);
-      toast.error(friendlyMsg);
+      setValidationAlert({
+        isOpen: true,
+        title: "เกิดข้อผิดพลาดไม่คาดคิด",
+        description: friendlyMsg,
+        messages: [],
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -1755,52 +1753,12 @@ export function ActivityPlanActualView({
       </div>
 
       {/* Popup Modal แจ้งเตือนเมื่อข้อมูลไม่ครบถ้วน */}
-      <AlertDialog
-        open={validationAlert.isOpen}
-        onOpenChange={(open) =>
-          setValidationAlert((prev) => ({ ...prev, isOpen: open }))
+      <ValidationAlertDialog
+        alert={validationAlert}
+        onClose={() =>
+          setValidationAlert((prev) => ({ ...prev, isOpen: false }))
         }
-      >
-        <AlertDialogContent className="max-w-md rounded-2xl p-6 bg-white shadow-xl border border-slate-200">
-          <AlertDialogHeader className="space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-2xs">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <AlertDialogTitle className="text-base sm:text-lg font-bold text-slate-900">
-                {validationAlert.title}
-              </AlertDialogTitle>
-              {validationAlert.description && (
-                <AlertDialogDescription className="text-xs sm:text-sm text-slate-600 mt-1">
-                  {validationAlert.description}
-                </AlertDialogDescription>
-              )}
-            </div>
-          </AlertDialogHeader>
-
-          <div className="py-2">
-            <ul className="space-y-2 bg-amber-50/60 border border-amber-200/80 rounded-xl p-3.5 text-xs sm:text-sm text-amber-900 font-medium">
-              {validationAlert.messages.map((msg, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="text-rose-500 font-bold">•</span>
-                  <span>{msg}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <AlertDialogFooter className="pt-2">
-            <AlertDialogAction
-              onClick={() =>
-                setValidationAlert((prev) => ({ ...prev, isOpen: false }))
-              }
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl px-5 h-10 cursor-pointer shadow-xs transition-colors"
-            >
-              ตกลง
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      />
     </section>
   );
 }

@@ -310,7 +310,6 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
       router.push("/activity-plans");
       return { success: true };
     }
-    toast.error(res.error || "ไม่สามารถอัปเดตข้อมูลได้");
     return { success: false, error: res.error };
   };
 

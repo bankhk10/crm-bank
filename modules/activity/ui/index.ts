@@ -51,3 +51,11 @@ export {
 // 🧩 Shared Inputs & Selectors
 export * from "./inputs";
 
+// 🚨 Dialogs & Modals
+export {
+  ValidationAlertDialog,
+  type ValidationAlertState,
+  type ValidationAlertDialogProps,
+} from "./dialogs/validation-alert-dialog";
+
+
