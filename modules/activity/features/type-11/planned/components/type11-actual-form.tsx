@@ -218,7 +218,7 @@ export function Type11ActualForm({
       productCode: matchedOpt?.productCode || undefined,
       remainingQty: "",
       stockStatus: "ปกติ",
-      reorderOpportunity: "สูง (พร้อมสั่งซื้อทันที / สต็อกต่ำ)",
+      reorderOpportunity: "สูง",
       remarks: "",
       isCustom: false,
     };
@@ -347,7 +347,7 @@ export function Type11ActualForm({
                               <span className="text-red-500">*</span>
                             </label>
                             <ActivityInput
-                              type="text"
+                              type="number"
                               value={String(item.remainingQty ?? "")}
                               onChange={(e) =>
                                 item.id &&
