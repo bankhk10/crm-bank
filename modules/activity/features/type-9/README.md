@@ -315,6 +315,7 @@ sequenceDiagram
 | **รหัส Dealer ต้นสังกัด** | `parentDealerId` / `dealerId` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `dealer_id` | `VARCHAR (FK)` | Yes | `null` |
 | **ชื่อ Dealer ต้นสังกัด** | `parentDealerName` / `dealerName` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `dealer_name` | `VARCHAR` | Yes | `null` |
 | **เป้ายอดขายรวมหน้าร้าน** | `type9Sales` / `targetSales` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `target_sales` | `DECIMAL(15,2)` | Yes | `null` |
+| **สัดส่วนต่อยอดขาย** | `salesRatio` | `planned-mapper` ➔ `type9Targets` | `ActivityPlanType9Target` | `sales_ratio` | `DECIMAL(8,2)` | Yes | `null` |
 | **รายการสินค้าโปรโมชัน** | `type9ProductItems` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `product_id`, `product_name` | `VARCHAR` | No | - |
 | **บทบาทสินค้า** | `productRole` | Strategy | `ActivityPlanType9Product` | `product_role` | `VARCHAR` | No | `'TARGET'` |
 | **จำนวนลังเป้าหมาย** | `quantityCases` | `planned-mapper` ➔ `type9Products` | `ActivityPlanType9Product` | `target_quantity` | `DECIMAL(10,2)` | Yes | `0` |
@@ -326,7 +327,6 @@ sequenceDiagram
 | **ยอดขายจริงรวมหน้าร้าน** | `actualSales` / `t9ActualSales` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `actual_total_sales` | `DECIMAL(15,2)` | Yes | `null` |
 | **ผู้เข้าร่วมกิจกรรมจริง** | `actualAttendees` / `t9ActualAttendees` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `actual_attendees_count` | `INTEGER` | Yes | `0` |
 | **ผลตอบรับลูกค้า / ร้านค้า** | `customerFeedback` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `customer_feedback` | `TEXT` | Yes | `null` |
-| **สรุปผลกิจกรรม** | `summary` | `actual-mapper` / `saveActual` | `ActivityResultType9` | `summary` | `TEXT` | Yes | `null` |
 | **รูปถ่ายบรรยากาศหน้าร้าน** | `images` / `t9Images` | `uploadImages()` ➔ `attachments` | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_9'` | `TEXT` | No | - |
 
 ### 6.3 รายละเอียดตารางเฉพาะ (Dedicated Tables Schema)
@@ -345,6 +345,7 @@ model ActivityPlanType9Target {
   dealerId                String?  @map("dealer_id")
   dealerName              String?  @map("dealer_name")
   targetSales             Decimal? @map("target_sales") @db.Decimal(15, 2)
+  salesRatio              Decimal? @map("sales_ratio") @db.Decimal(8, 2)
   targetAttendeesCount    Int?     @default(0) @map("target_attendees_count")
   notes                   String?  @map("notes") @db.Text
 
@@ -404,7 +405,6 @@ model ActivityResultType9 {
   actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
   actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
   customerFeedback     String?  @map("customer_feedback") @db.Text
-  summary              String?  @map("summary") @db.Text
 
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
@@ -598,3 +598,4 @@ model ActivityResultType9 {
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **ยกระดับระบบจัดเก็บข้อมูล Type 9 เป็น Dedicated Relational Storage (3 ตารางเฉพาะ):**<br>1. สร้างตาราง `activity_type_9_targets`, `activity_type_9_products`, `activity_type_9_result` ใน Prisma Schema<br>2. รองรับทั้ง Planned และ Unplanned แบบ Dual-Mode 100%<br>3. ตาราง Products จัดเก็บทั้งเป้าตามแผน (`TARGET`) และยอดขายจริงรวมถึงสินค้าขายนอกแผน (`ADDITIONAL_SALE`) ในตารางเดียว<br>4. อัปเดต `type9PlannedStrategy`, `type9UnplannedStrategy`, `type9.repository`, และ Mappers ครบถ้วน พร้อม Mirroring ตารางเดิมเพื่อความเข้ากันได้ย้อนหลัง | Antigravity AI |
 | **2026-10-25** | 2.1.0 | **Batch E Standardization & Legacy Generic Tables Cleanup:**<br>1. ยกเลิก dual-write / mirror writes ไปยัง generic tables ทุกตัวอย่างถาวร<br>2. ลบ `saveType9ActualSales` และการ sync ตาราง `activity_result_sale_items`<br>3. ตารางเฉพาะ Type 9 (`activity_type_9_*`) เป็น single source of truth 100% | Antigravity AI |
+| **2026-10-26** | 2.2.0 | **ปรับปรุงฟิลด์ตารางเฉพาะ Type 9:**<br>1. ลบคอลัมน์ `summary` ออกจากตาราง `activity_type_9_result`<br>2. ยืนยันการจัดเก็บผู้เข้าร่วมจริงลง `actual_attendees_count` ใน `activity_type_9_result`<br>3. ยืนยันการจัดเก็บยอดขายจริงลง `actual_total_sales` ใน `activity_type_9_result`<br>4. เพิ่มคอลัมน์ `sales_ratio` (สัดส่วนต่อยอดขาย) ในตาราง `activity_type_9_targets` | Antigravity AI |

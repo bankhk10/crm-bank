@@ -23,7 +23,6 @@ export function parseType9ActualResult(resData: any): Partial<
     t9ProductSalesDetails?: Type9ProductSaleDetail[];
     t9Images?: Type9ImageFile[];
     t9CustomerFeedback?: string;
-    t9Summary?: string;
   }
 > {
   const parsed: Partial<
@@ -33,8 +32,7 @@ export function parseType9ActualResult(resData: any): Partial<
       t9ProductSalesDetails?: Type9ProductSaleDetail[];
       t9Images?: Type9ImageFile[];
       t9CustomerFeedback?: string;
-      t9Summary?: string;
-    }
+      }
   > = {};
 
   if (!resData) return parsed;
@@ -89,16 +87,13 @@ export function parseType9ActualResult(resData: any): Partial<
       parsed.actualAttendees = attStr;
       parsed.t9ActualAttendees = attStr;
     }
-    if (firstResult.actualTotalSales != null && !parsed.actualSales) {
+    if (firstResult.actualTotalSales != null) {
       const salesStr = String(firstResult.actualTotalSales);
       parsed.actualSales = salesStr;
       parsed.t9ActualSales = salesStr;
     }
     if (firstResult.customerFeedback) {
       parsed.t9CustomerFeedback = firstResult.customerFeedback;
-    }
-    if (firstResult.summary) {
-      parsed.t9Summary = firstResult.summary;
     }
   }
 

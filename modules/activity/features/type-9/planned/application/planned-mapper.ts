@@ -76,6 +76,7 @@ export function extractType9PlanTargets(
         district: t.district || "",
         product: productSummary,
         targetSales: totalTargetSales > 0 ? `${totalTargetSales.toLocaleString()} บาท` : "",
+        salesRatio: t.salesRatio != null ? Number(t.salesRatio) : undefined,
         targetAttendees: attendees,
         items,
       };
@@ -87,6 +88,7 @@ export function extractType9PlanTargets(
       subDealerStore: prevTarget?.subDealerStore || "",
       product: prevTarget?.product || "",
       targetSales: prevTarget?.targetSales || "",
+      salesRatio: prevTarget?.salesRatio != null ? prevTarget.salesRatio : undefined,
       targetAttendees: prevTarget?.targetAttendees || "",
       items: [],
     };
@@ -225,6 +227,7 @@ export function hydrateType9PlannedData(initialData?: any): {
   parentDealerId?: string;
   parentDealerName?: string;
   type9Sales?: number;
+  salesRatio?: number;
   type9ProductItems?: Type9ProductItem[];
 } {
   if (!initialData) return {};
@@ -255,6 +258,7 @@ export function hydrateType9PlannedData(initialData?: any): {
       parentDealerId: primaryTarget.dealerId || "",
       parentDealerName: primaryTarget.dealer?.name || primaryTarget.dealerName || "",
       type9Sales: primaryTarget.targetSales != null ? Number(primaryTarget.targetSales) : 0,
+      salesRatio: primaryTarget.salesRatio != null ? Number(primaryTarget.salesRatio) : undefined,
       type9ProductItems:
         productItems.length > 0
           ? productItems

@@ -583,6 +583,19 @@ export function PlannedActivityForm({
     initial: initialData,
   });
 
+  // คำนวณสัดส่วนต่อยอดขายเฉพาะ Type 9 (จัดกิจกรรมหน้าร้าน)
+  const type9SalesRatio = useMemo(() => {
+    if (!isType9Active || type9TargetSales <= 0) return 0;
+    const mktSum =
+      budget.marketingProductItems.length > 0
+        ? budget.marketingProductItems.reduce(
+            (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+            0,
+          )
+        : budget.marketingBudgetAmount;
+    return Number(((mktSum / type9TargetSales) * 100).toFixed(2));
+  }, [isType9Active, type9TargetSales, budget.marketingProductItems, budget.marketingBudgetAmount]);
+
   // 7. Notes State
   const [notes, setNotes] = useState<string>(initialData.notes || "");
 
@@ -838,6 +851,7 @@ export function PlannedActivityForm({
         parentDealerId: type9.parentDealerId,
         parentDealerName: type9.parentDealerName,
         type9Sales: type9TargetSales,
+        salesRatio: type9SalesRatio,
         products: type9.type9ProductItems,
       };
     }

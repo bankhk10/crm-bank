@@ -3412,6 +3412,7 @@ model ActivityPlanType9Target {
 
   // Target metrics
   targetSales             Decimal? @map("target_sales") @db.Decimal(15, 2)
+  salesRatio              Decimal? @map("sales_ratio") @db.Decimal(8, 2)
   targetAttendeesCount    Int?     @default(0) @map("target_attendees_count")
   notes                   String?  @map("notes") @db.Text
 
@@ -3469,7 +3470,6 @@ model ActivityResultType9 {
   actualAttendeesCount Int      @default(0) @map("actual_attendees_count")
   actualTotalSales     Decimal? @map("actual_total_sales") @db.Decimal(15, 2)
   customerFeedback     String?  @map("customer_feedback") @db.Text
-  summary              String?  @map("summary") @db.Text
 
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")

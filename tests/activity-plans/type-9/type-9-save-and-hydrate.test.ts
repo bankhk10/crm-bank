@@ -3,6 +3,7 @@ import {
   hydrateType9PlannedData,
   extractType9PlanTargets,
 } from "@/modules/activity/features/type-9/planned/application/planned-mapper";
+import { parseType9ActualResult } from "@/modules/activity/features/type-9/planned/application/actual-mapper";
 
 async function runTests() {
   console.log("=== Running Type 9 Save & Hydration Unit Tests ===");
@@ -33,6 +34,7 @@ async function runTests() {
         province: "ขอนแก่น",
         district: "เมือง",
         targetSales: 120000,
+        salesRatio: 15.5,
         dealer: {
           id: "dealer-001",
           name: "หจก. ขอนแก่นการเกษตร (Dealer)",
@@ -80,6 +82,7 @@ async function runTests() {
   assert.strictEqual(hydrated1.subdealerName, "ร้าน ป. เกษตรยนต์ (Subdealer)", "Subdealer name should match");
   assert.strictEqual(hydrated1.isUnregisteredSubdealer, false, "Should not be unregistered subdealer");
   assert.strictEqual(hydrated1.type9Sales, 120000, "Target sales should match");
+  assert.strictEqual(hydrated1.salesRatio, 15.5, "Sales ratio should match");
   assert.strictEqual(hydrated1.type9ProductItems?.length, 2, "Should hydrate 2 products");
   assert.strictEqual(hydrated1.type9ProductItems?.[0].productName, "บิ๊กกิล 1 ลิตร");
   assert.strictEqual(hydrated1.type9ProductItems?.[0].quantityCases, 20);
@@ -90,6 +93,7 @@ async function runTests() {
   assert.ok(targetExtract1.primary, "Primary target should exist");
   assert.strictEqual(targetExtract1.list.length, 1, "List should contain 1 target");
   assert.strictEqual(targetExtract1.primary.store, "ร้าน ป. เกษตรยนต์ (Subdealer)");
+  assert.strictEqual(targetExtract1.primary.salesRatio, 15.5, "Primary target salesRatio should match");
   assert.strictEqual(targetExtract1.primary.items?.length, 2, "Items should have 2 products");
   console.log("✓ Test 1 passed: Dedicated type9Targets and products hydrated perfectly.");
 
@@ -140,6 +144,54 @@ async function runTests() {
   assert.strictEqual(targetExtract2.primary.isSubDealer, true);
   assert.strictEqual(targetExtract2.primary.subDealerStore, "ร้าน อุดมการเกษตร (นอกระบบ)");
   console.log("✓ Test 2 passed: Unregistered subdealer target hydrated perfectly.");
+
+  // -------------------------------------------------------------------------
+  // Test 3: Parse Actual Result from dedicated ActivityResultType9
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 3] Parsing Actual Outcome from dedicated ActivityResultType9...");
+
+  const planWithActual = {
+    id: "plan-t9-003",
+    type9Results: [
+      {
+        id: "res-t9-01",
+        activityPlanId: "plan-t9-003",
+        targetId: "t9-target-1",
+        actualAttendeesCount: 45,
+        actualTotalSales: 135000,
+        customerFeedback: "เกษตรกรให้ความสนใจสินค้าเป็นจำนวนมาก",
+      },
+    ],
+    type9Products: [
+      {
+        id: "t9-prod-1",
+        targetId: "t9-target-1",
+        productId: "prod-t9-101",
+        productName: "บิ๊กกิล 1 ลิตร",
+        productRole: "TARGET",
+        actualQuantity: 25,
+        actualUnitPrice: 3000,
+        actualTotal: 75000,
+      },
+      {
+        id: "t9-prod-2",
+        targetId: "t9-target-1",
+        productId: "prod-t9-102",
+        productName: "โปรคลาม 500 กรัม",
+        productRole: "TARGET",
+        actualQuantity: 15,
+        actualUnitPrice: 4000,
+        actualTotal: 60000,
+      },
+    ],
+  };
+
+  const parsedActual = parseType9ActualResult(planWithActual);
+  assert.strictEqual(parsedActual.actualAttendees, "45", "actualAttendeesCount should be parsed as string");
+  assert.strictEqual(parsedActual.actualSales, "135000", "actualTotalSales should be parsed as string");
+  assert.strictEqual(parsedActual.t9CustomerFeedback, "เกษตรกรให้ความสนใจสินค้าเป็นจำนวนมาก");
+  assert.strictEqual(parsedActual.productSalesDetails?.length, 2, "Product sales details should be extracted");
+  console.log("✓ Test 3 passed: ActivityResultType9 actualAttendeesCount and actualTotalSales parsed correctly without summary.");
 
   console.log("\n All Type 9 Save & Hydration Unit Tests Passed!\n");
 }

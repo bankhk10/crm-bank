@@ -16,6 +16,7 @@ export interface Type9TargetItem {
   district?: string;
   product?: string;
   targetSales: string;
+  salesRatio?: number | string;
   targetAttendees?: string;
   items?: Type9TargetProductItem[];
   [key: string]: any;
@@ -44,6 +45,7 @@ export interface Type9PlanTarget {
   subDealerStore?: string;
   product?: string;
   targetSales?: number | string;
+  salesRatio?: number | string;
   targetAttendees?: number | string;
   items?: Array<{
     id?: string;

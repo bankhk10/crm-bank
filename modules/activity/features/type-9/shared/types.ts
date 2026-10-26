@@ -83,6 +83,7 @@ export interface Type9DbTarget {
   dealerId?: string | null;
   dealerName?: string | null;
   targetSales?: any;
+  salesRatio?: any;
   targetAttendeesCount?: number;
   notes?: string | null;
   subdealer?: any;
@@ -119,7 +120,6 @@ export interface Type9DbResult {
   actualAttendeesCount: number;
   actualTotalSales?: any;
   customerFeedback?: string | null;
-  summary?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

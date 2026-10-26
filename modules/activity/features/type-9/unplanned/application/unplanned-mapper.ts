@@ -89,7 +89,8 @@ export function hydrateType9UnplannedData(initialData: any): Type9UnplannedItem[
         actualAttendees: actAttendees,
         products,
         productSalesDetails: salesDetails,
-        notes: t.notes || result?.summary || "",
+        notes: t.notes || "",
+        salesRatio: t.salesRatio != null ? Number(t.salesRatio) : undefined,
         images: idx === 0 ? images : [],
       };
     });

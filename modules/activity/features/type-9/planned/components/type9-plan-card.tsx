@@ -80,6 +80,17 @@ export function Type9PlanCard({
           </div>
         ) : null}
 
+        {target.salesRatio != null && Number(target.salesRatio) > 0 ? (
+          <div className="bg-amber-50/40 p-3 rounded-xl border border-amber-100/80 sm:col-span-1">
+            <span className="text-amber-700 block text-[11px] font-bold mb-1">
+              สัดส่วนต่อยอดขาย
+            </span>
+            <span className="font-extrabold text-amber-900 block text-xs sm:text-sm">
+              {Number(target.salesRatio).toFixed(2)} %
+            </span>
+          </div>
+        ) : null}
+
         {target.targetAttendees ? (
           <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 sm:col-span-1">
             <span className="text-slate-500 block text-[11px] font-medium mb-1">

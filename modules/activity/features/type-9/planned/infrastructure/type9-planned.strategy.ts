@@ -109,6 +109,27 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
         const district = item.district || null;
         const targetSalesNum = item.targetSales != null ? Number(item.targetSales) : (item.targetAmount != null ? Number(item.targetAmount) : null);
         const targetSalesDec = targetSalesNum != null ? new Prisma.Decimal(targetSalesNum) : null;
+
+        let salesRatioNum: number | null = null;
+        if (item.salesRatio != null && !isNaN(Number(item.salesRatio))) {
+          salesRatioNum = Number(item.salesRatio);
+        } else if (planData.salesRatio != null && !isNaN(Number(planData.salesRatio))) {
+          salesRatioNum = Number(planData.salesRatio);
+        } else if (targetSalesNum && targetSalesNum > 0) {
+          const mktSum =
+            Array.isArray(planData.marketingItems) && planData.marketingItems.length > 0
+              ? planData.marketingItems.reduce(
+                  (sum: number, it: any) =>
+                    sum + (Number(it.quantityCases || it.quantity) || 0) * (Number(it.pricePerCase || it.unitPrice) || 0),
+                  0,
+                )
+              : Number(planData.marketingBudgetRequested || planData.marketingBudgetAmount) || 0;
+          if (mktSum > 0) {
+            salesRatioNum = Number(((mktSum / targetSalesNum) * 100).toFixed(2));
+          }
+        }
+        const salesRatioDec = salesRatioNum != null ? new Prisma.Decimal(salesRatioNum.toFixed(2)) : null;
+
         const attendeesNum = item.targetAttendeesCount != null ? Number(item.targetAttendeesCount) : (item.targetAttendees != null ? Number(item.targetAttendees) : 0);
         const notes = item.notes || item.remarks || null;
 
@@ -125,6 +146,7 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
             dealerId,
             dealerName,
             targetSales: targetSalesDec,
+            salesRatio: salesRatioDec,
             targetAttendeesCount: attendeesNum,
             notes,
           },
@@ -247,9 +269,14 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
         }
 
         // 2.4 If Actual Result Outcome was passed per item (Unplanned 2-in-1)
-        if (item.actualAttendees != null || item.actualSales != null || item.summary || item.customerFeedback) {
-          const actAttendees = item.actualAttendees != null ? Number(item.actualAttendees) : 0;
-          const actTotalSales = item.actualSales != null && !isNaN(Number(item.actualSales)) ? new Prisma.Decimal(item.actualSales) : null;
+        if (item.actualAttendees != null || item.actualSales != null || item.customerFeedback) {
+          const actAttendees = item.actualAttendees != null && !isNaN(Number(String(item.actualAttendees).replace(/,/g, "")))
+            ? Number(String(item.actualAttendees).replace(/,/g, ""))
+            : 0;
+          const actTotalSales =
+            item.actualSales != null && !isNaN(Number(String(item.actualSales).replace(/,/g, "")))
+              ? new Prisma.Decimal(String(item.actualSales).replace(/,/g, ""))
+              : null;
 
           await (tx as any).activityResultType9.upsert({
             where: { targetId: targetRecord.id },
@@ -259,13 +286,11 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
               actualAttendeesCount: actAttendees,
               actualTotalSales: actTotalSales,
               customerFeedback: item.customerFeedback || null,
-              summary: item.summary || item.notes || null,
             },
             update: {
               actualAttendeesCount: actAttendees,
               actualTotalSales: actTotalSales,
               customerFeedback: item.customerFeedback || null,
-              summary: item.summary || item.notes || null,
             },
           });
         }
@@ -312,7 +337,6 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
     const actualAttendees = t9Data.actualAttendees ?? t9Data.t9ActualAttendees;
     const actualSalesTotal = t9Data.actualSales ?? t9Data.t9ActualSales;
     const customerFeedback = t9Data.customerFeedback ?? t9Data.t9CustomerFeedback ?? null;
-    const summary = t9Data.summary ?? t9Data.t9Summary ?? actualData.resultSummary ?? null;
     const salesDetails: Type9ProductSaleDetail[] =
       t9Data.productSalesDetails ?? t9Data.t9ProductSalesDetails ?? actualData.productSalesDetails ?? [];
 
@@ -326,7 +350,10 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
       const primaryTarget = targets[0];
 
       // Upsert into activity_type_9_result
-      const actAttendeesNum = actualAttendees != null ? Number(actualAttendees) : 0;
+      const actAttendeesNum =
+        actualAttendees != null && !isNaN(Number(String(actualAttendees).replace(/,/g, "")))
+          ? Number(String(actualAttendees).replace(/,/g, ""))
+          : 0;
       const actSalesDec =
         actualSalesTotal != null && !isNaN(Number(String(actualSalesTotal).replace(/,/g, "")))
           ? new Prisma.Decimal(String(actualSalesTotal).replace(/,/g, ""))
@@ -340,13 +367,11 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
           actualAttendeesCount: actAttendeesNum,
           actualTotalSales: actSalesDec,
           customerFeedback,
-          summary,
         },
         update: {
           actualAttendeesCount: actAttendeesNum,
           actualTotalSales: actSalesDec,
           customerFeedback,
-          summary,
         },
       });
 
