@@ -1,10 +1,10 @@
 # Activity Calendar — ปฏิทินกิจกรรม (README)
 
-> **View Orchestrator**: `modules/activity/views/calendar`  
-> **Route URL**: `/activity-plans/calendar`  
-> **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityCalendarEvent`, `ActivityCalendarAttendee`)  
-> **Status**: Production Ready / Clean Modular Architecture  
+> **View Orchestrator**: `modules/activity/views/calendar`
+> **Route URL**: `/activity-plans/calendar`
+> **Parent Module**: `modules/activity`
+> **Database Authority**: `prisma/schema.prisma` (`ActivityCalendarEvent`, `ActivityCalendarAttendee`)
+> **Status**: Production Ready / Clean Modular Architecture
 
 ---
 
