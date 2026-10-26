@@ -519,6 +519,18 @@ export function PlannedActivityForm({
     selectedWorkTypes,
   });
 
+  // คำนวณเป้ายอดขายรวมเฉพาะ Type 9 (จัดกิจกรรมหน้าร้าน) เท่านั้นตาม Business requirement
+  const type9TargetSales = useMemo(() => {
+    if (!isType9Active) return 0;
+    const fromProducts = (type9.type9ProductItems || []).reduce(
+      (sum, item) =>
+        sum + (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0),
+      0,
+    );
+    if (fromProducts > 0) return fromProducts;
+    return Number(type9.type9Sales) || 0;
+  }, [isType9Active, type9.type9ProductItems, type9.type9Sales]);
+
   // 5.10 Type 10 Planned Hook
   const hydratedInitialType10Items = useMemo(
     () => hydrateType10PlannedData(initialData),
@@ -825,7 +837,7 @@ export function PlannedActivityForm({
         district: type9.subDealerDistrict,
         parentDealerId: type9.parentDealerId,
         parentDealerName: type9.parentDealerName,
-        type9Sales: type9.type9Sales,
+        type9Sales: type9TargetSales,
         products: type9.type9ProductItems,
       };
     }
@@ -1463,6 +1475,7 @@ export function PlannedActivityForm({
         updateSalesPromotionRow={budget.updateSalesPromotionRow}
         deleteSalesPromotionRow={budget.deleteSalesPromotionRow}
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
+        targetSales={type9TargetSales}
       />
 
       {/* 5. ส่วนกลาง: หมายเหตุ */}

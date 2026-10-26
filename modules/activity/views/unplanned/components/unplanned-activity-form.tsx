@@ -625,6 +625,22 @@ export function UnplannedActivityForm({
     initialItems: hydratedInitialType9Items,
   });
 
+  // คำนวณเป้ายอดขายรวมเฉพาะ Type 9 (จัดกิจกรรมหน้าร้าน) เท่านั้นตาม Business requirement
+  const type9TargetSales = useMemo(() => {
+    if (!isType9Active) return 0;
+    return (type9.items || []).reduce((sum, item) => {
+      const rawSales =
+        Number(String(item.actualSales || "").replace(/,/g, "")) || 0;
+      const calculated = (item.productSalesDetails || []).reduce(
+        (pSum, p) =>
+          pSum +
+          (Number(p.actualQuantityCases) || 0) * (Number(p.pricePerCase) || 0),
+        0,
+      );
+      return sum + (calculated > 0 ? calculated : rawSales);
+    }, 0);
+  }, [isType9Active, type9.items]);
+
   // 5.9 Type 10 Unplanned Hook
   const hydratedInitialType10Items = useMemo(
     () => hydrateType10UnplannedData(initialData),
@@ -2277,6 +2293,7 @@ export function UnplannedActivityForm({
         updateSalesPromotionRow={budget.updateSalesPromotionRow}
         deleteSalesPromotionRow={budget.deleteSalesPromotionRow}
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
+        targetSales={type9TargetSales}
       />
 
       {/* 5. ส่วนกลาง: หมายเหตุ */}

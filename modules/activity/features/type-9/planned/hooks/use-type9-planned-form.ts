@@ -323,6 +323,18 @@ export function useType9PlannedForm({
       storeProvince = subDealerProvince?.trim() || null;
     }
 
+    const validProductItems = type9ProductItems.filter((item) => item.productName && item.productName.trim() !== "");
+
+    const calculatedProductsSum = validProductItems.reduce(
+      (sum, item) =>
+        sum + (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0),
+      0,
+    );
+    const effectiveTargetSales =
+      calculatedProductsSum > 0
+        ? calculatedProductsSum
+        : (type9Sales != null ? Number(type9Sales) : null);
+
     if (storeId || subDealerStoreVal) {
       planStores.push({
         workTypeCode: "TYPE_9",
@@ -330,11 +342,9 @@ export function useType9PlannedForm({
         storeName,
         subDealerStore: subDealerStoreVal,
         province: storeProvince,
-        targetAmount: type9Sales != null ? Number(type9Sales) : null,
+        targetAmount: effectiveTargetSales,
       });
     }
-
-    const validProductItems = type9ProductItems.filter((item) => item.productName && item.productName.trim() !== "");
 
     validProductItems.forEach((p) => {
       const matchedP = products.find(
@@ -368,7 +378,7 @@ export function useType9PlannedForm({
         district: subDealerDistrict || null,
         dealerId: parentDealerId || null,
         dealerName: parentDealerName || null,
-        targetSales: type9Sales != null ? Number(type9Sales) : null,
+        targetSales: effectiveTargetSales,
         products: validProductItems,
       },
     ];
@@ -378,7 +388,7 @@ export function useType9PlannedForm({
       planProducts,
       type9Targets,
       type9Stores: planStores,
-      type9Sales,
+      type9Sales: effectiveTargetSales != null ? effectiveTargetSales : type9Sales,
       type9ProductItems,
     };
   };

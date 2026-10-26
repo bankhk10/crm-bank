@@ -97,14 +97,25 @@ export function extractCorePlanSummary(
     salesPromotionBudget: p.salesPromotionBudgetRequested
       ? Number(p.salesPromotionBudgetRequested)
       : undefined,
-    targetSales:
-      ((p as any).products || []).reduce(
-        (sum: number, pr: any) =>
-          sum +
-          (Number(pr.targetAmount) ||
-            (pr.targetQuantity || 0) * (Number(pr.unitPrice) || 0)),
-        0,
-      ) || undefined,
+    targetSales: (() => {
+      // คำนวณเป้ายอดขายรวมเฉพาะ Type 9 (จัดกิจกรรมหน้าร้าน) เท่านั้นตาม Business requirement
+      const t9Targets = (p as any).type9Targets;
+      if (t9Targets && Array.isArray(t9Targets) && t9Targets.length > 0) {
+        const total = t9Targets.reduce((sum: number, t: any) => {
+          const directTarget = t.targetSales != null ? Number(t.targetSales) : 0;
+          const fromProducts = (t.products || []).reduce(
+            (pSum: number, pr: any) =>
+              pSum +
+              (Number(pr.quantityCases ?? pr.targetQuantity) || 0) *
+                (Number(pr.pricePerCase ?? pr.targetUnitPrice) || 0),
+            0,
+          );
+          return sum + (fromProducts > 0 ? fromProducts : directTarget);
+        }, 0);
+        return total > 0 ? total : undefined;
+      }
+      return undefined;
+    })(),
     isPromotionalMediaSelected: mktProductItems.length > 0,
     marketingProductItems: mktProductItems,
     isSalesPromotionSelected:
