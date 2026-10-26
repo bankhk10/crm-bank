@@ -15,8 +15,16 @@ export {
 } from "./location-team/plan-location-team-card";
 export { usePlanLocationTeam } from "./location-team/hooks/use-plan-location-team";
 
-export { PlanBudgetSection } from "./budget/plan-budget-section";
-export { usePlanBudget } from "./budget/hooks/use-plan-budget";
+export {
+  PlanBudgetSection,
+  BudgetSection,
+  BudgetCheckboxSelector,
+  PromotionalMediaCard,
+  SalesPromotionCard,
+  usePlanBudget,
+  usePromotionalMedia,
+  useSalesPromotion,
+} from "./budget";
 export * from "./budget/types";
 
 export {

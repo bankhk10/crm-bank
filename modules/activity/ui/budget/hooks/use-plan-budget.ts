@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import {
-  MARKETING_PRODUCT_CATEGORIES,
-} from "@/modules/activity/constants";
+import { MARKETING_PRODUCT_CATEGORIES } from "@/modules/activity/constants";
 import type {
   MarketingBudgetProductItem,
   SalesPromotionItem,
   RequisitionItem,
 } from "../types";
+import { usePromotionalMedia } from "./use-promotional-media";
+import { useSalesPromotion } from "./use-sales-promotion";
 
 export interface UsePlanBudgetOptions {
   initial?: any;
@@ -88,216 +88,21 @@ export function usePlanBudget({
   initial = {},
   initDetails,
 }: UsePlanBudgetOptions = {}): UsePlanBudgetResult {
-  // Section 5: Promotional Media State
-  const [isPromotionalMediaSelected, setIsPromotionalMediaSelected] =
-    useState<boolean>(() => {
-      if (initDetails?.isPromotionalMediaSelected !== undefined) {
-        return initDetails.isPromotionalMediaSelected;
-      }
-      if (Array.isArray(initDetails) && initDetails.length > 0) {
-        const hasMkt = initDetails.some(
-          (item: any) =>
-            item.visitTopic === "MARKETING_PRODUCT" ||
-            item.itemType === "MARKETING_PRODUCT",
-        );
-        if (hasMkt) return true;
-      }
-      return (
-        (initial.marketingBudgetRequested ??
-          (initial as any).marketingBudget ??
-          0) > 0
-      );
-    });
+  // 1. Promotional Media Sub-hook
+  const promotionalMedia = usePromotionalMedia({ initial, initDetails });
 
-  const [marketingBudgetAmount, setMarketingBudgetAmount] = useState<number>(
-    initDetails?.marketingBudgetAmount ??
-      initial.marketingBudgetRequested ??
-      (initial as any).marketingBudget ??
-      10000,
-  );
+  // 2. Sales Promotion Sub-hook
+  const salesPromotion = useSalesPromotion({ initial, initDetails });
 
-  const [marketingProductItems, setMarketingProductItems] = useState<
-    MarketingBudgetProductItem[]
-  >(() => {
-    if (
-      (initial as any)?.marketingItems &&
-      Array.isArray((initial as any).marketingItems) &&
-      (initial as any).marketingItems.length > 0
-    ) {
-      return (initial as any).marketingItems.map((m: any, idx: number) => ({
-        id: m.id || String(idx + 1),
-        category: m.category || MARKETING_PRODUCT_CATEGORIES[0],
-        productName: m.materialName || "",
-        quantityCases: m.quantity != null ? Number(m.quantity) : 1,
-        unit: m.unit || "ชิ้น",
-        pricePerCase: m.unitPrice != null ? Number(m.unitPrice) : 0,
-      }));
-    }
-    if (
-      initDetails?.marketingProductItems &&
-      Array.isArray(initDetails.marketingProductItems) &&
-      initDetails.marketingProductItems.length > 0
-    ) {
-      return initDetails.marketingProductItems;
-    }
-    if (Array.isArray(initDetails) && initDetails.length > 0) {
-      const mktItems = initDetails.filter(
-        (item: any) =>
-          item.visitTopic === "MARKETING_PRODUCT" ||
-          item.itemType === "MARKETING_PRODUCT",
-      );
-      if (mktItems.length > 0) {
-        return mktItems.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          category:
-            item.plotCropCategory ||
-            item.category ||
-            MARKETING_PRODUCT_CATEGORIES[0],
-          productName: item.storeProductName || item.productName || "",
-          quantityCases: item.storeQuantityCases ?? item.quantityCases ?? 1,
-          unit: item.plotCropName || item.unit || "ชิ้น",
-          pricePerCase: item.storePricePerCase
-            ? Number(item.storePricePerCase)
-            : (item.pricePerCase ?? 0),
-        }));
-      }
-    }
-    return [
-      {
-        id: "1",
-        category: MARKETING_PRODUCT_CATEGORIES[0] || "Premium_item",
-        productName: "สมุดฉีก",
-        quantityCases: 1,
-        unit: "เล่ม",
-        pricePerCase: 25,
-      },
-    ];
-  });
-
-  const addMarketingProductItem = () => {
-    const newItem: MarketingBudgetProductItem = {
-      id: Date.now().toString(),
-      category: "อื่นๆ",
-      productName: "",
-      quantityCases: 1,
-      unit: "ชิ้น",
-      pricePerCase: 0,
-    };
-    setMarketingProductItems((prev) => [...prev, newItem]);
-  };
-
-  const updateMarketingProductItem = (
-    id: string,
-    field: keyof MarketingBudgetProductItem,
-    val: any,
-  ) => {
-    setMarketingProductItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
-    );
-  };
-
-  const deleteMarketingProductItem = (id: string) => {
-    setMarketingProductItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  // Section 5: Sales Promotion Items State & Helpers
-  const [isSalesPromotionSelected, setIsSalesPromotionSelected] =
-    useState<boolean>(() => {
-      if (initDetails?.isSalesPromotionSelected !== undefined) {
-        return initDetails.isSalesPromotionSelected;
-      }
-      if (Array.isArray(initDetails) && initDetails.length > 0) {
-        const hasSp = initDetails.some(
-          (item: any) =>
-            item.visitTopic === "SALES_PROMOTION" ||
-            item.itemType === "SALES_PROMOTION",
-        );
-        if (hasSp) return true;
-      }
-      return (
-        (initial.salesPromotionBudgetRequested ??
-          (initial as any).salesPromotionBudget ??
-          0) > 0
-      );
-    });
-
-  const [salesPromotionItems, setSalesPromotionItems] = useState<
-    SalesPromotionItem[]
-  >(() => {
-    if (
-      (initial as any)?.promotionItems &&
-      Array.isArray((initial as any).promotionItems) &&
-      (initial as any).promotionItems.length > 0
-    ) {
-      return (initial as any).promotionItems.map((p: any, idx: number) => ({
-        id: p.id || String(idx + 1),
-        budgetType: p.budgetType || "งบการตลาด",
-        detail: p.detail || "",
-        amount: p.amount != null ? Number(p.amount) : 0,
-      }));
-    }
-    if (
-      initDetails?.salesPromotionItems &&
-      Array.isArray(initDetails.salesPromotionItems) &&
-      initDetails.salesPromotionItems.length > 0
-    ) {
-      return initDetails.salesPromotionItems;
-    }
-    if (Array.isArray(initDetails) && initDetails.length > 0) {
-      const spItems = initDetails.filter(
-        (item: any) =>
-          item.visitTopic === "SALES_PROMOTION" ||
-          item.itemType === "SALES_PROMOTION",
-      );
-      if (spItems.length > 0) {
-        return spItems.map((item: any, idx: number) => ({
-          id: item.id || String(idx + 1),
-          budgetType: item.plotCropCategory || item.budgetType || "งบการตลาด",
-          detail: item.detail || "",
-          amount: item.collectAmount
-            ? Number(item.collectAmount)
-            : (item.amount ?? 0),
-        }));
-      }
-    }
-    return [];
-  });
-
-  const addSalesPromotionRow = () => {
-    const newItem: SalesPromotionItem = {
-      id: Date.now().toString(),
-      budgetType: "งบการตลาด",
-      detail: "",
-      amount: 0,
-    };
-    setSalesPromotionItems((prev) => [...prev, newItem]);
-  };
-
-  const updateSalesPromotionRow = (
-    id: string,
-    field: keyof SalesPromotionItem,
-    val: any,
-  ) => {
-    setSalesPromotionItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: val } : item)),
-    );
-  };
-
-  const deleteSalesPromotionRow = (id: string) => {
-    setSalesPromotionItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
+  // 3. Extra Expense & Requisition Items State
   const [extraExpenseAmount, setExtraExpenseAmount] = useState<number>(
     initDetails?.extraExpenseAmount ?? 0,
   );
-  const [extraExpenseDetail, setExtraExpenseDetail] = useState(
+  const [extraExpenseDetail, setExtraExpenseDetail] = useState<string>(
     initDetails?.extraExpenseDetail ?? "",
   );
 
-  // Section 6: Material Requisition Items
-  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>(
-    [],
-  );
+  const [requisitionItems, setRequisitionItems] = useState<RequisitionItem[]>([]);
 
   const addRequisitionRow = () => {
     const newItem: RequisitionItem = {
@@ -324,22 +129,12 @@ export function usePlanBudget({
     setRequisitionItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Calculations
-  const salesPromotionBudget = isSalesPromotionSelected
-    ? salesPromotionItems.reduce((sum, item) => sum + (item.amount || 0), 0)
-    : null;
-
-  const marketingBudget = isPromotionalMediaSelected
-    ? marketingProductItems.reduce(
-        (sum, item) =>
-          sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
-        0,
-      )
-    : null;
-
-  // Validation
+  // 4. Validation
   const validateBudget = () => {
-    if (isPromotionalMediaSelected && marketingProductItems.length === 0) {
+    if (
+      promotionalMedia.isPromotionalMediaSelected &&
+      promotionalMedia.marketingProductItems.length === 0
+    ) {
       return {
         isValid: false,
         error:
@@ -349,7 +144,7 @@ export function usePlanBudget({
     return { isValid: true };
   };
 
-  // Payload mapping helper
+  // 5. Payload mapping helper
   const buildBudgetPayload = () => {
     const marketingItems: Array<{
       category: string;
@@ -360,8 +155,11 @@ export function usePlanBudget({
       totalAmount: number;
     }> = [];
 
-    if (isPromotionalMediaSelected && marketingProductItems.length > 0) {
-      marketingProductItems.forEach((mItem) => {
+    if (
+      promotionalMedia.isPromotionalMediaSelected &&
+      promotionalMedia.marketingProductItems.length > 0
+    ) {
+      promotionalMedia.marketingProductItems.forEach((mItem) => {
         const qty = mItem.quantityCases || 1;
         const price = mItem.pricePerCase || 0;
         marketingItems.push({
@@ -381,8 +179,11 @@ export function usePlanBudget({
       amount: number;
     }> = [];
 
-    if (isSalesPromotionSelected && salesPromotionItems.length > 0) {
-      salesPromotionItems.forEach((spItem) => {
+    if (
+      salesPromotion.isSalesPromotionSelected &&
+      salesPromotion.salesPromotionItems.length > 0
+    ) {
+      salesPromotion.salesPromotionItems.forEach((spItem) => {
         promotionItems.push({
           budgetType: spItem.budgetType || "งบการตลาด",
           detail: spItem.detail || "",
@@ -392,31 +193,16 @@ export function usePlanBudget({
     }
 
     return {
-      salesPromotionBudgetRequested: salesPromotionBudget,
-      marketingBudgetRequested: marketingBudget,
+      salesPromotionBudgetRequested: salesPromotion.salesPromotionBudget,
+      marketingBudgetRequested: promotionalMedia.marketingBudget,
       marketingItems,
       promotionItems,
     };
   };
 
   return {
-    isPromotionalMediaSelected,
-    setIsPromotionalMediaSelected,
-    marketingBudgetAmount,
-    setMarketingBudgetAmount,
-    marketingProductItems,
-    setMarketingProductItems,
-    addMarketingProductItem,
-    updateMarketingProductItem,
-    deleteMarketingProductItem,
-
-    isSalesPromotionSelected,
-    setIsSalesPromotionSelected,
-    salesPromotionItems,
-    setSalesPromotionItems,
-    addSalesPromotionRow,
-    updateSalesPromotionRow,
-    deleteSalesPromotionRow,
+    ...promotionalMedia,
+    ...salesPromotion,
 
     extraExpenseAmount,
     setExtraExpenseAmount,
@@ -428,9 +214,6 @@ export function usePlanBudget({
     addRequisitionRow,
     updateRequisitionRow,
     deleteRequisitionRow,
-
-    salesPromotionBudget,
-    marketingBudget,
 
     validateBudget,
     buildBudgetPayload,
