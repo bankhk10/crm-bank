@@ -25,10 +25,7 @@ import {
   approveCancelActivityPlanUseCase,
   rejectCancelActivityPlanUseCase,
 } from "../application/activity-plan-flow";
-import {
-  listActivityCalendarEventsUseCase,
-  type ListCalendarEventsParams,
-} from "../infrastructure/calendar-integration";
+import { getActivityCalendarEventsAction } from "./calendar.actions";
 import {
   findDealerAndSubdealerCustomerOptions,
   findFarmerCustomerOptions,
@@ -609,18 +606,7 @@ export async function duplicateActivityPlanAction(id: string) {
   }
 }
 
-export async function getActivityCalendarEventsAction(params: ListCalendarEventsParams = {}) {
-  try {
-    const events = await listActivityCalendarEventsUseCase(params);
-    return serialize({ success: true, events });
-  } catch (err: any) {
-    return serialize({
-      success: false,
-      error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลปฏิทิน",
-      events: [],
-    });
-  }
-}
+export { getActivityCalendarEventsAction };
 
 export async function getDealerAndSubdealerCustomerOptionsAction() {
   try {
