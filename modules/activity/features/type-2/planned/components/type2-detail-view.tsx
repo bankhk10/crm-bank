@@ -75,10 +75,12 @@ const getParsedUsageResult = (
   productName: string,
   fallback?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "",
 ): "ลูกค้าพึงพอใจ" | "พบปัญหา" | "" => {
+  // 1. If fallback (the product's own usageResult from DB / record) is explicitly set, prioritize it!
+  if (fallback === "พบปัญหา") return "พบปัญหา";
+  if (fallback === "ลูกค้าพึงพอใจ" || fallback === "พืชตอบสนองดี")
+    return "ลูกค้าพึงพอใจ";
+
   if (!text) {
-    if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ")
-      return "ลูกค้าพึงพอใจ";
-    if (fallback === "พบปัญหา") return "พบปัญหา";
     return "";
   }
   const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

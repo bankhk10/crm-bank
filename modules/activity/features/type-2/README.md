@@ -474,6 +474,7 @@ model ActivityAttachment {
 ### 10.2 ตารางวิเคราะห์ปัญหาที่พบบ่อย (Common Pitfalls)
 | อาการ | จุดที่ต้องตรวจสอบ | วิธีแก้ไข |
 | :--- | :--- | :--- |
+| **ผลการใช้สินค้าบันทึก "พบปัญหา" ใน DB แต่หน้า UI แสดงเป็น "ลูกค้าพึงพอใจ"** | `Type2ActualForm`, `useType2Actual`, `actual-mapper.ts`, `planned-mapper.ts`, `activity-plan-actual-view.tsx` | แก้ไข Hydration ให้ส่ง `type2Results` เข้า `payloadToHydrate`, ให้ `useType2Actual` และ `parseType2ActualResult` อ่าน `type2Results` และ `activityPlan.type2Results`, ปรับ `getParsedUsageResult` และ `initialPlannedItems` ใน `Type2ActualForm` ให้ยึดค่า `usageResult` จากผลงานจริงที่บันทึกไว้ใน DB ("พบปัญหา") เป็นหลัก ไม่ถูก override เป็นค่าเริ่มต้น |
 | **สินค้าตามแผนไม่แสดงในหน้า Actual** | `extractType2PlanTargets` ใน `planned-mapper.ts` | ตรวจสอบว่า `type2Targets` ถูก include มาใน Query หรือไม่ และเช็ค fallback `t2Products` |
 | **บันทึกไม่ผ่าน แจ้งให้ระบุรายละเอียดปัญหา** | `actual-validation.ts` | เมื่อเลือก `usageResult === "พบปัญหา"` ระบบบังคับกรอก `problemDetail` ให้กรอกรายละเอียดปัญหา |
 | **รูปภาพไม่บันทึกลงฐานข้อมูล** | `use-type2-actual.ts` ➔ `uploadImages` | ตรวจสอบการเรียก `uploadImages(planId)` ก่อนส่ง payload ไปบันทึกผล |
@@ -492,6 +493,7 @@ model ActivityAttachment {
 - [ ] **TC-07 (Actual - Additional Product):** กดปุ่มเพิ่มสินค้าหน้างาน (`isAdditional = true`) และบันทึกผลได้จริง
 - [ ] **TC-08 (Approval View):** หัวหน้างานเปิดหน้าพิจารณาอนุมัติ การ์ด Type 2 ต้องแสดงเป้าหมายชัดเจน
 - [ ] **TC-09 (Detail Images Deduplication):** อัปโหลดภาพผลการติดตาม 1 รูป หน้ารายละเอียดและหน้าอนุมัติต้องแสดง 1 รูป ไม่เบิ้ลซ้ำ
+- [ ] **TC-10 (Actual Hydration - Problem State):** ข้อมูลผลการติดตามใน DB ที่บันทึก "พบปัญหา" และรายละเอียดปัญหา ต้องโหลดขึ้นมาแสดงผลเป็น "พบปัญหา" บนหน้า Type2ActualForm และ Type2DetailView อย่างถูกต้อง
 
 ---
 
@@ -499,11 +501,8 @@ model ActivityAttachment {
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-26** | 2.1.0 | แก้ไขปัญหา Hydration ผลการใช้สินค้า "พบปัญหา" ใน DB แต่หน้า UI แสดงเป็น "ลูกค้าพึงพอใจ": ส่ง `type2Results` เข้า `payloadToHydrate`, ปรับ `useType2Actual`, `actual-mapper.ts`, `planned-mapper.ts`, `result-summary-parser.ts` และ `Type2ActualForm` ให้ยึดผลงานจริงจาก DB อย่างถูกต้อง | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **Batch B Standardization**: ปรับปรุงโครงสร้างตารางเป็น Dedicated Tables (`activity_type_2_targets`, `activity_type_2_products`, `activity_type_2_result`), ผูก `targetId` กับผลงานติดตาม, ตัด Generic Dual-writes ไปยัง `activity_plan_stores` / `activity_plan_products` / `activity_result_followup_items` ออก 100% | Antigravity AI |
-| **2026-10-20** | 1.3.0 | แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ (Image Deduplication) ใน `Type2DetailView`, `result-summary-parser.ts` และ `useType2Actual` | Antigravity AI |
-| **2026-10-19** | 1.2.0 | พัฒนา Sub-slice `unplanned/` (2-in-1 Form, Hook, Mapper, Validation, Strategy) สำหรับการติดตามผลการใช้สินค้านอกแผน | Antigravity AI |
-| **2026-10-19** | 1.1.0 | จัดทำเอกสารคู่มือสถาปัตยกรรมฉบับสมบูรณ์ตามรูปแบบมาตรฐาน Type 1 Gold Standard | Antigravity AI |
-| **2026-10-19** | 1.0.0 | พัฒนา Type 2 Vertical Slice ฉบับสมบูรณ์ พร้อมเชื่อมโยง Dedicated Tables และ Targets Registry | Antigravity AI |
 | **2026-10-20** | 1.3.0 | แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ (Image Deduplication) ใน `Type2DetailView`, `result-summary-parser.ts` และ `useType2Actual` | Antigravity AI |
 | **2026-10-19** | 1.2.0 | พัฒนา Sub-slice `unplanned/` (2-in-1 Form, Hook, Mapper, Validation, Strategy) สำหรับการติดตามผลการใช้สินค้านอกแผน | Antigravity AI |
 | **2026-10-19** | 1.1.0 | จัดทำเอกสารคู่มือสถาปัตยกรรมฉบับสมบูรณ์ตามรูปแบบมาตรฐาน Type 1 Gold Standard | Antigravity AI |

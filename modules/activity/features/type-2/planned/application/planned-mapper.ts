@@ -44,13 +44,26 @@ export function extractType2PlanTargets(
     Array.isArray(plan.type2Targets) &&
     plan.type2Targets.length > 0
   ) {
+    const allPlanResults = Array.isArray(plan?.type2Results)
+      ? plan.type2Results
+      : [];
+
     const list: Type2TargetItem[] = plan.type2Targets.map((t: any) => {
       const isUnregistered = Boolean(t.isUnregisteredFarmer);
       const customerDisplayName = isUnregistered
         ? t.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"
         : t.store?.name || "ร้านค้า/เกษตรกร";
 
-      const targetResults = Array.isArray(t.results) ? t.results : [];
+      const targetResults =
+        Array.isArray(t.results) && t.results.length > 0
+          ? t.results
+          : allPlanResults.filter(
+              (r: any) =>
+                r.targetId === t.id ||
+                !r.targetId ||
+                (t.storeId && r.storeId === t.storeId),
+            );
+
       const items: FollowupProductItem[] = (t.products || []).map((p: any) => {
         const matchedResult = targetResults.find(
           (r: any) => r.productId === p.productId,
@@ -167,20 +180,35 @@ export function extractType2PlanTargets(
         }
       }
 
-      const items: FollowupProductItem[] = effectiveProducts.map((pr) => ({
-        id: pr.id,
-        productId: pr.productId,
-        productName: pr.productName || pr.product?.name || "สินค้า",
-        customer:
-          s.storeName ||
-          s.store?.name ||
-          s.unregisteredFarmerName ||
-          "ร้านค้า/เกษตรกร",
-        storeId: s.storeId,
-        detail: pr.notes || s.notes || "",
-        expectedResult: "พืชตอบสนองดี",
-        isAdditional: false,
-      }));
+      const allPlanResults = Array.isArray(plan?.type2Results)
+        ? plan.type2Results
+        : [];
+
+      const items: FollowupProductItem[] = effectiveProducts.map((pr) => {
+        const matchedResult = allPlanResults.find(
+          (r: any) =>
+            r.productId === pr.productId &&
+            (!r.storeId || !s.storeId || r.storeId === s.storeId),
+        );
+
+        return {
+          id: pr.id,
+          productId: pr.productId,
+          productName: pr.productName || pr.product?.name || "สินค้า",
+          customer:
+            s.storeName ||
+            s.store?.name ||
+            s.unregisteredFarmerName ||
+            "ร้านค้า/เกษตรกร",
+          storeId: s.storeId,
+          detail: pr.notes || s.notes || "",
+          expectedResult: "พืชตอบสนองดี",
+          usageResult: (matchedResult?.usageResult as any) || undefined,
+          followupDetail: matchedResult?.followupDetail || "",
+          problemDetail: matchedResult?.problemDetail || "",
+          isAdditional: false,
+        };
+      });
 
       const customerDisplayName = isUnregistered
         ? s.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"

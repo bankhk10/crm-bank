@@ -15,11 +15,12 @@ export function parseType2ActualResult(result: any): {
     return { followupResults: [] };
   }
 
-  // 1. From dedicated relation result.type2Results, result.followupResults or result.t2FollowupResults
+  // 1. From dedicated relation result.type2Results, result.followupResults, result.t2FollowupResults, or result.activityPlan.type2Results
   const rawFollowupList =
     result.type2Results ||
     result.followupResults ||
-    result.t2FollowupResults;
+    result.t2FollowupResults ||
+    result.activityPlan?.type2Results;
 
   if (rawFollowupList && Array.isArray(rawFollowupList) && rawFollowupList.length > 0) {
     const list: FollowupProductItem[] = rawFollowupList.map((item: any) => ({
@@ -35,7 +36,8 @@ export function parseType2ActualResult(result: any): {
       isAdditional: Boolean(item.isAdditional),
     }));
 
-    const primary = list[0];
+    const problemItem = list.find((item) => item.usageResult === "พบปัญหา");
+    const primary = problemItem || list[0];
     return {
       followupResults: list,
       customerName: primary?.customer || result.customerName || result.t2CustomerName,

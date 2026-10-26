@@ -115,10 +115,12 @@ export function Type2ActualForm({
     productName: string,
     fallback?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "",
   ): "ลูกค้าพึงพอใจ" | "พบปัญหา" | "" => {
+    // 1. If fallback (the product's own usageResult from DB / record) is explicitly set, prioritize it!
+    if (fallback === "พบปัญหา") return "พบปัญหา";
+    if (fallback === "ลูกค้าพึงพอใจ" || fallback === "พืชตอบสนองดี")
+      return "ลูกค้าพึงพอใจ";
+
     if (!text) {
-      if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ")
-        return "ลูกค้าพึงพอใจ";
-      if (fallback === "พบปัญหา") return "พบปัญหา";
       return "";
     }
     const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -141,9 +143,6 @@ export function Type2ActualForm({
     ) {
       return text === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
     }
-    if (fallback === "พืชตอบสนองดี" || fallback === "ลูกค้าพึงพอใจ")
-      return "ลูกค้าพึงพอใจ";
-    if (fallback === "พบปัญหา") return "พบปัญหา";
     return "";
   };
 
@@ -163,19 +162,50 @@ export function Type2ActualForm({
         ? t.unregisteredFarmerName || "เกษตรกรทั่วไป (ไม่ระบุชื่อ)"
         : t.store?.name || t.customer || t.storeName || "ร้านค้า/เกษตรกร";
 
+      const targetResults = Array.isArray(t.results) ? t.results : [];
       const productsList: any[] = t.products || [];
       const items: FollowupProductItem[] = productsList.map(
-        (p: any, pIdx: number) => ({
-          id: p.id || `planned-${idx}-${pIdx}`,
-          productId: p.productId,
-          productName: p.product?.name || p.productName || "สินค้า",
-          customer: customerDisplayName,
-          storeId: t.storeId || undefined,
-          detail: p.notes || t.notes || "",
-          expectedResult: "พืชตอบสนองดี",
-          isAdditional: false,
-        }),
+        (p: any, pIdx: number) => {
+          const matchedResult = targetResults.find(
+            (r: any) => r.productId === p.productId,
+          );
+
+          return {
+            id: p.id || `planned-${idx}-${pIdx}`,
+            targetId: t.id,
+            productId: p.productId,
+            productName: p.product?.name || p.productName || "สินค้า",
+            customer: customerDisplayName,
+            storeId: t.storeId || undefined,
+            detail: p.notes || t.notes || "",
+            expectedResult: "พืชตอบสนองดี",
+            usageResult: (matchedResult?.usageResult as any) || undefined,
+            followupDetail: matchedResult?.followupDetail || "",
+            problemDetail: matchedResult?.problemDetail || "",
+            isAdditional: false,
+          };
+        },
       );
+
+      // Include additional result items if recorded
+      targetResults
+        .filter((r: any) => r.isAdditional)
+        .forEach((r: any) => {
+          items.push({
+            id: r.id,
+            targetId: t.id,
+            productId: r.productId,
+            productName: r.productName || r.product?.name || "สินค้า",
+            customer: customerDisplayName,
+            storeId: t.storeId || undefined,
+            detail: "",
+            expectedResult: "พืชตอบสนองดี",
+            usageResult: r.usageResult as any,
+            followupDetail: r.followupDetail || "",
+            problemDetail: r.problemDetail || "",
+            isAdditional: true,
+          });
+        });
 
       return {
         id: t.id,
@@ -213,11 +243,15 @@ export function Type2ActualForm({
             item.usageResult,
           );
           const activeUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา" =
-            parsedUsage === "ลูกค้าพึงพอใจ" || parsedUsage === "พบปัญหา"
-              ? parsedUsage
-              : item.expectedResult === "พบปัญหา"
-                ? "พบปัญหา"
-                : "ลูกค้าพึงพอใจ";
+            item.usageResult === "พบปัญหา" || parsedUsage === "พบปัญหา"
+              ? "พบปัญหา"
+              : item.usageResult === "ลูกค้าพึงพอใจ" ||
+                  item.usageResult === "พืชตอบสนองดี" ||
+                  parsedUsage === "ลูกค้าพึงพอใจ"
+                ? "ลูกค้าพึงพอใจ"
+                : item.expectedResult === "พบปัญหา"
+                  ? "พบปัญหา"
+                  : "ลูกค้าพึงพอใจ";
 
           const parsedProblem =
             activeUsage === "พบปัญหา"
@@ -241,6 +275,7 @@ export function Type2ActualForm({
 
           items.push({
             id: item.id || `planned-${tIdx}-${idx}`,
+            targetId: item.targetId || t.id,
             productId: item.productId,
             productName: item.productName || t.product || "สินค้าตามแผน",
             customer: item.customer || t.customer || "",
@@ -255,18 +290,25 @@ export function Type2ActualForm({
         });
       } else if (t.product || t.customer) {
         const activeUsage: "ลูกค้าพึงพอใจ" | "พบปัญหา" =
-          usageResult === "พบปัญหา" ? "พบปัญหา" : "ลูกค้าพึงพอใจ";
+          t.usageResult === "พบปัญหา" || usageResult === "พบปัญหา"
+            ? "พบปัญหา"
+            : "ลูกค้าพึงพอใจ";
         items.push({
           id: `planned-single-${tIdx}`,
+          targetId: t.id,
+          productId: t.productId || "",
           productName: t.product || "สินค้าตามแผน",
           customer: t.customer || "",
           storeId: t.storeId,
           detail: t.detail || "",
           expectedResult: t.expectedResult || "พืชตอบสนองดี",
           usageResult: activeUsage,
-          problemDetail: activeUsage === "พบปัญหา" ? problemDetail : "",
+          problemDetail:
+            activeUsage === "พบปัญหา" ? t.problemDetail || problemDetail : "",
           followupDetail:
-            activeUsage === "พบปัญหา" ? "" : followupDetail || detail,
+            activeUsage === "พบปัญหา"
+              ? ""
+              : t.followupDetail || followupDetail || detail,
           isAdditional: false,
         });
       }

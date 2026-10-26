@@ -3,6 +3,8 @@ import {
   hydrateType2PlannedData,
   extractType2PlanTargets,
 } from "@/modules/activity/features/type-2/planned/application/planned-mapper";
+import { parseType2ActualResult } from "@/modules/activity/features/type-2/planned/application/actual-mapper";
+import { parseResultSummary } from "@/modules/activity/domain/summary/result-summary-parser";
 
 async function runTests() {
   console.log("=== Running Type 2 Save & Hydration Unit Tests ===");
@@ -150,6 +152,134 @@ async function runTests() {
   assert.strictEqual(targetExtractMulti.list[0].customer, "ร้านเจริญการเกษตร");
   assert.strictEqual(targetExtractMulti.list[1].customer, "ลุงประสิทธิ์ นาดี");
   console.log("✓ Test 3 passed: Multi-target extracted correctly even when legacy stores is empty.");
+
+  // -------------------------------------------------------------------------
+  // Test 4: Hydrate Actual Results where usageResult is "พบปัญหา"
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 4] Testing Actual Hydration with 'พบปัญหา' in DB (activity_type_2_result)...");
+
+  const planWithProblemResult = {
+    id: "plan-t2-004",
+    code: "TP26100022",
+    status: "COMPLETED",
+    type2Targets: [
+      {
+        id: "target-prob-1",
+        activityPlanId: "plan-t2-004",
+        visitPurpose: "FARMER",
+        storeId: null,
+        isUnregisteredFarmer: true,
+        unregisteredFarmerName: "นายสมศักดิ์ ปลูกพริก",
+        products: [
+          {
+            id: "t2-prod-prob-1",
+            targetId: "target-prob-1",
+            productId: "prod-prob-101",
+            product: { id: "prod-prob-101", name: "ฮอร์โมนซุปเปอร์โกร" },
+          },
+        ],
+        results: [
+          {
+            id: "t2-res-1",
+            targetId: "target-prob-1",
+            productId: "prod-prob-101",
+            productName: "ฮอร์โมนซุปเปอร์โกร",
+            usageResult: "พบปัญหา",
+            problemDetail: "ใบพริกเหลืองและเกิดคราบไหม้หลังฉีดพ่น 2 วัน",
+            followupDetail: null,
+            isAdditional: false,
+          },
+        ],
+      },
+    ],
+    type2Results: [
+      {
+        id: "t2-res-1",
+        targetId: "target-prob-1",
+        productId: "prod-prob-101",
+        productName: "ฮอร์โมนซุปเปอร์โกร",
+        usageResult: "พบปัญหา",
+        problemDetail: "ใบพริกเหลืองและเกิดคราบไหม้หลังฉีดพ่น 2 วัน",
+        followupDetail: null,
+        isAdditional: false,
+      },
+    ],
+    result: {
+      id: "result-main-1",
+      activityPlanId: "plan-t2-004",
+      resultStatus: "COMPLETED",
+    },
+  };
+
+  // 4.1 Check extractType2PlanTargets extracts "พบปัญหา" and problemDetail
+  const extractedProblemTargets = extractType2PlanTargets(planWithProblemResult);
+  assert.strictEqual(extractedProblemTargets.list.length, 1);
+  const targetItem = extractedProblemTargets.list[0]?.items?.[0]!;
+  assert.strictEqual(targetItem.usageResult, "พบปัญหา", "Target product usageResult must be 'พบปัญหา'");
+  assert.strictEqual(targetItem.problemDetail, "ใบพริกเหลืองและเกิดคราบไหม้หลังฉีดพ่น 2 วัน", "problemDetail must match DB");
+
+  // 4.2 Check parseType2ActualResult extracts "พบปัญหา"
+  const parsedFromPlan = parseType2ActualResult({
+    ...planWithProblemResult.result,
+    type2Results: planWithProblemResult.type2Results,
+    activityPlan: planWithProblemResult,
+  });
+  assert.strictEqual(parsedFromPlan.usageResult, "พบปัญหา", "parsed.usageResult must be 'พบปัญหา'");
+  assert.strictEqual(parsedFromPlan.problemDetail, "ใบพริกเหลืองและเกิดคราบไหม้หลังฉีดพ่น 2 วัน");
+  assert.strictEqual(parsedFromPlan.followupResults[0]?.usageResult, "พบปัญหา");
+
+  // 4.3 Check parseResultSummary handles activityPlan.type2Results
+  const summaryParsed = parseResultSummary({
+    ...planWithProblemResult.result,
+    activityPlan: planWithProblemResult,
+  });
+  assert.strictEqual(summaryParsed.t2UsageResult, "พบปัญหา", "summaryParsed.t2UsageResult must be 'พบปัญหา'");
+  assert.strictEqual(summaryParsed.t2ProblemDetail, "ใบพริกเหลืองและเกิดคราบไหม้หลังฉีดพ่น 2 วัน");
+  console.log("✓ Test 4 passed: 'พบปัญหา' in DB hydrated correctly into usageResult and problemDetail.");
+
+  // -------------------------------------------------------------------------
+  // Test 5: Fallback to plan.type2Results when target.results is empty or targetId is null
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 5] Testing extractType2PlanTargets fallback to plan.type2Results when target.results is empty...");
+
+  const planWithOrphanResults = {
+    id: "plan-t2-005",
+    type2Targets: [
+      {
+        id: "target-orphan-1",
+        activityPlanId: "plan-t2-005",
+        visitPurpose: "STORE",
+        storeId: "store-002",
+        products: [
+          {
+            id: "t2-prod-orp-1",
+            targetId: "target-orphan-1",
+            productId: "prod-orp-1",
+            product: { id: "prod-orp-1", name: "ยาฆ่าแมลงเอฟ" },
+          },
+        ],
+        results: [], // Empty results on target!
+      },
+    ],
+    type2Results: [
+      {
+        id: "res-orp-1",
+        activityPlanId: "plan-t2-005",
+        targetId: null, // targetId is null in DB
+        productId: "prod-orp-1",
+        productName: "ยาฆ่าแมลงเอฟ",
+        usageResult: "พบปัญหา",
+        problemDetail: "แมลงไม่ตายและเกิดการดื้อยา",
+        isAdditional: false,
+      },
+    ],
+  };
+
+  const extractedOrphanTargets = extractType2PlanTargets(planWithOrphanResults);
+  const orphanItem = extractedOrphanTargets.list[0]?.items?.[0]!;
+  assert.strictEqual(orphanItem.usageResult, "พบปัญหา", "Must fallback to plan.type2Results and get 'พบปัญหา'");
+  assert.strictEqual(orphanItem.problemDetail, "แมลงไม่ตายและเกิดการดื้อยา");
+  console.log("✓ Test 5 passed: Fallback to plan.type2Results succeeded.");
 
   console.log("\n All Type 2 Save & Hydration Unit Tests Passed!\n");
 }

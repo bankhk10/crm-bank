@@ -94,7 +94,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 2 Follow-up Results from relation table
-    const t2RawList = resData.type2Results || resData.followupResults;
+    const t2RawList =
+      resData.type2Results ||
+      resData.followupResults ||
+      resData.activityPlan?.type2Results;
     if (
       Array.isArray(t2RawList) &&
       t2RawList.length > 0 &&
@@ -113,7 +116,10 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         isAdditional: Boolean(item.isAdditional),
       }));
 
-      const primary: any = result.t2FollowupResults?.[0];
+      const problemItem = result.t2FollowupResults.find(
+        (i: any) => i.usageResult === "พบปัญหา",
+      );
+      const primary: any = problemItem || result.t2FollowupResults?.[0];
       if (primary) {
         if (!result.t2CustomerName) result.t2CustomerName = primary.customer;
         if (!result.t2UsageResult) result.t2UsageResult = primary.usageResult;

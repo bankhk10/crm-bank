@@ -48,15 +48,20 @@ export function useType2Actual() {
 
     // Normalize data: support Prisma ActivityResult object, parsed result, or plain payload
     const normalized: any =
-      parsed.followupResults || parsed.resultSummary
+      parsed.type2Results ||
+      parsed.followupResults ||
+      parsed.resultSummary ||
+      parsed.activityPlan?.type2Results
         ? parseType2ActualResult(parsed)
         : {};
 
     const followupList =
       parsed.t2FollowupResults ||
-      (Array.isArray(parsed.followupResults) && parsed.followupResults[0]?.usageResult !== undefined
-        ? parsed.followupResults
-        : normalized.followupResults);
+      (Array.isArray(parsed.type2Results) && parsed.type2Results.length > 0
+        ? normalized.followupResults
+        : Array.isArray(parsed.followupResults) && parsed.followupResults[0]?.usageResult !== undefined
+          ? parsed.followupResults
+          : normalized.followupResults);
 
     const customer =
       parsed.t2CustomerName || parsed.customerName || normalized.customerName;
@@ -87,7 +92,9 @@ export function useType2Actual() {
       (typeof usage === "string" &&
         usage.includes("พบปัญหา") &&
         !usage.includes("พืชตอบสนองดี") &&
-        !usage.includes("ลูกค้าพึงพอใจ"));
+        !usage.includes("ลูกค้าพึงพอใจ")) ||
+      (Array.isArray(followupList) &&
+        followupList.some((f: any) => f.usageResult === "พบปัญหา"));
 
     if (isProblem) {
       setT2FollowupDetail("");
