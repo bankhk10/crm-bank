@@ -133,10 +133,13 @@ export function useType3UnplannedForm({
               if (found) {
                 updated.productId = found.id;
                 updated.productName = found.name;
-                if (found.price != null && updated.unitPrice === 0) {
-                  updated.unitPrice = Number(found.price);
-                }
               }
+            }
+
+            if (field === "actualQuantity") {
+              const q = parseInt(val) || 0;
+              updated.actualQuantity = q;
+              updated.targetQuantity = q > 0 ? q : 1;
             }
 
             const q = Number(updated.actualQuantity) || 0;

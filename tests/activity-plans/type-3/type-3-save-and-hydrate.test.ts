@@ -3,6 +3,12 @@ import {
   hydrateType3PlannedData,
   extractType3PlanTargets,
 } from "@/modules/activity/features/type-3/planned/application/planned-mapper";
+import {
+  validateType3UnplannedForm,
+} from "@/modules/activity/features/type-3/unplanned/application/unplanned-validation";
+import {
+  mapType3UnplannedToPayload,
+} from "@/modules/activity/features/type-3/unplanned/application/unplanned-mapper";
 
 async function runTests() {
   console.log("=== Running Type 3 Save & Hydration Unit Tests ===");
@@ -144,6 +150,103 @@ async function runTests() {
     "Subdealer display name in target should format correctly",
   );
   console.log("✓ Test 2 passed: Subdealer target hydrated perfectly.");
+
+  // -------------------------------------------------------------------------
+  // Test 3: Unplanned Validation without Target Quantity
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 3] Testing Type 3 Unplanned validation without target quantity...");
+
+  const validUnplanned = {
+    items: [
+      {
+        id: "1",
+        storeId: "store-001",
+        storeName: "ร้านสมบูรณ์พาณิชย์",
+        isSubDealer: false,
+        products: [
+          {
+            id: "p1",
+            productId: "prod-1",
+            productName: "บิ๊กกิล",
+            actualQuantity: 5,
+            targetQuantity: 5,
+            unitPrice: 500,
+            actualTotal: 2500,
+          },
+        ],
+      },
+    ],
+  };
+
+  const validationResult1 = validateType3UnplannedForm(validUnplanned as any);
+  assert.strictEqual(validationResult1.isValid, true, "Valid unplanned item should pass validation");
+
+  // If actualQuantity === 0 and no unclosedReason, validation should fail
+  const zeroQtyUnclosed = {
+    items: [
+      {
+        id: "1",
+        storeId: "store-001",
+        storeName: "ร้านสมบูรณ์พาณิชย์",
+        isSubDealer: false,
+        products: [
+          {
+            id: "p1",
+            productId: "prod-1",
+            productName: "บิ๊กกิล",
+            actualQuantity: 0,
+            unitPrice: 500,
+            actualTotal: 0,
+          },
+        ],
+      },
+    ],
+  };
+
+  const validationResult2 = validateType3UnplannedForm(zeroQtyUnclosed as any);
+  assert.strictEqual(validationResult2.isValid, false, "Zero quantity without unclosedReason should fail");
+
+  // Zero quantity with unclosedReason should pass
+  const zeroQtyWithReason = {
+    items: [
+      {
+        id: "1",
+        storeId: "store-001",
+        storeName: "ร้านสมบูรณ์พาณิชย์",
+        isSubDealer: false,
+        products: [
+          {
+            id: "p1",
+            productId: "prod-1",
+            productName: "บิ๊กกิล",
+            actualQuantity: 0,
+            unitPrice: 500,
+            actualTotal: 0,
+            unclosedReason: "สต็อกเดิมยังมีอยู่เพียงพอ",
+          },
+        ],
+      },
+    ],
+  };
+
+  const validationResult3 = validateType3UnplannedForm(zeroQtyWithReason as any);
+  assert.strictEqual(validationResult3.isValid, true, "Zero quantity with unclosedReason should pass");
+  console.log("✓ Test 3 passed: Unplanned validation without target works correctly.");
+
+  // -------------------------------------------------------------------------
+  // Test 4: Unplanned Mapping preserves manual unitPrice and defaults targetQuantity
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 4] Testing Type 3 Unplanned mapping to payload...");
+
+  const unplannedPayload = mapType3UnplannedToPayload(validUnplanned.items as any, [
+    { id: "store-001", name: "ร้านสมบูรณ์พาณิชย์" },
+  ]);
+
+  assert.strictEqual(unplannedPayload.type3Targets.length, 1, "Should map 1 target");
+  assert.strictEqual(unplannedPayload.type3Targets[0].products[0].targetQuantity, 5, "Target quantity defaults to actual quantity");
+  assert.strictEqual(unplannedPayload.type3Targets[0].products[0].unitPrice, 500, "Manual unitPrice is preserved");
+  assert.strictEqual(unplannedPayload.productSalesDetails[0].actualSales, 2500, "Actual sales calculated correctly");
+  console.log("✓ Test 4 passed: Unplanned mapping preserves manual unitPrice and targets.");
 
   console.log("\n All Type 3 Save & Hydration Unit Tests Passed!\n");
 }

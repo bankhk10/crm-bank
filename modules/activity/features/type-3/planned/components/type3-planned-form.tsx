@@ -448,17 +448,18 @@ export function Type3PlannedForm({
                             <ActivityInput
                               type="number"
                               min={0}
-                              value={prodLine.unitPrice ?? 0}
+                              value={prodLine.unitPrice === 0 ? "" : (prodLine.unitPrice ?? "")}
                               onChange={(e) =>
                                 handleUpdateProduct(
                                   item.id,
                                   prodLine.id,
                                   "unitPrice",
-                                  parseFloat(e.target.value) || 0,
+                                  e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
                                 )
                               }
                               disabled={readonly}
                               className="text-right font-medium"
+                              placeholder="0"
                             />
                           </div>
 

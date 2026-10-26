@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ActivitySelect } from "@/modules/activity/ui";
 import {
   ActivityInput,
   ActivityCustomerSelect,
@@ -274,10 +275,9 @@ export function Type3UnplannedForm({
 
                   <div className="space-y-3">
                     {item.products.map((prod, pIdx) => {
-                      const isUnderTarget =
-                        Number(prod.targetQuantity) > 0 &&
-                        Number(prod.actualQuantity) <
-                          Number(prod.targetQuantity);
+                      const isUnclosed =
+                        Number(prod.actualQuantity) <= 0 ||
+                        Boolean(prod.unclosedReason);
 
                       return (
                         <div
@@ -286,7 +286,7 @@ export function Type3UnplannedForm({
                         >
                           <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end">
                             {/* Product Select */}
-                            <div className="md:col-span-4">
+                            <div className="md:col-span-5">
                               <ActivityProductSelect
                                 id={`unplanned-prod-${item.id}-${prod.id}`}
                                 label={`สินค้าที่ ${pIdx + 1}`}
@@ -313,30 +313,6 @@ export function Type3UnplannedForm({
                               />
                             </div>
 
-                            {/* Target Quantity */}
-                            <div className="md:col-span-2">
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                เป้าหมาย{" "}
-                                <span className="text-rose-500">*</span>
-                              </label>
-                              <ActivityInput
-                                type="number"
-                                min={1}
-                                value={prod.targetQuantity}
-                                onChange={(e) =>
-                                  updateProduct(
-                                    item.id,
-                                    prod.id,
-                                    "targetQuantity",
-                                    parseInt(e.target.value) || 0,
-                                  )
-                                }
-                                disabled={readonly}
-                                className="text-center font-medium"
-                                required
-                              />
-                            </div>
-
                             {/* Actual Quantity Sold */}
                             <div className="md:col-span-2">
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
@@ -346,17 +322,24 @@ export function Type3UnplannedForm({
                               <ActivityInput
                                 type="number"
                                 min={0}
-                                value={prod.actualQuantity}
+                                value={
+                                  prod.actualQuantity === 0
+                                    ? ""
+                                    : prod.actualQuantity
+                                }
                                 onChange={(e) =>
                                   updateProduct(
                                     item.id,
                                     prod.id,
                                     "actualQuantity",
-                                    parseInt(e.target.value) || 0,
+                                    e.target.value === ""
+                                      ? 0
+                                      : parseInt(e.target.value) || 0,
                                   )
                                 }
                                 disabled={readonly}
                                 className="text-center font-bold text-emerald-900"
+                                placeholder="0"
                                 required
                               />
                             </div>
@@ -369,22 +352,27 @@ export function Type3UnplannedForm({
                               <ActivityInput
                                 type="number"
                                 min={0}
-                                value={prod.unitPrice}
+                                value={
+                                  prod.unitPrice === 0 ? "" : prod.unitPrice
+                                }
                                 onChange={(e) =>
                                   updateProduct(
                                     item.id,
                                     prod.id,
                                     "unitPrice",
-                                    parseFloat(e.target.value) || 0,
+                                    e.target.value === ""
+                                      ? 0
+                                      : parseFloat(e.target.value) || 0,
                                   )
                                 }
                                 disabled={readonly}
                                 className="text-right font-medium"
+                                placeholder="0"
                               />
                             </div>
 
                             {/* Actual Total Amount */}
-                            <div className="md:col-span-2 flex items-center gap-1.5">
+                            <div className="md:col-span-3 flex items-center gap-1.5">
                               <div className="flex-1">
                                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                                   ยอดขายจริง
@@ -414,8 +402,8 @@ export function Type3UnplannedForm({
                             </div>
                           </div>
 
-                          {/* Unclosed Reason if less than target */}
-                          {isUnderTarget && (
+                          {/* Unclosed Reason if not sold or under target */}
+                          {isUnclosed && (
                             <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-2.5 space-y-1.5">
                               <span className="text-amber-800 font-bold text-xs flex items-center gap-1">
                                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
@@ -423,43 +411,73 @@ export function Type3UnplannedForm({
                                 ปิดได้ไม่ครบตามเป้า{" "}
                                 <span className="text-rose-500">*</span>
                               </span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <select
-                                  value={prod.unclosedReason || ""}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      item.id,
-                                      prod.id,
-                                      "unclosedReason",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                                >
-                                  <option value="">
-                                    -- เลือกเหตุผลหลัก --
-                                  </option>
-                                  {NOT_CLOSED_REASONS.map((r) => (
-                                    <option key={r} value={r}>
-                                      {r}
-                                    </option>
-                                  ))}
-                                </select>
-                                <ActivityInput
-                                  type="text"
-                                  value={prod.unclosedReason || ""}
-                                  onChange={(e) =>
-                                    updateProduct(
-                                      item.id,
-                                      prod.id,
-                                      "unclosedReason",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
-                                  className="bg-white text-xs"
-                                />
-                              </div>
+                              {(() => {
+                                const STANDARD_REASONS =
+                                  NOT_CLOSED_REASONS.filter(
+                                    (r) => r !== "อื่นๆ",
+                                  );
+                                const reasonVal = prod.unclosedReason || "";
+                                const isStd = STANDARD_REASONS.includes(
+                                  reasonVal as any,
+                                );
+                                const isOther =
+                                  Boolean(reasonVal) &&
+                                  (!isStd || reasonVal === "อื่นๆ");
+                                const selectVal = isStd
+                                  ? reasonVal
+                                  : isOther
+                                    ? "อื่นๆ"
+                                    : "";
+                                const customText = isStd
+                                  ? ""
+                                  : reasonVal === "อื่นๆ"
+                                    ? ""
+                                    : reasonVal;
+
+                                return (
+                                  <div
+                                    className={cn(
+                                      "grid gap-2",
+                                      isOther
+                                        ? "grid-cols-1 sm:grid-cols-2"
+                                        : "grid-cols-1",
+                                    )}
+                                  >
+                                    <ActivitySelect
+                                      value={selectVal}
+                                      onChange={(val) =>
+                                        updateProduct(
+                                          item.id,
+                                          prod.id,
+                                          "unclosedReason",
+                                          val,
+                                        )
+                                      }
+                                      options={[...NOT_CLOSED_REASONS]}
+                                      placeholder="-- เลือกเหตุผลหลัก --"
+                                      disabled={readonly}
+                                    />
+                                    {isOther && (
+                                      <ActivityInput
+                                        type="text"
+                                        value={customText}
+                                        onChange={(e) =>
+                                          updateProduct(
+                                            item.id,
+                                            prod.id,
+                                            "unclosedReason",
+                                            e.target.value || "อื่นๆ",
+                                          )
+                                        }
+                                        placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
+                                        className="bg-white text-xs"
+                                        disabled={readonly}
+                                        autoFocus
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
                         </div>
@@ -471,11 +489,7 @@ export function Type3UnplannedForm({
                 {/* Store Subtotal */}
                 <div className="flex flex-wrap items-center justify-between pt-2 border-t border-slate-100 text-xs">
                   <span className="text-slate-500">
-                    เป้าหมาย:{" "}
-                    <strong className="text-slate-800">
-                      {cardTargetQty.toLocaleString()}
-                    </strong>{" "}
-                    ลัง | ขายได้จริง:{" "}
+                    ขายได้จริง:{" "}
                     <strong className="text-emerald-800 ml-1">
                       {cardActualQty.toLocaleString()}
                     </strong>{" "}
@@ -510,11 +524,7 @@ export function Type3UnplannedForm({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-600">
-              เป้าหมาย:{" "}
-              <strong className="text-slate-900">
-                {totalTargetQty.toLocaleString()}
-              </strong>{" "}
-              | ขายได้จริง:{" "}
+              ขายได้จริงรวม:{" "}
               <strong className="text-emerald-800 ml-1">
                 {totalActualQty.toLocaleString()}
               </strong>{" "}

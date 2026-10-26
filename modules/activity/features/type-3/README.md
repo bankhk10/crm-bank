@@ -276,6 +276,7 @@ Type 3 ได้รับการปรับปรุงเป็น Standalon
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-26** | 2.1.0 | 1) เปลี่ยน Dropdown เหตุผลที่ไม่สามารถปิดการขายได้เป็น `ActivitySelect` และแสดงช่องพิมพ์เหตุผลเพิ่มเติมเฉพาะกรณีเลือก "อื่นๆ" ทั้งใน `Type3ActualForm` และ `Type3UnplannedForm`<br>2) ลบช่อง "เป้าหมาย" ในกิจกรรมนอกแผน (`Type3UnplannedForm`) ให้บันทึกเฉพาะขายได้จริงหน้างาน<br>3) ยกเลิกการดึงราคาจาก Catalog สินค้ามาคำนวณอัตโนมัติในช่อง "ราคา/ลัง (บาท)" เพื่อให้ผู้ใช้สามารถระบุราคาเองได้ | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **Batch B Standardization**: ปรับปรุงโครงสร้างตารางเป็น Dedicated Tables (`activity_type_3_targets`, `activity_type_3_products`, `activity_type_3_result`), ผูก `targetId` กับผลการขาย, อัปเดตยอดสรุป `sales_result_amount` / `sales_orders_count`, และตัด Generic Dual-writes ไปยัง `activity_plan_stores` / `activity_plan_products` / `activity_result_sale_items` ออก 100% | Antigravity AI |
 | **2026-10-21** | 1.2.0 | ปรับปรุงระบบราคาและหน่วยนับ (Catalog Price Fallback), เพิ่ม Auto-sync ข้อมูลเริ่มต้นใน `Type3ActualForm` | Antigravity AI |
 | **2026-10-19** | 1.1.0 | พัฒนา Sub-slice `unplanned/` สำหรับกิจกรรมนอกแผน 2-in-1 และเชื่อมต่อ Server Actions | Antigravity AI |

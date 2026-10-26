@@ -17,7 +17,7 @@ export const type3UnplannedProductSchema = z.object({
   id: z.string().min(1),
   productId: z.string().optional(),
   productName: z.string().min(1, "กรุณาเลือกสินค้า"),
-  targetQuantity: z.coerce.number().positive("จำนวนเป้าหมายต้องมากกว่า 0"),
+  targetQuantity: z.coerce.number().optional().default(1),
   actualQuantity: z.coerce.number().min(0, "จำนวนที่ขายได้ต้องไม่ติดลบ"),
   unitPrice: z.coerce.number().min(0, "ราคาต่อหน่วยต้องไม่ติดลบ"),
   actualTotal: z.coerce.number().min(0),
@@ -129,14 +129,6 @@ export function validateType3UnplannedForm({
         };
       }
 
-      const targetQty = Number(prod.targetQuantity);
-      if (isNaN(targetQty) || targetQty <= 0) {
-        return {
-          isValid: false,
-          error: `จำนวนเป้าหมายต้องมากกว่า 0 (ร้านค้าที่ ${itemNum}${suffix})`,
-        };
-      }
-
       const actualQty = Number(prod.actualQuantity ?? 0);
       if (isNaN(actualQty) || actualQty < 0) {
         return {
@@ -145,7 +137,7 @@ export function validateType3UnplannedForm({
         };
       }
 
-      if (actualQty < targetQty && !prod.unclosedReason?.trim()) {
+      if (actualQty === 0 && !prod.unclosedReason?.trim()) {
         return {
           isValid: false,
           error: `กรุณาระบุเหตุผลที่ปิดการขายไม่ได้/ได้ไม่ครบสำหรับ ${prod.productName} (ร้านค้าที่ ${itemNum}${suffix})`,

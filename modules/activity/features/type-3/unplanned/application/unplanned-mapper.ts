@@ -317,8 +317,8 @@ export function mapType3UnplannedToPayload(
       }
 
       if (pId || pName) {
-        const targetQty = Number(p.targetQuantity) || 1;
         const actualQty = Number(p.actualQuantity) || 0;
+        const targetQty = Number(p.targetQuantity) || (actualQty > 0 ? actualQty : 1);
         const unitPrice = Number(p.unitPrice) || 0;
         const targetAmount = targetQty * unitPrice;
         const actualTotal = Number(p.actualTotal) || actualQty * unitPrice;

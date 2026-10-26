@@ -191,7 +191,7 @@ export function useType3PlannedForm({
             if (p.id !== prodId) return p;
             const updatedProd = { ...p, [field]: val };
 
-            // If productId or productName changes, try finding catalog price
+            // If productId or productName changes
             if (field === "productId" || field === "productName") {
               const matchedProd =
                 productItem ||
@@ -199,11 +199,6 @@ export function useType3PlannedForm({
               if (matchedProd) {
                 updatedProd.productId = matchedProd.id;
                 updatedProd.productName = matchedProd.name;
-                if (matchedProd.price != null) {
-                  updatedProd.unitPrice = Number(matchedProd.price);
-                  updatedProd.masterPrice = Number(matchedProd.price);
-                  updatedProd.isPriceOverridden = false;
-                }
               }
             }
 

@@ -19,10 +19,12 @@ import {
 import {
   ActivityInput,
   ActivityProductSelect,
+  ActivitySelect,
   type ActivityProductItem,
 } from "@/modules/activity/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Type3PlanCard } from "./type3-plan-card";
 import { NOT_CLOSED_REASONS } from "../../shared/constants";
 import type {
@@ -54,16 +56,9 @@ export function Type3ActualForm({
     return rawList.map((t) => {
       if (!t.items || t.items.length === 0) return t;
       const enrichedItems = t.items.map((item) => {
-        const catalogProd = products.find(
-          (p) => p.id === item.productId || p.name === item.productName,
-        );
         const qtyNum = Number(item.qty ?? 0) || 0;
         const rawUnit = Number(item.unitPrice ?? 0) || 0;
-        const catalogPrice =
-          (catalogProd as any)?.price != null
-            ? Number((catalogProd as any).price)
-            : 0;
-        const effectiveUnit = rawUnit > 0 ? rawUnit : catalogPrice;
+        const effectiveUnit = rawUnit;
         const rawSales = Number(item.targetSales ?? item.price ?? 0) || 0;
         const effectiveSales =
           qtyNum > 0 && effectiveUnit > 0 ? qtyNum * effectiveUnit : rawSales;
@@ -85,7 +80,7 @@ export function Type3ActualForm({
         items: enrichedItems,
       };
     });
-  }, [targets, target, products]);
+  }, [targets, target]);
 
   // Extract planned items from targets
   const initialPlannedItems: TargetProductItem[] = useMemo(() => {
@@ -155,10 +150,6 @@ export function Type3ActualForm({
           const catalogProd = products.find(
             (p) => p.id === item.productId || p.name === item.productName,
           );
-          const catalogPrice =
-            (catalogProd as any)?.price != null
-              ? Number((catalogProd as any).price)
-              : 0;
 
           const resolvedActualQty =
             saved?.actualQty !== undefined && saved?.actualQty !== ""
@@ -178,7 +169,7 @@ export function Type3ActualForm({
               ? rawSavedUnit
               : rawItemUnit > 0
                 ? rawItemUnit
-                : catalogPrice;
+                : 0;
           const rawSavedSales =
             saved?.actualSales ??
             (saved as any)?.actualTotal ??
@@ -262,7 +253,6 @@ export function Type3ActualForm({
         Number(
           item.unitPrice ??
             (item as any).actualUnitPrice ??
-            (catalogProd as any)?.price ??
             0,
         ) || 0;
       const aQty =
@@ -501,11 +491,6 @@ export function Type3ActualForm({
       if (found) {
         item.productId = found.id;
         item.productName = found.name;
-        if ((found as any).price != null) {
-          item.unitPrice = Number((found as any).price);
-          const q = Number(item.actualQty) || 1;
-          item.actualSales = String(q * Number((found as any).price));
-        }
       }
     }
 
@@ -686,12 +671,12 @@ export function Type3ActualForm({
                         <ActivityInput
                           type="number"
                           min={0}
-                          value={item.unitPrice ?? 0}
+                          value={item.unitPrice === 0 || item.unitPrice === "0" ? "" : (item.unitPrice ?? "")}
                           onChange={(e) =>
-                            updatePlannedItem(idx, "unitPrice", e.target.value)
+                            updatePlannedItem(idx, "unitPrice", e.target.value === "" ? 0 : parseFloat(e.target.value) || 0)
                           }
                           className="bg-white font-medium"
-                          placeholder="ราคา..."
+                          placeholder="0"
                         />
                       </div>
 
@@ -721,39 +706,64 @@ export function Type3ActualForm({
                           เหตุผลที่ไม่สามารถปิดการขายได้ / ปิดได้ไม่ครบตามเป้า{" "}
                           <span className="text-rose-500">*</span>
                         </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <select
-                            value={item.unclosedReason || ""}
-                            onChange={(e) =>
-                              updatePlannedItem(
-                                idx,
-                                "unclosedReason",
-                                e.target.value,
-                              )
-                            }
-                            className="h-9 px-3 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
-                          >
-                            <option value="">-- เลือกเหตุผลหลัก --</option>
-                            {NOT_CLOSED_REASONS.map((r) => (
-                              <option key={r} value={r}>
-                                {r}
-                              </option>
-                            ))}
-                          </select>
-                          <ActivityInput
-                            type="text"
-                            value={item.unclosedReason || ""}
-                            onChange={(e) =>
-                              updatePlannedItem(
-                                idx,
-                                "unclosedReason",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
-                            className="bg-white text-xs"
-                          />
-                        </div>
+                        {(() => {
+                          const STANDARD_REASONS = NOT_CLOSED_REASONS.filter(
+                            (r) => r !== "อื่นๆ",
+                          );
+                          const reasonVal = item.unclosedReason || "";
+                          const isStd = STANDARD_REASONS.includes(
+                            reasonVal as any,
+                          );
+                          const isOther =
+                            Boolean(reasonVal) &&
+                            (!isStd || reasonVal === "อื่นๆ");
+                          const selectVal = isStd
+                            ? reasonVal
+                            : isOther
+                              ? "อื่นๆ"
+                              : "";
+                          const customText = isStd
+                            ? ""
+                            : reasonVal === "อื่นๆ"
+                              ? ""
+                              : reasonVal;
+
+                          return (
+                            <div
+                              className={cn(
+                                "grid gap-2",
+                                isOther
+                                  ? "grid-cols-1 sm:grid-cols-2"
+                                  : "grid-cols-1",
+                              )}
+                            >
+                              <ActivitySelect
+                                value={selectVal}
+                                onChange={(val) =>
+                                  updatePlannedItem(idx, "unclosedReason", val)
+                                }
+                                options={[...NOT_CLOSED_REASONS]}
+                                placeholder="-- เลือกเหตุผลหลัก --"
+                              />
+                              {isOther && (
+                                <ActivityInput
+                                  type="text"
+                                  value={customText}
+                                  onChange={(e) =>
+                                    updatePlannedItem(
+                                      idx,
+                                      "unclosedReason",
+                                      e.target.value || "อื่นๆ",
+                                    )
+                                  }
+                                  placeholder="หรือพิมพ์ระบุเหตุผล/คู่แข่งเพิ่มเติม..."
+                                  className="bg-white text-xs"
+                                  autoFocus
+                                />
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
