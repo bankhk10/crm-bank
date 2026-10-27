@@ -31,9 +31,16 @@ export interface Type13PlotItem {
   subdistrict?: string | null;
   village?: string | null;
   plannedPlotsCount?: number | string | null;
+  actualPlotsCount?: number | string | null;
   latitude?: number | string | null;
   longitude?: number | string | null;
+  actualLatitude?: number | string | null;
+  actualLongitude?: number | string | null;
+  hasProductWithdrawal?: boolean;
+  withdrawnProducts?: Type13WithdrawnProductLine[];
   products?: Type13PlotProduct[];
+  result?: any;
+  results?: any[];
 }
 
 export type Type13TargetItem = Type13PlotItem;

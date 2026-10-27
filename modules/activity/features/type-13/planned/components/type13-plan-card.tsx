@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { Layers, MapPin } from "lucide-react";
+import { Layers, MapPin, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type13PlotItem } from "../../shared/types";
 import type { Type13PlanCardProps } from "../types/planned.types";
 
 export type { Type13PlanCardProps };
@@ -99,6 +98,30 @@ export function Type13PlanCard({
                 )}
               </div>
             )}
+
+            {plot.hasProductWithdrawal &&
+              plot.withdrawnProducts &&
+              plot.withdrawnProducts.length > 0 && (
+                <div className="pt-2 border-t border-slate-200/60 space-y-1">
+                  <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
+                    <PackageCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    สินค้าที่ขอเบิก ({plot.withdrawnProducts.length} รายการ):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {plot.withdrawnProducts.map((p, pIdx) => (
+                      <span
+                        key={p.id || pIdx}
+                        className="inline-flex items-center gap-1 text-[11px] bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700"
+                      >
+                        <span>{p.productName || "สินค้า"}</span>
+                        <span className="font-bold text-emerald-700">
+                          {p.quantity} {p.unit || "ขวด"}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
         ))}
       </div>

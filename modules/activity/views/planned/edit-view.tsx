@@ -136,6 +136,121 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             ? plan.helpers.map((h: any) => h.employeeId)
             : [];
 
+          const rawType13Targets = (plan as any).type13Targets || [];
+          const rawType13Products = (plan as any).type13Products || [];
+          const rawType13Results = (plan as any).type13Results || [];
+          const allT13Results =
+            rawType13Results.length > 0
+              ? rawType13Results
+              : rawType13Targets.flatMap((t: any) => t.results || []);
+          const allT13Attachments = [
+            ...allT13Results.flatMap((r: any) => r.attachments || []),
+            ...((plan.attachments || []).filter(
+              (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
+            )),
+          ];
+          const allT13Rounds = allT13Results.flatMap(
+            (r: any) => r.sprayRounds || [],
+          );
+
+          const mappedType13Plots = rawType13Targets.map(
+            (t: any, idx: number) => {
+              const plotProducts = t.products || [];
+              const targetResult =
+                (t.results && t.results[0]) ||
+                allT13Results.find((r: any) => r.targetId === t.id) ||
+                allT13Results[idx];
+              const hasWithdrawal =
+                t.hasProductWithdrawal !== undefined
+                  ? Boolean(t.hasProductWithdrawal)
+                  : plotProducts.length > 0;
+              const withdrawnList = (
+                t.withdrawnProducts || plotProducts
+              ).map((p: any, pIdx: number) => ({
+                id: p.id || `withdrawn-${idx}-${pIdx}`,
+                productId: p.productId || "",
+                productName: p.productName || p.product?.name || "",
+                quantity: p.quantity != null ? Number(p.quantity) : 1,
+                unit: p.unit || p.product?.unit || "ขวด",
+              }));
+
+              return {
+                id: t.id,
+                demoPlotId: t.id,
+                plotIndex: t.plotIndex || idx + 1,
+                name: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+                plotName: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+                storeId: t.storeId || t.store?.id || "",
+                dealerName: t.dealerName || t.store?.name || null,
+                ownerName: t.ownerName || "",
+                province: t.province || t.store?.province || "",
+                district: t.district || t.store?.district || "",
+                subdistrict: t.subdistrict || t.store?.subdistrict || "",
+                village: t.village || targetResult?.notes || "",
+                plannedPlotsCount:
+                  t.plannedPlotsCount != null ? t.plannedPlotsCount : "",
+                actualPlotsCount:
+                  targetResult?.actualPlotsCount != null
+                    ? targetResult.actualPlotsCount
+                    : "",
+                latitude:
+                  t.latitude != null && String(t.latitude).trim() !== ""
+                    ? String(t.latitude)
+                    : targetResult?.actualLatitude != null
+                      ? String(targetResult.actualLatitude)
+                      : "",
+                longitude:
+                  t.longitude != null && String(t.longitude).trim() !== ""
+                    ? String(t.longitude)
+                    : targetResult?.actualLongitude != null
+                      ? String(targetResult.actualLongitude)
+                      : "",
+                hasProductWithdrawal: hasWithdrawal,
+                withdrawnProducts: withdrawnList,
+                products: plotProducts,
+                result: targetResult || null,
+                results: t.results || (targetResult ? [targetResult] : []),
+              };
+            },
+          );
+
+          const type13Object =
+            (plan as any).type13 ||
+            (rawType13Targets.length > 0
+              ? {
+                  id: rawType13Targets[0]?.id || plan.id,
+                  activityPlanId: plan.id,
+                  hasProducts:
+                    rawType13Products.length > 0 ||
+                    mappedType13Plots.some((p: any) => p.hasProductWithdrawal),
+                  hasProductWithdrawal: mappedType13Plots.some(
+                    (p: any) => p.hasProductWithdrawal,
+                  ),
+                  notes: rawType13Targets[0]?.notes || plan.notes || "",
+                  plots: mappedType13Plots,
+                  products: rawType13Products,
+                  results: allT13Results,
+                }
+              : null);
+
+          const type13ActualData =
+            allT13Results.length > 0 ||
+            allT13Rounds.length > 0 ||
+            allT13Attachments.length > 0
+              ? {
+                  plots: allT13Results,
+                  type13PlotsActual: allT13Results.map((r: any) => ({
+                    demoPlotId: r.targetId || r.id,
+                    latitude: r.actualLatitude,
+                    longitude: r.actualLongitude,
+                    actualPlotsCount: r.actualPlotsCount,
+                  })),
+                  sprayRounds: allT13Rounds,
+                  attachments: allT13Attachments,
+                  totalPlots: allT13Results.length,
+                }
+              : (plan as any).type13Actual || null;
+
           setInitialData({
             ...plan,
             id: plan.id,
@@ -282,9 +397,16 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type10Data: (plan as any).type10 || null,
             type11: (plan as any).type11 || null,
             type11Data: (plan as any).type11 || null,
-            type13: (plan as any).type13 || null,
-            type13Data: (plan as any).type13 || null,
-            type13Plots: (plan as any).type13?.plots || [],
+            type13Targets: rawType13Targets,
+            type13Products: rawType13Products,
+            type13Results: allT13Results,
+            type13: type13Object,
+            type13Data: type13Object,
+            type13Plots:
+              mappedType13Plots.length > 0
+                ? mappedType13Plots
+                : (plan as any).type13?.plots || [],
+            type13Actual: type13ActualData,
             type14: (plan as any).type14 || null,
             type14Data: (plan as any).type14 || null,
             type14Plots: (plan as any).type14?.plots || [],

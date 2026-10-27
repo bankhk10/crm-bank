@@ -111,6 +111,7 @@ export async function createType13Data(
 
   const plots = type13Data.plots || [];
   let primaryTargetId: string | null = null;
+  const productsToInsert: any[] = [];
 
   if (plots.length > 0) {
     for (let i = 0; i < plots.length; i++) {
@@ -157,11 +158,44 @@ export async function createType13Data(
       if (i === 0) {
         primaryTargetId = createdTarget.id;
       }
+
+      const plotProducts = (
+        plotItem.products ||
+        (plotItem as any).withdrawnProducts ||
+        []
+      ).filter((p: any) => Boolean(p.productId));
+
+      for (let pIdx = 0; pIdx < plotProducts.length; pIdx++) {
+        const prod = plotProducts[pIdx];
+        productsToInsert.push({
+          targetId: createdTarget.id,
+          productId: prod.productId,
+          productName: prod.productName,
+          quantity: prod.quantity,
+          unit: prod.unit,
+          sortOrder: pIdx,
+        });
+      }
     }
   }
 
-  if (validProducts.length > 0) {
-    const pIds = validProducts.map((p) => p.productId);
+  // If no per-plot products were found, check top-level rawProducts (legacy fallback)
+  if (productsToInsert.length === 0 && validProducts.length > 0) {
+    for (let idx = 0; idx < validProducts.length; idx++) {
+      const p = validProducts[idx];
+      productsToInsert.push({
+        targetId: primaryTargetId,
+        productId: p.productId,
+        productName: p.productName,
+        quantity: p.quantity,
+        unit: p.unit,
+        sortOrder: idx,
+      });
+    }
+  }
+
+  if (productsToInsert.length > 0) {
+    const pIds = Array.from(new Set(productsToInsert.map((p) => p.productId)));
     const dbProds = await tx.product.findMany({
       where: { id: { in: pIds } },
       select: { id: true, name: true, unit: true },
@@ -169,11 +203,11 @@ export async function createType13Data(
     const pMap = new Map(dbProds.map((p) => [p.id, p]));
 
     await tx.activityPlanType13Product.createMany({
-      data: validProducts.map((p, idx) => {
+      data: productsToInsert.map((p) => {
         const dbP = pMap.get(p.productId);
         return {
           activityPlanId: planId,
-          targetId: primaryTargetId,
+          targetId: p.targetId,
           productId: p.productId,
           productName: p.productName || dbP?.name || null,
           quantity:
@@ -181,7 +215,7 @@ export async function createType13Data(
               ? new Prisma.Decimal(Number(p.quantity))
               : new Prisma.Decimal(1),
           unit: p.unit || dbP?.unit || null,
-          sortOrder: idx,
+          sortOrder: p.sortOrder,
         };
       }),
     });
@@ -230,6 +264,20 @@ export async function findType13ByPlanId(planId: string) {
             district: true,
           },
         },
+        products: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                productCode: true,
+                unit: true,
+                packageSizeUnit: true,
+              },
+            },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
       },
       orderBy: { plotIndex: "asc" },
     }),
@@ -272,12 +320,25 @@ export async function findType13ByPlanId(planId: string) {
     return null;
   }
 
+  const mappedPlots = targets.map((t) => ({
+    ...t,
+    hasProductWithdrawal: Boolean(t.products && t.products.length > 0),
+    withdrawnProducts: (t.products || []).map((p: any) => ({
+      id: p.id,
+      productId: p.productId,
+      productName: p.productName || p.product?.name,
+      quantity: Number(p.quantity),
+      unit: p.unit || p.product?.unit || "ขวด",
+    })),
+  }));
+
   return {
     id: targets[0]?.id || planId,
     activityPlanId: planId,
-    hasProducts: products.length > 0,
+    hasProducts:
+      products.length > 0 || mappedPlots.some((p) => p.hasProductWithdrawal),
     notes: targets[0]?.notes || null,
-    plots: targets,
+    plots: mappedPlots,
     products,
     results,
   };

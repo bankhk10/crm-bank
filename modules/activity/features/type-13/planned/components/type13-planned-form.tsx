@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect } from "react";
 import {
   Plus,
   Trash2,
   Layers,
   PackageCheck,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +20,6 @@ import {
 import type {
   Type13PlotItem,
   Type13WithdrawnProductLine,
-  DealerOption,
-  ProductOption,
 } from "../../shared/types";
 import type {
   Type13CreateProps,
@@ -39,34 +39,59 @@ export function Type13PlannedForm({
   withdrawnProducts,
   onWithdrawnProductsChange,
 }: Type13PlanFormProps) {
-  // Local state fallback if withdrawal props are unmanaged
-  const [internalHasWithdrawal, setInternalHasWithdrawal] = useState(false);
-  const [internalWithdrawnProducts, setInternalWithdrawnProducts] = useState<
-    Type13WithdrawnProductLine[]
-  >([]);
-
-  const isWithdrawalActive =
-    hasProductWithdrawal !== undefined
-      ? hasProductWithdrawal
-      : internalHasWithdrawal;
-  const currentWithdrawnProducts =
-    withdrawnProducts !== undefined
-      ? withdrawnProducts
-      : internalWithdrawnProducts;
-
-  // Handler: Toggle withdrawal
-  const handleToggleWithdrawal = (checked: boolean) => {
-    if (onToggleWithdrawal) {
-      onToggleWithdrawal(checked);
-    } else {
-      setInternalHasWithdrawal(checked);
-    }
-
+  // Sync legacy global products into plot 0 if plots don't have per-plot withdrawal yet
+  useEffect(() => {
     if (
-      checked &&
-      (!currentWithdrawnProducts || currentWithdrawnProducts.length === 0)
+      plots.length > 0 &&
+      hasProductWithdrawal &&
+      withdrawnProducts &&
+      withdrawnProducts.length > 0 &&
+      !plots.some((p) => p.hasProductWithdrawal)
     ) {
-      const initialRow: Type13WithdrawnProductLine[] = [
+      const updated = [...plots];
+      updated[0] = {
+        ...updated[0],
+        hasProductWithdrawal: true,
+        withdrawnProducts: withdrawnProducts,
+        products: withdrawnProducts,
+      };
+      onChange(updated);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Helper to sync combined withdrawal to parent if parent props are provided
+  const syncParentWithdrawal = (updatedPlots: Type13PlotItem[]) => {
+    const anyWithdrawal = updatedPlots.some((p) => p.hasProductWithdrawal);
+    const allWithdrawn = updatedPlots.flatMap((p) =>
+      p.hasProductWithdrawal ? p.withdrawnProducts || [] : [],
+    );
+    if (onToggleWithdrawal) {
+      onToggleWithdrawal(anyWithdrawal);
+    }
+    if (onWithdrawnProductsChange) {
+      onWithdrawnProductsChange(allWithdrawn);
+    }
+  };
+
+  // Handler: Toggle withdrawal per plot
+  const handleTogglePlotWithdrawal = (plotIdx: number, checked: boolean) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const plot = updated[plotIdx];
+    const currentList: Type13WithdrawnProductLine[] =
+      plot.withdrawnProducts ||
+      (plot.products || []).map((p, pIdx) => ({
+        id: p.id || `withdrawn-${plotIdx}-${pIdx}`,
+        productId: p.productId,
+        productName: p.productName || "",
+        quantity: Number(p.quantity) || 1,
+        unit: p.unit || "ขวด",
+      }));
+
+    let newList = currentList;
+    if (checked && currentList.length === 0) {
+      newList = [
         {
           id: Date.now().toString(),
           productId: "",
@@ -75,16 +100,26 @@ export function Type13PlannedForm({
           unit: "ขวด",
         },
       ];
-      if (onWithdrawnProductsChange) {
-        onWithdrawnProductsChange(initialRow);
-      } else {
-        setInternalWithdrawnProducts(initialRow);
-      }
     }
+
+    updated[plotIdx] = {
+      ...plot,
+      hasProductWithdrawal: checked,
+      withdrawnProducts: newList,
+      products: newList,
+    };
+
+    onChange(updated);
+    syncParentWithdrawal(updated);
   };
 
-  // Handler: Add withdrawn product row
-  const addWithdrawnProductRow = () => {
+  // Handler: Add withdrawn product row to a specific plot
+  const addPlotWithdrawnProductRow = (plotIdx: number) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const plot = updated[plotIdx];
+    const currentList = plot.withdrawnProducts || [];
+
     const newLine: Type13WithdrawnProductLine = {
       id: Date.now().toString(),
       productId: "",
@@ -92,22 +127,32 @@ export function Type13PlannedForm({
       quantity: 1,
       unit: "ขวด",
     };
-    const updated = [...currentWithdrawnProducts, newLine];
-    if (onWithdrawnProductsChange) {
-      onWithdrawnProductsChange(updated);
-    } else {
-      setInternalWithdrawnProducts(updated);
-    }
+
+    const updatedList = [...currentList, newLine];
+    updated[plotIdx] = {
+      ...plot,
+      withdrawnProducts: updatedList,
+      products: updatedList,
+    };
+
+    onChange(updated);
+    syncParentWithdrawal(updated);
   };
 
-  // Handler: Update withdrawn product row
-  const updateWithdrawnProductRow = (
+  // Handler: Update withdrawn product row for a specific plot
+  const updatePlotWithdrawnProductRow = (
+    plotIdx: number,
     rowId: string,
     field: keyof Type13WithdrawnProductLine,
     val: any,
     selectedProd?: any,
   ) => {
-    const updated = currentWithdrawnProducts.map((p) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const plot = updated[plotIdx];
+    const currentList = plot.withdrawnProducts || [];
+
+    const updatedList = currentList.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
         const matched = selectedProd || products.find((prod) => prod.id === val);
@@ -120,16 +165,25 @@ export function Type13PlannedForm({
       }
       return { ...p, [field]: val };
     });
-    if (onWithdrawnProductsChange) {
-      onWithdrawnProductsChange(updated);
-    } else {
-      setInternalWithdrawnProducts(updated);
-    }
+
+    updated[plotIdx] = {
+      ...plot,
+      withdrawnProducts: updatedList,
+      products: updatedList,
+    };
+
+    onChange(updated);
+    syncParentWithdrawal(updated);
   };
 
-  // Handler: Delete withdrawn product row
-  const deleteWithdrawnProductRow = (rowId: string) => {
-    if (currentWithdrawnProducts.length <= 1) {
+  // Handler: Delete withdrawn product row from a specific plot
+  const deletePlotWithdrawnProductRow = (plotIdx: number, rowId: string) => {
+    if (readonly) return;
+    const updated = [...plots];
+    const plot = updated[plotIdx];
+    const currentList = plot.withdrawnProducts || [];
+
+    if (currentList.length <= 1) {
       const reset: Type13WithdrawnProductLine[] = [
         {
           id: Date.now().toString(),
@@ -139,19 +193,25 @@ export function Type13PlannedForm({
           unit: "ขวด",
         },
       ];
-      if (onWithdrawnProductsChange) {
-        onWithdrawnProductsChange(reset);
-      } else {
-        setInternalWithdrawnProducts(reset);
-      }
+      updated[plotIdx] = {
+        ...plot,
+        withdrawnProducts: reset,
+        products: reset,
+      };
+      onChange(updated);
+      syncParentWithdrawal(updated);
       return;
     }
-    const updated = currentWithdrawnProducts.filter((p) => p.id !== rowId);
-    if (onWithdrawnProductsChange) {
-      onWithdrawnProductsChange(updated);
-    } else {
-      setInternalWithdrawnProducts(updated);
-    }
+
+    const updatedList = currentList.filter((p) => p.id !== rowId);
+    updated[plotIdx] = {
+      ...plot,
+      withdrawnProducts: updatedList,
+      products: updatedList,
+    };
+
+    onChange(updated);
+    syncParentWithdrawal(updated);
   };
 
   // Handler: Add new plot (max 10)
@@ -165,6 +225,8 @@ export function Type13PlannedForm({
       ownerName: "",
       province: "",
       district: "",
+      hasProductWithdrawal: false,
+      withdrawnProducts: [],
       products: [],
     };
     onChange([...plots, newPlot]);
@@ -175,6 +237,7 @@ export function Type13PlannedForm({
     if (plots.length <= 1 || readonly) return;
     const updated = plots.filter((_, idx) => idx !== index);
     onChange(updated);
+    syncParentWithdrawal(updated);
   };
 
   // Handler: Update plot field
@@ -228,7 +291,7 @@ export function Type13PlannedForm({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            ระบุรายละเอียดแปลงแฮตแทค และร้านค้า Dealer (สูงสุด 10 แปลง)
+            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกสินค้าในแต่ละแปลง (สูงสุด 10 แปลง)
           </p>
         </div>
 
@@ -359,6 +422,12 @@ export function Type13PlannedForm({
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold text-slate-700">
                       จำนวนแปลงที่ฉีดในหมู่บ้านนั้น (แปลง)
+                      {plot.actualPlotsCount != null &&
+                        plot.actualPlotsCount !== "" && (
+                          <span className="ml-2 text-emerald-600 font-bold">
+                            (ฉีดจริง: {plot.actualPlotsCount} แปลง)
+                          </span>
+                        )}
                     </label>
                     <ActivityInput
                       type="number"
@@ -368,7 +437,8 @@ export function Type13PlannedForm({
                       onChange={(e) => {
                         if (readonly) return;
                         const updated = [...plots];
-                        const val = e.target.value === "" ? "" : Number(e.target.value);
+                        const val =
+                          e.target.value === "" ? "" : Number(e.target.value);
                         updated[plotIdx] = {
                           ...updated[plotIdx],
                           plannedPlotsCount: val,
@@ -379,167 +449,193 @@ export function Type13PlannedForm({
                     />
                   </div>
                 </div>
+
+                {/* พิกัดแปลงจริง (GPS Coordinates) ถ้ามี */}
+                {(plot.latitude || plot.longitude) && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>
+                      พิกัดแปลง (GPS): {String(plot.latitude)},{" "}
+                      {String(plot.longitude)}
+                    </span>
+                    <a
+                      href={`https://maps.google.com/?q=${plot.latitude},${plot.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-600 hover:text-emerald-700 underline font-semibold ml-1 inline-flex items-center gap-0.5"
+                    >
+                      เปิดดูในแผนที่ <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+
+                {/* การเบิกสินค้าสำหรับแปลงนี้ (Product Withdrawal per Plot) */}
+                <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 space-y-3 mt-2">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        id={`type13-plot-withdrawal-${plotIdx}`}
+                        checked={!!plot.hasProductWithdrawal}
+                        onChange={(e) =>
+                          handleTogglePlotWithdrawal(plotIdx, e.target.checked)
+                        }
+                        disabled={readonly}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-all cursor-pointer"
+                      />
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <PackageCheck className="h-4 w-4 text-emerald-600" />
+                        มีการเบิกสินค้า (แปลงที่ {plotIdx + 1})
+                      </span>
+                    </label>
+                    {plot.hasProductWithdrawal && !readonly && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => addPlotWithdrawnProductRow(plotIdx)}
+                        className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1 transition-all"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>เพิ่มสินค้าที่เบิก</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {plot.hasProductWithdrawal && (
+                    <div className="space-y-2 pt-2 border-t border-slate-200/60">
+                      <p className="text-[11px] text-slate-500">
+                        ระบุรายการสินค้าและจำนวนที่ต้องการขอเบิกสำหรับแปลงที่ {plotIdx + 1}
+                      </p>
+                      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
+                            <tr>
+                              <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                                ลำดับ
+                              </th>
+                              <th className="py-2.5 px-3 font-semibold">
+                                รายการสินค้า <span className="text-red-500">*</span>
+                              </th>
+                              <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
+                                จำนวน <span className="text-red-500">*</span>
+                              </th>
+                              {!readonly && (
+                                <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                                  จัดการ
+                                </th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {(!plot.withdrawnProducts ||
+                              plot.withdrawnProducts.length === 0) ? (
+                              <tr>
+                                <td
+                                  colSpan={readonly ? 3 : 4}
+                                  className="py-6 text-center text-slate-400 text-xs"
+                                >
+                                  ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
+                                </td>
+                              </tr>
+                            ) : (
+                              plot.withdrawnProducts.map((pLine, pIdx) => (
+                                <tr
+                                  key={pLine.id || pIdx}
+                                  className="hover:bg-slate-50/50 transition-colors"
+                                >
+                                  {/* ลำดับ */}
+                                  <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
+                                    {pIdx + 1}
+                                  </td>
+
+                                  {/* เลือกสินค้า */}
+                                  <td className="py-2 px-3 align-middle">
+                                    <ActivityProductSelect
+                                      id={`type13-withdrawn-prod-${plotIdx}-${pLine.id}`}
+                                      value={pLine.productId || ""}
+                                      valueKey="id"
+                                      onChange={(val, selectedProd) =>
+                                        updatePlotWithdrawnProductRow(
+                                          plotIdx,
+                                          pLine.id,
+                                          "productId",
+                                          val,
+                                          selectedProd,
+                                        )
+                                      }
+                                      products={products as any}
+                                      placeholder="เลือกสินค้าที่ต้องการเบิก..."
+                                      searchPlaceholder="ค้นหาสินค้า..."
+                                      emptyText="ไม่พบสินค้า"
+                                      disabled={readonly}
+                                    />
+                                  </td>
+
+                                  {/* จำนวนและหน่วย */}
+                                  <td className="py-2 px-3 align-middle">
+                                    <div className="flex items-center gap-1.5 justify-center">
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        value={pLine.quantity ?? ""}
+                                        onChange={(e) => {
+                                          const val = Math.max(
+                                            1,
+                                            parseInt(e.target.value) || 1,
+                                          );
+                                          updatePlotWithdrawnProductRow(
+                                            plotIdx,
+                                            pLine.id,
+                                            "quantity",
+                                            val,
+                                          );
+                                        }}
+                                        disabled={readonly}
+                                        placeholder="จำนวน"
+                                        className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={pLine.unit || ""}
+                                        readOnly
+                                        disabled={true}
+                                        placeholder="หน่วย"
+                                        className="w-16 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center bg-slate-50 cursor-not-allowed"
+                                      />
+                                    </div>
+                                  </td>
+
+                                  {/* จัดการ */}
+                                  {!readonly && (
+                                    <td className="py-2 px-3 text-center align-middle">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          deletePlotWithdrawnProductRow(
+                                            plotIdx,
+                                            pLine.id,
+                                          )
+                                        }
+                                        className="p-1 text-slate-400 hover:text-red-500 transition-colors inline-flex items-center justify-center rounded"
+                                        title="ลบแถวสินค้านี้"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </td>
+                                  )}
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* การเบิกสินค้าสำหรับรอบฉีดแปลงแฮตแทค (TYPE_13 Product Withdrawal) */}
-      <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              id="type13-has-withdrawal"
-              checked={!!isWithdrawalActive}
-              onChange={(e) => handleToggleWithdrawal(e.target.checked)}
-              disabled={readonly}
-              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-all cursor-pointer"
-            />
-            <span className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
-              <PackageCheck className="h-4 w-4 text-emerald-600" />
-              มีการเบิกสินค้า
-            </span>
-          </label>
-          {isWithdrawalActive && !readonly && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={addWithdrawnProductRow}
-              className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1 transition-all"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>เพิ่มสินค้าที่เบิก</span>
-            </Button>
-          )}
-        </div>
-
-        {isWithdrawalActive && (
-          <div className="space-y-2 pt-2 border-t border-slate-200/60">
-            <p className="text-[11px] text-slate-500">
-              ระบุรายการสินค้าและจำนวนที่ต้องการขอเบิกสำหรับงานฉีดแปลงแฮตแทคครั้งนี้
-            </p>
-            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                  <tr>
-                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
-                      ลำดับ
-                    </th>
-                    <th className="py-2.5 px-3 font-semibold">
-                      รายการสินค้า <span className="text-red-500">*</span>
-                    </th>
-                    <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
-                      จำนวน <span className="text-red-500">*</span>
-                    </th>
-                    {!readonly && (
-                      <th className="py-2.5 px-3 w-12 text-center font-semibold">
-                        จัดการ
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {currentWithdrawnProducts.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={readonly ? 3 : 4}
-                        className="py-6 text-center text-slate-400 text-xs"
-                      >
-                        ยังไม่มีรายการสินค้า กดปุ่ม
-                        &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
-                      </td>
-                    </tr>
-                  ) : (
-                    currentWithdrawnProducts.map((pLine, idx) => (
-                      <tr
-                        key={pLine.id}
-                        className="hover:bg-slate-50/50 transition-colors"
-                      >
-                        {/* ลำดับ */}
-                        <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
-                          {idx + 1}
-                        </td>
-
-                        {/* เลือกสินค้า */}
-                        <td className="py-2 px-3 align-middle">
-                          <ActivityProductSelect
-                            id={`type13-withdrawn-prod-${pLine.id}`}
-                            value={pLine.productId || ""}
-                            valueKey="id"
-                            onChange={(val, selectedProd) =>
-                              updateWithdrawnProductRow(
-                                pLine.id,
-                                "productId",
-                                val,
-                                selectedProd,
-                              )
-                            }
-                            products={products as any}
-                            placeholder="เลือกสินค้าที่ต้องการเบิก..."
-                            searchPlaceholder="ค้นหาสินค้า..."
-                            emptyText="ไม่พบสินค้า"
-                            disabled={readonly}
-                          />
-                        </td>
-
-                        {/* จำนวนและหน่วย */}
-                        <td className="py-2 px-3 align-middle">
-                          <div className="flex items-center gap-1.5 justify-center">
-                            <input
-                              type="number"
-                              min={1}
-                              value={pLine.quantity ?? ""}
-                              onChange={(e) => {
-                                const val = Math.max(
-                                  1,
-                                  parseInt(e.target.value) || 1,
-                                );
-                                updateWithdrawnProductRow(
-                                  pLine.id,
-                                  "quantity",
-                                  val,
-                                );
-                              }}
-                              disabled={readonly}
-                              placeholder="จำนวน"
-                              className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
-                            />
-                            <input
-                              type="text"
-                              value={pLine.unit || ""}
-                              readOnly
-                              disabled={true}
-                              placeholder="หน่วย"
-                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center bg-slate-50 cursor-not-allowed"
-                            />
-                          </div>
-                        </td>
-
-                        {/* จัดการ */}
-                        {!readonly && (
-                          <td className="py-2 px-3 text-center align-middle">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                deleteWithdrawnProductRow(pLine.id)
-                              }
-                              className="p-1 text-slate-400 hover:text-red-500 transition-colors inline-flex items-center justify-center rounded"
-                              title="ลบแถวสินค้านี้"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

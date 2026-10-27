@@ -85,6 +85,7 @@ import {
   Type13PlannedForm,
   useType13PlannedForm,
   hydrateType13PlannedData,
+  Type13DetailView,
 } from "@/modules/activity/features/type-13";
 import {
   Type14PlannedForm,
@@ -570,6 +571,46 @@ export function PlannedActivityForm({
     initial: initialData,
     selectedWorkTypes,
   });
+
+  // Type 13 Actual Outcome Data (if recorded)
+  const type13ActualData = useMemo(() => {
+    if (initialData?.type13Actual) return initialData.type13Actual;
+    const t13Results =
+      initialData?.type13Results ||
+      (initialData as any)?.type13?.results ||
+      [];
+    if (t13Results.length > 0) {
+      const allRounds = t13Results.flatMap((r: any) => r.sprayRounds || []);
+      const allAtts = [
+        ...t13Results.flatMap((r: any) => r.attachments || []),
+        ...((initialData?.attachments || []).filter(
+          (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
+        )),
+      ];
+      return {
+        plots: t13Results,
+        type13PlotsActual: t13Results.map((r: any) => ({
+          demoPlotId: r.targetId || r.id,
+          latitude: r.actualLatitude,
+          longitude: r.actualLongitude,
+          actualPlotsCount: r.actualPlotsCount,
+        })),
+        sprayRounds: allRounds,
+        attachments: allAtts,
+        totalPlots: t13Results.length,
+      };
+    }
+    return null;
+  }, [initialData]);
+
+  const hasType13ActualResults = Boolean(
+    type13ActualData &&
+      (type13ActualData.sprayRounds?.length > 0 ||
+        type13ActualData.attachments?.length > 0 ||
+        type13ActualData.type13PlotsActual?.some(
+          (p: any) => p.latitude || p.actualPlotsCount,
+        )),
+  );
 
   // 5.14 Type 14 Planned Hook
   const type14 = useType14PlannedForm({
@@ -1441,17 +1482,28 @@ export function PlannedActivityForm({
 
       {/* 3.14 ส่วนเฉพาะ Type 13: ฉีดแปลงแฮตแทค */}
       {isType13Active && (
-        <Type13PlannedForm
-          plots={type13.type13Plots}
-          onChange={type13.setType13Plots}
-          dealers={customers as any}
-          products={products as any}
-          readonly={readonly}
-          hasProductWithdrawal={type13.hasProductWithdrawal}
-          onToggleWithdrawal={type13.setHasProductWithdrawal}
-          withdrawnProducts={type13.withdrawnProducts}
-          onWithdrawnProductsChange={type13.setWithdrawnProducts}
-        />
+        <div className="space-y-6">
+          <Type13PlannedForm
+            plots={type13.type13Plots}
+            onChange={type13.setType13Plots}
+            dealers={customers as any}
+            products={products as any}
+            readonly={readonly}
+            hasProductWithdrawal={type13.hasProductWithdrawal}
+            onToggleWithdrawal={type13.setHasProductWithdrawal}
+            withdrawnProducts={type13.withdrawnProducts}
+            onWithdrawnProductsChange={type13.setWithdrawnProducts}
+          />
+
+          {hasType13ActualResults && (
+            <Type13DetailView
+              isVisible={true}
+              plots={type13.type13Plots}
+              actualData={type13ActualData}
+              planSummary={initialData}
+            />
+          )}
+        </div>
       )}
 
       {/* 3.15 ส่วนเฉพาะ Type 14: ติดตามแปลงแฮตแทค */}

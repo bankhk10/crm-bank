@@ -346,13 +346,46 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     }
 
     // Type 13 Hattack Spraying Results
-    if (resData.type13Actual) {
+    const rawT13Results: any[] =
+      Array.isArray(resData.type13Results)
+        ? resData.type13Results
+        : Array.isArray(resData.activityPlan?.type13Results)
+          ? resData.activityPlan.type13Results
+          : [];
+
+    if (rawT13Results.length > 0) {
+      const allRounds = rawT13Results.flatMap((r: any) => r.sprayRounds || []);
+      const allAtts = [
+        ...rawT13Results.flatMap((r: any) => r.attachments || []),
+        ...((resData.attachments || resData.activityPlan?.attachments || []).filter(
+          (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
+        )),
+      ];
+      result.type13Actual = {
+        plots: rawT13Results,
+        type13PlotsActual: rawT13Results.map((r: any) => ({
+          demoPlotId: r.targetId || r.id,
+          latitude: r.actualLatitude,
+          longitude: r.actualLongitude,
+          actualPlotsCount: r.actualPlotsCount,
+        })),
+        sprayRounds: allRounds,
+        attachments: allAtts,
+        totalPlots: rawT13Results.length,
+      };
+      result.t13Plots = rawT13Results;
+      result.t13SprayRounds = allRounds;
+      result.t13Images = allAtts;
+    } else if (resData.type13Actual) {
       result.type13Actual = resData.type13Actual;
       if (resData.type13Actual.plots) {
         result.t13Plots = resData.type13Actual.plots;
       }
       if (resData.type13Actual.sprayRounds) {
         result.t13SprayRounds = resData.type13Actual.sprayRounds;
+      }
+      if (resData.type13Actual.attachments) {
+        result.t13Images = resData.type13Actual.attachments;
       }
     }
 

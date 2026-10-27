@@ -83,6 +83,7 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
           (p as any).result ||
           (p as any).type1Result ||
           ((p as any).type1Results && (p as any).type1Results.length > 0) ||
+          ((p as any).type13Results && (p as any).type13Results.length > 0) ||
           p.planType === "UNPLANNED"
         ) {
           const parsed = parseResultSummary({

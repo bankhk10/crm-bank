@@ -14,10 +14,23 @@ export function parseType13ActualResult(
 
   if (planPayload?.type13Results && Array.isArray(planPayload.type13Results) && planPayload.type13Results.length > 0) {
     const allRounds = planPayload.type13Results.flatMap((r: any) => r.sprayRounds || []);
+    const allAtts = [
+      ...planPayload.type13Results.flatMap((r: any) => r.attachments || []),
+      ...((planPayload.attachments || []).filter(
+        (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
+      )),
+    ];
     return {
       type13Actual: {
         plots: planPayload.type13Results,
+        type13PlotsActual: planPayload.type13Results.map((r: any) => ({
+          demoPlotId: r.targetId || r.id,
+          latitude: r.actualLatitude,
+          longitude: r.actualLongitude,
+          actualPlotsCount: r.actualPlotsCount,
+        })),
         sprayRounds: allRounds,
+        attachments: allAtts,
         totalPlots: planPayload.type13Results.length,
       },
       plotCount: planPayload.type13Results.length,

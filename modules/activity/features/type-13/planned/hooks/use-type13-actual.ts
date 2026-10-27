@@ -70,12 +70,14 @@ export function useType13Actual() {
 
     let basePlots: Type13PlotActualState[] = [];
 
-    if (
-      plan.type13?.plots &&
-      Array.isArray(plan.type13.plots) &&
-      plan.type13.plots.length > 0
-    ) {
-      basePlots = plan.type13.plots.map((p: any, idx: number) => {
+    const rawPlots =
+      (plan.type13?.plots && Array.isArray(plan.type13.plots) && plan.type13.plots.length > 0 && plan.type13.plots) ||
+      (plan.type13Plots && Array.isArray(plan.type13Plots) && plan.type13Plots.length > 0 && plan.type13Plots) ||
+      (plan.type13Targets && Array.isArray(plan.type13Targets) && plan.type13Targets.length > 0 && plan.type13Targets) ||
+      null;
+
+    if (rawPlots) {
+      basePlots = rawPlots.map((p: any, idx: number) => {
         const plotId = p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`;
         const plotName =
           p.plotName || p.name || p.demoPlot?.name || `แปลงที่ ${idx + 1}`;
@@ -84,6 +86,13 @@ export function useType13Actual() {
           p.demoPlot?.customer ||
           (p.storeId && plan.stores?.find((s: any) => s.storeId === p.storeId)?.store) ||
           (p.demoPlot?.customerId && plan.stores?.find((s: any) => s.storeId === p.demoPlot.customerId)?.store);
+
+        const targetResult =
+          (p.results && p.results[0]) ||
+          (Array.isArray(plan.type13Results) &&
+            plan.type13Results.find((r: any) => r.targetId === p.id)) ||
+          (Array.isArray(plan.type13Results) && plan.type13Results[idx]) ||
+          p.result;
 
         return {
           demoPlotId: plotId,
@@ -109,25 +118,30 @@ export function useType13Actual() {
             matchedStore?.district ||
             undefined,
           subdistrict: p.subdistrict || undefined,
-          village: p.village || undefined,
+          village: p.village || targetResult?.notes || undefined,
           plannedPlotsCount: p.plannedPlotsCount ?? undefined,
-          actualPlotsCount: p.actualPlotsCount ?? undefined,
+          actualPlotsCount: targetResult?.actualPlotsCount ?? p.actualPlotsCount ?? undefined,
           applicationRate: p.applicationRate || undefined,
           latitude:
-            p.latitude != null
-              ? String(p.latitude)
-              : p.demoPlot?.latitude != null
-                ? String(p.demoPlot.latitude)
-                : "",
+            targetResult?.actualLatitude != null
+              ? String(targetResult.actualLatitude)
+              : p.latitude != null
+                ? String(p.latitude)
+                : p.demoPlot?.latitude != null
+                  ? String(p.demoPlot.latitude)
+                  : "",
           longitude:
-            p.longitude != null
-              ? String(p.longitude)
-              : p.demoPlot?.longitude != null
-                ? String(p.demoPlot.longitude)
-                : "",
+            targetResult?.actualLongitude != null
+              ? String(targetResult.actualLongitude)
+              : p.longitude != null
+                ? String(p.longitude)
+                : p.demoPlot?.longitude != null
+                  ? String(p.demoPlot.longitude)
+                  : "",
           isNew: false,
           afterSprayImages: [],
           sprayRounds: [],
+          products: p.products || [],
         };
       });
     } else if (uniqueHattackVisits.length > 0) {
@@ -160,12 +174,16 @@ export function useType13Actual() {
 
     // Hydrate existing actual results if present
     const existingSprayRounds: any[] =
+      (plan.type13Results && plan.type13Results.flatMap((r: any) => r.sprayRounds || [])) ||
+      (plan.type13Actual && plan.type13Actual.sprayRounds) ||
       plan.result?.sprayRounds ||
       parsedResult?.sprayRounds ||
       parsedResult?.type13Actual?.sprayRounds ||
       [];
 
     const existingAttachments: any[] =
+      (plan.type13Results && plan.type13Results.flatMap((r: any) => r.attachments || [])) ||
+      (plan.type13Actual && plan.type13Actual.attachments) ||
       plan.attachments ||
       plan.result?.attachments ||
       [];

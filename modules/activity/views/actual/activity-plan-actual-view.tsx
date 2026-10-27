@@ -295,6 +295,9 @@ export function ActivityPlanActualView({
           type7aProducts: plan.type7aProducts || (res as any)?.type7aProducts,
           type7aResults: plan.type7aResults || (res as any)?.type7aResults,
           type7aPlots: plan.type7aPlots || (res as any)?.type7aPlots,
+          type13Targets: plan.type13Targets || (res as any)?.type13Targets,
+          type13Products: plan.type13Products || (res as any)?.type13Products,
+          type13Results: plan.type13Results || (res as any)?.type13Results,
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0

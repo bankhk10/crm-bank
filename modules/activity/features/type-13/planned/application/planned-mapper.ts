@@ -16,22 +16,64 @@ export function extractType13PlanTargets(
       .map((v: any) => v.demoPlot)
       .filter(Boolean);
 
-  const mappedList: Type13PlotItem[] = plots.map((p, idx) => ({
-    id: p.id || `plot-${idx + 1}`,
-    demoPlotId: p.demoPlotId || p.id || null,
-    name: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
-    storeId: p.storeId || p.customerId || "",
-    dealerName: p.dealerName || p.store?.name || p.customer?.name || null,
-    ownerName: p.ownerName || p.customer?.name || null,
-    province: p.province || p.store?.province || "",
-    district: p.district || p.store?.district || "",
-    subdistrict: p.subdistrict || p.store?.subdistrict || null,
-    village: p.village || null,
-    plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : null,
-    latitude: p.latitude != null ? String(p.latitude) : null,
-    longitude: p.longitude != null ? String(p.longitude) : null,
-    products: p.products || [],
-  }));
+  const t13Results: any[] = plan?.type13Results || [];
+
+  const mappedList: Type13PlotItem[] = plots.map((p, idx) => {
+    const plotProducts = p.products || [];
+    const targetResult =
+      (p.results && p.results[0]) ||
+      t13Results.find((r: any) => r.targetId === p.id) ||
+      t13Results[idx] ||
+      p.result;
+    const hasWithdrawal =
+      p.hasProductWithdrawal !== undefined
+        ? Boolean(p.hasProductWithdrawal)
+        : plotProducts.length > 0;
+    const withdrawnList = (p.withdrawnProducts || plotProducts).map(
+      (prod: any, prodIdx: number) => ({
+        id: prod.id || `withdrawn-${idx}-${prodIdx}`,
+        productId: prod.productId || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity: prod.quantity != null ? Number(prod.quantity) : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }),
+    );
+
+    return {
+      id: p.id || `plot-${idx + 1}`,
+      demoPlotId: p.demoPlotId || p.id || null,
+      name: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
+      storeId: p.storeId || p.customerId || "",
+      dealerName: p.dealerName || p.store?.name || p.customer?.name || null,
+      ownerName: p.ownerName || p.customer?.name || null,
+      province: p.province || p.store?.province || "",
+      district: p.district || p.store?.district || "",
+      subdistrict: p.subdistrict || p.store?.subdistrict || null,
+      village: p.village || targetResult?.notes || null,
+      plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : null,
+      actualPlotsCount:
+        targetResult?.actualPlotsCount != null
+          ? targetResult.actualPlotsCount
+          : p.actualPlotsCount != null
+            ? p.actualPlotsCount
+            : null,
+      latitude:
+        p.latitude != null && String(p.latitude).trim() !== ""
+          ? String(p.latitude)
+          : targetResult?.actualLatitude != null
+            ? String(targetResult.actualLatitude)
+            : null,
+      longitude:
+        p.longitude != null && String(p.longitude).trim() !== ""
+          ? String(p.longitude)
+          : targetResult?.actualLongitude != null
+            ? String(targetResult.actualLongitude)
+            : null,
+      hasProductWithdrawal: hasWithdrawal,
+      withdrawnProducts: withdrawnList,
+      products: plotProducts,
+    };
+  });
 
   const primary: Type13PlotItem = mappedList[0] || {
     id: prevTarget?.id || "plot-1",

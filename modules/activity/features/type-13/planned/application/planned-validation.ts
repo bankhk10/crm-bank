@@ -62,9 +62,36 @@ export function validateType13FormValues({
         error: `กรุณาเลือกอำเภอสำหรับ ${plotLabel}`,
       };
     }
+
+    if (plot.hasProductWithdrawal) {
+      const prods = plot.withdrawnProducts || [];
+      if (prods.length === 0) {
+        return {
+          isValid: false,
+          error: `กรุณาเพิ่มรายการสินค้าที่ต้องการเบิกอย่างน้อย 1 รายการ สำหรับ${plotLabel}`,
+        };
+      }
+
+      for (let j = 0; j < prods.length; j++) {
+        const p = prods[j];
+        if (!p.productId?.trim()) {
+          return {
+            isValid: false,
+            error: `กรุณาเลือกสินค้าสำหรับรายการที่ ${j + 1} (${plotLabel})`,
+          };
+        }
+        if (!p.quantity || Number(p.quantity) <= 0) {
+          return {
+            isValid: false,
+            error: `กรุณาระบุจำนวนสินค้าที่มากกว่า 0 สำหรับรายการที่ ${j + 1} (${plotLabel})`,
+          };
+        }
+      }
+    }
   }
 
-  if (hasProductWithdrawal) {
+  const anyPlotWithdrawal = type13Plots.some((p) => p.hasProductWithdrawal);
+  if (!anyPlotWithdrawal && hasProductWithdrawal) {
     const prods = withdrawnProducts || [];
     if (prods.length === 0) {
       return {

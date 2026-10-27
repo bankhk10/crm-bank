@@ -122,7 +122,12 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
           activityPlanId,
           targetId: matchedTarget?.id || null,
           plotName: plot.name || plot.plotName || matchedTarget?.plotName || `แปลงแฮตแทค ${plotIndex}`,
-          actualPlotsCount: Array.isArray(plot.sprayRounds) ? plot.sprayRounds.length : 1,
+          actualPlotsCount:
+            plot.actualPlotsCount != null && String(plot.actualPlotsCount).trim() !== ""
+              ? Number(plot.actualPlotsCount)
+              : Array.isArray(plot.sprayRounds)
+                ? plot.sprayRounds.length
+                : 1,
           actualLatitude:
             plot.latitude != null && String(plot.latitude).trim() !== ""
               ? new Prisma.Decimal(Number(plot.latitude))
@@ -135,14 +140,17 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         },
       });
 
-      // Update Type 13 Target coordinates if available
-      if (matchedTarget?.id && (plot.latitude || plot.longitude)) {
+      // Update Type 13 Target coordinates / village if available
+      if (matchedTarget?.id && (plot.latitude || plot.longitude || plot.village)) {
         const updatePlotData: any = {};
         if (plot.latitude != null && String(plot.latitude).trim() !== "") {
           updatePlotData.latitude = new Prisma.Decimal(Number(plot.latitude));
         }
         if (plot.longitude != null && String(plot.longitude).trim() !== "") {
           updatePlotData.longitude = new Prisma.Decimal(Number(plot.longitude));
+        }
+        if (plot.village != null && String(plot.village).trim() !== "") {
+          updatePlotData.village = String(plot.village).trim();
         }
         await tx.activityPlanType13Target.update({
           where: { id: matchedTarget.id },

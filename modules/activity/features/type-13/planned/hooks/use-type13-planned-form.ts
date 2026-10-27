@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type {
   Type13PlotItem,
   Type13WithdrawnProductLine,
@@ -56,53 +56,173 @@ export interface UseType13PlannedFormResult {
 export type UseType13FormResult = UseType13PlannedFormResult;
 
 function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
+  let plots: Type13PlotItem[] = [];
+
   if (
     initial?.type13?.plots &&
     Array.isArray(initial.type13.plots) &&
     initial.type13.plots.length > 0
   ) {
-    return initial.type13.plots.map((p: any, idx: number) => ({
-      id: p.id || `plot-${idx + 1}`,
-      demoPlotId: p.demoPlotId || p.demoPlot?.id || null,
-      name: p.plotName || p.name || "",
-      storeId: p.storeId || p.store?.id || "",
-      dealerName: p.dealerName || p.store?.name || null,
-      ownerName: p.ownerName || "",
-      province: p.province || p.store?.province || "",
-      district: p.district || p.store?.district || "",
-      subdistrict: p.subdistrict || p.store?.subdistrict || "",
-      village: p.village || "",
-      plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
-      latitude: p.latitude != null ? String(p.latitude) : "",
-      longitude: p.longitude != null ? String(p.longitude) : "",
-      products: [],
-    }));
-  }
+    plots = initial.type13.plots.map((p: any, idx: number) => {
+      const plotProducts = p.products || [];
+      const hasWithdrawal =
+        p.hasProductWithdrawal !== undefined
+          ? Boolean(p.hasProductWithdrawal)
+          : plotProducts.length > 0;
+      const withdrawnList: Type13WithdrawnProductLine[] = (
+        p.withdrawnProducts || plotProducts
+      ).map((prod: any, prodIdx: number) => ({
+        id: prod.id || `withdrawn-${idx}-${prodIdx}`,
+        productId: prod.productId || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity: prod.quantity != null ? Number(prod.quantity) : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }));
 
-  if (
+      return {
+        id: p.id || `plot-${idx + 1}`,
+        demoPlotId: p.demoPlotId || p.demoPlot?.id || null,
+        name: p.plotName || p.name || "",
+        storeId: p.storeId || p.store?.id || "",
+        dealerName: p.dealerName || p.store?.name || null,
+        ownerName: p.ownerName || "",
+        province: p.province || p.store?.province || "",
+        district: p.district || p.store?.district || "",
+        subdistrict: p.subdistrict || p.store?.subdistrict || "",
+        village: p.village || "",
+        plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
+        actualPlotsCount:
+          p.actualPlotsCount != null
+            ? p.actualPlotsCount
+            : p.result?.actualPlotsCount != null
+              ? p.result.actualPlotsCount
+              : Array.isArray(p.results) && p.results[0]?.actualPlotsCount != null
+                ? p.results[0].actualPlotsCount
+                : "",
+        latitude: p.latitude != null ? String(p.latitude) : "",
+        longitude: p.longitude != null ? String(p.longitude) : "",
+        hasProductWithdrawal: hasWithdrawal,
+        withdrawnProducts: withdrawnList,
+        products: plotProducts,
+        result: p.result || (Array.isArray(p.results) ? p.results[0] : null) || null,
+        results: p.results || (p.result ? [p.result] : []),
+      };
+    });
+  } else if (
     initial?.type13Plots &&
     Array.isArray(initial.type13Plots) &&
     initial.type13Plots.length > 0
   ) {
-    return initial.type13Plots.map((p: any, idx: number) => ({
-      id: p.id || `plot-${idx + 1}`,
-      demoPlotId: p.demoPlotId || null,
-      name: p.plotName || p.name || "",
-      storeId: p.storeId || "",
-      dealerName: p.dealerName || null,
-      ownerName: p.ownerName || "",
-      province: p.province || "",
-      district: p.district || "",
-      subdistrict: p.subdistrict || "",
-      village: p.village || "",
-      plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
-      latitude: p.latitude != null ? String(p.latitude) : "",
-      longitude: p.longitude != null ? String(p.longitude) : "",
-      products: p.products || [],
-    }));
-  }
+    plots = initial.type13Plots.map((p: any, idx: number) => {
+      const plotProducts = p.products || [];
+      const hasWithdrawal =
+        p.hasProductWithdrawal !== undefined
+          ? Boolean(p.hasProductWithdrawal)
+          : plotProducts.length > 0;
+      const withdrawnList: Type13WithdrawnProductLine[] = (
+        p.withdrawnProducts || plotProducts
+      ).map((prod: any, prodIdx: number) => ({
+        id: prod.id || `withdrawn-${idx}-${prodIdx}`,
+        productId: prod.productId || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity: prod.quantity != null ? Number(prod.quantity) : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }));
 
-  if (
+      return {
+        id: p.id || `plot-${idx + 1}`,
+        demoPlotId: p.demoPlotId || null,
+        name: p.plotName || p.name || "",
+        storeId: p.storeId || "",
+        dealerName: p.dealerName || null,
+        ownerName: p.ownerName || "",
+        province: p.province || "",
+        district: p.district || "",
+        subdistrict: p.subdistrict || "",
+        village: p.village || "",
+        plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
+        actualPlotsCount:
+          p.actualPlotsCount != null
+            ? p.actualPlotsCount
+            : p.result?.actualPlotsCount != null
+              ? p.result.actualPlotsCount
+              : Array.isArray(p.results) && p.results[0]?.actualPlotsCount != null
+                ? p.results[0].actualPlotsCount
+                : "",
+        latitude: p.latitude != null ? String(p.latitude) : "",
+        longitude: p.longitude != null ? String(p.longitude) : "",
+        hasProductWithdrawal: hasWithdrawal,
+        withdrawnProducts: withdrawnList,
+        products: plotProducts,
+        result: p.result || (Array.isArray(p.results) ? p.results[0] : null) || null,
+        results: p.results || (p.result ? [p.result] : []),
+      };
+    });
+  } else if (
+    initial?.type13Targets &&
+    Array.isArray(initial.type13Targets) &&
+    initial.type13Targets.length > 0
+  ) {
+    plots = initial.type13Targets.map((t: any, idx: number) => {
+      const plotProducts = t.products || [];
+      const targetResult =
+        (t.results && t.results[0]) ||
+        (Array.isArray(initial.type13Results) &&
+          initial.type13Results.find((r: any) => r.targetId === t.id)) ||
+        (Array.isArray(initial.type13Results) && initial.type13Results[idx]);
+      const hasWithdrawal =
+        t.hasProductWithdrawal !== undefined
+          ? Boolean(t.hasProductWithdrawal)
+          : plotProducts.length > 0;
+      const withdrawnList: Type13WithdrawnProductLine[] = (
+        t.withdrawnProducts || plotProducts
+      ).map((prod: any, prodIdx: number) => ({
+        id: prod.id || `withdrawn-${idx}-${prodIdx}`,
+        productId: prod.productId || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity: prod.quantity != null ? Number(prod.quantity) : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }));
+
+      return {
+        id: t.id || `plot-${idx + 1}`,
+        demoPlotId: t.demoPlotId || t.id || null,
+        plotIndex: t.plotIndex || idx + 1,
+        name: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+        plotName: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+        storeId: t.storeId || t.store?.id || "",
+        dealerName: t.dealerName || t.store?.name || null,
+        ownerName: t.ownerName || "",
+        province: t.province || t.store?.province || "",
+        district: t.district || t.store?.district || "",
+        subdistrict: t.subdistrict || t.store?.subdistrict || "",
+        village: t.village || targetResult?.notes || "",
+        plannedPlotsCount:
+          t.plannedPlotsCount != null ? t.plannedPlotsCount : "",
+        actualPlotsCount:
+          targetResult?.actualPlotsCount != null
+            ? targetResult.actualPlotsCount
+            : "",
+        latitude:
+          t.latitude != null && String(t.latitude).trim() !== ""
+            ? String(t.latitude)
+            : targetResult?.actualLatitude != null
+              ? String(targetResult.actualLatitude)
+              : "",
+        longitude:
+          t.longitude != null && String(t.longitude).trim() !== ""
+            ? String(t.longitude)
+            : targetResult?.actualLongitude != null
+              ? String(targetResult.actualLongitude)
+              : "",
+        hasProductWithdrawal: hasWithdrawal,
+        withdrawnProducts: withdrawnList,
+        products: plotProducts,
+        result: targetResult || null,
+        results: t.results || (targetResult ? [targetResult] : []),
+      };
+    });
+  } else if (
     initial?.demoPlotVisits &&
     Array.isArray(initial.demoPlotVisits) &&
     initial.demoPlotVisits.length > 0
@@ -112,7 +232,7 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
     );
     if (hattackVisits.length > 0) {
-      return hattackVisits.map((v: any, idx: number) => ({
+      plots = hattackVisits.map((v: any, idx: number) => ({
         id: v.demoPlot?.id || `plot-${idx + 1}`,
         demoPlotId: v.demoPlot?.id || null,
         name: v.demoPlot?.name || "",
@@ -126,12 +246,41 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         plannedPlotsCount: "",
         latitude: v.demoPlot?.latitude ? String(v.demoPlot.latitude) : "",
         longitude: v.demoPlot?.longitude ? String(v.demoPlot.longitude) : "",
+        hasProductWithdrawal: false,
+        withdrawnProducts: [],
         products: [],
       }));
     }
   }
 
-  return [];
+  // Fallback for global products from legacy plan payload
+  const globalWithdrawn = (
+    initial?.type13?.products ||
+    initial?.type13Products ||
+    initial?.withdrawnProducts ||
+    []
+  ).map((p: any, idx: number) => ({
+    id: p.id || `withdrawn-${idx}`,
+    productId: p.productId || "",
+    productName: p.productName || p.product?.name || "",
+    quantity: p.quantity != null ? Number(p.quantity) : 1,
+    unit: p.unit || p.product?.unit || "ขวด",
+  }));
+
+  if (
+    plots.length > 0 &&
+    globalWithdrawn.length > 0 &&
+    !plots.some((p) => p.hasProductWithdrawal)
+  ) {
+    plots[0] = {
+      ...plots[0],
+      hasProductWithdrawal: true,
+      withdrawnProducts: globalWithdrawn,
+      products: globalWithdrawn,
+    };
+  }
+
+  return plots;
 }
 
 export function useType13PlannedForm({
@@ -167,13 +316,14 @@ export function useType13PlannedForm({
     return [];
   });
 
-  useEffect(() => {
-    if (!initial) return;
+  const [prevInitial, setPrevInitial] = useState(initial);
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
     const resolved = resolveInitialType13Plots(initial);
     if (resolved.length > 0) {
       setType13Plots(resolved);
     }
-  }, [initial]);
+  }
 
   const validateType13 = useCallback(() => {
     return validateType13FormValues({
@@ -219,9 +369,33 @@ export function useType13PlannedForm({
       });
 
       const planProducts: any[] = [];
-      if (hasProductWithdrawal && withdrawnProducts.length > 0) {
+      const allWithdrawnProducts: Type13WithdrawnProductLine[] = [];
+      const anyPlotWithdrawal = type13Plots.some((p) => p.hasProductWithdrawal);
+
+      type13Plots.forEach((plot) => {
+        if (plot.hasProductWithdrawal && plot.withdrawnProducts?.length) {
+          plot.withdrawnProducts.forEach((p) => {
+            if (p.productId) {
+              allWithdrawnProducts.push(p);
+              const matchedProd = products.find((prod) => prod.id === p.productId);
+              planProducts.push({
+                workTypeCode: "TYPE_13",
+                productId: p.productId,
+                productName: p.productName || matchedProd?.name || null,
+                targetQuantity: p.quantity != null ? Number(p.quantity) : 1,
+                isPriceOverridden: false,
+                storeId: plot.storeId || null,
+              });
+            }
+          });
+        }
+      });
+
+      // Legacy fallback if no plot has per-plot withdrawal but global withdrawal is active
+      if (!anyPlotWithdrawal && hasProductWithdrawal && withdrawnProducts.length > 0) {
         withdrawnProducts.forEach((p) => {
           if (p.productId) {
+            allWithdrawnProducts.push(p);
             const matchedProd = products.find((prod) => prod.id === p.productId);
             planProducts.push({
               workTypeCode: "TYPE_13",
@@ -235,15 +409,20 @@ export function useType13PlannedForm({
         });
       }
 
+      const isWithdrawalActive = anyPlotWithdrawal || hasProductWithdrawal;
+
       const type13Data = {
-        hasProducts: hasProductWithdrawal,
-        hasProductWithdrawal,
+        hasProducts: isWithdrawalActive,
+        hasProductWithdrawal: isWithdrawalActive,
         plots: type13Plots.map((p, idx) => ({
           ...p,
           plotIndex: idx + 1,
+          hasProductWithdrawal: Boolean(p.hasProductWithdrawal),
+          withdrawnProducts: p.hasProductWithdrawal ? (p.withdrawnProducts || []) : [],
+          products: p.hasProductWithdrawal ? (p.withdrawnProducts || []) : [],
         })),
-        products: hasProductWithdrawal ? withdrawnProducts : [],
-        withdrawnProducts: hasProductWithdrawal ? withdrawnProducts : [],
+        products: allWithdrawnProducts,
+        withdrawnProducts: allWithdrawnProducts,
       };
 
       return {
