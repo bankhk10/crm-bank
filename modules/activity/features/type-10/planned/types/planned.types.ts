@@ -131,6 +131,7 @@ export interface UseType10PlannedFormResult {
     location?: string | null;
     showcase?: string | null;
     targetCrop?: string | null;
+    plots?: any[];
     type10Targets?: any[];
   };
 }

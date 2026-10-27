@@ -46,21 +46,24 @@ export async function createType7bData(
       const plot = validPlots[i];
       const targetPlotId = plot.type7aTargetId || plot.demoPlotId;
 
-      // If source plan ID not yet resolved, lookup from type7aTarget
-      if (!validSourcePlanId && targetPlotId) {
+      let validTargetPlotId: string | null = null;
+      if (targetPlotId) {
         const t7a = await tx.activityPlanType7aTarget?.findUnique?.({
           where: { id: targetPlotId },
-          select: { activityPlanId: true },
+          select: { id: true, activityPlanId: true },
         });
-        if (t7a?.activityPlanId) {
-          validSourcePlanId = t7a.activityPlanId;
+        if (t7a) {
+          validTargetPlotId = t7a.id;
+          if (!validSourcePlanId && t7a.activityPlanId) {
+            validSourcePlanId = t7a.activityPlanId;
+          }
         }
       }
 
       const target = await tx.activityPlanType7bTarget.create({
         data: {
           activityPlanId: planId,
-          type7aTargetId: targetPlotId || null,
+          type7aTargetId: validTargetPlotId,
           sourceActivityPlanId: validSourcePlanId,
           plotName: plot.plotName || null,
           cropName: plot.cropName || null,

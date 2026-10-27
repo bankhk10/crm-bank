@@ -878,14 +878,8 @@ export function PlannedActivityForm({
         targetAttendees: t10Mapped.targetAttendees,
         targetAttendeesCount: t10Mapped.targetAttendees,
         targetBookingSales: t10Mapped.targetBookingSales,
-        plots: [
-          {
-            demoPlotId: t10Mapped.submittedDemoPlotId,
-            location: type10.type10Location,
-            targetAttendeesCount: t10Mapped.targetAttendees,
-            targetBookingSales: t10Mapped.targetBookingSales,
-          },
-        ],
+        plots: t10Mapped.plots || t10Mapped.type10Targets,
+        type10Targets: t10Mapped.type10Targets || t10Mapped.plots,
       };
     }
 
@@ -1104,7 +1098,7 @@ export function PlannedActivityForm({
       type9Targets: type9Payload ? [type9Payload] : undefined,
       type10Data: type10Payload,
       type10Plots: type10Payload?.plots,
-      type10Targets: type10Payload?.plots,
+      type10Targets: type10Payload?.type10Targets || type10Payload?.plots,
       type11Data: type11Payload,
       type11Stores: type11Payload,
       type11Targets: type11Payload,

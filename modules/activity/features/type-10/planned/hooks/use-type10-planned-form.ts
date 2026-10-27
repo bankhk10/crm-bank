@@ -61,7 +61,7 @@ export function useType10PlannedForm({
 
       const targetItem = {
         demoPlotId: submittedDemoPlotId,
-        plotName: p?.name || null,
+        plotName: p?.name || (!p && type10DemoPlot ? type10DemoPlot : null),
         farmerName: p?.ownerName || null,
         location: loc,
         province: p?.province || null,
@@ -85,6 +85,7 @@ export function useType10PlannedForm({
           type10BookingSales !== undefined && type10BookingSales !== null && type10BookingSales > 0
             ? Number(type10BookingSales)
             : null,
+        plots: [targetItem],
         type10Targets: [targetItem],
       };
     },

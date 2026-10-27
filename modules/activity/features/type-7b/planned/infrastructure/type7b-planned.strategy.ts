@@ -80,7 +80,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       select: { id: true, type7aTargetId: true },
     });
 
-    const type7aTargetId =
+    const raw7aId =
       t7b.type7aTargetId ||
       t7b.t7DemoPlotId ||
       t7b.demoPlotId ||
@@ -88,6 +88,17 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       actualData.demoPlotId ||
       target?.type7aTargetId ||
       null;
+
+    let valid7aTargetId: string | null = null;
+    if (raw7aId && (tx as any).activityPlanType7aTarget?.findUnique) {
+      const existing7a = await (tx as any).activityPlanType7aTarget.findUnique({
+        where: { id: raw7aId },
+        select: { id: true },
+      });
+      if (existing7a) {
+        valid7aTargetId = existing7a.id;
+      }
+    }
 
     const visitDate = t7b.t7VisitDate ? new Date(t7b.t7VisitDate) : new Date();
     const daysSinceStart = Number(t7b.t7DaysAfterSpray) || 0;
@@ -104,9 +115,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
     const isClosing = mappedStatus === DemoPlotStatus.COMPLETED || mappedStatus === DemoPlotStatus.CANCELLED;
 
-    if (type7aTargetId && (tx as any).activityPlanType7aTarget?.update) {
+    if (valid7aTargetId && (tx as any).activityPlanType7aTarget?.update) {
       await (tx as any).activityPlanType7aTarget.update({
-        where: { id: type7aTargetId },
+        where: { id: valid7aTargetId },
         data: {
           status: mappedStatus,
           closedDate: isClosing ? new Date() : null,
@@ -125,7 +136,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         data: {
           activityPlanId,
           targetId: target?.id || null,
-          type7aTargetId,
+          type7aTargetId: valid7aTargetId,
           visitDate,
           daysSinceStart,
           cropCondition: t7b.t7CropCondition || "สมบูรณ์",

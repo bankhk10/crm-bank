@@ -78,6 +78,9 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
       planData.type10Targets ||
       planData.type10UnplannedItems ||
       planData.type10Plots ||
+      planData.type10Data?.type10Targets ||
+      planData.type10Data?.targets ||
+      planData.type10Data?.plots ||
       planData.type10Data?.events ||
       [];
 
@@ -85,31 +88,48 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
     if (targets.length === 0) {
       const type7aTargetId =
         planData.type7aTargetId ||
+        planData.type10Data?.submittedDemoPlotId ||
+        planData.type10Data?.demoPlotId ||
         planData.submittedDemoPlotId ||
         planData.type10DemoPlot ||
         planData.demoPlotId ||
         null;
 
-      const location = planData.type10Location || planData.location || null;
-      const targetCrop = planData.type10TargetCrop || null;
-      const showcase = planData.type10Showcase || null;
+      const location =
+        planData.type10Location ||
+        planData.location ||
+        planData.type10Data?.location ||
+        null;
+      const targetCrop =
+        planData.type10TargetCrop ||
+        planData.type10Data?.targetCrop ||
+        null;
+      const showcase =
+        planData.type10Showcase ||
+        planData.type10Data?.showcase ||
+        null;
       const attendees =
         planData.type10Attendees != null
           ? Number(planData.type10Attendees)
-          : planData.targetAttendeesCount != null
-            ? Number(planData.targetAttendeesCount)
-            : 0;
+          : planData.type10Data?.targetAttendees != null
+            ? Number(planData.type10Data.targetAttendees)
+            : planData.targetAttendeesCount != null
+              ? Number(planData.targetAttendeesCount)
+              : 0;
       const bookingSales =
         planData.type10BookingSales != null
           ? Number(planData.type10BookingSales)
-          : planData.targetBookingSales != null
-            ? Number(planData.targetBookingSales)
-            : null;
+          : planData.type10Data?.targetBookingSales != null
+            ? Number(planData.type10Data.targetBookingSales)
+            : planData.targetBookingSales != null
+              ? Number(planData.targetBookingSales)
+              : null;
 
       if (type7aTargetId || location || showcase || targetCrop) {
         targets = [
           {
             type7aTargetId,
+            plotName: planData.type10DemoPlot || null,
             location,
             cropName: targetCrop,
             showcaseProductName: showcase,
@@ -126,7 +146,8 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
       for (let i = 0; i < targets.length; i++) {
         const item = targets[i];
 
-        const type7aTargetId = item.type7aTargetId || item.demoPlotId || null;
+        const candidatePlotId =
+          item.type7aTargetId || item.demoPlotId || null;
         let plotName = item.plotName || item.plot || null;
         let farmerName = item.farmerName || null;
         let cropCategory = item.cropCategory || null;
@@ -138,44 +159,134 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
         let latitude = item.latitude || null;
         let longitude = item.longitude || null;
         let showcaseProductId = item.showcaseProductId || null;
-        let showcaseProductName = item.showcaseProductName || item.showcaseProduct || item.showcase || null;
+        let showcaseProductName =
+          item.showcaseProductName ||
+          item.showcaseProduct ||
+          item.showcase ||
+          null;
 
-        // Auto enrich from DemoPlot if available
-        if (type7aTargetId) {
+        // Auto enrich and strictly validate Foreign Key for type7aTarget
+        let valid7aTargetId: string | null = null;
+        if (candidatePlotId) {
           const t7a = await (tx as any).activityPlanType7aTarget.findUnique({
-            where: { id: type7aTargetId },
+            where: { id: candidatePlotId },
             include: {
               store: true,
               results: true,
               products: { include: { product: true } },
             },
           });
-          const demoPlot = t7a
-            ? {
-                name: t7a.plotName,
-                ownerName: t7a.results?.[0]?.farmerName || t7a.store?.name || t7a.dealerName,
-                cropCategory: t7a.cropCategory,
-                cropName: t7a.customCropName || t7a.cropName,
-                location: t7a.results?.[0]?.latitude ? `${t7a.results[0].latitude}, ${t7a.results[0].longitude}` : null,
-                province: t7a.results?.[0]?.province || t7a.store?.province,
-                district: t7a.results?.[0]?.district || t7a.store?.district,
-                latitude: t7a.results?.[0]?.latitude ? String(t7a.results[0].latitude) : null,
-                longitude: t7a.results?.[0]?.longitude ? String(t7a.results[0].longitude) : null,
-                primaryProductName: t7a.products?.[0]?.product?.name || t7a.products?.[0]?.productName,
-              }
-            : null;
 
-          if (demoPlot) {
-            plotName = plotName || demoPlot.name;
-            farmerName = farmerName || demoPlot.ownerName;
-            cropCategory = cropCategory || demoPlot.cropCategory;
-            cropName = cropName || demoPlot.cropName;
-            location = location || demoPlot.location;
-            province = province || demoPlot.province;
-            district = district || demoPlot.district;
-            latitude = latitude || (demoPlot.latitude ? String(demoPlot.latitude) : null);
-            longitude = longitude || (demoPlot.longitude ? String(demoPlot.longitude) : null);
-            showcaseProductName = showcaseProductName || demoPlot.primaryProductName;
+          if (t7a) {
+            valid7aTargetId = t7a.id;
+            plotName = plotName || t7a.plotName;
+            farmerName =
+              farmerName ||
+              t7a.results?.[0]?.farmerName ||
+              t7a.store?.name ||
+              t7a.dealerName;
+            cropCategory = cropCategory || t7a.cropCategory;
+            cropName = cropName || t7a.customCropName || t7a.cropName;
+            location =
+              location ||
+              (t7a.results?.[0]?.latitude && t7a.results?.[0]?.longitude
+                ? `${t7a.results[0].latitude}, ${t7a.results[0].longitude}`
+                : null);
+            province = province || t7a.results?.[0]?.province || t7a.store?.province;
+            district = district || t7a.results?.[0]?.district || t7a.store?.district;
+            latitude =
+              latitude ||
+              (t7a.results?.[0]?.latitude
+                ? String(t7a.results[0].latitude)
+                : null);
+            longitude =
+              longitude ||
+              (t7a.results?.[0]?.longitude
+                ? String(t7a.results[0].longitude)
+                : null);
+            showcaseProductName =
+              showcaseProductName ||
+              t7a.products?.[0]?.product?.name ||
+              t7a.products?.[0]?.productName;
+            if (!showcaseProductId && t7a.products?.[0]?.productId) {
+              showcaseProductId = t7a.products[0].productId;
+            }
+          } else if (candidatePlotId.startsWith("farmplot-")) {
+            // Farmer customer's farm plot (not a Type 7A target record)
+            const parts = candidatePlotId.split("-");
+            const customerId = parts[1];
+            const plotIndex = parseInt(parts[2] || "0", 10);
+            if (customerId && (tx as any).customer) {
+              const customer = await (tx as any).customer.findUnique({
+                where: { id: customerId },
+                select: {
+                  name: true,
+                  province: true,
+                  district: true,
+                  subdistrict: true,
+                  latitude: true,
+                  longitude: true,
+                  farmPlots: true,
+                },
+              });
+              if (customer) {
+                farmerName = farmerName || customer.name;
+                province = province || customer.province;
+                district = district || customer.district;
+                subdistrict = subdistrict || customer.subdistrict;
+                const fp = Array.isArray(customer.farmPlots)
+                  ? customer.farmPlots[plotIndex]
+                  : null;
+                if (fp) {
+                  plotName =
+                    plotName ||
+                    `แปลงที่ ${plotIndex + 1}: ${fp.cropType || "พืชเกษตร"}`;
+                  cropCategory = cropCategory || fp.cropType;
+                  cropName = cropName || fp.cropType;
+                  latitude =
+                    latitude ||
+                    (fp.latitude
+                      ? String(fp.latitude)
+                      : customer.latitude
+                        ? String(customer.latitude)
+                        : null);
+                  longitude =
+                    longitude ||
+                    (fp.longitude
+                      ? String(fp.longitude)
+                      : customer.longitude
+                        ? String(customer.longitude)
+                        : null);
+                }
+              }
+            }
+          } else {
+            // User entered a freeform plot name / text in combobox
+            if (!plotName) {
+              plotName = candidatePlotId;
+            }
+          }
+        }
+
+        // Validate showcaseProductId against Product table
+        let validShowcaseProductId: string | null = null;
+        if (showcaseProductId && (tx as any).product) {
+          const prod = await (tx as any).product.findUnique({
+            where: { id: showcaseProductId },
+            select: { id: true, name: true },
+          });
+          if (prod) {
+            validShowcaseProductId = prod.id;
+            showcaseProductName = showcaseProductName || prod.name;
+          }
+        }
+        if (!validShowcaseProductId && showcaseProductName && (tx as any).product) {
+          const prodByName = await (tx as any).product.findFirst({
+            where: { name: showcaseProductName },
+            select: { id: true, name: true },
+          });
+          if (prodByName) {
+            validShowcaseProductId = prodByName.id;
           }
         }
 
@@ -201,11 +312,11 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
         const eventDate = item.eventDate ? new Date(item.eventDate) : null;
         const notes = item.notes || null;
 
-        // 2.1 Create Target record
+        // 2.1 Create Target record safely
         const targetRecord = await (tx as any).activityPlanType10Target.create({
           data: {
             activityPlanId,
-            type7aTargetId,
+            type7aTargetId: valid7aTargetId,
             plotName,
             farmerName,
             cropCategory,
@@ -216,7 +327,7 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
             subdistrict,
             latitude,
             longitude,
-            showcaseProductId,
+            showcaseProductId: validShowcaseProductId,
             showcaseProductName,
             targetAttendeesCount: attendeesNum,
             targetBookingSales: targetBookingSalesDec,
@@ -234,6 +345,28 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
 
         for (const p of prodItems) {
           if (!p || (!p.productName && !p.productId)) continue;
+
+          let validProdId: string | null = null;
+          let prodName: string | null = p.productName || null;
+          if (p.productId && (tx as any).product) {
+            const existingProd = await (tx as any).product.findUnique({
+              where: { id: p.productId },
+              select: { id: true, name: true },
+            });
+            if (existingProd) {
+              validProdId = existingProd.id;
+              prodName = prodName || existingProd.name;
+            }
+          }
+          if (!validProdId && prodName && (tx as any).product) {
+            const existingByName = await (tx as any).product.findFirst({
+              where: { name: prodName },
+              select: { id: true, name: true },
+            });
+            if (existingByName) {
+              validProdId = existingByName.id;
+            }
+          }
 
           const targetQtyNum =
             p.targetQuantity != null && !isNaN(Number(p.targetQuantity))
@@ -290,8 +423,8 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
             data: {
               activityPlanId,
               targetId: targetRecord.id,
-              productId: p.productId || null,
-              productName: p.productName || null,
+              productId: validProdId,
+              productName: prodName,
               productRole: p.productRole || (actualQtyDec ? "ADDITIONAL_SALE" : "TARGET"),
               targetQuantity: targetQtyDec,
               targetUnitPrice: targetPriceDec,
@@ -480,12 +613,34 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
                 ? actualQtyDec.mul(unitPriceDec)
                 : null;
 
+          let validSaleProdId: string | null = null;
+          let saleProdName: string | null = sale.productName || null;
+          if (sale.productId && (tx as any).product) {
+            const existingProd = await (tx as any).product.findUnique({
+              where: { id: sale.productId },
+              select: { id: true, name: true },
+            });
+            if (existingProd) {
+              validSaleProdId = existingProd.id;
+              saleProdName = saleProdName || existingProd.name;
+            }
+          }
+          if (!validSaleProdId && saleProdName && (tx as any).product) {
+            const existingByName = await (tx as any).product.findFirst({
+              where: { name: saleProdName },
+              select: { id: true, name: true },
+            });
+            if (existingByName) {
+              validSaleProdId = existingByName.id;
+            }
+          }
+
           // Check if product already exists as a planned target product
-          const existingProduct = sale.productId
+          const existingProduct = validSaleProdId
             ? await (tx as any).activityPlanType10Product.findFirst({
                 where: {
                   targetId: primaryTarget.id,
-                  productId: sale.productId,
+                  productId: validSaleProdId,
                   productRole: "TARGET",
                 },
               })
@@ -506,8 +661,8 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
               data: {
                 activityPlanId,
                 targetId: primaryTarget.id,
-                productId: sale.productId || null,
-                productName: sale.productName || null,
+                productId: validSaleProdId,
+                productName: saleProdName,
                 productRole: "ADDITIONAL_SALE",
                 actualQuantity: actualQtyDec,
                 actualUnitPrice: unitPriceDec,
