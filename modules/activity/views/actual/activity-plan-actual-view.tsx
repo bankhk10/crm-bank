@@ -61,6 +61,7 @@ import {
   useType7aActual,
   validateType7aActual,
   extractType7aPlanTargets,
+  parseType7aActualResult,
   type Type7aTargetItem,
 } from "@/modules/activity/features/type-7a";
 import {
@@ -290,6 +291,10 @@ export function ActivityPlanActualView({
           type11Targets: plan.type11Targets || (res as any)?.type11Targets,
           type11Products: plan.type11Products || (res as any)?.type11Products,
           type11Results: plan.type11Results || (res as any)?.type11Results,
+          type7aTargets: plan.type7aTargets || (res as any)?.type7aTargets,
+          type7aProducts: plan.type7aProducts || (res as any)?.type7aProducts,
+          type7aResults: plan.type7aResults || (res as any)?.type7aResults,
+          type7aPlots: plan.type7aPlots || (res as any)?.type7aPlots,
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
@@ -304,7 +309,8 @@ export function ActivityPlanActualView({
         type5Actual.hydrate(parsedT5, { t5: extractedT5.primary });
         const parsedT6 = parseType6ActualResult(payloadToHydrate);
         type6Actual.hydrate(parsedT6, { targets: extractedT6.list });
-        type7aActual.hydrate(plan, payloadToHydrate, {
+        const parsedT7a = parseType7aActualResult(payloadToHydrate);
+        type7aActual.hydrate(plan, parsedT7a, {
           t7a: extractedT7a.primary,
         });
         const parsedT7b = parseType7bActualResult(

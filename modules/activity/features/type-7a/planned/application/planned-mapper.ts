@@ -31,27 +31,88 @@ export function extractType7aPlanTargets(
 
   if (Array.isArray(sourcePlots) && sourcePlots.length > 0) {
     list = sourcePlots.map((p: any) => {
-      const dp = p.demoPlot || p;
-      const rawProducts = dp.demoProducts?.length ? dp.demoProducts : (p.demoProducts || p.products || []);
+      // Find full demoPlot from plan.type7aPlots if available
+      const fullDemoPlot = Array.isArray(plan.type7aPlots)
+        ? plan.type7aPlots.find((plot: any) => plot.id === p.demoPlotId || plot.id === p.id)
+        : null;
+      const dp = fullDemoPlot || p.demoPlot || p;
+      const dedicatedResult = p.results?.[0] || plan.type7aResults?.[0] || null;
       const visit1 = dp.visits?.[0];
+
+      // Products: Prioritize dedicated actualProducts if present
+      const actualProds = dedicatedResult?.actualProducts;
+      const rawProducts =
+        Array.isArray(actualProds) && actualProds.length > 0
+          ? actualProds.map((ap: any) => ({
+              id: ap.id,
+              productId: ap.productId || ap.product?.id,
+              productName: ap.productName || ap.product?.name,
+              quantity: ap.actualQuantity != null ? Number(ap.actualQuantity) : 1,
+              actualQuantity: ap.actualQuantity != null ? Number(ap.actualQuantity) : 1,
+              withdrawnQuantity: ap.withdrawnQuantity != null ? Number(ap.withdrawnQuantity) : 1,
+              extraQuantity: ap.extraQuantity != null ? String(ap.extraQuantity) : "",
+              extraUnit: ap.extraUnit || (ap.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+              applicationRate: ap.actualRate || "",
+              isAdditional: !ap.isPlanned,
+            }))
+          : dp.demoProducts?.length
+          ? dp.demoProducts
+          : (p.demoProducts || p.products || []);
 
       return {
         id: p.id,
         demoPlotId: p.demoPlotId || dp.id,
         demoPlot: dp,
         plotName: dp.name || p.plotName || p.name || "",
-        ownerName: dp.ownerName || p.ownerName || p.farmerName || dp.customer?.name || p.store?.name || "",
-        farmerName: dp.ownerName || p.farmerName || p.ownerName || dp.customer?.name || p.store?.name || "",
-        farmerCustomerId: dp.farmerCustomerId || null,
+        ownerName:
+          dedicatedResult?.farmerName ||
+          dp.ownerName ||
+          p.ownerName ||
+          p.farmerName ||
+          dp.customer?.name ||
+          p.store?.name ||
+          "",
+        farmerName:
+          dedicatedResult?.farmerName ||
+          dp.ownerName ||
+          p.farmerName ||
+          p.ownerName ||
+          dp.customer?.name ||
+          p.store?.name ||
+          "",
+        farmerCustomerId: dedicatedResult?.farmerCustomerId || dp.farmerCustomerId || null,
         farmerCustomer: dp.farmerCustomer || null,
-        farmerPhone: dp.ownerPhone || dp.farmerCustomer?.phone || "",
-        isUnregisteredFarmer: dp.isUnregisteredFarmer != null ? Boolean(dp.isUnregisteredFarmer) : false,
+        farmerPhone: dedicatedResult?.farmerPhone || dp.ownerPhone || dp.farmerCustomer?.phone || "",
+        isUnregisteredFarmer:
+          dedicatedResult?.isUnregisteredFarmer != null
+            ? Boolean(dedicatedResult.isUnregisteredFarmer)
+            : dp.isUnregisteredFarmer != null
+            ? Boolean(dp.isUnregisteredFarmer)
+            : false,
         storeId: dp.customerId || p.storeId || null,
         dealerName: dp.customer?.name || p.store?.name || "",
         dealerCode: dp.customer?.customerCode || p.store?.customerCode || "",
-        province: dp.province || dp.ownerProvince || p.province || dp.customer?.province || p.store?.province || "",
-        district: dp.district || dp.ownerDistrict || p.district || dp.customer?.district || p.store?.district || "",
-        subdistrict: dp.ownerSubdistrict || p.subdistrict || "",
+        province:
+          dedicatedResult?.province ||
+          dp.province ||
+          dp.ownerProvince ||
+          p.province ||
+          dp.customer?.province ||
+          p.store?.province ||
+          "",
+        district:
+          dedicatedResult?.district ||
+          dp.district ||
+          dp.ownerDistrict ||
+          p.district ||
+          dp.customer?.district ||
+          p.store?.district ||
+          "",
+        subdistrict:
+          dedicatedResult?.subdistrict ||
+          dp.ownerSubdistrict ||
+          p.subdistrict ||
+          "",
         cropName: dp.cropName || dp.customCropName || dp.cropCategory || p.cropName || "",
         customCropName: dp.customCropName || p.customCropName || null,
         cropCategory: dp.cropCategory || p.cropCategory || "",
@@ -59,26 +120,45 @@ export function extractType7aPlanTargets(
         treeCount: dp.treeCount != null ? Number(dp.treeCount) : (p.treeCount != null ? Number(p.treeCount) : null),
         objective: dp.objective || p.objective || "",
         categoryId: dp.categoryId || p.categoryId || null,
-        latitude: dp.latitude != null ? Number(dp.latitude) : null,
-        longitude: dp.longitude != null ? Number(dp.longitude) : null,
+        latitude:
+          dedicatedResult?.latitude != null
+            ? Number(dedicatedResult.latitude)
+            : dp.latitude != null
+            ? Number(dp.latitude)
+            : null,
+        longitude:
+          dedicatedResult?.longitude != null
+            ? Number(dedicatedResult.longitude)
+            : dp.longitude != null
+            ? Number(dp.longitude)
+            : null,
         // Actual outcome fields
-        mainCropInfo: dp.mainCropInfo || p.mainCropInfo || "",
+        mainCropInfo: dedicatedResult?.mainCropInfo || dp.mainCropInfo || p.mainCropInfo || "",
         experimentDetail: dp.experimentDetail || p.experimentDetail || "",
-        irrigations: (dp.irrigations || p.irrigations || []).map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean),
-        plantingDate: dp.plantingDate || p.plantingDate || dp.startDate || null,
-        initialSprayDate: dp.initialSprayDate || p.initialSprayDate || null,
-        nextSprayDate: dp.nextSprayDate || p.nextSprayDate || null,
-        cropAgeValue: visit1?.cropAgeValue ?? dp.cropAgeValue ?? null,
-        cropAgeUnit: visit1?.cropAgeUnit ?? dp.cropAgeUnit ?? "วัน",
-        growthStage: visit1?.growthStage ?? dp.growthStage ?? null,
-        sprayMethod: dp.sprayMethod || visit1?.sprayMethod || p.sprayMethod || "SINGLE",
-        sprayEquipment: dp.sprayEquipment || visit1?.sprayEquipment || p.sprayEquipment || null,
-        otherEquipment: dp.otherEquipment || visit1?.otherEquipment || p.otherEquipment || null,
-        hasExternalChemicals: Boolean(dp.hasExternalChemicals ?? p.hasExternalChemicals),
-        externalProducts: dp.externalProducts || p.externalProducts || [],
-        notes: dp.notes || visit1?.notes || p.notes || null,
+        irrigations:
+          Array.isArray(dedicatedResult?.irrigations) && dedicatedResult.irrigations.length > 0
+            ? dedicatedResult.irrigations.map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean)
+            : (dp.irrigations || p.irrigations || []).map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean),
+        plantingDate: dedicatedResult?.plantingDate || dp.plantingDate || p.plantingDate || dp.startDate || null,
+        initialSprayDate: dedicatedResult?.firstSprayDate || dp.initialSprayDate || p.initialSprayDate || null,
+        nextSprayDate: dedicatedResult?.nextSprayDate || dp.nextSprayDate || p.nextSprayDate || null,
+        cropAgeValue: dedicatedResult?.cropAgeValue ?? visit1?.cropAgeValue ?? dp.cropAgeValue ?? null,
+        cropAgeUnit: dedicatedResult?.cropAgeUnit || visit1?.cropAgeUnit || dp.cropAgeUnit || "วัน",
+        growthStage: dedicatedResult?.growthStage || visit1?.growthStage || dp.growthStage || null,
+        sprayMethod: dedicatedResult?.sprayMethod || dp.sprayMethod || visit1?.sprayMethod || p.sprayMethod || "SINGLE",
+        sprayEquipment: dedicatedResult?.sprayEquipment || dp.sprayEquipment || visit1?.sprayEquipment || p.sprayEquipment || null,
+        otherEquipment: dedicatedResult?.otherEquipment || dp.otherEquipment || visit1?.otherEquipment || p.otherEquipment || null,
+        hasExternalChemicals: Boolean(dedicatedResult?.hasExternalChemicals ?? dp.hasExternalChemicals ?? p.hasExternalChemicals),
+        externalProducts:
+          Array.isArray(dedicatedResult?.sprayExternals) && dedicatedResult.sprayExternals.length > 0
+            ? dedicatedResult.sprayExternals
+            : dp.externalProducts || p.externalProducts || [],
+        notes: dedicatedResult?.notes || dp.notes || visit1?.notes || p.notes || null,
         visits: dp.visits || p.visits || [],
-        attachments: dp.attachments || p.attachments || [],
+        attachments:
+          Array.isArray(dedicatedResult?.attachments) && dedicatedResult.attachments.length > 0
+            ? dedicatedResult.attachments
+            : dp.attachments || p.attachments || [],
         demoProducts: rawProducts.map((prod: any) => ({
           ...prod,
           id: prod.id,

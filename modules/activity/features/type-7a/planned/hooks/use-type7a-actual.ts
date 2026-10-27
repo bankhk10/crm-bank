@@ -8,6 +8,7 @@ import type {
   Type7aExternalChemicalItem,
 } from "../types/actual.types";
 import type { Type7aImageFile } from "../../shared/types";
+import { parseType7aActualResult } from "../application/actual-mapper";
 import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
@@ -160,6 +161,31 @@ export function useType7aActual() {
   // Hydration from Plan and Parsed Actual Data
   // -------------------------------------------------------------
   const hydrate = useCallback((plan: any, parsed: any, extractedTargets?: any) => {
+    // 1. Resolve Dedicated ActivityResultType7a record from all possible locations
+    const dedicated7a =
+      parsed?.type7aResults?.[0] ||
+      plan?.type7aResults?.[0] ||
+      extractedTargets?.t7a?.results?.[0] ||
+      extractedTargets?.t7?.results?.[0] ||
+      plan?.type7aTargets?.[0]?.results?.[0] ||
+      plan?.activityPlan?.type7aResults?.[0] ||
+      (parsed && (parsed.farmerName !== undefined || parsed.plantingDate !== undefined || parsed.sprayEquipment !== undefined)
+        ? parsed
+        : null);
+
+    // 2. Self-healing: if parsed is not already structured with t7* keys, parse it
+    const actualData: any =
+      parsed?.t7FarmerName !== undefined || parsed?.t7PlannedProducts !== undefined
+        ? parsed
+        : parseType7aActualResult({
+            ...parsed,
+            type7aResults: plan?.type7aResults || parsed?.type7aResults,
+            type7aPlots: plan?.type7aPlots || parsed?.type7aPlots,
+            type7aTargets: plan?.type7aTargets || parsed?.type7aTargets,
+            demoPlot: plan?.demoPlot || parsed?.demoPlot,
+            activityPlan: plan,
+          });
+
     const firstPlot = plan?.type7aPlots?.[0];
     const t7aTarget = extractedTargets?.t7a || extractedTargets?.t7 || firstPlot;
     const demoPlot =
@@ -168,7 +194,7 @@ export function useType7aActual() {
       (t7aTarget && (t7aTarget.id || t7aTarget.code) ? t7aTarget : null) ||
       (firstPlot && (firstPlot.id || firstPlot.code) ? firstPlot : null) ||
       plan?.demoPlot ||
-      parsed?.demoPlot ||
+      actualData?.demoPlot ||
       null;
     const visit1 = demoPlot?.visits?.[0] || null;
 
@@ -189,12 +215,13 @@ export function useType7aActual() {
 
     // 1. Farmer Owner & Coordinates
     const resolvedProvince =
+      actualData?.t7FarmerProvince ||
+      actualData?.t7SelectedProvince ||
+      dedicated7a?.province ||
       demoPlot?.ownerProvince ||
       demoPlot?.farmerCustomer?.province ||
       demoPlot?.province ||
       demoPlot?.customer?.province ||
-      parsed?.t7FarmerProvince ||
-      parsed?.t7SelectedProvince ||
       t7aTarget?.province ||
       plan?.province ||
       "";
@@ -204,42 +231,47 @@ export function useType7aActual() {
     }
 
     const resolvedDistrict =
+      actualData?.t7FarmerDistrict ||
+      dedicated7a?.district ||
       demoPlot?.ownerDistrict ||
       demoPlot?.farmerCustomer?.district ||
       demoPlot?.district ||
       demoPlot?.customer?.district ||
-      parsed?.t7FarmerDistrict ||
       t7aTarget?.district ||
       "";
     if (resolvedDistrict) setT7FarmerDistrict(resolvedDistrict);
 
     const resolvedSubdistrict =
+      actualData?.t7FarmerSubdistrict ||
+      dedicated7a?.subdistrict ||
       demoPlot?.ownerSubdistrict ||
       demoPlot?.farmerCustomer?.subdistrict ||
-      parsed?.t7FarmerSubdistrict ||
       "";
     if (resolvedSubdistrict) setT7FarmerSubdistrict(resolvedSubdistrict);
 
     const resolvedFarmerCustomerId =
+      actualData?.t7FarmerCustomerId ||
+      dedicated7a?.farmerCustomerId ||
       demoPlot?.farmerCustomerId ||
       t7aTarget?.farmerCustomerId ||
-      parsed?.t7FarmerCustomerId ||
       null;
     if (resolvedFarmerCustomerId) setT7FarmerCustomerId(resolvedFarmerCustomerId);
 
     const resolvedFarmerName =
+      actualData?.t7FarmerName ||
+      dedicated7a?.farmerName ||
       demoPlot?.ownerName ||
       demoPlot?.farmerCustomer?.name ||
       t7aTarget?.farmerName ||
       t7aTarget?.ownerName ||
-      parsed?.t7FarmerName ||
       "";
     if (resolvedFarmerName) setT7FarmerName(resolvedFarmerName);
 
     const resolvedFarmerPhone =
+      actualData?.t7FarmerPhone ||
+      dedicated7a?.farmerPhone ||
       demoPlot?.ownerPhone ||
       demoPlot?.farmerCustomer?.phone ||
-      parsed?.t7FarmerPhone ||
       t7aTarget?.farmerPhone ||
       "";
     if (resolvedFarmerPhone) setT7FarmerPhone(resolvedFarmerPhone);
@@ -249,178 +281,227 @@ export function useType7aActual() {
       t7aTarget?.customer ||
       t7aTarget?.store ||
       null;
-    if (resolvedDealer) {
+    if (actualData?.t7DealerName) {
+      setT7DealerName(actualData.t7DealerName);
+      if (actualData.t7DealerCode) setT7DealerCode(actualData.t7DealerCode);
+    } else if (resolvedDealer) {
       if (resolvedDealer.name) setT7DealerName(resolvedDealer.name);
       if (resolvedDealer.customerCode) setT7DealerCode(resolvedDealer.customerCode);
     }
 
     const resolvedIsUnregistered =
-      demoPlot?.isUnregisteredFarmer != null
+      actualData?.t7IsUnregisteredFarmer != null
+        ? actualData.t7IsUnregisteredFarmer
+        : dedicated7a?.isUnregisteredFarmer != null
+        ? dedicated7a.isUnregisteredFarmer
+        : demoPlot?.isUnregisteredFarmer != null
         ? demoPlot.isUnregisteredFarmer
-        : parsed?.t7IsUnregisteredFarmer != null
-        ? parsed.t7IsUnregisteredFarmer
         : false;
     setT7IsUnregisteredFarmer(Boolean(resolvedIsUnregistered));
 
     const resolvedLat =
-      demoPlot?.latitude != null
+      actualData?.t7Latitude != null && actualData.t7Latitude !== ""
+        ? String(actualData.t7Latitude)
+        : dedicated7a?.latitude != null
+        ? String(dedicated7a.latitude)
+        : demoPlot?.latitude != null
         ? String(demoPlot.latitude)
         : t7aTarget?.latitude != null
         ? String(t7aTarget.latitude)
-        : parsed?.t7Latitude != null
-        ? String(parsed.t7Latitude)
         : "";
     if (resolvedLat) setT7Latitude(resolvedLat);
 
     const resolvedLng =
-      demoPlot?.longitude != null
+      actualData?.t7Longitude != null && actualData.t7Longitude !== ""
+        ? String(actualData.t7Longitude)
+        : dedicated7a?.longitude != null
+        ? String(dedicated7a.longitude)
+        : demoPlot?.longitude != null
         ? String(demoPlot.longitude)
         : t7aTarget?.longitude != null
         ? String(t7aTarget.longitude)
-        : parsed?.t7Longitude != null
-        ? String(parsed.t7Longitude)
         : "";
     if (resolvedLng) setT7Longitude(resolvedLng);
 
     const resolvedPlotName =
+      actualData?.t7PlotName ||
       demoPlot?.name ||
       t7aTarget?.plotName ||
       t7aTarget?.name ||
-      parsed?.t7PlotName ||
       "";
     if (resolvedPlotName) setT7PlotName(resolvedPlotName);
 
     const resolvedCropCategory =
+      actualData?.t7CropCategory ||
       demoPlot?.cropCategory ||
       t7aTarget?.cropCategory ||
-      parsed?.t7CropCategory ||
       "";
     if (resolvedCropCategory) setT7CropCategory(resolvedCropCategory);
 
     const resolvedCropName =
+      actualData?.t7CropName ||
       demoPlot?.cropName ||
       t7aTarget?.cropName ||
-      parsed?.t7CropName ||
       "";
     if (resolvedCropName) setT7CropName(resolvedCropName);
 
     const resolvedCustomCropName =
+      actualData?.t7CustomCropName ||
       demoPlot?.customCropName ||
       t7aTarget?.customCropName ||
-      parsed?.t7CustomCropName ||
       "";
     if (resolvedCustomCropName) setT7CustomCropName(resolvedCustomCropName);
 
     const resolvedAreaRai =
-      demoPlot?.areaRai != null
+      actualData?.t7AreaRai != null && actualData.t7AreaRai !== ""
+        ? String(actualData.t7AreaRai)
+        : demoPlot?.areaRai != null
         ? String(demoPlot.areaRai)
         : t7aTarget?.areaRai != null
         ? String(t7aTarget.areaRai)
-        : parsed?.t7AreaRai != null
-        ? String(parsed.t7AreaRai)
         : "";
     if (resolvedAreaRai) setT7AreaRai(resolvedAreaRai);
 
     const resolvedTreeCount =
-      demoPlot?.treeCount != null
+      actualData?.t7TreeCount != null && actualData.t7TreeCount !== ""
+        ? String(actualData.t7TreeCount)
+        : demoPlot?.treeCount != null
         ? String(demoPlot.treeCount)
         : t7aTarget?.treeCount != null
         ? String(t7aTarget.treeCount)
-        : parsed?.t7TreeCount != null
-        ? String(parsed.t7TreeCount)
         : "";
     if (resolvedTreeCount) setT7TreeCount(resolvedTreeCount);
 
     const resolvedObjective =
+      actualData?.t7PlotObjective ||
       demoPlot?.objective ||
       t7aTarget?.objective ||
-      parsed?.t7PlotObjective ||
       "";
     if (resolvedObjective) setT7PlotObjective(resolvedObjective);
 
     const resolvedDemoPlotId =
+      actualData?.t7DemoPlotId ||
+      dedicated7a?.demoPlotId ||
       demoPlot?.id ||
       t7aTarget?.demoPlotId ||
-      parsed?.t7DemoPlotId ||
-      parsed?.demoPlotId ||
       null;
     if (resolvedDemoPlotId) setT7DemoPlotId(resolvedDemoPlotId);
 
     // 2. Initial Plot Condition & Observations
     const resolvedMainCropInfo =
+      actualData?.t7MainCropInfo ||
+      dedicated7a?.mainCropInfo ||
       demoPlot?.mainCropInfo ||
-      parsed?.t7MainCropInfo ||
       "";
     if (resolvedMainCropInfo) setT7MainCropInfo(resolvedMainCropInfo);
 
     const resolvedExperimentDetail =
+      actualData?.t7ExperimentDetail ||
       demoPlot?.experimentDetail ||
-      parsed?.t7ExperimentDetail ||
       "";
     if (resolvedExperimentDetail) setT7ExperimentDetail(resolvedExperimentDetail);
 
     // Irrigations
-    if (demoPlot?.irrigations && Array.isArray(demoPlot.irrigations) && demoPlot.irrigations.length > 0) {
+    if (Array.isArray(actualData?.t7Irrigations) && actualData.t7Irrigations.length > 0) {
+      setT7Irrigations(actualData.t7Irrigations);
+    } else if (Array.isArray(dedicated7a?.irrigations) && dedicated7a.irrigations.length > 0) {
+      setT7Irrigations(
+        dedicated7a.irrigations.map((i: any) => (typeof i === "string" ? i : i.method)).filter(Boolean),
+      );
+    } else if (demoPlot?.irrigations && Array.isArray(demoPlot.irrigations) && demoPlot.irrigations.length > 0) {
       setT7Irrigations(demoPlot.irrigations.map((i: any) => i.method).filter(Boolean));
-    } else if (Array.isArray(parsed?.t7Irrigations) && parsed.t7Irrigations.length > 0) {
-      setT7Irrigations(parsed.t7Irrigations);
     }
 
     // Dates
-    const resolvedPlantingDate = toDateString(demoPlot?.plantingDate || demoPlot?.startDate || parsed?.t7PlantingDate);
+    const resolvedPlantingDate = toDateString(
+      actualData?.t7PlantingDate ||
+        dedicated7a?.plantingDate ||
+        demoPlot?.plantingDate ||
+        demoPlot?.startDate,
+    );
     if (resolvedPlantingDate) setT7PlantingDate(resolvedPlantingDate);
 
-    const resolvedInitialSprayDate = toDateString(demoPlot?.initialSprayDate || parsed?.t7InitialSprayDate);
+    const resolvedInitialSprayDate = toDateString(
+      actualData?.t7InitialSprayDate ||
+        dedicated7a?.firstSprayDate ||
+        demoPlot?.initialSprayDate,
+    );
     if (resolvedInitialSprayDate) setT7InitialSprayDate(resolvedInitialSprayDate);
 
-    const resolvedNextSprayDate = toDateString(demoPlot?.nextSprayDate || parsed?.t7NextSprayDate);
+    const resolvedNextSprayDate = toDateString(
+      actualData?.t7NextSprayDate ||
+        dedicated7a?.nextSprayDate ||
+        demoPlot?.nextSprayDate,
+    );
     if (resolvedNextSprayDate) setT7NextSprayDate(resolvedNextSprayDate);
 
     // Crop Age & Stage
     const resolvedCropAgeVal =
-      visit1?.cropAgeValue != null
+      actualData?.t7CropAgeValue != null
+        ? String(actualData.t7CropAgeValue)
+        : dedicated7a?.cropAgeValue != null
+        ? String(dedicated7a.cropAgeValue)
+        : visit1?.cropAgeValue != null
         ? String(visit1.cropAgeValue)
-        : parsed?.t7CropAgeValue != null
-        ? String(parsed.t7CropAgeValue)
         : "";
     if (resolvedCropAgeVal) setT7CropAgeValue(resolvedCropAgeVal);
 
     const resolvedCropAgeUnit =
+      actualData?.t7CropAgeUnit ||
+      dedicated7a?.cropAgeUnit ||
       visit1?.cropAgeUnit ||
-      parsed?.t7CropAgeUnit ||
       "วัน";
     if (resolvedCropAgeUnit) setT7CropAgeUnit(resolvedCropAgeUnit);
 
     const resolvedGrowthStage =
+      actualData?.t7GrowthStage ||
+      dedicated7a?.growthStage ||
       visit1?.growthStage ||
-      parsed?.t7GrowthStage ||
       "";
     if (resolvedGrowthStage) setT7GrowthStage(resolvedGrowthStage);
 
     const resolvedNotes =
+      actualData?.t7Notes ||
+      dedicated7a?.notes ||
       demoPlot?.notes ||
       visit1?.notes ||
-      parsed?.t7Notes ||
       "";
     if (resolvedNotes) setT7Notes(resolvedNotes);
 
     // 3. Spray Method & External Chemicals
     const resolvedSprayMethod =
+      actualData?.t7SprayMethod ||
+      dedicated7a?.sprayMethod ||
       demoPlot?.sprayMethod ||
       visit1?.sprayMethod ||
-      parsed?.t7SprayMethod ||
       "SINGLE";
     setT7SprayMethod(resolvedSprayMethod);
 
     const resolvedHasExternal =
-      demoPlot?.hasExternalChemicals != null
+      actualData?.t7HasExternalChemicals != null
+        ? actualData.t7HasExternalChemicals
+        : dedicated7a?.hasExternalChemicals != null
+        ? dedicated7a.hasExternalChemicals
+        : demoPlot?.hasExternalChemicals != null
         ? demoPlot.hasExternalChemicals
-        : parsed?.t7HasExternalChemicals != null
-        ? parsed.t7HasExternalChemicals
         : false;
     setT7HasExternalChemicals(Boolean(resolvedHasExternal));
 
-    if (demoPlot?.externalProducts && Array.isArray(demoPlot.externalProducts) && demoPlot.externalProducts.length > 0) {
+    if (Array.isArray(actualData?.t7ExternalProducts) && actualData.t7ExternalProducts.length > 0) {
+      setT7ExternalProducts(actualData.t7ExternalProducts);
+    } else if (Array.isArray(dedicated7a?.sprayExternals) && dedicated7a.sprayExternals.length > 0) {
+      setT7ExternalProducts(
+        dedicated7a.sprayExternals.map((ext: any, idx: number) => ({
+          id: ext.id || `ext-${idx}`,
+          company: ext.company || "",
+          productName: ext.productName || "",
+          activeIngredient: ext.activeIngredient || "",
+          formula: ext.formula || "SL",
+          customFormula: ext.customFormula || "",
+          applicationRate: ext.applicationRate || "",
+        })),
+      );
+    } else if (demoPlot?.externalProducts && Array.isArray(demoPlot.externalProducts) && demoPlot.externalProducts.length > 0) {
       setT7ExternalProducts(
         demoPlot.externalProducts.map((ext: any, idx: number) => ({
           id: ext.id || `ext-${idx}`,
@@ -432,101 +513,137 @@ export function useType7aActual() {
           applicationRate: ext.applicationRate || "",
         })),
       );
-    } else if (Array.isArray(parsed?.t7ExternalProducts) && parsed.t7ExternalProducts.length > 0) {
-      setT7ExternalProducts(parsed.t7ExternalProducts);
     }
 
     // 4. Spray Equipment
     const resolvedSprayEquipment =
+      actualData?.t7SprayEquipment ||
+      dedicated7a?.sprayEquipment ||
       demoPlot?.sprayEquipment ||
       visit1?.sprayEquipment ||
-      parsed?.t7SprayEquipment ||
       "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)";
     setT7SprayEquipment(resolvedSprayEquipment);
 
     const resolvedOtherEquipment =
+      actualData?.t7OtherEquipment ||
+      dedicated7a?.otherEquipment ||
       demoPlot?.otherEquipment ||
       visit1?.otherEquipment ||
-      parsed?.t7OtherEquipment ||
       "";
     if (resolvedOtherEquipment) setT7OtherEquipment(resolvedOtherEquipment);
 
     // 5. Products (Planned & Additional)
-    const demoProds = demoPlot?.demoProducts || [];
-    const plannedFromDemo = demoProds.filter((p: any) => !p.isAdditional);
-    const additionalFromDemo = demoProds.filter((p: any) => p.isAdditional);
-
-    if (plannedFromDemo.length > 0) {
-      setT7PlannedProducts(
-        plannedFromDemo.map((p: any) => ({
-          productId: p.productId || p.product?.id || "",
-          productName: p.productName || p.product?.name || "",
-          withdrawnQuantity:
-            p.withdrawnQuantity != null
-              ? Number(p.withdrawnQuantity)
-              : p.quantity != null
-              ? Number(p.quantity)
-              : 1,
-          actualQuantity:
-            p.quantity != null
-              ? Number(p.quantity)
-              : p.withdrawnQuantity != null
-              ? Number(p.withdrawnQuantity)
-              : 1,
-          extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-          extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
-          applicationRate: p.applicationRate || "",
-        })),
-      );
-    } else if (Array.isArray(parsed?.t7PlannedProducts) && parsed.t7PlannedProducts.length > 0) {
-      setT7PlannedProducts(parsed.t7PlannedProducts);
-    } else {
-      // Fallback: Populate from planned targets
-      const planProds = t7aTarget?.products || t7aTarget?.demoProducts || [];
-      if (Array.isArray(planProds) && planProds.length > 0) {
+    if (Array.isArray(actualData?.t7PlannedProducts) && actualData.t7PlannedProducts.length > 0) {
+      setT7PlannedProducts(actualData.t7PlannedProducts);
+    } else if (Array.isArray(dedicated7a?.actualProducts) && dedicated7a.actualProducts.length > 0) {
+      const dedicatedPlanned = dedicated7a.actualProducts.filter((p: any) => p.isPlanned);
+      if (dedicatedPlanned.length > 0) {
         setT7PlannedProducts(
-          planProds.map((p: any) => ({
-            productId: p.productId || p.id || "",
-            productName: p.productName || p.name || "",
-            withdrawnQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
-            actualQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
-            extraQuantity: "",
-            extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+          dedicatedPlanned.map((p: any) => ({
+            productId: p.productId || p.product?.id || "",
+            productName: p.productName || p.product?.name || "",
+            withdrawnQuantity: p.withdrawnQuantity != null ? Number(p.withdrawnQuantity) : 1,
+            actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
+            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            applicationRate: p.actualRate || "",
+          })),
+        );
+      }
+    } else {
+      const demoProds = demoPlot?.demoProducts || [];
+      const plannedFromDemo = demoProds.filter((p: any) => !p.isAdditional);
+      if (plannedFromDemo.length > 0) {
+        setT7PlannedProducts(
+          plannedFromDemo.map((p: any) => ({
+            productId: p.productId || p.product?.id || "",
+            productName: p.productName || p.product?.name || "",
+            withdrawnQuantity:
+              p.withdrawnQuantity != null
+                ? Number(p.withdrawnQuantity)
+                : p.quantity != null
+                ? Number(p.quantity)
+                : 1,
+            actualQuantity:
+              p.quantity != null
+                ? Number(p.quantity)
+                : p.withdrawnQuantity != null
+                ? Number(p.withdrawnQuantity)
+                : 1,
+            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            applicationRate: p.applicationRate || "",
+          })),
+        );
+      } else {
+        // Fallback: Populate from planned targets
+        const planProds = t7aTarget?.products || t7aTarget?.demoProducts || [];
+        if (Array.isArray(planProds) && planProds.length > 0) {
+          setT7PlannedProducts(
+            planProds.map((p: any) => ({
+              productId: p.productId || p.id || "",
+              productName: p.productName || p.name || "",
+              withdrawnQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
+              actualQuantity: Number(p.quantity ?? p.targetQuantity ?? 1) || 1,
+              extraQuantity: "",
+              extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+              applicationRate: p.applicationRate || "",
+            })),
+          );
+        }
+      }
+    }
+
+    if (Array.isArray(actualData?.t7AdditionalProducts) && actualData.t7AdditionalProducts.length > 0) {
+      setT7AdditionalProducts(actualData.t7AdditionalProducts);
+    } else if (Array.isArray(dedicated7a?.actualProducts) && dedicated7a.actualProducts.length > 0) {
+      const dedicatedAdditional = dedicated7a.actualProducts.filter((p: any) => !p.isPlanned);
+      if (dedicatedAdditional.length > 0) {
+        setT7AdditionalProducts(
+          dedicatedAdditional.map((p: any, idx: number) => ({
+            id: p.id || `add-${idx}`,
+            productId: p.productId || p.product?.id || "",
+            productName: p.productName || p.product?.name || "",
+            actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
+            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            applicationRate: p.actualRate || "",
+          })),
+        );
+      }
+    } else {
+      const demoProds = demoPlot?.demoProducts || [];
+      const additionalFromDemo = demoProds.filter((p: any) => p.isAdditional);
+      if (additionalFromDemo.length > 0) {
+        setT7AdditionalProducts(
+          additionalFromDemo.map((p: any, idx: number) => ({
+            id: p.id || `add-${idx}`,
+            productId: p.productId || p.product?.id || "",
+            productName: p.productName || p.product?.name || "",
+            actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
+            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
             applicationRate: p.applicationRate || "",
           })),
         );
       }
     }
 
-    if (additionalFromDemo.length > 0) {
-      setT7AdditionalProducts(
-        additionalFromDemo.map((p: any, idx: number) => ({
-          id: p.id || `add-${idx}`,
-          productId: p.productId || p.product?.id || "",
-          productName: p.productName || p.product?.name || "",
-          actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
-          extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-          extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
-          applicationRate: p.applicationRate || "",
-        })),
-      );
-    } else if (Array.isArray(parsed?.t7AdditionalProducts)) {
-      setT7AdditionalProducts(parsed.t7AdditionalProducts);
-    }
-
     // 6. Initial Photos
-    if (Array.isArray(parsed?.t7InitialPhotos) && parsed.t7InitialPhotos.length > 0) {
-      setT7InitialPhotos(parsed.t7InitialPhotos);
-      initialPhotosRef.current = parsed.t7InitialPhotos;
+    if (Array.isArray(actualData?.t7InitialPhotos) && actualData.t7InitialPhotos.length > 0) {
+      setT7InitialPhotos(actualData.t7InitialPhotos);
+      initialPhotosRef.current = actualData.t7InitialPhotos;
     } else {
       const allAttachments = [
+        ...(dedicated7a?.attachments || []),
         ...(demoPlot?.attachments || []),
-        ...(parsed?.attachments || []),
+        ...(actualData?.attachments || []),
         ...(plan?.attachments || []),
       ];
       const plotAttachments = allAttachments.filter(
         (att: any) =>
           att.category === "PLOT" ||
+          att.category === "INITIAL" ||
           att.category === "type7a_plot" ||
           (att.workTypeCode === "TYPE_7A" && att.fileUrl),
       );

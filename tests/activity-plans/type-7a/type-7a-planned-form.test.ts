@@ -359,6 +359,143 @@ async function runTests() {
   assert.strictEqual(parsedActual.t7InitialPhotos[0].url, "https://example.com/plot1.jpg");
   console.log("✓ Test 5 passed: Actual Outcome Extraction and Detail View Data Pipeline verified");
 
+  // 6. Dedicated Relational Table (activity_type_7a_results) Hydration into Actual Form
+  const mockPlanWithDedicatedActual: any = {
+    id: "plan-7a-dedicated-1",
+    type7aTargets: [
+      {
+        id: "target-7a-1",
+        plotName: "แปลงสาธิตทุเรียนภูเขาไฟ",
+        cropCategory: "พืชสวน",
+        cropName: "ทุเรียน",
+        treeCount: 50,
+        demoPlotId: "dp-dedicated-1",
+        results: [
+          {
+            id: "res-7a-1",
+            activityPlanId: "plan-7a-dedicated-1",
+            targetId: "target-7a-1",
+            demoPlotId: "dp-dedicated-1",
+            farmerCustomerId: "farmer-cust-001",
+            farmerName: "นายบุญส่ง มั่งมี",
+            farmerPhone: "0898765432",
+            isUnregisteredFarmer: false,
+            province: "ศรีสะเกษ",
+            district: "กันทรลักษ์",
+            subdistrict: "น้ำอ้อม",
+            latitude: 14.623456,
+            longitude: 104.654321,
+            mainCropInfo: "ทุเรียนหมอนทอง อายุ 5 ปี กำลังเริ่มติดดอก",
+            plantingDate: new Date("2026-09-15"),
+            firstSprayDate: new Date("2026-10-10"),
+            nextSprayDate: new Date("2026-10-25"),
+            cropAgeValue: 60,
+            cropAgeUnit: "วัน",
+            growthStage: "ระยะเหยียดตีนหนู",
+            sprayMethod: "SINGLE",
+            hasExternalChemicals: true,
+            sprayEquipment: "เครื่องพ่นปั๊มลากสาย",
+            otherEquipment: null,
+            notes: "ฉีดพ่นช่วงเช้า อากาศแจ่มใส ไม่มีลม",
+            irrigations: [
+              { id: "irr-ded-1", method: "สปริงเกอร์" },
+              { id: "irr-ded-2", method: "สายยาง" },
+            ],
+            actualProducts: [
+              {
+                id: "act-prod-1",
+                productId: "prod-durian-1",
+                productName: "นูทรีฟอล สปีด",
+                isPlanned: true,
+                withdrawnQuantity: 2,
+                actualQuantity: 2,
+                extraQuantity: 100,
+                actualRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
+                unit: "ขวด",
+                sortOrder: 0,
+              },
+              {
+                id: "act-prod-2",
+                productId: "prod-durian-add-1",
+                productName: "ฮิวมิค พลัส",
+                isPlanned: false,
+                actualQuantity: 1,
+                extraQuantity: "",
+                actualRate: "10 กรัม ต่อน้ำ 20 ลิตร",
+                unit: "ซอง",
+                sortOrder: 1,
+              },
+            ],
+            sprayExternals: [
+              {
+                id: "act-ext-1",
+                company: "บ.เคมีอินเตอร์",
+                productName: "อะบาเมกติน",
+                activeIngredient: "Abamectin 1.8% W/V EC",
+                formula: "EC",
+                customFormula: null,
+                applicationRate: "15 ซีซี ต่อน้ำ 20 ลิตร",
+                sortOrder: 0,
+              },
+            ],
+            attachments: [
+              {
+                id: "att-ded-1",
+                category: "PLOT",
+                fileUrl: "https://example.com/durian-plot.jpg",
+                fileName: "รูปแปลงทุเรียน.jpg",
+                workTypeCode: "TYPE_7A",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  mockPlanWithDedicatedActual.type7aResults = mockPlanWithDedicatedActual.type7aTargets[0].results;
+
+  // Verify parseType7aActualResult handles dedicated DB structure
+  const parsedDedicated = parseType7aActualResult(mockPlanWithDedicatedActual);
+  assert.strictEqual(parsedDedicated.t7FarmerName, "นายบุญส่ง มั่งมี");
+  assert.strictEqual(parsedDedicated.t7FarmerPhone, "0898765432");
+  assert.strictEqual(parsedDedicated.t7FarmerProvince, "ศรีสะเกษ");
+  assert.strictEqual(parsedDedicated.t7FarmerDistrict, "กันทรลักษ์");
+  assert.strictEqual(parsedDedicated.t7FarmerSubdistrict, "น้ำอ้อม");
+  assert.strictEqual(parsedDedicated.t7FarmerCustomerId, "farmer-cust-001");
+  assert.strictEqual(parsedDedicated.t7IsUnregisteredFarmer, false);
+  assert.strictEqual(parsedDedicated.t7Latitude, 14.623456);
+  assert.strictEqual(parsedDedicated.t7Longitude, 104.654321);
+  assert.strictEqual(parsedDedicated.t7MainCropInfo, "ทุเรียนหมอนทอง อายุ 5 ปี กำลังเริ่มติดดอก");
+  assert.strictEqual(parsedDedicated.t7PlantingDate, "2026-09-15");
+  assert.strictEqual(parsedDedicated.t7InitialSprayDate, "2026-10-10");
+  assert.strictEqual(parsedDedicated.t7NextSprayDate, "2026-10-25");
+  assert.strictEqual(parsedDedicated.t7CropAgeValue, 60);
+  assert.strictEqual(parsedDedicated.t7CropAgeUnit, "วัน");
+  assert.strictEqual(parsedDedicated.t7GrowthStage, "ระยะเหยียดตีนหนู");
+  assert.strictEqual(parsedDedicated.t7SprayMethod, "SINGLE");
+  assert.strictEqual(parsedDedicated.t7SprayEquipment, "เครื่องพ่นปั๊มลากสาย");
+  assert.strictEqual(parsedDedicated.t7HasExternalChemicals, true);
+  assert.strictEqual(parsedDedicated.t7Notes, "ฉีดพ่นช่วงเช้า อากาศแจ่มใส ไม่มีลม");
+  assert.deepStrictEqual(parsedDedicated.t7Irrigations, ["สปริงเกอร์", "สายยาง"]);
+  assert.strictEqual(parsedDedicated.t7PlannedProducts?.length, 1);
+  assert.strictEqual(parsedDedicated.t7PlannedProducts?.[0].productName, "นูทรีฟอล สปีด");
+  assert.strictEqual(parsedDedicated.t7AdditionalProducts?.length, 1);
+  assert.strictEqual(parsedDedicated.t7AdditionalProducts?.[0].productName, "ฮิวมิค พลัส");
+  assert.strictEqual(parsedDedicated.t7ExternalProducts?.length, 1);
+  assert.strictEqual(parsedDedicated.t7ExternalProducts?.[0].productName, "อะบาเมกติน");
+  assert.strictEqual(parsedDedicated.t7InitialPhotos?.length, 1);
+  assert.strictEqual(parsedDedicated.t7InitialPhotos?.[0].url, "https://example.com/durian-plot.jpg");
+
+  // Verify extractType7aPlanTargets also reflects dedicated actual results
+  const extractedDedicatedTargets = extractType7aPlanTargets(mockPlanWithDedicatedActual);
+  const dedicatedTarget1 = extractedDedicatedTargets.primary;
+  assert.strictEqual(dedicatedTarget1.farmerName, "นายบุญส่ง มั่งมี");
+  assert.strictEqual(dedicatedTarget1.province, "ศรีสะเกษ");
+  assert.strictEqual(dedicatedTarget1.latitude, 14.623456);
+  assert.deepStrictEqual(dedicatedTarget1.irrigations, ["สปริงเกอร์", "สายยาง"]);
+  assert.strictEqual(dedicatedTarget1.demoProducts?.length, 2);
+  console.log("✓ Test 6 passed: Dedicated Relational Table (activity_type_7a_results) Hydration verified");
+
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
 }
 
