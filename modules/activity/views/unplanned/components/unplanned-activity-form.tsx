@@ -292,6 +292,8 @@ export function UnplannedActivityForm({
 
     // 5.6 Type 7A
     if (
+      (Array.isArray(initialData.type7aTargets) &&
+        initialData.type7aTargets.length > 0) ||
       (Array.isArray(initialData.type7aPlots) &&
         initialData.type7aPlots.length > 0) ||
       (Array.isArray(initialData.demoPlots) &&

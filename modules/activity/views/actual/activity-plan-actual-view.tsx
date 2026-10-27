@@ -425,8 +425,11 @@ export function ActivityPlanActualView({
     const isType7aActive =
       planWorkTypes.includes("TYPE_7A") ||
       planWorkTypes.includes("จัดทำแปลงสาธิต") ||
+      planWorkTypes.includes("ทำแปลงสาธิต") ||
       (planWorkTypes.includes("แปลงสาธิต") &&
         !planWorkTypes.includes("ติดตามแปลงสาธิต")) ||
+      Boolean(plan?.type7aTargets?.length) ||
+      Boolean(plan?.type7aResults?.length) ||
       Boolean(plan?.type7aPlots?.length) ||
       Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
       plan?.activityType?.code === "TYPE_7A";

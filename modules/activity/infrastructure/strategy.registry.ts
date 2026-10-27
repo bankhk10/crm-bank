@@ -190,12 +190,14 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_7A") ||
-            rawData.workTypeCodes.includes("จัดทำแปลงสาธิต"))) ||
+            rawData.workTypeCodes.includes("จัดทำแปลงสาธิต") ||
+            rawData.workTypeCodes.includes("ทำแปลงสาธิต"))) ||
         (rawData.planStores &&
           rawData.planStores.some(
             (s: any) =>
               s.workTypeCode === "TYPE_7A" || s.workTypeCode === "TYPE_7",
           )) ||
+        (rawData.type7aTargets && rawData.type7aTargets.length > 0) ||
         (rawData.type7aPlots && rawData.type7aPlots.length > 0) ||
         (rawData.type7aUnplannedItems &&
           rawData.type7aUnplannedItems.length > 0) ||

@@ -98,9 +98,11 @@ export function Type7aDetailView({
       ? targets
       : target
         ? [target]
-        : Array.isArray(plan?.type7aPlots) && plan.type7aPlots.length > 0
-          ? plan.type7aPlots.map((p: any) => p.demoPlot || p)
-          : [];
+        : Array.isArray(plan?.type7aTargets) && plan.type7aTargets.length > 0
+          ? plan.type7aTargets
+          : Array.isArray(plan?.type7aPlots) && plan.type7aPlots.length > 0
+            ? plan.type7aPlots.map((p: any) => p.demoPlot || p)
+            : [];
 
   const openLightbox = (
     title: string,

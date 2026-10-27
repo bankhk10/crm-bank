@@ -146,6 +146,9 @@ export function ApprovalWorkTypeList({
   const isType7a =
     (isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
       isTypeActive("TYPE_7A", "แปลงสาธิต") ||
+      isTypeActive("TYPE_7A", "ทำแปลงสาธิต") ||
+      Boolean(plan?.type7aTargets?.length) ||
+      Boolean(plan?.type7aResults?.length) ||
       Boolean(plan?.type7aPlots?.length) ||
       Boolean(plan?.demoPlots?.length)) &&
     !isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต");
@@ -354,6 +357,7 @@ export function ApprovalWorkTypeList({
   const hasType7aActualResults = useMemo(() => {
     if (isUnplanned) return true;
     if (plan?.result?.type7aPlots?.length) return true;
+    if (plan?.type7aResults?.length) return true;
     return Boolean(
       parsedResults?.t7PlotName ||
       parsedResults?.t7CropName ||
@@ -1002,16 +1006,16 @@ export function ApprovalWorkTypeList({
         (hasType7aActualResults ? (
           <Type7aDetailView
             isVisible={true}
-            target={targets?.t7a || targets?.t7}
-            targets={targets?.t7aList || targets?.t7List}
+            target={targets?.t7a || targets?.t7 || plan?.type7aTargets?.[0]}
+            targets={targets?.t7aList || targets?.t7List || plan?.type7aTargets}
             actualResult={parsedResults}
             attachments={effectiveT7aImages}
           />
         ) : (
           <Type7aApprovalCard
             isVisible={true}
-            target={targets?.t7a || targets?.t7}
-            targets={targets?.t7aList || targets?.t7List}
+            target={targets?.t7a || targets?.t7 || plan?.type7aTargets?.[0]}
+            targets={targets?.t7aList || targets?.t7List || plan?.type7aTargets}
             plan={plan}
           />
         ))}

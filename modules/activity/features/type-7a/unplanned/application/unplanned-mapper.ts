@@ -10,21 +10,28 @@ export function hydrateType7aUnplannedData(initialData: any): Type7aUnplannedIte
     return initialData.type7aUnplannedItems;
   }
 
-  // Hydrate from type7aPlots if available
-  if (Array.isArray(initialData.type7aPlots) && initialData.type7aPlots.length > 0) {
+  // Hydrate from type7aTargets or type7aPlots if available
+  const sourcePlots =
+    Array.isArray(initialData.type7aTargets) && initialData.type7aTargets.length > 0
+      ? initialData.type7aTargets
+      : Array.isArray(initialData.type7aPlots) && initialData.type7aPlots.length > 0
+      ? initialData.type7aPlots
+      : null;
+
+  if (sourcePlots && sourcePlots.length > 0) {
     const actualResults = Array.isArray(initialData.targetActualResults)
       ? initialData.targetActualResults
       : [];
 
-    return initialData.type7aPlots.map((p: any, idx: number) => {
+    return sourcePlots.map((p: any, idx: number) => {
       const match = actualResults[idx] || {};
       return {
         id: p.id || `type7a-unplanned-${Date.now()}-${idx}`,
         plotName: p.plotName || p.name || match.t7PlotName || "",
         farmerName: p.farmerName || p.ownerName || match.t7FarmerName || "",
         storeId: p.storeId || p.customerId || match.t7FarmerCustomerId || null,
-        province: p.province || match.t7FarmerProvince || "",
-        district: p.district || match.t7FarmerDistrict || "",
+        province: p.province || p.store?.province || match.t7FarmerProvince || "",
+        district: p.district || p.store?.district || match.t7FarmerDistrict || "",
         cropCategory: p.cropCategory || match.t7CropCategory || "",
         cropName: p.cropName || match.t7CropName || "",
         customCropName: p.customCropName || match.t7CustomCropName || "",

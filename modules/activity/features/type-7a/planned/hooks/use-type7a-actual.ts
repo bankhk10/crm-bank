@@ -186,7 +186,7 @@ export function useType7aActual() {
             activityPlan: plan,
           });
 
-    const firstPlot = plan?.type7aPlots?.[0];
+    const firstPlot = plan?.type7aTargets?.[0] || plan?.type7aPlots?.[0];
     const t7aTarget = extractedTargets?.t7a || extractedTargets?.t7 || firstPlot;
     const demoPlot =
       t7aTarget?.demoPlot ||

@@ -25,8 +25,17 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       ? rawResult
       : null);
 
-  // 2. Resolve Master DemoPlot record
+  // 1.5. Resolve Target record (ActivityPlanType7aTarget)
+  const target =
+    dedicated7a?.target ||
+    rawResult.type7aTargets?.[0] ||
+    rawResult.activityPlan?.type7aTargets?.[0] ||
+    rawResult.targets?.[0] ||
+    null;
+
+  // 2. Resolve Master DemoPlot / Target record
   const dp =
+    target ||
     rawResult.demoPlot ||
     rawResult.activityPlan?.type7aPlots?.[0]?.demoPlot ||
     rawResult.activityPlan?.type7aPlots?.[0] ||
@@ -73,7 +82,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       applicationRate: p.actualRate || "",
     }));
 
-  const demoProds = dp?.demoProducts || [];
+  const demoProds = dp?.demoProducts || target?.products || [];
   const plannedFromDemo =
     dedicatedPlanned.length > 0
       ? dedicatedPlanned
@@ -90,7 +99,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
                 ? Number(p.quantity)
                 : 1,
             actualQuantity:
-              p.quantity != null
+              p.actualQuantity != null
+                ? Number(p.actualQuantity)
+                : p.quantity != null
                 ? Number(p.quantity)
                 : p.withdrawnQuantity != null
                 ? Number(p.withdrawnQuantity)
@@ -100,7 +111,12 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
             applicationRate: p.applicationRate || "",
           }))
       : // Fallback to planned products from plan if no actual products recorded yet
-        (rawResult.type7aProducts || rawResult.activityPlan?.type7aProducts || []).map((p: any) => ({
+        (
+          target?.products ||
+          rawResult.type7aProducts ||
+          rawResult.activityPlan?.type7aProducts ||
+          []
+        ).map((p: any) => ({
           productId: p.productId || p.product?.id || "",
           productName: p.productName || p.product?.name || "",
           withdrawnQuantity: p.quantity != null ? Number(p.quantity) : 1,
@@ -213,8 +229,10 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7SelectedProvince ||
       dedicated7a?.province ||
       rawResult.farmerProvince ||
-      dp?.ownerProvince ||
+      target?.store?.province ||
+      target?.province ||
       dp?.province ||
+      dp?.ownerProvince ||
       dp?.customer?.province ||
       "",
     t7FarmerProvince:
@@ -222,8 +240,10 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7FarmerProvince ||
       dedicated7a?.province ||
       rawResult.province ||
-      dp?.ownerProvince ||
+      target?.store?.province ||
+      target?.province ||
       dp?.province ||
+      dp?.ownerProvince ||
       dp?.customer?.province ||
       "",
     t7FarmerDistrict:
@@ -231,8 +251,10 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7FarmerDistrict ||
       dedicated7a?.district ||
       rawResult.district ||
-      dp?.ownerDistrict ||
+      target?.store?.district ||
+      target?.district ||
       dp?.district ||
+      dp?.ownerDistrict ||
       dp?.customer?.district ||
       "",
     t7FarmerSubdistrict:
@@ -241,12 +263,14 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       dedicated7a?.subdistrict ||
       rawResult.ownerSubdistrict ||
       rawResult.subdistrict ||
+      target?.subdistrict ||
       dp?.ownerSubdistrict ||
       "",
     t7FarmerCustomerId:
       rawResult.farmerCustomerId ||
       rawResult.t7FarmerCustomerId ||
       dedicated7a?.farmerCustomerId ||
+      target?.farmerCustomerId ||
       dp?.farmerCustomerId ||
       null,
     t7FarmerName:
@@ -254,6 +278,8 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7FarmerName ||
       dedicated7a?.farmerName ||
       rawResult.ownerName ||
+      target?.farmerName ||
+      target?.ownerName ||
       dp?.ownerName ||
       dp?.farmerCustomer?.name ||
       "",
@@ -262,6 +288,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7FarmerPhone ||
       dedicated7a?.farmerPhone ||
       rawResult.ownerPhone ||
+      target?.farmerPhone ||
       dp?.ownerPhone ||
       dp?.farmerCustomer?.phone ||
       "",
@@ -269,18 +296,23 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.isUnregisteredFarmer ??
         rawResult.t7IsUnregisteredFarmer ??
         dedicated7a?.isUnregisteredFarmer ??
+        target?.isUnregisteredFarmer ??
         dp?.isUnregisteredFarmer,
     ),
     t7DealerName:
       rawResult.dealerName ||
       rawResult.t7DealerName ||
       rawResult.storeName ||
+      target?.store?.name ||
+      target?.dealerName ||
       dp?.customer?.name ||
       rawResult.store?.name ||
       "",
     t7DealerCode:
       rawResult.dealerCode ||
       rawResult.t7DealerCode ||
+      target?.store?.customerCode ||
+      target?.dealerCode ||
       dp?.customer?.customerCode ||
       rawResult.store?.customerCode ||
       "",
@@ -291,6 +323,8 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
         ? Number(rawResult.latitude)
         : rawResult.t7Latitude != null
         ? Number(rawResult.t7Latitude)
+        : target?.latitude != null
+        ? Number(target.latitude)
         : dp?.latitude != null
         ? Number(dp.latitude)
         : undefined,
@@ -301,37 +335,48 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
         ? Number(rawResult.longitude)
         : rawResult.t7Longitude != null
         ? Number(rawResult.t7Longitude)
+        : target?.longitude != null
+        ? Number(target.longitude)
         : dp?.longitude != null
         ? Number(dp.longitude)
         : undefined,
     t7PlotName:
       rawResult.plotName ||
       rawResult.t7PlotName ||
+      target?.plotName ||
+      target?.name ||
       dp?.name ||
       "",
     t7District:
       dedicated7a?.district ||
       rawResult.district ||
       rawResult.t7District ||
+      target?.store?.district ||
+      target?.district ||
       dp?.district ||
       "",
     t7CropCategory:
+      target?.cropCategory ||
       dp?.cropCategory ||
       rawResult.cropCategory ||
       rawResult.t7CropCategory ||
       "",
     t7CropName:
+      target?.cropName ||
       dp?.cropName ||
       rawResult.cropName ||
       rawResult.t7CropName ||
       "",
     t7CustomCropName:
+      target?.customCropName ||
       dp?.customCropName ||
       rawResult.customCropName ||
       rawResult.t7CustomCropName ||
       "",
     t7AreaRai:
-      dp?.areaRai != null
+      target?.areaRai != null
+        ? Number(target.areaRai)
+        : dp?.areaRai != null
         ? Number(dp.areaRai)
         : rawResult.areaRai != null
         ? rawResult.areaRai
@@ -339,7 +384,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
         ? rawResult.t7AreaRai
         : undefined,
     t7TreeCount:
-      dp?.treeCount != null
+      target?.treeCount != null
+        ? Number(target.treeCount)
+        : dp?.treeCount != null
         ? Number(dp.treeCount)
         : rawResult.treeCount != null
         ? rawResult.treeCount
@@ -347,6 +394,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
         ? rawResult.t7TreeCount
         : undefined,
     t7PlotObjective:
+      target?.objective ||
       dp?.objective ||
       rawResult.plotObjective ||
       rawResult.t7PlotObjective ||

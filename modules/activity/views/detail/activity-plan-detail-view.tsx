@@ -73,7 +73,10 @@ export default function ActivityPlanDetailView({
     );
   }
 
-  const hasActualResult = Boolean((plan as any).result);
+  const hasActualResult = Boolean(
+    (plan as any).result ||
+      ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
+  );
 
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">

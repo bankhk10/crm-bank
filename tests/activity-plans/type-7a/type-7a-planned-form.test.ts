@@ -9,6 +9,7 @@ import {
   hydrateType7aPlannedData,
   extractType7aPlanTargets,
 } from "@/modules/activity/features/type-7a/planned/application/planned-mapper";
+import { hydrateType7aUnplannedData } from "@/modules/activity/features/type-7a/unplanned/application/unplanned-mapper";
 import { parseType7aActualResult } from "@/modules/activity/features/type-7a/planned/application/actual-mapper";
 import { syncType7aPlots } from "@/modules/activity/features/type-7a/planned/infrastructure/type7a.repository";
 
@@ -489,6 +490,72 @@ async function runTests() {
   assert.deepStrictEqual(dedicatedTarget1.irrigations, ["สปริงเกอร์", "สายยาง"]);
   assert.strictEqual(dedicatedTarget1.demoProducts?.length, 2);
   console.log("✓ Test 6 passed: Dedicated Relational Table (activity_type_7a_results) Hydration verified");
+
+  // 7. Verify Hydration from type7aTargets directly (without legacy type7aPlots)
+  const mockPlanWithTargetsOnly = {
+    id: "plan-targets-only-1",
+    type7aTargets: [
+      {
+        id: "target-only-1",
+        code: "DP26100001",
+        plotName: "แปลงสาธิต ข้าวหอมมะลิ 105",
+        cropCategory: "พืชไร่",
+        cropName: "ข้าว",
+        areaRai: 25,
+        objective: "ทดสอบปุ๋ยทางใบ",
+        storeId: "store-101",
+        store: {
+          id: "store-101",
+          name: "ร้านการเกษตร อุดมสุข",
+          customerCode: "STORE-101",
+          province: "สุพรรณบุรี",
+          district: "เมือง",
+        },
+        products: [
+          {
+            id: "tprod-1",
+            productId: "prod-1",
+            productName: "สารบำรุงข้าว A",
+            quantity: 5,
+            unit: "ขวด",
+          },
+        ],
+        results: [],
+      },
+    ],
+  };
+
+  // Test Planned Hydration
+  const hydratedPlannedFromTargets = hydrateType7aPlannedData(mockPlanWithTargetsOnly);
+  assert.strictEqual(hydratedPlannedFromTargets.length, 1);
+  assert.strictEqual(hydratedPlannedFromTargets[0].plotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
+  assert.strictEqual(hydratedPlannedFromTargets[0].farmerName, "ร้านการเกษตร อุดมสุข");
+  assert.strictEqual(hydratedPlannedFromTargets[0].province, "สุพรรณบุรี");
+  assert.strictEqual(hydratedPlannedFromTargets[0].district, "เมือง");
+  assert.strictEqual(hydratedPlannedFromTargets[0].cropName, "ข้าว");
+  assert.strictEqual(hydratedPlannedFromTargets[0].areaRai, 25);
+  assert.strictEqual(hydratedPlannedFromTargets[0].demoProducts?.length, 1);
+  assert.strictEqual(hydratedPlannedFromTargets[0].demoProducts?.[0]?.productName, "สารบำรุงข้าว A");
+
+  // Test Unplanned Hydration
+  const hydratedUnplannedFromTargets = hydrateType7aUnplannedData(mockPlanWithTargetsOnly);
+  assert.strictEqual(hydratedUnplannedFromTargets.length, 1);
+  assert.strictEqual(hydratedUnplannedFromTargets[0].plotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
+  assert.strictEqual(hydratedUnplannedFromTargets[0].province, "สุพรรณบุรี");
+  assert.strictEqual(hydratedUnplannedFromTargets[0].district, "เมือง");
+
+  // Test Actual Outcome Parser
+  const parsedActualFromTargets = parseType7aActualResult(mockPlanWithTargetsOnly);
+  assert.strictEqual(parsedActualFromTargets.t7PlotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
+  assert.strictEqual(parsedActualFromTargets.t7CropCategory, "พืชไร่");
+  assert.strictEqual(parsedActualFromTargets.t7CropName, "ข้าว");
+  assert.strictEqual(parsedActualFromTargets.t7AreaRai, 25);
+  assert.strictEqual(parsedActualFromTargets.t7FarmerProvince, "สุพรรณบุรี");
+  assert.strictEqual(parsedActualFromTargets.t7FarmerDistrict, "เมือง");
+  assert.strictEqual(parsedActualFromTargets.t7DealerName, "ร้านการเกษตร อุดมสุข");
+  assert.strictEqual(parsedActualFromTargets.t7PlannedProducts?.length, 1);
+
+  console.log("✓ Test 7 passed: Hydration & Extraction from type7aTargets directly verified");
 
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
 }

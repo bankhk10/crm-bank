@@ -160,6 +160,7 @@ export function resolveCancellationApprover(
 ): CurrentOperatorInfo {
   const hasWithdrawal =
     Boolean(plan.hasProductWithdrawal) ||
+    (plan.type7aTargets && plan.type7aTargets.length > 0) ||
     (plan.type7aPlots && plan.type7aPlots.length > 0) ||
     Boolean(plan.type7b?.hasProducts) ||
     Boolean(plan.type13?.hasProducts) ||

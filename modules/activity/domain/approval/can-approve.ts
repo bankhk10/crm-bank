@@ -289,6 +289,7 @@ export function canUserPerformApproval(
 
     const hasWithdrawal =
       Boolean((plan as any).hasProductWithdrawal) ||
+      ((plan as any).type7aTargets && (plan as any).type7aTargets.length > 0) ||
       ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
       Boolean((plan as any).type7b?.hasProducts) ||
       Boolean((plan as any).type13?.hasProducts) ||
@@ -652,6 +653,7 @@ export function getPlanActionScopes(
 
     const hasWithdrawal =
       Boolean((plan as any).hasProductWithdrawal) ||
+      ((plan as any).type7aTargets && (plan as any).type7aTargets.length > 0) ||
       ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
       Boolean((plan as any).type7b?.hasProducts) ||
       Boolean((plan as any).type13?.hasProducts) ||

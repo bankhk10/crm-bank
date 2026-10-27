@@ -74,6 +74,7 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
           ((p as any).type1Results && (p as any).type1Results.length > 0) ||
           (p as any).type4Results ||
           (p as any).type4Result ||
+          ((p as any).type7aResults && (p as any).type7aResults.length > 0) ||
           p.planType === "UNPLANNED"
         ) {
           const parsed = parseResultSummary({

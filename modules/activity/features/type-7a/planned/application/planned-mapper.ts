@@ -301,8 +301,15 @@ export function extractType7aPlanTargets(
 export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
   if (!initialData) return [];
 
-  if (Array.isArray(initialData.type7aPlots) && initialData.type7aPlots.length > 0) {
-    return initialData.type7aPlots.map((p: any, idx: number) => {
+  const sourcePlots =
+    Array.isArray(initialData.type7aTargets) && initialData.type7aTargets.length > 0
+      ? initialData.type7aTargets
+      : Array.isArray(initialData.type7aPlots) && initialData.type7aPlots.length > 0
+      ? initialData.type7aPlots
+      : null;
+
+  if (sourcePlots && sourcePlots.length > 0) {
+    return sourcePlots.map((p: any, idx: number) => {
       const rawProducts = p.demoProducts || p.products || [];
       const mappedProducts = rawProducts.map((prod: any, pIdx: number) => ({
         id: prod.id || `prod-${idx}-${pIdx}`,
