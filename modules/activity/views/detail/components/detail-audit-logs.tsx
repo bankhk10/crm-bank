@@ -118,7 +118,7 @@ function renderAuditActionBadge(action: string) {
 }
 
 export function DetailAuditLogs({ logs }: DetailAuditLogsProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   if (!logs || logs.length === 0) return null;
 
@@ -184,14 +184,10 @@ export function DetailAuditLogs({ logs }: DetailAuditLogsProps) {
                 ) : (
                   <div className="text-slate-700 text-xs mt-1 space-y-0.5">
                     {log.action === "RECORD_ACTUAL" && (
-                      <div className="font-medium">
-                        บันทึกผลการทำกิจกรรม
-                      </div>
+                      <div className="font-medium">บันทึกผลการทำกิจกรรม</div>
                     )}
                     {log.action === "UPDATE_ACTUAL" && (
-                      <div className="font-medium">
-                        แก้ไขผลการทำกิจกรรม
-                      </div>
+                      <div className="font-medium">แก้ไขผลการทำกิจกรรม</div>
                     )}
                     {log.action === "CHANGE_ACTUAL_STATUS" && (
                       <div>
