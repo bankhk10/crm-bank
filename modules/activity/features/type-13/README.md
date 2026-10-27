@@ -5,7 +5,7 @@
 > **Work Type Name**: ฉีดแปลงแฮตแทค (Hattack Spraying)  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.1.0 — Updated 2026-10-27 Per-Plot Product Withdrawal, Streamlined Actual Form with Demo Products Type 7B Style, and DB Actual Hydration)
+> **Status**: Production Ready / Active Reference (v2.2.0 — Updated 2026-10-27 Modernized Unplanned Form matching Latest Standard, Per-Plot Product Withdrawal, Streamlined Actual Form with Demo Products Type 7B Style, and DB Actual Hydration)
 
 ---
 
@@ -91,8 +91,12 @@ graph TD
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` แล้วเลือกประเภทงาน **ฉีดแปลงแฮตแทค (Type 13)**
-- ฟอร์ม `Type13UnplannedForm` ผสานทั้งข้อมูลร้านค้า Dealer, ชื่อแปลง, ที่อยู่แปลง, วันที่พ่น, อุปกรณ์, ผลการฉีดพ่น, สินค้าที่ใช้ และกล้องถ่ายรูป/อัปโหลดภาพหลังฉีดพ่น
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะสำเร็จ พร้อมบันทึก `ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13` และผลการฉีดพ่นในคราวเดียวผ่าน `type13UnplannedStrategy`
+- ฟอร์ม `Type13UnplannedForm` ได้รับการปรับปรุงเป็นรูปแบบล่าสุด (Modernized Standard) สอดคล้องกับ `Type13ActualForm` และ `Type 7B`:
+  1. **ข้อมูลแปลงและพื้นที่ (Plot & Location Information):** เลือกร้านค้าตัวแทนจำหน่าย (`ActivityCustomerSelect`), เลือกจังหวัด/อำเภอ/ตำบล (`ActivityAddressSelect`), ระบุชื่อหมู่บ้าน (`village`) และระบุจำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount` กำหนดค่าเริ่มต้นเป็น 1 แปลง) โดยตัดช่องชื่อแปลงและพิกัด GPS ซ้ำซ้อนออก
+  2. **สินค้าสาธิตที่ใช้ (Demo Products Used):** การ์ดรายการสินค้าสไตล์ Type 7B เลือกสินค้า (`ActivityProductSelect`), ระบุจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + ตัวเลือกหน่วย `extraUnit`), และอัตราการใช้ (`actualRate`)
+  3. **ภาพถ่ายหลังฉีดพ่น (After Spray Photos):** ใช้งานคอมโพเนนต์ `ActivityPhotoUpload` กำหนด `maxFiles={20}` สำหรับอัปโหลดภาพถ่ายหลักฐานหลังการฉีดพ่น
+  4. **บันทึกเพิ่มเติม (Notes):** ช่องระบุหมายเหตุหรือข้อสังเกตเพิ่มเติมจากการลงพื้นที่
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะสำเร็จ พร้อมบันทึก `ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13` และผลการฉีดพ่นในคราวเดียวผ่าน `type13UnplannedStrategy` โดยอัตโนมัติ
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** เรนเดอร์ `<Type13PlanCard />` สำหรับสรุปแปลงแฮตแทคตามแผน และเรนเดอร์ `<Type13DetailView />` มีแท็บสลับดูแต่ละแปลง สรุปจำนวนแปลงที่ฉีดจริง ตารางการใช้สินค้าสาธิต และแกลเลอรีรูปภาพพร้อม Image Lightbox
@@ -201,8 +205,9 @@ modules/activity/features/type-13/
 
 ### 4.2 Unplanned
 - **`use-type13-unplanned-form.ts`:** จัดการ State สำหรับฟอร์มนอกแผน 2-in-1 (ข้อมูลแปลง + ผลการฉีดพ่น + รูปภาพ)
-- **`type13-unplanned-form.tsx`:** ฟอร์ม 2-in-1 แสดงส่วนเลือกร้านค้า Dealer, ข้อมูลแปลง, การเลือกอุปกรณ์, วันที่พ่น, ผลการตอบสนองของพืช, สินค้าที่ใช้ และกล้องถ่ายรูป/อัปโหลดภาพ
-- **`unplanned-mapper.ts`:** แปลง Form Item เป็น Payload สำหรับบันทึกทั้งส่วน Plan และ Actual พร้อมกัน (`mapType13UnplannedToPayload`) และ Hydrate ข้อมูลเดิม (`hydrateType13UnplannedData`)
+- **`type13-unplanned-form.tsx`:** ฟอร์ม 2-in-1 สไตล์โมเดิร์น (สอดคล้องกับ Type 13 Actual และ Type 7B) ประกอบด้วย: ข้อมูลร้านค้า Dealer, พื้นที่แปลง (จังหวัด/อำเภอ/ตำบล), ชื่อหมู่บ้าน, จำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount`), การ์ดสินค้าสาธิตที่ใช้ (สินค้า, จำนวนใช้จริง, ปริมาณเพิ่ม + หน่วย, อัตราใช้), ภาพถ่ายหลังฉีดพ่นด้วย `ActivityPhotoUpload` (สูงสุด 20 ภาพ), และบันทึกเพิ่มเติม
+- **`unplanned-mapper.ts`:** แปลง Form Item เป็น Payload สำหรับบันทึกทั้งส่วน Plan และ Actual พร้อมกัน (`mapType13UnplannedToPayload`) รองรับ `actualPlotsCount`, `actualQuantity`, `extraQuantity`, `extraUnit`, `actualRate` และ Hydrate ข้อมูลเดิม (`hydrateType13UnplannedData`)
+- **`unplanned-validation.ts`:** ตรวจสอบความถูกต้องของข้อมูลนอกแผน (`validateType13UnplannedItem`) ได้แก่ ร้านค้า Dealer, ที่อยู่แปลง, จำนวนแปลงจริง (> 0), สินค้าที่ใช้และอัตราใช้, และรูปถ่ายไม่เกิน 20 ภาพ
 - **`type13-unplanned.strategy.ts`:** บันทึกข้อมูลกิจกรรมนอกแผนลงในฐานข้อมูลผ่าน `syncType13Data`
 
 ### 4.3 Shared Types and Constants
@@ -458,6 +463,7 @@ sequenceDiagram
 - [ ] **TC-07 (Edit Plan with Existing Actual Results):** เข้าหน้าแก้ไขแผนงานที่มีผลจริงในระบบแล้ว หน้า `planned-activity-form.tsx` ต้องเรนเดอร์ `Type13DetailView` ในส่วนผลงานจริงให้เห็นผลจริงเดิมทันที
 - [ ] **TC-08 (Detail View with Lightbox):** เข้าหน้ารายละเอียด สลับแท็บดูแต่ละแปลง ตรวจสอบสรุปการใช้สินค้า และคลิกขยายดูรูปภาพหลังการฉีดพ่นผ่าน Lightbox
 - [ ] **TC-09 (Approval View):** หัวหน้างานเข้าหน้าพิจารณาอนุมัติ การ์ดสรุป Type 13 ต้องแสดงจำนวนแปลง ร้านค้า Dealer และรายการสินค้าที่ขอเบิกแยกตามแปลงครบถ้วน
+- [ ] **TC-10 (Modernized Unplanned Form):** สร้างกิจกรรมนอกแผน Type 13 เลือกร้านค้า Dealer, ที่อยู่แปลง, ระบุหมู่บ้าน, จำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount`), เพิ่มรายการสินค้าสาธิต (จำนวนใช้จริง, ปริมาณเพิ่ม + หน่วย, อัตราใช้), อัปโหลดภาพหลังฉีดพ่นผ่าน `ActivityPhotoUpload` (สูงสุด 20 ภาพ) และบันทึกสำเร็จโดยไม่ต้องกรอกชื่อแปลงหรือปักหมุด GPS ซ้ำซ้อน
 
 ---
 
@@ -488,5 +494,6 @@ sequenceDiagram
 | **2026-10-21** | 1.5.0 | ปรับปรุงกิจกรรมนอกแผน (Unplanned 2-in-1) และเชื่อมต่อ Strategy เข้ากับ `strategy.registry.ts` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | จัดทำเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วน 100% | Antigravity AI |
 | **2026-10-27** | 2.0.0 | **ยกเลิกตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. จัดเก็บแปลงแฮตแทคลงใน `ActivityPlanType13Target` (`activity_type_13_targets`) โดยตรง พร้อม `code` (`DPYYMMXXXX`) และสถานะ `status: IN_PROGRESS`<br>2. รองรับการเชื่อมโยงต่อไปยัง Type 14 (ติดตามแปลงแฮตแทค) ผ่าน `type13TargetId`<br>3. ปรับเปลี่ยนตารางผลงานจริงเป็น `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal` | Antigravity AI |
+| **2026-10-27** | 2.2.0 | **Modernized Type 13 Unplanned Form (2-in-1):**<br>1. **Streamlined Form Layout:** ปรับหน้า `Type13UnplannedForm` ให้สอดคล้องกับ `Type13ActualForm` และ Type 7B โดยตัดช่องชื่อแปลงและพิกัด GPS ที่ซ้ำซ้อนออก<br>2. **Target & Location Section:** คงการเลือกร้านค้า Dealer (`ActivityCustomerSelect`), ที่อยู่แปลง (`ActivityAddressSelect`), ช่องกรอกชื่อหมู่บ้าน (`village`) และเพิ่มช่องระบุจำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount` กำหนดค่าเริ่มต้นเป็น 1 แปลง)<br>3. **Modern Demo Products Section:** ปรับแต่งการ์ดเลือกสินค้าสาธิต (`ActivityProductSelect`) พร้อมระบุจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + ตัวเลือกหน่วย `extraUnit`), และอัตราการใช้ (`actualRate`)<br>4. **ActivityPhotoUpload Integration:** นำคอมโพเนนต์ `ActivityPhotoUpload` มาใช้งานสำหรับอัปโหลดภาพถ่ายหลังฉีดพ่น (จำกัดสูงสุด 20 ภาพต่อหมู่บ้าน)<br>5. **Schema & Mapper Alignment:** อัปเดต `unplanned-validation.ts` และ `unplanned-mapper.ts` เพื่อรองรับการแปลงและตรวจสอบข้อมูลฟิลด์ใหม่ทั้งหมดอย่างสมบูรณ์ | Antigravity AI |
 | **2026-10-27** | 2.1.1 | **Fix Type 13 Actual Database Persistence & Multi-Structure Unwrapping:**<br>1. **Data Persistence Fix:** แก้ไข `type13PlannedStrategy.saveActual` ให้สกัด `plots` ได้อย่างสมบูรณ์จากทั้ง `t13.plots`, `t13.type13Plots`, `t13.type13Actual.plots`, และ `actualData.type13Plots` ป้องกันการหลุด return เมื่อ payload เป็นโครงสร้างซ้อน<br>2. **Image Upload Flow:** ปรับปรุง `activity-plan-actual-view.tsx` ให้อัปโหลดภาพผ่าน `uploadImages` ก่อนส่งเข้า `collectPayload(updatedPlots)` เพื่อให้ได้ URL ถาวรลง DB<br>3. **Product State Fallback:** อัปเดต `useType13Actual.updatePlotProduct` ให้รับ fallback products ป้องกันกรณี state products เริ่มต้นว่าง<br>4. **Targets Resolution:** แก้ไข `actual-work-type-list.tsx` การส่ง `targets` เมื่อ `type13Targets` เป็น empty array | Antigravity AI |
 | **2026-10-27** | 2.1.0 | **Per-Plot Product Withdrawal, Streamlined Actual Form, and Edit View Actual Hydration:**<br>1. **Planned Form:** รองรับการเบิกสินค้าสาธิตแยกรายแปลง (`withdrawnProducts` ในแต่ละ `Type13PlotItem`) พร้อมระบุชื่อหมู่บ้านและจำนวนแปลงตามแผน (`plotCount`)<br>2. **Planned Edit Hydration:** ดึงข้อมูล `type13Targets`, `type13Products`, `type13Results` มา Hydrate ใน `edit-view.tsx` และเรนเดอร์ `Type13DetailView` ใน `planned-activity-form.tsx` อัตโนมัติเมื่อพบผลจริงใน DB<br>3. **Streamlined Actual Form (`Type13ActualForm`):** ลบช่องกรอกชื่อแปลง, ปรับร้านค้า Dealer และหมู่บ้านเป็นรูปแบบ Read-only Display, ลบ GPS Picker และ Spray Rounds ซ้ำซ้อน, เพิ่ม Section 1.1 สินค้าที่เบิกตามแผน (จำนวนใช้จริง, ปริมาณเพิ่ม, อัตราใช้) สไตล์ Type 7B, ใช้งาน `ActivityPhotoUpload` (จำกัด 20 รูป/หมู่บ้าน), และเพิ่มช่องกรอกจำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount`)<br>4. **State & DB Synthesize:** `useType13Actual` ทำการ hydrate baseline สินค้าจากแผน และสังเคราะห์ round 1 ใน `collectPayload()` เพื่อจัดเก็บลง `activity_type_13_spray_products` ได้อย่างสมบูรณ์ | Antigravity AI |

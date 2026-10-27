@@ -17,10 +17,6 @@ export function validateType13UnplannedItem(
     return { isValid: false, error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค" };
   }
 
-  if (!item.name?.trim()) {
-    return { isValid: false, error: "กรุณาระบุชื่อแปลงแฮตแทค" };
-  }
-
   if (!item.province?.trim()) {
     return { isValid: false, error: "กรุณาระบุจังหวัดของแปลงแฮตแทค" };
   }
@@ -29,8 +25,42 @@ export function validateType13UnplannedItem(
     return { isValid: false, error: "กรุณาระบุอำเภอของแปลงแฮตแทค" };
   }
 
-  if (!item.latitude?.trim() || !item.longitude?.trim()) {
-    return { isValid: false, error: "กรุณาระบุพิกัด GPS ละติจูดและลองจิจูดของแปลงแฮตแทค" };
+  if (
+    item.actualPlotsCount == null ||
+    String(item.actualPlotsCount).trim() === "" ||
+    Number(item.actualPlotsCount) <= 0
+  ) {
+    return { isValid: false, error: "กรุณาระบุจำนวนแปลงที่ฉีดพ่นจริง (ต้องมากกว่า 0)" };
+  }
+
+  if (item.products && item.products.length > 0) {
+    for (let i = 0; i < item.products.length; i++) {
+      const prod = item.products[i];
+      if (!prod.productId?.trim()) {
+        return { isValid: false, error: `สินค้าลำดับที่ ${i + 1}: กรุณาเลือกผลิตภัณฑ์` };
+      }
+      if (
+        (prod.actualQuantity == null && prod.quantityUsed == null) ||
+        (prod.actualQuantity !== undefined && Number(prod.actualQuantity) < 0) ||
+        (prod.quantityUsed !== undefined && Number(prod.quantityUsed) < 0)
+      ) {
+        return {
+          isValid: false,
+          error: `สินค้า "${prod.productName || `ลำดับที่ ${i + 1}`}": กรุณาระบุจำนวนที่ใช้จริง`,
+        };
+      }
+      if (!prod.actualRate || !String(prod.actualRate).trim()) {
+        return {
+          isValid: false,
+          error: `สินค้า "${prod.productName || `ลำดับที่ ${i + 1}`}": กรุณาระบุอัตราการใช้`,
+        };
+      }
+    }
+  }
+
+  const imageCount = (item.images?.length || item.afterSprayImages?.length || 0);
+  if (imageCount > 20) {
+    return { isValid: false, error: "อัปโหลดรูปภาพได้สูงสุด 20 รูปต่อหมู่บ้าน" };
   }
 
   return { isValid: true };

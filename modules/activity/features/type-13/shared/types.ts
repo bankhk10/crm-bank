@@ -61,6 +61,9 @@ export interface Type13SprayingProduct {
   quantityUsed: number | string;
   unit?: string | null;
   detail?: string | null;
+  actualQuantity?: number | string;
+  extraQuantity?: number | string;
+  extraUnit?: string;
 }
 
 export interface Type13SprayingRoundAttachment {

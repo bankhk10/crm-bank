@@ -7,23 +7,27 @@ import type {
 
 export interface Type13UnplannedPlot {
   id: string;
-  name: string;
+  name?: string;
+  plotName?: string;
   storeId: string;
   dealerName?: string;
   province: string;
   district: string;
   subdistrict?: string;
   village?: string;
+  villageName?: string;
   actualPlotsCount?: number | string;
-  latitude: string;
-  longitude: string;
-  sprayDate: string;
-  sprayMethod: "SINGLE" | "TANK_MIXED";
-  sprayEquipment: string;
-  productResponse: string;
+  latitude?: string;
+  longitude?: string;
+  sprayDate?: string;
+  sprayMethod?: "SINGLE" | "TANK_MIXED";
+  sprayEquipment?: string;
+  productResponse?: string;
   problemDetail?: string;
+  notes?: string;
   products: Type13SprayingProduct[];
   images?: Type13ImageFile[];
+  afterSprayImages?: Type13ImageFile[];
 }
 
 export type Type13UnplannedItem = Type13UnplannedPlot;
