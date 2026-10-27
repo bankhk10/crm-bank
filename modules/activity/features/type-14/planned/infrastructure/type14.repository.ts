@@ -12,7 +12,7 @@ import type { Type14PlanInput } from "../types/planned.types";
  * Strictly for TYPE_14 ("ติดตามแปลงแฮตแทค")
  */
 export async function findHattackFollowUpActivityPlans() {
-  return db.activityPlan.findMany({
+  const plans = await db.activityPlan.findMany({
     where: {
       deletedAt: null,
       status: ActivityStatus.APPROVED,
@@ -23,98 +23,70 @@ export async function findHattackFollowUpActivityPlans() {
         { activityType: { code: "TYPE_13" } },
         { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
       ],
+      type13Targets: {
+        some: {
+          status: { not: DemoPlotStatus.CANCELLED },
+        },
+      },
     },
     include: {
       type13Targets: {
+        where: {
+          status: { not: DemoPlotStatus.CANCELLED },
+        },
         include: {
           store: {
             select: { id: true, name: true, customerCode: true },
           },
-          demoPlot: true,
-        },
-      },
-      demoPlotVisits: {
-        where: {
-          demoPlot: {
-            plotType: "HATTACK",
-            deletedAt: null,
-            status: { not: DemoPlotStatus.CANCELLED },
-          },
-        },
-        include: {
-          demoPlot: {
-            include: {
-              customer: {
-                select: { id: true, name: true, customerCode: true },
-              },
-              farmerCustomer: {
-                select: { id: true, name: true, customerCode: true },
-              },
-            },
+          products: {
+            include: { product: true },
           },
         },
       },
     },
     orderBy: { startDate: "desc" },
   });
+
+  return plans;
 }
 
 /**
- * Fetch HATTACK demo plots for TYPE_14 "ติดตามแปลงแฮตแทค"
- * Returns plots with plotType = "HATTACK" (excluding CANCELLED and deleted)
+ * Fetch HATTACK targets for TYPE_14 "ติดตามแปลงแฮตแทค"
+ * Returns targets from activity_type_13_targets (excluding CANCELLED)
  */
 export async function findHattackFollowUpDemoPlots() {
-  return db.demoPlot.findMany({
+  return db.activityPlanType13Target.findMany({
     where: {
-      deletedAt: null,
-      plotType: "HATTACK",
       status: { not: DemoPlotStatus.CANCELLED },
-      visits: {
-        some: {
-          workTypeCode: "TYPE_13",
-          activityPlan: {
-            deletedAt: null,
-            OR: [
-              { activityType: { code: "TYPE_13" } },
-              { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
-            ],
-          },
-        },
+      activityPlan: {
+        deletedAt: null,
+        status: { not: ActivityStatus.CANCELLED },
       },
     },
     include: {
-      customer: { select: { id: true, name: true } },
-      demoProducts: {
+      store: { select: { id: true, name: true } },
+      products: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },
       },
-      visits: {
-        where: {
-          activityPlan: {
-            deletedAt: null,
-          },
-        },
-        include: {
-          activityPlan: {
-            select: { id: true, title: true, code: true },
-          },
-        },
-        orderBy: { visitDate: "asc" },
+      activityPlan: {
+        select: { id: true, title: true, code: true, startDate: true },
       },
-      attachments: true,
+      type14Targets: true,
+      type14Results: true,
     },
     orderBy: { createdAt: "desc" },
   });
 }
 
 /**
- * Creates ActivityPlanType14Target & Product records, and visits in a Prisma Transaction
+ * Creates ActivityPlanType14Target & Product records in a Prisma Transaction
  */
 export async function createType14Data(
   tx: Prisma.TransactionClient,
   planId: string,
   type14Data: Type14PlanInput | undefined | null,
-  startDate: Date = new Date(),
+  _startDate: Date = new Date(),
 ) {
   if (!type14Data) return;
 
@@ -133,41 +105,43 @@ export async function createType14Data(
   // Handle plots
   const plotIds =
     type14Data.selectedPlotIds ||
+    type14Data.type13TargetIds ||
     type14Data.demoPlotIds ||
+    (type14Data.type13TargetId ? [type14Data.type13TargetId] : []) ||
     (type14Data.demoPlotId ? [type14Data.demoPlotId] : []);
 
   let primaryTargetId: string | null = null;
 
   if (plotIds.length > 0) {
-    const existingDemoPlots = await tx.demoPlot.findMany({
+    const existingTargets = await tx.activityPlanType13Target.findMany({
       where: { id: { in: plotIds } },
     });
 
     for (let i = 0; i < plotIds.length; i++) {
       const plotId = plotIds[i];
-      const demoPlot = existingDemoPlots.find((p) => p.id === plotId);
+      const target13 = existingTargets.find((p) => p.id === plotId);
 
       const target = await tx.activityPlanType14Target.create({
         data: {
           activityPlanId: planId,
           mode: type14Data.mode || "EXISTING_PLOT",
-          sourceActivityPlanId: validSourcePlanId,
-          demoPlotId: plotId,
-          plotName: demoPlot?.name || type14Data.name || null,
-          storeId: demoPlot?.customerId || null,
-          dealerName: demoPlot?.ownerName || type14Data.dealerName || null,
-          ownerName: demoPlot?.ownerName || type14Data.ownerName || null,
-          cropCategory: demoPlot?.cropCategory || type14Data.cropCategory || null,
-          cropName: demoPlot?.cropName || type14Data.cropName || null,
-          province: demoPlot?.province || type14Data.province || null,
-          district: demoPlot?.district || type14Data.district || null,
+          sourceActivityPlanId: validSourcePlanId || target13?.activityPlanId || null,
+          type13TargetId: plotId,
+          plotName: target13?.plotName || type14Data.name || null,
+          storeId: target13?.storeId || type14Data.storeId || null,
+          dealerName: target13?.dealerName || type14Data.dealerName || null,
+          ownerName: target13?.ownerName || type14Data.ownerName || null,
+          cropCategory: type14Data.cropCategory || null,
+          cropName: type14Data.cropName || null,
+          province: target13?.province || type14Data.province || "",
+          district: target13?.district || type14Data.district || "",
           latitude:
-            demoPlot?.latitude ??
+            target13?.latitude ??
             (type14Data.latitude
               ? new Prisma.Decimal(type14Data.latitude)
               : null),
           longitude:
-            demoPlot?.longitude ??
+            target13?.longitude ??
             (type14Data.longitude
               ? new Prisma.Decimal(type14Data.longitude)
               : null),
@@ -178,33 +152,6 @@ export async function createType14Data(
       if (i === 0) {
         primaryTargetId = target.id;
       }
-
-      // Ensure DemoPlotVisit is created or linked for TYPE_14
-      const existingVisit = await tx.demoPlotVisit.findFirst({
-        where: {
-          activityPlanId: planId,
-          demoPlotId: plotId,
-          workTypeCode: "TYPE_14",
-        },
-      });
-
-      if (!existingVisit) {
-        const visitCount = await tx.demoPlotVisit.count({
-          where: { demoPlotId: plotId },
-        });
-
-        await tx.demoPlotVisit.create({
-          data: {
-            demoPlotId: plotId,
-            activityPlanId: planId,
-            workTypeCode: "TYPE_14",
-            visitNumber: visitCount + 1,
-            visitDate: startDate,
-            daysSinceStart: 0,
-            notes: `สร้างจากแผนงานติดตามแปลงแฮตแทค (TYPE_14)`,
-          },
-        });
-      }
     }
   } else if (type14Data.mode === "NEW_PLOT" && type14Data.name) {
     const target = await tx.activityPlanType14Target.create({
@@ -212,14 +159,14 @@ export async function createType14Data(
         activityPlanId: planId,
         mode: "NEW_PLOT",
         sourceActivityPlanId: validSourcePlanId,
-        demoPlotId: null,
+        type13TargetId: null,
         plotName: type14Data.name,
         dealerName: type14Data.dealerName || null,
         ownerName: type14Data.ownerName || null,
         cropCategory: type14Data.cropCategory || null,
         cropName: type14Data.cropName || null,
-        province: type14Data.province || null,
-        district: type14Data.district || null,
+        province: type14Data.province || "",
+        district: type14Data.district || "",
         latitude: type14Data.latitude
           ? new Prisma.Decimal(type14Data.latitude)
           : null,
@@ -293,7 +240,12 @@ export async function findType14ByPlanId(planId: string) {
     db.activityPlanType14Target.findMany({
       where: { activityPlanId: planId },
       include: {
-        demoPlot: true,
+        type13Target: {
+          include: {
+            store: true,
+            products: true,
+          },
+        },
         sourceActivityPlan: {
           select: { id: true, title: true, code: true },
         },

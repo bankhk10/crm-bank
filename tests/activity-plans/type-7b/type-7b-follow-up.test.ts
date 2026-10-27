@@ -30,9 +30,8 @@ async function runTests() {
   console.log("✓ Test 1 passed: Follow-up plan options structure is valid");
 
   // Test 2: Verify that closed or cancelled plots are NOT included
-  const closedPlotsInDb = await db.demoPlot.findMany({
+  const closedPlotsInDb = await db.activityPlanType7aTarget.findMany({
     where: {
-      deletedAt: null,
       OR: [
         { status: { in: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] } },
         { closedDate: { not: null } },

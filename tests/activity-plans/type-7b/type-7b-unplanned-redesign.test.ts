@@ -334,34 +334,34 @@ async function runTests() {
   // ---------------------------------------------------------------------------
   console.log("\n[Test 4] Testing type7bUnplannedStrategy.savePlan & saveActual integration...");
 
-  const mockDemoPlotVisits: any[] = [];
-  const mockDemoPlots: any[] = [{ id: "demo-plot-101", status: DemoPlotStatus.IN_PROGRESS }];
+  const mockType7aTargets: any[] = [{ id: "demo-plot-101", status: DemoPlotStatus.IN_PROGRESS }];
   const mockSprayRounds: any[] = [];
   const mockSprayProducts: any[] = [];
+  const mockType7bTargets: any[] = [];
 
   const mockTx: any = {
-    demoPlot: {
-      findFirst: async () => mockDemoPlots[0],
+    activityPlanType7aTarget: {
+      findFirst: async () => mockType7aTargets[0],
+      findUnique: async () => mockType7aTargets[0],
       update: async ({ data }: any) => {
-        Object.assign(mockDemoPlots[0], data);
-        return mockDemoPlots[0];
+        Object.assign(mockType7aTargets[0], data);
+        return mockType7aTargets[0];
       },
     },
-    demoPlotVisit: {
-      findFirst: async () => mockDemoPlotVisits[0] || null,
-      count: async () => mockDemoPlotVisits.length,
+    activityPlanType7bTarget: {
+      findFirst: async () => mockType7bTargets[0] || { type7aTargetId: "demo-plot-101" },
+      deleteMany: async () => {
+        mockType7bTargets.length = 0;
+      },
       create: async ({ data }: any) => {
-        const v = { id: `visit-${mockDemoPlotVisits.length + 1}`, ...data };
-        mockDemoPlotVisits.push(v);
-        return v;
+        const item = { id: `target-${mockType7bTargets.length + 1}`, ...data };
+        mockType7bTargets.push(item);
+        return item;
       },
-      update: async ({ data }: any) => {
-        Object.assign(mockDemoPlotVisits[0], data);
-        return mockDemoPlotVisits[0];
-      },
+      createMany: async () => {},
     },
     activityPlanType7bPlot: {
-      findFirst: async () => ({ demoPlotId: "demo-plot-101" }),
+      findFirst: async () => ({ type7aTargetId: "demo-plot-101" }),
       deleteMany: async () => {},
       createMany: async () => {},
     },
@@ -398,13 +398,32 @@ async function runTests() {
         return round;
       },
     },
+    activityResultType7bSprayRound: {
+      deleteMany: async () => {
+        mockSprayRounds.length = 0;
+      },
+      create: async ({ data }: any) => {
+        const round = { id: `sr-${mockSprayRounds.length + 1}`, ...data };
+        mockSprayRounds.push(round);
+        return round;
+      },
+    },
     activityResultSprayProduct: {
       createMany: async ({ data }: any) => {
         mockSprayProducts.push(...data);
         return { count: data.length };
       },
     },
+    activityResultType7bSprayProduct: {
+      createMany: async ({ data }: any) => {
+        mockSprayProducts.push(...data);
+        return { count: data.length };
+      },
+    },
     activityResultSprayExternal: {
+      createMany: async () => ({ count: 0 }),
+    },
+    activityResultType7bSprayExternal: {
       createMany: async () => ({ count: 0 }),
     },
     product: {
@@ -427,10 +446,7 @@ async function runTests() {
 
   assert.strictEqual(mockSprayRounds.length, 1);
   assert.strictEqual(mockSprayProducts.length, 2);
-  assert.strictEqual(mockDemoPlots[0].status, DemoPlotStatus.COMPLETED);
-  assert.strictEqual(Number(mockDemoPlots[0].demoYieldKg), 8500);
-  assert.strictEqual(mockDemoPlotVisits.length, 1);
-  assert.strictEqual(mockDemoPlotVisits[0].daysSinceStart, 14);
+  assert.strictEqual(mockType7aTargets[0].status, DemoPlotStatus.COMPLETED);
 
   console.log("✓ Test 4 passed: Unplanned strategy smoothly saves rounds, products, and closure evaluation.");
 

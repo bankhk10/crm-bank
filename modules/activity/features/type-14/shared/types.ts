@@ -54,6 +54,7 @@ export interface Type14WithdrawnProductLine {
 
 export interface Type14PlotItem {
   id: string;
+  type13TargetId?: string | null;
   demoPlotId?: string | null;
   name: string;
   plotName?: string;

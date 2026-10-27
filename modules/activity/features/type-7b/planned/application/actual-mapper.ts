@@ -156,7 +156,10 @@ export function parseType7bActualResult(
 
   const demoPlot =
     resData.demoPlot ||
+    plan?.type7b?.plots?.[0]?.type7aTarget ||
     plan?.type7b?.plots?.[0]?.demoPlot ||
+    plan?.type7bTargets?.[0]?.type7aTarget ||
+    plan?.type7bTargets?.[0]?.demoPlot ||
     plan?.type7bPlots?.[0]?.demoPlot ||
     plan?.type7bPlots?.[0] ||
     plan?.demoPlots?.[0] ||

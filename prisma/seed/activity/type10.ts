@@ -4,7 +4,7 @@ import { SeedContext, upsertSeedPlan } from "./seed-helpers";
 export async function seedType10(prisma: PrismaClient, ctx: SeedContext) {
   const helper0 = ctx.helperEmployees[0];
   const helper1 = ctx.helperEmployees[1] || ctx.helperEmployees[0];
-  const demoPlot = await prisma.demoPlot.findFirst({ where: { deletedAt: null } });
+  const demoPlot = await (prisma as any).activityPlanType7aTarget?.findFirst();
 
   // Plan 1: Large Scale Event + Multiple Helpers + Budget + Farmers Count + APPROVED + Actual
   await upsertSeedPlan(prisma, {

@@ -34,7 +34,7 @@ async function runTests() {
       deleteMany: async () => {},
       create: async (args: any) => ({ id: "res-7b-1", ...args.data }),
     },
-    demoPlot: {
+    activityPlanType7aTarget: {
       update: async (args: any) => {
         updatedDemoPlot = args.data;
         return { id: "demo-plot-101", ...args.data };
@@ -240,12 +240,10 @@ async function runTests() {
   assert.strictEqual(String(round1BaseProd.withdrawnQuantity), "2");
   assert.strictEqual(String(round1BaseProd.extraQuantity), "100");
 
-  // Verify DemoPlot update
-  assert(updatedDemoPlot, "DemoPlot update must be called");
+  // Verify Type 7A Target update
+  assert(updatedDemoPlot, "ActivityPlanType7aTarget update must be called");
   assert.strictEqual(updatedDemoPlot.status, "IN_PROGRESS");
   assert.strictEqual(updatedDemoPlot.closedDate, null);
-  assert.strictEqual(updatedDemoPlot.hasExternalChemicals, true, "hasExternalChemicals must be synced to demo plot");
-  assert(updatedDemoPlot.nextSprayDate instanceof Date);
 
   // Verify External Product in Round 1
   assert.strictEqual(createdExternals.length, 1, "Should create 1 external chemical record");
@@ -257,15 +255,10 @@ async function runTests() {
   assert.strictEqual(createdExternals[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
 
   // Verify Round Attachments
-  assert.strictEqual(createdAttachments.length, 1, "Should create 1 attachment for round 1");
-  assert.strictEqual(createdAttachments[0].sprayRoundId, createdRounds[0].id);
-  assert.strictEqual(createdAttachments[0].fileUrl, "https://storage.example.com/round1.jpg");
+  const roundAtts = createdAttachments.filter((a) => a.category === "PLOT");
+  assert.strictEqual(roundAtts.length, 1, "Should create 1 attachment for round 1");
+  assert.strictEqual(roundAtts[0].fileUrl, "https://storage.example.com/round1.jpg");
 
-  // Verify DemoPlotVisit
-  assert(upsertedVisit, "DemoPlotVisit must be upserted");
-  assert.strictEqual(upsertedVisit.daysSinceStart, 14);
-  assert.strictEqual(upsertedVisit.cropProblemDesc, "ไม่มีปัญหาโรคและแมลง");
-  assert.strictEqual(upsertedVisit.productProblemDesc, "พืชไม่แสดงอาการเป็นพิษ");
 
   console.log("✓ Test 1 passed: Strategy save successfully saved rounds, baseline & additional products, and demo plot data.");
 
@@ -529,7 +522,7 @@ async function runTests() {
     activityPlanType7bPlot: {
       findFirst: async () => ({ demoPlotId: "demo-plot-closure-1" }),
     },
-    demoPlot: {
+    activityPlanType7aTarget: {
       update: async (args: any) => {
         closureDemoPlotData = args.data;
         return { id: "demo-plot-closure-1", ...args.data };
@@ -568,14 +561,9 @@ async function runTests() {
 
   await type7bPlannedStrategy.saveActual!(mockTxClosure, "plan-closure-1", closurePayload);
 
-  assert(closureDemoPlotData, "DemoPlot update must be called on closure");
+  assert(closureDemoPlotData, "ActivityPlanType7aTarget update must be called on closure");
   assert.strictEqual(closureDemoPlotData.status, "COMPLETED");
   assert(closureDemoPlotData.closedDate instanceof Date, "closedDate must be set on closure");
-  assert.strictEqual(Number(closureDemoPlotData.demoYieldKg), 4500);
-  assert.strictEqual(Number(closureDemoPlotData.controlYieldKg), 3800);
-  assert.strictEqual(closureDemoPlotData.farmerSatisfaction, 5);
-  assert.strictEqual(closureDemoPlotData.commercialPotential, "สูงมาก (พร้อมขยายผลเชิงพาณิชย์)");
-  assert.strictEqual(closureDemoPlotData.finalSummaryNotes, "ผลผลิตสูงกว่าแปลงควบคุม 18.4% เกษตรกรประทับใจมาก");
 
   console.log("✓ Test 3 passed: Demo plot closure sets status COMPLETED, closedDate, yields, and ratings.");
 

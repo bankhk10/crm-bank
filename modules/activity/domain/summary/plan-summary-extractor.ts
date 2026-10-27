@@ -77,7 +77,7 @@ export function extractCorePlanSummary(
       ? extractedHelpers.map((h: any) => h.name)
       : undefined;
 
-  const t7Plot = (p.demoPlotVisits?.[0]?.demoPlot || (p as any).demoPlot) as any;
+  const t7Plot = ((p as any).type7aTargets?.[0] || (p as any).demoPlot) as any;
 
   return {
     planNo: p.code || "TP-DRAFT",

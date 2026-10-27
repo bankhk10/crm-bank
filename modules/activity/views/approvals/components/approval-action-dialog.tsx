@@ -226,7 +226,7 @@ export function ApprovalActionDialog({
 
   const hasWithdrawal =
     Boolean(plan.hasProductWithdrawal) ||
-    (plan.type7aPlots && plan.type7aPlots.length > 0) ||
+    Boolean((plan as any).type7aTargets?.length || (plan as any).type7aPlots?.length) ||
     Boolean(plan.type7aProducts && plan.type7aProducts.length > 0) ||
     Boolean(plan.type7bProducts && plan.type7bProducts.length > 0) ||
     Boolean(plan.type13Products && plan.type13Products.length > 0) ||

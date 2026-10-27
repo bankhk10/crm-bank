@@ -23,7 +23,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     const plots = type7bData?.plots || planData.type7bPlots || [];
 
     if (!plots || plots.length === 0) {
-      if (!type7bData?.sourceActivityPlanId && !type7bData?.demoPlotId) {
+      if (!type7bData?.sourceActivityPlanId && !type7bData?.type7aTargetId && !type7bData?.demoPlotId) {
         return {
           valid: false,
           error: "กรุณาระบุแปลงสาธิตที่ต้องการติดตามอย่างน้อย 1 แปลง",
@@ -35,7 +35,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 7B Plan targets in dedicated tables (ActivityPlanType7bTarget, ActivityPlanType7bProduct, DemoPlotVisit)
+   * Save Type 7B Plan targets in dedicated tables (ActivityPlanType7bTarget, ActivityPlanType7bProduct)
    */
   async savePlan(
     tx: PrismaTransaction,
@@ -50,6 +50,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         products: planData.type7bProducts,
         objective: planData.objective,
         sourceActivityPlanId: planData.sourceActivityPlanId,
+        type7aTargetId: planData.type7aTargetId || planData.demoPlotId,
         demoPlotId: planData.demoPlotId,
       };
 
@@ -64,7 +65,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
   /**
    * Save Type 7B Actual outcome data in dedicated tables (ActivityResultType7b, SprayRound, SprayProduct, SprayExternal)
-   * And sync master DemoPlot & DemoPlotVisit
+   * And update source ActivityPlanType7aTarget status when closed
    */
   async saveActual(
     tx: PrismaTransaction,
@@ -73,40 +74,27 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     const t7b = actualData.type7bActual || actualData;
 
-    // 1. Resolve target & DemoPlotId
+    // 1. Resolve target & Type 7A Target ID
     const target = await (tx as any).activityPlanType7bTarget?.findFirst({
       where: { activityPlanId },
-      select: { id: true, demoPlotId: true },
+      select: { id: true, type7aTargetId: true },
     });
 
-    let demoPlotId = t7b.t7DemoPlotId || t7b.demoPlotId || actualData.demoPlotId || target?.demoPlotId || null;
-    if (!demoPlotId) {
-      const matchedVisit = await (tx as any).demoPlotVisit.findFirst({
-        where: { activityPlanId },
-        select: { demoPlotId: true },
-      });
-      demoPlotId = matchedVisit?.demoPlotId || null;
-    }
-    if (!demoPlotId) {
-      const matchedPlot = await (tx as any).demoPlot.findFirst({
-        where: { activityPlanId },
-        select: { id: true },
-      });
-      demoPlotId = matchedPlot?.id || null;
-    }
-
-    if (!demoPlotId) {
-      console.warn(`[Type7B saveActual] Cannot find demoPlotId for activityPlanId: ${activityPlanId}. Skipping.`);
-      return;
-    }
+    const type7aTargetId =
+      t7b.type7aTargetId ||
+      t7b.t7DemoPlotId ||
+      t7b.demoPlotId ||
+      actualData.type7aTargetId ||
+      actualData.demoPlotId ||
+      target?.type7aTargetId ||
+      null;
 
     const visitDate = t7b.t7VisitDate ? new Date(t7b.t7VisitDate) : new Date();
     const daysSinceStart = Number(t7b.t7DaysAfterSpray) || 0;
-    const cropImageUrls = (t7b.t7CropImages || []).map((img: any) => img.url).filter(Boolean);
     const sprayingRounds: any[] = t7b.t7SprayingRounds || [];
     const firstRound = sprayingRounds[0];
 
-    // 2. Update DemoPlot status & yield metadata
+    // 2. Update source ActivityPlanType7aTarget status & yield metadata if applicable
     let mappedStatus: DemoPlotStatus = DemoPlotStatus.IN_PROGRESS;
     if (t7b.t7PlotStatus === "COMPLETED") {
       mappedStatus = DemoPlotStatus.COMPLETED;
@@ -116,94 +104,17 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
     const isClosing = mappedStatus === DemoPlotStatus.COMPLETED || mappedStatus === DemoPlotStatus.CANCELLED;
 
-    const demoPlotUpdateData: any = {
-      status: mappedStatus,
-      closedDate: isClosing ? new Date() : null,
-    };
-
-    if (t7b.t7NextSprayDate) {
-      demoPlotUpdateData.nextSprayDate = new Date(t7b.t7NextSprayDate);
-    }
-    if (t7b.t7FinalYieldKg) {
-      demoPlotUpdateData.demoYieldKg = new Prisma.Decimal(String(t7b.t7FinalYieldKg));
-    }
-    if (t7b.t7ControlYieldKg) {
-      demoPlotUpdateData.controlYieldKg = new Prisma.Decimal(String(t7b.t7ControlYieldKg));
-    }
-    if (t7b.t7FarmerSatisfaction) {
-      demoPlotUpdateData.farmerSatisfaction = Number(t7b.t7FarmerSatisfaction);
-    }
-    if (t7b.t7CommercialPotential) {
-      demoPlotUpdateData.commercialPotential = t7b.t7CommercialPotential;
-    }
-    if (t7b.t7FinalSummaryNotes) {
-      demoPlotUpdateData.finalSummaryNotes = t7b.t7FinalSummaryNotes;
-    }
-    if (firstRound?.sprayMethod === "TANK_MIXED") {
-      demoPlotUpdateData.hasExternalChemicals = Boolean(firstRound?.hasExternalChemicals);
-    }
-
-    await (tx as any).demoPlot.update({
-      where: { id: demoPlotId },
-      data: demoPlotUpdateData,
-    });
-
-    // 3. Upsert DemoPlotVisit for timeline tracking
-    const existingVisit = await (tx as any).demoPlotVisit.findFirst({
-      where: {
-        activityPlanId,
-        demoPlotId,
-      },
-    });
-
-    if (existingVisit) {
-      await (tx as any).demoPlotVisit.update({
-        where: { id: existingVisit.id },
+    if (type7aTargetId && (tx as any).activityPlanType7aTarget?.update) {
+      await (tx as any).activityPlanType7aTarget.update({
+        where: { id: type7aTargetId },
         data: {
-          visitDate,
-          daysSinceStart,
-          cropImageUrls,
-          imageUrls: cropImageUrls,
-          notes: t7b.t7Notes || null,
-          cropCondition: t7b.t7CropCondition || "สมบูรณ์",
-          growthStage: t7b.t7GrowthStage || "",
-          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-          sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
-          sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
-          otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
-        },
-      });
-    } else {
-      const count = await (tx as any).demoPlotVisit.count({
-        where: { demoPlotId },
-      });
-
-      await (tx as any).demoPlotVisit.create({
-        data: {
-          demoPlotId,
-          activityPlanId,
-          workTypeCode: "TYPE_7B",
-          visitNumber: count + 1,
-          visitDate,
-          daysSinceStart,
-          cropImageUrls,
-          imageUrls: cropImageUrls,
-          notes: t7b.t7Notes || null,
-          cropCondition: t7b.t7CropCondition || "สมบูรณ์",
-          growthStage: t7b.t7GrowthStage || "",
-          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-          sprayMethod: firstRound?.sprayMethod || t7b.t7SprayMethod || null,
-          sprayEquipment: firstRound?.sprayEquipment || t7b.t7SprayEquipment || null,
-          otherEquipment: firstRound?.otherEquipment || t7b.t7OtherEquipment || null,
+          status: mappedStatus,
+          closedDate: isClosing ? new Date() : null,
         },
       });
     }
 
-    // 4. Save into dedicated ActivityResultType7b table if available
+    // 3. Save into dedicated ActivityResultType7b table
     let createdResult: any = null;
     if ((tx as any).activityResultType7b) {
       await (tx as any).activityResultType7b.deleteMany({
@@ -214,7 +125,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         data: {
           activityPlanId,
           targetId: target?.id || null,
-          demoPlotId,
+          type7aTargetId,
           visitDate,
           daysSinceStart,
           cropCondition: t7b.t7CropCondition || "สมบูรณ์",
@@ -255,7 +166,6 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         data: validCropImages.map((img: any) => ({
           activityPlanId,
           type7bResultId: createdResult.id,
-          demoPlotId,
           workTypeCode: "TYPE_7B",
           category: "CROP",
           fileUrl: img.url || img.fileUrl,
@@ -266,116 +176,79 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       });
     }
 
-    const roundDelegate =
-      (tx as any).activityResultType7bSprayRound ||
-      (tx as any).activityResultSprayRound;
-    const sprayProductDelegate =
-      (tx as any).activityResultType7bSprayProduct ||
-      (tx as any).activityResultSprayProduct;
-    const sprayExternalDelegate =
-      (tx as any).activityResultType7bSprayExternal ||
-      (tx as any).activityResultSprayExternal;
+    // 4. Save Spray Rounds
+    if (sprayingRounds.length > 0) {
+      const sprayRoundDelegate = (tx as any).activityResultType7bSprayRound || (tx as any).activityResultSprayRound;
+      const sprayProductDelegate = (tx as any).activityResultType7bSprayProduct || (tx as any).activityResultSprayProduct;
+      const sprayExternalDelegate = (tx as any).activityResultType7bSprayExternal || (tx as any).activityResultSprayExternal;
 
-    if (roundDelegate) {
-      // Clean up previous spray rounds if delegate supports deleteMany
-      if (typeof roundDelegate.deleteMany === "function") {
-        await roundDelegate.deleteMany({
-          where: (tx as any).activityResultType7b
-            ? { resultId: createdResult.id }
-            : { activityResultId: createdResult.id },
-        });
-      }
+      for (let rIdx = 0; rIdx < sprayingRounds.length; rIdx++) {
+        const round = sprayingRounds[rIdx];
+        const roundDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
 
-      // 5. Save Spray Rounds into dedicated ActivityResultType7bSprayRound
-      for (const round of sprayingRounds) {
-        const roundSprayDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
-
-        const roundData: any = {
-          roundNumber: round.roundNumber || 1,
-          sprayDate: roundSprayDate,
-          sprayMethod: round.sprayMethod || "SINGLE",
-          hasExternalChemicals: Boolean(round.hasExternalChemicals),
-          sprayEquipment: round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
-          otherEquipment: round.otherEquipment || null,
-          productResponse: round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-          problemDetail: round.problemDetail || null,
-          notes: t7b.t7Notes || null,
-        };
-
-        if ((tx as any).activityResultType7b) {
-          roundData.resultId = createdResult.id;
-        } else {
-          roundData.activityResultId = createdResult.id;
-        }
-
-        const createdRound = await roundDelegate.create({
-          data: roundData,
+        const createdRound = await sprayRoundDelegate.create({
+          data: {
+            resultId: createdResult.id,
+            roundNumber: round.roundNumber || rIdx + 1,
+            sprayDate: roundDate,
+            sprayMethod: round.sprayMethod || "SINGLE",
+            sprayEquipment: round.sprayEquipment || null,
+            otherEquipment: round.otherEquipment || null,
+            cropCondition: round.cropCondition || null,
+            problemDetail: round.problemDetail || null,
+            productResponse: round.productResponse || null,
+            notes: round.notes || null,
+            hasExternalChemicals: Boolean(round.hasExternalChemicals),
+          },
         });
 
-        // Products (Baseline & Additional)
-        const allProducts = [
-          ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
-          ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
-        ];
+        // Spray Products
+        const roundProducts =
+          round.products ||
+          round.demoProducts ||
+          [
+            ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
+            ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
+          ];
+        if (roundProducts.length > 0 && sprayProductDelegate) {
+          const prodIds = roundProducts.map((p: any) => p.productId).filter(Boolean);
+          const prodNames = roundProducts.map((p: any) => p.productName).filter(Boolean);
 
-        const validProducts = allProducts.filter((p) => Boolean(p.productId || p.productName));
-        if (validProducts.length > 0 && sprayProductDelegate) {
-          const prodIds = validProducts.map((p) => p.productId).filter(Boolean);
-          const prodNames = validProducts.map((p) => p.productName).filter(Boolean);
+          const dbProducts =
+            (tx as any).product?.findMany && (prodIds.length > 0 || prodNames.length > 0)
+              ? await (tx as any).product.findMany({
+                  where: {
+                    OR: [
+                      ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
+                      ...(prodIds.length > 0 ? [{ name: { in: prodIds } }] : []),
+                      ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
+                    ],
+                  },
+                  select: { id: true, name: true, unit: true },
+                })
+              : [];
 
-          const dbProds = (tx as any).product
-            ? await (tx as any).product.findMany({
-                where: {
-                  OR: [
-                    ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
-                    ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
-                  ],
-                },
-                select: { id: true, name: true, unit: true },
-              })
-            : validProducts.map((p: any) => ({
-                id: p.productId,
-                name: p.productName || p.productId,
-                unit: p.unit || "ขวด",
-              }));
+          const productMapById = new Map(dbProducts.map((p: any) => [p.id, p]));
+          const productMapByName = new Map(dbProducts.map((p: any) => [p.name, p]));
 
-          const pMapById = new Map(dbProds.map((p: any) => [p.id, p]));
-          const pMapByName = new Map(dbProds.map((p: any) => [p.name, p]));
-
-          const isDedicated = Boolean((tx as any).activityResultType7bSprayProduct);
-
-          const prodsToInsert = validProducts
+          const prodsToInsert = roundProducts
             .map((p: any, pIdx: number) => {
               const dbP: any =
-                pMapById.get(p.productId) ||
-                pMapByName.get(p.productId) ||
-                (p.productName ? pMapByName.get(p.productName) : undefined);
+                productMapById.get(p.productId) ||
+                productMapByName.get(p.productId) ||
+                (p.productName ? productMapByName.get(p.productName) : undefined) ||
+                (p.productId ? { id: p.productId, name: p.productName, unit: p.unit } : null);
+
               if (!dbP) return null;
 
-              const qty =
-                p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
-                  ? p.actualQuantity
-                  : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
-                    ? p.quantityUsed
-                    : p.plannedQuantity || 1;
-
+              const qty = p.actualQuantity != null ? Number(p.actualQuantity) : Number(p.quantity) || 1;
               const withdrawnQty =
-                p.withdrawnQuantity != null && String(p.withdrawnQuantity).trim() !== ""
+                p.withdrawnQuantity != null
                   ? new Prisma.Decimal(String(p.withdrawnQuantity))
-                  : p.plannedQuantity != null && String(p.plannedQuantity).trim() !== ""
-                    ? new Prisma.Decimal(String(p.plannedQuantity))
-                    : null;
+                  : new Prisma.Decimal(String(qty));
+              const extraQty = p.extraQuantity != null && p.extraQuantity !== "" ? String(p.extraQuantity) : null;
 
-              const extraQty =
-                p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
-                  ? new Prisma.Decimal(String(p.extraQuantity))
-                  : null;
-
-              const detail = p.extraQuantity
-                ? `ใช้เพิ่ม ${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
-                : p.detail || null;
-
-              const record: any = {
+              return {
                 sprayRoundId: createdRound.id,
                 productId: dbP.id,
                 productName: p.productName || dbP.name || null,
@@ -387,17 +260,8 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
                 unit: p.unit || dbP.unit || null,
                 sortOrder: pIdx,
               };
-
-              // Only include legacy fields if not targeting dedicated table ActivityResultType7bSprayProduct
-              if (!isDedicated) {
-                record.baselineRate = p.isPlanned ? p.plannedRate || "ตามแผน" : null;
-                record.quantityUsed = new Prisma.Decimal(String(qty));
-                record.detail = detail;
-              }
-
-              return record;
             })
-            .filter((item): item is NonNullable<typeof item> => item !== null);
+            .filter((item: any): item is NonNullable<typeof item> => item !== null);
 
           if (prodsToInsert.length > 0) {
             await sprayProductDelegate.createMany({
@@ -450,7 +314,6 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
               return {
                 activityPlanId,
                 type7bResultId: createdResult.id,
-                demoPlotId,
                 workTypeCode: "TYPE_7B",
                 category: "PLOT",
                 fileUrl: img.url || img.fileUrl,

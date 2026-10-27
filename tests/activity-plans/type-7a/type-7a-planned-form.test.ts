@@ -122,34 +122,29 @@ async function runTests() {
   assert.ok(missingAreaRai.error?.includes("กรุณาระบุพื้นที่ (ไร่)"));
   console.log("✓ Test 3 passed: Dynamic treeCount (พืชสวน) vs areaRai validation works");
 
-  // 4. Persistence & Hydration (Single-Entity Architecture: DemoPlot + DemoPlotProduct)
-  const createdDemoPlots: any[] = [];
-  const createdDemoPlotProducts: any[] = [];
+  // 4. Persistence & Hydration (Dedicated Type Tables: ActivityPlanType7aTarget + ActivityPlanType7aProduct)
+  const createdTargets: any[] = [];
+  const createdProducts: any[] = [];
   const mockTx: any = {
     $executeRaw: async () => {},
-    demoPlot: {
+    activityPlanType7aTarget: {
       findMany: async () => [],
+      deleteMany: async () => ({ count: 0 }),
       create: async ({ data }: any) => {
-        createdDemoPlots.push(data);
-        return { id: "dp-1", code: data.code || "DP26100001", ...data };
+        createdTargets.push(data);
+        return { id: "t7a-1", code: data.code || "DP26100001", ...data };
       },
       update: async () => {},
-      delete: async () => {},
     },
-    demoPlotProduct: {
+    activityPlanType7aProduct: {
       deleteMany: async () => ({ count: 0 }),
       createMany: async ({ data }: any) => {
-        createdDemoPlotProducts.push(...data);
+        createdProducts.push(...data);
         return { count: data.length };
       },
     },
-    activityPlanStore: {
-      deleteMany: async () => ({ count: 0 }),
-      create: async () => ({ id: "store-1" }),
-    },
-    activityPlanProduct: {
-      deleteMany: async () => ({ count: 0 }),
-      create: async () => ({ id: "prod-1" }),
+    product: {
+      findMany: async () => [{ id: "p-1", name: "ยาบำรุง A" }],
     },
   };
 
@@ -160,6 +155,7 @@ async function runTests() {
       {
         plotName: "แปลงทุเรียนสาธิต",
         storeId: "dealer-1",
+        dealerName: "ร้านดีลเลอร์เกษตร",
         ownerName: "ร้านดีลเลอร์เกษตร",
         cropCategory: "พืชสวน",
         cropName: "พืชสวนอื่นๆ",
@@ -183,23 +179,21 @@ async function runTests() {
     "emp-1",
   );
 
-  assert.strictEqual(createdDemoPlots.length, 1);
-  assert.strictEqual(createdDemoPlots[0].activityPlanId, "plan-7a-1");
-  assert.strictEqual(createdDemoPlots[0].name, "แปลงทุเรียนสาธิต");
-  assert.strictEqual(createdDemoPlots[0].customerId, "dealer-1");
-  assert.strictEqual(createdDemoPlots[0].cropCategory, "พืชสวน");
-  assert.strictEqual(createdDemoPlots[0].cropName, "พืชสวนอื่นๆ");
-  assert.strictEqual(createdDemoPlots[0].customCropName, "มังคุด");
-  assert.strictEqual(createdDemoPlots[0].treeCount, 80);
-  assert.strictEqual(createdDemoPlots[0].objective, "ทดสอบการติดผลดก");
-  assert.strictEqual(createdDemoPlots[0].categoryId, "cat-1");
-  assert.strictEqual(createdDemoPlots[0].hasProducts, true);
+  assert.strictEqual(createdTargets.length, 1);
+  assert.strictEqual(createdTargets[0].activityPlanId, "plan-7a-1");
+  assert.strictEqual(createdTargets[0].plotName, "แปลงทุเรียนสาธิต");
+  assert.strictEqual(createdTargets[0].storeId, "dealer-1");
+  assert.strictEqual(createdTargets[0].cropCategory, "พืชสวน");
+  assert.strictEqual(createdTargets[0].cropName, "พืชสวนอื่นๆ");
+  assert.strictEqual(createdTargets[0].customCropName, "มังคุด");
+  assert.strictEqual(createdTargets[0].treeCount, 80);
+  assert.strictEqual(createdTargets[0].objective, "ทดสอบการติดผลดก");
+  assert.strictEqual(createdTargets[0].categoryId, "cat-1");
 
-  assert.strictEqual(createdDemoPlotProducts.length, 1);
-  assert.strictEqual(createdDemoPlotProducts[0].productId, "p-1");
-  assert.strictEqual(createdDemoPlotProducts[0].productName, "ยาบำรุง A");
-  assert.strictEqual(Number(createdDemoPlotProducts[0].quantity), 3);
-  assert.strictEqual(createdDemoPlotProducts[0].isAdditional, false);
+  assert.strictEqual(createdProducts.length, 1);
+  assert.strictEqual(createdProducts[0].productId, "p-1");
+  assert.strictEqual(createdProducts[0].productName, "ยาบำรุง A");
+  assert.strictEqual(Number(createdProducts[0].quantity), 3);
 
   const hydrated = hydrateType7aPlannedData({
     type7aPlots: [

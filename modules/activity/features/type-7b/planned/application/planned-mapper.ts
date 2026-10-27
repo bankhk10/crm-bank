@@ -72,28 +72,34 @@ export function extractType7bPlanTargets(
     );
 
     const list: Type7bTargetItem[] = rawPlots.map((plot: any, idx: number) => {
-      const demoPlot = plot.demoPlot || {};
+      const demoPlot = plot.type7aTarget || plot.demoPlot || {};
       const plotName =
         plot.plotName ||
+        demoPlot.plotName ||
         demoPlot.name ||
         `แปลงสาธิตติดตาม #${idx + 1}`;
       const ownerName =
         plot.ownerName ||
         plot.farmerName ||
+        demoPlot.results?.[0]?.farmerName ||
         demoPlot.ownerName ||
+        demoPlot.store?.name ||
         "";
       const dealerName =
         plot.dealerName ||
+        demoPlot.store?.name ||
         demoPlot.customer?.name ||
         demoPlot.dealerName ||
         "";
       const dealerCode =
+        demoPlot.store?.customerCode ||
         demoPlot.customer?.customerCode ||
         demoPlot.dealerCode ||
         "";
       const province =
         plot.province ||
         demoPlot.province ||
+        demoPlot.store?.province ||
         plan.province ||
         "";
       const district =
@@ -282,20 +288,23 @@ export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
 
   const firstTarget = rawTargets[0];
   const firstVisit = rawVisits[0];
-  const demoPlot = firstTarget?.demoPlot || firstVisit?.demoPlot || initialData.demoPlot || {};
+  const demoPlot = firstTarget?.type7aTarget || firstTarget?.demoPlot || firstVisit?.demoPlot || initialData.demoPlot || {};
 
   const initialPlotIds: string[] =
     rawTargets.length > 0
-      ? rawTargets.map((p: any) => p.demoPlotId || p.demoPlot?.id || p.id).filter(Boolean)
+      ? rawTargets.map((p: any) => p.type7aTargetId || p.demoPlotId || p.demoPlot?.id || p.id).filter(Boolean)
       : rawVisits.length > 0
         ? rawVisits.map((v: any) => v.demoPlotId || v.demoPlot?.id || v.id).filter(Boolean)
-        : [initialData.demoPlotId || initialData.existingPlotId].filter(Boolean);
+        : [initialData.type7aTargetId || initialData.demoPlotId || initialData.existingPlotId].filter(Boolean);
 
   const fallbackPlotId =
+    firstTarget?.type7aTargetId ||
     firstTarget?.demoPlotId ||
     demoPlot.id ||
     firstVisit?.demoPlotId ||
+    t7bRecord?.type7aTargetId ||
     t7bRecord?.demoPlotId ||
+    initialData.type7aTargetId ||
     initialData.demoPlotId ||
     initialData.existingPlotId ||
     initialPlotIds[0] ||
@@ -313,6 +322,7 @@ export function hydrateType7bPlannedData(initialData: any): Type7bPlanItem[] {
 
   const plotName =
     firstTarget?.plotName ||
+    demoPlot.plotName ||
     demoPlot.name ||
     firstVisit?.plotName ||
     t7bRecord?.plotName ||

@@ -473,12 +473,12 @@ export async function upsertSeedPlan(prisma: PrismaClient, input: SeedPlanInput)
     }
 
     // 7. Demo Plot Link (if demoPlotId provided and no visit exists)
-    if (input.demoPlotId) {
-      const existingVisit = await tx.demoPlotVisit.findFirst({
+    if (false as boolean && (input as any).demoPlotId) {
+      const existingVisit = await (tx as any).demoPlotVisit?.findFirst({
         where: { activityPlanId: plan.id },
       });
       if (!existingVisit) {
-        await tx.demoPlotVisit.create({
+        await (tx as any).demoPlotVisit?.create({
           data: {
             demoPlotId: input.demoPlotId,
             activityPlanId: plan.id,

@@ -14,14 +14,14 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
   code: WORK_TYPE_CODE,
 
   /**
-   * Validate Type 13 Plan Data
+   * Validate Type 13 Plan targets
    */
   async validatePlan(
     planData: any,
     _db: any,
   ): Promise<StrategyValidationResult> {
-    const type13Data = planData.type13Data;
-    const plots = type13Data?.plots || planData.type13Plots || [];
+    const t13 = planData.type13Data || planData.type13;
+    const plots = t13?.plots || planData.type13Plots || [];
 
     if (!plots || plots.length === 0) {
       return {
@@ -35,19 +35,13 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       if (!p.storeId) {
         return {
           valid: false,
-          error: `แปลงที่ ${i + 1}: กรุณาเลือกร้านค้า Dealer`,
+          error: `แปลงที่ ${i + 1}: กรุณาเลือกร้านค้าตัวแทนจำหน่าย`,
         };
       }
-      if (!p.province) {
+      if (!p.province || !p.district) {
         return {
           valid: false,
-          error: `แปลงที่ ${i + 1}: กรุณาระบุจังหวัด`,
-        };
-      }
-      if (!p.district) {
-        return {
-          valid: false,
-          error: `แปลงที่ ${i + 1}: กรุณาระบุอำเภอ`,
+          error: `แปลงที่ ${i + 1}: กรุณาระบุจังหวัดและอำเภอ`,
         };
       }
     }
@@ -56,35 +50,32 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
   },
 
   /**
-   * Save Type 13 Plan targets in dedicated tables (ActivityPlanType13Target, ActivityPlanType13Product)
+   * Save Type 13 Plan targets (ActivityPlanType13Target, ActivityPlanType13Product)
    */
   async savePlan(
     tx: PrismaTransaction,
     activityPlanId: string,
     planData: any,
   ): Promise<void> {
-    const t13Payload =
-      planData.type13Data !== undefined
-        ? planData.type13Data
-        : planData.type13Plots
-          ? {
-              plots: planData.type13Plots.map((p: any, idx: number) => ({
-                ...p,
-                plotIndex: idx + 1,
-              })),
-              products: planData.type13Products || planData.withdrawnProducts || [],
-              hasProductWithdrawal: planData.hasProductWithdrawal,
-            }
-          : null;
-
-    if (t13Payload !== undefined) {
+    const raw13Data = planData.type13Data || planData.type13;
+    if (raw13Data !== undefined || planData.type13Plots !== undefined) {
       const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+      const employeeId = planData.employeeId || "";
+      const payload = raw13Data || {
+        plots: planData.type13Plots,
+        products: planData.type13Products,
+        withdrawnProducts: planData.withdrawnProducts,
+        notes: planData.notes,
+        hasProducts: planData.hasProducts,
+        hasProductWithdrawal: planData.hasProductWithdrawal,
+      };
+
       await syncType13Data(
         tx,
         activityPlanId,
-        t13Payload,
+        payload,
         startDate,
-        planData.employeeId || "",
+        employeeId,
       );
     }
   },
@@ -107,12 +98,10 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
     // 1. Fetch existing targets for this plan to map targetId
     const targets = await tx.activityPlanType13Target.findMany({
       where: { activityPlanId },
-      select: { id: true, plotIndex: true, demoPlotId: true, plotName: true },
+      select: { id: true, plotIndex: true, plotName: true },
     });
     const targetByIndex = new Map(targets.map((t) => [t.plotIndex, t]));
-    const targetByPlotId = new Map(
-      targets.filter((t) => t.demoPlotId).map((t) => [t.demoPlotId!, t]),
-    );
+    const targetById = new Map(targets.map((t) => [t.id, t]));
 
     // 2. Delete existing actual results for this plan (cascade deletes sprayRounds, products, externals)
     await tx.activityResultType13.deleteMany({
@@ -124,17 +113,14 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       const plot = plots[i];
       const plotIndex = plot.plotIndex || i + 1;
       const matchedTarget =
-        (plot.demoPlotId ? targetByPlotId.get(plot.demoPlotId) : undefined) ||
+        (plot.id || plot.targetId ? targetById.get(plot.id || plot.targetId) : undefined) ||
         targetByIndex.get(plotIndex) ||
         targets[i];
-
-      const demoPlotId = plot.demoPlotId || matchedTarget?.demoPlotId || null;
 
       const createdResult = await tx.activityResultType13.create({
         data: {
           activityPlanId,
           targetId: matchedTarget?.id || null,
-          demoPlotId,
           plotName: plot.name || plot.plotName || matchedTarget?.plotName || `แปลงแฮตแทค ${plotIndex}`,
           actualPlotsCount: Array.isArray(plot.sprayRounds) ? plot.sprayRounds.length : 1,
           actualLatitude:
@@ -149,8 +135,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         },
       });
 
-      // Update DemoPlot coordinates if available
-      if (demoPlotId && (plot.latitude || plot.longitude)) {
+      // Update Type 13 Target coordinates if available
+      if (matchedTarget?.id && (plot.latitude || plot.longitude)) {
         const updatePlotData: any = {};
         if (plot.latitude != null && String(plot.latitude).trim() !== "") {
           updatePlotData.latitude = new Prisma.Decimal(Number(plot.latitude));
@@ -158,8 +144,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         if (plot.longitude != null && String(plot.longitude).trim() !== "") {
           updatePlotData.longitude = new Prisma.Decimal(Number(plot.longitude));
         }
-        await tx.demoPlot.update({
-          where: { id: demoPlotId },
+        await tx.activityPlanType13Target.update({
+          where: { id: matchedTarget.id },
           data: updatePlotData,
         });
       }
@@ -250,7 +236,6 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
             data: validRoundImages.map((img) => ({
               activityPlanId,
               type13ResultId: createdResult.id,
-              demoPlotId: demoPlotId || null,
               workTypeCode: WORK_TYPE_CODE,
               category: "PLOT",
               fileUrl: img.url || img.fileUrl,
@@ -270,7 +255,6 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
           data: validAfterImages.map((img) => ({
             activityPlanId,
             type13ResultId: createdResult.id,
-            demoPlotId: demoPlotId || null,
             workTypeCode: WORK_TYPE_CODE,
             category: "PLOT",
             fileUrl: img.url || img.fileUrl,

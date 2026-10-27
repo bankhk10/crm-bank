@@ -33,9 +33,8 @@ async function runTests() {
         return { id: "target-1", ...args.data };
       },
     },
-    demoPlotVisit: {
-      findFirst: async () => ({ id: "visit-existing" }),
-      create: async (args: any) => args.data,
+    activityPlanType7aTarget: {
+      findUnique: async () => null,
     },
     product: {
       findMany: async (args: any) => {

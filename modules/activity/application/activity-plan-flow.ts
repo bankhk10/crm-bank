@@ -603,6 +603,7 @@ async function notifyHelperApprovers(plan: any, tx: Prisma.TransactionClient) {
 export function checkPlanHasProductWithdrawal(plan: {
   hasProductWithdrawal?: boolean | null;
   type7aPlots?: Array<{ hasProducts?: boolean | null; products?: any[]; demoProducts?: any[] }>;
+  type7aTargets?: any[];
   type7aProducts?: any[];
   type7bProducts?: any[];
   type13Products?: any[];
@@ -617,9 +618,9 @@ export function checkPlanHasProductWithdrawal(plan: {
   if (plan.type13Products && plan.type13Products.length > 0) return true;
   if (plan.type14Products && plan.type14Products.length > 0) return true;
   if (
-    plan.type7aPlots &&
-    plan.type7aPlots.length > 0 &&
-    plan.type7aPlots.some(
+    (plan.type7aTargets || plan.type7aPlots) &&
+    (plan.type7aTargets || plan.type7aPlots)!.length > 0 &&
+    (plan.type7aTargets || plan.type7aPlots)!.some(
       (p) =>
         p.hasProducts !== false &&
         (p.hasProducts || (p.demoProducts && p.demoProducts.length > 0) || (p.products && p.products.length > 0) || true),
@@ -761,7 +762,7 @@ export async function submitActivityPlanUseCase(
             department: true,
           },
         },
-        type7aPlots: { include: { demoProducts: true } },
+        type7aTargets: { include: { products: true } },
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,
@@ -897,7 +898,7 @@ export async function approveActivityPlanUseCase(
             activityType: true,
           },
         },
-        type7aPlots: { include: { demoProducts: true } },
+        type7aTargets: { include: { products: true } },
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,
@@ -1701,7 +1702,7 @@ export async function cancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        type7aPlots: { include: { demoProducts: true } },
+        type7aTargets: { include: { products: true } },
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,
@@ -1785,7 +1786,7 @@ export async function requestCancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        type7aPlots: { include: { demoProducts: true } },
+        type7aTargets: { include: { products: true } },
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,
@@ -1906,7 +1907,7 @@ export async function approveCancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        type7aPlots: { include: { demoProducts: true } },
+        type7aTargets: { include: { products: true } },
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,
@@ -2082,7 +2083,7 @@ export async function rejectCancelActivityPlanUseCase(
       where: { id: planId, deletedAt: null },
       include: {
         employee: true,
-        type7aPlots: true,
+        type7aTargets: true,
         type7aProducts: true,
         type7bProducts: true,
         type13Products: true,

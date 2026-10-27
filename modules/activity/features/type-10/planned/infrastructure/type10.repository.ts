@@ -15,7 +15,7 @@ export async function findType10ByPlanId(
     include: {
       type10Targets: {
         include: {
-          demoPlot: true,
+          type7aTarget: true,
           showcaseProduct: true,
           products: {
             include: { product: true },
@@ -31,17 +31,6 @@ export async function findType10ByPlanId(
       },
       type10Results: {
         orderBy: { createdAt: "asc" },
-      },
-      demoPlotVisits: {
-        where: {
-          OR: [
-            { workTypeCode: "TYPE_10" },
-            { workTypeCode: null },
-          ],
-        },
-        include: {
-          demoPlot: true,
-        },
       },
     },
   });

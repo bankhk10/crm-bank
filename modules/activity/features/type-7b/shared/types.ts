@@ -15,6 +15,7 @@ export interface Type7bWithdrawnProductLine {
 
 export interface Type7bPlotInput {
   id?: string;
+  type7aTargetId?: string | null;
   demoPlotId?: string | null;
   plotName?: string | null;
   cropName?: string | null;
@@ -43,6 +44,7 @@ export interface Type7bProductInput {
 
 export interface Type7bDataInput {
   sourceActivityPlanId?: string | null;
+  type7aTargetId?: string | null;
   demoPlotId?: string | null;
   storeId?: string | null;
   dealerName?: string | null;

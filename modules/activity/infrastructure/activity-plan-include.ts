@@ -11,93 +11,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       activityType: true,
     },
   },
-  type7aPlots: {
-    include: {
-      customer: {
-        select: {
-          id: true,
-          name: true,
-          customerCode: true,
-          customerType: true,
-          province: true,
-          district: true,
-        },
-      },
-      farmerCustomer: {
-        select: {
-          id: true,
-          name: true,
-          customerCode: true,
-          customerType: true,
-          province: true,
-          district: true,
-          phone: true,
-        },
-      },
-      demoProducts: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              productCode: true,
-              unit: true,
-              packageSizeUnit: true,
-            },
-          },
-        },
-        orderBy: { sortOrder: "asc" },
-      },
-      externalProducts: {
-        orderBy: { sortOrder: "asc" },
-      },
-      irrigations: true,
-      attachments: true,
-      visits: {
-        include: {
-          activityPlan: {
-            select: {
-              id: true,
-              code: true,
-              title: true,
-              status: true,
-              startDate: true,
-              endDate: true,
-              employee: {
-                select: { id: true, name: true },
-              },
-            },
-          },
-          attachments: true,
-        },
-        orderBy: [{ visitNumber: "asc" }, { visitDate: "asc" }, { createdAt: "asc" }],
-      },
-      type7bTargets: {
-        include: {
-          activityPlan: {
-            select: {
-              id: true,
-              code: true,
-              title: true,
-              status: true,
-              startDate: true,
-              endDate: true,
-              employee: {
-                select: { id: true, name: true },
-              },
-            },
-          },
-          products: {
-            include: {
-              product: {
-                select: { id: true, name: true, unit: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
   // Dedicated Type 7A relations
   type7aTargets: {
     include: {
@@ -110,7 +23,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
-      demoPlot: true,
       products: {
         include: {
           product: {
@@ -167,7 +79,30 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   // Dedicated Type 7B relations
   type7bTargets: {
     include: {
-      demoPlot: true,
+      type7aTarget: {
+        include: {
+          store: true,
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, unit: true },
+              },
+            },
+          },
+          results: {
+            include: {
+              irrigations: true,
+              actualProducts: {
+                include: {
+                  product: { select: { id: true, name: true, unit: true } },
+                },
+              },
+              sprayExternals: true,
+              attachments: true,
+            },
+          },
+        },
+      },
       sourceActivityPlan: {
         select: { id: true, code: true, title: true, startDate: true, endDate: true },
       },
@@ -241,7 +176,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
-      demoPlot: true,
       products: {
         include: {
           product: {
@@ -306,7 +240,17 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       sourceActivityPlan: {
         select: { id: true, code: true, title: true, startDate: true, endDate: true },
       },
-      demoPlot: true,
+      type13Target: {
+        include: {
+          store: true,
+          products: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+          },
+          results: true,
+        },
+      },
       store: {
         select: {
           id: true,
@@ -719,17 +663,20 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   // Dedicated Type 10 relations
   type10Targets: {
     include: {
-      demoPlot: {
+      type7aTarget: {
         select: {
           id: true,
           code: true,
-          name: true,
-          ownerName: true,
-          location: true,
-          province: true,
-          district: true,
+          plotName: true,
+          dealerName: true,
           cropCategory: true,
           cropName: true,
+          store: {
+            select: { province: true, district: true },
+          },
+          results: {
+            select: { province: true, district: true },
+          },
         },
       },
       showcaseProduct: {
@@ -861,56 +808,6 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   },
   promotionItems: {
     orderBy: { createdAt: "asc" },
-  },
-  demoPlotVisits: {
-    include: {
-      attachments: true,
-      demoPlot: {
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-            },
-          },
-          farmerCustomer: {
-            select: {
-              id: true,
-              name: true,
-              customerCode: true,
-              customerType: true,
-              province: true,
-              district: true,
-              phone: true,
-            },
-          },
-          demoProducts: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  productCode: true,
-                  unit: true,
-                  packageSizeUnit: true,
-                },
-              },
-            },
-          },
-          externalProducts: true,
-          irrigations: true,
-          attachments: true,
-          visits: {
-            orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
-          },
-        },
-      },
-    },
-    orderBy: [{ visitNumber: "asc" }, { createdAt: "asc" }],
   },
   employee: {
     include: {

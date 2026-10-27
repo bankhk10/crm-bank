@@ -73,14 +73,6 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
     });
 
-    // Mirror clean legacy demo plot visits for this type
-    await (tx as any).demoPlotVisit.deleteMany({
-      where: {
-        activityPlanId,
-        workTypeCode: "TYPE_10",
-      },
-    });
-
     // 2. Extract targets array
     let targets: any[] =
       planData.type10Targets ||
@@ -91,7 +83,8 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
 
     // Fallback if single target passed at top-level
     if (targets.length === 0) {
-      const demoPlotId =
+      const type7aTargetId =
+        planData.type7aTargetId ||
         planData.submittedDemoPlotId ||
         planData.type10DemoPlot ||
         planData.demoPlotId ||
@@ -113,10 +106,10 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
             ? Number(planData.targetBookingSales)
             : null;
 
-      if (demoPlotId || location || showcase || targetCrop) {
+      if (type7aTargetId || location || showcase || targetCrop) {
         targets = [
           {
-            demoPlotId,
+            type7aTargetId,
             location,
             cropName: targetCrop,
             showcaseProductName: showcase,
@@ -133,7 +126,7 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
       for (let i = 0; i < targets.length; i++) {
         const item = targets[i];
 
-        const demoPlotId = item.demoPlotId || null;
+        const type7aTargetId = item.type7aTargetId || item.demoPlotId || null;
         let plotName = item.plotName || item.plot || null;
         let farmerName = item.farmerName || null;
         let cropCategory = item.cropCategory || null;
@@ -148,16 +141,35 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
         let showcaseProductName = item.showcaseProductName || item.showcaseProduct || item.showcase || null;
 
         // Auto enrich from DemoPlot if available
-        if (demoPlotId) {
-          const demoPlot = await (tx as any).demoPlot.findUnique({
-            where: { id: demoPlotId },
+        if (type7aTargetId) {
+          const t7a = await (tx as any).activityPlanType7aTarget.findUnique({
+            where: { id: type7aTargetId },
+            include: {
+              store: true,
+              results: true,
+              products: { include: { product: true } },
+            },
           });
+          const demoPlot = t7a
+            ? {
+                name: t7a.plotName,
+                ownerName: t7a.results?.[0]?.farmerName || t7a.store?.name || t7a.dealerName,
+                cropCategory: t7a.cropCategory,
+                cropName: t7a.customCropName || t7a.cropName,
+                location: t7a.results?.[0]?.latitude ? `${t7a.results[0].latitude}, ${t7a.results[0].longitude}` : null,
+                province: t7a.results?.[0]?.province || t7a.store?.province,
+                district: t7a.results?.[0]?.district || t7a.store?.district,
+                latitude: t7a.results?.[0]?.latitude ? String(t7a.results[0].latitude) : null,
+                longitude: t7a.results?.[0]?.longitude ? String(t7a.results[0].longitude) : null,
+                primaryProductName: t7a.products?.[0]?.product?.name || t7a.products?.[0]?.productName,
+              }
+            : null;
 
           if (demoPlot) {
             plotName = plotName || demoPlot.name;
             farmerName = farmerName || demoPlot.ownerName;
             cropCategory = cropCategory || demoPlot.cropCategory;
-            cropName = cropName || demoPlot.cropName || demoPlot.customCropName;
+            cropName = cropName || demoPlot.cropName;
             location = location || demoPlot.location;
             province = province || demoPlot.province;
             district = district || demoPlot.district;
@@ -193,7 +205,7 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
         const targetRecord = await (tx as any).activityPlanType10Target.create({
           data: {
             activityPlanId,
-            demoPlotId,
+            type7aTargetId,
             plotName,
             farmerName,
             cropCategory,
@@ -321,19 +333,6 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
               farmerFeedback: item.farmerFeedback || null,
               targetFarmersList: item.targetFarmersList || null,
               summary: item.summary || item.notes || null,
-            },
-          });
-        }
-
-        // 2.4 Mirror DemoPlotVisit for timeline
-        if (demoPlotId) {
-          await (tx as any).demoPlotVisit.create({
-            data: {
-              activityPlanId,
-              demoPlotId,
-              workTypeCode: "TYPE_10",
-              visitNumber: i + 1,
-              visitDate: eventDate || new Date(),
             },
           });
         }

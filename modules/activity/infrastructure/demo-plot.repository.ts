@@ -43,31 +43,44 @@ export interface DemoPlotOption {
 }
 
 /**
- * Fetch all master demo plots with visits (excluding CANCELLED and deleted plots)
+ * Fetch all master demo plots from dedicated Type 7A targets (excluding CANCELLED and deleted plans)
  */
 export async function findMasterDemoPlots() {
-  return db.demoPlot.findMany({
+  return db.activityPlanType7aTarget.findMany({
     where: {
-      deletedAt: null,
-      plotType: "GENERAL_DEMO",
       status: { not: DemoPlotStatus.CANCELLED },
+      activityPlan: {
+        deletedAt: null,
+        status: { not: "CANCELLED" },
+      },
     },
     include: {
-      customer: {
+      activityPlan: {
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          startDate: true,
+          endDate: true,
+        },
+      },
+      store: {
         select: { id: true, name: true, customerCode: true },
       },
-      demoProducts: {
+      products: {
         include: { product: true },
         orderBy: { sortOrder: "asc" },
       },
-      externalProducts: {
-        orderBy: { sortOrder: "asc" },
+      results: {
+        include: {
+          irrigations: true,
+          actualProducts: { include: { product: true } },
+          sprayExternals: true,
+          attachments: true,
+        },
       },
-      irrigations: true,
-      attachments: true,
-      visits: {
-        orderBy: { visitDate: "asc" },
-      },
+      type7bTargets: true,
+      type7bResults: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -95,27 +108,25 @@ export async function findFarmerCustomersForPlots() {
 }
 
 function mapDemoPlotToOption(p: any, farmerMap: Map<string, any>): DemoPlotOption {
-  const visitsCount = p.visits.length;
-  const totalCost = p.visits.reduce(
-    (sum: number, v: any) => sum + (Number(v.totalVisitCost) || 0),
-    0,
-  );
-  const lastVisit = p.visits[p.visits.length - 1];
+  const result1 = p.results?.[0];
+  const visitsCount = (p.results?.length || 0) + (p.type7bResults?.length || 0);
+  const totalCost = 0;
   const msPerDay = 1000 * 60 * 60 * 24;
-  const latestDate = lastVisit ? new Date(lastVisit.visitDate) : new Date();
+  const startDate = p.activityPlan?.startDate ? new Date(p.activityPlan.startDate) : new Date(p.createdAt);
   const daysSinceStart = Math.max(
     0,
-    Math.floor((latestDate.getTime() - new Date(p.startDate).getTime()) / msPerDay),
+    Math.floor((Date.now() - startDate.getTime()) / msPerDay),
   );
 
+  const ownerName = result1?.farmerName || p.store?.name || p.dealerName || "";
   const linkedCustomer =
-    (p.customerId && farmerMap.get(p.customerId)) ||
-    (p.ownerName && farmerMap.get(p.ownerName.trim()));
+    (p.storeId && farmerMap.get(p.storeId)) ||
+    (ownerName && farmerMap.get(ownerName.trim()));
 
-  let plotLat: string | undefined = undefined;
-  let plotLng: string | undefined = undefined;
+  let plotLat: string | undefined = result1?.latitude ? String(result1.latitude).trim() : undefined;
+  let plotLng: string | undefined = result1?.longitude ? String(result1.longitude).trim() : undefined;
 
-  if (linkedCustomer) {
+  if (!plotLat && !plotLng && linkedCustomer) {
     if (linkedCustomer.farmPlots && Array.isArray(linkedCustomer.farmPlots)) {
       const matchedPlot = (linkedCustomer.farmPlots as any[]).find(
         (fp) =>
@@ -135,54 +146,47 @@ function mapDemoPlotToOption(p: any, farmerMap: Map<string, any>): DemoPlotOptio
     }
   }
 
-  if (!plotLat && !plotLng && p.location) {
-    const coordMatch = p.location.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
-    if (coordMatch) {
-      plotLat = coordMatch[1];
-      plotLng = coordMatch[2];
-    }
-  }
-
+  const primaryProduct = p.products?.[0]?.product?.name || p.products?.[0]?.productName || "";
   const formattedLocation =
     plotLat && plotLng
       ? `${plotLat}, ${plotLng}`
-      : p.location || (p.ownerName ? `แปลงสาธิต ${p.ownerName}` : "");
+      : ownerName ? `แปลงสาธิต ${ownerName}` : p.plotName || "";
 
   return {
     id: p.id,
-    code: p.code,
-    name: p.name,
+    code: p.code || undefined,
+    name: p.plotName || "แปลงสาธิต",
     location: formattedLocation,
-    targetCrop: p.customCropName || p.cropName,
-    showcase: p.primaryProductName,
-    ownerName: p.ownerName,
-    cropCategory: p.cropCategory,
-    cropName: p.cropName,
+    targetCrop: p.customCropName || p.cropName || p.cropCategory || "",
+    showcase: primaryProduct,
+    ownerName: ownerName || undefined,
+    cropCategory: p.cropCategory || undefined,
+    cropName: p.cropName || undefined,
     customCropName: p.customCropName || undefined,
-    productName: p.primaryProductName,
+    productName: primaryProduct || undefined,
     areaRai: p.areaRai ? Number(p.areaRai) : 0,
     treeCount: p.treeCount || 0,
-    startDate: p.startDate ? p.startDate.toISOString().split("T")[0] : "",
+    startDate: startDate.toISOString().split("T")[0],
     status: p.status,
     visitsCount,
     totalCost,
     daysSinceStart,
     objective: p.objective || undefined,
-    experimentDetail: p.experimentDetail || undefined,
-    latitude: p.latitude ? String(p.latitude) : plotLat,
-    longitude: p.longitude ? String(p.longitude) : plotLng,
-    province: p.province || undefined,
-    district: p.district || undefined,
-    initialSprayDate: p.initialSprayDate ? p.initialSprayDate.toISOString().split("T")[0] : undefined,
-    nextSprayDate: p.nextSprayDate ? p.nextSprayDate.toISOString().split("T")[0] : undefined,
-    mainCropInfo: p.mainCropInfo || undefined,
-    sprayMethod: p.sprayMethod || undefined,
-    hasExternalChemicals: p.hasExternalChemicals || false,
-    dealerId: p.customerId || p.customer?.id || undefined,
-    dealerName: p.customer?.name || (p as any).dealerName || undefined,
-    demoProducts: p.demoProducts,
-    externalProducts: p.externalProducts,
-    irrigations: (p.irrigations || []).map((ir: any) => ir.method),
+    experimentDetail: result1?.experimentDetail || undefined,
+    latitude: plotLat,
+    longitude: plotLng,
+    province: p.province || p.store?.province || undefined,
+    district: p.district || p.store?.district || undefined,
+    initialSprayDate: result1?.firstSprayDate ? new Date(result1.firstSprayDate).toISOString().split("T")[0] : undefined,
+    nextSprayDate: result1?.nextSprayDate ? new Date(result1.nextSprayDate).toISOString().split("T")[0] : undefined,
+    mainCropInfo: result1?.mainCropInfo || undefined,
+    sprayMethod: result1?.sprayMethod || undefined,
+    hasExternalChemicals: Boolean(result1?.hasExternalChemicals),
+    dealerId: p.storeId || p.store?.id || undefined,
+    dealerName: p.store?.name || p.dealerName || undefined,
+    demoProducts: p.products,
+    externalProducts: result1?.sprayExternals || [],
+    irrigations: (result1?.irrigations || []).map((ir: any) => ir.method),
   };
 }
 

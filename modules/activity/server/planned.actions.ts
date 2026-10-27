@@ -597,9 +597,13 @@ export async function deleteActivityPlanAction(id: string) {
         where: { id },
         data: { deletedAt: now, status: ActivityStatus.CANCELLED },
       }),
-      db.demoPlot.updateMany({
+      db.activityPlanType7aTarget.updateMany({
         where: { activityPlanId: id },
-        data: { deletedAt: now, status: DemoPlotStatus.CANCELLED },
+        data: { status: DemoPlotStatus.CANCELLED },
+      }),
+      db.activityPlanType13Target.updateMany({
+        where: { activityPlanId: id },
+        data: { status: DemoPlotStatus.CANCELLED },
       }),
     ]);
     revalidatePath("/activity-plans");

@@ -4,8 +4,8 @@
 > **Work Type Code**: `TYPE_14`  
 > **Work Type Name**: ติดตามแปลงแฮตแทค (Hattack Follow-up)  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment`)  
+> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Link to Type 13 Targets)
 
 ---
 
@@ -21,18 +21,13 @@
 
 ### 1.2 ขอบเขตของ Type 14
 - **Dual Plot Selection Modes (การเลือกแปลง 2 โหมด):**
-  - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกติดตามแปลงที่เคยฉีดพ่นแฮตแทคจากแผนงานเดิม (เชื่อมโยง `sourceActivityPlanId` จากแผน Type 13 ที่ได้รับอนุมัติแล้ว) หรือเลือกจาก Master DemoPlot ที่มีประเภทแปลงเป็น `HATTACK`
-  - **โหมดสร้างแปลงใหม่ (`NEW_PLOT`):** ระบุชื่อแปลง ร้านค้า Dealer ผู้รับผิดชอบ เจ้าของแปลง ชนิดพืช และที่อยู่แปลงใหม่โดยตรง
-- **การเบิกสินค้าสำหรับติดตามแปลง (Product Withdrawal):**
-  - สวิตช์เปิด-ปิดการขอเบิกสินค้าสำหรับการติดตามแปลง พร้อมกำหนดรหัสสินค้า จำนวน และหน่วยนับ
-- **การบันทึกผลการปฏิบัติงานจริง (Actual Outcome Scope):**
-  - บันทึกรอบการติดตามผล (Follow-up Rounds: รอบที่ 1, 2, 3...)
-  - วันที่ลงพื้นที่ตรวจติดตามจริง (`actualVisitDate`)
-  - จำนวนวันหลังฉีดพ่น (`daysAfterSpray` / `daysSinceStart`)
-  - ผลการติดตาม (`trackingResult`): ได้ผลดีมาก, ได้ผลตามเกณฑ์, ต้องฉีดพ่นซ้ำ, ไม่เห็นผล
-  - การตอบสนองของพืช (`productResponse`): ปกติ, พืชตอบสนองดี, พบอาการผิดปกติ
-  - รายการสินค้าที่ใช้พ่นซ้ำจริง (สินค้า, จำนวนที่ใช้, อัตราใช้จริง, รายละเอียด)
-  - รูปภาพสภาพแปลงหลังการฉีดพ่น (สูงสุด 20 รูปต่อหมู่บ้าน)
+  - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกติดตามแปลงที่เคยฉีดพ่นแฮตแทคจากแผนงานเดิม (เชื่อมโยง `sourceActivityPlanId` จากแผน Type 13) หรือเลือกแปลงแฮตแทคจาก `ActivityPlanType13Target` ผ่าน `type13TargetId` โดยตรง โดยไม่มีการใช้ตาราง `demo_plots` หรือ `demo_plot_visits` เก่า
+  - **โหมดสร้างแปลงใหม่ (`NEW_PLOT`):** ระบุชื่อแปลง ร้านค้า Dealer ผู้รับผิดชอบ เจ้าของแปลง ชนิดพืช และที่อยู่แปลงใหม่โดยตรง บันทึกลง `activity_type_14_targets`
+- **สถาปัตยกรรมข้อมูล 100% Dedicated Relational Tables:**
+  - เป้าหมายแปลงจัดเก็บใน `activity_type_14_targets` (`ActivityPlanType14Target`)
+  - สินค้าเบิกพ่นซ้ำจัดเก็บใน `activity_type_14_products` (`ActivityPlanType14Product`)
+  - ผลการติดตามจริงจัดเก็บใน `activity_type_14_results` (`ActivityResultType14`) และ `activity_type_14_products_used` (`ActivityResultType14ProductUsed`)
+  - รูปภาพแนบจัดเก็บใน `ActivityAttachment` (หมวดหมู่ `AFTER_SPRAY` / `GENERAL`)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน):** วางแผนติดตามแปลงแฮตแทค (เลือกแปลงเดิมหรือสร้างแปลงใหม่) พร้อมขอเบิกสินค้าฉีดพ่นซ้ำล่วงหน้า
@@ -52,7 +47,7 @@ graph TD
     B --> C[เลือกประเภทงาน Type 14 ติดตามแปลงแฮตแทค]
     C --> D[แสดงฟอร์ม Type14PlannedForm]
     D --> E{เลือกโหมดการกำหนดแปลง}
-    E -->|EXISTING_PLOT| F[เลือกแผน Type 13 เดิมที่ Approved หรือเลือก DemoPlot แฮตแทค]
+    E -->|EXISTING_PLOT| F[เลือกแผน Type 13 เดิมที่ Approved หรือเลือกแปลงแฮตแทค type13TargetId]
     E -->|NEW_PLOT| G[กรอกชื่อแปลง เลือกร้านค้า Dealer ระบุเจ้าของแปลง และที่อยู่]
     F --> H{ต้องการเบิกสินค้าพ่นซ้ำหรือไม่?}
     G --> H
@@ -60,8 +55,8 @@ graph TD
     H -->|ไม่เบิกสินค้า| J[ข้ามส่วนเบิกสินค้า]
     I --> K[กดบันทึกร่าง DRAFT หรือ ส่งขออนุมัติ]
     J --> K
-    K --> L[Strategy บันทึกลง ActivityPlanType14, Plots, Products]
-    L --> M[สร้างหรือเชื่อมโยง DemoPlotVisit สำหรับ TYPE_14]
+    K --> L[Strategy บันทึกเป้าหมายลง activity_type_14_targets (type13TargetId)]
+    L --> M[บันทึกสินค้าลง activity_type_14_products]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -78,13 +73,13 @@ graph TD
     I --> J[อัปโหลดรูปภาพสภาพแปลง สูงสุด 20 รูปต่อหมู่บ้าน]
     J --> K[กดบันทึกผลการปฏิบัติงาน]
     K --> L[อัปโหลดรูปภาพไปยัง Object Storage]
-    L --> M[อัปเดต DemoPlotVisit และบันทึกลง ActivityAttachment]
+    L --> M[บันทึกลง activity_type_14_results, products_used, attachments]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **ติดตามแปลงแฮตแทค (Type 14)**
 - ฟอร์ม `Type14UnplannedForm` รวมการกรอกข้อมูลแปลง, ร้านค้า Dealer, พิกัด GPS, วันที่ติดตามจริง, จำนวนวันหลังฉีด, ผลการติดตาม, สภาพพืช, ยาที่ใช้ซ้ำ และกล้องถ่ายรูปสภาพแปลงเข้าด้วยกัน
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14`, `ActivityPlanType14Plot`, `DemoPlotVisit` และรูปภาพใน Transaction เดียวกันผ่าน `type14UnplannedStrategy`
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14` และรูปภาพใน Transaction เดียวกันผ่าน `type14UnplannedStrategy` โดยไม่มีการเขียนลงตาราง `demo_plot_visits` หรือ `demo_plots` เก่า
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** เรนเดอร์ `<Type14PlanCard />` สำหรับสรุปข้อมูลแปลงตามแผน และเรนเดอร์ `<Type14DetailView />` แสดงรอบการตรวจติดตามย้อนหลัง (Timeline Cards), ผลการตอบสนองของพืช, สินค้าที่ใช้ซ้ำ และรูปภาพแปลงพร้อม Image Lightbox
@@ -321,94 +316,135 @@ sequenceDiagram
 | **บันทึกเพิ่มเติมรอบติดตาม**| `additionalNotes` | `type14Actual.collectPayload` | `DemoPlotVisit` | `notes` | `TEXT` | Yes | `null` |
 | **ภาพถ่ายสภาพแปลง** | `afterSprayImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
 
-### 6.3 รายละเอียด Schema ตารางที่เกี่ยวข้อง (Prisma Definitions)
+### 6.1 Database CRUD Matrix (100% Dedicated Relational Tables)
+| ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หน้าที่รับผิดชอบ |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`activity_type_14_targets`**<br>(`ActivityPlanType14Target`) | `createType14Data()` ใน `savePlan()` | โหลดรายละเอียดแผน Type 14 | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | เป้าหมายแปลงแฮตแทคที่เลือกติดตาม เชื่อมโยง `type13TargetId` สู่แปลงฉีด 13 |
+| **`activity_type_14_products`**<br>(`ActivityPlanType14Product`) | `createType14Data()` | รายการสินค้าที่ขอเบิกพ่นซ้ำ | ลบและสร้างใหม่ตามแผน | Cascade เมื่อลบ `ActivityPlan` | เก็บสินค้าตัวอย่างที่ขอเบิกพ่นซ้ำตามแผน |
+| **`activity_type_14_results`**<br>(`ActivityResultType14`) | `saveActual()` ใน Actual | โหลดผลการติดตามจริงใน Detail / Actual View | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บผลการติดตามแปลง วันตรวจจริง วันหลังฉีดพ่น ผลการควบคุม และการตอบสนอง |
+| **`activity_type_14_products_used`**<br>(`ActivityResultType14ProductUsed`) | `saveActual()` ใน Actual | โหลดรายการสินค้าที่ใช้พ่นซ้ำจริง | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType14` | เก็บรายการยาที่ใช้ฉีดพ่นซ้ำจริงหน้างาน |
+| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ AFTER_SPRAY) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายสภาพแปลงหลังการฉีดพ่น |
+
+### 6.2 Complete Field-to-Database Mapping
+| Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
+| :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
+| **แปลงแฮตแทคที่เลือก** | `selectedPlotIds` / `type13TargetId` | `mapType14Payload` | `ActivityPlanType14Target` | `type13_target_id` | `VARCHAR (FK)` | Yes | `null` |
+| **โหมดการเลือกแปลง** | `mode` / `plotSelectionMode` | `mapType14Payload` | `ActivityPlanType14Target` | `plot_selection_mode` | `VARCHAR` | No | `"EXISTING_PLOT"` |
+| **ชื่อแปลง** | `name` / `plotName` | `mapType14Payload` | `ActivityPlanType14Target` | `plot_name` | `VARCHAR` | Yes | `null` |
+| **ร้านค้า Dealer** | `storeId`, `dealerName` | `mapType14Payload` | `ActivityPlanType14Target` | `store_id`, `dealer_name` | `VARCHAR` | Yes | `null` |
+| **เจ้าของแปลง** | `farmerName` / `ownerName` | `mapType14Payload` | `ActivityPlanType14Target` | `owner_name` | `VARCHAR` | Yes | `null` |
+| **ที่อยู่แปลง** | `province`, `district`, `subdistrict` | `mapType14Payload` | `ActivityPlanType14Target` | `province`, etc. | `VARCHAR` | Yes | `null` |
+| **สินค้าขอเบิกพ่นซ้ำ** | `products` | `mapType14Payload` | `ActivityPlanType14Product`| `product_id`, `quantity` | `VARCHAR`, `DECIMAL` | No | - |
+| **วันที่ตรวจติดตามจริง** | `actualVisitDate` | `saveActual` | `ActivityResultType14` | `actual_visit_date` | `TIMESTAMP` | Yes | `now()` |
+| **ระยะเวลาหลังฉีดพ่น** | `daysAfterSpray` | `saveActual` | `ActivityResultType14` | `days_after_spray` | `INTEGER` | Yes | `0` |
+| **ผลการติดตาม** | `trackingResult` | `saveActual` | `ActivityResultType14` | `tracking_result` | `VARCHAR` | Yes | `null` |
+| **การตอบสนองของพืช** | `productResponse` | `saveActual` | `ActivityResultType14` | `product_response` | `VARCHAR` | Yes | `"ปกติ"` |
+| **บันทึกเพิ่มเติมรอบติดตาม**| `additionalNotes` | `saveActual` | `ActivityResultType14` | `notes` | `TEXT` | Yes | `null` |
+| **สินค้าที่ใช้พ่นซ้ำจริง** | `productUsed` | `saveActual` | `ActivityResultType14ProductUsed` | `product_id`, `quantity` | `VARCHAR`, `DECIMAL` | No | - |
+| **ภาพถ่ายสภาพแปลง** | `afterSprayImages` | `uploadImages()` ➔ URLs | `ActivityAttachment` | `file_url`, `work_type_code = 'TYPE_14'` | `TEXT` | No | - |
+
+### 6.3 รายละเอียด Schema ตารางเฉพาะ (Prisma Definitions)
 
 ```prisma
-// 1. ตารางหลักสำหรับ Type 14 (ติดตามแปลงแฮตแทค)
-model ActivityPlanType14 {
-  id                   String                      @id @default(cuid())
-  activityPlanId       String                      @unique @map("activity_plan_id")
-  sourceActivityPlanId String?                     @map("source_activity_plan_id")
-  mode                 String                      @default("EXISTING_PLOT") @map("mode")
-  hasProducts          Boolean                     @default(false) @map("has_products")
-  notes                String?                     @map("notes") @db.Text
-  createdAt            DateTime                    @default(now()) @map("created_at")
-  updatedAt            DateTime                    @updatedAt @map("updated_at")
+// 1. ตารางเป้าหมายการติดตามแปลงแฮตแทค (activity_type_14_targets)
+model ActivityPlanType14Target {
+  id                   String                    @id @default(cuid())
+  activityPlanId       String                    @map("activity_plan_id")
+  type13TargetId       String?                   @map("type13_target_id") // เชื่อมโยงตรงสู่แปลงฉีดแฮตแทค 13
+  sourceActivityPlanId String?                   @map("source_activity_plan_id")
+  plotSelectionMode    String                    @default("EXISTING_PLOT") @map("plot_selection_mode")
+  plotName             String?                   @map("plot_name")
+  storeId              String?                   @map("store_id")
+  dealerName           String?                   @map("dealer_name")
+  ownerName            String?                   @map("owner_name")
+  cropCategory         String?                   @map("crop_category")
+  cropName             String?                   @map("crop_name")
+  province             String?                   @map("province")
+  district             String?                   @map("district")
+  subdistrict          String?                   @map("subdistrict")
+  villageName          String?                   @map("village_name")
+  plotCount            Int?                      @default(1) @map("plot_count")
+  objective            String?                   @map("objective") @db.Text
+  notes                String?                   @map("notes") @db.Text
+  createdAt            DateTime                  @default(now()) @map("created_at")
+  updatedAt            DateTime                  @updatedAt @map("updated_at")
 
-  activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  sourceActivityPlan   ActivityPlan?               @relation("Type14SourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
-  plots                ActivityPlanType14Plot[]
+  activityPlan         ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  type13Target         ActivityPlanType13Target? @relation(fields: [type13TargetId], references: [id], onDelete: SetNull)
+  sourceActivityPlan   ActivityPlan?             @relation("Type14SourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
   products             ActivityPlanType14Product[]
+  results              ActivityResultType14[]
 
   @@index([activityPlanId])
+  @@index([type13TargetId])
   @@index([sourceActivityPlanId])
-  @@map("activity_plan_type_14")
+  @@map("activity_type_14_targets")
 }
 
-// 2. ตารางแปลงที่ติดตาม Type 14
-model ActivityPlanType14Plot {
-  id           String             @id @default(cuid())
-  type14Id     String             @map("type_14_id")
-  demoPlotId   String?            @map("demo_plot_id")
-  plotName     String?            @map("plot_name")
-  dealerName   String?            @map("dealer_name")
-  ownerName    String?            @map("owner_name")
-  cropCategory String?            @map("crop_category")
-  cropName     String?            @map("crop_name")
-  province     String?            @map("province")
-  district     String?            @map("district")
-  latitude     Decimal?           @map("latitude") @db.Decimal(10, 7)
-  longitude    Decimal?           @map("longitude") @db.Decimal(10, 7)
-  createdAt    DateTime           @default(now()) @map("created_at")
-
-  type14       ActivityPlanType14 @relation(fields: [type14Id], references: [id], onDelete: Cascade)
-  demoPlot     DemoPlot?          @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-
-  @@index([type14Id])
-  @@index([demoPlotId])
-  @@map("activity_plan_type_14_plots")
-}
-
-// 3. ตารางเบิกสินค้าพ่นซ้ำ Type 14
+// 2. ตารางเบิกสินค้าพ่นซ้ำ Type 14 (activity_type_14_products)
 model ActivityPlanType14Product {
-  id          String             @id @default(cuid())
-  type14Id    String             @map("type_14_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String                    @id @default(cuid())
+  activityPlanId String                    @map("activity_plan_id")
+  targetId       String?                   @map("target_id")
+  productId      String                    @map("product_id")
+  productName    String?                   @map("product_name")
+  quantity       Decimal                   @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?                   @map("unit")
+  sortOrder      Int                       @default(0) @map("sort_order")
+  createdAt      DateTime                  @default(now()) @map("created_at")
 
-  type14      ActivityPlanType14 @relation(fields: [type14Id], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType14Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type14Id])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_14_products")
+  @@map("activity_type_14_products")
 }
 
-// 4. ตารางบันทึกการเข้าตรวจแปลงจริง
-model DemoPlotVisit {
-  id                 String    @id @default(cuid())
-  demoPlotId         String    @map("demo_plot_id")
-  activityPlanId     String?   @map("activity_plan_id")
-  workTypeCode       String?   @map("work_type_code") // "TYPE_14"
-  visitNumber        Int       @map("visit_number")
-  visitDate          DateTime  @map("visit_date")
-  daysSinceStart     Int?      @map("days_since_start")
-  productResponse    String?   @map("product_response")
-  productProblemDesc String?   @map("product_problem_desc")
-  notes              String?   @map("notes") @db.Text
-  createdAt          DateTime  @default(now()) @map("created_at")
+// 3. ตารางบันทึกผลการตรวจติดตามแปลงจริง (activity_type_14_results)
+model ActivityResultType14 {
+  id              String                            @id @default(cuid())
+  activityPlanId  String                            @map("activity_plan_id")
+  targetId        String?                           @map("target_id")
+  actualVisitDate DateTime?                         @default(now()) @map("actual_visit_date")
+  daysAfterSpray  Int?                              @map("days_after_spray")
+  trackingResult  String?                           @map("tracking_result")
+  productResponse String?                           @map("product_response")
+  notes           String?                           @map("notes") @db.Text
+  createdAt       DateTime                          @default(now()) @map("created_at")
+  updatedAt       DateTime                          @updatedAt @map("updated_at")
 
-  demoPlot           DemoPlot      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  activityPlan       ActivityPlan? @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  activityPlan    ActivityPlan                      @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target          ActivityPlanType14Target?         @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  productsUsed    ActivityResultType14ProductUsed[]
+  attachments     ActivityAttachment[]
 
-  @@index([demoPlotId])
   @@index([activityPlanId])
-  @@index([workTypeCode])
-  @@map("demo_plot_visits")
+  @@index([targetId])
+  @@map("activity_type_14_results")
+}
+
+// 4. ตารางสินค้าที่ใช้พ่นซ้ำจริง (activity_type_14_products_used)
+model ActivityResultType14ProductUsed {
+  id              String               @id @default(cuid())
+  resultId        String               @map("result_id")
+  productId       String               @map("product_id")
+  productName     String?              @map("product_name")
+  quantity        Decimal?             @map("quantity") @db.Decimal(10, 2)
+  unit            String?              @map("unit")
+  applicationRate String?              @map("application_rate")
+  detail          String?              @map("detail") @db.Text
+  sortOrder       Int                  @default(0) @map("sort_order")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  result          ActivityResultType14 @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([resultId])
+  @@index([productId])
+  @@map("activity_type_14_products_used")
 }
 ```
 
@@ -416,14 +452,14 @@ model DemoPlotVisit {
 - **การจัดการ Transaction (Isolation & Atomicity):**
   - ทุกการบันทึกของ Type 14 ดำเนินการภายใต้ Transaction `tx: PrismaTransaction` เพื่อรับประกันความสอดคล้องของข้อมูล
 - **ขาเขียน (Write Flow):**
-  1. *Planned:* ลบระเบียนเดิมใน `ActivityPlanType14` ออกทั้งหมด (`deleteMany`) ➔ สร้างระเบียนหลักใหม่ ➔ เชื่อมโยง `sourceActivityPlanId` (ถ้ามี) ➔ สร้างระเบียนแปลงใน `ActivityPlanType14Plot` ➔ สร้างระเบียนเบิกสินค้าใน `ActivityPlanType14Product` ➔ สร้างหรือผูก `DemoPlotVisit` สำหรับ TYPE_14
-  2. *Actual:* อัปโหลดรูปภาพประเภท `AFTER_SPRAY` ➔ อัปเดตข้อมูลผลการติดตามลงใน `DemoPlotVisit` (อัปเดต `visitDate`, `daysSinceStart`, `productResponse`, `productProblemDesc`, `notes`) ➔ บันทึกรูปภาพลง `ActivityAttachment`
-  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ เรียก `syncType14Data()` ➔ บันทึกผลการติดตามและภาพถ่ายใน $transaction เดียวกัน
+  1. *Planned:* ลบระเบียนเดิมใน `ActivityPlanType14Target` ออกทั้งหมด (`deleteMany`) ➔ สร้างระเบียนเป้าหมายใน `activity_type_14_targets` (เชื่อมโยง `type13TargetId` และ `sourceActivityPlanId`) ➔ สร้างระเบียนเบิกสินค้าใน `activity_type_14_products`
+  2. *Actual:* อัปโหลดรูปภาพประเภท `AFTER_SPRAY` ➔ บันทึกผลการติดตามลงใน `activity_type_14_results` (`actualVisitDate`, `daysAfterSpray`, `trackingResult`, `productResponse`, `notes`) ➔ บันทึกรายการยาพ่นซ้ำลง `activity_type_14_products_used` ➔ บันทึกรูปภาพลง `ActivityAttachment` โดยไม่มีการเขียนลง `demo_plot_visits` หรือ `demo_plots`
+  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ บันทึกเป้าหมายและผลการติดตามลงตารางเฉพาะใน $transaction เดียวกัน
 - **ขาอ่าน (Read / Hydration Flow):**
-  1. *Planned Edit:* ดึงข้อมูลผ่าน `findType14ByPlanId` (include `plots` + `products` + `sourceActivityPlan` + `demoPlot`) ➔ นำเข้า `hydrateType14PlannedData()`
-  2. *Actual & Detail View:* ดึง `plan.type14.plots` หรือ `plan.demoPlotVisits` ➔ ดึง `attachments` ➔ แมปข้อมูลรอบการติดตามและรูปภาพแสดงผลใน Timeline
+  1. *Planned Edit:* ดึงข้อมูลผ่าน `findType14ByPlanId` (include `type14Targets` + `products` + `sourceActivityPlan`) ➔ นำเข้า `hydrateType14PlannedData()`
+  2. *Actual & Detail View:* ดึง `plan.type14Targets` และ `plan.type14Results` ➔ ดึง `productsUsed` และ `attachments` ➔ แมปข้อมูลรอบการติดตามและรูปภาพแสดงผลใน Timeline
 - **การลบข้อมูล (Delete Policy):**
-  - ใช้ **Cascade Delete** จาก `ActivityPlan` ไปยัง `ActivityPlanType14` และตารางลูกทั้งหมด สำหรับ `DemoPlot` จะใช้การเชื่อมโยงแบบ `SetNull` เพื่อคงข้อมูลแปลงหลักไว้
+  - ใช้ **Cascade Delete** จาก `ActivityPlan` ไปยัง `activity_type_14_targets` และตารางลูกทั้งหมด
 
 ---
 
@@ -581,10 +617,10 @@ model DemoPlotVisit {
 ## 12. Known Limitations and Important Notes
 
 1. **Dual Plot Selection Modes:**
-   - โหมด `EXISTING_PLOT` จะเชื่อมโยง `sourceActivityPlanId` ไปยังแผน Type 13 ต้นทางเพื่อรักษาประวัติการปฏิบัติงานอย่างต่อเนื่อง
+   - โหมด `EXISTING_PLOT` จะเชื่อมโยง `type13TargetId` ไปยังแปลงแฮตแทค Type 13 ต้นทางเพื่อรักษาประวัติการปฏิบัติงานอย่างต่อเนื่อง
    - โหมด `NEW_PLOT` จะสร้างเป้าหมายติดตามขึ้นใหม่โดยตรง เหมาะสำหรับกรณีที่แปลงเดิมไม่ได้ถูกบันทึกผ่าน Type 13 ในระบบ
-2. **การซิงค์ข้อมูลผลงานกับ `DemoPlotVisit`:**
-   - ข้อมูลรอบการตรวจติดตามจริงของ Type 14 จะถูกอัปเดตลงในตาราง `demo_plot_visits` โดยตรง โดยมี `workTypeCode = "TYPE_14"`
+2. **การจัดเก็บข้อมูลแบบ Dedicated 100%:**
+   - ข้อมูลรอบการตรวจติดตามจริงของ Type 14 จะถูกจัดเก็บลงในตาราง `activity_type_14_results` และ `activity_type_14_products_used` โดยตรง ไม่มีการพึ่งพาตาราง `demo_plot_visits` หรือ `demo_plots`
 3. **ข้อจำกัดภาพถ่ายต่อหมู่บ้าน:**
    - กำหนดให้มีภาพถ่ายสภาพแปลงได้สูงสุด 20 ภาพต่อหมู่บ้าน (`TYPE14_MAX_IMAGES_PER_VILLAGE = 20`) ตามข้อกำหนดทางธุรกิจ
 4. **Decoupling Dependency:**
@@ -603,3 +639,4 @@ model DemoPlotVisit {
 | **2026-10-20** | 1.4.0 | เชื่อมต่อ Shared Inputs จาก `@/modules/activity/ui` (`ActivityCustomerSelect`, `ActivityAddressSelect`, `ActivityGpsPicker`, `ActivityProductSelect`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | ปรับปรุงกิจกรรมนอกแผน (Unplanned 2-in-1) และเชื่อมต่อ Strategy เข้ากับ `strategy.registry.ts` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | จัดทำเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วน 100% | Antigravity AI |
+| **2026-10-27** | 2.0.0 | **ยกเลิกตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType14Target` ให้เชื่อมโยงตรงสู่แปลงแฮตแทค `ActivityPlanType13Target` ผ่าน `type13TargetId`<br>2. ปรับการบันทึกผลงานจริงลงตารางเฉพาะ `activity_type_14_results` และ `activity_type_14_products_used`<br>3. อัปเดตผัง Schema, Data Flow และ Documentation ครบถ้วน 100% | Antigravity AI |

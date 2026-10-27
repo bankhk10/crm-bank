@@ -63,6 +63,8 @@ export interface Type7aDemoProductItem {
 
 export interface Type7aPlotInput {
   id?: string;
+  code?: string | null;
+  status?: string | null;
   demoPlotId?: string | null;
   name?: string | null;
   plotName?: string | null;

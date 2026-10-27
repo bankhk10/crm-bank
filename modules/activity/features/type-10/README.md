@@ -2,9 +2,9 @@
 
 > **Feature Slice**: `modules/activity/features/type-10`  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType10Target`, `ActivityPlanType10Product`, `ActivityResultType10`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType10Target`, `ActivityPlanType10Product`, `ActivityResultType10`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
-> **Status**: Production Ready / Active Reference
+> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Link to Type 7A Targets)
 
 ---
 
@@ -20,7 +20,7 @@
 
 ### 1.2 ขอบเขตของ Type 10
 - **ความเชื่อมโยงกับแปลงสาธิต (Demo Plot Association):**
-  - **จัด ณ แปลงสาธิตที่มีในระบบ (`DemoPlot`):** เลือกแปลงสาธิตที่กำลังดำเนินการอยู่หรือเสร็จสิ้นแล้วจากฐานข้อมูล โดยระบบจะดึงชื่อเจ้าของแปลง พืชเป้าหมาย สินค้าจัดแสดงหลัก พิกัด GPS และอำเภอ/จังหวัด ให้อัตโนมัติ พร้อมบันทึกประวัติการจัดงานลงใน `DemoPlotVisit`
+  - **จัด ณ แปลงสาธิตที่มีในระบบ (`ActivityPlanType7aTarget`):** เลือกแปลงสาธิตที่กำลังดำเนินการอยู่หรือเสร็จสิ้นแล้วจากฐานข้อมูล เชื่อมโยงผ่าน `type7aTargetId` โดยระบบจะดึงชื่อเจ้าของแปลง พืชเป้าหมาย สินค้าจัดแสดงหลัก พิกัด GPS และอำเภอ/จังหวัด ให้อัตโนมัติ โดยไม่ต้องพึ่งพาตาราง `demo_plots` หรือ `demo_plot_visits` เก่า
   - **ระบุสถานที่จัดงานเอง (Custom Location):** กรณีจัดงาน ณ สถานที่กลางหรือแปลงเกษตรกรที่ไม่ได้เปิดแปลงสาธิตอย่างเป็นทางการ สามารถระบุชื่อแปลง/สถานที่จัดงาน และพืชเป้าหมายได้โดยตรง
 - **เป้าหมายตามแผนงาน (Planned Targets):**
   - กำหนดแปลงสาธิต/สถานที่จัดงาน, สินค้าจัดแสดงหลัก (`showcase`), ชนิดพืชเป้าหมาย (`targetCrop`), เป้าหมายจำนวนผู้เข้าร่วมงาน (`targetAttendeesCount`), และเป้าหมายยอดขายหรือยอดจองสินค้า (`targetBookingSales`)
@@ -46,13 +46,13 @@ graph TD
     A[ผู้ใช้สร้างแผนงานใหม่ / แก้ไขแผน] --> B[กรอกข้อมูลทั่วไป วันที่ และงบประมาณ]
     B --> C[เลือกประเภทงาน Type 10: จัดงาน Field Day]
     C --> D[เรนเดอร์ Type10PlannedForm]
-    D --> E[เลือกแปลงสาธิตจาก DemoPlot Combobox หรือระบุสถานที่]
+    D --> E[เลือกแปลงสาธิตจาก Type 7A Target Combobox หรือระบุสถานที่]
     E --> F[ระบบดึงชื่อแปลง พืช สินค้าจัดแสดง และพิกัดให้อัตโนมัติ]
     F --> G[ระบุเป้าหมายจำนวนผู้เข้าร่วมงาน targetAttendees]
     G --> H[ระบุเป้าหมายยอดขายหรือยอดสั่งจอง targetBookingSales]
     H --> I[กดบันทึกแบบร่าง DRAFT หรือ ส่งขออนุมัติ SUBMITTED]
-    I --> J[type10PlannedStrategy บันทึกความเชื่อมโยงลง DemoPlotVisit]
-    J --> K[บันทึกเป้าหมายลง ActivityPlan: targetAttendeesCount และ targetBookingSales]
+    I --> J[type10PlannedStrategy บันทึกเป้าหมายลง activity_type_10_targets (type7aTargetId)]
+    J --> K[บันทึกรายการสินค้าเป้าหมายลง activity_type_10_products]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -81,7 +81,7 @@ graph TD
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **จัดงาน Field Day (Type 10)**
 - ฟอร์ม `Type10UnplannedForm` รวมขั้นตอนการเลือกแปลงสาธิต/ระบุสถานที่, สินค้าจัดแสดง, พืชเป้าหมาย, ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ผลตอบรับจากเกษตรกร, ตารางสินค้าที่ขายได้ และรูปถ่ายบรรยากาศไว้ในหน้าเดียว
 - รองรับการจัดงานหลายจุดพร้อมกันในทริปเดียว (`items: Type10UnplannedItem[]`)
-- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type10UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกข้อมูลลงในตารางเฉพาะ `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` พร้อมซิงค์ประวัติการจัดงานลงใน `DemoPlotVisit` และบันทึกรูปภาพลงใน `ActivityAttachment` พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
+- เมื่อกดบันทึก ข้อมูลทั้งหมดจะถูกส่งผ่าน `unplanned.actions.ts` ➔ รัน `type10UnplannedStrategy.savePlan()` ซึ่งจะทำการบันทึกข้อมูลลงในตารางเฉพาะ `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` และบันทึกรูปภาพลงใน `ActivityAttachment` พร้อมกันแบบ Atomic ภายใต้ Prisma Transaction เดียวกัน
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:**
@@ -149,7 +149,7 @@ modules/activity/features/type-10/
 | **งบประมาณรวม** | - | งบเบิกสินค้าตัวอย่าง, งบจัดเลี้ยงเกษตรกร, เบี้ยเลี้ยงเดินทาง |
 | **ข้อมูลกิจกรรมตามแผน** | แปลงสาธิต/สถานที่, สินค้าจัดแสดง, พืชเป้าหมาย, เป้าหมายผู้เข้าร่วม, เป้ายอดสั่งจอง | บันทึกลงตาราง `activity_type_10_targets` และ `activity_type_10_products` |
 | **ผลการจัดกิจกรรมจริง** | ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ระดับความสนใจ (สูง/กลาง/ต่ำ), รายการสินค้าที่ขายได้, รูปถ่ายบรรยากาศ | บันทึกลงตาราง `activity_type_10_result` และ `activity_type_10_products` |
-| **Database Persistence** | ตาราง `activity_type_10_targets`, `activity_type_10_products`, `activity_type_10_result` (พร้อม sync mirror `DemoPlotVisit`) | ตารางหลัก `ActivityPlan`, `ActivityAttachment` |
+| **Database Persistence** | ตารางเฉพาะ 100%: `activity_type_10_targets` (ผูก `type7aTargetId`), `activity_type_10_products`, `activity_type_10_result` | ตารางหลัก `ActivityPlan`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ที่อนุญาต (Allowed Dependencies):**
@@ -195,7 +195,7 @@ modules/activity/features/type-10/
 - **`type10-detail-view.tsx`:** คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด แสดงการ์ดแผน `Type10PlanCard`, สรุปผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ป้ายแสดงระดับความสนใจของเกษตรกร, ตารางรายการสินค้าที่ขายได้, และแกลเลอรีรูปถ่ายบรรยากาศพร้อม Lightbox
 - **`type10-approval-card.tsx`:** การ์ดสรุปสำหรับหน้าจอพิจารณาอนุมัติ เรนเดอร์ `Type10PlanCard` เพื่อให้ผู้อนุมัติตรวจสอบแปลงสาธิตและเป้าหมาย
 - **`planned-mapper.ts`:**
-  - `extractType10PlanTargets`: ดึงข้อมูลจาก `activity_type_10_targets` แปลงออกมาเป็น `Type10TargetItem` (พร้อม fallback ไปยัง `demoPlotVisits`)
+  - `extractType10PlanTargets`: ดึงข้อมูลจาก `activity_type_10_targets` แปลงออกมาเป็น `Type10TargetItem`
   - `hydrateType10PlannedData`: กู้คืนข้อมูลแผนเดิมเข้าฟอร์มแก้ไข
   - `mapType10ToSectionItems`: แปลงข้อมูลเป้าหมายเป็นข้อความสรุปสำหรับแสดงใน Section รวม
 - **`actual-mapper.ts`:**
@@ -206,7 +206,7 @@ modules/activity/features/type-10/
 - **`type10.repository.ts` & `type10-planned.strategy.ts`:**
   - `findType10ByPlanId`: ค้นหาประวัติแปลงสาธิต สินค้า และเป้าหมายจาก `activity_type_10_targets`, `activity_type_10_products`, `activity_type_10_result`
   - `saveType10ActualSaleItems`: ลบและบันทึกระเบียนสินค้าที่ขาย/จองได้ลงตาราง legacy mirror `activity_result_sale_items`
-  - `type10PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกลงตารางเฉพาะ `activity_type_10_targets`, `activity_type_10_products`, และ `activity_type_10_result` พร้อม sync ระเบียนเบาๆ ลง `DemoPlotVisit` ตามมาตรฐาน `WorkTypeStrategy`
+  - `type10PlannedStrategy`: ดำเนินการตรวจสอบและบันทึกลงตารางเฉพาะ `activity_type_10_targets` (ผูก `type7aTargetId`), `activity_type_10_products`, และ `activity_type_10_result` ตามมาตรฐาน `WorkTypeStrategy` โดยไม่ต้องเขียนลงตาราง `demo_plot_visits` เก่า
 
 ### 4.2 Unplanned
 - **`type10-unplanned-form.tsx`:** ฟอร์มกิจกรรม Field Day นอกแผน 2-in-1 แสดงอินพุตครบถ้วนทั้งแปลงสาธิต/สถานที่, พืช, สินค้าจัดแสดง, ผู้เข้าร่วมจริง, ยอดขาย/จองจริง, ผลตอบรับ, ตารางสินค้าที่ขายได้ และรูปถ่ายบรรยากาศ
@@ -314,7 +314,7 @@ sequenceDiagram
 ### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
 | Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
 | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **แปลงสาธิตที่จัดงาน** | `type10DemoPlot` / `demoPlotId` | `mapType10Payload` ➔ `type10Targets` | `ActivityPlanType10Target` | `demo_plot_id` | `VARCHAR (FK)` | Yes | `null` |
+| **แปลงสาธิตที่จัดงาน** | `type10DemoPlot` / `type7aTargetId` | `mapType10Payload` ➔ `type10Targets` | `ActivityPlanType10Target` | `type7a_target_id` | `VARCHAR (FK)` | Yes | `null` |
 | **สถานที่จัดงาน** | `type10Location` / `location` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `location` | `VARCHAR` | Yes | `null` |
 | **สินค้าจัดแสดงหลัก** | `type10Showcase` / `showcase` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `showcase_product_name` | `VARCHAR` | Yes | `null` |
 | **พืชเป้าหมาย** | `type10TargetCrop` / `crop` | `planned-mapper` / `unplanned-mapper` | `ActivityPlanType10Target` | `crop_name` | `VARCHAR` | Yes | `null` |
@@ -336,8 +336,8 @@ model ActivityPlanType10Target {
   id                   String    @id @default(cuid())
   activityPlanId       String    @map("activity_plan_id")
 
-  // Demo Plot Reference (Optional - กรณีจัด ณ แปลงสาธิตในระบบ)
-  demoPlotId           String?   @map("demo_plot_id")
+  // Target Plot Reference (Optional - กรณีจัด ณ แปลงสาธิต Type 7A ในระบบ)
+  type7aTargetId       String?   @map("type7a_target_id")
 
   // Venue & Plot Details (รองรับทั้งแปลงในระบบและระบุเอง)
   plotName             String?   @map("plot_name")
@@ -366,13 +366,13 @@ model ActivityPlanType10Target {
 
   // Relations
   activityPlan         ActivityPlan                 @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  demoPlot             DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  type7aTarget         ActivityPlanType7aTarget?    @relation(fields: [type7aTargetId], references: [id], onDelete: SetNull)
   showcaseProduct      Product?                     @relation("Type10ShowcaseProduct", fields: [showcaseProductId], references: [id], onDelete: SetNull)
   products             ActivityPlanType10Product[]
   result               ActivityResultType10?
 
   @@index([activityPlanId])
-  @@index([demoPlotId])
+  @@index([type7aTargetId])
   @@index([showcaseProductId])
   @@map("activity_type_10_targets")
 }
@@ -590,8 +590,8 @@ model ActivityResultType10 {
 
 ## 12. Known Limitations and Important Notes
 
-1. **การบันทึกความเชื่อมโยงผ่าน DemoPlotVisit:**
-   - โมดูล Type 10 ไม่ได้ผูกกับตาราง `DemoPlot` โดยตรงที่หัวแผนงาน แต่จะบันทึกประวัติการจัดงานลงในตาราง `DemoPlotVisit` (`workTypeCode = "TYPE_10"`) เพื่อให้ระบบสามารถนับประวัติและสถิติการจัดงาน Field Day ของแปลงสาธิตนั้นๆ ได้ตลอดอายุแปลง
+1. **การเชื่อมโยงกับแปลงสาธิต Type 7A (`type7aTargetId`):**
+   - โมดูล Type 10 เชื่อมโยงตรงไปยังแปลงสาธิตแม่ผ่าน `ActivityPlanType7aTarget` (`type7aTargetId`) โดยไม่พึ่งพาตาราง `DemoPlot` หรือ `DemoPlotVisit` เดิมอีกต่อไป ทำให้สถาปัตยกรรมข้อมูลเป็น 100% Dedicated Relational Tables
 2. **การเข้ารหัส Tag ข้อมูลใน Notes:**
    - ฟิลด์สินค้าจัดแสดงหลัก (`showcase`), พืชเป้าหมาย (`targetCrop`), และรายชื่อเกษตรกรเป้าหมาย จะถูกบันทึกร่วมกับข้อความทั่วไปใน `ActivityPlan.notes` ผ่านการเข้ารหัส Tag เฉพาะ เพื่อรักษาความสมบูรณ์ของข้อมูลโดยไม่ต้องเพิ่มคอลัมน์ใหม่ในตารางหลัก
 3. **การจัดเก็บรูปภาพใน Storage:**
@@ -612,3 +612,4 @@ model ActivityResultType10 {
 | **2026-10-20** | 1.4.0 | เพิ่มระบบ Image Lightbox Modal ใน `Type10DetailView` สำหรับดูภาพถ่ายบรรยากาศงาน | Antigravity AI |
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type10UnplannedForm` ให้รองรับการจัดงาน Field Day แบบ 2-in-1 | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
+| **2026-10-27** | 2.0.0 | **ยกเลิกการพึ่งพาตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับเปลี่ยนการเชื่อมโยงแปลงสาธิตใน `ActivityPlanType10Target` มาใช้ `type7aTargetId` เชื่อมกับ `ActivityPlanType7aTarget` โดยตรง<br>2. นำการเขียนประวัติลง `demo_plot_visits` ออกทั้งหมด<br>3. อัปเดต Prisma Schema, Data Flow และ Field Mapping สอดคล้องกับ Codebase 100% | Antigravity AI |

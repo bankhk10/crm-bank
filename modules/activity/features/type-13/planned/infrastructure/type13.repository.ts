@@ -12,6 +12,8 @@ export interface Type13PlotProductInput {
 
 export interface Type13PlotInput {
   id?: string;
+  code?: string | null;
+  status?: string | null;
   demoPlotId?: string | null;
   plotIndex?: number;
   name?: string | null;
@@ -47,7 +49,7 @@ export interface Type13DataInput {
 }
 
 /**
- * Generate DemoPlot Code (format: DPYYMMXXXX) with advisory lock
+ * Generate Type 13 Target Code (format: DPYYMMXXXX) with advisory lock
  */
 export async function generateDemoPlotCode(
   tx: Prisma.TransactionClient | typeof db,
@@ -65,7 +67,7 @@ export async function generateDemoPlotCode(
     // If not supported, proceed with scan
   }
 
-  const existingPlots = await tx.demoPlot.findMany({
+  const existingPlots = await (tx as any).activityPlanType13Target.findMany({
     where: {
       code: { startsWith: prefix },
     },
@@ -93,14 +95,14 @@ export async function generateDemoPlotCode(
 }
 
 /**
- * Creates ActivityPlanType13Target & Product records, and associated DemoPlot + Visits in a Prisma Transaction
+ * Creates ActivityPlanType13Target & Product records in a Prisma Transaction
  */
 export async function createType13Data(
   tx: PrismaTransaction,
   planId: string,
   type13Data: Type13DataInput | undefined | null,
   startDate: Date,
-  employeeId: string,
+  _employeeId: string,
 ) {
   if (!type13Data) return;
 
@@ -111,107 +113,21 @@ export async function createType13Data(
   let primaryTargetId: string | null = null;
 
   if (plots.length > 0) {
-    const existingVisits = await tx.demoPlotVisit.findMany({
-      where: {
-        activityPlanId: planId,
-        workTypeCode: "TYPE_13",
-      },
-      orderBy: { createdAt: "asc" },
-    });
-
-    const claimedDemoPlotIds = new Set<string>(
-      plots.map((p) => p.demoPlotId).filter(Boolean) as string[],
-    );
-
-    const unclaimedVisits = existingVisits.filter(
-      (v) => v.demoPlotId && !claimedDemoPlotIds.has(v.demoPlotId),
-    );
-    let unclaimedIdx = 0;
-
     for (let i = 0; i < plots.length; i++) {
       const plotItem = plots[i];
-      let demoPlotId = plotItem.demoPlotId || null;
-
-      if (!demoPlotId && unclaimedIdx < unclaimedVisits.length) {
-        demoPlotId = unclaimedVisits[unclaimedIdx++].demoPlotId;
-        const updateData: any = {};
-        if (plotItem.name || plotItem.plotName) {
-          updateData.name = plotItem.name || plotItem.plotName;
-        }
-        if (plotItem.storeId) {
-          updateData.customerId = plotItem.storeId;
-        }
-        if (plotItem.province) {
-          updateData.province = plotItem.province;
-        }
-        if (plotItem.district) {
-          updateData.district = plotItem.district;
-        }
-        if (
-          plotItem.latitude != null &&
-          String(plotItem.latitude).trim() !== ""
-        ) {
-          updateData.latitude = new Prisma.Decimal(Number(plotItem.latitude));
-        }
-        if (
-          plotItem.longitude != null &&
-          String(plotItem.longitude).trim() !== ""
-        ) {
-          updateData.longitude = new Prisma.Decimal(Number(plotItem.longitude));
-        }
-        if (Object.keys(updateData).length > 0) {
-          await tx.demoPlot.update({
-            where: { id: demoPlotId },
-            data: updateData,
-          });
-        }
-      } else if (!demoPlotId) {
-        const code = await generateDemoPlotCode(
+      const code =
+        plotItem.code ||
+        (await generateDemoPlotCode(
           tx as any,
           startDate ? new Date(startDate) : new Date(),
           i,
-        );
-
-        const demoPlot = await tx.demoPlot.create({
-          data: {
-            code,
-            name: plotItem.name || plotItem.plotName || `แปลงแฮตแทค ${i + 1}`,
-            ownerName: plotItem.ownerName || "",
-            customerId: plotItem.storeId || null,
-            employeeId,
-            province: plotItem.province || null,
-            district: plotItem.district || null,
-            location:
-              [
-                plotItem.subdistrict ? `ต.${plotItem.subdistrict}` : null,
-                plotItem.village ? `ม.${plotItem.village}` : null,
-                plotItem.plannedPlotsCount
-                  ? `แผน ${plotItem.plannedPlotsCount} แปลง`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" ") || null,
-            latitude:
-              plotItem.latitude != null &&
-              String(plotItem.latitude).trim() !== ""
-                ? new Prisma.Decimal(Number(plotItem.latitude))
-                : null,
-            longitude:
-              plotItem.longitude != null &&
-              String(plotItem.longitude).trim() !== ""
-                ? new Prisma.Decimal(Number(plotItem.longitude))
-                : null,
-            plotType: "HATTACK",
-            startDate,
-            status: DemoPlotStatus.IN_PROGRESS,
-          },
-        });
-        demoPlotId = demoPlot.id;
-      }
+        ));
 
       const createdTarget = await tx.activityPlanType13Target.create({
         data: {
           activityPlanId: planId,
+          code,
+          status: DemoPlotStatus.IN_PROGRESS,
           plotIndex: plotItem.plotIndex || i + 1,
           plotName: plotItem.name || plotItem.plotName || `แปลงแฮตแทค ${i + 1}`,
           storeId: plotItem.storeId || null,
@@ -234,34 +150,12 @@ export async function createType13Data(
             String(plotItem.longitude).trim() !== ""
               ? new Prisma.Decimal(Number(plotItem.longitude))
               : null,
-          demoPlotId,
           notes: type13Data.notes || null,
         },
       });
 
       if (i === 0) {
         primaryTargetId = createdTarget.id;
-      }
-
-      if (demoPlotId) {
-        const existingVisit = await tx.demoPlotVisit.findFirst({
-          where: {
-            activityPlanId: planId,
-            demoPlotId,
-            workTypeCode: "TYPE_13",
-          },
-        });
-        if (!existingVisit) {
-          await tx.demoPlotVisit.create({
-            data: {
-              demoPlotId,
-              activityPlanId: planId,
-              workTypeCode: "TYPE_13",
-              visitNumber: 1,
-              visitDate: startDate,
-            },
-          });
-        }
       }
     }
   }
@@ -336,7 +230,6 @@ export async function findType13ByPlanId(planId: string) {
             district: true,
           },
         },
-        demoPlot: true,
       },
       orderBy: { plotIndex: "asc" },
     }),

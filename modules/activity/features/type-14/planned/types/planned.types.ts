@@ -18,6 +18,8 @@ export type {
 export interface Type14PlanInput {
   mode: "EXISTING_PLOT" | "NEW_PLOT";
   selectedPlanId?: string | null;
+  type13TargetId?: string | null;
+  type13TargetIds?: string[];
   demoPlotId?: string | null;
   selectedPlotIds?: string[];
   demoPlotIds?: string[];

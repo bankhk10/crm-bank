@@ -7,6 +7,8 @@ import type {
 
 export interface Type7aPlanItem {
   id: string;
+  code?: string | null;
+  status?: string | null;
   demoPlotId?: string | null;
   plotName: string;
   name?: string;

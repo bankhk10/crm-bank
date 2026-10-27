@@ -4,8 +4,8 @@
 > **Work Type Code**: `TYPE_13`  
 > **Work Type Name**: ฉีดแปลงแฮตแทค (Hattack Spraying)  
 > **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`, `DemoPlot`, `DemoPlotVisit`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`, `ActivityAttachment`)  
+> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Hattack Dedicated Target Plot)
 
 ---
 
@@ -23,7 +23,8 @@
 - **กลุ่มเป้าหมายและการจัดสรรแปลง (Multi-Plot Scope):**
   - ตัวแทนจำหน่ายหลัก (`DEALER`) และร้านค้าร่วมโครงการ
   - รองรับการกำหนดแปลงสาธิตแฮตแทคได้ตั้งแต่ 1 ถึง 10 แปลงต่อหนึ่งแผนงาน
-  - แต่ละแปลงเชื่อมโยงกับฐานข้อมูลแปลงสาธิตหลัก (`DemoPlot`) อัตโนมัติ พร้อมรหัสแปลงแบบอัตโนมัติ (`DPYYMMXXXX`)
+  - แต่ละแปลงจัดเก็บในตารางเฉพาะ `activity_type_13_targets` (`ActivityPlanType13Target`) พร้อมออกรหัสแปลงมาตรฐาน `code` (`DPYYMMXXXX` ผ่าน Advisory Lock) และสถานะเริ่มต้น `status: IN_PROGRESS` เพื่อส่งต่อให้ Type 14 ดึงไปติดตามต่อได้ทันที
+  - ยกเลิกการพึ่งพาตาราง `demo_plots` และ `demo_plot_visits` เก่าอย่างสมบูรณ์
 - **การเบิกสินค้าสาธิต (Product Withdrawal):**
   - สวิตช์เปิด-ปิดการเบิกสินค้าสำหรับฉีดแปลงแฮตแทค พร้อมระบุรายการสินค้า จำนวน และหน่วย
 - **การบันทึกผลการปฏิบัติงานจริง (Actual Outcome Scope):**
@@ -60,8 +61,9 @@ graph TD
     H -->|ไม่เบิกสินค้า| J[ข้ามส่วนเบิกสินค้า]
     I --> K[กดบันทึกร่าง DRAFT หรือ ส่งขออนุมัติ]
     J --> K
-    K --> L[Strategy บันทึกลง ActivityPlanType13, Plots, Products]
-    L --> M[สร้างหรือเชื่อมโยง Master DemoPlot รหัส DPYYMMXXXX และ DemoPlotVisit]
+    K --> L[Strategy ออกรหัส DPYYMMXXXX ด้วย Advisory Lock]
+    L --> M[บันทึกแปลงลง activity_type_13_targets (code, status: IN_PROGRESS)]
+    M --> N[บันทึกสินค้าลง activity_type_13_products]
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
@@ -78,13 +80,13 @@ graph TD
     I --> J[อัปโหลดรูปภาพหลังฉีดพ่น สูงสุด 20 รูปต่อหมู่บ้าน]
     J --> K[กดบันทึกผลการปฏิบัติงาน]
     K --> L[อัปโหลดรูปภาพไปยัง Object Storage]
-    L --> M[บันทึกผลการฉีดลง ActivityResultSprayRound, Products, Externals, Attachments]
+    L --> M[บันทึกผลการฉีดลง ActivityResultType13SprayRound, Products, Externals, Attachments]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` แล้วเลือกประเภทงาน **ฉีดแปลงแฮตแทค (Type 13)**
 - ฟอร์ม `Type13UnplannedForm` ผสานทั้งข้อมูลร้านค้า Dealer, ชื่อแปลง, ที่อยู่แปลง, พิกัด GPS, วันที่พ่น, อุปกรณ์, ผลการฉีดพ่น, สินค้าที่ใช้ และกล้องถ่ายรูป/อัปโหลดภาพหลังฉีดพ่น
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะสำเร็จ พร้อมบันทึก `ActivityPlanType13`, `ActivityPlanType13Plot`, `DemoPlot` และผลการฉีดพ่นในคราวเดียวผ่าน `type13UnplannedStrategy`
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะสำเร็จ พร้อมบันทึก `ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13` และผลการฉีดพ่นในคราวเดียวผ่าน `type13UnplannedStrategy` โดยไม่มีการเขียนลงตาราง `demo_plots` หรือ `demo_plot_visits` เก่า
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** เรนเดอร์ `<Type13PlanCard />` สำหรับสรุปแปลงแฮตแทคตามแผน และเรนเดอร์ `<Type13DetailView />` มีแท็บสลับดูแต่ละแปลง พิกัดพร้อมลิงก์ Google Maps ตารางรอบการฉีดพ่น สารเคมีที่ผสม และแกลเลอรีรูปภาพพร้อม Image Lightbox
@@ -328,97 +330,105 @@ sequenceDiagram
 | **อัตราใช้สารเคมีนอก** | `applicationRate` | `type13Actual.collectPayload` | `ActivityResultSprayExternal`| `application_rate` | `VARCHAR` | No | - |
 | **ภาพถ่ายหลังฉีดพ่น** | `afterSprayImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
 
-### 6.3 รายละเอียด Schema ตารางที่เกี่ยวข้อง (Prisma Definitions)
+### 6.3 รายละเอียด Schema ตารางเฉพาะ (100% Dedicated Relational Tables)
 
 ```prisma
-// 1. ตารางหลักสำหรับ Type 13
-model ActivityPlanType13 {
+// 1. ตารางเป้าหมายแปลงแฮตแทค 1-10 แปลง (activity_type_13_targets)
+model ActivityPlanType13Target {
   id             String                      @id @default(cuid())
-  activityPlanId String                      @unique @map("activity_plan_id")
-  hasProducts    Boolean                     @default(false) @map("has_products")
+  activityPlanId String                      @map("activity_plan_id")
+  code           String?                     @map("code") // รหัสแปลง DPYYMMXXXX ออกผ่าน Advisory Lock
+  status         DemoPlotStatus              @default(IN_PROGRESS) @map("status")
+  plotIndex      Int                         @default(1) @map("plot_index")
+  plotName       String                      @map("plot_name")
+  storeId        String?                     @map("store_id")
+  dealerName     String?                     @map("dealer_name")
+  ownerName      String?                     @map("owner_name")
+  province       String?                     @map("province")
+  district       String?                     @map("district")
+  subdistrict    String?                     @map("subdistrict")
+  villageName    String?                     @map("village_name")
+  plotCount      Int?                        @default(1) @map("plot_count")
   notes          String?                     @map("notes") @db.Text
   createdAt      DateTime                    @default(now()) @map("created_at")
   updatedAt      DateTime                    @updatedAt @map("updated_at")
 
   activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  plots          ActivityPlanType13Plot[]
+  store          Customer?                   @relation("Type13TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
   products       ActivityPlanType13Product[]
+  results        ActivityResultType13[]
+  type14Targets  ActivityPlanType14Target[]
 
   @@index([activityPlanId])
-  @@map("activity_plan_type_13")
-}
-
-// 2. ตารางแปลงแฮตแทค 1-10 แปลง
-model ActivityPlanType13Plot {
-  id          String             @id @default(cuid())
-  type13Id    String             @map("type_13_id")
-  plotIndex   Int                @default(1) @map("plot_index")
-  plotName    String             @map("plot_name")
-  storeId     String?            @map("store_id")
-  dealerName  String?            @map("dealer_name")
-  ownerName   String?            @map("owner_name")
-  province    String?            @map("province")
-  district    String?            @map("district")
-  latitude    Decimal?           @map("latitude") @db.Decimal(10, 7)
-  longitude   Decimal?           @map("longitude") @db.Decimal(10, 7)
-  demoPlotId  String?            @map("demo_plot_id")
-  createdAt   DateTime           @default(now()) @map("created_at")
-
-  type13      ActivityPlanType13 @relation(fields: [type13Id], references: [id], onDelete: Cascade)
-  store       Customer?          @relation("Type13DealerStore", fields: [storeId], references: [id], onDelete: SetNull)
-  demoPlot    DemoPlot?          @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-
-  @@index([type13Id])
   @@index([storeId])
-  @@index([demoPlotId])
-  @@map("activity_plan_type_13_plots")
+  @@index([code])
+  @@index([status])
+  @@map("activity_type_13_targets")
 }
 
-// 3. ตารางเบิกสินค้าสาธิต Type 13
+// 2. ตารางเบิกสินค้าสาธิต Type 13 (activity_type_13_products)
 model ActivityPlanType13Product {
-  id          String             @id @default(cuid())
-  type13Id    String             @map("type_13_id")
-  productId   String             @map("product_id")
-  productName String?            @map("product_name")
-  quantity    Decimal            @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit        String?            @map("unit")
-  sortOrder   Int                @default(0) @map("sort_order")
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id             String                    @id @default(cuid())
+  activityPlanId String                    @map("activity_plan_id")
+  targetId       String?                   @map("target_id")
+  productId      String                    @map("product_id")
+  productName    String?                   @map("product_name")
+  quantity       Decimal                   @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?                   @map("unit")
+  sortOrder      Int                       @default(0) @map("sort_order")
+  createdAt      DateTime                  @default(now()) @map("created_at")
 
-  type13      ActivityPlanType13 @relation(fields: [type13Id], references: [id], onDelete: Cascade)
-  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType13Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@index([type13Id])
+  @@index([activityPlanId])
+  @@index([targetId])
   @@index([productId])
-  @@map("activity_plan_type_13_products")
+  @@map("activity_type_13_products")
 }
 
-// 4. ตารางรอบการฉีดพ่นจริง
-model ActivityResultSprayRound {
-  id               String   @id @default(cuid())
-  activityResultId String   @map("activity_result_id")
-  demoPlotId       String   @map("demo_plot_id")
-  roundNumber      Int      @map("round_number")
-  sprayDate        DateTime @default(now()) @map("spray_date")
-  sprayMethod      String   @map("spray_method") // SINGLE / TANK_MIXED
-  sprayEquipment   String   @map("spray_equipment")
-  otherEquipment   String?  @map("other_equipment")
-  productResponse  String   @map("product_response")
-  problemDetail    String?  @map("problem_detail")
-  workTypeCode     String?  @map("work_type_code") // "TYPE_13"
-  createdAt        DateTime @default(now()) @map("created_at")
+// 3. ตารางผลการฉีดพ่นจริงรายแปลง (activity_type_13_results)
+model ActivityResultType13 {
+  id             String                          @id @default(cuid())
+  activityPlanId String                          @map("activity_plan_id")
+  targetId       String?                         @map("target_id")
+  latitude       Decimal?                        @map("latitude") @db.Decimal(10, 7)
+  longitude      Decimal?                        @map("longitude") @db.Decimal(10, 7)
+  notes          String?                         @map("notes") @db.Text
+  createdAt      DateTime                        @default(now()) @map("created_at")
+  updatedAt      DateTime                        @updatedAt @map("updated_at")
 
-  activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  demoPlot         DemoPlot                      @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  products         ActivityResultSprayProduct[]
-  externalProducts ActivityResultSprayExternal[]
-  attachments      ActivityAttachment[]
+  activityPlan   ActivityPlan                    @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType13Target?       @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  sprayRounds    ActivityResultType13SprayRound[]
+  attachments    ActivityAttachment[]
 
-  @@index([activityResultId])
-  @@index([demoPlotId])
-  @@index([roundNumber])
-  @@index([workTypeCode])
-  @@map("activity_result_spray_rounds")
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_13_results")
+}
+
+// 4. ตารางรอบการฉีดพ่นจริง (activity_type_13_spray_rounds)
+model ActivityResultType13SprayRound {
+  id               String                              @id @default(cuid())
+  resultId         String                              @map("result_id")
+  roundNumber      Int                                 @default(1) @map("round_number")
+  sprayDate        DateTime                            @default(now()) @map("spray_date")
+  sprayMethod      String                              @default("SINGLE") @map("spray_method") // SINGLE / TANK_MIXED
+  sprayEquipment   String                              @map("spray_equipment")
+  otherEquipment   String?                             @map("other_equipment")
+  productResponse  String                              @map("product_response")
+  problemDetail    String?                             @map("problem_detail") @db.Text
+  notes            String?                             @map("notes") @db.Text
+  createdAt        DateTime                            @default(now()) @map("created_at")
+
+  result           ActivityResultType13                @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  products         ActivityResultType13SprayProduct[]
+  externalProducts ActivityResultType13SprayExternal[]
+
+  @@index([resultId])
+  @@map("activity_type_13_spray_rounds")
 }
 ```
 
@@ -427,14 +437,14 @@ model ActivityResultSprayRound {
   - ทุกการบันทึกของ Type 13 ดำเนินการภายใต้ `tx: PrismaTransaction`
   - มีการใช้ PostgreSQL Advisory Lock: `SELECT pg_advisory_xact_lock(hashtext(prefix))` ในการรันหมายเลขรหัสแปลง `generateDemoPlotCode()` ป้องกันรหัสแปลงซ้ำกันกรณีสร้างพร้อมกันหลายรายการ
 - **ขาเขียน (Write Flow):**
-  1. *Planned:* ลบระเบียนเดิมใน `ActivityPlanType13` ออกทั้งหมด (`deleteMany`) ➔ สร้างระเบียนหลักใหม่ ➔ สร้างหรือจับคู่ `DemoPlot` และ `DemoPlotVisit` ➔ สร้างแปลงใน `ActivityPlanType13Plot` ➔ สร้างรายการเบิกสินค้าใน `ActivityPlanType13Product`
-  2. *Actual:* อัปโหลดรูปภาพประเภท `AFTER_SPRAY` ➔ บันทึกผลรอบฉีดพ่นลง `ActivityResultSprayRound` ➔ บันทึกผลิตภัณฑ์บริษัทลง `ActivityResultSprayProduct` ➔ บันทึกสารเคมีนอกลง `ActivityResultSprayExternal` ➔ บันทึกรูปภาพลง `ActivityAttachment`
-  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ เรียก `syncType13Data()` ➔ บันทึกผลการฉีดพ่นและภาพถ่ายใน $transaction เดียวกัน
+  1. *Planned:* ลบระเบียนเดิมใน `ActivityPlanType13Target` ออกทั้งหมด (`deleteMany`) ➔ รัน Advisory Lock ได้รหัส `DPYYMMXXXX` ➔ สร้างระเบียนแปลงใน `activity_type_13_targets` (code, status: IN_PROGRESS) ➔ สร้างรายการเบิกสินค้าใน `activity_type_13_products`
+  2. *Actual:* อัปโหลดรูปภาพประเภท `AFTER_SPRAY` ➔ บันทึกผลรอบฉีดพ่นลง `ActivityResultType13` และ `ActivityResultType13SprayRound` ➔ บันทึกผลิตภัณฑ์บริษัทลง `ActivityResultType13SprayProduct` ➔ บันทึกสารเคมีนอกลง `ActivityResultType13SprayExternal` ➔ บันทึกรูปภาพลง `ActivityAttachment` โดยไม่มีการเขียนลงตาราง `demo_plots` หรือ `demo_plot_visits`
+  3. *Unplanned:* บันทึก `ActivityPlan` หลัก ➔ บันทึกแปลงลง `activity_type_13_targets`, `activity_type_13_products`, `activity_type_13_results` ใน $transaction เดียวกัน
 - **ขาอ่าน (Read / Hydration Flow):**
-  1. *Planned Edit:* ดึงข้อมูลผ่าน `findType13ByPlanId` (include `plots` + `store` + `products` + `demoPlot`) ➔ นำเข้า `hydrateType13PlannedData()`
-  2. *Actual & Detail View:* ดึง `plan.type13.plots` หรือ `plan.demoPlotVisits` ➔ ดึง `sprayRounds` และ `attachments` ➔ แมปเข้าตาม `demoPlotId` หรือ `clientPlotId`
+  1. *Planned Edit:* ดึงข้อมูลผ่าน `findType13ByPlanId` (include `type13Targets` + `products`) ➔ นำเข้า `hydrateType13PlannedData()`
+  2. *Actual & Detail View:* ดึง `plan.type13Targets` และ `plan.type13Results` ➔ ดึง `sprayRounds` และ `attachments` ➔ แสดงผลแยกตามแปลงแฮตแทค
 - **การลบข้อมูล (Delete Policy):**
-  - ใช้ **Cascade Delete** จาก `ActivityPlan` ไปยัง `ActivityPlanType13` และตารางลูกทั้งหมด สำหรับ `DemoPlot` จะใช้การเชื่อมโยงแบบ `SetNull` เพื่อคงข้อมูลประวัติแปลงไว้ในฐานข้อมูล
+  - ใช้ **Cascade Delete** จาก `ActivityPlan` ไปยัง `activity_type_13_targets` และตารางลูกทั้งหมด
 
 ---
 
@@ -589,8 +599,8 @@ model ActivityResultSprayRound {
 
 ## 12. Known Limitations and Important Notes
 
-1. **Multi-Plot Master DemoPlot Generation:**
-   - ทุกครั้งที่มีการบันทึกแปลงใหม่ใน Type 13 ระบบจะสร้าง Master Record ในตาราง `demo_plots` โดยอัตโนมัติ รหัสขึ้นต้นด้วย `DP` ตามด้วยปี เดือน และเลขลำดับ 4 หลัก (เช่น `DP26100001`)
+1. **Multi-Plot Dedicated Storage (`activity_type_13_targets`):**
+   - ทุกครั้งที่มีการบันทึกแปลงใหม่ใน Type 13 ระบบจะออกรหัสแปลงมาตรฐาน `code: DPYYMMXXXX` (เช่น `DP26100001`) และเก็บใน `activity_type_13_targets` โดยตรง พร้อมสถานะ `status: IN_PROGRESS` โดยไม่พึ่งพาตาราง `demo_plots` หรือ `demo_plot_visits`
 2. **PostgreSQL Advisory Lock:**
    - การรันรหัสแปลง `generateDemoPlotCode()` ใช้ฟังก์ชัน `pg_advisory_xact_lock(hashtext(prefix))` เพื่อความปลอดภัยของลำดับรหัสในระดับฐานข้อมูล
 3. **ข้อจำกัดภาพถ่ายต่อหมู่บ้าน:**
@@ -611,3 +621,4 @@ model ActivityResultSprayRound {
 | **2026-10-20** | 1.4.0 | เชื่อมต่อ Shared Inputs จาก `@/modules/activity/ui` (`ActivityCustomerSelect`, `ActivityAddressSelect`, `ActivityGpsPicker`, `ActivityProductSelect`) | Antigravity AI |
 | **2026-10-21** | 1.5.0 | ปรับปรุงกิจกรรมนอกแผน (Unplanned 2-in-1) และเชื่อมต่อ Strategy เข้ากับ `strategy.registry.ts` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | จัดทำเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วน 100% | Antigravity AI |
+| **2026-10-27** | 2.0.0 | **ยกเลิกตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. จัดเก็บแปลงแฮตแทคลงใน `ActivityPlanType13Target` (`activity_type_13_targets`) โดยตรง พร้อม `code` (`DPYYMMXXXX`) และสถานะ `status: IN_PROGRESS`<br>2. รองรับการเชื่อมโยงต่อไปยัง Type 14 (ติดตามแปลงแฮตแทค) ผ่าน `type13TargetId`<br>3. ปรับเปลี่ยนตารางผลงานจริงเป็น `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`<br>4. อัปเดตผัง Schema, Data Flow และ Documentation ครบถ้วน 100% | Antigravity AI |

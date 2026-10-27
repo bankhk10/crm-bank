@@ -394,8 +394,6 @@ model Customer {
   contacts                    CustomerContact[]
   promotionalBudgets          PromotionalBudget[]
   activityAttachments         ActivityAttachment[]
-  demoPlots                   DemoPlot[]                   @relation("CustomerDemoPlots")
-  farmerDemoPlots             DemoPlot[]                   @relation("FarmerDemoPlots")
 
   activityPlanType7aTargets   ActivityPlanType7aTarget[]   @relation("Type7aTargetStore")
   activityResultType7aFarmers ActivityResultType7a[]       @relation("Type7aFarmerCustomer")
@@ -705,7 +703,6 @@ model Product {
   detailedSalesTargets           SalesTargetItem[]
   pointHistories                 EmployeePointHistory[]
   activityAttachments            ActivityAttachment[]         @relation("ActivityAttachmentProductRef")
-  demoPlotProducts               DemoPlotProduct[]            @relation("DemoPlotProductRef")
 
   activityPlanType7aProducts         ActivityPlanType7aProduct[]
   activityResultType7aProducts       ActivityResultType7aProduct[]
@@ -1757,10 +1754,8 @@ model ActivityPlan {
   helpers        ActivityHelper[]
   approvalLogs   ActivityApprovalLog[]
   result         ActivityResult? // 1:1 บันทึกผลหลังกิจกรรม
-  demoPlotVisits DemoPlotVisit[]
   attachments    ActivityAttachment[]
   calendarEvent  ActivityCalendarEvent? // 1:1 ปฏิทินนัดหมายกิจกรรม
-  type7aPlots           DemoPlot[]                 @relation("ActivityPlanType7aDemoPlots")
   type7aTargets         ActivityPlanType7aTarget[]
   type7aProducts        ActivityPlanType7aProduct[]
   type7aResults         ActivityResultType7a[]
@@ -2060,15 +2055,9 @@ model ActivityAttachment {
   type12Result    ActivityResultType12?     @relation(fields: [type12ResultId], references: [id], onDelete: Cascade)
   type13Result    ActivityResultType13?     @relation(fields: [type13ResultId], references: [id], onDelete: Cascade)
   type14Result    ActivityResultType14?     @relation(fields: [type14ResultId], references: [id], onDelete: Cascade)
-  demoPlotId      String?                   @map("demo_plot_id")
-  demoPlot        DemoPlot?                 @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
-  demoPlotVisitId String?                   @map("demo_plot_visit_id")
-  demoPlotVisit   DemoPlotVisit?            @relation(fields: [demoPlotVisitId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
-  @@index([demoPlotId])
-  @@index([demoPlotVisitId])
   @@index([category])
   @@index([storeId])
   @@index([productId])
@@ -2146,239 +2135,42 @@ enum DemoPlotStatus {
   CANCELLED // ยกเลิกแปลง
 }
 
-model DemoPlot {
-  id         String  @id @default(cuid())
-  code       String  @unique // รหัสแปลงสาธิต เช่น DP2603001
-  name       String // ชื่อแปลง เช่น "แปลงสาธิตทุเรียนหมอนทอง นายสมชาย"
-  ownerName  String  @map("owner_name") // เจ้าของแปลง/ลูกค้า
-  customerId String? @map("customer_id") // FK -> Customer (ถ้ามี)
-  employeeId     String        @map("employee_id") // พนักงานผู้ดูแลแปลง
-  activityPlanId String?       @map("activity_plan_id")
-  categoryId     String?       @map("category_id")
-  hasProducts    Boolean       @default(false) @map("has_products")
-
-  activityPlan ActivityPlan? @relation("ActivityPlanType7aDemoPlots", fields: [activityPlanId], references: [id], onDelete: Cascade)
-
-  customer Customer? @relation("CustomerDemoPlots", fields: [customerId], references: [id], onDelete: SetNull)
-
-  farmerCustomerId String?   @map("farmer_customer_id")
-  farmerCustomer   Customer? @relation("FarmerDemoPlots", fields: [farmerCustomerId], references: [id], onDelete: SetNull)
-
-  // ประเภทแปลง (GENERAL_DEMO สำหรับ TYPE_7A/7B, HATTACK สำหรับ TYPE_13/14)
-  plotType String @default("GENERAL_DEMO") @map("plot_type")
-
-  // ข้อมูลพืชและสถานที่
-  cropCategory   String?  @map("crop_category") // หมวดพืช เช่น ไม้ผล, พืชไร่
-  cropName       String?  @map("crop_name") // ชื่อพืช เช่น ทุเรียน, ข้าว
-  customCropName String?  @map("custom_crop_name")
-  areaRai        Decimal? @map("area_rai") @db.Decimal(10, 2)
-  treeCount      Int?     @map("tree_count")
-  location       String?
-  province       String?
-  district       String?
-
-  // ข้อมูลสินค้าและการทดลอง
-  primaryProductId   String? @map("primary_product_id") // สินค้าหลักที่ใช้สาธิต
-  primaryProductName String? @map("primary_product_name") // ชื่อสินค้า
-  objective          String? // วัตถุประสงค์แปลง
-  experimentDetail   String? @map("experiment_detail") // รายละเอียด/วิธีการทดลอง
-
-  // ข้อมูลเวลาและสถานะ
-  startDate             DateTime       @map("start_date") // วันที่เริ่มต้นทำแผนแปลง
-  plantingDate          DateTime?      @map("planting_date") // วันที่ปลูกจริง
-  initialSprayDate      DateTime?      @map("initial_spray_date") // วันที่ฉีดพ่นครั้งแรก
-  nextSprayDate         DateTime?      @map("next_spray_date") // กำหนดฉีดพ่นครั้งต่อไป
-  plantingAreaCondition String?        @map("planting_area_condition") // สภาพพื้นที่ปลูกตอนเริ่มต้น
-  mainCropInfo          String?        @map("main_crop_info") // ข้อมูลพืชประธาน
-  sprayMethod           String?        @map("spray_method") // วิธีการฉีดพ่น (SINGLE / TANK_MIXED)
-  sprayEquipment        String?        @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
-  otherEquipment        String?        @map("other_equipment") // อุปกรณ์อื่นๆ ระบุ
-  hasExternalChemicals  Boolean        @default(false) @map("has_external_chemicals") // มียาภายนอกหรือไม่
-  usageMethod           String?        @map("usage_method") // วิธีใช้/อัตราการใช้ตอนเริ่มต้น
-  notes                 String?        @map("notes") // ข้อมูลเพิ่มเติม
-  ownerPhone            String?        @map("owner_phone") // เบอร์โทรศัพท์เจ้าของแปลง
-  ownerProvince         String?        @map("owner_province") // จังหวัดของเกษตรกรเจ้าของแปลง
-  ownerDistrict         String?        @map("owner_district") // อำเภอของเกษตรกรเจ้าของแปลง
-  ownerSubdistrict      String?        @map("owner_subdistrict") // ตำบลของเกษตรกรเจ้าของแปลง
-  isUnregisteredFarmer  Boolean        @default(false) @map("is_unregistered_farmer") // เกษตรกรนอกระบบ
-  latitude              Decimal?       @map("latitude") @db.Decimal(10, 7) // พิกัดแปลง Lat
-  longitude             Decimal?       @map("longitude") @db.Decimal(10, 7) // พิกัดแปลง Lng
-  closedDate            DateTime?      @map("closed_date") // วันที่ปิดแปลง
-  status                DemoPlotStatus @default(IN_PROGRESS)
-
-  // ข้อมูลสรุปเมื่อปิดแปลง (Final Evaluation)
-  finalHarvestDate     DateTime? @map("final_harvest_date")
-  controlYieldKg       Decimal?  @map("control_yield_kg") @db.Decimal(12, 2) // ผลผลิตแปลงควบคุม (ไม่ได้ใช้ยา)
-  demoYieldKg          Decimal?  @map("demo_yield_kg") @db.Decimal(12, 2) // ผลผลิตแปลงสาธิต (ใช้ยา)
-  yieldIncreasePercent Decimal?  @map("yield_increase_percent") @db.Decimal(6, 2) // % ผลผลิตที่เพิ่มขึ้น
-  farmerSatisfaction   Int?      @map("farmer_satisfaction") // คะแนนความพึงพอใจ (1-5)
-  commercialPotential  String?   @map("commercial_potential") // โอกาสสั่งซื้อจริง (เช่น 50 ลัง)
-  finalSummaryNotes    String?   @map("final_summary_notes") // สรุปผลสัมฤทธิ์
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  visits              DemoPlotVisit[]
-  demoProducts        DemoPlotProduct[]
-  externalProducts    DemoPlotExternalProduct[]
-  irrigations         DemoPlotIrrigation[]
-  attachments         ActivityAttachment[]
-
-  type7aTargets       ActivityPlanType7aTarget[]
-  type7aResults       ActivityResultType7a[]
-  type7bTargets       ActivityPlanType7bTarget[]
-  type7bResults       ActivityResultType7b[]
-  type13Targets       ActivityPlanType13Target[]
-  type13Results       ActivityResultType13[]
-  type14Targets       ActivityPlanType14Target[]
-  type14Results       ActivityResultType14[]
-  type10Targets       ActivityPlanType10Target[]
-
-  @@index([plotType])
-  @@index([customerId])
-  @@index([farmerCustomerId])
-  @@index([province])
-  @@index([district])
-  @@index([employeeId])
-  @@index([status])
-  @@index([cropCategory])
-  @@index([ownerName])
-  @@index([activityPlanId])
-  @@map("demo_plots")
-}
-
-model DemoPlotVisit {
-  id             String   @id @default(cuid())
-  demoPlotId     String   @map("demo_plot_id")
-  activityPlanId String?  @map("activity_plan_id") // ผูกกับ Trip Plan ที่มาตรวจรอบนี้
-  workTypeCode   String?  @map("work_type_code") // e.g. "TYPE_7A", "TYPE_7B", "TYPE_14"
-  visitNumber    Int      @default(1) @map("visit_number") // ครั้งที่ 1, 2, 3...
-  visitDate      DateTime @map("visit_date") // วันที่ตรวจจริง
-  daysSinceStart Int      @default(0) @map("days_since_start") // จำนวนวันนับจากวันเริ่มแปลง (Auto Calc)
-
-  // ผลการตรวจรอบนี้
-  cropAgeValue       Int?    @map("crop_age_value") // อายุพืช
-  cropAgeUnit        String? @map("crop_age_unit") // วัน/สัปดาห์/เดือน
-  growthStage        String? @map("growth_stage") // ระยะการเจริญเติบโต
-  cropCondition      String? @map("crop_condition") // สมบูรณ์ / มีปัญหา
-  cropProblemDesc    String? @map("crop_problem_desc")
-  productResponse    String? @map("product_response") // พืชตอบสนองดี / พบปัญหา
-  productProblemDesc String? @map("product_problem_desc")
-  usageMethod        String? @map("usage_method") // วิธีใช้/อัตราการใช้รอบนี้
-
-  // ค่าใช้จ่ายรอบนี้
-  productUsedQty   Int?     @default(0) @map("product_used_qty") // จำนวนสินค้าที่ใช้รอบนี้
-  productUnitPrice Decimal? @map("product_unit_price") @db.Decimal(12, 2)
-  productCost      Decimal? @map("product_cost") @db.Decimal(12, 2) // qty * unitPrice
-  otherExpenses    Decimal? @default(0) @map("other_expenses") @db.Decimal(12, 2) // ค่าใช้จ่ายอื่นๆ
-  totalVisitCost   Decimal? @map("total_visit_cost") @db.Decimal(12, 2) // รวมค่าใช้จ่ายรอบนี้
-
-  cropImageUrls  String[] @default([]) @map("crop_image_urls") // รูปสภาพพืชรอบนี้
-  plotImageUrls  String[] @default([]) @map("plot_image_urls") // รูปภาพสภาพแปลงรอบนี้
-  imageUrls      String[] @default([]) @map("image_urls") // รูปภาพสภาพแปลงรอบนี้ (backward compatibility)
-  notes          String?
-  sprayMethod    String?  @map("spray_method") // วิธีการฉีดพ่นรอบนี้ (SINGLE / TANK_MIXED)
-  sprayEquipment String?  @map("spray_equipment") // อุปกรณ์ที่ใช้ฉีดพ่น
-  otherEquipment String?  @map("other_equipment") // อื่นๆ ระบุ (ถ้าเลือก อื่นๆ)
-
-  demoPlot     DemoPlot             @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  activityPlan ActivityPlan?        @relation(fields: [activityPlanId], references: [id], onDelete: SetNull)
-  attachments  ActivityAttachment[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([demoPlotId])
-  @@index([activityPlanId])
-  @@index([workTypeCode])
-  @@index([visitDate])
-  @@map("demo_plot_visits")
-}
-
-model DemoPlotProduct {
-  id                String   @id @default(cuid())
-  demoPlotId        String   @map("demo_plot_id")
-  productId         String   @map("product_id")
-  productName       String?  @map("product_name")
-  applicationRate   String   @map("application_rate") // e.g. "20 ml / 20 L"
-  quantity          Decimal? @map("quantity") @db.Decimal(10, 2)
-  remainingQuantity Decimal? @map("remaining_quantity") @db.Decimal(10, 2)
-  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
-  extraUnit         String?  @map("extra_unit")
-  isAdditional      Boolean  @default(false) @map("is_additional")
-  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
-  unit              String?  @map("unit")
-  sortOrder         Int      @default(0) @map("sort_order")
-
-  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-  product  Product  @relation("DemoPlotProductRef", fields: [productId], references: [id], onDelete: Restrict)
-
-  @@index([demoPlotId])
-  @@index([productId])
-  @@map("demo_plot_products")
-}
-
-model DemoPlotExternalProduct {
-  id               String   @id @default(cuid())
-  demoPlotId       String   @map("demo_plot_id")
-  company          String   @map("company") // บริษัท
-  productName      String   @map("product_name") // ชื่อยา
-  activeIngredient String?  @map("active_ingredient") // สารออกฤทธิ์
-  formula          String   @map("formula") // SL, SC, EC, EW, ZC, OD, WP, WG, OTHER
-  customFormula    String?  @map("custom_formula") // ถ้าเลือก อื่นๆ ระบุ...
-  applicationRate  String   @map("application_rate") // อัตราการใช้
-  sortOrder        Int      @default(0) @map("sort_order") // 1-4
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-
-  @@index([demoPlotId])
-  @@map("demo_plot_external_products")
-}
-
-model DemoPlotIrrigation {
-  id         String @id @default(cuid())
-  demoPlotId String @map("demo_plot_id")
-  method     String @map("method") // "น้ำหยด", "สายยาง", "สปิงเกอร์", "ให้ตามร่อง", "ปล่อยท่วม (flooding)", "รอน้ำฝน", "นาหว่านน้ำตม"
-
-  demoPlot DemoPlot @relation(fields: [demoPlotId], references: [id], onDelete: Cascade)
-
-  @@unique([demoPlotId, method])
-  @@index([demoPlotId])
-  @@map("demo_plot_irrigations")
-}
-
 
 // =============================================================================
 // TYPE-7A: แผนจัดทำแปลงสาธิต (Demo Plot Establishment)
 // =============================================================================
 
 model ActivityPlanType7aTarget {
-  id             String    @id @default(cuid())
-  activityPlanId String    @map("activity_plan_id")
-  plotName       String    @map("plot_name") // ชื่อแปลงสาธิต
-  storeId        String?   @map("store_id") // ร้านค้า Dealer ที่ร่วมโครงการ
-  dealerName     String?   @map("dealer_name")
-  cropCategory   String?   @map("crop_category") // ผักและพืชล้มลุก, พืชไร่, พืชสวน
-  cropName       String?   @map("crop_name")
-  customCropName String?   @map("custom_crop_name")
-  areaRai        Decimal?  @map("area_rai") @db.Decimal(10, 2)
-  treeCount      Int?      @map("tree_count")
-  objective      String?   @map("objective") @db.Text // วัตถุประสงค์
-  demoPlotId     String?   @map("demo_plot_id") // เชื่อมโยงรหัสแปลง DPYYMMXXXX
-  notes          String?   @map("notes") @db.Text
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id             String         @id @default(cuid())
+  activityPlanId String         @map("activity_plan_id")
+  code           String?        @unique @map("code") // รหัสแปลงสาธิตมาตรฐาน DPYYMMXXXX
+  status         DemoPlotStatus @default(IN_PROGRESS) @map("status")
+  closedDate     DateTime?      @map("closed_date")
+  categoryId     String?        @map("category_id")
+  plotName       String         @map("plot_name") // ชื่อแปลงสาธิต
+  storeId        String?        @map("store_id") // ร้านค้า Dealer ที่ร่วมโครงการ
+  dealerName     String?        @map("dealer_name")
+  cropCategory   String?        @map("crop_category") // ผักและพืชล้มลุก, พืชไร่, พืชสวน
+  cropName       String?        @map("crop_name")
+  customCropName String?        @map("custom_crop_name")
+  areaRai        Decimal?       @map("area_rai") @db.Decimal(10, 2)
+  treeCount      Int?           @map("tree_count")
+  objective      String?        @map("objective") @db.Text // วัตถุประสงค์
+  notes          String?        @map("notes") @db.Text
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   activityPlan   ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   store          Customer?                   @relation("Type7aTargetStore", fields: [storeId], references: [id], onDelete: SetNull)
-  demoPlot       DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   products       ActivityPlanType7aProduct[]
   results        ActivityResultType7a[]
+  type7bTargets  ActivityPlanType7bTarget[]  @relation("Type7aTargetFollowUps")
+  type7bResults  ActivityResultType7b[]      @relation("Type7aTargetFollowUpResults")
+  type10Targets  ActivityPlanType10Target[]  @relation("Type7aTargetShowcasePlots")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@index([demoPlotId])
+  @@index([status])
   @@map("activity_type_7a_targets")
 }
 
@@ -2407,7 +2199,6 @@ model ActivityResultType7a {
   id                   String    @id @default(cuid())
   activityPlanId       String    @map("activity_plan_id")
   targetId             String?   @map("target_id")
-  demoPlotId           String?   @map("demo_plot_id")
   farmerCustomerId     String?   @map("farmer_customer_id")
   farmerName           String?   @map("farmer_name")
   farmerPhone          String?   @map("farmer_phone")
@@ -2418,6 +2209,7 @@ model ActivityResultType7a {
   latitude             Decimal?  @map("latitude") @db.Decimal(10, 7)
   longitude            Decimal?  @map("longitude") @db.Decimal(10, 7)
   mainCropInfo         String?   @map("main_crop_info") // ข้อมูลพืชประธาน
+  experimentDetail     String?   @map("experiment_detail") @db.Text // วิธีการทดลอง
   plantingDate         DateTime? @map("planting_date")
   firstSprayDate       DateTime? @map("first_spray_date")
   nextSprayDate        DateTime? @map("next_spray_date")
@@ -2434,7 +2226,6 @@ model ActivityResultType7a {
 
   activityPlan         ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   target               ActivityPlanType7aTarget?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  demoPlot             DemoPlot?                        @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   farmerCustomer       Customer?                        @relation("Type7aFarmerCustomer", fields: [farmerCustomerId], references: [id], onDelete: SetNull)
   irrigations          ActivityResultType7aIrrigation[]
   actualProducts       ActivityResultType7aProduct[]
@@ -2443,7 +2234,6 @@ model ActivityResultType7a {
 
   @@index([activityPlanId])
   @@index([targetId])
-  @@index([demoPlotId])
   @@index([farmerCustomerId])
   @@map("activity_type_7a_results")
 }
@@ -2469,6 +2259,7 @@ model ActivityResultType7aProduct {
   withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
   actualQuantity    Decimal  @default(0) @map("actual_quantity") @db.Decimal(10, 2)
   extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  extraUnit         String?  @map("extra_unit")
   actualRate        String?  @map("actual_rate")
   unit              String?  @map("unit")
   sortOrder         Int      @default(0) @map("sort_order")
@@ -2507,7 +2298,7 @@ model ActivityResultType7aExternal {
 model ActivityPlanType7bTarget {
   id                   String    @id @default(cuid())
   activityPlanId       String    @map("activity_plan_id")
-  demoPlotId           String    @map("demo_plot_id") // แปลงสาธิตที่เลือกติดตาม
+  type7aTargetId       String?   @map("type_7a_target_id") // แปลงสาธิต 7A ที่เลือกติดตาม
   sourceActivityPlanId String?   @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
   plotName             String?   @map("plot_name")
   cropName             String?   @map("crop_name")
@@ -2523,13 +2314,13 @@ model ActivityPlanType7bTarget {
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  demoPlot             DemoPlot                    @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
+  type7aTarget         ActivityPlanType7aTarget?   @relation("Type7aTargetFollowUps", fields: [type7aTargetId], references: [id], onDelete: Restrict)
   sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
   products             ActivityPlanType7bProduct[]
   results              ActivityResultType7b[]
 
   @@index([activityPlanId])
-  @@index([demoPlotId])
+  @@index([type7aTargetId])
   @@index([sourceActivityPlanId])
   @@map("activity_type_7b_targets")
 }
@@ -2559,7 +2350,7 @@ model ActivityResultType7b {
   id                  String         @id @default(cuid())
   activityPlanId      String         @map("activity_plan_id")
   targetId            String?        @map("target_id")
-  demoPlotId          String         @map("demo_plot_id")
+  type7aTargetId      String?        @map("type_7a_target_id")
   visitDate           DateTime       @map("visit_date")
   daysSinceStart      Int            @default(0) @map("days_since_start")
   cropCondition       String?        @map("crop_condition")
@@ -2573,6 +2364,7 @@ model ActivityResultType7b {
   finalHarvestDate    DateTime?      @map("final_harvest_date")
   demoYieldKg         Decimal?       @map("demo_yield_kg") @db.Decimal(12, 2)
   controlYieldKg      Decimal?       @map("control_yield_kg") @db.Decimal(12, 2)
+  yieldIncreasePercent Decimal?      @map("yield_increase_percent") @db.Decimal(6, 2)
   farmerSatisfaction  Int?           @map("farmer_satisfaction")
   commercialPotential String?        @map("commercial_potential")
   finalSummaryNotes   String?        @map("final_summary_notes") @db.Text
@@ -2581,13 +2373,13 @@ model ActivityResultType7b {
 
   activityPlan        ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   target              ActivityPlanType7bTarget?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  demoPlot            DemoPlot                         @relation(fields: [demoPlotId], references: [id], onDelete: Restrict)
+  type7aTarget        ActivityPlanType7aTarget?        @relation("Type7aTargetFollowUpResults", fields: [type7aTargetId], references: [id], onDelete: Restrict)
   sprayRounds         ActivityResultType7bSprayRound[]
   attachments         ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([targetId])
-  @@index([demoPlotId])
+  @@index([type7aTargetId])
   @@map("activity_type_7b_results")
 }
 
@@ -2658,34 +2450,36 @@ model ActivityResultType7bSprayExternal {
 // =============================================================================
 
 model ActivityPlanType13Target {
-  id                String    @id @default(cuid())
-  activityPlanId    String    @map("activity_plan_id")
-  plotIndex         Int       @default(1) @map("plot_index")
-  plotName          String    @map("plot_name")
-  storeId           String?   @map("store_id")
-  dealerName        String?   @map("dealer_name")
-  ownerName         String?   @map("owner_name")
-  province          String    @map("province")
-  district          String    @map("district")
-  subdistrict       String?   @map("subdistrict")
-  village           String?   @map("village")
-  plannedPlotsCount Int?      @map("planned_plots_count")
-  latitude          Decimal?  @map("latitude") @db.Decimal(10, 7)
-  longitude         Decimal?  @map("longitude") @db.Decimal(10, 7)
-  demoPlotId        String?   @map("demo_plot_id")
-  notes             String?   @map("notes") @db.Text
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  id                String         @id @default(cuid())
+  activityPlanId    String         @map("activity_plan_id")
+  plotIndex         Int            @default(1) @map("plot_index")
+  code              String?        @unique @map("code")
+  status            DemoPlotStatus @default(IN_PROGRESS) @map("status")
+  plotName          String         @map("plot_name")
+  storeId           String?        @map("store_id")
+  dealerName        String?        @map("dealer_name")
+  ownerName         String?        @map("owner_name")
+  province          String         @map("province")
+  district          String         @map("district")
+  subdistrict       String?        @map("subdistrict")
+  village           String?        @map("village")
+  plannedPlotsCount Int?           @map("planned_plots_count")
+  latitude          Decimal?       @map("latitude") @db.Decimal(10, 7)
+  longitude         Decimal?       @map("longitude") @db.Decimal(10, 7)
+  notes             String?        @map("notes") @db.Text
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
 
   activityPlan      ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   store             Customer?                   @relation("Type13TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
-  demoPlot          DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   products          ActivityPlanType13Product[]
   results           ActivityResultType13[]
+  type14Targets     ActivityPlanType14Target[]  @relation("Type13TargetFollowUps")
+  type14Results     ActivityResultType14[]      @relation("Type13TargetFollowUpResults")
 
   @@index([activityPlanId])
   @@index([storeId])
-  @@index([demoPlotId])
+  @@index([status])
   @@map("activity_type_13_targets")
 }
 
@@ -2714,7 +2508,6 @@ model ActivityResultType13 {
   id               String    @id @default(cuid())
   activityPlanId   String    @map("activity_plan_id")
   targetId         String?   @map("target_id")
-  demoPlotId       String?   @map("demo_plot_id")
   plotName         String?   @map("plot_name")
   actualPlotsCount Int?      @map("actual_plots_count")
   actualLatitude   Decimal?  @map("actual_latitude") @db.Decimal(10, 7)
@@ -2725,13 +2518,11 @@ model ActivityResultType13 {
 
   activityPlan     ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   target           ActivityPlanType13Target?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  demoPlot         DemoPlot?                        @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
   sprayRounds      ActivityResultType13SprayRound[]
   attachments      ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([targetId])
-  @@index([demoPlotId])
   @@map("activity_type_13_results")
 }
 
@@ -2802,7 +2593,7 @@ model ActivityPlanType14Target {
   activityPlanId       String    @map("activity_plan_id")
   mode                 String    @default("EXISTING_PLOT") @map("mode") // EXISTING_PLOT / NEW_PLOT
   sourceActivityPlanId String?   @map("source_activity_plan_id")
-  demoPlotId           String?   @map("demo_plot_id")
+  type13TargetId       String?   @map("type_13_target_id")
   plotName             String?   @map("plot_name")
   storeId              String?   @map("store_id")
   dealerName           String?   @map("dealer_name")
@@ -2819,14 +2610,14 @@ model ActivityPlanType14Target {
 
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   sourceActivityPlan   ActivityPlan?               @relation("Type14SourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
-  demoPlot             DemoPlot?                   @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  type13Target         ActivityPlanType13Target?   @relation("Type13TargetFollowUps", fields: [type13TargetId], references: [id], onDelete: SetNull)
   store                Customer?                   @relation("Type14TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
   products             ActivityPlanType14Product[]
   results              ActivityResultType14[]
 
   @@index([activityPlanId])
   @@index([sourceActivityPlanId])
-  @@index([demoPlotId])
+  @@index([type13TargetId])
   @@index([storeId])
   @@map("activity_type_14_targets")
 }
@@ -2856,7 +2647,7 @@ model ActivityResultType14 {
   id              String    @id @default(cuid())
   activityPlanId  String    @map("activity_plan_id")
   targetId        String?   @map("target_id")
-  demoPlotId      String?   @map("demo_plot_id")
+  type13TargetId  String?   @map("type_13_target_id")
   roundNumber     Int       @default(1) @map("round_number")
   actualVisitDate DateTime  @map("actual_visit_date")
   daysAfterSpray  Int?      @map("days_after_spray")
@@ -2870,13 +2661,13 @@ model ActivityResultType14 {
 
   activityPlan    ActivityPlan                      @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   target          ActivityPlanType14Target?         @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  demoPlot        DemoPlot?                         @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  type13Target    ActivityPlanType13Target?         @relation("Type13TargetFollowUpResults", fields: [type13TargetId], references: [id], onDelete: SetNull)
   productsUsed    ActivityResultType14ProductUsed[]
   attachments     ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([targetId])
-  @@index([demoPlotId])
+  @@index([type13TargetId])
   @@map("activity_type_14_results")
 }
 
@@ -3490,8 +3281,8 @@ model ActivityPlanType10Target {
   id                   String    @id @default(cuid())
   activityPlanId       String    @map("activity_plan_id")
 
-  // Demo Plot Reference (Optional - กรณีจัด ณ แปลงสาธิตในระบบ)
-  demoPlotId           String?   @map("demo_plot_id")
+  // Demo Plot Reference (Optional - กรณีจัด ณ แปลงสาธิต 7A ในระบบ)
+  type7aTargetId       String?   @map("type_7a_target_id")
 
   // Venue & Plot Details (รองรับทั้งแปลงในระบบและระบุเอง)
   plotName             String?   @map("plot_name")
@@ -3520,13 +3311,13 @@ model ActivityPlanType10Target {
 
   // Relations
   activityPlan         ActivityPlan                 @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  demoPlot             DemoPlot?                    @relation(fields: [demoPlotId], references: [id], onDelete: SetNull)
+  type7aTarget         ActivityPlanType7aTarget?    @relation("Type7aTargetShowcasePlots", fields: [type7aTargetId], references: [id], onDelete: SetNull)
   showcaseProduct      Product?                     @relation("Type10ShowcaseProduct", fields: [showcaseProductId], references: [id], onDelete: SetNull)
   products             ActivityPlanType10Product[]
   result               ActivityResultType10?
 
   @@index([activityPlanId])
-  @@index([demoPlotId])
+  @@index([type7aTargetId])
   @@index([showcaseProductId])
   @@map("activity_type_10_targets")
 }

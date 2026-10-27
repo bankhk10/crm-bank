@@ -3,50 +3,93 @@ import type {
   WorkTypeStrategy,
   PrismaTransaction,
   StrategyValidationResult,
-} from "../../../../types/strategy.interface";
+} from "@/modules/activity/types/strategy.interface";
+import {
+  syncType14Data,
+  findType14ByPlanId,
+} from "./type14.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
-import { validateType14FormValues } from "../application/planned-validation";
-import { syncType14Data, findType14ByPlanId } from "./type14.repository";
 
 export const type14PlannedStrategy: WorkTypeStrategy = {
   code: WORK_TYPE_CODE,
 
+  /**
+   * Validate Type 14 Plan targets
+   */
   async validatePlan(
     planData: any,
     _db: any,
   ): Promise<StrategyValidationResult> {
-    const rawT14 = planData.type14Data || planData.type14;
-    if (!rawT14) {
-      return { valid: true };
+    const t14 = planData.type14Data || planData.type14;
+    const mode = t14?.mode || planData.type14Mode || "EXISTING_PLOT";
+
+    if (mode === "EXISTING_PLOT") {
+      const plotIds =
+        t14?.selectedPlotIds ||
+        t14?.type13TargetIds ||
+        t14?.demoPlotIds ||
+        (t14?.type13TargetId ? [t14.type13TargetId] : []) ||
+        (t14?.demoPlotId ? [t14.demoPlotId] : []) ||
+        (planData.type14Plots && planData.type14Plots.length > 0 ? planData.type14Plots : []);
+
+      if (!plotIds || plotIds.length === 0) {
+        return {
+          valid: false,
+          error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตามอย่างน้อย 1 แปลง",
+        };
+      }
+    } else if (mode === "NEW_PLOT") {
+      const name = t14?.name || planData.name;
+      if (!name) {
+        return {
+          valid: false,
+          error: "กรุณาระบุชื่อแปลงแฮตแทค",
+        };
+      }
     }
-    const valResult = validateType14FormValues(rawT14);
-    if (!valResult.isValid) {
-      return {
-        valid: false,
-        error: valResult.error || "ข้อมูลติดตามแปลงแฮตแทคไม่ถูกต้อง (TYPE_14)",
-      };
-    }
+
     return { valid: true };
   },
 
+  /**
+   * Save Type 14 Plan targets (ActivityPlanType14Target, ActivityPlanType14Product)
+   */
   async savePlan(
     tx: PrismaTransaction,
-    planId: string,
+    activityPlanId: string,
     planData: any,
   ): Promise<void> {
-    const rawT14 = planData.type14Data || planData.type14;
-    const startDate = planData.startDate
-      ? new Date(planData.startDate)
-      : new Date();
+    const raw14Data = planData.type14Data || planData.type14;
+    if (raw14Data !== undefined || planData.type14Plots !== undefined) {
+      const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+      const payload = raw14Data || {
+        mode: planData.type14Mode || "EXISTING_PLOT",
+        selectedPlanId: planData.type14SourcePlanId,
+        selectedPlotIds: planData.type14Plots,
+        withdrawnProducts: planData.type14Products,
+        notes: planData.notes,
+        name: planData.name,
+        dealerName: planData.dealerName,
+        ownerName: planData.ownerName,
+        province: planData.province,
+        district: planData.district,
+      };
 
-    if (rawT14) {
-      await syncType14Data(tx, planId, rawT14, startDate);
+      await syncType14Data(
+        tx,
+        activityPlanId,
+        payload,
+        startDate,
+      );
     }
   },
 
+  /**
+   * Save Type 14 Actual outcome data in dedicated tables (ActivityResultType14, ProductUsed)
+   */
   async saveActual(
     tx: PrismaTransaction,
-    planId: string,
+    activityPlanId: string,
     actualData: any,
   ): Promise<void> {
     const t14Actual = actualData.type14Actual || actualData;
@@ -58,15 +101,15 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
 
     // 1. Fetch targets for this plan
     const targets = await tx.activityPlanType14Target.findMany({
-      where: { activityPlanId: planId },
-      select: { id: true, demoPlotId: true },
+      where: { activityPlanId },
+      select: { id: true, type13TargetId: true },
     });
     const primaryTarget = targets[0] || null;
-    const demoPlotId = primaryTarget?.demoPlotId || actualData.demoPlotId || null;
+    const type13TargetId = primaryTarget?.type13TargetId || actualData.type13TargetId || actualData.demoPlotId || null;
 
     // 2. Delete existing actual results for this plan (cascade deletes productsUsed)
     await tx.activityResultType14.deleteMany({
-      where: { activityPlanId: planId },
+      where: { activityPlanId },
     });
 
     // 3. Insert each round
@@ -85,9 +128,9 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
 
       const createdResult = await tx.activityResultType14.create({
         data: {
-          activityPlanId: planId,
+          activityPlanId,
           targetId: primaryTarget?.id || null,
-          demoPlotId,
+          type13TargetId,
           roundNumber: round.roundNumber || i + 1,
           actualVisitDate: visitDate,
           daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
@@ -149,9 +192,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
       if (validImages.length > 0) {
         await tx.activityAttachment.createMany({
           data: validImages.map((img) => ({
-            activityPlanId: planId,
+            activityPlanId,
             type14ResultId: createdResult.id,
-            demoPlotId: demoPlotId || null,
             workTypeCode: WORK_TYPE_CODE,
             category: "PLOT",
             fileUrl: img.url || img.fileUrl,
@@ -161,31 +203,12 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
           })),
         });
       }
-
-      // Link / Update existing DemoPlotVisits for this activity plan
-      const visits = await tx.demoPlotVisit.findMany({
-        where: {
-          activityPlanId: planId,
-          workTypeCode: "TYPE_14",
-        },
-      });
-
-      for (const visit of visits) {
-        await tx.demoPlotVisit.update({
-          where: { id: visit.id },
-          data: {
-            visitDate,
-            daysSinceStart: isNaN(daysSinceStart) ? 0 : daysSinceStart,
-            productResponse:
-              round.productResponse || round.trackingResult || "ปกติ",
-            productProblemDesc: round.trackingResult || null,
-            notes: round.additionalNotes || null,
-          },
-        });
-      }
     }
   },
 
+  /**
+   * Load Type 14 Plan targets
+   */
   async loadPlan(
     _tx: PrismaTransaction,
     activityPlanId: string,
