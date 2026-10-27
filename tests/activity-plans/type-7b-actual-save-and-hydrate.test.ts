@@ -86,9 +86,10 @@ async function runTests() {
     },
     product: {
       findMany: async () => [
+        { id: "prod-base-1", name: "สารป้องกันกำจัดแมลง A", unit: "ขวด" },
         { id: "prod-uuid-1", name: "เอ็กซอล", unit: "ขวด" },
         { id: "prod-uuid-2", name: "นูริชแคลเซียมโบรอน", unit: "ขวด" },
-        { id: "prod-add-101", name: "แคลเซียม-โบรอน พลัส", unit: "ลิตร" },
+        { id: "prod-add-101", name: "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์", unit: "ขวด" },
         { id: "prod-add-102", name: "ปุ๋ยเกล็ด 20-20-20 พ่นทางใบ", unit: "ซอง" },
       ],
     },
@@ -224,19 +225,20 @@ async function runTests() {
   );
   assert(round1AddProd, "Additional product prod-add-101 must be saved");
   assert.strictEqual(round1AddProd.productName, "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์");
-  assert.strictEqual(round1AddProd.baselineRate, null, "Additional product baselineRate must be null");
+  assert.strictEqual(round1AddProd.isPlanned, false, "Additional product isPlanned must be false");
   assert.strictEqual(round1AddProd.actualRate, "10 ซีซี ต่อน้ำ 20 ลิตร");
-  assert.strictEqual(String(round1AddProd.quantityUsed), "1");
-  assert.strictEqual(round1AddProd.detail, "ใช้เพิ่ม 50 ซีซี");
+  assert.strictEqual(String(round1AddProd.actualQuantity), "1");
+  assert.strictEqual(String(round1AddProd.extraQuantity), "50");
 
   // Verify Baseline Product in Round 1
   const round1BaseProd = createdProducts.find(
     (p) => p.sprayRoundId === createdRounds[0].id && p.productId === "prod-base-1",
   );
   assert(round1BaseProd, "Baseline product prod-base-1 must be saved");
-  assert.notStrictEqual(round1BaseProd.baselineRate, null, "Baseline product baselineRate must NOT be null");
-  assert.strictEqual(String(round1BaseProd.quantityUsed), "2");
-  assert.strictEqual(round1BaseProd.detail, "ใช้เพิ่ม 100 ซีซี");
+  assert.strictEqual(round1BaseProd.isPlanned, true, "Baseline product isPlanned must be true");
+  assert.strictEqual(String(round1BaseProd.actualQuantity), "2");
+  assert.strictEqual(String(round1BaseProd.withdrawnQuantity), "2");
+  assert.strictEqual(String(round1BaseProd.extraQuantity), "100");
 
   // Verify DemoPlot update
   assert(updatedDemoPlot, "DemoPlot update must be called");

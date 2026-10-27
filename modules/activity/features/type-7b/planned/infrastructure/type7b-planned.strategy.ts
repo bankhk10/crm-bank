@@ -313,6 +313,8 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           const pMapById = new Map(dbProds.map((p: any) => [p.id, p]));
           const pMapByName = new Map(dbProds.map((p: any) => [p.name, p]));
 
+          const isDedicated = Boolean((tx as any).activityResultType7bSprayProduct);
+
           const prodsToInsert = validProducts
             .map((p: any, pIdx: number) => {
               const dbP: any =
@@ -328,25 +330,43 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
                     ? p.quantityUsed
                     : p.plannedQuantity || 1;
 
+              const withdrawnQty =
+                p.withdrawnQuantity != null && String(p.withdrawnQuantity).trim() !== ""
+                  ? new Prisma.Decimal(String(p.withdrawnQuantity))
+                  : p.plannedQuantity != null && String(p.plannedQuantity).trim() !== ""
+                    ? new Prisma.Decimal(String(p.plannedQuantity))
+                    : null;
+
+              const extraQty =
+                p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
+                  ? new Prisma.Decimal(String(p.extraQuantity))
+                  : null;
+
               const detail = p.extraQuantity
                 ? `ใช้เพิ่ม ${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
                 : p.detail || null;
 
-              return {
+              const record: any = {
                 sprayRoundId: createdRound.id,
                 productId: dbP.id,
                 productName: p.productName || dbP.name || null,
                 isPlanned: Boolean(p.isPlanned),
-                baselineRate: p.isPlanned ? p.plannedRate || "ตามแผน" : null,
                 actualRate: p.applicationRate || p.actualRate || p.plannedRate || "ตามคำแนะนำ",
-                quantityUsed: new Prisma.Decimal(String(qty)),
                 actualQuantity: new Prisma.Decimal(String(qty)),
-                withdrawnQuantity: p.plannedQuantity ? new Prisma.Decimal(String(p.plannedQuantity)) : null,
-                extraQuantity: p.extraQuantity ? new Prisma.Decimal(String(p.extraQuantity)) : null,
+                withdrawnQuantity: withdrawnQty,
+                extraQuantity: extraQty,
                 unit: p.unit || dbP.unit || null,
-                detail: detail,
                 sortOrder: pIdx,
               };
+
+              // Only include legacy fields if not targeting dedicated table ActivityResultType7bSprayProduct
+              if (!isDedicated) {
+                record.baselineRate = p.isPlanned ? p.plannedRate || "ตามแผน" : null;
+                record.quantityUsed = new Prisma.Decimal(String(qty));
+                record.detail = detail;
+              }
+
+              return record;
             })
             .filter((item): item is NonNullable<typeof item> => item !== null);
 

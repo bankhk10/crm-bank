@@ -20,6 +20,7 @@ import {
   ActivityPhotoUpload,
   ActivitySelect,
   ActivityProductSelect,
+  ActivityDatePicker,
 } from "@/modules/activity/ui";
 import {
   SPRAY_EQUIPMENT_OPTIONS,
@@ -406,14 +407,12 @@ export function Type7bActualForm({
 
         {/* Row 1: วันที่ติดตามจริง & จำนวนวันหลังฉีดพ่น */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-700">
-              วันที่ติดตามจริง <span className="text-rose-500">*</span>
-            </label>
-            <ActivityInput
-              type="date"
+          <div>
+            <ActivityDatePicker
+              label="วันที่ติดตามจริง"
               value={actualState.t7VisitDate || ""}
-              onChange={(e) => onUpdateField?.("t7VisitDate", e.target.value)}
+              onChange={(val) => onUpdateField?.("t7VisitDate", val)}
+              placeholder="เลือกวันที่ติดตามจริง..."
               disabled={readonly}
               required
             />
@@ -1092,15 +1091,12 @@ export function Type7bActualForm({
 
         {/* Fields below rounds: กำหนดฉีดพ่นครั้งถัดไป & ข้อสังเกตเพิ่มเติม */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="space-y-1 max-w-md">
-            <label className="text-xs font-semibold text-slate-700">
-              กำหนดฉีดพ่นครั้งถัดไป
-            </label>
-            <ActivityInput
-              type="date"
+          <div className="max-w-md">
+            <ActivityDatePicker
+              label="กำหนดฉีดพ่นครั้งถัดไป"
               value={actualState.t7NextSprayDate || ""}
-              onChange={(e) => onUpdateField?.("t7NextSprayDate", e.target.value)}
-              placeholder="เลือกกำหนดวันฉีดพ่นครั้งถัดไป"
+              onChange={(val) => onUpdateField?.("t7NextSprayDate", val)}
+              placeholder="เลือกกำหนดวันฉีดพ่นครั้งถัดไป..."
               disabled={readonly}
             />
           </div>

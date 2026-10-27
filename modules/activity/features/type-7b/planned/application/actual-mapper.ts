@@ -83,25 +83,48 @@ export function parseType7bActualResult(
         problemDetail: r.problemDetail || "",
         baselineProducts: (r.sprayProducts || [])
           .filter((sp: any) => sp.isPlanned)
-          .map((sp: any) => ({
-            productId: sp.productId,
-            productName: sp.productName || sp.product?.name || "",
-            plannedQuantity: sp.withdrawnQuantity != null ? Number(sp.withdrawnQuantity) : undefined,
-            actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
-            extraQuantity: sp.extraQuantity != null ? Number(sp.extraQuantity) : undefined,
-            actualRate: sp.actualRate || "",
-            unit: sp.unit || sp.product?.unit || "",
-          })),
+          .map((sp: any) => {
+            const extraUnit = sp.unit?.includes("ซอง") ? "กรัม" : "ซีซี";
+            const extraQtyStr =
+              sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
+                ? String(sp.extraQuantity)
+                : undefined;
+            return {
+              productId: sp.productId,
+              productName: sp.productName || sp.product?.name || "",
+              plannedQuantity: sp.withdrawnQuantity != null ? Number(sp.withdrawnQuantity) : undefined,
+              withdrawnQuantity: sp.withdrawnQuantity != null ? Number(sp.withdrawnQuantity) : undefined,
+              actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+              quantityUsed: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+              extraQuantity: extraQtyStr,
+              extraUnit,
+              applicationRate: sp.actualRate || "",
+              actualRate: sp.actualRate || "",
+              plannedRate: "ตามแผน",
+              unit: sp.unit || sp.product?.unit || "",
+            };
+          }),
         additionalProducts: (r.sprayProducts || [])
           .filter((sp: any) => !sp.isPlanned)
-          .map((sp: any) => ({
-            productId: sp.productId,
-            productName: sp.productName || sp.product?.name || "",
-            actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
-            extraQuantity: sp.extraQuantity != null ? Number(sp.extraQuantity) : undefined,
-            actualRate: sp.actualRate || "",
-            unit: sp.unit || sp.product?.unit || "",
-          })),
+          .map((sp: any, spIdx: number) => {
+            const extraUnit = sp.unit?.includes("ซอง") ? "กรัม" : "ซีซี";
+            const extraQtyStr =
+              sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
+                ? String(sp.extraQuantity)
+                : undefined;
+            return {
+              id: sp.id || `add-${r.id || rIdx}-${sp.productId || spIdx}`,
+              productId: sp.productId,
+              productName: sp.productName || sp.product?.name || "",
+              actualQuantity: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+              quantityUsed: sp.actualQuantity != null ? Number(sp.actualQuantity) : 0,
+              extraQuantity: extraQtyStr,
+              extraUnit,
+              applicationRate: sp.actualRate || "",
+              actualRate: sp.actualRate || "",
+              unit: sp.unit || sp.product?.unit || "",
+            };
+          }),
         externalProducts: (r.sprayExternals || []).map((ext: any) => ({
           company: ext.company || "",
           productName: ext.productName || "",
@@ -199,14 +222,22 @@ export function parseType7bActualResult(
           const prodId = p.productId || p.product?.id || "";
           const prodName = p.productName || p.product?.name || "";
           const unit = p.unit || p.product?.unit || "ขวด";
-          const qtyUsed = p.quantityUsed != null ? Number(p.quantityUsed) : 1;
-          const actualRate = p.actualRate || "";
+          const qtyUsed =
+            p.actualQuantity != null
+              ? Number(p.actualQuantity)
+              : p.quantityUsed != null
+                ? Number(p.quantityUsed)
+                : 1;
+          const actualRate = p.actualRate || p.applicationRate || "";
           const detail = p.detail || "";
 
-          // Parse extraQuantity & extraUnit from detail string (e.g. "ใช้เพิ่ม 50 ซีซี")
-          let extraQuantity = "";
+          // Parse extraQuantity & extraUnit from extraQuantity column or detail string (e.g. "ใช้เพิ่ม 50 ซีซี")
+          let extraQuantity =
+            p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
+              ? String(p.extraQuantity)
+              : "";
           let extraUnit = unit?.includes("ซอง") ? "กรัม" : "ซีซี";
-          if (detail) {
+          if (!extraQuantity && detail) {
             const match = detail.match(/ใช้เพิ่ม\s+([\d.]+)\s*(ซีซี|กรัม|ขวด|ซอง)?/);
             if (match) {
               extraQuantity = match[1];
@@ -216,17 +247,21 @@ export function parseType7bActualResult(
 
           // Determine if baseline vs additional product
           const isBaseline =
-            (p.baselineRate !== null && p.baselineRate !== undefined) ||
-            (plannedProdMap.has(prodId) && !baselineProducts.some((bp) => bp.productId === prodId));
+            typeof p.isPlanned === "boolean"
+              ? p.isPlanned
+              : (p.baselineRate !== null && p.baselineRate !== undefined) ||
+                (plannedProdMap.has(prodId) && !baselineProducts.some((bp) => bp.productId === prodId));
 
           if (isBaseline) {
             const plannedItem = plannedProdMap.get(prodId);
             const withdrawnQty =
-              plannedItem?.quantity != null
-                ? Number(plannedItem.quantity)
-                : p.plannedQuantity != null
-                  ? Number(p.plannedQuantity)
-                  : qtyUsed;
+              p.withdrawnQuantity != null
+                ? Number(p.withdrawnQuantity)
+                : plannedItem?.quantity != null
+                  ? Number(plannedItem.quantity)
+                  : p.plannedQuantity != null
+                    ? Number(p.plannedQuantity)
+                    : qtyUsed;
 
             baselineProducts.push({
               productId: prodId,
@@ -234,13 +269,14 @@ export function parseType7bActualResult(
               withdrawnQuantity: withdrawnQty,
               plannedQuantity: withdrawnQty,
               actualQuantity: qtyUsed,
+              quantityUsed: qtyUsed,
               extraQuantity,
               extraUnit,
               applicationRate: actualRate,
-              plannedRate: p.baselineRate || plannedItem?.notes || "",
+              plannedRate: p.baselineRate || plannedItem?.notes || "ตามแผน",
               actualRate,
               unit,
-              detail,
+              detail: detail || (extraQuantity ? `ใช้เพิ่ม ${extraQuantity} ${extraUnit}` : ""),
             });
           } else {
             additionalProducts.push({
@@ -254,7 +290,7 @@ export function parseType7bActualResult(
               applicationRate: actualRate,
               actualRate,
               unit,
-              detail,
+              detail: detail || (extraQuantity ? `ใช้เพิ่ม ${extraQuantity} ${extraUnit}` : ""),
             });
           }
         });

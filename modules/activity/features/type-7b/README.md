@@ -41,8 +41,8 @@
 - **ระบบบันทึกประวัติการเข้าตรวจ (Demo Plot Visit Logging):**
   - ทุกครั้งที่มีการติดตาม ระบบจะบันทึกประวัติการลงพื้นที่เข้าสู่ตาราง `DemoPlotVisit` (`demo_plot_visits`) อัตโนมัติ โดยระบุรอบการเข้าตรวจ (`visitNumber`), วันที่ตรวจ (`visitDate`) และคำนวณจำนวนวันนับจากวันเริ่มแปลง (`daysSinceStart`)
 - **ระบบจัดเก็บรอบการฉีดพ่นและสินค้า (Spray Rounds & Products):**
-  - จัดเก็บรอบการฉีดพ่นลงในตาราง `ActivityResultSprayRound` (`activity_result_spray_rounds`)
-  - จัดเก็บสินค้าในแต่ละรอบลงในตาราง `ActivityResultSprayProduct` (`activity_result_spray_products`) ทั้งสินค้าตามแผน (`baselineRate`, `isPlanned`) และสินค้าเพิ่มเติมหน้างาน
+  - จัดเก็บรอบการฉีดพ่นลงในตาราง `ActivityResultType7bSprayRound` (`activity_type_7b_spray_rounds`)
+  - จัดเก็บสินค้าในแต่ละรอบลงในตาราง `ActivityResultType7bSprayProduct` (`activity_type_7b_spray_products`) ทั้งสินค้าตามแผน (`isPlanned: true`, `withdrawnQuantity`, `actualQuantity`, `extraQuantity`) และสินค้าเพิ่มเติมหน้างาน (`isPlanned: false`)
 - **การจัดประเภทสภาพแปลงและการตอบสนอง (Evaluation Classifications):**
   - **อุปกรณ์ฉีดพ่น (`SPRAY_EQUIPMENT_OPTIONS`):** เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่), เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส / รถพ่นยา, อื่นๆ (ระบุ)
   - **วิธีการฉีดพ่น (`SPRAY_METHOD_RADIO_OPTIONS`):** ฉีดเดี่ยว (Single), ผสมถัง (Tank-mixed)
@@ -53,7 +53,7 @@
   - **Dedicated Plan Tables:** `ActivityPlanType7b` (`activity_plan_type_7b`), `ActivityPlanType7bPlot` (`activity_plan_type_7b_plots`), และ `ActivityPlanType7bProduct` (`activity_plan_type_7b_products`)
   - **Visit Tracking:** `DemoPlotVisit` (`demo_plot_visits`)
   - **Master Updates:** อัปเดตสถานะ, `closedDate`, `nextSprayDate`, ผลผลิต และคะแนนประเมินลงใน `DemoPlot` (`demo_plots`) *(หมายเหตุ: ตาราง `demo_plots` ไม่มีฟิลด์ `lastVisitDate` โดยวันที่ตรวจบันทึกลง `demo_plot_visits`)*
-  - **Actual Spray Tables:** `ActivityResultSprayRound` (`activity_result_spray_rounds`) และ `ActivityResultSprayProduct` (`activity_result_spray_products`)
+  - **Actual Spray Tables:** `ActivityResultType7bSprayRound` (`activity_type_7b_spray_rounds`), `ActivityResultType7bSprayProduct` (`activity_type_7b_spray_products`), และ `ActivityResultType7bSprayExternal` (`activity_type_7b_spray_externals`)
   - **Attachments:** `ActivityAttachment` (หมวดหมู่ `PLOT` ทั้งภาพติดตามและภาพประจำรอบที่ผูก `sprayRoundId`)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
@@ -433,64 +433,69 @@ model DemoPlotVisit {
   @@map("demo_plot_visits")
 }
 
-// ตารางรอบการฉีดพ่นประจำครั้งนี้ (Multiple Spraying Rounds)
-model ActivityResultSprayRound {
-  id               String                        @id @default(cuid())
-  activityResultId String                        @map("activity_result_id")
-  demoPlotId       String?                       @map("demo_plot_id")
-  roundNumber      Int                           @default(1) @map("round_number")
-  sprayDate        DateTime                      @map("spray_date")
-  sprayMethod      String                        @default("SINGLE") @map("spray_method") // "SINGLE" | "TANK_MIXED"
-  sprayEquipment   String                        @default("เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)") @map("spray_equipment")
-  otherEquipment   String?                       @map("other_equipment")
-  productResponse  String                        @default("พืชตอบสนองดี (เห็นผลตามเป้าหมาย)") @map("product_response")
-  problemDetail    String?                       @map("problem_detail") @db.Text
-  daysSinceStart   Int                           @default(0) @map("days_since_start")
-  notes            String?                       @map("notes") @db.Text
-  workTypeCode     String?                       @map("work_type_code") // "TYPE_7B"
-  createdAt        DateTime                      @default(now()) @map("created_at")
+// ตารางรอบการฉีดพ่นประจำครั้งนี้ (Multiple Spraying Rounds - Dedicated Table)
+model ActivityResultType7bSprayRound {
+  id                   String                              @id @default(cuid())
+  resultId             String                              @map("result_id")
+  roundNumber          Int                                 @default(1) @map("round_number")
+  sprayDate            DateTime                            @map("spray_date")
+  sprayMethod          String                              @default("SINGLE") @map("spray_method") // "SINGLE" | "TANK_MIXED"
+  hasExternalChemicals Boolean                             @default(false) @map("has_external_chemicals")
+  sprayEquipment       String                              @map("spray_equipment") // จาก SPRAY_EQUIPMENT_OPTIONS
+  otherEquipment       String?                             @map("other_equipment")
+  productResponse      String?                             @map("product_response")
+  problemDetail        String?                             @map("problem_detail") @db.Text
+  notes                String?                             @map("notes") @db.Text
+  createdAt            DateTime                            @default(now()) @map("created_at")
 
-  activityResult   ActivityResult                @relation(fields: [activityResultId], references: [id], onDelete: Cascade)
-  products         ActivityResultSprayProduct[]
-  externalProducts ActivityResultSprayExternal[]
-  attachments      ActivityAttachment[]
+  result               ActivityResultType7b                @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  sprayProducts        ActivityResultType7bSprayProduct[]
+  sprayExternals       ActivityResultType7bSprayExternal[]
 
-  @@map("activity_result_spray_rounds")
+  @@index([resultId])
+  @@map("activity_type_7b_spray_rounds")
 }
 
-// ตารางสินค้าในการฉีดพ่นแต่ละรอบ (ทั้ง 1.1 Baseline และ 1.2 Additional Products)
-model ActivityResultSprayProduct {
-  id               String                   @id @default(cuid())
-  sprayRoundId     String                   @map("spray_round_id")
-  productId        String                   @map("product_id")
-  productName      String?                  @map("product_name")
-  baselineRate     String?                  @map("baseline_rate") // มีค่า = สินค้าตามแผน (1.1), null = สินค้าเพิ่มเติมหน้างาน (1.2)
-  actualRate       String                   @map("actual_rate")
-  quantityUsed     Decimal                  @default(1) @map("quantity_used") @db.Decimal(10, 2)
-  unit             String?                  @map("unit")
-  detail           String?                  @map("detail") @db.Text // เก็บข้อความการใช้เพิ่ม เช่น "ใช้เพิ่ม 50 ซีซี"
-  createdAt        DateTime                 @default(now()) @map("created_at")
+// ตารางสินค้าในการฉีดพ่นแต่ละรอบ (ทั้ง 1.1 Baseline และ 1.2 Additional Products - Dedicated Table)
+model ActivityResultType7bSprayProduct {
+  id                String                          @id @default(cuid())
+  sprayRoundId      String                          @map("spray_round_id")
+  productId         String                          @map("product_id")
+  productName       String?                         @map("product_name")
+  isPlanned         Boolean                         @default(false) @map("is_planned") // true = สินค้าตามแผน (1.1), false = สินค้าเพิ่มเติมหน้างาน (1.2)
+  withdrawnQuantity Decimal?                        @map("withdrawn_quantity") @db.Decimal(10, 2)
+  actualQuantity    Decimal                         @default(0) @map("actual_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal?                        @map("extra_quantity") @db.Decimal(10, 2)
+  actualRate        String?                         @map("actual_rate")
+  unit              String?                         @map("unit")
+  sortOrder         Int                             @default(0) @map("sort_order")
+  createdAt         DateTime                        @default(now()) @map("created_at")
 
-  sprayRound       ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
-  product          Product                  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  sprayRound        ActivityResultType7bSprayRound  @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product           Product                         @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@map("activity_result_spray_products")
+  @@index([sprayRoundId])
+  @@index([productId])
+  @@map("activity_type_7b_spray_products")
 }
 
-// ตารางรายการยาภายนอกที่ใช้ร่วม กรณีผสมถัง (Tank-mixed External Chemicals)
-model ActivityResultSprayExternal {
-  id               String                   @id @default(cuid())
-  sprayRoundId     String                   @map("spray_round_id")
-  company          String                   @map("company")
-  productName      String                   @map("product_name")
-  activeIngredient String?                  @map("active_ingredient")
-  formula          String                   @map("formula") // SL, SC, EC, อื่นๆ
-  customFormula    String?                  @map("custom_formula")
-  applicationRate  String                   @map("application_rate")
+// ตารางรายการยาภายนอกที่ใช้ร่วม กรณีผสมถัง (Tank-mixed External Chemicals - Dedicated Table)
+model ActivityResultType7bSprayExternal {
+  id               String                          @id @default(cuid())
+  sprayRoundId     String                          @map("spray_round_id")
+  company          String                          @map("company")
+  productName      String                          @map("product_name")
+  activeIngredient String?                         @map("active_ingredient")
+  formula          String                          @map("formula") // SL, SC, EC, อื่นๆ
+  customFormula    String?                         @map("custom_formula")
+  applicationRate  String                          @map("application_rate")
+  sortOrder        Int                             @default(0) @map("sort_order")
+  createdAt        DateTime                        @default(now()) @map("created_at")
 
-  sprayRound       ActivityResultSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  sprayRound       ActivityResultType7bSprayRound  @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
 
-  @@map("activity_result_spray_externals")
+  @@index([sprayRoundId])
+  @@map("activity_type_7b_spray_externals")
 }
 ```
 
@@ -636,3 +641,4 @@ model ActivityResultSprayExternal {
 | **2026-10-24** | 2.3.0 | **แก้ไขปัญหาหน้าแก้ไข Trip Plan Type 7B ไม่พบข้อมูลที่สร้างไว้ (Edit Form Hydration Fix):**<br>1. แก้ไข `PlannedEditView` ใน `modules/activity/views/planned/edit-view.tsx` ให้ส่งต่อข้อมูล `type7b`, `type7bData`, `type7bPlots`, `type7bProducts` และกระจาย `...plan` เข้าสู่ `initialData`<br>2. ปรับปรุง `hydrateType7bPlannedData` ใน `planned-mapper.ts` ให้ดึงข้อมูลแผนต้นทาง, แปลงสาธิต, วัตถุประสงค์ และสินค้าที่เบิกได้ครบถ้วน พร้อม fallback relation demoPlot<br>3. ปรับปรุง `useType7bPlannedForm` เพิ่ม `useEffect` ซิงค์สถานะอัตโนมัติเมื่อ `initialItems` หรือ `initial` โหลดเสร็จสิ้น<br>4. เสริม Resilience ใน `effectiveFollowUpPlans` ของ `Type7bPlannedForm` ให้สังเคราะห์ตัวเลือกแผนและแปลงเดิมขึ้นมาทันที ทำให้ Combobox และ Checkbox แปลงเดิมแสดงผลได้ถูกต้อง 100% แม้รายการตัวเลือกยังไม่เสร็จสิ้น<br>5. เพิ่มชุดทดสอบอัตโนมัติ `tests/activity-plans/type-7b-edit-hydration.test.ts` ทดสอบการกู้คืนข้อมูลในหน้าแก้ไขแผนงานผ่าน 100% | Antigravity AI |
 | **2026-10-24** | 2.4.0 | **เชื่อมโยงข้อมูลสองทิศทางกับแผนจัดทำแปลงสาธิต Type 7A (Bi-directional Cross-Linking):**<br>1. ปรับปรุง `Type7bDetailView` ให้แสดงแบนเนอร์เชื่อมโยงย้อนกลับไปยังแผนจัดทำแปลงสาธิตต้นทาง `[TP26100004 - ทำแปลงสาธิต ↗]`<br>2. เชื่อมต่อ `plan` เข้าสู่ `Type7bDetailView` จาก `detail-work-type-list.tsx` เพื่อดึงข้อมูล `sourceActivityPlan` ครบถ้วน | Antigravity AI |
 | **2026-10-25** | 2.5.0 | **แก้ไขสมบูรณ์: ไม่พบข้อมูลในฟอร์มแก้ไข Trip Plan Type 7B แม้มีข้อมูลในฐานข้อมูล (Prisma Real-Schema Hydration Fix):**<br>1. ปรับปรุง `hydrateType7bPlannedData` ใน `planned-mapper.ts` ให้กู้คืนข้อมูลโดยตรงจากโครงสร้าง Prisma จริง (`type7bTargets` และ `type7bProducts`) ดึงข้อมูลแปลงที่เลือก (`selectedPlotIds`), แผนต้นทาง (`selectedPlanId`, `sourcePlanCode`, `sourcePlanTitle`, `sourcePlanDate`), วัตถุประสงค์, รายละเอียด และสินค้าที่ขอเบิก (`withdrawnProducts`) ครบถ้วน พร้อม fallback สู่ `demoPlotVisits`<br>2. แก้ไข `PlannedEditView` ใน `modules/activity/views/planned/edit-view.tsx` ป้องกันการเขียนทับ `type7bProducts` เป็น `[]` และจัดเตรียม `type7bTargets`, `type7bProducts`, `type7b`, `type7bData`, `type7bPlots` ส่งต่อไปยังฟอร์มอย่างสมบูรณ์<br>3. ปรับปรุง `Type7bPlannedForm` ให้รวมสินค้าจาก `withdrawnProducts` เข้าสู่ `effectiveProducts` อัตโนมัติ ทำให้ชื่อสินค้าและหน่วยแสดงผลใน Combobox ทันทีโดยไม่ต้องรอเครือข่าย หรือสินค้าที่อาจไม่ได้อยู่ในแคตตาล็อก ACTIVE พร้อมสังเคราะห์ข้อมูลแปลงเดิมแบบรายแปลง (`item.plots`) แม้แผนต้นทางจะถูกปิดหรือกรองออกไปแล้ว<br>4. ปรับปรุงความยืดหยุ่นใน `type7bPlannedStrategy.saveActual` และ `type7b.repository.ts` ให้รองรับทั้งโมเดล dedicated และ legacy schema แบบอัตโนมัติ<br>5. ขยายชุดทดสอบอัตโนมัติ `tests/activity-plans/type-7b-edit-hydration.test.ts` ทดสอบครอบคลุมทั้งโมเดล Prisma จริง, แผนหลายแปลง (multi-plot), และ fallback ทั้งหมดผ่าน 100% | Antigravity AI |
+| **2026-10-27** | 2.6.0 | **ปรับปรุง UI Date Picker และแก้ไข Runtime Error ในการบันทึกผลงานจริง (Actual Form UI & Prisma Dedicated Table Fix):**<br>1. ปรับปรุงฟอร์มบันทึกผลงานจริง `Type7bActualForm` นำคอมโพเนนต์ `ActivityDatePicker` จาก `@/modules/activity/ui` มาใช้แทน input type date เดิม สำหรับช่อง **"วันที่ติดตามจริง"** (`t7VisitDate`) และ **"กำหนดฉีดพ่นครั้งถัดไป"** (`t7NextSprayDate`) รองรับปฏิทินไทย/พ.ศ. และปุ่มเลือก "วันนี้" สวยงามตามมาตรฐานส่วนกลาง<br>2. แก้ไข PrismaClientValidationError: `Unknown argument baselineRate` ใน `type7bPlannedStrategy.saveActual` โดยปรับการแมปข้อมูลสินค้าฉีดพ่นในแต่ละรอบ (`prodsToInsert`) ให้สอดคล้องกับโมเดลเฉพาะกิจ `ActivityResultType7bSprayProduct` (`isPlanned`, `actualQuantity`, `withdrawnQuantity`, `extraQuantity`, `actualRate`, `unit`, `sortOrder`) โดยไม่ส่งฟิลด์ที่ไม่มีในโมเดล (`baselineRate`, `quantityUsed`, `detail`)<br>3. ปรับปรุง `actual-mapper.ts` ให้กู้คืนข้อมูลสินค้าฉีดพ่นและรายละเอียดปริมาณที่ใช้เพิ่มจากโมเดลเฉพาะกิจได้อย่างแม่นยำ พร้อมรองรับ Backward Compatibility<br>4. อัปเดตและรันชุดทดสอบอัตโนมัติ `type-7b-actual-save-and-hydrate.test.ts`, `type-7b-product-fk-fix.test.ts`, `type-7b-edit-hydration.test.ts` และ `type-7b-unplanned-redesign.test.ts` ผ่าน 100% | Antigravity AI |
