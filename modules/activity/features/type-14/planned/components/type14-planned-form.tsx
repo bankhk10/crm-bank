@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Plus,
   Trash2,
@@ -10,6 +10,7 @@ import {
   Sparkles,
   MapPin,
   Calendar,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
   ActivityProductSelect,
   type ActivityCustomerItem,
 } from "@/modules/activity/ui";
+import { getHattackFollowUpPlansAction } from "@/modules/activity/server/actions";
 import type {
   Type14PlotItem,
   Type14WithdrawnProductLine,
@@ -44,6 +46,40 @@ export function Type14PlannedForm(props: any) {
   const dealers: DealerCustomerOption[] =
     props.dealerCustomers || props.dealers || [];
   const products: ProductOption[] = props.products || [];
+
+  const [dbPlans, setDbPlans] = useState<FollowUpPlanOption[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+
+  // Self-healing fallback: Load hattack follow-up plans if not provided by parent
+  useEffect(() => {
+    let isMounted = true;
+    if (hattackFollowUpPlans.length === 0) {
+      setIsLoadingPlans(true);
+      getHattackFollowUpPlansAction()
+        .then((res) => {
+          if (
+            isMounted &&
+            res?.success &&
+            res.hattackFollowUpPlans &&
+            res.hattackFollowUpPlans.length > 0
+          ) {
+            setDbPlans(res.hattackFollowUpPlans);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load hattack follow-up plans in Type14PlannedForm:", err);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingPlans(false);
+        });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [hattackFollowUpPlans.length]);
+
+  const activeFollowUpPlans =
+    hattackFollowUpPlans.length > 0 ? hattackFollowUpPlans : dbPlans;
 
   const mode = data.mode || "EXISTING_PLOT";
   const hasProductWithdrawal = Boolean(data.hasProductWithdrawal);
@@ -121,38 +157,27 @@ export function Type14PlannedForm(props: any) {
     handleUpdate({ withdrawnProducts: updated });
   };
 
-  // Extract all plots across available hattackFollowUpPlans
-  const allAvailablePlots = useMemo(() => {
-    const list: Array<FollowUpPlotOption & { planTitle?: string }> = [];
-    hattackFollowUpPlans.forEach((plan) => {
-      (plan.plots || []).forEach((plot) => {
-        list.push({
-          ...plot,
-          planTitle: plan.planTitle,
-        });
+  const handleSelectPlan = (planId: string) => {
+    if (!planId) {
+      handleUpdate({
+        selectedPlanId: null,
+        selectedPlotIds: [],
+        type13TargetIds: [],
+        plots: [],
       });
-    });
-    return list;
-  }, [hattackFollowUpPlans]);
+      return;
+    }
 
-  const selectedPlotIds =
-    data.selectedPlotIds || (data.demoPlotId ? [data.demoPlotId] : []);
+    const targetPlan = activeFollowUpPlans.find((p) => p.planId === planId);
+    if (!targetPlan) return;
 
-  const handleSelectExistingPlot = (plot: FollowUpPlotOption) => {
-    const isAlreadySelected = selectedPlotIds.includes(plot.id);
-    let nextSelectedIds: string[];
-    let nextPlots: Type14PlotItem[] = data.plots ? [...data.plots] : [];
-
-    if (isAlreadySelected) {
-      nextSelectedIds = selectedPlotIds.filter((id) => id !== plot.id);
-      nextPlots = nextPlots.filter((p) => (p.demoPlotId || p.id) !== plot.id);
-    } else {
-      nextSelectedIds = [...selectedPlotIds, plot.id];
-      const newPlotItem: Type14PlotItem = {
+    const mappedPlots: Type14PlotItem[] = (targetPlan.plots || []).map(
+      (plot, idx) => ({
         id: plot.id,
         demoPlotId: plot.id,
-        name: plot.name,
-        plotName: plot.name,
+        type13TargetId: plot.id,
+        name: plot.name || `แปลงแฮตแทค ${idx + 1}`,
+        plotName: plot.name || `แปลงแฮตแทค ${idx + 1}`,
         storeId: plot.dealerId || "",
         dealerName: plot.dealerName || null,
         ownerName: plot.ownerName || null,
@@ -164,36 +189,67 @@ export function Type14PlannedForm(props: any) {
         district: plot.district || "",
         subdistrict: plot.subdistrict || null,
         village: plot.village || null,
+        plannedPlotsCount: plot.plannedPlotsCount ?? 1,
         latitude: plot.latitude || null,
         longitude: plot.longitude || null,
-      };
-      nextPlots.push(newPlotItem);
-    }
+      }),
+    );
 
-    const primaryPlot = nextPlots[0];
+    const primaryPlot = mappedPlots[0];
+    const plotIds = mappedPlots.map((p) => p.id);
 
     handleUpdate({
-      selectedPlotIds: nextSelectedIds,
-      demoPlotId: primaryPlot?.demoPlotId || null,
-      plots: nextPlots,
-      name: primaryPlot?.name || data.name,
-      storeId: primaryPlot?.storeId || data.storeId,
-      dealerName: primaryPlot?.dealerName || data.dealerName,
-      ownerName: primaryPlot?.ownerName || data.ownerName,
-      cropCategory: primaryPlot?.cropCategory || data.cropCategory,
-      cropName: primaryPlot?.cropName || data.cropName,
-      province: primaryPlot?.province || data.province,
-      district: primaryPlot?.district || data.district,
-      latitude:
-        primaryPlot?.latitude != null
-          ? String(primaryPlot.latitude)
-          : data.latitude,
-      longitude:
-        primaryPlot?.longitude != null
-          ? String(primaryPlot.longitude)
-          : data.longitude,
+      selectedPlanId: targetPlan.planId,
+      selectedPlotIds: plotIds,
+      type13TargetIds: plotIds,
+      demoPlotId: primaryPlot?.id || null,
+      type13TargetId: primaryPlot?.id || null,
+      plots: mappedPlots,
+      name: primaryPlot?.name || targetPlan.planTitle,
+      storeId: primaryPlot?.storeId || "",
+      dealerName: primaryPlot?.dealerName || "",
+      ownerName: primaryPlot?.ownerName || "",
+      province: primaryPlot?.province || "",
+      district: primaryPlot?.district || "",
+      latitude: primaryPlot?.latitude != null ? String(primaryPlot.latitude) : "",
+      longitude: primaryPlot?.longitude != null ? String(primaryPlot.longitude) : "",
     });
   };
+
+  // Self-healing synchronization for edit mode & async plans loading
+  useEffect(() => {
+    if (mode !== "EXISTING_PLOT") return;
+    if (activeFollowUpPlans.length === 0) return;
+
+    // Case A: selectedPlanId is missing, but we have plots/plotIds from initial data
+    if (!data.selectedPlanId) {
+      const currentPlotIds =
+        data.selectedPlotIds ||
+        data.type13TargetIds ||
+        (data.plots || [])
+          .map((p) => p.type13TargetId || p.demoPlotId || p.id)
+          .filter(Boolean);
+
+      if (currentPlotIds.length > 0) {
+        const matchedPlan = activeFollowUpPlans.find((plan) =>
+          plan.plots.some((pl) => currentPlotIds.includes(pl.id)),
+        );
+        if (matchedPlan) {
+          handleSelectPlan(matchedPlan.planId);
+        }
+      }
+    } else {
+      // Case B: selectedPlanId is set, but plots are empty
+      if (!data.plots || data.plots.length === 0) {
+        const matchedPlan = activeFollowUpPlans.find(
+          (p) => p.planId === data.selectedPlanId,
+        );
+        if (matchedPlan && matchedPlan.plots.length > 0) {
+          handleSelectPlan(matchedPlan.planId);
+        }
+      }
+    }
+  }, [mode, activeFollowUpPlans.length, data.selectedPlanId, data.plots?.length]);
 
   return (
     <div className="space-y-6 rounded-xl border border-border/80 bg-card p-5 shadow-sm">
@@ -239,21 +295,34 @@ export function Type14PlannedForm(props: any) {
         )}
       </div>
 
-      {/* Mode 1: Existing Plot Selection */}
+      {/* Mode 1: Existing Plan Selection */}
       {mode === "EXISTING_PLOT" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">
-              รายการแปลงแฮทแทคที่พร้อมติดตามผล
-            </span>
-            <span className="text-xs text-muted-foreground">
-              เลือกแล้ว {selectedPlotIds.length} แปลง
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <label className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <span>เลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13)</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                เลือกแผนงานฉีดแปลงแฮตแทคเดิม เพื่อนำแปลงทั้งหมดในแผนงานมาบันทึกติดตามผล
+              </p>
+            </div>
+            {data.plots && data.plots.length > 0 && (
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+                แปลงในแผนงานนี้: {data.plots.length} แปลง
+              </span>
+            )}
           </div>
 
-          {allAvailablePlots.length === 0 ? (
+          {isLoadingPlans && activeFollowUpPlans.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-muted-foreground/30 p-6 text-center text-sm text-muted-foreground bg-muted/10 flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+              <span>กำลังโหลดรายการแผนงานฉีดแปลงแฮตแทคเดิม...</span>
+            </div>
+          ) : activeFollowUpPlans.length === 0 ? (
             <div className="rounded-lg border border-dashed border-muted-foreground/30 p-6 text-center text-sm text-muted-foreground bg-muted/10">
-              ยังไม่พบรายการแปลงแฮตแทคจากแผนงานเดิม
+              ยังไม่พบรายการแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) ในระบบ
               {!readonly && (
                 <div className="mt-2">
                   <Button
@@ -269,54 +338,101 @@ export function Type14PlannedForm(props: any) {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
-              {allAvailablePlots.map((plot) => {
-                const isSelected = selectedPlotIds.includes(plot.id);
-                return (
-                  <div
-                    key={plot.id}
-                    onClick={() => !readonly && handleSelectExistingPlot(plot)}
-                    className={`cursor-pointer rounded-lg border p-3 text-left transition-all ${
-                      isSelected
-                        ? "border-emerald-500 bg-emerald-50/60 shadow-sm dark:bg-emerald-950/30"
-                        : "border-border/70 hover:border-emerald-400/60 hover:bg-muted/30"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground flex items-center gap-1.5">
-                          {plot.name}
-                          {plot.planTitle && (
-                            <span className="text-[11px] text-muted-foreground font-normal">
-                              ({plot.planTitle})
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          เจ้าของ: {plot.ownerName || "-"} | ร้านค้า:{" "}
-                          {plot.dealerName || "-"}
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3 text-emerald-600" />
-                          {[plot.district, plot.province]
-                            .filter(Boolean)
-                            .join(", ") || "-"}
-                          {plot.cropName && ` • พืช: ${plot.cropName}`}
-                        </div>
-                      </div>
-                      <div
-                        className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${
-                          isSelected
-                            ? "border-emerald-600 bg-emerald-600 text-white"
-                            : "border-muted-foreground/40"
-                        }`}
-                      >
-                        {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
-                      </div>
-                    </div>
+            <div className="space-y-4">
+              {/* Plan Select Dropdown */}
+              <div className="relative">
+                <select
+                  value={data.selectedPlanId || ""}
+                  onChange={(e) => handleSelectPlan(e.target.value)}
+                  disabled={readonly}
+                  className="w-full h-11 px-3 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-slate-800 font-medium"
+                >
+                  <option value="">-- กรุณาเลือกแผนงานฉีดแปลงแฮตแทคเดิม --</option>
+                  {activeFollowUpPlans.map((plan) => (
+                    <option key={plan.planId} value={plan.planId}>
+                      {plan.planCode ? `[${plan.planCode}] ` : ""}
+                      {plan.planTitle}
+                      {plan.planDate ? ` (${plan.planDate})` : ""} - จำนวน{" "}
+                      {plan.plots?.length || 0} แปลง
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Display plots in selected plan */}
+              {data.plots && data.plots.length > 0 ? (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <span>รายการแปลงทั้งหมดที่จะติดตามผล ({data.plots.length} แปลง)</span>
+                    <span className="text-[11px] text-slate-400">ดึงข้อมูลอัตโนมัติจากแผนงาน</span>
                   </div>
-                );
-              })}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                    {data.plots.map((plot, idx) => {
+                      const locParts = [
+                        plot.subdistrict ? `ต.${plot.subdistrict}` : null,
+                        plot.district ? `อ.${plot.district}` : null,
+                        plot.province ? `จ.${plot.province}` : null,
+                      ].filter(Boolean);
+                      const locText = locParts.length > 0 ? locParts.join(" ") : "-";
+
+                      return (
+                        <div
+                          key={plot.id || idx}
+                          className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-3.5 space-y-2 text-left"
+                        >
+                          <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <span className="font-bold text-xs sm:text-sm text-slate-800">
+                                {plot.name || plot.plotName || `แปลงที่ ${idx + 1}`}
+                              </span>
+                            </div>
+                            {plot.plannedPlotsCount != null && (
+                              <span className="text-[11px] font-semibold text-emerald-800 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
+                                {plot.plannedPlotsCount} แปลง
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-[11px] text-slate-400 block">ร้านค้า Dealer</span>
+                              <span className="font-medium text-slate-800 block truncate">
+                                {plot.dealerName || "-"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[11px] text-slate-400 block">เกษตรกร / เจ้าของ</span>
+                              <span className="font-medium text-slate-800 block truncate">
+                                {plot.ownerName || "-"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[11px] text-slate-400 block">หมู่บ้าน</span>
+                              <span className="font-medium text-slate-700 block truncate">
+                                {plot.village || "-"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[11px] text-slate-400 block">สถานที่</span>
+                              <span className="font-medium text-slate-700 block truncate">
+                                {locText}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-6 text-center text-xs sm:text-sm text-slate-500">
+                  กรุณาเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) จากตัวเลือกด้านบน เพื่อนำแปลงทั้งหมดมาติดตามผล
+                </div>
+              )}
             </div>
           )}
         </div>

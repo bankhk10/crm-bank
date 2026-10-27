@@ -42,6 +42,25 @@ export function validateType14Actual(
     }
   }
 
+  const plots: any[] = input?.plots || input?.type14Actual?.plots || [];
+  if (plots && plots.length > 0) {
+    for (let pIdx = 0; pIdx < plots.length; pIdx++) {
+      const p = plots[pIdx];
+      if (
+        p.actualPlotsCount !== "" &&
+        p.actualPlotsCount !== undefined &&
+        p.actualPlotsCount !== null
+      ) {
+        if (Number(p.actualPlotsCount) <= 0) {
+          return {
+            isValid: false,
+            error: `จำนวนแปลงที่ติดตามจริงของแปลงที่ ${pIdx + 1} ต้องมากกว่า 0 (TYPE_14)`,
+          };
+        }
+      }
+    }
+  }
+
   return { isValid: true };
 }
 

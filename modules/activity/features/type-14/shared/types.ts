@@ -4,6 +4,7 @@ export type { ImageFile as Type14ImageFile };
 
 export interface FollowUpPlotOption {
   id: string;
+  planId?: string;
   name: string;
   code?: string;
   ownerName?: string;
@@ -19,6 +20,7 @@ export interface FollowUpPlotOption {
   cropName?: string;
   areaRai?: number;
   treeCount?: number;
+  plannedPlotsCount?: number;
 }
 
 export interface FollowUpPlanOption {
@@ -73,6 +75,7 @@ export interface Type14PlotItem {
   longitude?: string | number | null;
   plannedPlotsCount?: number | string | null;
   actualPlotsCount?: number | string | null;
+  notes?: string | null;
   products?: Array<{
     id?: string;
     productId: string;
@@ -83,6 +86,29 @@ export interface Type14PlotItem {
 }
 
 export type Type14TargetItem = Type14PlotItem;
+
+export interface Type14PlotActualState {
+  id?: string;
+  demoPlotId?: string | null;
+  type13TargetId?: string | null;
+  clientPlotId?: string;
+  name?: string;
+  plotName?: string;
+  storeId?: string;
+  dealerName?: string | null;
+  ownerName?: string | null;
+  cropCategory?: string | null;
+  cropName?: string | null;
+  province?: string | null;
+  district?: string | null;
+  subdistrict?: string | null;
+  village?: string | null;
+  plannedPlotsCount?: number | string | null;
+  actualPlotsCount?: number | string | null;
+  notes?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+}
 
 export interface Type14ActualProductState {
   productId: string;

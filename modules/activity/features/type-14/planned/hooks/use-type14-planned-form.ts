@@ -264,9 +264,24 @@ export function useType14PlannedForm({
               },
             ];
 
+      const plotIds = (data.selectedPlotIds && data.selectedPlotIds.length > 0)
+        ? data.selectedPlotIds
+        : (data.type13TargetIds && data.type13TargetIds.length > 0)
+          ? data.type13TargetIds
+          : resolvedPlots.map((p) => p.type13TargetId || p.demoPlotId || p.id).filter(Boolean);
+
       const type14Data = {
+        selectedPlanId: data.selectedPlanId || null,
         sourceActivityPlanId: data.selectedPlanId || null,
         mode: data.mode,
+        selectedPlotIds: plotIds,
+        type13TargetIds: plotIds,
+        demoPlotIds: plotIds,
+        name: data.name || resolvedPlots[0]?.name || "แปลงแฮตแทค",
+        dealerName: data.dealerName || resolvedPlots[0]?.dealerName || null,
+        ownerName: data.ownerName || resolvedPlots[0]?.ownerName || null,
+        province: data.province || resolvedPlots[0]?.province || "",
+        district: data.district || resolvedPlots[0]?.district || "",
         hasProducts: Boolean(data.hasProductWithdrawal),
         hasProductWithdrawal: Boolean(data.hasProductWithdrawal),
         notes: data.notes || null,

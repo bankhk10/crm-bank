@@ -108,6 +108,7 @@ export interface PlannedActivityFormProps {
   promotionalMaterialsByCategory?: Record<string, any[]>;
   demoPlots?: any[];
   followUpPlans?: any[];
+  hattackFollowUpPlans?: any[];
   onSubmit: (payload: any) => Promise<{ success: boolean; error?: string }>;
   onBack?: () => void;
   readonly?: boolean;
@@ -124,6 +125,7 @@ export function PlannedActivityForm({
   promotionalMaterialsByCategory,
   demoPlots = [],
   followUpPlans = [],
+  hattackFollowUpPlans = [],
   onSubmit,
   onBack,
   readonly = false,
@@ -618,6 +620,7 @@ export function PlannedActivityForm({
     selectedWorkTypes,
     defaultProvince: locationTeam.province,
     defaultDistrict: locationTeam.district,
+    availablePlans: hattackFollowUpPlans,
   });
 
   // 6. Budget Hook
@@ -1069,7 +1072,11 @@ export function PlannedActivityForm({
             (t.code === "TYPE_13" ||
               t.code === "HATTACK" ||
               t.name?.includes("ฉีดแปลง") ||
-              t.name?.includes("แฮตแทค"))),
+              t.name?.includes("แฮตแทค"))) ||
+          (primaryCode === "TYPE_14" &&
+            (t.code === "TYPE_14" ||
+              t.name?.includes("ติดตามแปลงแฮตแทค") ||
+              t.name?.includes("ติดตามแปลง"))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
@@ -1511,6 +1518,7 @@ export function PlannedActivityForm({
         <Type14PlannedForm
           value={type14.data}
           onChange={type14.setData}
+          hattackFollowUpPlans={hattackFollowUpPlans}
           dealers={customers as any}
           products={products as any}
           readonly={readonly}

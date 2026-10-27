@@ -28,14 +28,27 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
         t14?.selectedPlotIds ||
         t14?.type13TargetIds ||
         t14?.demoPlotIds ||
+        (t14?.plots && t14.plots.length > 0
+          ? t14.plots
+              .map((p: any) => p.type13TargetId || p.demoPlotId || p.id)
+              .filter(Boolean)
+          : []) ||
         (t14?.type13TargetId ? [t14.type13TargetId] : []) ||
         (t14?.demoPlotId ? [t14.demoPlotId] : []) ||
-        (planData.type14Plots && planData.type14Plots.length > 0 ? planData.type14Plots : []);
+        (planData.type14Plots && planData.type14Plots.length > 0
+          ? planData.type14Plots
+          : []);
 
-      if (!plotIds || plotIds.length === 0) {
+      const hasSourcePlan = Boolean(
+        t14?.selectedPlanId ||
+          t14?.sourceActivityPlanId ||
+          planData.type14SourcePlanId,
+      );
+
+      if ((!plotIds || plotIds.length === 0) && !hasSourcePlan) {
         return {
           valid: false,
-          error: "กรุณาเลือกแปลงแฮตแทคที่ต้องการติดตามอย่างน้อย 1 แปลง",
+          error: "กรุณาเลือกแผนงานหรือแปลงแฮตแทคที่ต้องการติดตามอย่างน้อย 1 รายการ",
         };
       }
     } else if (mode === "NEW_PLOT") {
@@ -94,6 +107,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     const t14Actual = actualData.type14Actual || actualData;
     const rounds: any[] = t14Actual.rounds || t14Actual.sprayRounds || [];
+    const plots: any[] = t14Actual.plots || actualData.type14Plots || [];
 
     if (!rounds || rounds.length === 0) {
       return;
@@ -102,17 +116,45 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
     // 1. Fetch targets for this plan
     const targets = await tx.activityPlanType14Target.findMany({
       where: { activityPlanId },
-      select: { id: true, type13TargetId: true },
+      select: { id: true, type13TargetId: true, notes: true },
     });
     const primaryTarget = targets[0] || null;
     const type13TargetId = primaryTarget?.type13TargetId || actualData.type13TargetId || actualData.demoPlotId || null;
 
-    // 2. Delete existing actual results for this plan (cascade deletes productsUsed)
+    // 2. Update actualPlotsCount on targets if provided
+    let totalActualPlots = 0;
+    if (plots && plots.length > 0) {
+      for (let pIdx = 0; pIdx < plots.length; pIdx++) {
+        const plot = plots[pIdx];
+        const plotCount = Number(plot.actualPlotsCount) || 1;
+        totalActualPlots += plotCount;
+
+        const targetToUpdate =
+          targets.find((t) => t.id === plot.id || (plot.type13TargetId && t.type13TargetId === plot.type13TargetId)) ||
+          targets[pIdx];
+
+        if (targetToUpdate && plot.actualPlotsCount != null) {
+          const baseNotes = (targetToUpdate.notes || "")
+            .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
+            .trim();
+          const updatedNotes = `[จำนวนแปลงจริง: ${plot.actualPlotsCount}] ${baseNotes}`.trim();
+
+          await tx.activityPlanType14Target.update({
+            where: { id: targetToUpdate.id },
+            data: { notes: updatedNotes },
+          });
+        }
+      }
+    } else {
+      totalActualPlots = targets.length || 1;
+    }
+
+    // 3. Delete existing actual results for this plan (cascade deletes productsUsed)
     await tx.activityResultType14.deleteMany({
       where: { activityPlanId },
     });
 
-    // 3. Insert each round
+    // 4. Insert each round
     for (let i = 0; i < rounds.length; i++) {
       const round = rounds[i];
       if (!round.actualVisitDate && !round.visitDate) continue;
@@ -204,6 +246,14 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
         });
       }
     }
+
+    // 5. Update demoPlotsFollowedUp on ActivityResult if present
+    await tx.activityResult.updateMany({
+      where: { activityPlanId },
+      data: {
+        demoPlotsFollowedUp: totalActualPlots,
+      },
+    });
   },
 
   /**

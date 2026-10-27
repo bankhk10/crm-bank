@@ -31,6 +31,7 @@ import {
   findFarmerCustomerOptions,
 } from "../infrastructure/customer-lookup.repository";
 import { findFollowUpActivityPlans } from "../features/type-7b/planned/infrastructure/type7b.repository";
+import { findHattackFollowUpActivityPlans } from "../features/type-14/planned/infrastructure/type14.repository";
 import {
   createUnplannedActivityAction,
   updateUnplannedActivityAction,
@@ -476,6 +477,20 @@ export async function getFollowUpPlansAction() {
   } catch (err: any) {
     console.error("Failed to get follow-up plans:", err);
     return serialize({ success: false, followUpPlans: [], error: err.message });
+  }
+}
+
+export async function getHattackFollowUpPlansAction() {
+  try {
+    const hattackFollowUpPlans = await findHattackFollowUpActivityPlans();
+    return serialize({ success: true, hattackFollowUpPlans });
+  } catch (err: any) {
+    console.error("Failed to get hattack follow-up plans:", err);
+    return serialize({
+      success: false,
+      hattackFollowUpPlans: [],
+      error: err.message,
+    });
   }
 }
 

@@ -12,6 +12,7 @@ import {
   updateActivityPlanAction,
   getDemoPlotsAction,
   getFollowUpPlansAction,
+  getHattackFollowUpPlansAction,
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
@@ -53,6 +54,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
+  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
     useState<Record<string, any[]> | undefined>(undefined);
   const [initialData, setInitialData] = useState<any>(null);
@@ -70,6 +72,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
           prodRes,
           plotRes,
           followUpRes,
+          hattackFollowUpRes,
           catRes,
           mktRes,
           actTypeRes,
@@ -84,6 +87,9 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
           getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
+          getHattackFollowUpPlansAction().catch(() => ({
+            hattackFollowUpPlans: [],
+          })),
           getProductCategoriesAction().catch(() => ({
             success: false,
             productCategories: [],
@@ -123,6 +129,10 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
 
         if (followUpRes && followUpRes.followUpPlans) {
           setFollowUpPlans(followUpRes.followUpPlans);
+        }
+
+        if (hattackFollowUpRes && hattackFollowUpRes.hattackFollowUpPlans) {
+          setHattackFollowUpPlans(hattackFollowUpRes.hattackFollowUpPlans);
         }
 
         if (mktRes && mktRes.success && mktRes.grouped) {
@@ -250,6 +260,33 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
                   totalPlots: allT13Results.length,
                 }
               : (plan as any).type13Actual || null;
+
+          const rawType14Targets = (plan as any).type14Targets || [];
+          const rawType14Products = (plan as any).type14Products || [];
+          const rawType14Results = (plan as any).type14Results || [];
+          const primaryT14Target = rawType14Targets[0];
+          const type14Object =
+            rawType14Targets.length > 0
+              ? {
+                  id: primaryT14Target?.id || plan.id,
+                  activityPlanId: plan.id,
+                  mode: primaryT14Target?.mode || "EXISTING_PLOT",
+                  sourceActivityPlanId:
+                    primaryT14Target?.sourceActivityPlanId ||
+                    primaryT14Target?.type13Target?.activityPlanId ||
+                    null,
+                  selectedPlanId:
+                    primaryT14Target?.sourceActivityPlanId ||
+                    primaryT14Target?.type13Target?.activityPlanId ||
+                    null,
+                  hasProducts: rawType14Products.length > 0,
+                  hasProductWithdrawal: rawType14Products.length > 0,
+                  notes: primaryT14Target?.notes || plan.notes || "",
+                  plots: rawType14Targets,
+                  products: rawType14Products,
+                  results: rawType14Results,
+                }
+              : (plan as any).type14 || null;
 
           setInitialData({
             ...plan,
@@ -407,9 +444,15 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
                 ? mappedType13Plots
                 : (plan as any).type13?.plots || [],
             type13Actual: type13ActualData,
-            type14: (plan as any).type14 || null,
-            type14Data: (plan as any).type14 || null,
-            type14Plots: (plan as any).type14?.plots || [],
+            type14: type14Object,
+            type14Data: type14Object,
+            type14Targets: rawType14Targets,
+            type14Products: rawType14Products,
+            type14Results: rawType14Results,
+            type14Plots:
+              rawType14Targets.length > 0
+                ? rawType14Targets
+                : (plan as any).type14?.plots || [],
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
           });
@@ -467,6 +510,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}
           demoPlots={demoPlots}
           followUpPlans={followUpPlans}
+          hattackFollowUpPlans={hattackFollowUpPlans}
           onSubmit={handleSubmit}
           onBack={() => router.push("/activity-plans")}
           isEdit

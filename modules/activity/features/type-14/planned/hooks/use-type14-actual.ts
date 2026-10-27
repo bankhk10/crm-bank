@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import type {
   Type14SprayRoundState,
   Type14ActualProductState,
+  Type14PlotActualState,
   Type14ImageFile,
 } from "../../shared/types";
 import {
@@ -12,7 +13,11 @@ import {
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType14Actual } from "../application/actual-validation";
 
-export type { Type14SprayRoundState, Type14ActualProductState };
+export type {
+  Type14SprayRoundState,
+  Type14ActualProductState,
+  Type14PlotActualState,
+};
 
 const createDefaultInitialRound = (roundNumber = 1): Type14SprayRoundState => ({
   id: `temp-round-${Date.now()}-${roundNumber}`,
@@ -30,13 +35,81 @@ export function useType14Actual() {
   const [rounds, setRounds] = useState<Type14SprayRoundState[]>([
     createDefaultInitialRound(1),
   ]);
+  const [plotsActual, setPlotsActual] = useState<Type14PlotActualState[]>([]);
   const planRef = useRef<any>(null);
+
+  // Update field on a specific plot
+  const updatePlotField = useCallback(
+    (plotIndex: number, field: keyof Type14PlotActualState, value: any) => {
+      setPlotsActual((prev) =>
+        prev.map((p, idx) => (idx === plotIndex ? { ...p, [field]: value } : p)),
+      );
+    },
+    [],
+  );
 
   // Hydrate state from plan, parsedResult, or targets
   const hydrate = useCallback(
     (plan: any, parsedResult?: any, _targets?: any) => {
       if (!plan) return;
       planRef.current = plan;
+
+      // 1. Hydrate plotsActual
+      const rawPlots: any[] =
+        (_targets && _targets.length > 0 && _targets) ||
+        (parsedResult?.plots && parsedResult.plots.length > 0 && parsedResult.plots) ||
+        (plan.type14Actual?.plots && plan.type14Actual.plots.length > 0 && plan.type14Actual.plots) ||
+        (plan.type14?.plots && plan.type14.plots.length > 0 && plan.type14.plots) ||
+        (plan.type14Plots && plan.type14Plots.length > 0 && plan.type14Plots) ||
+        (plan.type14Targets && plan.type14Targets.length > 0 && plan.type14Targets) ||
+        [];
+
+      if (rawPlots.length > 0) {
+        const mappedPlots: Type14PlotActualState[] = rawPlots.map((p: any, idx: number) => {
+          const matchedTargetResult =
+            (Array.isArray(plan.type14Results) &&
+              (plan.type14Results.find((r: any) => r.targetId === p.id) ||
+                plan.type14Results[idx])) ||
+            null;
+
+          let actualCount = p.actualPlotsCount;
+          if (actualCount == null && matchedTargetResult?.additionalNotes) {
+            const m = matchedTargetResult.additionalNotes.match(/จำนวนแปลงจริง:\s*(\d+)/);
+            if (m) actualCount = Number(m[1]);
+          }
+          if (actualCount == null && p.notes) {
+            const m = p.notes.match(/จำนวนแปลงจริง:\s*(\d+)/);
+            if (m) actualCount = Number(m[1]);
+          }
+          if (actualCount == null) {
+            actualCount = p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1;
+          }
+
+          return {
+            id: p.id,
+            demoPlotId: p.demoPlotId || p.type13TargetId || p.id,
+            type13TargetId: p.type13TargetId || p.type13Target?.id || p.demoPlotId || p.id,
+            clientPlotId: p.clientPlotId || `t14-plot-${idx}`,
+            name: p.plotName || p.name || p.type13Target?.plotName || `แปลงที่ ${idx + 1}`,
+            plotName: p.plotName || p.name || p.type13Target?.plotName || `แปลงที่ ${idx + 1}`,
+            storeId: p.storeId || p.type13Target?.storeId || "",
+            dealerName: p.dealerName || p.type13Target?.dealerName || p.store?.name || null,
+            ownerName: p.ownerName || p.type13Target?.ownerName || null,
+            cropCategory: p.cropCategory || null,
+            cropName: p.cropName || null,
+            province: p.province || p.type13Target?.province || "",
+            district: p.district || p.type13Target?.district || "",
+            subdistrict: p.subdistrict || p.type13Target?.subdistrict || null,
+            village: p.village || p.type13Target?.village || null,
+            plannedPlotsCount: p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1,
+            actualPlotsCount: actualCount,
+            notes: p.notes || null,
+            latitude: p.latitude ? String(p.latitude) : null,
+            longitude: p.longitude ? String(p.longitude) : null,
+          };
+        });
+        setPlotsActual(mappedPlots);
+      }
 
       const rawRounds: any[] =
         plan.type14Actual?.rounds ||
@@ -295,23 +368,36 @@ export function useType14Actual() {
   );
 
   const collectPayload = useCallback(
-    (roundsToCollect: Type14SprayRoundState[] = rounds) => {
+    (
+      roundsToCollect: Type14SprayRoundState[] = rounds,
+      plotsToCollect: Type14PlotActualState[] = plotsActual,
+    ) => {
+      const totalActualPlots = plotsToCollect.reduce(
+        (sum, p) => sum + (Number(p.actualPlotsCount) || 1),
+        0,
+      );
       return {
         type14Actual: {
+          plots: plotsToCollect,
           rounds: roundsToCollect,
           sprayRounds: roundsToCollect,
           totalRounds: roundsToCollect.length,
+          totalPlots: totalActualPlots,
         },
+        demoPlotsFollowedUp: totalActualPlots,
       };
     },
-    [rounds],
+    [rounds, plotsActual],
   );
 
   const validate = useCallback(() => {
-    return validateType14Actual(rounds);
-  }, [rounds]);
+    return validateType14Actual({ rounds, plots: plotsActual });
+  }, [rounds, plotsActual]);
 
   return {
+    plotsActual,
+    setPlotsActual,
+    updatePlotField,
     rounds,
     setRounds,
     hydrate,

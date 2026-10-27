@@ -1,12 +1,15 @@
 import type {
   Type14PlotItem,
   Type14TargetItem,
+  Type14PlotActualState,
   Type14SprayRoundState,
   Type14ActualProductState,
   ProductOption,
   FollowUpPlotOption,
 } from "../../shared/types";
 import type { Type14PlanInput } from "./planned.types";
+
+export type { Type14PlotActualState };
 
 export interface Type14ActualProduct {
   productId: string;

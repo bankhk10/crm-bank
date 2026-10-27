@@ -5,7 +5,7 @@
 > **Work Type Name**: ติดตามแปลงแฮตแทค (Hattack Follow-up)  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Link to Type 13 Targets)
+> **Status**: Production Ready / Active Reference (v2.2.0 — Updated 2026-10-27 Type 13 Plan-level Selector, Multi-plot Actual Counts Sync & Bidirectional Edit-Hydration)
 
 ---
 
@@ -14,20 +14,24 @@
 ### 1.1 วัตถุประสงค์ของ Type 14
 **Type 14 (ติดตามแปลงแฮตแทค - Hattack Follow-up)** มีวัตถุประสงค์เพื่อรองรับการตรวจติดตามและประเมินผลสัมฤทธิ์ของแปลงเกษตรกรที่ผ่านการฉีดพ่นสารเคมีแฮตแทค (จากกิจกรรม Type 13 หรือแปลงสาธิตที่เปิดไว้แล้ว):
 1. ตรวจสอบประสิทธิภาพและประสิทธิผลในการกำจัดแมลง/หนอนศัตรูพืชหลังการฉีดพ่นแฮตแทค
-2. บันทึกระยะเวลาหลังการฉีดพ่น (Days After Spray) และการตอบสนองของพืช (ไม่มีอาการแพ้/ใบเขียวเข้ม/พบอาการใบไหม้)
-3. ประเมินผลการควบคุมการระบาด (ได้ผลดีมาก/ได้ผลตามเกณฑ์/ต้องฉีดพ่นซ้ำ/ไม่เห็นผล)
-4. วางแผนเบิกสินค้าเพิ่มเติม กรณีแปลงเกิดการระบาดรอบใหม่หรือจำเป็นต้องฉีดพ่นซ้ำ (Retreatment)
-5. ถ่ายภาพประเมินสภาพแปลงและยอดพืชหลังการฉีดพ่น (สูงสุด 20 ภาพต่อหมู่บ้าน) เพื่อเป็นหลักฐานเชิงประจักษ์
+2. บันทึกจำนวนแปลงที่ติดตามจริง (`actualPlotsCount`) สำหรับแต่ละแปลงที่ดึงมาจากแผนเดิม
+3. บันทึกระยะเวลาหลังการฉีดพ่น (Days After Spray) และการตอบสนองของพืช (ไม่มีอาการแพ้/ใบเขียวเข้ม/พบอาการใบไหม้)
+4. ประเมินผลการควบคุมการระบาด (ได้ผลดีมาก/ได้ผลตามเกณฑ์/ต้องฉีดพ่นซ้ำ/ไม่เห็นผล)
+5. วางแผนเบิกสินค้าเพิ่มเติม กรณีแปลงเกิดการระบาดรอบใหม่หรือจำเป็นต้องฉีดพ่นซ้ำ (Retreatment)
+6. ถ่ายภาพประเมินสภาพแปลงและยอดพืชหลังการฉีดพ่น (สูงสุด 20 ภาพต่อหมู่บ้าน) เพื่อเป็นหลักฐานเชิงประจักษ์
 
 ### 1.2 ขอบเขตของ Type 14
 - **Dual Plot Selection Modes (การเลือกแปลง 2 โหมด):**
-  - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกติดตามแปลงที่เคยฉีดพ่นแฮตแทคจากแผนงานเดิม (เชื่อมโยง `sourceActivityPlanId` จากแผน Type 13) หรือเลือกแปลงแฮตแทคจาก `ActivityPlanType13Target` ผ่าน `type13TargetId` โดยตรง โดยไม่มีการใช้ตาราง `demo_plots` หรือ `demo_plot_visits` เก่า
+  - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกจาก **แผนงานฉีดแปลงแฮตแทคเดิม (Type 13 Activity Plans)** โดยตรง เมื่อเลือกแผนงานเดิมแล้ว ระบบจะดึงแปลงแฮตแทคทั้งหมดที่อยู่ในแผนงานนั้น (`ActivityPlanType13Target`) เข้ามาเป็นเป้าหมายติดตามผลแบบครบชุด พร้อมข้อมูล Dealer, เกษตรกรเจ้าของแปลง, ที่อยู่, และจำนวนแปลงตามแผน (`plannedPlotsCount`)
   - **โหมดสร้างแปลงใหม่ (`NEW_PLOT`):** ระบุชื่อแปลง ร้านค้า Dealer ผู้รับผิดชอบ เจ้าของแปลง ชนิดพืช และที่อยู่แปลงใหม่โดยตรง บันทึกลง `activity_type_14_targets`
+- **Actual Outcome Recording (หน้าบันทึกผลตามแผน):**
+  - แสดงรายการแปลงแบบ Stacked Cards เหมือน Type 13 โดยแต่ละแปลงจะแสดง Dealer, เจ้าของแปลง, หมู่บ้าน, จำนวนแปลงตามแผน และช่องสำหรับกรอก **จำนวนแปลงที่ติดตามจริง (แปลง) \*** (`actualPlotsCount`)
+  - รองรับการบันทึกรอบการติดตามผล (Tracking Rounds), ผลการตอบสนอง, หมายเหตุ, สินค้าที่ใช้ซ้ำ และรูปภาพ
 - **สถาปัตยกรรมข้อมูล 100% Dedicated Relational Tables:**
   - เป้าหมายแปลงจัดเก็บใน `activity_type_14_targets` (`ActivityPlanType14Target`)
   - สินค้าเบิกพ่นซ้ำจัดเก็บใน `activity_type_14_products` (`ActivityPlanType14Product`)
   - ผลการติดตามจริงจัดเก็บใน `activity_type_14_results` (`ActivityResultType14`) และ `activity_type_14_products_used` (`ActivityResultType14ProductUsed`)
-  - รูปภาพแนบจัดเก็บใน `ActivityAttachment` (หมวดหมู่ `AFTER_SPRAY` / `GENERAL`)
+  - รูปภาพแนบจัดเก็บใน `ActivityAttachment` (หมวดหมู่ `AFTER_SPRAY` / `TRACKING_AFTER_SPRAY`)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 1. **Planned (ในแผนงาน):** วางแผนติดตามแปลงแฮตแทค (เลือกแปลงเดิมหรือสร้างแปลงใหม่) พร้อมขอเบิกสินค้าฉีดพ่นซ้ำล่วงหน้า
@@ -47,7 +51,7 @@ graph TD
     B --> C[เลือกประเภทงาน Type 14 ติดตามแปลงแฮตแทค]
     C --> D[แสดงฟอร์ม Type14PlannedForm]
     D --> E{เลือกโหมดการกำหนดแปลง}
-    E -->|EXISTING_PLOT| F[เลือกแผน Type 13 เดิมที่ Approved หรือเลือกแปลงแฮตแทค type13TargetId]
+    E -->|EXISTING_PLOT| F[เลือกแผนงานฉีดแปลงแฮตแทค Type 13 เดิม -> โหลดแปลงทั้งหมดในแผนอัตโนมัติ]
     E -->|NEW_PLOT| G[กรอกชื่อแปลง เลือกร้านค้า Dealer ระบุเจ้าของแปลง และที่อยู่]
     F --> H{ต้องการเบิกสินค้าพ่นซ้ำหรือไม่?}
     G --> H
@@ -65,15 +69,15 @@ graph TD
     A[เปิดหน้า Trip Plan Actual] --> B[โหลดแผนงานและเป้าหมายแปลงแฮตแทคเดิม]
     B --> C[เลือกสถานะผลการทำกิจกรรม: COMPLETED / PARTIAL]
     C --> D[แสดงฟอร์ม Type14ActualForm]
-    D --> E[เพิ่มรอบการติดตามผล Tracking Round]
-    E --> F[ระบุวันที่ติดตามจริง และจำนวนวันหลังฉีดพ่น]
-    F --> G[ประเมินผลการติดตาม: ได้ผลดีมาก / ได้ผลตามเกณฑ์ / ต้องฉีดซ้ำ / ไม่เห็นผล]
-    G --> H[ระบุการตอบสนองของพืช และบันทึกเพิ่มเติม]
-    H --> I[ระบุสินค้าที่ใช้ฉีดพ่นซ้ำจริง ถ้ามี]
-    I --> J[อัปโหลดรูปภาพสภาพแปลง สูงสุด 20 รูปต่อหมู่บ้าน]
-    J --> K[กดบันทึกผลการปฏิบัติงาน]
-    K --> L[อัปโหลดรูปภาพไปยัง Object Storage]
-    L --> M[บันทึกลง activity_type_14_results, products_used, attachments]
+    D --> E[แสดงรายการแปลงทั้งหมดแบบ Stacked Cards และกรอก 'จำนวนแปลงที่ติดตามจริง (แปลง)' เหมือน Type 13]
+    E --> F[เพิ่มรอบการติดตามผล Tracking Round]
+    F --> G[ระบุวันที่ติดตามจริง และจำนวนวันหลังฉีดพ่น]
+    G --> H[ประเมินผลการติดตาม: ได้ผลดีมาก / ได้ผลตามเกณฑ์ / ต้องฉีดซ้ำ / ไม่เห็นผล]
+    H --> I[ระบุการตอบสนองของพืช และบันทึกเพิ่มเติม]
+    I --> J[ระบุสินค้าที่ใช้ฉีดพ่นซ้ำจริง ถ้ามี]
+    J --> K[อัปโหลดรูปภาพสภาพแปลง สูงสุด 20 รูปต่อหมู่บ้าน]
+    K --> L[กดบันทึกผลการปฏิบัติงาน]
+    L --> M[Strategy บันทึก actualPlotsCount ลง target.notes และผลรอบลง activity_type_14_results]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
@@ -144,7 +148,7 @@ modules/activity/features/type-14/
 | **งบประมาณ** | รายการสินค้าที่ขอเบิกเพื่อฉีดพ่นซ้ำในแปลงติดตาม | งบเบิกสินค้าสาธิตส่วนกลาง, ค่าเดินทาง |
 | **ข้อมูลแปลงสาธิต** | แปลงเดิมจากแผน Type 13 หรือแปลงใหม่, ข้อมูลพืช และ Dealer | - |
 | **ผลการตรวจติดตาม** | รอบการติดตาม, วันหลังฉีดพ่น, ผลการติดตาม, สภาพพืช, ยาที่ใช้ซ้ำ, ภาพถ่ายแปลง 20 ภาพ/หมู่บ้าน | ผลสรุปภาพรวมแผน (สำเร็จ/เลื่อน/ยกเลิก) |
-| **Database Persistence** | ตาราง `activity_plan_type_14`, `activity_plan_type_14_plots`, `activity_plan_type_14_products`, `demo_plot_visits` | ตารางหลัก `ActivityPlan`, `ActivityPlanApprovalLog`, `ActivityAttachment` |
+| **Database Persistence** | ตาราง `activity_type_14_targets`, `activity_type_14_products`, `activity_type_14_results`, `activity_type_14_products_used` | ตารางหลัก `ActivityPlan`, `ActivityPlanApprovalLog`, `ActivityAttachment` |
 
 ### 3.3 Dependency and Import Map
 - **ทิศทางการเรียกใช้ (Allowed):**
@@ -185,7 +189,7 @@ modules/activity/features/type-14/
 - **`type14-plan-card.tsx` & `type14-approval-card.tsx`:** การ์ดสรุปข้อมูลแปลงติดตามตามแผนงาน ข้อมูลร้านค้า Dealer และสรุปรายการขอเบิกสินค้าสำหรับหน้ารายละเอียดและหน้าพิจารณาอนุมัติ
 - **`planned-mapper.ts` & `actual-mapper.ts`:** ทำหน้าที่ดึงข้อมูลแปลงเดิม (`extractType14PlanTargets`), Hydrate ข้อมูลเดิมเมื่อเปิดหน้าแก้ไข, และสกัดข้อมูลรอบการตรวจติดตามจริงจาก `payloadToHydrate`
 - **`planned-validation.ts` & `actual-validation.ts`:** ตรวจสอบความถูกต้องของแผนงาน (ตรวจการเลือกแปลงเดิมหรือกรอกแปลงใหม่ครบถ้วน) และตรวจสอบผลจริง (ต้องระบุวันที่ตรวจและผลการติดตามทุกรอบ)
-- **`type14.repository.ts` & `type14-planned.strategy.ts`:** Data Access Layer จัดการค้นหาแผน Type 13 ที่ Approved (`findHattackFollowUpActivityPlans`), บันทึกตาราง `ActivityPlanType14`, `ActivityPlanType14Plot`, `ActivityPlanType14Product` และอัปเดตสถานะใน `DemoPlotVisit`
+- **`type14.repository.ts` & `type14-planned.strategy.ts`:** Data Access Layer จัดการค้นหาแผน Type 13 ที่พร้อมติดตามผล (`findHattackFollowUpActivityPlans` คืนค่าเป็น `FollowUpPlanOption[]`), ค้นหาเป้าหมายแปลง Type 13 (`findHattackFollowUpDemoPlots`), บันทึกตาราง `ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed` และบันทึกรูปภาพลง `ActivityAttachment` โดยทำงานร่วมกับ Server Action `getHattackFollowUpPlansAction`
 
 ### 4.2 Unplanned
 - **`use-type14-unplanned-form.ts`:** จัดการ State สำหรับฟอร์มกิจกรรมนอกแผน 2-in-1
@@ -223,7 +227,7 @@ sequenceDiagram
     Form->>Hook: collectPayload() ➔ สร้าง type14Actual payload
     Form->>Action: ส่ง Payload เข้า recordActivityResultAction
     Action->>Strategy: saveActual(tx, planId, payload)
-    Strategy->>DB: update() ข้อมูลผลติดตามลง demo_plot_visits
+    Strategy->>DB: createMany() ข้อมูลผลติดตามลง activity_type_14_results และ products_used
     Strategy->>DB: createMany() ภาพถ่ายลง activity_attachments
     DB-->>Strategy: Commit Transaction สำเร็จ
     Strategy-->>Action: ส่งผลลัพธ์กลับ
@@ -231,18 +235,18 @@ sequenceDiagram
 ```
 
 ### 5.1 Create Planned (สร้างแผนใหม่)
-1. `create-view.tsx` เรียกใช้ `useType14PlannedForm()`
+1. `create-view.tsx` เรียกใช้ `useType14PlannedForm()` และดึงแผนติดตามผ่าน `getHattackFollowUpPlansAction()`
 2. ผู้ใช้เลือกโหมด:
-   - กรณีเลือก **"แปลงเดิม" (`EXISTING_PLOT`)**: เลือกแผน Type 13 เดิมที่เคยฉีดพ่นแล้ว หรือเลือกแปลงสาธิตแฮตแทค
+   - กรณีเลือก **"แปลงเดิม" (`EXISTING_PLOT`)**: เลือกแผน Type 13 เดิมที่เคยฉีดพ่นแล้ว หรือเลือกแปลงแฮตแทคจาก `ActivityPlanType13Target`
    - กรณีเลือก **"สร้างแปลงใหม่" (`NEW_PLOT`)**: ระบุชื่อแปลง เลือกร้านค้า Dealer และที่อยู่แปลง
 3. หากต้องการเบิกสินค้าพ่นซ้ำ ผู้ใช้เปิดสวิตช์และเลือกสินค้าพร้อมจำนวน
 4. เมื่อกดส่งข้อมูล ระบบจะรัน `validateType14()`
 5. Form Orchestrator เรียก `mapType14Payload()` เพื่อจัดโครงสร้าง `type14Data`, `type14Plots`, `planStores`, และ `planProducts`
 6. ส่ง Payload ไปยัง `createActivityPlanAction` ➔ เรียกใช้ `type14PlannedStrategy.savePlan()`
-7. `createType14Data` บันทึกลง `ActivityPlanType14`, `ActivityPlanType14Plot`, `ActivityPlanType14Product` และสร้าง/เชื่อมโยง `DemoPlotVisit` สำหรับ TYPE_14
+7. `createType14Data` บันทึกลง `ActivityPlanType14Target` (เชื่อมโยง `type13TargetId` และ `sourceActivityPlanId`) และ `ActivityPlanType14Product`
 
 ### 5.2 Edit Planned (แก้ไขแผนงานเดิม)
-1. `edit-view.tsx` ดึงข้อมูลแผนงาน (`plan`) ผ่าน `getActivityPlanAction`
+1. `edit-view.tsx` ดึงข้อมูลแผนงาน (`plan`) ผ่าน `getActivityPlanAction` และดึงแปลงติดตามผ่าน `getHattackFollowUpPlansAction()`
 2. เรียก `hydrateType14PlannedData(plan)` หรือดึงจาก `plan.type14`
 3. ข้อมูลถูกเซ็ตลงใน `useType14PlannedForm({ initial })`
 4. ฟอร์มแสดงผลแปลงที่เลือกและรายการเบิกสินค้าเดิม พร้อมให้ปรับปรุงและบันทึกซ้ำผ่าน `updateActivityPlanAction`
@@ -252,7 +256,7 @@ sequenceDiagram
 2. เรียก `type14Actual.uploadImages(planId)` เพื่ออัปโหลดภาพถ่ายไปยัง Storage ได้ URLs กลับมา
 3. ดึง Payload ผ่าน `type14Actual.collectPayload()` ได้โครงสร้าง `type14Actual` ที่มีรอบการติดตาม สภาพพืช และสินค้าที่ใช้พ่นซ้ำ
 4. ส่ง Payload เข้า `recordActivityResultAction(planId, payload)`
-5. `type14PlannedStrategy.saveActual()` อัปเดตผลการตรวจติดตามลงตาราง `demo_plot_visits` และบันทึกภาพถ่ายลง `activity_attachments`
+5. `type14PlannedStrategy.saveActual()` บันทึกผลการตรวจติดตามลงตาราง `activity_type_14_results`, บันทึกรายการยาพ่นซ้ำลง `activity_type_14_products_used` และบันทึกภาพถ่ายลง `activity_attachments`
 
 ### 5.4 Load Actual (โหลดผลงานเดิมมาแสดงในหน้าบันทึกผล)
 1. โหลดข้อมูลแผนงานและผลงานเดิมจากฐานข้อมูล
@@ -274,47 +278,6 @@ sequenceDiagram
 ---
 
 ## 6. Data Models and Mapping
-
-### 6.1 Database CRUD Matrix (สิทธิ์และการจัดการตารางในฐานข้อมูล)
-| ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หมายเหตุ |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_type_14_targets`**<br>(`ActivityPlanType14Target`) | `savePlan()` ใน Planned/Unplanned | `findType14ByPlanId()`, `plan.type14Targets` | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | ตารางหลักเป้าหมาย Type 14 เก็บโหมดแปลง ลิงก์แผนต้นทาง Dealer และ DemoPlot |
-| **`activity_type_14_products`**<br>(`ActivityPlanType14Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type14Products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType14Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการสินค้าและจำนวนที่ขอเบิกสำหรับพ่นซ้ำ |
-| **`activity_type_14_results`**<br>(`ActivityResultType14`) | `saveActual()` ใน Actual/Unplanned | `plan.type14Results` ใน Detail / Actual | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บผลการตรวจติดตามจริง วันหลังฉีดพ่น ผลตอบสนองของพืช และพิกัด GPS |
-| **`activity_type_14_products_used`**<br>(`ActivityResultType14ProductUsed`) | `saveActual()` | `result.productsUsed` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType14` | เก็บสินค้าที่ใช้พ่นซ้ำจริง อัตราพ่น และปริมาณที่ใช้ |
-| **`demo_plots`**<br>(`DemoPlot`) | Read-only สำหรับโหมด Existing Plot | `findHattackFollowUpDemoPlots` | อัปเดตพิกัด/ข้อมูลแปลง | - | แปลงสาธิตแฮตแทคที่เคยสร้างไว้จาก Type 13 |
-| **`demo_plot_visits`**<br>(`DemoPlotVisit`) | `createType14Data()` | `plan.demoPlotVisits` ใน Detail / Actual | อัปเดตผลติดตามใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรอบการเข้าติดตาม วันหลังฉีดพ่น ผลการตอบสนองของพืช |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | `saveActual()` | `actualData.attachments` (หมวดหมู่ PLOT) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บรูปภาพหลังการติดตาม |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | อัปโหลดภาพหลังฉีด ➔ `saveActual()` | `actualData.attachments` (หมวดหมู่ AFTER_SPRAY) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บภาพถ่ายสภาพแปลง สูงสุด 20 ภาพต่อหมู่บ้าน |
-
-### 6.2 Complete Field-to-Database Mapping (ตารางจับคู่ฟิลด์ครบถ้วนทุกจุด)
-
-| Form Field (UI) | TypeScript Type Field | Mapper Function (Write/Read) | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
-| :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **โหมดการเลือกแปลง** | `mode` | `mapType14Payload` | `ActivityPlanType14` | `mode` | `VARCHAR` | No | `"EXISTING_PLOT"` |
-| **รหัสแผนงาน Type 13 ต้นทาง**| `selectedPlanId` | `mapType14Payload` | `ActivityPlanType14` | `source_activity_plan_id`| `VARCHAR (FK)` | Yes | `null` |
-| **มีเบิกสินค้าหรือไม่** | `hasProductWithdrawal` | `mapType14Payload` | `ActivityPlanType14` | `has_products` | `BOOLEAN` | No | `false` |
-| **บันทึกแผนงาน Type 14**| `notes` | `mapType14Payload` / `notes.ts` | `ActivityPlanType14` | `notes` | `TEXT` | Yes | `null` |
-| **รหัสแปลงสาธิตแฮตแทค**| `demoPlotId` | `mapType14Payload` / `extractType14PlanTargets` | `ActivityPlanType14Plot` | `demo_plot_id` | `VARCHAR (FK)` | Yes | `null` |
-| **ชื่อแปลงติดตาม** | `name` / `plotName` | `mapType14Payload` / `extractType14PlanTargets` | `ActivityPlanType14Plot` | `plot_name` | `VARCHAR` | Yes | `null` |
-| **ชื่อร้านค้า Dealer** | `dealerName` | `mapType14Payload` | `ActivityPlanType14Plot` | `dealer_name` | `VARCHAR` | Yes | `null` |
-| **ชื่อเจ้าของแปลง** | `ownerName` | `mapType14Payload` | `ActivityPlanType14Plot` | `owner_name` | `VARCHAR` | Yes | `null` |
-| **หมวดหมู่พืช** | `cropCategory` | `mapType14Payload` | `ActivityPlanType14Plot` | `crop_category` | `VARCHAR` | Yes | `null` |
-| **ชนิดพืช** | `cropName` | `mapType14Payload` | `ActivityPlanType14Plot` | `crop_name` | `VARCHAR` | Yes | `null` |
-| **จังหวัดของแปลง** | `province` | `mapType14Payload` | `ActivityPlanType14Plot` | `province` | `VARCHAR` | Yes | `null` |
-| **อำเภอของแปลง** | `district` | `mapType14Payload` | `ActivityPlanType14Plot` | `district` | `VARCHAR` | Yes | `null` |
-| **พิกัดละติจูด (แผน/จริง)**| `latitude` | `mapType14Payload` / `type14Actual.collectPayload` | `ActivityPlanType14Plot` | `latitude` | `DECIMAL(10,7)`| Yes | `null` |
-| **พิกัดลองจิจูด (แผน/จริง)**| `longitude` | `mapType14Payload` / `type14Actual.collectPayload` | `ActivityPlanType14Plot` | `longitude` | `DECIMAL(10,7)`| Yes | `null` |
-| **สินค้าที่ขอเบิกพ่นซ้ำ** | `productId` | `mapType14Payload` | `ActivityPlanType14Product`| `product_id` | `VARCHAR (FK)` | No | - |
-| **จำนวนสินค้าที่เบิก** | `quantity` | `mapType14Payload` (`Number(quantity)`) | `ActivityPlanType14Product`| `quantity` | `DECIMAL(10,2)`| No | `1.00` |
-| **หน่วยนับสินค้าที่เบิก** | `unit` | `mapType14Payload` | `ActivityPlanType14Product`| `unit` | `VARCHAR` | Yes | `"ขวด"` |
-| **รอบการติดตาม** | `roundNumber` | `type14Actual.collectPayload` | `DemoPlotVisit` | `visit_number` | `INTEGER` | No | `1` |
-| **วันที่ตรวจติดตามจริง** | `actualVisitDate` | `type14Actual.collectPayload` (`new Date(actualVisitDate)`) | `DemoPlotVisit` | `visit_date` | `TIMESTAMP` | No | `now()` |
-| **ระยะเวลาหลังฉีดพ่น** | `daysAfterSpray` | `type14Actual.collectPayload` (`parseInt`) | `DemoPlotVisit` | `days_since_start` | `INTEGER` | Yes | `0` |
-| **ผลการติดตาม** | `trackingResult` | `type14Actual.collectPayload` | `DemoPlotVisit` | `product_problem_desc` | `TEXT` | Yes | `null` |
-| **การตอบสนองของพืช** | `productResponse` | `type14Actual.collectPayload` | `DemoPlotVisit` | `product_response` | `VARCHAR` | Yes | `"ปกติ"` |
-| **บันทึกเพิ่มเติมรอบติดตาม**| `additionalNotes` | `type14Actual.collectPayload` | `DemoPlotVisit` | `notes` | `TEXT` | Yes | `null` |
-| **ภาพถ่ายสภาพแปลง** | `afterSprayImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
 
 ### 6.1 Database CRUD Matrix (100% Dedicated Relational Tables)
 | ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หน้าที่รับผิดชอบ |
@@ -553,7 +516,7 @@ model ActivityResultType14ProductUsed {
 - หากมีการเปลี่ยนแปลงคอลัมน์ใน Prisma Schema ให้แก้ไขที่ `planned/infrastructure/type14.repository.ts` ตรงฟังก์ชัน `createType14Data` และ `findType14ByPlanId`
 
 ### 9.4 การปรับแก้ Actual Loading or Hydration
-- ตรวจสอบฟังก์ชัน `hydrate` ภายใน `planned/hooks/use-type14-actual.ts` เพื่อให้รองรับการจับคู่รอบการติดตามจาก `demoPlotVisits` หรือ `plan.result`
+- ตรวจสอบฟังก์ชัน `hydrate` ภายใน `planned/hooks/use-type14-actual.ts` เพื่อให้รองรับการกู้คืนรอบการติดตามจาก `plan.type14Results` และ `ActivityResultType14ProductUsed`
 
 ### 9.5 การแก้ไข Shared Components อย่างปลอดภัย
 - คอมโพเนนต์ใน `@/modules/activity/ui` ถูกใช้งานร่วมกันทั่วทั้งระบบ ให้คง Props เดิมไว้เสมอและไม่ใส่ Logic เฉพาะของ Type 14 ลงไปใน Shared UI
@@ -578,11 +541,11 @@ model ActivityResultType14ProductUsed {
 [Step 5: Server Action] ➔ recordActivityResultAction ➔ ตรวจการส่ง payload เข้า upsertActivityResult
         ↓
 [Step 6: Strategy Write] ➔ type14-planned.strategy.ts: saveActual()
-                         (ตรวจการอัปเดตลง DemoPlotVisit และ ActivityAttachment)
+                         (ตรวจการบันทึกลง ActivityResultType14, ProductsUsed และ ActivityAttachment)
         ↓
-[Step 7: Database Table] ➔ ตรวจสอบตาราง demo_plot_visits ในฐานข้อมูล PostgreSQL
+[Step 7: Database Table] ➔ ตรวจสอบตาราง activity_type_14_results และ products_used ในฐานข้อมูล PostgreSQL
         ↓
-[Step 8: Load Hydrator] ➔ use-type14-actual.ts: hydrate() ➔ ตรวจสอบการกู้คืน rounds จาก demoPlotVisits
+[Step 8: Load Hydrator] ➔ use-type14-actual.ts: hydrate() ➔ ตรวจสอบการกู้คืน rounds จาก type14Results
 ```
 
 ### 10.2 ตารางวิเคราะห์ปัญหาที่พบบ่อย (Common Pitfalls)
@@ -591,10 +554,10 @@ model ActivityResultType14ProductUsed {
 | :--- | :--- | :--- |
 | **บันทึกแผนงานไม่ได้ในโหมดแปลงเดิม** | `planned-validation.ts` | ยังไม่ได้เลือกแปลงสาธิตแฮตแทคจากตาราง ให้เลือกอย่างน้อย 1 แปลง (`selectedPlotIds`) |
 | **บันทึกแผนงานไม่ได้ในโหมดแปลงใหม่** | `planned-validation.ts` | ขาดชื่อแปลง (`name`), ร้านค้า Dealer (`storeId`) หรือจังหวัด ให้กรอกให้ครบถ้วน |
-| **รอบการติดตามหายหลัง Reload หน้าจอ** | `use-type14-actual.ts` ➔ `hydrate` | `workTypeCode !== "TYPE_14"` ใน `demoPlotVisits` ให้ตรวจว่าตอนสร้างแผนงานระบุ workTypeCode ถูกต้องหรือไม่ |
+| **รอบการติดตามหายหลัง Reload หน้าจอ** | `use-type14-actual.ts` ➔ `hydrate` | ตรวจสอบว่าใน `ActivityResultType14` และ `activity_type_14_results` มีระเบียนที่บันทึกไว้ตาม `activityPlanId` ถูกต้องหรือไม่ |
 | **รูปถ่ายสภาพแปลงเกิน 20 รูป** | `type14-actual-form.tsx` | ระบบจำกัด 20 รูปต่อหมู่บ้าน ให้ใช้ `availableSlots = 20 - images.length` ก่อนอนุญาตให้อัปโหลด |
 | **รายการสินค้าที่เบิกไม่แสดงในการ์ดอนุมัติ** | `type14-plan-card.tsx` | ตรวจสอบว่า `ActivityPlanType14Product` ถูก include มาในฟังก์ชัน `findType14ByPlanId` หรือไม่ |
-| **แผนงานต้นทาง Type 13 ไม่แสดงให้เลือก** | `type14.repository.ts` ➔ `findHattackFollowUpActivityPlans` | แผน Type 13 ต้องมีสถานะเป็น `APPROVED` และผลการดำเนินงานต้องเป็น `COMPLETED` เท่านั้นจึงจะแสดงให้เลือก |
+| **แผนงานต้นทาง Type 13 ไม่แสดงให้เลือก (เลือกแปลงเดิมว่าง)** | `type14.repository.ts` ➔ `findHattackFollowUpActivityPlans` / `getHattackFollowUpPlansAction` | แผน Type 13 ในระบบต้องไม่ถูกยกเลิก (`status !== "CANCELLED"`) และมีเป้าหมายแปลง `ActivityPlanType13Target` ที่ไม่ถูกยกเลิก โดยระบบจะดึงผ่าน `getHattackFollowUpPlansAction()` และมี Self-healing fallback ใน `Type14PlannedForm` |
 
 ---
 
@@ -640,3 +603,4 @@ model ActivityResultType14ProductUsed {
 | **2026-10-21** | 1.5.0 | ปรับปรุงกิจกรรมนอกแผน (Unplanned 2-in-1) และเชื่อมต่อ Strategy เข้ากับ `strategy.registry.ts` | Antigravity AI |
 | **2026-10-22** | 1.6.0 | จัดทำเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วน 100% | Antigravity AI |
 | **2026-10-27** | 2.0.0 | **ยกเลิกตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType14Target` ให้เชื่อมโยงตรงสู่แปลงแฮตแทค `ActivityPlanType13Target` ผ่าน `type13TargetId`<br>2. ปรับการบันทึกผลงานจริงลงตารางเฉพาะ `activity_type_14_results` และ `activity_type_14_products_used`<br>3. อัปเดตผัง Schema, Data Flow และ Documentation ครบถ้วน 100% | Antigravity AI |
+| **2026-10-27** | 2.1.0 | **แก้ไขปัญหาช่องเลือกแปลงเดิมไม่แสดงตัวเลือก & อัปเดตเอกสาร Type 14 ให้สมบูรณ์ 100%:**<br>1. พัฒนา Server Action `getHattackFollowUpPlansAction()` ใน `planned.actions.ts` และ `actions.ts`<br>2. ปรับปรุง `findHattackFollowUpActivityPlans()` ใน `type14.repository.ts` ให้คืนค่าเป็น `FollowUpPlanOption[]` รองรับการแปลง `type13Targets` เป็น `plots` พร้อมข้อมูล Dealer, เจ้าของแปลง, พิกัด และ `planTitle`<br>3. เพิ่ม Self-healing Fallback `useEffect` ใน `Type14PlannedForm` เพื่อดึงข้อมูลแผน Type 13 อัตโนมัติเมื่อ Props ว่าง<br>4. เชื่อมต่อ `hattackFollowUpPlans` ผ่าน `PlannedActivityForm`, `create-view.tsx` และ `edit-view.tsx` ครบวงจร<br>5. ปรับปรุง `README.md` ลบข้อความตกค้างของ `demo_plots` และ `demo_plot_visits` ออกทั้งหมด พร้อมอัปเดต Data Flow และ Troubleshooting ให้ตรงกับ 100% Dedicated Relational Schema | Antigravity AI |

@@ -1513,6 +1513,9 @@ export function ActivityPlanActualView({
           payload = {
             ...payload,
             type14Actual: t14Payload.type14Actual,
+            type14Plots:
+              t14Payload.type14Actual?.plots || type14Actual.plotsActual,
+            demoPlotsFollowedUp: t14Payload.demoPlotsFollowedUp,
             attachments: [
               ...(payload.attachments || []),
               ...uploadedAttachments,
@@ -1536,7 +1539,13 @@ export function ActivityPlanActualView({
             !isType13Active
           ) {
             const roundsCount = type14Actual.rounds?.length || 1;
-            payload.resultSummary = `ติดตามแปลงแฮตแทค: สำเร็จ (${roundsCount} รอบ)`;
+            const plotsCount =
+              type14Actual.plotsActual?.reduce(
+                (sum, p) => sum + (Number(p.actualPlotsCount) || 1),
+                0,
+              ) || 1;
+            payload.resultSummary = `ติดตามแปลงแฮตแทค: สำเร็จ (${plotsCount} แปลง, ${roundsCount} รอบ)`;
+            payload.demoPlotsFollowedUp = plotsCount;
           }
         }
       }

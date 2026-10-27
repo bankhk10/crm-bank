@@ -26,20 +26,23 @@ export function extractType14PlanTargets(
 
   const mappedList: Type14PlotItem[] = plots.map((p, idx) => ({
     id: p.id || `plot-${idx + 1}`,
-    demoPlotId: p.demoPlotId || p.id || null,
-    name: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
-    plotName: p.plotName || p.name || `แปลงที่ ${idx + 1}`,
-    storeId: p.storeId || p.customerId || "",
-    dealerName: p.dealerName || p.store?.name || p.customer?.name || null,
-    ownerName: p.ownerName || p.customer?.name || null,
+    type13TargetId: p.type13TargetId || p.type13Target?.id || p.demoPlotId || p.id || null,
+    demoPlotId: p.demoPlotId || p.type13TargetId || p.id || null,
+    name: p.plotName || p.name || p.type13Target?.plotName || `แปลงที่ ${idx + 1}`,
+    plotName: p.plotName || p.name || p.type13Target?.plotName || `แปลงที่ ${idx + 1}`,
+    storeId: p.storeId || p.customerId || p.type13Target?.storeId || "",
+    dealerName: p.dealerName || p.store?.name || p.type13Target?.dealerName || p.customer?.name || null,
+    ownerName: p.ownerName || p.type13Target?.ownerName || p.customer?.name || null,
     cropCategory: p.cropCategory || null,
     cropName: p.cropName || null,
     areaRai: p.areaRai != null ? Number(p.areaRai) : null,
     treeCount: p.treeCount != null ? Number(p.treeCount) : null,
-    province: p.province || p.store?.province || "",
-    district: p.district || p.store?.district || "",
-    subdistrict: p.subdistrict || p.store?.subdistrict || null,
-    village: p.village || null,
+    province: p.province || p.store?.province || p.type13Target?.province || "",
+    district: p.district || p.store?.district || p.type13Target?.district || "",
+    subdistrict: p.subdistrict || p.store?.subdistrict || p.type13Target?.subdistrict || null,
+    village: p.village || p.type13Target?.village || null,
+    plannedPlotsCount: p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1,
+    actualPlotsCount: p.actualPlotsCount ?? null,
     latitude: p.latitude != null ? String(p.latitude) : null,
     longitude: p.longitude != null ? String(p.longitude) : null,
     products: p.products || [],
@@ -105,24 +108,64 @@ export function hydrateType14PlannedData(
       unit: p.unit || p.product?.unit || "ขวด",
     }));
 
-    const plotIds = plots.map((p: any) => p.demoPlotId).filter(Boolean);
+    const plotIds = plots
+      .map((p: any) => p.type13TargetId || p.demoPlotId || p.id)
+      .filter(Boolean);
+
+    const resolvedPlanId =
+      t14.sourceActivityPlanId ||
+      t14.selectedPlanId ||
+      primaryPlot.sourceActivityPlanId ||
+      primaryPlot.sourceActivityPlan?.id ||
+      primaryPlot.type13Target?.activityPlanId ||
+      fetchedHattackPlansWithPlots.find((fp) =>
+        fp.plots.some((pl) => plotIds.includes(pl.id)),
+      )?.planId ||
+      null;
 
     return {
       mode: (t14.mode as "EXISTING_PLOT" | "NEW_PLOT") || "EXISTING_PLOT",
-      selectedPlanId: t14.sourceActivityPlanId || null,
-      demoPlotId: primaryPlot.demoPlotId || null,
+      selectedPlanId: resolvedPlanId,
+      demoPlotId: primaryPlot.demoPlotId || primaryPlot.type13TargetId || null,
+      type13TargetId: primaryPlot.type13TargetId || null,
       selectedPlotIds: plotIds,
       demoPlotIds: plotIds,
+      type13TargetIds: plotIds,
       plots: plots.map((p: any) => ({
         id: p.id,
-        demoPlotId: p.demoPlotId,
-        name: p.plotName || "แปลงแฮตแทค",
-        plotName: p.plotName || "แปลงแฮตแทค",
-        storeId: primaryPlot.storeId || "",
-        dealerName: p.dealerName,
-        ownerName: p.ownerName,
-        province: p.province || "",
-        district: p.district || "",
+        demoPlotId: p.demoPlotId || p.type13TargetId || p.id,
+        type13TargetId: p.type13TargetId || p.demoPlotId || p.id,
+        name: p.plotName || p.name || p.type13Target?.plotName || "แปลงแฮตแทค",
+        plotName: p.plotName || p.name || p.type13Target?.plotName || "แปลงแฮตแทค",
+        storeId: p.storeId || p.type13Target?.storeId || primaryPlot.storeId || "",
+        dealerName:
+          p.dealerName ||
+          p.type13Target?.dealerName ||
+          p.store?.name ||
+          primaryPlot.dealerName ||
+          null,
+        ownerName:
+          p.ownerName ||
+          p.type13Target?.ownerName ||
+          primaryPlot.ownerName ||
+          null,
+        cropCategory: p.cropCategory || null,
+        cropName: p.cropName || null,
+        province:
+          p.province ||
+          p.type13Target?.province ||
+          primaryPlot.province ||
+          "",
+        district:
+          p.district ||
+          p.type13Target?.district ||
+          primaryPlot.district ||
+          "",
+        subdistrict: p.subdistrict || p.type13Target?.subdistrict || null,
+        village: p.village || p.type13Target?.village || null,
+        plannedPlotsCount:
+          p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1,
+        actualPlotsCount: p.actualPlotsCount ?? null,
         latitude: p.latitude ? String(p.latitude) : "",
         longitude: p.longitude ? String(p.longitude) : "",
       })),

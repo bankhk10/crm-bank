@@ -28,6 +28,7 @@ import {
 import type {
   Type14SprayRoundState,
   Type14ActualProductState,
+  Type14PlotActualState,
   ProductOption,
 } from "../../shared/types";
 import type { Type14ActualProps } from "../types/actual.types";
@@ -38,6 +39,7 @@ export function Type14ActualForm({
   isVisible = true,
   actualState,
   products = [],
+  dealers = [],
   readonly = false,
   className = "",
   targets = [],
@@ -45,36 +47,200 @@ export function Type14ActualForm({
   if (!isVisible || !actualState) return null;
 
   const rounds: Type14SprayRoundState[] = actualState.rounds || [];
+  const plotsActual: Type14PlotActualState[] = actualState.plotsActual || [];
+  const updatePlotField = actualState.updatePlotField;
+
+  const fallbackPlots: Type14PlotActualState[] = React.useMemo(() => {
+    return targets.map((t, idx) => ({
+      id: t.id,
+      demoPlotId: t.demoPlotId || t.type13TargetId || t.id,
+      type13TargetId: t.type13TargetId || t.demoPlotId || t.id,
+      clientPlotId: `plot-${idx}`,
+      name: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+      plotName: t.plotName || t.name || `แปลงที่ ${idx + 1}`,
+      storeId: t.storeId || "",
+      dealerName: t.dealerName || null,
+      ownerName: t.ownerName || null,
+      province: t.province || "",
+      district: t.district || "",
+      subdistrict: t.subdistrict || null,
+      village: t.village || null,
+      plannedPlotsCount: t.plannedPlotsCount ?? 1,
+      actualPlotsCount: t.actualPlotsCount ?? t.plannedPlotsCount ?? 1,
+    }));
+  }, [targets]);
+
+  const plotsList = plotsActual.length > 0 ? plotsActual : fallbackPlots;
+
+  // Auto-sync fallback plots into actualState if initially empty
+  React.useEffect(() => {
+    if (
+      plotsActual.length === 0 &&
+      fallbackPlots.length > 0 &&
+      actualState.setPlotsActual
+    ) {
+      actualState.setPlotsActual(fallbackPlots);
+    }
+  }, [plotsActual.length, fallbackPlots, actualState.setPlotsActual]);
+
+  const handleUpdatePlotActualCount = (plotIdx: number, val: any) => {
+    if (readonly) return;
+    if (updatePlotField) {
+      updatePlotField(plotIdx, "actualPlotsCount", val);
+    }
+  };
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Overview target banner if present */}
-      {targets.length > 0 && (
-        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
-            <Layers className="h-4 w-4 text-emerald-600" />
-            <span>แปลงเป้าหมายที่ต้องติดตาม ({targets.length} แปลง)</span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            {targets.map((t, idx) => (
-              <span
-                key={t.id || idx}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 font-medium text-slate-800 shadow-2xs border border-slate-200"
-              >
-                <span className="font-semibold text-emerald-700">
-                  {idx + 1}. {t.name || t.plotName || `แปลงที่ ${idx + 1}`}
+      {/* 1. Plots Stacked List & Actual Plots Count Input (เหมือน Type 13) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-6 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 font-bold shrink-0">
+              14
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                <span>บันทึกผลงานจริง: ติดตามแปลงแฮตแทค (TYPE_14)</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
+                  {plotsList.length} แปลง
                 </span>
-                {t.dealerName && (
-                  <span className="text-slate-500">({t.dealerName})</span>
-                )}
-                {t.province && (
-                  <span className="text-slate-400">จ.{t.province}</span>
-                )}
-              </span>
-            ))}
+              </h4>
+              <p className="text-xs text-slate-500">
+                ระบุจำนวนแปลงที่ติดตามผลจริงสำหรับแต่ละแปลง พร้อมบันทึกรายละเอียดรอบการติดตาม
+              </p>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Plots Stacked List */}
+        <div className="space-y-4">
+          {plotsList.map((plot: Type14PlotActualState, plotIdx: number) => {
+            const matchedDealer = dealers?.find(
+              (d: any) => d.id === plot.storeId,
+            );
+            const dealerDisplayName =
+              plot.dealerName ||
+              matchedDealer?.name ||
+              "-";
+
+            const locParts = [
+              plot.subdistrict ? `ต.${plot.subdistrict}` : null,
+              plot.district ? `อ.${plot.district}` : null,
+              plot.province ? `จ.${plot.province}` : null,
+            ].filter(Boolean);
+            const locationText = locParts.length > 0 ? locParts.join(" ") : null;
+
+            const ownerDisplayName = plot.ownerName || "-";
+            const villageDisplayName = plot.village || "-";
+            const plannedCount =
+              plot.plannedPlotsCount != null && plot.plannedPlotsCount !== ""
+                ? plot.plannedPlotsCount
+                : 1;
+
+            return (
+              <div
+                key={plot.clientPlotId || plot.id || `plot-${plotIdx}`}
+                className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-4 sm:p-5 space-y-4 shadow-2xs hover:border-emerald-200 transition-colors"
+              >
+                {/* Header: Plot Index & Plot Name */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0">
+                      {plotIdx + 1}
+                    </div>
+                    <span className="font-bold text-slate-800 text-sm">
+                      แปลงที่ {plotIdx + 1}: {plot.plotName || plot.name || `แปลงแฮตแทค ${plotIdx + 1}`}
+                    </span>
+                    {dealerDisplayName !== "-" && (
+                      <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                        (ตัวแทน: {dealerDisplayName})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Display Section: Dealer, Owner, Village, Planned plots */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <span className="block text-[11px] text-slate-400 font-medium">
+                      ร้านค้า Dealer
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                      {dealerDisplayName}
+                    </span>
+                    {locationText && (
+                      <span className="text-[11px] text-slate-400 block mt-0.5 truncate">
+                        {locationText}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-slate-400 font-medium">
+                      เจ้าของแปลง / เกษตรกร
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                      {ownerDisplayName}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-slate-400 font-medium">
+                      หมู่บ้าน
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 block mt-0.5 truncate">
+                      {villageDisplayName}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-slate-400 font-medium">
+                      จำนวนแปลงตามแผน
+                    </span>
+                    <span className="text-xs sm:text-sm font-semibold text-emerald-800 block mt-0.5">
+                      {plannedCount} แปลง
+                    </span>
+                  </div>
+                </div>
+
+                {/* Input: จำนวนแปลงที่ติดตามจริง (เหมือน Type 13) */}
+                <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200">
+                  <div className="max-w-xs space-y-1">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      จำนวนแปลงที่ติดตามจริง (แปลง){" "}
+                      <span className="text-rose-500">*</span>
+                    </label>
+                    <ActivityInput
+                      type="number"
+                      min={1}
+                      placeholder={
+                        plannedCount
+                          ? `ตามแผน: ${plannedCount} แปลง`
+                          : "ระบุจำนวนแปลงที่ติดตามจริง..."
+                      }
+                      value={
+                        plot.actualPlotsCount != null
+                          ? String(plot.actualPlotsCount)
+                          : ""
+                      }
+                      onChange={(e) =>
+                        handleUpdatePlotActualCount(
+                          plotIdx,
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      disabled={readonly}
+                      required
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Tracking Rounds */}
       <div className="space-y-5">

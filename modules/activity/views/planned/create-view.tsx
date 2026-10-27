@@ -12,6 +12,7 @@ import {
   getCurrentUserEmployeeAction,
   getDemoPlotsAction,
   getFollowUpPlansAction,
+  getHattackFollowUpPlansAction,
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
@@ -48,6 +49,7 @@ export function PlannedCreateView() {
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
+  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
     useState<Record<string, any[]> | undefined>(undefined);
   const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
@@ -65,6 +67,7 @@ export function PlannedCreateView() {
           prodRes,
           plotRes,
           followUpRes,
+          hattackFollowUpRes,
           catRes,
           mktRes,
           actTypeRes,
@@ -79,6 +82,9 @@ export function PlannedCreateView() {
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
           getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
+          getHattackFollowUpPlansAction().catch(() => ({
+            hattackFollowUpPlans: [],
+          })),
           getProductCategoriesAction().catch(() => ({
             success: false,
             productCategories: [],
@@ -118,6 +124,10 @@ export function PlannedCreateView() {
 
         if (followUpRes && followUpRes.followUpPlans) {
           setFollowUpPlans(followUpRes.followUpPlans);
+        }
+
+        if (hattackFollowUpRes && hattackFollowUpRes.hattackFollowUpPlans) {
+          setHattackFollowUpPlans(hattackFollowUpRes.hattackFollowUpPlans);
         }
 
         if (mktRes && mktRes.success && mktRes.grouped) {
@@ -184,6 +194,7 @@ export function PlannedCreateView() {
         promotionalMaterialsByCategory={promotionalMaterialsByCategory}
         demoPlots={demoPlots}
         followUpPlans={followUpPlans}
+        hattackFollowUpPlans={hattackFollowUpPlans}
         onSubmit={handleSubmit}
         onBack={() => router.push("/activity-plans")}
       />

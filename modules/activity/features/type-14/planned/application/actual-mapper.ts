@@ -56,6 +56,28 @@ export function parseType14ActualResult(
 
   actualData.rounds = mappedRounds;
   actualData.sprayRounds = mappedRounds;
+
+  const rawPlots: any[] =
+    payloadToHydrate.type14Actual?.plots ||
+    payloadToHydrate.type14Plots ||
+    payloadToHydrate.type14Targets ||
+    payloadToHydrate.plots ||
+    [];
+
+  if (rawPlots.length > 0) {
+    actualData.plots = rawPlots.map((p: any) => {
+      let actualCount = p.actualPlotsCount;
+      if (actualCount == null && p.notes) {
+        const m = String(p.notes).match(/จำนวนแปลงจริง:\s*(\d+)/);
+        if (m) actualCount = Number(m[1]);
+      }
+      return {
+        ...p,
+        actualPlotsCount: actualCount,
+      };
+    });
+  }
+
   actualData.attachments = rawAttachments.filter(
     (att) =>
       att.workTypeCode === "TYPE_14" ||

@@ -691,7 +691,12 @@ export function ActualWorkTypeList({
           actualState={type14State}
           products={products || []}
           dealers={customers || []}
-          targets={type14Targets || plan?.type14Plots || plan?.t14Plots}
+          plan={plan}
+          targets={
+            type14Targets && type14Targets.length > 0
+              ? type14Targets
+              : plan?.type14Targets || plan?.type14Plots || plan?.t14Plots || []
+          }
         />
       )}
     </div>

@@ -3,22 +3,19 @@ import {
   Prisma,
   DemoPlotStatus,
   ActivityStatus,
-  ActivityResultStatus,
 } from "@prisma/client";
 import type { Type14PlanInput } from "../types/planned.types";
+import type { FollowUpPlanOption } from "../../shared/types";
 
 /**
- * Fetch approved TYPE_13 Activity Plans with completed results and their Hattack demo plots
+ * Fetch active TYPE_13 Activity Plans and their Hattack plots
  * Strictly for TYPE_14 ("ติดตามแปลงแฮตแทค")
  */
-export async function findHattackFollowUpActivityPlans() {
+export async function findHattackFollowUpActivityPlans(): Promise<FollowUpPlanOption[]> {
   const plans = await db.activityPlan.findMany({
     where: {
       deletedAt: null,
-      status: ActivityStatus.APPROVED,
-      result: {
-        resultStatus: ActivityResultStatus.COMPLETED,
-      },
+      status: { not: ActivityStatus.CANCELLED },
       OR: [
         { activityType: { code: "TYPE_13" } },
         { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
@@ -36,7 +33,13 @@ export async function findHattackFollowUpActivityPlans() {
         },
         include: {
           store: {
-            select: { id: true, name: true, customerCode: true },
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              province: true,
+              district: true,
+            },
           },
           products: {
             include: { product: true },
@@ -44,10 +47,33 @@ export async function findHattackFollowUpActivityPlans() {
         },
       },
     },
-    orderBy: { startDate: "desc" },
+    orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
 
-  return plans;
+  return plans.map((plan) => ({
+    planId: plan.id,
+    planCode: plan.code || undefined,
+    planTitle: plan.title,
+    planDate: plan.startDate
+      ? new Date(plan.startDate).toLocaleDateString("th-TH")
+      : undefined,
+    plots: plan.type13Targets.map((plot) => ({
+      id: plot.id,
+      planId: plan.id,
+      code: plot.code || undefined,
+      name: plot.plotName || "แปลงแฮตแทค",
+      ownerName: plot.ownerName || plot.store?.name || plot.dealerName || "-",
+      dealerId: plot.storeId || plot.store?.id || undefined,
+      dealerName: plot.dealerName || plot.store?.name || undefined,
+      province: plot.province || plot.store?.province || "",
+      district: plot.district || plot.store?.district || "",
+      subdistrict: plot.subdistrict || undefined,
+      village: plot.village || undefined,
+      plannedPlotsCount: plot.plannedPlotsCount ?? 1,
+      latitude: plot.latitude ? String(plot.latitude) : undefined,
+      longitude: plot.longitude ? String(plot.longitude) : undefined,
+    })),
+  }));
 }
 
 /**
@@ -91,7 +117,10 @@ export async function createType14Data(
   if (!type14Data) return;
 
   // Resolve valid sourceActivityPlanId to prevent foreign key errors
-  let validSourcePlanId = type14Data.selectedPlanId || null;
+  let validSourcePlanId =
+    type14Data.selectedPlanId ||
+    (type14Data as any).sourceActivityPlanId ||
+    null;
   if (validSourcePlanId) {
     const existingPlan = await tx.activityPlan.findUnique({
       where: { id: validSourcePlanId },
@@ -102,13 +131,37 @@ export async function createType14Data(
     }
   }
 
-  // Handle plots
-  const plotIds =
-    type14Data.selectedPlotIds ||
-    type14Data.type13TargetIds ||
-    type14Data.demoPlotIds ||
-    (type14Data.type13TargetId ? [type14Data.type13TargetId] : []) ||
-    (type14Data.demoPlotId ? [type14Data.demoPlotId] : []);
+  // Handle plots: extract plotIds from all possible properties
+  let plotIds: string[] =
+    (type14Data.selectedPlotIds && type14Data.selectedPlotIds.length > 0
+      ? type14Data.selectedPlotIds
+      : null) ||
+    (type14Data.type13TargetIds && type14Data.type13TargetIds.length > 0
+      ? type14Data.type13TargetIds
+      : null) ||
+    (type14Data.demoPlotIds && type14Data.demoPlotIds.length > 0
+      ? type14Data.demoPlotIds
+      : null) ||
+    (type14Data.plots && type14Data.plots.length > 0
+      ? (type14Data.plots
+          .map((p: any) => p.type13TargetId || p.demoPlotId || p.id)
+          .filter(Boolean) as string[])
+      : null) ||
+    (type14Data.type13TargetId ? [type14Data.type13TargetId] : null) ||
+    (type14Data.demoPlotId ? [type14Data.demoPlotId] : null) ||
+    [];
+
+  // Self-healing: if plotIds is empty but validSourcePlanId is provided, pull all Type 13 targets of that plan
+  if (plotIds.length === 0 && validSourcePlanId) {
+    const sourcePlanTargets = await tx.activityPlanType13Target.findMany({
+      where: {
+        activityPlanId: validSourcePlanId,
+        status: { not: DemoPlotStatus.CANCELLED },
+      },
+      select: { id: true },
+    });
+    plotIds = sourcePlanTargets.map((t) => t.id);
+  }
 
   let primaryTargetId: string | null = null;
 
@@ -120,32 +173,68 @@ export async function createType14Data(
     for (let i = 0; i < plotIds.length; i++) {
       const plotId = plotIds[i];
       const target13 = existingTargets.find((p) => p.id === plotId);
+      const plotItem =
+        type14Data.plots?.find(
+          (p: any) =>
+            (p.type13TargetId || p.demoPlotId || p.id) === plotId,
+        ) || type14Data.plots?.[i];
 
       const target = await tx.activityPlanType14Target.create({
         data: {
           activityPlanId: planId,
           mode: type14Data.mode || "EXISTING_PLOT",
-          sourceActivityPlanId: validSourcePlanId || target13?.activityPlanId || null,
-          type13TargetId: plotId,
-          plotName: target13?.plotName || type14Data.name || null,
-          storeId: target13?.storeId || type14Data.storeId || null,
-          dealerName: target13?.dealerName || type14Data.dealerName || null,
-          ownerName: target13?.ownerName || type14Data.ownerName || null,
-          cropCategory: type14Data.cropCategory || null,
-          cropName: type14Data.cropName || null,
-          province: target13?.province || type14Data.province || "",
-          district: target13?.district || type14Data.district || "",
+          sourceActivityPlanId:
+            validSourcePlanId || target13?.activityPlanId || null,
+          type13TargetId: target13 ? plotId : null,
+          plotName:
+            target13?.plotName ||
+            plotItem?.plotName ||
+            plotItem?.name ||
+            type14Data.name ||
+            `แปลงแฮตแทค ${i + 1}`,
+          storeId:
+            target13?.storeId ||
+            plotItem?.storeId ||
+            type14Data.storeId ||
+            null,
+          dealerName:
+            target13?.dealerName ||
+            plotItem?.dealerName ||
+            type14Data.dealerName ||
+            null,
+          ownerName:
+            target13?.ownerName ||
+            plotItem?.ownerName ||
+            type14Data.ownerName ||
+            null,
+          cropCategory:
+            type14Data.cropCategory || plotItem?.cropCategory || null,
+          cropName: type14Data.cropName || plotItem?.cropName || null,
+          province:
+            target13?.province ||
+            plotItem?.province ||
+            type14Data.province ||
+            "",
+          district:
+            target13?.district ||
+            plotItem?.district ||
+            type14Data.district ||
+            "",
           latitude:
             target13?.latitude ??
-            (type14Data.latitude
-              ? new Prisma.Decimal(type14Data.latitude)
-              : null),
+            (plotItem?.latitude != null
+              ? new Prisma.Decimal(Number(plotItem.latitude))
+              : type14Data.latitude
+                ? new Prisma.Decimal(Number(type14Data.latitude))
+                : null),
           longitude:
             target13?.longitude ??
-            (type14Data.longitude
-              ? new Prisma.Decimal(type14Data.longitude)
-              : null),
-          notes: type14Data.notes || null,
+            (plotItem?.longitude != null
+              ? new Prisma.Decimal(Number(plotItem.longitude))
+              : type14Data.longitude
+                ? new Prisma.Decimal(Number(type14Data.longitude))
+                : null),
+          notes: type14Data.notes || plotItem?.notes || null,
         },
       });
 
@@ -153,14 +242,39 @@ export async function createType14Data(
         primaryTargetId = target.id;
       }
     }
-  } else if (type14Data.mode === "NEW_PLOT" && type14Data.name) {
+  } else if (type14Data.plots && type14Data.plots.length > 0) {
+    for (let i = 0; i < type14Data.plots.length; i++) {
+      const p = type14Data.plots[i];
+      const target = await tx.activityPlanType14Target.create({
+        data: {
+          activityPlanId: planId,
+          mode: type14Data.mode || "EXISTING_PLOT",
+          sourceActivityPlanId: validSourcePlanId,
+          type13TargetId: p.type13TargetId || null,
+          plotName: p.plotName || p.name || type14Data.name || `แปลงแฮตแทค ${i + 1}`,
+          storeId: p.storeId || type14Data.storeId || null,
+          dealerName: p.dealerName || type14Data.dealerName || null,
+          ownerName: p.ownerName || type14Data.ownerName || null,
+          cropCategory: p.cropCategory || type14Data.cropCategory || null,
+          cropName: p.cropName || type14Data.cropName || null,
+          province: p.province || type14Data.province || "",
+          district: p.district || type14Data.district || "",
+          latitude: p.latitude != null ? new Prisma.Decimal(Number(p.latitude)) : null,
+          longitude: p.longitude != null ? new Prisma.Decimal(Number(p.longitude)) : null,
+          notes: p.notes || type14Data.notes || null,
+        },
+      });
+      if (i === 0) primaryTargetId = target.id;
+    }
+  } else if (type14Data.name) {
     const target = await tx.activityPlanType14Target.create({
       data: {
         activityPlanId: planId,
-        mode: "NEW_PLOT",
+        mode: type14Data.mode || "NEW_PLOT",
         sourceActivityPlanId: validSourcePlanId,
         type13TargetId: null,
         plotName: type14Data.name,
+        storeId: type14Data.storeId || null,
         dealerName: type14Data.dealerName || null,
         ownerName: type14Data.ownerName || null,
         cropCategory: type14Data.cropCategory || null,
@@ -168,10 +282,10 @@ export async function createType14Data(
         province: type14Data.province || "",
         district: type14Data.district || "",
         latitude: type14Data.latitude
-          ? new Prisma.Decimal(type14Data.latitude)
+          ? new Prisma.Decimal(Number(type14Data.latitude))
           : null,
         longitude: type14Data.longitude
-          ? new Prisma.Decimal(type14Data.longitude)
+          ? new Prisma.Decimal(Number(type14Data.longitude))
           : null,
         notes: type14Data.notes || null,
       },
