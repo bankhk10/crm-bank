@@ -118,7 +118,7 @@ const ACTIVITY_TYPES = [
     name: "ติดตามแปลงแฮตแทค",
     shortName: "HattackFollow",
     sortOrder: 15,
-    hasActual: false,
+    hasActual: true,
     requiresApproval: true,
   },
 ];

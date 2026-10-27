@@ -90,7 +90,7 @@ export async function createActivityPlanAction(rawData: any): Promise<PlanAction
 
     const primaryCode = resolvePrimaryWorkTypeCode(rawData);
     const resolvedPrimaryTypeId = await resolveActivityTypeId(
-      rawData.activityTypeId || primaryCode,
+      primaryCode || rawData.activityTypeId,
     );
 
     const workTypeCodes =
@@ -259,7 +259,7 @@ export async function updateActivityPlanAction(
 
     const primaryCode = resolvePrimaryWorkTypeCode(rawData);
     const resolvedPrimaryTypeId = await resolveActivityTypeId(
-      rawData.activityTypeId || primaryCode,
+      primaryCode || rawData.activityTypeId,
     );
 
     const workTypeCodes =

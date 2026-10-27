@@ -211,13 +211,20 @@ export function ActualWorkTypeList({
     plan?.activityType?.code === "TYPE_7A";
 
   const isType7bActive =
-    planWorkTypes.includes("TYPE_7B") ||
-    planWorkTypes.includes("ติดตามแปลงสาธิต") ||
-    Boolean(plan?.type7bPlots?.length) ||
-    Boolean(plan?.type7bData) ||
-    Boolean(plan?.type7b) ||
-    Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
-    plan?.activityType?.code === "TYPE_7B";
+    !Boolean(
+      plan?.type14Targets?.length ||
+        type14Targets?.length ||
+        planWorkTypes.includes("TYPE_14") ||
+        planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
+        planWorkTypes.includes("ติดตามแปลงแฮทแทค"),
+    ) &&
+    (planWorkTypes.includes("TYPE_7B") ||
+      planWorkTypes.includes("ติดตามแปลงสาธิต") ||
+      Boolean(plan?.type7bPlots?.length) ||
+      Boolean(plan?.type7bData) ||
+      Boolean(plan?.type7b) ||
+      Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
+      plan?.activityType?.code === "TYPE_7B");
 
   const isType8Active =
     planWorkTypes.includes("TYPE_8") ||

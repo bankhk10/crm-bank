@@ -1715,7 +1715,16 @@ export function UnplannedActivityForm({
             t.code === "TYPE_13" ||
             t.code === "HATTACK" ||
             t.name?.includes("ฉีดแปลง") ||
-            t.name?.includes("แฮตแทค")
+            t.name?.includes("แฮตแทค") ||
+            t.name?.includes("แฮทแทค")
+          );
+        }
+        if (isType14Active) {
+          return (
+            t.code === "TYPE_14" ||
+            t.code === "HATTACK_FOLLOW" ||
+            t.name?.includes("ติดตามแปลงแฮตแทค") ||
+            t.name?.includes("ติดตามแปลงแฮทแทค")
           );
         }
         return false;

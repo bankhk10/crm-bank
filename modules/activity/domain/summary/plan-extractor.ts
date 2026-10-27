@@ -29,13 +29,30 @@ export function extractPlanData(
     }
   }
 
-  // Primary activityType fallback
+  // Primary activityType fallback: add only if no workTypes detected or if it matches one of the explicit workTypes
   if (p.activityType) {
     const primaryTypeName = getWorkTypeName(
       p.activityType.code || p.activityType.name,
     );
     if (primaryTypeName && WORK_TYPES.includes(primaryTypeName)) {
-      detectedWorkTypes.add(primaryTypeName);
+      if (detectedWorkTypes.size === 0) {
+        detectedWorkTypes.add(primaryTypeName);
+      } else {
+        const primaryCode = getWorkTypeCode(
+          p.activityType.code || p.activityType.name,
+        );
+        const matchesWorkTypes = p.workTypes?.some(
+          (wt: any) =>
+            getWorkTypeCode(
+              wt.activityType?.code ||
+                wt.activityType?.name ||
+                wt.activityTypeId,
+            ) === primaryCode,
+        );
+        if (matchesWorkTypes) {
+          detectedWorkTypes.add(primaryTypeName);
+        }
+      }
     }
   }
 

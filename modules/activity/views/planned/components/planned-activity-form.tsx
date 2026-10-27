@@ -1028,9 +1028,10 @@ export function PlannedActivityForm({
       }
     }
 
-    // 4. Resolve activityTypeId
+    // 4. Resolve activityTypeId (Exact code match has first priority)
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
+      activityTypes.find((t) => t.code === primaryCode) ||
       activityTypes.find(
         (t) =>
           t.code === primaryCode ||
@@ -1063,6 +1064,16 @@ export function PlannedActivityForm({
             (t.code === "TYPE_9" ||
               t.code === "STORE_EVENT" ||
               t.name?.includes("ส่งเสริมการขายหน้าร้าน"))) ||
+          (primaryCode === "TYPE_10" &&
+            (t.code === "TYPE_10" ||
+              t.code === "FIELD_DAY" ||
+              t.name?.includes("Field Day") ||
+              t.name?.includes("จัดงาน"))) ||
+          (primaryCode === "TYPE_11" &&
+            (t.code === "TYPE_11" ||
+              t.code === "STOCK" ||
+              t.name?.includes("ตรวจเช็คสต๊อก") ||
+              t.name?.includes("สต็อก"))) ||
           (primaryCode === "TYPE_12" &&
             (t.code === "TYPE_12" ||
               t.code === "TOUR" ||
@@ -1072,11 +1083,15 @@ export function PlannedActivityForm({
             (t.code === "TYPE_13" ||
               t.code === "HATTACK" ||
               t.name?.includes("ฉีดแปลง") ||
-              t.name?.includes("แฮตแทค"))) ||
+              t.name?.includes("แฮตแทค") ||
+              t.name?.includes("แฮทแทค"))) ||
           (primaryCode === "TYPE_14" &&
             (t.code === "TYPE_14" ||
+              t.code === "HATTACK_FOLLOW" ||
               t.name?.includes("ติดตามแปลงแฮตแทค") ||
-              t.name?.includes("ติดตามแปลง"))),
+              t.name?.includes("ติดตามแปลงแฮทแทค") ||
+              (t.name?.includes("ติดตาม") &&
+                (t.name?.includes("แฮตแทค") || t.name?.includes("แฮทแทค"))))),
       ) || activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";

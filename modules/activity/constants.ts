@@ -186,9 +186,9 @@ export function getWorkTypeCode(nameOrCode: any): string {
   if (raw.includes("ตรวจเช็คสต๊อก") || raw.includes("ตรวจเช็คสต๊อก"))
     return "TYPE_11";
   if (raw.includes("ทัวร์") || raw.includes("ทัวร์")) return "TYPE_12";
-  if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮตแทค"))
+  if (raw.includes("ฉีดแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮทแทค"))
     return "TYPE_13";
-  if (raw.includes("ติดตามแปลงแฮตแทค") || raw.includes("ติดตามแปลงแฮตแทค"))
+  if (raw.includes("ติดตามแปลงแฮตแทค") || raw.includes("ติดตามแปลงแฮทแทค"))
     return "TYPE_14";
 
   const found = Object.values(WORK_TYPE_CONFIG).find(

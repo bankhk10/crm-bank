@@ -36,7 +36,7 @@ export function validateType14UnplannedItem(
   }
 
   if (!item.actualVisitDate?.trim()) {
-    return { isValid: false, error: "กรุณาระบุวันที่ติดตามผลแปลงแฮทแทค" };
+    return { isValid: false, error: "กรุณาระบุวันที่ติดตามผลแปลงแฮตแทค" };
   }
 
   if (!item.trackingResult?.trim()) {
