@@ -676,7 +676,11 @@ export function ActualWorkTypeList({
           actualState={type13State}
           products={products || []}
           dealers={customers || []}
-          targets={type13Targets || plan?.type13Plots || plan?.t13Plots}
+          targets={
+            type13Targets && type13Targets.length > 0
+              ? type13Targets
+              : plan?.type13Targets || plan?.type13Plots || plan?.t13Plots
+          }
         />
       )}
 

@@ -4,15 +4,23 @@ import type {
   Type7bSprayRoundState,
   Type7bAdditionalProductItem,
 } from "../../planned/types/actual.types";
-import { createDefaultSprayRound, createDefaultType7bUnplannedItem } from "../hooks/use-type7b-unplanned-form";
+import {
+  createDefaultSprayRound,
+  createDefaultType7bUnplannedItem,
+} from "../hooks/use-type7b-unplanned-form";
 
 /**
  * Hydrates Type 7B Unplanned Form Items from initial data
  */
-export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedItem[] {
+export function hydrateType7bUnplannedData(
+  initialData: any,
+): Type7bUnplannedItem[] {
   if (!initialData) return [];
 
-  if (Array.isArray(initialData.type7bUnplannedItems) && initialData.type7bUnplannedItems.length > 0) {
+  if (
+    Array.isArray(initialData.type7bUnplannedItems) &&
+    initialData.type7bUnplannedItems.length > 0
+  ) {
     return initialData.type7bUnplannedItems.map((item: any) => ({
       ...item,
       visitDate: item.visitDate || new Date().toISOString().split("T")[0],
@@ -38,8 +46,10 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
   const rawPlots: any[] = t7b.plots || [];
   const rawProducts: any[] = t7b.products || [];
 
-  const actualOutcome = initialData.actualOutcome || initialData.actualData || {};
-  const t7bActual = actualOutcome.type7bActual || actualOutcome.type7b || actualOutcome;
+  const actualOutcome =
+    initialData.actualOutcome || initialData.actualData || {};
+  const t7bActual =
+    actualOutcome.type7bActual || actualOutcome.type7b || actualOutcome;
 
   const withdrawn: Type7bWithdrawnProductLine[] = rawProducts.map((p, idx) => ({
     id: p.id || String(idx + 1),
@@ -49,30 +59,39 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
     unit: p.unit || p.product?.unit || "",
   }));
 
-  const productsFromWithdrawn: Type7bAdditionalProductItem[] = withdrawn.map((p, idx) => ({
-    id: p.id || `prod-withdrawn-${idx + 1}`,
-    productId: p.productId,
-    productName: p.productName,
-    actualQuantity: p.quantity,
-    quantityUsed: p.quantity,
-    extraQuantity: "",
-    extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
-    applicationRate: "ตามคำแนะนำ",
-    unit: p.unit || "ขวด",
-  }));
+  const productsFromWithdrawn: Type7bAdditionalProductItem[] = withdrawn.map(
+    (p, idx) => ({
+      id: p.id || `prod-withdrawn-${idx + 1}`,
+      productId: p.productId,
+      productName: p.productName,
+      actualQuantity: p.quantity,
+      quantityUsed: p.quantity,
+      extraQuantity: "",
+      extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+      applicationRate: "-",
+      unit: p.unit || "ขวด",
+    }),
+  );
 
   // Restore spray rounds from actual outcome if available
   let restoredRounds: Type7bSprayRoundState[] = [];
-  if (Array.isArray(t7bActual.t7SprayingRounds) && t7bActual.t7SprayingRounds.length > 0) {
+  if (
+    Array.isArray(t7bActual.t7SprayingRounds) &&
+    t7bActual.t7SprayingRounds.length > 0
+  ) {
     restoredRounds = t7bActual.t7SprayingRounds.map((r: any) => ({
       ...r,
       // In unplanned, products used are placed in additionalProducts; baselineProducts is []
       baselineProducts: [],
-      additionalProducts: (r.additionalProducts && r.additionalProducts.length > 0)
-        ? r.additionalProducts
-        : (r.baselineProducts || []),
+      additionalProducts:
+        r.additionalProducts && r.additionalProducts.length > 0
+          ? r.additionalProducts
+          : r.baselineProducts || [],
     }));
-  } else if (Array.isArray(initialData.sprayRounds) && initialData.sprayRounds.length > 0) {
+  } else if (
+    Array.isArray(initialData.sprayRounds) &&
+    initialData.sprayRounds.length > 0
+  ) {
     restoredRounds = initialData.sprayRounds.map((sr: any, idx: number) => ({
       id: sr.id || `round-${idx + 1}`,
       roundNumber: sr.roundNumber || idx + 1,
@@ -80,11 +99,15 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
         ? new Date(sr.sprayDate).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       sprayMethod: sr.sprayMethod || "SINGLE",
-      sprayEquipment: sr.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+      sprayEquipment:
+        sr.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
       otherEquipment: sr.otherEquipment || "",
       productResponse: sr.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       problemDetail: sr.problemDetail || "",
-      hasExternalChemicals: Boolean(sr.hasExternalChemicals || (sr.externalProducts && sr.externalProducts.length > 0)),
+      hasExternalChemicals: Boolean(
+        sr.hasExternalChemicals ||
+        (sr.externalProducts && sr.externalProducts.length > 0),
+      ),
       externalProducts: (sr.externalProducts || []).map((ext: any) => ({
         id: ext.id,
         company: ext.company || "",
@@ -120,7 +143,9 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
 
   const visitDate =
     t7bActual.t7VisitDate ||
-    (initialData.startDate ? new Date(initialData.startDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+    (initialData.startDate
+      ? new Date(initialData.startDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0]);
 
   const daysAfterSpray =
     t7bActual.t7DaysAfterSpray != null ? Number(t7bActual.t7DaysAfterSpray) : 0;
@@ -150,12 +175,15 @@ export function hydrateType7bUnplannedData(initialData: any): Type7bUnplannedIte
       plotStatus: t7bActual.t7PlotStatus || "IN_PROGRESS",
       finalYieldKg: t7bActual.t7FinalYieldKg || "",
       controlYieldKg: t7bActual.t7ControlYieldKg || "",
-      farmerSatisfaction: t7bActual.t7FarmerSatisfaction ? Number(t7bActual.t7FarmerSatisfaction) : undefined,
+      farmerSatisfaction: t7bActual.t7FarmerSatisfaction
+        ? Number(t7bActual.t7FarmerSatisfaction)
+        : undefined,
       commercialPotential: t7bActual.t7CommercialPotential || "",
       finalSummaryNotes: t7bActual.t7FinalSummaryNotes || "",
       cropCondition: t7bActual.t7CropCondition || "สมบูรณ์",
       growthStage: t7bActual.t7GrowthStage || "",
-      productResponse: t7bActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      productResponse:
+        t7bActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       hasProductWithdrawal: withdrawn.length > 0,
       withdrawnProducts: withdrawn,
       photos: cropImages,
@@ -198,14 +226,20 @@ export function mapType7bUnplannedToPayload(
   }));
 
   // Aggregate all products used across all rounds of all plots
-  const productLinesMap = new Map<string, { productId: string; productName?: string; quantity: number; unit?: string }>();
+  const productLinesMap = new Map<
+    string,
+    { productId: string; productName?: string; quantity: number; unit?: string }
+  >();
 
   for (const item of items) {
     // 1. From rounds (baselineProducts & additionalProducts)
     for (const round of item.sprayingRounds || []) {
       for (const bp of round.baselineProducts || []) {
         if (bp.productId) {
-          const qty = Number(bp.actualQuantity ?? bp.quantityUsed ?? bp.withdrawnQuantity ?? 1) || 1;
+          const qty =
+            Number(
+              bp.actualQuantity ?? bp.quantityUsed ?? bp.withdrawnQuantity ?? 1,
+            ) || 1;
           const existing = productLinesMap.get(bp.productId);
           if (existing) {
             existing.quantity += qty;
@@ -299,9 +333,15 @@ export function mapType7bUnplannedToPayload(
 
   const firstRound = firstItem.sprayingRounds?.[0];
   if (firstRound) {
-    summaryLines.push(`วิธีการฉีดพ่น (รอบ 1): ${firstRound.sprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`);
-    summaryLines.push(`อุปกรณ์ที่ใช้ฉีดพ่น (รอบ 1): ${firstRound.sprayEquipment || "-"}`);
-    summaryLines.push(`ผลหลังการฉีดพ่น (รอบ 1): ${firstRound.productResponse || "-"}`);
+    summaryLines.push(
+      `วิธีการฉีดพ่น (รอบ 1): ${firstRound.sprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`,
+    );
+    summaryLines.push(
+      `อุปกรณ์ที่ใช้ฉีดพ่น (รอบ 1): ${firstRound.sprayEquipment || "-"}`,
+    );
+    summaryLines.push(
+      `ผลหลังการฉีดพ่น (รอบ 1): ${firstRound.productResponse || "-"}`,
+    );
     if (firstRound.problemDetail) {
       summaryLines.push(`ปัญหาที่พบ: ${firstRound.problemDetail}`);
     }
@@ -323,10 +363,14 @@ export function mapType7bUnplannedToPayload(
     summaryLines.push(`ผลผลิตแปลงเปรียบเทียบ: ${firstItem.controlYieldKg} กก.`);
   }
   if (firstItem.farmerSatisfaction) {
-    summaryLines.push(`ความพึงพอใจของเกษตรกร: ${firstItem.farmerSatisfaction} ดาว`);
+    summaryLines.push(
+      `ความพึงพอใจของเกษตรกร: ${firstItem.farmerSatisfaction} ดาว`,
+    );
   }
   if (firstItem.commercialPotential) {
-    summaryLines.push(`โอกาสขยายผลเชิงพาณิชย์: ${firstItem.commercialPotential}`);
+    summaryLines.push(
+      `โอกาสขยายผลเชิงพาณิชย์: ${firstItem.commercialPotential}`,
+    );
   }
   if (firstItem.finalSummaryNotes) {
     summaryLines.push(`สรุปผลภาพรวม: ${firstItem.finalSummaryNotes}`);
@@ -351,7 +395,8 @@ export function mapType7bUnplannedToPayload(
     type7bActual: {
       t7PlotName: firstItem.plotName,
       t7FarmerName: firstItem.farmerName,
-      t7VisitDate: firstItem.visitDate || new Date().toISOString().split("T")[0],
+      t7VisitDate:
+        firstItem.visitDate || new Date().toISOString().split("T")[0],
       t7DaysAfterSpray: Number(firstItem.daysAfterSpray) || 0,
       t7CropImages: firstItem.cropImages || [],
       t7SprayingRounds: firstItem.sprayingRounds || [],
@@ -360,15 +405,26 @@ export function mapType7bUnplannedToPayload(
       t7PlotStatus: firstItem.plotStatus || "IN_PROGRESS",
       t7FinalYieldKg: firstItem.finalYieldKg || null,
       t7ControlYieldKg: firstItem.controlYieldKg || null,
-      t7FarmerSatisfaction: firstItem.farmerSatisfaction != null ? Number(firstItem.farmerSatisfaction) : null,
+      t7FarmerSatisfaction:
+        firstItem.farmerSatisfaction != null
+          ? Number(firstItem.farmerSatisfaction)
+          : null,
       t7CommercialPotential: firstItem.commercialPotential || null,
       t7FinalSummaryNotes: firstItem.finalSummaryNotes || null,
       t7CropCondition: firstItem.cropCondition || "สมบูรณ์",
       t7GrowthStage: firstItem.growthStage || "-",
-      t7ProductResponse: firstRound?.productResponse || firstItem.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
-      t7CropProblemDescription: firstRound?.problemDetail || firstItem.cropProblemDescription || null,
-      t7SprayMethod: firstRound?.sprayMethod || firstItem.sprayMethod || "SINGLE",
-      t7SprayEquipment: firstRound?.sprayEquipment || firstItem.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+      t7ProductResponse:
+        firstRound?.productResponse ||
+        firstItem.productResponse ||
+        "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      t7CropProblemDescription:
+        firstRound?.problemDetail || firstItem.cropProblemDescription || null,
+      t7SprayMethod:
+        firstRound?.sprayMethod || firstItem.sprayMethod || "SINGLE",
+      t7SprayEquipment:
+        firstRound?.sprayEquipment ||
+        firstItem.sprayEquipment ||
+        "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
       t7OtherEquipment: firstRound?.otherEquipment || null,
       demoPlotId: firstItem.demoPlotId || null,
       t7DemoPlotId: firstItem.demoPlotId || null,

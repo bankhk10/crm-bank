@@ -4,10 +4,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import {
-  syncType13Data,
-  findType13ByPlanId,
-} from "./type13.repository";
+import { syncType13Data, findType13ByPlanId } from "./type13.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
 export const type13PlannedStrategy: WorkTypeStrategy = {
@@ -59,7 +56,9 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     const raw13Data = planData.type13Data || planData.type13;
     if (raw13Data !== undefined || planData.type13Plots !== undefined) {
-      const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+      const startDate = planData.startDate
+        ? new Date(planData.startDate)
+        : new Date();
       const employeeId = planData.employeeId || "";
       const payload = raw13Data || {
         plots: planData.type13Plots,
@@ -70,13 +69,7 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         hasProductWithdrawal: planData.hasProductWithdrawal,
       };
 
-      await syncType13Data(
-        tx,
-        activityPlanId,
-        payload,
-        startDate,
-        employeeId,
-      );
+      await syncType13Data(tx, activityPlanId, payload, startDate, employeeId);
     }
   },
 
@@ -113,7 +106,9 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       const plot = plots[i];
       const plotIndex = plot.plotIndex || i + 1;
       const matchedTarget =
-        (plot.id || plot.targetId ? targetById.get(plot.id || plot.targetId) : undefined) ||
+        (plot.id || plot.targetId
+          ? targetById.get(plot.id || plot.targetId)
+          : undefined) ||
         targetByIndex.get(plotIndex) ||
         targets[i];
 
@@ -121,9 +116,14 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         data: {
           activityPlanId,
           targetId: matchedTarget?.id || null,
-          plotName: plot.name || plot.plotName || matchedTarget?.plotName || `แปลงแฮตแทค ${plotIndex}`,
+          plotName:
+            plot.name ||
+            plot.plotName ||
+            matchedTarget?.plotName ||
+            `แปลงแฮตแทค ${plotIndex}`,
           actualPlotsCount:
-            plot.actualPlotsCount != null && String(plot.actualPlotsCount).trim() !== ""
+            plot.actualPlotsCount != null &&
+            String(plot.actualPlotsCount).trim() !== ""
               ? Number(plot.actualPlotsCount)
               : Array.isArray(plot.sprayRounds)
                 ? plot.sprayRounds.length
@@ -141,7 +141,10 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       });
 
       // Update Type 13 Target coordinates / village if available
-      if (matchedTarget?.id && (plot.latitude || plot.longitude || plot.village)) {
+      if (
+        matchedTarget?.id &&
+        (plot.latitude || plot.longitude || plot.village)
+      ) {
         const updatePlotData: any = {};
         if (plot.latitude != null && String(plot.latitude).trim() !== "") {
           updatePlotData.latitude = new Prisma.Decimal(Number(plot.latitude));
@@ -161,7 +164,9 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       // Save Spray Rounds
       const sprayRounds: any[] = plot.sprayRounds || [];
       for (const round of sprayRounds) {
-        const sprayDate = round.sprayDate ? new Date(round.sprayDate) : new Date();
+        const sprayDate = round.sprayDate
+          ? new Date(round.sprayDate)
+          : new Date();
 
         const createdRound = await tx.activityResultType13SprayRound.create({
           data: {
@@ -177,8 +182,11 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         });
 
         // Spray Products
-        const roundProducts: any[] = round.products || round.baselineProducts || [];
-        const validRoundProducts = roundProducts.filter((p) => Boolean(p.productId));
+        const roundProducts: any[] =
+          round.products || round.baselineProducts || [];
+        const validRoundProducts = roundProducts.filter((p) =>
+          Boolean(p.productId),
+        );
         if (validRoundProducts.length > 0) {
           const pIds = validRoundProducts.map((p) => p.productId);
           const dbProducts = await tx.product.findMany({
@@ -198,10 +206,11 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
                 quantityUsed:
                   p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
                     ? new Prisma.Decimal(Number(p.quantityUsed))
-                    : p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
+                    : p.actualQuantity != null &&
+                        String(p.actualQuantity).trim() !== ""
                       ? new Prisma.Decimal(Number(p.actualQuantity))
                       : new Prisma.Decimal(1),
-                actualRate: p.actualRate || p.applicationRate || "ตามคำแนะนำ",
+                actualRate: p.actualRate || p.applicationRate || "-",
                 unit: p.unit || dbP.unit || null,
                 detail: p.detail || null,
                 sortOrder: pIdx,
@@ -229,7 +238,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
               productName: ext.productName.trim(),
               activeIngredient: ext.activeIngredient || null,
               formula: ext.formula || "SL",
-              customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
+              customFormula:
+                ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
               applicationRate: ext.applicationRate || "",
               sortOrder: extIdx,
             })),
@@ -238,7 +248,9 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
 
         // Round Attachments
         const roundImages: any[] = round.attachments || round.roundImages || [];
-        const validRoundImages = roundImages.filter((img) => img && (img.url || img.fileUrl));
+        const validRoundImages = roundImages.filter(
+          (img) => img && (img.url || img.fileUrl),
+        );
         if (validRoundImages.length > 0) {
           await tx.activityAttachment.createMany({
             data: validRoundImages.map((img) => ({
@@ -247,8 +259,11 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
               workTypeCode: WORK_TYPE_CODE,
               category: "PLOT",
               fileUrl: img.url || img.fileUrl,
-              fileName: img.name || img.fileName || `ภาพแปลงแฮตแทค ${plotIndex} รอบ ${round.roundNumber || 1}`,
-              fileSize: img.size || img.fileSize || 0,
+              fileName:
+                img.name ||
+                img.fileName ||
+                `ภาพแปลงแฮตแทค ${plotIndex} รอบ ${round.roundNumber || 1}`,
+              fileSize: Math.round(Number(img.size || img.fileSize || 0)),
               mimeType: img.type || img.mimeType || "image/jpeg",
             })),
           });
@@ -257,7 +272,9 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
 
       // After Spray Images
       const afterImages: any[] = plot.afterSprayImages || [];
-      const validAfterImages = afterImages.filter((img) => img && (img.url || img.fileUrl));
+      const validAfterImages = afterImages.filter(
+        (img) => img && (img.url || img.fileUrl),
+      );
       if (validAfterImages.length > 0) {
         await tx.activityAttachment.createMany({
           data: validAfterImages.map((img) => ({
@@ -266,7 +283,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
             workTypeCode: WORK_TYPE_CODE,
             category: "PLOT",
             fileUrl: img.url || img.fileUrl,
-            fileName: img.name || img.fileName || `ภาพหลังพ่นแปลงแฮตแทค ${plotIndex}`,
+            fileName:
+              img.name || img.fileName || `ภาพหลังพ่นแปลงแฮตแทค ${plotIndex}`,
             fileSize: img.size || img.fileSize || 0,
             mimeType: img.type || img.mimeType || "image/jpeg",
           })),
@@ -278,10 +296,7 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
   /**
    * Load Type 13 Plan targets
    */
-  async loadPlan(
-    _tx: PrismaTransaction,
-    activityPlanId: string,
-  ): Promise<any> {
+  async loadPlan(_tx: PrismaTransaction, activityPlanId: string): Promise<any> {
     return findType13ByPlanId(activityPlanId);
   },
 };

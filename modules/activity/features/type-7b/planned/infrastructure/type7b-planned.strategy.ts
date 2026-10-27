@@ -4,10 +4,7 @@ import type {
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
-import {
-  syncType7bData,
-  findType7bByPlanId,
-} from "./type7b.repository";
+import { syncType7bData, findType7bByPlanId } from "./type7b.repository";
 
 export const type7bPlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_7B",
@@ -23,7 +20,11 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     const plots = type7bData?.plots || planData.type7bPlots || [];
 
     if (!plots || plots.length === 0) {
-      if (!type7bData?.sourceActivityPlanId && !type7bData?.type7aTargetId && !type7bData?.demoPlotId) {
+      if (
+        !type7bData?.sourceActivityPlanId &&
+        !type7bData?.type7aTargetId &&
+        !type7bData?.demoPlotId
+      ) {
         return {
           valid: false,
           error: "กรุณาระบุแปลงสาธิตที่ต้องการติดตามอย่างน้อย 1 แปลง",
@@ -44,7 +45,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   ): Promise<void> {
     const raw7bData = planData.type7bData || planData.type7b;
     if (raw7bData !== undefined || planData.type7bPlots !== undefined) {
-      const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+      const startDate = planData.startDate
+        ? new Date(planData.startDate)
+        : new Date();
       const payload = raw7bData || {
         plots: planData.type7bPlots,
         products: planData.type7bProducts,
@@ -54,12 +57,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         demoPlotId: planData.demoPlotId,
       };
 
-      await syncType7bData(
-        tx as any,
-        activityPlanId,
-        payload,
-        startDate,
-      );
+      await syncType7bData(tx as any, activityPlanId, payload, startDate);
     }
   },
 
@@ -109,11 +107,16 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     let mappedStatus: DemoPlotStatus = DemoPlotStatus.IN_PROGRESS;
     if (t7b.t7PlotStatus === "COMPLETED") {
       mappedStatus = DemoPlotStatus.COMPLETED;
-    } else if (t7b.t7PlotStatus === "CANCELLED" || t7b.t7PlotStatus === "FAILED") {
+    } else if (
+      t7b.t7PlotStatus === "CANCELLED" ||
+      t7b.t7PlotStatus === "FAILED"
+    ) {
       mappedStatus = DemoPlotStatus.CANCELLED;
     }
 
-    const isClosing = mappedStatus === DemoPlotStatus.COMPLETED || mappedStatus === DemoPlotStatus.CANCELLED;
+    const isClosing =
+      mappedStatus === DemoPlotStatus.COMPLETED ||
+      mappedStatus === DemoPlotStatus.CANCELLED;
 
     if (valid7aTargetId && (tx as any).activityPlanType7aTarget?.update) {
       await (tx as any).activityPlanType7aTarget.update({
@@ -141,22 +144,37 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           daysSinceStart,
           cropCondition: t7b.t7CropCondition || "สมบูรณ์",
           growthStage: t7b.t7GrowthStage || "",
-          cropProblemDesc: firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
-          productResponse: firstRound?.productResponse || t7b.t7ProductResponse || null,
-          productProblemDesc: firstRound?.problemDetail || t7b.t7ProblemDescription || null,
-          nextSprayDate: t7b.t7NextSprayDate ? new Date(t7b.t7NextSprayDate) : null,
+          cropProblemDesc:
+            firstRound?.problemDetail || t7b.t7CropProblemDescription || null,
+          productResponse:
+            firstRound?.productResponse || t7b.t7ProductResponse || null,
+          productProblemDesc:
+            firstRound?.problemDetail || t7b.t7ProblemDescription || null,
+          nextSprayDate: t7b.t7NextSprayDate
+            ? new Date(t7b.t7NextSprayDate)
+            : null,
           notes: t7b.t7Notes || null,
           plotStatus: mappedStatus,
-          finalHarvestDate: t7b.t7FinalHarvestDate ? new Date(t7b.t7FinalHarvestDate) : null,
-          demoYieldKg: t7b.t7FinalYieldKg ? new Prisma.Decimal(String(t7b.t7FinalYieldKg)) : null,
-          controlYieldKg: t7b.t7ControlYieldKg ? new Prisma.Decimal(String(t7b.t7ControlYieldKg)) : null,
-          farmerSatisfaction: t7b.t7FarmerSatisfaction ? Number(t7b.t7FarmerSatisfaction) : null,
+          finalHarvestDate: t7b.t7FinalHarvestDate
+            ? new Date(t7b.t7FinalHarvestDate)
+            : null,
+          demoYieldKg: t7b.t7FinalYieldKg
+            ? new Prisma.Decimal(String(t7b.t7FinalYieldKg))
+            : null,
+          controlYieldKg: t7b.t7ControlYieldKg
+            ? new Prisma.Decimal(String(t7b.t7ControlYieldKg))
+            : null,
+          farmerSatisfaction: t7b.t7FarmerSatisfaction
+            ? Number(t7b.t7FarmerSatisfaction)
+            : null,
           commercialPotential: t7b.t7CommercialPotential || null,
           finalSummaryNotes: t7b.t7FinalSummaryNotes || null,
         },
       });
     } else {
-      createdResult = { id: actualData.activityResultId || actualData.id || "res-default" };
+      createdResult = {
+        id: actualData.activityResultId || actualData.id || "res-default",
+      };
     }
 
     // Clean up previous TYPE_7B attachments for this plan
@@ -171,7 +189,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
     // Save Crop Images to ActivityAttachment
     const cropImages = t7b.t7CropImages || [];
-    const validCropImages = cropImages.filter((img: any) => img && (img.url || img.fileUrl));
+    const validCropImages = cropImages.filter(
+      (img: any) => img && (img.url || img.fileUrl),
+    );
     if (validCropImages.length > 0 && (tx as any).activityAttachment) {
       await (tx as any).activityAttachment.createMany({
         data: validCropImages.map((img: any) => ({
@@ -189,13 +209,21 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
     // 4. Save Spray Rounds
     if (sprayingRounds.length > 0) {
-      const sprayRoundDelegate = (tx as any).activityResultType7bSprayRound || (tx as any).activityResultSprayRound;
-      const sprayProductDelegate = (tx as any).activityResultType7bSprayProduct || (tx as any).activityResultSprayProduct;
-      const sprayExternalDelegate = (tx as any).activityResultType7bSprayExternal || (tx as any).activityResultSprayExternal;
+      const sprayRoundDelegate =
+        (tx as any).activityResultType7bSprayRound ||
+        (tx as any).activityResultSprayRound;
+      const sprayProductDelegate =
+        (tx as any).activityResultType7bSprayProduct ||
+        (tx as any).activityResultSprayProduct;
+      const sprayExternalDelegate =
+        (tx as any).activityResultType7bSprayExternal ||
+        (tx as any).activityResultSprayExternal;
 
       for (let rIdx = 0; rIdx < sprayingRounds.length; rIdx++) {
         const round = sprayingRounds[rIdx];
-        const roundDate = round.sprayDate ? new Date(round.sprayDate) : visitDate;
+        const roundDate = round.sprayDate
+          ? new Date(round.sprayDate)
+          : visitDate;
 
         const createdRound = await sprayRoundDelegate.create({
           data: {
@@ -214,25 +242,38 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         });
 
         // Spray Products
-        const roundProducts =
-          round.products ||
-          round.demoProducts ||
-          [
-            ...(round.baselineProducts || []).map((p: any) => ({ ...p, isPlanned: true })),
-            ...(round.additionalProducts || []).map((p: any) => ({ ...p, isPlanned: false })),
+        const roundProducts = round.products ||
+          round.demoProducts || [
+            ...(round.baselineProducts || []).map((p: any) => ({
+              ...p,
+              isPlanned: true,
+            })),
+            ...(round.additionalProducts || []).map((p: any) => ({
+              ...p,
+              isPlanned: false,
+            })),
           ];
         if (roundProducts.length > 0 && sprayProductDelegate) {
-          const prodIds = roundProducts.map((p: any) => p.productId).filter(Boolean);
-          const prodNames = roundProducts.map((p: any) => p.productName).filter(Boolean);
+          const prodIds = roundProducts
+            .map((p: any) => p.productId)
+            .filter(Boolean);
+          const prodNames = roundProducts
+            .map((p: any) => p.productName)
+            .filter(Boolean);
 
           const dbProducts =
-            (tx as any).product?.findMany && (prodIds.length > 0 || prodNames.length > 0)
+            (tx as any).product?.findMany &&
+            (prodIds.length > 0 || prodNames.length > 0)
               ? await (tx as any).product.findMany({
                   where: {
                     OR: [
                       ...(prodIds.length > 0 ? [{ id: { in: prodIds } }] : []),
-                      ...(prodIds.length > 0 ? [{ name: { in: prodIds } }] : []),
-                      ...(prodNames.length > 0 ? [{ name: { in: prodNames } }] : []),
+                      ...(prodIds.length > 0
+                        ? [{ name: { in: prodIds } }]
+                        : []),
+                      ...(prodNames.length > 0
+                        ? [{ name: { in: prodNames } }]
+                        : []),
                     ],
                   },
                   select: { id: true, name: true, unit: true },
@@ -240,31 +281,44 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
               : [];
 
           const productMapById = new Map(dbProducts.map((p: any) => [p.id, p]));
-          const productMapByName = new Map(dbProducts.map((p: any) => [p.name, p]));
+          const productMapByName = new Map(
+            dbProducts.map((p: any) => [p.name, p]),
+          );
 
           const prodsToInsert = roundProducts
             .map((p: any, pIdx: number) => {
               const dbP: any =
                 productMapById.get(p.productId) ||
                 productMapByName.get(p.productId) ||
-                (p.productName ? productMapByName.get(p.productName) : undefined) ||
-                (p.productId ? { id: p.productId, name: p.productName, unit: p.unit } : null);
+                (p.productName
+                  ? productMapByName.get(p.productName)
+                  : undefined) ||
+                (p.productId
+                  ? { id: p.productId, name: p.productName, unit: p.unit }
+                  : null);
 
               if (!dbP) return null;
 
-              const qty = p.actualQuantity != null ? Number(p.actualQuantity) : Number(p.quantity) || 1;
+              const qty =
+                p.actualQuantity != null
+                  ? Number(p.actualQuantity)
+                  : Number(p.quantity) || 1;
               const withdrawnQty =
                 p.withdrawnQuantity != null
                   ? new Prisma.Decimal(String(p.withdrawnQuantity))
                   : new Prisma.Decimal(String(qty));
-              const extraQty = p.extraQuantity != null && p.extraQuantity !== "" ? String(p.extraQuantity) : null;
+              const extraQty =
+                p.extraQuantity != null && p.extraQuantity !== ""
+                  ? String(p.extraQuantity)
+                  : null;
 
               return {
                 sprayRoundId: createdRound.id,
                 productId: dbP.id,
                 productName: p.productName || dbP.name || null,
                 isPlanned: Boolean(p.isPlanned),
-                actualRate: p.applicationRate || p.actualRate || p.plannedRate || "ตามคำแนะนำ",
+                actualRate:
+                  p.applicationRate || p.actualRate || p.plannedRate || "-",
                 actualQuantity: new Prisma.Decimal(String(qty)),
                 withdrawnQuantity: withdrawnQty,
                 extraQuantity: extraQty,
@@ -272,7 +326,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
                 sortOrder: pIdx,
               };
             })
-            .filter((item: any): item is NonNullable<typeof item> => item !== null);
+            .filter(
+              (item: any): item is NonNullable<typeof item> => item !== null,
+            );
 
           if (prodsToInsert.length > 0) {
             await sprayProductDelegate.createMany({
@@ -290,14 +346,18 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           round.externalProducts.length > 0
         ) {
           const externalsToInsert = round.externalProducts
-            .filter((ext: any) => ext && ext.productName && ext.productName.trim() !== "")
+            .filter(
+              (ext: any) =>
+                ext && ext.productName && ext.productName.trim() !== "",
+            )
             .map((ext: any, extIdx: number) => ({
               sprayRoundId: createdRound.id,
               company: ext.company || "",
               productName: ext.productName.trim(),
               activeIngredient: ext.activeIngredient || null,
               formula: ext.formula || "SL",
-              customFormula: ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
+              customFormula:
+                ext.formula === "อื่นๆ" ? ext.customFormula || null : null,
               applicationRate: ext.applicationRate || "",
               sortOrder: extIdx,
             }));
@@ -312,13 +372,17 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         // Round Attachments
         const roundNum = round.roundNumber || 1;
         const roundImages = round.roundImages || round.attachments || [];
-        const validImages = roundImages.filter((img: any) => img && (img.url || img.fileUrl));
+        const validImages = roundImages.filter(
+          (img: any) => img && (img.url || img.fileUrl),
+        );
         if (validImages.length > 0 && (tx as any).activityAttachment) {
           await (tx as any).activityAttachment.createMany({
             data: validImages.map((img: any) => {
-              const origName = img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${roundNum}`;
+              const origName =
+                img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${roundNum}`;
               const fileNameWithRound =
-                origName.includes(`รอบที่ ${roundNum}`) || origName.includes(`รอบ ${roundNum}`)
+                origName.includes(`รอบที่ ${roundNum}`) ||
+                origName.includes(`รอบ ${roundNum}`)
                   ? origName
                   : `[รอบที่ ${roundNum}] ${origName}`;
 
@@ -342,10 +406,7 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
   /**
    * Load Type 7B Plan Data
    */
-  async loadPlan(
-    _db: any,
-    activityPlanId: string,
-  ): Promise<any> {
+  async loadPlan(_db: any, activityPlanId: string): Promise<any> {
     return findType7bByPlanId(activityPlanId);
   },
 };

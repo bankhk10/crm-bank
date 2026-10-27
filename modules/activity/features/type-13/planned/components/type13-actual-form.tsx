@@ -55,7 +55,7 @@ export function Type13ActualForm({
   ) => {
     if (readonly) return;
     if (updatePlotProduct) {
-      updatePlotProduct(plotIdx, prodIdx, field, value);
+      updatePlotProduct(plotIdx, prodIdx, field, value, currentProds);
     } else {
       const updatedProds = [...currentProds];
       if (updatedProds[prodIdx]) {

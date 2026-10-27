@@ -21,6 +21,11 @@ export interface Type13ActualProductState {
 }
 
 export interface Type13PlotActualState {
+  id?: string;
+  targetId?: string;
+  plotIndex?: number;
+  villageName?: string;
+  notes?: string | null;
   clientPlotId?: string;
   demoPlotId?: string | null;
   plotName: string;

@@ -655,6 +655,7 @@ export function useType13Actual() {
       const totalPlots = normalizedPlots.length;
 
       return {
+        plots: normalizedPlots,
         type13Plots: normalizedPlots,
         type13Actual: {
           plots: normalizedPlots,

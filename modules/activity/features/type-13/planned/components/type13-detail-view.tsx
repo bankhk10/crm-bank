@@ -80,7 +80,7 @@ export function Type13DetailView({
     (r) =>
       !r.demoPlotId ||
       effectivePlots.length <= 1 ||
-      r.demoPlotId === currentPlot.id ||
+      (r as any).targetId === currentPlot.id || r.demoPlotId === currentPlot.id || ((r as any).result && (r as any).result.targetId === currentPlot.id) ||
       (currentPlot.demoPlotId && r.demoPlotId === currentPlot.demoPlotId),
   );
 
@@ -90,7 +90,7 @@ export function Type13DetailView({
       !att.sprayRoundId &&
       (!att.demoPlotId ||
         effectivePlots.length <= 1 ||
-        att.demoPlotId === currentPlot.id ||
+        (att as any).targetId === currentPlot.id || att.demoPlotId === currentPlot.id || ((att as any).type13ResultId && currentPlot.result && (att as any).type13ResultId === currentPlot.result.id) ||
         (currentPlot.demoPlotId && att.demoPlotId === currentPlot.demoPlotId)),
   );
 

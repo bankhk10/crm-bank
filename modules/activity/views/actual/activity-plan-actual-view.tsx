@@ -1439,34 +1439,30 @@ export function ActivityPlanActualView({
 
         // Collect Type 13 payload if active
         if (isType13Active) {
-          const t13Payload = type13Actual.collectPayload();
-          // Upload any un-uploaded images across all plots
-          const allPlotImages = (type13Actual.plotsActual || []).flatMap(
+          const newlyUploadedUrls: string[] = [];
+          const updatedPlots = await type13Actual.uploadImages(
+            id,
+            newlyUploadedUrls,
+          );
+          const t13Payload = type13Actual.collectPayload(updatedPlots);
+
+          const allT13Images = updatedPlots.flatMap(
             (p) => p.afterSprayImages || [],
           );
-          let uploadedAttachments: any[] = [];
-          if (allPlotImages.length > 0) {
-            const imgResult = await uploadActivityPlanImageGroup(
-              id,
-              allPlotImages as any,
-              "type13_after_spray",
-              "after_spray",
-            );
-            uploadedAttachments = (imgResult.updatedImages || []).map(
-              (img: any) => ({
-                category: "AFTER_SPRAY",
-                fileUrl: img.url,
-                fileName: img.name || "ภาพหลังการฉีดพ่น",
-                fileSize: (img as any).size || 0,
-                mimeType: (img as any).type || "image/jpeg",
-                workTypeCode: "TYPE_13",
-              }),
-            );
-          }
+          const uploadedAttachments = allT13Images.map((img: any) => ({
+            category: "PLOT",
+            fileUrl: img.url,
+            fileName: img.name || "ภาพหลังการฉีดพ่น",
+            fileSize: Math.round(Number((img as any).size || 0)),
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_13",
+          }));
 
           payload = {
             ...payload,
-            type13Actual: t13Payload,
+            type13Actual: t13Payload.type13Actual || t13Payload,
+            type13Plots: t13Payload.type13Plots || updatedPlots,
+            plots: (t13Payload as any).plots || t13Payload.type13Plots || updatedPlots,
             attachments: [
               ...(payload.attachments || []),
               ...uploadedAttachments,
@@ -1488,7 +1484,7 @@ export function ActivityPlanActualView({
             !isType11Active &&
             !isType12Active
           ) {
-            const plotCount = type13Actual.plotsActual?.length || 1;
+            const plotCount = updatedPlots?.length || 1;
             payload.resultSummary = `ฉีดแปลงแฮตแทค: สำเร็จ (${plotCount} แปลง)`;
           }
         }
