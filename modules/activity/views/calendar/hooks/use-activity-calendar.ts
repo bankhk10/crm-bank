@@ -41,8 +41,13 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
         endDate: monthEnd.toISOString(),
       });
 
-      if (res.success && Array.isArray(res.events)) {
-        setEvents(res.events as CalendarEvent[]);
+      if (res.success) {
+        const rawEvents = Array.isArray(res.events)
+          ? res.events
+          : Array.isArray((res as any)?.events?.events)
+          ? (res as any).events.events
+          : [];
+        setEvents(rawEvents as CalendarEvent[]);
       }
     } catch (err) {
       console.error("Failed to load calendar events:", err);
@@ -79,13 +84,21 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
       // 1. Tab filter
       if (filter === "MY_EVENTS") {
         const isCreator =
+          (currentEmployeeId && e.employeeId === currentEmployeeId) ||
           e.attendees?.some(
-            (a: any) => a.role === "CREATOR" && a.employeeId === e.employeeId,
-          ) ||
-          (currentEmployeeId && e.employeeId === currentEmployeeId);
+            (a: any) =>
+              a.role === "CREATOR" &&
+              currentEmployeeId &&
+              a.employeeId === currentEmployeeId,
+          );
         if (!isCreator) return false;
       } else if (filter === "HELPER_EVENTS") {
-        const isHelper = e.attendees?.some((a: any) => a.role === "HELPER");
+        const isHelper = e.attendees?.some(
+          (a: any) =>
+            a.role === "HELPER" &&
+            currentEmployeeId &&
+            a.employeeId === currentEmployeeId,
+        );
         if (!isHelper) return false;
       }
 

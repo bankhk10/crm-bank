@@ -16,8 +16,8 @@ export async function getActivityCalendarEventsAction(
   params: ListCalendarEventsParams = {},
 ) {
   try {
-    const events = await listActivityCalendarEventsUseCase(params);
-    return serialize({ success: true, events });
+    const result = await listActivityCalendarEventsUseCase(params);
+    return serialize({ success: true, events: result.events || [] });
   } catch (err: any) {
     return serialize({
       success: false,

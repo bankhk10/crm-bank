@@ -103,6 +103,7 @@ export async function approveActivityPlanAction(
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -137,6 +138,7 @@ export async function rejectActivityPlanAction(id: string, comment?: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -171,6 +173,7 @@ export async function requestCorrectionPlanAction(id: string, comment: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -204,6 +207,7 @@ export async function reviewSingleActivityHelperAction(
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${activityPlanId}`);
     }
     return serialize(result);

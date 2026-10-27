@@ -508,6 +508,7 @@ export async function cancelActivityPlanAction(id: string, reason?: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -527,6 +528,7 @@ export async function requestCancelActivityPlanAction(id: string, reason: string
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -546,6 +548,7 @@ export async function approveCancelActivityPlanAction(id: string, comment?: stri
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -565,6 +568,7 @@ export async function rejectCancelActivityPlanAction(id: string, comment?: strin
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
@@ -624,6 +628,7 @@ export async function submitActivityPlanAction(id: string) {
     if (result.success) {
       revalidatePath("/activity-plans");
       revalidatePath("/activity-plans/approvals");
+      revalidatePath("/activity-plans/calendar");
       revalidatePath(`/activity-plans/${id}`);
     }
     return serialize(result);
