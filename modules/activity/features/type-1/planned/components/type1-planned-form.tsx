@@ -55,6 +55,24 @@ export function Type1PlannedForm({
     updateItem(id, "unregisteredFarmerPhone", "");
   };
 
+  const handleProvinceChange = (id: string, val: any) => {
+    const province = typeof val === "string" ? val : val?.province || "";
+    updateItem(id, "province", province);
+    updateItem(id, "storeId", undefined);
+    updateItem(id, "customerName", "");
+  };
+
+  const handleToggleUnregistered = (id: string, checked: boolean) => {
+    updateItem(id, "isUnregisteredFarmer", checked);
+    if (checked) {
+      updateItem(id, "storeId", undefined);
+      updateItem(id, "customerName", "");
+    } else {
+      updateItem(id, "unregisteredFarmerName", "");
+      updateItem(id, "unregisteredFarmerPhone", "");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header bar */}
@@ -160,103 +178,58 @@ export function Type1PlannedForm({
               </div>
 
               {/* Form Inputs */}
-              {!isStore ? (
+              {currentPurpose === "FARMER" ? (
                 /* FARMER FORM */
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* จังหวัด */}
-                    <div>
-                      <ActivityAddressSelect
-                        levels="province"
-                        value={item.province || ""}
-                        onChange={(val: any) => {
-                          const prov = typeof val === "string" ? val : val?.province || "";
-                          updateItem(item.id, "province", prov);
-                        }}
-                        disabled={readonly}
-                        required
-                      />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                    <ActivityAddressSelect
+                      id={`type1-province-combobox-${item.id}`}
+                      levels="province"
+                      triggerClassName="focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      value={item.province || ""}
+                      onChange={(val: string) =>
+                        handleProvinceChange(item.id, val)
+                      }
+                      disabled={readonly}
+                      required
+                    />
 
-                    {/* เลือกเกษตรกรในระบบ หรือ ระบุนอกระบบ */}
-                    <div>
-                      {!item.isUnregisteredFarmer ? (
-                        <ActivityCustomerSelect
-                          label="เกษตรกร (ในระบบ)"
-                          type="FARMER"
-                          value={item.storeId || ""}
-                          province={item.province}
-                          onChange={(val, cust) => {
-                            if (cust?.province && !item.province) {
-                              updateItem(item.id, "province", cust.province);
-                            }
-                            updateItem(item.id, "customerName", cust?.name || "");
-                            updateItem(item.id, "storeId", val || undefined);
-                          }}
-                          customers={customers}
-                          disabled={readonly}
-                          required
-                        />
-                      ) : (
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-700 mb-1">
-                            ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>
-                          </label>
-                          <ActivityInput
-                            type="text"
-                            value={item.unregisteredFarmerName || ""}
-                            onChange={(e) => {
-                              updateItem(item.id, "unregisteredFarmerName", e.target.value);
-                              updateItem(item.id, "customerName", e.target.value);
-                            }}
-                            disabled={readonly}
-                            placeholder="ระบุชื่อ-สกุล เกษตรกร"
-                          />
-                        </div>
-                      )}
-
-                      {!readonly && (
-                        <div className="mt-1.5 flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const nextVal = !item.isUnregisteredFarmer;
-                              updateItem(item.id, "isUnregisteredFarmer", nextVal);
-                              updateItem(item.id, "storeId", undefined);
-                              updateItem(item.id, "customerName", "");
-                              updateItem(item.id, "unregisteredFarmerName", "");
-                              updateItem(item.id, "unregisteredFarmerPhone", "");
-                            }}
-                            className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 underline"
-                          >
-                            {item.isUnregisteredFarmer
-                              ? "← เลือกจากรายชื่อในระบบ"
-                              : "+ ระบุเกษตรกรไม่มีในระบบ"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <ActivityCustomerSelect
+                      id={`type1-farmer-combobox-${item.id}`}
+                      type="FARMER"
+                      province={item.province}
+                      value={item.storeId || ""}
+                      onChange={(val, cust) => {
+                        updateItem(item.id, "storeId", val || undefined);
+                        updateItem(
+                          item.id,
+                          "customerName",
+                          cust?.name || "",
+                        );
+                      }}
+                      customers={customers}
+                      disabled={readonly}
+                      required
+                      allowUnregistered
+                      isUnregistered={Boolean(item.isUnregisteredFarmer)}
+                      onUnregisteredToggle={(chk) =>
+                        handleToggleUnregistered(item.id, chk)
+                      }
+                      unregisteredName={item.unregisteredFarmerName || ""}
+                      onUnregisteredNameChange={(val) => {
+                        updateItem(item.id, "unregisteredFarmerName", val);
+                        updateItem(item.id, "customerName", val);
+                      }}
+                      unregisteredPhone={item.unregisteredFarmerPhone || ""}
+                      onUnregisteredPhoneChange={(val) =>
+                        updateItem(
+                          item.id,
+                          "unregisteredFarmerPhone",
+                          val,
+                        )
+                      }
+                    />
                   </div>
-
-                  {/* เบอร์โทรศัพท์ถ้าเป็นนอกระบบ */}
-                  {item.isUnregisteredFarmer && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                          เบอร์โทรศัพท์เกษตรกร
-                        </label>
-                        <ActivityInput
-                          type="tel"
-                          value={item.unregisteredFarmerPhone || ""}
-                          onChange={(e) =>
-                            updateItem(item.id, "unregisteredFarmerPhone", e.target.value)
-                          }
-                          disabled={readonly}
-                          placeholder="08X-XXX-XXXX"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               ) : (
                 /* STORE FORM */
