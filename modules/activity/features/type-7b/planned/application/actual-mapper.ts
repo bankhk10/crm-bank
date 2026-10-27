@@ -340,7 +340,15 @@ export function parseType7bActualResult(
         const roundAttachments =
           Array.isArray(sr.attachments) && sr.attachments.length > 0
             ? sr.attachments
-            : allAttachments.filter((a: any) => a.sprayRoundId === sr.id);
+            : allAttachments.filter((a: any) => {
+                if (a.sprayRoundId && a.sprayRoundId === sr.id) return true;
+                const url = a.fileUrl || a.url || "";
+                const name = a.fileName || a.name || "";
+                if (url.includes(`type7b_round_${roundNumber}`) || url.includes(`/round_${roundNumber}/`)) return true;
+                if (name.includes(`รอบที่ ${roundNumber}`) || name.includes(`รอบ ${roundNumber}`)) return true;
+                if (dbSprayRounds.length === 1 && (a.category === "PLOT" || url.includes("/round/"))) return true;
+                return false;
+              });
 
         let roundImages: any[] = [];
         if (roundAttachments.length > 0) {
@@ -439,9 +447,12 @@ export function parseType7bActualResult(
       } else {
         const cropAtts = allAttachments.filter(
           (a: any) =>
-            !a.sprayRoundId &&
-            (a.category === "CROP" || a.category === "PLOT" || a.category === "INITIAL") &&
-            !a.fileName?.includes("ภาพการฉีดพ่นรอบที่"),
+            a.category === "CROP" ||
+            a.fileUrl?.includes("/crop/") ||
+            ((a.category === "PLOT" || a.category === "INITIAL") &&
+              !a.fileName?.includes("ภาพการฉีดพ่น") &&
+              !a.fileName?.includes("รอบที่") &&
+              !a.fileUrl?.includes("/round/")),
         );
         if (cropAtts.length > 0) {
           result.t7CropImages = cropAtts.map((a: any, idx: number) => ({

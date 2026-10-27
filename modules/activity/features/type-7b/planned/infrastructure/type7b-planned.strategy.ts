@@ -237,6 +237,35 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       createdResult = { id: actualData.activityResultId || actualData.id || "res-default" };
     }
 
+    // Clean up previous TYPE_7B attachments for this plan
+    if ((tx as any).activityAttachment?.deleteMany) {
+      await (tx as any).activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_7B",
+        },
+      });
+    }
+
+    // Save Crop Images to ActivityAttachment
+    const cropImages = t7b.t7CropImages || [];
+    const validCropImages = cropImages.filter((img: any) => img && (img.url || img.fileUrl));
+    if (validCropImages.length > 0 && (tx as any).activityAttachment) {
+      await (tx as any).activityAttachment.createMany({
+        data: validCropImages.map((img: any) => ({
+          activityPlanId,
+          type7bResultId: createdResult.id,
+          demoPlotId,
+          workTypeCode: "TYPE_7B",
+          category: "CROP",
+          fileUrl: img.url || img.fileUrl,
+          fileName: img.name || img.fileName || "ภาพการเจริญเติบโตของพืช",
+          fileSize: img.size || img.fileSize || 0,
+          mimeType: img.type || img.mimeType || "image/jpeg",
+        })),
+      });
+    }
+
     const roundDelegate =
       (tx as any).activityResultType7bSprayRound ||
       (tx as any).activityResultSprayRound;
@@ -406,22 +435,30 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
         }
 
         // Round Attachments
+        const roundNum = round.roundNumber || 1;
         const roundImages = round.roundImages || round.attachments || [];
         const validImages = roundImages.filter((img: any) => img && (img.url || img.fileUrl));
         if (validImages.length > 0 && (tx as any).activityAttachment) {
           await (tx as any).activityAttachment.createMany({
-            data: validImages.map((img: any) => ({
-              activityPlanId,
-              type7bResultId: createdResult.id,
-              demoPlotId,
-              sprayRoundId: createdRound.id,
-              workTypeCode: "TYPE_7B",
-              category: "PLOT",
-              fileUrl: img.url || img.fileUrl,
-              fileName: img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${round.roundNumber || 1}`,
-              fileSize: img.size || img.fileSize || 0,
-              mimeType: img.type || img.mimeType || "image/jpeg",
-            })),
+            data: validImages.map((img: any) => {
+              const origName = img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${roundNum}`;
+              const fileNameWithRound =
+                origName.includes(`รอบที่ ${roundNum}`) || origName.includes(`รอบ ${roundNum}`)
+                  ? origName
+                  : `[รอบที่ ${roundNum}] ${origName}`;
+
+              return {
+                activityPlanId,
+                type7bResultId: createdResult.id,
+                demoPlotId,
+                workTypeCode: "TYPE_7B",
+                category: "PLOT",
+                fileUrl: img.url || img.fileUrl,
+                fileName: fileNameWithRound,
+                fileSize: img.size || img.fileSize || 0,
+                mimeType: img.type || img.mimeType || "image/jpeg",
+              };
+            }),
           });
         }
       }
