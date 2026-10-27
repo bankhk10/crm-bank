@@ -24,16 +24,43 @@ export function validateType13Actual(
 
   for (let i = 0; i < plots.length; i++) {
     const p = plots[i];
-    if (!p.plotName?.trim()) {
+    if (
+      p.actualPlotsCount == null ||
+      String(p.actualPlotsCount).trim() === "" ||
+      Number(p.actualPlotsCount) <= 0
+    ) {
       return {
         isValid: false,
-        error: `กรุณาระบุชื่อแปลง (แปลงที่ ${i + 1})`,
+        error: `แปลงที่ ${i + 1}: กรุณาระบุจำนวนแปลงที่ฉีดพ่นจริง`,
       };
     }
-    if (!p.latitude || !String(p.latitude).trim() || !p.longitude || !String(p.longitude).trim()) {
+
+    if (p.products && p.products.length > 0) {
+      for (let j = 0; j < p.products.length; j++) {
+        const prod = p.products[j];
+        if (
+          prod.actualQuantity == null ||
+          String(prod.actualQuantity).trim() === "" ||
+          Number(prod.actualQuantity) < 0
+        ) {
+          return {
+            isValid: false,
+            error: `แปลงที่ ${i + 1}: กรุณาระบุจำนวนที่ใช้จริงสำหรับสินค้า "${prod.productName || `ลำดับที่ ${j + 1}`}"`,
+          };
+        }
+        if (!prod.actualRate || !String(prod.actualRate).trim()) {
+          return {
+            isValid: false,
+            error: `แปลงที่ ${i + 1}: กรุณาระบุอัตราการใช้สำหรับสินค้า "${prod.productName || `ลำดับที่ ${j + 1}`}"`,
+          };
+        }
+      }
+    }
+
+    if (p.afterSprayImages && p.afterSprayImages.length > 20) {
       return {
         isValid: false,
-        error: `กรุณาระบุพิกัด Latitude และ Longitude ให้ครบถ้วน (${p.plotName})`,
+        error: `แปลงที่ ${i + 1}: อัปโหลดรูปภาพได้สูงสุด 20 รูปต่อหมู่บ้าน`,
       };
     }
   }

@@ -9,9 +9,15 @@ export interface Type13ActualProductState {
   productId: string;
   productName?: string | null;
   actualRate: string;
-  quantityUsed: number | string;
+  quantityUsed?: number | string;
   unit?: string | null;
   detail?: string | null;
+  withdrawnQuantity?: number | string | null;
+  plannedQuantity?: number | string | null;
+  actualQuantity?: number | string | null;
+  extraQuantity?: number | string | null;
+  extraUnit?: string | null;
+  applicationRate?: string | null;
 }
 
 export interface Type13PlotActualState {
@@ -31,6 +37,7 @@ export interface Type13PlotActualState {
   longitude: string;
   isNew?: boolean;
   afterSprayImages?: Type13ImageFile[];
+  products?: Type13ActualProductState[];
   sprayRounds: Array<
     Omit<Type13SprayingRound, "products" | "demoPlotId"> & {
       demoPlotId?: string | null;
@@ -43,8 +50,9 @@ export interface Type13PlotActualState {
 export interface Type13ActualProps {
   isVisible?: boolean;
   actualState: any;
-  products: ProductOption[];
+  products?: ProductOption[];
   dealers?: any[];
+  targets?: any[];
   readonly?: boolean;
   className?: string;
   [key: string]: any;

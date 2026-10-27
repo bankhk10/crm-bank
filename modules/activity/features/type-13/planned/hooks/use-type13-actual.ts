@@ -141,7 +141,57 @@ export function useType13Actual() {
           isNew: false,
           afterSprayImages: [],
           sprayRounds: [],
-          products: p.products || [],
+          products: (() => {
+            const rawTargetProducts: any[] =
+              (p.withdrawnProducts && p.withdrawnProducts.length > 0 && p.withdrawnProducts) ||
+              (p.products && p.products.length > 0 && p.products) ||
+              (plan.type13Products && plan.type13Products.length > 0 && plan.type13Products) ||
+              [];
+
+            const existingSprayProds: any[] =
+              targetResult?.sprayRounds?.[0]?.sprayProducts ||
+              (Array.isArray(plan.type13Results) &&
+                plan.type13Results.find((r: any) => r.targetId === p.id)?.sprayRounds?.[0]?.sprayProducts) ||
+              [];
+
+            const list: Type13ActualProductState[] = rawTargetProducts.map((tp: any, pIdx: number) => {
+              const pId = tp.productId || tp.product?.id || tp.id;
+              const pName = tp.productName || tp.product?.name || tp.name || "สินค้าตามแผน";
+              const unit = tp.unit || tp.product?.unit || "ขวด";
+              const withdrawnQty = tp.quantity ?? tp.withdrawnQuantity ?? tp.targetQuantity ?? 1;
+              const matchedActual = existingSprayProds.find((sp: any) => sp.productId === pId) || existingSprayProds[pIdx];
+
+              return {
+                productId: pId,
+                productName: pName,
+                unit,
+                withdrawnQuantity: withdrawnQty,
+                actualQuantity: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
+                extraQuantity: tp.extraQuantity || (matchedActual?.detail?.match(/\+(\d+)/)?.[1] ?? ""),
+                extraUnit: tp.extraUnit || (matchedActual?.detail?.match(/\d+\s*(ซีซี|กรัม)/)?.[1] ?? "ซีซี"),
+                actualRate: matchedActual?.actualRate || tp.actualRate || tp.applicationRate || "",
+                quantityUsed: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
+              };
+            });
+
+            if (list.length === 0 && existingSprayProds.length > 0) {
+              existingSprayProds.forEach((sp: any) => {
+                list.push({
+                  productId: sp.productId,
+                  productName: sp.productName || sp.product?.name || "สินค้าตัวอย่าง",
+                  unit: sp.unit || sp.product?.unit || "ขวด",
+                  withdrawnQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                  actualQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                  extraQuantity: sp.detail?.match(/\+(\d+)/)?.[1] ?? "",
+                  extraUnit: sp.detail?.match(/\d+\s*(ซีซี|กรัม)/)?.[1] ?? "ซีซี",
+                  actualRate: sp.actualRate || "",
+                  quantityUsed: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                });
+              });
+            }
+
+            return list;
+          })(),
         };
       });
     } else if (uniqueHattackVisits.length > 0) {
@@ -342,6 +392,30 @@ export function useType13Actual() {
     [],
   );
 
+  const updatePlotProduct = useCallback(
+    (
+      plotIndex: number,
+      productIndex: number,
+      field: keyof Type13ActualProductState,
+      value: any,
+    ) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const prods = [...(plot.products || [])];
+          if (prods[productIndex]) {
+            prods[productIndex] = { ...prods[productIndex], [field]: value };
+            if (field === "actualQuantity") {
+              prods[productIndex].quantityUsed = value;
+            }
+          }
+          return { ...plot, products: prods };
+        }),
+      );
+    },
+    [],
+  );
+
   const updateProductInRound = useCallback(
     (
       plotIndex: number,
@@ -521,13 +595,69 @@ export function useType13Actual() {
 
   const collectPayload = useCallback(
     (plotsToCollect: Type13PlotActualState[] = plotsActual) => {
-      const allRounds = plotsToCollect.flatMap((p) => p.sprayRounds || []);
-      const totalPlots = plotsToCollect.length;
+      const normalizedPlots = plotsToCollect.map((p) => {
+        const prods = p.products || [];
+        const hasExistingRounds = p.sprayRounds && p.sprayRounds.length > 0;
+        const sprayRounds = hasExistingRounds
+          ? p.sprayRounds.map((r, rIdx) => {
+              if (rIdx === 0 && (!r.products || r.products.length === 0)) {
+                return {
+                  ...r,
+                  products: prods.map((prod) => ({
+                    productId: prod.productId,
+                    productName: prod.productName,
+                    actualRate: prod.actualRate || "",
+                    quantityUsed:
+                      prod.actualQuantity != null && String(prod.actualQuantity).trim() !== ""
+                        ? Number(prod.actualQuantity)
+                        : 1,
+                    unit: prod.unit || "ขวด",
+                    detail: prod.extraQuantity
+                      ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
+                      : undefined,
+                  })),
+                };
+              }
+              return r;
+            })
+          : [
+              {
+                roundNumber: 1,
+                sprayDate: new Date().toISOString().split("T")[0],
+                sprayMethod: "SINGLE" as const,
+                sprayEquipment: "เครื่องยนต์พ่นยา",
+                productResponse: "ปกติ",
+                products: prods.map((prod) => ({
+                  productId: prod.productId,
+                  productName: prod.productName,
+                  actualRate: prod.actualRate || "",
+                  quantityUsed:
+                    prod.actualQuantity != null && String(prod.actualQuantity).trim() !== ""
+                      ? Number(prod.actualQuantity)
+                      : 1,
+                  unit: prod.unit || "ขวด",
+                  detail: prod.extraQuantity
+                    ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
+                    : undefined,
+                })),
+                externalProducts: [],
+                attachments: [],
+              },
+            ];
+
+        return {
+          ...p,
+          sprayRounds,
+        };
+      });
+
+      const allRounds = normalizedPlots.flatMap((p) => p.sprayRounds || []);
+      const totalPlots = normalizedPlots.length;
 
       return {
-        type13Plots: plotsToCollect,
+        type13Plots: normalizedPlots,
         type13Actual: {
-          plots: plotsToCollect,
+          plots: normalizedPlots,
           sprayRounds: allRounds,
           totalPlots,
         },
@@ -547,6 +677,7 @@ export function useType13Actual() {
     addPlot,
     removePlot,
     updatePlotField,
+    updatePlotProduct,
     addSprayRound,
     removeSprayRound,
     updateSprayRound,
