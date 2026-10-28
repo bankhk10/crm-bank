@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, ExternalLink, Camera, Eye, X } from "lucide-react";
+import { MapPin, ExternalLink, Camera, Eye, X, PackageCheck } from "lucide-react";
 import type { Type13PlotItem } from "../../shared/types";
 import type {
   Type13DetailData,
@@ -112,6 +112,198 @@ export function Type13DetailView({
     (plotCoord as any)?.actualPlotsCount ??
     currentPlotResult?.actualPlotsCount ??
     currentPlot.actualPlotsCount;
+
+  // Resolve planned demo products for current plot
+  const currentPlotTargetProds: any[] = (() => {
+    // 1. From currentPlot object directly
+    if (
+      Array.isArray(currentPlot.withdrawnProducts) &&
+      currentPlot.withdrawnProducts.length > 0
+    ) {
+      return currentPlot.withdrawnProducts;
+    }
+    if (
+      Array.isArray(currentPlot.products) &&
+      currentPlot.products.length > 0
+    ) {
+      return currentPlot.products;
+    }
+    if (
+      Array.isArray((currentPlot as any).demoProducts) &&
+      (currentPlot as any).demoProducts.length > 0
+    ) {
+      return (currentPlot as any).demoProducts;
+    }
+
+    // 2. From planSummary.type13Products matching targetId
+    const planT13Products = (planSummary as any)?.type13Products;
+    if (Array.isArray(planT13Products) && planT13Products.length > 0) {
+      const matched = planT13Products.filter(
+        (p: any) =>
+          p.targetId &&
+          (p.targetId === currentPlotId ||
+            p.targetId === currentPlot.id ||
+            p.targetId === currentPlot.demoPlotId),
+      );
+      if (matched.length > 0) return matched;
+      if (effectivePlots.length <= 1) return planT13Products;
+    }
+
+    // 3. From planSummary.type13Targets matching targetId
+    const planT13Targets = (planSummary as any)?.type13Targets;
+    if (Array.isArray(planT13Targets) && planT13Targets.length > 0) {
+      const matchedTarget = planT13Targets.find(
+        (t: any) =>
+          (currentPlotId &&
+            (t.id === currentPlotId || t.demoPlotId === currentPlotId)) ||
+          t.id === currentPlot.id,
+      );
+      if (matchedTarget) {
+        if (
+          Array.isArray(matchedTarget.withdrawnProducts) &&
+          matchedTarget.withdrawnProducts.length > 0
+        ) {
+          return matchedTarget.withdrawnProducts;
+        }
+        if (
+          Array.isArray(matchedTarget.products) &&
+          matchedTarget.products.length > 0
+        ) {
+          return matchedTarget.products;
+        }
+      }
+    }
+
+    return [];
+  })();
+
+  // Resolve spray/actual products for current plot
+  const currentPlotSprayProds: any[] = (() => {
+    // 1. From currentPlotResult
+    if (currentPlotResult) {
+      const rProds =
+        currentPlotResult.sprayRounds?.[0]?.sprayProducts ||
+        currentPlotResult.sprayRounds?.[0]?.products ||
+        currentPlotResult.sprayProducts ||
+        currentPlotResult.products;
+      if (Array.isArray(rProds) && rProds.length > 0) {
+        return rProds;
+      }
+    }
+
+    // 2. From actualData.sprayRounds
+    const allRounds = actualData?.sprayRounds || [];
+    const matchedRound =
+      allRounds.find(
+        (r: any) =>
+          (currentPlotId &&
+            (r.demoPlotId === currentPlotId ||
+              r.targetId === currentPlotId ||
+              (r as any).result?.targetId === currentPlotId)) ||
+          (currentPlotResultId && r.resultId === currentPlotResultId),
+      ) ||
+      (effectivePlots.length <= 1 ? allRounds[0] : allRounds[activePlotIdx]);
+
+    if (matchedRound) {
+      const rProds =
+        (matchedRound as any).sprayProducts ||
+        (matchedRound as any).products;
+      if (Array.isArray(rProds) && rProds.length > 0) {
+        return rProds;
+      }
+    }
+
+    return [];
+  })();
+
+  // Merge into effective planned demo products list
+  const effectiveDemoProducts = (() => {
+    if (currentPlotTargetProds.length > 0) {
+      return currentPlotTargetProds.map((tp: any, idx: number) => {
+        const pId = tp.productId || tp.product?.id || tp.id;
+        const pName =
+          tp.productName || tp.product?.name || tp.name || "สินค้าตามแผน";
+        const unit = tp.unit || tp.product?.unit || "ขวด";
+        const withdrawnQty =
+          tp.quantity ?? tp.withdrawnQuantity ?? tp.targetQuantity ?? 1;
+
+        // Try to find matching actual record
+        const matchedActual =
+          currentPlotSprayProds.find(
+            (sp: any) => (sp.productId || sp.product?.id) === pId,
+          ) || currentPlotSprayProds[idx];
+
+        const actualQty =
+          matchedActual?.quantityUsed != null
+            ? Number(matchedActual.quantityUsed)
+            : matchedActual?.actualQuantity != null
+              ? Number(matchedActual.actualQuantity)
+              : null;
+
+        const actualRate =
+          matchedActual?.actualRate ||
+          tp.actualRate ||
+          tp.applicationRate ||
+          null;
+
+        const extraDisplay =
+          matchedActual?.detail ||
+          (matchedActual?.extraQuantity
+            ? `+${matchedActual.extraQuantity} ${matchedActual.extraUnit || "ซีซี"}`
+            : tp.extraQuantity
+              ? `+${tp.extraQuantity} ${tp.extraUnit || "ซีซี"}`
+              : null);
+
+        return {
+          productId: pId,
+          productName: pName,
+          unit,
+          withdrawnQuantity: withdrawnQty,
+          actualQuantity: actualQty,
+          extraDisplay,
+          actualRate,
+        };
+      });
+    }
+
+    // Fallback: If no target products were specified in plan, but actual spray products exist
+    if (currentPlotSprayProds.length > 0) {
+      return currentPlotSprayProds.map((sp: any) => {
+        const pId = sp.productId || sp.product?.id || "";
+        const pName =
+          sp.productName || sp.product?.name || "สินค้าตัวอย่าง";
+        const unit = sp.unit || sp.product?.unit || "ขวด";
+        const actualQty =
+          sp.quantityUsed != null
+            ? Number(sp.quantityUsed)
+            : sp.actualQuantity != null
+              ? Number(sp.actualQuantity)
+              : 1;
+        const withdrawnQty =
+          sp.withdrawnQuantity != null
+            ? Number(sp.withdrawnQuantity)
+            : actualQty;
+
+        const extraDisplay =
+          sp.detail ||
+          (sp.extraQuantity
+            ? `+${sp.extraQuantity} ${sp.extraUnit || "ซีซี"}`
+            : null);
+
+        return {
+          productId: pId,
+          productName: pName,
+          unit,
+          withdrawnQuantity: withdrawnQty,
+          actualQuantity: actualQty,
+          extraDisplay,
+          actualRate: sp.actualRate || null,
+        };
+      });
+    }
+
+    return [];
+  })();
 
   // Build sets of identifiers that belong to OTHER plots to prevent photo leakage
   const otherPlotResultIds = new Set<string>();
@@ -339,6 +531,96 @@ export function Type13DetailView({
             </div>
           )}
         </div>
+
+        {/* 1.1 สินค้าที่เบิกตามแผน (Planned Demo Products) */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <PackageCheck className="w-4 h-4 text-emerald-600" />
+              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
+                1.1 สินค้าที่เบิกตามแผน (Planned Demo Products)
+              </h6>
+            </div>
+            {effectiveDemoProducts.length > 0 && (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                {effectiveDemoProducts.length} รายการ
+              </span>
+            )}
+          </div>
+
+          {effectiveDemoProducts.length > 0 ? (
+            <div className="space-y-2.5">
+              {effectiveDemoProducts.map((prod, prodIdx) => (
+                <div
+                  key={prod.productId || prodIdx}
+                  className="bg-white rounded-xl border border-slate-200/90 p-3.5 space-y-3 shadow-2xs"
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center justify-center shrink-0">
+                        {prodIdx + 1}
+                      </span>
+                      <span>{prod.productName || "สินค้าตัวอย่าง"}</span>
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/70">
+                      จำนวนที่เบิก: <span className="font-bold">{prod.withdrawnQuantity}</span> {prod.unit || "ขวด"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    {/* 1. จำนวนที่ใช้จริง */}
+                    <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
+                      <span className="block text-[11px] text-slate-400 font-medium mb-0.5">
+                        จำนวนที่ใช้จริง
+                      </span>
+                      <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                        {prod.actualQuantity != null && String(prod.actualQuantity) !== ""
+                          ? `${prod.actualQuantity} ${prod.unit || "ขวด"}`
+                          : "-"}
+                      </span>
+                    </div>
+
+                    {/* 2. ปริมาณที่ใช้เพิ่ม */}
+                    <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
+                      <span className="block text-[11px] text-slate-400 font-medium mb-0.5">
+                        ปริมาณที่ใช้เพิ่ม (ครึ่งขวด)
+                      </span>
+                      <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                        {prod.extraDisplay || "-"}
+                      </span>
+                    </div>
+
+                    {/* 3. อัตราการใช้จริง */}
+                    <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
+                      <span className="block text-[11px] text-slate-400 font-medium mb-0.5">
+                        อัตราการใช้จริง
+                      </span>
+                      <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                        {prod.actualRate || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3.5 bg-white rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+              ไม่มีรายการสินค้าตัวอย่างที่ขอเบิกไว้ในแผนงานสำหรับแปลงนี้
+            </div>
+          )}
+        </div>
+
+        {/* Notes (if any) */}
+        {currentPlotResult?.notes && (
+          <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+            <span className="block text-[11px] text-slate-400 font-medium">
+              บันทึกเพิ่มเติม
+            </span>
+            <p className="text-xs text-slate-700 whitespace-pre-wrap">
+              {currentPlotResult.notes}
+            </p>
+          </div>
+        )}
 
         {/* After-Spray Photos */}
         <div className="space-y-3 pt-2">
