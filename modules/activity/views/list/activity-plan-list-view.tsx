@@ -37,8 +37,14 @@ export default function ActivityPlanListView() {
 
   // Centralized domain permission checks
   const canCreate = canCreatePlannedActivity(user).allowed;
-  const canEdit = isAdmin || hasPermission("activity.edit") || hasPermission("activity.manage");
-  const canDelete = isAdmin || hasPermission("activity.delete") || hasPermission("activity.manage");
+  const canEdit =
+    isAdmin ||
+    hasPermission("activity.edit") ||
+    hasPermission("activity.manage");
+  const canDelete =
+    isAdmin ||
+    hasPermission("activity.delete") ||
+    hasPermission("activity.manage");
   const canApprove = canApproveActivityPlan(user).allowed;
   const canView =
     isAdmin ||
@@ -276,30 +282,29 @@ export default function ActivityPlanListView() {
 
   return (
     <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-      <div className="flex items-center justify-between gap-3 relative z-10 pb-6 border-b border-slate-100 mb-6">
+      <div className="relative flex items-center justify-center gap-3 z-10 pb-6 border-b border-slate-100 mb-6">
+        {/* ส่วนหัวข้อ + ไอคอน (อยู่ตรงกลาง) */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
             <CalendarIcon className="w-6 h-6" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 text-left">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg md:text-2xl font-extrabold text-slate-900 tracking-tight">
                 แผนงาน (Trip Plan)
               </h1>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
-              จัดการและติดตามแผนการปฏิบัติงาน
-            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* ปุ่มรีเฟรช (ลอยชิดขวาสุด) */}
+        <div className="absolute right-0 flex items-center shrink-0">
           <Button
             variant="outline"
             size="icon"
             onClick={() => fetchData()}
             disabled={loading}
-            className="rounded-xl h-9 w-9 md:h-10 md:w-10 border-slate-200 cursor-pointer text-slate-600 hover:text-slate-900"
+            className="rounded-xl h-9 w-9 md:h-10 md:w-10 bg-blue-50/60 border-blue-200/80 text-blue-600 hover:bg-blue-100 hover:text-blue-700 hover:border-blue-300 shadow-2xs transition-colors cursor-pointer"
             title="รีเฟรชข้อมูล"
             aria-label="รีเฟรชข้อมูล"
           >
