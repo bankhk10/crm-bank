@@ -100,6 +100,12 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
     await tx.activityResultType13.deleteMany({
       where: { activityPlanId },
     });
+    await tx.activityAttachment.deleteMany({
+      where: {
+        activityPlanId,
+        workTypeCode: WORK_TYPE_CODE,
+      },
+    });
 
     // 3. Insert results per plot
     for (let i = 0; i < plots.length; i++) {
@@ -281,7 +287,7 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
       }
 
       // After Spray Images
-      const afterImages: any[] = plot.afterSprayImages || [];
+      const afterImages: any[] = plot.afterSprayImages || plot.images || [];
       const validAfterImages = afterImages.filter(
         (img) => img && (img.url || img.fileUrl),
       );
@@ -295,7 +301,7 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
             fileUrl: img.url || img.fileUrl,
             fileName:
               img.name || img.fileName || `ภาพหลังพ่นแปลงแฮตแทค ${plotIndex}`,
-            fileSize: img.size || img.fileSize || 0,
+            fileSize: Math.round(Number(img.size || img.fileSize || 0)),
             mimeType: img.type || img.mimeType || "image/jpeg",
           })),
         });
