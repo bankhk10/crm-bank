@@ -73,6 +73,9 @@ export function extractType13PlanTargets(
       hasProductWithdrawal: hasWithdrawal,
       withdrawnProducts: withdrawnList,
       products: plotProducts,
+      status: p.status || "IN_PROGRESS",
+      closedAt: p.closedAt || null,
+      closureNotes: p.closureNotes || null,
     };
   });
 

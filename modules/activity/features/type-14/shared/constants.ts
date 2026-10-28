@@ -36,3 +36,8 @@ export const FORMULA_OPTIONS = [
   { value: "WG", label: "WG (Water Dispersible Granule)" },
   { value: "OTHER", label: "อื่นๆ (ระบุเอง)" },
 ] as const;
+
+export const HATTACK_PLOT_STATUS_OPTIONS = [
+  { value: "IN_PROGRESS", label: "ต้องติดตามต่อ" },
+  { value: "COMPLETED", label: "ปิดแปลงแล้ว" },
+] as const;

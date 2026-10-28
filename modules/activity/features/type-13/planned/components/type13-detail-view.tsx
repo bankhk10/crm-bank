@@ -18,7 +18,23 @@ import {
   Plus,
   Layers,
   ChevronRight,
+  RotateCcw,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toggleHattackPlotStatusAction } from "@/modules/activity/server/planned.actions";
 import type { Type13PlotItem } from "../../shared/types";
 import type {
   Type13DetailData,
@@ -136,8 +152,55 @@ export function Type13DetailView({
   actualData,
   planSummary,
 }: Type13DetailViewProps) {
+  const router = useRouter();
   const [activePlotIdx, setActivePlotIdx] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [localStatusMap, setLocalStatusMap] = useState<
+    Record<
+      string,
+      {
+        status: "IN_PROGRESS" | "COMPLETED";
+        closureNotes?: string | null;
+        closedAt?: Date | string | null;
+      }
+    >
+  >({});
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [inputClosureNotes, setInputClosureNotes] = useState("");
+
+  const handleTogglePlotStatus = async (
+    targetId: string,
+    newStatus: "IN_PROGRESS" | "COMPLETED",
+    notes?: string,
+  ) => {
+    if (!targetId || isUpdatingStatus) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await toggleHattackPlotStatusAction({
+        targetId,
+        status: newStatus,
+        closureNotes: notes || null,
+      });
+      if (res.success) {
+        setLocalStatusMap((prev) => ({
+          ...prev,
+          [targetId]: {
+            status: newStatus,
+            closureNotes: notes || null,
+            closedAt: newStatus === "COMPLETED" ? new Date() : null,
+          },
+        }));
+        router.refresh();
+      } else {
+        alert(res.error || "ไม่สามารถเปลี่ยนสถานะแปลงได้");
+      }
+    } catch (err: any) {
+      alert(err.message || "เกิดข้อผิดพลาดในการเปลี่ยนสถานะแปลง");
+    } finally {
+      setIsUpdatingStatus(false);
+      setInputClosureNotes("");
+    }
+  };
 
   if (!isVisible) return null;
 
@@ -199,6 +262,20 @@ export function Type13DetailView({
     currentPlotResult?.id ||
     currentPlot.result?.id ||
     (currentPlot as any).resultId;
+
+  // Status of the current plot
+  const targetIdForStatus = currentPlot.id || currentPlot.demoPlotId;
+  const currentPlotLocalStatus = targetIdForStatus
+    ? localStatusMap[targetIdForStatus]
+    : null;
+  const effectivePlotStatus: "IN_PROGRESS" | "COMPLETED" =
+    currentPlotLocalStatus?.status ||
+    (currentPlot.status as "IN_PROGRESS" | "COMPLETED") ||
+    "IN_PROGRESS";
+  const effectiveClosureNotes =
+    currentPlotLocalStatus?.closureNotes ?? currentPlot.closureNotes ?? null;
+  const effectiveClosedAt =
+    currentPlotLocalStatus?.closedAt ?? (currentPlot as any).closedAt ?? null;
 
   // Coordinates & actual plots count for current plot
   const plotCoord =
@@ -641,6 +718,131 @@ export function Type13DetailView({
 
       {/* Current Plot Actual Card */}
       <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 p-4 sm:p-5 space-y-4">
+        {/* Plot Status Header Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs sm:text-sm font-bold text-slate-900">
+              สถานะแปลง:
+            </span>
+            {effectivePlotStatus === "COMPLETED" ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                ปิดแปลงแล้ว (COMPLETED)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                <Clock className="w-3.5 h-3.5 text-blue-600" />
+                ต้องติดตามต่อ (IN_PROGRESS)
+              </span>
+            )}
+            {effectiveClosedAt && (
+              <span className="text-[11px] text-slate-400">
+                (ปิดเมื่อ: {formatThaiDate(effectiveClosedAt)})
+              </span>
+            )}
+          </div>
+
+          {/* Quick Toggle Action Button */}
+          {targetIdForStatus && (
+            <div>
+              {effectivePlotStatus === "COMPLETED" ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isUpdatingStatus}
+                      className="h-8 text-xs font-semibold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 hover:text-blue-800 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                      เปิดติดตามต่ออีกครั้ง
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ยืนยันการเปิดติดตามต่ออีกครั้ง?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        แปลงนี้จะถูกเปลี่ยนสถานะกลับเป็น <strong>"ต้องติดตามต่อ (IN_PROGRESS)"</strong> และจะสามารถเลือกไปวางแผนงานติดตาม (Type 14) ได้อีกครั้ง
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleTogglePlotStatus(targetIdForStatus, "IN_PROGRESS")}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        ยืนยันเปิดติดตามต่อ
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isUpdatingStatus}
+                      className="h-8 text-xs font-semibold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                      ปิดแปลงสาธิตนี้
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>ยืนยันการปิดแปลงแฮตแทค?</AlertDialogTitle>
+                      <AlertDialogDescription asChild>
+                        <div className="space-y-3 text-sm text-slate-600">
+                          <p>
+                            แปลงนี้จะถูกเปลี่ยนสถานะเป็น <strong>"ปิดแปลงแล้ว (COMPLETED)"</strong> ถือว่าสิ้นสุดการทดลองติดตาม และจะไม่แสดงในรายการสร้างแผนติดตาม (Type 14) ใหม่อีก
+                          </p>
+                          <div className="pt-2 text-left">
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">
+                              สรุปผลการปิดแปลง / ความพึงพอใจของเกษตรกร (ไม่บังคับ)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={inputClosureNotes}
+                              onChange={(e) => setInputClosureNotes(e.target.value)}
+                              placeholder="เช่น ได้ผลลัพธ์น่าพอใจมาก ยอดแตกสมบูรณ์ หนอนไม่กลับมาระบาด..."
+                              className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </div>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() =>
+                          handleTogglePlotStatus(targetIdForStatus, "COMPLETED", inputClosureNotes)
+                        }
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        ยืนยันปิดแปลง
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Closure Notes Display (if closed and notes available) */}
+        {effectivePlotStatus === "COMPLETED" && effectiveClosureNotes && (
+          <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 text-xs space-y-1">
+            <span className="font-semibold text-emerald-900 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              สรุปผลการปิดแปลง:
+            </span>
+            <p className="text-emerald-800 italic">
+              "{effectiveClosureNotes}"
+            </p>
+          </div>
+        )}
+
         {/* Info & GPS Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200">
           <div>

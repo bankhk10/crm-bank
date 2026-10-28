@@ -272,6 +272,17 @@ export function Type14DetailView({
                     >
                       ติดตามจริง: {actualCount} แปลง
                     </Badge>
+                    {actualPlotData.plotStatus === "COMPLETED" ||
+                    plot.plotStatus === "COMPLETED" ||
+                    (plot as any).type13Target?.status === "COMPLETED" ? (
+                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-xs">
+                        ปิดแปลงแล้ว
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-300 font-bold text-xs">
+                        ต้องติดตามต่อ
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -425,6 +436,21 @@ export function Type14DetailView({
                       </span>
                       <span className="font-medium text-slate-800">
                         {actualPlotData.additionalNotes}
+                      </span>
+                    </div>
+                  )}
+
+                  {(actualPlotData.closureNotes ||
+                    (plot as any).closureNotes ||
+                    (plot as any).type13Target?.closureNotes) && (
+                    <div className="rounded-lg bg-emerald-50/80 p-2.5 border border-emerald-200 text-xs space-y-0.5">
+                      <span className="text-emerald-900 font-semibold block">
+                        สรุปผลการปิดแปลง / ความพึงพอใจ:
+                      </span>
+                      <span className="font-medium text-emerald-800 italic">
+                        "{actualPlotData.closureNotes ||
+                          (plot as any).closureNotes ||
+                          (plot as any).type13Target?.closureNotes}"
                       </span>
                     </div>
                   )}

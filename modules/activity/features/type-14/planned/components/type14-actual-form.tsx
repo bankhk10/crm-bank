@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Package, Clock, Activity } from "lucide-react";
+import { Package, Clock, Activity, CheckCircle2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   ActivityInput,
@@ -12,6 +12,7 @@ import {
 import {
   TRACKING_RESULT_OPTIONS,
   PRODUCT_RESPONSE_OPTIONS,
+  HATTACK_PLOT_STATUS_OPTIONS,
   TYPE14_MAX_IMAGES_PER_VILLAGE,
 } from "../../shared/constants";
 import type {
@@ -550,6 +551,58 @@ export function Type14ActualForm({
                     disabled={readonly}
                     className="h-9 text-xs"
                   />
+                </div>
+
+                {/* สถานะของแปลงแฮตแทค (Plot Status) */}
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      สถานะของแปลงแฮตแทคหลังการติดตามรอบนี้ <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {HATTACK_PLOT_STATUS_OPTIONS.map((opt) => {
+                        const isSelected = (plot.plotStatus || "IN_PROGRESS") === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            disabled={readonly}
+                            onClick={() => updatePlotField?.(plotIdx, "plotStatus", opt.value)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                              isSelected
+                                ? opt.value === "COMPLETED"
+                                  ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                                  : "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            {opt.value === "COMPLETED" ? "ปิดแปลงแล้ว (สิ้นสุดการทดลอง)" : "ต้องติดตามต่อ"}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {plot.plotStatus === "COMPLETED" && (
+                    <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80 space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>แปลงนี้จะถูกบันทึกเป็น "ปิดแปลงแล้ว" (ไม่แสดงในรายการสร้างแผนติดตามรอบใหม่)</span>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-semibold text-emerald-900">
+                          สรุปผลการปิดแปลง / ความพึงพอใจของเกษตรกร
+                        </label>
+                        <ActivityInput
+                          placeholder="เช่น ผลการควบคุมหนอนดีเยี่ยม เกษตรกรพึงพอใจมาก แปลงสมบูรณ์พร้อมเก็บเกี่ยว..."
+                          value={plot.closureNotes || ""}
+                          onChange={(e) => updatePlotField?.(plotIdx, "closureNotes", e.target.value)}
+                          disabled={readonly}
+                          className="h-9 text-xs bg-white border-emerald-200"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

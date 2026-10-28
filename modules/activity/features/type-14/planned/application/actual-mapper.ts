@@ -178,6 +178,16 @@ export function parseType14ActualResult(
         daysAfterSpray: daysAfter,
         trackingResult: trackingRes,
         productResponse: prodResponse,
+        plotStatus:
+          p.plotStatus ||
+          matchedRes?.plotStatus ||
+          p.type13Target?.status ||
+          "IN_PROGRESS",
+        closureNotes:
+          p.closureNotes ||
+          matchedRes?.closureNotes ||
+          p.type13Target?.closureNotes ||
+          "",
         additionalNotes: notesText,
         products: plotProds,
         afterSprayImages: plotImages,

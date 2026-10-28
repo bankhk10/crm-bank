@@ -119,3 +119,17 @@ export const type14TrackingRoundSchema = z.object({
   additionalNotes: z.string().optional(),
   products: z.array(type14TrackingProductSchema).optional(),
 });
+
+export const type14PlotActualSchema = z.object({
+  id: z.string().optional(),
+  targetId: z.string().optional(),
+  type13TargetId: z.string().optional().nullable(),
+  actualPlotsCount: z.coerce.number().min(1, "จำนวนแปลงต้องมากกว่า 0"),
+  daysAfterSpray: z.union([z.number(), z.string()]).optional().nullable(),
+  trackingResult: z.string().optional().nullable(),
+  productResponse: z.string().optional().nullable(),
+  plotStatus: z.enum(["IN_PROGRESS", "COMPLETED"]).default("IN_PROGRESS"),
+  closureNotes: z.string().optional().nullable(),
+  additionalNotes: z.string().optional().nullable(),
+  products: z.array(type14TrackingProductSchema).optional(),
+});

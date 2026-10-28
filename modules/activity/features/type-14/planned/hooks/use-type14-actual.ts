@@ -29,6 +29,8 @@ const createDefaultInitialPlot = (idx = 0): Type14PlotActualState => ({
   daysAfterSpray: "",
   trackingResult: "ได้ผลตามเกณฑ์",
   productResponse: "ปกติ",
+  plotStatus: "IN_PROGRESS",
+  closureNotes: "",
   additionalNotes: "",
   products: [],
   afterSprayImages: [],
@@ -374,6 +376,16 @@ export function useType14Actual() {
             daysAfterSpray: daysAfter,
             trackingResult: trackingRes,
             productResponse: prodResponse,
+            plotStatus:
+              p.plotStatus ||
+              matchedTargetResult?.plotStatus ||
+              p.type13Target?.status ||
+              "IN_PROGRESS",
+            closureNotes:
+              p.closureNotes ||
+              matchedTargetResult?.closureNotes ||
+              p.type13Target?.closureNotes ||
+              "",
             additionalNotes: notesText,
             notes: p.notes || null,
             latitude: p.latitude ? String(p.latitude) : null,

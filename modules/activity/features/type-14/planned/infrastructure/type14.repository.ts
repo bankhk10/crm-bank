@@ -22,14 +22,14 @@ export async function findHattackFollowUpActivityPlans(): Promise<FollowUpPlanOp
       ],
       type13Targets: {
         some: {
-          status: { not: DemoPlotStatus.CANCELLED },
+          status: DemoPlotStatus.IN_PROGRESS,
         },
       },
     },
     include: {
       type13Targets: {
         where: {
-          status: { not: DemoPlotStatus.CANCELLED },
+          status: DemoPlotStatus.IN_PROGRESS,
         },
         include: {
           store: {

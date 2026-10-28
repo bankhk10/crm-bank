@@ -40,6 +40,9 @@ export interface Type13PlotItem {
   hasProductWithdrawal?: boolean;
   withdrawnProducts?: Type13WithdrawnProductLine[];
   products?: Type13PlotProduct[];
+  status?: "IN_PROGRESS" | "COMPLETED" | string | null;
+  closedAt?: Date | string | null;
+  closureNotes?: string | null;
   result?: any;
   results?: any[];
 }

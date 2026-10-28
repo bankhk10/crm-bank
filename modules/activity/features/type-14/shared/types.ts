@@ -21,6 +21,7 @@ export interface FollowUpPlotOption {
   areaRai?: number;
   treeCount?: number;
   plannedPlotsCount?: number;
+  status?: string;
 }
 
 export interface FollowUpPlanOption {
@@ -109,6 +110,8 @@ export interface Type14PlotActualState {
   daysAfterSpray?: number | string | null;
   trackingResult?: string | null;
   productResponse?: string | null;
+  plotStatus?: "IN_PROGRESS" | "COMPLETED";
+  closureNotes?: string | null;
   additionalNotes?: string | null;
   notes?: string | null;
   latitude?: string | null;

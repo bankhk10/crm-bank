@@ -2468,6 +2468,8 @@ model ActivityPlanType13Target {
   latitude          Decimal?       @map("latitude") @db.Decimal(10, 7)
   longitude         Decimal?       @map("longitude") @db.Decimal(10, 7)
   objective         String?        @map("objective") @db.Text // วัตถุประสงค์
+  closedAt          DateTime?      @map("closed_at")
+  closureNotes      String?        @map("closure_notes") @db.Text
   notes             String?        @map("notes") @db.Text
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")
@@ -2658,6 +2660,8 @@ model ActivityResultType14 {
   daysAfterSpray  Int?      @map("days_after_spray")
   trackingResult  String    @default("ปกติ") @map("tracking_result")
   productResponse String    @default("ปกติ") @map("product_response")
+  plotStatus      DemoPlotStatus @default(IN_PROGRESS) @map("plot_status")
+  closureNotes    String?   @map("closure_notes") @db.Text
   actualLatitude  Decimal?  @map("actual_latitude") @db.Decimal(10, 7)
   actualLongitude Decimal?  @map("actual_longitude") @db.Decimal(10, 7)
   additionalNotes String?   @map("additional_notes") @db.Text

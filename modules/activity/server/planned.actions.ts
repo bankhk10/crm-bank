@@ -732,3 +732,37 @@ export async function getFarmerCustomerOptionsAction(province?: string) {
     return serialize({ success: false as const, farmers: [] });
   }
 }
+
+export async function toggleHattackPlotStatusAction(params: {
+  targetId: string;
+  status: "IN_PROGRESS" | "COMPLETED";
+  closureNotes?: string | null;
+}) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized" };
+  }
+
+  try {
+    const isClosed = params.status === "COMPLETED";
+    const updated = await db.activityPlanType13Target.update({
+      where: { id: params.targetId },
+      data: {
+        status: isClosed ? DemoPlotStatus.COMPLETED : DemoPlotStatus.IN_PROGRESS,
+        closedAt: isClosed ? new Date() : null,
+        closureNotes: isClosed ? params.closureNotes || null : null,
+      },
+    });
+
+    revalidatePath("/activity-plans");
+    revalidatePath(`/activity-plans/${updated.activityPlanId}`);
+
+    return serialize({ success: true as const, target: updated });
+  } catch (err: any) {
+    console.error("Failed to toggle Hattack plot status:", err);
+    return {
+      success: false as const,
+      error: err.message || "เกิดข้อผิดพลาดในการปรับปรุงสถานะแปลงแฮตแทค",
+    };
+  }
+}

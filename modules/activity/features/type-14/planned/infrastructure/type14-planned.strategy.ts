@@ -158,6 +158,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
             daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
             trackingResult: plot.trackingResult || "ได้ผลตามเกณฑ์",
             productResponse: plot.productResponse || "ปกติ",
+            plotStatus: plot.plotStatus || "IN_PROGRESS",
+            closureNotes: plot.closureNotes?.trim() || null,
             actualLatitude:
               plot.latitude != null && String(plot.latitude).trim() !== ""
                 ? new Prisma.Decimal(Number(plot.latitude))
@@ -169,6 +171,28 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
             additionalNotes: plot.additionalNotes?.trim() || null,
           },
         });
+
+        // Sync status back to master Type 13 plot (activity_type_13_targets)
+        const isClosed = plot.plotStatus === "COMPLETED";
+        const targetType13Id =
+          matchedTarget?.type13TargetId || plot.type13TargetId || null;
+
+        if (targetType13Id) {
+          try {
+            await tx.activityPlanType13Target.update({
+              where: { id: targetType13Id },
+              data: {
+                status: isClosed ? "COMPLETED" : "IN_PROGRESS",
+                closedAt: isClosed ? new Date() : null,
+                closureNotes: isClosed
+                  ? (plot.closureNotes?.trim() || plot.additionalNotes?.trim() || null)
+                  : null,
+              },
+            });
+          } catch (syncErr) {
+            console.warn("[Type14 Strategy] Failed to sync status to Type 13 Target:", syncErr);
+          }
+        }
 
         // Insert Products Used for this plot
         const prods: any[] = plot.products || [];
