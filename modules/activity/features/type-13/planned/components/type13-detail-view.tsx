@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, ExternalLink, Camera, Eye, X, PackageCheck } from "lucide-react";
+import {
+  MapPin,
+  ExternalLink,
+  Camera,
+  Eye,
+  X,
+  PackageCheck,
+} from "lucide-react";
 import type { Type13PlotItem } from "../../shared/types";
 import type {
   Type13DetailData,
@@ -206,8 +213,7 @@ export function Type13DetailView({
 
     if (matchedRound) {
       const rProds =
-        (matchedRound as any).sprayProducts ||
-        (matchedRound as any).products;
+        (matchedRound as any).sprayProducts || (matchedRound as any).products;
       if (Array.isArray(rProds) && rProds.length > 0) {
         return rProds;
       }
@@ -247,11 +253,12 @@ export function Type13DetailView({
           null;
 
         const extraDisplay =
-          matchedActual?.extraQuantity != null && String(matchedActual.extraQuantity).trim() !== ""
-            ? `+${matchedActual.extraQuantity} ${matchedActual.extraUnit || "ซีซี"}`
+          matchedActual?.extraQuantity != null &&
+          String(matchedActual.extraQuantity).trim() !== ""
+            ? `${matchedActual.extraQuantity} ${matchedActual.extraUnit || "ซีซี"}`
             : matchedActual?.detail ||
               (tp.extraQuantity
-                ? `+${tp.extraQuantity} ${tp.extraUnit || "ซีซี"}`
+                ? `${tp.extraQuantity} ${tp.extraUnit || "ซีซี"}`
                 : null);
 
         return {
@@ -260,7 +267,8 @@ export function Type13DetailView({
           unit,
           withdrawnQuantity: withdrawnQty,
           actualQuantity: actualQty,
-          extraQuantity: matchedActual?.extraQuantity ?? tp.extraQuantity ?? null,
+          extraQuantity:
+            matchedActual?.extraQuantity ?? tp.extraQuantity ?? null,
           extraUnit: matchedActual?.extraUnit ?? tp.extraUnit ?? "ซีซี",
           extraDisplay,
           actualRate,
@@ -272,8 +280,7 @@ export function Type13DetailView({
     if (currentPlotSprayProds.length > 0) {
       return currentPlotSprayProds.map((sp: any) => {
         const pId = sp.productId || sp.product?.id || "";
-        const pName =
-          sp.productName || sp.product?.name || "สินค้าตัวอย่าง";
+        const pName = sp.productName || sp.product?.name || "สินค้าตัวอย่าง";
         const unit = sp.unit || sp.product?.unit || "ขวด";
         const actualQty =
           sp.quantityUsed != null
@@ -288,7 +295,7 @@ export function Type13DetailView({
 
         const extraDisplay =
           sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
-            ? `+${sp.extraQuantity} ${sp.extraUnit || "ซีซี"}`
+            ? `${sp.extraQuantity} ${sp.extraUnit || "ซีซี"}`
             : sp.detail || null;
 
         return {
@@ -566,7 +573,11 @@ export function Type13DetailView({
                       <span>{prod.productName || "สินค้าตัวอย่าง"}</span>
                     </span>
                     <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/70">
-                      จำนวนที่เบิก: <span className="font-bold">{prod.withdrawnQuantity}</span> {prod.unit || "ขวด"}
+                      จำนวนที่เบิก:{" "}
+                      <span className="font-bold">
+                        {prod.withdrawnQuantity}
+                      </span>{" "}
+                      {prod.unit || "ขวด"}
                     </span>
                   </div>
 
@@ -577,7 +588,8 @@ export function Type13DetailView({
                         จำนวนที่ใช้จริง
                       </span>
                       <span className="font-bold text-slate-800 text-xs sm:text-sm">
-                        {prod.actualQuantity != null && String(prod.actualQuantity) !== ""
+                        {prod.actualQuantity != null &&
+                        String(prod.actualQuantity) !== ""
                           ? `${prod.actualQuantity} ${prod.unit || "ขวด"}`
                           : "-"}
                       </span>
