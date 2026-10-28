@@ -247,12 +247,12 @@ export function Type13DetailView({
           null;
 
         const extraDisplay =
-          matchedActual?.detail ||
-          (matchedActual?.extraQuantity
+          matchedActual?.extraQuantity != null && String(matchedActual.extraQuantity).trim() !== ""
             ? `+${matchedActual.extraQuantity} ${matchedActual.extraUnit || "ซีซี"}`
-            : tp.extraQuantity
-              ? `+${tp.extraQuantity} ${tp.extraUnit || "ซีซี"}`
-              : null);
+            : matchedActual?.detail ||
+              (tp.extraQuantity
+                ? `+${tp.extraQuantity} ${tp.extraUnit || "ซีซี"}`
+                : null);
 
         return {
           productId: pId,
@@ -260,6 +260,8 @@ export function Type13DetailView({
           unit,
           withdrawnQuantity: withdrawnQty,
           actualQuantity: actualQty,
+          extraQuantity: matchedActual?.extraQuantity ?? tp.extraQuantity ?? null,
+          extraUnit: matchedActual?.extraUnit ?? tp.extraUnit ?? "ซีซี",
           extraDisplay,
           actualRate,
         };
@@ -285,10 +287,9 @@ export function Type13DetailView({
             : actualQty;
 
         const extraDisplay =
-          sp.detail ||
-          (sp.extraQuantity
+          sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
             ? `+${sp.extraQuantity} ${sp.extraUnit || "ซีซี"}`
-            : null);
+            : sp.detail || null;
 
         return {
           productId: pId,
@@ -296,6 +297,8 @@ export function Type13DetailView({
           unit,
           withdrawnQuantity: withdrawnQty,
           actualQuantity: actualQty,
+          extraQuantity: sp.extraQuantity ?? null,
+          extraUnit: sp.extraUnit ?? "ซีซี",
           extraDisplay,
           actualRate: sp.actualRate || null,
         };

@@ -72,6 +72,8 @@ export interface Type13DetailActualProduct {
   actualRate: string;
   quantityUsed: any;
   unit?: string | null;
+  extraQuantity?: number | string | null;
+  extraUnit?: string | null;
   detail?: string | null;
 }
 

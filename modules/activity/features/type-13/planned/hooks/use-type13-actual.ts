@@ -168,8 +168,14 @@ export function useType13Actual() {
                 unit,
                 withdrawnQuantity: withdrawnQty,
                 actualQuantity: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
-                extraQuantity: tp.extraQuantity || (matchedActual?.detail?.match(/\+(\d+)/)?.[1] ?? ""),
-                extraUnit: tp.extraUnit || (matchedActual?.detail?.match(/\d+\s*(ซีซี|กรัม)/)?.[1] ?? "ซีซี"),
+                extraQuantity:
+                  matchedActual?.extraQuantity != null && String(matchedActual.extraQuantity).trim() !== ""
+                    ? String(matchedActual.extraQuantity)
+                    : tp.extraQuantity || (matchedActual?.detail?.match(/\+(\d+(?:\.\d+)?)/)?.[1] ?? ""),
+                extraUnit:
+                  matchedActual?.extraUnit ||
+                  tp.extraUnit ||
+                  (matchedActual?.detail?.match(/\d+\s*(ซีซี|กรัม|มล\.|ลิตร)/)?.[1] ?? "ซีซี"),
                 actualRate: matchedActual?.actualRate || tp.actualRate || tp.applicationRate || "",
                 quantityUsed: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
               };
@@ -183,8 +189,13 @@ export function useType13Actual() {
                   unit: sp.unit || sp.product?.unit || "ขวด",
                   withdrawnQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
                   actualQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
-                  extraQuantity: sp.detail?.match(/\+(\d+)/)?.[1] ?? "",
-                  extraUnit: sp.detail?.match(/\d+\s*(ซีซี|กรัม)/)?.[1] ?? "ซีซี",
+                  extraQuantity:
+                    sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
+                      ? String(sp.extraQuantity)
+                      : (sp.detail?.match(/\+(\d+(?:\.\d+)?)/)?.[1] ?? ""),
+                  extraUnit:
+                    sp.extraUnit ||
+                    (sp.detail?.match(/\d+\s*(ซีซี|กรัม|มล\.|ลิตร)/)?.[1] ?? "ซีซี"),
                   actualRate: sp.actualRate || "",
                   quantityUsed: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
                 });
@@ -704,9 +715,14 @@ export function useType13Actual() {
                         ? Number(prod.actualQuantity)
                         : 1,
                     unit: prod.unit || "ขวด",
+                    extraQuantity:
+                      prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                        ? Number(prod.extraQuantity)
+                        : null,
+                    extraUnit: prod.extraUnit || "ซีซี",
                     detail: prod.extraQuantity
                       ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
-                      : undefined,
+                      : prod.detail || undefined,
                   })),
                 };
               }
@@ -728,9 +744,14 @@ export function useType13Actual() {
                       ? Number(prod.actualQuantity)
                       : 1,
                   unit: prod.unit || "ขวด",
+                  extraQuantity:
+                    prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                      ? Number(prod.extraQuantity)
+                      : null,
+                  extraUnit: prod.extraUnit || "ซีซี",
                   detail: prod.extraQuantity
                     ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
-                    : undefined,
+                    : prod.detail || undefined,
                 })),
                 externalProducts: [],
                 attachments: [],

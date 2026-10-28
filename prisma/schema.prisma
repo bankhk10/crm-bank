@@ -2549,16 +2549,18 @@ model ActivityResultType13SprayRound {
 }
 
 model ActivityResultType13SprayProduct {
-  id           String   @id @default(cuid())
-  sprayRoundId String   @map("spray_round_id")
-  productId    String   @map("product_id")
-  productName  String?  @map("product_name")
-  quantityUsed Decimal  @map("quantity_used") @db.Decimal(10, 2)
-  actualRate   String   @map("actual_rate")
-  unit         String?  @map("unit")
-  detail       String?  @map("detail")
-  sortOrder    Int      @default(0) @map("sort_order")
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            String   @id @default(cuid())
+  sprayRoundId  String   @map("spray_round_id")
+  productId     String   @map("product_id")
+  productName   String?  @map("product_name")
+  quantityUsed  Decimal  @map("quantity_used") @db.Decimal(10, 2)
+  actualRate    String   @map("actual_rate")
+  unit          String?  @map("unit")
+  extraQuantity Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  extraUnit     String?  @map("extra_unit")
+  detail        String?  @map("detail")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   sprayRound   ActivityResultType13SprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
   product      Product                        @relation(fields: [productId], references: [id], onDelete: Restrict)

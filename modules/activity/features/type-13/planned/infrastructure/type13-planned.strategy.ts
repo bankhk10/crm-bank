@@ -212,7 +212,17 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
                       : new Prisma.Decimal(1),
                 actualRate: p.actualRate || p.applicationRate || "-",
                 unit: p.unit || dbP.unit || null,
-                detail: p.detail || null,
+                extraQuantity:
+                  p.extraQuantity != null &&
+                  String(p.extraQuantity).trim() !== ""
+                    ? new Prisma.Decimal(Number(p.extraQuantity))
+                    : null,
+                extraUnit: p.extraUnit || null,
+                detail:
+                  p.detail ||
+                  (p.extraQuantity
+                    ? `+${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
+                    : null),
                 sortOrder: pIdx,
               };
             })
