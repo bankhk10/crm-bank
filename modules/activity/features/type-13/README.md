@@ -5,7 +5,7 @@
 > **Work Type Name**: ฉีดแปลงแฮตแทค (Hattack Spraying)  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13`, `ActivityResultType13SprayRound`, `ActivityResultType13SprayProduct`, `ActivityResultType13SprayExternal`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.2.0 — Updated 2026-10-27 Modernized Unplanned Form matching Latest Standard, Per-Plot Product Withdrawal, Streamlined Actual Form with Demo Products Type 7B Style, and DB Actual Hydration)
+> **Status**: Production Ready / Active Reference (v2.3.1 — Updated 2026-10-28 Documentation & Database Mapping Alignment for extraQuantity/detail and actualPlotsCount)
 
 ---
 
@@ -297,9 +297,9 @@ sequenceDiagram
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`activity_type_13_targets`**<br>(`ActivityPlanType13Target`) | `savePlan()` ใน Planned/Unplanned | `findType13ByPlanId()`, `plan.type13Targets` | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการแปลงแฮตแทค 1–10 แปลง รหัส Dealer, หมู่บ้าน, จำนวนแปลงตามแผน (`plot_count`), และรหัสแปลง `DPYYMMXXXX` |
 | **`activity_type_13_products`**<br>(`ActivityPlanType13Product`) | `savePlan()` เมื่อมีการเบิกสินค้า | `plan.type13Products` ใน Edit / Detail / Approval | ลบและสร้างใหม่ใน `syncType13Data()` | Cascade เมื่อลบ `ActivityPlan` | เก็บรายการสินค้าและจำนวนที่ขอเบิกแยกตามแปลง (`target_id`) |
-| **`activity_type_13_results`**<br>(`ActivityResultType13`) | `saveActual()` ใน Actual/Unplanned | `plan.type13Results` ใน Detail / Actual | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | ผลการปฏิบัติงานจริงรายแปลง เชื่อมโยง `target_id` พร้อมบันทึก `actualPlotsCount` ใน notes |
+| **`activity_type_13_results`**<br>(`ActivityResultType13`) | `saveActual()` ใน Actual/Unplanned | `plan.type13Results` ใน Detail / Actual | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | ผลการปฏิบัติงานจริงรายแปลง เชื่อมโยง `target_id` พร้อมบันทึก `actualPlotsCount` ลง `actual_plots_count` และบันทึกเพิ่มเติมใน `notes` |
 | **`activity_type_13_spray_rounds`**<br>(`ActivityResultType13SprayRound`) | `saveActual()` | `result.sprayRounds` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13` | เก็บรอบการฉีดพ่น (สังเคราะห์เป็นรอบที่ 1 อัตโนมัติ) |
-| **`activity_type_13_spray_products`**<br>(`ActivityResultType13SprayProduct`) | `saveActual()` | `sprayRound.sprayProducts` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13SprayRound` | เก็บสินค้าที่ใช้จริง (`quantity_used`), ปริมาณเพิ่ม, และอัตราพ่นจริง (`actual_rate`) |
+| **`activity_type_13_spray_products`**<br>(`ActivityResultType13SprayProduct`) | `saveActual()` | `sprayRound.sprayProducts` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13SprayRound` | เก็บสินค้าที่ใช้จริง (`quantity_used`), ปริมาณเพิ่ม (`detail`), และอัตราพ่นจริง (`actual_rate`) |
 | **`activity_type_13_spray_externals`**<br>(`ActivityResultType13SprayExternal`) | `saveActual()` | `sprayRound.sprayExternals` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType13SprayRound` | เก็บสารเคมีภายนอก (ถ้ามี) |
 | **`activity_attachments`**<br>(`ActivityAttachment`) | อัปโหลดภาพหลังฉีดพ่น ➔ `saveActual()` | `actualData.attachments` (หมวดหมู่ AFTER_SPRAY) | ลบและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บรูปภาพหลังฉีดพ่น สูงสุด 20 ภาพต่อหมู่บ้าน |
 
@@ -320,11 +320,11 @@ sequenceDiagram
 | **สินค้าที่ขอเบิกประจำแปลง** | `withdrawnProducts` | `mapType13Payload` (`target_id` link) | `ActivityPlanType13Product`| `product_id` | `VARCHAR (FK)` | No | - |
 | **จำนวนสินค้าที่เบิก** | `quantity` | `mapType13Payload` (`Number(quantity)`) | `ActivityPlanType13Product`| `quantity` | `DECIMAL(10,2)`| No | `1.00` |
 | **หน่วยนับสินค้าที่เบิก** | `unit` | `mapType13Payload` | `ActivityPlanType13Product`| `unit` | `VARCHAR` | Yes | `"ขวด"` |
-| **จำนวนแปลงที่ฉีดพ่นจริง** | `actualPlotsCount` | `collectPayload` ➔ `saveActual` | `ActivityPlanType13Target` / `ActivityResultType13` | `plot_count` / `notes` | `INTEGER` | Yes | `1` |
+| **จำนวนแปลงที่ฉีดพ่นจริง** | `actualPlotsCount` | `collectPayload` ➔ `saveActual` | `ActivityResultType13` | `actual_plots_count` | `INTEGER` | Yes | `1` |
 | **สินค้าที่ใช้ฉีดพ่นจริง** | `productId` (ในรอบพ่น) | `collectPayload` | `ActivityResultType13SprayProduct`| `product_id` | `VARCHAR (FK)` | No | - |
 | **จำนวนที่ใช้จริง** | `actualQuantity` | `collectPayload` (`quantityUsed`) | `ActivityResultType13SprayProduct`| `quantity_used` | `DECIMAL(10,2)`| No | `0.00` |
 | **อัตราพ่นจริง** | `actualRate` | `collectPayload` | `ActivityResultType13SprayProduct`| `actual_rate` | `VARCHAR` | No | - |
-| **ปริมาณที่ใช้เพิ่ม** | `extraQuantity` + `extraUnit` | `collectPayload` (`notes` / `extra_info`) | `ActivityResultType13SprayProduct`| `notes` | `TEXT` | Yes | `null` |
+| **ปริมาณที่ใช้เพิ่ม** | `extraQuantity` + `extraUnit` | `collectPayload` (`detail: "+{extraQuantity} {extraUnit}"`) | `ActivityResultType13SprayProduct`| `detail` | `VARCHAR` | Yes | `null` |
 | **บันทึกผลงานจริง** | `notes` | `collectPayload` | `ActivityResultType13` | `notes` | `TEXT` | Yes | `null` |
 | **ภาพถ่ายหลังฉีดพ่น** | `afterSprayImages` | `uploadImages()` ➔ URLs ➔ `ActivityAttachment` | `ActivityAttachment` | `file_url` | `TEXT` | No | - |
 
@@ -487,6 +487,7 @@ sequenceDiagram
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-28** | 2.3.1 | **Documentation & Database Mapping Alignment:**<br>1. แก้ไขตาราง 6.2 และ 6.1 ให้ตรงกับ Prisma Schema จริง โดยปรับคอลัมน์เก็บปริมาณที่ใช้เพิ่ม (`extraQuantity` + `extraUnit`) ของตาราง `activity_type_13_spray_products` จาก `notes` เป็น `detail`<br>2. ปรับการบันทึกจำนวนแปลงจริง `actualPlotsCount` ของตาราง `activity_type_13_results` ให้ชี้ไปยังคอลัมน์ `actual_plots_count` แทนข้อความเก่า `notes` ให้ตรงตามโค้ดจริง 100% | Antigravity AI |
 | **2026-10-28** | 2.3.0 | **Unplanned Multi-Village (1–10 Villages) & Read-Hydration Pipeline Enhancement:**<br>1. **Unplanned Multi-Village Support:** อัปเกรด `Type13UnplannedForm` ให้สามารถเพิ่มข้อมูลหมู่บ้านได้ 1–10 หมู่บ้าน พร้อมปุ่ม "+ เพิ่มหมู่บ้าน" และ "ลบหมู่บ้านนี้" โดยแยกข้อมูลร้านค้า Dealer, ที่อยู่แปลง, จำนวนแปลงจริง, สินค้าสาธิต และรูปถ่าย (สูงสุด 20 ภาพ) ประจำแต่ละหมู่บ้าน<br>2. **Product Selection Atomic State Fix:** แก้ไขปัญหาการเลือกสินค้าใน `ActivityProductSelect` แล้วไม่แสดงในช่อง โดยปรับ `handleUpdateProductRow` ให้บันทึก `productId`, `productName`, และ `unit` ร่วมกันใน State Update เดียวแบบ Atomic ป้องกันปัญหา React State closure overwrite<br>3. **Full 5-Stage Read & Hydration Pipeline:**<br>&nbsp;&nbsp;- *Prisma Include:* เพิ่ม `subdistrict: true` ให้กับ Store relation ใน `activity-plan-include.ts`<br>&nbsp;&nbsp;- *View & Extractor:* อัปเดต `unplanned/edit-view.tsx` ให้ส่งต่อ `type13Products`, `type13Results`, `type13Actual`, `type13Data`, และ `type13UnplannedItems` เข้าสู่ `initialData`<br>&nbsp;&nbsp;- *Mapper & Hooks:* พัฒนา `hydrateType13UnplannedItems` ให้ Hydrate ข้อมูลครบทุกหมู่บ้าน (ผลงานจริง, สินค้า 1.1, extraQuantity/extraUnit, รูปถ่ายแยกตามแปลง) และเพิ่ม `useEffect` ใน `useType13UnplannedForm` เพื่อรองรับ Async Data Loading<br>&nbsp;&nbsp;- *UI Value Binding:* ผูกค่า input และ select ครบถ้วนทุกหมู่บ้าน<br>4. **Detail View Optimization:** ลบส่วนประวัติการฉีดพ่นจริงซ้ำซ้อนออก, แยกรูปภาพแสดงตามแปลงที่เลือกอย่างถูกต้อง, และแก้ปัญหารูปภาพแสดงเบิ้ลด้วย URL Deduplication | Antigravity AI |
 | **2026-10-15** | 1.0.0 | สร้างโมดูล Type 13 (ฉีดแปลงแฮตแทค) ตามสถาปัตยกรรม Vertical Slice Architecture | Antigravity AI |
 | **2026-10-16** | 1.1.0 | เพิ่มการรองรับ Multi-Plot (1–10 แปลง) และระบบสร้าง Master DemoPlot รหัส DPYYMMXXXX | Antigravity AI |
