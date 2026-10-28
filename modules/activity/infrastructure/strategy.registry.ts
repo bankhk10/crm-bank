@@ -410,8 +410,10 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
               s.workTypeCode === "ติดตามแปลงแฮตแทค",
           )) ||
         (rawData.type14Plots && rawData.type14Plots.length > 0) ||
+        (rawData.type14Targets && rawData.type14Targets.length > 0) ||
         (rawData.type14UnplannedItems &&
           rawData.type14UnplannedItems.length > 0) ||
+        rawData.type14UnplannedItem ||
         (rawData.t14Plots && rawData.t14Plots.length > 0) ||
         rawData.type14Data ||
         rawData.type14 ||

@@ -1698,17 +1698,43 @@ export function UnplannedActivityForm({
       }
 
       // Upload Follow-up Images
-      const allType14Images = type14.item.images || [];
-      let cleanType14Images = allType14Images;
-      if (allType14Images.length > 0) {
+      const allType14Images = [
+        ...(type14.item.images || []),
+        ...(type14.item.plots || []).flatMap((p: any) => p.images || p.afterSprayImages || []),
+      ];
+      const seenMap = new Map<string, any>();
+      allType14Images.forEach((img: any) => {
+        const key = img.id || img.name || img.url;
+        if (key && !seenMap.has(key)) {
+          seenMap.set(key, img);
+        }
+      });
+      const uniqueImages = Array.from(seenMap.values());
+      let cleanType14Images = uniqueImages;
+      let updatedPlots = type14.item.plots || [];
+      if (uniqueImages.length > 0) {
         try {
           const res = await uploadActivityPlanImageGroup(
             uploadPlanId,
-            allType14Images,
+            uniqueImages,
             "type14",
             "after_spray",
           );
           cleanType14Images = res.updatedImages;
+          const urlMap = new Map(
+            cleanType14Images.map((img: any) => [img.id || img.name, img.url]),
+          );
+          updatedPlots = (type14.item.plots || []).map((plot: any) => {
+            const remappedImages = (plot.images || plot.afterSprayImages || []).map((img: any) => {
+              const newUrl = urlMap.get(img.id || img.name);
+              return newUrl ? { ...img, url: newUrl } : img;
+            });
+            return {
+              ...plot,
+              images: remappedImages,
+              afterSprayImages: remappedImages,
+            };
+          });
         } catch (uploadErr: any) {
           showValidationError(
             "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
@@ -1720,6 +1746,7 @@ export function UnplannedActivityForm({
 
       const mapped = mapType14UnplannedToPayload({
         ...type14.item,
+        plots: updatedPlots,
         images: cleanType14Images,
       });
 
@@ -1731,6 +1758,9 @@ export function UnplannedActivityForm({
         workTypeCode: "TYPE_14",
         type14Data: mapped.type14Data,
         type14Actual: mapped.type14Actual,
+        type14Targets: mapped.type14Targets,
+        type14Products: mapped.type14Products,
+        type14Results: mapped.type14Results,
         attachments: cleanType14Images.map((img) => ({
           category: "TRACKING_AFTER_SPRAY",
           fileUrl: img.url,
@@ -2030,16 +2060,22 @@ export function UnplannedActivityForm({
         ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Actual
         : undefined,
       type14Data: isType14Active
-        ? mapType14UnplannedToPayload(type14.item).type14Data
+        ? (actualData?.type14Data || mapType14UnplannedToPayload(type14.item).type14Data)
         : undefined,
       type14Plots: isType14Active
-        ? mapType14UnplannedToPayload(type14.item).type14Plots
+        ? (actualData?.type14Targets || mapType14UnplannedToPayload(type14.item).type14Targets)
         : undefined,
       type14Targets: isType14Active
-        ? mapType14UnplannedToPayload(type14.item).type14Plots
+        ? (actualData?.type14Targets || mapType14UnplannedToPayload(type14.item).type14Targets)
+        : undefined,
+      type14Products: isType14Active
+        ? (actualData?.type14Products || mapType14UnplannedToPayload(type14.item).type14Products)
+        : undefined,
+      type14Results: isType14Active
+        ? (actualData?.type14Results || mapType14UnplannedToPayload(type14.item).type14Results)
         : undefined,
       type14Actual: isType14Active
-        ? mapType14UnplannedToPayload(type14.item).type14Actual
+        ? (actualData?.type14Actual || mapType14UnplannedToPayload(type14.item).type14Actual)
         : undefined,
       actualData,
       attachments: actualData?.attachments || [],
@@ -2433,6 +2469,7 @@ export function UnplannedActivityForm({
           onChange={type14.updateItem}
           dealers={customers as any}
           products={products as any}
+          hattackFollowUpPlans={followUpPlans as any}
           readonly={readonly}
         />
       )}

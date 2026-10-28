@@ -9,6 +9,8 @@ import {
 } from "../application/unplanned-mapper";
 import type {
   Type14ImageFile,
+  Type14PlotActualState,
+  Type14ActualProductState,
   DealerCustomerOption,
   ProductOption,
 } from "../../shared/types";
@@ -30,12 +32,94 @@ export function useType14UnplannedForm(
     setItem(updated);
   }, []);
 
+  const updatePlotField = useCallback(
+    (plotIdx: number, field: keyof Type14PlotActualState, value: any) => {
+      setItem((prev) => {
+        const plots = [...(prev.plots || [])];
+        if (plots[plotIdx]) {
+          plots[plotIdx] = { ...plots[plotIdx], [field]: value };
+          if (field === "actualPlotsCount" && plotIdx === 0) {
+            return { ...prev, plots, actualPlotsCount: value };
+          }
+        }
+        return { ...prev, plots };
+      });
+    },
+    [],
+  );
+
+  const updatePlotProduct = useCallback(
+    (
+      plotIdx: number,
+      prodIdx: number,
+      field: keyof Type14ActualProductState,
+      value: any,
+    ) => {
+      setItem((prev) => {
+        const plots = [...(prev.plots || [])];
+        if (plots[plotIdx]) {
+          const prods = [...(plots[plotIdx].products || [])];
+          if (prods[prodIdx]) {
+            prods[prodIdx] = { ...prods[prodIdx], [field]: value };
+            if (field === "actualQuantity") {
+              prods[prodIdx].quantityUsed = value;
+            }
+          }
+          plots[plotIdx] = { ...plots[plotIdx], products: prods };
+        }
+        return { ...prev, plots };
+      });
+    },
+    [],
+  );
+
+  const addPlotProduct = useCallback(
+    (plotIdx: number, newProd?: Partial<Type14ActualProductState>) => {
+      setItem((prev) => {
+        const plots = [...(prev.plots || [])];
+        if (plots[plotIdx]) {
+          const prods = [...(plots[plotIdx].products || [])];
+          prods.push({
+            productId: newProd?.productId || "",
+            productName: newProd?.productName || "",
+            unit: newProd?.unit || "ขวด",
+            actualQuantity: newProd?.actualQuantity ?? 1,
+            quantityUsed: newProd?.quantityUsed ?? 1,
+            extraQuantity: newProd?.extraQuantity || "",
+            extraUnit: newProd?.extraUnit || "ซีซี",
+            actualRate: newProd?.actualRate || "",
+            detail: newProd?.detail || "",
+          });
+          plots[plotIdx] = { ...plots[plotIdx], products: prods };
+        }
+        return { ...prev, plots };
+      });
+    },
+    [],
+  );
+
+  const removePlotProduct = useCallback(
+    (plotIdx: number, prodIdx: number) => {
+      setItem((prev) => {
+        const plots = [...(prev.plots || [])];
+        if (plots[plotIdx]) {
+          const prods = (plots[plotIdx].products || []).filter(
+            (_, idx) => idx !== prodIdx,
+          );
+          plots[plotIdx] = { ...plots[plotIdx], products: prods };
+        }
+        return { ...prev, plots };
+      });
+    },
+    [],
+  );
+
   const validate = useCallback(() => {
     return validateType14UnplannedItem(item);
   }, [item]);
 
   const uploadImages = useCallback(
-    async (files: File[]): Promise<Type14ImageFile[]> => {
+    async (files: File[], plotIdx = 0): Promise<Type14ImageFile[]> => {
       if (!files || files.length === 0) return [];
 
       const uploaded: Type14ImageFile[] = files.map((file, idx) => ({
@@ -48,10 +132,21 @@ export function useType14UnplannedForm(
         file,
       }));
 
-      setItem((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), ...uploaded],
-      }));
+      setItem((prev) => {
+        const plots = [...(prev.plots || [])];
+        if (plots[plotIdx]) {
+          const existingImages = plots[plotIdx].afterSprayImages || [];
+          plots[plotIdx] = {
+            ...plots[plotIdx],
+            afterSprayImages: [...existingImages, ...uploaded],
+          };
+        }
+        return {
+          ...prev,
+          plots,
+          images: plotIdx === 0 ? [...(prev.images || []), ...uploaded] : prev.images,
+        };
+      });
 
       return uploaded;
     },
@@ -66,6 +161,10 @@ export function useType14UnplannedForm(
     item,
     setItem,
     updateItem,
+    updatePlotField,
+    updatePlotProduct,
+    addPlotProduct,
+    removePlotProduct,
     validate,
     uploadImages,
     getPayload,

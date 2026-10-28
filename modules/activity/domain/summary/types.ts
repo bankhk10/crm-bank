@@ -273,6 +273,12 @@ export interface ParsedSummaryValues {
   t13Images?: ImageFile[];
   type13Actual?: any;
 
+  // Type 14
+  t14Plots?: any[];
+  t14FollowUpRounds?: any[];
+  t14Images?: ImageFile[];
+  type14Actual?: any;
+
   // General index signature for extensible fields
   [key: string]: any;
 }

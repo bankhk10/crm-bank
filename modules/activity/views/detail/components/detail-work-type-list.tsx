@@ -918,6 +918,7 @@ export function DetailWorkTypeList({
           targets?.t14List ||
           targets?.t14Plots ||
           plan?.type14Plots ||
+          plan?.type14Targets ||
           plan?.t14Plots ||
           plan?.type14Data?.plots ||
           []
@@ -925,6 +926,7 @@ export function DetailWorkTypeList({
         data={plan?.type14Data || plan?.type14}
         actualData={
           parsedResults?.type14Actual || {
+            plots: parsedResults?.t14Plots || plan?.type14Results || plan?.type14Targets,
             rounds:
               parsedResults?.t14FollowUpRounds ||
               parsedResults?.rounds ||

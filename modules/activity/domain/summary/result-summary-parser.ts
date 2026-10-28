@@ -403,6 +403,55 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
+    // Type 14 Hattack Follow-up Results
+    const rawT14Results: any[] =
+      Array.isArray(resData.type14Results)
+        ? resData.type14Results
+        : Array.isArray(resData.activityPlan?.type14Results)
+          ? resData.activityPlan.type14Results
+          : [];
+
+    if (rawT14Results.length > 0) {
+      const rawAtts = [
+        ...rawT14Results.flatMap((r: any) => r.attachments || []),
+        ...((resData.attachments || resData.activityPlan?.attachments || []).filter(
+          (a: any) => a.workTypeCode === "TYPE_14" || a.type14ResultId,
+        )),
+      ];
+      const seenAttKeys = new Set<string>();
+      const allAtts = rawAtts.filter((a: any) => {
+        const key = a.id || a.fileUrl || a.url;
+        if (!key || seenAttKeys.has(key)) return false;
+        seenAttKeys.add(key);
+        return true;
+      });
+      result.type14Actual = {
+        plots: rawT14Results,
+        attachments: allAtts,
+        totalPlots: rawT14Results.length,
+      };
+      result.t14Plots = rawT14Results;
+      result.t14Images = allAtts;
+    } else if (resData.type14Actual) {
+      result.type14Actual = resData.type14Actual;
+      if (resData.type14Actual.plots) {
+        result.t14Plots = resData.type14Actual.plots;
+      }
+      if (resData.type14Actual.attachments) {
+        result.t14Images = resData.type14Actual.attachments;
+      }
+    } else if (resData.type14UnplannedItem) {
+      const plots = resData.type14UnplannedItem.plots || [];
+      const atts = plots.flatMap((p: any) => p.images || []);
+      result.type14Actual = {
+        plots,
+        attachments: atts,
+        totalPlots: plots.length,
+      };
+      result.t14Plots = plots;
+      result.t14Images = atts;
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     const rawT4List: any[] =
       Array.isArray(resData.type4Results)

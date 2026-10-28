@@ -82,10 +82,13 @@ graph TD
     J --> K[Strategy บันทึก actualPlotsCount ลง target.notes และผลตรวจลง activity_type_14_results + products_used]
 ```
 
-### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
+### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1 Plan + Actual)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **ติดตามแปลงแฮตแทค (Type 14)**
-- ฟอร์ม `Type14UnplannedForm` รวมการกรอกข้อมูลแปลง, ร้านค้า Dealer, พิกัด GPS, วันที่ติดตามจริง, จำนวนวันหลังฉีด, ผลการติดตาม, สภาพพืช, ยาที่ใช้ซ้ำ และกล้องถ่ายรูปสภาพแปลงเข้าด้วยกัน
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14` และรูปภาพใน Transaction เดียวกันผ่าน `type14UnplannedStrategy` โดยไม่มีการเขียนลงตาราง `demo_plot_visits` หรือ `demo_plots` เก่า
+- ฟอร์ม `Type14UnplannedForm` รวมการทำงานแบบ 2-in-1 สมบูรณ์แบบ:
+  1. **เป้าหมายแปลง (Target Setup):** สลับโหมดได้ทั้งโหมดแปลงเดิม (`EXISTING_PLOT` ดึงจากแผนงาน Type 13 เดิมที่อนุมัติแล้วผ่าน `getHattackFollowUpPlansAction`) และโหมดระบุแปลงใหม่ (`NEW_PLOT` เลือกร้านค้า Dealer, ข้อมูลแปลง, ที่อยู่, พิกัด GPS) พร้อมส่วนขอเบิกสินค้าพ่นซ้ำ (`hasProductWithdrawal`)
+  2. **ผลการปฏิบัติงานจริง (Actual Outcome - Stacked Plot Cards):** ระบุจำนวนแปลงที่ติดตามจริง (`actualPlotsCount`), สินค้าสาธิตที่ใช้จริง (`actualQuantity`, `extraQuantity`, `extraUnit`, `actualRate`), ข้อมูลการตรวจติดตาม (`actualVisitDate`, `daysAfterSpray`, `trackingResult`, `productResponse`, `additionalNotes`, สลับสถานะปิดแปลง `plotStatus` พร้อม `closureNotes`), และอัปโหลดภาพถ่ายสภาพแปลง (สูงสุด 20 รูปต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload`
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment` (ผูก `type14ResultId`), อัปเดตสถานะแปลงต้นทาง Type 13 และสร้าง Header `ActivityResult` ใน Transaction เดียวกันผ่าน `type14UnplannedStrategy.savePlan()`
+- เมื่อเปิดเข้ามาแก้ไข (Edit Hydration): ฟังก์ชัน `hydrateType14UnplannedData` จะกู้คืนข้อมูลกลับมาแสดงครบทุกช่องในฟอร์มโดยไม่มีข้อมูลสูญหาย
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** เรนเดอร์ `<Type14PlanCard />` สำหรับสรุปข้อมูลแปลงตามแผน และเรนเดอร์ `<Type14DetailView />` แสดงรอบการตรวจติดตามย้อนหลัง (Timeline Cards), ผลการตอบสนองของพืช, สินค้าที่ใช้ซ้ำ และรูปภาพแปลงพร้อม Image Lightbox
@@ -266,11 +269,13 @@ sequenceDiagram
 3. Custom Hook ทำการกู้คืนรอบการตรวจติดตาม วันหลังฉีดพ่น ผลการติดตาม และรูปภาพเดิม
 4. ฟอร์มแสดงผลรอบการติดตามเดิมให้ผู้ใช้แก้ไขหรือกดเพิ่มรอบติดตามใหม่ได้ทันที
 
-### 5.5 Create/Edit Unplanned (กิจกรรมนอกแผน)
-1. ผู้ใช้กรอกฟอร์ม `Type14UnplannedForm` ระบุร้านค้า Dealer, ชื่อแปลง, พิกัด GPS, วันที่ตรวจจริง, วันหลังฉีด, ผลการติดตาม และอัปโหลดรูปภาพ
-2. ตรวจสอบความถูกต้องด้วย `validateType14UnplannedItem`
-3. อัปโหลดรูปภาพและแปลงข้อมูลด้วย `mapType14UnplannedToPayload`
-4. บันทึกผ่าน `createUnplannedActivityAction` ➔ เรียก `type14UnplannedStrategy.savePlan()` และ `saveActual()` สร้างระเบียนแผนงานและบันทึกผลตรวจติดตามพร้อมกัน
+### 5.5 Create/Edit Unplanned (กิจกรรมนอกแผน 2-in-1)
+1. ผู้ใช้กรอกฟอร์ม `Type14UnplannedForm` เลือกระหว่างโหมดแปลงเดิม (`EXISTING_PLOT` ดึงแปลงทั้งหมดจากแผนงาน Type 13) หรือโหมดระบุแปลงใหม่ (`NEW_PLOT`) พร้อมสวิตช์ขอเบิกสินค้าพ่นซ้ำ
+2. ส่วนบันทึกผลจริงรายแปลง (Stacked Plot Cards) รองรับการกรอกจำนวนแปลงที่ติดตามจริง (`actualPlotsCount`), สินค้าสาธิตที่ใช้จริง (`actualQuantity`, `extraQuantity`, `extraUnit`, `actualRate`), ข้อมูลการตรวจติดตาม (`actualVisitDate`, `daysAfterSpray`, `trackingResult`, `productResponse`, `additionalNotes`, และสลับสถานะปิดแปลง `plotStatus` พร้อม `closureNotes`), และอัปโหลดภาพถ่ายหลังติดตาม (สูงสุด 20 รูปต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload`
+3. ตรวจสอบความถูกต้องด้วย `validateType14UnplannedItem` ทั้งในส่วนเงื่อนไขโหมดแปลง, สินค้าที่เบิก, จำนวนแปลงจริง, วันที่ตรวจ, ผลตรวจ และรูปภาพ
+4. อัปโหลดรูปภาพผ่าน `uploadActivityPlanImageGroup` และแปลงข้อมูลด้วย `mapType14UnplannedToPayload`
+5. บันทึกผ่าน `createUnplannedActivityAction` หรือ `updateUnplannedActivityAction` ➔ เรียก `type14UnplannedStrategy.savePlan()` ซึ่งบันทึกทั้งเป้าหมาย (`ActivityPlanType14Target`), สินค้า (`ActivityPlanType14Product`), ผลงานจริง (`ActivityResultType14`), สินค้าที่ใช้จริง (`ActivityResultType14ProductUsed`), รูปภาพแนบ (`ActivityAttachment` พร้อม `type14ResultId`), อัปเดตสถานะแปลงต้นทาง Type 13 (`ActivityPlanType13Target`), และสร้าง Header `ActivityResult`
+6. ตอนแก้ไข (Edit Hydration): `edit-view.tsx` ส่งข้อมูล `type14Targets`, `type14Plots`, `type14Products`, `type14Results`, `type14Actual` และ `type14UnplannedItem` ไปยัง `unplanned-activity-form.tsx` ➔ ฟังก์ชัน `hydrateType14UnplannedData` จะดึงข้อมูลกลับมาใส่ครบถ้วนทั้งเป้าหมาย สินค้า ผลการติดตาม และรูปภาพในทุกแปลง
 
 ### 5.6 Detail and Approval (การแสดงผลหน้ารายละเอียดและพิจารณาอนุมัติ)
 1. หน้ารายละเอียดเรนเดอร์ `<Type14PlanCard />` สำหรับสรุปแปลงตามแผน
