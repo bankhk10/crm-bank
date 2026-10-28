@@ -359,14 +359,15 @@ export function ActivityPlanTable({
                 />
               )}
 
-              {canCreate && onDuplicate && (
+              {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+              {/* {canCreate && onDuplicate && (
                 <ActionButton
                   icon={Copy}
                   label="ทำสำเนา"
                   colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
                   onClick={() => onDuplicate(item)}
                 />
-              )}
+              )} */}
 
               {canDelete && deletable && isCreator && (
                 <ActionButton
@@ -702,7 +703,6 @@ export function ActivityPlanTable({
                     ดูรายละเอียด
                   </Button>
                 </Link>
-
                 {!isUnplanned &&
                   isApproved &&
                   hasActualWorkType &&
@@ -718,7 +718,6 @@ export function ActivityPlanTable({
                       </Button>
                     </Link>
                   )}
-
                 {canApprove && isPending && (
                   <Link href="/activity-plans/approvals">
                     <Button
@@ -731,7 +730,6 @@ export function ActivityPlanTable({
                     </Button>
                   </Link>
                 )}
-
                 {editable &&
                   isCreator &&
                   (submitLoadingId === item.id ? (
@@ -749,7 +747,6 @@ export function ActivityPlanTable({
                       {isUnplanned ? "ส่งตรวจสอบ" : "ส่งขออนุมัติ"}
                     </Button>
                   ))}
-
                 {canEdit && editable && isCreator && (
                   <Link href={editHref}>
                     <Button
@@ -762,8 +759,8 @@ export function ActivityPlanTable({
                     </Button>
                   </Link>
                 )}
-
-                {canCreate && onDuplicate && (
+                {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+                {/* {canCreate && onDuplicate && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -773,8 +770,7 @@ export function ActivityPlanTable({
                     <Copy className="w-3.5 h-3.5" />
                     ทำสำเนา
                   </Button>
-                )}
-
+                )} */}
                 {canDelete && deletable && isCreator && (
                   <Button
                     size="sm"
