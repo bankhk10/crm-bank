@@ -4,8 +4,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      bodySizeLimit: "50mb",
     },
+    proxyClientMaxBodySize: "50mb",
   },
   outputFileTracingIncludes: {
     "/**/*": [
