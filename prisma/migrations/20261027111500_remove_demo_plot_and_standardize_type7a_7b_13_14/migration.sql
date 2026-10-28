@@ -32,31 +32,31 @@ ALTER TABLE "activity_type_7b_results" DROP CONSTRAINT IF EXISTS "activity_type_
 ALTER TABLE "activity_type_7b_targets" DROP CONSTRAINT IF EXISTS "activity_type_7b_targets_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_external_products" DROP CONSTRAINT IF EXISTS "demo_plot_external_products_demo_plot_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_external_products" DROP CONSTRAINT IF EXISTS "demo_plot_external_products_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_irrigations" DROP CONSTRAINT IF EXISTS "demo_plot_irrigations_demo_plot_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_irrigations" DROP CONSTRAINT IF EXISTS "demo_plot_irrigations_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_products" DROP CONSTRAINT IF EXISTS "demo_plot_products_demo_plot_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_products" DROP CONSTRAINT IF EXISTS "demo_plot_products_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_products" DROP CONSTRAINT IF EXISTS "demo_plot_products_product_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_products" DROP CONSTRAINT IF EXISTS "demo_plot_products_product_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_visits" DROP CONSTRAINT IF EXISTS "demo_plot_visits_activity_plan_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_visits" DROP CONSTRAINT IF EXISTS "demo_plot_visits_activity_plan_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plot_visits" DROP CONSTRAINT IF EXISTS "demo_plot_visits_demo_plot_id_fkey";
+ALTER TABLE IF EXISTS "demo_plot_visits" DROP CONSTRAINT IF EXISTS "demo_plot_visits_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_activity_plan_id_fkey";
+ALTER TABLE IF EXISTS "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_activity_plan_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_customer_id_fkey";
+ALTER TABLE IF EXISTS "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_customer_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_farmer_customer_id_fkey";
+ALTER TABLE IF EXISTS "demo_plots" DROP CONSTRAINT IF EXISTS "demo_plots_farmer_customer_id_fkey";
 
 -- DropIndex
 DROP INDEX IF EXISTS "activity_attachments_demo_plot_id_idx";
