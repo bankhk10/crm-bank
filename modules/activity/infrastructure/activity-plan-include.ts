@@ -204,6 +204,34 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           attachments: true,
         },
       },
+      type14Targets: {
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              employee: {
+                select: { id: true, name: true, firstName: true, lastName: true },
+              },
+            },
+          },
+          results: {
+            include: {
+              productsUsed: {
+                include: {
+                  product: { select: { id: true, name: true, unit: true } },
+                },
+                orderBy: { sortOrder: "asc" },
+              },
+            },
+            orderBy: { actualVisitDate: "desc" },
+          },
+        },
+      },
     },
     orderBy: { plotIndex: "asc" },
   },
@@ -299,6 +327,34 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
         orderBy: { sortOrder: "asc" },
       },
       attachments: true,
+    },
+  },
+  type14SourceFollowUps: {
+    include: {
+      activityPlan: {
+        select: {
+          id: true,
+          code: true,
+          title: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          employee: {
+            select: { id: true, name: true, firstName: true, lastName: true },
+          },
+        },
+      },
+      results: {
+        include: {
+          productsUsed: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+        orderBy: { actualVisitDate: "desc" },
+      },
     },
   },
   // Dedicated Type 1 relations

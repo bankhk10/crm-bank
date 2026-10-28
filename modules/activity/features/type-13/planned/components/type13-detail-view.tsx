@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   MapPin,
   ExternalLink,
@@ -8,6 +9,15 @@ import {
   Eye,
   X,
   PackageCheck,
+  Calendar,
+  User,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Sprout,
+  Plus,
+  Layers,
+  ChevronRight,
 } from "lucide-react";
 import type { Type13PlotItem } from "../../shared/types";
 import type {
@@ -16,6 +26,103 @@ import type {
   Type13DetailViewProps,
   DetailType13AttackProps,
 } from "../types/actual.types";
+
+function formatThaiDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return "-";
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  if (isNaN(date.getTime())) return String(dateStr);
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getFollowUpStatusBadge(status?: string | null) {
+  switch (status) {
+    case "APPROVED":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          อนุมัติแล้ว
+        </span>
+      );
+    case "COMPLETED":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+          <CheckCircle2 className="w-3 h-3 text-blue-600" />
+          เสร็จสิ้น
+        </span>
+      );
+    case "PENDING_LINE_APPROVAL":
+    case "PENDING_MARKETING_APPROVAL":
+    case "PENDING_BUDGET_APPROVAL":
+    case "PENDING_HELPER_APPROVAL":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+          <Clock className="w-3 h-3 text-amber-600" />
+          รออนุมัติ
+        </span>
+      );
+    case "REJECTED":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+          <AlertCircle className="w-3 h-3 text-rose-600" />
+          ไม่อนุมัติ
+        </span>
+      );
+    case "WAITING_FOR_CORRECTION":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+          ส่งกลับแก้ไข
+        </span>
+      );
+    case "CANCELLED":
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+          ยกเลิก
+        </span>
+      );
+    case "DRAFT":
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+          แบบร่าง
+        </span>
+      );
+  }
+}
+
+function getFollowUpTrackingResultBadge(result?: string | null) {
+  if (!result) return null;
+  const isGood =
+    result.includes("ดีมาก") ||
+    result.includes("ตามเกณฑ์") ||
+    result.includes("ดี");
+  const isWarning =
+    result.includes("ซ้ำ") ||
+    result.includes("ติดตามต่อ") ||
+    result.includes("ปานกลาง");
+  const isDanger =
+    result.includes("ไม่เห็นผล") || result.includes("เสียหาย");
+
+  const colorClass = isGood
+    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+    : isWarning
+      ? "bg-amber-50 text-amber-700 border-amber-200"
+      : isDanger
+        ? "bg-rose-50 text-rose-700 border-rose-200"
+        : "bg-slate-100 text-slate-700 border-slate-200";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${colorClass}`}
+    >
+      <Sprout className="w-3.5 h-3.5" />
+      ผล: {result}
+    </span>
+  );
+}
 
 export type {
   DetailType13AttackProps,
@@ -423,6 +530,72 @@ export function Type13DetailView({
     }
   });
 
+  // Extract Type 14 follow-up items for current plot
+  const followUpItems = (() => {
+    const list: any[] = [];
+    const seenPlanIds = new Set<string>();
+
+    const addFollowUp = (t14: any) => {
+      if (!t14) return;
+      const actPlan = t14.activityPlan || t14.plan;
+      const planId = actPlan?.id || t14.activityPlanId;
+      if (!planId || seenPlanIds.has(planId)) return;
+      seenPlanIds.add(planId);
+      list.push({
+        ...t14,
+        activityPlan: actPlan || { id: planId, title: "แผนงานติดตามแปลงแฮตแทค (Type 14)" },
+      });
+    };
+
+    // 1. From currentPlot.type14Targets
+    if (Array.isArray((currentPlot as any).type14Targets)) {
+      (currentPlot as any).type14Targets.forEach(addFollowUp);
+    }
+
+    // 2. From planSummary.type14SourceFollowUps
+    const sourceFollowUps = (planSummary as any)?.type14SourceFollowUps || [];
+    if (Array.isArray(sourceFollowUps)) {
+      sourceFollowUps.forEach((t14: any) => {
+        const matchesPlot =
+          (currentPlotId && (t14.type13TargetId === currentPlotId || t14.id === currentPlotId)) ||
+          (currentPlot.name && (t14.plotName === currentPlot.name || t14.name === currentPlot.name)) ||
+          effectivePlots.length <= 1;
+
+        if (matchesPlot) {
+          addFollowUp(t14);
+        }
+      });
+    }
+
+    // 3. From planSummary.type13Targets
+    const summaryT13Targets = (planSummary as any)?.type13Targets || [];
+    if (Array.isArray(summaryT13Targets)) {
+      const matchedT13 = summaryT13Targets.find(
+        (t: any) =>
+          (currentPlotId && t.id === currentPlotId) ||
+          (currentPlot.name && (t.plotName === currentPlot.name || t.name === currentPlot.name)),
+      );
+      if (matchedT13 && Array.isArray(matchedT13.type14Targets)) {
+        matchedT13.type14Targets.forEach(addFollowUp);
+      }
+    }
+
+    // 4. From planSummary.type14Targets
+    const directT14Targets = (planSummary as any)?.type14Targets || [];
+    if (Array.isArray(directT14Targets)) {
+      directT14Targets.forEach((t14: any) => {
+        const matchesPlot =
+          (currentPlotId && (t14.type13TargetId === currentPlotId || t14.id === currentPlotId)) ||
+          (currentPlot.name && (t14.plotName === currentPlot.name || t14.name === currentPlot.name));
+        if (matchesPlot) {
+          addFollowUp(t14);
+        }
+      });
+    }
+
+    return list;
+  })();
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-5 shadow-2xs">
       {/* Header */}
@@ -668,6 +841,198 @@ export function Type13DetailView({
           ) : (
             <div className="p-4 bg-white rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
               ยังไม่มีรูปถ่ายผลการปฏิบัติงานสำหรับแปลงนี้
+            </div>
+          )}
+        </div>
+
+        {/* 1.2 ข้อมูลการติดตามแปลงแฮตแทค (Type 14 Follow-up) */}
+        <div className="space-y-3 pt-3 border-t border-slate-200/70">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-emerald-600" />
+              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
+                1.2 ข้อมูลการติดตามแปลงแฮตแทค (Type 14 Follow-up)
+              </h6>
+            </div>
+            {followUpItems.length > 0 && (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 self-start sm:self-auto">
+                {followUpItems.length} แผนงานติดตาม
+              </span>
+            )}
+          </div>
+
+          {followUpItems.length > 0 ? (
+            <div className="space-y-3">
+              {followUpItems.map((item, itemIdx) => {
+                const plan = item.activityPlan || {};
+                const empName =
+                  plan.employee?.name ||
+                  [plan.employee?.firstName, plan.employee?.lastName]
+                    .filter(Boolean)
+                    .join(" ") ||
+                  null;
+
+                // Find results for this follow-up target
+                const resultsList = Array.isArray(item.results)
+                  ? item.results
+                  : item.result
+                    ? [item.result]
+                    : [];
+                const latestResult = resultsList[0] || null;
+
+                return (
+                  <div
+                    key={plan.id || item.id || itemIdx}
+                    className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 space-y-3 shadow-2xs hover:border-emerald-300 transition-colors"
+                  >
+                    {/* Header: Title, Code, Status, Date, Employee, and Link Button */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-slate-900">
+                            {plan.code ? `[${plan.code}] ` : ""}
+                            {plan.title || "แผนงานติดตามแปลงแฮตแทค (Type 14)"}
+                          </span>
+                          {getFollowUpStatusBadge(plan.status)}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                          {plan.startDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              {formatThaiDate(plan.startDate)}
+                            </span>
+                          )}
+                          {empName && (
+                            <span className="flex items-center gap-1">
+                              <User className="w-3.5 h-3.5 text-slate-400" />
+                              {empName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {plan.id && (
+                        <Link
+                          href={`/activity-plans/${plan.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors shrink-0 cursor-pointer self-start sm:self-center"
+                        >
+                          <span>ไปยังแผนงานนี้</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Result Summary Preview */}
+                    {latestResult ? (
+                      <div className="space-y-2 bg-slate-50/70 p-3 rounded-lg border border-slate-100 text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {latestResult.daysAfterSpray != null && (
+                              <span className="font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                {latestResult.daysAfterSpray} วันหลังฉีด
+                              </span>
+                            )}
+                            {latestResult.actualPlotsCount != null && (
+                              <span className="font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                ติดตามจริง: {latestResult.actualPlotsCount} แปลง
+                              </span>
+                            )}
+                            {latestResult.actualVisitDate && (
+                              <span className="text-slate-500">
+                                ตรวจเมื่อ:{" "}
+                                {formatThaiDate(latestResult.actualVisitDate)}
+                              </span>
+                            )}
+                          </div>
+                          {getFollowUpTrackingResultBadge(
+                            latestResult.trackingResult,
+                          )}
+                        </div>
+
+                        {latestResult.productResponse && (
+                          <div className="flex items-center gap-1.5 text-slate-600">
+                            <span className="font-medium text-slate-400">
+                              อาการตอบสนองของพืช:
+                            </span>
+                            <span className="font-semibold text-slate-800">
+                              {latestResult.productResponse}
+                            </span>
+                          </div>
+                        )}
+
+                        {latestResult.productsUsed &&
+                          latestResult.productsUsed.length > 0 && (
+                            <div className="pt-1 border-t border-slate-200/60 flex flex-wrap gap-2 items-center">
+                              <span className="text-slate-400 font-medium">
+                                สินค้าที่ใช้พ่นซ้ำ:
+                              </span>
+                              {latestResult.productsUsed.map(
+                                (pu: any, pIdx: number) => {
+                                  const pName =
+                                    pu.productName ||
+                                    pu.product?.name ||
+                                    "สินค้า";
+                                  const extraStr = pu.extraQuantity
+                                    ? ` (+${pu.extraQuantity} ${pu.extraUnit || "ซีซี"})`
+                                    : "";
+                                  return (
+                                    <span
+                                      key={pIdx}
+                                      className="bg-white px-2 py-0.5 rounded border border-slate-200 font-medium text-slate-700"
+                                    >
+                                      {pName}: {pu.quantityUsed ?? 1}{" "}
+                                      {pu.unit || "ขวด"}
+                                      {extraStr}
+                                    </span>
+                                  );
+                                },
+                              )}
+                            </div>
+                          )}
+
+                        {latestResult.additionalNotes && (
+                          <div className="text-slate-600 italic">
+                            "{latestResult.additionalNotes}"
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
+                        <span className="flex items-center gap-1.5 text-slate-500">
+                          <Clock className="w-3.5 h-3.5 text-amber-500" />
+                          แผนงานนี้ยังไม่ได้บันทึกผลการตรวจติดตามจริง
+                        </span>
+                        {plan.id && (
+                          <Link
+                            href={`/activity-plans/${plan.id}/actual`}
+                            className="text-emerald-700 hover:text-emerald-800 font-semibold underline text-xs"
+                          >
+                            บันทึกผลติดตาม
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-4 bg-white rounded-xl border border-dashed border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="space-y-0.5">
+                <p className="text-xs font-medium text-slate-600">
+                  ยังไม่มีแผนงานติดตามแปลงแฮตแทค (Type 14) สำหรับแปลงนี้
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  สามารถสร้างแผนงานติดตามเพื่อประเมินผลการฉีดพ่นและอาการตอบสนองของพืช
+                </p>
+              </div>
+              <Link
+                href={`/activity-plans/new?type=TYPE_14&sourceActivityPlanId=${(planSummary as any)?.id || ""}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>สร้างแผนติดตามแปลง (Type 14)</span>
+              </Link>
             </div>
           )}
         </div>
