@@ -362,12 +362,19 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     if (rawT13Results.length > 0) {
       const allRounds = rawT13Results.flatMap((r: any) => r.sprayRounds || []);
-      const allAtts = [
+      const rawAtts = [
         ...rawT13Results.flatMap((r: any) => r.attachments || []),
         ...((resData.attachments || resData.activityPlan?.attachments || []).filter(
           (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
         )),
       ];
+      const seenAttKeys = new Set<string>();
+      const allAtts = rawAtts.filter((a: any) => {
+        const key = a.id || a.fileUrl || a.url;
+        if (!key || seenAttKeys.has(key)) return false;
+        seenAttKeys.add(key);
+        return true;
+      });
       result.type13Actual = {
         plots: rawT13Results,
         type13PlotsActual: rawT13Results.map((r: any) => ({

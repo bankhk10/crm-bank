@@ -14,12 +14,19 @@ export function parseType13ActualResult(
 
   if (planPayload?.type13Results && Array.isArray(planPayload.type13Results) && planPayload.type13Results.length > 0) {
     const allRounds = planPayload.type13Results.flatMap((r: any) => r.sprayRounds || []);
-    const allAtts = [
+    const rawAtts = [
       ...planPayload.type13Results.flatMap((r: any) => r.attachments || []),
       ...((planPayload.attachments || []).filter(
         (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
       )),
     ];
+    const seenAttKeys = new Set<string>();
+    const allAtts = rawAtts.filter((a: any) => {
+      const key = a.id || a.fileUrl || a.url;
+      if (!key || seenAttKeys.has(key)) return false;
+      seenAttKeys.add(key);
+      return true;
+    });
     return {
       type13Actual: {
         plots: planPayload.type13Results,

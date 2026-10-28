@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  MapPin,
-  Package,
-  Beaker,
-  Calendar,
-  ExternalLink,
-  Camera,
-  Eye,
-  X,
-} from "lucide-react";
+import { MapPin, ExternalLink, Camera, Eye, X } from "lucide-react";
 import type { Type13PlotItem } from "../../shared/types";
 import type {
   Type13DetailData,
@@ -36,18 +27,18 @@ export function Type13DetailView({
 
   if (!isVisible) return null;
 
-  const sprayRoundsList = actualData?.sprayRounds || [];
-  const hasAnySprayData =
-    sprayRoundsList.length > 0 ||
+  const hasAnyData =
+    (plots && plots.length > 0) ||
     (actualData?.type13PlotsActual &&
       actualData.type13PlotsActual.length > 0) ||
-    (actualData?.attachments && actualData.attachments.length > 0);
+    (actualData?.attachments && actualData.attachments.length > 0) ||
+    Boolean((actualData as any)?.plots && (actualData as any).plots.length > 0);
 
-  if (!hasAnySprayData && (!plots || plots.length === 0)) {
+  if (!hasAnyData) {
     return null;
   }
 
-  const effectivePlots =
+  const effectivePlots: Type13PlotItem[] =
     plots.length > 0
       ? plots
       : [
@@ -63,36 +54,172 @@ export function Type13DetailView({
         ];
 
   const currentPlot = effectivePlots[activePlotIdx] || effectivePlots[0];
+  const currentPlotId = currentPlot.id || currentPlot.demoPlotId;
 
-  // Coordinates for current plot
+  // Extract all available Type 13 actual results
+  const rawResults: any[] =
+    (actualData as any)?.plots ||
+    (planSummary as any)?.type13Results ||
+    (planSummary as any)?.results?.filter?.(
+      (r: any) => r.type13ResultId || r.workTypeCode === "TYPE_13",
+    ) ||
+    [];
+
+  // Find the specific result matching current plot
+  const currentPlotResult =
+    rawResults.find(
+      (r: any) =>
+        (currentPlotId &&
+          (r.targetId === currentPlotId ||
+            r.targetId === currentPlot.id ||
+            r.targetId === currentPlot.demoPlotId)) ||
+        (currentPlot.result && r.id === currentPlot.result.id) ||
+        ((currentPlot as any).resultId &&
+          r.id === (currentPlot as any).resultId),
+    ) ||
+    rawResults[activePlotIdx] ||
+    currentPlot.result ||
+    null;
+
+  const currentPlotResultId =
+    currentPlotResult?.id ||
+    currentPlot.result?.id ||
+    (currentPlot as any).resultId;
+
+  // Coordinates & actual plots count for current plot
   const plotCoord =
     actualData?.type13PlotsActual?.find(
       (c) =>
         c.demoPlotId === currentPlot.id ||
         (currentPlot.demoPlotId && c.demoPlotId === currentPlot.demoPlotId),
     ) ||
+    (currentPlotResult?.actualLatitude && currentPlotResult?.actualLongitude
+      ? {
+          latitude: currentPlotResult.actualLatitude,
+          longitude: currentPlotResult.actualLongitude,
+          actualPlotsCount: currentPlotResult.actualPlotsCount,
+        }
+      : null) ||
     (currentPlot.latitude && currentPlot.longitude
-      ? { latitude: currentPlot.latitude, longitude: currentPlot.longitude }
+      ? {
+          latitude: currentPlot.latitude,
+          longitude: currentPlot.longitude,
+          actualPlotsCount: currentPlot.actualPlotsCount,
+        }
       : null);
 
-  // Spray rounds for current plot
-  const plotRounds = sprayRoundsList.filter(
-    (r) =>
-      !r.demoPlotId ||
-      effectivePlots.length <= 1 ||
-      (r as any).targetId === currentPlot.id || r.demoPlotId === currentPlot.id || ((r as any).result && (r as any).result.targetId === currentPlot.id) ||
-      (currentPlot.demoPlotId && r.demoPlotId === currentPlot.demoPlotId),
-  );
+  const actualPlotsCount =
+    (plotCoord as any)?.actualPlotsCount ??
+    currentPlotResult?.actualPlotsCount ??
+    currentPlot.actualPlotsCount;
 
-  // After-spray attachments for current plot
-  const afterSprayAttachments = (actualData?.attachments || []).filter(
-    (att) =>
-      !att.sprayRoundId &&
-      (!att.demoPlotId ||
-        effectivePlots.length <= 1 ||
-        (att as any).targetId === currentPlot.id || att.demoPlotId === currentPlot.id || ((att as any).type13ResultId && currentPlot.result && (att as any).type13ResultId === currentPlot.result.id) ||
-        (currentPlot.demoPlotId && att.demoPlotId === currentPlot.demoPlotId)),
-  );
+  // Build sets of identifiers that belong to OTHER plots to prevent photo leakage
+  const otherPlotResultIds = new Set<string>();
+  const otherPlotTargetIds = new Set<string>();
+
+  effectivePlots.forEach((p, idx) => {
+    if (idx !== activePlotIdx) {
+      if (p.id) otherPlotTargetIds.add(p.id);
+      if (p.demoPlotId) otherPlotTargetIds.add(p.demoPlotId);
+      if (p.result?.id) otherPlotResultIds.add(p.result.id);
+      if ((p as any).resultId) otherPlotResultIds.add((p as any).resultId);
+      const otherRes =
+        rawResults.find(
+          (r: any) =>
+            (p.id && r.targetId === p.id) ||
+            (p.demoPlotId && r.targetId === p.demoPlotId),
+        ) || rawResults[idx];
+      if (otherRes?.id) otherPlotResultIds.add(otherRes.id);
+    }
+  });
+
+  // Collect and deduplicate after-spray attachments for current plot
+  const afterSprayAttachments: Array<{ fileUrl: string; fileName?: string }> =
+    [];
+  const seenUrls = new Set<string>();
+
+  const addAttachment = (att: any) => {
+    if (!att) return;
+    const url = att.fileUrl || att.url;
+    if (!url || typeof url !== "string" || seenUrls.has(url)) return;
+    seenUrls.add(url);
+    afterSprayAttachments.push({
+      fileUrl: url,
+      fileName:
+        att.fileName || att.name || `ภาพหลังพ่นแปลงที่ ${activePlotIdx + 1}`,
+    });
+  };
+
+  // 1. Direct attachments from currentPlotResult
+  if (
+    currentPlotResult?.attachments &&
+    Array.isArray(currentPlotResult.attachments)
+  ) {
+    currentPlotResult.attachments.forEach(addAttachment);
+  }
+
+  // 2. Direct afterSprayImages from currentPlot object
+  if (Array.isArray((currentPlot as any).afterSprayImages)) {
+    (currentPlot as any).afterSprayImages.forEach(addAttachment);
+  }
+  if (Array.isArray((currentPlot as any).attachments)) {
+    (currentPlot as any).attachments.forEach(addAttachment);
+  }
+
+  // 3. Scan attachments from actualData and planSummary
+  const rawAttachmentsList: any[] = [
+    ...(actualData?.attachments || []),
+    ...((planSummary as any)?.attachments || []),
+  ];
+
+  rawAttachmentsList.forEach((att: any) => {
+    if (!att || att.sprayRoundId) return;
+
+    // Reject attachments explicitly assigned to another plot
+    if (att.type13ResultId && otherPlotResultIds.has(att.type13ResultId))
+      return;
+    if (att.targetId && otherPlotTargetIds.has(att.targetId)) return;
+    if (att.demoPlotId && otherPlotTargetIds.has(att.demoPlotId)) return;
+
+    const matchesResultId =
+      currentPlotResultId && att.type13ResultId === currentPlotResultId;
+    const matchesTargetId =
+      currentPlotId &&
+      (att.targetId === currentPlotId || att.demoPlotId === currentPlotId);
+    const matchesFileName =
+      att.fileName &&
+      (att.fileName.includes(`แปลงแฮตแทค ${activePlotIdx + 1}`) ||
+        att.fileName.includes(`แปลงที่ ${activePlotIdx + 1}`) ||
+        att.fileName.includes(`plot_${activePlotIdx + 1}`));
+
+    const belongsToOtherFileName =
+      effectivePlots.length > 1 &&
+      att.fileName &&
+      effectivePlots.some((_, idx) => {
+        if (idx === activePlotIdx) return false;
+        return (
+          att.fileName.includes(`แปลงแฮตแทค ${idx + 1}`) ||
+          att.fileName.includes(`แปลงที่ ${idx + 1}`) ||
+          att.fileName.includes(`plot_${idx + 1}`)
+        );
+      });
+
+    if (belongsToOtherFileName) return;
+
+    const isGeneralT13 =
+      att.workTypeCode === "TYPE_13" ||
+      att.category === "PLOT" ||
+      att.category === "AFTER_SPRAY" ||
+      (typeof att.fileUrl === "string" &&
+        (att.fileUrl.includes("/type13/") ||
+          att.fileUrl.includes("after_spray")));
+
+    if (matchesResultId || matchesTargetId || matchesFileName) {
+      addAttachment(att);
+    } else if (effectivePlots.length <= 1 && isGeneralT13) {
+      addAttachment(att);
+    }
+  });
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-5 shadow-2xs">
@@ -109,9 +236,7 @@ export function Type13DetailView({
                 ทั้งหมด {effectivePlots.length} แปลง
               </span>
             </h4>
-            <p className="text-xs text-slate-500">
-              พิกัดแปลง, ประวัติการฉีดพ่นสารเคมี และรูปถ่ายผลการปฏิบัติงานจริง
-            </p>
+            <p className="text-xs text-slate-500">รูปถ่ายผลการปฏิบัติงานจริง</p>
           </div>
         </div>
       </div>
@@ -168,30 +293,33 @@ export function Type13DetailView({
               ร้านค้า Dealer
             </span>
             <span className="text-xs sm:text-sm font-semibold text-slate-700">
-              {currentPlot.dealerName || currentPlot.ownerName || currentPlot.storeId || "-"}
+              {currentPlot.dealerName ||
+                currentPlot.ownerName ||
+                currentPlot.storeId ||
+                "-"}
             </span>
             <span className="block text-[11px] text-slate-400 mt-0.5">
               {[
                 currentPlot.subdistrict ? `ต.${currentPlot.subdistrict}` : null,
                 currentPlot.district ? `อ.${currentPlot.district}` : null,
                 currentPlot.province ? `จ.${currentPlot.province}` : null,
-              ].filter(Boolean).join(" ") || "-"}
+              ]
+                .filter(Boolean)
+                .join(" ") || "-"}
               {currentPlot.village ? ` (ม.${currentPlot.village})` : ""}
             </span>
           </div>
 
-          {(currentPlot.plannedPlotsCount != null || (plotCoord as any)?.actualPlotsCount != null) && (
+          {(currentPlot.plannedPlotsCount != null ||
+            actualPlotsCount != null) && (
             <div>
               <span className="block text-[11px] text-slate-400 font-medium">
-                จำนวนแปลง (แผน / จริง)
+                จำนวนแปลง (แผน)
               </span>
               <span className="text-xs sm:text-sm font-semibold text-emerald-800">
-                {currentPlot.plannedPlotsCount != null ? `แผน: ${currentPlot.plannedPlotsCount} แปลง` : ""}
-                {(plotCoord as any)?.actualPlotsCount != null && (
-                  <span className="text-emerald-700 ml-1.5 font-bold">
-                    ฉีดจริง: {(plotCoord as any).actualPlotsCount} แปลง
-                  </span>
-                )}
+                {currentPlot.plannedPlotsCount != null
+                  ? `${currentPlot.plannedPlotsCount} แปลง`
+                  : ""}
               </span>
             </div>
           )}
@@ -199,129 +327,29 @@ export function Type13DetailView({
           {plotCoord && (
             <div className="sm:col-span-2 md:col-span-1">
               <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>ที่ตั้งแปลง</span>
+                <span> จำนวนแปลง (ฉีดจริง)</span>
               </span>
-              <span className="text-xs font-mono font-bold text-slate-800 block">
-                {String(plotCoord.latitude)}, {String(plotCoord.longitude)}
+              <span className="text-xs sm:text-sm font-semibold text-emerald-800">
+                {actualPlotsCount != null && (
+                  <span className="text-emerald-700 ml-1.5 font-bold">
+                    {actualPlotsCount} แปลง
+                  </span>
+                )}
               </span>
-              <a
-                href={`https://maps.google.com/?q=${plotCoord.latitude},${plotCoord.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold inline-flex items-center gap-1 underline mt-0.5"
-              >
-                <span>เปิดดูในแผนที่</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
             </div>
           )}
         </div>
 
-        {/* Actual Spraying Rounds */}
-        {plotRounds.length > 0 ? (
-          <div className="space-y-4 pt-1">
-            <div className="flex items-center gap-2">
-              <Beaker className="w-4 h-4 text-emerald-600" />
-              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
-                ประวัติการฉีดพ่นจริง ({plotRounds.length} รอบ)
-              </h6>
-            </div>
-
-            <div className="space-y-3">
-              {plotRounds.map((round, rIdx) => (
-                <div
-                  key={rIdx}
-                  className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-2xs"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                        {round.roundNumber}
-                      </span>
-                      <span className="font-bold text-xs text-slate-800">
-                        รอบที่ {round.roundNumber}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          round.sprayMethod === "TANK_MIXED"
-                            ? "bg-indigo-100 text-indigo-800"
-                            : "bg-emerald-100 text-emerald-800"
-                        }`}
-                      >
-                        {round.sprayMethod === "TANK_MIXED" ? "ผสมถัง" : "เดี่ยว"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>
-                        {round.sprayDate
-                          ? new Date(round.sprayDate).toLocaleDateString("th-TH")
-                          : "-"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
-                    <div>
-                      <span className="text-slate-400">อุปกรณ์: </span>
-                      <span className="font-semibold text-slate-700">
-                        {round.sprayEquipment || "-"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">ผลหลังฉีด: </span>
-                      <span className="font-semibold text-slate-700">
-                        {round.productResponse || "-"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Products */}
-                  {round.products && round.products.length > 0 && (
-                    <div className="pt-2 border-t border-slate-100">
-                      <span className="text-[11px] font-bold text-slate-500 uppercase block mb-1.5">
-                        ผลิตภัณฑ์ที่ใช้:
-                      </span>
-                      <div className="space-y-1">
-                        {round.products.map((p, pIdx) => (
-                          <div
-                            key={pIdx}
-                            className="flex items-center justify-between text-xs bg-slate-50 px-2.5 py-1.5 rounded-lg"
-                          >
-                            <span className="font-medium text-slate-800">
-                              {p.productName || p.productId}
-                            </span>
-                            <span className="text-slate-600 font-semibold">
-                              {p.actualRate ? `อัตรา ${p.actualRate}` : ""}{" "}
-                              {p.quantityUsed != null ? `(ใช้ ${p.quantityUsed} ${p.unit || "ขวด"})` : ""}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 bg-white rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
-            ยังไม่มีบันทึกรอบการฉีดพ่น
-          </div>
-        )}
-
         {/* After-Spray Photos */}
-        {afterSprayAttachments.length > 0 && (
-          <div className="space-y-3 pt-2 border-t border-slate-200">
-            <div className="flex items-center gap-2">
-              <Camera className="w-4 h-4 text-emerald-600" />
-              <h6 className="font-bold text-xs sm:text-sm text-slate-800">
-                รูปถ่ายหลังฉีดพ่น ({afterSprayAttachments.length} รูป)
-              </h6>
-            </div>
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2">
+            <Camera className="w-4 h-4 text-emerald-600" />
+            <h6 className="font-bold text-xs sm:text-sm text-slate-800">
+              รูปถ่าย ({afterSprayAttachments.length} รูป)
+            </h6>
+          </div>
 
+          {afterSprayAttachments.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {afterSprayAttachments.map((att, attIdx) => (
                 <div
@@ -340,8 +368,12 @@ export function Type13DetailView({
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="p-4 bg-white rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400">
+              ยังไม่มีรูปถ่ายผลการปฏิบัติงานสำหรับแปลงนี้
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Lightbox Modal */}
@@ -373,4 +405,7 @@ export function Type13DetailView({
   );
 }
 
-export { Type13DetailView as DetailType13Attack, Type13DetailView as Type13Detail };
+export {
+  Type13DetailView as DetailType13Attack,
+  Type13DetailView as Type13Detail,
+};
