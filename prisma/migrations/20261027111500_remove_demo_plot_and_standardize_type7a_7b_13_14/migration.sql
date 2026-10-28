@@ -1,8 +1,11 @@
 -- DropForeignKey
-ALTER TABLE "activity_attachments" DROP CONSTRAINT IF EXISTS "activity_attachments_demo_plot_id_fkey";
+ALTER TABLE IF EXISTS "activity_attachments" DROP CONSTRAINT IF EXISTS "activity_attachments_demo_plot_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "activity_attachments" DROP CONSTRAINT IF EXISTS "activity_attachments_demo_plot_visit_id_fkey";
+ALTER TABLE IF EXISTS "activity_attachments" DROP CONSTRAINT IF EXISTS "activity_attachments_demo_plot_visit_id_fkey";
+
+-- DropForeignKey
+ALTER TABLE IF EXISTS "drug_withdrawal_items" DROP CONSTRAINT IF EXISTS "drug_withdrawal_items_demo_plot_id_fkey";
 
 -- DropForeignKey
 ALTER TABLE "activity_type_10_targets" DROP CONSTRAINT IF EXISTS "activity_type_10_targets_demo_plot_id_fkey";
@@ -139,19 +142,19 @@ ALTER TABLE "activity_type_7b_targets" DROP COLUMN IF EXISTS "demo_plot_id",
 ADD COLUMN IF NOT EXISTS "type_7a_target_id" TEXT;
 
 -- DropTable
-DROP TABLE IF EXISTS "demo_plot_external_products";
+DROP TABLE IF EXISTS "demo_plot_external_products" CASCADE;
 
 -- DropTable
-DROP TABLE IF EXISTS "demo_plot_irrigations";
+DROP TABLE IF EXISTS "demo_plot_irrigations" CASCADE;
 
 -- DropTable
-DROP TABLE IF EXISTS "demo_plot_products";
+DROP TABLE IF EXISTS "demo_plot_products" CASCADE;
 
 -- DropTable
-DROP TABLE IF EXISTS "demo_plot_visits";
+DROP TABLE IF EXISTS "demo_plot_visits" CASCADE;
 
 -- DropTable
-DROP TABLE IF EXISTS "demo_plots";
+DROP TABLE IF EXISTS "demo_plots" CASCADE;
 
 -- CreateIndex
 CREATE INDEX IF NOT EXISTS "activity_type_10_targets_type_7a_target_id_idx" ON "activity_type_10_targets"("type_7a_target_id");
