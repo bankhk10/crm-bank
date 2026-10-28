@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Package,
-  Plus,
-  Trash2,
-  Store,
-  MapPin,
-} from "lucide-react";
+import { Package, Plus, Trash2, Store, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityCustomerSelect,
@@ -84,7 +78,8 @@ export function Type13UnplannedForm({
             <span>กิจกรรมนอกแผน: ฉีดแปลงแฮตแทค (TYPE_13)</span>
           </h4>
           <p className="text-xs text-slate-500">
-            ระบุข้อมูลตัวแทนจำหน่าย ที่อยู่แปลง จำนวนแปลงที่ฉีดพ่นจริง ผลิตภัณฑ์ที่ใช้ และรูปภาพหลักฐาน
+            ระบุข้อมูลตัวแทนจำหน่าย ที่อยู่แปลง จำนวนแปลงที่ฉีดพ่นจริง
+            สินค้าที่ใช้ และรูปภาพหลักฐาน
           </p>
         </div>
       </div>
@@ -175,21 +170,25 @@ export function Type13UnplannedForm({
 
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-slate-700">
-              จำนวนแปลงที่ฉีดพ่นจริง (แปลง) <span className="text-rose-500">*</span>
+              จำนวนแปลงที่ฉีดพ่นจริง (แปลง){" "}
+              <span className="text-rose-500">*</span>
             </label>
             <ActivityInput
               type="number"
               min={1}
               placeholder="เช่น 3"
               value={
-                item.actualPlotsCount !== undefined && item.actualPlotsCount !== null
+                item.actualPlotsCount !== undefined &&
+                item.actualPlotsCount !== null
                   ? String(item.actualPlotsCount)
                   : ""
               }
               onChange={(e) =>
                 onChange({
                   ...item,
-                  actualPlotsCount: e.target.value ? Number(e.target.value) : "",
+                  actualPlotsCount: e.target.value
+                    ? Number(e.target.value)
+                    : "",
                 })
               }
               disabled={readonly}
@@ -224,7 +223,7 @@ export function Type13UnplannedForm({
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4 text-emerald-600" />
             <h5 className="font-bold text-xs sm:text-sm text-slate-800">
-              2. ผลิตภัณฑ์ที่ใช้ / สินค้าสาธิต (Demo Products)
+              2. สินค้าสาธิต (Demo Products)
             </h5>
             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-100">
               {item.products?.length || 0} รายการ
@@ -240,16 +239,20 @@ export function Type13UnplannedForm({
               className="h-8 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 px-2.5 rounded-xl shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
-              <span>เพิ่มผลิตภัณฑ์</span>
+              <span>เพิ่มสินค้า</span>
             </Button>
           )}
         </div>
 
-        {(!item.products || item.products.length === 0) ? (
+        {!item.products || item.products.length === 0 ? (
           <div className="bg-slate-50/60 rounded-xl border border-dashed border-slate-200 p-4 text-center">
             <p className="text-xs text-slate-500">
-              ยังไม่มีรายการผลิตภัณฑ์ที่ใช้ หากมีการใช้สารเคมีหรือผลิตภัณฑ์สาธิต
-              สามารถกดปุ่ม <span className="font-semibold text-emerald-700">"เพิ่มผลิตภัณฑ์"</span> ได้ทันที
+              ยังไม่มีรายการสินค้าที่ใช้ หากมีการใช้สารเคมีหรือสินค้าสาธิต
+              สามารถกดปุ่ม{" "}
+              <span className="font-semibold text-emerald-700">
+                เพิ่มสินค้า
+              </span>{" "}
+              ได้ทันที
             </p>
           </div>
         ) : (
@@ -282,7 +285,7 @@ export function Type13UnplannedForm({
                 {/* Product Selection */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700">
-                    ผลิตภัณฑ์ <span className="text-rose-500">*</span>
+                    สินค้า <span className="text-rose-500">*</span>
                   </label>
                   <ActivityProductSelect
                     id={`type13-unplanned-prod-${pIdx}`}
@@ -291,7 +294,11 @@ export function Type13UnplannedForm({
                     onChange={(val, selectedProd) => {
                       handleUpdateProduct(pIdx, "productId", val);
                       if (selectedProd?.name) {
-                        handleUpdateProduct(pIdx, "productName", selectedProd.name);
+                        handleUpdateProduct(
+                          pIdx,
+                          "productName",
+                          selectedProd.name,
+                        );
                       }
                       if (selectedProd?.unit) {
                         handleUpdateProduct(pIdx, "unit", selectedProd.unit);
@@ -344,17 +351,25 @@ export function Type13UnplannedForm({
                         type="number"
                         min="0"
                         value={
-                          prod.extraQuantity != null ? String(prod.extraQuantity) : ""
+                          prod.extraQuantity != null
+                            ? String(prod.extraQuantity)
+                            : ""
                         }
                         onChange={(e) =>
-                          handleUpdateProduct(pIdx, "extraQuantity", e.target.value)
+                          handleUpdateProduct(
+                            pIdx,
+                            "extraQuantity",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="เช่น 250"
                       />
                       <ActivitySelect
                         value={prod.extraUnit || "ซีซี"}
-                        onChange={(val) => handleUpdateProduct(pIdx, "extraUnit", val)}
+                        onChange={(val) =>
+                          handleUpdateProduct(pIdx, "extraUnit", val)
+                        }
                         options={[
                           { value: "ซีซี", label: "ซีซี (ขวด)" },
                           { value: "กรัม", label: "กรัม (ซอง)" },
