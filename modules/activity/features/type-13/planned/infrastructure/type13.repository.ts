@@ -25,6 +25,7 @@ export interface Type13PlotInput {
   district?: string | null;
   subdistrict?: string | null;
   village?: string | null;
+  objective?: string | null;
   plannedPlotsCount?: number | string | null;
   latitude?: string | number | Prisma.Decimal | null;
   longitude?: string | number | Prisma.Decimal | null;
@@ -151,6 +152,7 @@ export async function createType13Data(
             String(plotItem.longitude).trim() !== ""
               ? new Prisma.Decimal(Number(plotItem.longitude))
               : null,
+          objective: plotItem.objective || null,
           notes: type13Data.notes || null,
         },
       });

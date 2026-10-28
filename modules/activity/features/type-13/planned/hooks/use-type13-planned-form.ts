@@ -90,6 +90,7 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         district: p.district || p.store?.district || "",
         subdistrict: p.subdistrict || p.store?.subdistrict || "",
         village: p.village || "",
+        objective: p.objective || "",
         plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
         actualPlotsCount:
           p.actualPlotsCount != null
@@ -140,6 +141,7 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         district: p.district || "",
         subdistrict: p.subdistrict || "",
         village: p.village || "",
+        objective: p.objective || "",
         plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : "",
         actualPlotsCount:
           p.actualPlotsCount != null
@@ -197,6 +199,7 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         district: t.district || t.store?.district || "",
         subdistrict: t.subdistrict || t.store?.subdistrict || "",
         village: t.village || targetResult?.notes || "",
+        objective: t.objective || "",
         plannedPlotsCount:
           t.plannedPlotsCount != null ? t.plannedPlotsCount : "",
         actualPlotsCount:
@@ -243,6 +246,7 @@ function resolveInitialType13Plots(initial: any = {}): Type13PlotItem[] {
         district: v.demoPlot?.district || "",
         subdistrict: "",
         village: "",
+        objective: v.demoPlot?.objective || "",
         plannedPlotsCount: "",
         latitude: v.demoPlot?.latitude ? String(v.demoPlot.latitude) : "",
         longitude: v.demoPlot?.longitude ? String(v.demoPlot.longitude) : "",
@@ -417,6 +421,7 @@ export function useType13PlannedForm({
         plots: type13Plots.map((p, idx) => ({
           ...p,
           plotIndex: idx + 1,
+          objective: p.objective || null,
           hasProductWithdrawal: Boolean(p.hasProductWithdrawal),
           withdrawnProducts: p.hasProductWithdrawal ? (p.withdrawnProducts || []) : [],
           products: p.hasProductWithdrawal ? (p.withdrawnProducts || []) : [],

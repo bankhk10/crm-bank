@@ -119,6 +119,7 @@ export function useType13Actual() {
             undefined,
           subdistrict: p.subdistrict || undefined,
           village: p.village || targetResult?.notes || undefined,
+          objective: p.objective || undefined,
           plannedPlotsCount: p.plannedPlotsCount ?? undefined,
           actualPlotsCount: targetResult?.actualPlotsCount ?? p.actualPlotsCount ?? undefined,
           applicationRate: p.applicationRate || undefined,

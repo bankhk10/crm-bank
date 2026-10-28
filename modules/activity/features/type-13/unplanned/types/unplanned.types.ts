@@ -16,6 +16,7 @@ export interface Type13UnplannedPlot {
   subdistrict?: string;
   village?: string;
   villageName?: string;
+  objective?: string;
   actualPlotsCount?: number | string;
   latitude?: string;
   longitude?: string;

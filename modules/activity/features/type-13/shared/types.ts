@@ -30,6 +30,7 @@ export interface Type13PlotItem {
   district: string;
   subdistrict?: string | null;
   village?: string | null;
+  objective?: string | null;
   plannedPlotsCount?: number | string | null;
   actualPlotsCount?: number | string | null;
   latitude?: number | string | null;

@@ -35,6 +35,7 @@ export interface Type13PlotActualState {
   district?: string;
   subdistrict?: string;
   village?: string;
+  objective?: string | null;
   plannedPlotsCount?: number | string;
   actualPlotsCount?: number | string;
   applicationRate?: string;

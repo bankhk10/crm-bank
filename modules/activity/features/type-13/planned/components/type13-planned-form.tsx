@@ -225,6 +225,7 @@ export function Type13PlannedForm({
       ownerName: "",
       province: "",
       district: "",
+      objective: "",
       hasProductWithdrawal: false,
       withdrawnProducts: [],
       products: [],
@@ -448,6 +449,28 @@ export function Type13PlannedForm({
                       disabled={readonly}
                     />
                   </div>
+                </div>
+
+                {/* วัตถุประสงค์ (ไม่บังคับกรอก) */}
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    วัตถุประสงค์
+                  </label>
+                  <ActivityInput
+                    type="text"
+                    placeholder="ระบุวัตถุประสงค์ เช่น เพื่อทดสอบประสิทธิภาพสารกำจัดวัชพืช..."
+                    value={plot.objective || ""}
+                    onChange={(e) => {
+                      if (readonly) return;
+                      const updated = [...plots];
+                      updated[plotIdx] = {
+                        ...updated[plotIdx],
+                        objective: e.target.value,
+                      };
+                      onChange(updated);
+                    }}
+                    disabled={readonly}
+                  />
                 </div>
 
                 {/* พิกัดแปลงจริง (GPS Coordinates) ถ้ามี */}

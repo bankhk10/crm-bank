@@ -108,6 +108,7 @@ export const type13SprayingRoundSchema = z.object({
 
 export const type13PlotActualSchema = z.object({
   demoPlotId: z.string().min(1),
+  objective: z.string().optional().nullable(),
   latitude: z.string().min(1, "กรุณาระบุละติจูด (Latitude) ของแปลง"),
   longitude: z.string().min(1, "กรุณาระบุลองจิจูด (Longitude) ของแปลง"),
   sprayRounds: z

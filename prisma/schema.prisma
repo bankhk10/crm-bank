@@ -2466,6 +2466,7 @@ model ActivityPlanType13Target {
   plannedPlotsCount Int?           @map("planned_plots_count")
   latitude          Decimal?       @map("latitude") @db.Decimal(10, 7)
   longitude         Decimal?       @map("longitude") @db.Decimal(10, 7)
+  objective         String?        @map("objective") @db.Text // วัตถุประสงค์
   notes             String?        @map("notes") @db.Text
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")

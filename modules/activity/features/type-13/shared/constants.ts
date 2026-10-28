@@ -1,6 +1,9 @@
 export const WORK_TYPE_CODE = "TYPE_13";
 export const WORK_TYPE_NAME = "ฉีดแปลงแฮตแทค";
 
+export const TYPE13_OBJECTIVE_LABEL = "วัตถุประสงค์";
+export const TYPE13_OBJECTIVE_PLACEHOLDER = "ระบุวัตถุประสงค์ เช่น เพื่อทดสอบประสิทธิภาพสาร...";
+
 export const TYPE13_MAX_IMAGES_PER_VILLAGE = 20;
 
 export const SPRAY_EQUIPMENT_OPTIONS = [

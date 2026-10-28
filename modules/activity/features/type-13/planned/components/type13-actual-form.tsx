@@ -155,6 +155,10 @@ export function Type13ActualForm({
           const villageDisplayName =
             plot.village || matchedTarget?.village || "-";
 
+          // Resolve objective
+          const objectiveDisplayName =
+            plot.objective || matchedTarget?.objective || null;
+
           // Resolve planned plots count
           const plannedCount =
             plot.plannedPlotsCount != null && plot.plannedPlotsCount !== ""
@@ -263,6 +267,17 @@ export function Type13ActualForm({
                     {villageDisplayName}
                   </span>
                 </div>
+
+                {objectiveDisplayName && (
+                  <div>
+                    <span className="block text-[11px] text-slate-400 font-medium">
+                      วัตถุประสงค์
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 block mt-0.5">
+                      {objectiveDisplayName}
+                    </span>
+                  </div>
+                )}
 
                 {plannedCount != null && (
                   <div>

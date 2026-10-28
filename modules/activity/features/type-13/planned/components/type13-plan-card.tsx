@@ -82,8 +82,14 @@ export function Type13PlanCard({
               </div>
             </div>
 
-            {(plot.village || plot.plannedPlotsCount) && (
+            {(plot.village || plot.plannedPlotsCount || plot.objective) && (
               <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
+                {plot.objective && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium">
+                    <span className="text-slate-400">วัตถุประสงค์:</span>
+                    <span className="font-semibold text-slate-800">{plot.objective}</span>
+                  </span>
+                )}
                 {plot.village && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium">
                     <span className="text-slate-400">หมู่บ้าน:</span>

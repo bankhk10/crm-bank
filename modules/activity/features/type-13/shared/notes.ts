@@ -10,8 +10,9 @@ export function formatType13PlannedNotes(plots: Type13PlotItem[] = []): string {
   const firstPlot = plots[0];
   const dealer = firstPlot.dealerName || "ตัวแทนจำหน่าย";
   const province = firstPlot.province ? ` จ.${firstPlot.province}` : "";
+  const objective = firstPlot.objective ? ` วัตถุประสงค์: ${firstPlot.objective}` : "";
 
-  return `ฉีดแปลงแฮตแทค ${count} แปลง (ตัวแทน: ${dealer}${province})`;
+  return `ฉีดแปลงแฮตแทค ${count} แปลง (ตัวแทน: ${dealer}${province})${objective}`;
 }
 
 /**

@@ -139,6 +139,7 @@ export const type13PlotItemSchema = z.object({
   district: z.string().min(1, "กรุณาเลือกอำเภอ"),
   subdistrict: z.string().optional().nullable(),
   village: z.string().optional().nullable(),
+  objective: z.string().optional().nullable(),
   plannedPlotsCount: z.union([z.number(), z.string()]).optional().nullable(),
   products: z.array(type13ProductLineSchema).optional().default([]),
 });

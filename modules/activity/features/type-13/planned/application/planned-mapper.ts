@@ -50,6 +50,7 @@ export function extractType13PlanTargets(
       district: p.district || p.store?.district || "",
       subdistrict: p.subdistrict || p.store?.subdistrict || null,
       village: p.village || targetResult?.notes || null,
+      objective: p.objective || null,
       plannedPlotsCount: p.plannedPlotsCount != null ? p.plannedPlotsCount : null,
       actualPlotsCount:
         targetResult?.actualPlotsCount != null
@@ -86,6 +87,7 @@ export function extractType13PlanTargets(
     district: prevTarget?.district || "",
     subdistrict: prevTarget?.subdistrict || null,
     village: prevTarget?.village || null,
+    objective: prevTarget?.objective || null,
     plannedPlotsCount: prevTarget?.plannedPlotsCount || null,
     products: prevTarget?.products || [],
   };
@@ -155,6 +157,13 @@ export function mapType13ToSectionItems(
       extraFields.push({
         label: "หมู่บ้าน",
         value: p.village,
+      });
+    }
+
+    if (p.objective) {
+      extraFields.push({
+        label: "วัตถุประสงค์",
+        value: p.objective,
       });
     }
 

@@ -196,6 +196,25 @@ export function Type13UnplannedForm({
             />
           </div>
         </div>
+
+        {/* วัตถุประสงค์ (ไม่บังคับกรอก) */}
+        <div className="space-y-1 pt-1 border-t border-slate-100">
+          <label className="block text-xs font-semibold text-slate-700">
+            วัตถุประสงค์
+          </label>
+          <ActivityInput
+            type="text"
+            placeholder="ระบุวัตถุประสงค์ เช่น เพื่อทดสอบประสิทธิภาพสาร..."
+            value={item.objective || ""}
+            onChange={(e) =>
+              onChange({
+                ...item,
+                objective: e.target.value,
+              })
+            }
+            disabled={readonly}
+          />
+        </div>
       </div>
 
       {/* 2. Demo Products Used (สไตล์ Type 7B / Type 13 Actual) */}

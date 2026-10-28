@@ -152,6 +152,17 @@ export function Type13DetailView({
             </span>
           </div>
 
+          {currentPlot.objective && (
+            <div>
+              <span className="block text-[11px] text-slate-400 font-medium">
+                วัตถุประสงค์
+              </span>
+              <span className="text-xs sm:text-sm font-semibold text-slate-800">
+                {currentPlot.objective}
+              </span>
+            </div>
+          )}
+
           <div>
             <span className="block text-[11px] text-slate-400 font-medium">
               ร้านค้า Dealer

@@ -197,6 +197,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
                 district: t.district || t.store?.district || "",
                 subdistrict: t.subdistrict || t.store?.subdistrict || "",
                 village: t.village || targetResult?.notes || "",
+                objective: t.objective || "",
                 plannedPlotsCount:
                   t.plannedPlotsCount != null ? t.plannedPlotsCount : "",
                 actualPlotsCount:
