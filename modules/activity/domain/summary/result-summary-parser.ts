@@ -153,6 +153,13 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           productId: item.productId,
           productName: item.productName || item.product?.name || "สินค้า",
           storeId: item.storeId,
+          isSubDealer: item.isSubDealer ?? item.target?.isSubDealer,
+          isUnregisteredSubdealer:
+            item.isUnregisteredSubdealer ?? item.target?.isUnregisteredSubdealer,
+          subdealerId: item.subdealerId ?? item.target?.subdealerId,
+          subdealerName: item.subdealerName ?? item.target?.subdealer?.name,
+          subDealerStore: item.subDealerStore ?? item.target?.subDealerStore,
+          dealerName: item.dealerName ?? item.target?.store?.name,
           customer:
             item.store?.name || item.customerName || item.customer || "",
           actualQty: item.actualQuantity ?? item.actualQty ?? 0,

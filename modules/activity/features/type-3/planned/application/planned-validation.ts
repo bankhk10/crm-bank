@@ -28,7 +28,11 @@ export const type3SalesItemSchema = z
     id: z.string().min(1, "Item ID is required"),
     storeId: z.string().optional(),
     isSubDealer: z.boolean().default(false),
+    isUnregisteredSubdealer: z.boolean().default(false),
+    subdealerId: z.string().optional(),
+    subdealerName: z.string().optional(),
     subDealerStore: z.string().optional(),
+    dealerName: z.string().optional(),
     customerName: z.string().optional(),
     products: z.array(type3ProductLineSchema).optional(),
     notes: z.string().optional(),
@@ -36,19 +40,29 @@ export const type3SalesItemSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.isSubDealer) {
-      if (!data.subDealerStore?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "กรุณาระบุชื่อร้าน Subdealer",
-          path: ["subDealerStore"],
-        });
-      }
-      if (!data.storeId && !data.customerName?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "กรุณาเลือก Dealer ต้นสังกัด",
-          path: ["customerName"],
-        });
+      if (data.isUnregisteredSubdealer) {
+        if (!data.subDealerStore?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาระบุชื่อร้าน Subdealer",
+            path: ["subDealerStore"],
+          });
+        }
+        if (!data.storeId && !data.customerName?.trim() && !data.dealerName?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือก Dealer ต้นสังกัด",
+            path: ["customerName"],
+          });
+        }
+      } else {
+        if (!data.subdealerId && !data.subdealerName?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือกร้านค้า Subdealer จากระบบ",
+            path: ["subdealerId"],
+          });
+        }
       }
     } else {
       if (!data.storeId && !data.customerName?.trim()) {
@@ -90,20 +104,32 @@ export function validateType3FormItems({
     const rowNum = i + 1;
 
     if (item.isSubDealer) {
-      if (!item.subDealerStore?.trim()) {
-        return {
-          isValid: false,
-          error: `กรุณาระบุชื่อร้าน Subdealer (รายการที่ ${rowNum})`,
-        };
-      }
-      const sId =
-        item.storeId ||
-        customersList.find((c) => c.name === item.customerName)?.id;
-      if (!sId && !item.customerName?.trim()) {
-        return {
-          isValid: false,
-          error: `กรุณาเลือก Dealer ต้นสังกัด (รายการที่ ${rowNum})`,
-        };
+      if (item.isUnregisteredSubdealer) {
+        if (!item.subDealerStore?.trim()) {
+          return {
+            isValid: false,
+            error: `กรุณาระบุชื่อร้าน Subdealer (รายการที่ ${rowNum})`,
+          };
+        }
+        const sId =
+          item.storeId ||
+          customersList.find((c) => c.name === item.customerName || c.name === item.dealerName)?.id;
+        if (!sId && !item.customerName?.trim() && !item.dealerName?.trim()) {
+          return {
+            isValid: false,
+            error: `กรุณาเลือก Dealer ต้นสังกัด (รายการที่ ${rowNum})`,
+          };
+        }
+      } else {
+        const subId =
+          item.subdealerId ||
+          customersList.find((c) => c.name === item.subdealerName)?.id;
+        if (!subId && !item.subdealerName?.trim()) {
+          return {
+            isValid: false,
+            error: `กรุณาเลือกร้านค้า Subdealer จากระบบ (รายการที่ ${rowNum})`,
+          };
+        }
       }
     } else {
       const sId =

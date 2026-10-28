@@ -20,7 +20,11 @@ export interface Type3SalesItem {
   id: string;
   storeId?: string;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
+  dealerName?: string;
   customerName: string;
   products?: Type3SalesProductLine[];
   productId?: string;
@@ -40,6 +44,9 @@ export interface TargetProductItem {
   customer?: string;
   storeId?: string;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
   dealerName?: string;
   qty?: string | number;
@@ -62,6 +69,9 @@ export interface Type3TargetItem {
   storeId?: string;
   storeName?: string;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
   dealerName?: string;
   targetQty?: string | number;
@@ -90,6 +100,9 @@ export interface Type3PlanCardTargetItem {
   notes?: string;
   unit?: string | null;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
   dealerName?: string;
   isAdditional?: boolean;
@@ -105,6 +118,9 @@ export interface Type3PlanCardTarget {
   targetSales?: number | string;
   detail?: string;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
   dealerName?: string;
   items?: Type3PlanCardTargetItem[];

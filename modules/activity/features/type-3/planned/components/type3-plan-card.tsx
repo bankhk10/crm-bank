@@ -58,17 +58,29 @@ export function Type3PlanCard({
   const isSubDealer = Boolean(
     target.isSubDealer ||
     target.subDealerStore ||
+    target.subdealerId ||
+    target.subdealerName ||
     productItems[0]?.isSubDealer ||
-    productItems[0]?.subDealerStore,
+    productItems[0]?.subDealerStore ||
+    productItems[0]?.subdealerId ||
+    productItems[0]?.subdealerName,
+  );
+
+  const isUnregistered = Boolean(
+    target.isUnregisteredSubdealer || productItems[0]?.isUnregisteredSubdealer,
   );
 
   const subDealerStoreName =
-    target.subDealerStore || productItems[0]?.subDealerStore || "";
+    target.subdealerName ||
+    target.subDealerStore ||
+    productItems[0]?.subdealerName ||
+    productItems[0]?.subDealerStore ||
+    "";
+
   const dealerName =
     target.dealerName ||
-    target.customer ||
+    (target.isSubDealer ? "" : target.customer) ||
     productItems[0]?.dealerName ||
-    productItems[0]?.customer ||
     "-";
 
   const totalQty = productItems.reduce(
@@ -116,15 +128,25 @@ export function Type3PlanCard({
               <span className="font-bold text-slate-800 text-sm sm:text-base">
                 {isSubDealer && subDealerStoreName
                   ? subDealerStoreName
-                  : dealerName}
+                  : (target.customer || dealerName)}
               </span>
               {isSubDealer ? (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold px-2 py-0.5"
-                >
-                  Subdealer
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-semibold px-2 py-0.5"
+                  >
+                    Subdealer
+                  </Badge>
+                  {isUnregistered && (
+                    <Badge
+                      variant="outline"
+                      className="bg-slate-100 text-slate-600 border-slate-300 text-[9px] font-medium px-1.5 py-0.5"
+                    >
+                      ระบุเอง
+                    </Badge>
+                  )}
+                </div>
               ) : (
                 <Badge
                   variant="outline"
@@ -134,7 +156,7 @@ export function Type3PlanCard({
                 </Badge>
               )}
             </div>
-            {isSubDealer && dealerName && (
+            {isSubDealer && dealerName && dealerName !== "-" && (
               <p className="text-xs text-slate-500 font-medium">
                 Dealer ต้นสังกัด: {dealerName}
               </p>

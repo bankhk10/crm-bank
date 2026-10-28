@@ -11,6 +11,12 @@ export interface Type3ProductSaleDetail {
   productName: string;
   customer?: string;
   storeId?: string;
+  isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
+  subDealerStore?: string;
+  dealerName?: string;
   qty?: string | number;
   unitPrice?: string | number;
   price?: string | number;
@@ -30,6 +36,12 @@ export interface Type3SaleResultItem {
   productId: string;
   productName?: string | null;
   storeId?: string | null;
+  isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string | null;
+  subdealerName?: string | null;
+  subDealerStore?: string | null;
+  dealerName?: string | null;
   actualQuantity: number;
   actualUnitPrice: number;
   actualTotal: number;

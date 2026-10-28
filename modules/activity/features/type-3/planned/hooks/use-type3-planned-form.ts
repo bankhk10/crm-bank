@@ -54,7 +54,11 @@ export function useType3PlannedForm({
       id,
       customerName: "",
       isSubDealer: false,
+      isUnregisteredSubdealer: false,
+      subdealerId: "",
+      subdealerName: "",
       subDealerStore: "",
+      dealerName: "",
       products: [
         {
           id: `p-${id}-1`,
@@ -93,11 +97,30 @@ export function useType3PlannedForm({
           if (item.id !== id) return item;
           const updated: Type3SalesItem = { ...item, [field]: val };
 
-          // If store is selected by storeId, auto-fill customerName
+          // If store is selected by storeId, auto-fill customerName and dealerName
           if (field === "storeId") {
             const foundStore = customersList.find((c) => c.id === val);
             if (foundStore) {
               updated.customerName = foundStore.name;
+              updated.dealerName = foundStore.name;
+            }
+          }
+
+          // If subdealer is selected by subdealerId, auto-fill subdealerName and parentDealer
+          if (field === "subdealerId") {
+            const foundSubdealer = customersList.find((c) => c.id === val);
+            if (foundSubdealer) {
+              updated.subdealerName = foundSubdealer.name;
+              if (foundSubdealer.parentDealerId) {
+                const parent = customersList.find(
+                  (c) => c.id === foundSubdealer.parentDealerId,
+                );
+                if (parent) {
+                  updated.storeId = parent.id;
+                  updated.customerName = parent.name;
+                  updated.dealerName = parent.name;
+                }
+              }
             }
           }
 
@@ -123,30 +146,15 @@ export function useType3PlannedForm({
     [customersList],
   );
 
-  const deleteType3Row = useCallback((id: string) => {
-    setType3Items((prev) => {
-      const filtered = prev.filter((item) => item.id !== id);
-      return filtered.length > 0
-        ? filtered
-        : [
-            {
-              id: Date.now().toString(),
-              customerName: "",
-              isSubDealer: false,
-              subDealerStore: "",
-              products: [
-                {
-                  id: `p-${Date.now()}-1`,
-                  productName: "",
-                  quantity: 1,
-                  unitPrice: 0,
-                  price: 0,
-                },
-              ],
-            },
-          ];
-    });
-  }, []);
+  const deleteType3Row = useCallback(
+    (id: string) => {
+      setType3Items((prev) => {
+        const filtered = prev.filter((item) => item.id !== id);
+        return filtered.length > 0 ? filtered : [createDefaultItem(Date.now().toString())];
+      });
+    },
+    [createDefaultItem],
+  );
 
   const addProductToRow = useCallback((rowId: string) => {
     setType3Items((prev) =>

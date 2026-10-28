@@ -14,6 +14,13 @@ export interface StoreOption {
   parentDealerId?: string | null;
 }
 
+export interface SubdealerTargetFields {
+  subdealerId?: string;
+  isUnregisteredSubdealer?: boolean;
+  subdealerName?: string;
+  dealerName?: string;
+}
+
 export type CustomerOption = StoreOption;
 
 export interface ProductOption {

@@ -42,7 +42,11 @@ export function useType3UnplannedForm({
       id,
       storeId: "",
       storeName: "",
+      dealerName: "",
       isSubDealer: false,
+      isUnregisteredSubdealer: false,
+      subdealerId: "",
+      subdealerName: "",
       subDealerStore: "",
       notes: "",
       products: [createDefaultProduct(`p-${id}-0`)],
@@ -73,6 +77,24 @@ export function useType3UnplannedForm({
             const foundStore = customersList.find((c) => c.id === val);
             if (foundStore) {
               updated.storeName = foundStore.name;
+              updated.dealerName = foundStore.name;
+            }
+          }
+
+          if (field === "subdealerId") {
+            const foundSubdealer = customersList.find((c) => c.id === val);
+            if (foundSubdealer) {
+              updated.subdealerName = foundSubdealer.name;
+              if (foundSubdealer.parentDealerId) {
+                const parent = customersList.find(
+                  (c) => c.id === foundSubdealer.parentDealerId,
+                );
+                if (parent) {
+                  updated.storeId = parent.id;
+                  updated.storeName = parent.name;
+                  updated.dealerName = parent.name;
+                }
+              }
             }
           }
 

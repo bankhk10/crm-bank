@@ -98,4 +98,5 @@ export type {
   StoreOption,
   ProductOption,
   Type3ImageFile,
+  SubdealerTargetFields,
 } from "./shared/types";

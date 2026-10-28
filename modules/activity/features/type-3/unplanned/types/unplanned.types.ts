@@ -21,7 +21,11 @@ export interface Type3UnplannedItem {
   storeId?: string;
   storeName?: string;
   isSubDealer?: boolean;
+  isUnregisteredSubdealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
   subDealerStore?: string;
+  dealerName?: string;
   notes?: string;
   products: Type3UnplannedProductItem[];
 }
@@ -49,6 +53,8 @@ export interface Type3UnplannedPayload {
   stores: Array<{
     storeId?: string | null;
     isSubDealer: boolean;
+    isUnregisteredSubdealer?: boolean;
+    subdealerId?: string | null;
     subDealerStore?: string | null;
     notes?: string | null;
   }>;

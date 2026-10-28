@@ -403,6 +403,7 @@ model Customer {
   activityPlanType2Targets    ActivityPlanType2Target[]    @relation("Type2TargetStore")
   activityResultType2s        ActivityResultType2[]        @relation("Type2ResultStore")
   activityPlanType3Targets    ActivityPlanType3Target[]    @relation("Type3TargetStore")
+  activityPlanType3TargetsSubdealer ActivityPlanType3Target[] @relation("Type3TargetSubdealer")
   activityResultType3s        ActivityResultType3[]        @relation("Type3ResultStore")
   activityPlanType4Targets    ActivityPlanType4Target[]    @relation("Type4TargetStore")
   activityPlanType5Targets    ActivityPlanType5Target[]    @relation("Type5TargetStore")
@@ -2849,7 +2850,9 @@ model ActivityPlanType3Target {
   id                      String   @id @default(cuid())
   activityPlanId          String   @map("activity_plan_id")
   storeId                 String?  @map("store_id")
+  subdealerId             String?  @map("subdealer_id")
   isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
   subDealerStore          String?  @map("sub_dealer_store")
   notes                   String?  @map("notes")
 
@@ -2858,11 +2861,13 @@ model ActivityPlanType3Target {
 
   activityPlan            ActivityPlan               @relation("ActivityPlanType3Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
   store                   Customer?                  @relation("Type3TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  subdealer               Customer?                  @relation("Type3TargetSubdealer", fields: [subdealerId], references: [id], onDelete: SetNull)
   products                ActivityPlanType3Product[] @relation("Type3TargetProducts")
   results                 ActivityResultType3[]      @relation("Type3TargetResults")
 
   @@index([activityPlanId])
   @@index([storeId])
+  @@index([subdealerId])
   @@map("activity_type_3_targets")
 }
 

@@ -204,6 +204,11 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             type1Products: (plan as any).type1Products || [],
             type2Targets: (plan as any).type2Targets || [],
             type2Products: (plan as any).type2Products || [],
+            type3Targets: (plan as any).type3Targets || [],
+            type3Results:
+              (plan as any).type3Results ||
+              (plan as any).result?.type3Results ||
+              [],
             followupResults:
               (plan as any).result?.followupResults ||
               (plan as any).followupResults ||

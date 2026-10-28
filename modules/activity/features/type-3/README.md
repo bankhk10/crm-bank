@@ -22,7 +22,9 @@
 ### 1.2 ขอบเขตของ Type 3
 - **กลุ่มเป้าหมายที่รองรับ:**
   - **ตัวแทนจำหน่ายหลัก (DEALER):** เลือกร้านค้าตัวแทนจำหน่ายที่ขึ้นทะเบียนในระบบผ่าน `ActivityCustomerSelect`
-  - **ร้านค้าย่อย (SUBDEALER):** ระบุชื่อร้านค้าย่อย (`subDealerStore`) พร้อมเลือก Dealer ต้นสังกัด (`storeId`)
+  - **ร้านค้าย่อย (SUBDEALER):**
+    - **กรณี Subdealer มีในระบบ:** เลือกผ่าน `ActivityCustomerSelect` (ประเภท `SUBDEALER`) พร้อมระบบตรวจหาและเลือก Dealer ต้นสังกัด (`Customer.parentDealerId`) ให้อัตโนมัติ (`subdealerId`)
+    - **กรณี Subdealer ไม่มีในระบบ (ระบุเอง):** ติ๊ก "ร้านค้านี้ไม่มีในระบบ (ระบุเอง)" (`isUnregisteredSubdealer: true`) แล้วแสดงช่องให้ระบุ 1. ชื่อร้าน Subdealer * (`subDealerStore`) และ 2. Dealer ต้นสังกัด (`storeId`) ผ่าน `ActivityCustomerSelect` (ประเภท `DEALER`)
 - **รายการสินค้าและราคา (Price & Amount Calculation):**
   - ผูกแคตตาล็อกสินค้าเคมีเกษตร (`ProductOption`) ผ่าน `ActivityProductSelect` (`unitFilter="box"`)
   - ดึงราคาตั้งต้นจากมาสเตอร์สินค้า (`Product.price` -> `masterPrice` / `unitPrice`) โดยคำนวณยอดรวมรายรายการ (`price = quantity × unitPrice`) และยอดรวมเป้าหมายรายร้าน (`targetAmount`) อัตโนมัติ
@@ -159,6 +161,8 @@ model ActivityPlanType3Target {
   storeId                 String?  @map("store_id")
   isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
   subDealerStore          String?  @map("sub_dealer_store")
+  subdealerId             String?  @map("subdealer_id")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
   notes                   String?  @map("notes")
 
   createdAt               DateTime @default(now()) @map("created_at")
@@ -166,11 +170,13 @@ model ActivityPlanType3Target {
 
   activityPlan            ActivityPlan               @relation("ActivityPlanType3Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
   store                   Customer?                  @relation("Type3TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  subdealer               Customer?                  @relation("Type3TargetSubdealer", fields: [subdealerId], references: [id], onDelete: SetNull)
   products                ActivityPlanType3Product[] @relation("Type3TargetProducts")
   results                 ActivityResultType3[]      @relation("Type3TargetResults")
 
   @@index([activityPlanId])
   @@index([storeId])
+  @@index([subdealerId])
   @@map("activity_type_3_targets")
 }
 
@@ -276,6 +282,7 @@ Type 3 ได้รับการปรับปรุงเป็น Standalon
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-28** | 2.2.0 | **Full Round-Trip Subdealer Support**: เพิ่มการรองรับเลือกร้าน Subdealer ที่มีในระบบ (`subdealerId`) พร้อม auto-lookup Dealer ต้นสังกัด และรองรับการติ๊กกรณี Subdealer ไม่มีในระบบ (`isUnregisteredSubdealer`) เพื่อระบุชื่อร้าน Subdealer เองและเลือก Dealer ต้นสังกัด แบบ Full Round-Trip ครบ 6 ขั้นตอน (DB Schema, Types & Validation, Form UI, Save Strategy & Mappers, Edit Hydration, Detail/Approval/Actual Views) | Antigravity AI |
 | **2026-10-26** | 2.1.0 | 1) เปลี่ยน Dropdown เหตุผลที่ไม่สามารถปิดการขายได้เป็น `ActivitySelect` และแสดงช่องพิมพ์เหตุผลเพิ่มเติมเฉพาะกรณีเลือก "อื่นๆ" ทั้งใน `Type3ActualForm` และ `Type3UnplannedForm`<br>2) ลบช่อง "เป้าหมาย" ในกิจกรรมนอกแผน (`Type3UnplannedForm`) ให้บันทึกเฉพาะขายได้จริงหน้างาน<br>3) ยกเลิกการดึงราคาจาก Catalog สินค้ามาคำนวณอัตโนมัติในช่อง "ราคา/ลัง (บาท)" เพื่อให้ผู้ใช้สามารถระบุราคาเองได้ | Antigravity AI |
 | **2026-10-24** | 2.0.0 | **Batch B Standardization**: ปรับปรุงโครงสร้างตารางเป็น Dedicated Tables (`activity_type_3_targets`, `activity_type_3_products`, `activity_type_3_result`), ผูก `targetId` กับผลการขาย, อัปเดตยอดสรุป `sales_result_amount` / `sales_orders_count`, และตัด Generic Dual-writes ไปยัง `activity_plan_stores` / `activity_plan_products` / `activity_result_sale_items` ออก 100% | Antigravity AI |
 | **2026-10-21** | 1.2.0 | ปรับปรุงระบบราคาและหน่วยนับ (Catalog Price Fallback), เพิ่ม Auto-sync ข้อมูลเริ่มต้นใน `Type3ActualForm` | Antigravity AI |

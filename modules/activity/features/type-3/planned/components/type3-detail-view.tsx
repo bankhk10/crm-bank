@@ -59,6 +59,9 @@ export function Type3DetailView({
                 productName: t.product,
                 customer: t.customer,
                 isSubDealer: t.isSubDealer,
+                isUnregisteredSubdealer: t.isUnregisteredSubdealer,
+                subdealerId: t.subdealerId,
+                subdealerName: t.subdealerName,
                 subDealerStore: t.subDealerStore,
                 dealerName: t.dealerName,
                 qty: t.targetQty,
@@ -84,6 +87,12 @@ export function Type3DetailView({
       productName: p.productName,
       customer: p.customer,
       storeId: p.storeId,
+      isSubDealer: p.isSubDealer,
+      isUnregisteredSubdealer: p.isUnregisteredSubdealer,
+      subdealerId: p.subdealerId,
+      subdealerName: p.subdealerName,
+      subDealerStore: p.subDealerStore,
+      dealerName: p.dealerName,
       qty: p.qty,
       unitPrice: p.unitPrice,
       actualQty: p.actualQty || actualQuantity || 0,
@@ -185,11 +194,16 @@ export function Type3DetailView({
                       <span className="font-bold text-slate-800 text-xs sm:text-sm">
                         {item.productName}
                       </span>
-                      {item.customer && (
+                      {item.subdealerName ? (
+                        <span className="text-xs text-slate-500">
+                          ({item.subdealerName}
+                          {item.dealerName ? ` - ${item.dealerName}` : ""})
+                        </span>
+                      ) : item.customer ? (
                         <span className="text-xs text-slate-500">
                           ({item.customer})
                         </span>
-                      )}
+                      ) : null}
                       {item.isAdditional && (
                         <Badge
                           variant="outline"

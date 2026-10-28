@@ -77,8 +77,11 @@ export function extractType3PlanTargets(
     const list: Type3TargetItem[] = plan.type3Targets.map(
       (t: any, idx: number) => {
         const isSub = Boolean(t.isSubDealer);
+        const subName = t.isUnregisteredSubdealer
+          ? t.subDealerStore || "ผู้แทนจำหน่ายย่อย"
+          : t.subdealer?.name || t.subDealerStore || "ผู้แทนจำหน่ายย่อย";
         const customerDisplayName = isSub
-          ? `${t.subDealerStore || "ผู้แทนจำหน่ายย่อย"} (Dealer: ${t.store?.name || "-"})`
+          ? `${subName} (Dealer: ${t.store?.name || "-"})`
           : t.store?.name || "ร้านค้าตัวแทนจำหน่าย";
 
         const items: TargetProductItem[] = (t.products || []).map((p: any) => {
@@ -155,6 +158,9 @@ export function extractType3PlanTargets(
             customer: customerDisplayName,
             storeId: t.storeId || undefined,
             isSubDealer: isSub,
+            isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+            subdealerId: t.subdealerId || undefined,
+            subdealerName: t.subdealer?.name || "",
             subDealerStore: t.subDealerStore || "",
             dealerName: t.store?.name || "",
             qty: qtyNum > 0 ? String(qtyNum) : "",
@@ -193,6 +199,9 @@ export function extractType3PlanTargets(
           storeId: t.storeId || undefined,
           storeName: t.store?.name || undefined,
           isSubDealer: isSub,
+          isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+          subdealerId: t.subdealerId || undefined,
+          subdealerName: t.subdealer?.name || "",
           subDealerStore: t.subDealerStore || "",
           dealerName: t.store?.name || "",
           product: items
@@ -389,7 +398,11 @@ export function hydrateType3PlannedData(plan: any): Type3SalesItem[] {
         id: t.id || String(idx + 1),
         storeId: t.storeId || undefined,
         customerName: t.store?.name || "",
+        dealerName: t.store?.name || "",
         isSubDealer: Boolean(t.isSubDealer),
+        isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+        subdealerId: t.subdealerId || undefined,
+        subdealerName: t.subdealer?.name || "",
         subDealerStore: t.subDealerStore || "",
         products:
           prodLines.length > 0
@@ -557,20 +570,30 @@ export function mapType3FormToPayload(
         };
       });
 
+    const isSub = Boolean(item.isSubDealer);
+    const isUnreg = isSub ? Boolean(item.isUnregisteredSubdealer) : false;
+    const subdealerId = isSub && !isUnreg ? (item.subdealerId || null) : null;
+    const subDealerStore = isSub ? (item.subDealerStore || null) : null;
+
     type3Targets.push({
       storeId: sId || null,
-      isSubDealer: Boolean(item.isSubDealer),
-      subDealerStore: item.isSubDealer ? item.subDealerStore || null : null,
+      isSubDealer: isSub,
+      isUnregisteredSubdealer: isUnreg,
+      subdealerId,
+      subDealerStore,
       notes: item.detail || item.notes || null,
       products: validProducts,
     });
 
-    if (sId || storeName) {
+    if (sId || storeName || subdealerId || subDealerStore) {
       planStores.push({
         workTypeCode: "TYPE_3",
         storeId: sId || null,
         storeName,
-        subDealerStore: item.isSubDealer ? item.subDealerStore || null : null,
+        isSubDealer: isSub,
+        isUnregisteredSubdealer: isUnreg,
+        subdealerId,
+        subDealerStore,
         notes: item.detail || item.notes || null,
       });
     }

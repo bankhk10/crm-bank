@@ -95,12 +95,18 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
     if (rawTargets.length > 0) {
       for (const t of rawTargets) {
         const isSubDealer = Boolean(t.isSubDealer);
+        const isUnregistered = isSubDealer ? Boolean(t.isUnregisteredSubdealer) : false;
+        const subdealerId = isSubDealer && !isUnregistered ? (t.subdealerId || null) : null;
+        const subDealerStore = isSubDealer ? (t.subDealerStore || null) : null;
+
         const targetRecord = await (tx as any).activityPlanType3Target.create({
           data: {
             activityPlanId,
             storeId: t.storeId || null,
+            subdealerId,
             isSubDealer,
-            subDealerStore: isSubDealer ? t.subDealerStore || null : null,
+            isUnregisteredSubdealer: isUnregistered,
+            subDealerStore,
             notes: t.detail || t.notes || null,
           },
         });
@@ -157,12 +163,18 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
       // Fallback: Build dedicated targets from t3Stores & t3Products
       for (const s of t3Stores) {
         const isSubDealer = Boolean(s.isSubDealer || s.subDealerStore);
+        const isUnregistered = isSubDealer ? Boolean(s.isUnregisteredSubdealer) : false;
+        const subdealerId = isSubDealer && !isUnregistered ? (s.subdealerId || null) : null;
+        const subDealerStore = isSubDealer ? (s.subDealerStore || null) : null;
+
         const targetRecord = await (tx as any).activityPlanType3Target.create({
           data: {
             activityPlanId,
             storeId: s.storeId || null,
+            subdealerId,
             isSubDealer,
-            subDealerStore: isSubDealer ? s.subDealerStore || null : null,
+            isUnregisteredSubdealer: isUnregistered,
+            subDealerStore,
             notes: s.notes || s.remarks || null,
           },
         });
@@ -331,6 +343,7 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
       include: {
         store: true,
+        subdealer: true,
         products: {
           include: {
             product: true,
@@ -350,9 +363,14 @@ export const type3PlannedStrategy: WorkTypeStrategy = {
       workTypeCode: "TYPE_3",
       storeId: t.storeId,
       storeName: t.store?.name || null,
+      subdealerId: t.subdealerId,
+      subdealerName: t.subdealer?.name || null,
+      isSubDealer: t.isSubDealer,
+      isUnregisteredSubdealer: t.isUnregisteredSubdealer,
       subDealerStore: t.subDealerStore,
       notes: t.notes,
       store: t.store,
+      subdealer: t.subdealer,
     }));
 
     const products = dedicatedTargets.flatMap((t: any) =>

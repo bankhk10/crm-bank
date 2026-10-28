@@ -95,7 +95,7 @@ export type ActivityResultStatusType =
 // ────────────────────────────────────────────────────────
 
 export type Type2TargetItem = any;
-export type Type3TargetItem = any;
+import type { Type3TargetItem } from "../../features/type-3";
 export type Type4TargetItem = any;
 export type Type5TargetItem = any;
 export type Type6TargetItem = any;
@@ -109,6 +109,7 @@ import type { Type12TargetItem } from "../../features/type-12";
 import type { Type13TargetItem } from "../../features/type-13";
 import type { Type14TargetItem } from "../../features/type-14";
 export type {
+  Type3TargetItem,
   Type10TargetItem,
   Type11TargetItem,
   Type12TargetItem,

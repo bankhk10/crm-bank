@@ -26,8 +26,12 @@ export function hydrateType3UnplannedData(plan: any): Type3UnplannedItem[] {
   ) {
     return plan.type3Targets.map((t: any, idx: number) => {
       const isSubDealer = Boolean(t.isSubDealer);
-      const storeDisplayName = isSubDealer
+      const isUnregistered = Boolean(t.isUnregisteredSubdealer);
+      const subName = isUnregistered
         ? t.subDealerStore || ""
+        : t.subdealer?.name || t.subDealerStore || "";
+      const storeDisplayName = isSubDealer
+        ? subName
         : t.store?.name || "";
 
       const targetResults = Array.isArray(t.results) ? t.results : [];
@@ -103,7 +107,11 @@ export function hydrateType3UnplannedData(plan: any): Type3UnplannedItem[] {
         id: t.id || String(idx + 1),
         storeId: t.storeId || undefined,
         storeName: storeDisplayName,
+        dealerName: t.store?.name || "",
         isSubDealer,
+        isUnregisteredSubdealer: isUnregistered,
+        subdealerId: t.subdealerId || undefined,
+        subdealerName: t.subdealer?.name || "",
         subDealerStore: t.subDealerStore || "",
         notes: t.notes || "",
         products:
@@ -292,15 +300,21 @@ export function mapType3UnplannedToPayload(
     }
 
     const isSubDealer = Boolean(item.isSubDealer);
+    const isUnregistered = isSubDealer ? Boolean(item.isUnregisteredSubdealer) : false;
+    const subdealerId = isSubDealer && !isUnregistered ? (item.subdealerId || null) : null;
+    const subDealerStore = isSubDealer ? (item.subDealerStore || null) : null;
 
     // 1. Target Store (Generic relation table)
     planStores.push({
       workTypeCode: "TYPE_3",
       storeId: resolvedStoreId || null,
       storeName: isSubDealer
-        ? item.subDealerStore || null
+        ? (isUnregistered ? subDealerStore : (item.subdealerName || subDealerStore || null))
         : item.storeName || null,
-      subDealerStore: isSubDealer ? item.subDealerStore || null : null,
+      isSubDealer,
+      isUnregisteredSubdealer: isUnregistered,
+      subdealerId,
+      subDealerStore,
       notes: item.notes || null,
     });
 
@@ -369,7 +383,9 @@ export function mapType3UnplannedToPayload(
     type3Targets.push({
       storeId: resolvedStoreId || null,
       isSubDealer,
-      subDealerStore: isSubDealer ? item.subDealerStore || null : null,
+      isUnregisteredSubdealer: isUnregistered,
+      subdealerId,
+      subDealerStore,
       notes: item.notes || null,
       products: targetProducts,
     });

@@ -396,6 +396,16 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           district: true,
         },
       },
+      subdealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+        },
+      },
       products: {
         include: {
           product: {
