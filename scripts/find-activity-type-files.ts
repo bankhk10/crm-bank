@@ -251,23 +251,53 @@ ${formatList(sliceFiles.filter((f) => f.includes("/components/")))}`);
 
 // CASE 3: Add / Modify Field across all screens
 if (modeArg === "all" || modeArg === "add-field") {
+  const plannedFormFile =
+    sliceFiles.find((f) => f.endsWith(`${camelPrefix}-planned-form.tsx`)) ||
+    `modules/activity/features/${sliceFolder}/planned/components/${camelPrefix}-planned-form.tsx`;
+  const actualFormFile =
+    sliceFiles.find((f) => f.endsWith(`${camelPrefix}-actual-form.tsx`)) ||
+    `modules/activity/features/${sliceFolder}/planned/components/${camelPrefix}-actual-form.tsx`;
+  const unplannedFormFile =
+    sliceFiles.find((f) => f.endsWith(`${camelPrefix}-unplanned-form.tsx`)) ||
+    `modules/activity/features/${sliceFolder}/unplanned/components/${camelPrefix}-unplanned-form.tsx`;
+
   console.log(`
 ------------------------------------------------------------------------
-🔵 [เคสที่ 3: เพิ่มหรือแก้ไขฟิลด์ใน ${upperCode} ให้ครบทุกหน้า (สร้างแผน / บันทึกผล / นอกแผน / รายละเอียด)]
+🔵 [เคสที่ 3: เพิ่มช่องกรอกข้อมูล (Field ใหม่) ในหน้าสร้างแผน ${plannedFormFile} ให้ครบทุกจุด]
 ------------------------------------------------------------------------
-ช่วยแก้ไข/เพิ่มฟิลด์ [ระบุชื่อฟิลด์หรือสิ่งที่ต้องการแก้] ใน ${upperCode} (${sliceFolder}) โดยทำแบบ Full Round-Trip ให้ครบทุกหน้าจอ (สร้างแผน, แก้ไขแผน, บันทึกผลตามแผน, นอกแผน, การ์ดสรุปแผน, หน้ารายละเอียด และหน้าอนุมัติ) ในไฟล์ต่อไปนี้:
+ฉันต้องการเพิ่มช่องกรอกข้อมูล [ระบุชื่อช่อง เช่น "เบอร์โทรเจ้าของแปลง" / ชนิดข้อมูล เช่น ข้อความ หรือ ตัวเลข / บังคับกรอกไหม] ในหน้า ${plannedFormFile}
+ช่วยเพิ่มฟิลด์นี้แบบ Full Round-Trip (ตั้งแต่หน้ากรอก -> บันทึกลง DB -> ดึงกลับมาแสดงในหน้าแก้ไข -> แสดงในการ์ดสรุป/หน้าบันทึกผล/หน้านอกแผน/หน้ารายละเอียด) โดยทำตามลำดับ 6 ขั้นตอนนี้ให้ครบห้ามตกหล่น:
 
-1. Types, Mappers, Hooks, UI Components และ Strategies ใน Slice:
-${formatList(sliceFiles)}
+ขั้นที่ 1 [Database & Prisma]:
+   - เช็คใน prisma/schema.prisma ว่าตารางของ ${upperCode} มีคอลัมน์สำหรับเก็บค่านี้หรือยัง (ถ้ายังไม่มี ให้เพิ่มฟิลด์ใน schema หรือระบุว่าจะเก็บลงฟิลด์ไหน และเช็คใน modules/activity/infrastructure/activity-plan-include.ts ว่าดึงฟิลด์นี้ออกมาด้วย)
 
-2. ไฟล์เชื่อมข้อมูลส่วนกลางและหน้า Views:
-${formatList([
-  ...dbAndServerFiles,
-  ...domainAndAppFiles,
-  ...viewPlannedFiles,
-  ...viewUnplannedFiles,
-  ...viewActualFiles,
-  ...viewDetailAndApprovalFiles,
-])}
-`);
+ขั้นที่ 2 [Types & Validation]:
+   - เพิ่มชื่อฟิลด์ใน Types และ Zod Validation ของ ${upperCode}:
+${formatList(
+  sliceFiles.filter((f) => f.includes("/types/") || f.includes("/shared/") || f.includes("-validation.ts")),
+)}
+
+ขั้นที่ 3 [UI ช่องกรอกข้อมูล]:
+   - เพิ่มช่อง Input/Select ในหน้าสร้างแผน: ${plannedFormFile}
+   - (ถ้าต้องแสดงหรือให้กรอกในหน้าบันทึกผลและนอกแผนด้วย) ให้เพิ่มใน:
+     * ${actualFormFile}
+     * ${unplannedFormFile}
+
+ขั้นที่ 4 [ขา Save บันทึกลง DB (Hook -> Mapper -> Strategy)]:
+   - รับค่าจากฟอร์มส่งเข้า payload และบันทึกลง Prisma ในไฟล์:
+${formatList(
+  sliceFiles.filter(
+    (f) => f.includes("/hooks/") || f.includes("-mapper.ts") || f.includes(".strategy.ts") || f.includes(".repository.ts"),
+  ),
+)}
+
+ขั้นที่ 5 [ขา Load ดึงข้อมูลจาก DB กลับมาแสดงตอนกด "แก้ไข" (Edit Hydration - สำคัญมาก!)]:
+   - เช็คว่าเวลาเปิดหน้าแก้ไขแผน (views/planned/edit-view.tsx) และหน้าแก้ไขนอกแผน (views/unplanned/edit-view.tsx) มีการ map ฟิลด์นี้จาก DB กลับมาใส่ initialData และเซ็ตเข้า state ของฟอร์มครบถ้วน ไม่กลายเป็นค่าว่าง:
+${formatList([...viewPlannedFiles, ...viewUnplannedFiles])}
+
+ขั้นที่ 6 [ขาแสดงผลในการ์ดสรุปแผน / หน้าบันทึกผล / หน้ารายละเอียด / หน้าอนุมัติ]:
+   - นำฟิลด์นี้ไปแสดงผลในการ์ดสรุปแผนและหน้ารายละเอียดด้วย:
+${formatList([...displayCardFiles, ...domainAndAppFiles, ...viewActualFiles, ...viewDetailAndApprovalFiles])}
+
+เมื่อแก้ไขครบแล้ว ให้รัน npx tsc --noEmit เพื่อตรวจเช็ค TypeScript error ด้วย`);
 }
