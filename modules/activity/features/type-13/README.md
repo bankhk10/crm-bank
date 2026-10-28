@@ -89,14 +89,15 @@ graph TD
     K --> L[บันทึกผลลง activity_type_13_results, spray_rounds, spray_products และ attachments]
 ```
 
-### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
-- ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` แล้วเลือกประเภทงาน **ฉีดแปลงแฮตแทค (Type 13)**
-- ฟอร์ม `Type13UnplannedForm` ได้รับการปรับปรุงเป็นรูปแบบล่าสุด (Modernized Standard) สอดคล้องกับ `Type13ActualForm` และ `Type 7B`:
-  1. **ข้อมูลแปลงและพื้นที่ (Plot & Location Information):** เลือกร้านค้าตัวแทนจำหน่าย (`ActivityCustomerSelect`), เลือกจังหวัด/อำเภอ/ตำบล (`ActivityAddressSelect`), ระบุชื่อหมู่บ้าน (`village`) และระบุจำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount` กำหนดค่าเริ่มต้นเป็น 1 แปลง) โดยตัดช่องชื่อแปลงและพิกัด GPS ซ้ำซ้อนออก
-  2. **สินค้าสาธิตที่ใช้ (Demo Products Used):** การ์ดรายการสินค้าสไตล์ Type 7B เลือกสินค้า (`ActivityProductSelect`), ระบุจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + ตัวเลือกหน่วย `extraUnit`), และอัตราการใช้ (`actualRate`)
-  3. **ภาพถ่ายหลังฉีดพ่น (After Spray Photos):** ใช้งานคอมโพเนนต์ `ActivityPhotoUpload` กำหนด `maxFiles={20}` สำหรับอัปโหลดภาพถ่ายหลักฐานหลังการฉีดพ่น
-  4. **บันทึกเพิ่มเติม (Notes):** ช่องระบุหมายเหตุหรือข้อสังเกตเพิ่มเติมจากการลงพื้นที่
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` ที่มีสถานะสำเร็จ พร้อมบันทึก `ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13` และผลการฉีดพ่นในคราวเดียวผ่าน `type13UnplannedStrategy` โดยอัตโนมัติ
+### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1 รองรับ 1-10 หมู่บ้าน)
+- ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` หรือแก้ไขกิจกรรมนอกแผนเดิม แล้วเลือกประเภทงาน **ฉีดแปลงแฮตแทค (Type 13)**
+- ฟอร์ม `Type13UnplannedForm` ได้รับการปรับปรุงเป็นรูปแบบ Multi-Village (1–10 หมู่บ้าน) สอดคล้องกับ `Type13ActualForm` และ Type 7B:
+  1. **ระบบเพิ่ม/ลบหมู่บ้าน (Multi-Village Support 1–10 หมู่บ้าน):** มีปุ่ม "+ เพิ่มหมู่บ้าน" และ "ลบหมู่บ้านนี้" พร้อมแสดง Badge จำนวนหมู่บ้านทั้งหมดแบบเรียลไทม์
+  2. **ข้อมูลแปลงและพื้นที่ (Plot & Location Information):** เลือกร้านค้าตัวแทนจำหน่าย (`ActivityCustomerSelect` พร้อม auto-fill ที่อยู่), เลือกจังหวัด/อำเภอ/ตำบล (`ActivityAddressSelect`), ระบุชื่อหมู่บ้าน (`village`) และระบุจำนวนแปลงที่ฉีดพ่นจริง (`actualPlotsCount` กำหนดค่าเริ่มต้นเป็น 1 แปลง)
+  3. **สินค้าสาธิตที่ใช้ (Demo Products Used):** การ์ดรายการสินค้าสไตล์ Type 7B เลือกสินค้า (`ActivityProductSelect` พร้อม Atomic state update แสดงผลชื่อสินค้าทันทีที่เลือก), ระบุจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + ตัวเลือกหน่วย `extraUnit`), และอัตราการใช้ (`actualRate`)
+  4. **ภาพถ่ายหลังฉีดพ่น (After Spray Photos):** ใช้งานคอมโพเนนต์ `ActivityPhotoUpload` กำหนด `maxFiles={20}` สำหรับอัปโหลดภาพถ่ายหลักฐานแยกอิสระในแต่ละหมู่บ้าน
+  5. **บันทึกเพิ่มเติม (Notes):** ช่องระบุหมายเหตุหรือข้อสังเกตเพิ่มเติมจากการลงพื้นที่ในแต่ละหมู่บ้าน
+- เมื่อกดบันทึก ระบบจะสร้าง/อัปเดต `ActivityPlan` พร้อมบันทึก `ActivityPlanType13Target`, `ActivityPlanType13Product`, `ActivityResultType13` และผลการฉีดพ่นสำหรับทุกหมู่บ้านผ่าน `type13UnplannedStrategy` โดยอัตโนมัติ
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
 - **Detail View:** เรนเดอร์ `<Type13PlanCard />` สำหรับสรุปแปลงแฮตแทคตามแผน และเรนเดอร์ `<Type13DetailView />` มีแท็บสลับดูแต่ละแปลง สรุปจำนวนแปลงที่ฉีดจริง ตารางการใช้สินค้าสาธิต และแกลเลอรีรูปภาพพร้อม Image Lightbox
@@ -486,6 +487,7 @@ sequenceDiagram
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-28** | 2.3.0 | **Unplanned Multi-Village (1–10 Villages) & Read-Hydration Pipeline Enhancement:**<br>1. **Unplanned Multi-Village Support:** อัปเกรด `Type13UnplannedForm` ให้สามารถเพิ่มข้อมูลหมู่บ้านได้ 1–10 หมู่บ้าน พร้อมปุ่ม "+ เพิ่มหมู่บ้าน" และ "ลบหมู่บ้านนี้" โดยแยกข้อมูลร้านค้า Dealer, ที่อยู่แปลง, จำนวนแปลงจริง, สินค้าสาธิต และรูปถ่าย (สูงสุด 20 ภาพ) ประจำแต่ละหมู่บ้าน<br>2. **Product Selection Atomic State Fix:** แก้ไขปัญหาการเลือกสินค้าใน `ActivityProductSelect` แล้วไม่แสดงในช่อง โดยปรับ `handleUpdateProductRow` ให้บันทึก `productId`, `productName`, และ `unit` ร่วมกันใน State Update เดียวแบบ Atomic ป้องกันปัญหา React State closure overwrite<br>3. **Full 5-Stage Read & Hydration Pipeline:**<br>&nbsp;&nbsp;- *Prisma Include:* เพิ่ม `subdistrict: true` ให้กับ Store relation ใน `activity-plan-include.ts`<br>&nbsp;&nbsp;- *View & Extractor:* อัปเดต `unplanned/edit-view.tsx` ให้ส่งต่อ `type13Products`, `type13Results`, `type13Actual`, `type13Data`, และ `type13UnplannedItems` เข้าสู่ `initialData`<br>&nbsp;&nbsp;- *Mapper & Hooks:* พัฒนา `hydrateType13UnplannedItems` ให้ Hydrate ข้อมูลครบทุกหมู่บ้าน (ผลงานจริง, สินค้า 1.1, extraQuantity/extraUnit, รูปถ่ายแยกตามแปลง) และเพิ่ม `useEffect` ใน `useType13UnplannedForm` เพื่อรองรับ Async Data Loading<br>&nbsp;&nbsp;- *UI Value Binding:* ผูกค่า input และ select ครบถ้วนทุกหมู่บ้าน<br>4. **Detail View Optimization:** ลบส่วนประวัติการฉีดพ่นจริงซ้ำซ้อนออก, แยกรูปภาพแสดงตามแปลงที่เลือกอย่างถูกต้อง, และแก้ปัญหารูปภาพแสดงเบิ้ลด้วย URL Deduplication | Antigravity AI |
 | **2026-10-15** | 1.0.0 | สร้างโมดูล Type 13 (ฉีดแปลงแฮตแทค) ตามสถาปัตยกรรม Vertical Slice Architecture | Antigravity AI |
 | **2026-10-16** | 1.1.0 | เพิ่มการรองรับ Multi-Plot (1–10 แปลง) และระบบสร้าง Master DemoPlot รหัส DPYYMMXXXX | Antigravity AI |
 | **2026-10-18** | 1.2.0 | ปรับปรุงระบบบันทึกรอบการฉีดพ่น (Spray Rounds) สารเคมีผสม และสารเคมีภายนอก (External Products) | Antigravity AI |

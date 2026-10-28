@@ -1626,8 +1626,12 @@ export function UnplannedActivityForm({
       }
 
       // Upload After-Spray Images
-      const allType13Images = type13.item.images || [];
+      const allType13Images = type13.items
+        ? type13.items.flatMap((it) => it.images || it.afterSprayImages || [])
+        : type13.item.images || [];
       let cleanType13Images = allType13Images;
+      let updatedItems = type13.items || [type13.item];
+
       if (allType13Images.length > 0) {
         try {
           const res = await uploadActivityPlanImageGroup(
@@ -1637,6 +1641,24 @@ export function UnplannedActivityForm({
             "after_spray",
           );
           cleanType13Images = res.updatedImages;
+          const urlMap = new Map(
+            cleanType13Images.map((img: any) => [img.id || img.name, img.url]),
+          );
+          updatedItems = (type13.items || [type13.item]).map((it) => {
+            const remappedImages = (
+              it.images ||
+              it.afterSprayImages ||
+              []
+            ).map((img: any) => {
+              const newUrl = urlMap.get(img.id || img.name);
+              return newUrl ? { ...img, url: newUrl } : img;
+            });
+            return {
+              ...it,
+              images: remappedImages,
+              afterSprayImages: remappedImages,
+            };
+          });
         } catch (uploadErr: any) {
           showValidationError(
             "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
@@ -1646,10 +1668,7 @@ export function UnplannedActivityForm({
         }
       }
 
-      const mapped = mapType13UnplannedToPayload({
-        ...type13.item,
-        images: cleanType13Images,
-      });
+      const mapped = mapType13UnplannedToPayload(updatedItems);
 
       if (mapped.planStores?.length) {
         planStores = [...planStores, ...mapped.planStores];
@@ -1999,16 +2018,16 @@ export function UnplannedActivityForm({
         ? mapType12UnplannedToPayload(type12.item).tourData
         : undefined,
       type13Data: isType13Active
-        ? mapType13UnplannedToPayload(type13.item).type13Data
+        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Data
         : undefined,
       type13Plots: isType13Active
-        ? mapType13UnplannedToPayload(type13.item).type13Plots
+        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Plots
         : undefined,
       type13Targets: isType13Active
-        ? mapType13UnplannedToPayload(type13.item).type13Plots
+        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Plots
         : undefined,
       type13Actual: isType13Active
-        ? mapType13UnplannedToPayload(type13.item).type13Actual
+        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Actual
         : undefined,
       type14Data: isType14Active
         ? mapType14UnplannedToPayload(type14.item).type14Data
@@ -2035,6 +2054,7 @@ export function UnplannedActivityForm({
       type11UnplannedItems: isType11Active ? type11.items : undefined,
       type12UnplannedItem: isType12Active ? type12.item : undefined,
       type13UnplannedItem: isType13Active ? type13.item : undefined,
+      type13UnplannedItems: isType13Active ? (type13.items || [type13.item]) : undefined,
       type14UnplannedItem: isType14Active ? type14.item : undefined,
       salesRatio: isType9Active ? type9SalesRatio : undefined,
     };
@@ -2393,8 +2413,13 @@ export function UnplannedActivityForm({
       {/* 3.14 ส่วนเฉพาะ Type 13: ฉีดแปลงแฮตแทค */}
       {isType13Active && (
         <Type13UnplannedForm
+          items={type13.items}
+          onItemsChange={type13.setItems}
+          addItem={type13.addItem}
+          deleteItem={type13.deleteItem}
+          updateItem={type13.updateItem}
           item={type13.item}
-          onChange={type13.updateItem}
+          onChange={type13.updateItemSingle}
           dealers={customers as any}
           products={products as any}
           readonly={readonly}

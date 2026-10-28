@@ -293,6 +293,8 @@ export function canUserPerformApproval(
       ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
       Boolean((plan as any).type7b?.hasProducts) ||
       Boolean((plan as any).type13?.hasProducts) ||
+      Boolean((plan as any).type13Products?.length) ||
+      Boolean((plan as any).type13Targets?.some((t: any) => t.products?.length > 0)) ||
       Boolean((plan as any).type14?.hasProducts);
 
     const isSalesAdmin = isUserSalesAdminManager(user);
@@ -657,6 +659,8 @@ export function getPlanActionScopes(
       ((plan as any).type7aPlots && (plan as any).type7aPlots.length > 0) ||
       Boolean((plan as any).type7b?.hasProducts) ||
       Boolean((plan as any).type13?.hasProducts) ||
+      Boolean((plan as any).type13Products?.length) ||
+      Boolean((plan as any).type13Targets?.some((t: any) => t.products?.length > 0)) ||
       Boolean((plan as any).type14?.hasProducts);
 
     if (

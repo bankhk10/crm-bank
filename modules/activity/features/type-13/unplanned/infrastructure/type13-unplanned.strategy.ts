@@ -17,7 +17,11 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
     planData: any,
     _db: any,
   ): Promise<StrategyValidationResult> {
-    const plots = planData.type13Plots || planData.type13Data?.plots || [];
+    const plots =
+      planData.type13Plots ||
+      planData.type13Data?.plots ||
+      planData.type13UnplannedItems ||
+      [];
 
     if (!plots || plots.length === 0) {
       return {
@@ -26,19 +30,21 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
       };
     }
 
-    const firstPlot = plots[0];
-    if (!firstPlot.storeId) {
+    if (plots.length > 10) {
       return {
         valid: false,
-        error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค",
+        error: "สามารถระบุข้อมูลแปลงแฮตแทคได้สูงสุด 10 หมู่บ้าน",
       };
     }
 
-    if (!firstPlot.name && !firstPlot.plotName) {
-      return {
-        valid: false,
-        error: "กรุณาระบุชื่อแปลงแฮตแทค",
-      };
+    for (let i = 0; i < plots.length; i++) {
+      const p = plots[i];
+      if (!p.storeId) {
+        return {
+          valid: false,
+          error: `หมู่บ้านที่ ${i + 1}: กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค`,
+        };
+      }
     }
 
     return { valid: true };
@@ -62,7 +68,16 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
                 plotIndex: idx + 1,
               })),
             }
-          : null;
+          : planData.type13UnplannedItems
+            ? {
+                plots: planData.type13UnplannedItems.map(
+                  (p: any, idx: number) => ({
+                    ...p,
+                    plotIndex: idx + 1,
+                  }),
+                ),
+              }
+            : null;
 
     if (t13Payload !== undefined) {
       const startDate = planData.startDate ? new Date(planData.startDate) : new Date();

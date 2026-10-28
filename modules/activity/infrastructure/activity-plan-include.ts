@@ -174,6 +174,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       products: {
@@ -341,6 +342,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       products: {
@@ -394,6 +396,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       subdealer: {
@@ -452,6 +455,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       result: true,
@@ -481,6 +485,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       product: {
@@ -524,6 +529,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       results: true,
@@ -744,6 +750,7 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
         },
       },
       dealer: {

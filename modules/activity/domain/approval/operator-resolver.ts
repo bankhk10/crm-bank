@@ -164,6 +164,8 @@ export function resolveCancellationApprover(
     (plan.type7aPlots && plan.type7aPlots.length > 0) ||
     Boolean(plan.type7b?.hasProducts) ||
     Boolean(plan.type13?.hasProducts) ||
+    Boolean(plan.type13Products?.length) ||
+    Boolean(plan.type13Targets?.some((t: any) => t.products?.length > 0)) ||
     Boolean(plan.type14?.hasProducts);
 
   const isLineApproved = plan.lineCancellationApproved === true;

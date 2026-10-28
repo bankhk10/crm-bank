@@ -34,8 +34,13 @@ export interface Type13UnplannedPlot {
 export type Type13UnplannedItem = Type13UnplannedPlot;
 
 export interface Type13UnplannedFormProps {
-  item: Type13UnplannedItem;
-  onChange: (updated: Type13UnplannedItem) => void;
+  item?: Type13UnplannedItem;
+  onChange?: (updated: Type13UnplannedItem) => void;
+  items?: Type13UnplannedItem[];
+  onItemsChange?: (items: Type13UnplannedItem[]) => void;
+  addItem?: () => void;
+  deleteItem?: (index: number) => void;
+  updateItem?: (index: number, updated: Type13UnplannedItem) => void;
   dealers?: DealerOption[];
   products?: ProductOption[];
   readonly?: boolean;
