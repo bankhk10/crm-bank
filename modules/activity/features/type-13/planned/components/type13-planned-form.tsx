@@ -253,7 +253,7 @@ export function Type13PlannedForm({
     const updated = [...plots];
     const target = { ...updated[index], [field]: value };
 
-    // Auto-fill ownerName, province & district if dealer selected and dealer has location info
+    // Auto-fill ownerName, province, district & subdistrict if dealer selected and dealer has location info
     if (field === "storeId") {
       if (value) {
         const selectedDealer =
@@ -262,16 +262,23 @@ export function Type13PlannedForm({
           target.ownerName = selectedDealer.name || "";
           target.province = selectedDealer.province || "";
           target.district = selectedDealer.district || "";
+          target.subdistrict = (selectedDealer as any).subdistrict || "";
         }
       } else {
         target.ownerName = "";
         target.province = "";
         target.district = "";
+        target.subdistrict = "";
       }
     }
 
     if (field === "province") {
       target.district = ""; // Reset district when province changes
+      target.subdistrict = "";
+    }
+
+    if (field === "district") {
+      target.subdistrict = "";
     }
 
     updated[index] = target;

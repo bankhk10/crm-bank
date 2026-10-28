@@ -89,7 +89,11 @@ export async function deleteFile(publicPath: string): Promise<boolean> {
 
     await fs.unlink(filepath);
     return true;
-  } catch (err) {
+  } catch (err: any) {
+    // If file already does not exist on disk, treat as successfully deleted
+    if (err?.code === "ENOENT") {
+      return true;
+    }
     console.error("Failed to delete file:", publicPath, err);
     return false;
   }

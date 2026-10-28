@@ -788,11 +788,13 @@ export function useType13Actual() {
       dealerName?: string,
       province?: string,
       district?: string,
+      subdistrict?: string,
     ) => {
       updatePlotField(index, "storeId", storeId);
       if (dealerName) updatePlotField(index, "dealerName", dealerName);
       if (province) updatePlotField(index, "province", province);
       if (district) updatePlotField(index, "district", district);
+      if (subdistrict) updatePlotField(index, "subdistrict", subdistrict);
     },
     updatePlotCoordinates: (index: number, lat: string, lng: string) => {
       updatePlotField(index, "latitude", lat);

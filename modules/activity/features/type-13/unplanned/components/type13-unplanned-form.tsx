@@ -113,6 +113,7 @@ export function Type13UnplannedForm({
                   dealerName: cust?.name || "",
                   province: cust?.province || item.province,
                   district: cust?.district || item.district,
+                  subdistrict: cust?.subdistrict || item.subdistrict,
                 });
               }}
               customers={dealers as any}
