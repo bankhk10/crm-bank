@@ -89,12 +89,13 @@ export function Type13ActualForm({
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              บันทึกจำนวนแปลงที่ฉีดพ่นจริง, สินค้าที่ใช้ และรูปถ่ายผลงานหลังฉีดพ่น
+              บันทึกจำนวนแปลงที่ฉีดพ่นจริง, สินค้าที่ใช้
+              และรูปถ่ายผลงานหลังฉีดพ่น
             </p>
           </div>
         </div>
-
-        {!readonly && (
+        {/* ปิดไว้ก่อนเดียวมาเปิด */}
+        {/* {!readonly && (
           <Button
             type="button"
             size="sm"
@@ -105,7 +106,7 @@ export function Type13ActualForm({
             <Plus className="w-4 h-4" />
             <span>เพิ่มแปลงแฮตแทคใหม่ ({plotsActual.length}/10)</span>
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Plots Stacked List */}
@@ -116,13 +117,15 @@ export function Type13ActualForm({
             targets?.[plotIdx] ||
             targets?.find(
               (t: any) =>
-                (t.id && (t.id === plot.demoPlotId || t.id === (plot as any).id)) ||
+                (t.id &&
+                  (t.id === plot.demoPlotId || t.id === (plot as any).id)) ||
                 (t.demoPlotId && t.demoPlotId === plot.demoPlotId),
             );
 
           // Resolve Dealer name
           const matchedDealer = dealers?.find(
-            (d: any) => d.id === plot.storeId || d.id === matchedTarget?.storeId,
+            (d: any) =>
+              d.id === plot.storeId || d.id === matchedTarget?.storeId,
           );
           const dealerDisplayName =
             plot.dealerName ||
@@ -191,18 +194,12 @@ export function Type13ActualForm({
                 withdrawnQuantity:
                   tp.quantity ?? tp.withdrawnQuantity ?? tp.targetQuantity ?? 1,
                 actualQuantity:
-                  tp.actualQuantity ??
-                  tp.quantity ??
-                  tp.withdrawnQuantity ??
-                  1,
+                  tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
                 extraQuantity: tp.extraQuantity || "",
                 extraUnit: tp.extraUnit || "ซีซี",
                 actualRate: tp.actualRate || tp.applicationRate || "",
                 quantityUsed:
-                  tp.actualQuantity ??
-                  tp.quantity ??
-                  tp.withdrawnQuantity ??
-                  1,
+                  tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
               }));
             }
             return [];
@@ -355,7 +352,8 @@ export function Type13ActualForm({
                       >
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="text-xs font-bold text-slate-900">
-                            {prodIdx + 1}. {prod.productName || "สินค้าตัวอย่าง"}
+                            {prodIdx + 1}.{" "}
+                            {prod.productName || "สินค้าตัวอย่าง"}
                           </span>
                           <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
                             จำนวนที่เบิก:{" "}
@@ -450,9 +448,7 @@ export function Type13ActualForm({
                             </label>
                             <ActivityInput
                               value={
-                                prod.actualRate ||
-                                prod.applicationRate ||
-                                ""
+                                prod.actualRate || prod.applicationRate || ""
                               }
                               onChange={(e) =>
                                 handleUpdateProduct(
