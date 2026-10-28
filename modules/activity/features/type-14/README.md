@@ -21,9 +21,9 @@
 6. ถ่ายภาพประเมินสภาพแปลงและยอดพืชหลังการฉีดพ่น (สูงสุด 20 ภาพต่อหมู่บ้าน) เพื่อเป็นหลักฐานเชิงประจักษ์
 
 ### 1.2 ขอบเขตของ Type 14
-- **Dual Plot Selection Modes (การเลือกแปลง 2 โหมด):**
+- **Plot Selection for Planned Form (การเลือกแปลงสำหรับแผนงาน):**
   - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกจาก **แผนงานฉีดแปลงแฮตแทคเดิม (Type 13 Activity Plans)** โดยตรง เมื่อเลือกแผนงานเดิมแล้ว ระบบจะดึงแปลงแฮตแทคทั้งหมดที่อยู่ในแผนงานนั้น (`ActivityPlanType13Target`) เข้ามาเป็นเป้าหมายติดตามผลแบบครบชุด พร้อมข้อมูล Dealer, เกษตรกรเจ้าของแปลง, ที่อยู่, และจำนวนแปลงตามแผน (`plannedPlotsCount`)
-  - **โหมดสร้างแปลงใหม่ (`NEW_PLOT`):** ระบุชื่อแปลง ร้านค้า Dealer ผู้รับผิดชอบ เจ้าของแปลง ชนิดพืช และที่อยู่แปลงใหม่โดยตรง บันทึกลง `activity_type_14_targets`
+  - *(หมายเหตุ: ได้ปลดระวางตัวเลือก "ระบุแปลงใหม่" (`NEW_PLOT`) ออกจากหน้าฟอร์ม Planned แล้ว เพื่อให้แผนงานติดตามผลเชื่อมโยงกับแผนงานฉีดพ่น Type 13 เดิมเท่านั้น)*
 - **Actual Outcome Recording (หน้าบันทึกผลตามแผน):**
   - แสดงรายการแปลงแบบ Stacked Cards เหมือน Type 13 โดยแต่ละแปลงจะแสดง Dealer, เจ้าของแปลง, หมู่บ้าน, จำนวนแปลงตามแผน และช่องสำหรับกรอก **จำนวนแปลงที่ติดตามจริง (แปลง) \*** (`actualPlotsCount`)
   - รองรับการบันทึกรอบการติดตามผล (Tracking Rounds), ผลการตอบสนอง, หมายเหตุ, สินค้าที่ใช้ซ้ำ และรูปภาพ
@@ -604,3 +604,4 @@ model ActivityResultType14ProductUsed {
 | **2026-10-22** | 1.6.0 | จัดทำเอกสารคู่มือทางเทคนิคฉบับสมบูรณ์ 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วน 100% | Antigravity AI |
 | **2026-10-27** | 2.0.0 | **ยกเลิกตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType14Target` ให้เชื่อมโยงตรงสู่แปลงแฮตแทค `ActivityPlanType13Target` ผ่าน `type13TargetId`<br>2. ปรับการบันทึกผลงานจริงลงตารางเฉพาะ `activity_type_14_results` และ `activity_type_14_products_used`<br>3. อัปเดตผัง Schema, Data Flow และ Documentation ครบถ้วน 100% | Antigravity AI |
 | **2026-10-27** | 2.1.0 | **แก้ไขปัญหาช่องเลือกแปลงเดิมไม่แสดงตัวเลือก & อัปเดตเอกสาร Type 14 ให้สมบูรณ์ 100%:**<br>1. พัฒนา Server Action `getHattackFollowUpPlansAction()` ใน `planned.actions.ts` และ `actions.ts`<br>2. ปรับปรุง `findHattackFollowUpActivityPlans()` ใน `type14.repository.ts` ให้คืนค่าเป็น `FollowUpPlanOption[]` รองรับการแปลง `type13Targets` เป็น `plots` พร้อมข้อมูล Dealer, เจ้าของแปลง, พิกัด และ `planTitle`<br>3. เพิ่ม Self-healing Fallback `useEffect` ใน `Type14PlannedForm` เพื่อดึงข้อมูลแผน Type 13 อัตโนมัติเมื่อ Props ว่าง<br>4. เชื่อมต่อ `hattackFollowUpPlans` ผ่าน `PlannedActivityForm`, `create-view.tsx` และ `edit-view.tsx` ครบวงจร<br>5. ปรับปรุง `README.md` ลบข้อความตกค้างของ `demo_plots` และ `demo_plot_visits` ออกทั้งหมด พร้อมอัปเดต Data Flow และ Troubleshooting ให้ตรงกับ 100% Dedicated Relational Schema | Antigravity AI |
+| **2026-10-28** | 2.2.0 | **ปลดระวางตัวเลือกระบุแปลงใหม่ (`NEW_PLOT`) ในฟอร์มแผนงาน Type 14 Planned Form:**<br>1. ปรับปรุง `type14-planned-form.tsx` ให้แสดงเฉพาะโหมดเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) เท่านั้น<br>2. ลบส่วน UI สลับโหมดและฟิลด์กรอกข้อมูลแปลงใหม่ที่ไม่ใช้งานออกทั้งหมด<br>3. กำหนดค่า `mode: "EXISTING_PLOT"` เป็นค่าเริ่มต้นถาวรในฟอร์มแผนงาน | Antigravity AI |

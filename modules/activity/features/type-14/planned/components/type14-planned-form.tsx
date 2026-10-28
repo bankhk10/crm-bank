@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Trash2,
   Layers,
   PackageCheck,
-  CheckCircle2,
-  Sparkles,
-  MapPin,
-  Calendar,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
-  ActivityCustomerSelect,
-  ActivityAddressSelect,
   ActivityProductSelect,
-  type ActivityCustomerItem,
 } from "@/modules/activity/ui";
 import { getHattackFollowUpPlansAction } from "@/modules/activity/server/actions";
 import type {
@@ -81,7 +74,6 @@ export function Type14PlannedForm(props: any) {
   const activeFollowUpPlans =
     hattackFollowUpPlans.length > 0 ? hattackFollowUpPlans : dbPlans;
 
-  const mode = data.mode || "EXISTING_PLOT";
   const hasProductWithdrawal = Boolean(data.hasProductWithdrawal);
   const withdrawnProducts = data.withdrawnProducts || [];
 
@@ -89,24 +81,10 @@ export function Type14PlannedForm(props: any) {
     if (readonly || !onChange) return;
     onChange({
       ...data,
+      mode: "EXISTING_PLOT",
       ...updates,
     });
   };
-
-  const handleToggleMode = (newMode: "EXISTING_PLOT" | "NEW_PLOT") => {
-    handleUpdate({ mode: newMode });
-  };
-
-  // Convert dealers to ActivityCustomerItem format
-  const customerItems: ActivityCustomerItem[] = useMemo(() => {
-    return dealers.map((d: any) => ({
-      id: d.id,
-      name: d.name,
-      customerCode: d.customerCode,
-      province: d.province,
-      district: d.district,
-    }));
-  }, [dealers]);
 
   // Product withdrawal helpers
   const handleToggleWithdrawal = (checked: boolean) => {
@@ -218,7 +196,6 @@ export function Type14PlannedForm(props: any) {
 
   // Self-healing synchronization for edit mode & async plans loading
   useEffect(() => {
-    if (mode !== "EXISTING_PLOT") return;
     if (activeFollowUpPlans.length === 0) return;
 
     // Case A: selectedPlanId is missing, but we have plots/plotIds from initial data
@@ -249,11 +226,11 @@ export function Type14PlannedForm(props: any) {
         }
       }
     }
-  }, [mode, activeFollowUpPlans.length, data.selectedPlanId, data.plots?.length]);
+  }, [activeFollowUpPlans.length, data.selectedPlanId, data.plots?.length]);
 
   return (
     <div className="space-y-6 rounded-xl border border-border/80 bg-card p-5 shadow-sm">
-      {/* Header & Mode Switch */}
+      {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
         <div>
           <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -263,41 +240,13 @@ export function Type14PlannedForm(props: any) {
             ติดตามแปลงแฮตแทค (Type 14)
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            เลือกแปลงที่เคยฉีดพ่นแล้ว หรือระบุแปลงใหม่เพื่อบันทึกการติดตามผล
+            เลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) เพื่อบันทึกการติดตามผล
           </p>
         </div>
-
-        {!readonly && (
-          <div className="inline-flex rounded-lg border bg-muted/30 p-1 text-xs">
-            <button
-              type="button"
-              onClick={() => handleToggleMode("EXISTING_PLOT")}
-              className={`rounded-md px-3 py-1.5 font-medium transition-all ${
-                mode === "EXISTING_PLOT"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              เลือกแปลงเดิมที่มีอยู่
-            </button>
-            <button
-              type="button"
-              onClick={() => handleToggleMode("NEW_PLOT")}
-              className={`rounded-md px-3 py-1.5 font-medium transition-all ${
-                mode === "NEW_PLOT"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              ระบุแปลงใหม่
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Mode 1: Existing Plan Selection */}
-      {mode === "EXISTING_PLOT" && (
-        <div className="space-y-4">
+      {/* Existing Plan Selection */}
+      <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <label className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -323,19 +272,6 @@ export function Type14PlannedForm(props: any) {
           ) : activeFollowUpPlans.length === 0 ? (
             <div className="rounded-lg border border-dashed border-muted-foreground/30 p-6 text-center text-sm text-muted-foreground bg-muted/10">
               ยังไม่พบรายการแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) ในระบบ
-              {!readonly && (
-                <div className="mt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleToggleMode("NEW_PLOT")}
-                    className="text-xs"
-                  >
-                    สลับไประบุแปลงใหม่
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -436,133 +372,6 @@ export function Type14PlannedForm(props: any) {
             </div>
           )}
         </div>
-      )}
-
-      {/* Mode 2: New Plot Details */}
-      {mode === "NEW_PLOT" && (
-        <div className="space-y-4 rounded-lg border border-border/70 bg-muted/10 p-4">
-          <div className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-            ข้อมูลแปลงแฮตแทคใหม่
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                ชื่อแปลงแฮตแทค <span className="text-destructive">*</span>
-              </label>
-              <ActivityInput
-                value={data.name || ""}
-                onChange={(e) => handleUpdate({ name: e.target.value })}
-                placeholder="ระบุชื่อแปลง"
-                disabled={readonly}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                ชื่อเจ้าของแปลง / เกษตรกร
-              </label>
-              <ActivityInput
-                value={data.ownerName || ""}
-                onChange={(e) => handleUpdate({ ownerName: e.target.value })}
-                placeholder="ระบุชื่อเจ้าของแปลง"
-                disabled={readonly}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                ร้านค้า / Dealer ผู้รับผิดชอบ{" "}
-                <span className="text-destructive">*</span>
-              </label>
-              <ActivityCustomerSelect
-                customers={customerItems}
-                value={data.storeId || ""}
-                onChange={(val, cust) =>
-                  handleUpdate({
-                    storeId: val,
-                    dealerName: cust?.name || "",
-                    province: data.province || cust?.province || "",
-                    district: data.district || cust?.district || "",
-                  })
-                }
-                disabled={readonly}
-                placeholder="ค้นหาหรือเลือกร้านค้า / ตัวแทนจำหน่าย"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                หมวดหมู่พืช
-              </label>
-              <ActivityInput
-                value={data.cropCategory || ""}
-                onChange={(e) => handleUpdate({ cropCategory: e.target.value })}
-                placeholder="เช่น ไม้ผล, พืชไร่"
-                disabled={readonly}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                ชื่อพืช
-              </label>
-              <ActivityInput
-                value={data.cropName || ""}
-                onChange={(e) => handleUpdate({ cropName: e.target.value })}
-                placeholder="เช่น ทุเรียน, ข้าว, ข้าวโพด"
-                disabled={readonly}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                พื้นที่ตั้งแปลง (จังหวัด / อำเภอ){" "}
-                <span className="text-destructive">*</span>
-              </label>
-              <ActivityAddressSelect
-                levels="province-district"
-                value={{
-                  province: data.province || "",
-                  district: data.district || "",
-                }}
-                onChange={(val: any) =>
-                  handleUpdate({
-                    province: val?.province || "",
-                    district: val?.district || "",
-                  })
-                }
-                disabled={readonly}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                พิกัด ละติจูด (Latitude)
-              </label>
-              <ActivityInput
-                value={data.latitude || ""}
-                onChange={(e) => handleUpdate({ latitude: e.target.value })}
-                placeholder="13.7563"
-                disabled={readonly}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                พิกัด ลองจิจูด (Longitude)
-              </label>
-              <ActivityInput
-                value={data.longitude || ""}
-                onChange={(e) => handleUpdate({ longitude: e.target.value })}
-                placeholder="100.5018"
-                disabled={readonly}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Product Withdrawal Section */}
       <div className="space-y-3 rounded-lg border border-border/80 bg-muted/5 p-4">
