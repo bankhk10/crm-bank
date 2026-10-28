@@ -388,8 +388,12 @@ export function Type3PlannedForm({
                           key={prodLine.id}
                           className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs"
                         >
-                          {/* Product Combobox */}
-                          <div className="md:col-span-4">
+                          {/* 1. ขยายช่องสินค้าเป็น col-span-5 (หรือ col-span-6 หากเป็น readonly) */}
+                          <div
+                            className={
+                              readonly ? "md:col-span-6" : "md:col-span-5"
+                            }
+                          >
                             <ActivityProductSelect
                               id={`product-combobox-${item.id}-${prodLine.id}`}
                               label={`สินค้าที่ ${pIdx + 1}`}
@@ -416,7 +420,7 @@ export function Type3PlannedForm({
                             />
                           </div>
 
-                          {/* Target Quantity */}
+                          {/* 2. จำนวนเป้าหมาย (คงเดิม 2) */}
                           <div className="md:col-span-2">
                             <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                               จำนวนเป้าหมาย (ลัง){" "}
@@ -440,7 +444,7 @@ export function Type3PlannedForm({
                             />
                           </div>
 
-                          {/* Unit Price */}
+                          {/* 3. ราคา/ลัง (คงเดิม 2) */}
                           <div className="md:col-span-2">
                             <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                               ราคา/ลัง (บาท)
@@ -448,13 +452,19 @@ export function Type3PlannedForm({
                             <ActivityInput
                               type="number"
                               min={0}
-                              value={prodLine.unitPrice === 0 ? "" : (prodLine.unitPrice ?? "")}
+                              value={
+                                prodLine.unitPrice === 0
+                                  ? ""
+                                  : (prodLine.unitPrice ?? "")
+                              }
                               onChange={(e) =>
                                 handleUpdateProduct(
                                   item.id,
                                   prodLine.id,
                                   "unitPrice",
-                                  e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
+                                  e.target.value === ""
+                                    ? 0
+                                    : parseFloat(e.target.value) || 0,
                                 )
                               }
                               disabled={readonly}
@@ -463,14 +473,19 @@ export function Type3PlannedForm({
                             />
                           </div>
 
-                          {/* Total Amount (Calculated) */}
-                          <div className="md:col-span-3">
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          {/* 4. ยอดเงินเป้าหมาย ปรับลดเหลือ md:col-span-2 */}
+                          <div className="md:col-span-2">
+                            <label
+                              className="block text-[11px] font-semibold text-slate-600 mb-1 truncate"
+                              title="ยอดเงินเป้าหมาย"
+                            >
                               ยอดเงินเป้าหมาย
                             </label>
-                            <div className="h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-bold text-emerald-800">
-                              <span>฿</span>
-                              <span>
+                            <div className="h-9 px-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-bold text-emerald-800">
+                              <span className="text-[11px] text-slate-400">
+                                ฿
+                              </span>
+                              <span className="truncate">
                                 {lineAmount.toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
@@ -479,7 +494,7 @@ export function Type3PlannedForm({
                             </div>
                           </div>
 
-                          {/* Delete Product Line */}
+                          {/* 5. ปุ่มลบ (คงเดิม 1) */}
                           {!readonly && (
                             <div className="md:col-span-1 flex items-center justify-end md:justify-center">
                               <button
