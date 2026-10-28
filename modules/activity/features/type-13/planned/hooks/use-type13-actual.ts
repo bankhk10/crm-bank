@@ -223,52 +223,143 @@ export function useType13Actual() {
       basePlots = [createDefaultInitialPlot()];
     }
 
-    // Hydrate existing actual results if present
-    const existingSprayRounds: any[] =
-      (plan.type13Results && plan.type13Results.flatMap((r: any) => r.sprayRounds || [])) ||
-      (plan.type13Actual && plan.type13Actual.sprayRounds) ||
-      plan.result?.sprayRounds ||
-      parsedResult?.sprayRounds ||
-      parsedResult?.type13Actual?.sprayRounds ||
-      [];
+    // 1. Collect all candidate spray rounds
+    const existingSprayRounds: any[] = [
+      ...(Array.isArray(plan.type13Results)
+        ? plan.type13Results.flatMap((r: any) => r.sprayRounds || [])
+        : []),
+      ...(plan.type13Actual?.sprayRounds || []),
+      ...(plan.result?.sprayRounds || []),
+      ...(parsedResult?.sprayRounds || []),
+      ...(parsedResult?.type13Actual?.sprayRounds || []),
+    ];
 
-    const existingAttachments: any[] =
-      (plan.type13Results && plan.type13Results.flatMap((r: any) => r.attachments || [])) ||
-      (plan.type13Actual && plan.type13Actual.attachments) ||
-      plan.attachments ||
-      plan.result?.attachments ||
-      [];
+    // 2. Collect and deduplicate all candidate attachments across plan and results
+    const rawCandidateAttachments: any[] = [
+      ...(Array.isArray(plan.type13Results)
+        ? plan.type13Results.flatMap((r: any) => r.attachments || [])
+        : []),
+      ...(plan.type13Actual?.attachments || []),
+      ...(plan.attachments || []),
+      ...(plan.result?.attachments || []),
+      ...(Array.isArray(parsedResult) ? parsedResult : []),
+    ];
 
-    if (existingSprayRounds.length > 0 || existingAttachments.length > 0) {
-      basePlots = basePlots.map((plot) => {
-        const pId = plot.demoPlotId;
-        const matchedRounds = existingSprayRounds.filter(
-          (r: any) =>
-            (pId && r.demoPlotId === pId) ||
-            (plot.clientPlotId && r.clientPlotId === plot.clientPlotId),
-        );
+    const uniqueAttachmentsMap = new Map<string, any>();
+    rawCandidateAttachments.forEach((att: any) => {
+      const key = att.id || att.fileUrl || att.url;
+      if (key && !uniqueAttachmentsMap.has(key)) {
+        uniqueAttachmentsMap.set(key, att);
+      }
+    });
+    const allAttachments = Array.from(uniqueAttachmentsMap.values());
 
-        const matchedAtts: Type13ImageFile[] = existingAttachments
-          .filter(
-            (a: any) =>
-              (a.workTypeCode === "TYPE_13" || a.category === "AFTER_SPRAY" || a.category === "demo_plot_after_spray") &&
-              ((pId && a.demoPlotId === pId) || (plot.clientPlotId && a.clientPlotId === plot.clientPlotId)),
-          )
-          .map((a: any) => ({
-            id: a.id,
-            url: a.fileUrl || a.url,
-            name: a.fileName || a.name || "ภาพหลังฉีดพ่น",
-            size: a.fileSize || a.size || 0,
-            type: a.mimeType || a.type || "image/jpeg",
-          }));
+    basePlots = basePlots.map((plot, plotIdx) => {
+      const pId = plot.demoPlotId || (plot as any).id;
 
-        return {
-          ...plot,
-          afterSprayImages: matchedAtts.length > 0 ? matchedAtts : plot.afterSprayImages,
-          sprayRounds: matchedRounds.length > 0 ? matchedRounds : plot.sprayRounds,
-        };
+      // Find matched target result for this plot
+      const targetResult =
+        (Array.isArray(plan.type13Results) &&
+          plan.type13Results.find(
+            (r: any) =>
+              (pId && r.targetId === pId) ||
+              (r.id && r.id === (plot as any).resultId),
+          )) ||
+        (Array.isArray(plan.type13Results) && plan.type13Results[plotIdx]) ||
+        (plot as any).targetResult ||
+        plan.result;
+
+      // Match spray rounds
+      const matchedRounds =
+        targetResult?.sprayRounds &&
+        Array.isArray(targetResult.sprayRounds) &&
+        targetResult.sprayRounds.length > 0
+          ? targetResult.sprayRounds
+          : existingSprayRounds.filter(
+              (r: any) =>
+                (targetResult?.id && r.resultId === targetResult.id) ||
+                (pId && (r.demoPlotId === pId || r.targetId === pId)) ||
+                (plot.clientPlotId && r.clientPlotId === plot.clientPlotId) ||
+                basePlots.length <= 1,
+            );
+
+      // Match after-spray images
+      const matchedAtts: any[] = [];
+      const seenUrls = new Set<string>();
+
+      const addAttachment = (a: any) => {
+        const url = a.fileUrl || a.url;
+        if (url && !seenUrls.has(url)) {
+          seenUrls.add(url);
+          matchedAtts.push(a);
+        }
+      };
+
+      // 1. Direct attachments from targetResult
+      if (
+        targetResult?.attachments &&
+        Array.isArray(targetResult.attachments) &&
+        targetResult.attachments.length > 0
+      ) {
+        targetResult.attachments.forEach(addAttachment);
+      }
+
+      // 2. Direct afterSprayImages from plot state (if already present)
+      if (
+        plot.afterSprayImages &&
+        Array.isArray(plot.afterSprayImages) &&
+        plot.afterSprayImages.length > 0
+      ) {
+        plot.afterSprayImages.forEach(addAttachment);
+      }
+
+      // 3. Scan allAttachments with comprehensive matching
+      allAttachments.forEach((a: any) => {
+        const isT13Attachment =
+          a.workTypeCode === "TYPE_13" ||
+          a.category === "AFTER_SPRAY" ||
+          a.category === "demo_plot_after_spray" ||
+          a.category === "PLOT" ||
+          (typeof a.fileUrl === "string" &&
+            (a.fileUrl.includes("/type13/") ||
+              a.fileUrl.includes("after_spray")));
+
+        if (!isT13Attachment) return;
+
+        const matchesThisPlot =
+          (targetResult?.id && a.type13ResultId === targetResult.id) ||
+          (pId && (a.targetId === pId || a.demoPlotId === pId)) ||
+          (plot.clientPlotId && a.clientPlotId === plot.clientPlotId) ||
+          basePlots.length <= 1 ||
+          (a.fileName &&
+            (a.fileName.includes(`แปลงแฮตแทค ${plotIdx + 1}`) ||
+              a.fileName.includes(`plot_${plotIdx + 1}`)));
+
+        if (matchesThisPlot) {
+          addAttachment(a);
+        }
       });
-    }
+
+      const finalAfterSprayImages: Type13ImageFile[] = matchedAtts.map(
+        (a: any) => ({
+          id: a.id || `att-${Math.random()}`,
+          url: a.fileUrl || a.url,
+          name: a.fileName || a.name || `ภาพหลังฉีดพ่น แปลงที่ ${plotIdx + 1}`,
+          size: a.fileSize || a.size || 0,
+          type: a.mimeType || a.type || "image/jpeg",
+        }),
+      );
+
+      return {
+        ...plot,
+        afterSprayImages:
+          finalAfterSprayImages.length > 0
+            ? finalAfterSprayImages
+            : plot.afterSprayImages,
+        sprayRounds:
+          matchedRounds.length > 0 ? matchedRounds : plot.sprayRounds,
+      };
+    });
 
     setPlotsActual(basePlots);
     initialPlotsRef.current = JSON.parse(JSON.stringify(basePlots));

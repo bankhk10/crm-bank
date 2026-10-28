@@ -1446,17 +1446,18 @@ export function ActivityPlanActualView({
           );
           const t13Payload = type13Actual.collectPayload(updatedPlots);
 
-          const allT13Images = updatedPlots.flatMap(
-            (p) => p.afterSprayImages || [],
+          const uploadedAttachments = updatedPlots.flatMap((p, pIdx) =>
+            (p.afterSprayImages || []).map((img: any) => ({
+              category: "PLOT",
+              fileUrl: img.url,
+              fileName: img.name || ("ภาพหลังพ่นแปลงแฮตแทค " + (pIdx + 1)),
+              fileSize: Math.round(Number((img as any).size || 0)),
+              mimeType: (img as any).type || "image/jpeg",
+              workTypeCode: "TYPE_13",
+              demoPlotId: p.demoPlotId || (p as any).id || null,
+              targetId: p.demoPlotId || (p as any).id || null,
+            })),
           );
-          const uploadedAttachments = allT13Images.map((img: any) => ({
-            category: "PLOT",
-            fileUrl: img.url,
-            fileName: img.name || "ภาพหลังการฉีดพ่น",
-            fileSize: Math.round(Number((img as any).size || 0)),
-            mimeType: (img as any).type || "image/jpeg",
-            workTypeCode: "TYPE_13",
-          }));
 
           payload = {
             ...payload,

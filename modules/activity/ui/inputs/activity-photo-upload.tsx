@@ -141,41 +141,38 @@ export function ActivityPhotoUpload({
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null);
 
   // Check if images already contain existing server images
-  const initialHasServerImages = Boolean(
-    images &&
-      images.length > 0 &&
-      images.some(
-        (img) =>
-          Boolean(img.url) &&
-          !img.url.startsWith("blob:") &&
-          !img.rawFile &&
-          !(img as any).file,
-      ),
+  const serverImageSignature = (images || [])
+    .filter(
+      (img) =>
+        Boolean(img.url) &&
+        !img.url.startsWith("blob:") &&
+        !img.rawFile &&
+        !(img as any).file,
+    )
+    .map((i) => i.id || (i as any).fileUrl || i.url)
+    .join("-");
+
+  const lastSignatureRef = useRef<string>(serverImageSignature);
+  const [mountKey, setMountKey] = useState(
+    serverImageSignature ? ("hydrated-" + serverImageSignature) : "init",
   );
-  const isHydratedRef = useRef(initialHasServerImages);
-  const [mountKey, setMountKey] = useState("init");
 
   useEffect(() => {
-    // Only remount for server hydration if:
-    // 1. Not already hydrated
-    // 2. We have images
-    // 3. The images are existing server images (i.e. permanent URL, not blob, and no rawFile/file)
-    const hasServerImages =
-      images &&
-      images.length > 0 &&
-      images.some(
+    // Remount for server hydration if server images arrive or signature changes
+    const currentSignature = (images || [])
+      .filter(
         (img) =>
           Boolean(img.url) &&
           !img.url.startsWith("blob:") &&
           !img.rawFile &&
           !(img as any).file,
-      );
+      )
+      .map((i) => i.id || (i as any).fileUrl || i.url)
+      .join("-");
 
-    if (!isHydratedRef.current && hasServerImages) {
-      isHydratedRef.current = true;
-      setMountKey(
-        `hydrated-${images.map((i) => i.id || (i as any).fileUrl || i.url).join("-")}`,
-      );
+    if (currentSignature && currentSignature !== lastSignatureRef.current) {
+      lastSignatureRef.current = currentSignature;
+      setMountKey("hydrated-" + currentSignature);
     }
   }, [images]);
 
