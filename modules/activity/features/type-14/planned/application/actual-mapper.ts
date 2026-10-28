@@ -1,5 +1,9 @@
-import type { Type14DetailData, Type14DetailProps } from "../types/actual.types";
-import type { Type14SprayRoundState } from "../../shared/types";
+import type { Type14DetailData } from "../types/actual.types";
+import type {
+  Type14SprayRoundState,
+  Type14PlotActualState,
+  Type14ActualProductState,
+} from "../../shared/types";
 
 /**
  * Parses raw actual result and attachments into structured Type 14 actual data
@@ -13,16 +17,27 @@ export function parseType14ActualResult(
     plotName: payloadToHydrate.plotName || null,
     rounds: [],
     sprayRounds: [],
+    plots: [],
     attachments: [],
   };
 
+  const rawResults: any[] = [
+    ...(Array.isArray(payloadToHydrate.type14Results)
+      ? payloadToHydrate.type14Results
+      : []),
+    ...(Array.isArray(payloadToHydrate.result?.type14Results)
+      ? payloadToHydrate.result.type14Results
+      : []),
+  ];
+
   const rawRounds: any[] =
-    payloadToHydrate.type14Results ||
-    payloadToHydrate.type14Actual?.rounds ||
-    payloadToHydrate.type14Actual?.sprayRounds ||
-    payloadToHydrate.rounds ||
-    payloadToHydrate.sprayRounds ||
-    [];
+    rawResults.length > 0
+      ? rawResults
+      : payloadToHydrate.type14Actual?.rounds ||
+        payloadToHydrate.type14Actual?.sprayRounds ||
+        payloadToHydrate.rounds ||
+        payloadToHydrate.sprayRounds ||
+        [];
 
   const rawAttachments: any[] =
     payloadToHydrate.attachments ||
@@ -40,18 +55,32 @@ export function parseType14ActualResult(
     afterSprayImages: (r.afterSprayImages || r.attachments || []).map((img: any, imgIdx: number) => ({
       id: img.id || `img-${imgIdx + 1}`,
       url: img.url || img.fileUrl || "",
-      name: img.name || img.fileName || "รูปภาพหลังฉีดพ่น",
+      name: img.name || img.fileName || "รูปภาพหลังติดตามแปลง",
       size: img.size || img.fileSize || 0,
       type: img.type || img.mimeType || "image/jpeg",
     })),
-    products: (r.productsUsed || r.products || []).map((p: any) => ({
-      productId: p.productId,
-      productName: p.productName || p.product?.name || "",
-      unit: p.unit || p.product?.unit || "ขวด",
-      quantityUsed: p.quantityUsed ?? p.quantity ?? "",
-      actualRate: p.actualRate || p.applicationRate || "",
-      detail: p.detail || "",
-    })),
+    products: (r.productsUsed || r.products || []).map((p: any) => {
+      let extraQty = p.extraQuantity || "";
+      let extraU = p.extraUnit || "ซีซี";
+      if (p.detail) {
+        const match = String(p.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
+        if (match) {
+          extraQty = match[1];
+          if (match[2]) extraU = match[2];
+        }
+      }
+      return {
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        unit: p.unit || p.product?.unit || "ขวด",
+        quantityUsed: p.quantityUsed ?? p.quantity ?? "",
+        actualQuantity: p.quantityUsed ?? p.actualQuantity ?? p.quantity ?? "",
+        extraQuantity: extraQty,
+        extraUnit: extraU,
+        actualRate: p.actualRate || p.applicationRate || "",
+        detail: p.detail || "",
+      };
+    }),
   }));
 
   actualData.rounds = mappedRounds;
@@ -65,15 +94,124 @@ export function parseType14ActualResult(
     [];
 
   if (rawPlots.length > 0) {
-    actualData.plots = rawPlots.map((p: any) => {
+    actualData.plots = rawPlots.map((p: any, idx: number) => {
+      const matchedRes =
+        rawResults.find(
+          (r: any) =>
+            (p.id && r.targetId === p.id) ||
+            (p.type13TargetId && r.type13TargetId === p.type13TargetId) ||
+            (p.demoPlotId && r.targetId === p.demoPlotId),
+        ) ||
+        rawResults[idx] ||
+        rawRounds[idx] ||
+        null;
+
       let actualCount = p.actualPlotsCount;
+      if (actualCount == null && matchedRes?.additionalNotes) {
+        const m = String(matchedRes.additionalNotes).match(/จำนวนแปลงจริง:\s*(\d+)/);
+        if (m) actualCount = Number(m[1]);
+      }
       if (actualCount == null && p.notes) {
         const m = String(p.notes).match(/จำนวนแปลงจริง:\s*(\d+)/);
         if (m) actualCount = Number(m[1]);
       }
+      if (actualCount == null) {
+        actualCount = p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1;
+      }
+
+      const daysAfter =
+        p.daysAfterSpray != null
+          ? String(p.daysAfterSpray)
+          : matchedRes?.daysAfterSpray != null
+            ? String(matchedRes.daysAfterSpray)
+            : "";
+
+      const trackingRes =
+        p.trackingResult ||
+        matchedRes?.trackingResult ||
+        "ได้ผลตามเกณฑ์";
+
+      const prodResponse =
+        p.productResponse ||
+        matchedRes?.productResponse ||
+        "ปกติ";
+
+      const notesText =
+        p.additionalNotes ||
+        (matchedRes?.additionalNotes
+          ? String(matchedRes.additionalNotes)
+              .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
+              .trim()
+          : "") ||
+        "";
+
+      // Products for this plot
+      const plotProds: Type14ActualProductState[] = (() => {
+        if (Array.isArray(p.products) && p.products.length > 0) {
+          return p.products.map((prod: any) => {
+            let extraQty = prod.extraQuantity || "";
+            let extraU = prod.extraUnit || "ซีซี";
+            if (prod.detail) {
+              const match = String(prod.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
+              if (match) {
+                extraQty = match[1];
+                if (match[2]) extraU = match[2];
+              }
+            }
+            return {
+              ...prod,
+              extraQuantity: extraQty,
+              extraUnit: extraU,
+            };
+          });
+        }
+        if (matchedRes?.productsUsed || matchedRes?.products) {
+          return (matchedRes.productsUsed || matchedRes.products).map((prod: any) => {
+            let extraQty = prod.extraQuantity || "";
+            let extraU = prod.extraUnit || "ซีซี";
+            if (prod.detail) {
+              const match = String(prod.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
+              if (match) {
+                extraQty = match[1];
+                if (match[2]) extraU = match[2];
+              }
+            }
+            return {
+              productId: prod.productId,
+              productName: prod.productName || prod.product?.name || "",
+              unit: prod.unit || prod.product?.unit || "ขวด",
+              quantityUsed: prod.quantityUsed ?? prod.quantity ?? 1,
+              actualQuantity: prod.quantityUsed ?? prod.actualQuantity ?? prod.quantity ?? 1,
+              extraQuantity: extraQty,
+              extraUnit: extraU,
+              actualRate: prod.actualRate || "",
+              detail: prod.detail || "",
+            };
+          });
+        }
+        return [];
+      })();
+
+      // Images for this plot
+      const plotImages = (p.afterSprayImages || matchedRes?.afterSprayImages || matchedRes?.attachments || []).map(
+        (img: any, imgIdx: number) => ({
+          id: img.id || `plot-img-${idx}-${imgIdx + 1}`,
+          url: img.url || img.fileUrl || "",
+          name: img.name || img.fileName || "รูปภาพหลังติดตามแปลง",
+          size: img.size || img.fileSize || 0,
+          type: img.type || img.mimeType || "image/jpeg",
+        }),
+      );
+
       return {
         ...p,
         actualPlotsCount: actualCount,
+        daysAfterSpray: daysAfter,
+        trackingResult: trackingRes,
+        productResponse: prodResponse,
+        additionalNotes: notesText,
+        products: plotProds,
+        afterSprayImages: plotImages,
       };
     });
   }
@@ -83,7 +221,8 @@ export function parseType14ActualResult(
       att.workTypeCode === "TYPE_14" ||
       att.category === "AFTER_SPRAY" ||
       att.category === "TRACKING_AFTER_SPRAY" ||
-      att.category === "type14",
+      att.category === "type14" ||
+      att.category === "PLOT",
   );
 
   return actualData;

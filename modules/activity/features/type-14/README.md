@@ -5,7 +5,7 @@
 > **Work Type Name**: ติดตามแปลงแฮตแทค (Hattack Follow-up)  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.2.0 — Updated 2026-10-27 Type 13 Plan-level Selector, Multi-plot Actual Counts Sync & Bidirectional Edit-Hydration)
+> **Status**: Production Ready / Active Reference (v2.4.0 — Updated 2026-10-28 Standardize Type 14 Actual Form to Plot-based Entry Matching Type 13 & Retire Tracking Rounds)
 
 ---
 
@@ -24,20 +24,24 @@
 - **Plot Selection for Planned Form (การเลือกแปลงสำหรับแผนงาน):**
   - **โหมดแปลงเดิม (`EXISTING_PLOT`):** เลือกจาก **แผนงานฉีดแปลงแฮตแทคเดิม (Type 13 Activity Plans)** โดยตรง เมื่อเลือกแผนงานเดิมแล้ว ระบบจะดึงแปลงแฮตแทคทั้งหมดที่อยู่ในแผนงานนั้น (`ActivityPlanType13Target`) เข้ามาเป็นเป้าหมายติดตามผลแบบครบชุด พร้อมข้อมูล Dealer, เกษตรกรเจ้าของแปลง, ที่อยู่, และจำนวนแปลงตามแผน (`plannedPlotsCount`)
   - *(หมายเหตุ: ได้ปลดระวางตัวเลือก "ระบุแปลงใหม่" (`NEW_PLOT`) ออกจากหน้าฟอร์ม Planned แล้ว เพื่อให้แผนงานติดตามผลเชื่อมโยงกับแผนงานฉีดพ่น Type 13 เดิมเท่านั้น)*
-- **Actual Outcome Recording (หน้าบันทึกผลตามแผน):**
-  - แสดงรายการแปลงแบบ Stacked Cards เหมือน Type 13 โดยแต่ละแปลงจะแสดง Dealer, เจ้าของแปลง, หมู่บ้าน, จำนวนแปลงตามแผน และช่องสำหรับกรอก **จำนวนแปลงที่ติดตามจริง (แปลง) \*** (`actualPlotsCount`)
-  - รองรับการบันทึกรอบการติดตามผล (Tracking Rounds), ผลการตอบสนอง, หมายเหตุ, สินค้าที่ใช้ซ้ำ และรูปภาพ
+- **Actual Outcome Recording (หน้าบันทึกผลตามแผน - ปรับให้ตรงตามมาตรฐาน Type 13 100%):**
+  - แสดงรายการแปลงแบบ Stacked Cards เหมือน Type 13 โดยแต่ละแปลงจะแสดง Dealer, เจ้าของแปลง, หมู่บ้าน, จำนวนแปลงตามแผน
+  - กรอก **จำนวนแปลงที่ติดตามจริง (แปลง) \*** (`actualPlotsCount`)
+  - **Section 1.1 สินค้าที่เบิกตามแผน (Planned Demo Products):** แสดงรายการสินค้าตามแผนพร้อมให้กรอก `จำนวนที่ใช้จริง (ขวด) *`, `ปริมาณที่ใช้เพิ่ม (extraQuantity + extraUnit ซีซี/กรัม)` และ `อัตราการใช้ *`
+  - **Section 1.2 ผลการตรวจติดตามแปลง:** ระบุระยะเวลาหลังฉีดพ่น (วัน), ผลการติดตามแปลง, การตอบสนองของพืช และบันทึกข้อสังเกตเพิ่มเติม/ปัญหาที่พบ
+  - **Section 1.3 รูปหลังติดตามแปลง (ต่อหมู่บ้าน):** อัปโหลดภาพถ่ายสภาพแปลงหลังการติดตาม (สูงสุด 20 รูปต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload`
+  - *(หมายเหตุ: ได้ปลดระวางแนวคิด "รอบการติดตามที่..." (Tracking rounds) ออกจากหน้าบันทึกผล เพื่อปรับให้เป็นการกรอกข้อมูลผลงานจริงรายแปลงตามมาตรฐานเดียวกับ Type 13 อย่างสมบูรณ์)*
 - **สถาปัตยกรรมข้อมูล 100% Dedicated Relational Tables:**
   - เป้าหมายแปลงจัดเก็บใน `activity_type_14_targets` (`ActivityPlanType14Target`)
   - สินค้าเบิกพ่นซ้ำจัดเก็บใน `activity_type_14_products` (`ActivityPlanType14Product`)
   - ผลการติดตามจริงจัดเก็บใน `activity_type_14_results` (`ActivityResultType14`) และ `activity_type_14_products_used` (`ActivityResultType14ProductUsed`)
-  - รูปภาพแนบจัดเก็บใน `ActivityAttachment` (หมวดหมู่ `AFTER_SPRAY` / `TRACKING_AFTER_SPRAY`)
+  - รูปภาพแนบจัดเก็บใน `ActivityAttachment` (หมวดหมู่ `PLOT` / `TRACKING_AFTER_SPRAY`)
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
-1. **Planned (ในแผนงาน):** วางแผนติดตามแปลงแฮตแทค (เลือกแปลงเดิมหรือสร้างแปลงใหม่) พร้อมขอเบิกสินค้าฉีดพ่นซ้ำล่วงหน้า
-2. **Planned Actual (บันทึกผลงานตามแผน):** นำแผนติดตามเดิมมารายงานผลการลงพื้นที่จริง ระบุรอบการติดตาม ผลการควบคุมแมลง พืชตอบสนอง สินค้าที่ใช้ซ้ำ และอัปโหลดภาพถ่าย
+1. **Planned (ในแผนงาน):** วางแผนติดตามแปลงแฮตแทค (เลือกแปลงเดิมจากแผน Type 13) พร้อมขอเบิกสินค้าฉีดพ่นซ้ำล่วงหน้า
+2. **Planned Actual (บันทึกผลงานตามแผน):** นำแผนติดตามเดิมมารายงานผลการลงพื้นที่จริงรายแปลง ระบุจำนวนแปลงที่ติดตามจริง, สินค้าที่ใช้จริงพร้อมปริมาณที่ใช้เพิ่ม, ผลการตรวจติดตามแปลง, และอัปโหลดภาพถ่าย
 3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** กรณีลงพื้นที่ติดตามแปลงกะทันหัน สามารถระบุข้อมูลแปลง พิกัด GPS ผลการตรวจติดตาม สินค้าที่ใช้ และถ่ายภาพจบในฟอร์มเดียว
-4. **Detail View:** แสดงสรุปแปลงที่วางแผนติดตาม และแสดงผลการตรวจติดตามจริงแยกตามรอบ พร้อม Image Lightbox ขยายดูภาพถ่ายสภาพแปลง
+4. **Detail View:** แสดงสรุปแปลงที่วางแผนติดตาม และแสดงผลการตรวจติดตามจริงรายแปลง พร้อม Section 1.1 สินค้าที่เบิกตามแผน และ Image Lightbox ขยายดูภาพถ่ายสภาพแปลง
 5. **Approval View:** แสดงการ์ดสรุปแปลงแฮตแทคและรายการขอเบิกสินค้าเพื่อให้ผู้จัดการสายงานพิจารณาอนุมัติ
 
 ---
@@ -69,15 +73,13 @@ graph TD
     A[เปิดหน้า Trip Plan Actual] --> B[โหลดแผนงานและเป้าหมายแปลงแฮตแทคเดิม]
     B --> C[เลือกสถานะผลการทำกิจกรรม: COMPLETED / PARTIAL]
     C --> D[แสดงฟอร์ม Type14ActualForm]
-    D --> E[แสดงรายการแปลงทั้งหมดแบบ Stacked Cards และกรอก 'จำนวนแปลงที่ติดตามจริง (แปลง)' เหมือน Type 13]
-    E --> F[เพิ่มรอบการติดตามผล Tracking Round]
-    F --> G[ระบุวันที่ติดตามจริง และจำนวนวันหลังฉีดพ่น]
-    G --> H[ประเมินผลการติดตาม: ได้ผลดีมาก / ได้ผลตามเกณฑ์ / ต้องฉีดซ้ำ / ไม่เห็นผล]
-    H --> I[ระบุการตอบสนองของพืช และบันทึกเพิ่มเติม]
-    I --> J[ระบุสินค้าที่ใช้ฉีดพ่นซ้ำจริง ถ้ามี]
-    J --> K[อัปโหลดรูปภาพสภาพแปลง สูงสุด 20 รูปต่อหมู่บ้าน]
-    K --> L[กดบันทึกผลการปฏิบัติงาน]
-    L --> M[Strategy บันทึก actualPlotsCount ลง target.notes และผลรอบลง activity_type_14_results]
+    D --> E[แสดงรายการแปลงทั้งหมดแบบ Stacked Cards]
+    E --> F[กรอกจำนวนแปลงที่ติดตามจริง actualPlotsCount]
+    F --> G[กรอก Section 1.1 สินค้าที่เบิกตามแผน: จำนวนที่ใช้จริง + ปริมาณที่ใช้เพิ่ม extraQuantity/Unit + อัตราใช้]
+    G --> H[กรอก Section 1.2 ผลการตรวจติดตาม: วันหลังฉีด + ผลติดตาม + ตอบสนองพืช + ข้อสังเกต]
+    H --> I[อัปโหลดรูปภาพสภาพแปลง สูงสุด 20 รูปต่อหมู่บ้าน]
+    I --> J[กดบันทึกผลการปฏิบัติงาน]
+    J --> K[Strategy บันทึก actualPlotsCount ลง target.notes และผลตรวจลง activity_type_14_results + products_used]
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
@@ -606,3 +608,4 @@ model ActivityResultType14ProductUsed {
 | **2026-10-27** | 2.1.0 | **แก้ไขปัญหาช่องเลือกแปลงเดิมไม่แสดงตัวเลือก & อัปเดตเอกสาร Type 14 ให้สมบูรณ์ 100%:**<br>1. พัฒนา Server Action `getHattackFollowUpPlansAction()` ใน `planned.actions.ts` และ `actions.ts`<br>2. ปรับปรุง `findHattackFollowUpActivityPlans()` ใน `type14.repository.ts` ให้คืนค่าเป็น `FollowUpPlanOption[]` รองรับการแปลง `type13Targets` เป็น `plots` พร้อมข้อมูล Dealer, เจ้าของแปลง, พิกัด และ `planTitle`<br>3. เพิ่ม Self-healing Fallback `useEffect` ใน `Type14PlannedForm` เพื่อดึงข้อมูลแผน Type 13 อัตโนมัติเมื่อ Props ว่าง<br>4. เชื่อมต่อ `hattackFollowUpPlans` ผ่าน `PlannedActivityForm`, `create-view.tsx` และ `edit-view.tsx` ครบวงจร<br>5. ปรับปรุง `README.md` ลบข้อความตกค้างของ `demo_plots` และ `demo_plot_visits` ออกทั้งหมด พร้อมอัปเดต Data Flow และ Troubleshooting ให้ตรงกับ 100% Dedicated Relational Schema | Antigravity AI |
 | **2026-10-28** | 2.2.0 | **ปลดระวางตัวเลือกระบุแปลงใหม่ (`NEW_PLOT`) ในฟอร์มแผนงาน Type 14 Planned Form:**<br>1. ปรับปรุง `type14-planned-form.tsx` ให้แสดงเฉพาะโหมดเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) เท่านั้น<br>2. ลบส่วน UI สลับโหมดและฟิลด์กรอกข้อมูลแปลงใหม่ที่ไม่ใช้งานออกทั้งหมด<br>3. กำหนดค่า `mode: "EXISTING_PLOT"` เป็นค่าเริ่มต้นถาวรในฟอร์มแผนงาน | Antigravity AI |
 | **2026-10-28** | 2.3.0 | **ปรับปรุง UI การเลือกแผนและระบบเบิกสินค้าของ Type 14 ให้ตรงตามมาตรฐาน Type 13:**<br>1. นำ `ActivitySelect` มาใช้แทน native `<select>` สำหรับการเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13)<br>2. แก้ไขปัญหาการเลือกสินค้าแล้วข้อมูลไม่ลงช่อง (ปรับปรุงให้อัปเดต `productId`, `productName`, `unit` พร้อมกันในคราวเดียว)<br>3. ปรับปรุงส่วน "มีการเบิกสินค้าเพิ่มเติมสำหรับการติดตามแปลง" ให้แสดงผลเป็น Table และมี Header, ลำดับ, จำนวน, หน่วย (readOnly) และปุ่มจัดการ เหมือนกับ Type 13 Planned Form<br>4. เพิ่มการแสดงผล Section 1.1 "สินค้าที่เบิกตามแผน (Planned Demo Products)" ใน `type14-detail-view.tsx`<br>5. ตรวจสอบและซิงค์ Full Round-Trip (ฟอร์ม -> Repository -> DB -> Hydration -> Detail/Card) ครบ 6 ขั้นตอน | Antigravity AI |
+| **2026-10-28** | 2.4.0 | **ปรับโครงสร้างหน้าบันทึกผลงานจริง Type 14 ให้ตรงตามมาตรฐาน Type 13 (ปลดระวาง Tracking Rounds สู่ Plot-based Actual Recording):**<br>1. ปลดระวางแนวคิด "รอบการติดตามที่..." (Tracking rounds) ออกจากหน้าบันทึกผล Type 14 ทั้งหมด<br>2. จัดรูปแบบการกรอกข้อมูลเป็นรายแปลง (Plot-based Stacked Cards) ตามแบบ Type 13 ครบวงจร<br>3. เพิ่ม Section 1.1 สินค้าที่เบิกตามแผน: บันทึกจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + `extraUnit` ซีซี/กรัม) และอัตราการใช้ (`actualRate`)<br>4. เพิ่ม Section 1.2 ผลการตรวจติดตามแปลง: บันทึกวันหลังฉีดพ่น, ผลการติดตามแปลง, การตอบสนองของพืช และบันทึกข้อสังเกตเพิ่มเติม<br>5. เพิ่ม Section 1.3 รูปหลังติดตามแปลง (ต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload` สูงสุด 20 ภาพ<br>6. ปรับปรุง Hook `useType14Actual`, Validation `validateType14Actual`, Mapper `actual-mapper.ts`, Strategy `type14-planned.strategy.ts` และ Detail View `type14-detail-view.tsx` ให้ซิงค์ผลการติดตามจริงรายแปลงและกู้คืน (Hydration) ครบทั้ง 6 ขั้นตอนอย่างสมบูรณ์ | Antigravity AI |

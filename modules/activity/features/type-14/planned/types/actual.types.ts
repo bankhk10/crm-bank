@@ -9,16 +9,9 @@ import type {
 } from "../../shared/types";
 import type { Type14PlanInput } from "./planned.types";
 
-export type { Type14PlotActualState };
+export type { Type14PlotActualState, Type14ActualProductState };
 
-export interface Type14ActualProduct {
-  productId: string;
-  productName: string;
-  unit: string;
-  quantityUsed: number | string;
-  actualRate: string;
-  detail: string;
-}
+export type Type14ActualProduct = Type14ActualProductState;
 
 export interface Type14ActualProps {
   isVisible?: boolean;
@@ -39,13 +32,16 @@ export interface Type14DetailData {
   plotName?: string | null;
   rounds?: Type14SprayRoundState[];
   sprayRounds?: Type14SprayRoundState[];
-  plots?: Type14PlotItem[];
+  plots?: Type14PlotActualState[] | Type14PlotItem[];
   attachments?: Array<{
     id?: string;
     fileUrl: string;
     fileName?: string;
     fileSize?: number;
     mimeType?: string;
+    category?: string;
+    targetId?: string | null;
+    type14ResultId?: string | null;
   }>;
 }
 

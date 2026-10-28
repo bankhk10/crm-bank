@@ -33,17 +33,17 @@ export function formatType14PlannedNotes(data: any): string {
  * Format actual execution summary for Type 14
  */
 export function formatType14ActualSummary(
-  rounds: any[] = [],
+  plotsOrRounds: any[] = [],
   plotName = "",
 ): string {
-  const roundCount = rounds.length;
-  const latestRound = rounds[roundCount - 1];
-  const daysText = latestRound?.daysAfterSpray
-    ? `(${latestRound.daysAfterSpray} วันหลังฉีด)`
+  const count = plotsOrRounds.length;
+  const latestItem = plotsOrRounds[count - 1];
+  const daysText = latestItem?.daysAfterSpray
+    ? `(${latestItem.daysAfterSpray} วันหลังฉีด)`
     : "";
-  const resultText = latestRound?.trackingResult
-    ? `ผล: ${latestRound.trackingResult}`
+  const resultText = latestItem?.trackingResult
+    ? `ผล: ${latestItem.trackingResult}`
     : "";
 
-  return `ติดตามแปลงแฮตแทค${plotName ? ` (${plotName})` : ""}: ${roundCount} รอบ ${daysText} ${resultText}`.trim();
+  return `ติดตามแปลงแฮตแทค${plotName ? ` (${plotName})` : ""}: ${count} แปลง ${daysText} ${resultText}`.trim();
 }

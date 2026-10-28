@@ -166,7 +166,8 @@ export function resolveCancellationApprover(
     Boolean(plan.type13?.hasProducts) ||
     Boolean(plan.type13Products?.length) ||
     Boolean(plan.type13Targets?.some((t: any) => t.products?.length > 0)) ||
-    Boolean(plan.type14?.hasProducts);
+    Boolean(plan.type14?.hasProducts) ||
+    Boolean(plan.type14Products?.length);
 
   const isLineApproved = plan.lineCancellationApproved === true;
   const isMktApproved = plan.mktCancellationApproved === true;

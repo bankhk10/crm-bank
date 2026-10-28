@@ -367,7 +367,7 @@ export function Type14UnplannedForm({
                 <div className="col-span-4 sm:col-span-2">
                   <ActivityInput
                     type="number"
-                    value={p.quantityUsed}
+                    value={p.quantityUsed != null ? String(p.quantityUsed) : ""}
                     onChange={(e) =>
                       handleUpdateProduct(pIdx, "quantityUsed", e.target.value)
                     }

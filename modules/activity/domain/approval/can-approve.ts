@@ -295,7 +295,8 @@ export function canUserPerformApproval(
       Boolean((plan as any).type13?.hasProducts) ||
       Boolean((plan as any).type13Products?.length) ||
       Boolean((plan as any).type13Targets?.some((t: any) => t.products?.length > 0)) ||
-      Boolean((plan as any).type14?.hasProducts);
+      Boolean((plan as any).type14?.hasProducts) ||
+      Boolean((plan as any).type14Products?.length);
 
     const isSalesAdmin = isUserSalesAdminManager(user);
     const isLineApprover = Boolean(
@@ -661,7 +662,8 @@ export function getPlanActionScopes(
       Boolean((plan as any).type13?.hasProducts) ||
       Boolean((plan as any).type13Products?.length) ||
       Boolean((plan as any).type13Targets?.some((t: any) => t.products?.length > 0)) ||
-      Boolean((plan as any).type14?.hasProducts);
+      Boolean((plan as any).type14?.hasProducts) ||
+      Boolean((plan as any).type14Products?.length);
 
     if (
       hasWithdrawal &&

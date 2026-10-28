@@ -89,6 +89,7 @@ export type Type14TargetItem = Type14PlotItem;
 
 export interface Type14PlotActualState {
   id?: string;
+  targetId?: string;
   demoPlotId?: string | null;
   type13TargetId?: string | null;
   clientPlotId?: string;
@@ -105,18 +106,30 @@ export interface Type14PlotActualState {
   village?: string | null;
   plannedPlotsCount?: number | string | null;
   actualPlotsCount?: number | string | null;
+  daysAfterSpray?: number | string | null;
+  trackingResult?: string | null;
+  productResponse?: string | null;
+  additionalNotes?: string | null;
   notes?: string | null;
   latitude?: string | null;
   longitude?: string | null;
+  products?: Type14ActualProductState[];
+  afterSprayImages?: ImageFile[];
 }
 
 export interface Type14ActualProductState {
   productId: string;
-  productName: string;
-  unit: string;
-  quantityUsed: number | string;
-  actualRate: string;
-  detail: string;
+  productName?: string | null;
+  unit?: string | null;
+  withdrawnQuantity?: number | string | null;
+  plannedQuantity?: number | string | null;
+  actualQuantity?: number | string | null;
+  extraQuantity?: number | string | null;
+  extraUnit?: string | null;
+  actualRate?: string | null;
+  applicationRate?: string | null;
+  quantityUsed?: number | string | null;
+  detail?: string | null;
 }
 
 export interface Type14SprayRoundState {

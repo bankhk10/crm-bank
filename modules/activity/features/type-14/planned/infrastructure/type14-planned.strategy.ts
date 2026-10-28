@@ -106,144 +106,256 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
     actualData: any,
   ): Promise<void> {
     const t14Actual = actualData.type14Actual || actualData;
-    const rounds: any[] = t14Actual.rounds || t14Actual.sprayRounds || [];
     const plots: any[] = t14Actual.plots || actualData.type14Plots || [];
+    const rounds: any[] = t14Actual.rounds || t14Actual.sprayRounds || [];
 
-    if (!rounds || rounds.length === 0) {
+    if ((!plots || plots.length === 0) && (!rounds || rounds.length === 0)) {
       return;
     }
 
     // 1. Fetch targets for this plan
     const targets = await tx.activityPlanType14Target.findMany({
       where: { activityPlanId },
-      select: { id: true, type13TargetId: true, notes: true },
+      select: { id: true, type13TargetId: true, notes: true, plotName: true },
     });
     const primaryTarget = targets[0] || null;
-    const type13TargetId = primaryTarget?.type13TargetId || actualData.type13TargetId || actualData.demoPlotId || null;
 
-    // 2. Update actualPlotsCount on targets if provided
-    let totalActualPlots = 0;
-    if (plots && plots.length > 0) {
-      for (let pIdx = 0; pIdx < plots.length; pIdx++) {
-        const plot = plots[pIdx];
-        const plotCount = Number(plot.actualPlotsCount) || 1;
-        totalActualPlots += plotCount;
-
-        const targetToUpdate =
-          targets.find((t) => t.id === plot.id || (plot.type13TargetId && t.type13TargetId === plot.type13TargetId)) ||
-          targets[pIdx];
-
-        if (targetToUpdate && plot.actualPlotsCount != null) {
-          const baseNotes = (targetToUpdate.notes || "")
-            .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
-            .trim();
-          const updatedNotes = `[จำนวนแปลงจริง: ${plot.actualPlotsCount}] ${baseNotes}`.trim();
-
-          await tx.activityPlanType14Target.update({
-            where: { id: targetToUpdate.id },
-            data: { notes: updatedNotes },
-          });
-        }
-      }
-    } else {
-      totalActualPlots = targets.length || 1;
-    }
-
-    // 3. Delete existing actual results for this plan (cascade deletes productsUsed)
+    // 2. Delete existing actual results for this plan (cascade deletes productsUsed)
     await tx.activityResultType14.deleteMany({
       where: { activityPlanId },
     });
 
-    // 4. Insert each round
-    for (let i = 0; i < rounds.length; i++) {
-      const round = rounds[i];
-      if (!round.actualVisitDate && !round.visitDate) continue;
+    let totalActualPlots = 0;
 
-      const visitDate = round.actualVisitDate
-        ? new Date(round.actualVisitDate)
-        : round.visitDate
-          ? new Date(round.visitDate)
-          : new Date();
-      const daysSinceStart = round.daysAfterSpray
-        ? parseInt(String(round.daysAfterSpray), 10)
-        : 0;
+    // 3. If plot-based actual data is provided (Standard matching TYPE_13)
+    if (plots && plots.length > 0) {
+      for (let pIdx = 0; pIdx < plots.length; pIdx++) {
+        const plot = plots[pIdx];
+        const actualCount = Number(plot.actualPlotsCount) || 1;
+        totalActualPlots += actualCount;
 
-      const createdResult = await tx.activityResultType14.create({
-        data: {
-          activityPlanId,
-          targetId: primaryTarget?.id || null,
-          type13TargetId,
-          roundNumber: round.roundNumber || i + 1,
-          actualVisitDate: visitDate,
-          daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
-          trackingResult: round.trackingResult || "ปกติ",
-          productResponse: round.productResponse || round.trackingResult || "ปกติ",
-          actualLatitude:
-            round.actualLatitude != null && String(round.actualLatitude).trim() !== ""
-              ? new Prisma.Decimal(Number(round.actualLatitude))
-              : null,
-          actualLongitude:
-            round.actualLongitude != null && String(round.actualLongitude).trim() !== ""
-              ? new Prisma.Decimal(Number(round.actualLongitude))
-              : null,
-          additionalNotes: round.additionalNotes || round.notes || null,
-        },
-      });
+        const matchedTarget =
+          targets.find(
+            (t) =>
+              t.id === plot.id ||
+              (plot.type13TargetId && t.type13TargetId === plot.type13TargetId) ||
+              (plot.demoPlotId && t.id === plot.demoPlotId),
+          ) || targets[pIdx];
 
-      // Products Used in this round
-      const prods: any[] = round.products || [];
-      const validProds = prods.filter((p) => Boolean(p.productId));
-      if (validProds.length > 0) {
-        const pIds = validProds.map((p) => p.productId);
-        const dbProducts = await tx.product.findMany({
-          where: { id: { in: pIds } },
-          select: { id: true, name: true, unit: true },
+        // Update actual plots count note on target
+        if (matchedTarget) {
+          const baseNotes = (matchedTarget.notes || "")
+            .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
+            .trim();
+          const updatedNotes = `[จำนวนแปลงจริง: ${actualCount}] ${baseNotes}`.trim();
+
+          await tx.activityPlanType14Target.update({
+            where: { id: matchedTarget.id },
+            data: { notes: updatedNotes },
+          });
+        }
+
+        const daysSinceStart = plot.daysAfterSpray
+          ? parseInt(String(plot.daysAfterSpray), 10)
+          : 0;
+
+        const createdResult = await tx.activityResultType14.create({
+          data: {
+            activityPlanId,
+            targetId: matchedTarget?.id || null,
+            type13TargetId:
+              matchedTarget?.type13TargetId || plot.type13TargetId || null,
+            roundNumber: pIdx + 1,
+            actualVisitDate: new Date(),
+            daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
+            trackingResult: plot.trackingResult || "ได้ผลตามเกณฑ์",
+            productResponse: plot.productResponse || "ปกติ",
+            actualLatitude:
+              plot.latitude != null && String(plot.latitude).trim() !== ""
+                ? new Prisma.Decimal(Number(plot.latitude))
+                : null,
+            actualLongitude:
+              plot.longitude != null && String(plot.longitude).trim() !== ""
+                ? new Prisma.Decimal(Number(plot.longitude))
+                : null,
+            additionalNotes: `[จำนวนแปลงจริง: ${actualCount}] ${plot.additionalNotes || ""}`.trim(),
+          },
         });
-        const pMap = new Map(dbProducts.map((p) => [p.id, p]));
 
-        const itemsToInsert = validProds
-          .map((p, pIdx) => {
-            const dbP = pMap.get(p.productId);
-            if (!dbP) return null;
-            return {
-              resultId: createdResult.id,
-              productId: dbP.id,
-              productName: p.productName || dbP.name || null,
-              quantityUsed:
-                p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
-                  ? new Prisma.Decimal(Number(p.quantityUsed))
-                  : new Prisma.Decimal(1),
-              actualRate: p.actualRate || null,
-              unit: p.unit || dbP.unit || null,
-              detail: p.detail || null,
-              sortOrder: pIdx,
-            };
-          })
-          .filter((item): item is NonNullable<typeof item> => item !== null);
+        // Insert Products Used for this plot
+        const prods: any[] = plot.products || [];
+        const validProds = prods.filter((p) => Boolean(p.productId));
+        if (validProds.length > 0) {
+          const pIds = validProds.map((p) => p.productId);
+          const dbProducts = await tx.product.findMany({
+            where: { id: { in: pIds } },
+            select: { id: true, name: true, unit: true },
+          });
+          const pMap = new Map(dbProducts.map((p) => [p.id, p]));
 
-        if (itemsToInsert.length > 0) {
-          await tx.activityResultType14ProductUsed.createMany({
-            data: itemsToInsert,
+          const itemsToInsert = validProds
+            .map((p, prodIdx) => {
+              const dbP = pMap.get(p.productId);
+              if (!dbP) return null;
+              const extraText =
+                p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
+                  ? `+${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
+                  : (p.detail || null);
+
+              return {
+                resultId: createdResult.id,
+                productId: dbP.id,
+                productName: p.productName || dbP.name || null,
+                quantityUsed:
+                  p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
+                    ? new Prisma.Decimal(Number(p.actualQuantity))
+                    : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
+                      ? new Prisma.Decimal(Number(p.quantityUsed))
+                      : new Prisma.Decimal(1),
+                actualRate: p.actualRate || null,
+                unit: p.unit || dbP.unit || null,
+                detail: extraText,
+                sortOrder: prodIdx,
+              };
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+
+          if (itemsToInsert.length > 0) {
+            await tx.activityResultType14ProductUsed.createMany({
+              data: itemsToInsert,
+            });
+          }
+        }
+
+        // Attachments for this plot
+        const images: any[] = plot.afterSprayImages || [];
+        const validImages = images.filter((img) => img && (img.url || img.fileUrl));
+        if (validImages.length > 0) {
+          await tx.activityAttachment.createMany({
+            data: validImages.map((img) => ({
+              activityPlanId,
+              type14ResultId: createdResult.id,
+              workTypeCode: WORK_TYPE_CODE,
+              category: "PLOT",
+              fileUrl: img.url || img.fileUrl,
+              fileName:
+                img.name ||
+                img.fileName ||
+                `ภาพติดตามแปลงแฮตแทค แปลงที่ ${pIdx + 1}`,
+              fileSize: img.size || img.fileSize || 0,
+              mimeType: img.type || img.mimeType || "image/jpeg",
+            })),
           });
         }
       }
+    } else {
+      // 4. Legacy fallback: Insert each round
+      totalActualPlots = targets.length || 1;
+      const type13TargetId =
+        primaryTarget?.type13TargetId ||
+        actualData.type13TargetId ||
+        actualData.demoPlotId ||
+        null;
 
-      // Attachments
-      const images: any[] = round.afterSprayImages || round.attachments || [];
-      const validImages = images.filter((img) => img && (img.url || img.fileUrl));
-      if (validImages.length > 0) {
-        await tx.activityAttachment.createMany({
-          data: validImages.map((img) => ({
+      for (let i = 0; i < rounds.length; i++) {
+        const round = rounds[i];
+        if (!round.actualVisitDate && !round.visitDate) continue;
+
+        const visitDate = round.actualVisitDate
+          ? new Date(round.actualVisitDate)
+          : round.visitDate
+            ? new Date(round.visitDate)
+            : new Date();
+        const daysSinceStart = round.daysAfterSpray
+          ? parseInt(String(round.daysAfterSpray), 10)
+          : 0;
+
+        const createdResult = await tx.activityResultType14.create({
+          data: {
             activityPlanId,
-            type14ResultId: createdResult.id,
-            workTypeCode: WORK_TYPE_CODE,
-            category: "PLOT",
-            fileUrl: img.url || img.fileUrl,
-            fileName: img.name || img.fileName || `ภาพติดตามแปลงแฮตแทค รอบที่ ${round.roundNumber || i + 1}`,
-            fileSize: img.size || img.fileSize || 0,
-            mimeType: img.type || img.mimeType || "image/jpeg",
-          })),
+            targetId: primaryTarget?.id || null,
+            type13TargetId,
+            roundNumber: round.roundNumber || i + 1,
+            actualVisitDate: visitDate,
+            daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
+            trackingResult: round.trackingResult || "ได้ผลตามเกณฑ์",
+            productResponse:
+              round.productResponse || round.trackingResult || "ปกติ",
+            actualLatitude:
+              round.actualLatitude != null &&
+              String(round.actualLatitude).trim() !== ""
+                ? new Prisma.Decimal(Number(round.actualLatitude))
+                : null,
+            actualLongitude:
+              round.actualLongitude != null &&
+              String(round.actualLongitude).trim() !== ""
+                ? new Prisma.Decimal(Number(round.actualLongitude))
+                : null,
+            additionalNotes: round.additionalNotes || round.notes || null,
+          },
         });
+
+        // Products Used in this round
+        const prods: any[] = round.products || [];
+        const validProds = prods.filter((p) => Boolean(p.productId));
+        if (validProds.length > 0) {
+          const pIds = validProds.map((p) => p.productId);
+          const dbProducts = await tx.product.findMany({
+            where: { id: { in: pIds } },
+            select: { id: true, name: true, unit: true },
+          });
+          const pMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+          const itemsToInsert = validProds
+            .map((p, pIdx) => {
+              const dbP = pMap.get(p.productId);
+              if (!dbP) return null;
+              return {
+                resultId: createdResult.id,
+                productId: dbP.id,
+                productName: p.productName || dbP.name || null,
+                quantityUsed:
+                  p.quantityUsed != null &&
+                  String(p.quantityUsed).trim() !== ""
+                    ? new Prisma.Decimal(Number(p.quantityUsed))
+                    : new Prisma.Decimal(1),
+                actualRate: p.actualRate || null,
+                unit: p.unit || dbP.unit || null,
+                detail: p.detail || null,
+                sortOrder: pIdx,
+              };
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+
+          if (itemsToInsert.length > 0) {
+            await tx.activityResultType14ProductUsed.createMany({
+              data: itemsToInsert,
+            });
+          }
+        }
+
+        // Attachments
+        const images: any[] = round.afterSprayImages || round.attachments || [];
+        const validImages = images.filter(
+          (img) => img && (img.url || img.fileUrl),
+        );
+        if (validImages.length > 0) {
+          await tx.activityAttachment.createMany({
+            data: validImages.map((img) => ({
+              activityPlanId,
+              type14ResultId: createdResult.id,
+              workTypeCode: WORK_TYPE_CODE,
+              category: "PLOT",
+              fileUrl: img.url || img.fileUrl,
+              fileName:
+                img.name ||
+                img.fileName ||
+                `ภาพติดตามแปลงแฮตแทค รอบที่ ${round.roundNumber || i + 1}`,
+              fileSize: img.size || img.fileSize || 0,
+              mimeType: img.type || img.mimeType || "image/jpeg",
+            })),
+          });
+        }
       }
     }
 

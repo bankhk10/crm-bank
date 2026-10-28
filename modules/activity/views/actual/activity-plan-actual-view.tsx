@@ -1493,29 +1493,30 @@ export function ActivityPlanActualView({
         // Collect Type 14 payload if active
         if (isType14Active) {
           const newlyUploadedUrls: string[] = [];
-          const updatedRounds = await type14Actual.uploadImages(
+          const updatedPlots = await type14Actual.uploadImages(
             id,
             newlyUploadedUrls,
           );
-          const t14Payload = type14Actual.collectPayload(updatedRounds);
+          const t14Payload = type14Actual.collectPayload(updatedPlots);
 
-          const allT14Images = updatedRounds.flatMap(
-            (r) => r.afterSprayImages || [],
+          const uploadedAttachments = updatedPlots.flatMap((p: any, pIdx: number) =>
+            (p.afterSprayImages || []).map((img: any) => ({
+              category: "PLOT",
+              fileUrl: img.url,
+              fileName: img.name || ("ภาพติดตามแปลงแฮตแทค " + (pIdx + 1)),
+              fileSize: Math.round(Number((img as any).size || 0)),
+              mimeType: (img as any).type || "image/jpeg",
+              workTypeCode: "TYPE_14",
+              demoPlotId: p.demoPlotId || (p as any).id || null,
+              targetId: p.demoPlotId || (p as any).id || null,
+            })),
           );
-          const uploadedAttachments = allT14Images.map((img: any) => ({
-            category: "TRACKING_AFTER_SPRAY",
-            fileUrl: img.url,
-            fileName: img.name || "ภาพติดตามแปลงแฮตแทค",
-            fileSize: (img as any).size || 0,
-            mimeType: (img as any).type || "image/jpeg",
-            workTypeCode: "TYPE_14",
-          }));
 
           payload = {
             ...payload,
-            type14Actual: t14Payload.type14Actual,
-            type14Plots:
-              t14Payload.type14Actual?.plots || type14Actual.plotsActual,
+            type14Actual: t14Payload.type14Actual || t14Payload,
+            type14Plots: t14Payload.type14Actual?.plots || updatedPlots,
+            plots: (t14Payload as any).plots || t14Payload.type14Actual?.plots || updatedPlots,
             demoPlotsFollowedUp: t14Payload.demoPlotsFollowedUp,
             attachments: [
               ...(payload.attachments || []),
@@ -1539,14 +1540,9 @@ export function ActivityPlanActualView({
             !isType12Active &&
             !isType13Active
           ) {
-            const roundsCount = type14Actual.rounds?.length || 1;
-            const plotsCount =
-              type14Actual.plotsActual?.reduce(
-                (sum, p) => sum + (Number(p.actualPlotsCount) || 1),
-                0,
-              ) || 1;
-            payload.resultSummary = `ติดตามแปลงแฮตแทค: สำเร็จ (${plotsCount} แปลง, ${roundsCount} รอบ)`;
-            payload.demoPlotsFollowedUp = plotsCount;
+            const plotCount = updatedPlots?.length || 1;
+            payload.resultSummary = `ติดตามแปลงแฮตแทค: สำเร็จ (${plotCount} แปลง)`;
+            payload.demoPlotsFollowedUp = t14Payload.demoPlotsFollowedUp || plotCount;
           }
         }
       }

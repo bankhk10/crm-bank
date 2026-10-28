@@ -122,9 +122,15 @@ export function mapType14UnplannedToPayload(item: Type14UnplannedItem) {
       plots: [
         {
           ...plotItem,
+          actualPlotsCount: 1,
+          daysAfterSpray: item.daysAfterSpray,
+          trackingResult: item.trackingResult,
+          productResponse: item.productResponse,
+          additionalNotes: item.additionalNotes,
+          products: item.products,
+          afterSprayImages: item.images || [],
           rounds: [trackingRound],
           sprayRounds: [trackingRound],
-          afterSprayImages: item.images || [],
         },
       ],
       rounds: [trackingRound],
