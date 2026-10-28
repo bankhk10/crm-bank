@@ -2,19 +2,27 @@ import fs from "fs";
 import path from "path";
 
 const rawArg = process.argv[2];
+const modeArg = (process.argv[3] || "all").toLowerCase();
 
 if (!rawArg) {
   console.log(`
 ========================================================================
-📌 วิธีใช้งานสคริปต์ค้นหาไฟล์ของแต่ละ Type ใน modules/activity
+📌 วิธีใช้งานสคริปต์ค้นหาไฟล์ & สร้างคำสั่งสั่ง AI สำหรับ modules/activity
 ========================================================================
-คำสั่ง:
-  npx tsx scripts/find-activity-type-files.ts <หมายเลข Type>
+คำสั่งพื้นฐาน:
+  npx tsx scripts/find-activity-type-files.ts <หมายเลข Type> [รูปแบบปัญหา]
 
 ตัวอย่าง:
-  npx tsx scripts/find-activity-type-files.ts 1
-  npx tsx scripts/find-activity-type-files.ts 7a
-  npx tsx scripts/find-activity-type-files.ts 13
+  npx tsx scripts/find-activity-type-files.ts 14
+  npx tsx scripts/find-activity-type-files.ts 14 unplanned-sync
+  npx tsx scripts/find-activity-type-files.ts 14 hydrate
+  npx tsx scripts/find-activity-type-files.ts 14 add-field
+
+รูปแบบปัญหาที่เลือกได้ (พารามิเตอร์ตัวที่ 2):
+  - all            (ค่าเริ่มต้น) แสดงรายชื่อไฟล์ทั้งหมด + รวม 4 แม่แบบคำสั่งยอดฮิต
+  - unplanned-sync ปรับหน้า "นอกแผน (Unplanned)" ให้เหมือน "สร้างแผน + บันทึกผลตามแผน"
+  - hydrate        แก้ปัญหา "มีข้อมูลใน DB แต่เปิดหน้าแก้ไข/บันทึกผลแล้วไม่ดึงข้อมูลมาแสดง"
+  - add-field      เพิ่ม/แก้ไขฟิลด์ใหม่ให้ครบทุกหน้า (สร้างแผน, บันทึกผล, นอกแผน, รายละเอียด)
 ========================================================================
 `);
   process.exit(0);
@@ -81,7 +89,7 @@ const plannedFiles = sliceFiles.filter(
 const actualFiles = sliceFiles.filter(
   (f) =>
     f.includes("/planned/") &&
-    (f.includes("actual") || f.endsWith(".strategy.ts")),
+    (f.includes("actual") || f.endsWith(".strategy.ts") || f.endsWith(".repository.ts")),
 );
 
 const unplannedFiles = sliceFiles.filter((f) => f.includes("/unplanned/"));
@@ -147,46 +155,119 @@ function printSection(title: string, files: string[]) {
   }
 }
 
-console.log(`========================================================================`);
-console.log(`🔍 รายการไฟล์ทั้งหมดที่เกี่ยวข้องกับ [${upperCode} / ${sliceFolder}]`);
-console.log(`========================================================================`);
+function formatList(files: string[]): string {
+  return Array.from(new Set(files))
+    .map((f) => `   - ${f}`)
+    .join("\n");
+}
 
-console.log(`\n📦 [ส่วนที่ 1] ไฟล์ภายใน Feature Slice (modules/activity/features/${sliceFolder})`);
-printSection(`1.1 หน้าสร้างแผน & แก้ไขแผน (Planned):`, plannedFiles);
-printSection(`1.2 หน้าบันทึกผลตามแผน (Actual):`, actualFiles);
-printSection(`1.3 หน้าสร้าง & แก้ไขกิจกรรมนอกแผน (Unplanned):`, unplannedFiles);
-printSection(`1.4 การ์ดสรุปแผน / หน้ารายละเอียด / หน้าอนุมัติ:`, displayCardFiles);
-printSection(`1.5 Shared & Public Index:`, sharedAndIndexFiles);
+if (modeArg === "all") {
+  console.log(`========================================================================`);
+  console.log(`🔍 รายการไฟล์ทั้งหมดที่เกี่ยวข้องกับ [${upperCode} / ${sliceFolder}]`);
+  console.log(`========================================================================`);
 
-console.log(`\n🔗 [ส่วนที่ 2] ไฟล์ส่วนกลางที่ดึงข้อมูล DB และส่งเข้าหน้าจอ (Core & Views)`);
-printSection(`2.1 ดึงข้อมูล DB & บันทึกข้อมูล (Infrastructure / Server):`, dbAndServerFiles);
-printSection(`2.2 สกัดข้อมูลแสดงผล (Domain Summary / Application):`, domainAndAppFiles);
-printSection(`2.3 หน้าแก้ไขแผนในแผนงาน (Views - Planned):`, viewPlannedFiles);
-printSection(`2.4 หน้าแก้ไขกิจกรรมนอกแผน (Views - Unplanned):`, viewUnplannedFiles);
-printSection(`2.5 หน้าบันทึกผลการปฏิบัติงานจริง (Views - Actual):`, viewActualFiles);
-printSection(`2.6 หน้ารายละเอียด & หน้าอนุมัติ (Views - Detail & Approvals):`, viewDetailAndApprovalFiles);
-if (otherCoreFiles.length > 0) {
-  printSection(`2.7 ไฟล์ส่วนกลางอื่นๆ:`, otherCoreFiles);
+  console.log(`\n📦 [ส่วนที่ 1] ไฟล์ภายใน Feature Slice (modules/activity/features/${sliceFolder})`);
+  printSection(`1.1 หน้าสร้างแผน & แก้ไขแผน (Planned):`, plannedFiles);
+  printSection(`1.2 หน้าบันทึกผลตามแผน (Actual):`, actualFiles);
+  printSection(`1.3 หน้าสร้าง & แก้ไขกิจกรรมนอกแผน (Unplanned):`, unplannedFiles);
+  printSection(`1.4 การ์ดสรุปแผน / หน้ารายละเอียด / หน้าอนุมัติ:`, displayCardFiles);
+  printSection(`1.5 Shared & Public Index:`, sharedAndIndexFiles);
+
+  console.log(`\n🔗 [ส่วนที่ 2] ไฟล์ส่วนกลางที่ดึงข้อมูล DB และส่งเข้าหน้าจอ (Core & Views)`);
+  printSection(`2.1 ดึงข้อมูล DB & บันทึกข้อมูล (Infrastructure / Server):`, dbAndServerFiles);
+  printSection(`2.2 สกัดข้อมูลแสดงผล (Domain Summary / Application):`, domainAndAppFiles);
+  printSection(`2.3 หน้าแก้ไขแผนในแผนงาน (Views - Planned):`, viewPlannedFiles);
+  printSection(`2.4 หน้าแก้ไขกิจกรรมนอกแผน (Views - Unplanned):`, viewUnplannedFiles);
+  printSection(`2.5 หน้าบันทึกผลการปฏิบัติงานจริง (Views - Actual):`, viewActualFiles);
+  printSection(`2.6 หน้ารายละเอียด & หน้าอนุมัติ (Views - Detail & Approvals):`, viewDetailAndApprovalFiles);
+  if (otherCoreFiles.length > 0) {
+    printSection(`2.7 ไฟล์ส่วนกลางอื่นๆ:`, otherCoreFiles);
+  }
 }
 
 console.log(`\n========================================================================`);
-console.log(`📋 ก๊อปปี้ Prompt ด้านล่างนี้ไปสั่ง AI เพื่อแก้ ${upperCode} ให้ครบทุกจุด:`);
-console.log(`========================================================================\n`);
+console.log(`📋 แม่แบบคำสั่ง (Prompt Templates) สำหรับก๊อปปี้ไปสั่ง AI (${upperCode})`);
+console.log(`========================================================================`);
 
-console.log(`ช่วยแก้ไขปัญหา [ระบุอาการ] ของ ${upperCode} (${sliceFolder}) โดยเช็คและแก้ไขให้ครบทั้งขาบันทึก (Save) และขาดึงข้อมูลมาแสดงผลตอนแก้ไข (Load & Hydrate) ในไฟล์ต่อไปนี้:
+// CASE 1: Unplanned Sync (ปรับหน้านอกแผนให้เหมือนหน้าสร้างแผน + บันทึกผลตามแผน)
+if (modeArg === "all" || modeArg === "unplanned-sync") {
+  console.log(`
+------------------------------------------------------------------------
+🟢 [เคสที่ 1: ปรับหน้า "นอกแผน (Unplanned)" ให้เหมือน "สร้างแผน + บันทึกผลตามแผน"]
+------------------------------------------------------------------------
+ช่วยปรับปรุงหน้ากิจกรรมนอกแผน (Unplanned) ของ ${upperCode} (${sliceFolder}) ให้มีโครงสร้างข้อมูล ช่องกรอก (UI) การตรวจสอบข้อมูล (Validation) การบันทึกข้อมูลลง DB และขาดึงข้อมูลกลับมาแสดงตอนแก้ไข (Hydration) ให้ครบถ้วนเหมือนกับการนำ "หน้าสร้างแผน (Planned)" มารวมกับ "หน้าบันทึกผลตามแผน (Actual)" (2-in-1 Target + Actual) โดยอ้างอิงและแก้ไขไฟล์ต่อไปนี้ให้ครบทุกจุด:
 
-1. ไฟล์ภายใน Slice:
-${sliceFiles.map((f) => `   - ${f}`).join("\n")}
+1. ต้นแบบฝั่งในแผน (ใช้อ้างอิงฟิลด์, UI, Logic และการเซฟลง DB):
+${formatList([...plannedFiles, ...actualFiles])}
 
-2. ไฟล์ดึงข้อมูล DB & เชื่อมเข้าหน้าจอ (ห้ามตกหล่น):
-${[
+2. ไฟล์ฝั่งนอกแผน (Unplanned) ที่ต้องปรับให้รองรับข้อมูลครบเหมือนฝั่งในแผน + บันทึกผล:
+${formatList(unplannedFiles)}
+
+3. ไฟล์ส่วนกลางสำหรับเชื่อมข้อมูล Unplanned (ทั้งตอนสร้าง, แก้ไข, ดึงจาก DB และแสดงผล):
+${formatList([
+  ...dbAndServerFiles,
+  ...viewUnplannedFiles,
+  ...domainAndAppFiles,
+  ... displayCardFiles,
+  ...viewDetailAndApprovalFiles,
+])}
+
+สิ่งที่ต้องตรวจสอบให้ครบ (Checklist):
+- UI ใน ${camelPrefix}-unplanned-form.tsx ต้องมีฟิลด์เลือกข้อมูลตั้งต้นเหมือน ${camelPrefix}-planned-form.tsx และมีส่วนบันทึกผลการปฏิบัติงานจริง (รวมถึงรูปภาพ/พิกัด GPS/สินค้า) เหมือน ${camelPrefix}-actual-form.tsx
+- ตอนกดบันทึก (Save): ${camelPrefix}-unplanned.strategy.ts ต้องบันทึกข้อมูลลงตาราง Target, Product, Result และ Attachment ครบเหมือนที่ ${camelPrefix}-planned.strategy.ts ทำทั้งใน savePlan และ saveActual
+- ตอนกดเข้ามาแก้ไข (Edit Hydration): เช็ค views/unplanned/edit-view.tsx, unplanned-activity-form.tsx, unplanned-mapper.ts และ use-${camelPrefix}-unplanned-form.ts ว่าดึงข้อมูลจาก DB กลับมาใส่ในทุกช่องของฟอร์มได้ครบถ้วน
+- รัน npx tsc --noEmit เพื่อตรวจสอบว่าไม่มี TypeScript error`);
+}
+
+// CASE 2: Hydrate (บันทึกเข้า DB แล้ว แต่เปิดหน้าแก้ไข/บันทึกผลแล้วข้อมูลไม่ขึ้น)
+if (modeArg === "all" || modeArg === "hydrate") {
+  console.log(`
+------------------------------------------------------------------------
+🟡 [เคสที่ 2: บันทึกข้อมูลลง DB ได้แล้ว แต่เปิดหน้าแก้ไข/บันทึกผลแล้วข้อมูลไม่ดึงมาใส่ช่อง]
+------------------------------------------------------------------------
+ตอนนี้ ${upperCode} (${sliceFolder}) บันทึกข้อมูลลง Database ได้แล้ว แต่เวลาเปิดกลับมาที่หน้าแก้ไขแผน (Planned Edit), หน้าบันทึกผล (Actual) หรือหน้าแก้ไขนอกแผน (Unplanned Edit) ข้อมูลจาก DB ไม่ถูกดึงมาแสดงในช่องฟอร์ม (หรือแสดงไม่ครบ)
+ช่วยไล่เช็คและแก้ไขขากลับ (Read & Hydration Pipeline) ให้ครบทั้ง 5 ด่านตามไฟล์ต่อไปนี้:
+
+1. [ด่าน Prisma Query Include] เช็คว่าดึง relation และฟิลด์ของ ${upperCode} ออกมาจาก DB ครบหรือยัง:
+${formatList(dbAndServerFiles)}
+
+2. [ด่าน View & Summary Extractor] เช็คว่าดึงข้อมูลจาก getActivityPlanAction แล้วส่งเข้า initialData / props ครบทุกฟิลด์หรือไม่:
+${formatList([
+  ...domainAndAppFiles,
+  ...viewPlannedFiles,
+  ...viewUnplannedFiles,
+  ...viewActualFiles,
+  ...viewDetailAndApprovalFiles,
+])}
+
+3. [ด่าน Mapper & Hook Hydration] เช็คฟังก์ชันแปลงข้อมูล DB -> Form State และ useEffect ตอนโหลด initialData (ระวังชื่อฟิลด์ตอน Save กับตอน Load ไม่ตรงกัน หรือติด ref guard ก่อนข้อมูล async โหลดเสร็จ):
+${formatList(
+  sliceFiles.filter((f) => f.includes("-mapper.ts") || f.includes("/hooks/")),
+)}
+
+4. [ด่าน UI Component Value Binding] เช็คว่าช่อง Input / Select ผูก value ตรงกับ state ที่ hydrate มาหรือไม่:
+${formatList(sliceFiles.filter((f) => f.includes("/components/")))}`);
+}
+
+// CASE 3: Add / Modify Field across all screens
+if (modeArg === "all" || modeArg === "add-field") {
+  console.log(`
+------------------------------------------------------------------------
+🔵 [เคสที่ 3: เพิ่มหรือแก้ไขฟิลด์ใน ${upperCode} ให้ครบทุกหน้า (สร้างแผน / บันทึกผล / นอกแผน / รายละเอียด)]
+------------------------------------------------------------------------
+ช่วยแก้ไข/เพิ่มฟิลด์ [ระบุชื่อฟิลด์หรือสิ่งที่ต้องการแก้] ใน ${upperCode} (${sliceFolder}) โดยทำแบบ Full Round-Trip ให้ครบทุกหน้าจอ (สร้างแผน, แก้ไขแผน, บันทึกผลตามแผน, นอกแผน, การ์ดสรุปแผน, หน้ารายละเอียด และหน้าอนุมัติ) ในไฟล์ต่อไปนี้:
+
+1. Types, Mappers, Hooks, UI Components และ Strategies ใน Slice:
+${formatList(sliceFiles)}
+
+2. ไฟล์เชื่อมข้อมูลส่วนกลางและหน้า Views:
+${formatList([
   ...dbAndServerFiles,
   ...domainAndAppFiles,
   ...viewPlannedFiles,
   ...viewUnplannedFiles,
   ...viewActualFiles,
   ...viewDetailAndApprovalFiles,
-]
-  .map((f) => `   - ${f}`)
-  .join("\n")}
+])}
 `);
+}
