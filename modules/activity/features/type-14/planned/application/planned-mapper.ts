@@ -199,7 +199,12 @@ export function hydrateType14PlannedData(
         : primaryPlot.demoPlot?.longitude
           ? String(primaryPlot.demoPlot.longitude)
           : "",
-      hasProductWithdrawal: Boolean(t14.hasProducts || prods.length > 0),
+      hasProductWithdrawal: Boolean(
+        t14.hasProductWithdrawal ||
+          t14.hasProducts ||
+          prods.length > 0 ||
+          initial?.hasProductWithdrawal,
+      ),
       withdrawnProducts: prods,
     };
   }

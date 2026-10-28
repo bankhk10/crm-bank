@@ -280,8 +280,12 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
                     primaryT14Target?.sourceActivityPlanId ||
                     primaryT14Target?.type13Target?.activityPlanId ||
                     null,
-                  hasProducts: rawType14Products.length > 0,
-                  hasProductWithdrawal: rawType14Products.length > 0,
+                  hasProducts:
+                    rawType14Products.length > 0 ||
+                    Boolean((plan as any).hasProductWithdrawal),
+                  hasProductWithdrawal:
+                    rawType14Products.length > 0 ||
+                    Boolean((plan as any).hasProductWithdrawal),
                   notes: primaryT14Target?.notes || plan.notes || "",
                   plots: rawType14Targets,
                   products: rawType14Products,

@@ -293,6 +293,32 @@ export function useType14Actual() {
     [],
   );
 
+  const updateRoundProductFields = useCallback(
+    (
+      roundIndex: number,
+      productIndex: number,
+      fields: Partial<Type14ActualProductState>,
+    ) => {
+      setRounds((prev) =>
+        prev.map((round, idx) => {
+          if (idx !== roundIndex) return round;
+          const updatedProds = [...round.products];
+          if (updatedProds[productIndex]) {
+            updatedProds[productIndex] = {
+              ...updatedProds[productIndex],
+              ...fields,
+            };
+          }
+          return {
+            ...round,
+            products: updatedProds,
+          };
+        }),
+      );
+    },
+    [],
+  );
+
   const addRoundImages = useCallback((roundIndex: number, newFiles: File[]) => {
     if (!newFiles || newFiles.length === 0) return;
     const newImages: Type14ImageFile[] = newFiles.map((file, idx) => ({
@@ -407,6 +433,7 @@ export function useType14Actual() {
     addRoundProduct,
     removeRoundProduct,
     updateRoundProduct,
+    updateRoundProductFields,
     addRoundImages,
     removeRoundImage,
     uploadImages,

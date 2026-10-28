@@ -60,11 +60,25 @@ export function Type14UnplannedForm({
     });
   };
 
-  const handleUpdateProduct = (pIdx: number, field: string, val: any) => {
+  const handleUpdateProduct = (
+    pIdx: number,
+    field: string,
+    val: any,
+    selectedProd?: any,
+  ) => {
     if (readonly) return;
     const prods = [...(item.products || [])];
     if (prods[pIdx]) {
-      prods[pIdx] = { ...prods[pIdx], [field]: val };
+      if (field === "productId") {
+        prods[pIdx] = {
+          ...prods[pIdx],
+          productId: val,
+          productName: selectedProd?.name || prods[pIdx].productName || "",
+          unit: selectedProd?.unit || prods[pIdx].unit || "ขวด",
+        };
+      } else {
+        prods[pIdx] = { ...prods[pIdx], [field]: val };
+      }
       onChange({ ...item, products: prods });
     }
   };
@@ -343,16 +357,9 @@ export function Type14UnplannedForm({
                   <ActivityProductSelect
                     products={products as any}
                     value={p.productId}
+                    valueKey="id"
                     onChange={(val, prod) => {
-                      handleUpdateProduct(pIdx, "productId", val);
-                      handleUpdateProduct(
-                        pIdx,
-                        "productName",
-                        prod?.name || "",
-                      );
-                      if (prod?.unit) {
-                        handleUpdateProduct(pIdx, "unit", prod.unit);
-                      }
+                      handleUpdateProduct(pIdx, "productId", val, prod);
                     }}
                     disabled={readonly}
                   />

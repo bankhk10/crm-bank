@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   Trash2,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
   ActivityProductSelect,
+  ActivitySelect,
 } from "@/modules/activity/ui";
 import { getHattackFollowUpPlansAction } from "@/modules/activity/server/actions";
 import type {
@@ -74,6 +75,15 @@ export function Type14PlannedForm(props: any) {
   const activeFollowUpPlans =
     hattackFollowUpPlans.length > 0 ? hattackFollowUpPlans : dbPlans;
 
+  const planOptions = useMemo(() => {
+    return activeFollowUpPlans.map((plan) => ({
+      value: plan.planId,
+      label: `${plan.planCode ? `[${plan.planCode}] ` : ""}${plan.planTitle}${
+        plan.planDate ? ` (${plan.planDate})` : ""
+      } - จำนวน ${plan.plots?.length || 0} แปลง`,
+    }));
+  }, [activeFollowUpPlans]);
+
   const hasProductWithdrawal = Boolean(data.hasProductWithdrawal);
   const withdrawnProducts = data.withdrawnProducts || [];
 
@@ -124,14 +134,26 @@ export function Type14PlannedForm(props: any) {
     handleUpdate({ withdrawnProducts: updated });
   };
 
-  const updateWithdrawnRow = (
+  const updateWithdrawnProductRow = (
     index: number,
     field: keyof Type14WithdrawnProductLine,
     value: any,
+    selectedProd?: any,
   ) => {
-    const updated = withdrawnProducts.map((p, idx) =>
-      idx === index ? { ...p, [field]: value } : p,
-    );
+    const updated = withdrawnProducts.map((p, idx) => {
+      if (idx !== index) return p;
+      if (field === "productId") {
+        const matched =
+          selectedProd || products.find((prod) => prod.id === value);
+        return {
+          ...p,
+          productId: value,
+          productName: matched?.name || p.productName || "",
+          unit: matched?.unit || p.unit || "ขวด",
+        };
+      }
+      return { ...p, [field]: value };
+    });
     handleUpdate({ withdrawnProducts: updated });
   };
 
@@ -277,22 +299,14 @@ export function Type14PlannedForm(props: any) {
             <div className="space-y-4">
               {/* Plan Select Dropdown */}
               <div className="relative">
-                <select
+                <ActivitySelect
                   value={data.selectedPlanId || ""}
-                  onChange={(e) => handleSelectPlan(e.target.value)}
+                  onChange={(val) => handleSelectPlan(val)}
+                  options={planOptions}
+                  placeholder="-- กรุณาเลือกแผนงานฉีดแปลงแฮตแทคเดิม --"
                   disabled={readonly}
-                  className="w-full h-11 px-3 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-slate-800 font-medium"
-                >
-                  <option value="">-- กรุณาเลือกแผนงานฉีดแปลงแฮตแทคเดิม --</option>
-                  {activeFollowUpPlans.map((plan) => (
-                    <option key={plan.planId} value={plan.planId}>
-                      {plan.planCode ? `[${plan.planCode}] ` : ""}
-                      {plan.planTitle}
-                      {plan.planDate ? ` (${plan.planDate})` : ""} - จำนวน{" "}
-                      {plan.plots?.length || 0} แปลง
-                    </option>
-                  ))}
-                </select>
+                  className="w-full"
+                />
               </div>
 
               {/* Display plots in selected plan */}
@@ -374,96 +388,166 @@ export function Type14PlannedForm(props: any) {
         </div>
 
       {/* Product Withdrawal Section */}
-      <div className="space-y-3 rounded-lg border border-border/80 bg-muted/5 p-4">
+      <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm font-semibold text-foreground cursor-pointer">
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
+              id="type14-withdrawal-toggle"
               checked={hasProductWithdrawal}
               onChange={(e) => handleToggleWithdrawal(e.target.checked)}
               disabled={readonly}
-              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 transition-all cursor-pointer"
             />
-            <PackageCheck className="h-4 w-4 text-emerald-600" />
-            มีการเบิกสินค้าเพิ่มเติมสำหรับการติดตามแปลง
+            <span className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <PackageCheck className="h-4 w-4 text-emerald-600" />
+              มีการเบิกสินค้าเพิ่มเติมสำหรับการติดตามแปลง
+            </span>
           </label>
+          {hasProductWithdrawal && !readonly && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={addWithdrawnRow}
+              className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1 transition-all"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>เพิ่มสินค้าที่เบิก</span>
+            </Button>
+          )}
         </div>
 
         {hasProductWithdrawal && (
-          <div className="space-y-3 pt-2">
-            {withdrawnProducts.map((p, idx) => (
-              <div
-                key={p.id || idx}
-                className="grid grid-cols-12 gap-2 items-center bg-card p-3 rounded-lg border"
-              >
-                <div className="col-span-12 sm:col-span-6">
-                  <ActivityProductSelect
-                    products={products as any}
-                    value={p.productId}
-                    onChange={(val, prod) => {
-                      updateWithdrawnRow(idx, "productId", val);
-                      updateWithdrawnRow(idx, "productName", prod?.name || "");
-                      if (prod?.unit) {
-                        updateWithdrawnRow(idx, "unit", prod.unit);
-                      }
-                    }}
-                    disabled={readonly}
-                  />
-                </div>
-                <div className="col-span-6 sm:col-span-3">
-                  <ActivityInput
-                    type="number"
-                    min="1"
-                    value={p.quantity}
-                    onChange={(e) =>
-                      updateWithdrawnRow(
-                        idx,
-                        "quantity",
-                        Math.max(1, parseInt(e.target.value, 10) || 1),
-                      )
-                    }
-                    placeholder="จำนวน"
-                    disabled={readonly}
-                  />
-                </div>
-                <div className="col-span-4 sm:col-span-2">
-                  <ActivityInput
-                    value={p.unit || "ขวด"}
-                    onChange={(e) =>
-                      updateWithdrawnRow(idx, "unit", e.target.value)
-                    }
-                    placeholder="หน่วย"
-                    disabled={readonly}
-                  />
-                </div>
-                {!readonly && (
-                  <div className="col-span-2 sm:col-span-1 flex justify-end">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeWithdrawnRow(idx)}
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="space-y-2 pt-2 border-t border-slate-200/60">
+            <p className="text-[11px] text-slate-500">
+              ระบุรายการสินค้าและจำนวนที่ต้องการขอเบิกสำหรับการติดตามแปลง
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
+                  <tr>
+                    <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                      ลำดับ
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold">
+                      รายการสินค้า <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
+                      จำนวน <span className="text-red-500">*</span>
+                    </th>
+                    <th className="py-2.5 px-3 w-28 sm:w-32 font-semibold text-center">
+                      หน่วย <span className="text-red-500">*</span>
+                    </th>
+                    {!readonly && (
+                      <th className="py-2.5 px-3 w-12 text-center font-semibold">
+                        จัดการ
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!withdrawnProducts || withdrawnProducts.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={readonly ? 4 : 5}
+                        className="py-6 text-center text-slate-400 text-xs"
+                      >
+                        ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
+                      </td>
+                    </tr>
+                  ) : (
+                    withdrawnProducts.map((pLine, idx) => (
+                      <tr
+                        key={pLine.id || idx}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        {/* ลำดับ */}
+                        <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
+                          {idx + 1}
+                        </td>
 
-            {!readonly && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addWithdrawnRow}
-                className="text-xs flex items-center gap-1.5"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                เพิ่มรายการสินค้าเบิก
-              </Button>
-            )}
+                        {/* เลือกสินค้า */}
+                        <td className="py-2 px-3 align-middle">
+                          <ActivityProductSelect
+                            id={`type14-withdrawn-prod-${pLine.id || idx}`}
+                            value={pLine.productId || ""}
+                            valueKey="id"
+                            onChange={(val, selectedProd) =>
+                              updateWithdrawnProductRow(
+                                idx,
+                                "productId",
+                                val,
+                                selectedProd,
+                              )
+                            }
+                            products={(products as any)?.filter(
+                              (p: any) => p.unit?.trim() !== "กล่อง",
+                            )}
+                            placeholder="เลือกสินค้าที่ต้องการเบิก..."
+                            searchPlaceholder="ค้นหาสินค้า..."
+                            emptyText="ไม่พบสินค้า"
+                            disabled={readonly}
+                          />
+                        </td>
+
+                        {/* จำนวน */}
+                        <td className="py-2 px-3 align-middle">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <input
+                              type="number"
+                              min={1}
+                              value={pLine.quantity ?? ""}
+                              onChange={(e) => {
+                                const val = Math.max(
+                                  1,
+                                  parseInt(e.target.value) || 1,
+                                );
+                                updateWithdrawnProductRow(
+                                  idx,
+                                  "quantity",
+                                  val,
+                                );
+                              }}
+                              disabled={readonly}
+                              placeholder="จำนวน"
+                              className="w-28 sm:w-32 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                            />
+                          </div>
+                        </td>
+
+                        {/* หน่วย */}
+                        <td className="py-2 px-3 align-middle">
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <input
+                              type="text"
+                              value={pLine.unit || "ขวด"}
+                              readOnly
+                              disabled={true}
+                              placeholder="หน่วย"
+                              className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-700 text-center bg-slate-50 cursor-not-allowed"
+                            />
+                          </div>
+                        </td>
+
+                        {/* จัดการ */}
+                        {!readonly && (
+                          <td className="py-2 px-3 text-center align-middle">
+                            <button
+                              type="button"
+                              onClick={() => removeWithdrawnRow(idx)}
+                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                              title="ลบรายการ"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

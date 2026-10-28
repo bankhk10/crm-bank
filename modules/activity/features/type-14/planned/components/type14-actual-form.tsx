@@ -423,27 +423,17 @@ export function Type14ActualForm({
                         <ActivityProductSelect
                           products={products as any}
                           value={p.productId}
+                          valueKey="id"
                           onChange={(val, prod) => {
-                            actualState.updateRoundProduct(
+                            actualState.updateRoundProductFields(
                               roundIdx,
                               pIdx,
-                              "productId",
-                              val,
+                              {
+                                productId: val,
+                                productName: prod?.name || "",
+                                unit: prod?.unit || p.unit || "ขวด",
+                              },
                             );
-                            actualState.updateRoundProduct(
-                              roundIdx,
-                              pIdx,
-                              "productName",
-                              prod?.name || "",
-                            );
-                            if (prod?.unit) {
-                              actualState.updateRoundProduct(
-                                roundIdx,
-                                pIdx,
-                                "unit",
-                                prod.unit,
-                              );
-                            }
                           }}
                           disabled={readonly}
                         />

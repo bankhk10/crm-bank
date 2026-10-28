@@ -13,6 +13,7 @@ import {
   Activity,
   CheckCircle2,
   AlertCircle,
+  PackageCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Type14PlotItem, Type14SprayRoundState } from "../../shared/types";
@@ -64,6 +65,14 @@ export function Type14DetailView({
           : [];
 
   const primaryPlot = effectivePlots[0];
+
+  const plannedWithdrawnProducts: any[] =
+    data?.withdrawnProducts ||
+    (data as any)?.products ||
+    (data as any)?.type14Products ||
+    planSummary?.withdrawnProducts ||
+    (planSummary as any)?.type14Products ||
+    [];
 
   return (
     <div
@@ -140,6 +149,44 @@ export function Type14DetailView({
                 พืช: {primaryPlot.cropName}
               </span>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 1.1 สินค้าที่เบิกตามแผน (Planned Demo Products) */}
+      {plannedWithdrawnProducts.length > 0 && (
+        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-4 space-y-3">
+          <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+            <div className="flex items-center gap-2">
+              <PackageCheck className="w-4 h-4 text-emerald-600" />
+              <h5 className="font-bold text-xs sm:text-sm text-emerald-950">
+                1.1 สินค้าที่เบิกตามแผน (Planned Demo Products)
+              </h5>
+            </div>
+            <Badge
+              variant="outline"
+              className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[11px] font-semibold px-2 py-0.5"
+            >
+              {plannedWithdrawnProducts.length} รายการ
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
+            {plannedWithdrawnProducts.map((prod, pIdx) => (
+              <div
+                key={prod.id || pIdx}
+                className="flex items-center justify-between rounded-lg bg-white p-2.5 border border-emerald-200 shadow-2xs"
+              >
+                <span className="font-semibold text-slate-800 truncate mr-2">
+                  {prod.productName ||
+                    prod.product?.name ||
+                    `สินค้า #${pIdx + 1}`}
+                </span>
+                <span className="font-bold text-emerald-700 shrink-0 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  {prod.quantity || prod.withdrawnQuantity || 1}{" "}
+                  {prod.unit || prod.product?.unit || "ขวด"}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

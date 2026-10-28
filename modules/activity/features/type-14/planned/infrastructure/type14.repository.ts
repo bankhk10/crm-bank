@@ -343,6 +343,18 @@ export async function syncType14Data(
 
   if (type14Data) {
     await createType14Data(tx, planId, type14Data, startDate);
+
+    const hasWithdrawal = Boolean(
+      type14Data.hasProductWithdrawal &&
+        type14Data.withdrawnProducts &&
+        type14Data.withdrawnProducts.length > 0,
+    );
+    await tx.activityPlan.update({
+      where: { id: planId },
+      data: {
+        hasProductWithdrawal: hasWithdrawal,
+      },
+    });
   }
 }
 
