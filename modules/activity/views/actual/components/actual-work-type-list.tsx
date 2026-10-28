@@ -213,10 +213,9 @@ export function ActualWorkTypeList({
   const isType7bActive =
     !Boolean(
       plan?.type14Targets?.length ||
-        type14Targets?.length ||
-        planWorkTypes.includes("TYPE_14") ||
-        planWorkTypes.includes("ติดตามแปลงแฮตแทค") ||
-        planWorkTypes.includes("ติดตามแปลงแฮทแทค"),
+      type14Targets?.length ||
+      planWorkTypes.includes("TYPE_14") ||
+      planWorkTypes.includes("ติดตามแปลงแฮตแทค"),
     ) &&
     (planWorkTypes.includes("TYPE_7B") ||
       planWorkTypes.includes("ติดตามแปลงสาธิต") ||
@@ -507,7 +506,11 @@ export function ActualWorkTypeList({
               ? type7aTargets
               : plan?.type7aTargets || plan?.type7aPlots
           }
-          target={type7aTargets?.[0] || plan?.type7aTargets?.[0] || plan?.type7aPlots?.[0]}
+          target={
+            type7aTargets?.[0] ||
+            plan?.type7aTargets?.[0] ||
+            plan?.type7aPlots?.[0]
+          }
           planType={plan?.planType}
           products={products}
           customers={customers}

@@ -528,7 +528,8 @@ export function PlannedActivityForm({
     if (!isType9Active) return 0;
     const fromProducts = (type9.type9ProductItems || []).reduce(
       (sum, item) =>
-        sum + (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0),
+        sum +
+        (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0),
       0,
     );
     if (fromProducts > 0) return fromProducts;
@@ -578,16 +579,14 @@ export function PlannedActivityForm({
   const type13ActualData = useMemo(() => {
     if (initialData?.type13Actual) return initialData.type13Actual;
     const t13Results =
-      initialData?.type13Results ||
-      (initialData as any)?.type13?.results ||
-      [];
+      initialData?.type13Results || (initialData as any)?.type13?.results || [];
     if (t13Results.length > 0) {
       const allRounds = t13Results.flatMap((r: any) => r.sprayRounds || []);
       const allAtts = [
         ...t13Results.flatMap((r: any) => r.attachments || []),
-        ...((initialData?.attachments || []).filter(
+        ...(initialData?.attachments || []).filter(
           (a: any) => a.workTypeCode === "TYPE_13" || a.type13ResultId,
-        )),
+        ),
       ];
       return {
         plots: t13Results,
@@ -607,11 +606,11 @@ export function PlannedActivityForm({
 
   const hasType13ActualResults = Boolean(
     type13ActualData &&
-      (type13ActualData.sprayRounds?.length > 0 ||
-        type13ActualData.attachments?.length > 0 ||
-        type13ActualData.type13PlotsActual?.some(
-          (p: any) => p.latitude || p.actualPlotsCount,
-        )),
+    (type13ActualData.sprayRounds?.length > 0 ||
+      type13ActualData.attachments?.length > 0 ||
+      type13ActualData.type13PlotsActual?.some(
+        (p: any) => p.latitude || p.actualPlotsCount,
+      )),
   );
 
   // 5.14 Type 14 Planned Hook
@@ -634,12 +633,18 @@ export function PlannedActivityForm({
     const mktSum =
       budget.marketingProductItems.length > 0
         ? budget.marketingProductItems.reduce(
-            (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+            (sum, item) =>
+              sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
             0,
           )
         : budget.marketingBudgetAmount;
     return Number(((mktSum / type9TargetSales) * 100).toFixed(2));
-  }, [isType9Active, type9TargetSales, budget.marketingProductItems, budget.marketingBudgetAmount]);
+  }, [
+    isType9Active,
+    type9TargetSales,
+    budget.marketingProductItems,
+    budget.marketingBudgetAmount,
+  ]);
 
   // 7. Notes State
   const [notes, setNotes] = useState<string>(initialData.notes || "");
@@ -651,22 +656,32 @@ export function PlannedActivityForm({
 
     // 1. Validation - Basic Info
     if (!title.trim()) {
-      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุชื่อกิจกรรม"]);
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, [
+        "กรุณาระบุชื่อกิจกรรม",
+      ]);
       return;
     }
     if (!startDate || !endDate) {
-      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด"]);
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, [
+        "กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด",
+      ]);
       return;
     }
     const startDateTime = new Date(`${startDate}T${startTime || "08:30"}:00`);
     const endDateTime = new Date(`${endDate}T${endTime || "17:30"}:00`);
     if (endDateTime <= startDateTime) {
-      showValidationError("ข้อมูลวันเวลาไม่ถูกต้อง", "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น");
+      showValidationError(
+        "ข้อมูลวันเวลาไม่ถูกต้อง",
+        "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
+      );
       return;
     }
 
     if (selectedWorkTypes.length === 0) {
-      showValidationError("กรุณาเลือกประเภทงาน", "กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      showValidationError(
+        "กรุณาเลือกประเภทงาน",
+        "กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
+      );
       return;
     }
 
@@ -854,10 +869,7 @@ export function PlannedActivityForm({
         return;
       }
 
-      const t8Mapped = type8.mapType8Payload(
-        customers as any,
-        products as any,
-      );
+      const t8Mapped = type8.mapType8Payload(customers as any, products as any);
       type8Payload = t8Mapped.type8Data;
       if (t8Mapped.stores?.length) {
         planStores = [...planStores, ...t8Mapped.stores];
@@ -1083,16 +1095,14 @@ export function PlannedActivityForm({
             (t.code === "TYPE_13" ||
               t.code === "HATTACK" ||
               t.name?.includes("ฉีดแปลง") ||
-              t.name?.includes("แฮตแทค") ||
-              t.name?.includes("แฮทแทค"))) ||
+              t.name?.includes("แฮตแทค"))) ||
           (primaryCode === "TYPE_14" &&
             (t.code === "TYPE_14" ||
               t.code === "HATTACK_FOLLOW" ||
               t.name?.includes("ติดตามแปลงแฮตแทค") ||
-              t.name?.includes("ติดตามแปลงแฮทแทค") ||
-              (t.name?.includes("ติดตาม") &&
-                (t.name?.includes("แฮตแทค") || t.name?.includes("แฮทแทค"))))),
-      ) || activityTypes[0];
+              (t.name?.includes("ติดตาม") && t.name?.includes("แฮตแทค")))),
+      ) ||
+      activityTypes[0];
 
     const activityTypeId = matchedType?.id || "type-1";
 
@@ -1132,7 +1142,7 @@ export function PlannedActivityForm({
           ? type8TotalAttendees
           : isType10Active && type10Payload?.targetAttendees
             ? type10Payload.targetAttendees
-            : initialData.targetAttendeesCount ?? null,
+            : (initialData.targetAttendeesCount ?? null),
       notes: notes.trim() || null,
       planStores,
       planProducts,

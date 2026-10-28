@@ -155,7 +155,8 @@ export function Type13PlannedForm({
     const updatedList = currentList.map((p) => {
       if (p.id !== rowId) return p;
       if (field === "productId") {
-        const matched = selectedProd || products.find((prod) => prod.id === val);
+        const matched =
+          selectedProd || products.find((prod) => prod.id === val);
         return {
           ...p,
           productId: val,
@@ -292,7 +293,8 @@ export function Type13PlannedForm({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกสินค้าในแต่ละแปลง (สูงสุด 10 แปลง)
+            ระบุรายละเอียดแปลงแฮตแทค ร้านค้า Dealer และการเบิกสินค้าในแต่ละแปลง
+            (สูงสุด 10 แปลง)
           </p>
         </div>
 
@@ -527,7 +529,8 @@ export function Type13PlannedForm({
                   {plot.hasProductWithdrawal && (
                     <div className="space-y-2 pt-2 border-t border-slate-200/60">
                       <p className="text-[11px] text-slate-500">
-                        ระบุรายการสินค้าและจำนวนที่ต้องการขอเบิกสำหรับแปลงที่ {plotIdx + 1}
+                        ระบุรายการสินค้าและจำนวนที่ต้องการขอเบิกสำหรับแปลงที่{" "}
+                        {plotIdx + 1}
                       </p>
                       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
                         <table className="w-full text-left text-xs border-collapse">
@@ -537,10 +540,14 @@ export function Type13PlannedForm({
                                 ลำดับ
                               </th>
                               <th className="py-2.5 px-3 font-semibold">
-                                รายการสินค้า <span className="text-red-500">*</span>
+                                รายการสินค้า{" "}
+                                <span className="text-red-500">*</span>
                               </th>
                               <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
                                 จำนวน <span className="text-red-500">*</span>
+                              </th>
+                              <th className="py-2.5 px-3 w-40 sm:w-48 font-semibold text-center">
+                                หน่วย <span className="text-red-500">*</span>
                               </th>
                               {!readonly && (
                                 <th className="py-2.5 px-3 w-12 text-center font-semibold">
@@ -550,14 +557,15 @@ export function Type13PlannedForm({
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {(!plot.withdrawnProducts ||
-                              plot.withdrawnProducts.length === 0) ? (
+                            {!plot.withdrawnProducts ||
+                            plot.withdrawnProducts.length === 0 ? (
                               <tr>
                                 <td
                                   colSpan={readonly ? 3 : 4}
                                   className="py-6 text-center text-slate-400 text-xs"
                                 >
-                                  ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
+                                  ยังไม่มีรายการสินค้า กดปุ่ม
+                                  &quot;เพิ่มสินค้าที่เบิก&quot; เพื่อเริ่มต้น
                                 </td>
                               </tr>
                             ) : (
@@ -586,15 +594,17 @@ export function Type13PlannedForm({
                                           selectedProd,
                                         )
                                       }
-                                      products={products as any}
+                                      // กรองสินค้าที่ไม่ใช่ "กล่อง" ออกตรงนี้
+                                      products={(products as any)?.filter(
+                                        (p: any) => p.unit?.trim() !== "กล่อง",
+                                      )}
                                       placeholder="เลือกสินค้าที่ต้องการเบิก..."
                                       searchPlaceholder="ค้นหาสินค้า..."
                                       emptyText="ไม่พบสินค้า"
                                       disabled={readonly}
                                     />
                                   </td>
-
-                                  {/* จำนวนและหน่วย */}
+                                  {/* จำนวน */}
                                   <td className="py-2 px-3 align-middle">
                                     <div className="flex items-center gap-1.5 justify-center">
                                       <input
@@ -617,6 +627,12 @@ export function Type13PlannedForm({
                                         placeholder="จำนวน"
                                         className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
                                       />
+                                    </div>
+                                  </td>
+                                  {/* หน่วย */}
+                                  <td className="py-2 px-3 align-middle">
+                                    <div className="flex items-center gap-1.5 justify-center">
+                                      {" "}
                                       <input
                                         type="text"
                                         value={pLine.unit || ""}
@@ -664,4 +680,8 @@ export function Type13PlannedForm({
   );
 }
 
-export { Type13PlannedForm as Type13PlanForm, Type13PlannedForm as Type13Create, Type13PlannedForm as Type13Edit };
+export {
+  Type13PlannedForm as Type13PlanForm,
+  Type13PlannedForm as Type13Create,
+  Type13PlannedForm as Type13Edit,
+};

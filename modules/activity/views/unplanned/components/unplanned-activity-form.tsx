@@ -219,7 +219,8 @@ export function UnplannedActivityForm({
       );
       if (matched) {
         const code = getWorkTypeCode(matched.code || matched.name);
-        if (code && WORK_TYPE_CONFIG[code]) return [WORK_TYPE_CONFIG[code].name];
+        if (code && WORK_TYPE_CONFIG[code])
+          return [WORK_TYPE_CONFIG[code].name];
         const name = getWorkTypeName(matched);
         if (name) return [name];
       }
@@ -374,8 +375,10 @@ export function UnplannedActivityForm({
 
     // 5.11 Type 1
     if (
-      ((Array.isArray(initialData.type1Targets) && initialData.type1Targets.length > 0) ||
-        (Array.isArray(initialData.type1Stores) && initialData.type1Stores.length > 0)) &&
+      ((Array.isArray(initialData.type1Targets) &&
+        initialData.type1Targets.length > 0) ||
+        (Array.isArray(initialData.type1Stores) &&
+          initialData.type1Stores.length > 0)) &&
       isEdit
     ) {
       return [WORK_TYPE_CONFIG.TYPE_1.name];
@@ -695,12 +698,18 @@ export function UnplannedActivityForm({
     const mktSum =
       budget.marketingProductItems.length > 0
         ? budget.marketingProductItems.reduce(
-            (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+            (sum, item) =>
+              sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
             0,
           )
         : budget.marketingBudgetAmount;
     return Number(((mktSum / type9TargetSales) * 100).toFixed(2));
-  }, [isType9Active, type9TargetSales, budget.marketingProductItems, budget.marketingBudgetAmount]);
+  }, [
+    isType9Active,
+    type9TargetSales,
+    budget.marketingProductItems,
+    budget.marketingBudgetAmount,
+  ]);
 
   // 7. Notes State
   const [notes, setNotes] = useState<string>(initialData.notes || "");
@@ -712,23 +721,33 @@ export function UnplannedActivityForm({
 
     // 1. Validation - Work Type
     if (selectedWorkTypes.length === 0) {
-      showValidationError("กรุณาเลือกประเภทงาน", "กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท");
+      showValidationError(
+        "กรุณาเลือกประเภทงาน",
+        "กรุณาเลือกประเภทงานอย่างน้อย 1 ประเภท",
+      );
       return;
     }
 
     // 2. Validation - Basic Info
     if (!title.trim()) {
-      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุชื่อกิจกรรม"]);
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, [
+        "กรุณาระบุชื่อกิจกรรม",
+      ]);
       return;
     }
     if (!startDate || !endDate) {
-      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, ["กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด"]);
+      showValidationError("กรุณากรอกข้อมูลให้ครบถ้วน", undefined, [
+        "กรุณาระบุวันเวลาเริ่มต้นและสิ้นสุด",
+      ]);
       return;
     }
     const startDateTime = new Date(`${startDate}T${startTime || "08:30"}:00`);
     const endDateTime = new Date(`${endDate}T${endTime || "17:30"}:00`);
     if (endDateTime <= startDateTime) {
-      showValidationError("ข้อมูลวันเวลาไม่ถูกต้อง", "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น");
+      showValidationError(
+        "ข้อมูลวันเวลาไม่ถูกต้อง",
+        "วันเวลาสิ้นสุดต้องหลังจากวันเวลาเริ่มต้น",
+      );
       return;
     }
 
@@ -741,13 +760,17 @@ export function UnplannedActivityForm({
     // 3. Validation & Mapping by Work Type
     if (isType1Active) {
       if (type1.items.length === 0) {
-        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ครบถ้วน", undefined, ["กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ครบถ้วน", undefined, [
+          "กรุณาระบุร้านค้าหรือเกษตรกรเป้าหมายอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type1Validation = type1.validate(customers);
       if (!type1Validation.isValid) {
-        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง", undefined, [type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง"]);
+        showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง", undefined, [
+          type1Validation.error || "ข้อมูลเป้าหมายเข้าพบไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -769,7 +792,10 @@ export function UnplannedActivityForm({
           );
           cleanType1Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -791,13 +817,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType2Active) {
       if (type2.items.length === 0) {
-        showValidationError("ข้อมูลเป้าหมายไม่ครบถ้วน", undefined, ["กรุณาระบุเป้าหมายการติดตามผลอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลเป้าหมายไม่ครบถ้วน", undefined, [
+          "กรุณาระบุเป้าหมายการติดตามผลอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type2Validation = type2.validate(customers);
       if (!type2Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type2Validation.error || "ข้อมูลเป้าหมายติดตามผลไม่ถูกต้อง",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type2Validation.error || "ข้อมูลเป้าหมายติดตามผลไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -822,7 +852,10 @@ export function UnplannedActivityForm({
           );
           cleanType2Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -841,13 +874,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType3Active) {
       if (type3.items.length === 0) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, ["กรุณาระบุร้านค้าเป้าหมายและรายการสินค้าที่เสนอขายอย่างน้อย 1 รายการ",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          "กรุณาระบุร้านค้าเป้าหมายและรายการสินค้าที่เสนอขายอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type3Validation = type3.validate();
       if (!type3Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type3Validation.error || "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง"]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type3Validation.error || "ข้อมูลเสนอขายสินค้าไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -866,13 +903,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType4Active) {
       if (type4.items.length === 0) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, ["กรุณาระบุร้านค้าเป้าหมายสำหรับวางบิล / เก็บเงินอย่างน้อย 1 รายการ",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          "กรุณาระบุร้านค้าเป้าหมายสำหรับวางบิล / เก็บเงินอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type4Validation = type4.validate();
       if (!type4Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง"]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type4Validation.error || "ข้อมูลวางบิล / เก็บเงินไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -891,7 +932,10 @@ export function UnplannedActivityForm({
           );
           cleanType4Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -914,13 +958,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType5Active) {
       if (type5.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุรายการสำรวจตลาดของคู่แข่งอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุรายการสำรวจตลาดของคู่แข่งอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type5Validation = validateType5UnplannedItems(type5.items);
       if (!type5Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type5Validation.errors[0] || "ข้อมูลสำรวจตลาดไม่ถูกต้อง"]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type5Validation.errors[0] || "ข้อมูลสำรวจตลาดไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -971,7 +1019,10 @@ export function UnplannedActivityForm({
           );
           cleanBottleImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปขวดผลิตภัณฑ์ไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปขวดผลิตภัณฑ์ไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -986,7 +1037,8 @@ export function UnplannedActivityForm({
           );
           cleanPromoImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพสื่อส่งเสริมการขายไม่สำเร็จ",
           );
           return;
@@ -1021,13 +1073,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType6Active) {
       if (type6.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุรายการตรวจสอบเรื่องร้องเรียนอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุรายการตรวจสอบเรื่องร้องเรียนอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type6Validation = validateType6UnplannedItems(type6.items);
       if (!type6Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type6Validation.errors[0] || "ข้อมูลตรวจสอบเรื่องร้องเรียนไม่ถูกต้อง",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type6Validation.errors[0] || "ข้อมูลตรวจสอบเรื่องร้องเรียนไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -1061,7 +1117,10 @@ export function UnplannedActivityForm({
           );
           cleanType6Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพหลักฐานไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพหลักฐานไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1083,13 +1142,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType7aActive) {
       if (type7a.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุแปลงสาธิตอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุแปลงสาธิตอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type7aValidation = validateType7aUnplannedItems(type7a.items);
       if (!type7aValidation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type7aValidation.errors[0] || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type7aValidation.errors[0] || "ข้อมูลจัดทำแปลงสาธิตไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -1110,7 +1173,10 @@ export function UnplannedActivityForm({
           );
           cleanType7aImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพแปลงสาธิตไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพแปลงสาธิตไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1139,13 +1205,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType7bActive) {
       if (type7b.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุแปลงสาธิตที่ติดตามอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุแปลงสาธิตที่ติดตามอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type7bValidation = validateType7bUnplannedItems(type7b.items);
       if (!type7bValidation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type7bValidation.errors?.[0] || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type7bValidation.errors?.[0] || "ข้อมูลติดตามแปลงสาธิตไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -1164,7 +1234,8 @@ export function UnplannedActivityForm({
           );
           cleanType7bImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพติดตามแปลงสาธิตไม่สำเร็จ",
           );
           return;
@@ -1191,13 +1262,17 @@ export function UnplannedActivityForm({
       };
     } else if (isType8Active) {
       if (type8.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุข้อมูลการจัดประชุมอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุข้อมูลการจัดประชุมอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type8Validation = validateType8UnplannedItems(type8.items);
       if (!type8Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type8Validation.errors?.[0] || "ข้อมูลการจัดประชุมไม่ถูกต้อง",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type8Validation.errors?.[0] || "ข้อมูลการจัดประชุมไม่ถูกต้อง",
+        ]);
         return;
       }
 
@@ -1216,7 +1291,10 @@ export function UnplannedActivityForm({
           );
           cleanType8RegImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปใบลงทะเบียนไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปใบลงทะเบียนไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1235,7 +1313,8 @@ export function UnplannedActivityForm({
           );
           cleanType8AtmosImages = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปบรรยากาศการประชุมไม่สำเร็จ",
           );
           return;
@@ -1284,14 +1363,18 @@ export function UnplannedActivityForm({
       };
     } else if (isType9Active) {
       if (type9.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุข้อมูลกิจกรรมหน้าร้านอย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุข้อมูลกิจกรรมหน้าร้านอย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type9Validation = validateType9UnplannedItems(type9.items);
       if (!type9Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type9Validation.errors?.[0] ||
-            "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type9Validation.errors?.[0] ||
+            "ข้อมูลจัดกิจกรรมส่งเสริมการขายหน้าร้านไม่ถูกต้อง (Type 9)",
+        ]);
         return;
       }
 
@@ -1308,7 +1391,8 @@ export function UnplannedActivityForm({
           );
           cleanType9Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพกิจกรรมหน้าร้านไม่สำเร็จ",
           );
           return;
@@ -1348,14 +1432,18 @@ export function UnplannedActivityForm({
       };
     } else if (isType10Active) {
       if (type10.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุข้อมูลจัดงาน Field Day อย่างน้อย 1 รายการ"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุข้อมูลจัดงาน Field Day อย่างน้อย 1 รายการ",
+        ]);
         return;
       }
 
       const type10Validation = validateType10UnplannedItems(type10.items);
       if (!type10Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type10Validation.errors?.[0] ||
-            "ข้อมูลจัดงาน Field Day ไม่ถูกต้อง (Type 10)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type10Validation.errors?.[0] ||
+            "ข้อมูลจัดงาน Field Day ไม่ถูกต้อง (Type 10)",
+        ]);
         return;
       }
 
@@ -1372,7 +1460,8 @@ export function UnplannedActivityForm({
           );
           cleanType10Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพงาน Field Day ไม่สำเร็จ",
           );
           return;
@@ -1405,14 +1494,18 @@ export function UnplannedActivityForm({
       };
     } else if (isType11Active) {
       if (type11.items.length === 0) {
-        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, ["กรุณาระบุข้อมูลตรวจเช็คสต๊อกอย่างน้อย 1 ร้านค้า"]);
+        showValidationError("ข้อมูลไม่ครบถ้วน", undefined, [
+          "กรุณาระบุข้อมูลตรวจเช็คสต๊อกอย่างน้อย 1 ร้านค้า",
+        ]);
         return;
       }
 
       const type11Validation = validateType11UnplannedItems(type11.items);
       if (!type11Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type11Validation.errors?.[0] ||
-            "ข้อมูลตรวจเช็คสต๊อกหน้าร้านไม่ถูกต้อง (Type 11)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type11Validation.errors?.[0] ||
+            "ข้อมูลตรวจเช็คสต๊อกหน้าร้านไม่ถูกต้อง (Type 11)",
+        ]);
         return;
       }
 
@@ -1429,7 +1522,8 @@ export function UnplannedActivityForm({
           );
           cleanType11Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพตรวจเช็คสต๊อกไม่สำเร็จ",
           );
           return;
@@ -1462,8 +1556,10 @@ export function UnplannedActivityForm({
     } else if (isType12Active) {
       const type12Validation = type12.validate();
       if (!type12Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type12Validation.error ||
-            "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type12Validation.error ||
+            "ข้อมูลพาลูกค้าศึกษาดูงานไม่ถูกต้อง (Type 12)",
+        ]);
         return;
       }
 
@@ -1480,7 +1576,10 @@ export function UnplannedActivityForm({
           );
           cleanType12Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพทัวร์ไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพทัวร์ไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1520,7 +1619,9 @@ export function UnplannedActivityForm({
     } else if (isType13Active) {
       const type13Validation = type13.validate();
       if (!type13Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type13Validation.error || "ข้อมูลฉีดแปลงแฮตแทคไม่ถูกต้อง (Type 13)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type13Validation.error || "ข้อมูลฉีดแปลงแฮตแทคไม่ถูกต้อง (Type 13)",
+        ]);
         return;
       }
 
@@ -1537,7 +1638,10 @@ export function UnplannedActivityForm({
           );
           cleanType13Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", uploadErr.message || "อัปโหลดรูปภาพการฉีดพ่นไม่สำเร็จ");
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพการฉีดพ่นไม่สำเร็จ",
+          );
           return;
         }
       }
@@ -1567,8 +1671,10 @@ export function UnplannedActivityForm({
     } else if (isType14Active) {
       const type14Validation = type14.validate();
       if (!type14Validation.isValid) {
-        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [type14Validation.error ||
-            "ข้อมูลติดตามแปลงแฮตแทคไม่ถูกต้อง (Type 14)",]);
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type14Validation.error ||
+            "ข้อมูลติดตามแปลงแฮตแทคไม่ถูกต้อง (Type 14)",
+        ]);
         return;
       }
 
@@ -1585,7 +1691,8 @@ export function UnplannedActivityForm({
           );
           cleanType14Images = res.updatedImages;
         } catch (uploadErr: any) {
-          showValidationError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ", 
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
             uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ",
           );
           return;
@@ -1715,16 +1822,14 @@ export function UnplannedActivityForm({
             t.code === "TYPE_13" ||
             t.code === "HATTACK" ||
             t.name?.includes("ฉีดแปลง") ||
-            t.name?.includes("แฮตแทค") ||
-            t.name?.includes("แฮทแทค")
+            t.name?.includes("แฮตแทค")
           );
         }
         if (isType14Active) {
           return (
             t.code === "TYPE_14" ||
             t.code === "HATTACK_FOLLOW" ||
-            t.name?.includes("ติดตามแปลงแฮตแทค") ||
-            t.name?.includes("ติดตามแปลงแฮทแทค")
+            t.name?.includes("ติดตามแปลงแฮตแทค")
           );
         }
         return false;
@@ -1962,10 +2067,16 @@ export function UnplannedActivityForm({
           await deleteActivityPlanImagePaths(uploadPlanId, oldUrlsToDelete);
         }
       } else {
-        showValidationError("เกิดข้อผิดพลาดในการบันทึก", res.error || "เกิดข้อผิดพลาดในการบันทึก");
+        showValidationError(
+          "เกิดข้อผิดพลาดในการบันทึก",
+          res.error || "เกิดข้อผิดพลาดในการบันทึก",
+        );
       }
     } catch (err: any) {
-      showValidationError("เกิดข้อผิดพลาดไม่คาดคิด", err.message || "เกิดข้อผิดพลาดไม่คาดคิด");
+      showValidationError(
+        "เกิดข้อผิดพลาดไม่คาดคิด",
+        err.message || "เกิดข้อผิดพลาดไม่คาดคิด",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -2197,7 +2308,9 @@ export function UnplannedActivityForm({
           addWithdrawnProduct={type7b.addWithdrawnProduct}
           updateWithdrawnProduct={type7b.updateWithdrawnProduct}
           deleteWithdrawnProduct={type7b.deleteWithdrawnProduct}
-          plotList={(plotList && plotList.length > 0 ? plotList : demoPlots) as any}
+          plotList={
+            (plotList && plotList.length > 0 ? plotList : demoPlots) as any
+          }
           followUpPlans={followUpPlans as any}
           products={products as any}
           readonly={readonly}
