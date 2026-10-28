@@ -216,7 +216,7 @@ ${formatList([
 - UI ใน ${camelPrefix}-unplanned-form.tsx ต้องมีฟิลด์เลือกข้อมูลตั้งต้นเหมือน ${camelPrefix}-planned-form.tsx และมีส่วนบันทึกผลการปฏิบัติงานจริง (รวมถึงรูปภาพ/พิกัด GPS/สินค้า) เหมือน ${camelPrefix}-actual-form.tsx
 - ตอนกดบันทึก (Save): ${camelPrefix}-unplanned.strategy.ts ต้องบันทึกข้อมูลลงตาราง Target, Product, Result และ Attachment ครบเหมือนที่ ${camelPrefix}-planned.strategy.ts ทำทั้งใน savePlan และ saveActual
 - ตอนกดเข้ามาแก้ไข (Edit Hydration): เช็ค views/unplanned/edit-view.tsx, unplanned-activity-form.tsx, unplanned-mapper.ts และ use-${camelPrefix}-unplanned-form.ts ว่าดึงข้อมูลจาก DB กลับมาใส่ในทุกช่องของฟอร์มได้ครบถ้วน
-- รัน npx tsc --noEmit เพื่อตรวจสอบว่าไม่มี TypeScript error`);
+- รัน npx tsc --noEmit เพื่อตรวจสอบว่าไม่มี TypeScript error และไปอัปเดตไฟล์ modules/activity/features/${sliceFolder}/README.md ของ Type ที่แก้ไขให้เป็นปัจจุบันด้วย`);
 }
 
 // CASE 2: Hydrate (บันทึกเข้า DB แล้ว แต่เปิดหน้าแก้ไข/บันทึกผลแล้วข้อมูลไม่ขึ้น)
@@ -246,7 +246,9 @@ ${formatList(
 )}
 
 4. [ด่าน UI Component Value Binding] เช็คว่าช่อง Input / Select ผูก value ตรงกับ state ที่ hydrate มาหรือไม่:
-${formatList(sliceFiles.filter((f) => f.includes("/components/")))}`);
+${formatList(sliceFiles.filter((f) => f.includes("/components/")))}
+
+เมื่อแก้ไขครบแล้ว ให้รัน npx tsc --noEmit เพื่อตรวจเช็ค TypeScript error ด้วย และไปอัปเดตไฟล์ modules/activity/features/${sliceFolder}/README.md ของ Type ที่แก้ไขให้เป็นปัจจุบันด้วย`);
 }
 
 // CASE 3: Add / Modify Field across all screens
@@ -299,5 +301,5 @@ ${formatList([...viewPlannedFiles, ...viewUnplannedFiles])}
    - นำฟิลด์นี้ไปแสดงผลในการ์ดสรุปแผนและหน้ารายละเอียดด้วย:
 ${formatList([...displayCardFiles, ...domainAndAppFiles, ...viewActualFiles, ...viewDetailAndApprovalFiles])}
 
-เมื่อแก้ไขครบแล้ว ให้รัน npx tsc --noEmit เพื่อตรวจเช็ค TypeScript error ด้วย`);
+เมื่อแก้ไขครบแล้ว ให้รัน npx tsc --noEmit เพื่อตรวจเช็ค TypeScript error ด้วย และไปอัปเดตไฟล์ modules/activity/features/${sliceFolder}/README.md ของ Type ที่แก้ไขให้เป็นปัจจุบันด้วย`);
 }
