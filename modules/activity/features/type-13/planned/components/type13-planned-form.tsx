@@ -625,7 +625,7 @@ export function Type13PlannedForm({
                                         }}
                                         disabled={readonly}
                                         placeholder="จำนวน"
-                                        className="w-20 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                                        className="w-30 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
                                       />
                                     </div>
                                   </td>
