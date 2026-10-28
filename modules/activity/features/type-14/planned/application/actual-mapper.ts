@@ -59,28 +59,20 @@ export function parseType14ActualResult(
       size: img.size || img.fileSize || 0,
       type: img.type || img.mimeType || "image/jpeg",
     })),
-    products: (r.productsUsed || r.products || []).map((p: any) => {
-      let extraQty = p.extraQuantity || "";
-      let extraU = p.extraUnit || "ซีซี";
-      if (p.detail) {
-        const match = String(p.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
-        if (match) {
-          extraQty = match[1];
-          if (match[2]) extraU = match[2];
-        }
-      }
-      return {
-        productId: p.productId,
-        productName: p.productName || p.product?.name || "",
-        unit: p.unit || p.product?.unit || "ขวด",
-        quantityUsed: p.quantityUsed ?? p.quantity ?? "",
-        actualQuantity: p.quantityUsed ?? p.actualQuantity ?? p.quantity ?? "",
-        extraQuantity: extraQty,
-        extraUnit: extraU,
-        actualRate: p.actualRate || p.applicationRate || "",
-        detail: p.detail || "",
-      };
-    }),
+    products: (r.productsUsed || r.products || []).map((p: any) => ({
+      productId: p.productId,
+      productName: p.productName || p.product?.name || "",
+      unit: p.unit || p.product?.unit || "ขวด",
+      quantityUsed: p.quantityUsed ?? p.quantity ?? "",
+      actualQuantity: p.quantityUsed ?? p.actualQuantity ?? p.quantity ?? "",
+      extraQuantity:
+        p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
+          ? String(p.extraQuantity)
+          : "",
+      extraUnit: p.extraUnit || "ซีซี",
+      actualRate: p.actualRate || p.applicationRate || "",
+      detail: p.detail || "",
+    })),
   }));
 
   actualData.rounds = mappedRounds;
@@ -106,18 +98,10 @@ export function parseType14ActualResult(
         rawRounds[idx] ||
         null;
 
-      let actualCount = p.actualPlotsCount;
-      if (actualCount == null && matchedRes?.additionalNotes) {
-        const m = String(matchedRes.additionalNotes).match(/จำนวนแปลงจริง:\s*(\d+)/);
-        if (m) actualCount = Number(m[1]);
-      }
-      if (actualCount == null && p.notes) {
-        const m = String(p.notes).match(/จำนวนแปลงจริง:\s*(\d+)/);
-        if (m) actualCount = Number(m[1]);
-      }
-      if (actualCount == null) {
-        actualCount = p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1;
-      }
+      let actualCount =
+        p.actualPlotsCount ??
+        matchedRes?.actualPlotsCount ??
+        (p.plannedPlotsCount ?? p.type13Target?.plannedPlotsCount ?? 1);
 
       const daysAfter =
         p.daysAfterSpray != null
@@ -138,44 +122,29 @@ export function parseType14ActualResult(
 
       const notesText =
         p.additionalNotes ||
-        (matchedRes?.additionalNotes
-          ? String(matchedRes.additionalNotes)
-              .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
-              .trim()
-          : "") ||
+        matchedRes?.additionalNotes ||
         "";
 
       // Products for this plot
       const plotProds: Type14ActualProductState[] = (() => {
         if (Array.isArray(p.products) && p.products.length > 0) {
-          return p.products.map((prod: any) => {
-            let extraQty = prod.extraQuantity || "";
-            let extraU = prod.extraUnit || "ซีซี";
-            if (prod.detail) {
-              const match = String(prod.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
-              if (match) {
-                extraQty = match[1];
-                if (match[2]) extraU = match[2];
-              }
-            }
-            return {
-              ...prod,
-              extraQuantity: extraQty,
-              extraUnit: extraU,
-            };
-          });
+          return p.products.map((prod: any) => ({
+            ...prod,
+            extraQuantity:
+              prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                ? String(prod.extraQuantity)
+                : "",
+            extraUnit: prod.extraUnit || "ซีซี",
+          }));
         }
         if (matchedRes?.productsUsed || matchedRes?.products) {
           return (matchedRes.productsUsed || matchedRes.products).map((prod: any) => {
-            let extraQty = prod.extraQuantity || "";
-            let extraU = prod.extraUnit || "ซีซี";
-            if (prod.detail) {
-              const match = String(prod.detail).match(/^\+(\d+(?:\.\d+)?)\s*(.*)$/);
-              if (match) {
-                extraQty = match[1];
-                if (match[2]) extraU = match[2];
-              }
-            }
+            const extraQty =
+              prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                ? String(prod.extraQuantity)
+                : "";
+            const extraU = prod.extraUnit || "ซีซี";
+
             return {
               productId: prod.productId,
               productName: prod.productName || prod.product?.name || "",
@@ -184,7 +153,7 @@ export function parseType14ActualResult(
               actualQuantity: prod.quantityUsed ?? prod.actualQuantity ?? prod.quantity ?? 1,
               extraQuantity: extraQty,
               extraUnit: extraU,
-              actualRate: prod.actualRate || "",
+              actualRate: prod.actualRate || prod.applicationRate || "",
               detail: prod.detail || "",
             };
           });

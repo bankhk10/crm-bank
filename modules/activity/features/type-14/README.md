@@ -370,42 +370,51 @@ model ActivityPlanType14Product {
 
 // 3. ตารางบันทึกผลการตรวจติดตามแปลงจริง (activity_type_14_results)
 model ActivityResultType14 {
-  id              String                            @id @default(cuid())
-  activityPlanId  String                            @map("activity_plan_id")
-  targetId        String?                           @map("target_id")
-  actualVisitDate DateTime?                         @default(now()) @map("actual_visit_date")
-  daysAfterSpray  Int?                              @map("days_after_spray")
-  trackingResult  String?                           @map("tracking_result")
-  productResponse String?                           @map("product_response")
-  notes           String?                           @map("notes") @db.Text
-  createdAt       DateTime                          @default(now()) @map("created_at")
-  updatedAt       DateTime                          @updatedAt @map("updated_at")
+  id               String                            @id @default(cuid())
+  activityPlanId   String                            @map("activity_plan_id")
+  targetId         String?                           @map("target_id")
+  type13TargetId   String?                           @map("type_13_target_id")
+  roundNumber      Int                               @default(1) @map("round_number")
+  actualVisitDate  DateTime                          @map("actual_visit_date")
+  actualPlotsCount Int?                              @map("actual_plots_count") // จำนวนแปลงที่ติดตามจริง
+  daysAfterSpray   Int?                              @map("days_after_spray")
+  trackingResult   String                            @default("ปกติ") @map("tracking_result")
+  productResponse  String                            @default("ปกติ") @map("product_response")
+  actualLatitude   Decimal?                          @map("actual_latitude") @db.Decimal(10, 7)
+  actualLongitude  Decimal?                          @map("actual_longitude") @db.Decimal(10, 7)
+  additionalNotes  String?                           @map("additional_notes") @db.Text
+  createdAt        DateTime                          @default(now()) @map("created_at")
+  updatedAt        DateTime                          @updatedAt @map("updated_at")
 
-  activityPlan    ActivityPlan                      @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  target          ActivityPlanType14Target?         @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  productsUsed    ActivityResultType14ProductUsed[]
-  attachments     ActivityAttachment[]
+  activityPlan     ActivityPlan                      @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target           ActivityPlanType14Target?         @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  type13Target     ActivityPlanType13Target?         @relation("Type13TargetFollowUpResults", fields: [type13TargetId], references: [id], onDelete: SetNull)
+  productsUsed     ActivityResultType14ProductUsed[]
+  attachments      ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([targetId])
+  @@index([type13TargetId])
   @@map("activity_type_14_results")
 }
 
 // 4. ตารางสินค้าที่ใช้พ่นซ้ำจริง (activity_type_14_products_used)
 model ActivityResultType14ProductUsed {
-  id              String               @id @default(cuid())
-  resultId        String               @map("result_id")
-  productId       String               @map("product_id")
-  productName     String?              @map("product_name")
-  quantity        Decimal?             @map("quantity") @db.Decimal(10, 2)
-  unit            String?              @map("unit")
-  applicationRate String?              @map("application_rate")
-  detail          String?              @map("detail") @db.Text
-  sortOrder       Int                  @default(0) @map("sort_order")
-  createdAt       DateTime             @default(now()) @map("created_at")
+  id            String               @id @default(cuid())
+  resultId      String               @map("result_id")
+  productId     String               @map("product_id")
+  productName   String?              @map("product_name")
+  quantityUsed  Decimal              @map("quantity_used") @db.Decimal(10, 2)
+  actualRate    String?              @map("actual_rate")
+  unit          String?              @map("unit")
+  extraQuantity Decimal?             @map("extra_quantity") @db.Decimal(10, 2) // ปริมาณที่ใช้เพิ่ม
+  extraUnit     String?              @map("extra_unit") // หน่วยของปริมาณที่ใช้เพิ่ม
+  detail        String?              @map("detail")
+  sortOrder     Int                  @default(0) @map("sort_order")
+  createdAt     DateTime             @default(now()) @map("created_at")
 
-  result          ActivityResultType14 @relation(fields: [resultId], references: [id], onDelete: Cascade)
-  product         Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  result        ActivityResultType14 @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  product       Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([resultId])
   @@index([productId])
@@ -609,3 +618,4 @@ model ActivityResultType14ProductUsed {
 | **2026-10-28** | 2.2.0 | **ปลดระวางตัวเลือกระบุแปลงใหม่ (`NEW_PLOT`) ในฟอร์มแผนงาน Type 14 Planned Form:**<br>1. ปรับปรุง `type14-planned-form.tsx` ให้แสดงเฉพาะโหมดเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) เท่านั้น<br>2. ลบส่วน UI สลับโหมดและฟิลด์กรอกข้อมูลแปลงใหม่ที่ไม่ใช้งานออกทั้งหมด<br>3. กำหนดค่า `mode: "EXISTING_PLOT"` เป็นค่าเริ่มต้นถาวรในฟอร์มแผนงาน | Antigravity AI |
 | **2026-10-28** | 2.3.0 | **ปรับปรุง UI การเลือกแผนและระบบเบิกสินค้าของ Type 14 ให้ตรงตามมาตรฐาน Type 13:**<br>1. นำ `ActivitySelect` มาใช้แทน native `<select>` สำหรับการเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13)<br>2. แก้ไขปัญหาการเลือกสินค้าแล้วข้อมูลไม่ลงช่อง (ปรับปรุงให้อัปเดต `productId`, `productName`, `unit` พร้อมกันในคราวเดียว)<br>3. ปรับปรุงส่วน "มีการเบิกสินค้าเพิ่มเติมสำหรับการติดตามแปลง" ให้แสดงผลเป็น Table และมี Header, ลำดับ, จำนวน, หน่วย (readOnly) และปุ่มจัดการ เหมือนกับ Type 13 Planned Form<br>4. เพิ่มการแสดงผล Section 1.1 "สินค้าที่เบิกตามแผน (Planned Demo Products)" ใน `type14-detail-view.tsx`<br>5. ตรวจสอบและซิงค์ Full Round-Trip (ฟอร์ม -> Repository -> DB -> Hydration -> Detail/Card) ครบ 6 ขั้นตอน | Antigravity AI |
 | **2026-10-28** | 2.4.0 | **ปรับโครงสร้างหน้าบันทึกผลงานจริง Type 14 ให้ตรงตามมาตรฐาน Type 13 (ปลดระวาง Tracking Rounds สู่ Plot-based Actual Recording):**<br>1. ปลดระวางแนวคิด "รอบการติดตามที่..." (Tracking rounds) ออกจากหน้าบันทึกผล Type 14 ทั้งหมด<br>2. จัดรูปแบบการกรอกข้อมูลเป็นรายแปลง (Plot-based Stacked Cards) ตามแบบ Type 13 ครบวงจร<br>3. เพิ่ม Section 1.1 สินค้าที่เบิกตามแผน: บันทึกจำนวนที่ใช้จริง (`actualQuantity`), ปริมาณที่ใช้เพิ่ม (`extraQuantity` + `extraUnit` ซีซี/กรัม) และอัตราการใช้ (`actualRate`)<br>4. เพิ่ม Section 1.2 ผลการตรวจติดตามแปลง: บันทึกวันหลังฉีดพ่น, ผลการติดตามแปลง, การตอบสนองของพืช และบันทึกข้อสังเกตเพิ่มเติม<br>5. เพิ่ม Section 1.3 รูปหลังติดตามแปลง (ต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload` สูงสุด 20 ภาพ<br>6. ปรับปรุง Hook `useType14Actual`, Validation `validateType14Actual`, Mapper `actual-mapper.ts`, Strategy `type14-planned.strategy.ts` และ Detail View `type14-detail-view.tsx` ให้ซิงค์ผลการติดตามจริงรายแปลงและกู้คืน (Hydration) ครบทั้ง 6 ขั้นตอนอย่างสมบูรณ์ | Antigravity AI |
+| **2026-10-28** | 2.5.0 | **ยกระดับการจัดเก็บข้อมูลสู่ 100% Dedicated Relational Columns (แก้ปัญหา Anti-pattern String Packing):**<br>1. เพิ่มคอลัมน์จริง `actual_plots_count INTEGER` ในตาราง `activity_type_14_results` (`ActivityResultType14`) สำหรับจัดเก็บจำนวนแปลงที่ติดตามจริงโดยตรงแบบ First-class Column เช่นเดียวกับ Type 13<br>2. เพิ่มคอลัมน์จริง `extra_quantity DECIMAL(10,2)` และ `extra_unit TEXT` ในตาราง `activity_type_14_products_used` (`ActivityResultType14ProductUsed`) สำหรับจัดเก็บปริมาณที่ใช้เพิ่มและหน่วยอย่างเป็นทางการ เช่นเดียวกับ `activity_type_13_spray_products`<br>3. ยกเลิกการ encode ปริมาณใช้เพิ่มลงในคอลัมน์ `detail` และยกเลิกการฝากข้อความ `[จำนวนแปลงจริง: X]` ใน `target.notes` หรือ `additionalNotes`<br>4. สร้างและรัน Migration `20261028160000_add_actual_plots_and_extra_fields_to_activity_type_14` พร้อมอัปเดต Prisma Client และทดสอบระบบผ่าน 100% | Antigravity AI |

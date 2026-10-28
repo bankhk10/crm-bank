@@ -343,9 +343,7 @@ export function Type14DetailView({
                           p.extraQuantity != null &&
                           String(p.extraQuantity).trim() !== ""
                             ? ` (+${p.extraQuantity} ${p.extraUnit || "ซีซี"})`
-                            : p.detail && p.detail.startsWith("+")
-                              ? ` (${p.detail})`
-                              : "";
+                            : "";
 
                         return (
                           <div

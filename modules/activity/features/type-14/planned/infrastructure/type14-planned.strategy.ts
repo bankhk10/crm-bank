@@ -142,19 +142,6 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               (plot.demoPlotId && t.id === plot.demoPlotId),
           ) || targets[pIdx];
 
-        // Update actual plots count note on target
-        if (matchedTarget) {
-          const baseNotes = (matchedTarget.notes || "")
-            .replace(/\[จำนวนแปลงจริง:\s*\d+\]/g, "")
-            .trim();
-          const updatedNotes = `[จำนวนแปลงจริง: ${actualCount}] ${baseNotes}`.trim();
-
-          await tx.activityPlanType14Target.update({
-            where: { id: matchedTarget.id },
-            data: { notes: updatedNotes },
-          });
-        }
-
         const daysSinceStart = plot.daysAfterSpray
           ? parseInt(String(plot.daysAfterSpray), 10)
           : 0;
@@ -167,6 +154,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               matchedTarget?.type13TargetId || plot.type13TargetId || null,
             roundNumber: pIdx + 1,
             actualVisitDate: new Date(),
+            actualPlotsCount: actualCount,
             daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
             trackingResult: plot.trackingResult || "ได้ผลตามเกณฑ์",
             productResponse: plot.productResponse || "ปกติ",
@@ -178,7 +166,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               plot.longitude != null && String(plot.longitude).trim() !== ""
                 ? new Prisma.Decimal(Number(plot.longitude))
                 : null,
-            additionalNotes: `[จำนวนแปลงจริง: ${actualCount}] ${plot.additionalNotes || ""}`.trim(),
+            additionalNotes: plot.additionalNotes?.trim() || null,
           },
         });
 
@@ -197,10 +185,11 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
             .map((p, prodIdx) => {
               const dbP = pMap.get(p.productId);
               if (!dbP) return null;
-              const extraText =
+
+              const extraQuantityVal =
                 p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
-                  ? `+${p.extraQuantity} ${p.extraUnit || "ซีซี"}`
-                  : (p.detail || null);
+                  ? new Prisma.Decimal(Number(p.extraQuantity))
+                  : null;
 
               return {
                 resultId: createdResult.id,
@@ -214,7 +203,9 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
                       : new Prisma.Decimal(1),
                 actualRate: p.actualRate || null,
                 unit: p.unit || dbP.unit || null,
-                detail: extraText,
+                extraQuantity: extraQuantityVal,
+                extraUnit: p.extraUnit || null,
+                detail: p.detail || null,
                 sortOrder: prodIdx,
               };
             })
