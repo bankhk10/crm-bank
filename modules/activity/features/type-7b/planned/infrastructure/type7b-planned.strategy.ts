@@ -70,7 +70,13 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     activityPlanId: string,
     actualData: any,
   ): Promise<void> {
-    const t7b = actualData.type7bActual || actualData;
+    const t7b =
+      actualData.type7bActual ||
+      actualData.actualOutcome?.type7bActual ||
+      actualData.actualData?.actualOutcome?.type7bActual ||
+      actualData.actualData?.type7bActual ||
+      actualData.actualOutcome ||
+      actualData;
 
     // 1. Resolve target & Type 7A Target ID
     const target = await (tx as any).activityPlanType7bTarget?.findFirst({
@@ -82,6 +88,9 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
     const hasExplicit7bData = Boolean(
       actualData.type7bActual ||
         actualData.type7b ||
+        actualData.actualOutcome?.type7bActual ||
+        actualData.actualData?.actualOutcome?.type7bActual ||
+        (Array.isArray(t7b.t7SprayingRounds) && t7b.t7SprayingRounds.length > 0) ||
         (Array.isArray(actualData.t7SprayingRounds) &&
           actualData.t7SprayingRounds.length > 0),
     );

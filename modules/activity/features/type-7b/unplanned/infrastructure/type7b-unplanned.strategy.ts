@@ -26,9 +26,27 @@ export const type7bUnplannedStrategy: WorkTypeStrategy = {
     await type7bPlannedStrategy.savePlan(tx, activityPlanId, planData);
 
     // 2. If actual outcome passed, save actual outcome
-    if (planData.actualOutcome || planData.actualData) {
+    const actualOutcomePayload =
+      planData.actualOutcome ||
+      planData.actualData?.actualOutcome ||
+      planData.actualData ||
+      planData.type7bActual;
+
+    if (actualOutcomePayload) {
+      const resolvedType7bActual =
+        planData.type7bActual ||
+        planData.actualOutcome?.type7bActual ||
+        planData.actualData?.actualOutcome?.type7bActual ||
+        planData.actualData?.type7bActual ||
+        actualOutcomePayload.type7bActual ||
+        actualOutcomePayload;
+
       await type7bPlannedStrategy.saveActual!(tx, activityPlanId, {
-        ...(planData.actualOutcome || planData.actualData),
+        ...(typeof actualOutcomePayload === "object" ? actualOutcomePayload : {}),
+        ...(planData.actualData && typeof planData.actualData === "object"
+          ? planData.actualData
+          : {}),
+        type7bActual: resolvedType7bActual,
       });
     }
   },

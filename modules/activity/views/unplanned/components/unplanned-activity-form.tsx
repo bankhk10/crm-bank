@@ -1261,6 +1261,7 @@ export function UnplannedActivityForm({
         workTypeCode: "TYPE_7B",
         notes: firstItem?.notes || "",
         actualOutcome: mapped.actualOutcome,
+        type7bActual: mapped.actualOutcome?.type7bActual,
         attachments: cleanType7bImages.map((img) => ({
           category: "PLOT",
           fileUrl: img.url,
@@ -2028,6 +2029,12 @@ export function UnplannedActivityForm({
       type7bData: mappedType7b?.type7bData,
       type7bPlots: mappedType7b?.type7bData?.plots,
       type7bTargets: mappedType7b?.type7bData?.plots,
+      actualOutcome: isType7bActive
+        ? mappedType7b?.actualOutcome || actualData?.actualOutcome
+        : undefined,
+      type7bActual: isType7bActive
+        ? mappedType7b?.actualOutcome?.type7bActual || actualData?.type7bActual
+        : undefined,
       type8Data: mappedType8?.type8Data,
       type8Meetings: mappedType8?.type8Data?.meetings,
       type8Targets: mappedType8?.targets,
