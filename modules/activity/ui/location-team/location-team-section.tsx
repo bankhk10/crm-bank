@@ -63,8 +63,6 @@ export function LocationTeamSection({
   venueType = "STORE",
   onVenueTypeChange,
 }: Props) {
-
-
   const charCount = locationText.length;
   const charPercent = Math.round((charCount / 500) * 100);
 
@@ -84,17 +82,36 @@ export function LocationTeamSection({
   // When TYPE_8 is active with venueType === "STORE", auto-sync location fields from selected dealer
   useEffect(() => {
     if (isType8Active && venueType === "STORE" && selectedDealer) {
-      if (setProvince && selectedDealer.province && selectedDealer.province !== province) {
+      if (
+        setProvince &&
+        selectedDealer.province &&
+        selectedDealer.province !== province
+      ) {
         setProvince(selectedDealer.province);
       }
-      if (setDistrict && selectedDealer.district && selectedDealer.district !== district) {
+      if (
+        setDistrict &&
+        selectedDealer.district &&
+        selectedDealer.district !== district
+      ) {
         setDistrict(selectedDealer.district);
       }
       if (formattedDealerAddress && formattedDealerAddress !== locationText) {
         setLocationText(formattedDealerAddress);
       }
     }
-  }, [isType8Active, venueType, selectedDealer, formattedDealerAddress, province, district, locationText, setProvince, setDistrict, setLocationText]);
+  }, [
+    isType8Active,
+    venueType,
+    selectedDealer,
+    formattedDealerAddress,
+    province,
+    district,
+    locationText,
+    setProvince,
+    setDistrict,
+    setLocationText,
+  ]);
 
   // Helper Section Sub-component
   const renderHelpersCard = () => (
@@ -239,7 +256,9 @@ export function LocationTeamSection({
                     disabled={readonly}
                     className="text-blue-600 focus:ring-blue-500 h-4 w-4"
                   />
-                  <span>ร้านค้า (ดึงที่อยู่ร้าน Dealer จาก Customer Master)</span>
+                  <span>
+                    ร้านค้า (ดึงที่อยู่ร้าน Dealer จาก Customer Master)
+                  </span>
                 </label>
 
                 <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -269,7 +288,9 @@ export function LocationTeamSection({
                 {selectedDealer ? (
                   <div className="text-xs text-slate-700 space-y-1 pt-1">
                     <p>
-                      <span className="font-semibold text-slate-900">ร้านค้า:</span>{" "}
+                      <span className="font-semibold text-slate-900">
+                        ร้านค้า:
+                      </span>{" "}
                       {selectedDealer.name}{" "}
                       {selectedDealer.customerCode && (
                         <span className="text-slate-500 font-normal">
@@ -278,19 +299,25 @@ export function LocationTeamSection({
                       )}
                     </p>
                     <p>
-                      <span className="font-semibold text-slate-900">ที่อยู่:</span>{" "}
-                      {formattedDealerAddress || "ไม่พบข้อมูลที่อยู่แบบเต็มในระบบ"}
+                      <span className="font-semibold text-slate-900">
+                        ที่อยู่:
+                      </span>{" "}
+                      {formattedDealerAddress ||
+                        "ไม่พบข้อมูลที่อยู่แบบเต็มในระบบ"}
                     </p>
                     {selectedDealer.phone && (
                       <p>
-                        <span className="font-semibold text-slate-900">เบอร์โทรศัพท์:</span>{" "}
+                        <span className="font-semibold text-slate-900">
+                          เบอร์โทรศัพท์:
+                        </span>{" "}
                         {selectedDealer.phone}
                       </p>
                     )}
                   </div>
                 ) : (
                   <p className="text-xs text-amber-700 italic pt-1">
-                    กรุณาเลือกร้านค้า Dealer ในส่วน &quot;จัดประชุมให้ใคร&quot; ด้านบนเพื่อดึงข้อมูลที่อยู่ร้านมาแสดง
+                    กรุณาเลือกร้านค้า Dealer ในส่วน &quot;จัดประชุมให้ใคร&quot;
+                    ด้านบนเพื่อดึงข้อมูลที่อยู่ร้านมาแสดง
                   </p>
                 )}
               </div>
@@ -300,7 +327,10 @@ export function LocationTeamSection({
                 <ActivityAddressSelect
                   levels="province-district"
                   value={{ province, district }}
-                  onChange={(next: { province?: string; district?: string }) => {
+                  onChange={(next: {
+                    province?: string;
+                    district?: string;
+                  }) => {
                     if (setProvince) setProvince(next.province || "");
                     if (setDistrict) setDistrict(next.district || "");
                   }}
@@ -311,7 +341,8 @@ export function LocationTeamSection({
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-1">
                     <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    รายละเอียดพื้นที่จัดกิจกรรม / จุดสังเกต <span className="text-red-500">*</span>
+                    รายละเอียดพื้นที่จัดกิจกรรม / จุดสังเกต{" "}
+                    <span className="text-red-500">*</span>
                   </label>
 
                   <div className="relative">
@@ -373,7 +404,9 @@ export function LocationTeamSection({
   }
 
   // TYPE_9 and TYPE_10: Show only Helpers, hide Location text / observation points / province / district
-  const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
+  const isType9Active = selectedWorkTypes.includes(
+    "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+  );
   const isType10Active = selectedWorkTypes.some(
     (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
   );
@@ -422,8 +455,8 @@ export function LocationTeamSection({
             }}
             disabled={readonly}
           />
-
-          <div>
+          {/* ปิดไว้ก่อนเดียวมาเปิดเอง รายละเอียดพื้นที่จัดกิจกรรม / จุดสังเกต */}
+          {/* <div>
             <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1">
               <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
               รายละเอียดพื้นที่จัดกิจกรรม / จุดสังเกต
@@ -442,8 +475,6 @@ export function LocationTeamSection({
                            focus:border-blue-400 transition-all resize-none
                            disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
               />
-
-              {/* Character count bar */}
               <div className="mt-1.5 flex items-center justify-between gap-3">
                 <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
                   <div
@@ -466,14 +497,11 @@ export function LocationTeamSection({
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* ผู้ช่วยงานกิจกรรม */}
-        <div className="lg:col-span-4 space-y-2">
-          {renderHelpersCard()}
+          </div> */}
         </div>
       </div>
+      {/* ผู้ช่วยงานกิจกรรม */}
+      <div className="lg:col-span-4 space-y-2">{renderHelpersCard()}</div>
     </div>
   );
 }
