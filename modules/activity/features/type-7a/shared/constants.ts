@@ -67,11 +67,11 @@ export const IRRIGATION_METHODS = [
 ] as const;
 
 export const SPRAY_METHODS = [
-  "เครื่องพ่นปั๊มลากสาย",
+  "คน + สายลาก",
   "เครื่องพ่นสะพายหลัง (เครื่องยนต์)",
   "เครื่องพ่นแบตเตอรี่",
   "โดรนเพื่อการเกษตร (Drone)",
-  "แอร์บัส / รถพ่นยา",
+  "แอร์บัส",
 ] as const;
 
 export const DEMO_PLOT_STATUSES = [

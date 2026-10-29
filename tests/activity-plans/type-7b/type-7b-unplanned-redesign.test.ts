@@ -32,8 +32,12 @@ async function runTests() {
   };
   const resMissingPlot = validateType7bUnplannedItems([invalidItem]);
   assert.strictEqual(resMissingPlot.isValid, false);
-  assert.ok(resMissingPlot.errors?.some((e: any) => e.includes("ชื่อแปลงสาธิต")));
-  assert.ok(resMissingPlot.errors?.some((e: any) => e.includes("ชื่อเจ้าของแปลง")));
+  assert.ok(
+    resMissingPlot.errors?.some((e: any) => e.includes("ชื่อแปลงสาธิต")),
+  );
+  assert.ok(
+    resMissingPlot.errors?.some((e: any) => e.includes("ชื่อเจ้าของแปลง")),
+  );
   assert.ok(resMissingPlot.errors?.some((e: any) => e.includes("พืชเป้าหมาย")));
 
   // 1.3 Round products validation (Additional product missing rate & qty)
@@ -48,7 +52,7 @@ async function runTests() {
         roundNumber: 1,
         sprayDate: "2026-10-24",
         sprayMethod: "SINGLE",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         baselineProducts: [],
         additionalProducts: [
@@ -66,8 +70,14 @@ async function runTests() {
   };
   const resBadRound = validateType7bUnplannedItems([itemWithBadRound]);
   assert.strictEqual(resBadRound.isValid, false);
-  assert.ok(resBadRound.errors?.some((e: any) => e.includes("จำนวนที่ใช้จริงของสินค้า")));
-  assert.ok(resBadRound.errors?.some((e: any) => e.includes("อัตราการใช้ของสินค้า")));
+  assert.ok(
+    resBadRound.errors?.some((e: any) =>
+      e.includes("จำนวนที่ใช้จริงของสินค้า"),
+    ),
+  );
+  assert.ok(
+    resBadRound.errors?.some((e: any) => e.includes("อัตราการใช้ของสินค้า")),
+  );
 
   // 1.4 Tank-mixed external chemicals validation
   const itemWithBadExternal: Type7bUnplannedItem = {
@@ -103,10 +113,20 @@ async function runTests() {
   };
   const resBadExt = validateType7bUnplannedItems([itemWithBadExternal]);
   assert.strictEqual(resBadExt.isValid, false);
-  assert.ok(resBadExt.errors?.some((e: any) => e.includes("ชื่อสินค้าของยาภายนอก")));
-  assert.ok(resBadExt.errors?.some((e: any) => e.includes("สูตรเพิ่มเติมของยาภายนอก")));
-  assert.ok(resBadExt.errors?.some((e: any) => e.includes("อัตราการใช้ของยาภายนอก")));
-  assert.ok(resBadExt.errors?.some((e: any) => e.includes("ระบุอุปกรณ์การฉีดพ่นเพิ่มเติม")));
+  assert.ok(
+    resBadExt.errors?.some((e: any) => e.includes("ชื่อสินค้าของยาภายนอก")),
+  );
+  assert.ok(
+    resBadExt.errors?.some((e: any) => e.includes("สูตรเพิ่มเติมของยาภายนอก")),
+  );
+  assert.ok(
+    resBadExt.errors?.some((e: any) => e.includes("อัตราการใช้ของยาภายนอก")),
+  );
+  assert.ok(
+    resBadExt.errors?.some((e: any) =>
+      e.includes("ระบุอุปกรณ์การฉีดพ่นเพิ่มเติม"),
+    ),
+  );
 
   // 1.5 Valid item passes
   const validItem: Type7bUnplannedItem = {
@@ -122,7 +142,7 @@ async function runTests() {
         roundNumber: 1,
         sprayDate: "2026-10-24",
         sprayMethod: "SINGLE",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         baselineProducts: [],
         additionalProducts: [
@@ -167,7 +187,13 @@ async function runTests() {
     district: "เมือง",
     visitDate: "2026-10-24",
     daysAfterSpray: 14,
-    cropImages: [{ id: "img-crop-1", url: "https://example.com/crop1.jpg", name: "crop1.jpg" }],
+    cropImages: [
+      {
+        id: "img-crop-1",
+        url: "https://example.com/crop1.jpg",
+        name: "crop1.jpg",
+      },
+    ],
     sprayingRounds: [
       {
         id: "round-1",
@@ -206,7 +232,13 @@ async function runTests() {
             unit: "ซอง",
           },
         ],
-        roundImages: [{ id: "img-round-1", url: "https://example.com/round1.jpg", name: "round1.jpg" }],
+        roundImages: [
+          {
+            id: "img-round-1",
+            url: "https://example.com/round1.jpg",
+            name: "round1.jpg",
+          },
+        ],
       },
     ],
     nextSprayDate: "2026-11-05",
@@ -216,13 +248,17 @@ async function runTests() {
     controlYieldKg: "7200",
     farmerSatisfaction: 5,
     commercialPotential: "สูงมาก (พร้อมขยายผลเชิงพาณิชย์)",
-    finalSummaryNotes: "ผลผลิตสูงกว่าแปลงเปรียบเทียบอย่างมีนัยสำคัญ เกษตรกรสั่งซื้อเพิ่ม",
+    finalSummaryNotes:
+      "ผลผลิตสูงกว่าแปลงเปรียบเทียบอย่างมีนัยสำคัญ เกษตรกรสั่งซื้อเพิ่ม",
   };
 
-  const mappedPayload = mapType7bUnplannedToPayload([fullItem], [
-    { id: "prod-base-1", name: "ยาบำรุงข้าว A", unit: "ขวด" },
-    { id: "prod-add-2", name: "ฮอร์โมนเร่งรวง B", unit: "ซอง" },
-  ]);
+  const mappedPayload = mapType7bUnplannedToPayload(
+    [fullItem],
+    [
+      { id: "prod-base-1", name: "ยาบำรุงข้าว A", unit: "ขวด" },
+      { id: "prod-add-2", name: "ฮอร์โมนเร่งรวง B", unit: "ซอง" },
+    ],
+  );
 
   assert.ok(mappedPayload.type7bData);
   assert.ok(mappedPayload.actualOutcome);
@@ -246,8 +282,16 @@ async function runTests() {
 
   // Verify aggregated products in planProducts
   assert.strictEqual(mappedPayload.planProducts.length, 2);
-  assert.ok(mappedPayload.planProducts.some((p: any) => p.productId === "prod-base-1" && p.targetQuantity === 2));
-  assert.ok(mappedPayload.planProducts.some((p: any) => p.productId === "prod-add-2" && p.targetQuantity === 1));
+  assert.ok(
+    mappedPayload.planProducts.some(
+      (p: any) => p.productId === "prod-base-1" && p.targetQuantity === 2,
+    ),
+  );
+  assert.ok(
+    mappedPayload.planProducts.some(
+      (p: any) => p.productId === "prod-add-2" && p.targetQuantity === 1,
+    ),
+  );
 
   // Verify Section 3
   assert.strictEqual(t7bActual.t7PlotStatus, "COMPLETED");
@@ -258,7 +302,9 @@ async function runTests() {
   // Verify attachments combined (crop + round photos)
   assert.strictEqual(mappedPayload.actualOutcome.attachments.length, 2);
 
-  console.log("✓ Test 2 passed: Payload mapping correctly aggregates all sections, rounds, and products.");
+  console.log(
+    "✓ Test 2 passed: Payload mapping correctly aggregates all sections, rounds, and products.",
+  );
 
   // ---------------------------------------------------------------------------
   // Test 3: Hydration tests
@@ -292,7 +338,7 @@ async function runTests() {
             roundNumber: 1,
             sprayDate: "2026-10-24",
             sprayMethod: "SINGLE",
-            sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+            sprayEquipment: "เป้สะพายหลัง",
             productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
             baselineProducts: [],
             additionalProducts: [
@@ -327,14 +373,20 @@ async function runTests() {
   assert.strictEqual(hItem.plotStatus, "COMPLETED");
   assert.strictEqual(hItem.finalYieldKg, "8500");
 
-  console.log("✓ Test 3 passed: Hydration properly reconstructs rounds, products, and plot evaluation.");
+  console.log(
+    "✓ Test 3 passed: Hydration properly reconstructs rounds, products, and plot evaluation.",
+  );
 
   // ---------------------------------------------------------------------------
   // Test 4: Strategy Save Plan & Save Actual Integration
   // ---------------------------------------------------------------------------
-  console.log("\n[Test 4] Testing type7bUnplannedStrategy.savePlan & saveActual integration...");
+  console.log(
+    "\n[Test 4] Testing type7bUnplannedStrategy.savePlan & saveActual integration...",
+  );
 
-  const mockType7aTargets: any[] = [{ id: "demo-plot-101", status: DemoPlotStatus.IN_PROGRESS }];
+  const mockType7aTargets: any[] = [
+    { id: "demo-plot-101", status: DemoPlotStatus.IN_PROGRESS },
+  ];
   const mockSprayRounds: any[] = [];
   const mockSprayProducts: any[] = [];
   const mockType7bTargets: any[] = [];
@@ -349,7 +401,8 @@ async function runTests() {
       },
     },
     activityPlanType7bTarget: {
-      findFirst: async () => mockType7bTargets[0] || { type7aTargetId: "demo-plot-101" },
+      findFirst: async () =>
+        mockType7bTargets[0] || { type7aTargetId: "demo-plot-101" },
       deleteMany: async () => {
         mockType7bTargets.length = 0;
       },
@@ -428,7 +481,10 @@ async function runTests() {
     },
     product: {
       findFirst: async ({ where }: any) => {
-        return { id: where.OR?.[0]?.id || "prod-resolved", name: "สินค้าทดสอบ" };
+        return {
+          id: where.OR?.[0]?.id || "prod-resolved",
+          name: "สินค้าทดสอบ",
+        };
       },
       findMany: async ({ where }: any) => {
         return [
@@ -448,7 +504,9 @@ async function runTests() {
   assert.strictEqual(mockSprayProducts.length, 2);
   assert.strictEqual(mockType7aTargets[0].status, DemoPlotStatus.COMPLETED);
 
-  console.log("✓ Test 4 passed: Unplanned strategy smoothly saves rounds, products, and closure evaluation.");
+  console.log(
+    "✓ Test 4 passed: Unplanned strategy smoothly saves rounds, products, and closure evaluation.",
+  );
 
   console.log("\n🎉 ALL TYPE 7B UNPLANNED REDESIGN TESTS PASSED 100%!");
 }

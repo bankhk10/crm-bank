@@ -47,7 +47,8 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     rawResult.demoPlots?.[0] ||
     null;
 
-  const demoItems = rawResult.demoResults || rawResult.activityResultDemoItems || [];
+  const demoItems =
+    rawResult.demoResults || rawResult.activityResultDemoItems || [];
   const visit1 = dp?.visits?.[0] || rawResult.visits?.[0] || null;
 
   // Helper date formatter
@@ -64,10 +65,12 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     .map((p: any) => ({
       productId: p.productId || p.product?.id || "",
       productName: p.productName || p.product?.name || "",
-      withdrawnQuantity: p.withdrawnQuantity != null ? Number(p.withdrawnQuantity) : 1,
+      withdrawnQuantity:
+        p.withdrawnQuantity != null ? Number(p.withdrawnQuantity) : 1,
       actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
       extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+      extraUnit:
+        p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
       applicationRate: p.actualRate || "",
     }));
 
@@ -79,7 +82,8 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       productName: p.productName || p.product?.name || "",
       actualQuantity: p.actualQuantity != null ? Number(p.actualQuantity) : 1,
       extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+      extraUnit:
+        p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
       applicationRate: p.actualRate || "",
     }));
 
@@ -88,44 +92,47 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     dedicatedPlanned.length > 0
       ? dedicatedPlanned
       : demoProds.length > 0
-      ? demoProds
-          .filter((p: any) => !p.isAdditional)
-          .map((p: any) => ({
+        ? demoProds
+            .filter((p: any) => !p.isAdditional)
+            .map((p: any) => ({
+              productId: p.productId || p.product?.id || "",
+              productName: p.productName || p.product?.name || "",
+              withdrawnQuantity:
+                p.withdrawnQuantity != null
+                  ? Number(p.withdrawnQuantity)
+                  : p.quantity != null
+                    ? Number(p.quantity)
+                    : 1,
+              actualQuantity:
+                p.actualQuantity != null
+                  ? Number(p.actualQuantity)
+                  : p.quantity != null
+                    ? Number(p.quantity)
+                    : p.withdrawnQuantity != null
+                      ? Number(p.withdrawnQuantity)
+                      : 1,
+              extraQuantity:
+                p.extraQuantity != null ? String(p.extraQuantity) : "",
+              extraUnit:
+                p.extraUnit ||
+                (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+              applicationRate: p.applicationRate || "",
+            }))
+        : // Fallback to planned products from plan if no actual products recorded yet
+          (
+            target?.products ||
+            rawResult.type7aProducts ||
+            rawResult.activityPlan?.type7aProducts ||
+            []
+          ).map((p: any) => ({
             productId: p.productId || p.product?.id || "",
             productName: p.productName || p.product?.name || "",
-            withdrawnQuantity:
-              p.withdrawnQuantity != null
-                ? Number(p.withdrawnQuantity)
-                : p.quantity != null
-                ? Number(p.quantity)
-                : 1,
-            actualQuantity:
-              p.actualQuantity != null
-                ? Number(p.actualQuantity)
-                : p.quantity != null
-                ? Number(p.quantity)
-                : p.withdrawnQuantity != null
-                ? Number(p.withdrawnQuantity)
-                : 1,
-            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
-            applicationRate: p.applicationRate || "",
-          }))
-      : // Fallback to planned products from plan if no actual products recorded yet
-        (
-          target?.products ||
-          rawResult.type7aProducts ||
-          rawResult.activityPlan?.type7aProducts ||
-          []
-        ).map((p: any) => ({
-          productId: p.productId || p.product?.id || "",
-          productName: p.productName || p.product?.name || "",
-          withdrawnQuantity: p.quantity != null ? Number(p.quantity) : 1,
-          actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
-          extraQuantity: "",
-          extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
-          applicationRate: "",
-        }));
+            withdrawnQuantity: p.quantity != null ? Number(p.quantity) : 1,
+            actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
+            extraQuantity: "",
+            extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+            applicationRate: "",
+          }));
 
   const additionalFromDemo =
     dedicatedAdditional.length > 0
@@ -137,8 +144,11 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
             productId: p.productId || p.product?.id || "",
             productName: p.productName || p.product?.name || "",
             actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
-            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            extraQuantity:
+              p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit:
+              p.extraUnit ||
+              (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
             applicationRate: p.applicationRate || "",
           }));
 
@@ -169,7 +179,11 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
             a.category === "INITIAL" ||
             !a.category,
         )
-        .map((a: any) => ({ id: a.id, url: a.fileUrl || a.url, name: a.fileName || a.name }))
+        .map((a: any) => ({
+          id: a.id,
+          url: a.fileUrl || a.url,
+          name: a.fileName || a.name,
+        }))
     : [];
 
   const initialPhotos =
@@ -200,7 +214,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     [];
 
   const parsedIrrigations = Array.isArray(rawIrrigations)
-    ? rawIrrigations.map((i: any) => (typeof i === "string" ? i : i.method)).filter(Boolean)
+    ? rawIrrigations
+        .map((i: any) => (typeof i === "string" ? i : i.method))
+        .filter(Boolean)
     : [];
 
   // 6. External Chemicals (Dedicated -> DP -> Raw)
@@ -286,20 +302,20 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       "",
     t7FarmerPhone: formatPhoneNumber(
       rawResult.farmerPhone ||
-      rawResult.t7FarmerPhone ||
-      dedicated7a?.farmerPhone ||
-      rawResult.ownerPhone ||
-      target?.farmerPhone ||
-      dp?.ownerPhone ||
-      dp?.farmerCustomer?.phone ||
-      ""
+        rawResult.t7FarmerPhone ||
+        dedicated7a?.farmerPhone ||
+        rawResult.ownerPhone ||
+        target?.farmerPhone ||
+        dp?.ownerPhone ||
+        dp?.farmerCustomer?.phone ||
+        "",
     ),
     t7IsUnregisteredFarmer: Boolean(
       rawResult.isUnregisteredFarmer ??
-        rawResult.t7IsUnregisteredFarmer ??
-        dedicated7a?.isUnregisteredFarmer ??
-        target?.isUnregisteredFarmer ??
-        dp?.isUnregisteredFarmer,
+      rawResult.t7IsUnregisteredFarmer ??
+      dedicated7a?.isUnregisteredFarmer ??
+      target?.isUnregisteredFarmer ??
+      dp?.isUnregisteredFarmer,
     ),
     t7DealerName:
       rawResult.dealerName ||
@@ -322,26 +338,26 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       dedicated7a?.latitude != null
         ? Number(dedicated7a.latitude)
         : rawResult.latitude != null
-        ? Number(rawResult.latitude)
-        : rawResult.t7Latitude != null
-        ? Number(rawResult.t7Latitude)
-        : target?.latitude != null
-        ? Number(target.latitude)
-        : dp?.latitude != null
-        ? Number(dp.latitude)
-        : undefined,
+          ? Number(rawResult.latitude)
+          : rawResult.t7Latitude != null
+            ? Number(rawResult.t7Latitude)
+            : target?.latitude != null
+              ? Number(target.latitude)
+              : dp?.latitude != null
+                ? Number(dp.latitude)
+                : undefined,
     t7Longitude:
       dedicated7a?.longitude != null
         ? Number(dedicated7a.longitude)
         : rawResult.longitude != null
-        ? Number(rawResult.longitude)
-        : rawResult.t7Longitude != null
-        ? Number(rawResult.t7Longitude)
-        : target?.longitude != null
-        ? Number(target.longitude)
-        : dp?.longitude != null
-        ? Number(dp.longitude)
-        : undefined,
+          ? Number(rawResult.longitude)
+          : rawResult.t7Longitude != null
+            ? Number(rawResult.t7Longitude)
+            : target?.longitude != null
+              ? Number(target.longitude)
+              : dp?.longitude != null
+                ? Number(dp.longitude)
+                : undefined,
     t7PlotName:
       rawResult.plotName ||
       rawResult.t7PlotName ||
@@ -379,22 +395,22 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       target?.areaRai != null
         ? Number(target.areaRai)
         : dp?.areaRai != null
-        ? Number(dp.areaRai)
-        : rawResult.areaRai != null
-        ? rawResult.areaRai
-        : rawResult.t7AreaRai != null
-        ? rawResult.t7AreaRai
-        : undefined,
+          ? Number(dp.areaRai)
+          : rawResult.areaRai != null
+            ? rawResult.areaRai
+            : rawResult.t7AreaRai != null
+              ? rawResult.t7AreaRai
+              : undefined,
     t7TreeCount:
       target?.treeCount != null
         ? Number(target.treeCount)
         : dp?.treeCount != null
-        ? Number(dp.treeCount)
-        : rawResult.treeCount != null
-        ? rawResult.treeCount
-        : rawResult.t7TreeCount != null
-        ? rawResult.t7TreeCount
-        : undefined,
+          ? Number(dp.treeCount)
+          : rawResult.treeCount != null
+            ? rawResult.treeCount
+            : rawResult.t7TreeCount != null
+              ? rawResult.t7TreeCount
+              : undefined,
     t7PlotObjective:
       target?.objective ||
       dp?.objective ||
@@ -442,12 +458,12 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       dedicated7a?.cropAgeValue != null
         ? dedicated7a.cropAgeValue
         : rawResult.cropAgeValue != null
-        ? rawResult.cropAgeValue
-        : rawResult.t7CropAgeValue != null
-        ? rawResult.t7CropAgeValue
-        : visit1?.cropAgeValue != null
-        ? visit1.cropAgeValue
-        : undefined,
+          ? rawResult.cropAgeValue
+          : rawResult.t7CropAgeValue != null
+            ? rawResult.t7CropAgeValue
+            : visit1?.cropAgeValue != null
+              ? visit1.cropAgeValue
+              : undefined,
     t7CropAgeUnit:
       dedicated7a?.cropAgeUnit ||
       rawResult.cropAgeUnit ||
@@ -460,15 +476,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7GrowthStage ||
       visit1?.growthStage ||
       "",
-    t7CropCondition:
-      rawResult.cropCondition ||
-      rawResult.t7CropCondition,
-    t7CropProblemDesc:
-      rawResult.cropProblemDesc ||
-      rawResult.t7CropProblemDesc,
-    t7ProductResponse:
-      rawResult.productResponse ||
-      rawResult.t7ProductResponse,
+    t7CropCondition: rawResult.cropCondition || rawResult.t7CropCondition,
+    t7CropProblemDesc: rawResult.cropProblemDesc || rawResult.t7CropProblemDesc,
+    t7ProductResponse: rawResult.productResponse || rawResult.t7ProductResponse,
     t7DemoProducts:
       rawResult.demoProducts ||
       rawResult.t7DemoProducts ||
@@ -487,7 +497,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.t7SprayEquipment ||
       dp?.sprayEquipment ||
       visit1?.sprayEquipment ||
-      "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+      "เป้สะพายหลัง",
     t7OtherEquipment:
       dedicated7a?.otherEquipment ||
       rawResult.otherEquipment ||
@@ -497,9 +507,9 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       "",
     t7HasExternalChemicals: Boolean(
       dedicated7a?.hasExternalChemicals ??
-        rawResult.hasExternalChemicals ??
-        rawResult.t7HasExternalChemicals ??
-        dp?.hasExternalChemicals,
+      rawResult.hasExternalChemicals ??
+      rawResult.t7HasExternalChemicals ??
+      dp?.hasExternalChemicals,
     ),
     t7ExternalProducts: parsedExternalProducts,
     t7PlannedProducts:
@@ -515,8 +525,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
     t7CropImages: rawResult.cropImages || rawResult.t7CropImages || [],
     t7UsageMethod: rawResult.usageMethod || rawResult.t7UsageMethod,
     t7PlantingAreaCondition:
-      rawResult.plantingAreaCondition ||
-      rawResult.t7PlantingAreaCondition,
+      rawResult.plantingAreaCondition || rawResult.t7PlantingAreaCondition,
     t7Notes:
       dedicated7a?.notes ||
       rawResult.notes ||

@@ -1,9 +1,9 @@
 # Activity Type 7B — ติดตามแปลงสาธิต / Demo Plot Follow-up (README)
 
-> **Feature Slice**: `modules/activity/features/type-7b`  
-> **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
-> **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, `ActivityResultType7bSprayExternal`, `ActivityAttachment`)  
+> **Feature Slice**: `modules/activity/features/type-7b`
+> **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1
+> **Parent Module**: `modules/activity`
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, `ActivityResultType7bSprayExternal`, `ActivityAttachment`)
 > **Status**: Production Ready / Active Reference (v3.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Linkage to Type 7A Targets)
 
 ---
@@ -11,7 +11,9 @@
 ## 1. Overview
 
 ### 1.1 วัตถุประสงค์ของ Type 7B
+
 **Type 7B (ติดตามแปลงสาธิต / Demo Plot Follow-up)** มีวัตถุประสงค์เพื่อรองรับการปฏิบัติงานของเจ้าหน้าที่พัฒนาตลาดและนักวิชาการเกษตร (Market Development Representatives / Technical Agronomists) ในการลงพื้นที่เข้าติดตามผลการเจริญเติบโต การประเมินผลการใช้สารเคมี และการบันทึกผลการทดลองในแปลงสาธิตเดิมที่สร้างไว้ใน Type 7A:
+
 1. **เลือกแปลงสาธิตเดิมที่ต้องการติดตาม:** ดึงจากแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบจาก `activity_type_7a_targets` (`status !== COMPLETED`, `status !== CANCELLED` และ `closedDate === null`) ทั้งแปลงที่มีแผนกิจกรรมต้นทาง (Grouped by Plan) และแปลงเดี่ยว
 2. **รองรับ Advance Monthly Planning (การวางแผนล่วงหน้ารายเดือน):** พนักงานสามารถวางแผน Type 7A ในวันที่ 5 และวางแผน Type 7B (ติดตามแปลงสาธิต) สำหรับแปลงดังกล่าวในวันที่ 7 ได้ทันทีในรอบเดือนเดียวกัน โดยไม่ต้องรอให้ถึงวันลงพื้นที่จริง หรือรอให้บันทึกผลงานจริงของ Type 7A ก่อน เพราะระเบียนแปลงสาธิตใน `activity_type_7a_targets` จะถูกสร้างขึ้นทันทีตั้งแต่ตอนบันทึกแผนงาน Type 7A
 3. **วางแผนเบิกสินค้าตัวอย่างเพิ่มเติมสำหรับการพ่นสารรอบถัดไป:** วางแผนเบิกสินค้า (`withdrawnProducts` / `products`) ล่วงหน้าลงตาราง `activity_type_7b_products` พร้อมส่งขออนุมัติตามสายงาน
@@ -27,7 +29,7 @@
      - **2. วิธีการฉีดพ่น (Spray Method):** ปุ่มสลับ 2 ตัวเลือก (2-Button Pill Toggle) ระหว่าง "ฉีดเดี่ยว (Single)" และ "ผสมถัง (Tank-mixed)"
        - กรณีเลือก "ผสมถัง (Tank-mixed)": แสดง Checkbox "มียาใช้ภายนอก (ไม่บังคับ)" (`hasExternalChemicals`)
        - เมื่อติ๊กเลือก "มียาใช้ภายนอก": แสดงกล่องรายการยาภายนอกที่ใช้ร่วม พร้อมปุ่ม "+ เพิ่มยาภายนอก" และกริด 6 ฟิลด์มาตรฐาน (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร SL/SC/EC/อื่นๆ, ระบุสูตรเพิ่มเติม, อัตราการใช้)
-     - **3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment):** เมนูดรอปดาวน์ `ActivitySelect` 5 ตัวเลือกมาตรฐาน (`SPRAY_EQUIPMENT_OPTIONS`) ได้แก่ เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่), เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส / รถพ่นยา, และ อื่นๆ (ระบุ) (พร้อม input กรอกระบุอุปกรณ์เพิ่มเติม)
+     - **3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment):** เมนูดรอปดาวน์ `ActivitySelect` 5 ตัวเลือกมาตรฐาน (`SPRAY_EQUIPMENT_OPTIONS`) ได้แก่ เป้สะพายหลัง, คน + สายลาก, โดรนเพื่อการเกษตร, แอร์บัส, และ อื่นๆ (ระบุ) (พร้อม input กรอกระบุอุปกรณ์เพิ่มเติม)
      - **4. ผลหลังการฉีดพ่นรอบนี้ (Spray Response):** พืชตอบสนองดี (เห็นผลตามเป้าหมาย), เกิดความเป็นพิษต่อพืช (Phytotoxicity), ไม่เห็นความแตกต่างอย่างมีนัยสำคัญ, อื่นๆ
      - **5. รูปถ่ายการฉีดพ่นประจำรอบ (Spray Round Images):** ภาพถ่ายการปฏิบัติงานและสภาพแปลงประจำรอบนั้นๆ สูงสุด 5 รูปต่อรอบ
      - **ข้อมูลท้ายส่วนที่ 2:** กำหนดวันฉีดพ่นครั้งถัดไป (`nextSprayDate`) และข้อสังเกตหรือข้อมูลเพิ่มเติม (`notes`)
@@ -37,6 +39,7 @@
      - เมื่อบันทึกปิดแปลง ระบบจะอัปเดต `status` และ `closedDate` กลับไปยังแปลงแม่ `ActivityPlanType7aTarget` โดยอัตโนมัติ
 
 ### 1.2 ขอบเขตของ Type 7B
+
 - **ความสัมพันธ์กับแปลงสาธิตและ Type 7A (Source Linkage):**
   - Type 7B เชื่อมโยงกับ Type 7A ผ่านฟิลด์ `type7aTargetId` (FK ชี้ไปยัง `ActivityPlanType7aTarget`) และ `sourceActivityPlanId`
   - รองรับการเลือกแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบ (`status: { notIn: [CANCELLED, COMPLETED] }, closedDate: null`) ผ่าน `findFollowUpDemoPlots()` และ `findFollowUpActivityPlans()`
@@ -47,6 +50,7 @@
   - **การจัดการสถานะแปลงแม่:** เมื่อบันทึกผลงานที่มีสถานะปิดแปลง (`COMPLETED` หรือ `CANCELLED`) จะอัปเดตสถานะและ `closedDate` ของระเบียน `ActivityPlanType7aTarget` โดยตรง โดยไม่มีการใช้ตาราง `demo_plots` หรือ `demo_plot_visits` เก่าอีกต่อไป
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
+
 1. **Planned (ในแผนงาน Trip Plan):** เลือกแปลงสาธิตเดิม พร้อมขอเบิกสินค้าตัวอย่างเพิ่มเติมล่วงหน้า ส่งขออนุมัติตามสายงาน
 2. **Planned Actual (บันทึกผลงานตามแผน):** นำเป้าหมายที่ได้รับอนุมัติมารายงานผลการติดตามจริง แบ่งเป็น 3 ส่วน (ข้อมูลติดตามแปลง, การฉีดพ่นรอบต่างๆ พร้อม Baseline/Additional Products, และสถานะแปลงสาธิต/ปิดแปลง)
 3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับการลงพื้นที่ติดตามแปลงหน้างานโดยไม่ได้วางแผนล่วงหน้า สามารถเลือกแปลงสาธิตเดิม ประเมินสภาพพืช ถ่ายภาพ และประเมินผลปิดแปลงจบในฟอร์มเดียว พร้อมสร้างแผนงานสถานะ `COMPLETED` ทันที
@@ -58,6 +62,7 @@
 ## 2. Business Flows
 
 ### 2.1 Planned (สร้างและแก้ไขแผนงาน)
+
 ```mermaid
 graph TD
     A["ผู้ใช้สร้างแผนงานใหม่"] --> B["กรอกข้อมูลทั่วไปและงบประมาณส่วนกลาง"]
@@ -76,6 +81,7 @@ graph TD
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
+
 ```mermaid
 graph TD
     A["เปิดหน้า Activity Plan Actual"] --> B["โหลดแผนงานและ Hydrate เป้าหมายเดิม extractType7bPlanTargets"]
@@ -106,6 +112,7 @@ graph TD
 ## 3. Architecture
 
 ### 3.1 Folder Structure
+
 ```text
 modules/activity/features/type-7b/
 ├── index.ts                                    # Unified Public API Contract (ส่งออกเฉพาะสิ่งที่ภายนอกต้องใช้)
@@ -189,17 +196,19 @@ sequenceDiagram
 ## 5. Data Models and Mapping
 
 ### 5.1 Database CRUD Matrix (100% Dedicated Relational Storage)
-| ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หน้าที่รับผิดชอบ |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_type_7b_targets`**<br>(`ActivityPlanType7bTarget`) | `createType7bData()` ใน `savePlan()` | โหลดรายละเอียดแผน Type 7B | ลบและสร้างใหม่ใน `syncType7bData()` | Cascade เมื่อลบ `ActivityPlan` | เป้าหมายแปลงที่เลือกติดตาม เชื่อมโยง `type7aTargetId` สู่แปลงแม่ 7A |
-| **`activity_type_7b_products`**<br>(`ActivityPlanType7bProduct`) | `createType7bData()` | รายการสินค้าที่ขอเบิกเพิ่มเติม | ลบและสร้างใหม่ตามแผน | Cascade เมื่อลบ `ActivityPlan` | เก็บสินค้าตัวอย่างที่ขอเบิกเพิ่มตามแผน |
-| **`activity_type_7b_results`**<br>(`ActivityResultType7b`) | `saveActual()` ใน Actual | โหลดผลการติดตามจริงใน Detail / Actual View | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | เก็บผลการติดตามแปลง วันตรวจ วันหลังพ่น ปัญหาพืช และผลสรุปปิดแปลง |
-| **`activity_type_7b_spray_rounds`**<br>(`ActivityResultType7bSprayRound`) | `saveActual()` ใน Actual | โหลดรอบการฉีดพ่นใน Detail View | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7b` | เก็บรอบการฉีดพ่น, วิธีการ, อุปกรณ์ และผลตอบสนอง |
-| **`activity_type_7b_spray_products`**<br>(`ActivityResultType7bSprayProduct`) | `saveActual()` ใน Actual | โหลดสินค้าที่ใช้ในแต่ละรอบ | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7bSprayRound` | เก็บสินค้าตามแผนและสินค้าเพิ่มเติม อัตราใช้ และจำนวน |
-| **`activity_type_7b_spray_externals`**<br>(`ActivityResultType7bSprayExternal`) | `saveActual()` ใน Actual | โหลดยาภายนอกในแต่ละรอบ | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7bSprayRound` | เก็บสารเคมีภายนอกกรณีผสมถัง (Tank-mixed) |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ PLOT) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | เก็บล็อก URL ภาพถ่ายติดตามและภาพประจำรอบ (`sprayRoundId`) |
+
+| ตารางในฐานข้อมูล (`Prisma Model`)                                               | Create (สร้าง)                       | Read (อ่าน/แสดงผล)                         | Update (แก้ไข)                      | Delete (ลบ)                                      | หน้าที่รับผิดชอบ                                                    |
+| :------------------------------------------------------------------------------ | :----------------------------------- | :----------------------------------------- | :---------------------------------- | :----------------------------------------------- | :------------------------------------------------------------------ |
+| **`activity_type_7b_targets`**<br>(`ActivityPlanType7bTarget`)                  | `createType7bData()` ใน `savePlan()` | โหลดรายละเอียดแผน Type 7B                  | ลบและสร้างใหม่ใน `syncType7bData()` | Cascade เมื่อลบ `ActivityPlan`                   | เป้าหมายแปลงที่เลือกติดตาม เชื่อมโยง `type7aTargetId` สู่แปลงแม่ 7A |
+| **`activity_type_7b_products`**<br>(`ActivityPlanType7bProduct`)                | `createType7bData()`                 | รายการสินค้าที่ขอเบิกเพิ่มเติม             | ลบและสร้างใหม่ตามแผน                | Cascade เมื่อลบ `ActivityPlan`                   | เก็บสินค้าตัวอย่างที่ขอเบิกเพิ่มตามแผน                              |
+| **`activity_type_7b_results`**<br>(`ActivityResultType7b`)                      | `saveActual()` ใน Actual             | โหลดผลการติดตามจริงใน Detail / Actual View | ลบและสร้างใหม่ใน `saveActual()`     | Cascade เมื่อลบ `ActivityPlan`                   | เก็บผลการติดตามแปลง วันตรวจ วันหลังพ่น ปัญหาพืช และผลสรุปปิดแปลง    |
+| **`activity_type_7b_spray_rounds`**<br>(`ActivityResultType7bSprayRound`)       | `saveActual()` ใน Actual             | โหลดรอบการฉีดพ่นใน Detail View             | ลบและสร้างใหม่ใน `saveActual()`     | Cascade เมื่อลบ `ActivityResultType7b`           | เก็บรอบการฉีดพ่น, วิธีการ, อุปกรณ์ และผลตอบสนอง                     |
+| **`activity_type_7b_spray_products`**<br>(`ActivityResultType7bSprayProduct`)   | `saveActual()` ใน Actual             | โหลดสินค้าที่ใช้ในแต่ละรอบ                 | ลบและสร้างใหม่ใน `saveActual()`     | Cascade เมื่อลบ `ActivityResultType7bSprayRound` | เก็บสินค้าตามแผนและสินค้าเพิ่มเติม อัตราใช้ และจำนวน                |
+| **`activity_type_7b_spray_externals`**<br>(`ActivityResultType7bSprayExternal`) | `saveActual()` ใน Actual             | โหลดยาภายนอกในแต่ละรอบ                     | ลบและสร้างใหม่ใน `saveActual()`     | Cascade เมื่อลบ `ActivityResultType7bSprayRound` | เก็บสารเคมีภายนอกกรณีผสมถัง (Tank-mixed)                            |
+| **`activity_attachments`**<br>(`ActivityAttachment`)                            | Storage Upload + `saveActual()`      | `plan.attachments` (หมวดหมู่ PLOT)         | ลบรายการเก่าและสร้างใหม่            | Cascade เมื่อลบ `ActivityPlan`                   | เก็บล็อก URL ภาพถ่ายติดตามและภาพประจำรอบ (`sprayRoundId`)           |
 
 ### 5.2 Prisma Schema Definitions
+
 ```prisma
 // 1. ตารางเป้าหมายแผนงานติดตามแปลงสาธิต (activity_type_7b_targets)
 model ActivityPlanType7bTarget {
@@ -292,9 +301,9 @@ model ActivityResultType7b {
 
 ## 6. Change Log
 
-| วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
-| :--- | :--- | :--- | :--- |
-| **2026-10-16** | 1.0.0 | สร้างโมดูล Type 7B เป็น Vertical Slice Architecture สำหรับการติดตามแปลงสาธิต | Antigravity AI |
-| **2026-10-24** | 2.0.0 | อัปเกรดระบบบันทึกผลงานจริงสู่ Multiple Spraying Rounds Architecture สมบูรณ์แบบ | Antigravity AI |
-| **2026-10-24** | 2.1.0 | ปรับปรุงระบบ Hydration ข้อมูลผลงานจริง | Antigravity AI |
-| **2026-10-27** | 3.0.0 | **ยกเลิกตารางเก่า (`demo_plots`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType7bTarget` ให้เชื่อมโยงโดยตรงกับแปลงแม่ `ActivityPlanType7aTarget` ผ่าน `type7aTargetId`<br>2. รองรับ Advance Monthly Planning: อนุญาตให้สร้างแผนงาน Type 7B ติดตามแปลงล่วงหน้าได้ทันทีที่มีแผน Type 7A โดยไม่ต้องรอผลงานจริงของ 7A<br>3. เมื่อปิดแปลง (`COMPLETED` หรือ `CANCELLED`) อัปเดต `status` และ `closedDate` กลับไปยัง `activity_type_7a_targets` โดยตรง<br>4. อัปเดต Data Flow, CRUD Matrix, Field Mapping และ Prisma Schema ครบถ้วน | Antigravity AI |
+| วันที่         | เวอร์ชัน | รายละเอียดการปรับปรุง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ผู้ดำเนินการ   |
+| :------------- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-16** | 1.0.0    | สร้างโมดูล Type 7B เป็น Vertical Slice Architecture สำหรับการติดตามแปลงสาธิต                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Antigravity AI |
+| **2026-10-24** | 2.0.0    | อัปเกรดระบบบันทึกผลงานจริงสู่ Multiple Spraying Rounds Architecture สมบูรณ์แบบ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Antigravity AI |
+| **2026-10-24** | 2.1.0    | ปรับปรุงระบบ Hydration ข้อมูลผลงานจริง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Antigravity AI |
+| **2026-10-27** | 3.0.0    | **ยกเลิกตารางเก่า (`demo_plots`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType7bTarget` ให้เชื่อมโยงโดยตรงกับแปลงแม่ `ActivityPlanType7aTarget` ผ่าน `type7aTargetId`<br>2. รองรับ Advance Monthly Planning: อนุญาตให้สร้างแผนงาน Type 7B ติดตามแปลงล่วงหน้าได้ทันทีที่มีแผน Type 7A โดยไม่ต้องรอผลงานจริงของ 7A<br>3. เมื่อปิดแปลง (`COMPLETED` หรือ `CANCELLED`) อัปเดต `status` และ `closedDate` กลับไปยัง `activity_type_7a_targets` โดยตรง<br>4. อัปเดต Data Flow, CRUD Matrix, Field Mapping และ Prisma Schema ครบถ้วน | Antigravity AI |

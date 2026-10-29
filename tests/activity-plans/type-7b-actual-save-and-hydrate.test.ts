@@ -11,7 +11,9 @@ async function runTests() {
   // -------------------------------------------------------------------------
   // Test 1: Strategy Save (Multiple Spraying Rounds + Baseline + Additional Products)
   // -------------------------------------------------------------------------
-  console.log("\n[Test 1] Testing type7bPlannedStrategy.saveActual with Additional Products & Spray Rounds...");
+  console.log(
+    "\n[Test 1] Testing type7bPlannedStrategy.saveActual with Additional Products & Spray Rounds...",
+  );
 
   const createdRounds: any[] = [];
   const createdProducts: any[] = [];
@@ -28,7 +30,10 @@ async function runTests() {
       findFirst: async () => ({ demoPlotId: "demo-plot-101" }),
     },
     activityPlanType7bTarget: {
-      findFirst: async () => ({ id: "target-101", demoPlotId: "demo-plot-101" }),
+      findFirst: async () => ({
+        id: "target-101",
+        demoPlotId: "demo-plot-101",
+      }),
     },
     activityResultType7b: {
       deleteMany: async () => {},
@@ -51,7 +56,10 @@ async function runTests() {
     activityResultType7bSprayRound: {
       deleteMany: async () => {},
       create: async (args: any) => {
-        const roundRecord = { id: `round-db-${createdRounds.length + 1}`, ...args.data };
+        const roundRecord = {
+          id: `round-db-${createdRounds.length + 1}`,
+          ...args.data,
+        };
         createdRounds.push(roundRecord);
         return roundRecord;
       },
@@ -59,7 +67,10 @@ async function runTests() {
     activityResultSprayRound: {
       deleteMany: async () => {},
       create: async (args: any) => {
-        const roundRecord = { id: `round-db-${createdRounds.length + 1}`, ...args.data };
+        const roundRecord = {
+          id: `round-db-${createdRounds.length + 1}`,
+          ...args.data,
+        };
         createdRounds.push(roundRecord);
         return roundRecord;
       },
@@ -89,8 +100,16 @@ async function runTests() {
         { id: "prod-base-1", name: "สารป้องกันกำจัดแมลง A", unit: "ขวด" },
         { id: "prod-uuid-1", name: "เอ็กซอล", unit: "ขวด" },
         { id: "prod-uuid-2", name: "นูริชแคลเซียมโบรอน", unit: "ขวด" },
-        { id: "prod-add-101", name: "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์", unit: "ขวด" },
-        { id: "prod-add-102", name: "ปุ๋ยเกล็ด 20-20-20 พ่นทางใบ", unit: "ซอง" },
+        {
+          id: "prod-add-101",
+          name: "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์",
+          unit: "ขวด",
+        },
+        {
+          id: "prod-add-102",
+          name: "ปุ๋ยเกล็ด 20-20-20 พ่นทางใบ",
+          unit: "ซอง",
+        },
       ],
     },
     activityAttachment: {
@@ -128,7 +147,7 @@ async function runTests() {
               applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
             },
           ],
-          sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+          sprayEquipment: "เป้สะพายหลัง",
           otherEquipment: "",
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
           problemDetail: "",
@@ -204,38 +223,69 @@ async function runTests() {
     },
   };
 
-  await type7bPlannedStrategy.saveActual!(mockTx, "plan-7b-test-1", testPayload);
+  await type7bPlannedStrategy.saveActual!(
+    mockTx,
+    "plan-7b-test-1",
+    testPayload,
+  );
 
   // Assertions for Save
-  assert.strictEqual(createdRounds.length, 2, "Should create 2 spraying rounds in DB");
+  assert.strictEqual(
+    createdRounds.length,
+    2,
+    "Should create 2 spraying rounds in DB",
+  );
   assert.strictEqual(createdRounds[0].roundNumber, 1);
   assert.strictEqual(createdRounds[0].sprayMethod, "TANK_MIXED");
-  assert.strictEqual(createdRounds[0].sprayEquipment, "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)");
+  assert.strictEqual(createdRounds[0].sprayEquipment, "เป้สะพายหลัง");
   assert.strictEqual(createdRounds[1].roundNumber, 2);
   assert.strictEqual(createdRounds[1].sprayMethod, "SINGLE");
-  assert.strictEqual(createdRounds[1].otherEquipment, "รถแทรกเตอร์พ่นยาแบบบูมสเปรย์");
-  assert.strictEqual(createdRounds[1].problemDetail, "พบอาการใบเหลืองที่ปลายยอดเล็กน้อย");
+  assert.strictEqual(
+    createdRounds[1].otherEquipment,
+    "รถแทรกเตอร์พ่นยาแบบบูมสเปรย์",
+  );
+  assert.strictEqual(
+    createdRounds[1].problemDetail,
+    "พบอาการใบเหลืองที่ปลายยอดเล็กน้อย",
+  );
 
   // Check products: 2 baseline products + 2 additional products = 4 total
-  assert.strictEqual(createdProducts.length, 4, "Should create 4 spray product records");
+  assert.strictEqual(
+    createdProducts.length,
+    4,
+    "Should create 4 spray product records",
+  );
 
   // Verify Additional Product in Round 1
   const round1AddProd = createdProducts.find(
-    (p) => p.sprayRoundId === createdRounds[0].id && p.productId === "prod-add-101",
+    (p) =>
+      p.sprayRoundId === createdRounds[0].id && p.productId === "prod-add-101",
   );
   assert(round1AddProd, "Additional product prod-add-101 must be saved");
-  assert.strictEqual(round1AddProd.productName, "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์");
-  assert.strictEqual(round1AddProd.isPlanned, false, "Additional product isPlanned must be false");
+  assert.strictEqual(
+    round1AddProd.productName,
+    "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์",
+  );
+  assert.strictEqual(
+    round1AddProd.isPlanned,
+    false,
+    "Additional product isPlanned must be false",
+  );
   assert.strictEqual(round1AddProd.actualRate, "10 ซีซี ต่อน้ำ 20 ลิตร");
   assert.strictEqual(String(round1AddProd.actualQuantity), "1");
   assert.strictEqual(String(round1AddProd.extraQuantity), "50");
 
   // Verify Baseline Product in Round 1
   const round1BaseProd = createdProducts.find(
-    (p) => p.sprayRoundId === createdRounds[0].id && p.productId === "prod-base-1",
+    (p) =>
+      p.sprayRoundId === createdRounds[0].id && p.productId === "prod-base-1",
   );
   assert(round1BaseProd, "Baseline product prod-base-1 must be saved");
-  assert.strictEqual(round1BaseProd.isPlanned, true, "Baseline product isPlanned must be true");
+  assert.strictEqual(
+    round1BaseProd.isPlanned,
+    true,
+    "Baseline product isPlanned must be true",
+  );
   assert.strictEqual(String(round1BaseProd.actualQuantity), "2");
   assert.strictEqual(String(round1BaseProd.withdrawnQuantity), "2");
   assert.strictEqual(String(round1BaseProd.extraQuantity), "100");
@@ -246,26 +296,43 @@ async function runTests() {
   assert.strictEqual(updatedDemoPlot.closedDate, null);
 
   // Verify External Product in Round 1
-  assert.strictEqual(createdExternals.length, 1, "Should create 1 external chemical record");
+  assert.strictEqual(
+    createdExternals.length,
+    1,
+    "Should create 1 external chemical record",
+  );
   assert.strictEqual(createdExternals[0].sprayRoundId, createdRounds[0].id);
   assert.strictEqual(createdExternals[0].company, "บริษัท เคมีภัณฑ์สยาม จำกัด");
   assert.strictEqual(createdExternals[0].productName, "ไตรอะโซฟอส 40%");
   assert.strictEqual(createdExternals[0].activeIngredient, "Triazophos");
   assert.strictEqual(createdExternals[0].formula, "EC");
-  assert.strictEqual(createdExternals[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
+  assert.strictEqual(
+    createdExternals[0].applicationRate,
+    "20 ซีซี ต่อน้ำ 20 ลิตร",
+  );
 
   // Verify Round Attachments
   const roundAtts = createdAttachments.filter((a) => a.category === "PLOT");
-  assert.strictEqual(roundAtts.length, 1, "Should create 1 attachment for round 1");
-  assert.strictEqual(roundAtts[0].fileUrl, "https://storage.example.com/round1.jpg");
+  assert.strictEqual(
+    roundAtts.length,
+    1,
+    "Should create 1 attachment for round 1",
+  );
+  assert.strictEqual(
+    roundAtts[0].fileUrl,
+    "https://storage.example.com/round1.jpg",
+  );
 
-
-  console.log("✓ Test 1 passed: Strategy save successfully saved rounds, baseline & additional products, and demo plot data.");
+  console.log(
+    "✓ Test 1 passed: Strategy save successfully saved rounds, baseline & additional products, and demo plot data.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 2: Hydration from DB (Simulating Page Reload in ActivityPlanActualView)
   // -------------------------------------------------------------------------
-  console.log("\n[Test 2] Testing parseType7bActualResult restoring all rounds, baseline, and additional products...");
+  console.log(
+    "\n[Test 2] Testing parseType7bActualResult restoring all rounds, baseline, and additional products...",
+  );
 
   // Construct mock DB models as returned by Prisma getActivityPlanAction
   const mockPlanFromDb = {
@@ -331,7 +398,7 @@ async function runTests() {
               applicationRate: "20 ซีซี ต่อน้ำ 20 ลิตร",
             },
           ],
-          sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+          sprayEquipment: "เป้สะพายหลัง",
           otherEquipment: null,
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
           problemDetail: null,
@@ -432,42 +499,79 @@ async function runTests() {
 
   // Assertions for Hydration
   assert(hydratedResult.t7SprayingRounds, "t7SprayingRounds must be restored");
-  assert.strictEqual(hydratedResult.t7SprayingRounds.length, 2, "Must restore both 2 spraying rounds");
+  assert.strictEqual(
+    hydratedResult.t7SprayingRounds.length,
+    2,
+    "Must restore both 2 spraying rounds",
+  );
 
   // Verify Round 1
   const round1 = hydratedResult.t7SprayingRounds[0];
   assert.strictEqual(round1.roundNumber, 1);
   assert.strictEqual(round1.sprayMethod, "TANK_MIXED");
-  assert.strictEqual(round1.hasExternalChemicals, true, "hasExternalChemicals must be true");
-  assert.strictEqual(round1.sprayEquipment, "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)");
-  assert.strictEqual(round1.productResponse, "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)");
+  assert.strictEqual(
+    round1.hasExternalChemicals,
+    true,
+    "hasExternalChemicals must be true",
+  );
+  assert.strictEqual(round1.sprayEquipment, "เป้สะพายหลัง");
+  assert.strictEqual(
+    round1.productResponse,
+    "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+  );
   assert.strictEqual(round1.roundImages.length, 1);
-  assert.strictEqual(round1.roundImages[0].url, "https://storage.example.com/round1.jpg");
+  assert.strictEqual(
+    round1.roundImages[0].url,
+    "https://storage.example.com/round1.jpg",
+  );
 
   // Verify Round 1 External Products
   assert(round1.externalProducts, "externalProducts must be present");
-  assert.strictEqual(round1.externalProducts.length, 1, "Must restore 1 external product in Round 1");
-  assert.strictEqual(round1.externalProducts[0].company, "บริษัท เคมีภัณฑ์สยาม จำกัด");
+  assert.strictEqual(
+    round1.externalProducts.length,
+    1,
+    "Must restore 1 external product in Round 1",
+  );
+  assert.strictEqual(
+    round1.externalProducts[0].company,
+    "บริษัท เคมีภัณฑ์สยาม จำกัด",
+  );
   assert.strictEqual(round1.externalProducts[0].productName, "ไตรอะโซฟอส 40%");
   assert.strictEqual(round1.externalProducts[0].activeIngredient, "Triazophos");
   assert.strictEqual(round1.externalProducts[0].formula, "EC");
-  assert.strictEqual(round1.externalProducts[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
+  assert.strictEqual(
+    round1.externalProducts[0].applicationRate,
+    "20 ซีซี ต่อน้ำ 20 ลิตร",
+  );
 
   // Verify Round 1 Baseline Product
   assert.strictEqual(round1.baselineProducts.length, 1);
   assert.strictEqual(round1.baselineProducts[0].productId, "prod-base-1");
-  assert.strictEqual(round1.baselineProducts[0].productName, "สารป้องกันกำจัดแมลง A");
+  assert.strictEqual(
+    round1.baselineProducts[0].productName,
+    "สารป้องกันกำจัดแมลง A",
+  );
   assert.strictEqual(round1.baselineProducts[0].withdrawnQuantity, 2);
   assert.strictEqual(round1.baselineProducts[0].actualQuantity, 2);
   assert.strictEqual(round1.baselineProducts[0].extraQuantity, "100");
   assert.strictEqual(round1.baselineProducts[0].extraUnit, "ซีซี");
-  assert.strictEqual(round1.baselineProducts[0].applicationRate, "20 ซีซี ต่อน้ำ 20 ลิตร");
+  assert.strictEqual(
+    round1.baselineProducts[0].applicationRate,
+    "20 ซีซี ต่อน้ำ 20 ลิตร",
+  );
 
   // Verify Round 1 Additional Product (1.2)
-  assert.strictEqual(round1.additionalProducts.length, 1, "Must restore exactly 1 additional product in Round 1");
+  assert.strictEqual(
+    round1.additionalProducts.length,
+    1,
+    "Must restore exactly 1 additional product in Round 1",
+  );
   const addProd1 = round1.additionalProducts[0];
   assert.strictEqual(addProd1.productId, "prod-add-101");
-  assert.strictEqual(addProd1.productName, "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์");
+  assert.strictEqual(
+    addProd1.productName,
+    "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์",
+  );
   assert.strictEqual(addProd1.actualQuantity, 1);
   assert.strictEqual(addProd1.quantityUsed, 1);
   assert.strictEqual(addProd1.extraQuantity, "50");
@@ -483,7 +587,11 @@ async function runTests() {
   assert.strictEqual(round2.problemDetail, "พบอาการใบเหลืองที่ปลายยอดเล็กน้อย");
 
   // Verify Round 2 Additional Product (1.2)
-  assert.strictEqual(round2.additionalProducts.length, 1, "Must restore exactly 1 additional product in Round 2");
+  assert.strictEqual(
+    round2.additionalProducts.length,
+    1,
+    "Must restore exactly 1 additional product in Round 2",
+  );
   const addProd2 = round2.additionalProducts[0];
   assert.strictEqual(addProd2.productId, "prod-add-102");
   assert.strictEqual(addProd2.productName, "ปุ๋ยเกล็ด 20-20-20 พ่นทางใบ");
@@ -495,10 +603,19 @@ async function runTests() {
   assert.strictEqual(hydratedResult.t7DaysAfterSpray, 14);
   assert.strictEqual(hydratedResult.t7CropCondition, "สมบูรณ์");
   assert.strictEqual(hydratedResult.t7GrowthStage, "ระยะแทงช่อดอก");
-  assert.strictEqual(hydratedResult.t7CropProblemDescription, "ไม่มีปัญหาโรคและแมลง");
-  assert.strictEqual(hydratedResult.t7ProblemDescription, "พืชไม่แสดงอาการเป็นพิษ");
+  assert.strictEqual(
+    hydratedResult.t7CropProblemDescription,
+    "ไม่มีปัญหาโรคและแมลง",
+  );
+  assert.strictEqual(
+    hydratedResult.t7ProblemDescription,
+    "พืชไม่แสดงอาการเป็นพิษ",
+  );
   assert.strictEqual(hydratedResult.t7CropImages?.length, 1);
-  assert.strictEqual(hydratedResult.t7CropImages?.[0].url, "https://storage.example.com/crop1.jpg");
+  assert.strictEqual(
+    hydratedResult.t7CropImages?.[0].url,
+    "https://storage.example.com/crop1.jpg",
+  );
 
   // Verify Section 3 Demo Plot Status fields restored
   assert.strictEqual(hydratedResult.t7PlotStatus, "IN_PROGRESS");
@@ -507,12 +624,16 @@ async function runTests() {
   assert.strictEqual(hydratedResult.t7PlotName, "แปลงทุเรียนหมอนทอง นายสมชาย");
   assert.strictEqual(hydratedResult.t7FarmerName, "นายสมชาย ใจดี");
 
-  console.log("✓ Test 2 passed: All 1.2 Additional Products, Baseline Products, and Spray Rounds restored completely from database models.");
+  console.log(
+    "✓ Test 2 passed: All 1.2 Additional Products, Baseline Products, and Spray Rounds restored completely from database models.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 3: Demo Plot Closure (COMPLETED with Harvest Yield & Satisfaction)
   // -------------------------------------------------------------------------
-  console.log("\n[Test 3] Testing Plot Closure (COMPLETED / Harvest evaluation)...");
+  console.log(
+    "\n[Test 3] Testing Plot Closure (COMPLETED / Harvest evaluation)...",
+  );
 
   let closureDemoPlotData: any = null;
   const mockTxClosure: any = {
@@ -559,38 +680,60 @@ async function runTests() {
     },
   };
 
-  await type7bPlannedStrategy.saveActual!(mockTxClosure, "plan-closure-1", closurePayload);
+  await type7bPlannedStrategy.saveActual!(
+    mockTxClosure,
+    "plan-closure-1",
+    closurePayload,
+  );
 
-  assert(closureDemoPlotData, "ActivityPlanType7aTarget update must be called on closure");
+  assert(
+    closureDemoPlotData,
+    "ActivityPlanType7aTarget update must be called on closure",
+  );
   assert.strictEqual(closureDemoPlotData.status, "COMPLETED");
-  assert(closureDemoPlotData.closedDate instanceof Date, "closedDate must be set on closure");
+  assert(
+    closureDemoPlotData.closedDate instanceof Date,
+    "closedDate must be set on closure",
+  );
 
-  console.log("✓ Test 3 passed: Demo plot closure sets status COMPLETED, closedDate, yields, and ratings.");
+  console.log(
+    "✓ Test 3 passed: Demo plot closure sets status COMPLETED, closedDate, yields, and ratings.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 4: Integration with parseResultSummary (Detail View & Approval View)
   // -------------------------------------------------------------------------
-  console.log("\n[Test 4] Testing parseResultSummary integration for Type 7B Detail View...");
+  console.log(
+    "\n[Test 4] Testing parseResultSummary integration for Type 7B Detail View...",
+  );
 
   const parsedSummary = parseResultSummary(payloadToHydrate);
 
-  assert(parsedSummary.type7bActual, "parseResultSummary must include type7bActual");
+  assert(
+    parsedSummary.type7bActual,
+    "parseResultSummary must include type7bActual",
+  );
   assert.strictEqual(parsedSummary.type7bActual.t7SprayingRounds?.length, 2);
   assert.strictEqual(
     parsedSummary.type7bActual.t7SprayingRounds?.[0].additionalProducts?.length,
     1,
   );
   assert.strictEqual(
-    parsedSummary.type7bActual.t7SprayingRounds?.[0].additionalProducts?.[0].productName,
+    parsedSummary.type7bActual.t7SprayingRounds?.[0].additionalProducts?.[0]
+      .productName,
     "สารเสริมประสิทธิภาพ ซุปเปอร์สเปรดเดอร์",
   );
 
-  console.log("✓ Test 4 passed: parseResultSummary seamlessly exposes Type 7B spray rounds and additional products.");
+  console.log(
+    "✓ Test 4 passed: parseResultSummary seamlessly exposes Type 7B spray rounds and additional products.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 5: Validation for Tank-mixed External Chemical Products
   // -------------------------------------------------------------------------
-  console.log("\n[Test 5] Testing validateType7bActual with Tank-mixed External Products...");
+  console.log(
+    "\n[Test 5] Testing validateType7bActual with Tank-mixed External Products...",
+  );
 
   const invalidExternalPayload: any = {
     t7SprayingRounds: [
@@ -613,7 +756,11 @@ async function runTests() {
   };
 
   const invalidValidation = validateType7bActual(invalidExternalPayload);
-  assert.strictEqual(invalidValidation.isValid, false, "Must fail validation when external product fields are missing");
+  assert.strictEqual(
+    invalidValidation.isValid,
+    false,
+    "Must fail validation when external product fields are missing",
+  );
   assert(
     invalidValidation.errors.some((e) => e.includes("กรุณาระบุชื่อสินค้า")),
     "Should report missing productName",
@@ -647,14 +794,22 @@ async function runTests() {
   };
 
   const validValidation = validateType7bActual(validExternalPayload);
-  assert.strictEqual(validValidation.isValid, true, "Must pass validation when external products are fully specified");
+  assert.strictEqual(
+    validValidation.isValid,
+    true,
+    "Must pass validation when external products are fully specified",
+  );
 
-  console.log("✓ Test 5 passed: validateType7bActual correctly validates tank-mixed external products.");
+  console.log(
+    "✓ Test 5 passed: validateType7bActual correctly validates tank-mixed external products.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 6: Verify Attachment preservation for Spray Rounds in Activity Result
   // -------------------------------------------------------------------------
-  console.log("\n[Test 6] Testing round images attachment retention (sprayRoundId != null)...");
+  console.log(
+    "\n[Test 6] Testing round images attachment retention (sprayRoundId != null)...",
+  );
 
   const attachmentsTable: any[] = [];
   // Mock Step 2 (Strategy creates round attachment)
@@ -673,13 +828,24 @@ async function runTests() {
 
   // Mock Step 9 deleteMany with sprayRoundId: null condition
   const remainingAfterDelete = attachmentsTable.filter(
-    (att) => !(att.activityPlanId === "plan-test-6" && att.sprayRoundId === null)
+    (att) =>
+      !(att.activityPlanId === "plan-test-6" && att.sprayRoundId === null),
   );
 
-  assert.strictEqual(remainingAfterDelete.length, 1, "Should keep sprayRoundId attachment");
-  assert.strictEqual(remainingAfterDelete[0].sprayRoundId, "round-db-1", "Spray round attachment must not be deleted");
+  assert.strictEqual(
+    remainingAfterDelete.length,
+    1,
+    "Should keep sprayRoundId attachment",
+  );
+  assert.strictEqual(
+    remainingAfterDelete[0].sprayRoundId,
+    "round-db-1",
+    "Spray round attachment must not be deleted",
+  );
 
-  console.log("✓ Test 6 passed: Spray round attachments are preserved correctly during attachment sync.");
+  console.log(
+    "✓ Test 6 passed: Spray round attachments are preserved correctly during attachment sync.",
+  );
 
   console.log("\n🎉 ALL TYPE 7B ACTUAL SAVE & HYDRATION TESTS PASSED 100%!\n");
 }

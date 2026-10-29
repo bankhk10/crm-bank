@@ -1,9 +1,9 @@
 # Activity Type 7A — จัดทำแปลงสาธิต / Demo Plot Establishment (README)
 
-> **Feature Slice**: `modules/activity/features/type-7a`  
-> **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1  
-> **Parent Module**: `modules/activity`  
-> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7aTarget`, `ActivityPlanType7aProduct`, `ActivityResultType7a`, `ActivityResultType7aIrrigation`, `ActivityResultType7aProduct`, `ActivityResultType7aExternal`, `ActivityAttachment`)  
+> **Feature Slice**: `modules/activity/features/type-7a`
+> **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1
+> **Parent Module**: `modules/activity`
+> **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7aTarget`, `ActivityPlanType7aProduct`, `ActivityResultType7a`, `ActivityResultType7aIrrigation`, `ActivityResultType7aProduct`, `ActivityResultType7aExternal`, `ActivityAttachment`)
 > **Status**: Production Ready / Active Reference (v3.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Advance Monthly Planning)
 
 ---
@@ -11,7 +11,9 @@
 ## 1. Overview
 
 ### 1.1 วัตถุประสงค์ของ Type 7A
+
 **Type 7A (จัดทำแปลงสาธิต / Demo Plot Establishment)** มีวัตถุประสงค์เพื่อรองรับการปฏิบัติงานของเจ้าหน้าที่พัฒนาตลาดและนักวิชาการเกษตร (Market Development Representatives / Technical Agronomists / Promoters) ในการจัดตั้งแปลงสาธิตเชิงประจักษ์ใหม่ร่วมกับร้านค้าตัวแทนจำหน่ายและเกษตรกรชั้นนำ:
+
 1. **กำหนดเป้าหมายจัดตั้งแปลงสาธิตใหม่ล่วงหน้า:** สร้างระเบียนแปลงสาธิตในตารางเฉพาะ `activity_type_7a_targets` พร้อมออกรหัสแปลงมาตรฐาน (`DPYYMMXXXX`) โดยอัตโนมัติ และกำหนดสถานะเริ่มต้นเป็น `IN_PROGRESS`
 2. **บันทึกข้อมูลแปลงสาธิตและร้านค้าตัวแทนจำหน่าย:** บันทึกชื่อแปลง, ร้านค้าตัวแทนจำหน่าย Dealer ที่ร่วมโครงการ (`storeId`), หมวดพืช, ชื่อพืช, ขนาดพื้นที่ (ไร่ หรือ จำนวนต้น) และวัตถุประสงค์
 3. **วางแผนรายการผลิตภัณฑ์และจำนวนสินค้าตัวอย่าง:** วางแผนรายการยาและจำนวนสินค้าตัวอย่างที่จะนำไปทดสอบสาธิตลงตารางเฉพาะ `activity_type_7a_products`
@@ -20,12 +22,13 @@
    - **เกษตรกรเจ้าของแปลงและพิกัดแปลง:** กรองเกษตรกรตามจังหวัดที่เลือก หรือบันทึกเกษตรกรนอกระบบ (ที่อยู่ระดับจังหวัด/อำเภอ/ตำบล ผ่าน `ActivityAddressSelect`, ชื่อ-สกุล, เบอร์โทรศัพท์) พร้อมปักหมุดพิกัด GPS จริงหน้างาน (`ActivityGpsPicker`)
    - **ข้อมูลสภาพแปลงเริ่มต้น:** พืชประธาน, วิธีการทดลอง (บันทึกลงคอลัมน์ `experiment_detail` ตาราง `activity_type_7a_results`), ระบบน้ำ 8 ชนิด (`ActivityIrrigationCheckbox`), วันที่เริ่มปลูกจริง, วันที่ฉีดพ่นครั้งแรก, กำหนดพ่นครั้งต่อไป (`ActivityDatePicker`), อายุพืช (วัน/เดือน), ระยะการเจริญเติบโต และข้อมูลเพิ่มเติม
    - **วิธีการฉีดพ่นและยาภายนอก:** รองรับทั้งแบบฉีดเดี่ยว (Single) และผสมถัง (Tank-mixed) พร้อมตารางระบุยาภายนอก (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร SL/SC/EC/อื่นๆ, อัตราการใช้)
-   - **อุปกรณ์ที่ใช้ฉีดพ่น:** เครื่องพ่นสะพายหลัง, เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส/รถพ่นยา, หรืออื่นๆ ระบุ
+   - **อุปกรณ์ที่ใช้ฉีดพ่น:** เครื่องพ่นสะพายหลัง, คน + สายลาก, โดรนเพื่อการเกษตร, แอร์บัส/รถพ่นยา, หรืออื่นๆ ระบุ
    - **สินค้าที่เบิกตามแผน:** ดึงรายการยาตัวอย่างที่เบิกตามแผนมาแสดง พร้อมบันทึกจำนวนที่ใช้จริง (ขวด), ปริมาณที่ใช้เพิ่ม (ซีซี/กรัม) และอัตราการใช้
    - **สินค้าเพิ่มเติมในการปฏิบัติงาน:** บันทึกยาที่ใช้นอกเหนือจากแผน โดยเลือกสินค้าจากระบบ และบันทึกจำนวนจริง, ปริมาณเพิ่ม, อัตราการใช้
    - **ภาพถ่ายแปลงสาธิตเริ่มต้น:** อัปโหลดภาพถ่ายแปลงสาธิตเริ่มต้นสูงสุด 10 รูปต่อแปลง (หมวดหมู่ `PLOT`)
 
 ### 1.2 ขอบเขตของ Type 7A
+
 - **กลุ่มเป้าหมายที่รองรับ:**
   - **ชื่อ ร้านค้า Dealer (`storeId` / `dealerName`):** เลือกเฉพาะร้านค้าตัวแทนจำหน่ายหลัก (`type="DEALER"`) ที่เข้าร่วมโครงการแปลงสาธิต พร้อมซิงค์จังหวัดและอำเภออัตโนมัติ
 - **การจำแนกหมวดพืช ชื่อพืช ขนาดแปลง และวัตถุประสงค์ (Crop, Size & Objectives):**
@@ -48,6 +51,7 @@
   - **Media & Attachments Integration:** บันทึกภาพถ่ายแปลงสาธิตเริ่มต้นลง `ActivityAttachment` (`category: PLOT`, `workTypeCode: "TYPE_7A"`, สูงสุด 10 รูป) ผูกตรงกับ `type7aResultId`
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
+
 1. **Planned (ในแผนงาน Trip Plan):** กำหนดเป้าหมายแปลงสาธิต ร้านค้า ชนิดพืช และสินค้าตัวอย่างล่วงหน้า ส่งขออนุมัติตามสายงาน โดยระบบสร้างระเบียนแปลงพร้อมรหัส `DPYYMMXXXX` ทันที
 2. **Planned Actual (บันทึกผลงานตามแผน):** เมื่อแผนได้รับอนุมัติ นำแผนเดิมมารายงานผลการจัดตั้งแปลงจริง ปักหมุด GPS ยืนยันเกษตรกร ระบุสภาพแปลงและระบบน้ำ บันทึกการใช้สินค้าจริง และอัปโหลดภาพถ่ายแปลงเริ่มต้นสูงสุด 10 รูป
 3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับกรณีเข้าจัดทำแปลงสาธิตหน้างานทันที สามารถกรอกข้อมูลแปลง เกษตรกร ชนิดพืช พิกัด GPS สินค้าตัวอย่าง และถ่ายรูปแปลงสาธิตจบในฟอร์มเดียว พร้อมสร้างแผนงานสถานะ `COMPLETED` ทันที
@@ -59,6 +63,7 @@
 ## 2. Business Flows
 
 ### 2.1 Planned (สร้างและแก้ไขแผนงาน)
+
 ```mermaid
 graph TD
     A["ผู้ใช้สร้างแผนงานใหม่"] --> B["กรอกข้อมูลทั่วไปและงบประมาณส่วนกลาง"]
@@ -79,6 +84,7 @@ graph TD
 ```
 
 ### 2.2 Planned Actual (บันทึกผลการปฏิบัติงานตามแผน)
+
 ```mermaid
 graph TD
     A["เปิดหน้า Activity Plan Actual"] --> B["โหลดแผนงานและ Hydrate เป้าหมายเดิม extractType7aPlanTargets"]
@@ -101,6 +107,7 @@ graph TD
 ```
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1)
+
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new`
 - ฟอร์ม `Type7aUnplannedForm` ผสานทั้งส่วนตั้งต้นแปลง (ชื่อแปลง, เกษตรกร, ร้านค้า, ชนิดพืช, วัตถุประสงค์) และส่วนผลงานจริง (พิกัด GPS, สินค้าตัวอย่าง, และภาพถ่ายแปลงสาธิต) จบในฟอร์มเดียว
 - เมื่อกดบันทึก ระบบตรวจสอบผ่าน `validateType7aUnplannedItems` และแปลง Payload ผ่าน `mapType7aUnplannedToPayload`
@@ -111,6 +118,7 @@ graph TD
 ## 3. Architecture
 
 ### 3.1 Folder Structure
+
 ```text
 modules/activity/features/type-7a/
 ├── index.ts                                    # Unified Public API Contract (ส่งออกเฉพาะสิ่งที่ภายนอกต้องใช้)
@@ -157,13 +165,14 @@ modules/activity/features/type-7a/
 ```
 
 ### 3.2 Type 7A vs Shared Activity
-| ความรับผิดชอบ | จัดการที่ Type 7A Feature (`features/type-7a`) | จัดการที่ Activity ส่วนกลาง (`ui/`, `views/`) |
-| :--- | :--- | :--- |
-| **ข้อมูลทั่วไป** | - | ชื่องาน, วันที่เริ่ม-สิ้นสุด, วัตถุประสงค์หลัก, ผู้ร่วมเดินทาง |
-| **พื้นที่ & ทีมงาน** | - | จังหวัด, อำเภอ, ตำบล, พนักงานร่วมเดินทาง |
-| **งบประมาณ** | - | งบเบิกสินค้าสาธิต, ค่าใช้จ่ายเดินทาง |
-| **เป้าหมายแปลงสาธิต** | ชื่อแปลง, ร้านค้า Dealer, ชนิดพืช, พื้นที่ไร่/ต้น, สินค้าตัวอย่าง, รหัสแปลง `DPYYMMXXXX` | - |
-| **ผลการจัดตั้งแปลงจริง** | เกษตรกร, พิกัดแปลง GPS, สภาพแปลง, ระบบน้ำ, ยาภายนอก, การใช้สินค้าจริง, รูปถ่ายแปลง | ผลสรุปภาพรวมแผน (สำเร็จ/เลื่อน/ยกเลิก) |
+
+| ความรับผิดชอบ            | จัดการที่ Type 7A Feature (`features/type-7a`)                                                                                                                                                               | จัดการที่ Activity ส่วนกลาง (`ui/`, `views/`)                             |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| **ข้อมูลทั่วไป**         | -                                                                                                                                                                                                            | ชื่องาน, วันที่เริ่ม-สิ้นสุด, วัตถุประสงค์หลัก, ผู้ร่วมเดินทาง            |
+| **พื้นที่ & ทีมงาน**     | -                                                                                                                                                                                                            | จังหวัด, อำเภอ, ตำบล, พนักงานร่วมเดินทาง                                  |
+| **งบประมาณ**             | -                                                                                                                                                                                                            | งบเบิกสินค้าสาธิต, ค่าใช้จ่ายเดินทาง                                      |
+| **เป้าหมายแปลงสาธิต**    | ชื่อแปลง, ร้านค้า Dealer, ชนิดพืช, พื้นที่ไร่/ต้น, สินค้าตัวอย่าง, รหัสแปลง `DPYYMMXXXX`                                                                                                                     | -                                                                         |
+| **ผลการจัดตั้งแปลงจริง** | เกษตรกร, พิกัดแปลง GPS, สภาพแปลง, ระบบน้ำ, ยาภายนอก, การใช้สินค้าจริง, รูปถ่ายแปลง                                                                                                                           | ผลสรุปภาพรวมแผน (สำเร็จ/เลื่อน/ยกเลิก)                                    |
 | **Database Persistence** | ตารางเฉพาะ 100%: `activity_type_7a_targets`, `activity_type_7a_products`, `activity_type_7a_results`, `activity_type_7a_irrigations`, `activity_type_7a_actual_products`, `activity_type_7a_spray_externals` | ตารางหลัก `ActivityPlan`, `ActivityPlanApprovalLog`, `ActivityAttachment` |
 
 ---
@@ -171,6 +180,7 @@ modules/activity/features/type-7a/
 ## 4. File Responsibilities
 
 ### 4.1 Planned & Actual
+
 - **`use-type7a-planned-form.ts`:** จัดการ State แปลงสาธิตในแผน (Array of `Type7aPlanItem`), รองรับการเพิ่มแปลง (`addType7aRow`), แก้ไขแปลง (`updateType7aRow`), ลบแปลง (`deleteType7aRow`), เพิ่มสินค้าตัวอย่างในแปลง (`addProductToDemoPlot`), และปรับปรุงสินค้าในแปลง
 - **`type7a-planned-form.tsx`:** ฟอร์มสร้าง/แก้ไขแปลงสาธิตตามแผน แสดงการ์ดของแต่ละแปลง กรอกชื่อแปลง เลือกร้านค้าตัวแทนจำหน่าย เลือกชนิดพืช วัตถุประสงค์ และเลือกสินค้าตัวอย่างผ่าน `ActivityProductSelect`
 - **`type7a-plan-card.tsx`:** การ์ดสรุปเป้าหมายแปลงสาธิตตามแผน แสดงชื่อแปลง รหัสแปลง ร้านค้า Dealer พืชที่ทดสอบ และขนาดพื้นที่
@@ -190,6 +200,7 @@ modules/activity/features/type-7a/
 ## 5. Data Flow
 
 ### 5.1 Planned Plan Creation (การสร้างแผนจัดทำแปลงสาธิตล่วงหน้า)
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -217,6 +228,7 @@ sequenceDiagram
 ```
 
 ### 5.2 Planned Actual Outcome (การบันทึกผลการจัดทำแปลงจริง)
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -254,47 +266,50 @@ sequenceDiagram
 ## 6. Data Models and Mapping
 
 ### 6.1 Database CRUD Matrix (100% Dedicated Relational Storage)
-| ตารางในฐานข้อมูล (`Prisma Model`) | Create (สร้าง) | Read (อ่าน/แสดงผล) | Update (แก้ไข) | Delete (ลบ) | หน้าที่รับผิดชอบ |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`activity_type_7a_targets`**<br>(`ActivityPlanType7aTarget`) | `syncType7aPlots()` ใน `savePlan()` | `findType7aByPlanId()`, `plan.type7aTargets` | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Plot Master & Plan Targets:** เก็บข้อมูลแปลง รหัส `DPYYMMXXXX` สถานะ `status` ร้านค้า Dealer ชนิดพืช และวัตถุประสงค์ เป็น Master ตลอดชีพของแปลง |
-| **`activity_type_7a_products`**<br>(`ActivityPlanType7aProduct`) | `syncType7aPlots()` ใน `savePlan()` | `plan.type7aProducts`, `target.products` | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Plan Products:** สินค้าตัวอย่างที่ขอเบิกล่วงหน้าตามแผน |
-| **`activity_type_7a_results`**<br>(`ActivityResultType7a`) | `syncType7aActualData()` ใน `saveActual()` | `findType7aByPlanId()`, `plan.type7aResults` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityPlan` | **Dedicated Actual Results:** บันทึกผลงานจัดทำแปลงจริง เกษตรกร พิกัด GPS วิธีพ่น อุปกรณ์ วันที่ปลูก/พ่น |
-| **`activity_type_7a_irrigations`**<br>(`ActivityResultType7aIrrigation`) | `syncType7aActualData()` ใน `saveActual()` | `result.irrigations` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บระบบน้ำประจำแปลงฝั่งผลงานจริง (8 รูปแบบมาตรฐาน) |
-| **`activity_type_7a_actual_products`**<br>(`ActivityResultType7aProduct`) | `syncType7aActualData()` ใน `saveActual()` | `result.actualProducts` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสินค้าที่ใช้จริงหน้างาน ทั้งสินค้าตามแผนและสินค้าเพิ่มเติม |
-| **`activity_type_7a_spray_externals`**<br>(`ActivityResultType7aExternal`) | `syncType7aActualData()` ใน `saveActual()` | `result.sprayExternals` | ลบและสร้างใหม่ใน `saveActual()` | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสารเคมีภายนอก/ยาคู่เปรียบเทียบกรณีฉีดพ่นแบบผสมถัง (Tank-mixed) |
-| **`activity_attachments`**<br>(`ActivityAttachment`) | Storage Upload + `saveActual()` | `plan.attachments` (หมวดหมู่ PLOT) | ลบรายการเก่าและสร้างใหม่ | Cascade เมื่อลบ `ActivityPlan` | บันทึก URL ภาพถ่ายแปลงสาธิต (สูงสุด 10 รูป) ผูก `type7aResultId` |
+
+| ตารางในฐานข้อมูล (`Prisma Model`)                                          | Create (สร้าง)                             | Read (อ่าน/แสดงผล)                           | Update (แก้ไข)                       | Delete (ลบ)                            | หน้าที่รับผิดชอบ                                                                                                                                            |
+| :------------------------------------------------------------------------- | :----------------------------------------- | :------------------------------------------- | :----------------------------------- | :------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`activity_type_7a_targets`**<br>(`ActivityPlanType7aTarget`)             | `syncType7aPlots()` ใน `savePlan()`        | `findType7aByPlanId()`, `plan.type7aTargets` | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan`         | **Dedicated Plot Master & Plan Targets:** เก็บข้อมูลแปลง รหัส `DPYYMMXXXX` สถานะ `status` ร้านค้า Dealer ชนิดพืช และวัตถุประสงค์ เป็น Master ตลอดชีพของแปลง |
+| **`activity_type_7a_products`**<br>(`ActivityPlanType7aProduct`)           | `syncType7aPlots()` ใน `savePlan()`        | `plan.type7aProducts`, `target.products`     | ลบและสร้างใหม่ใน `syncType7aPlots()` | Cascade เมื่อลบ `ActivityPlan`         | **Dedicated Plan Products:** สินค้าตัวอย่างที่ขอเบิกล่วงหน้าตามแผน                                                                                          |
+| **`activity_type_7a_results`**<br>(`ActivityResultType7a`)                 | `syncType7aActualData()` ใน `saveActual()` | `findType7aByPlanId()`, `plan.type7aResults` | ลบและสร้างใหม่ใน `saveActual()`      | Cascade เมื่อลบ `ActivityPlan`         | **Dedicated Actual Results:** บันทึกผลงานจัดทำแปลงจริง เกษตรกร พิกัด GPS วิธีพ่น อุปกรณ์ วันที่ปลูก/พ่น                                                     |
+| **`activity_type_7a_irrigations`**<br>(`ActivityResultType7aIrrigation`)   | `syncType7aActualData()` ใน `saveActual()` | `result.irrigations`                         | ลบและสร้างใหม่ใน `saveActual()`      | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บระบบน้ำประจำแปลงฝั่งผลงานจริง (8 รูปแบบมาตรฐาน)                                                                                                      |
+| **`activity_type_7a_actual_products`**<br>(`ActivityResultType7aProduct`)  | `syncType7aActualData()` ใน `saveActual()` | `result.actualProducts`                      | ลบและสร้างใหม่ใน `saveActual()`      | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสินค้าที่ใช้จริงหน้างาน ทั้งสินค้าตามแผนและสินค้าเพิ่มเติม                                                                                           |
+| **`activity_type_7a_spray_externals`**<br>(`ActivityResultType7aExternal`) | `syncType7aActualData()` ใน `saveActual()` | `result.sprayExternals`                      | ลบและสร้างใหม่ใน `saveActual()`      | Cascade เมื่อลบ `ActivityResultType7a` | จัดเก็บสารเคมีภายนอก/ยาคู่เปรียบเทียบกรณีฉีดพ่นแบบผสมถัง (Tank-mixed)                                                                                       |
+| **`activity_attachments`**<br>(`ActivityAttachment`)                       | Storage Upload + `saveActual()`            | `plan.attachments` (หมวดหมู่ PLOT)           | ลบรายการเก่าและสร้างใหม่             | Cascade เมื่อลบ `ActivityPlan`         | บันทึก URL ภาพถ่ายแปลงสาธิต (สูงสุด 10 รูป) ผูก `type7aResultId`                                                                                            |
 
 ### 6.2 Complete Field-to-Database Mapping
-| Form Field (UI) | TypeScript Type Field | Mapper / Hook Handler | Prisma Model | DB Column Name | Data Type | Nullable? | Default |
-| :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| **รหัสแปลงสาธิต** | `code` | `generateDemoPlotCode` | `ActivityPlanType7aTarget` | `code` | `VARCHAR` | Yes | `null` |
-| **สถานะแปลงสาธิต** | `status` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `status` | `DemoPlotStatus` | No | `IN_PROGRESS` |
-| **วันที่ปิดแปลงสาธิต** | `closedDate` | `type7bPlannedStrategy.saveActual` | `ActivityPlanType7aTarget` | `closed_date` | `TIMESTAMP` | Yes | `null` |
-| **หมวดสินค้าแปลง** | `categoryId` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `category_id` | `VARCHAR` | Yes | `null` |
-| **ชื่อแปลงสาธิต** | `plotName` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `plot_name` | `VARCHAR` | No | - |
-| **ชื่อ ร้านค้า Dealer** | `storeId`, `dealerName` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `store_id`, `dealer_name` | `VARCHAR` | Yes | `null` |
-| **หมวดพืช** | `cropCategory` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `crop_category` | `VARCHAR` | Yes | `null` |
-| **ชื่อพืช** | `cropName` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `crop_name` | `VARCHAR` | Yes | `null` |
-| **ระบุชื่อพืชเพิ่มเติม** | `customCropName` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `custom_crop_name` | `VARCHAR` | Yes | `null` |
-| **พื้นที่ (ไร่)** *(ผัก/พืชไร่)* | `areaRai` | `syncType7aPlots` (`Prisma.Decimal`) | `ActivityPlanType7aTarget` | `area_rai` | `DECIMAL(10,2)` | Yes | `null` |
-| **จำนวนต้น** *(พืชสวน)* | `treeCount` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `tree_count` | `INTEGER` | Yes | `null` |
-| **วัตถุประสงค์การจัดทำแปลง** | `objective` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `objective` | `TEXT` | Yes | `null` |
-| **สินค้าตัวอย่าง (รหัส/ชื่อ)** | `productId`, `productName` | `syncType7aPlots` | `ActivityPlanType7aProduct` | `product_id`, `product_name` | `VARCHAR` | No / Yes | - |
-| **สินค้าตัวอย่าง (จำนวนเบิก/หน่วย)** | `quantity`, `unit` | `syncType7aPlots` | `ActivityPlanType7aProduct` | `quantity`, `unit` | `DECIMAL`, `VARCHAR` | No / Yes | `1` |
-| **เกษตรกรเจ้าของแปลง** | `farmerCustomerId`, `farmerName`, `farmerPhone` | `syncType7aActualData` (จัดรูปแบบเบอร์โทรศัพท์มีขีด `-` เช่น `090-333-xxxx` / `090-3339-xxxx` อัตโนมัติ) | `ActivityResultType7a` | `farmer_customer_id`, `farmer_name`, `farmer_phone` | `VARCHAR` | Yes | `null` |
-| **เกษตรกรนอกระบบ** | `isUnregisteredFarmer` | `syncType7aActualData` | `ActivityResultType7a` | `is_unregistered_farmer` | `BOOLEAN` | No | `false` |
-| **ที่อยู่แปลงจริง** | `province`, `district`, `subdistrict` | `syncType7aActualData` | `ActivityResultType7a` | `province`, `district`, `subdistrict` | `VARCHAR` | Yes | `null` |
-| **พิกัดแปลง (GPS ละติจูด/ลองจิจูด)** | `latitude`, `longitude` | `parseDecimalCoord` | `ActivityResultType7a` | `latitude`, `longitude` | `DECIMAL(10,7)` | Yes | `null` |
-| **สภาพแปลงเริ่มต้น** | `mainCropInfo`, `plantingDate`, `firstSprayDate`, `nextSprayDate` | `syncType7aActualData` | `ActivityResultType7a` | `main_crop_info`, `planting_date`, etc. | `VARCHAR`, `TIMESTAMP` | Yes | `null` |
-| **วิธีการทดลอง** | `t7ExperimentDetail` / `experimentDetail` | `syncType7aActualData` | `ActivityResultType7a` | `experiment_detail` | `TEXT` | Yes | `null` |
-| **อายุพืชและระยะการโต** | `cropAgeValue`, `cropAgeUnit`, `growthStage` | `syncType7aActualData` | `ActivityResultType7a` | `crop_age_value`, `crop_age_unit`, `growth_stage` | `INT`, `VARCHAR` | Yes | `null` |
-| **วิธีการฉีดพ่นและอุปกรณ์** | `sprayMethod`, `sprayEquipment`, `otherEquipment` | `syncType7aActualData` | `ActivityResultType7a` | `spray_method`, `spray_equipment`, etc. | `VARCHAR` | Yes | `"SINGLE"` |
-| **ระบบน้ำ (8 รูปแบบ)** | `irrigations` (`string[]`) | `syncType7aActualData` | `ActivityResultType7aIrrigation` | `method` | `VARCHAR` | No | - |
-| **สินค้าใช้จริงตามแผน/เพิ่มเติม** | `plannedProducts`, `additionalProducts` | `syncType7aActualData` | `ActivityResultType7aProduct` | `actual_quantity`, `extra_quantity`, etc. | `DECIMAL`, `VARCHAR` | Yes | - |
-| **สารเคมีภายนอก** | `externalChemicals` | `syncType7aActualData` | `ActivityResultType7aExternal` | `company`, `product_name`, `formula`, etc. | `VARCHAR` | Yes | - |
-| **ภาพถ่ายแปลงเริ่มต้น (10 รูป)** | `initialPhotos` / `plotImages` | `uploadImages()` (`PLOT`, max 10) | `ActivityAttachment` | `file_url`, `category: "PLOT"`, `type_7a_result_id` | `TEXT` | No | - |
+
+| Form Field (UI)                      | TypeScript Type Field                                             | Mapper / Hook Handler                                                                                    | Prisma Model                     | DB Column Name                                      | Data Type              | Nullable? | Default       |
+| :----------------------------------- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- | :------------------------------- | :-------------------------------------------------- | :--------------------- | :-------: | :------------ |
+| **รหัสแปลงสาธิต**                    | `code`                                                            | `generateDemoPlotCode`                                                                                   | `ActivityPlanType7aTarget`       | `code`                                              | `VARCHAR`              |    Yes    | `null`        |
+| **สถานะแปลงสาธิต**                   | `status`                                                          | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `status`                                            | `DemoPlotStatus`       |    No     | `IN_PROGRESS` |
+| **วันที่ปิดแปลงสาธิต**               | `closedDate`                                                      | `type7bPlannedStrategy.saveActual`                                                                       | `ActivityPlanType7aTarget`       | `closed_date`                                       | `TIMESTAMP`            |    Yes    | `null`        |
+| **หมวดสินค้าแปลง**                   | `categoryId`                                                      | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `category_id`                                       | `VARCHAR`              |    Yes    | `null`        |
+| **ชื่อแปลงสาธิต**                    | `plotName`                                                        | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `plot_name`                                         | `VARCHAR`              |    No     | -             |
+| **ชื่อ ร้านค้า Dealer**              | `storeId`, `dealerName`                                           | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `store_id`, `dealer_name`                           | `VARCHAR`              |    Yes    | `null`        |
+| **หมวดพืช**                          | `cropCategory`                                                    | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `crop_category`                                     | `VARCHAR`              |    Yes    | `null`        |
+| **ชื่อพืช**                          | `cropName`                                                        | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `crop_name`                                         | `VARCHAR`              |    Yes    | `null`        |
+| **ระบุชื่อพืชเพิ่มเติม**             | `customCropName`                                                  | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `custom_crop_name`                                  | `VARCHAR`              |    Yes    | `null`        |
+| **พื้นที่ (ไร่)** _(ผัก/พืชไร่)_     | `areaRai`                                                         | `syncType7aPlots` (`Prisma.Decimal`)                                                                     | `ActivityPlanType7aTarget`       | `area_rai`                                          | `DECIMAL(10,2)`        |    Yes    | `null`        |
+| **จำนวนต้น** _(พืชสวน)_              | `treeCount`                                                       | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `tree_count`                                        | `INTEGER`              |    Yes    | `null`        |
+| **วัตถุประสงค์การจัดทำแปลง**         | `objective`                                                       | `syncType7aPlots`                                                                                        | `ActivityPlanType7aTarget`       | `objective`                                         | `TEXT`                 |    Yes    | `null`        |
+| **สินค้าตัวอย่าง (รหัส/ชื่อ)**       | `productId`, `productName`                                        | `syncType7aPlots`                                                                                        | `ActivityPlanType7aProduct`      | `product_id`, `product_name`                        | `VARCHAR`              | No / Yes  | -             |
+| **สินค้าตัวอย่าง (จำนวนเบิก/หน่วย)** | `quantity`, `unit`                                                | `syncType7aPlots`                                                                                        | `ActivityPlanType7aProduct`      | `quantity`, `unit`                                  | `DECIMAL`, `VARCHAR`   | No / Yes  | `1`           |
+| **เกษตรกรเจ้าของแปลง**               | `farmerCustomerId`, `farmerName`, `farmerPhone`                   | `syncType7aActualData` (จัดรูปแบบเบอร์โทรศัพท์มีขีด `-` เช่น `090-333-xxxx` / `090-3339-xxxx` อัตโนมัติ) | `ActivityResultType7a`           | `farmer_customer_id`, `farmer_name`, `farmer_phone` | `VARCHAR`              |    Yes    | `null`        |
+| **เกษตรกรนอกระบบ**                   | `isUnregisteredFarmer`                                            | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `is_unregistered_farmer`                            | `BOOLEAN`              |    No     | `false`       |
+| **ที่อยู่แปลงจริง**                  | `province`, `district`, `subdistrict`                             | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `province`, `district`, `subdistrict`               | `VARCHAR`              |    Yes    | `null`        |
+| **พิกัดแปลง (GPS ละติจูด/ลองจิจูด)** | `latitude`, `longitude`                                           | `parseDecimalCoord`                                                                                      | `ActivityResultType7a`           | `latitude`, `longitude`                             | `DECIMAL(10,7)`        |    Yes    | `null`        |
+| **สภาพแปลงเริ่มต้น**                 | `mainCropInfo`, `plantingDate`, `firstSprayDate`, `nextSprayDate` | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `main_crop_info`, `planting_date`, etc.             | `VARCHAR`, `TIMESTAMP` |    Yes    | `null`        |
+| **วิธีการทดลอง**                     | `t7ExperimentDetail` / `experimentDetail`                         | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `experiment_detail`                                 | `TEXT`                 |    Yes    | `null`        |
+| **อายุพืชและระยะการโต**              | `cropAgeValue`, `cropAgeUnit`, `growthStage`                      | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `crop_age_value`, `crop_age_unit`, `growth_stage`   | `INT`, `VARCHAR`       |    Yes    | `null`        |
+| **วิธีการฉีดพ่นและอุปกรณ์**          | `sprayMethod`, `sprayEquipment`, `otherEquipment`                 | `syncType7aActualData`                                                                                   | `ActivityResultType7a`           | `spray_method`, `spray_equipment`, etc.             | `VARCHAR`              |    Yes    | `"SINGLE"`    |
+| **ระบบน้ำ (8 รูปแบบ)**               | `irrigations` (`string[]`)                                        | `syncType7aActualData`                                                                                   | `ActivityResultType7aIrrigation` | `method`                                            | `VARCHAR`              |    No     | -             |
+| **สินค้าใช้จริงตามแผน/เพิ่มเติม**    | `plannedProducts`, `additionalProducts`                           | `syncType7aActualData`                                                                                   | `ActivityResultType7aProduct`    | `actual_quantity`, `extra_quantity`, etc.           | `DECIMAL`, `VARCHAR`   |    Yes    | -             |
+| **สารเคมีภายนอก**                    | `externalChemicals`                                               | `syncType7aActualData`                                                                                   | `ActivityResultType7aExternal`   | `company`, `product_name`, `formula`, etc.          | `VARCHAR`              |    Yes    | -             |
+| **ภาพถ่ายแปลงเริ่มต้น (10 รูป)**     | `initialPhotos` / `plotImages`                                    | `uploadImages()` (`PLOT`, max 10)                                                                        | `ActivityAttachment`             | `file_url`, `category: "PLOT"`, `type_7a_result_id` | `TEXT`                 |    No     | -             |
 
 ### 6.3 Prisma Schema Definitions
+
 ```prisma
 // 1. ตารางเป้าหมายแปลงสาธิตตามแผนงาน (activity_type_7a_targets)
 model ActivityPlanType7aTarget {
@@ -403,6 +418,7 @@ model ActivityResultType7a {
 ## 7. Business Rules
 
 ### 7.1 Validation Rules
+
 - **การวางแผนเป้าหมาย (`Type7aPlannedForm`):**
   - ต้องมีแปลงสาธิตอย่างน้อย 1 แปลง
   - แต่ละแปลงต้องระบุชื่อแปลงสาธิต (`plotName` ห้ามว่าง)
@@ -422,6 +438,7 @@ model ActivityResultType7a {
 ## 8. Troubleshooting & Tracing Pipeline
 
 ### 8.1 Step-by-Step Tracing Pipeline
+
 ```text
 [Step 1: UI Field] ➔ Type7aActualForm.tsx (ตรวจว่า ActivityGpsPicker ผูกกับ latitude/longitude หรือไม่)
         ↓
@@ -447,11 +464,11 @@ model ActivityResultType7a {
 
 ## 9. Change Log
 
-| วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
-| :--- | :--- | :--- | :--- |
-| **2026-10-16** | 1.0.0 | สร้างโมดูล Type 7A เป็น Vertical Slice Architecture สำหรับการจัดทำแปลงสาธิตใหม่ | Antigravity AI |
-| **2026-10-18** | 1.1.0 | พัฒนาระบบออกรหัสแปลงสาธิตอัตโนมัติ `DPYYMMXXXX` ผ่าน Advisory Lock ใน `type7a.repository.ts` | Antigravity AI |
-| **2026-10-22** | 1.8.0 | ออกแบบฟอร์มบันทึกผลงานจริง (`Type7aActualForm`) ใหม่ทั้งหมด 7 หัวข้อหลัก | Antigravity AI |
-| **2026-10-24** | 1.9.0 | พัฒนาระบบประวัติการลงพื้นที่ติดตามแปลงสาธิต (Demo Plot Follow-Up Timeline & Journey) | Antigravity AI |
-| **2026-10-27** | 2.1.0 | ปรับปรุงการบันทึกผลงานจริงลงตารางเฉพาะ `activity_type_7a_results` | Antigravity AI |
-| **2026-10-27** | 3.0.0 | **ยกเลิก 5 ตารางเก่า (ลบ `demo_plots`, `demo_plot_products`, `demo_plot_irrigations`, `demo_plot_external_products`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. รวมฟิลด์ `code` (`DPYYMMXXXX`), `status` (`IN_PROGRESS`), `closedDate`, `categoryId` เข้าสู่ `ActivityPlanType7aTarget` โดยตรงเป็น Single Source of Truth เพียงแห่งเดียว ปราศจากตารางซ้ำซ้อนหรือ Dual-write<br>2. รองรับ Advance Monthly Planning: ให้พนักงานวางแผนงาน Type 7A และตามด้วย Type 7B ในเดือนเดียวกันล่วงหน้าได้ทันที โดยไม่ต้องรอการลงพื้นที่หรือผลงานจริงของ 7A<br>3. ปรับให้ Type 7B และ Type 10 เชื่อมโยงตรงมายัง `activity_type_7a_targets` ผ่าน `type7aTargetId`<br>4. อัปเดตผัง Schema, Data Flow, Sequence Diagrams, Field Mapping และ CRUD Matrix ตรงตามสถาปัตยกรรม 100% Dedicated Relational Tables | Antigravity AI |
+| วันที่         | เวอร์ชัน | รายละเอียดการปรับปรุง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | ผู้ดำเนินการ   |
+| :------------- | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
+| **2026-10-16** | 1.0.0    | สร้างโมดูล Type 7A เป็น Vertical Slice Architecture สำหรับการจัดทำแปลงสาธิตใหม่                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Antigravity AI |
+| **2026-10-18** | 1.1.0    | พัฒนาระบบออกรหัสแปลงสาธิตอัตโนมัติ `DPYYMMXXXX` ผ่าน Advisory Lock ใน `type7a.repository.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Antigravity AI |
+| **2026-10-22** | 1.8.0    | ออกแบบฟอร์มบันทึกผลงานจริง (`Type7aActualForm`) ใหม่ทั้งหมด 7 หัวข้อหลัก                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Antigravity AI |
+| **2026-10-24** | 1.9.0    | พัฒนาระบบประวัติการลงพื้นที่ติดตามแปลงสาธิต (Demo Plot Follow-Up Timeline & Journey)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Antigravity AI |
+| **2026-10-27** | 2.1.0    | ปรับปรุงการบันทึกผลงานจริงลงตารางเฉพาะ `activity_type_7a_results`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Antigravity AI |
+| **2026-10-27** | 3.0.0    | **ยกเลิก 5 ตารางเก่า (ลบ `demo_plots`, `demo_plot_products`, `demo_plot_irrigations`, `demo_plot_external_products`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. รวมฟิลด์ `code` (`DPYYMMXXXX`), `status` (`IN_PROGRESS`), `closedDate`, `categoryId` เข้าสู่ `ActivityPlanType7aTarget` โดยตรงเป็น Single Source of Truth เพียงแห่งเดียว ปราศจากตารางซ้ำซ้อนหรือ Dual-write<br>2. รองรับ Advance Monthly Planning: ให้พนักงานวางแผนงาน Type 7A และตามด้วย Type 7B ในเดือนเดียวกันล่วงหน้าได้ทันที โดยไม่ต้องรอการลงพื้นที่หรือผลงานจริงของ 7A<br>3. ปรับให้ Type 7B และ Type 10 เชื่อมโยงตรงมายัง `activity_type_7a_targets` ผ่าน `type7aTargetId`<br>4. อัปเดตผัง Schema, Data Flow, Sequence Diagrams, Field Mapping และ CRUD Matrix ตรงตามสถาปัตยกรรม 100% Dedicated Relational Tables | Antigravity AI |

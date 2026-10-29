@@ -39,10 +39,10 @@ import { Type7aPlanCard } from "./type7a-plan-card";
 import { formatPhoneNumber } from "../../shared/utils";
 
 export const SPRAY_EQUIPMENT_OPTIONS = [
-  "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
-  "เครื่องพ่นปั๊มลากสาย",
+  "เป้สะพายหลัง",
+  "คน + สายลาก",
   "โดรนเพื่อการเกษตร",
-  "แอร์บัส / รถพ่นยา",
+  "แอร์บัส",
   "อื่นๆ (ระบุ)",
 ] as const;
 
@@ -369,7 +369,9 @@ export function Type7aActualForm({
                       if (cust.phone || (cust as any).telephone) {
                         onUpdateField?.(
                           "t7FarmerPhone",
-                          formatPhoneNumber(cust.phone || (cust as any).telephone),
+                          formatPhoneNumber(
+                            cust.phone || (cust as any).telephone,
+                          ),
                         );
                       }
                     } else {
@@ -416,7 +418,10 @@ export function Type7aActualForm({
                       type="tel"
                       value={formatPhoneNumber(actualState.t7FarmerPhone) || ""}
                       onChange={(e) =>
-                        onUpdateField?.("t7FarmerPhone", formatPhoneNumber(e.target.value))
+                        onUpdateField?.(
+                          "t7FarmerPhone",
+                          formatPhoneNumber(e.target.value),
+                        )
                       }
                       disabled={readonly}
                       placeholder="เช่น 081-234-5678"
@@ -880,10 +885,7 @@ export function Type7aActualForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <ActivitySelect
               label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
-              value={
-                actualState.t7SprayEquipment ||
-                "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"
-              }
+              value={actualState.t7SprayEquipment || "เป้สะพายหลัง"}
               onChange={(val) => onUpdateField?.("t7SprayEquipment", val)}
               options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({
                 value: equip,

@@ -21,30 +21,25 @@ async function runTests() {
     [...CROP_CATEGORIES],
     ["ผักและพืชล้มลุก", "พืชไร่", "พืชสวน"],
   );
-  assert.deepStrictEqual([...CROP_NAMES_BY_CATEGORY["ผักและพืชล้มลุก"]], [
-    "คะน้า",
-    "กะหล่ำปลี",
-    "พริก",
-    "ผักและพืชล้มลุกอื่นๆ",
-  ]);
-  assert.deepStrictEqual([...CROP_NAMES_BY_CATEGORY["พืชไร่"]], [
-    "ข้าว",
-    "อ้อย",
-    "ยางพารา",
-    "พืชไร่อื่นๆ",
-  ]);
-  assert.deepStrictEqual([...CROP_NAMES_BY_CATEGORY["พืชสวน"]], [
-    "ทุเรียน",
-    "ชมพู่",
-    "ยางพารา",
-    "พืชสวนอื่นๆ",
-  ]);
-  assert.deepStrictEqual([...OTHER_CROP_OPTIONS], [
-    "ผักและพืชล้มลุกอื่นๆ",
-    "พืชไร่อื่นๆ",
-    "พืชสวนอื่นๆ",
-  ]);
-  console.log("✓ Test 1 passed: Crop categories and dependent crop names match spec");
+  assert.deepStrictEqual(
+    [...CROP_NAMES_BY_CATEGORY["ผักและพืชล้มลุก"]],
+    ["คะน้า", "กะหล่ำปลี", "พริก", "ผักและพืชล้มลุกอื่นๆ"],
+  );
+  assert.deepStrictEqual(
+    [...CROP_NAMES_BY_CATEGORY["พืชไร่"]],
+    ["ข้าว", "อ้อย", "ยางพารา", "พืชไร่อื่นๆ"],
+  );
+  assert.deepStrictEqual(
+    [...CROP_NAMES_BY_CATEGORY["พืชสวน"]],
+    ["ทุเรียน", "ชมพู่", "ยางพารา", "พืชสวนอื่นๆ"],
+  );
+  assert.deepStrictEqual(
+    [...OTHER_CROP_OPTIONS],
+    ["ผักและพืชล้มลุกอื่นๆ", "พืชไร่อื่นๆ", "พืชสวนอื่นๆ"],
+  );
+  console.log(
+    "✓ Test 1 passed: Crop categories and dependent crop names match spec",
+  );
 
   // 2. Custom crop name validation when "อื่นๆ" is selected
   const missingCustom = validateType7aFormItems([
@@ -75,7 +70,9 @@ async function runTests() {
     },
   ]);
   assert.strictEqual(validCustom.isValid, true);
-  console.log("✓ Test 2 passed: Custom crop name validated when 'อื่นๆ' is selected");
+  console.log(
+    "✓ Test 2 passed: Custom crop name validated when 'อื่นๆ' is selected",
+  );
 
   // 3. Tree Count vs Area Rai validation
   const missingTreeCount = validateType7aFormItems([
@@ -121,7 +118,9 @@ async function runTests() {
   ]);
   assert.strictEqual(missingAreaRai.isValid, false);
   assert.ok(missingAreaRai.error?.includes("กรุณาระบุพื้นที่ (ไร่)"));
-  console.log("✓ Test 3 passed: Dynamic treeCount (พืชสวน) vs areaRai validation works");
+  console.log(
+    "✓ Test 3 passed: Dynamic treeCount (พืชสวน) vs areaRai validation works",
+  );
 
   // 4. Persistence & Hydration (Dedicated Type Tables: ActivityPlanType7aTarget + ActivityPlanType7aProduct)
   const createdTargets: any[] = [];
@@ -234,7 +233,9 @@ async function runTests() {
   assert.strictEqual(hydrated[0].categoryId, "cat-1");
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.categoryId, "cat-1");
   assert.strictEqual(hydrated[0].demoProducts?.[0]?.productId, "p-1");
-  console.log("✓ Test 4 passed: Single-Entity DemoPlot persistence and hydration work end-to-end");
+  console.log(
+    "✓ Test 4 passed: Single-Entity DemoPlot persistence and hydration work end-to-end",
+  );
 
   // 5. Actual Outcome Extraction & Detail View Data Pipeline
   const mockPlanWithActual = {
@@ -248,7 +249,11 @@ async function runTests() {
         ownerPhone: "0812345678",
         isUnregisteredFarmer: true,
         customerId: "dealer-99",
-        customer: { id: "dealer-99", name: "ร้านรุ่งเรืองการเกษตร", customerCode: "CUST-099" },
+        customer: {
+          id: "dealer-99",
+          name: "ร้านรุ่งเรืองการเกษตร",
+          customerCode: "CUST-099",
+        },
         province: "เชียงใหม่",
         district: "ฝาง",
         ownerSubdistrict: "เวียง",
@@ -265,11 +270,14 @@ async function runTests() {
         initialSprayDate: new Date("2026-10-15"),
         nextSprayDate: new Date("2026-10-30"),
         sprayMethod: "TANK_MIXED",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         otherEquipment: "หัวฉีดพัดลมเบอร์ 2",
         hasExternalChemicals: true,
         notes: "สภาพดินร่วนปนทราย สภาพความชื้นในดินดีมาก",
-        irrigations: [{ id: "irr-1", method: "น้ำหยด" }, { id: "irr-2", method: "สปริงเกอร์" }],
+        irrigations: [
+          { id: "irr-1", method: "น้ำหยด" },
+          { id: "irr-2", method: "สปริงเกอร์" },
+        ],
         externalProducts: [
           {
             id: "ext-1",
@@ -329,19 +337,27 @@ async function runTests() {
   assert.strictEqual(target1.dealerName, "ร้านรุ่งเรืองการเกษตร");
   assert.strictEqual(target1.latitude, 19.921345);
   assert.strictEqual(target1.longitude, 99.213456);
-  assert.strictEqual(target1.mainCropInfo, "ข้าวโพดพันธุ์ CP-888 ปลูกแบบหยอดเมล็ด");
+  assert.strictEqual(
+    target1.mainCropInfo,
+    "ข้าวโพดพันธุ์ CP-888 ปลูกแบบหยอดเมล็ด",
+  );
   assert.deepStrictEqual(target1.irrigations, ["น้ำหยด", "สปริงเกอร์"]);
   assert.strictEqual(target1.sprayMethod, "TANK_MIXED");
   assert.strictEqual(target1.cropAgeValue, 14);
   assert.strictEqual(target1.growthStage, "ระยะ 3-4 ใบ");
   assert.strictEqual(target1.externalProducts?.length, 1);
-  assert.strictEqual(target1.externalProducts[0].productName, "สารจับใบ ซูเปอร์สเปรด");
+  assert.strictEqual(
+    target1.externalProducts[0].productName,
+    "สารจับใบ ซูเปอร์สเปรด",
+  );
   assert.strictEqual(target1.demoProducts?.length, 2);
   assert.strictEqual(target1.demoProducts[0].actualQuantity, 2);
   assert.strictEqual(target1.demoProducts[0].extraQuantity, "50");
   assert.strictEqual(target1.demoProducts[1].isAdditional, true);
 
-  const parsedActual = parseType7aActualResult({ activityPlan: mockPlanWithActual });
+  const parsedActual = parseType7aActualResult({
+    activityPlan: mockPlanWithActual,
+  });
   assert.strictEqual(parsedActual.t7PlotName, "แปลงข้าวโพดสาธิต แปลง 1");
   assert.strictEqual(parsedActual.t7FarmerName, "สมชาย รักสงบ");
   assert.strictEqual(parsedActual.t7Latitude, 19.921345);
@@ -351,8 +367,13 @@ async function runTests() {
   assert.strictEqual(parsedActual.t7PlannedProducts?.length, 1);
   assert.strictEqual(parsedActual.t7AdditionalProducts?.length, 1);
   assert.strictEqual(parsedActual.t7InitialPhotos?.length, 1);
-  assert.strictEqual(parsedActual.t7InitialPhotos[0].url, "https://example.com/plot1.jpg");
-  console.log("✓ Test 5 passed: Actual Outcome Extraction and Detail View Data Pipeline verified");
+  assert.strictEqual(
+    parsedActual.t7InitialPhotos[0].url,
+    "https://example.com/plot1.jpg",
+  );
+  console.log(
+    "✓ Test 5 passed: Actual Outcome Extraction and Detail View Data Pipeline verified",
+  );
 
   // 6. Dedicated Relational Table (activity_type_7a_results) Hydration into Actual Form
   const mockPlanWithDedicatedActual: any = {
@@ -389,7 +410,7 @@ async function runTests() {
             growthStage: "ระยะเหยียดตีนหนู",
             sprayMethod: "SINGLE",
             hasExternalChemicals: true,
-            sprayEquipment: "เครื่องพ่นปั๊มลากสาย",
+            sprayEquipment: "คน + สายลาก",
             otherEquipment: null,
             notes: "ฉีดพ่นช่วงเช้า อากาศแจ่มใส ไม่มีลม",
             irrigations: [
@@ -447,7 +468,8 @@ async function runTests() {
       },
     ],
   };
-  mockPlanWithDedicatedActual.type7aResults = mockPlanWithDedicatedActual.type7aTargets[0].results;
+  mockPlanWithDedicatedActual.type7aResults =
+    mockPlanWithDedicatedActual.type7aTargets[0].results;
 
   // Verify parseType7aActualResult handles dedicated DB structure
   const parsedDedicated = parseType7aActualResult(mockPlanWithDedicatedActual);
@@ -460,7 +482,10 @@ async function runTests() {
   assert.strictEqual(parsedDedicated.t7IsUnregisteredFarmer, false);
   assert.strictEqual(parsedDedicated.t7Latitude, 14.623456);
   assert.strictEqual(parsedDedicated.t7Longitude, 104.654321);
-  assert.strictEqual(parsedDedicated.t7MainCropInfo, "ทุเรียนหมอนทอง อายุ 5 ปี กำลังเริ่มติดดอก");
+  assert.strictEqual(
+    parsedDedicated.t7MainCropInfo,
+    "ทุเรียนหมอนทอง อายุ 5 ปี กำลังเริ่มติดดอก",
+  );
   assert.strictEqual(parsedDedicated.t7PlantingDate, "2026-09-15");
   assert.strictEqual(parsedDedicated.t7InitialSprayDate, "2026-10-10");
   assert.strictEqual(parsedDedicated.t7NextSprayDate, "2026-10-25");
@@ -468,28 +493,53 @@ async function runTests() {
   assert.strictEqual(parsedDedicated.t7CropAgeUnit, "วัน");
   assert.strictEqual(parsedDedicated.t7GrowthStage, "ระยะเหยียดตีนหนู");
   assert.strictEqual(parsedDedicated.t7SprayMethod, "SINGLE");
-  assert.strictEqual(parsedDedicated.t7SprayEquipment, "เครื่องพ่นปั๊มลากสาย");
+  assert.strictEqual(parsedDedicated.t7SprayEquipment, "คน + สายลาก");
   assert.strictEqual(parsedDedicated.t7HasExternalChemicals, true);
-  assert.strictEqual(parsedDedicated.t7Notes, "ฉีดพ่นช่วงเช้า อากาศแจ่มใส ไม่มีลม");
-  assert.deepStrictEqual(parsedDedicated.t7Irrigations, ["สปริงเกอร์", "สายยาง"]);
+  assert.strictEqual(
+    parsedDedicated.t7Notes,
+    "ฉีดพ่นช่วงเช้า อากาศแจ่มใส ไม่มีลม",
+  );
+  assert.deepStrictEqual(parsedDedicated.t7Irrigations, [
+    "สปริงเกอร์",
+    "สายยาง",
+  ]);
   assert.strictEqual(parsedDedicated.t7PlannedProducts?.length, 1);
-  assert.strictEqual(parsedDedicated.t7PlannedProducts?.[0].productName, "นูทรีฟอล สปีด");
+  assert.strictEqual(
+    parsedDedicated.t7PlannedProducts?.[0].productName,
+    "นูทรีฟอล สปีด",
+  );
   assert.strictEqual(parsedDedicated.t7AdditionalProducts?.length, 1);
-  assert.strictEqual(parsedDedicated.t7AdditionalProducts?.[0].productName, "ฮิวมิค พลัส");
+  assert.strictEqual(
+    parsedDedicated.t7AdditionalProducts?.[0].productName,
+    "ฮิวมิค พลัส",
+  );
   assert.strictEqual(parsedDedicated.t7ExternalProducts?.length, 1);
-  assert.strictEqual(parsedDedicated.t7ExternalProducts?.[0].productName, "อะบาเมกติน");
+  assert.strictEqual(
+    parsedDedicated.t7ExternalProducts?.[0].productName,
+    "อะบาเมกติน",
+  );
   assert.strictEqual(parsedDedicated.t7InitialPhotos?.length, 1);
-  assert.strictEqual(parsedDedicated.t7InitialPhotos?.[0].url, "https://example.com/durian-plot.jpg");
+  assert.strictEqual(
+    parsedDedicated.t7InitialPhotos?.[0].url,
+    "https://example.com/durian-plot.jpg",
+  );
 
   // Verify extractType7aPlanTargets also reflects dedicated actual results
-  const extractedDedicatedTargets = extractType7aPlanTargets(mockPlanWithDedicatedActual);
+  const extractedDedicatedTargets = extractType7aPlanTargets(
+    mockPlanWithDedicatedActual,
+  );
   const dedicatedTarget1 = extractedDedicatedTargets.primary;
   assert.strictEqual(dedicatedTarget1.farmerName, "นายบุญส่ง มั่งมี");
   assert.strictEqual(dedicatedTarget1.province, "ศรีสะเกษ");
   assert.strictEqual(dedicatedTarget1.latitude, 14.623456);
-  assert.deepStrictEqual(dedicatedTarget1.irrigations, ["สปริงเกอร์", "สายยาง"]);
+  assert.deepStrictEqual(dedicatedTarget1.irrigations, [
+    "สปริงเกอร์",
+    "สายยาง",
+  ]);
   assert.strictEqual(dedicatedTarget1.demoProducts?.length, 2);
-  console.log("✓ Test 6 passed: Dedicated Relational Table (activity_type_7a_results) Hydration verified");
+  console.log(
+    "✓ Test 6 passed: Dedicated Relational Table (activity_type_7a_results) Hydration verified",
+  );
 
   // 7. Verify Hydration from type7aTargets directly (without legacy type7aPlots)
   const mockPlanWithTargetsOnly = {
@@ -526,36 +576,62 @@ async function runTests() {
   };
 
   // Test Planned Hydration
-  const hydratedPlannedFromTargets = hydrateType7aPlannedData(mockPlanWithTargetsOnly);
+  const hydratedPlannedFromTargets = hydrateType7aPlannedData(
+    mockPlanWithTargetsOnly,
+  );
   assert.strictEqual(hydratedPlannedFromTargets.length, 1);
-  assert.strictEqual(hydratedPlannedFromTargets[0].plotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
-  assert.strictEqual(hydratedPlannedFromTargets[0].farmerName, "ร้านการเกษตร อุดมสุข");
+  assert.strictEqual(
+    hydratedPlannedFromTargets[0].plotName,
+    "แปลงสาธิต ข้าวหอมมะลิ 105",
+  );
+  assert.strictEqual(
+    hydratedPlannedFromTargets[0].farmerName,
+    "ร้านการเกษตร อุดมสุข",
+  );
   assert.strictEqual(hydratedPlannedFromTargets[0].province, "สุพรรณบุรี");
   assert.strictEqual(hydratedPlannedFromTargets[0].district, "เมือง");
   assert.strictEqual(hydratedPlannedFromTargets[0].cropName, "ข้าว");
   assert.strictEqual(hydratedPlannedFromTargets[0].areaRai, 25);
   assert.strictEqual(hydratedPlannedFromTargets[0].demoProducts?.length, 1);
-  assert.strictEqual(hydratedPlannedFromTargets[0].demoProducts?.[0]?.productName, "สารบำรุงข้าว A");
+  assert.strictEqual(
+    hydratedPlannedFromTargets[0].demoProducts?.[0]?.productName,
+    "สารบำรุงข้าว A",
+  );
 
   // Test Unplanned Hydration
-  const hydratedUnplannedFromTargets = hydrateType7aUnplannedData(mockPlanWithTargetsOnly);
+  const hydratedUnplannedFromTargets = hydrateType7aUnplannedData(
+    mockPlanWithTargetsOnly,
+  );
   assert.strictEqual(hydratedUnplannedFromTargets.length, 1);
-  assert.strictEqual(hydratedUnplannedFromTargets[0].plotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
+  assert.strictEqual(
+    hydratedUnplannedFromTargets[0].plotName,
+    "แปลงสาธิต ข้าวหอมมะลิ 105",
+  );
   assert.strictEqual(hydratedUnplannedFromTargets[0].province, "สุพรรณบุรี");
   assert.strictEqual(hydratedUnplannedFromTargets[0].district, "เมือง");
 
   // Test Actual Outcome Parser
-  const parsedActualFromTargets = parseType7aActualResult(mockPlanWithTargetsOnly);
-  assert.strictEqual(parsedActualFromTargets.t7PlotName, "แปลงสาธิต ข้าวหอมมะลิ 105");
+  const parsedActualFromTargets = parseType7aActualResult(
+    mockPlanWithTargetsOnly,
+  );
+  assert.strictEqual(
+    parsedActualFromTargets.t7PlotName,
+    "แปลงสาธิต ข้าวหอมมะลิ 105",
+  );
   assert.strictEqual(parsedActualFromTargets.t7CropCategory, "พืชไร่");
   assert.strictEqual(parsedActualFromTargets.t7CropName, "ข้าว");
   assert.strictEqual(parsedActualFromTargets.t7AreaRai, 25);
   assert.strictEqual(parsedActualFromTargets.t7FarmerProvince, "สุพรรณบุรี");
   assert.strictEqual(parsedActualFromTargets.t7FarmerDistrict, "เมือง");
-  assert.strictEqual(parsedActualFromTargets.t7DealerName, "ร้านการเกษตร อุดมสุข");
+  assert.strictEqual(
+    parsedActualFromTargets.t7DealerName,
+    "ร้านการเกษตร อุดมสุข",
+  );
   assert.strictEqual(parsedActualFromTargets.t7PlannedProducts?.length, 1);
 
-  console.log("✓ Test 7 passed: Hydration & Extraction from type7aTargets directly verified");
+  console.log(
+    "✓ Test 7 passed: Hydration & Extraction from type7aTargets directly verified",
+  );
 
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
 }
@@ -564,4 +640,3 @@ runTests().catch((err) => {
   console.error("Test failed:", err);
   process.exit(1);
 });
-

@@ -174,7 +174,7 @@ export function Type7bUnplannedForm({
         roundNumber: newRoundNumber,
         sprayDate: item.visitDate || new Date().toISOString().split("T")[0],
         sprayMethod: "SINGLE",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         otherEquipment: "",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         problemDetail: "",
@@ -443,8 +443,7 @@ export function Type7bUnplannedForm({
                     sprayDate:
                       item.visitDate || new Date().toISOString().split("T")[0],
                     sprayMethod: "SINGLE",
-                    sprayEquipment:
-                      "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+                    sprayEquipment: "เป้สะพายหลัง",
                     otherEquipment: "",
                     productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
                     problemDetail: "",
@@ -1308,10 +1307,7 @@ export function Type7bUnplannedForm({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                           <ActivitySelect
                             label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
-                            value={
-                              round.sprayEquipment ||
-                              "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"
-                            }
+                            value={round.sprayEquipment || "เป้สะพายหลัง"}
                             onChange={(val) =>
                               handleUpdateRoundField(
                                 item.id,

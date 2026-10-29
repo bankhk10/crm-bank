@@ -2,12 +2,16 @@ import assert from "node:assert";
 import { extractPlotFollowUpTimeline } from "@/modules/activity/features/type-7a/planned/application/follow-up-mapper";
 
 async function runTests() {
-  console.log("=== Running Type 7A Demo Plot Follow-Up Timeline Unit Tests ===");
+  console.log(
+    "=== Running Type 7A Demo Plot Follow-Up Timeline Unit Tests ===",
+  );
 
   // -------------------------------------------------------------------------
   // Test 1: Empty DemoPlot (No follow-up visits yet)
   // -------------------------------------------------------------------------
-  console.log("\n[Test 1] Testing with freshly created demo plot (no follow-ups yet)...");
+  console.log(
+    "\n[Test 1] Testing with freshly created demo plot (no follow-ups yet)...",
+  );
 
   const freshPlot = {
     id: "dp-fresh-001",
@@ -28,12 +32,16 @@ async function runTests() {
   assert.strictEqual(freshResult.timeline.length, 0);
   assert.strictEqual(freshResult.closureStats, null);
 
-  console.log("✓ Test 1 passed: Fresh demo plot handled correctly with empty timeline.");
+  console.log(
+    "✓ Test 1 passed: Fresh demo plot handled correctly with empty timeline.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 2: Multi-round Follow-up Journey with 7B Trip Plans, Spraying & Closure
   // -------------------------------------------------------------------------
-  console.log("\n[Test 2] Testing multi-round follow-up journey across multiple Trip Plans...");
+  console.log(
+    "\n[Test 2] Testing multi-round follow-up journey across multiple Trip Plans...",
+  );
 
   const activePlot = {
     id: "dp-corn-999",
@@ -47,7 +55,8 @@ async function runTests() {
     yieldIncreasePercent: 18.31,
     farmerSatisfaction: 5,
     commercialPotential: "สูง (เกษตรกรสั่งซื้อ 50 ลัง)",
-    finalSummaryNotes: "พืชตอบสนองต่อเอ็กซอลและนูริชดีมาก ฝักเต็ม เมล็ดเรียงสม่ำเสมอ",
+    finalSummaryNotes:
+      "พืชตอบสนองต่อเอ็กซอลและนูริชดีมาก ฝักเต็ม เมล็ดเรียงสม่ำเสมอ",
     visits: [
       {
         id: "visit-1",
@@ -61,7 +70,7 @@ async function runTests() {
         cropAgeUnit: "วัน",
         productResponse: "พืชตอบสนองดี",
         sprayMethod: "SINGLE",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         cropImageUrls: ["https://storage.example.com/corn-v1-1.jpg"],
         activityPlan: {
           id: "plan-7b-001",
@@ -83,7 +92,7 @@ async function runTests() {
         cropAgeUnit: "วัน",
         productResponse: "พืชตอบสนองดี",
         sprayMethod: "TANK_MIXED",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         cropImageUrls: ["https://storage.example.com/corn-v2-1.jpg"],
         plotImageUrls: ["https://storage.example.com/corn-v2-plot.jpg"],
         activityPlan: {
@@ -241,12 +250,16 @@ async function runTests() {
   assert.strictEqual(result.closureStats.yieldIncreasePercent, 18.31);
   assert.strictEqual(result.closureStats.farmerSatisfaction, 5);
 
-  console.log("✓ Test 2 passed: Multi-round journey with 3 Trip Plans, spray products, and closure stats synthesized successfully.");
+  console.log(
+    "✓ Test 2 passed: Multi-round journey with 3 Trip Plans, spray products, and closure stats synthesized successfully.",
+  );
 
   // -------------------------------------------------------------------------
   // Test 3: Planned but not yet visited follow-up plan
   // -------------------------------------------------------------------------
-  console.log("\n[Test 3] Testing planned follow-up plan that has not yet had an actual visit...");
+  console.log(
+    "\n[Test 3] Testing planned follow-up plan that has not yet had an actual visit...",
+  );
 
   const plannedOnlyPlot = {
     id: "dp-planned-01",
@@ -284,7 +297,9 @@ async function runTests() {
   assert.strictEqual(pResult.timeline[0].employeeName, "นางสาวศิริพร");
   assert.strictEqual(pResult.timeline[0].sprayProducts[0].name, "นูริชพลัส");
 
-  console.log("✓ Test 3 passed: Planned follow-up plan synthesized with isPlannedOnly=true.");
+  console.log(
+    "✓ Test 3 passed: Planned follow-up plan synthesized with isPlannedOnly=true.",
+  );
 
   console.log("\n🎉 ALL DEMO PLOT FOLLOW-UP TIMELINE TESTS PASSED 100%!");
 }
@@ -293,4 +308,3 @@ runTests().catch((err) => {
   console.error("Test failed:", err);
   process.exit(1);
 });
-

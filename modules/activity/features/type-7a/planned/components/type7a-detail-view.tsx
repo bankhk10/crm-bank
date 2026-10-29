@@ -858,10 +858,7 @@ export function Type7aDetailView({
                   </span>
                   <div className="font-bold text-slate-900 bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>
-                      {sprayEquipment ||
-                        "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
-                    </span>
+                    <span>{sprayEquipment || "เป้สะพายหลัง"}</span>
                   </div>
                 </div>
 

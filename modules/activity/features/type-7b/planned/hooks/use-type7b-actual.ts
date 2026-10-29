@@ -20,7 +20,7 @@ function createDefaultRound(
     roundNumber,
     sprayDate: new Date().toISOString().split("T")[0],
     sprayMethod: "SINGLE",
-    sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+    sprayEquipment: "เป้สะพายหลัง",
     otherEquipment: "",
     hasExternalChemicals: false,
     externalProducts: [],
@@ -36,7 +36,8 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
   const [actualState, setActualState] = useState<Type7bActualRecord>(() => {
     const todayStr = new Date().toISOString().split("T")[0];
     const initialRounds =
-      Array.isArray(initialData?.t7SprayingRounds) && initialData!.t7SprayingRounds.length > 0
+      Array.isArray(initialData?.t7SprayingRounds) &&
+      initialData!.t7SprayingRounds.length > 0
         ? initialData!.t7SprayingRounds
         : [createDefaultRound(1)];
 
@@ -53,7 +54,8 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
       t7CropCondition: initialData?.t7CropCondition || "สมบูรณ์",
       t7GrowthStage: initialData?.t7GrowthStage || "",
       t7CropProblemDescription: initialData?.t7CropProblemDescription || "",
-      t7ProductResponse: initialData?.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      t7ProductResponse:
+        initialData?.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       t7ProblemDescription: initialData?.t7ProblemDescription || "",
       t7SprayMethod: initialData?.t7SprayMethod || "SINGLE",
       t7SprayEquipment: initialData?.t7SprayEquipment || "เป้สะพายหลัง",
@@ -65,7 +67,8 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
       t7FinalYieldKg: initialData?.t7FinalYieldKg || "",
       t7ControlYieldKg: initialData?.t7ControlYieldKg || "",
       t7FarmerSatisfaction: initialData?.t7FarmerSatisfaction || 5,
-      t7CommercialPotential: initialData?.t7CommercialPotential || "สูง (เกษตรกรสนใจมาก)",
+      t7CommercialPotential:
+        initialData?.t7CommercialPotential || "สูง (เกษตรกรสนใจมาก)",
       t7FinalSummaryNotes: initialData?.t7FinalSummaryNotes || "",
       t7PlotName: initialData?.t7PlotName || "",
       t7FarmerName: initialData?.t7FarmerName || "",
@@ -85,24 +88,32 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
 
   // Initialize or populate baseline products from plan targets
   const initBaselineProducts = useCallback(
-    (plannedProducts: Array<{ productId: string; productName?: string; quantity?: number | string; unit?: string }>) => {
+    (
+      plannedProducts: Array<{
+        productId: string;
+        productName?: string;
+        quantity?: number | string;
+        unit?: string;
+      }>,
+    ) => {
       if (!plannedProducts || plannedProducts.length === 0) return;
 
       setActualState((prev) => {
         const rounds = prev.t7SprayingRounds || [createDefaultRound(1)];
-        const formattedBaselines: Type7bBaselineProductItem[] = plannedProducts.map((p) => ({
-          productId: p.productId,
-          productName: p.productName || "สินค้าตามแผน",
-          withdrawnQuantity: p.quantity ?? 1,
-          plannedQuantity: p.quantity ?? 1,
-          actualQuantity: p.quantity ?? 1,
-          extraQuantity: "",
-          extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
-          applicationRate: "",
-          plannedRate: "",
-          actualRate: "",
-          unit: p.unit || "ขวด",
-        }));
+        const formattedBaselines: Type7bBaselineProductItem[] =
+          plannedProducts.map((p) => ({
+            productId: p.productId,
+            productName: p.productName || "สินค้าตามแผน",
+            withdrawnQuantity: p.quantity ?? 1,
+            plannedQuantity: p.quantity ?? 1,
+            actualQuantity: p.quantity ?? 1,
+            extraQuantity: "",
+            extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+            applicationRate: "",
+            plannedRate: "",
+            actualRate: "",
+            unit: p.unit || "ขวด",
+          }));
 
         // Check if baselineProducts already set
         const updatedRounds = rounds.map((r) => {
@@ -201,7 +212,10 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
 
       currentRounds[roundIdx] = {
         ...currentRounds[roundIdx],
-        additionalProducts: [...(currentRounds[roundIdx].additionalProducts || []), newProd],
+        additionalProducts: [
+          ...(currentRounds[roundIdx].additionalProducts || []),
+          newProd,
+        ],
       };
 
       return {
@@ -252,26 +266,29 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
   );
 
   // Remove Additional Product from a round
-  const removeAdditionalProduct = useCallback((roundIdx: number, prodIdx: number) => {
-    setActualState((prev) => {
-      const currentRounds = [...(prev.t7SprayingRounds || [])];
-      if (!currentRounds[roundIdx]) return prev;
+  const removeAdditionalProduct = useCallback(
+    (roundIdx: number, prodIdx: number) => {
+      setActualState((prev) => {
+        const currentRounds = [...(prev.t7SprayingRounds || [])];
+        if (!currentRounds[roundIdx]) return prev;
 
-      const prods = (currentRounds[roundIdx].additionalProducts || []).filter(
-        (_, idx) => idx !== prodIdx,
-      );
+        const prods = (currentRounds[roundIdx].additionalProducts || []).filter(
+          (_, idx) => idx !== prodIdx,
+        );
 
-      currentRounds[roundIdx] = {
-        ...currentRounds[roundIdx],
-        additionalProducts: prods,
-      };
+        currentRounds[roundIdx] = {
+          ...currentRounds[roundIdx],
+          additionalProducts: prods,
+        };
 
-      return {
-        ...prev,
-        t7SprayingRounds: currentRounds,
-      };
-    });
-  }, []);
+        return {
+          ...prev,
+          t7SprayingRounds: currentRounds,
+        };
+      });
+    },
+    [],
+  );
 
   // Add External Product to a round
   const addExternalProductToRound = useCallback((roundIdx: number) => {
@@ -291,7 +308,10 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
 
       currentRounds[roundIdx] = {
         ...currentRounds[roundIdx],
-        externalProducts: [...(currentRounds[roundIdx].externalProducts || []), newExtProd],
+        externalProducts: [
+          ...(currentRounds[roundIdx].externalProducts || []),
+          newExtProd,
+        ],
       };
 
       return {
@@ -331,26 +351,29 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
   );
 
   // Remove External Product from a round
-  const removeExternalProductFromRound = useCallback((roundIdx: number, extIdx: number) => {
-    setActualState((prev) => {
-      const currentRounds = [...(prev.t7SprayingRounds || [])];
-      if (!currentRounds[roundIdx]) return prev;
+  const removeExternalProductFromRound = useCallback(
+    (roundIdx: number, extIdx: number) => {
+      setActualState((prev) => {
+        const currentRounds = [...(prev.t7SprayingRounds || [])];
+        if (!currentRounds[roundIdx]) return prev;
 
-      const exts = (currentRounds[roundIdx].externalProducts || []).filter(
-        (_, idx) => idx !== extIdx,
-      );
+        const exts = (currentRounds[roundIdx].externalProducts || []).filter(
+          (_, idx) => idx !== extIdx,
+        );
 
-      currentRounds[roundIdx] = {
-        ...currentRounds[roundIdx],
-        externalProducts: exts,
-      };
+        currentRounds[roundIdx] = {
+          ...currentRounds[roundIdx],
+          externalProducts: exts,
+        };
 
-      return {
-        ...prev,
-        t7SprayingRounds: currentRounds,
-      };
-    });
-  }, []);
+        return {
+          ...prev,
+          t7SprayingRounds: currentRounds,
+        };
+      });
+    },
+    [],
+  );
 
   // Update Baseline Product in a round
   const updateBaselineProduct = useCallback(
@@ -389,22 +412,25 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
   );
 
   // Update Round Images
-  const updateRoundImages = useCallback((roundIdx: number, images: ImageFile[]) => {
-    setActualState((prev) => {
-      const currentRounds = [...(prev.t7SprayingRounds || [])];
-      if (!currentRounds[roundIdx]) return prev;
+  const updateRoundImages = useCallback(
+    (roundIdx: number, images: ImageFile[]) => {
+      setActualState((prev) => {
+        const currentRounds = [...(prev.t7SprayingRounds || [])];
+        if (!currentRounds[roundIdx]) return prev;
 
-      currentRounds[roundIdx] = {
-        ...currentRounds[roundIdx],
-        roundImages: images,
-      };
+        currentRounds[roundIdx] = {
+          ...currentRounds[roundIdx],
+          roundImages: images,
+        };
 
-      return {
-        ...prev,
-        t7SprayingRounds: currentRounds,
-      };
-    });
-  }, []);
+        return {
+          ...prev,
+          t7SprayingRounds: currentRounds,
+        };
+      });
+    },
+    [],
+  );
 
   const hydrate = useCallback((parsedData: Type7bActualRecord) => {
     if (!parsedData || Object.keys(parsedData).length === 0) return;
@@ -412,7 +438,8 @@ export function useType7bActual(initialData?: Type7bActualRecord) {
       ...prev,
       ...parsedData,
       t7SprayingRounds:
-        Array.isArray(parsedData.t7SprayingRounds) && parsedData.t7SprayingRounds.length > 0
+        Array.isArray(parsedData.t7SprayingRounds) &&
+        parsedData.t7SprayingRounds.length > 0
           ? parsedData.t7SprayingRounds
           : prev.t7SprayingRounds,
     }));

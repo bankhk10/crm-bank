@@ -10,12 +10,13 @@ export const SPRAY_METHOD_RADIO_OPTIONS = [
   { value: "TANK_MIXED", label: "ผสมถัง (Tank-mixed)" },
 ] as const;
 
-export const EXTERNAL_FORMULA_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: "SL", label: "SL (Soluble Liquid)" },
-  { value: "SC", label: "SC (Suspension Concentrate)" },
-  { value: "EC", label: "EC (Emulsifiable Concentrate)" },
-  { value: "อื่นๆ", label: "อื่นๆ (ระบุ)" },
-];
+export const EXTERNAL_FORMULA_OPTIONS: Array<{ value: string; label: string }> =
+  [
+    { value: "SL", label: "SL (Soluble Liquid)" },
+    { value: "SC", label: "SC (Suspension Concentrate)" },
+    { value: "EC", label: "EC (Emulsifiable Concentrate)" },
+    { value: "อื่นๆ", label: "อื่นๆ (ระบุ)" },
+  ];
 
 export const SPRAY_EQUIPMENT_RADIO_OPTIONS = [
   { value: "เป้สะพายหลัง", label: "เป้สะพายหลัง" },
@@ -26,9 +27,15 @@ export const SPRAY_EQUIPMENT_RADIO_OPTIONS = [
 ] as const;
 
 export const SPRAY_RESPONSE_OPTIONS = [
-  { value: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)", label: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)" },
+  {
+    value: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+    label: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+  },
   { value: "ยังไม่เห็นผลชัดเจน", label: "ยังไม่เห็นผลชัดเจน" },
-  { value: "พบปัญหา / พืชมีอาการผิดปกติ", label: "พบปัญหา / พืชมีอาการผิดปกติ" },
+  {
+    value: "พบปัญหา / พืชมีอาการผิดปกติ",
+    label: "พบปัญหา / พืชมีอาการผิดปกติ",
+  },
 ] as const;
 
 export const DEMO_PLOT_STATUS_OPTIONS = [
@@ -56,18 +63,18 @@ export const SPRAY_METHODS = [
 ] as const;
 
 export const SPRAY_EQUIPMENT_OPTIONS = [
-  "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
-  "เครื่องพ่นปั๊มลากสาย",
+  "เป้สะพายหลัง",
+  "คน + สายลาก",
   "โดรนเพื่อการเกษตร",
-  "แอร์บัส / รถพ่นยา",
+  "แอร์บัส",
   "อื่นๆ (ระบุ)",
 ] as const;
 
 export const SPRAY_EQUIPMENTS = [
-  "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
-  "เครื่องพ่นปั๊มลากสาย",
+  "เป้สะพายหลัง",
+  "คน + สายลาก",
   "โดรนเพื่อการเกษตร",
-  "แอร์บัส / รถพ่นยา",
+  "แอร์บัส",
   "อื่นๆ (ระบุ)",
 ] as const;
 
@@ -85,4 +92,3 @@ export const SATISFACTION_SCORES = [
   { value: 2, label: "2 - พึงพอใจน้อย" },
   { value: 1, label: "1 - ไม่พึงพอใจ" },
 ] as const;
-

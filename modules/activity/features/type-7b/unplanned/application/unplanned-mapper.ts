@@ -99,8 +99,7 @@ export function hydrateType7bUnplannedData(
         ? new Date(sr.sprayDate).toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
       sprayMethod: sr.sprayMethod || "SINGLE",
-      sprayEquipment:
-        sr.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+      sprayEquipment: sr.sprayEquipment || "เป้สะพายหลัง",
       otherEquipment: sr.otherEquipment || "",
       productResponse: sr.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       problemDetail: sr.problemDetail || "",
@@ -424,7 +423,7 @@ export function mapType7bUnplannedToPayload(
       t7SprayEquipment:
         firstRound?.sprayEquipment ||
         firstItem.sprayEquipment ||
-        "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        "เป้สะพายหลัง",
       t7OtherEquipment: firstRound?.otherEquipment || null,
       demoPlotId: firstItem.demoPlotId || null,
       t7DemoPlotId: firstItem.demoPlotId || null,

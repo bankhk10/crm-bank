@@ -30,7 +30,7 @@ export const createDefaultSprayRound = (
   roundNumber,
   sprayDate: sprayDate || new Date().toISOString().split("T")[0],
   sprayMethod: "SINGLE",
-  sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+  sprayEquipment: "เป้สะพายหลัง",
   otherEquipment: "",
   productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
   problemDetail: "",
@@ -39,7 +39,9 @@ export const createDefaultSprayRound = (
   roundImages: [],
 });
 
-export const createDefaultType7bUnplannedItem = (id = "1"): Type7bUnplannedItem => {
+export const createDefaultType7bUnplannedItem = (
+  id = "1",
+): Type7bUnplannedItem => {
   const today = new Date().toISOString().split("T")[0];
   return {
     id,
@@ -65,7 +67,7 @@ export const createDefaultType7bUnplannedItem = (id = "1"): Type7bUnplannedItem 
     productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
     cropProblemDescription: "",
     sprayMethod: "SINGLE",
-    sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+    sprayEquipment: "เป้สะพายหลัง",
     objective: "",
     hasProductWithdrawal: false,
     withdrawnProducts: [],
@@ -73,7 +75,9 @@ export const createDefaultType7bUnplannedItem = (id = "1"): Type7bUnplannedItem 
   };
 };
 
-export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = {}) {
+export function useType7bUnplannedForm(
+  options: UseType7bUnplannedFormOptions = {},
+) {
   const [items, setItems] = useState<Type7bUnplannedItem[]>(() => {
     if (options.initialItems && options.initialItems.length > 0) {
       return options.initialItems.map((item) => {
@@ -160,7 +164,7 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           roundNumber: newRoundNumber,
           sprayDate: item.visitDate || new Date().toISOString().split("T")[0],
           sprayMethod: "SINGLE",
-          sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+          sprayEquipment: "เป้สะพายหลัง",
           otherEquipment: "",
           productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
           problemDetail: "",
@@ -183,7 +187,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
         const currentRounds = item.sprayingRounds || [];
         if (currentRounds.length <= 1) return item;
         const filtered = currentRounds.filter((_, idx) => idx !== roundIndex);
-        const reindexed = filtered.map((r, idx) => ({ ...r, roundNumber: idx + 1 }));
+        const reindexed = filtered.map((r, idx) => ({
+          ...r,
+          roundNumber: idx + 1,
+        }));
         return { ...item, sprayingRounds: reindexed };
       }),
     );
@@ -232,7 +239,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           };
           rounds[roundIndex] = {
             ...rounds[roundIndex],
-            additionalProducts: [...(rounds[roundIndex].additionalProducts || []), newProd],
+            additionalProducts: [
+              ...(rounds[roundIndex].additionalProducts || []),
+              newProd,
+            ],
           };
         }
         return { ...item, sprayingRounds: rounds };
@@ -263,7 +273,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           } else if (field === "actualRate") {
             prods[prodIndex].applicationRate = value;
           }
-          rounds[roundIndex] = { ...rounds[roundIndex], additionalProducts: prods };
+          rounds[roundIndex] = {
+            ...rounds[roundIndex],
+            additionalProducts: prods,
+          };
         }
         return { ...item, sprayingRounds: rounds };
       }),
@@ -283,7 +296,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           const prods = (rounds[roundIndex].additionalProducts || []).filter(
             (_, idx) => idx !== prodIndex,
           );
-          rounds[roundIndex] = { ...rounds[roundIndex], additionalProducts: prods };
+          rounds[roundIndex] = {
+            ...rounds[roundIndex],
+            additionalProducts: prods,
+          };
         }
         return { ...item, sprayingRounds: rounds };
       }),
@@ -321,7 +337,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           };
           rounds[roundIndex] = {
             ...rounds[roundIndex],
-            externalProducts: [...(rounds[roundIndex].externalProducts || []), newExt],
+            externalProducts: [
+              ...(rounds[roundIndex].externalProducts || []),
+              newExt,
+            ],
           };
         }
         return { ...item, sprayingRounds: rounds };
@@ -343,7 +362,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
         if (rounds[roundIndex]?.externalProducts?.[extIndex]) {
           const exts = [...(rounds[roundIndex].externalProducts || [])];
           exts[extIndex] = { ...exts[extIndex], [field]: value };
-          rounds[roundIndex] = { ...rounds[roundIndex], externalProducts: exts };
+          rounds[roundIndex] = {
+            ...rounds[roundIndex],
+            externalProducts: exts,
+          };
         }
         return { ...item, sprayingRounds: rounds };
       }),
@@ -363,7 +385,10 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
           const exts = (rounds[roundIndex].externalProducts || []).filter(
             (_, idx) => idx !== extIndex,
           );
-          rounds[roundIndex] = { ...rounds[roundIndex], externalProducts: exts };
+          rounds[roundIndex] = {
+            ...rounds[roundIndex],
+            externalProducts: exts,
+          };
         }
         return { ...item, sprayingRounds: rounds };
       }),
@@ -442,7 +467,9 @@ export function useType7bUnplannedForm(options: UseType7bUnplannedFormOptions = 
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== itemId) return item;
-        const updated = (item.withdrawnProducts || []).filter((p) => p.id !== prodId);
+        const updated = (item.withdrawnProducts || []).filter(
+          (p) => p.id !== prodId,
+        );
         return { ...item, withdrawnProducts: updated };
       }),
     );

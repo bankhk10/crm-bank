@@ -63,17 +63,29 @@ export function Type7bActualForm({
 
   // Extract planned demo products from targets
   const targetDemoProducts = useMemo(() => {
-    const list: Array<{ productId: string; productName: string; quantity: number | string; unit?: string }> = [];
+    const list: Array<{
+      productId: string;
+      productName: string;
+      quantity: number | string;
+      unit?: string;
+    }> = [];
     const t = resolvedTargets[0];
     if (t) {
-      const prods = t.demoProducts || t.withdrawnProducts || (t as any).products || [];
+      const prods =
+        t.demoProducts || t.withdrawnProducts || (t as any).products || [];
       prods.forEach((p: any) => {
         const pId = p.productId || p.product?.id || p.id;
-        const pName = p.productName || p.product?.name || p.name || "สินค้าตามแผน";
+        const pName =
+          p.productName || p.product?.name || p.name || "สินค้าตามแผน";
         const qty = p.quantity ?? p.targetQuantity ?? p.withdrawnQuantity ?? 1;
         const unit = p.unit || p.product?.unit || "ขวด";
         if (pId) {
-          list.push({ productId: pId, productName: pName, quantity: qty, unit });
+          list.push({
+            productId: pId,
+            productName: pName,
+            quantity: qty,
+            unit,
+          });
         }
       });
     }
@@ -82,16 +94,20 @@ export function Type7bActualForm({
 
   // Ensure spraying rounds exist
   const rounds: Type7bSprayRoundState[] = useMemo(() => {
-    if (Array.isArray(actualState.t7SprayingRounds) && actualState.t7SprayingRounds.length > 0) {
+    if (
+      Array.isArray(actualState.t7SprayingRounds) &&
+      actualState.t7SprayingRounds.length > 0
+    ) {
       return actualState.t7SprayingRounds;
     }
     return [
       {
         id: "round-1",
         roundNumber: 1,
-        sprayDate: actualState.t7VisitDate || new Date().toISOString().split("T")[0],
+        sprayDate:
+          actualState.t7VisitDate || new Date().toISOString().split("T")[0],
         sprayMethod: "SINGLE",
-        sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+        sprayEquipment: "เป้สะพายหลัง",
         otherEquipment: "",
         productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
         problemDetail: "",
@@ -112,11 +128,18 @@ export function Type7bActualForm({
         roundImages: [],
       },
     ];
-  }, [actualState.t7SprayingRounds, actualState.t7VisitDate, targetDemoProducts]);
+  }, [
+    actualState.t7SprayingRounds,
+    actualState.t7VisitDate,
+    targetDemoProducts,
+  ]);
 
   // Sync baseline products into rounds if rounds had 0 baseline products
   useEffect(() => {
-    if (targetDemoProducts.length > 0 && Array.isArray(actualState.t7SprayingRounds)) {
+    if (
+      targetDemoProducts.length > 0 &&
+      Array.isArray(actualState.t7SprayingRounds)
+    ) {
       const needsInit = actualState.t7SprayingRounds.some(
         (r) => !r.baselineProducts || r.baselineProducts.length === 0,
       );
@@ -159,9 +182,10 @@ export function Type7bActualForm({
     const newRound: Type7bSprayRoundState = {
       id: `round-${Date.now()}-${newRoundNumber}`,
       roundNumber: newRoundNumber,
-      sprayDate: actualState.t7VisitDate || new Date().toISOString().split("T")[0],
+      sprayDate:
+        actualState.t7VisitDate || new Date().toISOString().split("T")[0],
       sprayMethod: "SINGLE",
-      sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+      sprayEquipment: "เป้สะพายหลัง",
       otherEquipment: "",
       productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       problemDetail: "",
@@ -186,7 +210,10 @@ export function Type7bActualForm({
       }
       if (rounds.length <= 1) return;
       const filtered = rounds.filter((_, idx) => idx !== rIdx);
-      const reindexed = filtered.map((r, idx) => ({ ...r, roundNumber: idx + 1 }));
+      const reindexed = filtered.map((r, idx) => ({
+        ...r,
+        roundNumber: idx + 1,
+      }));
       onUpdateField?.("t7SprayingRounds", reindexed);
     },
     [onRemoveRound, rounds, onUpdateField],
@@ -229,7 +256,10 @@ export function Type7bActualForm({
         };
         updated[rIdx] = {
           ...updated[rIdx],
-          additionalProducts: [...(updated[rIdx].additionalProducts || []), newProd],
+          additionalProducts: [
+            ...(updated[rIdx].additionalProducts || []),
+            newProd,
+          ],
         };
         onUpdateField?.("t7SprayingRounds", updated);
       }
@@ -272,7 +302,9 @@ export function Type7bActualForm({
       }
       const updated = [...rounds];
       if (updated[rIdx]) {
-        const prods = (updated[rIdx].additionalProducts || []).filter((_, idx) => idx !== pIdx);
+        const prods = (updated[rIdx].additionalProducts || []).filter(
+          (_, idx) => idx !== pIdx,
+        );
         updated[rIdx] = { ...updated[rIdx], additionalProducts: prods };
         onUpdateField?.("t7SprayingRounds", updated);
       }
@@ -372,7 +404,9 @@ export function Type7bActualForm({
       }
       const updated = [...rounds];
       if (updated[rIdx]) {
-        const exts = (updated[rIdx].externalProducts || []).filter((_, idx) => idx !== extIdx);
+        const exts = (updated[rIdx].externalProducts || []).filter(
+          (_, idx) => idx !== extIdx,
+        );
         updated[rIdx] = { ...updated[rIdx], externalProducts: exts };
         onUpdateField?.("t7SprayingRounds", updated);
       }
@@ -567,21 +601,34 @@ export function Type7bActualForm({
                             {idx + 1}. {prod.productName || "สินค้าตัวอย่าง"}
                           </span>
                           <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md">
-                            จำนวนที่เบิก: {prod.withdrawnQuantity || prod.plannedQuantity || 1}
+                            จำนวนที่เบิก:{" "}
+                            {prod.withdrawnQuantity ||
+                              prod.plannedQuantity ||
+                              1}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700">
-                              จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                              จำนวนที่ใช้จริง (ขวด){" "}
+                              <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
                               type="number"
                               min="0"
-                              value={prod.actualQuantity != null ? String(prod.actualQuantity) : ""}
+                              value={
+                                prod.actualQuantity != null
+                                  ? String(prod.actualQuantity)
+                                  : ""
+                              }
                               onChange={(e) =>
-                                handleUpdateBaselineProduct(rIdx, idx, "actualQuantity", e.target.value)
+                                handleUpdateBaselineProduct(
+                                  rIdx,
+                                  idx,
+                                  "actualQuantity",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="เช่น 1"
@@ -597,9 +644,18 @@ export function Type7bActualForm({
                               <ActivityInput
                                 type="number"
                                 min="0"
-                                value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
+                                value={
+                                  prod.extraQuantity != null
+                                    ? String(prod.extraQuantity)
+                                    : ""
+                                }
                                 onChange={(e) =>
-                                  handleUpdateBaselineProduct(rIdx, idx, "extraQuantity", e.target.value)
+                                  handleUpdateBaselineProduct(
+                                    rIdx,
+                                    idx,
+                                    "extraQuantity",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="เช่น 250"
@@ -607,7 +663,12 @@ export function Type7bActualForm({
                               <ActivitySelect
                                 value={prod.extraUnit || "ซีซี"}
                                 onChange={(val) =>
-                                  handleUpdateBaselineProduct(rIdx, idx, "extraUnit", val)
+                                  handleUpdateBaselineProduct(
+                                    rIdx,
+                                    idx,
+                                    "extraUnit",
+                                    val,
+                                  )
                                 }
                                 options={[
                                   { value: "ซีซี", label: "ซีซี (ขวด)" },
@@ -620,12 +681,20 @@ export function Type7bActualForm({
 
                           <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700">
-                              อัตราการใช้ <span className="text-rose-500">*</span>
+                              อัตราการใช้{" "}
+                              <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
-                              value={prod.applicationRate || prod.actualRate || ""}
+                              value={
+                                prod.applicationRate || prod.actualRate || ""
+                              }
                               onChange={(e) =>
-                                handleUpdateBaselineProduct(rIdx, idx, "applicationRate", e.target.value)
+                                handleUpdateBaselineProduct(
+                                  rIdx,
+                                  idx,
+                                  "applicationRate",
+                                  e.target.value,
+                                )
                               }
                               disabled={readonly}
                               placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
@@ -648,7 +717,8 @@ export function Type7bActualForm({
                   <div className="flex items-center gap-2">
                     <PackagePlus className="w-4 h-4 text-emerald-600" />
                     <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                      1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน (กรณีไม่ได้ใช้ยาที่เบิกไป)
+                      1.2 สินค้าเพิ่มเติมในการปฏิบัติงาน
+                      (กรณีไม่ได้ใช้ยาที่เบิกไป)
                     </h4>
                   </div>
 
@@ -668,7 +738,8 @@ export function Type7bActualForm({
 
                 {additionalProds.length === 0 ? (
                   <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
-                    ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+ เพิ่มสินค้า&quot; หากมีการใช้ยาตัวอื่น
+                    ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+
+                    เพิ่มสินค้า&quot; หากมีการใช้ยาตัวอื่น
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -684,7 +755,9 @@ export function Type7bActualForm({
                           {!readonly && (
                             <button
                               type="button"
-                              onClick={() => handleRemoveAdditionalProduct(rIdx, idx)}
+                              onClick={() =>
+                                handleRemoveAdditionalProduct(rIdx, idx)
+                              }
                               className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
                               title="ลบรายการ"
                             >
@@ -702,12 +775,32 @@ export function Type7bActualForm({
                             products={products as any}
                             onChange={(val, selected) => {
                               const resolvedId = selected?.id || val;
-                              const resolvedName = selected?.name || prod.productName || "";
-                              handleUpdateAdditionalProduct(rIdx, idx, "productId", resolvedId);
-                              handleUpdateAdditionalProduct(rIdx, idx, "productName", resolvedName);
+                              const resolvedName =
+                                selected?.name || prod.productName || "";
+                              handleUpdateAdditionalProduct(
+                                rIdx,
+                                idx,
+                                "productId",
+                                resolvedId,
+                              );
+                              handleUpdateAdditionalProduct(
+                                rIdx,
+                                idx,
+                                "productName",
+                                resolvedName,
+                              );
                               if (selected?.unit) {
-                                const defaultExtra = selected.unit.includes("ซอง") ? "กรัม" : "ซีซี";
-                                handleUpdateAdditionalProduct(rIdx, idx, "extraUnit", defaultExtra);
+                                const defaultExtra = selected.unit.includes(
+                                  "ซอง",
+                                )
+                                  ? "กรัม"
+                                  : "ซีซี";
+                                handleUpdateAdditionalProduct(
+                                  rIdx,
+                                  idx,
+                                  "extraUnit",
+                                  defaultExtra,
+                                );
                               }
                             }}
                             disabled={readonly}
@@ -719,7 +812,8 @@ export function Type7bActualForm({
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700">
-                              จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                              จำนวนที่ใช้จริง (ขวด){" "}
+                              <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
                               type="number"
@@ -732,8 +826,18 @@ export function Type7bActualForm({
                                     : ""
                               }
                               onChange={(e) => {
-                                handleUpdateAdditionalProduct(rIdx, idx, "actualQuantity", e.target.value);
-                                handleUpdateAdditionalProduct(rIdx, idx, "quantityUsed", e.target.value);
+                                handleUpdateAdditionalProduct(
+                                  rIdx,
+                                  idx,
+                                  "actualQuantity",
+                                  e.target.value,
+                                );
+                                handleUpdateAdditionalProduct(
+                                  rIdx,
+                                  idx,
+                                  "quantityUsed",
+                                  e.target.value,
+                                );
                               }}
                               disabled={readonly}
                               placeholder="เช่น 1"
@@ -749,9 +853,18 @@ export function Type7bActualForm({
                               <ActivityInput
                                 type="number"
                                 min="0"
-                                value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
+                                value={
+                                  prod.extraQuantity != null
+                                    ? String(prod.extraQuantity)
+                                    : ""
+                                }
                                 onChange={(e) =>
-                                  handleUpdateAdditionalProduct(rIdx, idx, "extraQuantity", e.target.value)
+                                  handleUpdateAdditionalProduct(
+                                    rIdx,
+                                    idx,
+                                    "extraQuantity",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={readonly}
                                 placeholder="เช่น 250"
@@ -759,7 +872,12 @@ export function Type7bActualForm({
                               <ActivitySelect
                                 value={prod.extraUnit || "ซีซี"}
                                 onChange={(val) =>
-                                  handleUpdateAdditionalProduct(rIdx, idx, "extraUnit", val)
+                                  handleUpdateAdditionalProduct(
+                                    rIdx,
+                                    idx,
+                                    "extraUnit",
+                                    val,
+                                  )
                                 }
                                 options={[
                                   { value: "ซีซี", label: "ซีซี (ขวด)" },
@@ -772,13 +890,26 @@ export function Type7bActualForm({
 
                           <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700">
-                              อัตราการใช้ <span className="text-rose-500">*</span>
+                              อัตราการใช้{" "}
+                              <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
-                              value={prod.applicationRate || prod.actualRate || ""}
+                              value={
+                                prod.applicationRate || prod.actualRate || ""
+                              }
                               onChange={(e) => {
-                                handleUpdateAdditionalProduct(rIdx, idx, "applicationRate", e.target.value);
-                                handleUpdateAdditionalProduct(rIdx, idx, "actualRate", e.target.value);
+                                handleUpdateAdditionalProduct(
+                                  rIdx,
+                                  idx,
+                                  "applicationRate",
+                                  e.target.value,
+                                );
+                                handleUpdateAdditionalProduct(
+                                  rIdx,
+                                  idx,
+                                  "actualRate",
+                                  e.target.value,
+                                );
                               }}
                               disabled={readonly}
                               placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
@@ -805,7 +936,9 @@ export function Type7bActualForm({
                     <button
                       type="button"
                       disabled={readonly}
-                      onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "SINGLE")}
+                      onClick={() =>
+                        handleUpdateRoundField(rIdx, "sprayMethod", "SINGLE")
+                      }
                       className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                         round.sprayMethod !== "TANK_MIXED"
                           ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
@@ -817,7 +950,13 @@ export function Type7bActualForm({
                     <button
                       type="button"
                       disabled={readonly}
-                      onClick={() => handleUpdateRoundField(rIdx, "sprayMethod", "TANK_MIXED")}
+                      onClick={() =>
+                        handleUpdateRoundField(
+                          rIdx,
+                          "sprayMethod",
+                          "TANK_MIXED",
+                        )
+                      }
                       className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                         round.sprayMethod === "TANK_MIXED"
                           ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
@@ -837,7 +976,11 @@ export function Type7bActualForm({
                         type="checkbox"
                         checked={Boolean(round.hasExternalChemicals)}
                         onChange={(e) =>
-                          handleUpdateRoundField(rIdx, "hasExternalChemicals", e.target.checked)
+                          handleUpdateRoundField(
+                            rIdx,
+                            "hasExternalChemicals",
+                            e.target.checked,
+                          )
                         }
                         disabled={readonly}
                         className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
@@ -869,9 +1012,11 @@ export function Type7bActualForm({
                           )}
                         </div>
 
-                        {(!round.externalProducts || round.externalProducts.length === 0) ? (
+                        {!round.externalProducts ||
+                        round.externalProducts.length === 0 ? (
                           <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-lg">
-                            ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+ เพิ่มยาภายนอก&quot; เพื่อระบุ
+                            ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+
+                            เพิ่มยาภายนอก&quot; เพื่อระบุ
                           </p>
                         ) : (
                           <div className="space-y-3">
@@ -887,7 +1032,12 @@ export function Type7bActualForm({
                                   {!readonly && (
                                     <button
                                       type="button"
-                                      onClick={() => handleRemoveExternalProduct(rIdx, extIdx)}
+                                      onClick={() =>
+                                        handleRemoveExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                        )
+                                      }
                                       className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
                                       title="ลบรายการ"
                                     >
@@ -904,7 +1054,12 @@ export function Type7bActualForm({
                                     <ActivityInput
                                       value={ext.company || ""}
                                       onChange={(e) =>
-                                        handleUpdateExternalProduct(rIdx, extIdx, "company", e.target.value)
+                                        handleUpdateExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                          "company",
+                                          e.target.value,
+                                        )
                                       }
                                       disabled={readonly}
                                       placeholder="ระบุบริษัท..."
@@ -913,12 +1068,18 @@ export function Type7bActualForm({
 
                                   <div className="space-y-1">
                                     <label className="text-[11px] font-medium text-slate-600">
-                                      ชื่อสินค้า <span className="text-rose-500">*</span>
+                                      ชื่อสินค้า{" "}
+                                      <span className="text-rose-500">*</span>
                                     </label>
                                     <ActivityInput
                                       value={ext.productName || ""}
                                       onChange={(e) =>
-                                        handleUpdateExternalProduct(rIdx, extIdx, "productName", e.target.value)
+                                        handleUpdateExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                          "productName",
+                                          e.target.value,
+                                        )
                                       }
                                       disabled={readonly}
                                       placeholder="ระบุชื่อสินค้า..."
@@ -933,7 +1094,12 @@ export function Type7bActualForm({
                                     <ActivityInput
                                       value={ext.activeIngredient || ""}
                                       onChange={(e) =>
-                                        handleUpdateExternalProduct(rIdx, extIdx, "activeIngredient", e.target.value)
+                                        handleUpdateExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                          "activeIngredient",
+                                          e.target.value,
+                                        )
                                       }
                                       disabled={readonly}
                                       placeholder="ระบุสารออกฤทธิ์..."
@@ -946,7 +1112,12 @@ export function Type7bActualForm({
                                       labelClassName="text-[11px] font-medium text-slate-600 mb-0"
                                       value={ext.formula || "SL"}
                                       onChange={(val) =>
-                                        handleUpdateExternalProduct(rIdx, extIdx, "formula", val)
+                                        handleUpdateExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                          "formula",
+                                          val,
+                                        )
                                       }
                                       options={EXTERNAL_FORMULA_OPTIONS}
                                       disabled={readonly}
@@ -956,12 +1127,18 @@ export function Type7bActualForm({
                                   {ext.formula === "อื่นๆ" && (
                                     <div className="space-y-1">
                                       <label className="text-[11px] font-medium text-slate-600">
-                                        ระบุสูตรเพิ่มเติม <span className="text-rose-500">*</span>
+                                        ระบุสูตรเพิ่มเติม{" "}
+                                        <span className="text-rose-500">*</span>
                                       </label>
                                       <ActivityInput
                                         value={ext.customFormula || ""}
                                         onChange={(e) =>
-                                          handleUpdateExternalProduct(rIdx, extIdx, "customFormula", e.target.value)
+                                          handleUpdateExternalProduct(
+                                            rIdx,
+                                            extIdx,
+                                            "customFormula",
+                                            e.target.value,
+                                          )
                                         }
                                         disabled={readonly}
                                         placeholder="ระบุสูตร..."
@@ -972,12 +1149,18 @@ export function Type7bActualForm({
 
                                   <div className="space-y-1">
                                     <label className="text-[11px] font-medium text-slate-600">
-                                      อัตราการใช้ <span className="text-rose-500">*</span>
+                                      อัตราการใช้{" "}
+                                      <span className="text-rose-500">*</span>
                                     </label>
                                     <ActivityInput
                                       value={ext.applicationRate || ""}
                                       onChange={(e) =>
-                                        handleUpdateExternalProduct(rIdx, extIdx, "applicationRate", e.target.value)
+                                        handleUpdateExternalProduct(
+                                          rIdx,
+                                          extIdx,
+                                          "applicationRate",
+                                          e.target.value,
+                                        )
                                       }
                                       disabled={readonly}
                                       placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
@@ -1010,21 +1193,32 @@ export function Type7bActualForm({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <ActivitySelect
                     label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
-                    value={round.sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
-                    onChange={(val) => handleUpdateRoundField(rIdx, "sprayEquipment", val)}
-                    options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({ value: equip, label: equip }))}
+                    value={round.sprayEquipment || "เป้สะพายหลัง"}
+                    onChange={(val) =>
+                      handleUpdateRoundField(rIdx, "sprayEquipment", val)
+                    }
+                    options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({
+                      value: equip,
+                      label: equip,
+                    }))}
                     disabled={readonly}
                   />
 
-                  {(round.sprayEquipment === "อื่นๆ (ระบุ)" || round.sprayEquipment === "อื่นๆ ระบุ...") && (
+                  {(round.sprayEquipment === "อื่นๆ (ระบุ)" ||
+                    round.sprayEquipment === "อื่นๆ ระบุ...") && (
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-700">
-                        ระบุอุปกรณ์เพิ่มเติม <span className="text-rose-500">*</span>
+                        ระบุอุปกรณ์เพิ่มเติม{" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <ActivityInput
                         value={round.otherEquipment || ""}
                         onChange={(e) =>
-                          handleUpdateRoundField(rIdx, "otherEquipment", e.target.value)
+                          handleUpdateRoundField(
+                            rIdx,
+                            "otherEquipment",
+                            e.target.value,
+                          )
                         }
                         placeholder="พิมพ์ระบุอุปกรณ์ฉีดพ่น..."
                         disabled={readonly}
@@ -1037,12 +1231,18 @@ export function Type7bActualForm({
               {/* 4. ผลหลังการฉีดพ่นรอบนี้ */}
               <div className="space-y-2 pt-1 border-t border-slate-100">
                 <label className="text-xs font-semibold text-slate-700">
-                  4. ผลหลังการฉีดพ่นรอบนี้ <span className="text-rose-500">*</span>
+                  4. ผลหลังการฉีดพ่นรอบนี้{" "}
+                  <span className="text-rose-500">*</span>
                 </label>
                 <div className="max-w-md">
                   <ActivitySelect
-                    value={round.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)"}
-                    onChange={(val) => handleUpdateRoundField(rIdx, "productResponse", val)}
+                    value={
+                      round.productResponse ||
+                      "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)"
+                    }
+                    onChange={(val) =>
+                      handleUpdateRoundField(rIdx, "productResponse", val)
+                    }
                     options={SPRAY_RESPONSE_OPTIONS.map((r) => ({
                       value: r.value,
                       label: r.label,
@@ -1056,7 +1256,11 @@ export function Type7bActualForm({
                     <ActivityTextarea
                       value={round.problemDetail || ""}
                       onChange={(e) =>
-                        handleUpdateRoundField(rIdx, "problemDetail", e.target.value)
+                        handleUpdateRoundField(
+                          rIdx,
+                          "problemDetail",
+                          e.target.value,
+                        )
                       }
                       placeholder="ระบุอาการผิดปกติหรือปัญหาที่พบ..."
                       rows={2}
