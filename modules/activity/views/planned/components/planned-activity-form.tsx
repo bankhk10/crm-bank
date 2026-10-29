@@ -185,7 +185,9 @@ export function PlannedActivityForm({
     }
     // 1.3 ตรวจสอบจาก Dedicated Target / Plots ของ Type 7B
     if (
+      (initialData.type7bTargets && initialData.type7bTargets.length > 0) ||
       (initialData.type7bPlots && initialData.type7bPlots.length > 0) ||
+      (initialData.type7bResults && initialData.type7bResults.length > 0) ||
       initialData.type7b ||
       initialData.type7bData ||
       (initialData.stores &&

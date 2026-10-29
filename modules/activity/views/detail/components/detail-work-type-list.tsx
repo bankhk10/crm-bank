@@ -99,20 +99,25 @@ export function DetailWorkTypeList({
     Boolean(plan?.type6Targets?.length);
 
   const isType7a =
-    (isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
-      isTypeActive("TYPE_7A", "แปลงสาธิต") ||
-      isTypeActive("TYPE_7A", "ทำแปลงสาธิต") ||
-      Boolean(plan?.type7aTargets?.length) ||
-      Boolean(plan?.type7aResults?.length) ||
-      Boolean(plan?.type7aPlots?.length) ||
-      Boolean(plan?.demoPlots?.length)) &&
-    !isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต");
+    plan?.activityType?.code === "TYPE_7A" ||
+    Boolean(plan?.type7aTargets?.length) ||
+    Boolean(plan?.type7aPlots?.length) ||
+    isTypeActive("TYPE_7A", "จัดทำแปลงสาธิต") ||
+    isTypeActive("TYPE_7A", "ทำแปลงสาธิต") ||
+    (isTypeActive("TYPE_7A", "แปลงสาธิต") &&
+      !isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต")) ||
+    (Boolean(plan?.type7aResults?.length) && !plan?.type7bTargets?.length);
 
   const isType7b =
-    isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต") ||
+    plan?.activityType?.code === "TYPE_7B" ||
+    Boolean(plan?.type7bTargets?.length) ||
     Boolean(plan?.type7bFollowUps?.length) ||
     Boolean(plan?.type7bPlots?.length) ||
-    Boolean(plan?.type7b?.plots?.length);
+    Boolean(plan?.type7b?.plots?.length) ||
+    isTypeActive("TYPE_7B", "ติดตามแปลงสาธิต") ||
+    (Boolean(plan?.type7bResults?.length) &&
+      !plan?.type7aTargets?.length &&
+      plan?.activityType?.code !== "TYPE_7A");
 
   const isType8 =
     isTypeActive("TYPE_8", "จัดประชุม") ||

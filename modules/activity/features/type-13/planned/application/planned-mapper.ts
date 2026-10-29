@@ -97,7 +97,7 @@ export function extractType13PlanTargets(
 
   return {
     primary,
-    list: mappedList.length > 0 ? mappedList : [primary],
+    list: mappedList,
   };
 }
 

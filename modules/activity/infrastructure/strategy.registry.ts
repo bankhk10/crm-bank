@@ -219,15 +219,17 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
             rawData.workTypeCodes.includes("ติดตามแปลงสาธิต"))) ||
         (rawData.planStores &&
           rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
+        (rawData.type7bTargets && rawData.type7bTargets.length > 0) ||
+        (rawData.type7bProducts && rawData.type7bProducts.length > 0) ||
+        (rawData.type7bResults && rawData.type7bResults.length > 0) ||
         (rawData.type7bPlots && rawData.type7bPlots.length > 0) ||
         (rawData.type7bUnplannedItems &&
           rawData.type7bUnplannedItems.length > 0) ||
         rawData.type7bData ||
         rawData.type7b ||
         rawData.type7bActual ||
-        rawData.t7SprayingRounds ||
-        rawData.t7PlotStatus ||
-        rawData.t7GrowthStage,
+        (Array.isArray(rawData.t7SprayingRounds) &&
+          rawData.t7SprayingRounds.length > 0),
       ),
   },
   TYPE_8: {
@@ -569,11 +571,29 @@ export async function saveStrategiesForActual(
   actualData: any,
   planWorkTypeCodes: string[] = [],
 ): Promise<void> {
+  const hasPlanCodes = planWorkTypeCodes.length > 0;
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
-    const isPlanWorkType = planWorkTypeCodes.some(
-      (code) => getWorkTypeCode(code) === registration.code,
-    );
-    if (isPlanWorkType || registration.hasData(actualData)) {
+    const isPlanWorkType = hasPlanCodes
+      ? planWorkTypeCodes.some(
+          (code) => getWorkTypeCode(code) === registration.code,
+        )
+      : false;
+
+    // Only allow strategy execution if it's explicitly part of the plan,
+    // or if no planWorkTypeCodes exist and hasData matches,
+    // or if the actualData explicitly requested this work type code
+    const isExplicitlyRequested =
+      Array.isArray(actualData.workTypeCodes) &&
+      actualData.workTypeCodes.some(
+        (code: string) => getWorkTypeCode(code) === registration.code,
+      );
+
+    const shouldRun =
+      isPlanWorkType ||
+      isExplicitlyRequested ||
+      (!hasPlanCodes && registration.hasData(actualData));
+
+    if (shouldRun) {
       const strategy = registration.planned;
       if (typeof strategy.saveActual === "function") {
         await strategy.saveActual(tx, planId, actualData);

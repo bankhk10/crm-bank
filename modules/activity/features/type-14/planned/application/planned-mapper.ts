@@ -65,7 +65,7 @@ export function extractType14PlanTargets(
     };
     return {
       primary: singlePlot,
-      list: [singlePlot],
+      list: [],
     };
   }
 

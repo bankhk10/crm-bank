@@ -79,12 +79,17 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
     Object.assign(result, t6Parsed);
 
     const t7aParsed = parseType7aActualResult(resData);
-    Object.assign(result, t7aParsed);
+    if (Object.keys(t7aParsed).length > 0) {
+      result.type7aActual = t7aParsed;
+      Object.assign(result, t7aParsed);
+    }
 
     const t7bParsed = parseType7bActualResult(rawSummary || "", resData);
     if (Object.keys(t7bParsed).length > 0) {
       result.type7bActual = t7bParsed;
-      Object.assign(result, t7bParsed);
+      if (Object.keys(t7aParsed).length === 0) {
+        Object.assign(result, t7bParsed);
+      }
     }
 
     if (resData.problemFound && !result.problemFound) {

@@ -295,6 +295,9 @@ export function ActivityPlanActualView({
           type7aProducts: plan.type7aProducts || (res as any)?.type7aProducts,
           type7aResults: plan.type7aResults || (res as any)?.type7aResults,
           type7aPlots: plan.type7aPlots || (res as any)?.type7aPlots,
+          type7bTargets: plan.type7bTargets || (res as any)?.type7bTargets,
+          type7bProducts: plan.type7bProducts || (res as any)?.type7bProducts,
+          type7bResults: plan.type7bResults || (res as any)?.type7bResults,
           type13Targets: plan.type13Targets || (res as any)?.type13Targets,
           type13Products: plan.type13Products || (res as any)?.type13Products,
           type13Results: plan.type13Results || (res as any)?.type13Results,
@@ -439,7 +442,10 @@ export function ActivityPlanActualView({
 
     const isType7bActive =
       planWorkTypes.includes("TYPE_7B") ||
-      planWorkTypes.includes("ติดตามแปลงสาธิต") ||
+      planWorkTypes.some((wt) => getWorkTypeCode(wt) === "TYPE_7B") ||
+      Boolean(plan?.type7bTargets?.length) ||
+      Boolean(type7bTargets?.length) ||
+      Boolean(plan?.type7bResults?.length) ||
       Boolean(plan?.type7bFollowUps?.length) ||
       Boolean(plan?.type7bPlots?.length) ||
       Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||

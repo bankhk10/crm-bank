@@ -41,7 +41,10 @@ export function extractType7bPlanTargets(
     plan.type7bTargets && plan.type7bTargets.length > 0
       ? {
           plots: plan.type7bTargets,
-          products: plan.type7bProducts || [],
+          products:
+            (plan.type7bProducts && plan.type7bProducts.length > 0
+              ? plan.type7bProducts
+              : plan.type7bTargets.flatMap((t: any) => t.products || [])) || [],
           objective: plan.type7bTargets[0]?.objective || plan.type7bTargets[0]?.notes || "",
           notes: plan.type7bTargets[0]?.notes || "",
         }

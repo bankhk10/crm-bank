@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { getWorkTypeCode } from "@/modules/activity/constants";
 import {
   Type1ActualForm,
   type Type1TargetItem,
@@ -199,31 +200,34 @@ export function ActualWorkTypeList({
     Boolean(plan?.type6Targets?.length);
 
   const isType7aActive =
+    plan?.activityType?.code === "TYPE_7A" ||
+    Boolean(plan?.type7aTargets?.length) ||
+    Boolean(plan?.type7aPlots?.length) ||
     planWorkTypes.includes("TYPE_7A") ||
     planWorkTypes.includes("จัดทำแปลงสาธิต") ||
     planWorkTypes.includes("ทำแปลงสาธิต") ||
     (planWorkTypes.includes("แปลงสาธิต") &&
       !planWorkTypes.includes("ติดตาม")) ||
-    Boolean(plan?.type7aTargets?.length) ||
-    Boolean(plan?.type7aResults?.length) ||
-    Boolean(plan?.type7aPlots?.length) ||
     Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7A")) ||
-    plan?.activityType?.code === "TYPE_7A";
+    (Boolean(plan?.type7aResults?.length) && !plan?.type7bTargets?.length);
 
   const isType7bActive =
     !Boolean(
       plan?.type14Targets?.length ||
-      type14Targets?.length ||
-      planWorkTypes.includes("TYPE_14") ||
-      planWorkTypes.includes("ติดตามแปลงแฮตแทค"),
+      planWorkTypes.some((wt) => getWorkTypeCode(wt) === "TYPE_14")
     ) &&
-    (planWorkTypes.includes("TYPE_7B") ||
-      planWorkTypes.includes("ติดตามแปลงสาธิต") ||
+    (plan?.activityType?.code === "TYPE_7B" ||
+      Boolean(plan?.type7bTargets?.length) ||
+      Boolean(type7bTargets?.length) ||
       Boolean(plan?.type7bPlots?.length) ||
       Boolean(plan?.type7bData) ||
       Boolean(plan?.type7b) ||
+      planWorkTypes.includes("TYPE_7B") ||
+      planWorkTypes.some((wt) => getWorkTypeCode(wt) === "TYPE_7B") ||
       Boolean(plan?.stores?.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
-      plan?.activityType?.code === "TYPE_7B");
+      (Boolean(plan?.type7bResults?.length) &&
+        !plan?.type7aTargets?.length &&
+        plan?.activityType?.code !== "TYPE_7A"));
 
   const isType8Active =
     planWorkTypes.includes("TYPE_8") ||
@@ -533,10 +537,11 @@ export function ActualWorkTypeList({
           targets={
             type7bTargets && type7bTargets.length > 0
               ? type7bTargets
-              : plan?.type7bPlots || plan?.type7b?.plots
+              : plan?.type7bTargets || plan?.type7bPlots || plan?.type7b?.plots
           }
           target={
             type7bTargets?.[0] ||
+            plan?.type7bTargets?.[0] ||
             plan?.type7bPlots?.[0] ||
             plan?.type7b?.plots?.[0]
           }

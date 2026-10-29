@@ -78,6 +78,17 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
       select: { id: true, type7aTargetId: true },
     });
 
+    // Guard: Do not save Type 7B Actual if plan has no Type 7B target and no explicit Type 7B data was provided
+    const hasExplicit7bData = Boolean(
+      actualData.type7bActual ||
+        actualData.type7b ||
+        (Array.isArray(actualData.t7SprayingRounds) &&
+          actualData.t7SprayingRounds.length > 0),
+    );
+    if (!target && !hasExplicit7bData) {
+      return;
+    }
+
     const raw7aId =
       t7b.type7aTargetId ||
       t7b.t7DemoPlotId ||
@@ -231,9 +242,8 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
             roundNumber: round.roundNumber || rIdx + 1,
             sprayDate: roundDate,
             sprayMethod: round.sprayMethod || "SINGLE",
-            sprayEquipment: round.sprayEquipment || null,
+            sprayEquipment: round.sprayEquipment || "เป้สะพายหลัง",
             otherEquipment: round.otherEquipment || null,
-            cropCondition: round.cropCondition || null,
             problemDetail: round.problemDetail || null,
             productResponse: round.productResponse || null,
             notes: round.notes || null,

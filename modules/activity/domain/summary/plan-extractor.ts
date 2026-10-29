@@ -65,6 +65,34 @@ export function extractPlanData(
     detectedWorkTypes.add(getWorkTypeName("TYPE_1"));
   }
 
+  // Type 7A fallback if relation exists
+  if (
+    ((p as any).type7aTargets && (p as any).type7aTargets.length > 0) ||
+    ((p as any).type7aPlots && (p as any).type7aPlots.length > 0)
+  ) {
+    detectedWorkTypes.add(getWorkTypeName("TYPE_7A"));
+  } else if (
+    (p as any).type7aResults &&
+    (p as any).type7aResults.length > 0 &&
+    detectedWorkTypes.size === 0
+  ) {
+    detectedWorkTypes.add(getWorkTypeName("TYPE_7A"));
+  }
+
+  // Type 7B fallback if relation exists
+  if (
+    ((p as any).type7bTargets && (p as any).type7bTargets.length > 0) ||
+    ((p as any).type7bPlots && (p as any).type7bPlots.length > 0)
+  ) {
+    detectedWorkTypes.add(getWorkTypeName("TYPE_7B"));
+  } else if (
+    (p as any).type7bResults &&
+    (p as any).type7bResults.length > 0 &&
+    detectedWorkTypes.size === 0
+  ) {
+    detectedWorkTypes.add(getWorkTypeName("TYPE_7B"));
+  }
+
   const resolvedWorkTypes = Array.from(detectedWorkTypes);
 
   // 2. Extract targets via registry
