@@ -1073,7 +1073,26 @@ export function Type7aDetailView({
 
             {/* ─── หมวดที่ 8: ประวัติการลงพื้นที่ติดตามแปลงสาธิต (Follow-Up Timeline) ─── */}
             <section className="space-y-3 pt-4 border-t border-slate-200">
-              <Type7aPlotFollowUpTimeline demoPlot={dp || plot} />
+              <Type7aPlotFollowUpTimeline
+                demoPlot={{
+                  ...(dp || {}),
+                  ...(plot || {}),
+                  type7bTargets:
+                    plot.type7bTargets ||
+                    dp?.type7bTargets ||
+                    plan?.type7aTargets?.find(
+                      (t: any) => t.id === plot.id || t.id === dp?.id,
+                    )?.type7bTargets ||
+                    [],
+                  type7bResults:
+                    plot.type7bResults ||
+                    dp?.type7bResults ||
+                    plan?.type7aTargets?.find(
+                      (t: any) => t.id === plot.id || t.id === dp?.id,
+                    )?.type7bResults ||
+                    [],
+                }}
+              />
             </section>
           </div>
         );

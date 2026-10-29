@@ -202,6 +202,69 @@ export async function findType7aByPlanId(activityPlanId: string) {
             attachments: true,
           },
         },
+        type7bTargets: {
+          include: {
+            activityPlan: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+                status: true,
+                startDate: true,
+                employee: { select: { id: true, name: true } },
+              },
+            },
+            products: {
+              include: { product: true },
+            },
+            results: {
+              include: {
+                activityPlan: {
+                  select: {
+                    id: true,
+                    code: true,
+                    title: true,
+                    status: true,
+                    startDate: true,
+                    employee: { select: { id: true, name: true } },
+                  },
+                },
+                sprayRounds: {
+                  include: {
+                    sprayProducts: { include: { product: true } },
+                    sprayExternals: true,
+                  },
+                  orderBy: { roundNumber: "asc" },
+                },
+                attachments: true,
+              },
+              orderBy: { visitDate: "asc" },
+            },
+          },
+        },
+        type7bResults: {
+          include: {
+            activityPlan: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+                status: true,
+                startDate: true,
+                employee: { select: { id: true, name: true } },
+              },
+            },
+            sprayRounds: {
+              include: {
+                sprayProducts: { include: { product: true } },
+                sprayExternals: true,
+              },
+              orderBy: { roundNumber: "asc" },
+            },
+            attachments: true,
+          },
+          orderBy: { visitDate: "asc" },
+        },
       },
       orderBy: { createdAt: "asc" },
     }),

@@ -62,6 +62,7 @@ export function extractType7aPlanTargets(
 
       return {
         id: p.id,
+        code: p.code || dp.code || null,
         demoPlotId: p.demoPlotId || dp.id,
         demoPlot: dp,
         plotName: dp.name || p.plotName || p.name || "",
@@ -156,6 +157,8 @@ export function extractType7aPlanTargets(
             : dp.externalProducts || p.externalProducts || [],
         notes: dedicatedResult?.notes || dp.notes || visit1?.notes || p.notes || null,
         visits: dp.visits || p.visits || [],
+        type7bTargets: p.type7bTargets || dp.type7bTargets || [],
+        type7bResults: p.type7bResults || dp.type7bResults || [],
         attachments:
           Array.isArray(dedicatedResult?.attachments) && dedicatedResult.attachments.length > 0
             ? dedicatedResult.attachments

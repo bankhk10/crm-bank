@@ -107,23 +107,44 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
   const closedDate = demoPlot.closedDate || null;
   const nextSprayDate = demoPlot.nextSprayDate || null;
 
-  const rawVisits: any[] = Array.isArray(demoPlot.visits) && demoPlot.visits.length > 0
-    ? demoPlot.visits
-    : Array.isArray(demoPlot.type7bResults) && demoPlot.type7bResults.length > 0
-    ? demoPlot.type7bResults
+  const rawVisits: any[] = [
+    ...(Array.isArray(demoPlot.visits) ? demoPlot.visits : []),
+    ...(Array.isArray(demoPlot.type7bResults) ? demoPlot.type7bResults : []),
+    ...(Array.isArray(demoPlot.type7bTargets)
+      ? demoPlot.type7bTargets.flatMap((t: any) => t.results || [])
+      : []),
+  ];
+  const seenVisitIds = new Set<string>();
+  const uniqueVisits = rawVisits.filter((v: any) => {
+    if (!v) return false;
+    const vid = v.id || `${v.visitDate}-${v.activityPlanId}`;
+    if (seenVisitIds.has(vid)) return false;
+    seenVisitIds.add(vid);
+    return true;
+  });
+
+  const rawType7bPlots: any[] = [
+    ...(Array.isArray(demoPlot.type7bPlots) ? demoPlot.type7bPlots : []),
+    ...(Array.isArray(demoPlot.type7bTargets) ? demoPlot.type7bTargets : []),
+  ];
+  const seenPlotIds = new Set<string>();
+  const uniqueType7bPlots = rawType7bPlots.filter((p: any) => {
+    if (!p) return false;
+    const pid = p.id || p.activityPlanId || p.activityPlan?.id;
+    if (pid && seenPlotIds.has(pid)) return false;
+    if (pid) seenPlotIds.add(pid);
+    return true;
+  });
+
+  const rawSprayRounds: any[] = Array.isArray(demoPlot.sprayRounds)
+    ? demoPlot.sprayRounds
     : [];
-  const rawType7bPlots: any[] = Array.isArray(demoPlot.type7bPlots) && demoPlot.type7bPlots.length > 0
-    ? demoPlot.type7bPlots
-    : Array.isArray(demoPlot.type7bTargets) && demoPlot.type7bTargets.length > 0
-    ? demoPlot.type7bTargets
-    : [];
-  const rawSprayRounds: any[] = Array.isArray(demoPlot.sprayRounds) ? demoPlot.sprayRounds : [];
 
   const timelineItems: PlotFollowUpItem[] = [];
   const visitedPlanIds = new Set<string>();
 
-  // 1. Process actual visits (DemoPlotVisit)
-  rawVisits.forEach((visit: any, idx: number) => {
+  // 1. Process actual visits (DemoPlotVisit / ActivityResultType7b)
+  uniqueVisits.forEach((visit: any, idx: number) => {
     const plan = visit.activityPlan || {};
     if (plan.id) visitedPlanIds.add(plan.id);
 
@@ -154,42 +175,61 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
     }
 
     // Match spraying rounds for this plot and visit date / plan
-    const matchedRounds = Array.isArray(visit.sprayRounds) && visit.sprayRounds.length > 0
-      ? visit.sprayRounds
-      : rawSprayRounds.filter((r: any) => {
-      if (visit.activityPlanId && r.activityResult?.activityPlanId) {
-        return r.activityResult.activityPlanId === visit.activityPlanId;
-      }
-      return false;
-    });
+    const matchedRounds =
+      Array.isArray(visit.sprayRounds) && visit.sprayRounds.length > 0
+        ? visit.sprayRounds
+        : rawSprayRounds.filter((r: any) => {
+            if (visit.activityPlanId && r.activityResult?.activityPlanId) {
+              return r.activityResult.activityPlanId === visit.activityPlanId;
+            }
+            return false;
+          });
 
     const sprayProducts: PlotFollowUpProduct[] = [];
     const externalProducts: PlotFollowUpExternalProduct[] = [];
 
     matchedRounds.forEach((round: any) => {
-      if (Array.isArray(round.products)) {
-        round.products.forEach((p: any) => {
-          const pName = p.product?.name || p.productName || "สินค้าสาธิต";
-          sprayProducts.push({
-            name: pName,
-            quantity: p.quantityUsed != null ? Number(p.quantityUsed) : 1,
-            unit: p.unit || p.product?.unit || "",
-            rate: p.actualRate || "",
-            isAdditional: p.baselineRate == null,
-            extraDetail: p.detail || null,
-          });
+      const prods =
+        Array.isArray(round.sprayProducts) && round.sprayProducts.length > 0
+          ? round.sprayProducts
+          : Array.isArray(round.products)
+            ? round.products
+            : [];
+
+      prods.forEach((p: any) => {
+        const pName = p.product?.name || p.productName || "สินค้าสาธิต";
+        sprayProducts.push({
+          name: pName,
+          quantity:
+            p.actualQuantity != null
+              ? Number(p.actualQuantity)
+              : p.quantityUsed != null
+                ? Number(p.quantityUsed)
+                : 1,
+          unit: p.unit || p.product?.unit || "",
+          rate: p.actualRate || "",
+          isAdditional: p.isPlanned === false || p.baselineRate == null,
+          extraDetail:
+            p.detail || (p.extraQuantity ? `ใช้เพิ่ม ${p.extraQuantity}` : null),
         });
-      }
-      if (Array.isArray(round.externalProducts)) {
-        round.externalProducts.forEach((ep: any) => {
-          externalProducts.push({
-            company: ep.company,
-            productName: ep.productName,
-            formula: ep.formula,
-            applicationRate: ep.applicationRate,
-          });
+      });
+
+      const externals =
+        Array.isArray(round.sprayExternals) && round.sprayExternals.length > 0
+          ? round.sprayExternals
+          : Array.isArray(round.externalProducts)
+            ? round.externalProducts
+            : [];
+
+      externals.forEach((ep: any) => {
+        externalProducts.push({
+          company: ep.company,
+          productName: ep.productName,
+          formula: ep.formula,
+          applicationRate: ep.applicationRate,
         });
-      }
+      });
+
       if (Array.isArray(round.attachments)) {
         round.attachments.forEach((att: any) => {
           addPhoto(att.fileUrl || att.url, att.fileName || "ภาพการฉีดพ่น", att.id);
@@ -198,14 +238,14 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
     });
 
     const isClosure =
-      Boolean(closedDate) &&
-      (idx === rawVisits.length - 1 || visit.visitNumber >= rawVisits.length);
+      Boolean(closedDate || visit.plotStatus === "COMPLETED") &&
+      (idx === uniqueVisits.length - 1 || visit.visitNumber >= uniqueVisits.length);
 
     timelineItems.push({
       id: visit.id || `visit-${idx + 1}`,
       visitNumber: visit.visitNumber || idx + 1,
       visitDate: visit.visitDate || visit.createdAt || null,
-      daysSinceStart: visit.daysSinceStart ?? null,
+      daysSinceStart: visit.daysSinceStart ?? visit.daysAfterSpray ?? null,
       planId: plan.id || visit.activityPlanId || null,
       planCode: plan.code || null,
       planTitle: plan.title || "ติดตามแปลงสาธิต",
@@ -218,11 +258,14 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
       growthStage: visit.growthStage || null,
       cropAgeValue: visit.cropAgeValue ?? null,
       cropAgeUnit: visit.cropAgeUnit || null,
-      productResponse: visit.productResponse || null,
+      productResponse:
+        visit.productResponse || matchedRounds[0]?.productResponse || null,
       productProblemDesc: visit.productProblemDesc || null,
       sprayMethod: visit.sprayMethod || matchedRounds[0]?.sprayMethod || null,
-      sprayEquipment: visit.sprayEquipment || matchedRounds[0]?.sprayEquipment || null,
-      otherEquipment: visit.otherEquipment || matchedRounds[0]?.otherEquipment || null,
+      sprayEquipment:
+        visit.sprayEquipment || matchedRounds[0]?.sprayEquipment || null,
+      otherEquipment:
+        visit.otherEquipment || matchedRounds[0]?.otherEquipment || null,
       sprayRoundsCount: matchedRounds.length,
       sprayProducts,
       externalProducts,
@@ -233,22 +276,24 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
   });
 
   // 2. Identify planned follow-up plans (Type 7B) that have not yet had an actual visit recorded
-  rawType7bPlots.forEach((t7bPlot: any, idx: number) => {
-    const t7b = t7bPlot.type7b || {};
-    const plan = t7b.activityPlan || {};
+  uniqueType7bPlots.forEach((t7bPlot: any, idx: number) => {
+    const t7b = t7bPlot.type7b || t7bPlot;
+    const plan = t7bPlot.activityPlan || t7b.activityPlan || {};
 
     if (plan.id && !visitedPlanIds.has(plan.id)) {
       visitedPlanIds.add(plan.id);
 
-      const plannedProducts: PlotFollowUpProduct[] = (t7b.products || []).map(
-        (p: any) => ({
-          name: p.product?.name || p.productName || "สินค้าขอเบิกตามแผน",
-          quantity: p.quantity != null ? Number(p.quantity) : 1,
-          unit: p.unit || p.product?.unit || "",
-          rate: "",
-          isAdditional: false,
-        }),
-      );
+      const plannedProducts: PlotFollowUpProduct[] = (
+        t7bPlot.products ||
+        t7b.products ||
+        []
+      ).map((p: any) => ({
+        name: p.product?.name || p.productName || "สินค้าขอเบิกตามแผน",
+        quantity: p.quantity != null ? Number(p.quantity) : 1,
+        unit: p.unit || p.product?.unit || "",
+        rate: "",
+        isAdditional: false,
+      }));
 
       timelineItems.push({
         id: t7bPlot.id || `planned-followup-${idx + 1}`,
@@ -286,23 +331,47 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
 
   // Extract closure stats if plot is closed
   let closureStats = null;
-  if (
+  const closingVisit = uniqueVisits.find(
+    (v: any) =>
+      v.plotStatus === "COMPLETED" ||
+      v.finalHarvestDate != null ||
+      v.demoYieldKg != null,
+  );
+  const isClosed =
     plotStatus === "COMPLETED" ||
     demoPlot.closedDate != null ||
-    demoPlot.finalHarvestDate != null
-  ) {
+    demoPlot.finalHarvestDate != null ||
+    Boolean(closingVisit);
+
+  if (isClosed) {
+    const sourceClosure = closingVisit || demoPlot;
     closureStats = {
-      demoYieldKg: demoPlot.demoYieldKg != null ? Number(demoPlot.demoYieldKg) : null,
+      demoYieldKg:
+        sourceClosure.demoYieldKg != null
+          ? Number(sourceClosure.demoYieldKg)
+          : demoPlot.demoYieldKg != null
+            ? Number(demoPlot.demoYieldKg)
+            : null,
       controlYieldKg:
-        demoPlot.controlYieldKg != null ? Number(demoPlot.controlYieldKg) : null,
+        sourceClosure.controlYieldKg != null
+          ? Number(sourceClosure.controlYieldKg)
+          : demoPlot.controlYieldKg != null
+            ? Number(demoPlot.controlYieldKg)
+            : null,
       yieldIncreasePercent:
-        demoPlot.yieldIncreasePercent != null
-          ? Number(demoPlot.yieldIncreasePercent)
-          : null,
-      farmerSatisfaction: demoPlot.farmerSatisfaction ?? null,
-      commercialPotential: demoPlot.commercialPotential || null,
-      finalHarvestDate: demoPlot.finalHarvestDate || null,
-      finalSummaryNotes: demoPlot.finalSummaryNotes || null,
+        sourceClosure.yieldIncreasePercent != null
+          ? Number(sourceClosure.yieldIncreasePercent)
+          : demoPlot.yieldIncreasePercent != null
+            ? Number(demoPlot.yieldIncreasePercent)
+            : null,
+      farmerSatisfaction:
+        sourceClosure.farmerSatisfaction ?? demoPlot.farmerSatisfaction ?? null,
+      commercialPotential:
+        sourceClosure.commercialPotential || demoPlot.commercialPotential || null,
+      finalHarvestDate:
+        sourceClosure.finalHarvestDate || demoPlot.finalHarvestDate || null,
+      finalSummaryNotes:
+        sourceClosure.finalSummaryNotes || demoPlot.finalSummaryNotes || null,
     };
   }
 

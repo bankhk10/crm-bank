@@ -58,6 +58,76 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           attachments: true,
         },
       },
+      // Dedicated Type 7B Follow-Up Targets and Results for Demo Plot Timeline
+      type7bTargets: {
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              status: true,
+              startDate: true,
+              employee: { select: { id: true, name: true } },
+            },
+          },
+          products: {
+            include: {
+              product: { select: { id: true, name: true, unit: true } },
+            },
+          },
+          results: {
+            include: {
+              activityPlan: {
+                select: {
+                  id: true,
+                  code: true,
+                  title: true,
+                  status: true,
+                  startDate: true,
+                  employee: { select: { id: true, name: true } },
+                },
+              },
+              sprayRounds: {
+                include: {
+                  sprayProducts: {
+                    include: { product: { select: { id: true, name: true, unit: true } } },
+                  },
+                  sprayExternals: true,
+                },
+                orderBy: { roundNumber: "asc" },
+              },
+              attachments: true,
+            },
+            orderBy: { visitDate: "asc" },
+          },
+        },
+      },
+      type7bResults: {
+        include: {
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              status: true,
+              startDate: true,
+              employee: { select: { id: true, name: true } },
+            },
+          },
+          sprayRounds: {
+            include: {
+              sprayProducts: {
+                include: { product: { select: { id: true, name: true, unit: true } } },
+              },
+              sprayExternals: true,
+            },
+            orderBy: { roundNumber: "asc" },
+          },
+          attachments: true,
+        },
+        orderBy: { visitDate: "asc" },
+      },
     },
   },
   type7aProducts: {
