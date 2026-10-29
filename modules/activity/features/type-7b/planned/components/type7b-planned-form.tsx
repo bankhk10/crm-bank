@@ -49,7 +49,10 @@ export function Type7bPlannedForm({
           }
         })
         .catch((err) => {
-          console.error("Failed to load follow-up plans in Type7bPlannedForm:", err);
+          console.error(
+            "Failed to load follow-up plans in Type7bPlannedForm:",
+            err,
+          );
         });
     }
     return () => {
@@ -142,7 +145,8 @@ export function Type7bPlannedForm({
         item.demoPlotId ||
         (item.selectedPlotIds && item.selectedPlotIds.length > 0))
     ) {
-      const targetPlotsSource = Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
+      const targetPlotsSource =
+        Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
       const syntheticPlots = (
         item.selectedPlotIds && item.selectedPlotIds.length > 0
           ? item.selectedPlotIds
@@ -179,15 +183,9 @@ export function Type7bPlannedForm({
             item.farmerName ||
             "-",
           province:
-            matchedTarget?.province ||
-            demoP.province ||
-            item.province ||
-            "",
+            matchedTarget?.province || demoP.province || item.province || "",
           district:
-            matchedTarget?.district ||
-            demoP.district ||
-            item.district ||
-            "",
+            matchedTarget?.district || demoP.district || item.district || "",
           areaRai:
             matchedTarget?.areaRai != null
               ? Number(matchedTarget.areaRai)
@@ -254,7 +252,9 @@ export function Type7bPlannedForm({
   // 1. Resolve selected plan
   const selectedPlan = useMemo(() => {
     if (item.selectedPlanId) {
-      return effectiveFollowUpPlans.find((p) => p.planId === item.selectedPlanId);
+      return effectiveFollowUpPlans.find(
+        (p) => p.planId === item.selectedPlanId,
+      );
     }
     const targetPlotId =
       item.selectedPlotIds?.[0] || item.existingPlotId || item.demoPlotId;
@@ -274,7 +274,10 @@ export function Type7bPlannedForm({
 
   // Selected plot IDs
   const selectedPlotIds: string[] = useMemo(() => {
-    if (Array.isArray(item.selectedPlotIds) && item.selectedPlotIds.length > 0) {
+    if (
+      Array.isArray(item.selectedPlotIds) &&
+      item.selectedPlotIds.length > 0
+    ) {
       return item.selectedPlotIds;
     }
     if (item.existingPlotId || item.demoPlotId) {
@@ -300,7 +303,8 @@ export function Type7bPlannedForm({
   const planPlots = useMemo(() => {
     const list = [...(selectedPlan?.plots || [])];
     const seen = new Set<string>(list.map((p) => p.id));
-    const targetPlotsSource = Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
+    const targetPlotsSource =
+      Array.isArray(item.plots) && item.plots.length > 0 ? item.plots : [];
 
     if (Array.isArray(item.selectedPlotIds)) {
       for (const plotId of item.selectedPlotIds) {
@@ -337,15 +341,9 @@ export function Type7bPlannedForm({
               item.farmerName ||
               "-",
             province:
-              matchedTarget?.province ||
-              demoP.province ||
-              item.province ||
-              "",
+              matchedTarget?.province || demoP.province || item.province || "",
             district:
-              matchedTarget?.district ||
-              demoP.district ||
-              item.district ||
-              "",
+              matchedTarget?.district || demoP.district || item.district || "",
             areaRai:
               matchedTarget?.areaRai != null
                 ? Number(matchedTarget.areaRai)
@@ -604,7 +602,9 @@ export function Type7bPlannedForm({
             {/* Validation warning if no plots selected */}
             {selectedPlotIds.length === 0 && (
               <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
-                <span>⚠️ กรุณาติ๊กเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง</span>
+                <span>
+                  ⚠️ กรุณาติ๊กเลือกแปลงที่ต้องการติดตามอย่างน้อย 1 แปลง
+                </span>
               </div>
             )}
 
@@ -665,13 +665,18 @@ export function Type7bPlannedForm({
                         <div>
                           <span className="text-slate-400">จังหวัด: </span>
                           <span className="text-slate-700">
-                            {[plot.province, plot.district].filter(Boolean).join(" / ") || "-"}
+                            {[plot.province, plot.district]
+                              .filter(Boolean)
+                              .join(" / ") || "-"}
                           </span>
                         </div>
                       </div>
                       {plot.dealerName && (
                         <div className="text-[10.5px] text-slate-500 pt-0.5 border-t border-slate-100">
-                          ร้าน Dealer: <span className="font-medium text-slate-700">{plot.dealerName}</span>
+                          ร้าน Dealer:{" "}
+                          <span className="font-medium text-slate-700">
+                            {plot.dealerName}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -722,7 +727,9 @@ export function Type7bPlannedForm({
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600">
                   <tr>
-                    <th className="py-2 px-3 w-12 text-center font-semibold">ลำดับ</th>
+                    <th className="py-2 px-3 w-12 text-center font-semibold">
+                      ลำดับ
+                    </th>
                     <th className="py-2 px-3 font-semibold">
                       รายการสินค้า <span className="text-rose-500">*</span>
                     </th>
@@ -730,20 +737,29 @@ export function Type7bPlannedForm({
                       จำนวน <span className="text-rose-500">*</span>
                     </th>
                     {!readonly && (
-                      <th className="py-2 px-3 w-12 text-center font-semibold">จัดการ</th>
+                      <th className="py-2 px-3 w-12 text-center font-semibold">
+                        จัดการ
+                      </th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {withdrawnProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={readonly ? 3 : 4} className="py-6 text-center text-slate-400 text-xs">
-                        ยังไม่มีรายการสินค้า กดปุ่ม "เพิ่มสินค้าที่เบิก" เพื่อเริ่มต้น
+                      <td
+                        colSpan={readonly ? 3 : 4}
+                        className="py-6 text-center text-slate-400 text-xs"
+                      >
+                        ยังไม่มีรายการสินค้า กดปุ่ม เพิ่มสินค้าที่เบิก
+                        เพื่อเริ่มต้น
                       </td>
                     </tr>
                   ) : (
                     withdrawnProducts.map((pLine, idx) => (
-                      <tr key={pLine.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr
+                        key={pLine.id}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
                         <td className="py-2 px-3 text-center font-medium text-slate-500 align-middle">
                           {idx + 1}
                         </td>
@@ -753,9 +769,16 @@ export function Type7bPlannedForm({
                             value={pLine.productId || ""}
                             valueKey="id"
                             onChange={(val, selected) =>
-                              updateWithdrawnProductRow(pLine.id, "productId", val, selected)
+                              updateWithdrawnProductRow(
+                                pLine.id,
+                                "productId",
+                                val,
+                                selected,
+                              )
                             }
-                            products={effectiveProducts as any}
+                            products={(effectiveProducts as any)?.filter(
+                              (p: any) => p.unit?.trim() !== "กล่อง",
+                            )}
                             placeholder="เลือกสินค้าที่ต้องการเบิก..."
                             searchPlaceholder="ค้นหาสินค้า..."
                             emptyText="ไม่พบสินค้า"
@@ -769,8 +792,15 @@ export function Type7bPlannedForm({
                               min={1}
                               value={pLine.quantity ?? ""}
                               onChange={(e) => {
-                                const val = Math.max(1, parseInt(e.target.value) || 1);
-                                updateWithdrawnProductRow(pLine.id, "quantity", val);
+                                const val = Math.max(
+                                  1,
+                                  parseInt(e.target.value) || 1,
+                                );
+                                updateWithdrawnProductRow(
+                                  pLine.id,
+                                  "quantity",
+                                  val,
+                                );
                               }}
                               disabled={readonly}
                               placeholder="จำนวน"
@@ -789,7 +819,9 @@ export function Type7bPlannedForm({
                           <td className="py-2 px-3 text-center align-middle">
                             <button
                               type="button"
-                              onClick={() => deleteWithdrawnProductRow(pLine.id)}
+                              onClick={() =>
+                                deleteWithdrawnProductRow(pLine.id)
+                              }
                               className="p-1 text-slate-400 hover:text-rose-500 transition-colors inline-flex items-center justify-center rounded cursor-pointer"
                               title="ลบแถวสินค้านี้"
                             >
