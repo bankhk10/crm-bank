@@ -379,8 +379,9 @@ export function Type7aPlannedForm({
                       const filteredProducts = selectedCategoryId
                         ? products.filter(
                             (p) =>
-                              p.categoryId === selectedCategoryId ||
-                              p.productGroupId === selectedCategoryId,
+                              (p.categoryId === selectedCategoryId ||
+                                p.productGroupId === selectedCategoryId) &&
+                              p.unit?.trim() !== "กล่อง", // ตัดสินค้าหน่วยกล่องออกตรงนี้
                           )
                         : [];
 
