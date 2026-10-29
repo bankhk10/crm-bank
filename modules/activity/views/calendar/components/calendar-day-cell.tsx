@@ -73,10 +73,10 @@ export function CalendarDayCell({
                 "text-[11px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-all border",
                 ev.status === "CANCELLED"
                   ? "bg-red-50 text-red-600 border-red-200 line-through"
-                  : ev.status === "COMPLETED"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                    : isUnplanned
-                      ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                  : isUnplanned
+                    ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                    : ev.status === "COMPLETED"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                       : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
               )}
             >

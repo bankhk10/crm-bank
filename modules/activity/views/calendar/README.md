@@ -257,6 +257,7 @@ interface UseActivityCalendarReturn {
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้รับผิดชอบ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-29** | **2.1.0** | **RBAC Scope & Unplanned Activity Auto-Sync**:<br/>• บังคับใช้ RBAC Data Scope (`VIEW_ALL`, `VIEW_DEPARTMENT`, `VIEW_TEAM`, `VIEW_OWN`) ใน `getActivityCalendarEventsAction`<br/>• พนักงานทั่วไปมองเห็นเฉพาะกิจกรรมของตนเองและที่ได้รับมอบหมายเป็น Helper เท่านั้น (ไม่เห็นข้อมูลพนักงานอื่นทั่วบริษัทอีกต่อไป)<br/>• ซิงค์กิจกรรมนอกแผน (Unplanned 2-in-1) เข้าสู่ปฏิทินทันทีตั้งแต่ตอนสร้าง/แก้ไข โดยตั้งสถานะเป็น `COMPLETED` และติดป้าย `[นอกแผน]` สีม่วง<br/>• เพิ่มฟังก์ชัน Self-Healing `ensureCalendarEventsSyncedUseCase` ดึงแผนงานที่ยังไม่ได้ซิงค์ลงปฏิทินโดยอัตโนมัติ<br/>• ซิงค์การลบ/ยกเลิกปฏิทินเมื่อลบแผนงานใน `deleteActivityPlanAction` | Antigravity AI |
 | **2026-10-26** | **2.0.0** | **Architectural Refactoring (Gold Standard)**:<br/>• สลาย Monolithic file จาก 818 บรรทัดเหลือ < 80 บรรทัด<br/>• แยก Subcomponents: `CalendarHeader`, `CalendarFilterBar`, `CalendarGrid`, `CalendarDayCell`, `CalendarEventModal`, `CalendarDayEventsModal`<br/>• สกัด Custom Hooks: `useActivityCalendar`, `useCalendarFilters`<br/>• แยก Server Action สู่ `server/calendar.actions.ts`<br/>• จัดทำเอกสารคู่มือทางเทคนิค `README.md` ฉบับสมบูรณ์ | Antigravity AI |
 | 2026-10-19 | 1.0.0 | รวม Multi-select filters (Work Types, Person, Status, Search) ใน ActivityCalendarView | Development Team |
 

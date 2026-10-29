@@ -11,6 +11,7 @@ import {
   resolveActivityTypeId,
 } from "../infrastructure/activity-plan.repository";
 import { findOrCreateEmployeeForUser } from "../infrastructure/employee-lookup.repository";
+import { syncActivityPlanToCalendarUseCase } from "../infrastructure/calendar-integration";
 import {
   saveStrategiesForPlan,
   resolvePrimaryWorkTypeCode,
@@ -174,10 +175,31 @@ export async function createUnplannedActivityAction(
         planType: "UNPLANNED",
       });
 
+      // 5. Sync to Calendar immediately as completed event
+      await syncActivityPlanToCalendarUseCase(
+        {
+          id: createdPlan.id,
+          title: createdPlan.title,
+          description: createdPlan.description,
+          objective: createdPlan.objective,
+          location: createdPlan.location,
+          province: createdPlan.province,
+          district: createdPlan.district,
+          startDate: createdPlan.startDate,
+          endDate: createdPlan.endDate,
+          createdById: createdPlan.createdById,
+          employeeId: createdPlan.employeeId,
+          planType: createdPlan.planType,
+          status: createdPlan.status,
+        },
+        tx,
+      );
+
       return createdPlan;
     });
 
     revalidatePath("/activity-plans");
+    revalidatePath("/activity-plans/calendar");
     return serialize({ success: true as const, plan });
   } catch (err: any) {
     return { success: false as const, error: err.message || "เกิดข้อผิดพลาดในการบันทึกกิจกรรมนอกแผน" };
@@ -337,11 +359,32 @@ export async function updateUnplannedActivityAction(
         planType: "UNPLANNED",
       });
 
+      // 4. Sync updated data to Calendar
+      await syncActivityPlanToCalendarUseCase(
+        {
+          id: updatedPlan.id,
+          title: updatedPlan.title,
+          description: updatedPlan.description,
+          objective: updatedPlan.objective,
+          location: updatedPlan.location,
+          province: updatedPlan.province,
+          district: updatedPlan.district,
+          startDate: updatedPlan.startDate,
+          endDate: updatedPlan.endDate,
+          createdById: updatedPlan.createdById,
+          employeeId: updatedPlan.employeeId,
+          planType: updatedPlan.planType,
+          status: updatedPlan.status,
+        },
+        tx,
+      );
+
       return updatedPlan;
     });
 
     revalidatePath("/activity-plans");
     revalidatePath(`/activity-plans/${id}`);
+    revalidatePath("/activity-plans/calendar");
     return serialize({ success: true as const, plan });
   } catch (err: any) {
     return { success: false as const, error: err.message || "เกิดข้อผิดพลาดในการแก้ไขกิจกรรมนอกแผน" };

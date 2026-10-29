@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
-import { Prisma, ActivityPlanType, ActivityStatus, DemoPlotStatus } from "@prisma/client";
+import { Prisma, ActivityPlanType, ActivityStatus, DemoPlotStatus, CalendarEventStatus } from "@prisma/client";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "../infrastructure/activity-plan-include";
 import {
   generateActivityPlanCode,
@@ -616,6 +616,10 @@ export async function deleteActivityPlanAction(id: string) {
         where: { id },
         data: { deletedAt: now, status: ActivityStatus.CANCELLED },
       }),
+      db.activityCalendarEvent.updateMany({
+        where: { activityPlanId: id },
+        data: { deletedAt: now, status: CalendarEventStatus.CANCELLED },
+      }),
       db.activityPlanType7aTarget.updateMany({
         where: { activityPlanId: id },
         data: { status: DemoPlotStatus.CANCELLED },
@@ -626,6 +630,7 @@ export async function deleteActivityPlanAction(id: string) {
       }),
     ]);
     revalidatePath("/activity-plans");
+    revalidatePath("/activity-plans/calendar");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการลบแผนงาน" };

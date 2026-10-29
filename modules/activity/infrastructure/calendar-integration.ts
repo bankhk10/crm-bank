@@ -6,6 +6,8 @@ import {
   CalendarAttendeeStatus,
   ActivityHelperStatus,
   ActivityResultStatus,
+  ActivityPlanType,
+  ActivityStatus,
 } from "@prisma/client";
 
 export interface SyncCalendarPlanInput {
@@ -20,18 +22,29 @@ export interface SyncCalendarPlanInput {
   endDate: Date;
   employeeId: string;
   createdById: string;
+  planType?: ActivityPlanType | string;
+  status?: ActivityStatus | string;
   employee?: { name: string; userId?: string | null };
 }
 
 /**
- * Synchronizes an approved Activity Plan to the ActivityCalendarEvent database entity.
- * Creates/Updates the event and registers both the Plan Creator and all approved Helper employees as attendees.
+ * Synchronizes an approved or unplanned Activity Plan to the ActivityCalendarEvent database entity.
+ * Creates/Updates the event and registers both the Plan Creator and Helper employees as attendees.
+ * For unplanned activities (2-in-1), event status defaults to COMPLETED immediately.
  * Prevents duplicate events by using activityPlanId unique constraint.
  */
 export async function syncActivityPlanToCalendarUseCase(
   plan: SyncCalendarPlanInput,
   tx: Prisma.TransactionClient | typeof db = db,
 ) {
+  const isUnplanned =
+    plan.planType === ActivityPlanType.UNPLANNED ||
+    plan.planType === "UNPLANNED";
+
+  const initialStatus = isUnplanned
+    ? CalendarEventStatus.COMPLETED
+    : CalendarEventStatus.SCHEDULED;
+
   // 1. Upsert Calendar Event
   const event = await tx.activityCalendarEvent.upsert({
     where: { activityPlanId: plan.id },
@@ -44,7 +57,7 @@ export async function syncActivityPlanToCalendarUseCase(
       district: plan.district || null,
       startDate: plan.startDate,
       endDate: plan.endDate,
-      status: CalendarEventStatus.SCHEDULED,
+      status: initialStatus,
       createdById: plan.createdById,
       employeeId: plan.employeeId,
     },
@@ -56,7 +69,7 @@ export async function syncActivityPlanToCalendarUseCase(
       district: plan.district || null,
       startDate: plan.startDate,
       endDate: plan.endDate,
-      status: CalendarEventStatus.SCHEDULED,
+      ...(isUnplanned ? { status: CalendarEventStatus.COMPLETED } : {}),
       deletedAt: null,
     },
   });
@@ -81,16 +94,18 @@ export async function syncActivityPlanToCalendarUseCase(
     },
   });
 
-  // 3. Upsert Approved Helper Attendees
-  const approvedHelpers = await tx.activityHelper.findMany({
-    where: {
-      activityPlanId: plan.id,
-      status: ActivityHelperStatus.APPROVED,
-      deletedAt: null,
-    },
+  // 3. Upsert Helper Attendees (For unplanned activities, register helpers directly as ACCEPTED)
+  const helperWhere: Prisma.ActivityHelperWhereInput = {
+    activityPlanId: plan.id,
+    deletedAt: null,
+    ...(isUnplanned ? {} : { status: ActivityHelperStatus.APPROVED }),
+  };
+
+  const helpers = await tx.activityHelper.findMany({
+    where: helperWhere,
   });
 
-  for (const helper of approvedHelpers) {
+  for (const helper of helpers) {
     await tx.activityCalendarAttendee.upsert({
       where: {
         calendarEventId_employeeId: {
@@ -102,7 +117,9 @@ export async function syncActivityPlanToCalendarUseCase(
         calendarEventId: event.id,
         employeeId: helper.employeeId,
         role: CalendarAttendeeRole.HELPER,
-        status: CalendarAttendeeStatus.INVITED,
+        status: isUnplanned
+          ? CalendarAttendeeStatus.ACCEPTED
+          : CalendarAttendeeStatus.INVITED,
       },
       update: {
         role: CalendarAttendeeRole.HELPER,
@@ -113,7 +130,7 @@ export async function syncActivityPlanToCalendarUseCase(
   return {
     success: true,
     eventId: event.id,
-    attendeesCount: 1 + approvedHelpers.length,
+    attendeesCount: 1 + helpers.length,
   };
 }
 
@@ -163,6 +180,46 @@ export async function syncActivityResultToCalendarUseCase(
   });
 }
 
+/**
+ * Syncs any approved or unplanned activity plans that are currently missing a calendar event.
+ * Acts as an idempotent, self-healing routine.
+ */
+export async function ensureCalendarEventsSyncedUseCase(
+  tx: Prisma.TransactionClient | typeof db = db,
+) {
+  const unsyncedPlans = await tx.activityPlan.findMany({
+    where: {
+      deletedAt: null,
+      calendarEvent: null,
+      OR: [
+        { status: ActivityStatus.APPROVED },
+        { planType: ActivityPlanType.UNPLANNED },
+      ],
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      objective: true,
+      location: true,
+      province: true,
+      district: true,
+      startDate: true,
+      endDate: true,
+      createdById: true,
+      employeeId: true,
+      planType: true,
+      status: true,
+    },
+  });
+
+  for (const p of unsyncedPlans) {
+    await syncActivityPlanToCalendarUseCase(p, tx);
+  }
+
+  return unsyncedPlans.length;
+}
+
 export interface ListCalendarEventsParams {
   employeeId?: string;
   startDate?: Date | string;
@@ -170,10 +227,11 @@ export interface ListCalendarEventsParams {
   status?: CalendarEventStatus;
   viewAll?: boolean;
   teamEmployeeIds?: string[];
+  departmentId?: string;
 }
 
 /**
- * List calendar events for a specific user/employee or team.
+ * List calendar events with RBAC Data Scope (VIEW_ALL, VIEW_DEPARTMENT, VIEW_TEAM, VIEW_OWN).
  */
 export async function listActivityCalendarEventsUseCase(
   params: ListCalendarEventsParams,
@@ -200,6 +258,19 @@ export async function listActivityCalendarEventsUseCase(
 
   if (params.viewAll) {
     // VIEW_ALL: No restriction on employee/team/attendees
+  } else if (params.departmentId) {
+    // VIEW_DEPARTMENT: Includes events created by employees in department OR attended by dept employees
+    const deptFilter = {
+      OR: [
+        { employee: { departmentId: params.departmentId } },
+        { attendees: { some: { employee: { departmentId: params.departmentId } } } },
+      ],
+    };
+    if (Array.isArray(where.AND)) {
+      (where.AND as any[]).push(deptFilter);
+    } else {
+      where.AND = [deptFilter];
+    }
   } else if (params.teamEmployeeIds && params.teamEmployeeIds.length > 0) {
     // VIEW_TEAM: Includes events created by team members OR attended by user/team
     const teamFilter = {
@@ -226,6 +297,12 @@ export async function listActivityCalendarEventsUseCase(
     } else {
       where.AND = [ownFilter];
     }
+  } else {
+    // Security guard: If no scope criteria provided, safely return empty
+    return {
+      success: true as const,
+      events: [],
+    };
   }
 
   const events = await db.activityCalendarEvent.findMany({

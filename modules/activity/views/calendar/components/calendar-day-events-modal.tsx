@@ -60,6 +60,11 @@ export function CalendarDayEventsModal({
                         : "text-slate-900",
                   )}
                 >
+                  {ev.activityPlan?.planType === "UNPLANNED" && (
+                    <span className="text-purple-600 font-semibold mr-1">
+                      [นอกแผน]
+                    </span>
+                  )}
                   {ev.title}
                 </span>
                 <span
