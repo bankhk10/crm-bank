@@ -26,14 +26,14 @@ export const PRODUCT_RESPONSE_OPTIONS = [
 ] as const;
 
 export const FORMULA_OPTIONS = [
-  { value: "SL", label: "SL (Soluble Liquid)" },
-  { value: "SC", label: "SC (Suspension Concentrate)" },
-  { value: "EC", label: "EC (Emulsifiable Concentrate)" },
-  { value: "EW", label: "EW (Emulsion, Oil in Water)" },
-  { value: "ZC", label: "ZC (Mixed CS and SC)" },
-  { value: "OD", label: "OD (Oil Dispersion)" },
-  { value: "WP", label: "WP (Wettable Powder)" },
-  { value: "WG", label: "WG (Water Dispersible Granule)" },
+  { value: "SL", label: "SL" },
+  { value: "SC", label: "SC" },
+  { value: "EC", label: "EC" },
+  { value: "EW", label: "EW" },
+  { value: "ZC", label: "ZC" },
+  { value: "OD", label: "OD" },
+  { value: "WP", label: "WP" },
+  { value: "WG", label: "WG" },
   { value: "OTHER", label: "อื่นๆ (ระบุเอง)" },
 ] as const;
 

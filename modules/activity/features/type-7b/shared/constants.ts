@@ -12,9 +12,14 @@ export const SPRAY_METHOD_RADIO_OPTIONS = [
 
 export const EXTERNAL_FORMULA_OPTIONS: Array<{ value: string; label: string }> =
   [
-    { value: "SL", label: "SL (Soluble Liquid)" },
-    { value: "SC", label: "SC (Suspension Concentrate)" },
-    { value: "EC", label: "EC (Emulsifiable Concentrate)" },
+    { value: "SL", label: "SL" },
+    { value: "SC", label: "SC" },
+    { value: "EC", label: "EC" },
+    { value: "EW", label: "EW" },
+    { value: "ZC", label: "ZC" },
+    { value: "OD", label: "OD" },
+    { value: "WP", label: "WP" },
+    { value: "WG", label: "WG" },
     { value: "อื่นๆ", label: "อื่นๆ (ระบุ)" },
   ];
 
