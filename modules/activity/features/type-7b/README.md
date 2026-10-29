@@ -4,7 +4,7 @@
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1
 > **Parent Module**: `modules/activity`
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, `ActivityResultType7bSprayExternal`, `ActivityAttachment`)
-> **Status**: Production Ready / Active Reference (v3.1.0 — Updated 2026-10-29 Plan-based Combobox, ActivityDatePicker & Robust Hydration Pipeline)
+> **Status**: Production Ready / Active Reference (v3.2.0 — Updated 2026-10-29 Plan-based Combobox, ActivityDatePicker, Spray Rounds Persistence & 100% Schema Alignment)
 
 ---
 
@@ -14,12 +14,13 @@
 
 **Type 7B (ติดตามแปลงสาธิต / Demo Plot Follow-up)** มีวัตถุประสงค์เพื่อรองรับการปฏิบัติงานของเจ้าหน้าที่พัฒนาตลาดและนักวิชาการเกษตร (Market Development Representatives / Technical Agronomists) ในการลงพื้นที่เข้าติดตามผลการเจริญเติบโต การประเมินผลการใช้สารเคมี และการบันทึกผลการทดลองในแปลงสาธิตเดิมที่สร้างไว้ใน Type 7A:
 
-1. **เลือกแปลงสาธิตเดิมที่ต้องการติดตาม:** ดึงจากแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบจาก `activity_type_7a_targets` (`status !== COMPLETED`, `status !== CANCELLED` และ `closedDate === null`) ทั้งแปลงที่มีแผนกิจกรรมต้นทาง (Grouped by Plan) และแปลงเดี่ยว
+1. **เลือกแผนงานแปลงสาธิตเดิมที่ต้องการติดตาม (Plan-based Selection):** แสดงตัวเลือกเฉพาะแผนงานที่มีแปลงสาธิตที่เปิดอยู่ทั้งหมดในระบบจาก `activity_type_7a_targets` (`status !== COMPLETED`, `status !== CANCELLED` และ `closedDate === null`) โดยระบบจะดึงข้อมูลแปลงสาธิตหลัก (`demoPlotId`, `plotName`, `farmerName`, `cropName`, `areaRai`, `treeCount`, `dealerName`, `province`, `district`) มากอกลงในฟอร์มให้อัตโนมัติทันที
 2. **รองรับ Advance Monthly Planning (การวางแผนล่วงหน้ารายเดือน):** พนักงานสามารถวางแผน Type 7A ในวันที่ 5 และวางแผน Type 7B (ติดตามแปลงสาธิต) สำหรับแปลงดังกล่าวในวันที่ 7 ได้ทันทีในรอบเดือนเดียวกัน โดยไม่ต้องรอให้ถึงวันลงพื้นที่จริง หรือรอให้บันทึกผลงานจริงของ Type 7A ก่อน เพราะระเบียนแปลงสาธิตใน `activity_type_7a_targets` จะถูกสร้างขึ้นทันทีตั้งแต่ตอนบันทึกแผนงาน Type 7A
 3. **วางแผนเบิกสินค้าตัวอย่างเพิ่มเติมสำหรับการพ่นสารรอบถัดไป:** วางแผนเบิกสินค้า (`withdrawnProducts` / `products`) ล่วงหน้าลงตาราง `activity_type_7b_products` พร้อมส่งขออนุมัติตามสายงาน
 4. **บันทึกผลการปฏิบัติงานจริงหน้างาน (Follow-up Evaluation & Multiple Spraying Rounds):**
    - **ส่วนที่ 1: ข้อมูลการติดตามแปลง (Tracking Details):**
-     - วันที่ตรวจจริง (`visitDate`), จำนวนวันหลังฉีดพ่น (`daysAfterSpray`)
+     - วันที่ตรวจจริง (`visitDate`) ใช้งานคอมโพเนนต์ `ActivityDatePicker`
+     - จำนวนวันหลังฉีดพ่น (`daysAfterSpray`)
      - สภาพและปัญหาของพืช (`cropProblemDesc`), ปัญหาที่เกิดจากการใช้สินค้า (`productProblemDesc`)
      - ภาพถ่ายสภาพแปลงและการติดตามการเจริญเติบโต (หมวดหมู่ `PLOT`) สูงสุด 5 รูป
    - **ส่วนที่ 2: ข้อมูลการฉีดพ่นแต่ละรอบ (Multiple Spraying Rounds):**
@@ -32,10 +33,10 @@
      - **3. อุปกรณ์ที่ใช้ฉีดพ่น (Spray Equipment):** เมนูดรอปดาวน์ `ActivitySelect` 5 ตัวเลือกมาตรฐาน (`SPRAY_EQUIPMENT_OPTIONS`) ได้แก่ เป้สะพายหลัง, คน + สายลาก, โดรนเพื่อการเกษตร, แอร์บัส, และ อื่นๆ (ระบุ) (พร้อม input กรอกระบุอุปกรณ์เพิ่มเติม)
      - **4. ผลหลังการฉีดพ่นรอบนี้ (Spray Response):** พืชตอบสนองดี (เห็นผลตามเป้าหมาย), เกิดความเป็นพิษต่อพืช (Phytotoxicity), ไม่เห็นความแตกต่างอย่างมีนัยสำคัญ, อื่นๆ
      - **5. รูปถ่ายการฉีดพ่นประจำรอบ (Spray Round Images):** ภาพถ่ายการปฏิบัติงานและสภาพแปลงประจำรอบนั้นๆ สูงสุด 5 รูปต่อรอบ
-     - **ข้อมูลท้ายส่วนที่ 2:** กำหนดวันฉีดพ่นครั้งถัดไป (`nextSprayDate`) และข้อสังเกตหรือข้อมูลเพิ่มเติม (`notes`)
+     - **ข้อมูลท้ายส่วนที่ 2:** กำหนดวันฉีดพ่นครั้งถัดไป (`nextSprayDate`) โดยใช้งาน `ActivityDatePicker` และข้อสังเกตหรือข้อมูลเพิ่มเติม (`notes`)
    - **ส่วนที่ 3: สถานะแปลงสาธิตและการปิดแปลง (Demo Plot Status & Final Closure):**
      - สถานะแปลงสาธิตหลังตรวจรอบนี้: "อยู่ระหว่างการทดลอง (ยังคงติดตามต่อ)" (`IN_PROGRESS`), "เสร็จสิ้น/ปิดแปลงสาธิต" (`COMPLETED`), หรือ "ยกเลิก/ยุติแปลงสาธิต" (`CANCELLED`)
-     - เมื่อเลือกปิดแปลง (`COMPLETED` หรือ `CANCELLED`): ระบบจะแสดงฟอร์มประเมินผลผลิต ได้แก่ ผลผลิตแปลงสาธิต (`demoYieldKg`), ผลผลิตแปลงควบคุม (`controlYieldKg`), คะแนนความพึงพอใจของเกษตรกร (`farmerSatisfaction`: 1-5), โอกาสทางการค้า (`commercialPotential`), วันที่เก็บเกี่ยวผลผลิต (`finalHarvestDate`), และสรุปผลสัมฤทธิ์และข้อเสนอแนะ (`finalSummaryNotes`)
+     - เมื่อเลือกปิดแปลง (`COMPLETED` หรือ `CANCELLED`): ระบบจะแสดงฟอร์มประเมินผลผลิต ได้แก่ ผลผลิตแปลงสาธิต (`demoYieldKg`), ผลผลิตแปลงควบคุม (`controlYieldKg`), คะแนนความพึงพอใจของเกษตรกร (`farmerSatisfaction`: 1-5), โอกาสทางการค้า (`commercialPotential`), วันที่เก็บเกี่ยวผลผลิต (`finalHarvestDate`) โดยใช้ `ActivityDatePicker`, และสรุปผลสัมฤทธิ์และข้อเสนอแนะ (`finalSummaryNotes`)
      - เมื่อบันทึกปิดแปลง ระบบจะอัปเดต `status` และ `closedDate` กลับไปยังแปลงแม่ `ActivityPlanType7aTarget` โดยอัตโนมัติ
 
 ### 1.2 ขอบเขตของ Type 7B
@@ -51,9 +52,9 @@
 
 ### 1.3 รูปแบบการทำงานที่รองรับ
 
-1. **Planned (ในแผนงาน Trip Plan):** เลือกแปลงสาธิตเดิม พร้อมขอเบิกสินค้าตัวอย่างเพิ่มเติมล่วงหน้า ส่งขออนุมัติตามสายงาน
+1. **Planned (ในแผนงาน Trip Plan):** เลือกแผนงานแปลงสาธิตเดิม พร้อมขอเบิกสินค้าตัวอย่างเพิ่มเติมล่วงหน้า ส่งขออนุมัติตามสายงาน
 2. **Planned Actual (บันทึกผลงานตามแผน):** นำเป้าหมายที่ได้รับอนุมัติมารายงานผลการติดตามจริง แบ่งเป็น 3 ส่วน (ข้อมูลติดตามแปลง, การฉีดพ่นรอบต่างๆ พร้อม Baseline/Additional Products, และสถานะแปลงสาธิต/ปิดแปลง)
-3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับการลงพื้นที่ติดตามแปลงหน้างานโดยไม่ได้วางแผนล่วงหน้า สามารถเลือกแปลงสาธิตเดิม ประเมินสภาพพืช ถ่ายภาพ และประเมินผลปิดแปลงจบในฟอร์มเดียว พร้อมสร้างแผนงานสถานะ `COMPLETED` ทันที
+3. **Unplanned (กิจกรรมนอกแผน 2-in-1):** รองรับการลงพื้นที่ติดตามแปลงหน้างานโดยไม่ได้วางแผนล่วงหน้า สามารถเลือกแผนงานแปลงสาธิตเดิม บันทึกผลติดตาม รอบการฉีดพ่น สินค้าที่ใช้จริง และประเมินผลปิดแปลงจบในฟอร์มเดียว พร้อมสร้างแผนงานสถานะ `COMPLETED` ทันที บันทึกลงตารางครบถ้วนทั้ง 5 ตาราง (Targets, Products, Results, SprayRounds, SprayProducts)
 4. **Detail View:** แสดงผลการติดตามแปลงสาธิตผ่าน `Type7bDetailView` ครบทั้ง 3 ส่วน พร้อมประวัติการเข้าตรวจย้อนหลัง ข้อมูลการฉีดพ่น และแกลเลอรีรูปภาพ
 5. **Approval View:** การ์ดสำหรับผู้บังคับบัญชาพิจารณาอนุมัติผ่าน `Type7bApprovalCard` สรุปแปลงสาธิตและสินค้าที่ขอเบิกเพิ่มเติม
 
@@ -68,7 +69,7 @@ graph TD
     A["ผู้ใช้สร้างแผนงานใหม่"] --> B["กรอกข้อมูลทั่วไปและงบประมาณส่วนกลาง"]
     B --> C["เลือกประเภทงาน Type 7B: ติดตามแปลงสาธิต"]
     C --> D["กรอกฟอร์ม Type7bPlannedForm"]
-    D --> E["เลือกแปลงสาธิตเดิมที่ยังไม่ปิดแปลง (Active Type 7A Target)"]
+    D --> E["เลือกแผนงานแปลงสาธิตเดิมที่ยังไม่ปิดแปลง (Active Type 7A Target)"]
     E --> F["ระบบดึงข้อมูลเกษตรกร, พืช, และพื้นที่แปลงอัตโนมัติ"]
     F --> G["ระบุวัตถุประสงค์การติดตาม (objective)"]
     G --> H{"ต้องการเบิกสินค้าตัวอย่างเพิ่ม?"}
@@ -87,17 +88,17 @@ graph TD
     A["เปิดหน้า Activity Plan Actual"] --> B["โหลดแผนงานและ Hydrate เป้าหมายเดิม extractType7bPlanTargets"]
     B --> C["เลือกสถานะผลการทำกิจกรรม: COMPLETED / PARTIAL / POSTPONED / CANCELLED"]
     C -->|"COMPLETED หรือ PARTIAL"| D["แสดงฟอร์ม Type7bActualForm แบ่งเป็น 3 ส่วน"]
-    D --> E["ส่วนที่ 1: บันทึกวันตรวจจริง, วันหลังฉีดพ่น, ปัญหาพืช/สารเคมี, รูปภาพสภาพแปลง (สูงสุด 5 รูป)"]
+    D --> E["ส่วนที่ 1: บันทึกวันตรวจจริง (ActivityDatePicker), วันหลังฉีดพ่น, ปัญหาพืช/สารเคมี, รูปภาพสภาพแปลง (สูงสุด 5 รูป)"]
     E --> F["ส่วนที่ 2: บันทึกรอบการฉีดพ่น (เพิ่มได้หลายรอบ)"]
     F --> F1["1.1 สินค้าตามแผน (Baseline) -> กรอกจำนวนใช้จริง, ใช้เพิ่ม, อัตราใช้"]
     F --> F2["1.2 สินค้าเพิ่มเติม (Additional) -> ค้นหาและกรอกจำนวนใช้จริง, ใช้เพิ่ม, อัตราใช้"]
     F --> F3["2. วิธีการฉีดพ่น: 2-Button Toggle (ฉีดเดี่ยว vs ผสมถัง + ยาภายนอก)"]
     F --> F4["3. อุปกรณ์ฉีดพ่น: Dropdown 5 ตัวเลือก (ระบุเพิ่มเมื่อเลือกอื่นๆ)"]
     F --> F5["4. ผลหลังฉีดพ่น + 5. รูปถ่ายประจำรอบ (สูงสุด 5 รูป)"]
-    F --> G["กรอกวันฉีดพ่นครั้งถัดไป (nextSprayDate) และข้อสังเกตเพิ่มเติม"]
+    F --> G["กรอกวันฉีดพ่นครั้งถัดไป (ActivityDatePicker) และข้อสังเกตเพิ่มเติม"]
     G --> H["ส่วนที่ 3: เลือกสถานะแปลงสาธิต (IN_PROGRESS, COMPLETED, CANCELLED)"]
     H -->|"IN_PROGRESS (ติดตามต่อ)"| I["คงสถานะแปลงเดิม พร้อมกำหนดวันฉีดพ่นถัดไป"]
-    H -->|"COMPLETED หรือ CANCELLED (ปิดแปลง)"| J["กรอกผลผลิตจริง (กก.), ผลผลิตแปลงควบคุม, ความพึงพอใจ, โอกาสทางการค้า, สรุปปิดแปลง"]
+    H -->|"COMPLETED หรือ CANCELLED (ปิดแปลง)"| J["กรอกผลผลิตจริง (กก.), ผลผลิตแปลงควบคุม, ความพึงพอใจ, โอกาสทางการค้า, วันปิดแปลง (ActivityDatePicker), สรุปปิดแปลง"]
     I --> K["กดบันทึกผลการปฏิบัติงาน"]
     J --> K
     K --> L["อัปโหลดภาพแปลงและภาพประจำรอบไปยัง Storage (หมวดหมู่ PLOT)"]
@@ -125,7 +126,7 @@ graph TD
     I -->|"หากปิดแปลง"| J["กรอกผลผลิตและเลือก 'วันปิดแปลง / วันเก็บเกี่ยว' ด้วย ActivityDatePicker"]
     I -->|"ติดตามต่อ"| K["กดบันทึกกิจกรรมนอกแผน"]
     J --> K
-    K --> L["บันทึกแผนงานและผลลัพธ์จริงลง DB พร้อมกัน (COMPLETED ทันที)"]
+    K --> L["บันทึกแผนงานและผลลัพธ์จริงลง DB พร้อมกันครบ 5 ตาราง (COMPLETED ทันที)"]
 ```
 
 ---
@@ -146,7 +147,7 @@ modules/activity/features/type-7b/
 │   │   ├── planned-mapper.ts                   # แปลงเป้าหมายในแผน Form <-> DB / Hydration (extractType7bPlanTargets, hydrateType7bPlannedData)
 │   │   └── planned-validation.ts               # ตรวจสอบความถูกต้องของแผน (validateType7bFormItems)
 │   ├── components/                             # UI Components ประจำ Type 7B ในแผน
-│   │   ├── type7b-planned-form.tsx             # ฟอร์มเลือกแปลงสาธิตและเบิกสินค้าตามแผน
+│   │   ├── type7b-planned-form.tsx             # ฟอร์มเลือกแผนงานแปลงสาธิตและเบิกสินค้าตามแผน
 │   │   ├── type7b-actual-form.tsx              # ฟอร์มบันทึกผลติดตามจริง (3 ส่วน: ติดตาม + รอบฉีดพ่น + สถานะแปลง)
 │   │   ├── type7b-plan-card.tsx                # การ์ดสรุปเป้าหมายติดตามแปลงตามแผนงาน
 │   │   ├── type7b-detail-view.tsx              # คอมโพเนนต์แสดงผลเต็มรูปแบบในหน้ารายละเอียด (รองรับ Multi-round)
@@ -163,12 +164,12 @@ modules/activity/features/type-7b/
 │
 ├── unplanned/                                  # Sub-slice: กิจกรรมนอกแผน (2-in-1)
 │   ├── application/                            # Logic และ Mappers กิจกรรมนอกแผน
-│   │   ├── unplanned-mapper.ts                 # Hydration และ Data mapping นอกแผน
+│   │   ├── unplanned-mapper.ts                 # Hydration และ Data mapping นอกแผน (Full Roundtrip DB <-> Form)
 │   │   └── unplanned-validation.ts             # Validation กิจกรรมนอกแผน (validateType7bUnplannedItems)
 │   ├── components/                             # UI Components กิจกรรมนอกแผน
-│   │   └── type7b-unplanned-form.tsx           # ฟอร์ม 2-in-1 (เลือกแปลง + บันทึกผลติดตาม + ปิดแปลง + รูปถ่าย)
+│   │   └── type7b-unplanned-form.tsx           # ฟอร์ม 2-in-1 (เลือกแผนงาน + บันทึกผลติดตาม + ปิดแปลง + รูปถ่าย)
 │   ├── hooks/                                  # Custom State Hooks
-│   │   └── use-type7b-unplanned-form.ts        # จัดการ State ติดตามแปลงนอกแผน
+│   │   └── use-type7b-unplanned-form.ts        # จัดการ State ติดตามแปลงนอกแผน พร้อม Hydration Effect
 │   ├── infrastructure/                         # Database Strategies นอกแผน
 │   │   └── type7b-unplanned.strategy.ts        # บันทึกกิจกรรมนอกแผนลง Prisma ผ่าน Type 7B Strategy
 │   └── types/                                  # Type Definitions นอกแผน
@@ -187,21 +188,25 @@ modules/activity/features/type-7b/
 sequenceDiagram
     autonumber
     actor User as เจ้าหน้าที่พัฒนาตลาด
-    participant Form as Type7bActualForm (UI)
-    participant Hook as useType7bActual (Hook)
-    participant Action as recordActivityResultAction
-    participant Strategy as type7bPlannedStrategy
+    participant Form as Type7bActualForm / Type7bUnplannedForm (UI)
+    participant Hook as useType7bActual / useType7bUnplannedForm (Hook)
+    participant Action as recordActivityResultAction / createUnplannedActivityAction
+    participant Strategy as type7bPlannedStrategy / type7bUnplannedStrategy
     participant DB as PostgreSQL (Prisma)
 
     User->>Form: กรอกข้อมูลติดตาม (ส่วนที่ 1) + รอบการฉีดพ่นและสินค้า (ส่วนที่ 2) + สถานะแปลง (ส่วนที่ 3)
     Form->>Hook: handleUpdateField / handleUpdateRoundField
-    User->>Form: กดปุ่ม "บันทึกผลการปฏิบัติงาน"
+    User->>Form: กดปุ่ม "บันทึกผลการปฏิบัติงาน" หรือ "บันทึกกิจกรรมนอกแผน"
     Form->>Hook: validate() ตรวจสอบความถูกต้อง
-    Form->>Action: ส่ง Payload (tracking details + spraying rounds + plotStatus)
-    Action->>Strategy: saveActual(tx, activityPlanId, actualData)
-    Strategy->>DB: create ActivityResultType7b (visitDate, daysAfterSpray, yields, ratings)
+    Form->>Action: ส่ง Payload (type7bData + type7bActual / actualOutcome + planProducts)
+    Action->>Strategy: savePlan(tx, activityPlanId, planData) / saveActual(tx, activityPlanId, actualData)
+    opt บันทึกฝั่งแผนงาน (Plan Targets & Products)
+        Strategy->>DB: create ActivityPlanType7bTarget (type7aTargetId, sourceActivityPlanId, plotName)
+        Strategy->>DB: createMany ActivityPlanType7bProduct (Planned withdrawn products)
+    end
+    Strategy->>DB: create ActivityResultType7b (visitDate, daysSinceStart, yields, ratings)
     Strategy->>DB: create ActivityResultType7bSprayRound (sprayDate, sprayMethod, equipment)
-    Strategy->>DB: createMany ActivityResultType7bSprayProduct (Baseline & Additional products)
+    Strategy->>DB: createMany ActivityResultType7bSprayProduct (Baseline & Additional products used)
     Strategy->>DB: createMany ActivityResultType7bSprayExternal (Tank-mixed external products)
     Strategy->>DB: createMany ActivityAttachment (PLOT category, type7bResultId, sprayRoundId)
     opt สถานะเป็น COMPLETED หรือ CANCELLED
@@ -209,7 +214,7 @@ sequenceDiagram
     end
     DB-->>Strategy: บันทึกสำเร็จ (Commit)
     Strategy-->>Action: Success
-    Action-->>Form: แสดง Toast "บันทึกผลเรียบร้อยแล้ว"
+    Action-->>Form: แสดง Toast "บันทึกข้อมูลเรียบร้อยแล้ว"
 ```
 
 ---
@@ -228,30 +233,30 @@ sequenceDiagram
 | **`activity_type_7b_spray_externals`**<br>(`ActivityResultType7bSprayExternal`) | `saveActual()` ใน Actual             | โหลดยาภายนอกในแต่ละรอบ                     | ลบและสร้างใหม่ใน `saveActual()`     | Cascade เมื่อลบ `ActivityResultType7bSprayRound` | เก็บสารเคมีภายนอกกรณีผสมถัง (Tank-mixed)                            |
 | **`activity_attachments`**<br>(`ActivityAttachment`)                            | Storage Upload + `saveActual()`      | `plan.attachments` (หมวดหมู่ PLOT)         | ลบรายการเก่าและสร้างใหม่            | Cascade เมื่อลบ `ActivityPlan`                   | เก็บล็อก URL ภาพถ่ายติดตามและภาพประจำรอบ (`sprayRoundId`)           |
 
-### 5.2 Prisma Schema Definitions
+### 5.2 Prisma Schema Definitions (100% Aligned with prisma/schema.prisma)
 
 ```prisma
 // 1. ตารางเป้าหมายแผนงานติดตามแปลงสาธิต (activity_type_7b_targets)
 model ActivityPlanType7bTarget {
-  id                   String                      @id @default(cuid())
-  activityPlanId       String                      @map("activity_plan_id")
-  type7aTargetId       String?                     @map("type7a_target_id") // เชื่อมโยงตรงสู่แปลงแม่ ActivityPlanType7aTarget
-  sourceActivityPlanId String?                     @map("source_activity_plan_id")
-  plotName             String?                     @map("plot_name")
-  cropName             String?                     @map("crop_name")
-  ownerName            String?                     @map("owner_name")
-  province             String?                     @map("province")
-  district             String?                     @map("district")
-  areaRai              Decimal?                    @map("area_rai") @db.Decimal(10, 2)
-  treeCount            Int?                        @map("tree_count")
-  dealerName           String?                     @map("dealer_name")
-  objective            String?                     @map("objective") @db.Text
-  notes                String?                     @map("notes") @db.Text
-  createdAt            DateTime                    @default(now()) @map("created_at")
-  updatedAt            DateTime                    @updatedAt @map("updated_at")
+  id                   String    @id @default(cuid())
+  activityPlanId       String    @map("activity_plan_id")
+  type7aTargetId       String?   @map("type_7a_target_id") // แปลงสาธิต 7A ที่เลือกติดตาม
+  sourceActivityPlanId String?   @map("source_activity_plan_id") // อ้างอิงแผน 7A ต้นทาง
+  plotName             String?   @map("plot_name")
+  cropName             String?   @map("crop_name")
+  ownerName            String?   @map("owner_name")
+  province             String?   @map("province")
+  district             String?   @map("district")
+  areaRai              Decimal?  @map("area_rai") @db.Decimal(10, 2)
+  treeCount            Int?      @map("tree_count")
+  dealerName           String?   @map("dealer_name")
+  objective            String?   @map("objective") @db.Text // สิ่งที่ตั้งใจจะไปติดตามรอบนี้
+  notes                String?   @map("notes") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
   activityPlan         ActivityPlan                @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  type7aTarget         ActivityPlanType7aTarget?   @relation(fields: [type7aTargetId], references: [id], onDelete: SetNull)
+  type7aTarget         ActivityPlanType7aTarget?   @relation("Type7aTargetFollowUps", fields: [type7aTargetId], references: [id], onDelete: Restrict)
   sourceActivityPlan   ActivityPlan?               @relation("Type7bSourcePlan", fields: [sourceActivityPlanId], references: [id], onDelete: SetNull)
   products             ActivityPlanType7bProduct[]
   results              ActivityResultType7b[]
@@ -264,15 +269,15 @@ model ActivityPlanType7bTarget {
 
 // 2. ตารางสินค้าตัวอย่างที่ขอเบิกเพิ่มเติมตามแผน (activity_type_7b_products)
 model ActivityPlanType7bProduct {
-  id             String                    @id @default(cuid())
-  activityPlanId String                    @map("activity_plan_id")
-  targetId       String?                   @map("target_id")
-  productId      String                    @map("product_id")
-  productName    String?                   @map("product_name")
-  quantity       Decimal                   @default(1) @map("quantity") @db.Decimal(10, 2)
-  unit           String?                   @map("unit")
-  sortOrder      Int                       @default(0) @map("sort_order")
-  createdAt      DateTime                  @default(now()) @map("created_at")
+  id             String   @id @default(cuid())
+  activityPlanId String   @map("activity_plan_id")
+  targetId       String?  @map("target_id")
+  productId      String   @map("product_id")
+  productName    String?  @map("product_name")
+  quantity       Decimal  @default(1) @map("quantity") @db.Decimal(10, 2)
+  unit           String?  @map("unit")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
   target         ActivityPlanType7bTarget? @relation(fields: [targetId], references: [id], onDelete: Cascade)
@@ -286,35 +291,105 @@ model ActivityPlanType7bProduct {
 
 // 3. ตารางผลการติดตามแปลงสาธิตจริง (activity_type_7b_results)
 model ActivityResultType7b {
-  id                  String                              @id @default(cuid())
-  activityPlanId      String                              @map("activity_plan_id")
-  targetId            String?                             @map("target_id")
-  visitDate           DateTime                            @default(now()) @map("visit_date")
-  daysAfterSpray      Int?                                @map("days_after_spray")
-  cropCondition       String?                             @map("crop_condition")
-  growthStage         String?                             @map("growth_stage")
-  cropProblemDesc     String?                             @map("crop_problem_desc")
-  productProblemDesc  String?                             @map("product_problem_desc")
-  nextSprayDate       DateTime?                           @map("next_spray_date")
-  notes               String?                             @map("notes") @db.Text
-  plotStatus          DemoPlotStatus?                     @map("plot_status")
-  finalHarvestDate    DateTime?                           @map("final_harvest_date")
-  demoYieldKg         Decimal?                            @map("demo_yield_kg") @db.Decimal(12, 2)
-  controlYieldKg      Decimal?                            @map("control_yield_kg") @db.Decimal(12, 2)
-  farmerSatisfaction  Int?                                @map("farmer_satisfaction")
-  commercialPotential String?                             @map("commercial_potential")
-  finalSummaryNotes   String?                             @map("final_summary_notes") @db.Text
-  createdAt           DateTime                            @default(now()) @map("created_at")
-  updatedAt           DateTime                            @updatedAt @map("updated_at")
+  id                   String         @id @default(cuid())
+  activityPlanId       String         @map("activity_plan_id")
+  targetId             String?        @map("target_id")
+  type7aTargetId       String?        @map("type_7a_target_id")
+  visitDate            DateTime       @map("visit_date")
+  daysSinceStart       Int            @default(0) @map("days_since_start")
+  cropCondition        String?        @map("crop_condition")
+  growthStage          String?        @map("growth_stage")
+  cropProblemDesc      String?        @map("crop_problem_desc") @db.Text
+  productResponse      String?        @map("product_response")
+  productProblemDesc   String?        @map("product_problem_desc") @db.Text
+  nextSprayDate        DateTime?      @map("next_spray_date")
+  notes                String?        @map("notes") @db.Text
+  plotStatus           DemoPlotStatus @default(IN_PROGRESS) @map("plot_status")
+  finalHarvestDate     DateTime?      @map("final_harvest_date")
+  demoYieldKg          Decimal?       @map("demo_yield_kg") @db.Decimal(12, 2)
+  controlYieldKg       Decimal?       @map("control_yield_kg") @db.Decimal(12, 2)
+  yieldIncreasePercent Decimal?       @map("yield_increase_percent") @db.Decimal(6, 2)
+  farmerSatisfaction   Int?           @map("farmer_satisfaction")
+  commercialPotential  String?        @map("commercial_potential")
+  finalSummaryNotes    String?        @map("final_summary_notes") @db.Text
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
 
-  activityPlan        ActivityPlan                        @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
-  target              ActivityPlanType7bTarget?           @relation(fields: [targetId], references: [id], onDelete: Cascade)
-  sprayRounds         ActivityResultType7bSprayRound[]
-  attachments         ActivityAttachment[]
+  activityPlan         ActivityPlan                     @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target               ActivityPlanType7bTarget?        @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  type7aTarget         ActivityPlanType7aTarget?        @relation("Type7aTargetFollowUpResults", fields: [type7aTargetId], references: [id], onDelete: Restrict)
+  sprayRounds          ActivityResultType7bSprayRound[]
+  attachments          ActivityAttachment[]
 
   @@index([activityPlanId])
   @@index([targetId])
+  @@index([type7aTargetId])
   @@map("activity_type_7b_results")
+}
+
+// 4. ตารางรอบการฉีดพ่นของผลงานจริง (activity_type_7b_spray_rounds)
+model ActivityResultType7bSprayRound {
+  id                   String   @id @default(cuid())
+  resultId             String   @map("result_id")
+  roundNumber          Int      @default(1) @map("round_number")
+  sprayDate            DateTime @map("spray_date")
+  sprayMethod          String   @default("SINGLE") @map("spray_method")
+  hasExternalChemicals Boolean  @default(false) @map("has_external_chemicals")
+  sprayEquipment       String   @map("spray_equipment")
+  otherEquipment       String?  @map("other_equipment")
+  productResponse      String?  @map("product_response")
+  problemDetail        String?  @map("problem_detail") @db.Text
+  notes                String?  @map("notes") @db.Text
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  result               ActivityResultType7b                @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  sprayProducts        ActivityResultType7bSprayProduct[]
+  sprayExternals       ActivityResultType7bSprayExternal[]
+
+  @@index([resultId])
+  @@map("activity_type_7b_spray_rounds")
+}
+
+// 5. ตารางสินค้าที่ใช้จริงในแต่ละรอบฉีดพ่น (activity_type_7b_spray_products)
+model ActivityResultType7bSprayProduct {
+  id                String   @id @default(cuid())
+  sprayRoundId      String   @map("spray_round_id")
+  productId         String   @map("product_id")
+  productName       String?  @map("product_name")
+  isPlanned         Boolean  @default(false) @map("is_planned")
+  withdrawnQuantity Decimal? @map("withdrawn_quantity") @db.Decimal(10, 2)
+  actualQuantity    Decimal  @default(0) @map("actual_quantity") @db.Decimal(10, 2)
+  extraQuantity     Decimal? @map("extra_quantity") @db.Decimal(10, 2)
+  actualRate        String?  @map("actual_rate")
+  unit              String?  @map("unit")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  sprayRound        ActivityResultType7bSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+  product           Product                        @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([sprayRoundId])
+  @@index([productId])
+  @@map("activity_type_7b_spray_products")
+}
+
+// 6. ตารางสารเคมีภายนอกกรณีผสมถัง (activity_type_7b_spray_externals)
+model ActivityResultType7bSprayExternal {
+  id               String   @id @default(cuid())
+  sprayRoundId     String   @map("spray_round_id")
+  company          String   @map("company")
+  productName      String   @map("product_name")
+  activeIngredient String?  @map("active_ingredient")
+  formula          String   @map("formula")
+  customFormula    String?  @map("custom_formula")
+  applicationRate  String   @map("application_rate")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  sprayRound       ActivityResultType7bSprayRound @relation(fields: [sprayRoundId], references: [id], onDelete: Cascade)
+
+  @@index([sprayRoundId])
+  @@map("activity_type_7b_spray_externals")
 }
 ```
 
@@ -322,10 +397,11 @@ model ActivityResultType7b {
 
 ## 6. Change Log
 
-| วันที่         | เวอร์ชัน | รายละเอียดการปรับปรุง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ผู้ดำเนินการ   |
-| :------------- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------- |
-| **2026-10-16** | 1.0.0    | สร้างโมดูล Type 7B เป็น Vertical Slice Architecture สำหรับการติดตามแปลงสาธิต                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Antigravity AI |
-| **2026-10-24** | 2.0.0    | อัปเกรดระบบบันทึกผลงานจริงสู่ Multiple Spraying Rounds Architecture สมบูรณ์แบบ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Antigravity AI |
-| **2026-10-24** | 2.1.0    | ปรับปรุงระบบ Hydration ข้อมูลผลงานจริง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Antigravity AI |
-| **2026-10-27** | 3.0.0    | **ยกเลิกตารางเก่า (`demo_plots`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType7bTarget` ให้เชื่อมโยงโดยตรงกับแปลงแม่ `ActivityPlanType7aTarget` ผ่าน `type7aTargetId`<br>2. รองรับ Advance Monthly Planning: อนุญาตให้สร้างแผนงาน Type 7B ติดตามแปลงล่วงหน้าได้ทันทีที่มีแผน Type 7A โดยไม่ต้องรอผลงานจริงของ 7A<br>3. เมื่อปิดแปลง (`COMPLETED` หรือ `CANCELLED`) อัปเดต `status` และ `closedDate` กลับไปยัง `activity_type_7a_targets` โดยตรง<br>4. อัปเดต Data Flow, CRUD Matrix, Field Mapping และ Prisma Schema ครบถ้วน | Antigravity AI |
-| **2026-10-29** | 3.1.0    | **ปรับปรุง Type7bUnplannedForm และกระบวนการ Read/Hydration ขากลับ:**<br>1. ปรับช่อง "เลือกแปลงสาธิตที่มีอยู่ในระบบ" ให้มีตัวเลือกเฉพาะแผนงาน (Plan Options Only) และแสดง Sublabel สรุปแปลงสาธิต พร้อม Autofill ข้อมูลแปลงสาธิตอัตโนมัติ<br>2. นำ `ActivityDatePicker` มาแทน Native Date Input สำหรับวันที่ติดตามจริง (`visitDate`), กำหนดฉีดพ่นครั้งถัดไป (`nextSprayDate`) และวันปิดแปลง (`finalHarvestDate`)<br>3. เสริมความสมบูรณ์ของ `unplanned-mapper.ts` และ `useType7bUnplannedForm` ให้ Hydrate ข้อมูลจาก DB (`type7bResults`, `sprayRounds`, `finalHarvestDate`, `sourceActivityPlanId`) ครบถ้วน 100% ทั้งในโหมดสร้างและแก้ไข | Antigravity AI |
+| วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
+| :--- | :--- | :--- | :--- |
+| **2026-10-16** | 1.0.0 | สร้างโมดูล Type 7B เป็น Vertical Slice Architecture สำหรับการติดตามแปลงสาธิต | Antigravity AI |
+| **2026-10-24** | 2.0.0 | อัปเกรดระบบบันทึกผลงานจริงสู่ Multiple Spraying Rounds Architecture สมบูรณ์แบบ | Antigravity AI |
+| **2026-10-24** | 2.1.0 | ปรับปรุงระบบ Hydration ข้อมูลผลงานจริง | Antigravity AI |
+| **2026-10-27** | 3.0.0 | **ยกเลิกตารางเก่า (`demo_plots`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType7bTarget` ให้เชื่อมโยงโดยตรงกับแปลงแม่ `ActivityPlanType7aTarget` ผ่าน `type7aTargetId`<br>2. รองรับ Advance Monthly Planning: อนุญาตให้สร้างแผนงาน Type 7B ติดตามแปลงล่วงหน้าได้ทันทีที่มีแผน Type 7A โดยไม่ต้องรอผลงานจริงของ 7A<br>3. เมื่อปิดแปลง (`COMPLETED` หรือ `CANCELLED`) อัปเดต `status` และ `closedDate` กลับไปยัง `activity_type_7a_targets` โดยตรง<br>4. อัปเดต Data Flow, CRUD Matrix, Field Mapping และ Prisma Schema ครบถ้วน | Antigravity AI |
+| **2026-10-29** | 3.1.0 | **ปรับปรุง Type7bUnplannedForm และกระบวนการ Read/Hydration ขากลับ:**<br>1. ปรับช่อง "เลือกแปลงสาธิตที่มีอยู่ในระบบ" ให้มีตัวเลือกเฉพาะแผนงาน (Plan Options Only) และแสดง Sublabel สรุปแปลงสาธิต พร้อม Autofill ข้อมูลแปลงสาธิตอัตโนมัติ<br>2. นำ `ActivityDatePicker` มาแทน Native Date Input สำหรับวันที่ติดตามจริง (`visitDate`), กำหนดฉีดพ่นครั้งถัดไป (`nextSprayDate`) และวันปิดแปลง (`finalHarvestDate`)<br>3. เสริมความสมบูรณ์ของ `unplanned-mapper.ts` และ `useType7bUnplannedForm` ให้ Hydrate ข้อมูลจาก DB (`type7bResults`, `sprayRounds`, `finalHarvestDate`, `sourceActivityPlanId`) ครบถ้วน 100% ทั้งในโหมดสร้างและแก้ไข | Antigravity AI |
+| **2026-10-29** | 3.2.0 | **แก้ไข Persistence ข้อมูล Spray Rounds และ Spray Products ในกิจกรรมนอกแผน & ปรับปรุง Schema Definitions ให้ตรงกับ DB 100%:**<br>1. แก้ไข `type7bPlannedStrategy.saveActual` และ `type7bUnplannedStrategy.savePlan` ให้ unwrap ก้อน `type7bActual` จาก `actualOutcome` ได้อย่างถูกต้อง ทำให้บันทึกข้อมูลลงตาราง `activity_type_7b_spray_rounds` และ `activity_type_7b_spray_products` สำเร็จครบถ้วน<br>2. ปรับปรุงเอกสาร Section 5.2 ให้แสดง Prisma Schema Definitions ครบทั้ง 6 ตาราง ได้แก่ `ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, และ `ActivityResultType7bSprayExternal` พร้อมตัดฟิลด์ที่สะกดคลาดเคลื่อนออกให้ตรงกับ `prisma/schema.prisma` ทุกประการ | Antigravity AI |
