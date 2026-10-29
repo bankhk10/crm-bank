@@ -124,7 +124,8 @@ export function Type7aPlotFollowUpTimeline({
     initialIndex: 0,
   });
 
-  const timelineData: PlotFollowUpTimelineResult = extractPlotFollowUpTimeline(demoPlot);
+  const timelineData: PlotFollowUpTimelineResult =
+    extractPlotFollowUpTimeline(demoPlot);
 
   const openLightbox = (
     title: string,
@@ -169,12 +170,14 @@ export function Type7aPlotFollowUpTimeline({
                 {getStatusBadge(timelineData.plotStatus)}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                ติดตามวงจรชีวิตแปลงสาธิต (Lifecycle) และเชื่อมโยงประวัติจากทุกแผนงาน Type 7B
+                ติดตามวงจรชีวิตแปลงสาธิต (Lifecycle)
+                และเชื่อมโยงประวัติจากทุกแผนงาน Type 7B
               </p>
             </div>
           </div>
 
-          {!isPlotClosed && (
+          {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+          {/* {!isPlotClosed && (
             <Link
               href={`/activity-plans/new?type=TYPE_7B&sourcePlotId=${timelineData.plotId}`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
@@ -182,7 +185,7 @@ export function Type7aPlotFollowUpTimeline({
               <Plus className="w-3.5 h-3.5" />
               <span>สร้างแผนติดตาม (7B)</span>
             </Link>
-          )}
+          )} */}
         </div>
 
         {/* Quick KPI Strip */}
@@ -236,332 +239,344 @@ export function Type7aPlotFollowUpTimeline({
               ยังไม่มีประวัติการลงพื้นที่ติดตามสำหรับแปลงนี้
             </h5>
             <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-              เมื่อมีการสร้างแผนงานประเภท "ติดตามแปลงสาธิต (Type 7B)" และบันทึกผลการเข้าตรวจจริง
+              เมื่อมีการสร้างแผนงานประเภท ติดตามแปลงสาธิต
+              และบันทึกผลการเข้าตรวจจริง
               ประวัติและภาพถ่ายในแต่ละรอบจะถูกรวบรวมแสดงในไทม์ไลน์นี้โดยอัตโนมัติ
             </p>
           </div>
-          {!isPlotClosed && (
-            <Link
-              href={`/activity-plans/new?type=TYPE_7B&sourcePlotId=${timelineData.plotId}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>สร้างแผนงานติดตามรอบแรก (Type 7B)</span>
-            </Link>
-          )}
         </div>
       ) : (
         <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
-          {timelineData.timeline.map((item: PlotFollowUpItem, index: number) => {
-            const isLast = index === timelineData.timeline.length - 1;
+          {timelineData.timeline.map(
+            (item: PlotFollowUpItem, index: number) => {
+              const isLast = index === timelineData.timeline.length - 1;
 
-            return (
-              <div key={item.id} className="relative group">
-                {/* Step Marker */}
-                <div
-                  className={cn(
-                    "absolute -left-6 sm:-left-8 top-1.5 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-xs border-2 transition-all",
-                    item.isPlannedOnly
-                      ? "bg-slate-100 text-slate-600 border-slate-300"
-                      : item.isClosure
-                        ? "bg-amber-500 text-white border-amber-300"
-                        : "bg-emerald-600 text-white border-emerald-200",
-                  )}
-                >
-                  {item.visitNumber}
-                </div>
-
-                {/* Card Container */}
-                <div
-                  className={cn(
-                    "bg-white border rounded-2xl p-4 sm:p-5 shadow-xs transition-all space-y-3.5",
-                    item.isClosure
-                      ? "border-amber-300 bg-amber-50/15"
-                      : "border-slate-200 hover:border-slate-300",
-                  )}
-                >
-                  {/* Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-slate-900 text-sm sm:text-base">
-                        ติดตามครั้งที่ {item.visitNumber}
-                      </span>
-                      {item.isClosure && (
-                        <Badge className="bg-amber-500 text-white text-[10.5px] px-2 py-0">
-                          รอบปิดแปลงสาธิต
-                        </Badge>
-                      )}
-                      {item.isPlannedOnly && (
-                        <Badge
-                          variant="outline"
-                          className="bg-slate-50 text-slate-600 border-slate-300 text-[10.5px] px-2 py-0"
-                        >
-                          ตามแผน (ยังไม่บันทึกผลจริง)
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Date & Days */}
-                    <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
-                      <span className="inline-flex items-center gap-1 font-medium text-slate-700">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        {formatThaiDate(item.visitDate)}
-                      </span>
-                      {item.daysSinceStart != null && item.daysSinceStart > 0 && (
-                        <span className="bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded text-[11px]">
-                          {item.daysSinceStart} วันหลังเริ่มแปลง
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Plan Link & Author Ribbon */}
-                  <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/80 p-2.5 rounded-xl border border-slate-150 text-xs">
-                    {/* Link to Trip Plan */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-slate-500">แผนงาน:</span>
-                      {item.planId ? (
-                        <Link
-                          href={`/activity-plans/${item.planId}`}
-                          className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 group/link"
-                          target="_blank"
-                          rel="noreferrer"
-                          title="คลิกเพื่อเปิดดูรายละเอียด Trip Plan ในแท็บใหม่"
-                        >
-                          <span>
-                            [{item.planCode || "Trip Plan"}] {item.planTitle}
-                          </span>
-                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover/link:text-emerald-700 transition-colors" />
-                        </Link>
-                      ) : (
-                        <span className="font-semibold text-slate-800">
-                          {item.planTitle || "-"}
-                        </span>
-                      )}
-                      {getPlanStatusBadge(item.planStatus)}
-                    </div>
-
-                    {/* Employee */}
-                    {item.employeeName && (
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="font-medium">{item.employeeName}</span>
-                      </div>
+              return (
+                <div key={item.id} className="relative group">
+                  {/* Step Marker */}
+                  <div
+                    className={cn(
+                      "absolute -left-6 sm:-left-8 top-1.5 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-xs border-2 transition-all",
+                      item.isPlannedOnly
+                        ? "bg-slate-100 text-slate-600 border-slate-300"
+                        : item.isClosure
+                          ? "bg-amber-500 text-white border-amber-300"
+                          : "bg-emerald-600 text-white border-emerald-200",
                     )}
+                  >
+                    {item.visitNumber}
                   </div>
 
-                  {/* Condition Details (if actual visit recorded) */}
-                  {!item.isPlannedOnly && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-                      {/* Growth Stage */}
-                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                        <span className="text-slate-400 block text-[11px]">
-                          ระยะพืช / อายุพืช:
+                  {/* Card Container */}
+                  <div
+                    className={cn(
+                      "bg-white border rounded-2xl p-4 sm:p-5 shadow-xs transition-all space-y-3.5",
+                      item.isClosure
+                        ? "border-amber-300 bg-amber-50/15"
+                        : "border-slate-200 hover:border-slate-300",
+                    )}
+                  >
+                    {/* Card Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 text-sm sm:text-base">
+                          ติดตามครั้งที่ {item.visitNumber}
                         </span>
-                        <span className="font-semibold text-slate-800">
-                          {[
-                            item.growthStage,
-                            item.cropAgeValue != null
-                              ? `${item.cropAgeValue} ${item.cropAgeUnit || "วัน"}`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" • ") || "-"}
-                        </span>
-                      </div>
-
-                      {/* Crop Condition */}
-                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                        <span className="text-slate-400 block text-[11px]">
-                          สภาพพืช & การเจริญเติบโต:
-                        </span>
-                        <span className="font-semibold text-slate-800">
-                          {item.cropCondition || "-"}
-                          {item.cropProblemDesc && (
-                            <span className="text-rose-600 font-normal block text-[11px]">
-                              ปัญหา: {item.cropProblemDesc}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-
-                      {/* Product Response */}
-                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                        <span className="text-slate-400 block text-[11px]">
-                          การตอบสนองต่อผลิตภัณฑ์:
-                        </span>
-                        <span className="font-semibold text-slate-800">
-                          {item.productResponse || "-"}
-                          {item.productProblemDesc && (
-                            <span className="text-rose-600 font-normal block text-[11px]">
-                              อาการ: {item.productProblemDesc}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Spraying & Chemicals Info */}
-                  {(item.sprayProducts.length > 0 ||
-                    item.externalProducts.length > 0 ||
-                    item.sprayMethod) && (
-                    <div className="border border-slate-150 rounded-xl p-3 bg-white space-y-2 text-xs">
-                      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
-                        <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                          <FlaskConical className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>การใช้ผลิตภัณฑ์และการฉีดพ่นในรอบนี้</span>
-                        </span>
-                        {item.sprayMethod && (
+                        {item.isClosure && (
+                          <Badge className="bg-amber-500 text-white text-[10.5px] px-2 py-0">
+                            รอบปิดแปลงสาธิต
+                          </Badge>
+                        )}
+                        {item.isPlannedOnly && (
                           <Badge
                             variant="outline"
-                            className={cn(
-                              "text-[10px] px-2 py-0",
-                              item.sprayMethod === "TANK_MIXED"
-                                ? "bg-amber-50 text-amber-800 border-amber-300"
-                                : "bg-emerald-50 text-emerald-800 border-emerald-300",
-                            )}
+                            className="bg-slate-50 text-slate-600 border-slate-300 text-[10.5px] px-2 py-0"
                           >
-                            {item.sprayMethod === "TANK_MIXED"
-                              ? "ผสมถัง (Tank-mixed)"
-                              : "ฉีดเดี่ยว (Single)"}
+                            ตามแผน (ยังไม่บันทึกผลจริง)
                           </Badge>
                         )}
                       </div>
 
-                      {/* Spray Equipment */}
-                      {item.sprayEquipment && (
-                        <div className="text-slate-600 text-[11.5px]">
-                          อุปกรณ์ที่ใช้:{" "}
-                          <span className="font-medium text-slate-800">
-                            {item.sprayEquipment}
-                            {item.otherEquipment ? ` (${item.otherEquipment})` : ""}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Products List */}
-                      {item.sprayProducts.length > 0 && (
-                        <div className="space-y-1">
-                          <span className="text-slate-400 text-[11px] font-medium">
-                            รายการสินค้า:
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {item.sprayProducts.map((p, pIdx) => (
-                              <span
-                                key={pIdx}
-                                className={cn(
-                                  "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border",
-                                  p.isAdditional
-                                    ? "bg-amber-50 text-amber-900 border-amber-200"
-                                    : "bg-slate-50 text-slate-800 border-slate-200",
-                                )}
-                              >
-                                <span className="font-semibold">{p.name}</span>
-                                {p.quantity != null && (
-                                  <span className="text-slate-500">
-                                    ({p.quantity} {p.unit || "หน่วย"})
-                                  </span>
-                                )}
-                                {p.rate && (
-                                  <span className="text-slate-400 font-mono text-[10px]">
-                                    @{p.rate}
-                                  </span>
-                                )}
-                                {p.isAdditional && (
-                                  <span className="text-[10px] bg-amber-200/70 text-amber-900 px-1 rounded font-bold">
-                                    ใช้เพิ่ม
-                                  </span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* External Products (Tank-mixed) */}
-                      {item.externalProducts.length > 0 && (
-                        <div className="space-y-1 pt-1 border-t border-slate-100">
-                          <span className="text-slate-400 text-[11px] font-medium">
-                            ยาภายนอกที่ผสมร่วม (Tank-mixed):
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {item.externalProducts.map((ep, epIdx) => (
-                              <span
-                                key={epIdx}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700 border border-slate-200"
-                              >
-                                <span className="font-semibold">{ep.productName}</span>
-                                {ep.company && (
-                                  <span className="text-slate-400">({ep.company})</span>
-                                )}
-                                {ep.applicationRate && (
-                                  <span className="text-slate-500">
-                                    อัตรา: {ep.applicationRate}
-                                  </span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {item.notes && (
-                    <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                      <span className="font-semibold text-slate-700">หมายเหตุ: </span>
-                      <span>{item.notes}</span>
-                    </div>
-                  )}
-
-                  {/* Photos Grid */}
-                  {item.photos.length > 0 && (
-                    <div className="space-y-2 pt-1 border-t border-slate-100">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="flex items-center gap-1 font-semibold text-slate-700">
-                          <Camera className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>ภาพถ่ายรอบติดตามนี้ ({item.photos.length} รูป)</span>
+                      {/* Date & Days */}
+                      <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          {formatThaiDate(item.visitDate)}
                         </span>
-                        <span className="text-[11px] text-slate-400">
-                          คลิกเพื่อดูรูปขนาดเต็ม
-                        </span>
+                        {item.daysSinceStart != null &&
+                          item.daysSinceStart > 0 && (
+                            <span className="bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded text-[11px]">
+                              {item.daysSinceStart} วันหลังเริ่มแปลง
+                            </span>
+                          )}
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                        {item.photos.map((photo, pIdx) => (
-                          <button
-                            type="button"
-                            key={photo.id || pIdx}
-                            onClick={() =>
-                              openLightbox(
-                                `ภาพถ่ายติดตามครั้งที่ ${item.visitNumber}`,
-                                item.photos,
-                                pIdx,
-                              )
-                            }
-                            className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 hover:shadow-xs transition-all cursor-pointer"
+                    {/* Plan Link & Author Ribbon */}
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/80 p-2.5 rounded-xl border border-slate-150 text-xs">
+                      {/* Link to Trip Plan */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-slate-500">แผนงาน:</span>
+                        {item.planId ? (
+                          <Link
+                            href={`/activity-plans/${item.planId}`}
+                            className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 group/link"
+                            target="_blank"
+                            rel="noreferrer"
+                            title="คลิกเพื่อเปิดดูรายละเอียด Trip Plan ในแท็บใหม่"
                           >
-                            <img
-                              src={photo.url}
-                              alt={photo.name || `ภาพติดตามครั้งที่ ${item.visitNumber}`}
-                              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-[10px] text-white font-semibold bg-black/60 px-1.5 py-0.5 rounded">
-                                ขยาย
-                              </span>
-                            </div>
-                          </button>
-                        ))}
+                            <span>
+                              [{item.planCode || "Trip Plan"}] {item.planTitle}
+                            </span>
+                            <ExternalLink className="w-3 h-3 text-slate-400 group-hover/link:text-emerald-700 transition-colors" />
+                          </Link>
+                        ) : (
+                          <span className="font-semibold text-slate-800">
+                            {item.planTitle || "-"}
+                          </span>
+                        )}
+                        {getPlanStatusBadge(item.planStatus)}
                       </div>
+
+                      {/* Employee */}
+                      {item.employeeName && (
+                        <div className="flex items-center gap-1.5 text-slate-600">
+                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="font-medium">
+                            {item.employeeName}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Condition Details (if actual visit recorded) */}
+                    {!item.isPlannedOnly && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                        {/* Growth Stage */}
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                          <span className="text-slate-400 block text-[11px]">
+                            ระยะพืช / อายุพืช:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {[
+                              item.growthStage,
+                              item.cropAgeValue != null
+                                ? `${item.cropAgeValue} ${item.cropAgeUnit || "วัน"}`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" • ") || "-"}
+                          </span>
+                        </div>
+
+                        {/* Crop Condition */}
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                          <span className="text-slate-400 block text-[11px]">
+                            สภาพพืช & การเจริญเติบโต:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {item.cropCondition || "-"}
+                            {item.cropProblemDesc && (
+                              <span className="text-rose-600 font-normal block text-[11px]">
+                                ปัญหา: {item.cropProblemDesc}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Product Response */}
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                          <span className="text-slate-400 block text-[11px]">
+                            การตอบสนองต่อผลิตภัณฑ์:
+                          </span>
+                          <span className="font-semibold text-slate-800">
+                            {item.productResponse || "-"}
+                            {item.productProblemDesc && (
+                              <span className="text-rose-600 font-normal block text-[11px]">
+                                อาการ: {item.productProblemDesc}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Spraying & Chemicals Info */}
+                    {(item.sprayProducts.length > 0 ||
+                      item.externalProducts.length > 0 ||
+                      item.sprayMethod) && (
+                      <div className="border border-slate-150 rounded-xl p-3 bg-white space-y-2 text-xs">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
+                          <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                            <FlaskConical className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>การใช้ผลิตภัณฑ์และการฉีดพ่นในรอบนี้</span>
+                          </span>
+                          {item.sprayMethod && (
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[10px] px-2 py-0",
+                                item.sprayMethod === "TANK_MIXED"
+                                  ? "bg-amber-50 text-amber-800 border-amber-300"
+                                  : "bg-emerald-50 text-emerald-800 border-emerald-300",
+                              )}
+                            >
+                              {item.sprayMethod === "TANK_MIXED"
+                                ? "ผสมถัง (Tank-mixed)"
+                                : "ฉีดเดี่ยว (Single)"}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Spray Equipment */}
+                        {item.sprayEquipment && (
+                          <div className="text-slate-600 text-[11.5px]">
+                            อุปกรณ์ที่ใช้:{" "}
+                            <span className="font-medium text-slate-800">
+                              {item.sprayEquipment}
+                              {item.otherEquipment
+                                ? ` (${item.otherEquipment})`
+                                : ""}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Products List */}
+                        {item.sprayProducts.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-slate-400 text-[11px] font-medium">
+                              รายการสินค้า:
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.sprayProducts.map((p, pIdx) => (
+                                <span
+                                  key={pIdx}
+                                  className={cn(
+                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border",
+                                    p.isAdditional
+                                      ? "bg-amber-50 text-amber-900 border-amber-200"
+                                      : "bg-slate-50 text-slate-800 border-slate-200",
+                                  )}
+                                >
+                                  <span className="font-semibold">
+                                    {p.name}
+                                  </span>
+                                  {p.quantity != null && (
+                                    <span className="text-slate-500">
+                                      ({p.quantity} {p.unit || "หน่วย"})
+                                    </span>
+                                  )}
+                                  {p.rate && (
+                                    <span className="text-slate-400 font-mono text-[10px]">
+                                      @{p.rate}
+                                    </span>
+                                  )}
+                                  {p.isAdditional && (
+                                    <span className="text-[10px] bg-amber-200/70 text-amber-900 px-1 rounded font-bold">
+                                      ใช้เพิ่ม
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* External Products (Tank-mixed) */}
+                        {item.externalProducts.length > 0 && (
+                          <div className="space-y-1 pt-1 border-t border-slate-100">
+                            <span className="text-slate-400 text-[11px] font-medium">
+                              ยาภายนอกที่ผสมร่วม (Tank-mixed):
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.externalProducts.map((ep, epIdx) => (
+                                <span
+                                  key={epIdx}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700 border border-slate-200"
+                                >
+                                  <span className="font-semibold">
+                                    {ep.productName}
+                                  </span>
+                                  {ep.company && (
+                                    <span className="text-slate-400">
+                                      ({ep.company})
+                                    </span>
+                                  )}
+                                  {ep.applicationRate && (
+                                    <span className="text-slate-500">
+                                      อัตรา: {ep.applicationRate}
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {item.notes && (
+                      <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span className="font-semibold text-slate-700">
+                          หมายเหตุ:{" "}
+                        </span>
+                        <span>{item.notes}</span>
+                      </div>
+                    )}
+
+                    {/* Photos Grid */}
+                    {item.photos.length > 0 && (
+                      <div className="space-y-2 pt-1 border-t border-slate-100">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span className="flex items-center gap-1 font-semibold text-slate-700">
+                            <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>
+                              ภาพถ่ายรอบติดตามนี้ ({item.photos.length} รูป)
+                            </span>
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            คลิกเพื่อดูรูปขนาดเต็ม
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                          {item.photos.map((photo, pIdx) => (
+                            <button
+                              type="button"
+                              key={photo.id || pIdx}
+                              onClick={() =>
+                                openLightbox(
+                                  `ภาพถ่ายติดตามครั้งที่ ${item.visitNumber}`,
+                                  item.photos,
+                                  pIdx,
+                                )
+                              }
+                              className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 hover:shadow-xs transition-all cursor-pointer"
+                            >
+                              <img
+                                src={photo.url}
+                                alt={
+                                  photo.name ||
+                                  `ภาพติดตามครั้งที่ ${item.visitNumber}`
+                                }
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-[10px] text-white font-semibold bg-black/60 px-1.5 py-0.5 rounded">
+                                  ขยาย
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       )}
 
@@ -581,14 +596,16 @@ export function Type7aPlotFollowUpTimeline({
                   </Badge>
                 </h4>
                 <p className="text-xs text-slate-500">
-                  ประเมินผลผลิต ความพึงพอใจเกษตรกร และโอกาสทางการค้าเมื่อสิ้นสุดโครงการสาธิต
+                  ประเมินผลผลิต ความพึงพอใจเกษตรกร
+                  และโอกาสทางการค้าเมื่อสิ้นสุดโครงการสาธิต
                 </p>
               </div>
             </div>
 
             {timelineData.closureStats.finalHarvestDate && (
               <span className="text-xs font-semibold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-amber-200">
-                วันเก็บเกี่ยว: {formatThaiDate(timelineData.closureStats.finalHarvestDate)}
+                วันเก็บเกี่ยว:{" "}
+                {formatThaiDate(timelineData.closureStats.finalHarvestDate)}
               </span>
             )}
           </div>
@@ -620,7 +637,9 @@ export function Type7aPlotFollowUpTimeline({
                   <span className="inline-flex items-center gap-1">
                     <TrendingUp className="w-3.5 h-3.5" /> ผลผลิตเพิ่มขึ้น
                   </span>
-                  <span>+{timelineData.closureStats.yieldIncreasePercent}%</span>
+                  <span>
+                    +{timelineData.closureStats.yieldIncreasePercent}%
+                  </span>
                 </div>
               )}
             </div>
@@ -636,7 +655,8 @@ export function Type7aPlotFollowUpTimeline({
                     key={star}
                     className={cn(
                       "w-4 h-4",
-                      star <= (timelineData.closureStats?.farmerSatisfaction || 0)
+                      star <=
+                        (timelineData.closureStats?.farmerSatisfaction || 0)
                         ? "fill-amber-400 text-amber-500"
                         : "text-slate-200",
                     )}
@@ -685,4 +705,3 @@ export function Type7aPlotFollowUpTimeline({
     </div>
   );
 }
-

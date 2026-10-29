@@ -174,8 +174,8 @@ export function Type7aDetailView({
           "";
         const isUnregistered = Boolean(
           plot.isUnregisteredFarmer ??
-            dp?.isUnregisteredFarmer ??
-            actualResult?.t7IsUnregisteredFarmer,
+          dp?.isUnregisteredFarmer ??
+          actualResult?.t7IsUnregisteredFarmer,
         );
         const dealerName =
           plot.dealerName ||
@@ -229,7 +229,8 @@ export function Type7aDetailView({
               : actualResult?.t7Longitude != null
                 ? Number(actualResult.t7Longitude)
                 : null;
-        const hasCoords = lat != null && lng != null && !isNaN(lat) && !isNaN(lng);
+        const hasCoords =
+          lat != null && lng != null && !isNaN(lat) && !isNaN(lng);
         const googleMapsUrl = hasCoords
           ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
           : null;
@@ -250,7 +251,8 @@ export function Type7aDetailView({
             ? plot.irrigations
             : dp?.irrigations && dp.irrigations.length > 0
               ? dp.irrigations
-              : actualResult?.t7Irrigations && actualResult.t7Irrigations.length > 0
+              : actualResult?.t7Irrigations &&
+                  actualResult.t7Irrigations.length > 0
                 ? actualResult.t7Irrigations
                 : [];
         const irrigations = rawIrrigations
@@ -303,7 +305,11 @@ export function Type7aDetailView({
         const isTankMixed =
           sprayMethod === "TANK_MIXED" ||
           sprayMethod === "ผสมถัง" ||
-          Boolean(plot.hasExternalChemicals || dp?.hasExternalChemicals || actualResult?.t7HasExternalChemicals);
+          Boolean(
+            plot.hasExternalChemicals ||
+            dp?.hasExternalChemicals ||
+            actualResult?.t7HasExternalChemicals,
+          );
 
         const rawExternals =
           plot.externalProducts && plot.externalProducts.length > 0
@@ -311,7 +317,9 @@ export function Type7aDetailView({
             : dp?.externalProducts && dp.externalProducts.length > 0
               ? dp.externalProducts
               : actualResult?.t7ExternalProducts || [];
-        const externalProducts = Array.isArray(rawExternals) ? rawExternals : [];
+        const externalProducts = Array.isArray(rawExternals)
+          ? rawExternals
+          : [];
 
         // Resolve Spray Equipment
         const sprayEquipment =
@@ -352,15 +360,18 @@ export function Type7aDetailView({
                 : p.quantity != null
                   ? Number(p.quantity)
                   : 1,
-            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            extraQuantity:
+              p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit:
+              p.extraUnit ||
+              (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
             applicationRate: p.applicationRate || "",
           }));
 
         const effectivePlannedProds =
           plannedProds.length > 0
             ? plannedProds
-            : (actualResult?.t7PlannedProducts || []);
+            : actualResult?.t7PlannedProducts || [];
 
         const additionalProds = allProds
           .filter((p: any) => p.isAdditional)
@@ -368,18 +379,22 @@ export function Type7aDetailView({
             productId: p.productId || p.product?.id || "",
             productName: p.productName || p.product?.name || "-",
             actualQuantity: p.quantity != null ? Number(p.quantity) : 1,
-            extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-            extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+            extraQuantity:
+              p.extraQuantity != null ? String(p.extraQuantity) : "",
+            extraUnit:
+              p.extraUnit ||
+              (p.product?.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
             applicationRate: p.applicationRate || "",
           }));
 
         const effectiveAdditionalProds =
           additionalProds.length > 0
             ? additionalProds
-            : (actualResult?.t7AdditionalProducts || []);
+            : actualResult?.t7AdditionalProducts || [];
 
         // Resolve Photos
-        const plotPhotos: Array<{ id?: string; url: string; name?: string }> = [];
+        const plotPhotos: Array<{ id?: string; url: string; name?: string }> =
+          [];
 
         // 1. props.attachments
         if (Array.isArray(attachments)) {
@@ -411,7 +426,8 @@ export function Type7aDetailView({
         }
 
         // 3. visit plotImageUrls / imageUrls
-        const visitPhotos = dp?.visits?.[0]?.plotImageUrls || dp?.visits?.[0]?.imageUrls;
+        const visitPhotos =
+          dp?.visits?.[0]?.plotImageUrls || dp?.visits?.[0]?.imageUrls;
         if (Array.isArray(visitPhotos)) {
           for (const url of visitPhotos) {
             if (url && !plotPhotos.some((p) => p.url === url)) {
@@ -437,35 +453,35 @@ export function Type7aDetailView({
         // Check whether actual outcome data or follow-up visits exist
         const hasFollowUps = Boolean(
           (dp?.visits && dp.visits.length > 0) ||
-            (dp?.type7bPlots && dp.type7bPlots.length > 0) ||
-            (dp?.sprayRounds && dp.sprayRounds.length > 0),
+          (dp?.type7bPlots && dp.type7bPlots.length > 0) ||
+          (dp?.sprayRounds && dp.sprayRounds.length > 0),
         );
 
         const hasActualData = Boolean(
           hasFollowUps ||
-            plantingDate ||
-            initialSprayDate ||
-            nextSprayDate ||
-            mainCropInfo ||
-            experimentDetail ||
-            irrigations.length > 0 ||
-            sprayEquipment ||
-            otherEquipment ||
-            externalProducts.length > 0 ||
-            effectiveAdditionalProds.length > 0 ||
-            effectivePlannedProds.some(
-              (p: any) =>
-                p.applicationRate ||
-                (p.extraQuantity && p.extraQuantity !== "") ||
-                p.actualQuantity !== p.withdrawnQuantity,
-            ) ||
-            hasCoords ||
-            plotPhotos.length > 0 ||
-            notes ||
-            growthStage ||
-            cropAgeValue != null ||
-            plan?.result ||
-            actualResult?.activityResultStatus,
+          plantingDate ||
+          initialSprayDate ||
+          nextSprayDate ||
+          mainCropInfo ||
+          experimentDetail ||
+          irrigations.length > 0 ||
+          sprayEquipment ||
+          otherEquipment ||
+          externalProducts.length > 0 ||
+          effectiveAdditionalProds.length > 0 ||
+          effectivePlannedProds.some(
+            (p: any) =>
+              p.applicationRate ||
+              (p.extraQuantity && p.extraQuantity !== "") ||
+              p.actualQuantity !== p.withdrawnQuantity,
+          ) ||
+          hasCoords ||
+          plotPhotos.length > 0 ||
+          notes ||
+          growthStage ||
+          cropAgeValue != null ||
+          plan?.result ||
+          actualResult?.activityResultStatus,
         );
 
         if (!hasActualData) {
@@ -519,7 +535,9 @@ export function Type7aDetailView({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 bg-slate-50/70 p-4 rounded-xl border border-slate-150 text-xs">
                 {/* Farmer Status & Name */}
                 <div className="space-y-1">
-                  <span className="text-slate-500 font-medium">ชื่อเกษตรกร:</span>
+                  <span className="text-slate-500 font-medium">
+                    ชื่อเกษตรกร:
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 text-sm">
                       {farmerName}
@@ -540,7 +558,9 @@ export function Type7aDetailView({
 
                 {/* Phone */}
                 <div className="space-y-1">
-                  <span className="text-slate-500 font-medium">เบอร์โทรศัพท์:</span>
+                  <span className="text-slate-500 font-medium">
+                    เบอร์โทรศัพท์:
+                  </span>
                   {farmerPhone ? (
                     <a
                       href={`tel:${farmerPhone}`}
@@ -556,7 +576,9 @@ export function Type7aDetailView({
 
                 {/* Dealer */}
                 <div className="space-y-1">
-                  <span className="text-slate-500 font-medium">ร้านค้า Dealer:</span>
+                  <span className="text-slate-500 font-medium">
+                    ร้านค้า Dealer:
+                  </span>
                   <div className="flex items-center gap-1.5 font-semibold text-slate-800">
                     <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>{dealerName || "-"}</span>
@@ -570,7 +592,9 @@ export function Type7aDetailView({
 
                 {/* Address */}
                 <div className="space-y-1 sm:col-span-2">
-                  <span className="text-slate-500 font-medium">ที่ตั้งแปลงสาธิต:</span>
+                  <span className="text-slate-500 font-medium">
+                    ที่ตั้งแปลงสาธิต:
+                  </span>
                   <div className="flex items-center gap-1.5 font-medium text-slate-800">
                     <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                     <span>{addressText || "-"}</span>
@@ -579,7 +603,9 @@ export function Type7aDetailView({
 
                 {/* Coordinates (GPS) */}
                 <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                  <span className="text-slate-500 font-medium">พิกัด GPS หน้างาน:</span>
+                  <span className="text-slate-500 font-medium">
+                    พิกัด GPS หน้างาน:
+                  </span>
                   {hasCoords ? (
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[11px]">
@@ -609,13 +635,17 @@ export function Type7aDetailView({
             <section className="space-y-3">
               <div className="flex items-center gap-2 text-slate-800 font-bold text-sm border-b border-slate-100 pb-2">
                 <Sprout className="w-4 h-4 text-emerald-600" />
-                <span>2. สภาพแปลงเริ่มต้น (Initial Plot Condition & Observations)</span>
+                <span>
+                  2. สภาพแปลงเริ่มต้น (Initial Plot Condition & Observations)
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 bg-slate-50/70 p-4 rounded-xl border border-slate-150 text-xs">
                 {/* Main Crop */}
                 <div className="space-y-1 sm:col-span-2 lg:col-span-3">
-                  <span className="text-slate-500 font-medium">ข้อมูลพืชประธาน:</span>
+                  <span className="text-slate-500 font-medium">
+                    ข้อมูลพืชประธาน:
+                  </span>
                   <p className="font-medium text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200/80">
                     {mainCropInfo || "-"}
                   </p>
@@ -624,7 +654,9 @@ export function Type7aDetailView({
                 {/* Experiment detail */}
                 {experimentDetail && (
                   <div className="space-y-1 sm:col-span-2 lg:col-span-3">
-                    <span className="text-slate-500 font-medium">วิธีการทดลอง:</span>
+                    <span className="text-slate-500 font-medium">
+                      วิธีการทดลอง:
+                    </span>
                     <p className="font-medium text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200/80">
                       {experimentDetail}
                     </p>
@@ -692,7 +724,9 @@ export function Type7aDetailView({
                     อายุพืช (หลังปลูก):
                   </span>
                   <span className="font-bold text-slate-900 block text-sm">
-                    {cropAgeValue != null ? `${cropAgeValue} ${cropAgeUnit}` : "-"}
+                    {cropAgeValue != null
+                      ? `${cropAgeValue} ${cropAgeUnit}`
+                      : "-"}
                   </span>
                 </div>
 
@@ -710,7 +744,9 @@ export function Type7aDetailView({
                 {/* Notes */}
                 {notes && (
                   <div className="space-y-1 sm:col-span-2 lg:col-span-3">
-                    <span className="text-slate-500 font-medium">หมายเหตุ / ข้อมูลเพิ่มเติม:</span>
+                    <span className="text-slate-500 font-medium">
+                      หมายเหตุ / ข้อมูลเพิ่มเติม:
+                    </span>
                     <p className="font-medium text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/80">
                       {notes}
                     </p>
@@ -723,12 +759,16 @@ export function Type7aDetailView({
             <section className="space-y-3">
               <div className="flex items-center gap-2 text-slate-800 font-bold text-sm border-b border-slate-100 pb-2">
                 <FlaskConical className="w-4 h-4 text-emerald-600" />
-                <span>3. วิธีการฉีดพ่นและยาภายนอก (Spray Method & Chemicals)</span>
+                <span>
+                  3. วิธีการฉีดพ่นและยาภายนอก (Spray Method & Chemicals)
+                </span>
               </div>
 
               <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-150 space-y-3 text-xs">
                 <div className="flex items-center gap-3">
-                  <span className="text-slate-500 font-medium">วิธีการฉีดพ่น:</span>
+                  <span className="text-slate-500 font-medium">
+                    วิธีการฉีดพ่น:
+                  </span>
                   <Badge
                     variant="outline"
                     className={cn(
@@ -748,27 +788,37 @@ export function Type7aDetailView({
                 {externalProducts.length > 0 && (
                   <div className="space-y-2 pt-2 border-t border-slate-200/60">
                     <span className="font-bold text-slate-800 block text-xs">
-                      รายการยาภายนอก / สารเคมีอื่นที่ผสมร่วม ({externalProducts.length} รายการ):
+                      รายการยาภายนอก / สารเคมีอื่นที่ผสมร่วม (
+                      {externalProducts.length} รายการ):
                     </span>
                     <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead className="bg-slate-100/80 text-slate-600 font-semibold border-b border-slate-200">
                           <tr>
-                            <th className="py-2 px-3 text-center w-10">ลำดับ</th>
+                            <th className="py-2 px-3 text-center w-10">
+                              ลำดับ
+                            </th>
                             <th className="py-2 px-3">บริษัทผู้ผลิต</th>
                             <th className="py-2 px-3">ชื่อการค้า</th>
                             <th className="py-2 px-3">สารออกฤทธิ์</th>
                             <th className="py-2 px-3 text-center">สูตร</th>
-                            <th className="py-2 px-3 text-right">อัตราการใช้</th>
+                            <th className="py-2 px-3 text-right">
+                              อัตราการใช้
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-800">
                           {externalProducts.map((ext: any, extIdx: number) => (
-                            <tr key={ext.id || extIdx} className="hover:bg-slate-50/50">
+                            <tr
+                              key={ext.id || extIdx}
+                              className="hover:bg-slate-50/50"
+                            >
                               <td className="py-2 px-3 text-center font-medium text-slate-500">
                                 {extIdx + 1}
                               </td>
-                              <td className="py-2 px-3">{ext.company || "-"}</td>
+                              <td className="py-2 px-3">
+                                {ext.company || "-"}
+                              </td>
                               <td className="py-2 px-3 font-semibold text-slate-900">
                                 {ext.productName || "-"}
                               </td>
@@ -802,18 +852,23 @@ export function Type7aDetailView({
 
               <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-150 grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                 <div className="space-y-1">
-                  <span className="text-slate-500 font-medium">อุปกรณ์หลัก:</span>
+                  <span className="text-slate-500 font-medium">
+                    อุปกรณ์หลัก:
+                  </span>
                   <div className="font-bold text-slate-900 bg-white p-2.5 rounded-lg border border-slate-200/80 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>
-                      {sprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
+                      {sprayEquipment ||
+                        "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
                     </span>
                   </div>
                 </div>
 
                 {otherEquipment && (
                   <div className="space-y-1">
-                    <span className="text-slate-500 font-medium">อุปกรณ์อื่นๆ เพิ่มเติม:</span>
+                    <span className="text-slate-500 font-medium">
+                      อุปกรณ์อื่นๆ เพิ่มเติม:
+                    </span>
                     <div className="font-medium text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200/80">
                       {otherEquipment}
                     </div>
@@ -852,10 +907,14 @@ export function Type7aDetailView({
                         const hasDiff =
                           prod.withdrawnQuantity != null &&
                           prod.actualQuantity != null &&
-                          Number(prod.withdrawnQuantity) !== Number(prod.actualQuantity);
+                          Number(prod.withdrawnQuantity) !==
+                            Number(prod.actualQuantity);
 
                         return (
-                          <tr key={prod.productId || pIdx} className="hover:bg-slate-50/50">
+                          <tr
+                            key={prod.productId || pIdx}
+                            className="hover:bg-slate-50/50"
+                          >
                             <td className="py-2.5 px-3 text-center font-medium text-slate-500">
                               {pIdx + 1}
                             </td>
@@ -876,13 +935,16 @@ export function Type7aDetailView({
                                     : "bg-emerald-100 text-emerald-900",
                                 )}
                               >
-                                {prod.actualQuantity ?? prod.withdrawnQuantity ?? 1}
+                                {prod.actualQuantity ??
+                                  prod.withdrawnQuantity ??
+                                  1}
                               </span>
                             </td>
                             <td className="py-2.5 px-3 text-center">
                               {prod.extraQuantity ? (
                                 <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                  +{prod.extraQuantity} {prod.extraUnit || "ซีซี"}
+                                  {prod.extraQuantity}{" "}
+                                  {prod.extraUnit || "ซีซี"}
                                 </span>
                               ) : (
                                 <span className="text-slate-400">-</span>
@@ -910,7 +972,9 @@ export function Type7aDetailView({
                 <div className="flex items-center justify-between border-b border-amber-200 pb-2">
                   <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
                     <PlusCircle className="w-4 h-4 text-amber-600" />
-                    <span>6. สินค้าเพิ่มเติมในการปฏิบัติงาน (นอกเหนือจากแผน)</span>
+                    <span>
+                      6. สินค้าเพิ่มเติมในการปฏิบัติงาน (นอกเหนือจากแผน)
+                    </span>
                   </div>
                   <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[11px]">
                     {effectiveAdditionalProds.length} รายการ
@@ -923,37 +987,45 @@ export function Type7aDetailView({
                       <tr>
                         <th className="py-2.5 px-3 text-center w-10">ลำดับ</th>
                         <th className="py-2.5 px-3">ชื่อสินค้า</th>
-                        <th className="py-2.5 px-3 text-center">จำนวนที่ใช้จริง</th>
+                        <th className="py-2.5 px-3 text-center">
+                          จำนวนที่ใช้จริง
+                        </th>
                         <th className="py-2.5 px-3 text-center">ปริมาณเพิ่ม</th>
                         <th className="py-2.5 px-3 text-right">อัตราการใช้</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-amber-100 text-slate-800">
-                      {effectiveAdditionalProds.map((prod: any, aIdx: number) => (
-                        <tr key={prod.id || prod.productId || aIdx} className="hover:bg-amber-50/30">
-                          <td className="py-2.5 px-3 text-center font-medium text-slate-500">
-                            {aIdx + 1}
-                          </td>
-                          <td className="py-2.5 px-3 font-semibold text-slate-900">
-                            {prod.productName || "-"}
-                          </td>
-                          <td className="py-2.5 px-3 text-center font-bold text-amber-900">
-                            {prod.actualQuantity ?? 1}
-                          </td>
-                          <td className="py-2.5 px-3 text-center">
-                            {prod.extraQuantity ? (
-                              <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                                +{prod.extraQuantity} {prod.extraUnit || "ซีซี"}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
-                          </td>
-                          <td className="py-2.5 px-3 text-right font-medium text-slate-700">
-                            {prod.applicationRate || "-"}
-                          </td>
-                        </tr>
-                      ))}
+                      {effectiveAdditionalProds.map(
+                        (prod: any, aIdx: number) => (
+                          <tr
+                            key={prod.id || prod.productId || aIdx}
+                            className="hover:bg-amber-50/30"
+                          >
+                            <td className="py-2.5 px-3 text-center font-medium text-slate-500">
+                              {aIdx + 1}
+                            </td>
+                            <td className="py-2.5 px-3 font-semibold text-slate-900">
+                              {prod.productName || "-"}
+                            </td>
+                            <td className="py-2.5 px-3 text-center font-bold text-amber-900">
+                              {prod.actualQuantity ?? 1}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              {prod.extraQuantity ? (
+                                <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                  {prod.extraQuantity}{" "}
+                                  {prod.extraUnit || "ซีซี"}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">-</span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-medium text-slate-700">
+                              {prod.applicationRate || "-"}
+                            </td>
+                          </tr>
+                        ),
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -966,7 +1038,9 @@ export function Type7aDetailView({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
                     <Camera className="w-4 h-4 text-emerald-600" />
-                    <span>7. ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Plot Photos)</span>
+                    <span>
+                      7. ภาพถ่ายสภาพแปลงเริ่มต้น (Initial Plot Photos)
+                    </span>
                   </div>
                   <span className="text-xs text-slate-500">
                     {plotPhotos.length} รูป
@@ -978,7 +1052,9 @@ export function Type7aDetailView({
                     <button
                       type="button"
                       key={photo.id || pIdx}
-                      onClick={() => openLightbox("ภาพถ่ายสภาพแปลงสาธิต", plotPhotos, pIdx)}
+                      onClick={() =>
+                        openLightbox("ภาพถ่ายสภาพแปลงสาธิต", plotPhotos, pIdx)
+                      }
                       className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 transition-all hover:shadow-md cursor-pointer"
                     >
                       <img
