@@ -18,7 +18,7 @@
 4. **รองรับ Advance Monthly Planning (การวางแผนล่วงหน้ารายเดือน):** พนักงานสามารถวางแผน Type 7A ในวันที่ 5 และวางแผน Type 7B (ติดตามแปลงสาธิต) สำหรับแปลงดังกล่าวในวันที่ 7 ได้ทันทีในรอบเดือนเดียวกัน โดยไม่ต้องรอให้ถึงวันลงพื้นที่จริง หรือรอให้บันทึกผลงานจริงก่อน เนื่องจากแปลงสาธิตถูกสร้างขึ้นใน `activity_type_7a_targets` พร้อมรหัส `code` และสถานะ `IN_PROGRESS` ตั้งแต่ขั้นตอนการสร้างแผน Type 7A
 5. **บันทึกผลการจัดทำแปลงจริงหน้างาน (Actual Outcome):** ครบ 7 หมวดหมู่ ลงตารางเฉพาะ `activity_type_7a_results` และตารางความสัมพันธ์ โดยไม่มีการพึ่งพาหรือบันทึกซ้ำซ้อนลงตาราง Master อื่น:
    - **เกษตรกรเจ้าของแปลงและพิกัดแปลง:** กรองเกษตรกรตามจังหวัดที่เลือก หรือบันทึกเกษตรกรนอกระบบ (ที่อยู่ระดับจังหวัด/อำเภอ/ตำบล ผ่าน `ActivityAddressSelect`, ชื่อ-สกุล, เบอร์โทรศัพท์) พร้อมปักหมุดพิกัด GPS จริงหน้างาน (`ActivityGpsPicker`)
-   - **ข้อมูลสภาพแปลงเริ่มต้น:** พืชประธาน, วิธีการทดลอง, ระบบน้ำ 8 ชนิด (`ActivityIrrigationCheckbox`), วันที่เริ่มปลูกจริง, วันที่ฉีดพ่นครั้งแรก, กำหนดพ่นครั้งต่อไป (`ActivityDatePicker`), อายุพืช (วัน/เดือน), ระยะการเจริญเติบโต และข้อมูลเพิ่มเติม
+   - **ข้อมูลสภาพแปลงเริ่มต้น:** พืชประธาน, วิธีการทดลอง (บันทึกลงคอลัมน์ `experiment_detail` ตาราง `activity_type_7a_results`), ระบบน้ำ 8 ชนิด (`ActivityIrrigationCheckbox`), วันที่เริ่มปลูกจริง, วันที่ฉีดพ่นครั้งแรก, กำหนดพ่นครั้งต่อไป (`ActivityDatePicker`), อายุพืช (วัน/เดือน), ระยะการเจริญเติบโต และข้อมูลเพิ่มเติม
    - **วิธีการฉีดพ่นและยาภายนอก:** รองรับทั้งแบบฉีดเดี่ยว (Single) และผสมถัง (Tank-mixed) พร้อมตารางระบุยาภายนอก (บริษัท, ชื่อสินค้า, สารออกฤทธิ์, สูตร SL/SC/EC/อื่นๆ, อัตราการใช้)
    - **อุปกรณ์ที่ใช้ฉีดพ่น:** เครื่องพ่นสะพายหลัง, เครื่องพ่นปั๊มลากสาย, โดรนเพื่อการเกษตร, แอร์บัส/รถพ่นยา, หรืออื่นๆ ระบุ
    - **สินค้าที่เบิกตามแผน:** ดึงรายการยาตัวอย่างที่เบิกตามแผนมาแสดง พร้อมบันทึกจำนวนที่ใช้จริง (ขวด), ปริมาณที่ใช้เพิ่ม (ซีซี/กรัม) และอัตราการใช้
@@ -281,11 +281,12 @@ sequenceDiagram
 | **วัตถุประสงค์การจัดทำแปลง** | `objective` | `syncType7aPlots` | `ActivityPlanType7aTarget` | `objective` | `TEXT` | Yes | `null` |
 | **สินค้าตัวอย่าง (รหัส/ชื่อ)** | `productId`, `productName` | `syncType7aPlots` | `ActivityPlanType7aProduct` | `product_id`, `product_name` | `VARCHAR` | No / Yes | - |
 | **สินค้าตัวอย่าง (จำนวนเบิก/หน่วย)** | `quantity`, `unit` | `syncType7aPlots` | `ActivityPlanType7aProduct` | `quantity`, `unit` | `DECIMAL`, `VARCHAR` | No / Yes | `1` |
-| **เกษตรกรเจ้าของแปลง** | `farmerCustomerId`, `farmerName`, `farmerPhone` | `syncType7aActualData` | `ActivityResultType7a` | `farmer_customer_id`, `farmer_name`, `farmer_phone` | `VARCHAR` | Yes | `null` |
+| **เกษตรกรเจ้าของแปลง** | `farmerCustomerId`, `farmerName`, `farmerPhone` | `syncType7aActualData` (จัดรูปแบบเบอร์โทรศัพท์มีขีด `-` เช่น `090-333-xxxx` / `090-3339-xxxx` อัตโนมัติ) | `ActivityResultType7a` | `farmer_customer_id`, `farmer_name`, `farmer_phone` | `VARCHAR` | Yes | `null` |
 | **เกษตรกรนอกระบบ** | `isUnregisteredFarmer` | `syncType7aActualData` | `ActivityResultType7a` | `is_unregistered_farmer` | `BOOLEAN` | No | `false` |
 | **ที่อยู่แปลงจริง** | `province`, `district`, `subdistrict` | `syncType7aActualData` | `ActivityResultType7a` | `province`, `district`, `subdistrict` | `VARCHAR` | Yes | `null` |
 | **พิกัดแปลง (GPS ละติจูด/ลองจิจูด)** | `latitude`, `longitude` | `parseDecimalCoord` | `ActivityResultType7a` | `latitude`, `longitude` | `DECIMAL(10,7)` | Yes | `null` |
 | **สภาพแปลงเริ่มต้น** | `mainCropInfo`, `plantingDate`, `firstSprayDate`, `nextSprayDate` | `syncType7aActualData` | `ActivityResultType7a` | `main_crop_info`, `planting_date`, etc. | `VARCHAR`, `TIMESTAMP` | Yes | `null` |
+| **วิธีการทดลอง** | `t7ExperimentDetail` / `experimentDetail` | `syncType7aActualData` | `ActivityResultType7a` | `experiment_detail` | `TEXT` | Yes | `null` |
 | **อายุพืชและระยะการโต** | `cropAgeValue`, `cropAgeUnit`, `growthStage` | `syncType7aActualData` | `ActivityResultType7a` | `crop_age_value`, `crop_age_unit`, `growth_stage` | `INT`, `VARCHAR` | Yes | `null` |
 | **วิธีการฉีดพ่นและอุปกรณ์** | `sprayMethod`, `sprayEquipment`, `otherEquipment` | `syncType7aActualData` | `ActivityResultType7a` | `spray_method`, `spray_equipment`, etc. | `VARCHAR` | Yes | `"SINGLE"` |
 | **ระบบน้ำ (8 รูปแบบ)** | `irrigations` (`string[]`) | `syncType7aActualData` | `ActivityResultType7aIrrigation` | `method` | `VARCHAR` | No | - |
@@ -367,6 +368,7 @@ model ActivityResultType7a {
   latitude             Decimal?  @map("latitude") @db.Decimal(10, 7)
   longitude            Decimal?  @map("longitude") @db.Decimal(10, 7)
   mainCropInfo         String?   @map("main_crop_info")
+  experimentDetail     String?   @map("experiment_detail") @db.Text // วิธีการทดลอง
   plantingDate         DateTime? @map("planting_date")
   firstSprayDate       DateTime? @map("first_spray_date")
   nextSprayDate        DateTime? @map("next_spray_date")

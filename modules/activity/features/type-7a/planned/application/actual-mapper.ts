@@ -1,4 +1,5 @@
 import type { Type7aActualRecord } from "../types/actual.types";
+import { formatPhoneNumber } from "../../shared/utils";
 
 /**
  * Parse raw activity result into structured Type7aActualRecord
@@ -283,7 +284,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       dp?.ownerName ||
       dp?.farmerCustomer?.name ||
       "",
-    t7FarmerPhone:
+    t7FarmerPhone: formatPhoneNumber(
       rawResult.farmerPhone ||
       rawResult.t7FarmerPhone ||
       dedicated7a?.farmerPhone ||
@@ -291,7 +292,8 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       target?.farmerPhone ||
       dp?.ownerPhone ||
       dp?.farmerCustomer?.phone ||
-      "",
+      ""
+    ),
     t7IsUnregisteredFarmer: Boolean(
       rawResult.isUnregisteredFarmer ??
         rawResult.t7IsUnregisteredFarmer ??
@@ -401,6 +403,7 @@ export function parseType7aActualResult(rawResult: any): Type7aActualRecord {
       rawResult.objective ||
       "",
     t7ExperimentDetail:
+      dedicated7a?.experimentDetail ||
       dp?.experimentDetail ||
       rawResult.experimentDetail ||
       rawResult.t7ExperimentDetail ||

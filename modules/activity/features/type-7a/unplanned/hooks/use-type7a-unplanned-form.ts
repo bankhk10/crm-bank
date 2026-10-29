@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Type7aUnplannedItem } from "../types/unplanned.types";
 import { hydrateType7aUnplannedData } from "../application/unplanned-mapper";
 import { validateType7aUnplannedItems } from "../application/unplanned-validation";
@@ -35,6 +35,25 @@ export function useType7aUnplannedForm(options: UseType7aUnplannedFormOptions = 
       },
     ];
   });
+
+  const isHydratedRef = useRef(false);
+  useEffect(() => {
+    if (!isHydratedRef.current && options.initialItems && options.initialItems.length > 0) {
+      const hasRealData = options.initialItems.some(
+        (it) =>
+          Boolean(it.plotName) ||
+          Boolean(it.farmerName) ||
+          Boolean(it.storeId) ||
+          Boolean(it.cropName) ||
+          (it.demoProducts && it.demoProducts.length > 0) ||
+          (it.initialPhotos && it.initialPhotos.length > 0),
+      );
+      if (hasRealData) {
+        setItems(options.initialItems);
+        isHydratedRef.current = true;
+      }
+    }
+  }, [options.initialItems]);
 
   const addItem = useCallback(() => {
     setItems((prev) => [

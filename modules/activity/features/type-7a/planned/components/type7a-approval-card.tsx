@@ -4,6 +4,7 @@ import React from "react";
 import { Sprout, MapPin, User, Package } from "lucide-react";
 import type { Type7aApprovalCardProps } from "../types/actual.types";
 import { extractType7aPlanTargets } from "../application/planned-mapper";
+import { formatPhoneNumber } from "../../shared/utils";
 
 export function Type7aApprovalCard({
   isVisible = true,
@@ -57,7 +58,7 @@ export function Type7aApprovalCard({
               )}
             </div>
             <p className="text-slate-600 text-[11px]">
-              เกษตรกร: <span className="font-medium text-slate-800">{t.ownerName || t.farmerName || "-"}</span> | พืช: <span className="font-medium text-slate-800">{t.cropName || t.cropCategory || "-"}</span>
+              เกษตรกร: <span className="font-medium text-slate-800">{t.ownerName || t.farmerName || "-"}</span>{(t.farmerPhone || t.ownerPhone) ? ` (${formatPhoneNumber(t.farmerPhone || t.ownerPhone)})` : ""} | พืช: <span className="font-medium text-slate-800">{t.cropName || t.cropCategory || "-"}</span>
             </p>
           </div>
         ))}

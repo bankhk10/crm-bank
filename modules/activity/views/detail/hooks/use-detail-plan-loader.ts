@@ -86,6 +86,17 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
             type4Result:
               (p as any).type4Result ||
               ((p as any).result && (p as any).result.type4Result),
+            type7aResults:
+              (p as any).type7aResults ||
+              ((p as any).result && (p as any).result.type7aResults),
+            type7aTargets:
+              (p as any).type7aTargets ||
+              (p as any).type7aPlots ||
+              ((p as any).result && (p as any).result.type7aTargets),
+            type7aPlots:
+              (p as any).type7aPlots ||
+              (p as any).type7aTargets ||
+              ((p as any).result && (p as any).result.type7aPlots),
             activityPlan: p,
           });
           setParsedResults(parsed);

@@ -1,4 +1,5 @@
 import type { Type7aPlanItem, Type7aTargetItem } from "../types/planned.types";
+import { formatPhoneNumber } from "../../shared/utils";
 
 /**
  * Extract Type 7A Plan Targets from raw plan object
@@ -82,7 +83,7 @@ export function extractType7aPlanTargets(
           "",
         farmerCustomerId: dedicatedResult?.farmerCustomerId || dp.farmerCustomerId || null,
         farmerCustomer: dp.farmerCustomer || null,
-        farmerPhone: dedicatedResult?.farmerPhone || dp.ownerPhone || dp.farmerCustomer?.phone || "",
+        farmerPhone: formatPhoneNumber(dedicatedResult?.farmerPhone || dp.ownerPhone || dp.farmerCustomer?.phone || p.farmerPhone || ""), 
         isUnregisteredFarmer:
           dedicatedResult?.isUnregisteredFarmer != null
             ? Boolean(dedicatedResult.isUnregisteredFarmer)
@@ -134,7 +135,7 @@ export function extractType7aPlanTargets(
             : null,
         // Actual outcome fields
         mainCropInfo: dedicatedResult?.mainCropInfo || dp.mainCropInfo || p.mainCropInfo || "",
-        experimentDetail: dp.experimentDetail || p.experimentDetail || "",
+        experimentDetail: dedicatedResult?.experimentDetail || dp.experimentDetail || p.experimentDetail || "",
         irrigations:
           Array.isArray(dedicatedResult?.irrigations) && dedicatedResult.irrigations.length > 0
             ? dedicatedResult.irrigations.map((i: any) => typeof i === "string" ? i : i.method).filter(Boolean)
@@ -214,7 +215,7 @@ export function extractType7aPlanTargets(
         ownerName: dp.ownerName || dp.farmerName,
         farmerName: dp.farmerName || dp.ownerName,
         farmerCustomerId: dp.farmerCustomerId,
-        farmerPhone: dp.ownerPhone,
+        farmerPhone: formatPhoneNumber(dp.ownerPhone || dp.farmerCustomer?.phone || ""), 
         isUnregisteredFarmer: dp.isUnregisteredFarmer != null ? Boolean(dp.isUnregisteredFarmer) : false,
         storeId: dp.storeId || dp.customerId,
         dealerName: dp.customer?.name || "",
@@ -344,10 +345,11 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
         demoPlotId: p.demoPlotId || p.id || null,
         plotName: p.plotName || p.name || "",
         name: p.name || p.plotName || "",
-        farmerName: p.farmerName || p.ownerName || p.customer?.name || p.store?.name || "",
-        ownerName: p.ownerName || p.farmerName || p.customer?.name || p.store?.name || "",
-        ownerPhone: p.ownerPhone || p.farmerCustomer?.phone || "",
-        storeId: p.storeId || p.customerId || null,
+        farmerName: p.farmerName || p.ownerName || p.customer?.name || p.store?.name || p.dealerName || "",
+        ownerName: p.ownerName || p.farmerName || p.customer?.name || p.store?.name || p.dealerName || "",
+        ownerPhone: formatPhoneNumber(p.ownerPhone || p.farmerPhone || p.farmerCustomer?.phone || ""),
+        storeId: p.storeId || p.customerId || p.store?.id || null,
+        dealerName: p.dealerName || p.store?.name || "",
         province: p.province || p.customer?.province || p.store?.province || "",
         district: p.district || p.customer?.district || p.store?.district || "",
         subdistrict: p.ownerSubdistrict || p.subdistrict || "",
@@ -390,7 +392,7 @@ export function hydrateType7aPlannedData(initialData: any): Type7aPlanItem[] {
         name: d.name || d.plotName || "",
         farmerName: d.farmerName || d.ownerName || "",
         ownerName: d.ownerName || d.farmerName || "",
-        ownerPhone: d.ownerPhone || "",
+        ownerPhone: formatPhoneNumber(d.ownerPhone || ""), 
         storeId: d.storeId || d.customerId || null,
         province: d.province || "",
         district: d.district || "",

@@ -9,6 +9,7 @@ import type {
 } from "../types/actual.types";
 import type { Type7aImageFile } from "../../shared/types";
 import { parseType7aActualResult } from "../application/actual-mapper";
+import { formatPhoneNumber } from "../../shared/utils";
 import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
@@ -274,7 +275,7 @@ export function useType7aActual() {
       demoPlot?.farmerCustomer?.phone ||
       t7aTarget?.farmerPhone ||
       "";
-    if (resolvedFarmerPhone) setT7FarmerPhone(resolvedFarmerPhone);
+    if (resolvedFarmerPhone) setT7FarmerPhone(formatPhoneNumber(resolvedFarmerPhone));
 
     const resolvedDealer =
       demoPlot?.customer ||
@@ -397,6 +398,7 @@ export function useType7aActual() {
 
     const resolvedExperimentDetail =
       actualData?.t7ExperimentDetail ||
+      dedicated7a?.experimentDetail ||
       demoPlot?.experimentDetail ||
       "";
     if (resolvedExperimentDetail) setT7ExperimentDetail(resolvedExperimentDetail);
@@ -840,7 +842,7 @@ export function useType7aActual() {
         case "t7FarmerSubdistrict": setT7FarmerSubdistrict(value); break;
         case "t7FarmerCustomerId": setT7FarmerCustomerId(value); break;
         case "t7FarmerName": setT7FarmerName(value); break;
-        case "t7FarmerPhone": setT7FarmerPhone(value); break;
+        case "t7FarmerPhone": setT7FarmerPhone(formatPhoneNumber(value)); break;
         case "t7IsUnregisteredFarmer": setT7IsUnregisteredFarmer(Boolean(value)); break;
         case "t7PlotName": setT7PlotName(value); break;
         case "t7Latitude": setT7Latitude(value); break;

@@ -1,4 +1,5 @@
 import type { Type7aUnplannedItem } from "../types/unplanned.types";
+import { formatPhoneNumber } from "../../shared/utils";
 
 /**
  * Hydrate Type 7A Unplanned data from initial plan/actual data
@@ -24,24 +25,125 @@ export function hydrateType7aUnplannedData(initialData: any): Type7aUnplannedIte
       : [];
 
     return sourcePlots.map((p: any, idx: number) => {
+      const res =
+        p.results?.[0] ||
+        initialData.type7aResults?.[idx] ||
+        initialData.result?.type7aResults?.[idx] ||
+        {};
       const match = actualResults[idx] || {};
+
+      const rawProducts =
+        (p.products && p.products.length > 0 ? p.products : null) ||
+        (res.actualProducts && res.actualProducts.length > 0 ? res.actualProducts : null) ||
+        p.demoProducts ||
+        match.t7DemoProducts ||
+        [];
+
+      const mappedProducts = rawProducts.map((prod: any, pIdx: number) => ({
+        id: prod.id || `prod-${idx}-${pIdx}`,
+        productId: prod.productId || prod.product?.id || "",
+        productName: prod.productName || prod.product?.name || "",
+        quantity:
+          prod.quantity != null
+            ? Number(prod.quantity)
+            : prod.targetQuantity != null
+            ? Number(prod.targetQuantity)
+            : prod.actualQuantity != null
+            ? Number(prod.actualQuantity)
+            : 1,
+        targetQuantity:
+          prod.targetQuantity != null
+            ? Number(prod.targetQuantity)
+            : prod.quantity != null
+            ? Number(prod.quantity)
+            : 1,
+        unit: prod.unit || prod.product?.unit || "ขวด",
+      }));
+
+      const rawPhotos =
+        (res.attachments && res.attachments.length > 0 ? res.attachments : null) ||
+        (initialData.attachments && initialData.attachments.length > 0
+          ? initialData.attachments.filter(
+              (a: any) =>
+                a.workTypeCode === "TYPE_7A" ||
+                a.type7aResultId ||
+                a.category === "PLOT",
+            )
+          : null) ||
+        match.t7InitialPhotos ||
+        [];
+
+      const mappedPhotos = rawPhotos.map((att: any, aIdx: number) => ({
+        id: att.id || `photo-${idx}-${aIdx}`,
+        url: att.fileUrl || att.url || "",
+        name: att.fileName || att.name || "รูปถ่ายแปลงสาธิต",
+      }));
+
       return {
         id: p.id || `type7a-unplanned-${Date.now()}-${idx}`,
         plotName: p.plotName || p.name || match.t7PlotName || "",
-        farmerName: p.farmerName || p.ownerName || match.t7FarmerName || "",
-        storeId: p.storeId || p.customerId || match.t7FarmerCustomerId || null,
-        province: p.province || p.store?.province || match.t7FarmerProvince || "",
-        district: p.district || p.store?.district || match.t7FarmerDistrict || "",
+        farmerName:
+          p.farmerName ||
+          res.farmerName ||
+          p.ownerName ||
+          p.store?.name ||
+          p.dealerName ||
+          match.t7FarmerName ||
+          "",
+        farmerPhone: formatPhoneNumber(
+          p.farmerPhone ||
+          res.farmerPhone ||
+          match.t7FarmerPhone ||
+          ""
+        ),
+        storeId:
+          p.storeId ||
+          p.customerId ||
+          res.farmerCustomerId ||
+          p.store?.id ||
+          match.t7FarmerCustomerId ||
+          null,
+        province:
+          p.province ||
+          res.province ||
+          p.store?.province ||
+          match.t7FarmerProvince ||
+          "",
+        district:
+          p.district ||
+          res.district ||
+          p.store?.district ||
+          match.t7FarmerDistrict ||
+          "",
         cropCategory: p.cropCategory || match.t7CropCategory || "",
         cropName: p.cropName || match.t7CropName || "",
         customCropName: p.customCropName || match.t7CustomCropName || "",
-        areaRai: p.areaRai != null ? Number(p.areaRai) : match.t7AreaRai ? Number(match.t7AreaRai) : null,
+        areaRai:
+          p.areaRai != null
+            ? Number(p.areaRai)
+            : match.t7AreaRai
+            ? Number(match.t7AreaRai)
+            : null,
         objective: p.objective || match.t7PlotObjective || "",
-        notes: p.notes || match.t7Notes || "",
-        latitude: p.latitude || match.t7Latitude || null,
-        longitude: p.longitude || match.t7Longitude || null,
-        demoProducts: p.demoProducts || p.products || match.t7DemoProducts || [],
-        initialPhotos: match.t7InitialPhotos || [],
+        notes: p.notes || res.notes || match.t7Notes || "",
+        latitude:
+          p.latitude != null
+            ? Number(p.latitude)
+            : res.latitude != null
+            ? Number(res.latitude)
+            : match.t7Latitude
+            ? Number(match.t7Latitude)
+            : null,
+        longitude:
+          p.longitude != null
+            ? Number(p.longitude)
+            : res.longitude != null
+            ? Number(res.longitude)
+            : match.t7Longitude
+            ? Number(match.t7Longitude)
+            : null,
+        demoProducts: mappedProducts,
+        initialPhotos: mappedPhotos,
       };
     });
   }
@@ -60,6 +162,7 @@ export function mapType7aUnplannedToPayload(items: Type7aUnplannedItem[]) {
     name: item.plotName,
     farmerName: item.farmerName,
     ownerName: item.farmerName,
+    farmerPhone: item.farmerPhone || null,
     storeId: item.storeId || null,
     province: item.province || null,
     district: item.district || null,
@@ -92,6 +195,7 @@ export function mapType7aUnplannedToPayload(items: Type7aUnplannedItem[]) {
     ? {
         t7PlotName: first.plotName,
         t7FarmerName: first.farmerName,
+        t7FarmerPhone: first.farmerPhone ? formatPhoneNumber(first.farmerPhone) : undefined,
         t7FarmerCustomerId: first.storeId || null,
         t7FarmerProvince: first.province,
         t7FarmerDistrict: first.district,
@@ -100,6 +204,7 @@ export function mapType7aUnplannedToPayload(items: Type7aUnplannedItem[]) {
         t7CustomCropName: first.customCropName,
         t7AreaRai: first.areaRai,
         t7PlotObjective: first.objective,
+        t7Notes: first.notes || "",
         t7Latitude: first.latitude ? Number(first.latitude) : undefined,
         t7Longitude: first.longitude ? Number(first.longitude) : undefined,
         t7DemoProducts: first.demoProducts || [],

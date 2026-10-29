@@ -188,6 +188,20 @@ export async function findType7aByPlanId(activityPlanId: string) {
           include: { product: true },
           orderBy: { sortOrder: "asc" },
         },
+        results: {
+          include: {
+            farmerCustomer: true,
+            irrigations: true,
+            actualProducts: {
+              include: { product: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            sprayExternals: {
+              orderBy: { sortOrder: "asc" },
+            },
+            attachments: true,
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     }),
@@ -199,6 +213,16 @@ export async function findType7aByPlanId(activityPlanId: string) {
     db.activityResultType7a.findMany({
       where: { activityPlanId },
       include: {
+        target: {
+          include: {
+            store: true,
+            products: {
+              include: { product: true },
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+        },
+        farmerCustomer: true,
         irrigations: true,
         actualProducts: {
           include: { product: true },

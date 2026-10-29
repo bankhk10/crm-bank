@@ -33,6 +33,16 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
       },
       results: {
         include: {
+          farmerCustomer: {
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              province: true,
+              district: true,
+              phone: true,
+            },
+          },
           irrigations: true,
           actualProducts: {
             include: {
@@ -60,6 +70,37 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   },
   type7aResults: {
     include: {
+      target: {
+        include: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              customerCode: true,
+              province: true,
+              district: true,
+            },
+          },
+          products: {
+            include: {
+              product: {
+                select: { id: true, name: true, productCode: true, unit: true, packageSizeUnit: true },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      },
+      farmerCustomer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
+          phone: true,
+        },
+      },
       irrigations: true,
       actualProducts: {
         include: {

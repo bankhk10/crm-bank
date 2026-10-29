@@ -110,6 +110,12 @@ export function Type7aUnplannedForm({
                   if (cust?.district) {
                     updateItem(item.id, "district", cust.district);
                   }
+                  if (cust) {
+                    const phone = cust.phone || (cust as any).telephone;
+                    if (phone) {
+                      updateItem(item.id, "farmerPhone", phone);
+                    }
+                  }
                 }}
                 customers={customers as any}
                 placeholder="เลือกเกษตรกร หรือพิมพ์ชื่อ..."

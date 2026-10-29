@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Type7aPlanItem } from "../types/planned.types";
 import { hydrateType7aPlannedData } from "../application/planned-mapper";
 import { validateType7aFormItems } from "../application/planned-validation";
 
 export interface UseType7aPlannedFormOptions {
   initial?: any;
+  initialItems?: Type7aPlanItem[];
 }
 
 export function useType7aPlannedForm(options: UseType7aPlannedFormOptions = {}) {
   const [type7aPlots, setType7aPlots] = useState<Type7aPlanItem[]>(() => {
-    const hydrated = hydrateType7aPlannedData(options.initial);
+    const raw = options.initialItems || options.initial;
+    const hydrated = Array.isArray(raw) ? raw : hydrateType7aPlannedData(raw);
     if (hydrated.length > 0) return hydrated;
 
     return [
@@ -34,6 +36,32 @@ export function useType7aPlannedForm(options: UseType7aPlannedFormOptions = {}) 
       },
     ];
   });
+
+  const isHydratedRef = useRef(false);
+  useEffect(() => {
+    const candidate = options.initialItems || options.initial;
+    if (!isHydratedRef.current && candidate) {
+      const hydrated = Array.isArray(candidate)
+        ? candidate
+        : hydrateType7aPlannedData(candidate);
+      if (hydrated.length > 0) {
+        const hasRealData = hydrated.some(
+          (p) =>
+            Boolean(p.plotName) ||
+            Boolean(p.storeId) ||
+            Boolean(p.farmerName) ||
+            Boolean(p.ownerName) ||
+            Boolean(p.cropName) ||
+            (p.products && p.products.length > 0) ||
+            (p.demoProducts && p.demoProducts.length > 0),
+        );
+        if (hasRealData) {
+          setType7aPlots(hydrated);
+          isHydratedRef.current = true;
+        }
+      }
+    }
+  }, [options.initial, options.initialItems]);
 
   const addType7aRow = useCallback(() => {
     setType7aPlots((prev) => [

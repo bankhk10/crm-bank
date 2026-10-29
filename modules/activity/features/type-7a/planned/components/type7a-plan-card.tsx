@@ -3,6 +3,7 @@
 import React from "react";
 import { Sprout, MapPin, User, Package, Target } from "lucide-react";
 import type { Type7aPlanCardProps } from "../types/planned.types";
+import { formatPhoneNumber } from "../../shared/utils";
 import { cn } from "@/lib/utils";
 
 export function Type7aPlanCard({ targets = [], className }: Type7aPlanCardProps) {
@@ -44,6 +45,11 @@ export function Type7aPlanCard({ targets = [], className }: Type7aPlanCardProps)
                 <span>เกษตรกร:</span>
                 <span className="font-semibold text-slate-800">
                   {target.ownerName || target.farmerName || "-"}
+                  {(target.farmerPhone || target.ownerPhone) && (
+                    <span className="text-slate-500 font-normal ml-1">
+                      ({formatPhoneNumber(target.farmerPhone || target.ownerPhone)})
+                    </span>
+                  )}
                 </span>
               </div>
 

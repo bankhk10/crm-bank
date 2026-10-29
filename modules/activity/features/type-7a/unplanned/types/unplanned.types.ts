@@ -16,6 +16,7 @@ export interface Type7aUnplannedItem {
   // Plot Details
   plotName: string;
   farmerName: string;
+  farmerPhone?: string;
   storeId?: string | null;
   province?: string;
   district?: string;

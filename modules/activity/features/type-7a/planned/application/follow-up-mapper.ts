@@ -107,8 +107,16 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
   const closedDate = demoPlot.closedDate || null;
   const nextSprayDate = demoPlot.nextSprayDate || null;
 
-  const rawVisits: any[] = Array.isArray(demoPlot.visits) ? demoPlot.visits : [];
-  const rawType7bPlots: any[] = Array.isArray(demoPlot.type7bPlots) ? demoPlot.type7bPlots : [];
+  const rawVisits: any[] = Array.isArray(demoPlot.visits) && demoPlot.visits.length > 0
+    ? demoPlot.visits
+    : Array.isArray(demoPlot.type7bResults) && demoPlot.type7bResults.length > 0
+    ? demoPlot.type7bResults
+    : [];
+  const rawType7bPlots: any[] = Array.isArray(demoPlot.type7bPlots) && demoPlot.type7bPlots.length > 0
+    ? demoPlot.type7bPlots
+    : Array.isArray(demoPlot.type7bTargets) && demoPlot.type7bTargets.length > 0
+    ? demoPlot.type7bTargets
+    : [];
   const rawSprayRounds: any[] = Array.isArray(demoPlot.sprayRounds) ? demoPlot.sprayRounds : [];
 
   const timelineItems: PlotFollowUpItem[] = [];
@@ -146,7 +154,9 @@ export function extractPlotFollowUpTimeline(demoPlot: any): PlotFollowUpTimeline
     }
 
     // Match spraying rounds for this plot and visit date / plan
-    const matchedRounds = rawSprayRounds.filter((r: any) => {
+    const matchedRounds = Array.isArray(visit.sprayRounds) && visit.sprayRounds.length > 0
+      ? visit.sprayRounds
+      : rawSprayRounds.filter((r: any) => {
       if (visit.activityPlanId && r.activityResult?.activityPlanId) {
         return r.activityResult.activityPlanId === visit.activityPlanId;
       }

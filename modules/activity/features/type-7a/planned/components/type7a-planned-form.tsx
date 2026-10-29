@@ -161,7 +161,7 @@ export function Type7aPlannedForm({
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                   triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                   value={
-                    plot.storeId || plot.ownerName || plot.farmerName || ""
+                    plot.storeId || plot.dealerName || plot.ownerName || plot.farmerName || ""
                   }
                   onChange={(val, cust) => {
                     updateType7aRow(
@@ -169,6 +169,7 @@ export function Type7aPlannedForm({
                       "storeId",
                       cust?.id || val || null,
                     );
+                    updateType7aRow(plot.id, "dealerName", cust?.name || val);
                     updateType7aRow(plot.id, "ownerName", cust?.name || val);
                     updateType7aRow(plot.id, "farmerName", cust?.name || val);
                     if (cust?.province) {

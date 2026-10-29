@@ -15,7 +15,9 @@ export interface Type7aPlanItem {
   farmerName?: string;
   ownerName?: string;
   ownerPhone?: string;
+  farmerPhone?: string;
   storeId?: string | null;
+  dealerName?: string;
   province?: string;
   district?: string;
   subdistrict?: string;
@@ -45,6 +47,8 @@ export interface Type7aTargetItem {
   owner?: string;
   ownerName?: string;
   farmerName?: string;
+  ownerPhone?: string;
+  farmerPhone?: string;
   storeId?: string;
   dealerName?: string;
   dealerCode?: string;
@@ -104,6 +108,8 @@ export interface Type7aPlanCardTarget {
   name?: string;
   farmerName?: string;
   ownerName?: string;
+  ownerPhone?: string;
+  farmerPhone?: string;
   cropName?: string;
   cropCategory?: string;
   areaRai?: number | string | null;

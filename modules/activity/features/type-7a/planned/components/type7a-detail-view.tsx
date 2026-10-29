@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import type { Type7aDetailViewProps } from "../types/actual.types";
 import { Type7aPlanCard } from "./type7a-plan-card";
 import { Type7aPlotFollowUpTimeline } from "./type7a-plot-follow-up-timeline";
+import { formatPhoneNumber } from "../../shared/utils";
 import {
   ImageLightboxModal,
   type LightboxImage,
@@ -563,11 +564,11 @@ export function Type7aDetailView({
                   </span>
                   {farmerPhone ? (
                     <a
-                      href={`tel:${farmerPhone}`}
+                      href={`tel:${farmerPhone.replace(/\D/g, "")}`}
                       className="flex items-center gap-1.5 font-semibold text-emerald-700 hover:underline"
                     >
                       <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>{farmerPhone}</span>
+                      <span>{formatPhoneNumber(farmerPhone)}</span>
                     </a>
                   ) : (
                     <span className="text-slate-400 font-medium">-</span>

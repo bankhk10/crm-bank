@@ -199,6 +199,8 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
           )) ||
         (rawData.type7aTargets && rawData.type7aTargets.length > 0) ||
         (rawData.type7aPlots && rawData.type7aPlots.length > 0) ||
+        (rawData.type7aResults && rawData.type7aResults.length > 0) ||
+        (rawData.type7aProducts && rawData.type7aProducts.length > 0) ||
         (rawData.type7aUnplannedItems &&
           rawData.type7aUnplannedItems.length > 0) ||
         rawData.demoPlotData ||

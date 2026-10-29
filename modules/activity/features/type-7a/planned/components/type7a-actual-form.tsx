@@ -36,6 +36,7 @@ import type {
   Type7aExternalChemicalItem,
 } from "../types/actual.types";
 import { Type7aPlanCard } from "./type7a-plan-card";
+import { formatPhoneNumber } from "../../shared/utils";
 
 export const SPRAY_EQUIPMENT_OPTIONS = [
   "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
@@ -368,7 +369,7 @@ export function Type7aActualForm({
                       if (cust.phone || (cust as any).telephone) {
                         onUpdateField?.(
                           "t7FarmerPhone",
-                          cust.phone || (cust as any).telephone,
+                          formatPhoneNumber(cust.phone || (cust as any).telephone),
                         );
                       }
                     } else {
@@ -413,9 +414,9 @@ export function Type7aActualForm({
                     </label>
                     <ActivityInput
                       type="tel"
-                      value={actualState.t7FarmerPhone || ""}
+                      value={formatPhoneNumber(actualState.t7FarmerPhone) || ""}
                       onChange={(e) =>
-                        onUpdateField?.("t7FarmerPhone", e.target.value)
+                        onUpdateField?.("t7FarmerPhone", formatPhoneNumber(e.target.value))
                       }
                       disabled={readonly}
                       placeholder="เช่น 081-234-5678"

@@ -78,6 +78,7 @@ export type {
 // ⚪ 3. ชิ้นส่วนที่ใช้ร่วมกันภายใน Type 7A (Shared)
 export * from "./shared/constants";
 export * from "./shared/types";
+export * from "./shared/utils";
 
 // 🟠 4. โซน "นอกแผน" (Unplanned Sub-slice)
 export { Type7aUnplannedForm } from "./unplanned/components/type7a-unplanned-form";

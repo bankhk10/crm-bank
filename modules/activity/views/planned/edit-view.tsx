@@ -358,6 +358,8 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type6Targets: (plan as any).type6Targets || [],
             type7aTargets: (plan as any).type7aTargets || (plan as any).type7aPlots || [],
             type7aPlots: (plan as any).type7aTargets || (plan as any).type7aPlots || [],
+            type7aProducts: (plan as any).type7aProducts || [],
+            type7aResults: (plan as any).type7aResults || [],
             type7bTargets: (plan as any).type7bTargets || [],
             type7bProducts:
               ((plan as any).type7bProducts && (plan as any).type7bProducts.length > 0)
