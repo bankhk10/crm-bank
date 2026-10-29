@@ -96,10 +96,15 @@ export function Type7aActualForm({
   }, [farmerCustomers]);
 
   const filteredFarmers = useMemo(() => {
-    const selProvince = actualState.t7SelectedProvince || actualState.t7FarmerProvince;
+    const selProvince =
+      actualState.t7SelectedProvince || actualState.t7FarmerProvince;
     if (!selProvince) return farmerCustomers;
     return farmerCustomers.filter((c) => c.province === selProvince);
-  }, [farmerCustomers, actualState.t7SelectedProvince, actualState.t7FarmerProvince]);
+  }, [
+    farmerCustomers,
+    actualState.t7SelectedProvince,
+    actualState.t7FarmerProvince,
+  ]);
 
   // Planned Products
   const plannedProductsList: Type7aPlannedProductActualItem[] = useMemo(() => {
@@ -110,14 +115,23 @@ export function Type7aActualForm({
       return actualState.t7PlannedProducts;
     }
     // Fallback extract from targets if hook state not initialized yet
-    const targetProds = resolvedTargets[0]?.products || (resolvedTargets[0] as any)?.demoProducts || [];
+    const targetProds =
+      resolvedTargets[0]?.products ||
+      (resolvedTargets[0] as any)?.demoProducts ||
+      [];
     return targetProds.map((p: any) => ({
       productId: p.productId || p.product?.id || p.id || "",
       productName: p.productName || p.product?.name || p.name || "",
-      withdrawnQuantity: Number(p.withdrawnQuantity ?? p.quantity ?? p.targetQuantity ?? 1) || 1,
-      actualQuantity: Number(p.quantity ?? p.targetQuantity ?? p.withdrawnQuantity ?? 1) || 1,
+      withdrawnQuantity:
+        Number(p.withdrawnQuantity ?? p.quantity ?? p.targetQuantity ?? 1) || 1,
+      actualQuantity:
+        Number(p.quantity ?? p.targetQuantity ?? p.withdrawnQuantity ?? 1) || 1,
       extraQuantity: p.extraQuantity != null ? String(p.extraQuantity) : "",
-      extraUnit: p.extraUnit || (p.product?.unit?.includes("ซอง") || p.unit?.includes("ซอง") ? "กรัม" : "ซีซี"),
+      extraUnit:
+        p.extraUnit ||
+        (p.product?.unit?.includes("ซอง") || p.unit?.includes("ซอง")
+          ? "กรัม"
+          : "ซีซี"),
       applicationRate: p.applicationRate || "",
     }));
   }, [actualState.t7PlannedProducts, resolvedTargets]);
@@ -256,7 +270,8 @@ export function Type7aActualForm({
               บันทึกผลการจัดทำแปลงสาธิตจริง (Type 7A Actual)
             </h3>
             <p className="text-xs text-slate-500">
-              กรอกข้อมูลเกษตรกรเจ้าของแปลง, สภาพแปลงเริ่มต้น, การใช้สารเคมี และรูปถ่ายแปลงสาธิต
+              กรอกข้อมูลเกษตรกรเจ้าของแปลง, สภาพแปลงเริ่มต้น, การใช้สารเคมี
+              และรูปถ่ายแปลงสาธิต
             </p>
           </div>
         </div>
@@ -305,9 +320,14 @@ export function Type7aActualForm({
                   levels="province"
                   label="เลือกจังหวัด (เพื่อกรองเกษตรกร)"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                  value={actualState.t7SelectedProvince || actualState.t7FarmerProvince || ""}
+                  value={
+                    actualState.t7SelectedProvince ||
+                    actualState.t7FarmerProvince ||
+                    ""
+                  }
                   onChange={(val: any) => {
-                    const prov = typeof val === "string" ? val : val?.province || "";
+                    const prov =
+                      typeof val === "string" ? val : val?.province || "";
                     onUpdateField?.("t7SelectedProvince", prov);
                     onUpdateField?.("t7FarmerProvince", prov);
                     // Reset farmer selection when changing province
@@ -324,26 +344,40 @@ export function Type7aActualForm({
                 <ActivityCustomerSelect
                   id="actual-t7-farmer-combobox"
                   type="FARMER"
-                  province={actualState.t7SelectedProvince || actualState.t7FarmerProvince || ""}
+                  province={
+                    actualState.t7SelectedProvince ||
+                    actualState.t7FarmerProvince ||
+                    ""
+                  }
                   customers={customers}
                   label="เกษตรกรเจ้าของแปลง"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                  value={actualState.t7FarmerCustomerId || actualState.t7FarmerName || ""}
+                  value={
+                    actualState.t7FarmerCustomerId ||
+                    actualState.t7FarmerName ||
+                    ""
+                  }
                   onChange={(val, cust) => {
                     onUpdateField?.("t7FarmerName", cust?.name || val);
                     if (cust?.id) {
                       onUpdateField?.("t7FarmerCustomerId", cust.id);
-                      if (cust.province) onUpdateField?.("t7FarmerProvince", cust.province);
-                      if (cust.district) onUpdateField?.("t7FarmerDistrict", cust.district);
+                      if (cust.province)
+                        onUpdateField?.("t7FarmerProvince", cust.province);
+                      if (cust.district)
+                        onUpdateField?.("t7FarmerDistrict", cust.district);
                       if (cust.phone || (cust as any).telephone) {
-                        onUpdateField?.("t7FarmerPhone", cust.phone || (cust as any).telephone);
+                        onUpdateField?.(
+                          "t7FarmerPhone",
+                          cust.phone || (cust as any).telephone,
+                        );
                       }
                     } else {
                       onUpdateField?.("t7FarmerCustomerId", null);
                     }
                   }}
                   placeholder={
-                    actualState.t7SelectedProvince || actualState.t7FarmerProvince
+                    actualState.t7SelectedProvince ||
+                    actualState.t7FarmerProvince
                       ? "เลือกเกษตรกรจากรายชื่อ..."
                       : "กรุณาเลือกจังหวัดก่อน"
                   }
@@ -359,11 +393,14 @@ export function Type7aActualForm({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-700">
-                      ชื่อ - สกุล เกษตรกร <span className="text-rose-500">*</span>
+                      ชื่อ - สกุล เกษตรกร{" "}
+                      <span className="text-rose-500">*</span>
                     </label>
                     <ActivityInput
                       value={actualState.t7FarmerName || ""}
-                      onChange={(e) => onUpdateField?.("t7FarmerName", e.target.value)}
+                      onChange={(e) =>
+                        onUpdateField?.("t7FarmerName", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="ระบุชื่อ - สกุล เกษตรกร..."
                       required
@@ -377,7 +414,9 @@ export function Type7aActualForm({
                     <ActivityInput
                       type="tel"
                       value={actualState.t7FarmerPhone || ""}
-                      onChange={(e) => onUpdateField?.("t7FarmerPhone", e.target.value)}
+                      onChange={(e) =>
+                        onUpdateField?.("t7FarmerPhone", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="เช่น 081-234-5678"
                       required
@@ -396,9 +435,18 @@ export function Type7aActualForm({
                     }}
                     onChange={(addr) => {
                       if (addr) {
-                        onUpdateField?.("t7FarmerProvince", addr.province || "");
-                        onUpdateField?.("t7FarmerDistrict", addr.district || "");
-                        onUpdateField?.("t7FarmerSubdistrict", addr.subdistrict || "");
+                        onUpdateField?.(
+                          "t7FarmerProvince",
+                          addr.province || "",
+                        );
+                        onUpdateField?.(
+                          "t7FarmerDistrict",
+                          addr.district || "",
+                        );
+                        onUpdateField?.(
+                          "t7FarmerSubdistrict",
+                          addr.subdistrict || "",
+                        );
                       }
                     }}
                     provinceLabel="จังหวัด"
@@ -415,11 +463,20 @@ export function Type7aActualForm({
             <div className="pt-2 border-t border-slate-200/60 space-y-1.5">
               <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                พิกัดแปลงสาธิตหน้างาน (GPS) <span className="text-rose-500">*</span>
+                พิกัดแปลงสาธิตหน้างาน (GPS){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <ActivityGpsPicker
-                latitude={actualState.t7Latitude != null ? String(actualState.t7Latitude) : undefined}
-                longitude={actualState.t7Longitude != null ? String(actualState.t7Longitude) : undefined}
+                latitude={
+                  actualState.t7Latitude != null
+                    ? String(actualState.t7Latitude)
+                    : undefined
+                }
+                longitude={
+                  actualState.t7Longitude != null
+                    ? String(actualState.t7Longitude)
+                    : undefined
+                }
                 onLocationChange={(lat: string, lng: string) => {
                   onUpdateField?.("t7Latitude", lat ? Number(lat) : undefined);
                   onUpdateField?.("t7Longitude", lng ? Number(lng) : undefined);
@@ -448,8 +505,12 @@ export function Type7aActualForm({
                 ข้อมูลพืชประธาน <span className="text-rose-500">*</span>
               </label>
               <ActivityInput
-                value={actualState.t7MainCropInfo || actualState.t7CropName || ""}
-                onChange={(e) => onUpdateField?.("t7MainCropInfo", e.target.value)}
+                value={
+                  actualState.t7MainCropInfo || actualState.t7CropName || ""
+                }
+                onChange={(e) =>
+                  onUpdateField?.("t7MainCropInfo", e.target.value)
+                }
                 disabled={readonly}
                 placeholder="เช่น ข้าวหอมมะลิ 105, ทุเรียนหมอนทอง อายุ 4 ปี..."
                 required
@@ -464,7 +525,9 @@ export function Type7aActualForm({
               <ActivityTextarea
                 rows={2}
                 value={actualState.t7ExperimentDetail || ""}
-                onChange={(e) => onUpdateField?.("t7ExperimentDetail", e.target.value)}
+                onChange={(e) =>
+                  onUpdateField?.("t7ExperimentDetail", e.target.value)
+                }
                 disabled={readonly}
                 placeholder="ระบุวิธีการทดลอง การเปรียบเทียบ หรือแนวทางการทดสอบ..."
                 required
@@ -513,8 +576,14 @@ export function Type7aActualForm({
               <div className="grid grid-cols-2 gap-2">
                 <ActivityInput
                   type="number"
-                  value={actualState.t7CropAgeValue != null ? String(actualState.t7CropAgeValue) : ""}
-                  onChange={(e) => onUpdateField?.("t7CropAgeValue", e.target.value)}
+                  value={
+                    actualState.t7CropAgeValue != null
+                      ? String(actualState.t7CropAgeValue)
+                      : ""
+                  }
+                  onChange={(e) =>
+                    onUpdateField?.("t7CropAgeValue", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="เช่น 15"
                 />
@@ -537,7 +606,9 @@ export function Type7aActualForm({
               </label>
               <ActivityInput
                 value={actualState.t7GrowthStage || ""}
-                onChange={(e) => onUpdateField?.("t7GrowthStage", e.target.value)}
+                onChange={(e) =>
+                  onUpdateField?.("t7GrowthStage", e.target.value)
+                }
                 disabled={readonly}
                 placeholder="เช่น ระยะแตกกอ, ระยะติดผลอ่อน..."
               />
@@ -611,7 +682,12 @@ export function Type7aActualForm({
                   <input
                     type="checkbox"
                     checked={Boolean(actualState.t7HasExternalChemicals)}
-                    onChange={(e) => onUpdateField?.("t7HasExternalChemicals", e.target.checked)}
+                    onChange={(e) =>
+                      onUpdateField?.(
+                        "t7HasExternalChemicals",
+                        e.target.checked,
+                      )
+                    }
                     disabled={readonly}
                     className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                   />
@@ -643,7 +719,8 @@ export function Type7aActualForm({
 
                     {externalProductsList.length === 0 ? (
                       <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-lg">
-                        ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+ เพิ่มยาภายนอก&quot; เพื่อระบุ
+                        ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+
+                        เพิ่มยาภายนอก&quot; เพื่อระบุ
                       </p>
                     ) : (
                       <div className="space-y-3">
@@ -676,7 +753,11 @@ export function Type7aActualForm({
                                 <ActivityInput
                                   value={ext.company || ""}
                                   onChange={(e) =>
-                                    handleUpdateExtProd(idx, "company", e.target.value)
+                                    handleUpdateExtProd(
+                                      idx,
+                                      "company",
+                                      e.target.value,
+                                    )
                                   }
                                   disabled={readonly}
                                   placeholder="ระบุบริษัท..."
@@ -685,12 +766,17 @@ export function Type7aActualForm({
 
                               <div className="space-y-1">
                                 <label className="text-[11px] font-medium text-slate-600">
-                                  ชื่อสินค้า <span className="text-rose-500">*</span>
+                                  ชื่อสินค้า{" "}
+                                  <span className="text-rose-500">*</span>
                                 </label>
                                 <ActivityInput
                                   value={ext.productName || ""}
                                   onChange={(e) =>
-                                    handleUpdateExtProd(idx, "productName", e.target.value)
+                                    handleUpdateExtProd(
+                                      idx,
+                                      "productName",
+                                      e.target.value,
+                                    )
                                   }
                                   disabled={readonly}
                                   placeholder="ระบุชื่อสินค้า..."
@@ -704,7 +790,11 @@ export function Type7aActualForm({
                                 <ActivityInput
                                   value={ext.activeIngredient || ""}
                                   onChange={(e) =>
-                                    handleUpdateExtProd(idx, "activeIngredient", e.target.value)
+                                    handleUpdateExtProd(
+                                      idx,
+                                      "activeIngredient",
+                                      e.target.value,
+                                    )
                                   }
                                   disabled={readonly}
                                   placeholder="ระบุสารออกฤทธิ์..."
@@ -727,12 +817,17 @@ export function Type7aActualForm({
                               {ext.formula === "อื่นๆ" && (
                                 <div className="space-y-1">
                                   <label className="text-[11px] font-medium text-slate-600">
-                                    ระบุสูตรเพิ่มเติม <span className="text-rose-500">*</span>
+                                    ระบุสูตรเพิ่มเติม{" "}
+                                    <span className="text-rose-500">*</span>
                                   </label>
                                   <ActivityInput
                                     value={ext.customFormula || ""}
                                     onChange={(e) =>
-                                      handleUpdateExtProd(idx, "customFormula", e.target.value)
+                                      handleUpdateExtProd(
+                                        idx,
+                                        "customFormula",
+                                        e.target.value,
+                                      )
                                     }
                                     disabled={readonly}
                                     placeholder="ระบุสูตร..."
@@ -742,12 +837,17 @@ export function Type7aActualForm({
 
                               <div className="space-y-1">
                                 <label className="text-[11px] font-medium text-slate-600">
-                                  อัตราการใช้ <span className="text-rose-500">*</span>
+                                  อัตราการใช้{" "}
+                                  <span className="text-rose-500">*</span>
                                 </label>
                                 <ActivityInput
                                   value={ext.applicationRate || ""}
                                   onChange={(e) =>
-                                    handleUpdateExtProd(idx, "applicationRate", e.target.value)
+                                    handleUpdateExtProd(
+                                      idx,
+                                      "applicationRate",
+                                      e.target.value,
+                                    )
                                   }
                                   disabled={readonly}
                                   placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
@@ -779,9 +879,15 @@ export function Type7aActualForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <ActivitySelect
               label="เลือกอุปกรณ์ที่ใช้ฉีดพ่น"
-              value={actualState.t7SprayEquipment || "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"}
+              value={
+                actualState.t7SprayEquipment ||
+                "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"
+              }
               onChange={(val) => onUpdateField?.("t7SprayEquipment", val)}
-              options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({ value: equip, label: equip }))}
+              options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({
+                value: equip,
+                label: equip,
+              }))}
               disabled={readonly}
             />
 
@@ -792,7 +898,9 @@ export function Type7aActualForm({
                 </label>
                 <ActivityInput
                   value={actualState.t7OtherEquipment || ""}
-                  onChange={(e) => onUpdateField?.("t7OtherEquipment", e.target.value)}
+                  onChange={(e) =>
+                    onUpdateField?.("t7OtherEquipment", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="พิมพ์ระบุอุปกรณ์ฉีดพ่น..."
                 />
@@ -835,14 +943,23 @@ export function Type7aActualForm({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-700">
-                        จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                        จำนวนที่ใช้จริง (ขวด){" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <ActivityInput
                         type="number"
                         min="0"
-                        value={prod.actualQuantity != null ? String(prod.actualQuantity) : ""}
+                        value={
+                          prod.actualQuantity != null
+                            ? String(prod.actualQuantity)
+                            : ""
+                        }
                         onChange={(e) =>
-                          handleUpdatePlannedProd(idx, "actualQuantity", e.target.value)
+                          handleUpdatePlannedProd(
+                            idx,
+                            "actualQuantity",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="เช่น 1"
@@ -858,9 +975,17 @@ export function Type7aActualForm({
                         <ActivityInput
                           type="number"
                           min="0"
-                          value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
+                          value={
+                            prod.extraQuantity != null
+                              ? String(prod.extraQuantity)
+                              : ""
+                          }
                           onChange={(e) =>
-                            handleUpdatePlannedProd(idx, "extraQuantity", e.target.value)
+                            handleUpdatePlannedProd(
+                              idx,
+                              "extraQuantity",
+                              e.target.value,
+                            )
                           }
                           disabled={readonly}
                           placeholder="เช่น 250"
@@ -886,7 +1011,11 @@ export function Type7aActualForm({
                       <ActivityInput
                         value={prod.applicationRate || ""}
                         onChange={(e) =>
-                          handleUpdatePlannedProd(idx, "applicationRate", e.target.value)
+                          handleUpdatePlannedProd(
+                            idx,
+                            "applicationRate",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
@@ -928,7 +1057,8 @@ export function Type7aActualForm({
 
           {additionalProductsList.length === 0 ? (
             <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-xl">
-              ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+ เพิ่มสินค้า&quot; หากมีการใช้ยาตัวอื่น
+              ยังไม่มีสินค้าเพิ่มเติมหน้างาน กดปุ่ม &quot;+ เพิ่มสินค้า&quot;
+              หากมีการใช้ยาตัวอื่น
             </p>
           ) : (
             <div className="space-y-3">
@@ -959,15 +1089,32 @@ export function Type7aActualForm({
                       label="เลือกสินค้าจากระบบ"
                       value={prod.productId}
                       valueKey="id"
-                      products={products as any}
+                      products={(products as any)?.filter(
+                        (p: any) => p.unit?.trim() !== "กล่อง",
+                      )}
                       onChange={(val, selected) => {
                         const resolvedId = selected?.id || val;
-                        const resolvedName = selected?.name || prod.productName || "";
-                        handleUpdateAdditionalProd(idx, "productId", resolvedId);
-                        handleUpdateAdditionalProd(idx, "productName", resolvedName);
+                        const resolvedName =
+                          selected?.name || prod.productName || "";
+                        handleUpdateAdditionalProd(
+                          idx,
+                          "productId",
+                          resolvedId,
+                        );
+                        handleUpdateAdditionalProd(
+                          idx,
+                          "productName",
+                          resolvedName,
+                        );
                         if (selected?.unit) {
-                          const defaultExtra = selected.unit.includes("ซอง") ? "กรัม" : "ซีซี";
-                          handleUpdateAdditionalProd(idx, "extraUnit", defaultExtra);
+                          const defaultExtra = selected.unit.includes("ซอง")
+                            ? "กรัม"
+                            : "ซีซี";
+                          handleUpdateAdditionalProd(
+                            idx,
+                            "extraUnit",
+                            defaultExtra,
+                          );
                         }
                       }}
                       disabled={readonly}
@@ -979,14 +1126,23 @@ export function Type7aActualForm({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-700">
-                        จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                        จำนวนที่ใช้จริง (ขวด){" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <ActivityInput
                         type="number"
                         min="0"
-                        value={prod.actualQuantity != null ? String(prod.actualQuantity) : ""}
+                        value={
+                          prod.actualQuantity != null
+                            ? String(prod.actualQuantity)
+                            : ""
+                        }
                         onChange={(e) =>
-                          handleUpdateAdditionalProd(idx, "actualQuantity", e.target.value)
+                          handleUpdateAdditionalProd(
+                            idx,
+                            "actualQuantity",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="เช่น 1"
@@ -1002,9 +1158,17 @@ export function Type7aActualForm({
                         <ActivityInput
                           type="number"
                           min="0"
-                          value={prod.extraQuantity != null ? String(prod.extraQuantity) : ""}
+                          value={
+                            prod.extraQuantity != null
+                              ? String(prod.extraQuantity)
+                              : ""
+                          }
                           onChange={(e) =>
-                            handleUpdateAdditionalProd(idx, "extraQuantity", e.target.value)
+                            handleUpdateAdditionalProd(
+                              idx,
+                              "extraQuantity",
+                              e.target.value,
+                            )
                           }
                           disabled={readonly}
                           placeholder="เช่น 250"
@@ -1030,7 +1194,11 @@ export function Type7aActualForm({
                       <ActivityInput
                         value={prod.applicationRate || ""}
                         onChange={(e) =>
-                          handleUpdateAdditionalProd(idx, "applicationRate", e.target.value)
+                          handleUpdateAdditionalProd(
+                            idx,
+                            "applicationRate",
+                            e.target.value,
+                          )
                         }
                         disabled={readonly}
                         placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
