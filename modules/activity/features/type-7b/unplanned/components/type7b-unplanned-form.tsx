@@ -79,7 +79,10 @@ export function Type7bUnplannedForm({
           }
         })
         .catch((err) => {
-          console.error("Failed to load follow-up plans in Type7bUnplannedForm:", err);
+          console.error(
+            "Failed to load follow-up plans in Type7bUnplannedForm:",
+            err,
+          );
         });
     }
     return () => {
@@ -115,7 +118,12 @@ export function Type7bUnplannedForm({
 
   // Demo plot options from plotList or followUpPlans
   const existingPlotOptions = useMemo(() => {
-    const list: Array<{ value: string; label: string; subLabel?: string; plot: any }> = [];
+    const list: Array<{
+      value: string;
+      label: string;
+      subLabel?: string;
+      plot: any;
+    }> = [];
     const seen = new Set<string>();
 
     for (const p of plotList) {
@@ -190,7 +198,10 @@ export function Type7bUnplannedForm({
       const currentRounds = item.sprayingRounds || [];
       if (currentRounds.length <= 1) return;
       const filtered = currentRounds.filter((_, idx) => idx !== rIdx);
-      const reindexed = filtered.map((r, idx) => ({ ...r, roundNumber: idx + 1 }));
+      const reindexed = filtered.map((r, idx) => ({
+        ...r,
+        roundNumber: idx + 1,
+      }));
       updateItem(itemId, "sprayingRounds", reindexed);
     },
     [onRemoveRound, items, updateItem],
@@ -239,7 +250,10 @@ export function Type7bUnplannedForm({
         };
         rounds[rIdx] = {
           ...rounds[rIdx],
-          additionalProducts: [...(rounds[rIdx].additionalProducts || []), newProd],
+          additionalProducts: [
+            ...(rounds[rIdx].additionalProducts || []),
+            newProd,
+          ],
         };
         updateItem(itemId, "sprayingRounds", rounds);
       }
@@ -287,7 +301,9 @@ export function Type7bUnplannedForm({
       if (!item) return;
       const rounds = [...(item.sprayingRounds || [])];
       if (rounds[rIdx]) {
-        const prods = (rounds[rIdx].additionalProducts || []).filter((_, idx) => idx !== pIdx);
+        const prods = (rounds[rIdx].additionalProducts || []).filter(
+          (_, idx) => idx !== pIdx,
+        );
         rounds[rIdx] = { ...rounds[rIdx], additionalProducts: prods };
         updateItem(itemId, "sprayingRounds", rounds);
       }
@@ -325,7 +341,13 @@ export function Type7bUnplannedForm({
   );
 
   const handleUpdateExternalProduct = useCallback(
-    (itemId: string, rIdx: number, extIdx: number, field: string, value: any) => {
+    (
+      itemId: string,
+      rIdx: number,
+      extIdx: number,
+      field: string,
+      value: any,
+    ) => {
       if (onUpdateExternalProduct) {
         onUpdateExternalProduct(itemId, rIdx, extIdx, field, value);
         return;
@@ -353,7 +375,9 @@ export function Type7bUnplannedForm({
       if (!item) return;
       const rounds = [...(item.sprayingRounds || [])];
       if (rounds[rIdx]) {
-        const exts = (rounds[rIdx].externalProducts || []).filter((_, idx) => idx !== extIdx);
+        const exts = (rounds[rIdx].externalProducts || []).filter(
+          (_, idx) => idx !== extIdx,
+        );
         rounds[rIdx] = { ...rounds[rIdx], externalProducts: exts };
         updateItem(itemId, "sprayingRounds", rounds);
       }
@@ -387,7 +411,8 @@ export function Type7bUnplannedForm({
           <span>ติดตามแปลงสาธิต (นอกแผน)</span>
         </div>
 
-        {!readonly && addItem && (
+        {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+        {/* {!readonly && addItem && (
           <Button
             type="button"
             size="sm"
@@ -397,7 +422,7 @@ export function Type7bUnplannedForm({
             <Plus className="h-3.5 w-3.5 mr-1" />
             เพิ่มแปลงติดตาม
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Items List */}
@@ -415,9 +440,11 @@ export function Type7bUnplannedForm({
                   {
                     id: "round-1",
                     roundNumber: 1,
-                    sprayDate: item.visitDate || new Date().toISOString().split("T")[0],
+                    sprayDate:
+                      item.visitDate || new Date().toISOString().split("T")[0],
                     sprayMethod: "SINGLE",
-                    sprayEquipment: "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
+                    sprayEquipment:
+                      "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)",
                     otherEquipment: "",
                     productResponse: "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
                     problemDetail: "",
@@ -439,7 +466,8 @@ export function Type7bUnplannedForm({
                     {index + 1}
                   </span>
                   <span className="text-sm sm:text-base font-bold text-slate-900">
-                    แปลงสาธิตที่ติดตาม ({item.plotName || `แปลงที่ ${index + 1}`})
+                    แปลงสาธิตที่ติดตาม (
+                    {item.plotName || `แปลงที่ ${index + 1}`})
                   </span>
                 </div>
 
@@ -468,13 +496,19 @@ export function Type7bUnplannedForm({
                     value={item.demoPlotId || ""}
                     onChange={(val) => {
                       updateItem(item.id, "demoPlotId", val);
-                      const matched = existingPlotOptions.find((opt) => opt.value === val);
+                      const matched = existingPlotOptions.find(
+                        (opt) => opt.value === val,
+                      );
                       if (matched && matched.plot) {
                         const pl = matched.plot;
                         updateItem(item.id, "plotName", pl.name || "");
                         updateItem(item.id, "farmerName", pl.ownerName || "");
                         updateItem(item.id, "cropName", pl.cropName || "");
-                        updateItem(item.id, "cropCategory", pl.cropCategory || "");
+                        updateItem(
+                          item.id,
+                          "cropCategory",
+                          pl.cropCategory || "",
+                        );
                         updateItem(item.id, "province", pl.province || "");
                         updateItem(item.id, "district", pl.district || "");
                         updateItem(item.id, "areaRai", pl.areaRai || null);
@@ -495,7 +529,9 @@ export function Type7bUnplannedForm({
                     </label>
                     <ActivityInput
                       value={item.plotName || ""}
-                      onChange={(e) => updateItem(item.id, "plotName", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "plotName", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="ระบุชื่อแปลงสาธิต..."
                       required
@@ -504,11 +540,14 @@ export function Type7bUnplannedForm({
 
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-700">
-                      ชื่อเจ้าของแปลง (เกษตรกร) <span className="text-rose-500">*</span>
+                      ชื่อเจ้าของแปลง (เกษตรกร){" "}
+                      <span className="text-rose-500">*</span>
                     </label>
                     <ActivityInput
                       value={item.farmerName || ""}
-                      onChange={(e) => updateItem(item.id, "farmerName", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "farmerName", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="ระบุชื่อเกษตรกร..."
                       required
@@ -523,7 +562,9 @@ export function Type7bUnplannedForm({
                     </label>
                     <ActivityInput
                       value={item.cropName || ""}
-                      onChange={(e) => updateItem(item.id, "cropName", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "cropName", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="เช่น ข้าว, ทุเรียน..."
                       required
@@ -531,7 +572,9 @@ export function Type7bUnplannedForm({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">พื้นที่ (ไร่)</label>
+                    <label className="text-xs font-semibold text-slate-700">
+                      พื้นที่ (ไร่)
+                    </label>
                     <ActivityInput
                       type="number"
                       value={item.areaRai != null ? String(item.areaRai) : ""}
@@ -548,10 +591,16 @@ export function Type7bUnplannedForm({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">จังหวัด / อำเภอ</label>
+                    <label className="text-xs font-semibold text-slate-700">
+                      จังหวัด / อำเภอ
+                    </label>
                     <ActivityInput
-                      value={[item.province, item.district].filter(Boolean).join(" / ")}
-                      onChange={(e) => updateItem(item.id, "province", e.target.value)}
+                      value={[item.province, item.district]
+                        .filter(Boolean)
+                        .join(" / ")}
+                      onChange={(e) =>
+                        updateItem(item.id, "province", e.target.value)
+                      }
                       disabled={readonly}
                       placeholder="ระบุจังหวัด/อำเภอ..."
                     />
@@ -572,7 +621,8 @@ export function Type7bUnplannedForm({
                       ส่วนที่ 1: ข้อมูลการติดตามแปลง (Tracking Details)
                     </h3>
                     <p className="text-xs text-slate-500">
-                      บันทึกวันที่เข้าติดตาม คำนวณวันหลังฉีดพ่น และภาพถ่ายสภาพพืชรอบนี้
+                      บันทึกวันที่เข้าติดตาม คำนวณวันหลังฉีดพ่น
+                      และภาพถ่ายสภาพพืชรอบนี้
                     </p>
                   </div>
                 </div>
@@ -586,7 +636,9 @@ export function Type7bUnplannedForm({
                     <ActivityInput
                       type="date"
                       value={item.visitDate || ""}
-                      onChange={(e) => updateItem(item.id, "visitDate", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "visitDate", e.target.value)
+                      }
                       disabled={readonly}
                       required
                     />
@@ -594,7 +646,8 @@ export function Type7bUnplannedForm({
 
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-700">
-                      จำนวนวันหลังฉีดพ่น (วัน) <span className="text-rose-500">*</span>
+                      จำนวนวันหลังฉีดพ่น (วัน){" "}
+                      <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <ActivityInput
@@ -627,13 +680,16 @@ export function Type7bUnplannedForm({
                       รูปภาพสภาพพืชในการติดตามรอบนี้
                     </label>
                     <span className="text-xs text-slate-400">
-                      อัปโหลดได้สูงสุด 5 รูป ({(item.cropImages || item.photos || []).length}/5)
+                      อัปโหลดได้สูงสุด 5 รูป (
+                      {(item.cropImages || item.photos || []).length}/5)
                     </span>
                   </div>
                   <ActivityPhotoUpload
                     title="อัปโหลดรูปภาพ (สูงสุด 5 รูป)"
                     description="รองรับไฟล์ jpg, jpeg, png, webp, heic, heif"
-                    images={((item.cropImages || item.photos || []) as any) || []}
+                    images={
+                      ((item.cropImages || item.photos || []) as any) || []
+                    }
                     onImagesChange={(imgs) => {
                       updateItem(item.id, "cropImages", imgs);
                       updateItem(item.id, "photos", imgs);
@@ -656,10 +712,12 @@ export function Type7bUnplannedForm({
                     </div>
                     <div>
                       <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                        ส่วนที่ 2: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds)
+                        ส่วนที่ 2: ข้อมูลการฉีดพ่นรอบต่างๆ (Multiple Spraying
+                        Rounds)
                       </h3>
                       <p className="text-xs text-slate-500">
-                        บันทึกผลการฉีดพ่นยา อัตราการใช้จริง วิธีและอุปกรณ์ทำการฉีดพ่น
+                        บันทึกผลการฉีดพ่นยา อัตราการใช้จริง
+                        วิธีและอุปกรณ์ทำการฉีดพ่น
                       </p>
                     </div>
                   </div>
@@ -717,7 +775,8 @@ export function Type7bUnplannedForm({
                           <div className="flex items-center gap-2">
                             <Package className="w-4 h-4 text-emerald-600" />
                             <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-                              1. รายการสินค้าที่ใช้ในการปฏิบัติงาน (Products Used)
+                              1. รายการสินค้าที่ใช้ในการปฏิบัติงาน (Products
+                              Used)
                             </h4>
                           </div>
 
@@ -745,7 +804,8 @@ export function Type7bUnplannedForm({
 
                         {prods.length === 0 ? (
                           <p className="text-xs text-slate-400 italic py-3 text-center bg-slate-50 rounded-xl">
-                            ยังไม่มีรายการสินค้าที่ใช้ในการฉีดพ่นรอบนี้ กดปุ่ม &quot;+ เพิ่มสินค้า&quot; เพื่อเลือกสินค้าจากระบบ
+                            ยังไม่มีรายการสินค้าที่ใช้ในการฉีดพ่นรอบนี้ กดปุ่ม
+                            &quot;+ เพิ่มสินค้า&quot; เพื่อเลือกสินค้าจากระบบ
                           </p>
                         ) : (
                           <div className="space-y-3">
@@ -761,7 +821,9 @@ export function Type7bUnplannedForm({
                                   {!readonly && (
                                     <button
                                       type="button"
-                                      onClick={() => handleRemoveProduct(item.id, rIdx, pIdx)}
+                                      onClick={() =>
+                                        handleRemoveProduct(item.id, rIdx, pIdx)
+                                      }
                                       className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
                                       title="ลบรายการ"
                                     >
@@ -780,7 +842,9 @@ export function Type7bUnplannedForm({
                                     onChange={(val, selected) => {
                                       const resolvedId = selected?.id || val;
                                       const resolvedName =
-                                        selected?.name || prod.productName || "";
+                                        selected?.name ||
+                                        prod.productName ||
+                                        "";
                                       handleUpdateProduct(
                                         item.id,
                                         rIdx,
@@ -796,9 +860,10 @@ export function Type7bUnplannedForm({
                                         resolvedName,
                                       );
                                       if (selected?.unit) {
-                                        const defaultExtra = selected.unit.includes("ซอง")
-                                          ? "กรัม"
-                                          : "ซีซี";
+                                        const defaultExtra =
+                                          selected.unit.includes("ซอง")
+                                            ? "กรัม"
+                                            : "ซีซี";
                                         handleUpdateProduct(
                                           item.id,
                                           rIdx,
@@ -817,7 +882,8 @@ export function Type7bUnplannedForm({
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                   <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-700">
-                                      จำนวนที่ใช้จริง (ขวด) <span className="text-rose-500">*</span>
+                                      จำนวนที่ใช้จริง (ขวด){" "}
+                                      <span className="text-rose-500">*</span>
                                     </label>
                                     <ActivityInput
                                       type="number"
@@ -888,8 +954,14 @@ export function Type7bUnplannedForm({
                                           )
                                         }
                                         options={[
-                                          { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                          { value: "กรัม", label: "กรัม (ซอง)" },
+                                          {
+                                            value: "ซีซี",
+                                            label: "ซีซี (ขวด)",
+                                          },
+                                          {
+                                            value: "กรัม",
+                                            label: "กรัม (ซอง)",
+                                          },
                                         ]}
                                         disabled={readonly}
                                       />
@@ -898,10 +970,15 @@ export function Type7bUnplannedForm({
 
                                   <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-700">
-                                      อัตราการใช้ <span className="text-rose-500">*</span>
+                                      อัตราการใช้{" "}
+                                      <span className="text-rose-500">*</span>
                                     </label>
                                     <ActivityInput
-                                      value={prod.applicationRate || prod.actualRate || ""}
+                                      value={
+                                        prod.applicationRate ||
+                                        prod.actualRate ||
+                                        ""
+                                      }
                                       onChange={(e) => {
                                         handleUpdateProduct(
                                           item.id,
@@ -936,14 +1013,20 @@ export function Type7bUnplannedForm({
                       <div className="space-y-3 pt-2 border-t border-slate-100">
                         <div className="space-y-2">
                           <label className="text-xs font-semibold text-slate-700">
-                            วิธีการฉีดพ่น <span className="text-rose-500">*</span>
+                            วิธีการฉีดพ่น{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <div className="grid grid-cols-2 gap-3 max-w-md">
                             <button
                               type="button"
                               disabled={readonly}
                               onClick={() =>
-                                handleUpdateRoundField(item.id, rIdx, "sprayMethod", "SINGLE")
+                                handleUpdateRoundField(
+                                  item.id,
+                                  rIdx,
+                                  "sprayMethod",
+                                  "SINGLE",
+                                )
                               }
                               className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                                 round.sprayMethod !== "TANK_MIXED"
@@ -957,7 +1040,12 @@ export function Type7bUnplannedForm({
                               type="button"
                               disabled={readonly}
                               onClick={() =>
-                                handleUpdateRoundField(item.id, rIdx, "sprayMethod", "TANK_MIXED")
+                                handleUpdateRoundField(
+                                  item.id,
+                                  rIdx,
+                                  "sprayMethod",
+                                  "TANK_MIXED",
+                                )
                               }
                               className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                                 round.sprayMethod === "TANK_MIXED"
@@ -1006,7 +1094,9 @@ export function Type7bUnplannedForm({
                                       type="button"
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => handleAddExternalProduct(item.id, rIdx)}
+                                      onClick={() =>
+                                        handleAddExternalProduct(item.id, rIdx)
+                                      }
                                       className="h-7 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 gap-1 cursor-pointer"
                                     >
                                       <Plus className="w-3.5 h-3.5" />
@@ -1015,162 +1105,187 @@ export function Type7bUnplannedForm({
                                   )}
                                 </div>
 
-                                {!round.externalProducts || round.externalProducts.length === 0 ? (
+                                {!round.externalProducts ||
+                                round.externalProducts.length === 0 ? (
                                   <p className="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-lg">
-                                    ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+ เพิ่มยาภายนอก&quot; เพื่อระบุ
+                                    ยังไม่มีรายการยาภายนอก กดปุ่ม &quot;+
+                                    เพิ่มยาภายนอก&quot; เพื่อระบุ
                                   </p>
                                 ) : (
                                   <div className="space-y-3">
-                                    {round.externalProducts.map((ext, extIdx) => (
-                                      <div
-                                        key={ext.id || extIdx}
-                                        className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5"
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-xs font-semibold text-emerald-800">
-                                            ยาภายนอกลำดับที่ {extIdx + 1}
-                                          </span>
-                                          {!readonly && (
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                handleRemoveExternalProduct(item.id, rIdx, extIdx)
-                                              }
-                                              className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
-                                              title="ลบรายการ"
-                                            >
-                                              <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                          )}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                                          <div className="space-y-1">
-                                            <label className="text-[11px] font-medium text-slate-600">
-                                              บริษัท
-                                            </label>
-                                            <ActivityInput
-                                              value={ext.company || ""}
-                                              onChange={(e) =>
-                                                handleUpdateExternalProduct(
-                                                  item.id,
-                                                  rIdx,
-                                                  extIdx,
-                                                  "company",
-                                                  e.target.value,
-                                                )
-                                              }
-                                              disabled={readonly}
-                                              placeholder="ระบุบริษัท..."
-                                            />
+                                    {round.externalProducts.map(
+                                      (ext, extIdx) => (
+                                        <div
+                                          key={ext.id || extIdx}
+                                          className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-emerald-800">
+                                              ยาภายนอกลำดับที่ {extIdx + 1}
+                                            </span>
+                                            {!readonly && (
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  handleRemoveExternalProduct(
+                                                    item.id,
+                                                    rIdx,
+                                                    extIdx,
+                                                  )
+                                                }
+                                                className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
+                                                title="ลบรายการ"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            )}
                                           </div>
 
-                                          <div className="space-y-1">
-                                            <label className="text-[11px] font-medium text-slate-600">
-                                              ชื่อสินค้า <span className="text-rose-500">*</span>
-                                            </label>
-                                            <ActivityInput
-                                              value={ext.productName || ""}
-                                              onChange={(e) =>
-                                                handleUpdateExternalProduct(
-                                                  item.id,
-                                                  rIdx,
-                                                  extIdx,
-                                                  "productName",
-                                                  e.target.value,
-                                                )
-                                              }
-                                              disabled={readonly}
-                                              placeholder="ระบุชื่อสินค้า..."
-                                              required
-                                            />
-                                          </div>
-
-                                          <div className="space-y-1">
-                                            <label className="text-[11px] font-medium text-slate-600">
-                                              สารออกฤทธิ์
-                                            </label>
-                                            <ActivityInput
-                                              value={ext.activeIngredient || ""}
-                                              onChange={(e) =>
-                                                handleUpdateExternalProduct(
-                                                  item.id,
-                                                  rIdx,
-                                                  extIdx,
-                                                  "activeIngredient",
-                                                  e.target.value,
-                                                )
-                                              }
-                                              disabled={readonly}
-                                              placeholder="ระบุสารออกฤทธิ์..."
-                                            />
-                                          </div>
-
-                                          <div className="space-y-1">
-                                            <ActivitySelect
-                                              label="สูตร"
-                                              labelClassName="text-[11px] font-medium text-slate-600 mb-0"
-                                              value={ext.formula || "SL"}
-                                              onChange={(val) =>
-                                                handleUpdateExternalProduct(
-                                                  item.id,
-                                                  rIdx,
-                                                  extIdx,
-                                                  "formula",
-                                                  val,
-                                                )
-                                              }
-                                              options={EXTERNAL_FORMULA_OPTIONS}
-                                              disabled={readonly}
-                                            />
-                                          </div>
-
-                                          {ext.formula === "อื่นๆ" && (
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                                             <div className="space-y-1">
                                               <label className="text-[11px] font-medium text-slate-600">
-                                                ระบุสูตรเพิ่มเติม <span className="text-rose-500">*</span>
+                                                บริษัท
                                               </label>
                                               <ActivityInput
-                                                value={ext.customFormula || ""}
+                                                value={ext.company || ""}
                                                 onChange={(e) =>
                                                   handleUpdateExternalProduct(
                                                     item.id,
                                                     rIdx,
                                                     extIdx,
-                                                    "customFormula",
+                                                    "company",
                                                     e.target.value,
                                                   )
                                                 }
                                                 disabled={readonly}
-                                                placeholder="ระบุสูตร..."
+                                                placeholder="ระบุบริษัท..."
+                                              />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                              <label className="text-[11px] font-medium text-slate-600">
+                                                ชื่อสินค้า{" "}
+                                                <span className="text-rose-500">
+                                                  *
+                                                </span>
+                                              </label>
+                                              <ActivityInput
+                                                value={ext.productName || ""}
+                                                onChange={(e) =>
+                                                  handleUpdateExternalProduct(
+                                                    item.id,
+                                                    rIdx,
+                                                    extIdx,
+                                                    "productName",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                disabled={readonly}
+                                                placeholder="ระบุชื่อสินค้า..."
                                                 required
                                               />
                                             </div>
-                                          )}
 
-                                          <div className="space-y-1">
-                                            <label className="text-[11px] font-medium text-slate-600">
-                                              อัตราการใช้ <span className="text-rose-500">*</span>
-                                            </label>
-                                            <ActivityInput
-                                              value={ext.applicationRate || ""}
-                                              onChange={(e) =>
-                                                handleUpdateExternalProduct(
-                                                  item.id,
-                                                  rIdx,
-                                                  extIdx,
-                                                  "applicationRate",
-                                                  e.target.value,
-                                                )
-                                              }
-                                              disabled={readonly}
-                                              placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
-                                              required
-                                            />
+                                            <div className="space-y-1">
+                                              <label className="text-[11px] font-medium text-slate-600">
+                                                สารออกฤทธิ์
+                                              </label>
+                                              <ActivityInput
+                                                value={
+                                                  ext.activeIngredient || ""
+                                                }
+                                                onChange={(e) =>
+                                                  handleUpdateExternalProduct(
+                                                    item.id,
+                                                    rIdx,
+                                                    extIdx,
+                                                    "activeIngredient",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                disabled={readonly}
+                                                placeholder="ระบุสารออกฤทธิ์..."
+                                              />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                              <ActivitySelect
+                                                label="สูตร"
+                                                labelClassName="text-[11px] font-medium text-slate-600 mb-0"
+                                                value={ext.formula || "SL"}
+                                                onChange={(val) =>
+                                                  handleUpdateExternalProduct(
+                                                    item.id,
+                                                    rIdx,
+                                                    extIdx,
+                                                    "formula",
+                                                    val,
+                                                  )
+                                                }
+                                                options={
+                                                  EXTERNAL_FORMULA_OPTIONS
+                                                }
+                                                disabled={readonly}
+                                              />
+                                            </div>
+
+                                            {ext.formula === "อื่นๆ" && (
+                                              <div className="space-y-1">
+                                                <label className="text-[11px] font-medium text-slate-600">
+                                                  ระบุสูตรเพิ่มเติม{" "}
+                                                  <span className="text-rose-500">
+                                                    *
+                                                  </span>
+                                                </label>
+                                                <ActivityInput
+                                                  value={
+                                                    ext.customFormula || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleUpdateExternalProduct(
+                                                      item.id,
+                                                      rIdx,
+                                                      extIdx,
+                                                      "customFormula",
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  disabled={readonly}
+                                                  placeholder="ระบุสูตร..."
+                                                  required
+                                                />
+                                              </div>
+                                            )}
+
+                                            <div className="space-y-1">
+                                              <label className="text-[11px] font-medium text-slate-600">
+                                                อัตราการใช้{" "}
+                                                <span className="text-rose-500">
+                                                  *
+                                                </span>
+                                              </label>
+                                              <ActivityInput
+                                                value={
+                                                  ext.applicationRate || ""
+                                                }
+                                                onChange={(e) =>
+                                                  handleUpdateExternalProduct(
+                                                    item.id,
+                                                    rIdx,
+                                                    extIdx,
+                                                    "applicationRate",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                disabled={readonly}
+                                                placeholder="เช่น 20 ซีซี / น้ำ 20 ลิตร"
+                                                required
+                                              />
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ),
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1198,7 +1313,12 @@ export function Type7bUnplannedForm({
                               "เครื่องพ่นสะพายหลัง (เครื่องยนต์ / แบตเตอรี่)"
                             }
                             onChange={(val) =>
-                              handleUpdateRoundField(item.id, rIdx, "sprayEquipment", val)
+                              handleUpdateRoundField(
+                                item.id,
+                                rIdx,
+                                "sprayEquipment",
+                                val,
+                              )
                             }
                             options={SPRAY_EQUIPMENT_OPTIONS.map((equip) => ({
                               value: equip,
@@ -1211,7 +1331,8 @@ export function Type7bUnplannedForm({
                             round.sprayEquipment === "อื่นๆ ระบุ...") && (
                             <div className="space-y-1">
                               <label className="text-xs font-semibold text-slate-700">
-                                ระบุอุปกรณ์เพิ่มเติม <span className="text-rose-500">*</span>
+                                ระบุอุปกรณ์เพิ่มเติม{" "}
+                                <span className="text-rose-500">*</span>
                               </label>
                               <ActivityInput
                                 value={round.otherEquipment || ""}
@@ -1234,7 +1355,8 @@ export function Type7bUnplannedForm({
                       {/* 4. ผลหลังการฉีดพ่นรอบนี้ */}
                       <div className="space-y-2 pt-1 border-t border-slate-100">
                         <label className="text-xs font-semibold text-slate-700">
-                          4. ผลหลังการฉีดพ่นรอบนี้ <span className="text-rose-500">*</span>
+                          4. ผลหลังการฉีดพ่นรอบนี้{" "}
+                          <span className="text-rose-500">*</span>
                         </label>
                         <div className="max-w-md">
                           <ActivitySelect
@@ -1243,7 +1365,12 @@ export function Type7bUnplannedForm({
                               "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)"
                             }
                             onChange={(val) =>
-                              handleUpdateRoundField(item.id, rIdx, "productResponse", val)
+                              handleUpdateRoundField(
+                                item.id,
+                                rIdx,
+                                "productResponse",
+                                val,
+                              )
                             }
                             options={SPRAY_RESPONSE_OPTIONS.map((r) => ({
                               value: r.value,
@@ -1253,7 +1380,8 @@ export function Type7bUnplannedForm({
                           />
                         </div>
 
-                        {round.productResponse === "พบปัญหา / พืชมีอาการผิดปกติ" && (
+                        {round.productResponse ===
+                          "พบปัญหา / พืชมีอาการผิดปกติ" && (
                           <div className="pt-1">
                             <ActivityTextarea
                               value={round.problemDetail || ""}
@@ -1277,10 +1405,12 @@ export function Type7bUnplannedForm({
                       <div className="space-y-2 pt-1 border-t border-slate-100">
                         <div className="flex items-center justify-between">
                           <label className="text-xs font-semibold text-slate-700">
-                            5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปการผสม / ขณะปฏิบัติงาน)
+                            5. รูปถ่ายการฉีดพ่นรอบนี้ (รูปการผสม /
+                            ขณะปฏิบัติงาน)
                           </label>
                           <span className="text-xs text-slate-400">
-                            อัปโหลดได้สูงสุด 5 รูป ({round.roundImages?.length || 0}/5)
+                            อัปโหลดได้สูงสุด 5 รูป (
+                            {round.roundImages?.length || 0}/5)
                           </span>
                         </div>
                         <ActivityPhotoUpload
@@ -1307,7 +1437,9 @@ export function Type7bUnplannedForm({
                     <ActivityInput
                       type="date"
                       value={item.nextSprayDate || ""}
-                      onChange={(e) => updateItem(item.id, "nextSprayDate", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "nextSprayDate", e.target.value)
+                      }
                       placeholder="เลือกกำหนดวันฉีดพ่นครั้งถัดไป"
                       disabled={readonly}
                     />
@@ -1319,7 +1451,9 @@ export function Type7bUnplannedForm({
                     </label>
                     <ActivityTextarea
                       value={item.notes || ""}
-                      onChange={(e) => updateItem(item.id, "notes", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(item.id, "notes", e.target.value)
+                      }
                       placeholder="บันทึกข้อสังเกตเพิ่มเติม สภาพอากาศ หรือหมายเหตุอื่นๆ..."
                       rows={3}
                       disabled={readonly}
@@ -1348,7 +1482,8 @@ export function Type7bUnplannedForm({
 
                 <div className="space-y-1.5 max-w-md">
                   <label className="text-xs font-semibold text-slate-700">
-                    สถานะแปลงสาธิตการตรวจรอบนี้ <span className="text-rose-500">*</span>
+                    สถานะแปลงสาธิตการตรวจรอบนี้{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <ActivitySelect
                     value={item.plotStatus || "IN_PROGRESS"}
@@ -1365,10 +1500,12 @@ export function Type7bUnplannedForm({
                   <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4 space-y-4 mt-3">
                     <div className="border-b border-emerald-200/60 pb-2">
                       <h4 className="text-xs sm:text-sm font-bold text-emerald-950">
-                        การประเมินผลการเก็บเกี่ยวและการปิดแปลง (Harvest Evaluation)
+                        การประเมินผลการเก็บเกี่ยวและการปิดแปลง (Harvest
+                        Evaluation)
                       </h4>
                       <p className="text-[11px] text-emerald-800">
-                        บันทึกผลผลิต ความพึงพอใจของเกษตรกร และโอกาสต่อยอดเชิงพาณิชย์
+                        บันทึกผลผลิต ความพึงพอใจของเกษตรกร
+                        และโอกาสต่อยอดเชิงพาณิชย์
                       </p>
                     </div>
 
@@ -1380,7 +1517,9 @@ export function Type7bUnplannedForm({
                         <ActivityInput
                           type="number"
                           value={item.finalYieldKg || ""}
-                          onChange={(e) => updateItem(item.id, "finalYieldKg", e.target.value)}
+                          onChange={(e) =>
+                            updateItem(item.id, "finalYieldKg", e.target.value)
+                          }
                           disabled={readonly}
                           placeholder="เช่น 1500"
                         />
@@ -1393,7 +1532,13 @@ export function Type7bUnplannedForm({
                         <ActivityInput
                           type="number"
                           value={item.controlYieldKg || ""}
-                          onChange={(e) => updateItem(item.id, "controlYieldKg", e.target.value)}
+                          onChange={(e) =>
+                            updateItem(
+                              item.id,
+                              "controlYieldKg",
+                              e.target.value,
+                            )
+                          }
                           disabled={readonly}
                           placeholder="เช่น 1200"
                         />
@@ -1406,7 +1551,11 @@ export function Type7bUnplannedForm({
                         <ActivitySelect
                           value={String(item.farmerSatisfaction || "5")}
                           onChange={(val) =>
-                            updateItem(item.id, "farmerSatisfaction", parseInt(val, 10))
+                            updateItem(
+                              item.id,
+                              "farmerSatisfaction",
+                              parseInt(val, 10),
+                            )
                           }
                           options={SATISFACTION_SCORES.map((s) => ({
                             value: String(s.value),
@@ -1423,7 +1572,9 @@ export function Type7bUnplannedForm({
                           โอกาสขยายผลเชิงพาณิชย์
                         </label>
                         <ActivitySelect
-                          value={item.commercialPotential || "สูง (เกษตรกรสนใจมาก)"}
+                          value={
+                            item.commercialPotential || "สูง (เกษตรกรสนใจมาก)"
+                          }
                           onChange={(val) =>
                             updateItem(item.id, "commercialPotential", val)
                           }
@@ -1443,7 +1594,11 @@ export function Type7bUnplannedForm({
                           type="date"
                           value={item.finalHarvestDate || ""}
                           onChange={(e) =>
-                            updateItem(item.id, "finalHarvestDate", e.target.value)
+                            updateItem(
+                              item.id,
+                              "finalHarvestDate",
+                              e.target.value,
+                            )
                           }
                           disabled={readonly}
                         />
@@ -1457,7 +1612,11 @@ export function Type7bUnplannedForm({
                       <ActivityTextarea
                         value={item.finalSummaryNotes || ""}
                         onChange={(e) =>
-                          updateItem(item.id, "finalSummaryNotes", e.target.value)
+                          updateItem(
+                            item.id,
+                            "finalSummaryNotes",
+                            e.target.value,
+                          )
                         }
                         placeholder="บันทึกความคิดเห็น ข้อสังเกต หรือแนวทางการขยายผลต่อไป..."
                         rows={3}
