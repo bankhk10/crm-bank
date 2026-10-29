@@ -18,8 +18,9 @@ import {
   Copy,
   Calendar as CalendarIcon,
   User,
+  Users,
+  UserPlus,
   Tag,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
@@ -28,7 +29,6 @@ import {
   WORK_TYPE_CONFIG,
   getWorkTypeName,
   getWorkTypeCode,
-  ACTIVITY_RESULT_STATUS_LABELS,
   STATUS_OPTIONS,
 } from "@/modules/activity/constants";
 import CustomTable from "@/components/custom/custom-table";
@@ -38,10 +38,21 @@ import {
   MultiSelect,
   type MultiSelectOption,
 } from "@/components/custom/multi-select";
+import { cn } from "@/lib/utils";
+
+export type ActivityPlanViewScope = "OWN" | "TEAM" | "HELPER" | "ALL";
 
 interface ActivityPlanTableProps {
   data: ActivityPlanWithRelations[];
   loading: boolean;
+  viewScope?: ActivityPlanViewScope;
+  onScopeChange?: (scope: ActivityPlanViewScope) => void;
+  scopeCounts?: {
+    own: number;
+    team: number;
+    helper: number;
+    all: number;
+  };
   pagination: {
     page: number;
     perPage: number;
@@ -77,6 +88,9 @@ export { STATUS_OPTIONS };
 export function ActivityPlanTable({
   data,
   loading,
+  viewScope = "OWN",
+  onScopeChange,
+  scopeCounts,
   pagination,
   searchValue,
   onSearchChange,
@@ -102,6 +116,53 @@ export function ActivityPlanTable({
   const currentUserId = session?.user?.id;
   const currentUserEmployeeId = session?.user?.employeeId;
 
+  const getRelationRole = React.useCallback(
+    (item: ActivityPlanWithRelations) => {
+      const isCreator = Boolean(
+        (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
+          (currentUserId && item.createdById === currentUserId),
+      );
+      if (isCreator) {
+        return {
+          type: "OWN" as const,
+          label: "ของฉัน",
+          badgeClass:
+            "bg-blue-50 text-blue-700 border-blue-200",
+          accentClass: "from-blue-500 to-indigo-500",
+        };
+      }
+
+      const isHelper = Boolean(
+        currentUserEmployeeId &&
+          Array.isArray((item as any).helpers) &&
+          (item as any).helpers.some(
+            (h: any) =>
+              h.employee?.id === currentUserEmployeeId ||
+              h.employeeId === currentUserEmployeeId,
+          ),
+      );
+
+      if (isHelper) {
+        return {
+          type: "HELPER" as const,
+          label: "ร่วมทีม",
+          badgeClass:
+            "bg-teal-50 text-teal-700 border-teal-200",
+          accentClass: "from-teal-500 to-emerald-500",
+        };
+      }
+
+      return {
+        type: "TEAM" as const,
+        label: "ลูกทีม/ทีมงาน",
+        badgeClass:
+          "bg-indigo-50 text-indigo-700 border-indigo-200",
+        accentClass: "from-indigo-500 to-purple-500",
+      };
+    },
+    [currentUserEmployeeId, currentUserId],
+  );
+
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
     return [
       {
@@ -115,7 +176,7 @@ export function ActivityPlanTable({
             row.original.id;
           return (
             <div
-              className="truncate text-sm text-slate-700 max-w-[130px]"
+              className="truncate text-sm font-mono font-semibold text-blue-700 max-w-[130px]"
               title={planNo || "-"}
             >
               {planNo || "-"}
@@ -130,7 +191,7 @@ export function ActivityPlanTable({
           const val = (info.getValue() as string) || "-";
           return (
             <div
-              className="truncate text-sm text-slate-700 max-w-[200px]"
+              className="truncate text-sm font-medium text-slate-800 max-w-[200px]"
               title={val}
             >
               {val}
@@ -221,14 +282,39 @@ export function ActivityPlanTable({
       {
         accessorKey: "employee.name",
         header: "ผู้จัดทำแผน",
-        cell: (info) => {
-          const val = (info.getValue() as string) || "-";
+        cell: ({ row }) => {
+          const item = row.original;
+          const emp = (item as any).employee;
+          const val = emp?.name || "-";
+          const pos = emp?.position?.name || emp?.positionTitle || "";
+          const roleInfo = getRelationRole(item);
+
           return (
-            <div
-              className="truncate text-sm text-slate-700 max-w-[130px]"
-              title={val}
-            >
-              {val}
+            <div className="flex flex-col items-start gap-1 max-w-[170px]">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span
+                  className="truncate text-sm font-medium text-slate-800 max-w-[125px]"
+                  title={val}
+                >
+                  {val}
+                </span>
+                <span
+                  className={cn(
+                    "inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold border whitespace-nowrap",
+                    roleInfo.badgeClass,
+                  )}
+                >
+                  {roleInfo.label}
+                </span>
+              </div>
+              {pos && (
+                <span
+                  className="text-[11px] text-slate-400 truncate max-w-[160px]"
+                  title={pos}
+                >
+                  {pos}
+                </span>
+              )}
             </div>
           );
         },
@@ -299,7 +385,7 @@ export function ActivityPlanTable({
           const isCreator = Boolean(
             (currentUserEmployeeId &&
               item.employeeId === currentUserEmployeeId) ||
-            (currentUserId && item.createdById === currentUserId),
+              (currentUserId && item.createdById === currentUserId),
           );
 
           const editHref = isUnplanned
@@ -389,11 +475,40 @@ export function ActivityPlanTable({
     canApprove,
     currentUserId,
     currentUserEmployeeId,
+    getRelationRole,
     onSubmitApproval,
     onDuplicate,
     onDelete,
     submitLoadingId,
   ]);
+
+  const emptyStateMessage = React.useMemo(() => {
+    if (viewScope === "OWN") {
+      return {
+        title: "ยังไม่มีแผนงานของคุณในมุมมองนี้",
+        description:
+          scopeCounts && scopeCounts.team > 0
+            ? `คุณมีแผนงานของลูกทีม/ทีมงาน ${scopeCounts.team} รายการ สามารถสลับดูได้ที่แท็บ "แผนงานลูกทีม / ทีมงาน"`
+            : "คุณสามารถกดปุ่ม 'สร้างแผนงานใหม่' เพื่อเริ่มต้นสร้างแผนงานของคุณ",
+      };
+    }
+    if (viewScope === "TEAM") {
+      return {
+        title: "ไม่พบแผนงานของลูกทีม / ทีมงาน",
+        description: "ยังไม่มีแผนงานที่สร้างโดยลูกทีม หรือไม่ตรงกับเงื่อนไขการค้นหา",
+      };
+    }
+    if (viewScope === "HELPER") {
+      return {
+        title: "ไม่พบแผนงานที่คุณร่วมทีม (Helper)",
+        description: "เมื่อมีผู้ระบุชื่อคุณเป็นผู้ช่วยปฏิบัติงาน รายการจะแสดงในแท็บนี้",
+      };
+    }
+    return {
+      title: "ไม่พบรายการ Trip Plan",
+      description: "ลองปรับเงื่อนไขการค้นหา หรือสร้าง Trip Plan ใหม่",
+    };
+  }, [viewScope, scopeCounts]);
 
   const toolbar = (
     <div className="space-y-4 mb-6">
@@ -540,12 +655,28 @@ export function ActivityPlanTable({
 
     if (data.length === 0) {
       return (
-        <div className="text-center py-14 text-slate-400">
+        <div className="text-center py-12 px-4 text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
           <CalendarIcon className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-medium">ไม่พบรายการ Trip Plan</p>
-          <p className="text-xs mt-1">
-            ลองปรับเงื่อนไขการค้นหา หรือสร้าง Trip Plan ใหม่
+          <p className="text-sm font-semibold text-slate-700">
+            {emptyStateMessage.title}
           </p>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            {emptyStateMessage.description}
+          </p>
+          {viewScope === "OWN" &&
+            scopeCounts &&
+            scopeCounts.team > 0 &&
+            onScopeChange && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onScopeChange("TEAM")}
+                className="mt-3 text-xs h-8 rounded-xl border-indigo-200 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100 gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5" />
+                ดูแผนงานลูกทีม ({scopeCounts.team})
+              </Button>
+            )}
         </div>
       );
     }
@@ -592,8 +723,10 @@ export function ActivityPlanTable({
           const isCreator = Boolean(
             (currentUserEmployeeId &&
               item.employeeId === currentUserEmployeeId) ||
-            (currentUserId && item.createdById === currentUserId),
+              (currentUserId && item.createdById === currentUserId),
           );
+
+          const roleInfo = getRelationRole(item);
 
           const editHref = isUnplanned
             ? `/activity-plans/unplanned/${item.id}/edit`
@@ -632,17 +765,30 @@ export function ActivityPlanTable({
               key={item.id}
               className="relative rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden"
             >
-              {/* Color accent bar */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-l-2xl" />
+              {/* Color accent bar matching relation role */}
+              <div
+                className={cn(
+                  "absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b rounded-l-2xl",
+                  roleInfo.accentClass,
+                )}
+              />
 
               <div className="pl-4 pr-4 pt-4 pb-3">
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    {/* Plan number + unplanned badge */}
+                    {/* Plan number + role badge + unplanned badge */}
                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
                       <span className="text-[11px] font-mono font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">
                         {planNo}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[10px] font-semibold rounded-full px-2 py-0.5 border",
+                          roleInfo.badgeClass,
+                        )}
+                      >
+                        {roleInfo.label}
                       </span>
                       {isUnplanned && (
                         <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5">
@@ -683,9 +829,18 @@ export function ActivityPlanTable({
                   {(item as any).employee?.name && (
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs font-medium text-slate-700">
                         {(item as any).employee.name}
                       </span>
+                      {((item as any).employee?.position?.name ||
+                        (item as any).employee?.positionTitle) && (
+                        <span className="text-[11px] text-slate-400 truncate">
+                          (
+                          {(item as any).employee?.position?.name ||
+                            (item as any).employee?.positionTitle}
+                          )
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -759,18 +914,6 @@ export function ActivityPlanTable({
                     </Button>
                   </Link>
                 )}
-                {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
-                {/* {canCreate && onDuplicate && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 text-[11px] font-semibold text-amber-600 border-amber-100 hover:bg-amber-50 rounded-lg gap-1 px-2.5"
-                    onClick={() => onDuplicate(item)}
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    ทำสำเนา
-                  </Button>
-                )} */}
                 {canDelete && deletable && isCreator && (
                   <Button
                     size="sm"
@@ -835,12 +978,27 @@ export function ActivityPlanTable({
           loading={loading}
           pagination={pagination}
           toolbar={<></>}
-          emptyState={{
-            title: "ไม่พบรายการ Trip Plan",
-            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้าง Trip Plan ใหม่",
-          }}
+          emptyState={emptyStateMessage}
           className="w-full"
         />
+        {!loading &&
+          data.length === 0 &&
+          viewScope === "OWN" &&
+          scopeCounts &&
+          scopeCounts.team > 0 &&
+          onScopeChange && (
+            <div className="flex justify-center -mt-4 pb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onScopeChange("TEAM")}
+                className="text-xs h-9 rounded-xl border-indigo-200 text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 gap-2 font-semibold"
+              >
+                <Users className="w-4 h-4" />
+                สลับไปดูแผนงานของลูกทีม / ทีมงาน ({scopeCounts.team} รายการ)
+              </Button>
+            </div>
+          )}
       </div>
       <br></br>
       <br></br>

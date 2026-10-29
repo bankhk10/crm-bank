@@ -38,6 +38,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "10", 10)));
   const q = (url.searchParams.get("q") || "").trim();
+  const viewScope = (url.searchParams.get("viewScope") || "ALL").toUpperCase();
 
   // Multi-value filters: support both comma-separated and multiple query params
   const statusFilters = (
@@ -162,18 +163,91 @@ export async function GET(request: Request) {
     });
   }
 
-  const where: Prisma.ActivityPlanWhereInput = {
+  const baseWhere: Prisma.ActivityPlanWhereInput = {
     deletedAt: null,
     ...(andConditions.length > 0 ? { AND: andConditions } : {}),
   };
 
   // Apply permission-based data scopes
-  await applyDataScope(where, session, "activity_plan");
+  await applyDataScope(baseWhere, session, "activity_plan");
 
-  const [total, activityPlans] = await Promise.all([
-    db.activityPlan.count({ where }),
+  const currentUserId = session.user.id;
+  const currentEmployeeId = session.user.employeeId;
+
+  const ownCondition: Prisma.ActivityPlanWhereInput = currentEmployeeId
+    ? {
+        OR: [
+          { employeeId: currentEmployeeId },
+          ...(currentUserId ? [{ createdById: currentUserId }] : []),
+        ],
+      }
+    : currentUserId
+      ? { createdById: currentUserId }
+      : { id: "__NONE__" };
+
+  const helperCondition: Prisma.ActivityPlanWhereInput = currentEmployeeId
+    ? {
+        NOT: ownCondition,
+        helpers: {
+          some: {
+            employeeId: currentEmployeeId,
+            deletedAt: null,
+          },
+        },
+      }
+    : { id: "__NONE__" };
+
+  const teamCondition: Prisma.ActivityPlanWhereInput = currentEmployeeId
+    ? {
+        NOT: {
+          OR: [
+            ownCondition,
+            {
+              helpers: {
+                some: {
+                  employeeId: currentEmployeeId,
+                  deletedAt: null,
+                },
+              },
+            },
+          ],
+        },
+      }
+    : currentUserId
+      ? {
+          NOT: { createdById: currentUserId },
+        }
+      : {};
+
+  const combineWhere = (
+    extra?: Prisma.ActivityPlanWhereInput,
+  ): Prisma.ActivityPlanWhereInput => {
+    if (!extra || Object.keys(extra).length === 0) return baseWhere;
+    return {
+      AND: [baseWhere, extra],
+    };
+  };
+
+  let scopedWhere = baseWhere;
+  if (viewScope === "OWN") {
+    scopedWhere = combineWhere(ownCondition);
+  } else if (viewScope === "TEAM") {
+    scopedWhere = combineWhere(teamCondition);
+  } else if (viewScope === "HELPER") {
+    scopedWhere = combineWhere(helperCondition);
+  }
+
+  const [
+    total,
+    activityPlans,
+    ownCount,
+    teamCount,
+    helperCount,
+    allCount,
+  ] = await Promise.all([
+    db.activityPlan.count({ where: scopedWhere }),
     db.activityPlan.findMany({
-      where,
+      where: scopedWhere,
       include: {
         activityType: true,
         workTypes: {
@@ -220,9 +294,24 @@ export async function GET(request: Request) {
       skip: (page - 1) * perPage,
       take: perPage,
     }),
+    db.activityPlan.count({ where: combineWhere(ownCondition) }),
+    db.activityPlan.count({ where: combineWhere(teamCondition) }),
+    db.activityPlan.count({ where: combineWhere(helperCondition) }),
+    db.activityPlan.count({ where: baseWhere }),
   ]);
 
-  return NextResponse.json({ activityPlans, total, page, perPage });
+  return NextResponse.json({
+    activityPlans,
+    total,
+    page,
+    perPage,
+    counts: {
+      own: ownCount,
+      team: teamCount,
+      helper: helperCount,
+      all: allCount,
+    },
+  });
 }
 
 export async function POST(request: Request) {
