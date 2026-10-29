@@ -76,13 +76,26 @@ export function Type14PlannedForm(props: any) {
     hattackFollowUpPlans.length > 0 ? hattackFollowUpPlans : dbPlans;
 
   const planOptions = useMemo(() => {
-    return activeFollowUpPlans.map((plan) => ({
+    const opts = activeFollowUpPlans.map((plan) => ({
       value: plan.planId,
       label: `${plan.planCode ? `[${plan.planCode}] ` : ""}${plan.planTitle}${
         plan.planDate ? ` (${plan.planDate})` : ""
       } - จำนวน ${plan.plots?.length || 0} แปลง`,
     }));
-  }, [activeFollowUpPlans]);
+
+    // Fallback: If selectedPlanId is set, ensure it exists in options so dropdown doesn't blank out
+    if (
+      data.selectedPlanId &&
+      !opts.some((o) => o.value === data.selectedPlanId)
+    ) {
+      opts.unshift({
+        value: data.selectedPlanId,
+        label: data.name ? `[แผนเดิม] ${data.name}` : data.selectedPlanId,
+      });
+    }
+
+    return opts;
+  }, [activeFollowUpPlans, data.selectedPlanId, data.name]);
 
   const hasProductWithdrawal = Boolean(data.hasProductWithdrawal);
   const withdrawnProducts = data.withdrawnProducts || [];

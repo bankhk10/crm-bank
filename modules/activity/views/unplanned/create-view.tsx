@@ -54,6 +54,11 @@ export function UnplannedCreateView() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState<boolean>(true);
 
+  const initialData = React.useMemo(
+    () => ({ employeeName: currentEmployeeName }),
+    [currentEmployeeName],
+  );
+
   useEffect(() => {
     async function loadData() {
       setPageLoading(true);
@@ -175,7 +180,7 @@ export function UnplannedCreateView() {
   return (
     <section className="p-4 md:p-6 pb-24 md:pb-8 bg-white min-h-screen rounded-2xl">
       <UnplannedActivityForm
-        initialData={{ employeeName: currentEmployeeName }}
+        initialData={initialData}
         employees={employees}
         customers={customers}
         products={products}

@@ -86,16 +86,26 @@ export function useType14PlannedForm({
     ),
   );
 
+  const [prevInitial, setPrevInitial] = useState(initial);
+
   useEffect(() => {
-    if (!initial) return;
-    const hydrated = hydrateType14PlannedData(
-      initial,
-      defaultProvince,
-      defaultDistrict,
-      availablePlans,
-    );
-    setData(hydrated);
-  }, [initial, defaultProvince, defaultDistrict]);
+    // Only re-hydrate from initial if initial actually contains real Type 14 data (e.g. async load in edit mode)
+    const hasInitialT14Data =
+      Boolean(initial?.type14) ||
+      Boolean(initial?.type14Targets && initial.type14Targets.length > 0) ||
+      Boolean(initial?.type14Plots && initial.type14Plots.length > 0);
+
+    if (hasInitialT14Data && initial !== prevInitial) {
+      setPrevInitial(initial);
+      const hydrated = hydrateType14PlannedData(
+        initial,
+        defaultProvince,
+        defaultDistrict,
+        availablePlans,
+      );
+      setData(hydrated);
+    }
+  }, [initial, prevInitial, defaultProvince, defaultDistrict, availablePlans]);
 
   const updateField = useCallback(
     <K extends keyof Type14PlanInput>(field: K, val: Type14PlanInput[K]) => {
