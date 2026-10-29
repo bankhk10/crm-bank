@@ -142,12 +142,14 @@ export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
  * 1. จัดทำแปลงสาธิต (TYPE_7A)
  * 2. จัดประชุม (TYPE_8)
  * 3. จัดกิจกรรมส่งเสริมการขายหน้าร้าน (TYPE_9)
- * 4. ทัวร์ (TYPE_12)
+ * 4. จัดงาน Field Day (Type 10)
+ * 5. ทัวร์ (TYPE_12)
  */
 export const UNPLANNED_EXCLUDED_WORK_TYPE_CODES = [
   "TYPE_7A",
   "TYPE_8",
   "TYPE_9",
+  "TYPE_10",
   "TYPE_12",
 ] as const;
 
