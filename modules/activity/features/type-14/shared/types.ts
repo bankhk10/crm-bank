@@ -101,12 +101,15 @@ export interface Type14PlotActualState {
   ownerName?: string | null;
   cropCategory?: string | null;
   cropName?: string | null;
+  areaRai?: number | null;
+  treeCount?: number | null;
   province?: string | null;
   district?: string | null;
   subdistrict?: string | null;
   village?: string | null;
   plannedPlotsCount?: number | string | null;
   actualPlotsCount?: number | string | null;
+  actualVisitDate?: string | null;
   daysAfterSpray?: number | string | null;
   trackingResult?: string | null;
   productResponse?: string | null;
@@ -117,6 +120,7 @@ export interface Type14PlotActualState {
   latitude?: string | null;
   longitude?: string | null;
   products?: Type14ActualProductState[];
+  images?: ImageFile[];
   afterSprayImages?: ImageFile[];
 }
 

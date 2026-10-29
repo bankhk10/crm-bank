@@ -5,7 +5,7 @@
 > **Work Type Name**: ติดตามแปลงแฮตแทค (Hattack Follow-up)  
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment`)  
-> **Status**: Production Ready / Active Reference (v2.6.0 — Updated 2026-10-28 Hattack Plot Lifecycle Management with Status Toggle, Auto-sync & Completed Plot Filter)
+> **Status**: Production Ready / Active Reference (v2.7.0 — Updated 2026-10-28 Streamlined Type 14 Unplanned Form: Removed New Plot & Product Withdrawal, Enforced Source Plan Prerequisite)
 
 ---
 
@@ -84,10 +84,10 @@ graph TD
 
 ### 2.3 Unplanned (กิจกรรมนอกแผน 2-in-1 Plan + Actual)
 - ผู้ใช้งานเข้าหน้า `/activity-plans/unplanned/new` และเลือกประเภทงาน **ติดตามแปลงแฮตแทค (Type 14)**
-- ฟอร์ม `Type14UnplannedForm` รวมการทำงานแบบ 2-in-1 สมบูรณ์แบบ:
-  1. **เป้าหมายแปลง (Target Setup):** สลับโหมดได้ทั้งโหมดแปลงเดิม (`EXISTING_PLOT` ดึงจากแผนงาน Type 13 เดิมที่อนุมัติแล้วผ่าน `getHattackFollowUpPlansAction`) และโหมดระบุแปลงใหม่ (`NEW_PLOT` เลือกร้านค้า Dealer, ข้อมูลแปลง, ที่อยู่, พิกัด GPS) พร้อมส่วนขอเบิกสินค้าพ่นซ้ำ (`hasProductWithdrawal`)
-  2. **ผลการปฏิบัติงานจริง (Actual Outcome - Stacked Plot Cards):** ระบุจำนวนแปลงที่ติดตามจริง (`actualPlotsCount`), สินค้าสาธิตที่ใช้จริง (`actualQuantity`, `extraQuantity`, `extraUnit`, `actualRate`), ข้อมูลการตรวจติดตาม (`actualVisitDate`, `daysAfterSpray`, `trackingResult`, `productResponse`, `additionalNotes`, สลับสถานะปิดแปลง `plotStatus` พร้อม `closureNotes`), และอัปโหลดภาพถ่ายสภาพแปลง (สูงสุด 20 รูปต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload`
-- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14Target`, `ActivityPlanType14Product`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment` (ผูก `type14ResultId`), อัปเดตสถานะแปลงต้นทาง Type 13 และสร้าง Header `ActivityResult` ใน Transaction เดียวกันผ่าน `type14UnplannedStrategy.savePlan()`
+- ฟอร์ม `Type14UnplannedForm` รวมการทำงานแบบ 2-in-1 เรียบง่ายและตรงจุด (Streamlined Follow-up):
+  1. **เป้าหมายแปลง (Target Setup):** เชื่อมโยงกับแผนงานฉีดแปลงแฮตแทค Type 13 เดิมที่อนุมัติแล้วผ่าน `getHattackFollowUpPlansAction` (ปลดระวางตัวเลือก "ระบุแปลงใหม่โดยตรง" และการเบิกสินค้าพ่นซ้ำออก เพื่อความกระชับในการทำงาน)
+  2. **ผลการปฏิบัติงานจริง (Actual Outcome - Stacked Plot Cards):** แสดงขึ้นมาหลังจากเลือกแผนงาน Type 13 เดิมแล้ว โดยดึงแปลงทั้งหมดมาแสดงผล ระบุจำนวนแปลงที่ติดตามจริง (`actualPlotsCount`), สินค้าสาธิตที่ใช้จริง (`actualQuantity`, `extraQuantity`, `extraUnit`, `actualRate`), ข้อมูลการตรวจติดตาม (`actualVisitDate`, `daysAfterSpray`, `trackingResult`, `productResponse`, `additionalNotes`, สลับสถานะปิดแปลง `plotStatus` พร้อม `closureNotes`), และอัปโหลดภาพถ่ายสภาพแปลง (สูงสุด 20 รูปต่อหมู่บ้าน) ผ่าน `ActivityPhotoUpload`
+- เมื่อกดบันทึก ระบบจะสร้าง `ActivityPlan` พร้อมบันทึก `ActivityPlanType14Target`, `ActivityResultType14`, `ActivityResultType14ProductUsed`, `ActivityAttachment` (ผูก `type14ResultId`), อัปเดตสถานะแปลงต้นทาง Type 13 และสร้าง Header `ActivityResult` ใน Transaction เดียวกันผ่าน `type14UnplannedStrategy.savePlan()`
 - เมื่อเปิดเข้ามาแก้ไข (Edit Hydration): ฟังก์ชัน `hydrateType14UnplannedData` จะกู้คืนข้อมูลกลับมาแสดงครบทุกช่องในฟอร์มโดยไม่มีข้อมูลสูญหาย
 
 ### 2.4 Detail and Approval (ดูรายละเอียดและพิจารณาอนุมัติ)
@@ -611,6 +611,7 @@ model ActivityResultType14ProductUsed {
 
 | วันที่ | เวอร์ชัน | รายละเอียดการปรับปรุง | ผู้ดำเนินการ |
 | :--- | :--- | :--- | :--- |
+| **2026-10-28** | 2.7.0 | **ปรับปรุงหน้า Type 14 Unplanned Form (ลบระบุแปลงใหม่, ลบเบิกสินค้า, และแสดงผลจริงเมื่อเลือกแผนเดิมเท่านั้น):**<br>1. **ลบระบุแปลงใหม่โดยตรง:** ปลดระวางโหมด `NEW_PLOT` ออกจาก `Type14UnplannedForm` ให้เชื่อมโยงกับแผนงานฉีดพ่น Type 13 เดิม (`EXISTING_PLOT`) เท่านั้น<br>2. **เงื่อนไขการแสดงผลจริง:** ส่วน \"รายงานผลการปฏิบัติงานจริง (Actual Outcome) รายแปลง\" จะแสดงขึ้นมาหลังจากเลือกแผนงานฉีดแปลงแฮตแทคเดิมแล้วเท่านั้น หากยังไม่เลือกจะแสดงคำแนะนำให้เลือกแผนก่อน เพื่อป้องกันการแสดงข้อมูลแปลงหลอก<br>3. **ลบการเบิกสินค้าเพิ่มเติม:** นำส่วน \"มีการเบิกสินค้าเพิ่มเติมสำหรับการติดตามแปลง\" ออก เพื่อลดความซ้ำซ้อนและกระชับขั้นตอนการปฏิบัติงานภาคสนาม<br>4. **Type-safety Alignment:** อัปเดต `Type14PlotActualState` และ mapper ให้รองรับฟิลด์ครบถ้วน ผ่านการตรวจสอบ `npx tsc --noEmit` Exit Code 0 | Antigravity AI |
 | **2026-10-15** | 1.0.0 | สร้างโมดูล Type 14 (ติดตามแปลงแฮตแทค) ตามสถาปัตยกรรม Vertical Slice Architecture | Antigravity AI |
 | **2026-10-16** | 1.1.0 | เพิ่มระบบ Dual Plot Selection Mode (`EXISTING_PLOT` vs `NEW_PLOT`) และเชื่อมโยงแผน Type 13 ต้นทาง | Antigravity AI |
 | **2026-10-18** | 1.2.0 | พัฒนาระบบบันทึกรอบการตรวจติดตามหลายรอบ (Multi-Round Tracking) และการคำนวณวันหลังฉีดพ่น | Antigravity AI |
