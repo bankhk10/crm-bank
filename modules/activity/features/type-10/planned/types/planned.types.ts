@@ -80,6 +80,7 @@ export interface Type10PlannedFormProps {
   type10BookingSales: number;
   setType10BookingSales: (val: number) => void;
   demoPlots?: Type10DemoPlotOption[];
+  followUpPlans?: any[];
 }
 
 export type Type10FieldDayProps = Type10PlannedFormProps;

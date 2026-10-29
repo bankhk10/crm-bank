@@ -62,6 +62,53 @@ async function runTests() {
   assert.strictEqual(targetExtract1.primary.targetBookingSales, 250000);
   console.log("✓ Test 1 passed: Dedicated type10Targets hydrated perfectly.");
 
+  // -------------------------------------------------------------------------
+  // Test 2: Hydrate from PostgreSQL DB structure where type7aTargetId is used (no demoPlotId)
+  // -------------------------------------------------------------------------
+  console.log("\n[Test 2] Hydrating Type 10 from real DB structure (type7aTargetId & type7aTarget)...");
+
+  const planFromDb = {
+    id: "plan-t10-002",
+    code: "TP26100200",
+    title: "จัดงาน Field Day ข้าวพันธุ์ กข85",
+    type10Targets: [
+      {
+        id: "t10-target-db-1",
+        activityPlanId: "plan-t10-002",
+        type7aTargetId: "t7a-target-uuid-888",
+        plotName: "แปลงสาธิตข้าว กข85 นครปฐม",
+        location: "ตำบลทุ่งขวาง อำเภอกำแพงแสน จ.นครปฐม",
+        cropName: "ข้าว กข85",
+        showcaseProductName: "ยาป้องกันเชื้อรา สูตรเข้มข้น",
+        targetAttendeesCount: 50,
+        targetBookingSales: 100000,
+        type7aTarget: {
+          id: "t7a-target-uuid-888",
+          activityPlanId: "plan-t7a-source-777",
+          code: "DP26100088",
+          plotName: "แปลงสาธิตข้าว กข85 นครปฐม",
+        },
+      },
+    ],
+  };
+
+  const hydrated2 = hydrateType10PlannedData(planFromDb);
+  assert.strictEqual(
+    hydrated2.demoPlotId,
+    "plan-t7a-source-777",
+    "demoPlotId should resolve to source activity plan ID for edit form",
+  );
+  assert.strictEqual(hydrated2.location, "ตำบลทุ่งขวาง อำเภอกำแพงแสน จ.นครปฐม");
+  assert.strictEqual(hydrated2.targetCrop, "ข้าว กข85");
+  assert.strictEqual(hydrated2.showcase, "ยาป้องกันเชื้อรา สูตรเข้มข้น");
+  assert.strictEqual(hydrated2.attendees, 50);
+  assert.strictEqual(hydrated2.bookingSales, 100000);
+
+  const targetExtract2 = extractType10PlanTargets(planFromDb);
+  assert.ok(targetExtract2.primary);
+  assert.strictEqual(targetExtract2.primary.demoPlotId, "plan-t7a-source-777");
+  console.log("✓ Test 2 passed: DB type7aTargetId and type7aTarget hydrated successfully!");
+
   console.log("\n All Type 10 Save & Hydration Unit Tests Passed!\n");
 }
 

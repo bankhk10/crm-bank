@@ -34,6 +34,7 @@ export interface DemoPlotOption {
   hasExternalChemicals?: boolean;
   dealerId?: string;
   dealerName?: string;
+  activityPlanId?: string;
   activityName?: string;
   activityCode?: string;
   activityType?: string;
@@ -184,6 +185,9 @@ function mapDemoPlotToOption(p: any, farmerMap: Map<string, any>): DemoPlotOptio
     hasExternalChemicals: Boolean(result1?.hasExternalChemicals),
     dealerId: p.storeId || p.store?.id || undefined,
     dealerName: p.store?.name || p.dealerName || undefined,
+    activityPlanId: p.activityPlan?.id || undefined,
+    activityCode: p.activityPlan?.code || undefined,
+    activityName: p.activityPlan?.title || undefined,
     demoProducts: p.products,
     externalProducts: result1?.sprayExternals || [],
     irrigations: (result1?.irrigations || []).map((ir: any) => ir.method),

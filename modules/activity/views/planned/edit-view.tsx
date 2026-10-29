@@ -439,6 +439,8 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type9Data: (plan as any).type9 || null,
             type10: (plan as any).type10 || null,
             type10Data: (plan as any).type10 || null,
+            type10Targets: (plan as any).type10Targets || [],
+            type10Plots: (plan as any).type10Targets || [],
             type11: (plan as any).type11 || null,
             type11Data: (plan as any).type11 || null,
             type13Targets: rawType13Targets,

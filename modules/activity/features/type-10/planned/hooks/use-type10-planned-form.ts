@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type {
   UseType10PlannedFormOptions,
   UseType10PlannedFormResult,
@@ -41,6 +41,35 @@ export function useType10PlannedForm({
     initialData.bookingSales,
   );
 
+  // Sync state if initialData is loaded/hydrated asynchronously
+  useEffect(() => {
+    if (initialData.demoPlotId) {
+      setType10DemoPlot(initialData.demoPlotId);
+    }
+    if (initialData.location) {
+      setType10Location(initialData.location);
+    }
+    if (initialData.targetCrop) {
+      setType10TargetCrop(initialData.targetCrop);
+    }
+    if (initialData.showcase) {
+      setType10Showcase(initialData.showcase);
+    }
+    if (initialData.attendees) {
+      setType10Attendees(initialData.attendees);
+    }
+    if (initialData.bookingSales) {
+      setType10BookingSales(initialData.bookingSales);
+    }
+  }, [
+    initialData.demoPlotId,
+    initialData.location,
+    initialData.targetCrop,
+    initialData.showcase,
+    initialData.attendees,
+    initialData.bookingSales,
+  ]);
+
   const validateType10 = useCallback((): Type10ValidationResult => {
     return validateType10Form({
       selectedWorkTypes,
@@ -52,15 +81,25 @@ export function useType10PlannedForm({
   const mapType10Payload = useCallback(
     (demoPlots: Type10DemoPlotOption[] = demoPlotsList) => {
       const p = demoPlots.find(
-        (plot) => plot.id === type10DemoPlot || plot.name === type10DemoPlot,
+        (plot) =>
+          plot.id === type10DemoPlot ||
+          plot.name === type10DemoPlot ||
+          (plot as any).activityPlanId === type10DemoPlot ||
+          (plot as any).activityCode === type10DemoPlot ||
+          (plot as any).activityName === type10DemoPlot,
       );
-      const submittedDemoPlotId = p ? p.id : (type10DemoPlot && type10DemoPlot.trim() !== "" ? type10DemoPlot : null);
+      const submittedDemoPlotId = p
+        ? (p as any).activityPlanId || p.id
+        : type10DemoPlot && type10DemoPlot.trim() !== ""
+          ? type10DemoPlot
+          : null;
       const loc = type10Location || p?.location || null;
       const crop = type10TargetCrop || p?.targetCrop || p?.cropName || null;
       const sc = type10Showcase || p?.showcase || p?.primaryProductName || null;
 
       const targetItem = {
         demoPlotId: submittedDemoPlotId,
+        type7aTargetId: p ? p.id : null,
         plotName: p?.name || (!p && type10DemoPlot ? type10DemoPlot : null),
         farmerName: p?.ownerName || null,
         location: loc,

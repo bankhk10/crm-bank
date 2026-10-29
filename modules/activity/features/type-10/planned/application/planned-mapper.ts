@@ -76,7 +76,13 @@ export function extractType10PlanTargets(
       list.push({
         id: t.id,
         targetId: t.id,
-        demoPlotId: t.demoPlotId || null,
+        demoPlotId:
+          t.type7aTarget?.activityPlanId ||
+          t.type7aTargetId ||
+          t.demoPlotId ||
+          t.type7aTarget?.id ||
+          t.plotName ||
+          null,
         plot: plotTitle,
         plotName: t.plotName || t.demoPlot?.name || "",
         farmerName: t.farmerName || t.demoPlot?.ownerName || "",
@@ -243,7 +249,13 @@ export function hydrateType10PlannedData(initialData: any): {
 
   if (firstTarget) {
     return {
-      demoPlotId: firstTarget.demoPlotId || "",
+      demoPlotId:
+        firstTarget.type7aTarget?.activityPlanId ||
+        firstTarget.type7aTargetId ||
+        firstTarget.demoPlotId ||
+        firstTarget.type7aTarget?.id ||
+        firstTarget.plotName ||
+        "",
       location: firstTarget.location || firstTarget.demoPlot?.location || "",
       targetCrop: firstTarget.cropName || firstTarget.cropCategory || firstTarget.demoPlot?.targetCrop || "",
       showcase: firstTarget.showcaseProductName || firstTarget.showcaseProduct?.name || firstTarget.demoPlot?.primaryProductName || "",

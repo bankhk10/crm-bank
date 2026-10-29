@@ -547,6 +547,7 @@ export function PlannedActivityForm({
   const type10 = useType10PlannedForm({
     initial: initialData,
     initDetails: hydratedInitialType10Items,
+    demoPlotsList: demoPlots as any,
     selectedWorkTypes,
   });
 
@@ -1469,6 +1470,7 @@ export function PlannedActivityForm({
       {isType10Active && (
         <Type10PlannedForm
           readonly={readonly}
+          isEdit={isEdit}
           type10DemoPlot={type10.type10DemoPlot}
           setType10DemoPlot={type10.setType10DemoPlot}
           type10Location={type10.type10Location}
@@ -1481,6 +1483,8 @@ export function PlannedActivityForm({
           setType10Attendees={type10.setType10Attendees}
           type10BookingSales={type10.type10BookingSales}
           setType10BookingSales={type10.setType10BookingSales}
+          demoPlots={demoPlots as any}
+          followUpPlans={followUpPlans as any}
         />
       )}
 

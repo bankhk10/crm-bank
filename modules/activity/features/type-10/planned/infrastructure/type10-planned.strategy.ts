@@ -168,14 +168,27 @@ export const type10PlannedStrategy: WorkTypeStrategy = {
         // Auto enrich and strictly validate Foreign Key for type7aTarget
         let valid7aTargetId: string | null = null;
         if (candidatePlotId) {
-          const t7a = await (tx as any).activityPlanType7aTarget.findUnique({
+          let t7a = await (tx as any).activityPlanType7aTarget.findUnique({
             where: { id: candidatePlotId },
             include: {
+              activityPlan: true,
               store: true,
               results: true,
               products: { include: { product: true } },
             },
           });
+
+          if (!t7a) {
+            t7a = await (tx as any).activityPlanType7aTarget.findFirst({
+              where: { activityPlanId: candidatePlotId },
+              include: {
+                activityPlan: true,
+                store: true,
+                results: true,
+                products: { include: { product: true } },
+              },
+            });
+          }
 
           if (t7a) {
             valid7aTargetId = t7a.id;

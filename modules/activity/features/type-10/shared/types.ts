@@ -123,4 +123,7 @@ export interface Type10DemoPlotOption {
   subdistrict?: string;
   dealerId?: string;
   dealerName?: string;
+  activityPlanId?: string;
+  activityName?: string;
+  activityCode?: string;
 }

@@ -854,6 +854,15 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           dealerName: true,
           cropCategory: true,
           cropName: true,
+          activityPlanId: true,
+          activityPlan: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              startDate: true,
+            },
+          },
           store: {
             select: { province: true, district: true },
           },
