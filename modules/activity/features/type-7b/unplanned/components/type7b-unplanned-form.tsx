@@ -21,6 +21,7 @@ import {
   ActivitySelect,
   ActivityProductSelect,
   ActivityPhotoUpload,
+  ActivityDatePicker,
 } from "@/modules/activity/ui";
 import { getFollowUpPlansAction } from "@/modules/activity/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
@@ -66,7 +67,7 @@ export function Type7bUnplannedForm({
   const [dbPlans, setDbPlans] = useState<any[]>([]);
   useEffect(() => {
     let isMounted = true;
-    if (followUpPlans.length === 0 && plotList.length === 0) {
+    if (followUpPlans.length === 0) {
       getFollowUpPlansAction()
         .then((res) => {
           if (
@@ -88,7 +89,7 @@ export function Type7bUnplannedForm({
     return () => {
       isMounted = false;
     };
-  }, [followUpPlans.length, plotList.length]);
+  }, [followUpPlans.length]);
 
   // Load products catalog if not supplied
   const [dbProducts, setDbProducts] = useState<any[]>([]);
@@ -116,44 +117,40 @@ export function Type7bUnplannedForm({
 
   const effectivePlans = followUpPlans.length > 0 ? followUpPlans : dbPlans;
 
-  // Demo plot options from plotList or followUpPlans
-  const existingPlotOptions = useMemo(() => {
+  // Plan options from followUpPlans or dbPlans (Only plans, no demo plot items)
+  const existingPlanOptions = useMemo(() => {
     const list: Array<{
       value: string;
       label: string;
       subLabel?: string;
-      plot: any;
+      plan: any;
     }> = [];
     const seen = new Set<string>();
 
-    for (const p of plotList) {
-      if (!seen.has(p.id)) {
-        seen.add(p.id);
+    for (const plan of effectivePlans) {
+      if (plan.planId && !seen.has(plan.planId)) {
+        seen.add(plan.planId);
+        const uniquePlots = plan.plots || [];
+        const plotsSummary = uniquePlots
+          .map(
+            (p: any) =>
+              `${p.name || "แปลงสาธิต"}${p.ownerName ? ` (${p.ownerName})` : ""}`,
+          )
+          .join(", ");
         list.push({
-          value: p.id,
-          label: `${p.name} (${p.code || "DP"})`,
-          subLabel: `เกษตรกร: ${p.ownerName || "-"} | พืช: ${p.cropName || p.cropCategory || "-"}`,
-          plot: p,
+          value: plan.planId,
+          label: `${plan.planCode ? `[${plan.planCode}] ` : ""}${plan.planTitle || "แผนงาน"}${plan.planDate ? ` (${plan.planDate})` : ""}`,
+          subLabel:
+            uniquePlots.length > 0
+              ? `${uniquePlots.length} แปลงสาธิต: ${plotsSummary}`
+              : undefined,
+          plan,
         });
       }
     }
 
-    for (const plan of effectivePlans) {
-      for (const p of plan.plots || []) {
-        if (!seen.has(p.id)) {
-          seen.add(p.id);
-          list.push({
-            value: p.id,
-            label: `${p.name} (${p.code || "DP"})`,
-            subLabel: `เกษตรกร: ${p.ownerName || "-"} | พืช: ${p.cropName || "-"}`,
-            plot: p,
-          });
-        }
-      }
-    }
-
     return list;
-  }, [plotList, effectivePlans]);
+  }, [effectivePlans]);
 
   // =========================================================================
   // Round Action Handlers (fallback to updateItem if prop callbacks not provided)
@@ -453,6 +450,50 @@ export function Type7bUnplannedForm({
                   },
                 ];
 
+          const selectedPlanId =
+            item.sourceActivityPlanId ||
+            (item.demoPlotId
+              ? effectivePlans.find((p) =>
+                  (p.plots || []).some((pl: any) => pl.id === item.demoPlotId),
+                )?.planId
+              : "") ||
+            "";
+
+          const itemPlanOptions =
+            selectedPlanId &&
+            !existingPlanOptions.some((opt) => opt.value === selectedPlanId)
+              ? [
+                  {
+                    value: selectedPlanId,
+                    label: `แผนงานต้นทาง (${item.plotName || selectedPlanId})`,
+                    subLabel: item.farmerName
+                      ? `เกษตรกร: ${item.farmerName}`
+                      : undefined,
+                    plan: {
+                      planId: selectedPlanId,
+                      planTitle: item.plotName || "แผนงานต้นทาง",
+                      plots: item.demoPlotId
+                        ? [
+                            {
+                              id: item.demoPlotId,
+                              name: item.plotName,
+                              cropName: item.cropName,
+                              cropCategory: item.cropCategory,
+                              ownerName: item.farmerName,
+                              province: item.province,
+                              district: item.district,
+                              areaRai: item.areaRai,
+                              treeCount: item.treeCount,
+                              dealerName: item.dealerName,
+                            },
+                          ]
+                        : [],
+                    },
+                  },
+                  ...existingPlanOptions,
+                ]
+              : existingPlanOptions;
+
           return (
             <div
               key={item.id}
@@ -488,35 +529,56 @@ export function Type7bUnplannedForm({
               {/* Plot Selection / Information                                  */}
               {/* ------------------------------------------------------------- */}
               <div className="space-y-3.5 bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200/80">
-                {existingPlotOptions.length > 0 && (
+                {(itemPlanOptions.length > 0 || !readonly) && (
                   <ActivityCombobox
                     label="เลือกแปลงสาธิตที่มีอยู่ในระบบ"
                     labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                    value={item.demoPlotId || ""}
+                    value={selectedPlanId}
                     onChange={(val) => {
-                      updateItem(item.id, "demoPlotId", val);
-                      const matched = existingPlotOptions.find(
+                      updateItem(item.id, "sourceActivityPlanId", val || null);
+                      if (!val) {
+                        updateItem(item.id, "demoPlotId", null);
+                        return;
+                      }
+                      const matched = itemPlanOptions.find(
                         (opt) => opt.value === val,
                       );
-                      if (matched && matched.plot) {
-                        const pl = matched.plot;
-                        updateItem(item.id, "plotName", pl.name || "");
-                        updateItem(item.id, "farmerName", pl.ownerName || "");
-                        updateItem(item.id, "cropName", pl.cropName || "");
-                        updateItem(
-                          item.id,
-                          "cropCategory",
-                          pl.cropCategory || "",
-                        );
-                        updateItem(item.id, "province", pl.province || "");
-                        updateItem(item.id, "district", pl.district || "");
-                        updateItem(item.id, "areaRai", pl.areaRai || null);
+                      if (matched && matched.plan) {
+                        const pl = matched.plan.plots?.[0];
+                        if (pl) {
+                          updateItem(item.id, "demoPlotId", pl.id);
+                          updateItem(item.id, "plotName", pl.name || "");
+                          updateItem(item.id, "farmerName", pl.ownerName || "");
+                          updateItem(item.id, "cropName", pl.cropName || "");
+                          updateItem(
+                            item.id,
+                            "cropCategory",
+                            pl.cropCategory || "",
+                          );
+                          updateItem(item.id, "province", pl.province || "");
+                          updateItem(item.id, "district", pl.district || "");
+                          if (pl.areaRai != null) {
+                            updateItem(item.id, "areaRai", pl.areaRai);
+                          }
+                          if (pl.treeCount != null) {
+                            updateItem(item.id, "treeCount", pl.treeCount);
+                          }
+                          if (pl.dealerName) {
+                            updateItem(item.id, "dealerName", pl.dealerName);
+                          }
+                        } else if (!item.plotName) {
+                          updateItem(
+                            item.id,
+                            "plotName",
+                            matched.plan.planTitle || "",
+                          );
+                        }
                       }
                     }}
-                    options={existingPlotOptions}
-                    placeholder="เลือกแปลงสาธิตที่มีอยู่ หรือระบุข้อมูลด้านล่าง..."
-                    searchPlaceholder="ค้นหาแปลงสาธิต..."
-                    emptyText="ไม่พบแปลงสาธิต"
+                    options={itemPlanOptions}
+                    placeholder="เลือกแผนงานแปลงสาธิต หรือระบุข้อมูลด้านล่าง..."
+                    searchPlaceholder="ค้นหาแผนงาน..."
+                    emptyText="ไม่พบแผนงานแปลงสาธิต"
                     disabled={readonly}
                   />
                 )}
@@ -628,20 +690,16 @@ export function Type7bUnplannedForm({
 
                 {/* Row 1: วันที่ติดตามจริง & จำนวนวันหลังฉีดพ่น */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700">
-                      วันที่ติดตามจริง <span className="text-rose-500">*</span>
-                    </label>
-                    <ActivityInput
-                      type="date"
-                      value={item.visitDate || ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "visitDate", e.target.value)
-                      }
-                      disabled={readonly}
-                      required
-                    />
-                  </div>
+                  <ActivityDatePicker
+                    label="วันที่ติดตามจริง"
+                    value={item.visitDate || ""}
+                    onChange={(dateStr) =>
+                      updateItem(item.id, "visitDate", dateStr)
+                    }
+                    disabled={readonly}
+                    required
+                    placeholder="เลือกวันที่ติดตามจริง..."
+                  />
 
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-700">
@@ -1426,17 +1484,14 @@ export function Type7bUnplannedForm({
 
                 {/* Fields below rounds: กำหนดฉีดพ่นครั้งถัดไป & ข้อสังเกตเพิ่มเติม */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-                  <div className="space-y-1 max-w-md">
-                    <label className="text-xs font-semibold text-slate-700">
-                      กำหนดฉีดพ่นครั้งถัดไป
-                    </label>
-                    <ActivityInput
-                      type="date"
+                  <div className="max-w-md">
+                    <ActivityDatePicker
+                      label="กำหนดฉีดพ่นครั้งถัดไป"
                       value={item.nextSprayDate || ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "nextSprayDate", e.target.value)
+                      onChange={(dateStr) =>
+                        updateItem(item.id, "nextSprayDate", dateStr)
                       }
-                      placeholder="เลือกกำหนดวันฉีดพ่นครั้งถัดไป"
+                      placeholder="เลือกกำหนดวันฉีดพ่นครั้งถัดไป..."
                       disabled={readonly}
                     />
                   </div>
@@ -1583,19 +1638,17 @@ export function Type7bUnplannedForm({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-700">
-                          วันปิดแปลง / วันเก็บเกี่ยว
-                        </label>
-                        <ActivityInput
-                          type="date"
+                        <ActivityDatePicker
+                          label="วันปิดแปลง / วันเก็บเกี่ยว"
                           value={item.finalHarvestDate || ""}
-                          onChange={(e) =>
+                          onChange={(dateStr) =>
                             updateItem(
                               item.id,
                               "finalHarvestDate",
-                              e.target.value,
+                              dateStr,
                             )
                           }
+                          placeholder="เลือกวันปิดแปลง / วันเก็บเกี่ยว..."
                           disabled={readonly}
                         />
                       </div>

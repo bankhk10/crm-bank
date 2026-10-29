@@ -4,7 +4,7 @@
 > **Standard Reference**: ออกแบบตามแนวทาง Vertical Slice Architecture อิงตามแม่แบบ Gold Standard Type 1
 > **Parent Module**: `modules/activity`
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlanType7bTarget`, `ActivityPlanType7bProduct`, `ActivityResultType7b`, `ActivityResultType7bSprayRound`, `ActivityResultType7bSprayProduct`, `ActivityResultType7bSprayExternal`, `ActivityAttachment`)
-> **Status**: Production Ready / Active Reference (v3.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Linkage to Type 7A Targets)
+> **Status**: Production Ready / Active Reference (v3.1.0 — Updated 2026-10-29 Plan-based Combobox, ActivityDatePicker & Robust Hydration Pipeline)
 
 ---
 
@@ -105,6 +105,27 @@ graph TD
     M --> N{"สถานะเป็น COMPLETED หรือ CANCELLED?"}
     N -->|"ใช่ (ปิดแปลง)"| O["อัปเดต status และ closedDate บน ActivityPlanType7aTarget"]
     N -->|"ไม่ใช่"| P["เสร็จสิ้นการบันทึกผล"]
+```
+
+### 2.3 Unplanned (ติดตามแปลงสาธิตนอกแผน 2-in-1)
+
+```mermaid
+graph TD
+    A["ผู้ใช้เลือกสร้างกิจกรรมนอกแผน Type 7B"] --> B["โหลดแผนงานแปลงสาธิตที่มีอยู่ (Type 7A Plans) ผ่าน getFollowUpPlansAction"]
+    B --> C["แสดงฟอร์ม Type7bUnplannedForm"]
+    C --> D["เลือกแผนงานแปลงสาธิตต้นทางจาก Combobox (มีเฉพาะตัวเลือกแผนงาน)"]
+    D --> E["ระบบ Autofill แปลงสาธิต, ชื่อเกษตรกร, ชนิดพืช, พื้นที่, จังหวัด/อำเภอ อัตโนมัติ"]
+    E --> F["เลือก 'วันที่ติดตามจริง' ด้วย ActivityDatePicker"]
+    F --> G["บันทึกผลการฉีดพ่นรอบต่างๆ (Multiple Spraying Rounds)"]
+    G --> G1["ระบุสินค้าที่ใช้หน้างาน (Additional Products) พร้อมปริมาณและอัตราใช้"]
+    G --> G2["เลือกวิธีฉีดพ่น (ฉีดเดี่ยว / ผสมถัง + ยาภายนอก) และอุปกรณ์ฉีดพ่น"]
+    G --> G3["บันทึกผลหลังฉีดพ่น และอัปโหลดภาพถ่ายประจำรอบ"]
+    G --> H["เลือก 'กำหนดฉีดพ่นครั้งถัดไป' ด้วย ActivityDatePicker"]
+    H --> I["เลือกสถานะแปลง (IN_PROGRESS / COMPLETED / CANCELLED)"]
+    I -->|"หากปิดแปลง"| J["กรอกผลผลิตและเลือก 'วันปิดแปลง / วันเก็บเกี่ยว' ด้วย ActivityDatePicker"]
+    I -->|"ติดตามต่อ"| K["กดบันทึกกิจกรรมนอกแผน"]
+    J --> K
+    K --> L["บันทึกแผนงานและผลลัพธ์จริงลง DB พร้อมกัน (COMPLETED ทันที)"]
 ```
 
 ---
@@ -307,3 +328,4 @@ model ActivityResultType7b {
 | **2026-10-24** | 2.0.0    | อัปเกรดระบบบันทึกผลงานจริงสู่ Multiple Spraying Rounds Architecture สมบูรณ์แบบ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Antigravity AI |
 | **2026-10-24** | 2.1.0    | ปรับปรุงระบบ Hydration ข้อมูลผลงานจริง                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Antigravity AI |
 | **2026-10-27** | 3.0.0    | **ยกเลิกตารางเก่า (`demo_plots`, `demo_plot_visits`) สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับ `ActivityPlanType7bTarget` ให้เชื่อมโยงโดยตรงกับแปลงแม่ `ActivityPlanType7aTarget` ผ่าน `type7aTargetId`<br>2. รองรับ Advance Monthly Planning: อนุญาตให้สร้างแผนงาน Type 7B ติดตามแปลงล่วงหน้าได้ทันทีที่มีแผน Type 7A โดยไม่ต้องรอผลงานจริงของ 7A<br>3. เมื่อปิดแปลง (`COMPLETED` หรือ `CANCELLED`) อัปเดต `status` และ `closedDate` กลับไปยัง `activity_type_7a_targets` โดยตรง<br>4. อัปเดต Data Flow, CRUD Matrix, Field Mapping และ Prisma Schema ครบถ้วน | Antigravity AI |
+| **2026-10-29** | 3.1.0    | **ปรับปรุง Type7bUnplannedForm และกระบวนการ Read/Hydration ขากลับ:**<br>1. ปรับช่อง "เลือกแปลงสาธิตที่มีอยู่ในระบบ" ให้มีตัวเลือกเฉพาะแผนงาน (Plan Options Only) และแสดง Sublabel สรุปแปลงสาธิต พร้อม Autofill ข้อมูลแปลงสาธิตอัตโนมัติ<br>2. นำ `ActivityDatePicker` มาแทน Native Date Input สำหรับวันที่ติดตามจริง (`visitDate`), กำหนดฉีดพ่นครั้งถัดไป (`nextSprayDate`) และวันปิดแปลง (`finalHarvestDate`)<br>3. เสริมความสมบูรณ์ของ `unplanned-mapper.ts` และ `useType7bUnplannedForm` ให้ Hydrate ข้อมูลจาก DB (`type7bResults`, `sprayRounds`, `finalHarvestDate`, `sourceActivityPlanId`) ครบถ้วน 100% ทั้งในโหมดสร้างและแก้ไข | Antigravity AI |

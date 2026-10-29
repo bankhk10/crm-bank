@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type {
   Type7bUnplannedItem,
   Type7bUnplannedValidationResult,
@@ -101,6 +101,50 @@ export function useType7bUnplannedForm(
     }
     return [createDefaultType7bUnplannedItem(Date.now().toString())];
   });
+
+  const isHydratedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !isHydratedRef.current &&
+      options.initialItems &&
+      options.initialItems.length > 0
+    ) {
+      const hasRealData = options.initialItems.some(
+        (it) =>
+          Boolean(it.plotName) ||
+          Boolean(it.farmerName) ||
+          Boolean(it.demoPlotId) ||
+          Boolean(it.sourceActivityPlanId) ||
+          Boolean(it.cropName) ||
+          (it.sprayingRounds && it.sprayingRounds.length > 0) ||
+          (it.cropImages && it.cropImages.length > 0),
+      );
+      if (hasRealData) {
+        setItems(
+          options.initialItems.map((item) => {
+            const itemRounds =
+              Array.isArray(item.sprayingRounds) &&
+              item.sprayingRounds.length > 0
+                ? item.sprayingRounds.map((r) => ({
+                    ...r,
+                    baselineProducts: [],
+                  }))
+                : [createDefaultSprayRound(1, item.visitDate)];
+            return {
+              ...item,
+              visitDate:
+                item.visitDate || new Date().toISOString().split("T")[0],
+              daysAfterSpray: item.daysAfterSpray ?? 0,
+              cropImages: item.cropImages || item.photos || [],
+              sprayingRounds: itemRounds,
+              plotStatus: item.plotStatus || "IN_PROGRESS",
+            };
+          }),
+        );
+        isHydratedRef.current = true;
+      }
+    }
+  }, [options.initialItems]);
 
   const addItem = () => {
     const newItem = createDefaultType7bUnplannedItem(Date.now().toString());

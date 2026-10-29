@@ -311,6 +311,10 @@ export function UnplannedActivityForm({
 
     // 5.7 Type 7B
     if (
+      (Array.isArray(initialData.type7bTargets) &&
+        initialData.type7bTargets.length > 0) ||
+      (Array.isArray(initialData.type7bResults) &&
+        initialData.type7bResults.length > 0) ||
       (Array.isArray(initialData.type7bPlots) &&
         initialData.type7bPlots.length > 0) ||
       (Array.isArray(initialData.type7bUnplannedItems) &&
@@ -319,7 +323,13 @@ export function UnplannedActivityForm({
       (initialData.type7bData &&
         Object.keys(initialData.type7bData).length > 0) ||
       (Array.isArray(initialData.stores) &&
-        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B"))
+        initialData.stores.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
+      (Array.isArray(initialData.workTypes) &&
+        initialData.workTypes.some(
+          (wt: any) =>
+            wt.workType?.code === "TYPE_7B" ||
+            wt.activityType?.code === "TYPE_7B",
+        ))
     ) {
       return [WORK_TYPE_CONFIG.TYPE_7B?.name || "ติดตามแปลงสาธิต"];
     }

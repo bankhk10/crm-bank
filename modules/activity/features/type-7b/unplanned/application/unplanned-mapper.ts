@@ -34,22 +34,61 @@ export function hydrateType7bUnplannedData(
     }));
   }
 
+  const dedicatedResult =
+    initialData.type7bResults?.[0] ||
+    initialData.activityPlan?.type7bResults?.[0] ||
+    initialData.plan?.type7bResults?.[0] ||
+    initialData.results?.[0];
+
   const t7b =
     initialData.type7bTargets && initialData.type7bTargets.length > 0
       ? {
+          sourceActivityPlanId:
+            initialData.type7bTargets[0].sourceActivityPlanId ||
+            initialData.type7bTargets[0].sourceActivityPlan?.id ||
+            null,
           plots: initialData.type7bTargets,
           products: initialData.type7bProducts || [],
         }
       : initialData.type7b || initialData.type7bData;
-  if (!t7b) return [];
 
-  const rawPlots: any[] = t7b.plots || [];
-  const rawProducts: any[] = t7b.products || [];
+  const rawPlots: any[] = t7b?.plots || [];
+  const rawProducts: any[] = t7b?.products || [];
 
   const actualOutcome =
     initialData.actualOutcome || initialData.actualData || {};
   const t7bActual =
     actualOutcome.type7bActual || actualOutcome.type7b || actualOutcome;
+
+  const mergedActual: any = {
+    ...(dedicatedResult
+      ? {
+          t7PlotStatus: dedicatedResult.plotStatus,
+          t7VisitDate: dedicatedResult.visitDate
+            ? new Date(dedicatedResult.visitDate).toISOString().split("T")[0]
+            : undefined,
+          t7DaysAfterSpray: dedicatedResult.daysSinceStart,
+          t7CropCondition: dedicatedResult.cropCondition,
+          t7GrowthStage: dedicatedResult.growthStage,
+          t7CropProblemDescription: dedicatedResult.cropProblemDesc,
+          t7ProductResponse: dedicatedResult.productResponse,
+          t7ProblemDescription: dedicatedResult.productProblemDesc,
+          t7NextSprayDate: dedicatedResult.nextSprayDate
+            ? new Date(dedicatedResult.nextSprayDate).toISOString().split("T")[0]
+            : undefined,
+          t7FinalHarvestDate: dedicatedResult.finalHarvestDate
+            ? new Date(dedicatedResult.finalHarvestDate).toISOString().split("T")[0]
+            : undefined,
+          t7FinalYieldKg: dedicatedResult.demoYieldKg,
+          t7ControlYieldKg: dedicatedResult.controlYieldKg,
+          t7FarmerSatisfaction: dedicatedResult.farmerSatisfaction,
+          t7CommercialPotential: dedicatedResult.commercialPotential,
+          t7FinalSummaryNotes: dedicatedResult.finalSummaryNotes,
+          t7Notes: dedicatedResult.notes,
+        }
+      : {}),
+    ...t7bActual,
+  };
 
   const withdrawn: Type7bWithdrawnProductLine[] = rawProducts.map((p, idx) => ({
     id: p.id || String(idx + 1),
@@ -73,8 +112,9 @@ export function hydrateType7bUnplannedData(
     }),
   );
 
-  // Restore spray rounds from actual outcome if available
+  // Restore spray rounds from actual outcome or dedicatedResult if available
   let restoredRounds: Type7bSprayRoundState[] = [];
+  const dedicatedRounds = dedicatedResult?.sprayRounds;
   if (
     Array.isArray(t7bActual.t7SprayingRounds) &&
     t7bActual.t7SprayingRounds.length > 0
@@ -87,6 +127,48 @@ export function hydrateType7bUnplannedData(
         r.additionalProducts && r.additionalProducts.length > 0
           ? r.additionalProducts
           : r.baselineProducts || [],
+    }));
+  } else if (
+    Array.isArray(dedicatedRounds) &&
+    dedicatedRounds.length > 0
+  ) {
+    restoredRounds = dedicatedRounds.map((sr: any, idx: number) => ({
+      id: sr.id || `round-${idx + 1}`,
+      roundNumber: sr.roundNumber || idx + 1,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      sprayMethod: sr.sprayMethod || "SINGLE",
+      sprayEquipment: sr.sprayEquipment || "เป้สะพายหลัง",
+      otherEquipment: sr.otherEquipment || "",
+      productResponse: sr.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      problemDetail: sr.problemDetail || "",
+      hasExternalChemicals: Boolean(
+        sr.hasExternalChemicals ||
+        (sr.sprayExternals && sr.sprayExternals.length > 0),
+      ),
+      externalProducts: (sr.sprayExternals || []).map((ext: any) => ({
+        id: ext.id,
+        company: ext.company || "",
+        productName: ext.productName || "",
+        activeIngredient: ext.activeIngredient || "",
+        formula: ext.formula || "SL",
+        customFormula: ext.customFormula || "",
+        applicationRate: ext.applicationRate || "",
+      })),
+      baselineProducts: [],
+      additionalProducts: (sr.sprayProducts || []).map((p: any) => ({
+        id: p.id || `prod-${Math.random().toString(36).substring(2, 7)}`,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        actualQuantity: p.quantityUsed || p.actualQuantity || 1,
+        quantityUsed: p.quantityUsed || p.actualQuantity || 1,
+        extraQuantity: p.extraQuantity || "",
+        extraUnit: p.extraUnit || "ซีซี",
+        applicationRate: p.actualRate || p.applicationRate || "",
+        unit: p.unit || "ขวด",
+      })),
+      roundImages: [],
     }));
   } else if (
     Array.isArray(initialData.sprayRounds) &&
@@ -141,21 +223,25 @@ export function hydrateType7bUnplannedData(
   }
 
   const visitDate =
-    t7bActual.t7VisitDate ||
+    mergedActual.t7VisitDate ||
     (initialData.startDate
       ? new Date(initialData.startDate).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0]);
 
   const daysAfterSpray =
-    t7bActual.t7DaysAfterSpray != null ? Number(t7bActual.t7DaysAfterSpray) : 0;
+    mergedActual.t7DaysAfterSpray != null ? Number(mergedActual.t7DaysAfterSpray) : 0;
 
-  const cropImages = t7bActual.t7CropImages || actualOutcome.attachments || [];
+  const cropImages = mergedActual.t7CropImages || actualOutcome.attachments || [];
 
   if (rawPlots.length > 0) {
     return rawPlots.map((plot, idx) => ({
       id: plot.id || String(idx + 1),
-      demoPlotId: plot.demoPlotId || null,
-      sourceActivityPlanId: t7b.sourceActivityPlanId || null,
+      demoPlotId: plot.type7aTargetId || plot.demoPlotId || null,
+      sourceActivityPlanId:
+        plot.sourceActivityPlanId ||
+        t7b?.sourceActivityPlanId ||
+        plot.sourceActivityPlan?.id ||
+        null,
       plotName: plot.plotName || plot.name || "",
       farmerName: plot.ownerName || plot.farmerName || "",
       province: plot.province || "",
@@ -168,25 +254,89 @@ export function hydrateType7bUnplannedData(
       visitDate,
       daysAfterSpray,
       cropImages,
-      sprayingRounds: restoredRounds,
-      nextSprayDate: t7bActual.t7NextSprayDate || "",
-      notes: t7bActual.t7Notes || t7b.notes || "",
-      plotStatus: t7bActual.t7PlotStatus || "IN_PROGRESS",
-      finalYieldKg: t7bActual.t7FinalYieldKg || "",
-      controlYieldKg: t7bActual.t7ControlYieldKg || "",
-      farmerSatisfaction: t7bActual.t7FarmerSatisfaction
-        ? Number(t7bActual.t7FarmerSatisfaction)
-        : undefined,
-      commercialPotential: t7bActual.t7CommercialPotential || "",
-      finalSummaryNotes: t7bActual.t7FinalSummaryNotes || "",
-      cropCondition: t7bActual.t7CropCondition || "สมบูรณ์",
-      growthStage: t7bActual.t7GrowthStage || "",
+      sprayingRounds:
+        Array.isArray(mergedActual.t7SprayingRounds) &&
+        mergedActual.t7SprayingRounds.length > 0
+          ? mergedActual.t7SprayingRounds
+          : restoredRounds,
+      nextSprayDate: mergedActual.t7NextSprayDate || "",
+      notes: mergedActual.t7Notes || t7b?.notes || "",
+      plotStatus: mergedActual.t7PlotStatus || "IN_PROGRESS",
+      finalYieldKg:
+        mergedActual.t7FinalYieldKg != null
+          ? String(mergedActual.t7FinalYieldKg)
+          : "",
+      controlYieldKg:
+        mergedActual.t7ControlYieldKg != null
+          ? String(mergedActual.t7ControlYieldKg)
+          : "",
+      farmerSatisfaction:
+        mergedActual.t7FarmerSatisfaction != null
+          ? Number(mergedActual.t7FarmerSatisfaction)
+          : undefined,
+      commercialPotential: mergedActual.t7CommercialPotential || "",
+      finalSummaryNotes: mergedActual.t7FinalSummaryNotes || "",
+      finalHarvestDate: mergedActual.t7FinalHarvestDate || "",
+      cropCondition: mergedActual.t7CropCondition || "สมบูรณ์",
+      growthStage: mergedActual.t7GrowthStage || "",
       productResponse:
-        t7bActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+        mergedActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
       hasProductWithdrawal: withdrawn.length > 0,
       withdrawnProducts: withdrawn,
       photos: cropImages,
     }));
+  }
+
+  if (dedicatedResult || initialData.actualOutcome) {
+    return [
+      {
+        id: "item-1",
+        demoPlotId: dedicatedResult?.type7aTargetId || null,
+        sourceActivityPlanId: null,
+        plotName: initialData.title || "แปลงสาธิตติดตาม",
+        farmerName: "",
+        province: "",
+        district: "",
+        cropCategory: "",
+        cropName: "",
+        areaRai: null,
+        treeCount: null,
+        dealerName: "",
+        visitDate,
+        daysAfterSpray,
+        cropImages,
+        sprayingRounds:
+          Array.isArray(mergedActual.t7SprayingRounds) &&
+          mergedActual.t7SprayingRounds.length > 0
+            ? mergedActual.t7SprayingRounds
+            : restoredRounds,
+        nextSprayDate: mergedActual.t7NextSprayDate || "",
+        notes: mergedActual.t7Notes || "",
+        plotStatus: mergedActual.t7PlotStatus || "IN_PROGRESS",
+        finalYieldKg:
+          mergedActual.t7FinalYieldKg != null
+            ? String(mergedActual.t7FinalYieldKg)
+            : "",
+        controlYieldKg:
+          mergedActual.t7ControlYieldKg != null
+            ? String(mergedActual.t7ControlYieldKg)
+            : "",
+        farmerSatisfaction:
+          mergedActual.t7FarmerSatisfaction != null
+            ? Number(mergedActual.t7FarmerSatisfaction)
+            : undefined,
+        commercialPotential: mergedActual.t7CommercialPotential || "",
+        finalSummaryNotes: mergedActual.t7FinalSummaryNotes || "",
+        finalHarvestDate: mergedActual.t7FinalHarvestDate || "",
+        cropCondition: mergedActual.t7CropCondition || "สมบูรณ์",
+        growthStage: mergedActual.t7GrowthStage || "",
+        productResponse:
+          mergedActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+        hasProductWithdrawal: withdrawn.length > 0,
+        withdrawnProducts: withdrawn,
+        photos: cropImages,
+      },
+    ];
   }
 
   return [];
@@ -212,6 +362,8 @@ export function mapType7bUnplannedToPayload(
 
   const plots = items.map((item) => ({
     demoPlotId: item.demoPlotId || null,
+    type7aTargetId: item.demoPlotId || null,
+    sourceActivityPlanId: item.sourceActivityPlanId || null,
     plotName: item.plotName || "แปลงสาธิตติดตาม",
     farmerName: item.farmerName || null,
     ownerName: item.farmerName || null,
@@ -303,6 +455,7 @@ export function mapType7bUnplannedToPayload(
 
   const type7bData = {
     sourceActivityPlanId: firstItem.sourceActivityPlanId || null,
+    type7aTargetId: firstItem.demoPlotId || null,
     demoPlotId: firstItem.demoPlotId || allPlotIds[0] || null,
     notes: firstItem.notes || firstItem.objective || null,
     objective: firstItem.objective || firstItem.notes || null,
@@ -410,6 +563,7 @@ export function mapType7bUnplannedToPayload(
           : null,
       t7CommercialPotential: firstItem.commercialPotential || null,
       t7FinalSummaryNotes: firstItem.finalSummaryNotes || null,
+      t7FinalHarvestDate: firstItem.finalHarvestDate || null,
       t7CropCondition: firstItem.cropCondition || "สมบูรณ์",
       t7GrowthStage: firstItem.growthStage || "-",
       t7ProductResponse:
