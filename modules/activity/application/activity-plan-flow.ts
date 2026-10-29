@@ -11,6 +11,7 @@ import {
   syncActivityPlanToCalendarUseCase,
   cancelActivityPlanCalendarUseCase,
 } from "../infrastructure/calendar-integration";
+import { isTourActivityPlan } from "../domain/approval";
 
 // ────────────────────────────────────────────────────────
 // Notification Helper Functions (Transaction Safe)
@@ -517,8 +518,10 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
     !hasSalesPromotion || plan.salesPromotionApproved === true;
   const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
 
+  const isTour = isTourActivityPlan(plan);
+
   if (
-    (hasSalesPromotion || hasMarketing) &&
+    (hasSalesPromotion || hasMarketing || isTour) &&
     requiredSalesPromotionOk &&
     requiredMarketingOk &&
     plan.salesManagerApproved !== true
@@ -527,8 +530,8 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
     for (const dir of directors) {
       await sendNotificationHelper(
         dir.userId,
-        "มีงบประมาณกิจกรรมรวมรออนุมัติ",
-        `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติงบประมาณรวมจากคุณในฐานะผู้จัดการฝ่ายขาย`,
+        isTour ? "มีแผนงานทัวร์ (Type 12) รอการอนุมัติ" : "มีงบประมาณกิจกรรมรวมรออนุมัติ",
+        isTour ? `แผนกิจกรรมทัวร์ "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รอการอนุมัติจากคุณในฐานะผู้จัดการฝ่ายขาย-กิจกรรม` : `แผนกิจกรรม "${plan.title}" โดย ${plan.employee?.name || "พนักงาน"} รออนุมัติงบประมาณรวมจากคุณในฐานะผู้จัดการฝ่ายขาย`,
         "INFO",
         `/activity-plans/${plan.id}`,
         tx,
@@ -929,7 +932,10 @@ export async function approveActivityPlanUseCase(
     const canApproveMKT =
       isAdmin || permissions.has("activity.approve.mkt_budget");
     const canApproveDirector =
-      isAdmin || permissions.has("activity.approve.total_budget");
+      isAdmin ||
+      permissions.has("activity.approve.total_budget") ||
+      Boolean(approverEmployee && isSalesDirector(approverEmployee));
+    const isTour = isTourActivityPlan(plan);
     const canApproveSalesHelper =
       isAdmin || permissions.has("activity.approve.sales_helper");
     const canApproveMKTHelper =
@@ -1087,7 +1093,7 @@ export async function approveActivityPlanUseCase(
       !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
 
     if (
-      (hasSP || hasMKT) &&
+      (hasSP || hasMKT || isTour) &&
       effectiveSPApproved &&
       effectiveMKTApproved &&
       plan.salesManagerApproved !== true &&
@@ -1219,7 +1225,13 @@ export async function approveActivityPlanUseCase(
         );
       }
       if (didApproveDirectorBudget) {
-        budgetNotes.push("อนุมัติงบประมาณในภาพรวมทั้งหมด");
+        if (isTour && !hasSP && !hasMKT) {
+          budgetNotes.push("อนุมัติแผนงานทัวร์ (Type 12) โดยผู้จัดการฝ่ายขาย-กิจกรรม");
+        } else if (isTour) {
+          budgetNotes.push("อนุมัติแผนงานทัวร์และงบประมาณภาพรวมทั้งหมด");
+        } else {
+          budgetNotes.push("อนุมัติงบประมาณในภาพรวมทั้งหมด");
+        }
       }
 
       await tx.activityApprovalLog.create({
@@ -1280,8 +1292,9 @@ export async function approveActivityPlanUseCase(
     const isSPDone = !hasSP || newSPApproved === true;
     const isMKTDone = !hasMKT || newMKTApproved === true;
     const isStage1BudgetDone = isSPDone && isMKTDone;
-    const isDirectorBudgetDone =
-      (!hasSP && !hasMKT) || newDirectorApproved === true;
+    const isDirectorBudgetDone = isTour
+      ? newDirectorApproved === true
+      : (!hasSP && !hasMKT) || newDirectorApproved === true;
     const isAllBudgetFinished = isStage1BudgetDone && isDirectorBudgetDone;
 
     const spApprovedAmount =
@@ -2202,8 +2215,9 @@ async function initiateBudgetApproval(
 ) {
   const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
   const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
+  const isTour = isTourActivityPlan(plan);
 
-  if (hasSalesPromotion || hasMarketing) {
+  if (hasSalesPromotion || hasMarketing || isTour) {
     const updatedPlan = await tx.activityPlan.update({
       where: { id: plan.id },
       data: {
@@ -2211,7 +2225,7 @@ async function initiateBudgetApproval(
         currentApproverEmployeeId: null,
         salesPromotionApproved: hasSalesPromotion ? false : null,
         marketingApproved: hasMarketing ? false : null,
-        salesManagerApproved: hasSalesPromotion || hasMarketing ? false : null,
+        salesManagerApproved: hasSalesPromotion || hasMarketing || isTour ? false : null,
       },
       include: { employee: true },
     });
@@ -2222,7 +2236,7 @@ async function initiateBudgetApproval(
         userId,
         action: ActivityApprovalAction.SUBMIT,
         step: ActivityApprovalStep.BUDGET_APPROVAL,
-        comment: logComment || "เริ่มต้นการตรวจสอบงบประมาณประจำกิจกรรม",
+        comment: isTour && !hasSalesPromotion && !hasMarketing ? "ส่งแผนงานทัวร์ (Type 12) เพื่อขออนุมัติจากผู้จัดการฝ่ายขาย-กิจกรรม" : logComment || "เริ่มต้นการตรวจสอบงบประมาณประจำกิจกรรม",
       },
     });
 

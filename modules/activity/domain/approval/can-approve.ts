@@ -8,6 +8,8 @@
  * to maintain strict Next.js client/server boundary compatibility.
  */
 
+import { getWorkTypeCode } from "../../constants";
+
 export interface ApproverUserContext {
   id?: string;
   name?: string | null;
@@ -82,12 +84,41 @@ export function isUserMarketingManager(user?: ApproverUserContext | null): boole
 export function isUserSalesDirector(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
   const pos = (user.positionTitle || "").toLowerCase();
+  const roles = user.roles || (user.role ? [user.role] : []);
 
   return (
+    roles.includes("activity_sales_director") ||
+    roles.includes("sales_director") ||
+    roles.includes("ผู้จัดการฝ่ายขาย-กิจกรรม") ||
     pos.includes("ผู้จัดการฝ่ายขาย") ||
     pos.includes("ผจก.ฝ่ายขาย") ||
     pos.includes("sales director")
   );
+}
+
+/**
+ * Check if an Activity Plan involves a Tour (Type 12)
+ */
+export function isTourActivityPlan(plan?: any): boolean {
+  if (!plan) return false;
+  if (Array.isArray(plan.workTypes) && plan.workTypes.length > 0) {
+    if (plan.workTypes.some((wt: any) => getWorkTypeCode(wt) === "TYPE_12")) {
+      return true;
+    }
+  }
+  if (plan.activityType && getWorkTypeCode(plan.activityType) === "TYPE_12") {
+    return true;
+  }
+  if (plan.activityTypeCode === "TYPE_12" || plan.workTypeCode === "TYPE_12") {
+    return true;
+  }
+  if (Array.isArray(plan.type12Targets) && plan.type12Targets.length > 0) {
+    return true;
+  }
+  if (Boolean(plan.tour)) {
+    return true;
+  }
+  return false;
 }
 
 // ────────────────────────────────────────────────────────
@@ -338,14 +369,16 @@ export function canUserPerformApproval(
     const requiredMarketingOk =
       !hasMarketing || plan.marketingApproved === true;
 
+    const isTour = isTourActivityPlan(plan);
+
     const directorPending =
-      (hasSalesPromotion || hasMarketing) &&
+      (hasSalesPromotion || hasMarketing || isTour) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
       plan.salesManagerApproved !== true;
 
     // Stage 2: Final Budget Approval (Sales Director / Total Budget Approver)
-    if (directorPending && canUserApproveTotalBudget(user)) {
+    if (directorPending && (canUserApproveTotalBudget(user) || isUserSalesDirector(user))) {
       return true;
     }
 
@@ -556,18 +589,35 @@ export function getPlanActionScopes(
     const salesHelpers = unreviewedHelpers.filter(isSalesHelperEmployee);
     const mktHelpers = unreviewedHelpers.filter(isMarketingHelperEmployee);
 
+    const isTour = isTourActivityPlan(plan);
+
     const stage1Complete =
       (sp === 0 || plan.salesPromotionApproved === true) &&
       (mkt === 0 || plan.marketingApproved === true);
 
-    const directorTurn = (sp > 0 || mkt > 0) && stage1Complete && plan.salesManagerApproved !== true;
+    const directorTurn = (sp > 0 || mkt > 0 || isTour) && stage1Complete && plan.salesManagerApproved !== true;
+    const canApproveTotal = canUserApproveTotalBudget(user) || isUserSalesDirector(user);
 
-    if (canUserApproveTotalBudget(user) && directorTurn) {
-      badges.push({
-        id: "total_budget",
-        label: `งบประมาณรวม ${total.toLocaleString()} บาท`,
-        variant: "total_budget",
-      });
+    if (canApproveTotal && directorTurn) {
+      if (isTour && total === 0) {
+        badges.push({
+          id: "tour_director_approval",
+          label: "อนุมัติแผนงานทัวร์ (ผู้จัดการฝ่ายขาย)",
+          variant: "total_budget",
+        });
+      } else if (isTour) {
+        badges.push({
+          id: "tour_total_budget",
+          label: `อนุมัติทัวร์ & งบประมาณรวม ${total.toLocaleString()} บาท`,
+          variant: "total_budget",
+        });
+      } else {
+        badges.push({
+          id: "total_budget",
+          label: `งบประมาณรวม ${total.toLocaleString()} บาท`,
+          variant: "total_budget",
+        });
+      }
     }
 
     if (canUserApproveSPBudget(user) && sp > 0 && plan.salesPromotionApproved !== true) {

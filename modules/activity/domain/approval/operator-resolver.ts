@@ -4,6 +4,8 @@
  * Follows Step-by-Step Domain Decomposition.
  */
 
+import { isTourActivityPlan } from "./can-approve";
+
 export interface ApproverDirectoryContext {
   salesAdminEmployees: string[];
   marketingEmployees: string[];
@@ -235,6 +237,7 @@ export function resolveBudgetApprover(
 ): CurrentOperatorInfo {
   const hasSalesPromotion = Number(plan.salesPromotionBudgetRequested || 0) > 0;
   const hasMarketing = Number(plan.marketingBudgetRequested || 0) > 0;
+  const isTour = isTourActivityPlan(plan);
 
   const spPending = hasSalesPromotion && plan.salesPromotionApproved !== true;
   const mktPending = hasMarketing && plan.marketingApproved !== true;
@@ -244,20 +247,26 @@ export function resolveBudgetApprover(
   const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
 
   const directorPending =
-    (hasSalesPromotion || hasMarketing) &&
+    (hasSalesPromotion || hasMarketing || isTour) &&
     requiredSalesPromotionOk &&
     requiredMarketingOk &&
     plan.salesManagerApproved !== true;
 
-  if (directorPending) {
+  if (directorPending && (!spPending && !mktPending)) {
     const dirNames = approverDirectory?.salesDirectorEmployees || [];
     const opName = dirNames.length > 0 ? dirNames.join(", ") : null;
     return {
       roleName: "Sales Director",
-      roleTitleTh: "ผู้จัดการฝ่ายขาย (อนุมัติงบรวม)",
+      roleTitleTh: isTour && !hasSalesPromotion && !hasMarketing
+        ? "ผู้จัดการฝ่ายขาย-กิจกรรม (อนุมัติทัวร์)"
+        : isTour
+          ? "ผู้จัดการฝ่ายขาย-กิจกรรม (อนุมัติทัวร์ & งบรวม)"
+          : "ผู้จัดการฝ่ายขาย (อนุมัติงบรวม)",
       displayRole: "Sales Director",
       operatorName: precomputedName || opName || "Sales Director",
-      stepDescription: "อนุมัติงบประมาณภาพรวมทั้งหมด",
+      stepDescription: isTour && !hasSalesPromotion && !hasMarketing
+        ? "อนุมัติแผนงานทัวร์ (Type 12)"
+        : "อนุมัติงบประมาณภาพรวมทั้งหมด",
     };
   }
 

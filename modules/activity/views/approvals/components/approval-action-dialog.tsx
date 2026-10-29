@@ -27,6 +27,7 @@ import {
   Info,
 } from "lucide-react";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
+import { isTourActivityPlan, isUserSalesDirector } from "@/modules/activity/domain/approval";
 import {
   approveActivityPlanAction,
   rejectActivityPlanAction,
@@ -256,6 +257,12 @@ export function ApprovalActionDialog({
     plan.marketingApproved !== true &&
     canApproveMKT;
 
+  const isTour = isTourActivityPlan(plan);
+  const isTourPending =
+    isTour &&
+    plan.salesManagerApproved !== true &&
+    (canApproveDirector || isUserSalesDirector(session?.user as any));
+
   const isDirectorPending =
     canApproveDirector &&
     (Number(plan.salesPromotionBudgetRequested || 0) === 0 ||
@@ -335,6 +342,11 @@ export function ApprovalActionDialog({
                       {Number(plan.totalBudgetRequested || 0).toLocaleString()}{" "}
                       บาท
                     </strong>
+                  </li>
+                )}
+                {isTourPending && (
+                  <li>
+                    <strong>อนุมัติแผนงานทัวร์ (Type 12) โดยผู้จัดการฝ่ายขาย-กิจกรรม</strong>
                   </li>
                 )}
                 {helpersInScope.length > 0 && (
