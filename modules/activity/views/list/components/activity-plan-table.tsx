@@ -987,7 +987,8 @@ export function ActivityPlanTable({
           scopeCounts.team > 0 &&
           onScopeChange && (
             <div className="flex justify-center -mt-4 pb-4">
-              <Button
+              {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onScopeChange("TEAM")}
@@ -995,7 +996,7 @@ export function ActivityPlanTable({
               >
                 <Users className="w-4 h-4" />
                 สลับไปดูแผนงานของลูกทีม / ทีมงาน ({scopeCounts.team} รายการ)
-              </Button>
+              </Button> */}
             </div>
           )}
       </div>
