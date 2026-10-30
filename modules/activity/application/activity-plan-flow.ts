@@ -521,7 +521,7 @@ async function notifyBudgetApprovers(plan: any, tx: Prisma.TransactionClient) {
   const isTour = isTourActivityPlan(plan);
 
   if (
-    (hasSalesPromotion || hasMarketing || isTour) &&
+    (hasSalesPromotion || isTour) &&
     requiredSalesPromotionOk &&
     requiredMarketingOk &&
     plan.salesManagerApproved !== true
@@ -1093,7 +1093,7 @@ export async function approveActivityPlanUseCase(
       !hasMKT || plan.marketingApproved === true || didApproveMKTBudget;
 
     if (
-      (hasSP || hasMKT || isTour) &&
+      (hasSP || isTour) &&
       effectiveSPApproved &&
       effectiveMKTApproved &&
       plan.salesManagerApproved !== true &&
@@ -1292,9 +1292,9 @@ export async function approveActivityPlanUseCase(
     const isSPDone = !hasSP || newSPApproved === true;
     const isMKTDone = !hasMKT || newMKTApproved === true;
     const isStage1BudgetDone = isSPDone && isMKTDone;
-    const isDirectorBudgetDone = isTour
+    const isDirectorBudgetDone = (isTour || hasSP)
       ? newDirectorApproved === true
-      : (!hasSP && !hasMKT) || newDirectorApproved === true;
+      : true;
     const isAllBudgetFinished = isStage1BudgetDone && isDirectorBudgetDone;
 
     const spApprovedAmount =
@@ -1669,7 +1669,12 @@ export async function requestCorrectionPlanUseCase(
           plan.marketingBudgetRequested.toNumber() > 0
             ? false
             : null,
-        salesManagerApproved: false,
+        salesManagerApproved:
+          (plan.salesPromotionBudgetRequested &&
+            plan.salesPromotionBudgetRequested.toNumber() > 0) ||
+          isTourActivityPlan(plan)
+            ? false
+            : null,
       },
     });
 
@@ -2225,7 +2230,7 @@ async function initiateBudgetApproval(
         currentApproverEmployeeId: null,
         salesPromotionApproved: hasSalesPromotion ? false : null,
         marketingApproved: hasMarketing ? false : null,
-        salesManagerApproved: hasSalesPromotion || hasMarketing || isTour ? false : null,
+        salesManagerApproved: hasSalesPromotion || isTour ? false : null,
       },
       include: { employee: true },
     });

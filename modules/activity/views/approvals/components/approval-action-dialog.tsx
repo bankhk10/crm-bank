@@ -265,14 +265,14 @@ export function ApprovalActionDialog({
 
   const isDirectorPending =
     canApproveDirector &&
-    (Number(plan.salesPromotionBudgetRequested || 0) === 0 ||
+    (
       plan.salesPromotionApproved === true ||
       hasSP) &&
     (Number(plan.marketingBudgetRequested || 0) === 0 ||
       plan.marketingApproved === true ||
       hasMKT) &&
     plan.salesManagerApproved !== true &&
-    Number(plan.totalBudgetRequested || 0) > 0;
+    Number(plan.salesPromotionBudgetRequested || 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -337,9 +337,9 @@ export function ApprovalActionDialog({
                 )}
                 {isDirectorPending && (
                   <li>
-                    อนุมัติงบประมาณภาพรวมทั้งหมด:{" "}
+                    อนุมัติงบส่งเสริมการขาย (ผู้จัดการฝ่ายขาย):{" "}
                     <strong>
-                      {Number(plan.totalBudgetRequested || 0).toLocaleString()}{" "}
+                      {Number(plan.salesPromotionBudgetRequested || 0).toLocaleString()}{" "}
                       บาท
                     </strong>
                   </li>

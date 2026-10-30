@@ -248,7 +248,7 @@ export function resolveBudgetApprover(
   const requiredMarketingOk = !hasMarketing || plan.marketingApproved === true;
 
   const directorPending =
-    (hasSalesPromotion || hasMarketing || isTour) &&
+    (hasSalesPromotion || isTour) &&
     requiredSalesPromotionOk &&
     requiredMarketingOk &&
     plan.salesManagerApproved !== true;
@@ -258,16 +258,16 @@ export function resolveBudgetApprover(
     const opName = dirNames.length > 0 ? dirNames.join(", ") : null;
     return {
       roleName: "Sales Director",
-      roleTitleTh: isTour && !hasSalesPromotion && !hasMarketing
+      roleTitleTh: isTour && !hasSalesPromotion
         ? "ผู้จัดการฝ่ายขาย-กิจกรรม (อนุมัติทัวร์)"
         : isTour
-          ? "ผู้จัดการฝ่ายขาย-กิจกรรม (อนุมัติทัวร์ & งบรวม)"
-          : "ผู้จัดการฝ่ายขาย (อนุมัติงบรวม)",
+          ? "ผู้จัดการฝ่ายขาย-กิจกรรม (อนุมัติทัวร์ & งบส่งเสริมการขาย)"
+          : "ผู้จัดการฝ่ายขาย (อนุมัติงบส่งเสริมการขาย)",
       displayRole: "Sales Director",
       operatorName: precomputedName || opName || "Sales Director",
-      stepDescription: isTour && !hasSalesPromotion && !hasMarketing
+      stepDescription: isTour && !hasSalesPromotion
         ? "อนุมัติแผนงานทัวร์ (Type 12)"
-        : "อนุมัติงบประมาณภาพรวมทั้งหมด",
+        : "อนุมัติงบส่งเสริมการขาย",
     };
   }
 

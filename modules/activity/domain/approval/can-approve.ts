@@ -373,7 +373,7 @@ export function canUserPerformApproval(
     const isTour = isTourActivityPlan(plan);
 
     const directorPending =
-      (hasSalesPromotion || hasMarketing || isTour) &&
+      (hasSalesPromotion || isTour) &&
       requiredSalesPromotionOk &&
       requiredMarketingOk &&
       plan.salesManagerApproved !== true;
@@ -596,7 +596,7 @@ export function getPlanActionScopes(
       (sp === 0 || plan.salesPromotionApproved === true) &&
       (mkt === 0 || plan.marketingApproved === true);
 
-    const directorTurn = (sp > 0 || mkt > 0 || isTour) && stage1Complete && plan.salesManagerApproved !== true;
+    const directorTurn = (sp > 0 || isTour) && stage1Complete && plan.salesManagerApproved !== true;
     const canApproveTotal = canUserApproveTotalBudget(user) || isUserSalesDirector(user);
 
     if (canApproveTotal && directorTurn) {
