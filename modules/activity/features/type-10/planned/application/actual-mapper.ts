@@ -147,19 +147,68 @@ export function parseType10ActualResult(
     source.type10Products;
 
   if (Array.isArray(dedicatedProducts) && dedicatedProducts.length > 0) {
-    record.soldProducts = dedicatedProducts.map((p: any) => ({
-      id: p.id,
-      targetId: p.targetId,
-      productId: p.productId || null,
-      productName: p.productName || p.product?.name || "",
-      productCode: p.productCode || p.product?.productCode || null,
-      productRole: p.productRole || "TARGET",
-      quantity: p.targetQuantity != null ? String(p.targetQuantity) : "",
-      actualQty: p.actualQuantity != null ? String(p.actualQuantity) : "",
-      actualSales: p.actualTotal != null ? String(p.actualTotal) : "",
-      unitPrice: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : (p.targetUnitPrice != null ? Number(p.targetUnitPrice) : undefined),
-      remarks: p.actualNotes || null,
-    }));
+    record.soldProducts = dedicatedProducts
+      .filter((p: any) => {
+        if (!p) return false;
+        // กรองสินค้าจัดแสดง (SHOWCASE) ที่ไม่ได้มีการขายหรือสั่งจองจริงออก
+        if (
+          p.productRole === "SHOWCASE" &&
+          p.actualQuantity == null &&
+          p.actualTotal == null &&
+          p.actualQty == null &&
+          p.actualSales == null
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p: any) => {
+        const actualQty =
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? String(p.actualQuantity)
+            : p.actualQty != null && p.actualQty !== ""
+              ? String(p.actualQty)
+              : undefined;
+
+        const targetQty =
+          p.targetQuantity != null && p.targetQuantity !== ""
+            ? String(p.targetQuantity)
+            : p.quantity != null && p.quantity !== ""
+              ? String(p.quantity)
+              : undefined;
+
+        const actualSales =
+          p.actualTotal != null && p.actualTotal !== ""
+            ? String(p.actualTotal)
+            : p.actualSales != null && p.actualSales !== ""
+              ? String(p.actualSales)
+              : undefined;
+
+        const unitPrice =
+          p.actualUnitPrice != null && p.actualUnitPrice !== ""
+            ? Number(p.actualUnitPrice)
+            : p.targetUnitPrice != null && p.targetUnitPrice !== ""
+              ? Number(p.targetUnitPrice)
+              : p.unitPrice != null && p.unitPrice !== ""
+                ? Number(p.unitPrice)
+                : undefined;
+
+        return {
+          id: p.id,
+          targetId: p.targetId,
+          productId: p.productId || null,
+          productName: p.productName || p.product?.name || "",
+          productCode: p.productCode || p.product?.productCode || null,
+          productRole: p.productRole || "TARGET",
+          quantity: targetQty,
+          actualQty,
+          actualQuantity: actualQty,
+          actualSales,
+          actualTotal: actualSales,
+          unitPrice,
+          remarks: p.actualNotes || p.remarks || null,
+        };
+      });
     record.productSalesDetails = record.soldProducts;
   } else {
     // Legacy fallback
@@ -171,17 +220,45 @@ export function parseType10ActualResult(
       [];
 
     if (Array.isArray(rawProducts) && rawProducts.length > 0) {
-      record.soldProducts = rawProducts.map((p: any) => ({
-        id: p.id,
-        productId: p.productId || null,
-        productName: p.productName || p.product?.name || "",
-        productCode: p.productCode || p.product?.productCode || null,
-        quantity: p.actualQuantity != null ? p.actualQuantity : p.quantity ?? "",
-        actualQty: p.actualQuantity != null ? p.actualQuantity : p.actualQty ?? "",
-        actualSales: p.actualAmount != null ? p.actualAmount : p.actualSales ?? "",
-        unitPrice: p.unitPrice != null ? Number(p.unitPrice) : undefined,
-        remarks: p.remarks || null,
-      }));
+      record.soldProducts = rawProducts.map((p: any) => {
+        const actualQty =
+          p.actualQuantity != null && p.actualQuantity !== ""
+            ? String(p.actualQuantity)
+            : p.actualQty != null && p.actualQty !== ""
+              ? String(p.actualQty)
+              : undefined;
+
+        const targetQty =
+          p.quantity != null && p.quantity !== ""
+            ? String(p.quantity)
+            : undefined;
+
+        const actualSales =
+          p.actualAmount != null && p.actualAmount !== ""
+            ? String(p.actualAmount)
+            : p.actualSales != null && p.actualSales !== ""
+              ? String(p.actualSales)
+              : undefined;
+
+        const unitPrice =
+          p.unitPrice != null && p.unitPrice !== ""
+            ? Number(p.unitPrice)
+            : undefined;
+
+        return {
+          id: p.id,
+          productId: p.productId || null,
+          productName: p.productName || p.product?.name || "",
+          productCode: p.productCode || p.product?.productCode || null,
+          quantity: targetQty,
+          actualQty,
+          actualQuantity: actualQty,
+          actualSales,
+          actualTotal: actualSales,
+          unitPrice,
+          remarks: p.remarks || null,
+        };
+      });
       record.productSalesDetails = record.soldProducts;
     }
   }

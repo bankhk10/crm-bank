@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Sprout, ShoppingBag, Users, ThumbsUp, DollarSign, ImageIcon, Eye, Camera, Package } from "lucide-react";
 import {
   ImageLightboxModal,
@@ -66,10 +66,83 @@ export function Type10DetailView({
 
   if (!isVisible) return null;
 
-  const effectiveSoldProducts: Type10SoldProductItem[] =
-    (soldProducts && soldProducts.length > 0
-      ? soldProducts
-      : productSalesDetails) || [];
+    // ปรับการดึงและจัดรูปแบบข้อมูลให้รองรับทั้ง View Model และ Raw Prisma Model (activity_type_10_products)
+  const effectiveSoldProducts = useMemo(() => {
+    const rawList =
+      (soldProducts && soldProducts.length > 0
+        ? soldProducts
+        : productSalesDetails) || [];
+
+    return rawList
+      .filter((prod: any) => {
+        if (!prod) return false;
+        // กรองสินค้าจัดแสดง (SHOWCASE) ที่ไม่ได้มียอดสั่งจองหรือยอดขายจริงออก
+        if (
+          prod.productRole === "SHOWCASE" &&
+          prod.actualQty == null &&
+          prod.actualQuantity == null &&
+          prod.actualSales == null &&
+          prod.actualTotal == null
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((prod: any) => {
+        const productName =
+          prod.productName || prod.product?.name || "สินค้าไม่ระบุชื่อ";
+
+        const rawQty =
+          prod.actualQty != null && prod.actualQty !== ""
+            ? prod.actualQty
+            : prod.actualQuantity != null && prod.actualQuantity !== ""
+              ? prod.actualQuantity
+              : prod.quantity != null && prod.quantity !== ""
+                ? prod.quantity
+                : prod.targetQuantity != null && prod.targetQuantity !== ""
+                  ? prod.targetQuantity
+                  : null;
+
+        const rawUnitPrice =
+          prod.unitPrice != null && prod.unitPrice !== ""
+            ? prod.unitPrice
+            : prod.actualUnitPrice != null && prod.actualUnitPrice !== ""
+              ? prod.actualUnitPrice
+              : prod.targetUnitPrice != null && prod.targetUnitPrice !== ""
+                ? prod.targetUnitPrice
+                : null;
+
+        const rawSales =
+          prod.actualSales != null && prod.actualSales !== ""
+            ? prod.actualSales
+            : prod.actualTotal != null && prod.actualTotal !== ""
+              ? prod.actualTotal
+              : prod.amount != null && prod.amount !== ""
+                ? prod.amount
+                : prod.targetAmount != null && prod.targetAmount !== ""
+                  ? prod.targetAmount
+                  : null;
+
+        return {
+          id: prod.id,
+          productName,
+          displayQty:
+            rawQty != null && rawQty !== ""
+              ? !isNaN(Number(rawQty))
+                ? Number(rawQty).toLocaleString()
+                : String(rawQty)
+              : "-",
+          displayUnitPrice:
+            rawUnitPrice != null && rawUnitPrice !== "" && !isNaN(Number(rawUnitPrice))
+              ? `฿${Number(rawUnitPrice).toLocaleString()}`
+              : "-",
+          displaySales:
+            rawSales != null && rawSales !== "" && !isNaN(Number(rawSales))
+              ? `฿${Number(rawSales).toLocaleString()}`
+              : "-",
+        };
+      });
+  }, [soldProducts, productSalesDetails]);
 
   return (
     <div className="space-y-4">
@@ -158,14 +231,10 @@ export function Type10DetailView({
                     <tr key={prod.id || idx}>
                       <td className="py-2 px-3 text-center text-slate-400">{idx + 1}</td>
                       <td className="py-2 px-3 font-medium text-slate-800">{prod.productName}</td>
-                      <td className="py-2 px-3 text-center">{prod.actualQty ?? prod.quantity ?? "-"}</td>
-                      <td className="py-2 px-3 text-center">
-                        {prod.unitPrice != null ? `฿${Number(prod.unitPrice).toLocaleString()}` : "-"}
-                      </td>
+                      <td className="py-2 px-3 text-center">{prod.displayQty}</td>
+                      <td className="py-2 px-3 text-center">{prod.displayUnitPrice}</td>
                       <td className="py-2 px-3 text-right font-bold text-emerald-700">
-                        {prod.actualSales != null
-                          ? `฿${Number(prod.actualSales).toLocaleString()}`
-                          : "-"}
+                        {prod.displaySales}
                       </td>
                     </tr>
                   ))}
