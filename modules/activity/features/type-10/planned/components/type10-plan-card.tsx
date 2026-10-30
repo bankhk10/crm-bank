@@ -12,11 +12,50 @@ export function Type10PlanCard({
   planType = "PLANNED",
   className,
 }: {
-  target?: Type10PlanTarget;
+  target?: Type10PlanTarget | any;
   planType?: string;
   className?: string;
 }) {
   if (!target) return null;
+
+  const plotTitle =
+    target.plot ||
+    target.plotName ||
+    target.demoPlot?.name ||
+    (target.farmerName ? `แปลง ${target.farmerName}` : "") ||
+    "งาน Field Day";
+
+  const cropTitle =
+    target.crop ||
+    target.cropName ||
+    target.cropCategory ||
+    target.targetCrop ||
+    "";
+
+  const showcaseTitle =
+    target.showcase ||
+    target.showcaseProductName ||
+    target.showcaseProduct?.name ||
+    target.demoPlot?.primaryProductName ||
+    "";
+
+  const locationTitle =
+    target.location ||
+    target.demoPlot?.location ||
+    [target.district, target.province].filter(Boolean).join(", ") ||
+    "";
+
+  const attendeesDisplay =
+    target.targetAttendees ||
+    (target.targetAttendeesCount != null && Number(target.targetAttendeesCount) > 0
+      ? `${Number(target.targetAttendeesCount).toLocaleString()} คน`
+      : "-");
+
+  const salesDisplay =
+    target.targetSales ||
+    (target.targetBookingSales != null && Number(target.targetBookingSales) > 0
+      ? `฿${Number(target.targetBookingSales).toLocaleString()}`
+      : "-");
 
   return (
     <div
@@ -32,11 +71,11 @@ export function Type10PlanCard({
           </div>
           <div>
             <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-              {target.plot || "งาน Field Day"}
+              {plotTitle}
             </h4>
-            {target.crop && (
+            {cropTitle && (
               <p className="text-[11px] text-slate-500 font-medium">
-                พืช: {target.crop}
+                พืช: {cropTitle}
               </p>
             )}
           </div>
@@ -50,17 +89,17 @@ export function Type10PlanCard({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
-        {target.showcase && (
+        {showcaseTitle && (
           <div className="flex items-center gap-1.5 col-span-1 sm:col-span-2 text-teal-800 font-semibold bg-teal-50/60 border border-teal-100 rounded-lg p-2">
             <Package className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-            <span>สินค้าจัดแสดง: {target.showcase}</span>
+            <span>สินค้าจัดแสดง: {showcaseTitle}</span>
           </div>
         )}
 
-        {target.location && (
+        {locationTitle && (
           <div className="flex items-start gap-1.5 col-span-1 sm:col-span-2">
             <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-            <span>{target.location}</span>
+            <span>{locationTitle}</span>
           </div>
         )}
 
@@ -69,7 +108,7 @@ export function Type10PlanCard({
           <span>
             เป้าหมายผู้เข้าร่วม:{" "}
             <span className="font-bold text-slate-800">
-              {target.targetAttendees || "-"}
+              {attendeesDisplay}
             </span>
           </span>
         </div>
@@ -79,7 +118,7 @@ export function Type10PlanCard({
           <span>
             เป้าหมายยอดจอง:{" "}
             <span className="font-bold text-emerald-700">
-              {target.targetSales || "-"}
+              {salesDisplay}
             </span>
           </span>
         </div>

@@ -105,7 +105,7 @@ export function Type10DetailView({
             <div>
               <p className="text-[11px] text-slate-500 font-medium">ผู้เข้าร่วมงานจริง</p>
               <p className="text-sm font-bold text-slate-900">
-                {actualAttendees ? `${Number(actualAttendees).toLocaleString()} คน` : "-"}
+                {actualAttendees != null && actualAttendees !== "" ? `${Number(actualAttendees).toLocaleString()} คน` : "-"}
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export function Type10DetailView({
             <div>
               <p className="text-[11px] text-slate-500 font-medium">ยอดสั่งจอง / สั่งซื้อจริง</p>
               <p className="text-sm font-bold text-emerald-700">
-                {actualSalesOrBooking ? `฿${Number(actualSalesOrBooking).toLocaleString()}` : "-"}
+                {actualSalesOrBooking != null && actualSalesOrBooking !== "" ? `฿${Number(actualSalesOrBooking).toLocaleString()}` : "-"}
               </p>
             </div>
           </div>

@@ -813,7 +813,11 @@ export function DetailWorkTypeList({
             ? String(parsedResults.type10Actual.actualAttendees)
             : parsedResults?.actualAttendees != null
               ? String(parsedResults.actualAttendees)
-              : undefined
+              : plan?.type10Results?.[0]?.actualAttendeesCount != null
+                ? String(plan.type10Results[0].actualAttendeesCount)
+                : plan?.type10Targets?.[0]?.result?.actualAttendeesCount != null
+                  ? String(plan.type10Targets[0].result.actualAttendeesCount)
+                  : undefined
         }
         actualSalesOrBooking={
           parsedResults?.type10Actual?.actualSalesOrBooking != null
@@ -822,16 +826,24 @@ export function DetailWorkTypeList({
               ? String(parsedResults.type10Actual.salesResultAmount)
               : parsedResults?.actualSales != null
                 ? String(parsedResults.actualSales)
-                : undefined
+                : plan?.type10Results?.[0]?.actualTotalSales != null
+                  ? String(plan.type10Results[0].actualTotalSales)
+                  : plan?.type10Targets?.[0]?.result?.actualTotalSales != null
+                    ? String(plan.type10Targets[0].result.actualTotalSales)
+                    : undefined
         }
         farmerFeedback={
           parsedResults?.type10Actual?.farmerFeedback ||
-          parsedResults?.farmerFeedback
+          parsedResults?.farmerFeedback ||
+          plan?.type10Results?.[0]?.farmerFeedback ||
+          plan?.type10Targets?.[0]?.result?.farmerFeedback
         }
         soldProducts={
           parsedResults?.type10Actual?.soldProducts ||
           parsedResults?.t10SoldProducts ||
           parsedResults?.productSalesDetails ||
+          plan?.type10Products ||
+          plan?.type10Targets?.[0]?.products ||
           plan?.productSalesDetails
         }
         notes={parsedResults?.type10Actual?.notes || parsedResults?.notes}

@@ -19,7 +19,25 @@ export function useType10PlannedForm({
   selectedWorkTypes = [],
 }: UseType10PlannedFormOptions = {}): UseType10PlannedFormResult {
   const initialData = useMemo(() => {
-    return hydrateType10PlannedData(initial || initDetails);
+    if (
+      initial &&
+      (initial.type10Targets?.length ||
+        initial.type10Plots?.length ||
+        initial.type10Data ||
+        initial.type10 ||
+        initial.demoPlotVisits?.length ||
+        initial.demoPlotId ||
+        initial.submittedDemoPlotId ||
+        initial.location ||
+        initial.targetAttendeesCount != null ||
+        initial.targetBookingSales != null)
+    ) {
+      return hydrateType10PlannedData(initial);
+    }
+    if (initDetails) {
+      return hydrateType10PlannedData(initDetails);
+    }
+    return hydrateType10PlannedData(initial);
   }, [initial, initDetails]);
 
   const [type10DemoPlot, setType10DemoPlot] = useState<string>(
@@ -43,22 +61,22 @@ export function useType10PlannedForm({
 
   // Sync state if initialData is loaded/hydrated asynchronously
   useEffect(() => {
-    if (initialData.demoPlotId) {
+    if (initialData.demoPlotId !== undefined && initialData.demoPlotId !== "") {
       setType10DemoPlot(initialData.demoPlotId);
     }
-    if (initialData.location) {
+    if (initialData.location !== undefined && initialData.location !== "") {
       setType10Location(initialData.location);
     }
-    if (initialData.targetCrop) {
+    if (initialData.targetCrop !== undefined && initialData.targetCrop !== "") {
       setType10TargetCrop(initialData.targetCrop);
     }
-    if (initialData.showcase) {
+    if (initialData.showcase !== undefined && initialData.showcase !== "") {
       setType10Showcase(initialData.showcase);
     }
-    if (initialData.attendees) {
+    if (initialData.attendees !== undefined && initialData.attendees !== 0) {
       setType10Attendees(initialData.attendees);
     }
-    if (initialData.bookingSales) {
+    if (initialData.bookingSales !== undefined && initialData.bookingSales !== 0) {
       setType10BookingSales(initialData.bookingSales);
     }
   }, [

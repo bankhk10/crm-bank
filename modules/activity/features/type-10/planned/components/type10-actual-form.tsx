@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Camera, ShoppingBag, Plus, Trash2, Package, Users, ThumbsUp, DollarSign } from "lucide-react";
+import { ShoppingBag, Plus, Trash2, Users, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/modules/activity/ui";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { FARMER_FEEDBACK_OPTIONS, type FarmerFeedback } from "../../shared/constants";
-import type { Type10SoldProductItem, Type10ImageFile } from "../../shared/types";
+import type { Type10SoldProductItem } from "../../shared/types";
 import type {
   ActualType10FieldDayProps,
   Type10ActualFormProps,
@@ -71,24 +71,54 @@ export function Type10ActualForm({
     };
   }, [products]);
 
+  const currentSoldProducts = soldProducts || [];
+
+  // กรองเอาเฉพาะสินค้าที่มีหน่วยเป็น "กล่อง" (หรือ BOX)
   const masterProductList = useMemo(() => {
     const source = products && products.length > 0 ? products : dbProducts;
-    return source.map((p: any) => {
+
+    const boxOnly = (source || []).filter((p: any) => {
+      if (!p) return false;
+      const u = typeof p === "object" ? p.unit || p.packageSizeUnit : "";
+      return (
+        u && (String(u).trim() === "กล่อง" || String(u).toUpperCase() === "BOX")
+      );
+    });
+
+    const effectiveSource = boxOnly.length > 0 ? boxOnly : source || [];
+
+    const mapped = effectiveSource.map((p: any) => {
       if (typeof p === "string") {
-        return { id: p, name: p, price: 0 };
+        return { id: p, name: p, price: 0, unit: "กล่อง" };
       }
       return {
         id: p.id || p.name,
         name: p.name || "",
         productCode: p.productCode || null,
-        price: p.price ?? 0,
+        price: p.price ?? p.cartonPrice ?? 0,
+        unit: p.unit || "กล่อง",
       };
     });
-  }, [products, dbProducts]);
+
+    // รักษาตัวเลือกสินค้าเดิมที่เคยบันทึกไว้เพื่อป้องกันการแสดงผลว่างเปล่า
+    const existingNames = new Set(mapped.map((item: any) => item.name));
+    for (const sp of currentSoldProducts) {
+      if (sp.productName && !existingNames.has(sp.productName)) {
+        existingNames.add(sp.productName);
+        mapped.push({
+          id: sp.productId || sp.productName,
+          name: sp.productName,
+          productCode: sp.productCode || null,
+          price: sp.unitPrice ?? 0,
+          unit: "กล่อง",
+        });
+      }
+    }
+
+    return mapped;
+  }, [products, dbProducts, currentSoldProducts]);
 
   if (!isVisible) return null;
-
-  const currentSoldProducts = soldProducts || [];
 
   const handleAddProduct = () => {
     const newItem: Type10SoldProductItem = {
@@ -100,6 +130,48 @@ export function Type10ActualForm({
       actualSales: 0,
     };
     setSoldProducts?.([...currentSoldProducts, newItem]);
+    if (!hasSales) {
+      setHasSales?.(true);
+    }
+  };
+
+  // จัดการเลือกสินค้าแบบ Atomic อัปเดตทั้ง productId, productName, unitPrice, actualQty และคำนวณยอดขายในครั้งเดียว
+  const handleSelectProduct = (
+    index: number,
+    val: string,
+    pFound?: ActivityProductItem,
+  ) => {
+    const updated = [...currentSoldProducts];
+    const prev = updated[index] || {};
+    const name = pFound?.name || val || "";
+    const id = pFound?.id || prev.productId || "";
+    const price =
+      pFound?.price != null && !isNaN(Number(pFound.price))
+        ? Number(pFound.price)
+        : Number(prev.unitPrice) || 0;
+    const qty = Number(prev.actualQty) || 1;
+    const sales = qty * price;
+
+    updated[index] = {
+      ...prev,
+      productId: id,
+      productName: name,
+      productCode: pFound?.productCode || prev.productCode || null,
+      unitPrice: price,
+      actualQty: qty,
+      actualSales: sales,
+    };
+
+    setSoldProducts?.(updated);
+
+    // Auto-sum total sales into actualSalesOrBooking
+    const total = updated.reduce(
+      (sum, item) => sum + (Number(item.actualSales) || 0),
+      0,
+    );
+    if (total > 0 && setActualSalesOrBooking) {
+      setActualSalesOrBooking(String(total));
+    }
   };
 
   const handleUpdateProduct = (
@@ -108,7 +180,8 @@ export function Type10ActualForm({
     value: any,
   ) => {
     const updated = [...currentSoldProducts];
-    const item = { ...updated[index], [field]: value };
+    const prev = updated[index] || {};
+    const item = { ...prev, [field]: value };
 
     // Auto-calculate sales amount when qty or price changes
     if (field === "actualQty" || field === "unitPrice") {
@@ -125,7 +198,7 @@ export function Type10ActualForm({
       (sum, p) => sum + (Number(p.actualSales) || 0),
       0,
     );
-    if (total > 0) {
+    if (total > 0 && setActualSalesOrBooking) {
       setActualSalesOrBooking(String(total));
     }
   };
@@ -138,7 +211,7 @@ export function Type10ActualForm({
       (sum, p) => sum + (Number(p.actualSales) || 0),
       0,
     );
-    if (total > 0) {
+    if (setActualSalesOrBooking) {
       setActualSalesOrBooking(String(total));
     }
   };
@@ -290,8 +363,8 @@ export function Type10ActualForm({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                    <th className="py-2 px-3 min-w-[180px]">รายการสินค้า</th>
-                    <th className="py-2 px-3 w-28 text-center">จำนวน</th>
+                    <th className="py-2 px-3 min-w-[180px]">รายการสินค้า (เฉพาะหน่วยกล่อง)</th>
+                    <th className="py-2 px-3 w-28 text-center">จำนวน (กล่อง)</th>
                     <th className="py-2 px-3 w-32 text-center">ราคาต่อหน่วย</th>
                     <th className="py-2 px-3 w-32 text-right">รวม (บาท)</th>
                     <th className="py-2 px-3 text-center w-12">ลบ</th>
@@ -305,70 +378,72 @@ export function Type10ActualForm({
                       </td>
                     </tr>
                   ) : (
-                    currentSoldProducts.map((p, idx) => (
-                      <tr key={p.id || idx} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-2 px-3 text-center font-medium text-slate-500">
-                          {idx + 1}
-                        </td>
-                        <td className="py-1.5 px-3">
-                          <ActivityProductSelect
-                            id={`t10-prod-select-${idx}`}
-                            triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-emerald-500"
-                            value={p.productName}
-                            valueKey="name"
-                            onChange={(val, pFound) => {
-                              handleUpdateProduct(idx, "productName", pFound?.name || val);
-                              if (pFound?.id) {
-                                handleUpdateProduct(idx, "productId", pFound.id);
+                    currentSoldProducts.map((p, idx) => {
+                      const currentVal =
+                        p.productName ||
+                        (p.productId &&
+                          masterProductList.find((m) => m.id === p.productId)?.name) ||
+                        "";
+
+                      return (
+                        <tr key={p.id || idx} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-2 px-3 text-center font-medium text-slate-500">
+                            {idx + 1}
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <ActivityProductSelect
+                              id={`t10-prod-select-${idx}`}
+                              triggerClassName="h-8 min-h-[32px] py-0.5 text-xs bg-white border-slate-200 rounded-md text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                              value={currentVal}
+                              valueKey="name"
+                              onChange={(val, pFound) =>
+                                handleSelectProduct(idx, val, pFound)
                               }
-                              if (pFound?.price) {
-                                handleUpdateProduct(idx, "unitPrice", pFound.price);
+                              products={masterProductList}
+                              placeholder="เลือกสินค้า (เฉพาะหน่วยกล่อง)..."
+                              searchPlaceholder="ค้นหาชื่อหรือรหัสสินค้า..."
+                              emptyText="ไม่พบสินค้าหน่วยกล่อง"
+                            />
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <ActivityInput
+                              type="number"
+                              min={0}
+                              placeholder="0"
+                              value={p.actualQty ?? ""}
+                              onChange={(e) =>
+                                handleUpdateProduct(idx, "actualQty", e.target.value)
                               }
-                            }}
-                            products={masterProductList}
-                            placeholder="เลือกสินค้า..."
-                            searchPlaceholder="ค้นหาสินค้า..."
-                            emptyText="ไม่พบสินค้า"
-                          />
-                        </td>
-                        <td className="py-1.5 px-3">
-                          <ActivityInput
-                            type="number"
-                            min={0}
-                            placeholder="0"
-                            value={p.actualQty ?? ""}
-                            onChange={(e) =>
-                              handleUpdateProduct(idx, "actualQty", e.target.value)
-                            }
-                            className="h-8 text-xs text-center font-bold text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-3">
-                          <ActivityInput
-                            type="number"
-                            min={0}
-                            placeholder="0.00"
-                            value={p.unitPrice ?? ""}
-                            onChange={(e) =>
-                              handleUpdateProduct(idx, "unitPrice", e.target.value)
-                            }
-                            className="h-8 text-xs text-center font-bold text-slate-800"
-                          />
-                        </td>
-                        <td className="py-1.5 px-3 text-right font-bold text-emerald-800">
-                          {Number(p.actualSales || 0).toLocaleString()} ฿
-                        </td>
-                        <td className="py-1.5 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveProduct(idx)}
-                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                              className="h-8 text-xs text-center font-bold text-slate-800"
+                            />
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <ActivityInput
+                              type="number"
+                              min={0}
+                              placeholder="0.00"
+                              value={p.unitPrice ?? ""}
+                              onChange={(e) =>
+                                handleUpdateProduct(idx, "unitPrice", e.target.value)
+                              }
+                              className="h-8 text-xs text-center font-bold text-slate-800"
+                            />
+                          </td>
+                          <td className="py-1.5 px-3 text-right font-bold text-emerald-800">
+                            {Number(p.actualSales || 0).toLocaleString()} ฿
+                          </td>
+                          <td className="py-1.5 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveProduct(idx)}
+                              className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

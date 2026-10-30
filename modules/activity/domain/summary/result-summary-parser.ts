@@ -6,6 +6,7 @@ import { parseType7aActualResult } from "../../features/type-7a";
 import { parseType7bActualResult } from "../../features/type-7b";
 import { parseType8ActualResult } from "../../features/type-8";
 import { parseType9ActualResult } from "../../features/type-9";
+import { parseType10ActualResult } from "../../features/type-10";
 import { parseType11ActualResult } from "../../features/type-11";
 
 /**
@@ -263,7 +264,48 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       }
     }
 
-    // Type 10 Sale Results from relation table
+    // Type 10 Field Day Event Results
+    const t10Parsed = parseType10ActualResult(rawSummary || "", resData);
+    if (Object.keys(t10Parsed).length > 0) {
+      result.type10Actual = t10Parsed;
+      if (t10Parsed.actualAttendees != null && !result.t10ActualAttendees) {
+        result.t10ActualAttendees = String(t10Parsed.actualAttendees);
+      }
+      if (
+        t10Parsed.actualSalesOrBooking != null &&
+        !result.t10ActualSalesOrBooking
+      ) {
+        result.t10ActualSalesOrBooking = String(t10Parsed.actualSalesOrBooking);
+        if (!result.t10SalesResult) {
+          result.t10SalesResult = String(t10Parsed.actualSalesOrBooking);
+        }
+      }
+      if (t10Parsed.farmerFeedback && !result.t10FarmerFeedback) {
+        result.t10FarmerFeedback = t10Parsed.farmerFeedback;
+      }
+      if (t10Parsed.targetFarmersList && !result.t10TargetFarmersList) {
+        result.t10TargetFarmersList = t10Parsed.targetFarmersList;
+      }
+      if (t10Parsed.summary && !result.t10Summary) {
+        result.t10Summary = t10Parsed.summary;
+      }
+      if (
+        t10Parsed.soldProducts &&
+        t10Parsed.soldProducts.length > 0 &&
+        (!result.t10SoldProducts || result.t10SoldProducts.length === 0)
+      ) {
+        result.t10SoldProducts = t10Parsed.soldProducts;
+      }
+      if (
+        t10Parsed.images &&
+        t10Parsed.images.length > 0 &&
+        (!result.t10Images || result.t10Images.length === 0)
+      ) {
+        result.t10Images = t10Parsed.images;
+      }
+    }
+
+    // Type 10 Sale Results from relation table fallback
     if (
       Array.isArray(resData.saleResults) &&
       resData.saleResults.length > 0 &&

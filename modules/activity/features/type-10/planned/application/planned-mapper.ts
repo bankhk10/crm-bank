@@ -242,12 +242,32 @@ export function hydrateType10PlannedData(initialData: any): {
     };
   }
 
+  // 0. Already hydrated object shape
+  if (
+    initialData.demoPlotId !== undefined ||
+    initialData.targetCrop !== undefined ||
+    initialData.showcase !== undefined ||
+    initialData.attendees !== undefined ||
+    initialData.bookingSales !== undefined
+  ) {
+    return {
+      demoPlotId: initialData.demoPlotId || "",
+      location: initialData.location || "",
+      targetCrop: initialData.targetCrop || "",
+      showcase: initialData.showcase || "",
+      attendees: Number(initialData.attendees || 0),
+      bookingSales: Number(initialData.bookingSales || 0),
+    };
+  }
+
   // 1. Check dedicated type10Targets
   const firstTarget =
     initialData.type10Targets?.[0] ||
+    initialData.type10Plots?.[0] ||
     initialData.type10Data?.targets?.[0];
 
   if (firstTarget) {
+    const decoded = decodeType10Notes(firstTarget.notes || initialData.notes);
     return {
       demoPlotId:
         firstTarget.type7aTarget?.activityPlanId ||
@@ -256,11 +276,44 @@ export function hydrateType10PlannedData(initialData: any): {
         firstTarget.type7aTarget?.id ||
         firstTarget.plotName ||
         "",
-      location: firstTarget.location || firstTarget.demoPlot?.location || "",
-      targetCrop: firstTarget.cropName || firstTarget.cropCategory || firstTarget.demoPlot?.targetCrop || "",
-      showcase: firstTarget.showcaseProductName || firstTarget.showcaseProduct?.name || firstTarget.demoPlot?.primaryProductName || "",
-      attendees: firstTarget.targetAttendeesCount != null ? Number(firstTarget.targetAttendeesCount) : 0,
-      bookingSales: firstTarget.targetBookingSales != null ? Number(firstTarget.targetBookingSales) : 0,
+      location:
+        firstTarget.location ||
+        firstTarget.demoPlot?.location ||
+        initialData.location ||
+        "",
+      targetCrop:
+        firstTarget.cropName ||
+        firstTarget.cropCategory ||
+        firstTarget.crop ||
+        decoded.targetCrop ||
+        firstTarget.demoPlot?.targetCrop ||
+        "",
+      showcase:
+        firstTarget.showcaseProductName ||
+        firstTarget.showcaseProduct?.name ||
+        (typeof firstTarget.showcaseProduct === "string"
+          ? firstTarget.showcaseProduct
+          : "") ||
+        firstTarget.showcase ||
+        decoded.showcase ||
+        firstTarget.demoPlot?.primaryProductName ||
+        "",
+      attendees:
+        firstTarget.targetAttendeesCount != null
+          ? Number(firstTarget.targetAttendeesCount)
+          : firstTarget.targetAttendees != null
+            ? Number(firstTarget.targetAttendees)
+            : initialData.targetAttendeesCount != null
+              ? Number(initialData.targetAttendeesCount)
+              : 0,
+      bookingSales:
+        firstTarget.targetBookingSales != null
+          ? Number(firstTarget.targetBookingSales)
+          : firstTarget.targetSales != null
+            ? Number(firstTarget.targetSales)
+            : initialData.targetBookingSales != null
+              ? Number(initialData.targetBookingSales)
+              : 0,
     };
   }
 

@@ -48,8 +48,8 @@ export interface Type10UnplannedFormProps {
   updateSoldProduct?: (
     itemId: string,
     prodId: string,
-    field: keyof Type10SoldProductItem,
-    value: any,
+    fieldOrData: keyof Type10SoldProductItem | Partial<Type10SoldProductItem>,
+    value?: any,
   ) => void;
   deleteSoldProduct?: (itemId: string, prodId: string) => void;
 }
@@ -61,6 +61,7 @@ export interface Type10UnplannedValidationResult {
 }
 
 export interface UseType10UnplannedFormOptions {
+  initial?: any;
   initialItems?: Type10UnplannedItem[];
 }
 
@@ -77,8 +78,8 @@ export interface UseType10UnplannedFormResult {
   updateSoldProduct: (
     itemId: string,
     prodId: string,
-    field: keyof Type10SoldProductItem,
-    value: any,
+    fieldOrData: keyof Type10SoldProductItem | Partial<Type10SoldProductItem>,
+    value?: any,
   ) => void;
   deleteSoldProduct: (itemId: string, prodId: string) => void;
   validate: () => Type10UnplannedValidationResult;

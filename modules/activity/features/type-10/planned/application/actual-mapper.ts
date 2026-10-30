@@ -29,6 +29,13 @@ export function parseType10ActualResult(
 
   // 1. Dedicated result table support (activity_type_10_result)
   const dedicatedResult =
+    (source.targetId &&
+      (rawPlanOrResult?.type10Results?.find(
+        (r: any) => r.targetId === source.targetId,
+      ) ||
+        rawPlanOrResult?.type10Targets?.find(
+          (t: any) => t.id === source.targetId,
+        )?.result)) ||
     rawPlanOrResult?.type10Results?.[0] ||
     rawPlanOrResult?.type10Targets?.[0]?.result ||
     source.type10Result ||
@@ -182,8 +189,10 @@ export function parseType10ActualResult(
   // 8. Extract atmosphere photos
   const rawAttachments =
     source.images ||
+    source.attachments ||
     rawPlanOrResult?.attachments ||
     rawPlanOrResult?.result?.attachments ||
+    rawPlanOrResult?.activityPlan?.attachments ||
     [];
 
   if (Array.isArray(rawAttachments) && rawAttachments.length > 0) {
@@ -191,11 +200,14 @@ export function parseType10ActualResult(
       .filter(
         (att: any) =>
           att.workTypeCode === "TYPE_10" ||
+          att.workTypeCode === "จัดงาน Field Day" ||
           att.category === "FIELD_DAY" ||
           att.category === "ATMOSPHERE" ||
           att.category === "PLOT" ||
           att.category === "GENERAL" ||
-          att.group === "atmosphere",
+          att.group === "atmosphere" ||
+          att.group === "type10" ||
+          att.group === "type10_atmosphere",
       )
       .map(toImage);
   }

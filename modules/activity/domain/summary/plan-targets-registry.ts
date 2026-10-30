@@ -198,11 +198,12 @@ export function extractPlanTargets(
 
   // Always attempt Type 10 if relation exists
   if (
-    !targets.t10?.location &&
-    !targets.t10?.plotName &&
+    (!targets.t10?.location &&
+      !targets.t10?.plotName &&
+      !targets.t10?.plot) &&
     ((plan as any).type10Targets?.length ||
-      (plan as any).demoPlotVisits?.some((v: any) => v.workTypeCode === "TYPE_10") ||
       (plan as any).type10Plots?.length ||
+      (plan as any).demoPlotVisits?.some((v: any) => v.workTypeCode === "TYPE_10") ||
       (plan as any).type10Data ||
       (plan as any).type10)
   ) {

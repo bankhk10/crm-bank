@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type {
   Type10UnplannedItem,
   Type10UnplannedValidationResult,
@@ -9,6 +9,7 @@ import type {
 } from "../types/unplanned.types";
 import type { Type10SoldProductItem } from "../../shared/types";
 import { validateType10UnplannedItems } from "../application/unplanned-validation";
+import { hydrateType10UnplannedData } from "../application/unplanned-mapper";
 
 export type { UseType10UnplannedFormOptions, UseType10UnplannedFormResult };
 
@@ -33,14 +34,35 @@ function createEmptyType10UnplannedItem(): Type10UnplannedItem {
 }
 
 export function useType10UnplannedForm({
+  initial,
   initialItems = [],
 }: UseType10UnplannedFormOptions = {}): UseType10UnplannedFormResult {
-  const [items, setItems] = useState<Type10UnplannedItem[]>(() => {
+  const initialItemsFromData = useMemo(() => {
+    if (initial) {
+      const hydrated = hydrateType10UnplannedData(initial);
+      if (hydrated && hydrated.length > 0) return hydrated;
+    }
     if (initialItems && initialItems.length > 0) {
       return initialItems;
     }
     return [createEmptyType10UnplannedItem()];
-  });
+  }, [initial, initialItems]);
+
+  const [items, setItems] = useState<Type10UnplannedItem[]>(initialItemsFromData);
+
+  // Sync state if initialData is loaded/hydrated asynchronously
+  useEffect(() => {
+    if (initial) {
+      const hydrated = hydrateType10UnplannedData(initial);
+      if (hydrated && hydrated.length > 0) {
+        setItems(hydrated);
+        return;
+      }
+    }
+    if (initialItems && initialItems.length > 0) {
+      setItems(initialItems);
+    }
+  }, [initial, initialItems]);
 
   const addItem = useCallback(() => {
     setItems((prev) => [...prev, createEmptyType10UnplannedItem()]);
@@ -89,15 +111,18 @@ export function useType10UnplannedForm({
     (
       itemId: string,
       prodId: string,
-      field: keyof Type10SoldProductItem,
-      val: any,
+      fieldOrData: keyof Type10SoldProductItem | Partial<Type10SoldProductItem>,
+      val?: any,
     ) => {
       setItems((prev) =>
         prev.map((item) => {
           if (item.id !== itemId) return item;
           const currentProducts = (item.soldProducts || []).map((p) => {
             if (p.id !== prodId) return p;
-            return { ...p, [field]: val };
+            if (typeof fieldOrData === "object" && fieldOrData !== null) {
+              return { ...p, ...fieldOrData };
+            }
+            return { ...p, [fieldOrData]: val };
           });
           return {
             ...item,

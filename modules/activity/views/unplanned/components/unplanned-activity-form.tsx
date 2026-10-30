@@ -368,6 +368,10 @@ export function UnplannedActivityForm({
 
     // 5.10 Type 10
     if (
+      (Array.isArray(initialData.type10Targets) &&
+        initialData.type10Targets.length > 0) ||
+      (Array.isArray(initialData.type10Plots) &&
+        initialData.type10Plots.length > 0) ||
       (Array.isArray(initialData.type10UnplannedItems) &&
         initialData.type10UnplannedItems.length > 0) ||
       (initialData.type10 && Object.keys(initialData.type10).length > 0) ||
@@ -663,6 +667,7 @@ export function UnplannedActivityForm({
   );
 
   const type10 = useType10UnplannedForm({
+    initial: initialData,
     initialItems: hydratedInitialType10Items,
   });
 

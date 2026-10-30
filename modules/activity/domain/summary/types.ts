@@ -261,6 +261,17 @@ export interface ParsedSummaryValues {
   t8RegistrationImages?: ImageFile[];
   type8Actual?: any;
 
+  // Type 10
+  t10ActualAttendees?: string;
+  t10ActualSalesOrBooking?: string;
+  t10SalesResult?: string;
+  t10FarmerFeedback?: string;
+  t10TargetFarmersList?: string;
+  t10Summary?: string;
+  t10SoldProducts?: any[];
+  t10Images?: ImageFile[];
+  type10Actual?: any;
+
   // Type 12
   t12ActualAttendees?: number | string;
   t12TourHighlights?: string;

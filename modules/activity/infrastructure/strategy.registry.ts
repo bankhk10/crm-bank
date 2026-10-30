@@ -297,17 +297,38 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
       Boolean(
         (rawData.workTypeCodes &&
           (rawData.workTypeCodes.includes("TYPE_10") ||
-            rawData.workTypeCodes.includes("จัดงาน Field Day"))) ||
+            rawData.workTypeCodes.includes("จัดงาน Field Day") ||
+            rawData.workTypeCodes.includes("Field Day"))) ||
+        (rawData.workTypes &&
+          rawData.workTypes.some(
+            (wt: any) =>
+              wt === "TYPE_10" ||
+              wt === "จัดงาน Field Day" ||
+              wt === "Field Day" ||
+              wt?.activityType?.code === "TYPE_10" ||
+              wt?.activityType?.name === "จัดงาน Field Day" ||
+              wt?.workTypeCode === "TYPE_10" ||
+              wt?.workTypeCode === "จัดงาน Field Day",
+          )) ||
         (rawData.planStores &&
           rawData.planStores.some(
             (s: any) =>
               s.workTypeCode === "TYPE_10" ||
-              s.workTypeCode === "จัดงาน Field Day",
+              s.workTypeCode === "จัดงาน Field Day" ||
+              s.workTypeCode === "Field Day",
           )) ||
         (rawData.type10Targets && rawData.type10Targets.length > 0) ||
         (rawData.type10Plots && rawData.type10Plots.length > 0) ||
+        (rawData.type10Products && rawData.type10Products.length > 0) ||
+        (rawData.type10Results && rawData.type10Results.length > 0) ||
         (rawData.type10UnplannedItems &&
           rawData.type10UnplannedItems.length > 0) ||
+        (rawData.demoPlotVisits &&
+          rawData.demoPlotVisits.some(
+            (v: any) =>
+              v.workTypeCode === "TYPE_10" ||
+              v.workTypeCode === "จัดงาน Field Day",
+          )) ||
         rawData.type10Data ||
         rawData.type10 ||
         rawData.type10Actual ||

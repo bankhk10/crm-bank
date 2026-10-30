@@ -229,6 +229,7 @@ export function PlannedActivityForm({
       return [WORK_TYPE_CONFIG.TYPE_9.name];
     }
     if (
+      (initialData.type10Targets && initialData.type10Targets.length > 0) ||
       (initialData.type10Plots && initialData.type10Plots.length > 0) ||
       initialData.type10Data ||
       initialData.type10

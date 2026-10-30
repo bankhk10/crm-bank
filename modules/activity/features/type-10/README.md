@@ -4,7 +4,7 @@
 > **Parent Module**: `modules/activity`  
 > **Database Authority**: `prisma/schema.prisma` (`ActivityPlan`, `ActivityPlanType10Target`, `ActivityPlanType10Product`, `ActivityResultType10`, `ActivityAttachment`)  
 > **Architecture Style**: Vertical Slice Architecture (Dual-Mode 100%: Planned + Unplanned)  
-> **Status**: Production Ready / Active Reference (v2.0.0 — Updated 2026-10-27 100% Dedicated Relational Architecture & Direct Link to Type 7A Targets)
+> **Status**: Production Ready / Active Reference (v2.1.0 — Updated 2026-10-30 100% Read & Hydration Pipeline Hardening Across All 5 Layers)
 
 ---
 
@@ -569,6 +569,8 @@ model ActivityResultType10 {
 | **สินค้าจัดแสดงและพืชเป้าหมายหายหลังบันทึกแผน** | `shared/notes.ts` ➔ `encodeType10Notes` | ตรวจสอบว่าฟังก์ชันเข้ารหัส Tag ใน `notes` ทำงานถูกต้อง และไม่ถูกเขียนทับด้วยข้อความธรรมดา |
 | **รูปถ่ายบรรยากาศงานหายหลัง Reload หน้าจอ** | `use-type10-actual.ts` ➔ `uploadImages` | ตรวจสอบว่า `uploadActivityPlanImageGroup` อัปโหลดไปยังโฟลเดอร์ `"type10"` / `"atmosphere"` สำเร็จและส่ง Clean URLs กลับมาบันทึกหรือไม่ |
 | **ฟอร์มแผนไม่ยอมให้ส่งโดยแจ้งเตือนว่ายังไม่ได้เลือกแปลงสาธิต** | `planned-validation.ts` ➔ `validateType10Form` | ผู้ใช้ไม่ได้เลือกแปลงสาธิตจากตัวเลือก Combobox ให้ตรวจสอบว่า `type10DemoPlot` มีค่า ID ของแปลงสาธิต |
+| **เปิดหน้าแก้ไขนอกแผน (Unplanned Edit) แล้วแปลงสาธิตไม่ขึ้นใน Combobox** | `unplanned-mapper.ts` ➔ `hydrateType10UnplannedData` | ตรวจสอบว่าแมป `item.type7aTargetId` เป็น `demoPlotId` หรือไม่ และใน `type10-unplanned-form.tsx` มี fallback สังเคราะห์ options ใน Combobox สำหรับแปลงเดิมหรือไม่ |
+| **หน้าบันทึกผล (Actual) หรือสรุป Detail/Approval ไม่แสดงผลงานจริง/ยอดขาย** | `result-summary-parser.ts` ➔ `parseType10ActualResult` | ตรวจสอบว่า Parser มีการเรียก `parseType10ActualResult` และส่งผ่าน `type10Actual`, `t10SoldProducts`, `hasSales` ครบถ้วน |
 
 ---
 
@@ -613,3 +615,4 @@ model ActivityResultType10 {
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type10UnplannedForm` ให้รองรับการจัดงาน Field Day แบบ 2-in-1 | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
 | **2026-10-27** | 2.0.0 | **ยกเลิกการพึ่งพาตาราง `demo_plots` และ `demo_plot_visits` สู่ 100% Dedicated Relational Architecture:**<br>1. ปรับเปลี่ยนการเชื่อมโยงแปลงสาธิตใน `ActivityPlanType10Target` มาใช้ `type7aTargetId` เชื่อมกับ `ActivityPlanType7aTarget` โดยตรง<br>2. นำการเขียนประวัติลง `demo_plot_visits` ออกทั้งหมด<br>3. อัปเดต Prisma Schema, Data Flow และ Field Mapping สอดคล้องกับ Codebase 100% | Antigravity AI |
+| **2026-10-30** | 2.1.0 | **เสริมความแข็งแกร่ง Read & Hydration Pipeline ครบทั้ง 5 ด่าน (Planned Edit / Unplanned Edit / Actual / Detail / Approval):**<br>1. **Prisma Query & Strategy Detection:** ปรับ `WORK_TYPE_STRATEGY_REGISTRY.TYPE_10.hasData` ตรวจจับ `type10Products`, `type10Results`, `type10UnplannedItems`, `demoPlotVisits` และชื่อประเภทงาน<br>2. **View & Summary Extractor:** ผูก `parseType10ActualResult` ใน `result-summary-parser.ts` ส่งออก `type10Actual`, `t10...` และเสริม fallbacks ใน `detail-work-type-list.tsx`, `approval-work-type-list.tsx`, `actual-work-type-list.tsx`<br>3. **Mapper & Hook Hydration:** แก้ปัญหา `item.demoPlotId` ใน `unplanned-mapper.ts` โดยอ่านจาก `type7aTargetId` / `type7aTarget.id`, ป้องกัน `hydrateType10PlannedData` เขียนทับ state ที่สมบูรณ์แล้ว และเพิ่ม `useEffect` ดักจับ async payload ใน hooks ทั้งหมด<br>4. **UI Value Binding:** ปรับ `Type10PlanCard` และ `Type10DetailView` รองรับทั้ง view models และ Prisma relations แสดงค่าตัวเลข 0 ได้อย่างถูกต้อง และเพิ่มตัวเลือกอัตโนมัติใน Combobox สำหรับแปลงที่โหลดมาจาก DB | Antigravity AI |

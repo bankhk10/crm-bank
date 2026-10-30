@@ -644,6 +644,8 @@ export function ActualWorkTypeList({
           setActualSalesOrBooking={type10State.setActualSalesOrBooking}
           farmerFeedback={type10State.farmerFeedback}
           setFarmerFeedback={type10State.setFarmerFeedback}
+          hasSales={type10State.hasSales}
+          setHasSales={type10State.setHasSales}
           soldProducts={type10State.soldProducts}
           setSoldProducts={type10State.setSoldProducts}
           images={type10State.images}

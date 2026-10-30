@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Sprout, Plus, Trash2, MapPin, Users, ShoppingBag, ThumbsUp, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -60,6 +60,22 @@ export function Type10UnplannedForm({
     else if (p.name) combinedMap.set(p.name, p);
   });
 
+  // Fallback resilience for Edit mode:
+  // Synthesize option if item's demoPlotId or plotName is not yet in combinedMap
+  items.forEach((it) => {
+    const key = it.demoPlotId || it.plotName;
+    if (key && !combinedMap.has(key)) {
+      combinedMap.set(key, {
+        id: key,
+        name: it.plotName || key,
+        location: it.location || "",
+        ownerName: it.farmerName || "",
+        cropName: it.cropName || "",
+        showcase: it.showcaseProduct || "",
+      } as any);
+    }
+  });
+
   const plotList = Array.from(combinedMap.values());
   const plotOptions = plotList.map((plot) => ({
     value: plot.id || plot.name,
@@ -67,6 +83,18 @@ export function Type10UnplannedForm({
       plot.location ? ` (${plot.location})` : ""
     }`,
   }));
+
+  const boxProducts = useMemo(() => {
+    const list = products || [];
+    const filtered = (list as any[]).filter((p: any) => {
+      if (!p) return false;
+      const u = typeof p === "object" ? p.unit || p.packageSizeUnit : "";
+      return (
+        u && (String(u).trim() === "กล่อง" || String(u).toUpperCase() === "BOX")
+      );
+    });
+    return filtered.length > 0 ? filtered : list;
+  }, [products]);
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
@@ -332,24 +360,25 @@ export function Type10UnplannedForm({
                                 valueKey="name"
                                 onChange={(val, pFound) => {
                                   if (updateSoldProduct) {
-                                    updateSoldProduct(
-                                      item.id,
-                                      p.id!,
-                                      "productName",
-                                      pFound?.name || val,
-                                    );
-                                    if (pFound?.id) {
-                                      updateSoldProduct(item.id, p.id!, "productId", pFound.id);
-                                    }
-                                    if (pFound?.price) {
-                                      updateSoldProduct(item.id, p.id!, "unitPrice", pFound.price);
-                                    }
+                                    const price =
+                                      pFound?.price != null && !isNaN(Number(pFound.price))
+                                        ? Number(pFound.price)
+                                        : Number(p.unitPrice) || 0;
+                                    const qty = Number(p.actualQty) || 1;
+                                    updateSoldProduct(item.id, p.id!, {
+                                      productId: pFound?.id || p.productId || "",
+                                      productName: pFound?.name || val || "",
+                                      productCode: pFound?.productCode || p.productCode || null,
+                                      unitPrice: price,
+                                      actualQty: qty,
+                                      actualSales: qty * price,
+                                    });
                                   }
                                 }}
-                                products={products as any}
-                                placeholder="เลือกสินค้า..."
+                                products={boxProducts as any}
+                                placeholder="เลือกสินค้า (เฉพาะหน่วยกล่อง)..."
                                 searchPlaceholder="ค้นหาสินค้า..."
-                                emptyText="ไม่พบสินค้า"
+                                emptyText="ไม่พบสินค้าหน่วยกล่อง"
                                 disabled={readonly}
                               />
                             </td>

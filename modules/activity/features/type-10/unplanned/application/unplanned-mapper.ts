@@ -17,52 +17,99 @@ export function hydrateType10UnplannedData(initialData: any): Type10UnplannedIte
   // 2. Dedicated type10Targets
   const dedicatedTargets: any[] =
     initialData.type10Targets ||
+    initialData.type10Plots ||
     initialData.type10Data?.targets ||
     [];
 
   if (Array.isArray(dedicatedTargets) && dedicatedTargets.length > 0) {
     return dedicatedTargets.map((item, idx) => {
-      const sold = (item.products || []).map((p: any) => ({
+      const targetResult =
+        item.result ||
+        initialData.type10Results?.find((r: any) => r.targetId === item.id) ||
+        initialData.type10Results?.[idx];
+
+      const targetProducts =
+        item.products && item.products.length > 0
+          ? item.products
+          : initialData.type10Products?.filter((p: any) => p.targetId === item.id) || [];
+
+      const sold = targetProducts.map((p: any) => ({
         id: p.id,
         targetId: p.targetId,
         productId: p.productId || null,
         productName: p.productName || p.product?.name || "",
         productCode: p.productCode || p.product?.productCode || null,
         productRole: p.productRole || "TARGET",
-        quantity: p.targetQuantity != null ? String(p.targetQuantity) : "",
-        actualQty: p.actualQuantity != null ? String(p.actualQuantity) : "",
-        actualSales: p.actualTotal != null ? String(p.actualTotal) : "",
-        unitPrice: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : (p.targetUnitPrice != null ? Number(p.targetUnitPrice) : undefined),
-        remarks: p.actualNotes || null,
+        quantity: p.targetQuantity != null ? String(p.targetQuantity) : (p.quantity != null ? String(p.quantity) : ""),
+        actualQty: p.actualQuantity != null ? String(p.actualQuantity) : (p.actualQty != null ? String(p.actualQty) : ""),
+        actualSales: p.actualTotal != null ? String(p.actualTotal) : (p.actualSales != null ? String(p.actualSales) : ""),
+        unitPrice: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : (p.unitPrice != null ? Number(p.unitPrice) : (p.targetUnitPrice != null ? Number(p.targetUnitPrice) : undefined)),
+        remarks: p.actualNotes || p.remarks || null,
       }));
+
+      const resolvedDemoPlotId =
+        item.type7aTargetId ||
+        item.type7aTarget?.id ||
+        item.type7aTarget?.activityPlanId ||
+        item.demoPlotId ||
+        item.plotName ||
+        null;
 
       return {
         id: item.id || `t10-unplanned-${idx + 1}`,
         targetId: item.id,
-        demoPlotId: item.demoPlotId || null,
-        plotName: item.plotName || item.demoPlot?.name || "",
-        farmerName: item.farmerName || item.demoPlot?.ownerName || "",
-        location: item.location || item.demoPlot?.location || "",
-        province: item.province || item.demoPlot?.province || "",
-        district: item.district || item.demoPlot?.district || "",
-        cropName: item.cropName || item.cropCategory || item.demoPlot?.cropName || item.demoPlot?.targetCrop || "",
+        demoPlotId: resolvedDemoPlotId,
+        plotName: item.plotName || item.type7aTarget?.plotName || item.demoPlot?.name || "",
+        farmerName: item.farmerName || item.type7aTarget?.dealerName || item.demoPlot?.ownerName || "",
+        location: item.location || item.demoPlot?.location || initialData.location || "",
+        province: item.province || item.demoPlot?.province || initialData.province || "",
+        district: item.district || item.demoPlot?.district || initialData.district || "",
+        cropName: item.cropName || item.cropCategory || item.type7aTarget?.cropName || item.type7aTarget?.cropCategory || item.demoPlot?.cropName || item.demoPlot?.targetCrop || "",
         showcaseProduct: item.showcaseProductName || item.showcaseProduct?.name || item.demoPlot?.primaryProductName || item.demoPlot?.showcase || "",
         showcaseProductId: item.showcaseProductId || null,
-        expectedAttendees: item.targetAttendeesCount ?? "",
-        actualAttendees: item.result?.actualAttendeesCount ?? "",
-        targetBookingSales: item.targetBookingSales ?? "",
-        actualSalesOrBooking: item.result?.actualTotalSales ?? "",
-        farmerFeedback: item.result?.farmerFeedback || "",
-        targetFarmersList: item.result?.targetFarmersList || "",
-        summary: item.result?.summary || "",
+        expectedAttendees:
+          item.targetAttendeesCount != null
+            ? String(item.targetAttendeesCount)
+            : item.expectedAttendees != null
+              ? String(item.expectedAttendees)
+              : "",
+        actualAttendees:
+          targetResult?.actualAttendeesCount != null
+            ? String(targetResult.actualAttendeesCount)
+            : item.actualAttendees != null
+              ? String(item.actualAttendees)
+              : "",
+        targetBookingSales:
+          item.targetBookingSales != null
+            ? String(item.targetBookingSales)
+            : "",
+        actualSalesOrBooking:
+          targetResult?.actualTotalSales != null
+            ? String(targetResult.actualTotalSales)
+            : item.actualSalesOrBooking != null
+              ? String(item.actualSalesOrBooking)
+              : "",
+        farmerFeedback: targetResult?.farmerFeedback || item.farmerFeedback || "",
+        targetFarmersList: targetResult?.targetFarmersList || item.targetFarmersList || "",
+        summary: targetResult?.summary || item.summary || "",
         soldProducts: sold,
         notes: item.notes || "",
         images: (initialData.attachments || [])
-          .filter((att: any) => att.workTypeCode === "TYPE_10" || att.category === "FIELD_DAY" || att.group === "atmosphere")
+          .filter(
+            (att: any) =>
+              att.workTypeCode === "TYPE_10" ||
+              att.workTypeCode === "จัดงาน Field Day" ||
+              att.category === "FIELD_DAY" ||
+              att.category === "ATMOSPHERE" ||
+              att.group === "atmosphere" ||
+              att.group === "type10",
+          )
           .map((att: any) => ({
             id: att.id,
             url: att.fileUrl || att.url,
             name: att.fileName || att.name || "ภาพถ่าย Field Day",
+            size: att.fileSize,
+            type: att.mimeType,
           })),
       };
     });

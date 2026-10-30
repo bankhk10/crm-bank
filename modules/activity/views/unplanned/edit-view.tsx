@@ -185,6 +185,16 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             planCode: plan.code || plan.id,
             employeeName: plan.employee?.name,
             planType: plan.planType || "UNPLANNED",
+            type10: (plan as any).type10 || null,
+            type10Data: (plan as any).type10Data || (plan as any).type10 || null,
+            type10Targets: (plan as any).type10Targets || [],
+            type10Plots: (plan as any).type10Targets || [],
+            type10Products: (plan as any).type10Products || [],
+            type10Results: (plan as any).type10Results || [],
+            type10UnplannedItems:
+              (plan as any).type10UnplannedItems ||
+              (plan as any).type10Targets ||
+              [],
             type13: (plan as any).type13 || null,
             type14: (plan as any).type14 || null,
             type14Targets: (plan as any).type14Targets || [],

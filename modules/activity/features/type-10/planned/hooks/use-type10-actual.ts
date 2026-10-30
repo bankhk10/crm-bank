@@ -11,6 +11,7 @@ import {
   uploadActivityPlanImageGroup,
 } from "@/modules/activity/application/media/image-uploader";
 import { validateType10Actual } from "../application/actual-validation";
+import { parseType10ActualResult } from "../application/actual-mapper";
 
 export { validateType10Actual };
 
@@ -28,7 +29,17 @@ export function useType10Actual() {
 
   const hydrate = useCallback((parsed: any) => {
     if (!parsed) return;
-    const actualData = parsed.type10Actual || parsed;
+
+    // If raw plan or object with dedicated relations passed, run parseType10ActualResult
+    const dataToHydrate =
+      parsed.type10Results ||
+      parsed.type10Targets ||
+      parsed.type10Products ||
+      parsed.activityPlan
+        ? parseType10ActualResult(parsed.resultSummary || parsed.summary, parsed)
+        : parsed;
+
+    const actualData = dataToHydrate.type10Actual || dataToHydrate;
 
     if (actualData.targetId || parsed.targetId) {
       setTargetId(actualData.targetId || parsed.targetId);
@@ -38,6 +49,8 @@ export function useType10Actual() {
       actualData.actualAttendees ??
       actualData.t10ActualAttendees ??
       actualData.actualAttendeesCount ??
+      dataToHydrate.actualAttendees ??
+      dataToHydrate.actualAttendeesCount ??
       parsed.actualAttendees ??
       parsed.actualAttendeesCount;
     if (attendees != null && attendees !== "") {
@@ -47,26 +60,43 @@ export function useType10Actual() {
     const sales =
       actualData.actualSalesOrBooking ??
       actualData.t10ActualSalesOrBooking ??
+      actualData.actualTotalSales ??
       actualData.salesResultAmount ??
       actualData.salesResult ??
+      dataToHydrate.actualSalesOrBooking ??
+      dataToHydrate.actualTotalSales ??
+      dataToHydrate.salesResultAmount ??
       parsed.actualSalesOrBooking ??
+      parsed.actualTotalSales ??
       parsed.salesResultAmount;
     if (sales != null && sales !== "") {
       setActualSalesOrBooking(String(sales));
     }
 
-    const feedback = actualData.farmerFeedback ?? parsed.farmerFeedback;
+    const feedback =
+      actualData.farmerFeedback ??
+      dataToHydrate.farmerFeedback ??
+      parsed.farmerFeedback;
     if (feedback) setFarmerFeedback(feedback);
 
-    const farmers = actualData.targetFarmersList ?? parsed.targetFarmersList;
+    const farmers =
+      actualData.targetFarmersList ??
+      dataToHydrate.targetFarmersList ??
+      parsed.targetFarmersList;
     if (farmers) setTargetFarmersList(farmers);
 
-    const sum = actualData.summary ?? parsed.summary ?? parsed.resultSummary;
+    const sum =
+      actualData.summary ??
+      dataToHydrate.summary ??
+      parsed.summary ??
+      parsed.resultSummary;
     if (sum) setSummary(sum);
 
     const prods =
       actualData.soldProducts ??
       actualData.productSalesDetails ??
+      dataToHydrate.soldProducts ??
+      dataToHydrate.productSalesDetails ??
       parsed.soldProducts ??
       parsed.productSalesDetails;
     if (prods && Array.isArray(prods) && prods.length > 0) {
@@ -77,6 +107,8 @@ export function useType10Actual() {
     const imgs =
       actualData.images ??
       actualData.t10Images ??
+      dataToHydrate.images ??
+      dataToHydrate.t10Images ??
       parsed.images ??
       parsed.t10Images;
     if (imgs && Array.isArray(imgs) && imgs.length > 0) {

@@ -89,6 +89,7 @@ import {
   useType10Actual,
   validateType10Actual,
   extractType10PlanTargets,
+  parseType10ActualResult,
   type Type10TargetItem,
 } from "@/modules/activity/features/type-10";
 import {
@@ -288,6 +289,9 @@ export function ActivityPlanActualView({
           type9Results: plan.type9Results || (res as any)?.type9Results,
           type9Products: plan.type9Products || (res as any)?.type9Products,
           type9Targets: plan.type9Targets || (res as any)?.type9Targets,
+          type10Targets: plan.type10Targets || (res as any)?.type10Targets || [],
+          type10Products: plan.type10Products || (res as any)?.type10Products || [],
+          type10Results: plan.type10Results || (res as any)?.type10Results || [],
           type11Targets: plan.type11Targets || (res as any)?.type11Targets,
           type11Products: plan.type11Products || (res as any)?.type11Products,
           type11Results: plan.type11Results || (res as any)?.type11Results,
@@ -330,7 +334,11 @@ export function ActivityPlanActualView({
         type8Actual.hydrate(parsedT8, payloadToHydrate.attachments);
         const parsedT9 = parseType9ActualResult(payloadToHydrate);
         type9Actual.hydrate(parsedT9);
-        type10Actual.hydrate(payloadToHydrate);
+        const parsedT10 = parseType10ActualResult(
+          res.resultSummary || "",
+          payloadToHydrate,
+        );
+        type10Actual.hydrate(parsedT10);
         const parsedT11 = parseType11ActualResult(payloadToHydrate, plan);
         type11Actual.hydrate(parsedT11, payloadToHydrate.attachments);
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
