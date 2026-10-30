@@ -171,15 +171,15 @@ prisma/seed/activity/
 
 | บทบาท (Role) | Slug | สร้าง/ส่งแผน | บันทึกผลจริง | อนุมัติตามสายงาน | อนุมัติงบ SP | อนุมัติงบ MKT | อนุมัติงบรวม (Final) | จัดการสื่อส่งเสริม | Data Scope (แผนงาน) |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **พนักงานส่งเสริมการขาย** | `activity_promoter` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
-| **พนักงานขาย** | `activity_sales_employee` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
-| **ผู้จัดการภาค** | `activity_area_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
-| **ผู้จัดการเขต** | `activity_district_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
-| **ผู้จัดการแผนกบริหารงานขาย** | `activity_sales_admin_manager` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | `VIEW_ALL` |
-| **ผู้จัดการแผนกการตลาด** | `activity_marketing_manager` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | `VIEW_ALL` |
-| **ผู้จัดการฝ่ายขาย** | `activity_sales_director` | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | `VIEW_ALL` |
-| **พนักงานการตลาด** | `activity_marketing_employee` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
-| **แอดมินการตลาด** | `activity_marketing_admin` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | - (`VIEW_ALL` สื่อ) |
+| **พนักงานส่งเสริมการขาย-กิจกรรม** | `activity_promoter` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
+| **พนักงานขาย-กิจกรรม** | `activity_sales_employee` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการภาค-กิจกรรม** | `activity_area_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการเขต-กิจกรรม** | `activity_district_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการแผนกบริหารงานขาย-กิจกรรม** | `activity_sales_admin_manager` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | `VIEW_ALL` |
+| **ผู้จัดการแผนกการตลาด-กิจกรรม** | `activity_marketing_manager` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | `VIEW_ALL` |
+| **ผู้จัดการฝ่ายขาย-กิจกรรม** | `activity_sales_director` | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | `VIEW_ALL` |
+| **พนักงานการตลาด-กิจกรรม** | `activity_marketing_employee` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
+| **แอดมินการตลาด-กิจกรรม** | `activity_marketing_admin` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | - (`VIEW_ALL` สื่อ) |
 
 - **ตารางฐานข้อมูล**: `Permission`, `Role`, `RolePermission`
 - **Unique Key**:
