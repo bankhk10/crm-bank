@@ -31,14 +31,10 @@ export default function ActivityPlanExportView({
     setSelectedMonth,
     selectedYear,
     setSelectedYear,
-    selectedTypeCode,
-    setSelectedTypeCode,
     includeActual,
     setIncludeActual,
     includePhotos,
     setIncludePhotos,
-    pageBreakPerType,
-    setPageBreakPerType,
     previewHtml,
     loadingPreview,
     downloadingPdf,
@@ -105,15 +101,11 @@ export default function ActivityPlanExportView({
           setSelectedMonth={setSelectedMonth}
           selectedYear={selectedYear}
           setSelectedYear={setSelectedYear}
-          selectedTypeCode={selectedTypeCode}
-          setSelectedTypeCode={setSelectedTypeCode}
           availableWorkTypes={availableWorkTypes}
           includeActual={includeActual}
           setIncludeActual={setIncludeActual}
           includePhotos={includePhotos}
           setIncludePhotos={setIncludePhotos}
-          pageBreakPerType={pageBreakPerType}
-          setPageBreakPerType={setPageBreakPerType}
         />
 
         {/* Right: Live A4 Paper Preview */}

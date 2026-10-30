@@ -270,7 +270,7 @@ export class ActivityPdfService {
         bodyContent += `
           <div class="${needsBreak ? "page-break" : ""}">
             <div style="font-size: 11px; font-weight: 800; color: #0f3568; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 1.5px solid #cbd5e1;">
-              📌 ลำดับที่ 3.${idx + 1}: ${safeHtml(rt.title)}
+              📌 ${renderedTypes.length > 1 ? `ลำดับที่ 3.${idx + 1}: ` : "รายละเอียดแผนงาน: "}${safeHtml(rt.title)}
             </div>
             ${rt.planHtml}
             ${includeActual && rt.actualHtml ? rt.actualHtml : ""}

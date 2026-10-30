@@ -9,6 +9,7 @@ import {
   Sparkles,
   Calendar,
   Compass,
+  Tag,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type {
@@ -41,15 +42,11 @@ interface ExportSettingsSidebarProps {
   setSelectedMonth: (val: number) => void;
   selectedYear: number;
   setSelectedYear: (val: number) => void;
-  selectedTypeCode: string;
-  setSelectedTypeCode: (code: string) => void;
   availableWorkTypes: AvailableWorkTypeOption[];
   includeActual: boolean;
   setIncludeActual: (val: boolean) => void;
   includePhotos: boolean;
   setIncludePhotos: (val: boolean) => void;
-  pageBreakPerType: boolean;
-  setPageBreakPerType: (val: boolean) => void;
 }
 
 export function ExportSettingsSidebar({
@@ -62,15 +59,11 @@ export function ExportSettingsSidebar({
   setSelectedMonth,
   selectedYear,
   setSelectedYear,
-  selectedTypeCode,
-  setSelectedTypeCode,
   availableWorkTypes,
   includeActual,
   setIncludeActual,
   includePhotos,
   setIncludePhotos,
-  pageBreakPerType,
-  setPageBreakPerType,
 }: ExportSettingsSidebarProps) {
   const currentYear = new Date().getFullYear();
 
@@ -179,7 +172,7 @@ export function ExportSettingsSidebar({
               )}
             </div>
 
-            {/* Mode Option 2: SINGLE (Specific Trip Plan or Job Sheet) */}
+            {/* Mode Option 2: SINGLE (Specific Trip Plan) */}
             <div
               onClick={() => setMode("SINGLE")}
               className={`p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
@@ -204,10 +197,10 @@ export function ExportSettingsSidebar({
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1 pl-5 font-normal">
-                สร้างเป็นใบงานเฉพาะเรื่อง (Job Sheet) หรือรายงานรายละเอียดแผนงานฉบับเต็ม
+                พิมพ์รายงานและรายละเอียดของแผนงานที่เลือก
               </p>
 
-              {/* Sub-dropdowns when SINGLE is active */}
+              {/* Sub-content when SINGLE is active */}
               {mode === "SINGLE" && (
                 <div
                   className="mt-3 pt-3 border-t border-blue-200/60 pl-5 space-y-2.5"
@@ -235,26 +228,18 @@ export function ExportSettingsSidebar({
                     </div>
                   )}
 
-                  {/* Select Specific Type */}
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      เลือกประเภทงานที่ต้องการพิมพ์:
-                    </label>
-                    <select
-                      value={selectedTypeCode}
-                      onChange={(e) => setSelectedTypeCode(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-300 rounded-lg p-2 font-medium text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
-                    >
-                      <option value="ALL">
-                        รวมทุกประเภทงานในแผนนี้ (Master Sheet)
-                      </option>
-                      {availableWorkTypes.map((t) => (
-                        <option key={t.code} value={t.code}>
-                          [{t.code}] {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Show Activity Type Info Badge */}
+                  {availableWorkTypes.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs bg-white border border-slate-200 rounded-lg p-2.5 shadow-2xs">
+                      <Tag className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-medium">ประเภทงานของแผนนี้:</span>
+                        <span className="font-bold text-slate-800 text-xs">
+                          [{availableWorkTypes[0].code}] {availableWorkTypes[0].name}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -299,20 +284,6 @@ export function ExportSettingsSidebar({
                 แนบแกลเลอรีรูปถ่ายผลการปฏิบัติงาน (Photos)
               </span>
             </label>
-
-            {mode === "SINGLE" && (
-              <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer">
-                <Checkbox
-                  checked={pageBreakPerType}
-                  onCheckedChange={(checked) =>
-                    setPageBreakPerType(Boolean(checked))
-                  }
-                />
-                <span className="font-medium">
-                  ขึ้นหน้าใหม่เมื่อเริ่มแผนงานถัดไป (Page Break)
-                </span>
-              </label>
-            )}
           </div>
         </div>
       </div>

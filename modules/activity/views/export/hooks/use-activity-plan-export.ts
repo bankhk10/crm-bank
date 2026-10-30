@@ -49,7 +49,6 @@ export function useActivityPlanExport(initialId?: string) {
   const [selectedTypeCode, setSelectedTypeCode] = useState<string>("");
   const [includeActual, setIncludeActual] = useState(true);
   const [includePhotos, setIncludePhotos] = useState(true);
-  const [pageBreakPerType, setPageBreakPerType] = useState(true);
 
   // Preview State
   const [previewHtml, setPreviewHtml] = useState<string>("");
@@ -191,8 +190,6 @@ export function useActivityPlanExport(initialId?: string) {
           setLoadingPreview(false);
           return;
         }
-        params.set("type", selectedTypeCode || "ALL");
-        params.set("pageBreakPerType", String(pageBreakPerType));
       }
 
       const endpoint = selectedPlanId
@@ -215,10 +212,8 @@ export function useActivityPlanExport(initialId?: string) {
     mode,
     selectedMonth,
     selectedYear,
-    selectedTypeCode,
     includeActual,
     includePhotos,
-    pageBreakPerType,
   ]);
 
   // Automatically refresh preview when settings change
@@ -268,8 +263,6 @@ export function useActivityPlanExport(initialId?: string) {
           setDownloadingPdf(false);
           return;
         }
-        params.set("type", selectedTypeCode || "ALL");
-        params.set("pageBreakPerType", String(pageBreakPerType));
       }
 
       const endpoint = selectedPlanId
@@ -279,9 +272,7 @@ export function useActivityPlanExport(initialId?: string) {
       const filename =
         mode === "ALL"
           ? `รายงานสรุปแผนงานประจำเดือน-${selectedMonth}-${selectedYear + 543}.pdf`
-          : `${plan?.code || "ActivityPlan"}${
-              selectedTypeCode ? `-${selectedTypeCode}` : ""
-            }.pdf`;
+          : `${plan?.code || "ActivityPlan"}.pdf`;
 
       const link = document.createElement("a");
       link.href = endpoint;
@@ -301,10 +292,8 @@ export function useActivityPlanExport(initialId?: string) {
     mode,
     selectedMonth,
     selectedYear,
-    selectedTypeCode,
     includeActual,
     includePhotos,
-    pageBreakPerType,
   ]);
 
   const handleBack = useCallback(() => {
@@ -336,8 +325,6 @@ export function useActivityPlanExport(initialId?: string) {
     setIncludeActual,
     includePhotos,
     setIncludePhotos,
-    pageBreakPerType,
-    setPageBreakPerType,
     previewHtml,
     loadingPreview,
     downloadingPdf,
