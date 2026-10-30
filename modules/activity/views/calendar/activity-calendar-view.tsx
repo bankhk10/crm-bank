@@ -20,7 +20,7 @@ export function ActivityCalendarView() {
   // 1. Filter Hook (options, search, multi-selects)
   const filterState = useCalendarFilters();
 
-  // 2. Calendar Core Hook (dates, events, fetch, day calculation, selection)
+  // 2. Calendar Core Hook (dates, events, fetch, day calculation, selection, scope counts)
   const {
     currentDate,
     setCurrentDate,
@@ -33,6 +33,7 @@ export function ActivityCalendarView() {
     setSelectedEvent,
     selectedDayEvents,
     setSelectedDayEvents,
+    scopeCounts,
   } = useActivityCalendar(filterState);
 
   // 3. Sync loaded events into filterState for attendee options
@@ -48,12 +49,13 @@ export function ActivityCalendarView() {
         onDateChange={setCurrentDate}
       />
 
-      {/* 2. Filter Bar (Tabs, Search, Multi-selects) */}
+      {/* 2. Filter Bar (Scope Tabs, Search, Multi-selects) */}
       <CalendarFilterBar
         filterState={filterState}
         loading={loading}
         totalEventsCount={events.length}
         filteredEventsCount={filteredEvents.length}
+        scopeCounts={scopeCounts}
       />
 
       {/* 3. Monthly Calendar Grid */}

@@ -1,6 +1,19 @@
 import { MultiSelectOption } from "@/components/custom/multi-select";
 
-export type CalendarFilter = "ALL" | "MY_EVENTS" | "HELPER_EVENTS";
+export type CalendarFilter =
+  | "ALL"
+  | "OWN"
+  | "TEAM"
+  | "HELPER"
+  | "MY_EVENTS"
+  | "HELPER_EVENTS";
+
+export interface CalendarScopeCounts {
+  own: number;
+  team: number;
+  helper: number;
+  all: number;
+}
 
 export interface CalendarAttendee {
   id?: string;
@@ -28,6 +41,7 @@ export interface CalendarEvent {
   status: "SCHEDULED" | "COMPLETED" | "CANCELLED" | string;
   activityPlanId?: string | null;
   employeeId: string;
+  createdById?: string | null;
   employee?: {
     id: string;
     name: string;
@@ -41,6 +55,7 @@ export interface CalendarEvent {
     title?: string | null;
     status?: string | null;
     employeeId?: string | null;
+    createdById?: string | null;
     totalBudgetApproved?: number | null;
     activityType?: { id: string; name: string; code: string } | null;
     workTypes?: Array<{
@@ -75,4 +90,3 @@ export interface CalendarFilterState {
   hasActiveFilters: boolean;
   handleClearAllFilters: () => void;
 }
-

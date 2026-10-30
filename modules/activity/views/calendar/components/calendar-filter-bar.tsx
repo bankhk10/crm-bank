@@ -1,18 +1,24 @@
 "use client";
 
 import React from "react";
-import { Loader2, Search } from "lucide-react";
+import { User, Users, UserPlus, Layers, Loader2, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { STATUS_OPTIONS } from "@/modules/activity/constants";
-import { CalendarFilterState } from "../types/calendar.types";
+import {
+  CalendarFilter,
+  CalendarFilterState,
+  CalendarScopeCounts,
+} from "../types/calendar.types";
 
 interface CalendarFilterBarProps {
   filterState: CalendarFilterState;
   loading: boolean;
   totalEventsCount: number;
   filteredEventsCount: number;
+  scopeCounts?: CalendarScopeCounts;
 }
 
 export function CalendarFilterBar({
@@ -20,6 +26,7 @@ export function CalendarFilterBar({
   loading,
   totalEventsCount,
   filteredEventsCount,
+  scopeCounts,
 }: CalendarFilterBarProps) {
   const {
     filter,
@@ -38,47 +45,145 @@ export function CalendarFilterBar({
     handleClearAllFilters,
   } = filterState;
 
+  const scopeTabs: {
+    id: CalendarFilter;
+    label: string;
+    subtitle: string;
+    count: number;
+    icon: React.ElementType;
+    activeClass: string;
+    badgeActiveClass: string;
+    iconColorClass: string;
+  }[] = [
+    {
+      id: "OWN",
+      label: "แผนงานของฉัน",
+      subtitle: "ที่ฉันเป็นผู้สร้าง",
+      count: scopeCounts?.own ?? 0,
+      icon: User,
+      activeClass:
+        "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20",
+      badgeActiveClass: "bg-white/20 text-white",
+      iconColorClass: "text-blue-600",
+    },
+    {
+      id: "TEAM",
+      label: "แผนงานลูกทีม / ทีมงาน",
+      subtitle: "ของทีมและผู้ใต้บังคับบัญชา",
+      count: scopeCounts?.team ?? 0,
+      icon: Users,
+      activeClass:
+        "bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/20",
+      badgeActiveClass: "bg-white/20 text-white",
+      iconColorClass: "text-indigo-600",
+    },
+    {
+      id: "HELPER",
+      label: "ที่ฉันร่วมทีม (Helper)",
+      subtitle: "ไปช่วยปฏิบัติงาน",
+      count: scopeCounts?.helper ?? 0,
+      icon: UserPlus,
+      activeClass:
+        "bg-teal-600 text-white border-teal-600 shadow-sm shadow-teal-500/20",
+      badgeActiveClass: "bg-white/20 text-white",
+      iconColorClass: "text-teal-600",
+    },
+    {
+      id: "ALL",
+      label: "ทั้งหมด",
+      subtitle: "รวมทุกมุมมอง",
+      count: scopeCounts?.all ?? 0,
+      icon: Layers,
+      activeClass:
+        "bg-slate-800 text-white border-slate-800 shadow-sm shadow-slate-500/20",
+      badgeActiveClass: "bg-white/20 text-white",
+      iconColorClass: "text-slate-600",
+    },
+  ];
+
   return (
     <div className="space-y-4">
-      {/* Filter Tabs */}
-      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={filter === "ALL" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("ALL")}
-            className="rounded-xl text-xs"
-          >
-            ทั้งหมด ({hasActiveFilters ? filteredEventsCount : totalEventsCount})
-          </Button>
-          <Button
-            variant={filter === "MY_EVENTS" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("MY_EVENTS")}
-            className="rounded-xl text-xs"
-          >
-            กิจกรรมหลัก
-          </Button>
-          <Button
-            variant={filter === "HELPER_EVENTS" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("HELPER_EVENTS")}
-            className="rounded-xl text-xs"
-          >
-            กิจกรรมที่เป็นผู้ช่วย
-          </Button>
-        </div>
+      {/* ─── Scope Switcher Tabs (แยกข้อมูลของเรา vs ลูกทีม vs ร่วมทีม vs ทั้งหมด) ─── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        {scopeTabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive =
+            filter === tab.id ||
+            (tab.id === "OWN" && filter === "MY_EVENTS") ||
+            (tab.id === "HELPER" && filter === "HELPER_EVENTS");
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilter(tab.id)}
+              className={cn(
+                "flex items-center justify-between gap-2 p-3 sm:px-4 sm:py-3 rounded-xl border text-left transition-all cursor-pointer",
+                isActive
+                  ? tab.activeClass
+                  : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80 shadow-2xs",
+              )}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={cn(
+                    "w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-50 border border-slate-200/80 shadow-2xs",
+                    !isActive && tab.iconColorClass,
+                  )}
+                >
+                  <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-xs sm:text-sm font-bold truncate",
+                      isActive ? "text-white" : "text-slate-800",
+                    )}
+                  >
+                    {tab.label}
+                  </p>
+                  <p
+                    className={cn(
+                      "text-[10px] sm:text-xs truncate hidden sm:block",
+                      isActive ? "text-white/80" : "text-slate-500",
+                    )}
+                  >
+                    {tab.subtitle}
+                  </p>
+                </div>
+              </div>
 
-        {loading && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            กำลังโหลดข้อมูล...
-          </div>
-        )}
+              <span
+                className={cn(
+                  "px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm font-extrabold shrink-0 tabular-nums",
+                  isActive
+                    ? tab.badgeActiveClass
+                    : "bg-slate-100 text-slate-700 border border-slate-200/80",
+                )}
+              >
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Search & Multi-select Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500">
+            ตัวกรองเพิ่มเติม
+          </span>
+          {loading && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-500" />
+              กำลังโหลดข้อมูล...
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* 1. ค้นหา */}
           <div className="space-y-1">
@@ -168,4 +273,3 @@ export function CalendarFilterBar({
     </div>
   );
 }
-

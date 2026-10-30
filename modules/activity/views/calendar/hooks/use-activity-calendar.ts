@@ -14,12 +14,73 @@ import { matchesActivityFilters } from "@/modules/activity/constants";
 import {
   CalendarEvent,
   CalendarFilterState,
+  CalendarScopeCounts,
   DayEventsSelection,
 } from "../types/calendar.types";
+
+/**
+ * Determine if the event belongs to the current user as creator
+ */
+function isOwnCalendarEvent(
+  e: CalendarEvent,
+  currentEmployeeId?: string | null,
+  currentUserId?: string | null,
+): boolean {
+  if (
+    currentEmployeeId &&
+    (e.employeeId === currentEmployeeId ||
+      e.activityPlan?.employeeId === currentEmployeeId)
+  ) {
+    return true;
+  }
+  if (
+    currentUserId &&
+    (e.createdById === currentUserId ||
+      (e.activityPlan as any)?.createdById === currentUserId)
+  ) {
+    return true;
+  }
+  if (
+    currentEmployeeId &&
+    e.attendees?.some(
+      (a: any) =>
+        a.role === "CREATOR" &&
+        (a.employeeId === currentEmployeeId ||
+          a.employee?.id === currentEmployeeId),
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Determine if the current user participated in the event as a helper
+ */
+function isHelperCalendarEvent(
+  e: CalendarEvent,
+  currentEmployeeId?: string | null,
+  isOwn?: boolean,
+): boolean {
+  if (isOwn) return false;
+  if (
+    currentEmployeeId &&
+    e.attendees?.some(
+      (a: any) =>
+        a.role === "HELPER" &&
+        (a.employeeId === currentEmployeeId ||
+          a.employee?.id === currentEmployeeId),
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
 
 export function useActivityCalendar(filterState: CalendarFilterState) {
   const { data: session } = useSession();
   const currentEmployeeId = session?.user?.employeeId;
+  const currentUserId = session?.user?.id;
 
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -70,6 +131,50 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
     return eachDayOfInterval({ start: startDate, end: endDate });
   }, [currentDate]);
 
+  // Calculate Scope Counts (Own vs Team vs Helper vs All) matching other active filters
+  const scopeCounts = useMemo<CalendarScopeCounts>(() => {
+    let own = 0;
+    let team = 0;
+    let helper = 0;
+    let all = 0;
+
+    for (const e of events) {
+      // Must match search & multi-select filters
+      const matchesOther = matchesActivityFilters(e, {
+        workTypes: filterState.workTypeFilters,
+        personIds: filterState.personFilters,
+        statuses: filterState.statusFilters,
+        searchQuery: filterState.searchKeyword,
+      });
+      if (!matchesOther) continue;
+
+      all++;
+      const isOwn = isOwnCalendarEvent(e, currentEmployeeId, currentUserId);
+      if (isOwn) {
+        own++;
+        continue;
+      }
+
+      const isHelper = isHelperCalendarEvent(e, currentEmployeeId, isOwn);
+      if (isHelper) {
+        helper++;
+        continue;
+      }
+
+      team++;
+    }
+
+    return { own, team, helper, all };
+  }, [
+    events,
+    filterState.workTypeFilters,
+    filterState.personFilters,
+    filterState.statusFilters,
+    filterState.searchKeyword,
+    currentEmployeeId,
+    currentUserId,
+  ]);
+
   // Filtered Events
   const filteredEvents = useMemo(() => {
     const {
@@ -81,26 +186,19 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
     } = filterState;
 
     return events.filter((e) => {
-      // 1. Tab filter
-      if (filter === "MY_EVENTS") {
-        const isCreator =
-          (currentEmployeeId && e.employeeId === currentEmployeeId) ||
-          e.attendees?.some(
-            (a: any) =>
-              a.role === "CREATOR" &&
-              currentEmployeeId &&
-              a.employeeId === currentEmployeeId,
-          );
-        if (!isCreator) return false;
-      } else if (filter === "HELPER_EVENTS") {
-        const isHelper = e.attendees?.some(
-          (a: any) =>
-            a.role === "HELPER" &&
-            currentEmployeeId &&
-            a.employeeId === currentEmployeeId,
-        );
+      // 1. Tab / Scope filter (OWN vs TEAM vs HELPER vs ALL)
+      const isOwn = isOwnCalendarEvent(e, currentEmployeeId, currentUserId);
+      const isHelper = isHelperCalendarEvent(e, currentEmployeeId, isOwn);
+      const isTeam = !isOwn && !isHelper;
+
+      if (filter === "OWN" || filter === "MY_EVENTS") {
+        if (!isOwn) return false;
+      } else if (filter === "HELPER" || filter === "HELPER_EVENTS") {
         if (!isHelper) return false;
+      } else if (filter === "TEAM") {
+        if (!isTeam) return false;
       }
+      // "ALL" permits all events
 
       // 2. Shared Multi-select and Search logic
       return matchesActivityFilters(e, {
@@ -110,7 +208,7 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
         searchQuery: searchKeyword,
       });
     });
-  }, [events, filterState, currentEmployeeId]);
+  }, [events, filterState, currentEmployeeId, currentUserId]);
 
   const getEventsForDay = useCallback(
     (day: Date) => {
@@ -152,6 +250,6 @@ export function useActivityCalendar(filterState: CalendarFilterState) {
     selectedDayEvents,
     setSelectedDayEvents,
     fetchEvents,
+    scopeCounts,
   };
 }
-

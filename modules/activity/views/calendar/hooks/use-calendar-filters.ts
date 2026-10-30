@@ -14,7 +14,7 @@ import {
 export function useCalendarFilters(): CalendarFilterState & {
   syncAttendeeOptions: (events: CalendarEvent[]) => void;
 } {
-  const [filter, setFilter] = useState<CalendarFilter>("ALL");
+  const [filter, setFilter] = useState<CalendarFilter>("OWN");
   const [workTypeFilters, setWorkTypeFilters] = useState<string[]>([]);
   const [personFilters, setPersonFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
@@ -131,4 +131,3 @@ export function useCalendarFilters(): CalendarFilterState & {
     syncAttendeeOptions,
   };
 }
-
