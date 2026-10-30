@@ -771,3 +771,61 @@ export async function toggleHattackPlotStatusAction(params: {
     };
   }
 }
+
+export async function getRecentActivityPlansForExportAction(): Promise<{
+  success: boolean;
+  plans?: Array<{
+    id: string;
+    code: string | null;
+    title: string;
+    startDate: Date;
+    endDate: Date;
+    status: string;
+    creatorName: string;
+  }>;
+  error?: string;
+}> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const plans = await db.activityPlan.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      take: 60,
+      select: {
+        id: true,
+        code: true,
+        title: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        employee: {
+          select: { firstName: true, lastName: true },
+        },
+        createdBy: {
+          select: { name: true },
+        },
+      },
+    });
+
+    return serialize({
+      success: true,
+      plans: plans.map((p) => ({
+        id: p.id,
+        code: p.code,
+        title: p.title,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        status: p.status,
+        creatorName: p.employee
+          ? `${p.employee.firstName || ""} ${p.employee.lastName || ""}`.trim()
+          : p.createdBy?.name || "-",
+      })),
+    });
+  } catch (err: any) {
+    return { success: false, error: err.message || "เกิดข้อผิดพลาดในการโหลดรายการแผนงาน" };
+  }
+}

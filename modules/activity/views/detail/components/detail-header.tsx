@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { FileText, Info } from "lucide-react";
+import Link from "next/link";
+import { FileText, Info, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import type { PlanSummaryData } from "@/modules/activity/domain/summary";
@@ -31,6 +33,17 @@ export function DetailHeader({ plan, planSummary }: DetailHeaderProps) {
       </div>
 
       <div className="ml-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
+        <Link href={`/activity-plans/${plan.id}/export`}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 rounded-full border-blue-200 text-blue-700 bg-blue-50/70 hover:bg-blue-100 font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <Printer className="w-3.5 h-3.5 text-blue-600" />
+            <span>พิมพ์ / ส่งออก PDF</span>
+          </Button>
+        </Link>
         <span
           className={cn(
             "inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs border",

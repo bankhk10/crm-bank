@@ -5,7 +5,10 @@ import puppeteer from "puppeteer";
  * @param html The HTML string to be rendered
  * @returns Promise resolving to a PDF Buffer
  */
-export async function generatePdfFromHtml(html: string): Promise<Buffer> {
+export async function generatePdfFromHtml(
+  html: string,
+  customOptions?: { landscape?: boolean },
+): Promise<Buffer> {
   // Launch a new browser instance
   const browser = await puppeteer.launch({
     headless: true, // Run in headless mode

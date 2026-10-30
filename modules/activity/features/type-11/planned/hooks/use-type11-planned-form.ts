@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import type { Type11StoreItem } from "../../shared/types";
 import type {

@@ -153,6 +153,11 @@ export const navigationItems: SidebarNavItem[] = [
         permissionKey: "menu.activity_plans",
       },
       {
+        href: "/activity-plans/export",
+        label: "พิมพ์ / ส่งออกเอกสาร",
+        permissionKey: "menu.activity_plans",
+      },
+      {
         href: "/activity-plans/promotional-materials",
         label: "สื่อส่งเสริมการขาย",
         permissionKey: "menu.promotional_materials",

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Printer } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -117,6 +118,16 @@ export default function ActivityPlanDetailView({
 
         {/* ─── 6. BOTTOM ACTIONS ─── */}
         <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
+          <Link href={`/activity-plans/${plan.id}/export`}>
+            <Button
+              type="button"
+              variant="outline"
+              className="px-5 py-2.5 h-10 rounded-xl border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <Printer className="w-4 h-4 text-blue-600" />
+              <span>พิมพ์ / ส่งออก PDF</span>
+            </Button>
+          </Link>
           {canRequestCancel && (
             <Button
               type="button"

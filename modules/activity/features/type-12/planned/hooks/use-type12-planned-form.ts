@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import type { Type12TourDataPayload } from "../types/planned.types";
 import { validateType12FormValues } from "../application/planned-validation";

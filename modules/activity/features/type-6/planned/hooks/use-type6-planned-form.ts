@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import type { Type6IssueItem } from "../../shared/types";

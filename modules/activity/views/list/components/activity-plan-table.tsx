@@ -8,6 +8,7 @@ import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Eye,
+  Printer,
   Edit,
   Trash2,
   Send,
@@ -403,6 +404,13 @@ export function ActivityPlanTable({
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
+              <ActionButton
+                href={`/activity-plans/${item.id}/export`}
+                icon={Printer}
+                label="พิมพ์ / ส่งออก PDF"
+                colorClass="text-indigo-600 border-indigo-100 hover:bg-indigo-50 rounded-md"
+              />
+
               {!isUnplanned && isApproved && hasActualWorkType && isCreator && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/actual`}
@@ -608,6 +616,15 @@ export function ActivityPlanTable({
           >
             <CalendarIcon className="h-4 w-4 text-blue-600" />
             ปฏิทินกิจกรรม
+          </Button>
+        </Link>
+        <Link href="/activity-plans/export" className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto border-indigo-600 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2 font-semibold shadow-xs"
+          >
+            <Printer className="h-4 w-4 text-indigo-600" />
+            พิมพ์ / ส่งออกเอกสาร
           </Button>
         </Link>
         {canApprove && (

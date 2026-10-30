@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import type { Type12UnplannedItem } from "../types/unplanned.types";
 import { validateType12UnplannedItem } from "../application/unplanned-validation";

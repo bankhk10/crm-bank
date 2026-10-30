@@ -31,3 +31,7 @@ export { default as ActivityPlanActualView } from "./actual/activity-plan-actual
 
 // 📦 8. Promotional Materials View (/activity-plans/promotional-materials)
 export { default as PromotionalMaterialsView } from "./promotional-materials/promotional-materials-view";
+
+// 🖨️ 9. Export & Print Studio View (/activity-plans/[id]/export)
+export { default as ActivityPlanExportView } from "./export/activity-plan-export-view";
+
