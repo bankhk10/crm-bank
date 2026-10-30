@@ -121,34 +121,32 @@ export function ActivityPlanTable({
     (item: ActivityPlanWithRelations) => {
       const isCreator = Boolean(
         (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
-          (currentUserId && item.createdById === currentUserId),
+        (currentUserId && item.createdById === currentUserId),
       );
       if (isCreator) {
         return {
           type: "OWN" as const,
           label: "ของฉัน",
-          badgeClass:
-            "bg-blue-50 text-blue-700 border-blue-200",
+          badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
           accentClass: "from-blue-500 to-indigo-500",
         };
       }
 
       const isHelper = Boolean(
         currentUserEmployeeId &&
-          Array.isArray((item as any).helpers) &&
-          (item as any).helpers.some(
-            (h: any) =>
-              h.employee?.id === currentUserEmployeeId ||
-              h.employeeId === currentUserEmployeeId,
-          ),
+        Array.isArray((item as any).helpers) &&
+        (item as any).helpers.some(
+          (h: any) =>
+            h.employee?.id === currentUserEmployeeId ||
+            h.employeeId === currentUserEmployeeId,
+        ),
       );
 
       if (isHelper) {
         return {
           type: "HELPER" as const,
           label: "ร่วมทีม",
-          badgeClass:
-            "bg-teal-50 text-teal-700 border-teal-200",
+          badgeClass: "bg-teal-50 text-teal-700 border-teal-200",
           accentClass: "from-teal-500 to-emerald-500",
         };
       }
@@ -156,8 +154,7 @@ export function ActivityPlanTable({
       return {
         type: "TEAM" as const,
         label: "ลูกทีม/ทีมงาน",
-        badgeClass:
-          "bg-indigo-50 text-indigo-700 border-indigo-200",
+        badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
         accentClass: "from-indigo-500 to-purple-500",
       };
     },
@@ -177,7 +174,7 @@ export function ActivityPlanTable({
             row.original.id;
           return (
             <div
-              className="truncate text-sm font-mono font-semibold text-blue-700 max-w-[130px]"
+              className="truncate text-sm font-medium text-slate-800  max-w-[130px]"
               title={planNo || "-"}
             >
               {planNo || "-"}
@@ -386,7 +383,7 @@ export function ActivityPlanTable({
           const isCreator = Boolean(
             (currentUserEmployeeId &&
               item.employeeId === currentUserEmployeeId) ||
-              (currentUserId && item.createdById === currentUserId),
+            (currentUserId && item.createdById === currentUserId),
           );
 
           const editHref = isUnplanned
@@ -403,14 +400,6 @@ export function ActivityPlanTable({
                 label="ดูรายละเอียด"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
-
-              <ActionButton
-                href={`/activity-plans/${item.id}/export`}
-                icon={Printer}
-                label="พิมพ์ / ส่งออก PDF"
-                colorClass="text-indigo-600 border-indigo-100 hover:bg-indigo-50 rounded-md"
-              />
-
               {!isUnplanned && isApproved && hasActualWorkType && isCreator && (
                 <ActionButton
                   href={`/activity-plans/${item.id}/actual`}
@@ -503,13 +492,15 @@ export function ActivityPlanTable({
     if (viewScope === "TEAM") {
       return {
         title: "ไม่พบแผนงานของลูกทีม / ทีมงาน",
-        description: "ยังไม่มีแผนงานที่สร้างโดยลูกทีม หรือไม่ตรงกับเงื่อนไขการค้นหา",
+        description:
+          "ยังไม่มีแผนงานที่สร้างโดยลูกทีม หรือไม่ตรงกับเงื่อนไขการค้นหา",
       };
     }
     if (viewScope === "HELPER") {
       return {
         title: "ไม่พบแผนงานที่คุณร่วมทีม (Helper)",
-        description: "เมื่อมีผู้ระบุชื่อคุณเป็นผู้ช่วยปฏิบัติงาน รายการจะแสดงในแท็บนี้",
+        description:
+          "เมื่อมีผู้ระบุชื่อคุณเป็นผู้ช่วยปฏิบัติงาน รายการจะแสดงในแท็บนี้",
       };
     }
     return {
@@ -616,15 +607,6 @@ export function ActivityPlanTable({
           >
             <CalendarIcon className="h-4 w-4 text-blue-600" />
             ปฏิทินกิจกรรม
-          </Button>
-        </Link>
-        <Link href="/activity-plans/export" className="w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto border-indigo-600 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2 font-semibold shadow-xs"
-          >
-            <Printer className="h-4 w-4 text-indigo-600" />
-            พิมพ์ / ส่งออกเอกสาร
           </Button>
         </Link>
         {canApprove && (
@@ -740,7 +722,7 @@ export function ActivityPlanTable({
           const isCreator = Boolean(
             (currentUserEmployeeId &&
               item.employeeId === currentUserEmployeeId) ||
-              (currentUserId && item.createdById === currentUserId),
+            (currentUserId && item.createdById === currentUserId),
           );
 
           const roleInfo = getRelationRole(item);
