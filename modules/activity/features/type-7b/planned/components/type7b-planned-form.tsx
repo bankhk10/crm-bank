@@ -100,38 +100,9 @@ export function Type7bPlannedForm({
     return extra.length > 0 ? [...extra, ...base] : base;
   }, [products, dbProducts, item.withdrawnProducts]);
 
-  // Combine followUpPlans, dbPlans, or synthesize from plotList if needed
+  // Combine followUpPlans or dbPlans (filtered to creator's plans)
   const effectiveFollowUpPlans = useMemo(() => {
-    let plansSource = followUpPlans.length > 0 ? followUpPlans : dbPlans;
-    if (plansSource.length === 0) {
-      // Fallback: If no followUpPlans, build options from plotList
-      plansSource = (plotList || [])
-        .filter((p) => p.status !== "COMPLETED" && p.status !== "CANCELLED")
-        .map((p) => ({
-          planId: p.id,
-          planCode: p.code || "แปลงสาธิต",
-          planTitle: `${p.name} (${p.ownerName || "ไม่ระบุเจ้าของ"})`,
-          planDate: p.startDate
-            ? new Date(p.startDate).toLocaleDateString("th-TH")
-            : undefined,
-          plots: [
-            {
-              id: p.id,
-              code: p.code,
-              name: p.name,
-              cropName: p.cropName || p.targetCrop || "-",
-              cropCategory: p.cropCategory,
-              ownerName: p.ownerName || "-",
-              province: p.province || "",
-              district: p.district || "",
-              areaRai: p.areaRai ? Number(p.areaRai) : undefined,
-              treeCount: p.treeCount ?? undefined,
-              dealerName: p.dealerName,
-              dealerId: p.dealerId,
-            },
-          ],
-        }));
-    }
+    const plansSource = followUpPlans.length > 0 ? followUpPlans : dbPlans;
 
     // Resilience: If item has a selectedPlanId or selectedPlotIds but it's not present in plansSource
     // (e.g. source plan was completed, closed, or not returned by getFollowUpPlansAction)
@@ -553,10 +524,10 @@ export function Type7bPlannedForm({
           placeholder={
             planOptions.length > 0
               ? "เลือกแผนกิจกรรมทำแปลงสาธิตต้นทาง..."
-              : "ไม่พบแผนกิจกรรมทำแปลงสาธิตที่ยังไม่ปิดแปลง"
+              : "ไม่พบแผนกิจกรรมทำแปลงสาธิตที่คุณสร้างไว้ที่ยังไม่ปิดแปลง"
           }
           searchPlaceholder="ค้นหาแผนกิจกรรมทำแปลง (รหัส, ชื่อแผน, หรือชื่อแปลง)..."
-          emptyText="ไม่พบแผนกิจกรรมทำแปลงสาธิตที่แปลงยังเปิดอยู่ (ยังไม่ปิดแปลง)"
+          emptyText="ไม่พบแผนกิจกรรมทำแปลงสาธิตที่คุณสร้างไว้ (ที่แปลงยังเปิดอยู่)"
           disabled={readonly}
           required
         />

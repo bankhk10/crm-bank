@@ -142,6 +142,19 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
         if (planRes.success && planRes.plan) {
           const plan = planRes.plan;
 
+          if (plan.employeeId && plan.employeeId !== user?.employeeId) {
+            getFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.followUpPlans) {
+                setFollowUpPlans(res.followUpPlans);
+              }
+            });
+            getHattackFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.hattackFollowUpPlans) {
+                setHattackFollowUpPlans(res.hattackFollowUpPlans);
+              }
+            });
+          }
+
           const helperEmployeeIds = plan.helpers
             ? plan.helpers.map((h: any) => h.employeeId)
             : [];

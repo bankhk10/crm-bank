@@ -490,9 +490,28 @@ export async function getDemoPlotsAction() {
   }
 }
 
-export async function getFollowUpPlansAction() {
+export async function getFollowUpPlansAction(targetEmployeeId?: string) {
   try {
-    const followUpPlans = await findFollowUpActivityPlans();
+    const session = await auth();
+    if (!session?.user) {
+      return serialize({ success: false, followUpPlans: [], error: "Unauthorized" });
+    }
+
+    let employeeId = targetEmployeeId || session.user.employeeId;
+    if (!employeeId && session.user.id) {
+      const emp = await db.employee.findFirst({
+        where: { userId: session.user.id, deletedAt: null },
+        select: { id: true },
+      });
+      if (emp) {
+        employeeId = emp.id;
+      }
+    }
+
+    const followUpPlans = await findFollowUpActivityPlans({
+      employeeId: employeeId ?? undefined,
+      userId: session.user.id,
+    });
     return serialize({ success: true, followUpPlans });
   } catch (err: any) {
     console.error("Failed to get follow-up plans:", err);
@@ -500,9 +519,32 @@ export async function getFollowUpPlansAction() {
   }
 }
 
-export async function getHattackFollowUpPlansAction() {
+export async function getHattackFollowUpPlansAction(targetEmployeeId?: string) {
   try {
-    const hattackFollowUpPlans = await findHattackFollowUpActivityPlans();
+    const session = await auth();
+    if (!session?.user) {
+      return serialize({
+        success: false,
+        hattackFollowUpPlans: [],
+        error: "Unauthorized",
+      });
+    }
+
+    let employeeId = targetEmployeeId || session.user.employeeId;
+    if (!employeeId && session.user.id) {
+      const emp = await db.employee.findFirst({
+        where: { userId: session.user.id, deletedAt: null },
+        select: { id: true },
+      });
+      if (emp) {
+        employeeId = emp.id;
+      }
+    }
+
+    const hattackFollowUpPlans = await findHattackFollowUpActivityPlans({
+      employeeId: employeeId ?? undefined,
+      userId: session.user.id,
+    });
     return serialize({ success: true, hattackFollowUpPlans });
   } catch (err: any) {
     console.error("Failed to get hattack follow-up plans:", err);

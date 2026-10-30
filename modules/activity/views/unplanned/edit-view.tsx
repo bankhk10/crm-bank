@@ -132,6 +132,14 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
         if (planRes.success && planRes.plan) {
           const plan = planRes.plan;
 
+          if (plan.employeeId && plan.employeeId !== user?.employeeId) {
+            getFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.followUpPlans) {
+                setFollowUpPlans(res.followUpPlans);
+              }
+            });
+          }
+
           const helperEmployeeIds = plan.helpers
             ? plan.helpers.map((h: any) => h.employeeId)
             : [];

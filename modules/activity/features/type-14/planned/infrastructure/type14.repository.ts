@@ -11,21 +11,37 @@ import type { FollowUpPlanOption } from "../../shared/types";
  * Fetch active TYPE_13 Activity Plans and their Hattack plots
  * Strictly for TYPE_14 ("ติดตามแปลงแฮตแทค")
  */
-export async function findHattackFollowUpActivityPlans(): Promise<FollowUpPlanOption[]> {
-  const plans = await db.activityPlan.findMany({
-    where: {
-      deletedAt: null,
-      status: { not: ActivityStatus.CANCELLED },
-      OR: [
-        { activityType: { code: "TYPE_13" } },
-        { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
-      ],
-      type13Targets: {
-        some: {
-          status: DemoPlotStatus.IN_PROGRESS,
-        },
+export async function findHattackFollowUpActivityPlans(options?: {
+  employeeId?: string;
+  userId?: string;
+}): Promise<FollowUpPlanOption[]> {
+  const whereCondition: any = {
+    deletedAt: null,
+    status: { not: ActivityStatus.CANCELLED },
+    OR: [
+      { activityType: { code: "TYPE_13" } },
+      { workTypes: { some: { activityType: { code: "TYPE_13" } } } },
+    ],
+    type13Targets: {
+      some: {
+        status: DemoPlotStatus.IN_PROGRESS,
       },
     },
+  };
+
+  if (options?.employeeId || options?.userId) {
+    whereCondition.AND = [
+      {
+        OR: [
+          ...(options.employeeId ? [{ employeeId: options.employeeId }] : []),
+          ...(options.userId ? [{ createdById: options.userId }] : []),
+        ],
+      },
+    ];
+  }
+
+  const plans = await db.activityPlan.findMany({
+    where: whereCondition,
     include: {
       type13Targets: {
         where: {

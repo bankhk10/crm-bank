@@ -175,7 +175,10 @@ export async function syncType7bData(
  * Fetch dedicated demo plots for TYPE_7B "ติดตามแปลงสาธิต"
  * Returns active demo plots originating from non-cancelled TYPE_7A plans whose status is not closed/cancelled
  */
-export async function findFollowUpDemoPlots() {
+export async function findFollowUpDemoPlots(options?: {
+  employeeId?: string;
+  userId?: string;
+}) {
   return db.activityPlanType7aTarget.findMany({
     where: {
       status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
@@ -183,6 +186,14 @@ export async function findFollowUpDemoPlots() {
       activityPlan: {
         deletedAt: null,
         status: { not: ActivityStatus.CANCELLED },
+        ...(options?.employeeId || options?.userId
+          ? {
+              OR: [
+                ...(options.employeeId ? [{ employeeId: options.employeeId }] : []),
+                ...(options.userId ? [{ createdById: options.userId }] : []),
+              ],
+            }
+          : {}),
       },
     },
     include: {
@@ -215,22 +226,38 @@ export async function findFollowUpDemoPlots() {
  * Fetch follow-up options for TYPE_7B:
  * Returns TYPE_7A Activity Plans that have active demo plots (status not CANCELLED/COMPLETED, closedDate is null).
  */
-export async function findFollowUpActivityPlans(): Promise<Type7bFollowUpPlanOption[]> {
-  const plans = await db.activityPlan.findMany({
-    where: {
-      deletedAt: null,
-      status: { not: ActivityStatus.CANCELLED },
-      OR: [
-        { activityType: { code: "TYPE_7A" } },
-        { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
-      ],
-      type7aTargets: {
-        some: {
-          status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
-          closedDate: null,
-        },
+export async function findFollowUpActivityPlans(options?: {
+  employeeId?: string;
+  userId?: string;
+}): Promise<Type7bFollowUpPlanOption[]> {
+  const whereCondition: any = {
+    deletedAt: null,
+    status: { not: ActivityStatus.CANCELLED },
+    OR: [
+      { activityType: { code: "TYPE_7A" } },
+      { workTypes: { some: { activityType: { code: "TYPE_7A" } } } },
+    ],
+    type7aTargets: {
+      some: {
+        status: { notIn: [DemoPlotStatus.CANCELLED, DemoPlotStatus.COMPLETED] },
+        closedDate: null,
       },
     },
+  };
+
+  if (options?.employeeId || options?.userId) {
+    whereCondition.AND = [
+      {
+        OR: [
+          ...(options.employeeId ? [{ employeeId: options.employeeId }] : []),
+          ...(options.userId ? [{ createdById: options.userId }] : []),
+        ],
+      },
+    ];
+  }
+
+  const plans = await db.activityPlan.findMany({
+    where: whereCondition,
     include: {
       type7aTargets: {
         where: {
