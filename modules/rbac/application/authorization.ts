@@ -257,7 +257,7 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   if (
     roles.some(
       (role) =>
-        role === "sales_promotion" || role === "sales_promotion_supervisor",
+        role === "activity_promoter" || role === "sales_promotion" || role === "sales_promotion_supervisor",
     )
   ) {
     return "/activity-plans";

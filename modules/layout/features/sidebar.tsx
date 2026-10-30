@@ -136,6 +136,7 @@ export default function Sidebar({
 
         if (
             !hasDashboardPermission ||
+            roles.includes("activity_promoter") ||
             roles.includes("sales_promotion") ||
             roles.includes("sales_promotion_supervisor")
         ) {

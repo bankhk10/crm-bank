@@ -9,135 +9,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 
 // ============================================================================
-// Permission List for Sales Promotion Roles
-//
-// 1. sales_promotion (พนักงานส่งเสริมการขาย ทั่วไป) -> data.activity_plans: VIEW_OWN
-// 2. sales_promotion_supervisor (พนักงานส่งเสริมการขาย - ผู้ควบคุมงาน) -> data.activity_plans: VIEW_ALL
-// ============================================================================
-
-interface PermissionConfigItem {
-  key: string;
-  dataAccess?: DataAccessLevel;
-  editAccess?: EditAccessLevel;
-  deleteAccess?: DeleteAccessLevel;
-}
-
-// 1. Regular Role Permissions (VIEW_OWN)
-const regularSalesPromotionPermissions: PermissionConfigItem[] = [
-  // 📋 1. Activity Plans (การวางแผนกิจกรรม & บันทึกผลจริง)
-  { key: "menu.activity_plans" },
-  { key: "activity.view" },
-  { key: "activity.create" },
-  { key: "activity.edit" },
-  { key: "activity.delete" },
-  {
-    key: "data.activity_plans",
-    dataAccess: DataAccessLevel.VIEW_OWN,
-    editAccess: EditAccessLevel.EDIT_OWN,
-    deleteAccess: DeleteAccessLevel.DELETE_OWN,
-  },
-
-  // 🏷️ 2. Promotional Materials (ให้สิทธิ์ดูข้อมูลสำหรับเลือกในแบบฟอร์ม โดยไม่เปิดเมนู sidebar)
-  { key: "promotional_material.view" },
-  {
-    key: "data.promotional_materials",
-    dataAccess: DataAccessLevel.VIEW_ALL,
-    editAccess: EditAccessLevel.EDIT_NONE,
-    deleteAccess: DeleteAccessLevel.DELETE_NONE,
-  },
-
-  // 👥 3. Customers (ให้สิทธิ์ดู/เลือกข้อมูลลูกค้าทั้งหมดในระบบสำหรับ Test User โดยไม่ต้องมี Responsible Employee และไม่เปิดเมนู sidebar)
-  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.create.farmer" },
-  { key: "customer.create.subdealer" },
-  { key: "customer.create.broker" },
-  { key: "customer.edit.farmer" },
-  { key: "customer.edit.subdealer" },
-  { key: "customer.edit.broker" },
-  {
-    key: "data.customers",
-    dataAccess: DataAccessLevel.VIEW_ALL,
-    editAccess: EditAccessLevel.EDIT_OWN,
-    deleteAccess: DeleteAccessLevel.DELETE_NONE,
-  },
-
-  // 📦 4. Products & Stock (ให้สิทธิ์ดูข้อมูลสำหรับเลือกในแบบฟอร์ม โดยไม่เปิดเมนู sidebar)
-  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "product.stock.view" },
-
-  // 👔 5. Employees (พนักงาน สำหรับเลือกผู้ร่วมเดินทาง/หัวหน้า)
-  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
-
-  // 📊 6. Reports & Test Activity (รายงานและแบบฟอร์มกิจกรรม)
-  { key: "menu.test_activity" },
-  { key: "menu.test_activity.trip_plan" },
-  { key: "menu.test_activity.activity_report" },
-  { key: "menu.test_activity.budget_report" },
-  { key: "menu.test_activity.customer_report" },
-];
-
-// 2. Supervisor Role Permissions (VIEW_ALL for activity_plans)
-const supervisorSalesPromotionPermissions: PermissionConfigItem[] = [
-  // 📋 1. Activity Plans (มองเห็นข้อมูล Activity Plan และ Actual ของทุกคน)
-  { key: "menu.activity_plans" },
-  { key: "activity.view" },
-  { key: "activity.create" },
-  { key: "activity.edit" },
-  { key: "activity.delete" },
-  {
-    key: "data.activity_plans",
-    dataAccess: DataAccessLevel.VIEW_ALL, // ✨ มองเห็นของพนักงานทุกคน
-    editAccess: EditAccessLevel.EDIT_OWN, // 🔒 แก้ไขได้เฉพาะของตนเอง
-    deleteAccess: DeleteAccessLevel.DELETE_OWN, // 🔒 ลบได้เฉพาะของตนเอง
-  },
-
-  // 🏷️ 2. Promotional Materials
-  { key: "promotional_material.view" },
-  {
-    key: "data.promotional_materials",
-    dataAccess: DataAccessLevel.VIEW_ALL,
-    editAccess: EditAccessLevel.EDIT_NONE,
-    deleteAccess: DeleteAccessLevel.DELETE_NONE,
-  },
-
-  // 👥 3. Customers
-  { key: "customer.view.dealer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.subdealer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.farmer", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.view.broker", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "customer.create.farmer" },
-  { key: "customer.create.subdealer" },
-  { key: "customer.create.broker" },
-  { key: "customer.edit.farmer" },
-  { key: "customer.edit.subdealer" },
-  { key: "customer.edit.broker" },
-  {
-    key: "data.customers",
-    dataAccess: DataAccessLevel.VIEW_ALL,
-    editAccess: EditAccessLevel.EDIT_OWN,
-    deleteAccess: DeleteAccessLevel.DELETE_NONE,
-  },
-
-  // 📦 4. Products & Stock
-  { key: "product.view", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "product.stock.view" },
-
-  // 👔 5. Employees
-  { key: "employee.view", dataAccess: DataAccessLevel.VIEW_ALL },
-
-  // 📊 6. Reports & Test Activity
-  { key: "menu.test_activity" },
-  { key: "menu.test_activity.trip_plan" },
-  { key: "menu.test_activity.activity_report" },
-  { key: "menu.test_activity.budget_report" },
-  { key: "menu.test_activity.customer_report" },
-];
-
-// ============================================================================
-// Test Employees List (All normalized to lowercase email)
+// Real Staff List for Field / Promotion & Activity Roles
 // ============================================================================
 
 interface TestEmployeeInput {
@@ -148,11 +20,11 @@ interface TestEmployeeInput {
   firstName?: string;
   lastName?: string;
   employeeCode?: string;
-  roleSlug: "sales_promotion" | "sales_promotion_supervisor";
+  roleSlug: string;
 }
 
-const testEmployees: TestEmployeeInput[] = [
-  // พนักงานส่งเสริมการขายทั่วไป (VIEW_OWN)
+const realEmployees: TestEmployeeInput[] = [
+  // พนักงานส่งเสริมการขายทั่วไป -> activity_promoter
   {
     email: "warapornboonaoi1@gmail.com",
     name: "วราภรณ์ บุญอ้อย",
@@ -161,7 +33,7 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "วราภรณ์",
     lastName: "บุญอ้อย",
     employeeCode: "SP-TEST-001",
-    roleSlug: "sales_promotion",
+    roleSlug: "activity_promoter",
   },
   {
     email: "koiijai14@gmail.com",
@@ -171,7 +43,7 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "นิธินาถ",
     lastName: "อริยมงคลชัย",
     employeeCode: "SP-TEST-002",
-    roleSlug: "sales_promotion",
+    roleSlug: "activity_promoter",
   },
   {
     email: "mueanfan011199@gmail.com",
@@ -181,7 +53,7 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "เหมือนฝัน",
     lastName: "การปรีชา",
     employeeCode: "SP-TEST-003",
-    roleSlug: "sales_promotion",
+    roleSlug: "activity_promoter",
   },
   {
     email: "marchmellow2541@gmail.com",
@@ -191,20 +63,10 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "ธีระวัฒน์",
     lastName: "วงค์ใหญ่",
     employeeCode: "SP-TEST-004",
-    roleSlug: "sales_promotion",
-  },
-  {
-    email: "sales-promotion.test@example.com",
-    name: "พนักงานส่งเสริมการขาย (Test)",
-    nickname: "ทดสอบ",
-    prefix: "นาย",
-    firstName: "พนักงานส่งเสริมการขาย",
-    lastName: "(Test)",
-    employeeCode: "SP-TEST-000",
-    roleSlug: "sales_promotion",
+    roleSlug: "activity_promoter",
   },
 
-  // พนักงานส่งเสริมการขาย - ผู้ควบคุมงาน (VIEW_ALL)
+  // หัวหน้างานส่งเสริมการขาย / ผู้จัดการ
   {
     email: "ck_08@hotmail.co.th",
     name: "ธีระยุทธ ธณศักดิ์กุล",
@@ -213,7 +75,7 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "ธีระยุทธ",
     lastName: "ธณศักดิ์กุล",
     employeeCode: "6900005",
-    roleSlug: "sales_promotion_supervisor",
+    roleSlug: "activity_sales_admin_manager",
   },
   {
     email: "topten_mju@hotmail.com",
@@ -223,7 +85,7 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "เจตน์สกฤษฎิ์",
     lastName: "อาจฤทธิ์",
     employeeCode: "6900018",
-    roleSlug: "sales_promotion_supervisor",
+    roleSlug: "activity_area_manager",
   },
   {
     email: "komsan@cropsciences.co.th",
@@ -233,147 +95,36 @@ const testEmployees: TestEmployeeInput[] = [
     firstName: "คมสัน",
     lastName: "อ่อนช้อย",
     employeeCode: "6900020",
-    roleSlug: "sales_promotion_supervisor",
+    roleSlug: "activity_marketing_manager",
   },
 ];
-
-// Helper to sync permissions for a role
-async function syncRolePermissions(
-  prisma: PrismaClient,
-  roleId: string,
-  permissions: PermissionConfigItem[]
-) {
-  const targetPermKeys = new Set(permissions.map((p) => p.key));
-  const existingRolePerms = await prisma.rolePermission.findMany({
-    where: { roleId },
-    include: { permission: true },
-  });
-
-  for (const rp of existingRolePerms) {
-    if (!targetPermKeys.has(rp.permission.key)) {
-      await prisma.rolePermission.delete({
-        where: { id: rp.id },
-      });
-      console.log(`  🗑️ Removed menu permission: ${rp.permission.key}`);
-    }
-  }
-
-  let assignedCount = 0;
-  for (const item of permissions) {
-    const perm = await prisma.permission.findUnique({
-      where: { key: item.key },
-    });
-
-    if (!perm) {
-      console.warn(`  ⚠️ Permission not found in DB: ${item.key}`);
-      continue;
-    }
-
-    await prisma.rolePermission.upsert({
-      where: {
-        roleId_permissionId: {
-          roleId,
-          permissionId: perm.id,
-        },
-      },
-      update: {
-        allow: true,
-        dataAccess:
-          item.dataAccess ??
-          (perm.category === "DATA" ? perm.defaultDataAccess : null),
-        editAccess:
-          item.editAccess ??
-          (perm.category === "DATA" ? perm.defaultEditAccess : null),
-        deleteAccess:
-          item.deleteAccess ??
-          (perm.category === "DATA" ? perm.defaultDeleteAccess : null),
-        deletedAt: null,
-      },
-      create: {
-        roleId,
-        permissionId: perm.id,
-        allow: true,
-        dataAccess:
-          item.dataAccess ??
-          (perm.category === "DATA" ? perm.defaultDataAccess : null),
-        editAccess:
-          item.editAccess ??
-          (perm.category === "DATA" ? perm.defaultEditAccess : null),
-        deleteAccess:
-          item.deleteAccess ??
-          (perm.category === "DATA" ? perm.defaultDeleteAccess : null),
-      },
-    });
-    assignedCount++;
-  }
-
-  return assignedCount;
-}
 
 // ============================================================================
 // Seed Function
 // ============================================================================
 
 export async function seedSalesPromotionUser(prisma: PrismaClient) {
-  console.log("🌱 Seeding Sales Promotion Roles, Users, and Permissions...");
+  console.log("🌱 Seeding Promotion Staff Users & Hierarchy...");
 
-  // 1. Role 1: sales_promotion (พนักงานส่งเสริมการขาย - VIEW_OWN)
-  const regularRole = await prisma.role.upsert({
-    where: { slug: "sales_promotion" },
-    update: {
-      name: "พนักงานส่งเสริมการขาย",
-      description:
-        "พนักงานส่งเสริมการขาย - สร้างและบันทึกผลการปฏิบัติงานตามแผนงาน (Trip Plan & Actual)",
-      isActive: true,
-    },
-    create: {
-      name: "พนักงานส่งเสริมการขาย",
-      slug: "sales_promotion",
-      description:
-        "พนักงานส่งเสริมการขาย - สร้างและบันทึกผลการปฏิบัติงานตามแผนงาน (Trip Plan & Actual)",
-      isSystem: false,
-      isActive: true,
-    },
+  // 1. Resolve activity_promoter Role
+  let promoterRole = await prisma.role.findUnique({
+    where: { slug: "activity_promoter" },
   });
 
-  const regCount = await syncRolePermissions(
-    prisma,
-    regularRole.id,
-    regularSalesPromotionPermissions
-  );
-  console.log(
-    `  ✅ Role: "${regularRole.name}" (${regularRole.slug}) [Permissions: ${regCount}]`
-  );
+  if (!promoterRole) {
+    promoterRole = await prisma.role.create({
+      data: {
+        name: "พนักงานส่งเสริมการขาย-กิจกรรม",
+        slug: "activity_promoter",
+        description:
+          "พนักงานส่งเสริมการขาย - สร้าง/ส่งแผนงานกิจกรรมภาคสนาม และบันทึกผลงานจริง",
+        isSystem: false,
+        isActive: true,
+      },
+    });
+  }
 
-  // 2. Role 2: sales_promotion_supervisor (พนักงานส่งเสริมการขาย - ผู้ควบคุมงาน - VIEW_ALL)
-  const supervisorRole = await prisma.role.upsert({
-    where: { slug: "sales_promotion_supervisor" },
-    update: {
-      name: "พนักงานส่งเสริมการขาย - ผู้ควบคุมงาน",
-      description:
-        "พนักงานส่งเสริมการขาย (ผู้ควบคุมงาน) - ตรวจสอบและติดตามแผนงานและผลการปฏิบัติงานของทุกคน",
-      isActive: true,
-    },
-    create: {
-      name: "พนักงานส่งเสริมการขาย - ผู้ควบคุมงาน",
-      slug: "sales_promotion_supervisor",
-      description:
-        "พนักงานส่งเสริมการขาย (ผู้ควบคุมงาน) - ตรวจสอบและติดตามแผนงานและผลการปฏิบัติงานของทุกคน",
-      isSystem: false,
-      isActive: true,
-    },
-  });
-
-  const supCount = await syncRolePermissions(
-    prisma,
-    supervisorRole.id,
-    supervisorSalesPromotionPermissions
-  );
-  console.log(
-    `  ✅ Role: "${supervisorRole.name}" (${supervisorRole.slug}) [Permissions: ${supCount}]`
-  );
-
-  // 3. Resolve Master Data: Department (SA), Position (พนักงานส่งเสริมการขาย), Company
+  // 2. Resolve Master Data: Department (SA), Position (พนักงานส่งเสริมการขาย), Company
   const salesDept = await prisma.department.findUnique({
     where: { code: "SA" },
   });
@@ -389,7 +140,7 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
         level: 1,
         isManagerial: false,
         departmentId: salesDept?.id ?? null,
-        defaultRoleId: regularRole.id,
+        defaultRoleId: promoterRole.id,
       },
     });
   }
@@ -398,19 +149,18 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
     where: { status: "ACTIVE" },
   });
 
-  // 4. Seed / Sync All Test Employees (Normalized to Lowercase)
-  console.log(`  👤 Seeding & Linking ${testEmployees.length} Test Users (All Lowercase Email)...`);
+  // 3. Seed / Sync All Real Staff
+  console.log(`  👤 Seeding & Linking ${realEmployees.length} Promotion Staff Users...`);
 
-  for (let i = 0; i < testEmployees.length; i++) {
-    const emp = testEmployees[i];
+  for (let i = 0; i < realEmployees.length; i++) {
+    const emp = realEmployees[i];
     const normalizedEmail = emp.email.trim().toLowerCase();
-    const targetRoleId =
-      emp.roleSlug === "sales_promotion_supervisor"
-        ? supervisorRole.id
-        : regularRole.id;
+    const targetRole = await prisma.role.findUnique({
+      where: { slug: emp.roleSlug },
+    });
+    const targetRoleId = targetRole?.id ?? promoterRole.id;
     const hashedPassword = await hash(normalizedEmail, 12);
 
-    // 4.1 Check for existing mixed-case User record and migrate to normalized lowercase
     let user = await prisma.user.findFirst({
       where: {
         email: { equals: normalizedEmail, mode: "insensitive" },
@@ -443,7 +193,7 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
       });
     }
 
-    // 4.2 UserRole: Link User -> Target Role (Preserves existing roles)
+    // Link User -> Role
     await prisma.userRole.upsert({
       where: {
         userId_roleId: {
@@ -451,43 +201,40 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
           roleId: targetRoleId,
         },
       },
-      update: {
-        deletedAt: null,
-      },
+      update: { deletedAt: null },
       create: {
         userId: user.id,
         roleId: targetRoleId,
       },
     });
 
-    // 4.3 Check for existing mixed-case Employee record and migrate to normalized lowercase
-    let employee = await prisma.employee.findFirst({
-      where: {
-        OR: [
-          { userId: user.id },
-          { email: { equals: normalizedEmail, mode: "insensitive" } },
-        ],
-      },
+    // Link User -> Employee Profile
+    let employee = await prisma.employee.findUnique({
+      where: { email: normalizedEmail },
     });
+
+    const isSupervisor =
+      emp.roleSlug !== "activity_promoter";
 
     if (employee) {
       employee = await prisma.employee.update({
         where: { id: employee.id },
         data: {
           name: emp.name,
-          email: normalizedEmail,
-          firstName: emp.firstName ?? null,
-          lastName: emp.lastName ?? null,
-          prefix: emp.prefix ?? null,
-          nickname: emp.nickname ?? null,
           userId: user.id,
-          companyId: company?.id ?? null,
-          departmentId: salesDept?.id ?? null,
+          employeeCode: emp.employeeCode || employee.employeeCode,
+          prefix: emp.prefix || employee.prefix,
+          firstName: emp.firstName || employee.firstName,
+          lastName: emp.lastName || employee.lastName,
+          nickname: emp.nickname || employee.nickname,
+          companyId: company?.id ?? employee.companyId,
+          departmentId: salesDept?.id ?? employee.departmentId,
           positionId: position.id,
-          status: "ACTIVE",
-          roleTitle: "พนักงานส่งเสริมการขาย",
+          positionTitle: isSupervisor
+            ? "หัวหน้างานส่งเสริมการขาย"
+            : "พนักงานส่งเสริมการขาย",
           departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
-          positionTitle: position.name,
+          status: "ACTIVE",
           deletedAt: null,
         },
       });
@@ -496,36 +243,54 @@ export async function seedSalesPromotionUser(prisma: PrismaClient) {
         data: {
           name: emp.name,
           email: normalizedEmail,
-          employeeCode: emp.employeeCode ?? `SP-TEST-00${i + 1}`,
-          firstName: emp.firstName ?? null,
-          lastName: emp.lastName ?? null,
-          prefix: emp.prefix ?? null,
-          nickname: emp.nickname ?? null,
           userId: user.id,
+          employeeCode: emp.employeeCode,
+          prefix: emp.prefix,
+          firstName: emp.firstName,
+          lastName: emp.lastName,
+          nickname: emp.nickname,
           companyId: company?.id ?? null,
           departmentId: salesDept?.id ?? null,
           positionId: position.id,
-          status: "ACTIVE",
-          roleTitle: "พนักงานส่งเสริมการขาย",
+          positionTitle: isSupervisor
+            ? "หัวหน้างานส่งเสริมการขาย"
+            : "พนักงานส่งเสริมการขาย",
           departmentName: salesDept?.name ?? "แผนกบริหารงานขาย",
-          positionTitle: position.name,
+          status: "ACTIVE",
         },
       });
     }
-
-    console.log(
-      `    [${i + 1}/${testEmployees.length}] ✅ User & Employee: "${emp.name}" (${emp.nickname}) <${normalizedEmail}> -> Role: ${emp.roleSlug}`
-    );
   }
 
-  console.log("✅ Sales Promotion Roles & Users seeded successfully with Normalized Emails!");
+  // 4. Link Hierarchy (Supervisor -> Staff)
+  const supervisorEmp = await prisma.employee.findFirst({
+    where: { email: "ck_08@hotmail.co.th" },
+  });
+
+  if (supervisorEmp) {
+    const staffEmails = [
+      "warapornboonaoi1@gmail.com",
+      "koiijai14@gmail.com",
+      "mueanfan011199@gmail.com",
+      "marchmellow2541@gmail.com",
+    ];
+
+    await prisma.employee.updateMany({
+      where: {
+        email: { in: staffEmails },
+      },
+      data: {
+        managerId: supervisorEmp.id,
+      },
+    });
+    console.log(`  🔗 Linked 4 field staff under Supervisor (${supervisorEmp.name})`);
+  }
+
+  console.log("✅ Promotion Staff Seeding completed successfully.\n");
 }
 
 // Standalone execution entrypoint
-if (
-  process.argv[1]?.includes("sales-promotion-user") ||
-  process.argv[1]?.includes("sales_promotion")
-) {
+if (process.argv[1]?.includes("sales-promotion-user")) {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set");

@@ -935,50 +935,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
       },
     ],
   },
-
-  // ─────────────────────────────────────────────
-  // 🧪 Test Activity (เมนูทดสอบกิจกรรม)
-  // ─────────────────────────────────────────────
-  testActivity: {
-    menu: {
-        key: "menu.test_activity",
-        name: "เมนูทดสอบกิจกรรม",
-        resource: "test_activity",
-        menuPath: "/test-activity",
-      },
-    subMenus: [
-      {
-        key: "menu.test_activity.trip_plan",
-        name: "รายงานแผนการออกปฏิบัติงาน (Trip Plan)",
-        resource: "test_activity",
-        menuPath: "/test-activity/trip-plan",
-      },
-      {
-        key: "menu.test_activity.activity_report",
-        name: "รายงานผลการดำเนินกิจกรรม (Activity Report)",
-        resource: "test_activity",
-        menuPath: "/test-activity/activity-report",
-      },
-      {
-        key: "menu.test_activity.budget_report",
-        name: "รายงานงบประมาณ (Budget Report)",
-        resource: "test_activity",
-        menuPath: "/test-activity/budget-report",
-      },
-      {
-        key: "menu.test_activity.customer_report",
-        name: "รายงานลูกค้า (Customer Report)",
-        resource: "test_activity",
-        menuPath: "/test-activity/customer-report",
-      },
-      {
-        key: "menu.test_activity.reports",
-        name: "รายงานกิจกรรม",
-        resource: "test_activity",
-        menuPath: "/test-activity/reports",
-      },
-    ],
-  },
 };
 
 // Flatten helper
@@ -1245,12 +1201,6 @@ const administratorConfig: RolePermItem[] = [
   { key: "menu.show_product", dataAccess: DataAccessLevel.VIEW_ALL },
   { key: "menu.show_product.edit" },
   { key: "menu.temporary_credit_limits", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity.activity_report", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity.budget_report", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity.customer_report", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity.reports", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.test_activity.trip_plan", dataAccess: DataAccessLevel.VIEW_ALL },
   { key: "product.approve" },
   { key: "product.copy" },
   { key: "product.create", dataAccess: DataAccessLevel.VIEW_ALL },
@@ -1572,55 +1522,6 @@ const salesManagerConfig: RolePermItem[] = [
   { key: "menu.activity_plans" },
 ];
 
-// 9. Activity Plan User (ผู้ใช้งานแผนงาน) - 7 permissions
-const activityPlanUserConfig: RolePermItem[] = [
-  { key: "activity.create" },
-  { key: "activity.delete" },
-  { key: "activity.edit" },
-  { key: "activity.view" },
-  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_OWN },
-  { key: "menu.activity_plans" },
-  { key: "promotional_material.view" },
-];
-
-// 10. Activity Plan Approver (ผู้อนุมัติแผนงาน)
-const activityPlanApproverConfig: RolePermItem[] = [
-  { key: "activity.approve" },
-  { key: "activity.approve.sp_budget" },
-  { key: "activity.approve.mkt_budget" },
-  { key: "activity.approve.total_budget" },
-  { key: "activity.approve.product_withdrawal" },
-  { key: "activity.approve.sales_helper" },
-  { key: "activity.approve.mkt_helper" },
-  { key: "activity.view" },
-  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_TEAM },
-  { key: "menu.activity_plans" },
-  { key: "promotional_material.view" },
-];
-
-// 11. Activity Plan Admin (ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย)
-const activityPlanAdminConfig: RolePermItem[] = [
-  { key: "activity.approve" },
-  { key: "activity.approve.sp_budget" },
-  { key: "activity.approve.mkt_budget" },
-  { key: "activity.approve.total_budget" },
-  { key: "activity.approve.product_withdrawal" },
-  { key: "activity.approve.sales_helper" },
-  { key: "activity.approve.mkt_helper" },
-  { key: "activity.create" },
-  { key: "activity.delete" },
-  { key: "activity.edit" },
-  { key: "activity.manage" },
-  { key: "activity.view" },
-  { key: "data.activity_plans", dataAccess: DataAccessLevel.VIEW_ALL },
-  { key: "menu.activity_plans" },
-  { key: "menu.promotional_materials" },
-  { key: "promotional_material.create" },
-  { key: "promotional_material.delete" },
-  { key: "promotional_material.edit" },
-  { key: "promotional_material.view" },
-];
-
 // Role Definitions Metadata (ตรงกับ Production Database 100%)
 const roleDefinitions = [
   {
@@ -1686,31 +1587,7 @@ const roleDefinitions = [
     isSystem: false,
     isActive: true,
     config: salesManagerConfig,
-  },
-  {
-    name: "ผู้ใช้งานแผนงาน",
-    slug: "activity_plan_user",
-    description: "ผู้ใช้งานแผนงาน (Trip Plan User) - สร้าง แก้ไข ลบ และส่งแผนงานของตนเอง",
-    isSystem: false,
-    isActive: true,
-    config: activityPlanUserConfig,
-  },
-  {
-    name: "ผู้อนุมัติแผนงาน",
-    slug: "activity_plan_approver",
-    description: "ผู้อนุมัติแผนงาน (Trip Plan Approver) - ตรวจสอบและอนุมัติตามสายงานและงบประมาณ",
-    isSystem: false,
-    isActive: true,
-    config: activityPlanApproverConfig,
-  },
-  {
-    name: "ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย",
-    slug: "activity_plan_admin",
-    description: "ผู้ดูแลแผนงานและสื่อส่งเสริมการขาย (Activity Plan Admin) - จัดการแผนงานทั้งหมดและสื่อส่งเสริมการขาย",
-    isSystem: false,
-    isActive: true,
-    config: activityPlanAdminConfig,
-  },
+  }
 ];
 
 // ============================================================================

@@ -73,7 +73,7 @@ async function main() {
   }
 
   // Also grant them to roles:
-  const approverRoles = ["administrator", "admin", "activity_plan_admin", "activity_plan_approver"];
+  const approverRoles = ["administrator", "admin"];
   for (const slug of approverRoles) {
     const role = await prisma.role.findUnique({ where: { slug } });
     if (!role) continue;
