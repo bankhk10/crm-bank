@@ -11,7 +11,10 @@ import {
   type ActivityProductItem,
 } from "@/modules/activity/ui";
 import { listProductsAction } from "@/modules/products/server/actions";
-import { FARMER_FEEDBACK_OPTIONS, type FarmerFeedback } from "../../shared/constants";
+import {
+  FARMER_FEEDBACK_OPTIONS,
+  type FarmerFeedback,
+} from "../../shared/constants";
 import type { Type10SoldProductItem } from "../../shared/types";
 import type {
   ActualType10FieldDayProps,
@@ -19,10 +22,7 @@ import type {
 } from "../types/actual.types";
 import { Type10PlanCard } from "./type10-plan-card";
 
-export type {
-  ActualType10FieldDayProps,
-  Type10ActualFormProps,
-};
+export type { ActualType10FieldDayProps, Type10ActualFormProps };
 
 const EMPTY_PRODUCTS: any[] = [];
 
@@ -70,6 +70,13 @@ export function Type10ActualForm({
       isMounted = false;
     };
   }, [products]);
+
+  useEffect(() => {
+    if (!farmerFeedback && setFarmerFeedback) {
+      // กำหนดค่าเริ่มต้นเป็น "สูง" (ตรวจสอบให้ตรงกับค่า opt.value ใน FARMER_FEEDBACK_OPTIONS เช่น "สูง" หรือ "HIGH")
+      setFarmerFeedback("สูง" as FarmerFeedback);
+    }
+  }, [farmerFeedback, setFarmerFeedback]);
 
   const currentSoldProducts = soldProducts || [];
 
@@ -253,7 +260,8 @@ export function Type10ActualForm({
           {/* Actual Attendees */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              จำนวนผู้เข้าร่วมงานจริง (คน) <span className="text-red-500">*</span>
+              จำนวนผู้เข้าร่วมงานจริง (คน){" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-slate-400">
@@ -303,7 +311,9 @@ export function Type10ActualForm({
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => setFarmerFeedback(opt.value as FarmerFeedback)}
+                    onClick={() =>
+                      setFarmerFeedback(opt.value as FarmerFeedback)
+                    }
                     className={cn(
                       "py-2 px-3 text-xs font-semibold rounded-xl border transition-all text-center",
                       isSelected
@@ -363,8 +373,12 @@ export function Type10ActualForm({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                    <th className="py-2 px-3 min-w-[180px]">รายการสินค้า (เฉพาะหน่วยกล่อง)</th>
-                    <th className="py-2 px-3 w-28 text-center">จำนวน (กล่อง)</th>
+                    <th className="py-2 px-3 min-w-[180px]">
+                      รายการสินค้า (เฉพาะหน่วยกล่อง)
+                    </th>
+                    <th className="py-2 px-3 w-28 text-center">
+                      จำนวน (กล่อง)
+                    </th>
                     <th className="py-2 px-3 w-32 text-center">ราคาต่อหน่วย</th>
                     <th className="py-2 px-3 w-32 text-right">รวม (บาท)</th>
                     <th className="py-2 px-3 text-center w-12">ลบ</th>
@@ -373,8 +387,12 @@ export function Type10ActualForm({
                 <tbody className="divide-y divide-slate-100">
                   {currentSoldProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-4 text-center text-slate-400">
-                        ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้า&quot; ด้านบน
+                      <td
+                        colSpan={6}
+                        className="py-4 text-center text-slate-400"
+                      >
+                        ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้า&quot;
+                        ด้านบน
                       </td>
                     </tr>
                   ) : (
@@ -382,11 +400,15 @@ export function Type10ActualForm({
                       const currentVal =
                         p.productName ||
                         (p.productId &&
-                          masterProductList.find((m) => m.id === p.productId)?.name) ||
+                          masterProductList.find((m) => m.id === p.productId)
+                            ?.name) ||
                         "";
 
                       return (
-                        <tr key={p.id || idx} className="hover:bg-slate-50/60 transition-colors">
+                        <tr
+                          key={p.id || idx}
+                          className="hover:bg-slate-50/60 transition-colors"
+                        >
                           <td className="py-2 px-3 text-center font-medium text-slate-500">
                             {idx + 1}
                           </td>
@@ -412,7 +434,11 @@ export function Type10ActualForm({
                               placeholder="0"
                               value={p.actualQty ?? ""}
                               onChange={(e) =>
-                                handleUpdateProduct(idx, "actualQty", e.target.value)
+                                handleUpdateProduct(
+                                  idx,
+                                  "actualQty",
+                                  e.target.value,
+                                )
                               }
                               className="h-8 text-xs text-center font-bold text-slate-800"
                             />
@@ -424,7 +450,11 @@ export function Type10ActualForm({
                               placeholder="0.00"
                               value={p.unitPrice ?? ""}
                               onChange={(e) =>
-                                handleUpdateProduct(idx, "unitPrice", e.target.value)
+                                handleUpdateProduct(
+                                  idx,
+                                  "unitPrice",
+                                  e.target.value,
+                                )
                               }
                               className="h-8 text-xs text-center font-bold text-slate-800"
                             />
