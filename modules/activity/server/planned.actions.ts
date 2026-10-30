@@ -410,6 +410,26 @@ export async function getActivityPlanAction(
     if (!plan) {
       return { success: false as const, error: "ไม่พบข้อมูลแผนงาน" };
     }
+
+    const roles = session.user.roles ?? [];
+    const isAdmin =
+      roles.includes("administrator") ||
+      roles.includes("admin") ||
+      roles.includes("ceo") ||
+      (session.user as any)?.role === "administrator" ||
+      (session.user as any)?.role === "ADMIN";
+
+    const isOwner =
+      plan.createdById === session.user.id ||
+      (session.user.employeeId && plan.employeeId === session.user.employeeId);
+
+    if (plan.status === ActivityStatus.DRAFT && !isOwner && !isAdmin) {
+      return {
+        success: false as const,
+        error: "แผนงานอยู่ในสถานะร่าง เฉพาะผู้จัดทำแผนเท่านั้นที่สามารถเข้าถึงได้",
+      };
+    }
+
     return serialize({ success: true as const, plan: plan as any });
   } catch (err: any) {
     return { success: false as const, error: err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูลแผนงาน" };

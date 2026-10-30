@@ -27,7 +27,7 @@ export async function GET(request: Request, context: RouteContext) {
     }
 
     const plan = result.plan;
-    
+
     // Check permission-based data scope ownership (includes Creator, Manager/Team, and Approved Helpers)
     const hasAccess = await canAccessRecord(session, "activity_plan", {
       resourceOwnerId: plan.createdById,
@@ -38,6 +38,18 @@ export async function GET(request: Request, context: RouteContext) {
 
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // A DRAFT plan is strictly private to the creator/owner until submitted
+    const isOwner =
+      plan.createdById === session.user.id ||
+      (session.user.employeeId && plan.employeeId === session.user.employeeId);
+
+    if (plan.status === "DRAFT" && !isOwner) {
+      return NextResponse.json(
+        { error: "Forbidden: แผนงานอยู่ในสถานะร่าง เฉพาะผู้จัดทำแผนเท่านั้นที่สามารถเข้าถึงได้" },
+        { status: 403 },
+      );
     }
 
     return NextResponse.json({ success: true, plan });

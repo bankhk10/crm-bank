@@ -219,6 +219,21 @@ export async function GET(request: Request) {
         }
       : {};
 
+  // Hide other people's DRAFT plans:
+  // A plan in DRAFT status must ONLY be visible to its creator/owner.
+  // Supervisors, managers, and team members will only see it after it has been submitted (status != DRAFT).
+  const draftVisibilityCondition: Prisma.ActivityPlanWhereInput = {
+    OR: [{ status: { not: ActivityStatus.DRAFT } }, ownCondition],
+  };
+
+  if (Array.isArray(baseWhere.AND)) {
+    baseWhere.AND.push(draftVisibilityCondition);
+  } else if (baseWhere.AND) {
+    baseWhere.AND = [baseWhere.AND, draftVisibilityCondition];
+  } else {
+    baseWhere.AND = [draftVisibilityCondition];
+  }
+
   const combineWhere = (
     extra?: Prisma.ActivityPlanWhereInput,
   ): Prisma.ActivityPlanWhereInput => {
