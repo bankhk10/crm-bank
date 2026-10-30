@@ -82,7 +82,7 @@ export class ActivityPdfService {
       year,
     });
 
-    return renderBaseLayout(docTitle, bodyHtml, { landscape: true });
+    return renderBaseLayout(docTitle, bodyHtml, { landscape: false });
   }
 
   /**
@@ -329,11 +329,10 @@ export class ActivityPdfService {
     planId?: string,
     options: PdfExportOptions = {},
   ): Promise<Buffer> {
-    const isMonthlyAll = options.mode === "ALL";
     const fullHtml = await this.generatePlanHtml(planId, options);
 
     return generatePdfFromHtml(fullHtml, {
-      landscape: isMonthlyAll,
+      landscape: false,
     });
   }
 }

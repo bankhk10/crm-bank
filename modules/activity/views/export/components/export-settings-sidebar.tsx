@@ -121,7 +121,7 @@ export function ExportSettingsSidebar({
                   <span className="font-bold">พิมพ์รวมทุกแผนงาน</span>
                 </div>
                 <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                  แนวนอน (A4)
+                  แนวตั้ง (A4)
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1 pl-5 font-normal">

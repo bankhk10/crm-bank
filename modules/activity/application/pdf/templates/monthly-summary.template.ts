@@ -134,20 +134,52 @@ export function renderMonthlySummaryTemplate({
   const thaiYear = year + 543;
   const printDateStr = formatDateThai(new Date(), "d MMM yyyy, HH:mm น.");
 
-  // Determine Primary Employee Info from the first plan if not explicitly passed
+  // Determine Primary Employee Info from the plans if not explicitly passed
   let empName = employeeName;
   let empPos = employeePosition;
   let empDept = departmentName;
 
-  if (!empName && plans.length > 0) {
-    const firstEmp = (plans[0] as any).employee;
-    const firstCreator = (plans[0] as any).createdBy;
-    empName = firstEmp
-      ? `${firstEmp.firstName || ""} ${firstEmp.lastName || ""}`.trim()
-      : firstCreator?.name || "-";
-    empPos = firstEmp?.position?.name || firstEmp?.positionTitle || "-";
-    empDept = firstEmp?.department?.name || "-";
+  if (plans.length > 0) {
+    for (const p of plans) {
+      const e = (p as any).employee;
+      const c = (p as any).createdBy || (p as any).creator;
+      const u = e?.user || c;
+
+      if (!empName || empName === "-") {
+        const combined = `${e?.firstName || ""} ${e?.lastName || ""}`.trim();
+        const resolvedName = combined || e?.name || c?.name || "";
+        if (resolvedName) empName = resolvedName;
+      }
+
+      if (!empPos || empPos === "-") {
+        const resolvedPos =
+          e?.position?.name ||
+          e?.positionTitle ||
+          e?.roleTitle ||
+          u?.position?.name ||
+          u?.roleTitle ||
+          "";
+        if (resolvedPos) empPos = resolvedPos;
+      }
+
+      if (!empDept || empDept === "-") {
+        const resolvedDept =
+          e?.department?.name ||
+          e?.departmentName ||
+          u?.department?.name ||
+          "";
+        if (resolvedDept) empDept = resolvedDept;
+      }
+
+      if (empName && empName !== "-" && empPos && empPos !== "-" && empDept && empDept !== "-") {
+        break;
+      }
+    }
   }
+
+  empName = empName || "-";
+  empPos = empPos || "-";
+  empDept = empDept || "-";
 
   // Calculate Monthly Metrics
   let totalDays = 0;
@@ -258,26 +290,26 @@ export function renderMonthlySummaryTemplate({
       return `
         <tr>
           <td class="text-center" style="font-weight: 600; width: 4%;">${idx + 1}</td>
-          <td style="width: 14%; line-height: 1.3;">
+          <td style="width: 15%; line-height: 1.3;">
             <div style="font-weight: 700; color: #0f3568;">${safeHtml(dateDisplay)}</div>
-            <div style="font-size: 8.5px; color: #64748b;">(ระยะเวลา ${daysCount} วัน)</div>
+            <div style="font-size: 8px; color: #64748b;">(ระยะเวลา ${daysCount} วัน)</div>
           </td>
-          <td style="width: 22%;">
-            <div style="font-weight: 700; color: #0f3568; font-size: 10px;">${safeHtml(p.title)}</div>
-            <div style="font-size: 8.5px; color: #64748b;">เลขที่: ${safeHtml(p.code || p.id)}</div>
-            ${helpersList ? `<div style="font-size: 8.5px; color: #475569; margin-top: 2px;">ผู้ร่วมเดินทาง: ${safeHtml(helpersList)}</div>` : ""}
+          <td style="width: 23%;">
+            <div style="font-weight: 700; color: #0f3568; font-size: 9.5px;">${safeHtml(p.title)}</div>
+            <div style="font-size: 8px; color: #64748b;">เลขที่: ${safeHtml(p.code || p.id)}</div>
+            ${helpersList ? `<div style="font-size: 8px; color: #475569; margin-top: 2px;">ผู้ร่วมเดินทาง: ${safeHtml(helpersList)}</div>` : ""}
           </td>
-          <td style="width: 16%; font-weight: 500;">
+          <td style="width: 16%; font-weight: 500; font-size: 8.5px;">
             ${safeHtml(areaStr)}
           </td>
-          <td style="width: 22%; font-size: 9px;">
+          <td style="width: 21%; font-size: 8.5px;">
             ${targetsHtml}
           </td>
-          <td style="width: 13%;">
+          <td style="width: 12%;">
             ${workTypesHtml}
           </td>
           <td class="text-center" style="width: 9%;">
-            <span class="doc-badge ${badgeClass}">${statusText}</span>
+            <span class="doc-badge ${badgeClass}" style="font-size: 8px; padding: 2px 5px;">${statusText}</span>
           </td>
         </tr>
       `;
@@ -353,15 +385,15 @@ export function renderMonthlySummaryTemplate({
       </span>
     </div>
     <div class="section-body" style="padding: 0;">
-      <table class="doc-table" style="margin: 0;">
+      <table class="doc-table" style="margin: 0; font-size: 8.5px;">
         <thead>
           <tr>
             <th class="text-center" style="width: 4%;">ลำดับ</th>
-            <th style="width: 14%;">วันที่ลงพื้นที่</th>
-            <th style="width: 22%;">ชื่อแผนงาน / รหัสแผน</th>
+            <th style="width: 15%;">วันที่ลงพื้นที่</th>
+            <th style="width: 23%;">ชื่อแผนงาน / รหัสแผน</th>
             <th style="width: 16%;">พื้นที่เป้าหมาย</th>
-            <th style="width: 22%;">ร้านค้า / เกษตรกรเป้าหมาย</th>
-            <th style="width: 13%;">ประเภทงาน</th>
+            <th style="width: 21%;">ร้านค้า / เกษตรกรเป้าหมาย</th>
+            <th style="width: 12%;">ประเภทงาน</th>
             <th class="text-center" style="width: 9%;">สถานะ</th>
           </tr>
         </thead>
@@ -401,7 +433,7 @@ export function renderMonthlySummaryTemplate({
     <div class="signature-card">
       <div class="signature-role">ผู้จัดทำแผนงาน (Prepared By)</div>
       <div class="signature-line"></div>
-      <div class="signature-name">${empName ? `(${safeHtml(empName)})` : "...................................................."}</div>
+      <div class="signature-name">${empName && empName !== "-" ? `(${safeHtml(empName)})` : "...................................................."}</div>
       <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
     </div>
     <div class="signature-card">

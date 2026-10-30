@@ -1006,10 +1006,24 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     include: {
       position: true,
       department: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          department: true,
+          position: true,
+        },
+      },
     },
   },
   createdBy: {
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      department: true,
+      position: true,
+    },
   },
   currentApprover: {
     include: {
