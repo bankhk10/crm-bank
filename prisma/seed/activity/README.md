@@ -55,6 +55,7 @@ prisma/seed/activity/
   - _ปฏิทินและบันทึกผล_: `activity_plan.view_calendar`, `activity_plan.record_actual`, `activity_plan.edit_actual`
   - _เมนูและขอบเขตข้อมูล_: `menu.activity_plans`, `data.activity_plans`
   - _สื่อส่งเสริมการขาย_: `menu.promotional_materials`, `promotional_material.view`, `promotional_material.create`, `promotional_material.edit`, `promotional_material.delete`, `data.promotional_materials`
+
 - **Roles (9 บทบาท)**:
   1. `activity_promoter`: พนักงานส่งเสริมการขาย-กิจกรรม (`VIEW_OWN`)
   2. `activity_sales_employee`: พนักงานขาย-กิจกรรม (`VIEW_TEAM`)
@@ -65,6 +66,121 @@ prisma/seed/activity/
   7. `activity_sales_director`: ผู้จัดการฝ่ายขาย-กิจกรรม (`VIEW_ALL`, อนุมัติงบรวมทั้งหมด)
   8. `activity_marketing_employee`: พนักงานการตลาด-กิจกรรม (`VIEW_OWN`)
   9. `activity_marketing_admin`: แอดมินการตลาด-กิจกรรม (`VIEW_ALL` สื่อส่งเสริมการขาย)
+
+#### รายละเอียดสิทธิ์ของทั้ง 9 บทบาท (Role Permissions Breakdown)
+
+##### 1. พนักงานส่งเสริมการขาย-กิจกรรม (`activity_promoter`)
+* **บทบาทและหน้าที่**: พนักงานภาคสนามที่ลงพื้นที่เข้าพบเกษตรกร/ร้านค้า สร้างแผนงาน Trip Plan และบันทึกผลการปฏิบัติงานจริง
+* **สิทธิ์ที่ได้รับ (Creator Base — 9 สิทธิ์)**:
+  * `menu.activity_plans`: สิทธิ์เข้าถึงเมนูแผนงานกิจกรรม
+  * `activity_plan.view`: สิทธิ์ดูรายการและรายละเอียดแผนงาน
+  * `activity_plan.view_own`: สิทธิ์ดูแผนงานที่ตนเองเป็นผู้สร้างหรือผู้ช่วยงาน
+  * `activity_plan.view_calendar`: สิทธิ์เปิดดูปฏิทินนัดหมายกิจกรรม (Calendar)
+  * `activity_plan.create`: สิทธิ์สร้าง Trip Plan ใหม่ (สถานะแบบร่าง DRAFT)
+  * `activity_plan.edit`: สิทธิ์แก้ไขรายละเอียดแผนงานของตนเอง
+  * `activity_plan.submit`: สิทธิ์กดส่งแผนงานเพื่อขออนุมัติ
+  * `activity_plan.record_actual`: สิทธิ์เปิดฟอร์มและบันทึกผลการลงพื้นที่จริง (Actual Result)
+  * `activity_plan.edit_actual`: สิทธิ์แก้ไขข้อมูลและอัปโหลดรูปภาพผลงานจริง
+* **สิทธิ์การอนุมัติ**: ❌ ไม่มีสิทธิ์อนุมัติ
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_OWN` (เฉพาะของตนเองและแผนที่ได้รับมอบหมายให้ช่วยงาน)
+  * แก้ไขข้อมูล (`editAccess`): `EDIT_OWN`
+  * ลบข้อมูล (`deleteAccess`): `DELETE_OWN` (เฉพาะแผนของตนเองในสถานะแบบร่าง/ปฏิเสธ)
+
+##### 2. พนักงานขาย-กิจกรรม (`activity_sales_employee`)
+* **บทบาทและหน้าที่**: พนักงานขายที่ลงพื้นที่และทำหน้าที่เป็นผู้อนุมัติตามสายงาน (Line Approver) ให้ผู้ใต้บังคับบัญชา
+* **สิทธิ์ที่ได้รับ**: ได้รับสิทธิ์ **Creator Base (9 สิทธิ์)** + **Line Approver Base (4 สิทธิ์)**:
+  * สิทธิ์กลุ่ม Creator: `menu.activity_plans`, `activity_plan.view`, `activity_plan.view_own`, `activity_plan.view_calendar`, `activity_plan.create`, `activity_plan.edit`, `activity_plan.submit`, `activity_plan.record_actual`, `activity_plan.edit_actual`
+  * `activity_plan.view_pending`: สิทธิ์เข้าดูแท็บและคิวรายการรออนุมัติ (Approval Queue)
+  * `activity_plan.approve`: สิทธิ์กดอนุมัติแผนงานตามสายงาน
+  * `activity_plan.reject`: สิทธิ์ปฏิเสธแผนงานและยุติ Workflow
+  * `activity_plan.request_correction`: สิทธิ์ตีกลับแผนงานเพื่อให้ผู้สร้างแก้ไข
+* **สิทธิ์การอนุมัติ**: ✅ อนุมัติตามสายงาน (Line Approval — Step 2) สำหรับผู้ใต้บังคับบัญชาตามโครงสร้างพนักงาน (`managerId`)
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_TEAM` (มองเห็นแผนงานของตนเองและทุกคนในทีม)
+  * แก้ไข/ลบ (`editAccess`/`deleteAccess`): `EDIT_OWN` / `DELETE_OWN`
+
+##### 3. ผู้จัดการภาค-กิจกรรม (`activity_area_manager`)
+* **บทบาทและหน้าที่**: ผู้บริหารระดับภาค วางแผนงานระดับภาค และอนุมัติตามสายงานให้พนักงานในระดับภาค
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์) + Line Approver Base (4 สิทธิ์)
+* **สิทธิ์การอนุมัติ**: ✅ อนุมัติตามสายงาน (Line Approval — Step 2)
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_TEAM` (มองเห็นข้อมูลทั้งภาค/ทีมงานใต้สายงาน)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 4. ผู้จัดการเขต-กิจกรรม (`activity_district_manager`)
+* **บทบาทและหน้าที่**: ผู้บริหารระดับเขต วางแผนงานระดับเขต และอนุมัติตามสายงานให้พนักงานในระดับเขต
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์) + Line Approver Base (4 สิทธิ์)
+* **สิทธิ์การอนุมัติ**: ✅ อนุมัติตามสายงาน (Line Approval — Step 2)
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_TEAM` (มองเห็นข้อมูลทั้งเขต/ทีมงานใต้สายงาน)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 5. ผู้จัดการแผนกบริหารงานขาย-กิจกรรม (`activity_sales_admin_manager`)
+* **บทบาทและหน้าที่**: ผู้จัดการแผนกบริหารงานขาย ตรวจสอบคนช่วยงานฝ่ายขาย และอนุมัติงบส่งเสริมการขาย (SP Budget)
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์) + Line Approver Base (4 สิทธิ์) + **สิทธิ์บริหารงานขายพิเศษ (2 สิทธิ์)**:
+  * `activity_plan.approve_sales_promotion_budget`: สิทธิ์ตรวจสอบและอนุมัติงบส่งเสริมการขาย (SP Budget — Step 3)
+  * `activity_plan.review_sales_helper`: สิทธิ์ตรวจสอบและรับรองรายชื่อพนักงานฝ่ายขาย/ส่งเสริมที่ร่วมทางช่วยงาน
+* **สิทธิ์การอนุมัติ**: ✅ Line Approval + อนุมัติงบ SP (Step 3) + ตรวจสอบคนช่วยงานขาย
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_ALL` (มองเห็นแผนงานทั้งหมดในระบบ)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 6. ผู้จัดการแผนกการตลาด-กิจกรรม (`activity_marketing_manager`)
+* **บทบาทและหน้าที่**: ผู้จัดการแผนกการตลาด ตรวจสอบคนช่วยงานการตลาด และอนุมัติงบการตลาด (Marketing Budget)
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์) + Line Approver Base (4 สิทธิ์) + **สิทธิ์การตลาดพิเศษ (2 สิทธิ์)**:
+  * `activity_plan.approve_marketing_budget`: สิทธิ์ตรวจสอบและอนุมัติงบการตลาด (Marketing Budget — Step 3)
+  * `activity_plan.review_marketing_helper`: สิทธิ์ตรวจสอบและรับรองรายชื่อพนักงานการตลาดที่ร่วมทางช่วยงาน
+* **สิทธิ์การอนุมัติ**: ✅ Line Approval + อนุมัติงบ MKT (Step 3) + ตรวจสอบคนช่วยงานการตลาด
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_ALL` (มองเห็นแผนงานทั้งหมดในระบบ)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 7. ผู้จัดการฝ่ายขาย-กิจกรรม (`activity_sales_director`)
+* **บทบาทและหน้าที่**: ผู้บริหารสูงสุดฝ่ายขาย อนุมัติตามสายงาน และอนุมัติงบประมาณรวมขั้นสุดท้ายของทุกแผนงาน
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์) + Line Approver Base (4 สิทธิ์) + **สิทธิ์อนุมัติงบรวมสูงสุด (1 สิทธิ์)**:
+  * `activity_plan.approve_total_budget`: สิทธิ์อนุมัติงบประมาณรวมขั้นสุดท้าย (Final Approval — Step 4)
+* **สิทธิ์การอนุมัติ**: ✅ Line Approval + อนุมัติงบรวมขั้นสุดท้าย (Final Step)
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_ALL` (มองเห็นแผนงานทั้งหมดในระบบ)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 8. พนักงานการตลาด-กิจกรรม (`activity_marketing_employee`)
+* **บทบาทและหน้าที่**: พนักงานฝ่ายการตลาดที่ต้องออกปฏิบัติงานภาคสนาม สร้าง/ส่งแผนงานของตนเอง และบันทึกผลงานจริง
+* **สิทธิ์ที่ได้รับ**: Creator Base (9 สิทธิ์)
+* **สิทธิ์การอนุมัติ**: ❌ ไม่มีสิทธิ์อนุมัติ
+* **ขอบเขตข้อมูล (Data Scope)**: `data.activity_plans`
+  * ดูข้อมูล (`dataAccess`): `VIEW_OWN` (เฉพาะแผนของตนเอง)
+  * แก้ไข/ลบ: `EDIT_OWN` / `DELETE_OWN`
+
+##### 9. แอดมินการตลาด-กิจกรรม (`activity_marketing_admin`)
+* **บทบาทและหน้าที่**: ผู้ดูแลแคตตาล็อกสื่อส่งเสริมการขาย ของแถม และอุปกรณ์จัดงานกิจกรรมทั้งหมด
+* **สิทธิ์ที่ได้รับ (Promotional Materials — 5 สิทธิ์)**:
+  * `menu.promotional_materials`: สิทธิ์เข้าถึงเมนูจัดการสื่อส่งเสริมการขาย
+  * `promotional_material.view`: สิทธิ์ดูรายการและรายละเอียดสื่อส่งเสริมการขาย
+  * `promotional_material.create`: สิทธิ์สร้างรายการสื่อส่งเสริมการขายใหม่
+  * `promotional_material.edit`: สิทธิ์แก้ไขรายละเอียด ราคา และจำนวนสต็อกสื่อ
+  * `promotional_material.delete`: สิทธิ์ลบรายการสื่อส่งเสริมการขาย
+* **ขอบเขตข้อมูล (Data Scope)**: `data.promotional_materials`
+  * ดูข้อมูล (`dataAccess`): `VIEW_ALL`
+  * แก้ไขข้อมูล (`editAccess`): `EDIT_ALL`
+  * ลบข้อมูล (`deleteAccess`): `DELETE_ALL`
+* **ข้อกำหนดพิเศษ**: Role นี้ไม่มีสิทธิ์ในกระบวนการ Activity Plan Workflow (ไม่สามารถสร้างหรืออนุมัติแผนงาน) หากผู้ใช้รายนี้ต้องการสร้าง Activity Plan ให้ถือ Role `activity_marketing_employee` ร่วมด้วย (Multi-Role)
+
+#### ตารางเปรียบเทียบสิทธิ์ทั้ง 9 บทบาท (Role Matrix Summary)
+
+| บทบาท (Role) | Slug | สร้าง/ส่งแผน | บันทึกผลจริง | อนุมัติตามสายงาน | อนุมัติงบ SP | อนุมัติงบ MKT | อนุมัติงบรวม (Final) | จัดการสื่อส่งเสริม | Data Scope (แผนงาน) |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **พนักงานส่งเสริมการขาย** | `activity_promoter` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
+| **พนักงานขาย** | `activity_sales_employee` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการภาค** | `activity_area_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการเขต** | `activity_district_manager` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | `VIEW_TEAM` |
+| **ผู้จัดการแผนกบริหารงานขาย** | `activity_sales_admin_manager` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | `VIEW_ALL` |
+| **ผู้จัดการแผนกการตลาด** | `activity_marketing_manager` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | `VIEW_ALL` |
+| **ผู้จัดการฝ่ายขาย** | `activity_sales_director` | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | `VIEW_ALL` |
+| **พนักงานการตลาด** | `activity_marketing_employee` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | `VIEW_OWN` |
+| **แอดมินการตลาด** | `activity_marketing_admin` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | - (`VIEW_ALL` สื่อ) |
+
 - **ตารางฐานข้อมูล**: `Permission`, `Role`, `RolePermission`
 - **Unique Key**:
   - `Permission`: `key`
