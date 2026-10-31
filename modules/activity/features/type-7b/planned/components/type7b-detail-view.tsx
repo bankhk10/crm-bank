@@ -18,9 +18,22 @@ import {
   PackageCheck,
   PackagePlus,
   ExternalLink,
+  Award,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { Type7bDetailViewProps } from "../types/actual.types";
+
+function formatThaiDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return "-";
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+  if (isNaN(date.getTime())) return String(dateStr);
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export function Type7bDetailView({
   isVisible = true,
@@ -488,6 +501,102 @@ export function Type7bDetailView({
                     : "อยู่ระหว่างการทดลอง (ยังคงติดตามต่อ)"}
               </span>
             </div>
+
+            {actualResult.t7PlotStatus === "COMPLETED" && (
+              <div className="bg-gradient-to-br from-amber-50 to-emerald-50/50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3 mt-3">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                      <Award className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
+                        <span>สรุปผลการปิดแปลงสาธิต (Final Harvest Evaluation)</span>
+                        <Badge className="bg-emerald-600 text-white text-[10px]">
+                          สำเร็จบริบูรณ์
+                        </Badge>
+                      </h5>
+                    </div>
+                  </div>
+                  {actualResult.t7FinalHarvestDate && (
+                    <span className="text-xs text-slate-600 bg-white px-2 py-0.5 rounded-md border border-amber-200">
+                      วันเก็บเกี่ยว: {formatThaiDate(actualResult.t7FinalHarvestDate)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {/* Yield */}
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                    <span className="text-slate-500 font-medium block">
+                      การเปรียบเทียบผลผลิต:
+                    </span>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-slate-600">แปลงสาธิต:</span>
+                      <span className="font-bold text-emerald-800">
+                        {actualResult.t7FinalYieldKg != null && actualResult.t7FinalYieldKg !== ""
+                          ? `${Number(actualResult.t7FinalYieldKg).toLocaleString()} กก.`
+                          : "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline justify-between text-slate-500 text-[11px]">
+                      <span>แปลงควบคุม:</span>
+                      <span>
+                        {actualResult.t7ControlYieldKg != null && actualResult.t7ControlYieldKg !== ""
+                          ? `${Number(actualResult.t7ControlYieldKg).toLocaleString()} กก.`
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Satisfaction */}
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                    <span className="text-slate-500 font-medium block">
+                      ความพึงพอใจของเกษตรกร:
+                    </span>
+                    <div className="flex items-center gap-1 text-amber-500 pt-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={cn(
+                            "w-3.5 h-3.5",
+                            star <= (actualResult.t7FarmerSatisfaction || 0)
+                              ? "fill-amber-400 text-amber-500"
+                              : "text-slate-200",
+                          )}
+                        />
+                      ))}
+                      <span className="text-xs font-bold text-slate-800 ml-1">
+                        {actualResult.t7FarmerSatisfaction != null
+                          ? `${actualResult.t7FarmerSatisfaction} / 5 คะแนน`
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Commercial Potential */}
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1">
+                    <span className="text-slate-500 font-medium block">
+                      โอกาสสั่งซื้อเชิงพาณิชย์:
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 block pt-0.5">
+                      {actualResult.t7CommercialPotential || "-"}
+                    </span>
+                  </div>
+                </div>
+
+                {actualResult.t7FinalSummaryNotes && (
+                  <div className="bg-white p-2.5 rounded-xl border border-amber-200 text-xs text-slate-700 space-y-0.5">
+                    <span className="font-bold text-slate-900 block text-[11px]">
+                      สรุปผลสัมฤทธิ์เมื่อปิดแปลง:
+                    </span>
+                    <p className="leading-relaxed">
+                      {actualResult.t7FinalSummaryNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

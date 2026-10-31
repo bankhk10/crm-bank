@@ -11,6 +11,7 @@ import {
   Wrench,
   TrendingUp,
   Droplets,
+  Award,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ import {
   SPRAY_EQUIPMENT_OPTIONS,
   SPRAY_RESPONSE_OPTIONS,
   DEMO_PLOT_STATUS_OPTIONS,
+  COMMERCIAL_POTENTIALS,
+  SATISFACTION_SCORES,
   EXTERNAL_FORMULA_OPTIONS,
 } from "../../shared/constants";
 import type {
@@ -1347,6 +1350,118 @@ export function Type7bActualForm({
             disabled={readonly}
           />
         </div>
+
+        {actualState.t7PlotStatus === "COMPLETED" && (
+          <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4 space-y-4 mt-3">
+            <div className="border-b border-emerald-200/60 pb-2">
+              <h4 className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-emerald-600" />
+                <span>การประเมินผลการเก็บเกี่ยวและการปิดแปลง (Harvest Evaluation)</span>
+              </h4>
+              <p className="text-[11px] text-emerald-800">
+                บันทึกผลผลิต ความพึงพอใจของเกษตรกร และโอกาสต่อยอดเชิงพาณิชย์
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  ผลผลิตแปลงสาธิต (กก.)
+                </label>
+                <ActivityInput
+                  type="number"
+                  value={actualState.t7FinalYieldKg || ""}
+                  onChange={(e) =>
+                    onUpdateField?.("t7FinalYieldKg", e.target.value)
+                  }
+                  disabled={readonly}
+                  placeholder="เช่น 1500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  ผลผลิตเปรียบเทียบ (กก.)
+                </label>
+                <ActivityInput
+                  type="number"
+                  value={actualState.t7ControlYieldKg || ""}
+                  onChange={(e) =>
+                    onUpdateField?.("t7ControlYieldKg", e.target.value)
+                  }
+                  disabled={readonly}
+                  placeholder="เช่น 1200"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  ความพึงพอใจของเกษตรกร
+                </label>
+                <ActivitySelect
+                  value={String(actualState.t7FarmerSatisfaction || "5")}
+                  onChange={(val) =>
+                    onUpdateField?.("t7FarmerSatisfaction", parseInt(val, 10))
+                  }
+                  options={SATISFACTION_SCORES.map((s) => ({
+                    value: String(s.value),
+                    label: s.label,
+                  }))}
+                  disabled={readonly}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  โอกาสสั่งซื้อเชิงพาณิชย์
+                </label>
+                <ActivitySelect
+                  value={
+                    actualState.t7CommercialPotential ||
+                    "สูง (เกษตรกรสนใจมาก)"
+                  }
+                  onChange={(val) =>
+                    onUpdateField?.("t7CommercialPotential", val)
+                  }
+                  options={COMMERCIAL_POTENTIALS.map((c) => ({
+                    value: c,
+                    label: c,
+                  }))}
+                  disabled={readonly}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <ActivityDatePicker
+                  label="วันปิดแปลง / วันเก็บเกี่ยว"
+                  value={actualState.t7FinalHarvestDate || ""}
+                  onChange={(dateStr) =>
+                    onUpdateField?.("t7FinalHarvestDate", dateStr)
+                  }
+                  placeholder="เลือกวันปิดแปลง / วันเก็บเกี่ยว..."
+                  disabled={readonly}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">
+                สรุปผลภาพรวมหลังการเก็บเกี่ยว
+              </label>
+              <ActivityTextarea
+                value={actualState.t7FinalSummaryNotes || ""}
+                onChange={(e) =>
+                  onUpdateField?.("t7FinalSummaryNotes", e.target.value)
+                }
+                disabled={readonly}
+                placeholder="ระบุข้อคิดเห็น ผลตอบรับจากเกษตรกร หรือข้อสรุปของแปลงนี้..."
+                rows={3}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
