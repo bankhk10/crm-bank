@@ -31,9 +31,7 @@ import type {
   Type14ActualProductState,
   FollowUpPlanOption,
 } from "../../shared/types";
-import type {
-  Type14UnplannedFormProps,
-} from "../types/unplanned.types";
+import type { Type14UnplannedFormProps } from "../types/unplanned.types";
 
 export function Type14UnplannedForm({
   item,
@@ -63,7 +61,10 @@ export function Type14UnplannedForm({
           }
         })
         .catch((err) => {
-          console.error("Failed to load hattack follow-up plans in Type14UnplannedForm:", err);
+          console.error(
+            "Failed to load hattack follow-up plans in Type14UnplannedForm:",
+            err,
+          );
         })
         .finally(() => {
           if (isMounted) setIsLoadingPlans(false);
@@ -297,7 +298,8 @@ export function Type14UnplannedForm({
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              เลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) และรายงานผลตรวจติดตามจริงรายแปลงจบในฟอร์มเดียว
+              เลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13)
+              และรายงานผลตรวจติดตามจริงรายแปลงจบในฟอร์มเดียว
             </p>
           </div>
         </div>
@@ -315,7 +317,8 @@ export function Type14UnplannedForm({
               <span className="text-rose-500">*</span>
             </label>
             <p className="text-xs text-slate-500 mt-0.5">
-              เลือกแผนงานฉีดแปลงแฮตแทคเดิม เพื่อนำแปลงทั้งหมดในแผนงานมารายงานผลติดตาม
+              เลือกแผนงานฉีดแปลงแฮตแทคเดิม
+              เพื่อนำแปลงทั้งหมดในแผนงานมารายงานผลติดตาม
             </p>
           </div>
           {plotsList.length > 0 && item.selectedPlanId && (
@@ -360,7 +363,8 @@ export function Type14UnplannedForm({
             กรุณาเลือกแผนงานฉีดแปลงแฮตแทคเดิม (Type 13) ก่อน
           </h5>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            เมื่อเลือกแผนงานฉีดแปลงแฮตแทคเดิมแล้ว ระบบจะดึงข้อมูลแปลงทั้งหมดในแผนงานนั้นมาแสดงในส่วนรายงานผลการปฏิบัติงานจริงโดยอัตโนมัติ
+            เมื่อเลือกแผนงานฉีดแปลงแฮตแทคเดิมแล้ว
+            ระบบจะดึงข้อมูลแปลงทั้งหมดในแผนงานนั้นมาแสดงในส่วนรายงานผลการปฏิบัติงานจริงโดยอัตโนมัติ
           </p>
         </div>
       ) : (
@@ -413,7 +417,9 @@ export function Type14UnplannedForm({
                     </div>
                     <span className="font-bold text-slate-800 text-sm">
                       แปลงที่ {plotIdx + 1}:{" "}
-                      {plot.plotName || plot.name || `แปลงแฮตแทค ${plotIdx + 1}`}
+                      {plot.plotName ||
+                        plot.name ||
+                        `แปลงแฮตแทค ${plotIdx + 1}`}
                     </span>
                     {dealerDisplayName !== "-" && (
                       <span className="text-xs text-slate-500 font-medium hidden sm:inline">
@@ -534,7 +540,8 @@ export function Type14UnplannedForm({
 
                   {effectivePlotProducts.length === 0 ? (
                     <p className="text-xs text-slate-400 italic py-3 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                      ไม่มีรายการสินค้าตัวอย่างสำหรับแปลงนี้ (กด &quot;เพิ่มสินค้า&quot; หากต้องการระบุ)
+                      ไม่มีรายการสินค้าตัวอย่างสำหรับแปลงนี้ (กด
+                      &quot;เพิ่มสินค้า&quot; หากต้องการระบุ)
                     </p>
                   ) : (
                     <div className="space-y-3">
@@ -705,8 +712,8 @@ export function Type14UnplannedForm({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* วันที่ติดตามผล */}
-                    <ActivityDatePicker
+                    {/* ปิดไว้ก่อนเดียวมาเปิดเอง วันที่ติดตามผล */}
+                    {/* <ActivityDatePicker
                       label="วันที่ติดตามผล"
                       required
                       value={plot.actualVisitDate || ""}
@@ -719,7 +726,7 @@ export function Type14UnplannedForm({
                       }
                       readonly={readonly}
                       disabled={readonly}
-                    />
+                    /> */}
 
                     {/* ระยะเวลาหลังฉีดพ่น (วัน) */}
                     <div className="space-y-1">
@@ -785,7 +792,11 @@ export function Type14UnplannedForm({
                               type="button"
                               disabled={readonly}
                               onClick={() =>
-                                updatePlotField(plotIdx, "plotStatus", opt.value)
+                                updatePlotField(
+                                  plotIdx,
+                                  "plotStatus",
+                                  opt.value,
+                                )
                               }
                               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
                                 isSelected
@@ -809,7 +820,8 @@ export function Type14UnplannedForm({
                         <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                           <span>
-                            แปลงนี้จะถูกบันทึกเป็น &quot;ปิดแปลงแล้ว&quot; (ไม่แสดงในรายการสร้างแผนติดตามรอบใหม่)
+                            แปลงนี้จะถูกบันทึกเป็น &quot;ปิดแปลงแล้ว&quot;
+                            (ไม่แสดงในรายการสร้างแผนติดตามรอบใหม่)
                           </span>
                         </div>
                         <div className="space-y-1">

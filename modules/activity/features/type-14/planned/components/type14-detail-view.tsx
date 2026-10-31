@@ -198,7 +198,8 @@ export function Type14DetailView({
                   ? `จ.${actualPlotData.province}`
                   : null,
             ].filter(Boolean);
-            const locationText = locParts.length > 0 ? locParts.join(" ") : null;
+            const locationText =
+              locParts.length > 0 ? locParts.join(" ") : null;
 
             const ownerDisplayName =
               plot.ownerName || actualPlotData.ownerName || "-";
@@ -257,7 +258,9 @@ export function Type14DetailView({
                     </div>
                     <span className="font-bold text-slate-800 text-sm sm:text-base">
                       แปลงที่ {plotIdx + 1}:{" "}
-                      {plot.plotName || plot.name || `แปลงแฮตแทค ${plotIdx + 1}`}
+                      {plot.plotName ||
+                        plot.name ||
+                        `แปลงแฮตแทค ${plotIdx + 1}`}
                     </span>
                     {dealerDisplayName !== "-" && (
                       <span className="text-xs text-slate-500 font-medium hidden sm:inline">
@@ -371,7 +374,8 @@ export function Type14DetailView({
                                 </span>
                               )}
                               <span className="font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded">
-                                ใช้จริง: {p.actualQuantity ?? p.quantityUsed ?? 1}{" "}
+                                ใช้จริง:{" "}
+                                {p.actualQuantity ?? p.quantityUsed ?? 1}{" "}
                                 {p.unit || "ขวด"}
                                 {extraStr}
                               </span>
@@ -409,24 +413,6 @@ export function Type14DetailView({
                           : "-"}
                       </span>
                     </div>
-
-                    <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
-                      <span className="text-slate-400 block mb-0.5">
-                        ผลการติดตามแปลง:
-                      </span>
-                      <span className="font-semibold text-emerald-800">
-                        {actualPlotData.trackingResult || "ได้ผลตามเกณฑ์"}
-                      </span>
-                    </div>
-
-                    <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
-                      <span className="text-slate-400 block mb-0.5">
-                        การตอบสนองของพืช:
-                      </span>
-                      <span className="font-semibold text-slate-800">
-                        {actualPlotData.productResponse || "ปกติ"}
-                      </span>
-                    </div>
                   </div>
 
                   {actualPlotData.additionalNotes && (
@@ -448,9 +434,11 @@ export function Type14DetailView({
                         สรุปผลการปิดแปลง / ความพึงพอใจ:
                       </span>
                       <span className="font-medium text-emerald-800 italic">
-                        "{actualPlotData.closureNotes ||
+                        "
+                        {actualPlotData.closureNotes ||
                           (plot as any).closureNotes ||
-                          (plot as any).type13Target?.closureNotes}"
+                          (plot as any).type13Target?.closureNotes}
+                        "
                       </span>
                     </div>
                   )}
@@ -474,7 +462,9 @@ export function Type14DetailView({
                           >
                             <img
                               src={imgUrl}
-                              alt={img.name || img.fileName || `img-${imgIdx + 1}`}
+                              alt={
+                                img.name || img.fileName || `img-${imgIdx + 1}`
+                              }
                               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
