@@ -5,6 +5,7 @@ import {
   formatMoney,
   formatQty,
   safeHtml,
+  extractTargetAddresses,
 } from "./template-helpers";
 import { getWorkTypeName, getWorkTypeCode } from "@/modules/activity/constants";
 
@@ -227,10 +228,17 @@ export function renderMonthlySummaryTemplate({
         daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
       }
 
-      // Location
-      const areaParts = [p.district, p.province].filter(Boolean);
-      const areaStr =
-        areaParts.length > 0 ? areaParts.join(", ") : p.location || "-";
+      // Target Area (Store Address)
+      const targetAddresses = extractTargetAddresses(p);
+      const targetAreaHtml =
+        targetAddresses.length > 0
+          ? targetAddresses
+              .map(
+                (addr) =>
+                  `<div style="margin-bottom: 2px; line-height: 1.3;">• ${safeHtml(addr)}</div>`,
+              )
+              .join("")
+          : `<span style="color: #94a3b8; font-style: italic;">-</span>`;
 
       // Targets / Stores
       const targets = extractTargetNames(p);
@@ -290,17 +298,17 @@ export function renderMonthlySummaryTemplate({
       return `
         <tr>
           <td class="text-center" style="font-weight: 600; width: 4%;">${idx + 1}</td>
-          <td style="width: 15%; line-height: 1.3;">
+          <td style="width: 14%; line-height: 1.3;">
             <div style="font-weight: 700; color: #0f3568;">${safeHtml(dateDisplay)}</div>
             <div style="font-size: 8px; color: #64748b;">(ระยะเวลา ${daysCount} วัน)</div>
           </td>
-          <td style="width: 23%;">
+          <td style="width: 21%;">
             <div style="font-weight: 700; color: #0f3568; font-size: 9.5px;">${safeHtml(p.title)}</div>
             <div style="font-size: 8px; color: #64748b;">เลขที่: ${safeHtml(p.code || p.id)}</div>
             ${helpersList ? `<div style="font-size: 8px; color: #475569; margin-top: 2px;">ผู้ร่วมเดินทาง: ${safeHtml(helpersList)}</div>` : ""}
           </td>
-          <td style="width: 16%; font-weight: 500; font-size: 8.5px;">
-            ${safeHtml(areaStr)}
+          <td style="width: 19%; font-weight: 500; font-size: 8.5px; line-height: 1.3;">
+            ${targetAreaHtml}
           </td>
           <td style="width: 21%; font-size: 8.5px;">
             ${targetsHtml}
@@ -389,9 +397,9 @@ export function renderMonthlySummaryTemplate({
         <thead>
           <tr>
             <th class="text-center" style="width: 4%;">ลำดับ</th>
-            <th style="width: 15%;">วันที่ลงพื้นที่</th>
-            <th style="width: 23%;">ชื่อแผนงาน / รหัสแผน</th>
-            <th style="width: 16%;">พื้นที่เป้าหมาย</th>
+            <th style="width: 14%;">วันที่ลงพื้นที่</th>
+            <th style="width: 21%;">ชื่อแผนงาน / รหัสแผน</th>
+            <th style="width: 19%;">พื้นที่เป้าหมาย</th>
             <th style="width: 21%;">ร้านค้า / เกษตรกรเป้าหมาย</th>
             <th style="width: 12%;">ประเภทงาน</th>
             <th class="text-center" style="width: 9%;">สถานะ</th>

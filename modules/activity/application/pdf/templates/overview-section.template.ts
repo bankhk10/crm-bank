@@ -1,6 +1,6 @@
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import type { PlanSummaryData } from "@/modules/activity/domain/summary";
-import { formatMoney, safeHtml } from "./template-helpers";
+import { formatMoney, safeHtml, extractTargetAddresses } from "./template-helpers";
 
 interface OverviewSectionProps {
   plan: ActivityPlanWithRelations;
@@ -21,6 +21,15 @@ export function renderOverviewSection({
   const position = emp?.position?.name || emp?.positionTitle || "-";
   const department = emp?.department?.name || "-";
   const phone = emp?.phone || creatorUser?.phone || "-";
+
+  // Resolve target location / store address
+  const storeAddrs = extractTargetAddresses(plan);
+  const locationDisplay =
+    storeAddrs.length > 0
+      ? storeAddrs.join(" / ")
+      : planSummary.locationStr && planSummary.locationStr !== "ไม่ระบุสถานที่"
+      ? planSummary.locationStr
+      : "-";
 
   // Date range
   const dateStr = planSummary.endDateStr && planSummary.endDateStr !== planSummary.startDateStr
@@ -58,8 +67,8 @@ export function renderOverviewSection({
             <span class="info-value" style="font-weight: 700; color: #0f3568;">${safeHtml(plan.title || "-")}</span>
           </div>
           <div class="info-cell" style="width: 50%;">
-            <span class="info-label">พื้นที่ปฏิบัติงาน:</span>
-            <span class="info-value">${safeHtml(planSummary.locationStr || "-")}</span>
+            <span class="info-label">พื้นที่ปฏิบัติงาน / เป้าหมาย:</span>
+            <span class="info-value">${safeHtml(locationDisplay)}</span>
           </div>
         </div>
         <div class="info-row">

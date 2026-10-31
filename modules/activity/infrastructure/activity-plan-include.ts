@@ -21,6 +21,9 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerCode: true,
           province: true,
           district: true,
+          subdistrict: true,
+          addressLine: true,
+          postalCode: true,
         },
       },
       products: {
@@ -479,9 +482,11 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           customerType: true,
           province: true,
           district: true,
+          subdistrict: true,
+          addressLine: true,
+          postalCode: true,
           latitude: true,
           longitude: true,
-          addressLine: true,
         },
       },
       products: {
