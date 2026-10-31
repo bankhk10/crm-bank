@@ -189,7 +189,7 @@ export function Type7aPlotFollowUpTimeline({
         </div>
 
         {/* Quick KPI Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3.5 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 pt-3.5 text-xs">
           <div className="bg-white p-2.5 rounded-xl border border-slate-150">
             <span className="text-slate-400 block text-[11px] font-medium">
               จำนวนครั้งที่ติดตามแล้ว
@@ -207,24 +207,24 @@ export function Type7aPlotFollowUpTimeline({
               {timelineData.totalPlans} แผนงาน
             </span>
           </div>
-
-          <div className="bg-white p-2.5 rounded-xl border border-slate-150">
+          {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+          {/* <div className="bg-white p-2.5 rounded-xl border border-slate-150">
             <span className="text-slate-400 block text-[11px] font-medium">
               ตรวจแปลงล่าสุดเมื่อ
             </span>
             <span className="text-xs font-bold text-slate-700">
               {formatThaiDate(timelineData.latestVisitDate)}
             </span>
-          </div>
-
-          <div className="bg-white p-2.5 rounded-xl border border-slate-150">
+          </div> */}
+          {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+          {/* <div className="bg-white p-2.5 rounded-xl border border-slate-150">
             <span className="text-slate-400 block text-[11px] font-medium">
               กำหนดฉีดพ่นรอบถัดไป
             </span>
             <span className="text-xs font-bold text-amber-700">
               {formatThaiDate(timelineData.nextSprayDate)}
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -352,38 +352,6 @@ export function Type7aPlotFollowUpTimeline({
                     {/* Condition Details (if actual visit recorded) */}
                     {!item.isPlannedOnly && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-                        {/* Growth Stage */}
-                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                          <span className="text-slate-400 block text-[11px]">
-                            ระยะพืช / อายุพืช:
-                          </span>
-                          <span className="font-semibold text-slate-800">
-                            {[
-                              item.growthStage,
-                              item.cropAgeValue != null
-                                ? `${item.cropAgeValue} ${item.cropAgeUnit || "วัน"}`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(" • ") || "-"}
-                          </span>
-                        </div>
-
-                        {/* Crop Condition */}
-                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                          <span className="text-slate-400 block text-[11px]">
-                            สภาพพืช & การเจริญเติบโต:
-                          </span>
-                          <span className="font-semibold text-slate-800">
-                            {item.cropCondition || "-"}
-                            {item.cropProblemDesc && (
-                              <span className="text-rose-600 font-normal block text-[11px]">
-                                ปัญหา: {item.cropProblemDesc}
-                              </span>
-                            )}
-                          </span>
-                        </div>
-
                         {/* Product Response */}
                         <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
                           <span className="text-slate-400 block text-[11px]">
