@@ -6,13 +6,17 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   ActivityPlanTable,
+  isPlanSubmittable,
   type ActivityPlanViewScope,
 } from "./components/activity-plan-table";
+import { BatchSubmitBar } from "./components/batch-submit-bar";
+import { BatchSubmitDialog } from "./components/batch-submit-dialog";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   deleteActivityPlanAction,
   submitActivityPlanAction,
   duplicateActivityPlanAction,
+  batchSubmitActivityPlansAction,
   getActivityTypesAction,
 } from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
@@ -99,6 +103,9 @@ export default function ActivityPlanListView() {
   const [actionLoading, setActionLoading] = useState(false);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [submitLoadingId, setSubmitLoadingId] = useState<string | null>(null);
+  const [selectedPlans, setSelectedPlans] = useState<ActivityPlanWithRelations[]>([]);
+  const [batchDialogOpen, setBatchDialogOpen] = useState<boolean>(false);
+  const [batchSubmitting, setBatchSubmitting] = useState<boolean>(false);
 
   // Load master options for Work Types and Employees
   useEffect(() => {
@@ -224,6 +231,7 @@ export default function ActivityPlanListView() {
   const handleScopeChange = (newScope: ActivityPlanViewScope) => {
     setViewScope(newScope);
     setPage(1);
+    setSelectedPlans([]);
   };
 
   const handleStatusFilterChange = (statuses: string[]) => {
@@ -304,6 +312,71 @@ export default function ActivityPlanListView() {
       toast.error(err.message || "ส่งแผนขออนุมัติล้มเหลว");
     } finally {
       setSubmitLoadingId(null);
+    }
+  };
+
+  const handleToggleSelectPlan = (plan: ActivityPlanWithRelations) => {
+    setSelectedPlans((prev) =>
+      prev.some((p) => p.id === plan.id)
+        ? prev.filter((p) => p.id !== plan.id)
+        : [...prev, plan],
+    );
+  };
+
+  const handleToggleSelectAll = (selectAll: boolean) => {
+    if (!selectAll) {
+      const pageIds = new Set(activityPlans.map((p) => p.id));
+      setSelectedPlans((prev) => prev.filter((p) => !pageIds.has(p.id)));
+      return;
+    }
+
+    const submittableInPage = activityPlans.filter(
+      (p) => isPlanSubmittable(p, user?.id, (user as any)?.employeeId).allowed,
+    );
+
+    setSelectedPlans((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const toAdd = submittableInPage.filter((p) => !existingIds.has(p.id));
+      return [...prev, ...toAdd];
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPlans([]);
+  };
+
+  const handleBatchSubmitConfirm = async () => {
+    if (selectedPlans.length === 0) return;
+    setBatchSubmitting(true);
+    setError(null);
+    try {
+      const ids = selectedPlans.map((p) => p.id);
+      const res: any = await batchSubmitActivityPlansAction(ids);
+      if (!res.success) {
+        throw new Error(res.error || "ส่งแผนงานขออนุมัติล้มเหลว");
+      }
+
+      const successCount = res.successCount ?? 0;
+      const failureCount = res.failureCount ?? 0;
+
+      if (failureCount > 0) {
+        toast.warning(
+          `ส่งขออนุมัติสำเร็จ ${successCount} รายการ, ไม่สำเร็จ ${failureCount} รายการ`,
+        );
+      } else {
+        toast.success(
+          `ส่งแผนงานขออนุมัติเรียบร้อยแล้วทั้งหมด ${successCount} รายการ`,
+        );
+      }
+
+      setSelectedPlans([]);
+      setBatchDialogOpen(false);
+      fetchData();
+    } catch (err: any) {
+      setError(err.message || "ส่งแผนขออนุมัติล้มเหลว");
+      toast.error(err.message || "ส่งแผนขออนุมัติล้มเหลว");
+    } finally {
+      setBatchSubmitting(false);
     }
   };
 
@@ -620,6 +693,25 @@ export default function ActivityPlanListView() {
         onSubmitApproval={handleSubmitApproval}
         submitLoadingId={submitLoadingId}
         onRefresh={() => fetchData()}
+        selectedPlanIds={selectedPlans.map((p) => p.id)}
+        onToggleSelectPlan={handleToggleSelectPlan}
+        onToggleSelectAll={handleToggleSelectAll}
+      />
+
+      {/* Floating batch submission bar & dialog */}
+      <BatchSubmitBar
+        selectedCount={selectedPlans.length}
+        onClearSelection={handleClearSelection}
+        onSubmitClick={() => setBatchDialogOpen(true)}
+        isSubmitting={batchSubmitting}
+      />
+
+      <BatchSubmitDialog
+        open={batchDialogOpen}
+        onOpenChange={setBatchDialogOpen}
+        selectedPlans={selectedPlans}
+        onConfirm={handleBatchSubmitConfirm}
+        isSubmitting={batchSubmitting}
       />
     </div>
   );

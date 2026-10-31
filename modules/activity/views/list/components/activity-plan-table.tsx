@@ -24,6 +24,7 @@ import {
   Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import { ActivityStatusWithOperator } from "@/modules/activity/ui/activity-status-badge";
 import {
@@ -40,6 +41,51 @@ import {
   type MultiSelectOption,
 } from "@/components/custom/multi-select";
 import { cn } from "@/lib/utils";
+
+export function isPlanSubmittable(
+  item: ActivityPlanWithRelations,
+  currentUserId?: string | null,
+  currentUserEmployeeId?: string | null,
+): { allowed: boolean; reason?: string } {
+  const isCreator = Boolean(
+    (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
+    (currentUserId && item.createdById === currentUserId),
+  );
+
+  if (!isCreator) {
+    return { allowed: false, reason: "ไม่ใช่แผนงานที่คุณเป็นผู้สร้าง" };
+  }
+
+  const isUnplanned = item.planType === "UNPLANNED";
+  const isDraft = item.status === "DRAFT";
+  const isCorrection = item.status === "WAITING_FOR_CORRECTION";
+  const isReturned = item.status === "RETURNED";
+  const editable = isUnplanned
+    ? isDraft || isReturned
+    : isDraft || isCorrection;
+
+  if (!editable) {
+    if (
+      item.status === "PENDING_LINE_APPROVAL" ||
+      item.status === "PENDING_BUDGET_APPROVAL" ||
+      item.status === "PENDING_HELPER_APPROVAL"
+    ) {
+      return { allowed: false, reason: "แผนงานนี้อยู่ระหว่างรออนุมัติแล้ว" };
+    }
+    if (item.status === "APPROVED") {
+      return { allowed: false, reason: "แผนงานนี้ได้รับการอนุมัติแล้ว" };
+    }
+    if (item.status === "REJECTED") {
+      return { allowed: false, reason: "แผนงานนี้ถูกปฏิเสธ" };
+    }
+    if (item.status === "CANCELLED") {
+      return { allowed: false, reason: "แผนงานนี้ถูกยกเลิกแล้ว" };
+    }
+    return { allowed: false, reason: "ไม่อยู่ในสถานะที่ส่งขออนุมัติได้" };
+  }
+
+  return { allowed: true };
+}
 
 export type ActivityPlanViewScope = "OWN" | "TEAM" | "HELPER" | "ALL";
 
@@ -82,6 +128,9 @@ interface ActivityPlanTableProps {
   onDuplicate?: (item: ActivityPlanWithRelations) => void;
   submitLoadingId: string | null;
   onRefresh?: () => void;
+  selectedPlanIds?: string[];
+  onToggleSelectPlan?: (item: ActivityPlanWithRelations) => void;
+  onToggleSelectAll?: (selectAll: boolean) => void;
 }
 
 export { STATUS_OPTIONS };
@@ -112,12 +161,35 @@ export function ActivityPlanTable({
   onSubmitApproval,
   onDuplicate,
   submitLoadingId,
+  selectedPlanIds = [],
+  onToggleSelectPlan,
+  onToggleSelectAll,
 }: ActivityPlanTableProps) {
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
   const currentUserEmployeeId = session?.user?.employeeId;
 
-  const getRelationRole = React.useCallback(
+  const selectedSet = React.useMemo(
+    () => new Set(selectedPlanIds || []),
+    [selectedPlanIds],
+  );
+
+  const submittablePlansInPage = React.useMemo(() => {
+    return data.filter(
+      (item) =>
+        isPlanSubmittable(item, currentUserId, currentUserEmployeeId).allowed,
+    );
+  }, [data, currentUserId, currentUserEmployeeId]);
+
+  const isAllSubmittableSelected =
+    submittablePlansInPage.length > 0 &&
+    submittablePlansInPage.every((item) => selectedSet.has(item.id));
+
+  const isSomeSubmittableSelected =
+    !isAllSubmittableSelected &&
+    submittablePlansInPage.some((item) => selectedSet.has(item.id));
+
+const getRelationRole = React.useCallback(
     (item: ActivityPlanWithRelations) => {
       const isCreator = Boolean(
         (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
@@ -163,6 +235,58 @@ export function ActivityPlanTable({
 
   const columns = React.useMemo<ColumnDef<ActivityPlanWithRelations>[]>(() => {
     return [
+      {
+        id: "select",
+        meta: { width: 44, align: "center", headerAlign: "center" },
+        header: () => (
+          <div className="flex items-center justify-center p-1">
+            <Checkbox
+              checked={
+                isAllSubmittableSelected
+                  ? true
+                  : isSomeSubmittableSelected
+                    ? "indeterminate"
+                    : false
+              }
+              disabled={submittablePlansInPage.length === 0}
+              onCheckedChange={(checked) => {
+                onToggleSelectAll?.(Boolean(checked));
+              }}
+              aria-label="เลือกทั้งหมดในหน้านี้"
+              title={
+                submittablePlansInPage.length === 0
+                  ? "ไม่มีแผนงานที่ส่งได้ในหน้านี้"
+                  : "เลือกทั้งหมดในหน้านี้"
+              }
+              className="rounded-md border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 cursor-pointer disabled:cursor-not-allowed"
+            />
+          </div>
+        ),
+        cell: ({ row }) => {
+          const item = row.original;
+          const submittable = isPlanSubmittable(
+            item,
+            currentUserId,
+            currentUserEmployeeId,
+          );
+          const isSelected = selectedSet.has(item.id);
+
+          return (
+            <div className="flex items-center justify-center p-1">
+              <span title={submittable.allowed ? undefined : submittable.reason}>
+                <Checkbox
+                  checked={isSelected}
+                  disabled={!submittable.allowed}
+                  onCheckedChange={() => onToggleSelectPlan?.(item)}
+                  aria-label={`เลือกแผนงาน ${item.title}`}
+                  className="rounded-md border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                />
+              </span>
+            </div>
+          );
+        },
+      },
+
       {
         id: "planNo",
         header: "เลขที่แผน",
@@ -477,6 +601,12 @@ export function ActivityPlanTable({
     onDuplicate,
     onDelete,
     submitLoadingId,
+    selectedSet,
+    submittablePlansInPage,
+    isAllSubmittableSelected,
+    isSomeSubmittableSelected,
+    onToggleSelectPlan,
+    onToggleSelectAll,
   ]);
 
   const emptyStateMessage = React.useMemo(() => {
@@ -628,7 +758,42 @@ export function ActivityPlanTable({
   const renderMobileCards = () => {
     if (loading) {
       return (
-        <div className="space-y-3">
+      <div className="space-y-3">
+        {submittablePlansInPage.length > 0 && (
+          <div className="flex items-center justify-between bg-blue-50/70 border border-blue-100 rounded-xl px-3.5 py-2.5 text-xs text-blue-900 shadow-2xs mb-1">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={
+                  isAllSubmittableSelected
+                    ? true
+                    : isSomeSubmittableSelected
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(checked) =>
+                  onToggleSelectAll?.(Boolean(checked))
+                }
+                id="mobile-select-all"
+                className="rounded-md border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              />
+              <label
+                htmlFor="mobile-select-all"
+                className="font-bold text-slate-800 cursor-pointer"
+              >
+                เลือกทั้งหมดในหน้านี้ ({submittablePlansInPage.length} แผน)
+              </label>
+            </div>
+            {selectedSet.size > 0 && (
+              <button
+                type="button"
+                onClick={() => onToggleSelectAll?.(false)}
+                className="text-xs text-blue-700 hover:text-blue-900 font-semibold cursor-pointer underline"
+              >
+                ยกเลิก
+              </button>
+            )}
+          </div>
+        )}
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -758,11 +923,22 @@ export function ActivityPlanTable({
           const startDate = new Date(item.startDate);
           const endDate = new Date(item.endDate);
           const resultStatus = (item as any).result?.resultStatus;
+          const submittable = isPlanSubmittable(
+            item,
+            currentUserId,
+            currentUserEmployeeId,
+          );
+          const isSelected = selectedSet.has(item.id);
 
           return (
             <div
               key={item.id}
-              className="relative rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden"
+              className={cn(
+                "relative rounded-2xl border bg-white shadow-sm overflow-hidden transition-all",
+                isSelected
+                  ? "border-blue-400 ring-2 ring-blue-500/20 bg-blue-50/20"
+                  : "border-slate-100",
+              )}
             >
               {/* Color accent bar matching relation role */}
               <div
@@ -776,8 +952,16 @@ export function ActivityPlanTable({
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    {/* Plan number + role badge + unplanned badge */}
+                    {/* Plan number + role badge + unplanned badge + checkbox */}
                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                      {submittable.allowed && (
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => onToggleSelectPlan?.(item)}
+                          aria-label={`เลือกแผนงาน ${item.title}`}
+                          className="rounded-md border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-4 w-4 mr-0.5 cursor-pointer"
+                        />
+                      )}
                       <span className="text-[11px] font-mono font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5">
                         {planNo}
                       </span>

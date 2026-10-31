@@ -719,6 +719,60 @@ export async function submitActivityPlanAction(id: string) {
   }
 }
 
+export async function batchSubmitActivityPlansAction(ids: string[]) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "ไม่ได้ระบุแผนงานที่ต้องการส่ง" };
+  }
+
+  const results: { id: string; success: boolean; error?: string }[] = [];
+  let successCount = 0;
+  let failureCount = 0;
+
+  for (const id of ids) {
+    try {
+      const res = await submitActivityPlanUseCase(id, session.user.id);
+      if (res.success) {
+        successCount++;
+        results.push({ id, success: true });
+        revalidatePath(`/activity-plans/${id}`);
+      } else {
+        failureCount++;
+        results.push({
+          id,
+          success: false,
+          error: res.error || "เกิดข้อผิดพลาดในการส่งขออนุมัติ",
+        });
+      }
+    } catch (err: any) {
+      failureCount++;
+      results.push({
+        id,
+        success: false,
+        error: err.message || "เกิดข้อผิดพลาดไม่คาดคิด",
+      });
+    }
+  }
+
+  if (successCount > 0) {
+    revalidatePath("/activity-plans");
+    revalidatePath("/activity-plans/approvals");
+    revalidatePath("/activity-plans/calendar");
+  }
+
+  return serialize({
+    success: successCount > 0,
+    total: ids.length,
+    successCount,
+    failureCount,
+    results,
+  });
+}
+
 export async function duplicateActivityPlanAction(id: string) {
   const session = await auth();
   if (!session?.user) {
