@@ -11,11 +11,14 @@ import {
   CheckCircle2,
   Tags,
   Coins,
+  FileText,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 import { PromotionalMaterialsTable, type PromotionalMaterialItem } from "./components/promotional-materials-table";
 import { PromotionalMaterialFormDialog } from "./components/promotional-material-form-dialog";
 import { DeleteMaterialDialog } from "./components/delete-material-dialog";
+import { ActivityWithdrawalsTab } from "./components/activity-withdrawals-tab";
 import {
   getPromotionalMaterialsAction,
   getDistinctPromotionalCategoriesAction,
@@ -50,7 +53,10 @@ export default function PromotionalMaterialsView() {
   const canEdit = canEditPromotionalMaterial(user).allowed;
   const canDelete = canDeletePromotionalMaterial(user).allowed;
 
-  // State
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<"WITHDRAWALS" | "MASTER">("WITHDRAWALS");
+
+  // Master Data State
   const [items, setItems] = useState<PromotionalMaterialItem[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -120,11 +126,11 @@ export default function PromotionalMaterialsView() {
   }, [page, perPage, searchQuery, selectedCategory, selectedStatus]);
 
   useEffect(() => {
-    if (canView) {
+    if (canView && activeTab === "MASTER") {
       fetchCategories();
       fetchItems();
     }
-  }, [canView, fetchCategories, fetchItems]);
+  }, [canView, activeTab, fetchCategories, fetchItems]);
 
   const handleCreateNew = () => {
     setItemToEdit(null);
@@ -183,20 +189,28 @@ export default function PromotionalMaterialsView() {
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-              <Package className="h-5 w-5" />
+              {activeTab === "WITHDRAWALS" ? (
+                <FileText className="h-5 w-5" />
+              ) : (
+                <Package className="h-5 w-5" />
+              )}
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                จัดการสื่อส่งเสริมการขาย
+                {activeTab === "WITHDRAWALS"
+                  ? "รายการเบิกสินค้าและสื่อส่งเสริมการขาย"
+                  : "จัดการสื่อส่งเสริมการขาย (Master Data)"}
               </h1>
               <p className="text-xs text-slate-500">
-                จัดการข้อมูล Master Data สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถม) สำหรับใช้ใน Activity Plan
+                {activeTab === "WITHDRAWALS"
+                  ? "ตรวจสอบรายการเบิกสินค้าและสื่อส่งเสริมการขายรายบุคคลที่นำไปใช้ใน Activity Plan"
+                  : "จัดการข้อมูล Master Data สื่อส่งเสริมการขาย (PVC, ไวนิล, ของแถม) สำหรับใช้ใน Activity Plan"}
               </p>
             </div>
           </div>
         </div>
 
-        {canCreate && (
+        {activeTab === "MASTER" && canCreate && (
           <Button
             type="button"
             onClick={handleCreateNew}
@@ -208,112 +222,150 @@ export default function PromotionalMaterialsView() {
         )}
       </div>
 
-      {/* Stats Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {/* Card 1: Total Items */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              รายการทั้งหมด
-            </span>
-            <Layers className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-slate-800">
-            {total.toLocaleString()}
-          </div>
-        </div>
-
-        {/* Card 2: Categories */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              หมวดหมู่
-            </span>
-            <Tags className="h-4 w-4 text-blue-600" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-blue-700">
-            {categories.length}
-          </div>
-        </div>
-
-        {/* Card 3: Active Items */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              สถานะพร้อมใช้
-            </span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-700">
-            {items.filter((i) => i.status === "ACTIVE").length > 0
-              ? `${items.filter((i) => i.status === "ACTIVE").length} ในหน้านี้`
-              : "พร้อมใช้"}
-          </div>
-        </div>
-
-        {/* Card 4: Database Source Notice */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              แหล่งข้อมูล
-            </span>
-            <Coins className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="text-xs sm:text-sm font-extrabold text-amber-700">
-            Database Live Sync
-          </div>
-        </div>
+      {/* Modern Tabs Switcher */}
+      <div className="flex border-b border-slate-200/90 gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("WITHDRAWALS")}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-all -mb-[1px]",
+            activeTab === "WITHDRAWALS"
+              ? "border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-xl"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          )}
+        >
+          <FileText className="w-4 h-4" />
+          รายการเบิกสินค้าและสื่อส่งเสริมการขาย
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("MASTER")}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-all -mb-[1px]",
+            activeTab === "MASTER"
+              ? "border-emerald-600 text-emerald-700 bg-emerald-50/50 rounded-t-xl"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          )}
+        >
+          <Package className="w-4 h-4" />
+          จัดการสื่อส่งเสริมการขาย (Master Data)
+        </button>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+      {/* Tab 1: Unified Withdrawals by Employee */}
+      {activeTab === "WITHDRAWALS" ? (
+        <ActivityWithdrawalsTab />
+      ) : (
+        /* Tab 2: Master Data Management */
+        <div className="space-y-5">
+          {/* Stats Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Card 1: Total Items */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  รายการทั้งหมด
+                </span>
+                <Layers className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-slate-800">
+                {total.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Card 2: Categories */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  หมวดหมู่
+                </span>
+                <Tags className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-blue-700">
+                {categories.length}
+              </div>
+            </div>
+
+            {/* Card 3: Active Items */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  สถานะพร้อมใช้
+                </span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700">
+                {items.filter((i) => i.status === "ACTIVE").length > 0
+                  ? `${items.filter((i) => i.status === "ACTIVE").length} ในหน้านี้`
+                  : "พร้อมใช้"}
+              </div>
+            </div>
+
+            {/* Card 4: Database Source Notice */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  แหล่งข้อมูล
+                </span>
+                <Coins className="h-4 w-4 text-amber-600" />
+              </div>
+              <div className="text-xs sm:text-sm font-extrabold text-amber-700">
+                Database Live Sync
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Main Table */}
+          <PromotionalMaterialsTable
+            items={items}
+            total={total}
+            page={page}
+            perPage={perPage}
+            totalPages={totalPages}
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+            selectedStatus={selectedStatus}
+            categories={categories}
+            loading={loading}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            onSearchChange={handleSearchChange}
+            onCategoryChange={handleCategoryChange}
+            onStatusChange={handleStatusChange}
+            onPageChange={setPage}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+
+          {/* Form Dialog (Create / Edit) */}
+          <PromotionalMaterialFormDialog
+            open={formDialogOpen}
+            onOpenChange={setFormDialogOpen}
+            itemToEdit={itemToEdit}
+            categories={categories}
+            onSuccess={() => {
+              fetchCategories();
+              fetchItems();
+            }}
+          />
+
+          {/* Delete Dialog */}
+          <DeleteMaterialDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            item={itemToDelete}
+            onSuccess={() => {
+              fetchItems();
+            }}
+          />
+        </div>
       )}
-
-      {/* Main Table */}
-      <PromotionalMaterialsTable
-        items={items}
-        total={total}
-        page={page}
-        perPage={perPage}
-        totalPages={totalPages}
-        searchQuery={searchQuery}
-        selectedCategory={selectedCategory}
-        selectedStatus={selectedStatus}
-        categories={categories}
-        loading={loading}
-        canEdit={canEdit}
-        canDelete={canDelete}
-        onSearchChange={handleSearchChange}
-        onCategoryChange={handleCategoryChange}
-        onStatusChange={handleStatusChange}
-        onPageChange={setPage}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-
-      {/* Form Dialog (Create / Edit) */}
-      <PromotionalMaterialFormDialog
-        open={formDialogOpen}
-        onOpenChange={setFormDialogOpen}
-        itemToEdit={itemToEdit}
-        categories={categories}
-        onSuccess={() => {
-          fetchCategories();
-          fetchItems();
-        }}
-      />
-
-      {/* Delete Dialog */}
-      <DeleteMaterialDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        item={itemToDelete}
-        onSuccess={() => {
-          fetchItems();
-        }}
-      />
     </div>
   );
 }

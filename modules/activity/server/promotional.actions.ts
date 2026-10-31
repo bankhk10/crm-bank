@@ -1,5 +1,14 @@
 "use server";
 
+import {
+  findActivityWithdrawals,
+  type ListActivityWithdrawalsParams,
+  type EmployeeWithdrawalGroup,
+  type UnifiedWithdrawalItem,
+  type ActivityWithdrawalSummary,
+} from "../infrastructure/activity-withdrawal.repository";
+
+
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import {
@@ -212,6 +221,50 @@ export async function deletePromotionalMaterialAction(id: string) {
     return serialize({
       success: false,
       error: err.message || "ไม่สามารถลบข้อมูลสื่อส่งเสริมการขายได้",
+    });
+  }
+}
+
+/**
+ * Get unified activity withdrawals (Product + Media) grouped by employee
+ */
+export async function getActivityWithdrawalsByEmployeeAction(
+  params: ListActivityWithdrawalsParams = {}
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return serialize({
+      success: false,
+      error: "Unauthorized",
+      summary: {
+        totalEmployees: 0,
+        totalPlans: 0,
+        totalProductItems: 0,
+        totalMediaItems: 0,
+        totalMediaAmount: 0,
+      },
+      employeeGroups: [],
+      totalItems: 0,
+    });
+  }
+
+  try {
+    const result = await findActivityWithdrawals(params);
+    return serialize({ success: true, ...result });
+  } catch (err: any) {
+    console.error("Failed to fetch activity withdrawals:", err);
+    return serialize({
+      success: false,
+      error: err.message || "เกิดข้อผิดพลาดในการดึงข้อมูลรายการเบิกสินค้าและสื่อส่งเสริมการขาย",
+      summary: {
+        totalEmployees: 0,
+        totalPlans: 0,
+        totalProductItems: 0,
+        totalMediaItems: 0,
+        totalMediaAmount: 0,
+      },
+      employeeGroups: [],
+      totalItems: 0,
     });
   }
 }
