@@ -11,10 +11,19 @@ import type { PlanSummaryData } from "@/modules/activity/domain/summary";
 interface DetailHeaderProps {
   plan: ActivityPlanWithRelations;
   planSummary?: PlanSummaryData;
+  isActualRecorded?: boolean;
 }
 
-export function DetailHeader({ plan, planSummary }: DetailHeaderProps) {
+export function DetailHeader({
+  plan,
+  planSummary,
+  isActualRecorded,
+}: DetailHeaderProps) {
   const isUnplanned = plan.planType === "UNPLANNED";
+  const isRecorded =
+    isActualRecorded !== undefined
+      ? isActualRecorded
+      : Boolean(plan.isActualRecorded || (plan as any).result);
   const planNo = plan.code || planSummary?.planNo;
 
   return (
@@ -54,6 +63,18 @@ export function DetailHeader({ plan, planSummary }: DetailHeaderProps) {
         >
           {isUnplanned ? "นอกแผน" : "ตามแผน"}
         </span>
+        {!isUnplanned && (
+          <span
+            className={cn(
+              "inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs border",
+              isRecorded
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-amber-50 text-amber-700 border-amber-200",
+            )}
+          >
+            {isRecorded ? "บันทึกผลแล้ว" : "ยังไม่บันทึกผล"}
+          </span>
+        )}
         {planNo && (
           <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
             <Info className="w-3.5 h-3.5 shrink-0" />

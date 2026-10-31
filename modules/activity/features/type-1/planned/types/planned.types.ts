@@ -49,6 +49,7 @@ export interface Type1TargetItem {
   plotLatitude?: string | number | null;
   plotLongitude?: string | number | null;
   plotImages?: Type1ImageFile[];
+  isActualRecorded?: boolean;
   productAdvice?: string;
   advisedProducts?: import("../../shared/types").Type1AdviceProductItem[];
   discussionResult?: string;
@@ -83,6 +84,7 @@ export interface Type1DetailViewProps {
   plotLatitude?: string | number | null;
   plotLongitude?: string | number | null;
   plotImages?: Type1ImageFile[];
+  isActualRecorded?: boolean;
 }
 
 /**

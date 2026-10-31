@@ -1716,6 +1716,7 @@ model ActivityPlan {
   planType                  ActivityPlanType @default(PLANNED) @map("plan_type")
   status                    ActivityStatus   @default(DRAFT)
   currentApproverEmployeeId String?          @map("current_approver_employee_id")
+  isActualRecorded          Boolean          @default(false) @map("is_actual_recorded")
 
   // ──── APPROVAL FLAGS (Parallel & Special Gate Tracking) ────────
   salesPromotionApproved   Boolean?  @map("sales_promotion_approved")
@@ -1809,6 +1810,7 @@ model ActivityPlan {
   @@index([province])
   @@index([submittedAt])
   @@index([approvedAt])
+  @@index([isActualRecorded])
   @@map("activity_plans")
 }
 

@@ -75,6 +75,7 @@ export interface Type3ActualFormProps {
   unclosedReason: string;
   setUnclosedReason: (v: string) => void;
   productSalesDetails?: Type3ProductSaleDetail[];
+  isActualRecorded?: boolean;
   setProductSalesDetails?: (v: Type3ProductSaleDetail[]) => void;
 }
 
@@ -87,6 +88,7 @@ export interface Type3DetailViewProps {
   actualQuantity?: string;
   unclosedReason?: string;
   productSalesDetails?: Type3ProductSaleDetail[];
+  isActualRecorded?: boolean;
 }
 
 export interface Type3ApprovalCardProps {

@@ -156,6 +156,10 @@ export async function upsertActivityResult(
     });
 
     // 2. Delegate to Work Type Strategies via Central Strategy Registry
+    await tx.activityPlan.update({
+      where: { id: input.activityPlanId },
+      data: { isActualRecorded: true },
+    });
     await saveStrategiesForActual(
       tx,
       input.activityPlanId,

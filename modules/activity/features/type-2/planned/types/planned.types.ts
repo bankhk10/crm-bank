@@ -120,6 +120,7 @@ export interface Type2DetailViewProps {
   usageResult?: "พืชตอบสนองดี" | "ลูกค้าพึงพอใจ" | "พบปัญหา" | "";
   problemDetail?: string;
   images?: Type2ImageFile[];
+  isActualRecorded?: boolean;
 }
 
 export type DetailType2FollowupProps = Type2DetailViewProps;

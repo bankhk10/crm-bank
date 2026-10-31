@@ -56,6 +56,7 @@ export function Type1DetailView({
   plotLatitude,
   plotLongitude,
   plotImages = [],
+  isActualRecorded,
 }: Type1DetailViewProps) {
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
@@ -192,7 +193,7 @@ export function Type1DetailView({
       <Type1PlanCard target={target} targets={targets} />
 
       {/* 2. ข้อมูลผลการปฏิบัติงานจริง (ACTUAL RESULT) */}
-      {hasActualData ? (
+      {(isActualRecorded !== undefined ? isActualRecorded : hasActualData) ? (
         <div className="border border-emerald-200/80 rounded-2xl p-4 sm:p-5 md:p-6 bg-white space-y-5 shadow-xs">
           {count > 1 ? (
             /* MULTI-TARGET READ-ONLY ACTUAL DISPLAY */

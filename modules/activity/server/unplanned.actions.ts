@@ -91,6 +91,7 @@ export async function createUnplannedActivityAction(
           fiscalQuarter: fiscal.fiscalQuarter,
           activityTypeId: resolvedPrimaryTypeId,
           planType: ActivityPlanType.UNPLANNED,
+          isActualRecorded: true,
           location: rawData.location ? String(rawData.location).trim() || null : null,
           province: rawData.province ?? null,
           district: rawData.district ?? null,

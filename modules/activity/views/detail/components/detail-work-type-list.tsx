@@ -31,6 +31,7 @@ interface DetailWorkTypeListProps {
   };
   parsedResults?: any;
   isTypeActive: (code: string, label: string) => boolean;
+  isActualRecorded?: boolean;
 }
 
 function getDeduplicatedAttachments(plan: any): any[] {
@@ -62,7 +63,16 @@ export function DetailWorkTypeList({
   type1Targets,
   parsedResults,
   isTypeActive,
+  isActualRecorded,
 }: DetailWorkTypeListProps) {
+  const effectiveIsActualRecorded =
+    isActualRecorded !== undefined
+      ? isActualRecorded
+      : Boolean(
+          plan?.isActualRecorded ||
+            plan?.result ||
+            (plan?.type7aResults && plan.type7aResults.length > 0),
+        );
   const deduplicatedAttachments = useMemo(
     () => getDeduplicatedAttachments(plan),
     [plan?.attachments, plan?.result?.attachments],
@@ -612,6 +622,7 @@ export function DetailWorkTypeList({
         plotLatitude={type1Targets.primary?.plotLatitude}
         plotLongitude={type1Targets.primary?.plotLongitude}
         plotImages={effectiveImages}
+        isActualRecorded={effectiveIsActualRecorded}
       />
 
       {/* 🔵 TYPE 2: ติดตามผลการใช้สินค้า (Product Follow-up) */}
@@ -626,6 +637,7 @@ export function DetailWorkTypeList({
         usageResult={parsedResults?.t2UsageResult}
         problemDetail={parsedResults?.t2ProblemDetail}
         images={effectiveT2Images}
+        isActualRecorded={effectiveIsActualRecorded}
       />
 
       {/* 🟣 TYPE 3: เสนอขายสินค้า (Product Sales Proposal) */}
@@ -642,6 +654,7 @@ export function DetailWorkTypeList({
         }
         unclosedReason={parsedResults?.t3UnclosedReason}
         productSalesDetails={parsedResults?.t3ProductSalesDetails}
+        isActualRecorded={effectiveIsActualRecorded}
       />
 
       {/* 🟠 TYPE 4: วางบิล / เก็บเงิน (Billing & Payment Collection) */}

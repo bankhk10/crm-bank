@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import { Loader2, AlertCircle, Printer } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  ClipboardList,
+  ClipboardCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -76,9 +81,11 @@ export default function ActivityPlanDetailView({
     );
   }
 
-  const hasActualResult = Boolean(
-    (plan as any).result ||
-    ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
+  // Check whether actual results have been recorded for this plan
+  const isActualRecorded = Boolean(
+    (plan as any).isActualRecorded ||
+      (plan as any).result ||
+      ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
   );
 
   return (
@@ -94,7 +101,11 @@ export default function ActivityPlanDetailView({
         />
 
         {/* ─── 1. TOP HEADER (DETAIL VIEW) ─── */}
-        <DetailHeader plan={plan} planSummary={planSummary} />
+        <DetailHeader
+          plan={plan}
+          planSummary={planSummary}
+          isActualRecorded={isActualRecorded}
+        />
 
         {/* ─── 2. GENERAL PLAN INFORMATION (Overview) ─── */}
         <DetailOverview
@@ -110,10 +121,11 @@ export default function ActivityPlanDetailView({
           type1Targets={type1Targets}
           parsedResults={parsedResults}
           isTypeActive={isTypeActive}
+          isActualRecorded={isActualRecorded}
         />
 
         {/* ─── 4. ACTUAL RESULTS STATUS (IF RECORDED) ─── */}
-        {hasActualResult && parsedResults.activityResultStatus && (
+        {isActualRecorded && parsedResults.activityResultStatus && (
           <DetailActivityStatusSection
             activityResultStatus={parsedResults.activityResultStatus}
             cancelReason={parsedResults.cancelReason}
@@ -129,17 +141,32 @@ export default function ActivityPlanDetailView({
 
         {/* ─── 6. BOTTOM ACTIONS ─── */}
         <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
-          {/* ปิดไดว้ก่อนเดียวมาเปิดเอง */}
-          {/* <Link href={`/activity-plans/${plan.id}/export`}>
-            <Button
-              type="button"
-              variant="outline"
-              className="px-5 py-2.5 h-10 rounded-xl border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
-            >
-              <Printer className="w-4 h-4 text-blue-600" />
-              <span>พิมพ์ / ส่งออก PDF</span>
-            </Button>
-          </Link> */}
+          {/* Action button to record or edit actual results */}
+          {!isActualRecorded && plan.status === "APPROVED" && (
+            <Link href={`/activity-plans/${plan.id}/actual`}>
+              <Button
+                type="button"
+                className="px-5 py-2.5 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-xs"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>บันทึกผลการปฏิบัติงาน</span>
+              </Button>
+            </Link>
+          )}
+
+          {isActualRecorded && (
+            <Link href={`/activity-plans/${plan.id}/actual`}>
+              <Button
+                type="button"
+                variant="outline"
+                className="px-5 py-2.5 h-10 rounded-xl border-emerald-300 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
+              >
+                <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+                <span>แก้ไขผลการปฏิบัติงาน</span>
+              </Button>
+            </Link>
+          )}
+
           {canRequestCancel && (
             <Button
               type="button"
@@ -153,6 +180,7 @@ export default function ActivityPlanDetailView({
           )}
         </DetailViewActions>
       </div>
+
       {/* Cancellation Dialog */}
       <CancelPlanDialog
         open={cancelDialogOpen}

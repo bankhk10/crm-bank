@@ -34,6 +34,7 @@ export function Type3DetailView({
   actualQuantity,
   unclosedReason,
   productSalesDetails = [],
+  isActualRecorded,
 }: Type3DetailViewProps) {
   if (!isVisible) return null;
 
@@ -154,7 +155,7 @@ export function Type3DetailView({
       </div>
 
       {/* 3. Actual Sales Outcome Section */}
-      {allOutcomeItems.length > 0 && (
+      {(isActualRecorded !== undefined ? isActualRecorded : Boolean(actualSales || actualQuantity || soldProducts || (productSalesDetails && productSalesDetails.length > 0))) && allOutcomeItems.length > 0 && (
         <div className="border border-emerald-200/90 rounded-xl p-3.5 sm:p-4 bg-emerald-50/20 space-y-3">
           <div className="flex items-center justify-between border-b border-emerald-200/70 pb-2">
             <span className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
