@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { Clock, MapPin, Users, User, XCircle, ExternalLink } from "lucide-react";
+import { Clock, MapPin, Users, User, XCircle, ExternalLink, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ export function CalendarEventModal({ event, onClose }: CalendarEventModalProps) 
   if (!event) return null;
 
   const isUnplanned = event.activityPlan?.planType === "UNPLANNED";
+  const isPostponed = event.activityPlan?.result?.resultStatus === "POSTPONED";
+  const result = event.activityPlan?.result;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -28,24 +30,33 @@ export function CalendarEventModal({ event, onClose }: CalendarEventModalProps) 
         <div className="flex items-start justify-between border-b border-slate-100 pb-3">
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Badge
-                variant="outline"
-                className={cn(
-                  "text-xs font-semibold",
-                  event.status === "COMPLETED" &&
-                    "bg-emerald-50 text-emerald-700 border-emerald-200",
-                  event.status === "SCHEDULED" &&
-                    "bg-blue-50 text-blue-700 border-blue-200",
-                  event.status === "CANCELLED" &&
-                    "bg-red-50 text-red-700 border-red-200",
-                )}
-              >
-                {event.status === "COMPLETED"
-                  ? "ดำเนินการเสร็จสิ้น"
-                  : event.status === "SCHEDULED"
-                    ? "มีนัดหมายตามกำหนด"
-                    : "ยกเลิกนัดหมาย"}
-              </Badge>
+              {isPostponed ? (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-semibold bg-sky-50 text-sky-700 border-sky-300"
+                >
+                  เลื่อนกำหนดการปฏิบัติงาน
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-xs font-semibold",
+                    event.status === "COMPLETED" &&
+                      "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    event.status === "SCHEDULED" &&
+                      "bg-blue-50 text-blue-700 border-blue-200",
+                    event.status === "CANCELLED" &&
+                      "bg-red-50 text-red-700 border-red-200",
+                  )}
+                >
+                  {event.status === "COMPLETED"
+                    ? "ดำเนินการเสร็จสิ้น"
+                    : event.status === "SCHEDULED"
+                      ? "มีนัดหมายตามกำหนด"
+                      : "ยกเลิกนัดหมาย"}
+                </Badge>
+              )}
               <Badge
                 variant="outline"
                 className={cn(
@@ -110,6 +121,42 @@ export function CalendarEventModal({ event, onClose }: CalendarEventModalProps) 
             </div>
           )}
         </div>
+
+        {/* Postponed Information Card */}
+        {isPostponed && (
+          <div className="bg-sky-50/80 border border-sky-200/90 rounded-xl p-3.5 space-y-2 text-xs">
+            <div className="flex items-center gap-1.5 font-bold text-sky-900 text-sm">
+              <CalendarIcon className="w-4 h-4 text-sky-600 shrink-0" />
+              <span>ข้อมูลการเลื่อนกำหนดการปฏิบัติงาน</span>
+            </div>
+            {event.activityPlan?.startDate && (
+              <div className="text-slate-600">
+                <strong>กำหนดการเดิม:</strong>{" "}
+                {format(new Date(event.activityPlan.startDate), "d MMMM yyyy HH:mm", {
+                  locale: th,
+                })}{" "}
+                น.
+              </div>
+            )}
+            <div className="text-sky-900 font-semibold">
+              <strong>กำหนดการใหม่:</strong>{" "}
+              {format(new Date(event.startDate), "d MMMM yyyy HH:mm", {
+                locale: th,
+              })}{" "}
+              น.
+            </div>
+            {result?.postponedReason && (
+              <div className="text-slate-700">
+                <strong>เหตุผลที่เลื่อน:</strong> {result.postponedReason}
+              </div>
+            )}
+            {result?.postponedNotes && (
+              <div className="text-slate-500 italic">
+                <strong>หมายเหตุ:</strong> {result.postponedNotes}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Attendees / Helpers */}
         {event.attendees && event.attendees.length > 0 && (

@@ -128,6 +128,7 @@ export async function recordActivityResultAction(
     // 5. Revalidate cache
     revalidatePath("/activity-plans");
     revalidatePath(`/activity-plans/${planId}`);
+    revalidatePath("/activity-plans/calendar");
 
     return serialize({ success: true, result: activityResult });
   } catch (err: any) {

@@ -390,6 +390,29 @@ const getRelationRole = React.useCallback(
           const startFormatted = formatThaiDateTime(start);
           const endFormatted = formatThaiDateTime(end);
 
+          const rawResult = (row.original as any).result;
+          const isPostponed =
+            rawResult?.resultStatus === "POSTPONED" && rawResult?.postponedDate;
+          const postponedFormatted = isPostponed
+            ? formatThaiDateTime(new Date(rawResult.postponedDate))
+            : null;
+
+          if (isPostponed && postponedFormatted) {
+            return (
+              <div
+                className="text-xs text-slate-700"
+                title={`เดิม: ${startFormatted} - ${endFormatted} | เลื่อนเป็น: ${postponedFormatted}`}
+              >
+                <div className="line-through text-slate-400 text-[11px]">
+                  {startFormatted} ถึง {endFormatted}
+                </div>
+                <div className="text-sky-700 font-semibold text-xs mt-0.5">
+                  เลื่อนเป็น: {postponedFormatted}
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div
               className="text-sm text-slate-700"

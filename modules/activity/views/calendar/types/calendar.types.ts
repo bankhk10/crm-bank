@@ -54,6 +54,8 @@ export interface CalendarEvent {
     planType?: string | null;
     title?: string | null;
     status?: string | null;
+    startDate?: string | Date | null;
+    endDate?: string | Date | null;
     employeeId?: string | null;
     createdById?: string | null;
     totalBudgetApproved?: number | null;
@@ -64,7 +66,14 @@ export interface CalendarEvent {
       activityType: { id: string; name: string; code: string };
     }>;
     type12Targets?: any[];
-    result?: { id: string; resultStatus: string } | null;
+    result?: {
+      id: string;
+      resultStatus: string;
+      postponedDate?: string | Date | null;
+      postponedTime?: string | null;
+      postponedReason?: string | null;
+      postponedNotes?: string | null;
+    } | null;
   } | null;
   attendees?: CalendarAttendee[];
 }

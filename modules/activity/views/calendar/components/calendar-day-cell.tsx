@@ -62,6 +62,8 @@ export function CalendarDayCell({
       <div className="space-y-1 mt-1 flex-1 overflow-hidden">
         {events.slice(0, 3).map((ev) => {
           const isUnplanned = ev.activityPlan?.planType === "UNPLANNED";
+          const isPostponed =
+            ev.activityPlan?.result?.resultStatus === "POSTPONED";
           return (
             <div
               key={ev.id}
@@ -73,21 +75,27 @@ export function CalendarDayCell({
                 "text-[11px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer transition-all border",
                 ev.status === "CANCELLED"
                   ? "bg-red-50 text-red-600 border-red-200 line-through"
-                  : isUnplanned
-                    ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                    : ev.status === "COMPLETED"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                      : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
+                  : isPostponed
+                    ? "bg-sky-50 text-sky-800 border-sky-300 hover:bg-sky-100 shadow-2xs font-medium"
+                    : isUnplanned
+                      ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                      : ev.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                        : "bg-blue-50/90 text-blue-700 border-blue-200 hover:bg-blue-100",
               )}
             >
               <span className="font-semibold">
                 {format(new Date(ev.startDate), "HH:mm")}
               </span>{" "}
-              {isUnplanned && (
+              {isPostponed ? (
+                <span className="font-bold text-[10px] mr-0.5 text-sky-700 bg-sky-100/80 px-1 py-0.2 rounded">
+                  [เลื่อนนัด]
+                </span>
+              ) : isUnplanned ? (
                 <span className="font-bold text-[10px] mr-0.5 text-purple-600">
                   [นอกแผน]
                 </span>
-              )}
+              ) : null}
               {ev.title}
             </div>
           );

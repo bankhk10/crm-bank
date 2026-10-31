@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import type { PrismaTransaction } from "../types/strategy.interface";
 import { saveStrategiesForActual } from "./strategy.registry";
 import { getWorkTypeCode } from "../constants";
+import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 
 const VALID_ATTACHMENT_CATEGORIES: Record<string, AttachmentCategory> = {
   PRICE_TAG: AttachmentCategory.PRICE_TAG,
@@ -202,23 +203,19 @@ export async function upsertActivityResult(
       }
     }
 
-    // 4. Sync Calendar Status
-    let calendarStatus: CalendarEventStatus | null = null;
-    if (
-      resultStatus === ActivityResultStatus.COMPLETED ||
-      resultStatus === ActivityResultStatus.PARTIAL ||
-      resultStatus === ActivityResultStatus.FAILED
-    ) {
-      calendarStatus = CalendarEventStatus.COMPLETED;
-    } else if (resultStatus === ActivityResultStatus.CANCELLED) {
-      calendarStatus = CalendarEventStatus.CANCELLED;
-    }
-
-    if (calendarStatus) {
-      await (tx as any).activityCalendarEvent.updateMany({
-        where: { activityPlanId: input.activityPlanId },
-        data: { status: calendarStatus },
-      });
+    // 4. Sync Calendar Status & Reschedule if Postponed
+    try {
+      await syncActivityResultToCalendarUseCase(
+        input.activityPlanId,
+        resultStatus,
+        tx,
+        {
+          postponedDate: input.postponedDate ?? null,
+          postponedTime: input.postponedTime ?? null,
+        },
+      );
+    } catch (calErr) {
+      console.warn("[activity-result.repository] Calendar sync warning:", calErr);
     }
 
     return result;

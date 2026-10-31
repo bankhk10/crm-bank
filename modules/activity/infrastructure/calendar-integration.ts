@@ -147,16 +147,22 @@ export async function cancelActivityPlanCalendarUseCase(
   });
 }
 
+export interface SyncActivityResultOptions {
+  postponedDate?: Date | null;
+  postponedTime?: string | null;
+}
+
 /**
- * Synchronizes post-activity result (Actual) to ActivityCalendarEvent status.
+ * Synchronizes post-activity result (Actual) to ActivityCalendarEvent status and dates.
  * - COMPLETED / PARTIAL -> CalendarEventStatus.COMPLETED
  * - CANCELLED -> CalendarEventStatus.CANCELLED
- * - Other/POSTPONED -> does not modify or force status
+ * - POSTPONED -> Keeps status SCHEDULED and reschedules startDate & endDate to postponedDate
  */
 export async function syncActivityResultToCalendarUseCase(
   activityPlanId: string,
   resultStatus: ActivityResultStatus | string,
   tx: Prisma.TransactionClient | typeof db = db,
+  options?: SyncActivityResultOptions,
 ) {
   let calendarStatus: CalendarEventStatus | null = null;
 
@@ -170,14 +176,50 @@ export async function syncActivityResultToCalendarUseCase(
     calendarStatus = CalendarEventStatus.CANCELLED;
   }
 
-  if (!calendarStatus) {
-    return { count: 0 };
+  if (calendarStatus) {
+    return tx.activityCalendarEvent.updateMany({
+      where: { activityPlanId },
+      data: { status: calendarStatus },
+    });
   }
 
-  return tx.activityCalendarEvent.updateMany({
-    where: { activityPlanId },
-    data: { status: calendarStatus },
-  });
+  if (
+    (resultStatus === ActivityResultStatus.POSTPONED ||
+      resultStatus === "POSTPONED") &&
+    options?.postponedDate
+  ) {
+    const newStartDate = new Date(options.postponedDate);
+    if (options.postponedTime) {
+      const [hh, mm] = options.postponedTime.split(":").map(Number);
+      if (!isNaN(hh) && !isNaN(mm)) {
+        newStartDate.setHours(hh, mm, 0, 0);
+      }
+    }
+
+    const originalPlan = await tx.activityPlan.findUnique({
+      where: { id: activityPlanId },
+      select: { startDate: true, endDate: true },
+    });
+    let durationMs = 8 * 60 * 60 * 1000;
+    if (originalPlan?.startDate && originalPlan?.endDate) {
+      durationMs = Math.max(
+        originalPlan.endDate.getTime() - originalPlan.startDate.getTime(),
+        60 * 60 * 1000,
+      );
+    }
+    const newEndDate = new Date(newStartDate.getTime() + durationMs);
+
+    return tx.activityCalendarEvent.updateMany({
+      where: { activityPlanId },
+      data: {
+        startDate: newStartDate,
+        endDate: newEndDate,
+        status: CalendarEventStatus.SCHEDULED,
+      },
+    });
+  }
+
+  return { count: 0 };
 }
 
 /**
@@ -215,6 +257,62 @@ export async function ensureCalendarEventsSyncedUseCase(
 
   for (const p of unsyncedPlans) {
     await syncActivityPlanToCalendarUseCase(p, tx);
+  }
+
+  // Also self-heal: sync calendar dates for any plans marked as POSTPONED with a postponedDate
+  try {
+    const postponedPlans = await tx.activityPlan.findMany({
+      where: {
+        deletedAt: null,
+        result: {
+          resultStatus: ActivityResultStatus.POSTPONED,
+          postponedDate: { not: null },
+        },
+        calendarEvent: { isNot: null },
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        result: {
+          select: {
+            postponedDate: true,
+            postponedTime: true,
+          },
+        },
+      },
+    });
+
+    for (const p of postponedPlans) {
+      if (p.result?.postponedDate) {
+        const newStartDate = new Date(p.result.postponedDate);
+        if (p.result.postponedTime) {
+          const [hh, mm] = p.result.postponedTime.split(":").map(Number);
+          if (!isNaN(hh) && !isNaN(mm)) {
+            newStartDate.setHours(hh, mm, 0, 0);
+          }
+        }
+        let durationMs = 8 * 60 * 60 * 1000;
+        if (p.startDate && p.endDate) {
+          durationMs = Math.max(
+            p.endDate.getTime() - p.startDate.getTime(),
+            60 * 60 * 1000,
+          );
+        }
+        const newEndDate = new Date(newStartDate.getTime() + durationMs);
+
+        await tx.activityCalendarEvent.updateMany({
+          where: { activityPlanId: p.id },
+          data: {
+            startDate: newStartDate,
+            endDate: newEndDate,
+            status: CalendarEventStatus.SCHEDULED,
+          },
+        });
+      }
+    }
+  } catch (postponeSyncErr) {
+    console.warn("[calendar-integration] Backfill postponed events warning:", postponeSyncErr);
   }
 
   return unsyncedPlans.length;
@@ -318,6 +416,8 @@ export async function listActivityCalendarEventsUseCase(
           planType: true,
           title: true,
           status: true,
+          startDate: true,
+          endDate: true,
           employeeId: true,
           totalBudgetApproved: true,
           activityType: { select: { id: true, name: true, code: true } },
@@ -329,7 +429,16 @@ export async function listActivityCalendarEventsUseCase(
             },
           },
           type12Targets: true,
-          result: { select: { id: true, resultStatus: true } },
+          result: {
+            select: {
+              id: true,
+              resultStatus: true,
+              postponedDate: true,
+              postponedTime: true,
+              postponedReason: true,
+              postponedNotes: true,
+            },
+          },
         },
       },
       attendees: {
