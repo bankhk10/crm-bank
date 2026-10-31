@@ -20,6 +20,10 @@ import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+import {
+  useIsAdminTester,
+  getAutoRedirectInspectPref,
+} from "@/modules/activity/dev-tools";
 
 interface UnplannedEditViewProps {
   id: string;
@@ -28,6 +32,7 @@ interface UnplannedEditViewProps {
 export function UnplannedEditView({ id }: UnplannedEditViewProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isAdminTester } = useIsAdminTester();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
@@ -294,7 +299,13 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
     const res = await updateActivityPlanAction(id, payload);
     if (res.success) {
       toast.success("อัปเดตกิจกรรมนอกแผนเรียบร้อยแล้ว");
-      router.push("/activity-plans");
+      if (isAdminTester && getAutoRedirectInspectPref() && id) {
+        toast.info("🔍 กำลังเปิดตรวจสอบข้อมูลในช่อง UI หลังบันทึกแก้ไข...");
+        router.push(`/activity-plans/unplanned/${id}/edit?inspect=1`);
+        router.refresh();
+      } else {
+        router.push("/activity-plans");
+      }
       return { success: true };
     }
     return { success: false, error: res.error };

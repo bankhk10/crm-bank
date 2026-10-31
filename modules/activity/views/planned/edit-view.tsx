@@ -21,6 +21,10 @@ import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+import {
+  useIsAdminTester,
+  getAutoRedirectInspectPref,
+} from "@/modules/activity/dev-tools";
 
 interface PlannedEditViewProps {
   id: string;
@@ -29,6 +33,7 @@ interface PlannedEditViewProps {
 export function PlannedEditView({ id }: PlannedEditViewProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isAdminTester } = useIsAdminTester();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
@@ -501,6 +506,14 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
   const handleSubmit = async (payload: any) => {
     const res = await updateActivityPlanAction(id, payload);
     if (res.success) {
+      if (isAdminTester && getAutoRedirectInspectPref()) {
+        toast.success(
+          "อัปเดต Trip Plan เรียบร้อย! กำลังเช็คข้อมูลในช่อง UI...",
+        );
+        router.push(`/activity-plans/${id}/edit?inspect=1`);
+        router.refresh();
+        return { success: true };
+      }
       toast.success("อัปเดต Trip Plan เรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };

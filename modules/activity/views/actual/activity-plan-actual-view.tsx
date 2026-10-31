@@ -124,6 +124,13 @@ import {
   deleteActivityPlanImagePaths,
 } from "@/modules/activity/application/media/image-uploader";
 import { formatUserFriendlyError } from "@/lib/error-utils";
+import {
+  AdminTestToolbar,
+  autoFillActualActivityForm,
+  inspectActualFormHydration,
+  useIsAdminTester,
+  getAutoRedirectInspectPref,
+} from "@/modules/activity/dev-tools";
 
 /**
  * Recursively strips in-memory binary objects (File, Blob, rawFile, file) from payload
@@ -160,6 +167,7 @@ export function ActivityPlanActualView({
   onSuccess,
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
+  const { isAdminTester } = useIsAdminTester();
 
   // 1. Plan Loading & Shared Master Data
   const {
@@ -1585,7 +1593,11 @@ export function ActivityPlanActualView({
         }
         setSubmitSuccess(true);
         toast.success("บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว");
-        if (onSuccess) onSuccess();
+        if (isAdminTester && getAutoRedirectInspectPref() && id) {
+          toast.info("🔍 กำลังเปิดตรวจสอบข้อมูลในช่อง UI หลังบันทึกผล...");
+          router.push(`/activity-plans/${id}/actual?inspect=1`);
+          router.refresh();
+        } else if (onSuccess) onSuccess();
         else router.push(`/activity-plans/${id}`);
       } else {
         const friendlyMsg = formatUserFriendlyError(res.error, "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน");
@@ -1680,6 +1692,17 @@ export function ActivityPlanActualView({
               <h3 className="text-base sm:text-lg font-bold text-slate-800">
                 ไม่สามารถบันทึกผลการปฏิบัติงานได้
               </h3>
+              <div className="pt-2 text-left">
+                <AdminTestToolbar
+                  mode="ACTUAL"
+                  planId={id}
+                  planStatus={planStatus || undefined}
+                  planType={plan?.planType}
+                  selectedWorkTypeCodes={planWorkTypes.map(getWorkTypeCode)}
+                />
+              </div>
+              <h3 className="hidden">
+              </h3>
               <p className="text-sm text-slate-600">
                 สามารถบันทึกผลได้เฉพาะแผนกิจกรรมที่ได้รับการอนุมัติเรียบร้อยแล้วเท่านั้น
               </p>
@@ -1699,6 +1722,85 @@ export function ActivityPlanActualView({
       </section>
     );
   }
+
+  const activeActualWorkTypeCodes = planWorkTypes
+    .map(getWorkTypeCode)
+    .filter(Boolean);
+
+  const handleAdminAutoFillActual = () => {
+    autoFillActualActivityForm({
+      plan,
+      activeWorkTypeCodes:
+        activeActualWorkTypeCodes.length > 0
+          ? activeActualWorkTypeCodes
+          : ["TYPE_1"],
+      products: products || [],
+      customers: customers || [],
+      targets: {
+        t1: targets,
+        t2: type2Targets,
+        t3: type3Targets,
+        t4: type4Targets,
+        t5: type5Targets,
+        t6: type6Targets,
+        t7a: type7aTargets,
+        t7b: type7bTargets,
+        t8: type8Targets,
+        t9: type9Targets,
+        t10: type10Targets,
+        t11: type11Targets,
+        t12: type12Targets,
+        t13: type13Targets,
+        t14: type14Targets,
+      },
+      actualHooks: {
+        setStatus: statusState.setActivityResultStatus,
+        type1: type1Actual,
+        type2: type2Actual,
+        type3: type3Actual,
+        type4: type4Actual,
+        type5: type5Actual,
+        type6: type6Actual,
+        type7a: type7aActual,
+        type7b: type7bActual,
+        type8: type8Actual,
+        type9: type9Actual,
+        type10: type10Actual,
+        type11: type11Actual,
+        type12: type12Actual,
+        type13: type13Actual,
+        type14: type14Actual,
+      },
+    });
+  };
+
+  const handleAdminInspectActual = () => {
+    return inspectActualFormHydration({
+      plan,
+      activeWorkTypeCodes:
+        activeActualWorkTypeCodes.length > 0
+          ? activeActualWorkTypeCodes
+          : ["TYPE_1"],
+      actualHooks: {
+        status: statusState.activityResultStatus,
+        type1: type1Actual,
+        type2: type2Actual,
+        type3: type3Actual,
+        type4: type4Actual,
+        type5: type5Actual,
+        type6: type6Actual,
+        type7a: type7aActual,
+        type7b: type7bActual,
+        type8: type8Actual,
+        type9: type9Actual,
+        type10: type10Actual,
+        type11: type11Actual,
+        type12: type12Actual,
+        type13: type13Actual,
+        type14: type14Actual,
+      },
+    });
+  };
 
   const hasAnyActualWorkType = planWorkTypes.some((raw) => {
     const code = getWorkTypeCode(raw);
@@ -1766,6 +1868,15 @@ export function ActivityPlanActualView({
           )}
 
           {/* 1. สรุปข้อมูลแผนเดิม */}
+          <AdminTestToolbar
+            mode="ACTUAL"
+            planId={id}
+            planStatus={planStatus || undefined}
+            planType={plan?.planType}
+            selectedWorkTypeCodes={activeActualWorkTypeCodes}
+            onAutoFill={handleAdminAutoFillActual}
+            onRunInspection={handleAdminInspectActual}
+          />
           <ActualPlanSummary summary={planSummary} />
 
           {/* 2. ฟอร์มผลการปฏิบัติงานตามประเภทงาน (Work Types 1 - 14) */}

@@ -97,6 +97,11 @@ import {
   getWorkTypeCode,
   getWorkTypeName,
 } from "@/modules/activity/constants";
+import {
+  AdminTestToolbar,
+  autoFillPlannedActivityForm,
+  inspectPlannedFormHydration,
+} from "@/modules/activity/dev-tools";
 
 export interface PlannedActivityFormProps {
   initialData?: any;
@@ -1211,6 +1216,80 @@ export function PlannedActivityForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* ─── Admin UI Testing & Hydration Inspector (Administrator Only) ─── */}
+      <AdminTestToolbar
+        mode={isEdit ? "PLANNED_EDIT" : "PLANNED_CREATE"}
+        planId={initialData?.id}
+        planStatus={initialData?.status}
+        planType="PLANNED"
+        selectedWorkTypeCodes={selectedWorkTypes.map(getWorkTypeCode)}
+        onAutoFill={(targetCodes) => {
+          autoFillPlannedActivityForm({
+            targetWorkTypeCodes: targetCodes,
+            setSelectedWorkTypes,
+            setTitle,
+            setStartDate,
+            setEndDate,
+            setNotes,
+            locationTeamHook: locationTeam,
+            budgetHook: budget,
+            type1Form: type1,
+            type2Form: type2,
+            type3Form: type3,
+            type4Form: type4,
+            type5Form: type5,
+            type6Form: type6,
+            type7aForm: type7a,
+            type7bForm: type7b,
+            type8Form: type8,
+            type9Form: type9,
+            type10Form: type10,
+            type11Form: type11,
+            type12Form: type12,
+            type13Form: type13,
+            type14Form: type14,
+            masterData: {
+              customers,
+              products,
+              demoPlots,
+              followUpPlans,
+              hattackFollowUpPlans,
+              employees,
+              planId: initialData?.id,
+            },
+          });
+        }}
+        onRunInspection={() =>
+          inspectPlannedFormHydration({
+            initialData,
+            formState: {
+              title,
+              startDate,
+              endDate,
+              notes,
+              selectedWorkTypes,
+              locationTeamHook: locationTeam,
+              budgetHook: budget,
+              type1Form: type1,
+              type2Form: type2,
+              type3Form: type3,
+              type4Form: type4,
+              type5Form: type5,
+              type6Form: type6,
+              type7aForm: type7a,
+              type7bForm: type7b,
+              type8Form: type8,
+              type9Form: type9,
+              type10Form: type10,
+              type11Form: type11,
+              type12Form: type12,
+              type13Form: type13,
+              type14Form: type14,
+            },
+          })
+        }
+      />
+
       {/* ─── 0. Form Header ─── */}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-center gap-4">
         <div className="flex items-center gap-3.5">

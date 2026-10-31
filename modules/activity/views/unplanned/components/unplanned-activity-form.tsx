@@ -124,6 +124,11 @@ import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
 } from "@/modules/activity/application/media/image-uploader";
+import {
+  AdminTestToolbar,
+  autoFillUnplannedActivityForm,
+  inspectUnplannedFormHydration,
+} from "@/modules/activity/dev-tools";
 
 export interface UnplannedActivityFormProps {
   initialData?: any;
@@ -2160,8 +2165,87 @@ export function UnplannedActivityForm({
     }
   };
 
+  const handleAdminAutoFillUnplanned = (targetCodes: string[]) => {
+    autoFillUnplannedActivityForm({
+      targetWorkTypeCodes: targetCodes,
+      setSelectedWorkTypes,
+      setTitle,
+      setStartDate,
+      setEndDate,
+      setNotes,
+      locationTeamHook: locationTeam,
+      budgetHook: budget,
+      t1Form: type1,
+      t2Form: type2,
+      t3Form: type3,
+      t4Form: type4,
+      t5Form: type5,
+      t6Form: type6,
+      t7aForm: type7a,
+      t7bForm: type7b,
+      t8Form: type8,
+      t9Form: type9,
+      t10Form: type10,
+      t11Form: type11,
+      t12Form: type12,
+      t13Form: type13,
+      t14Form: type14,
+      masterData: {
+        customers,
+        products,
+        demoPlots: plotList && plotList.length > 0 ? plotList : demoPlots,
+        followUpPlans,
+        employees,
+        planId: initialData?.id,
+      },
+    });
+  };
+
+  const handleAdminInspectUnplanned = () => {
+    return inspectUnplannedFormHydration({
+      initialData,
+      formState: {
+        title,
+        startDate,
+        endDate,
+        notes,
+        selectedWorkTypes,
+        locationTeamHook: locationTeam,
+        budgetHook: budget,
+        t1Form: type1,
+        t2Form: type2,
+        t3Form: type3,
+        t4Form: type4,
+        t5Form: type5,
+        t6Form: type6,
+        t7aForm: type7a,
+        t7bForm: type7b,
+        t8Form: type8,
+        t9Form: type9,
+        t10Form: type10,
+        t11Form: type11,
+        t12Form: type12,
+        t13Form: type13,
+        t14Form: type14,
+      },
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* ─── Admin Test & UI Hydration Inspector Toolbar (Administrator Only) ─── */}
+      {!readonly && (
+        <AdminTestToolbar
+          mode={isEdit ? "UNPLANNED_EDIT" : "UNPLANNED_CREATE"}
+          planId={initialData?.id}
+          planStatus={initialData?.status}
+          planType="UNPLANNED"
+          selectedWorkTypeCodes={selectedWorkTypes.map(getWorkTypeCode)}
+          onAutoFill={handleAdminAutoFillUnplanned}
+          onRunInspection={handleAdminInspectUnplanned}
+        />
+      )}
+
       {/* ─── 0. Form Header ─── */}
       <div className="relative bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-center gap-4">
         <div className="flex items-center justify-center gap-3.5">

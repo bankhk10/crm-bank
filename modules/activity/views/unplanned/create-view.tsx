@@ -23,10 +23,15 @@ import {
   isActivityAdmin,
   canCreateUnplannedActivity,
 } from "@/modules/activity/domain/permissions";
+import {
+  useIsAdminTester,
+  getAutoRedirectInspectPref,
+} from "@/modules/activity/dev-tools";
 
 export function UnplannedCreateView() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isAdminTester } = useIsAdminTester();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
@@ -149,7 +154,15 @@ export function UnplannedCreateView() {
     const res = await createActivityPlanAction(payload);
     if (res.success) {
       toast.success("บันทึกกิจกรรมนอกแผนเรียบร้อยแล้ว");
-      router.push("/activity-plans");
+      const createdId = (res as any).plan?.id || (res as any).id;
+      if (isAdminTester && getAutoRedirectInspectPref() && createdId) {
+        toast.info(
+          "🔍 กำลังพาไปหน้าแก้ไขกิจกรรมนอกแผนเพื่อเช็คข้อมูลในช่อง UI...",
+        );
+        router.push(`/activity-plans/unplanned/${createdId}/edit?inspect=1`);
+      } else {
+        router.push("/activity-plans");
+      }
       return { success: true };
     }
     return { success: false, error: res.error };

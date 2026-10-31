@@ -24,10 +24,15 @@ import {
   isActivityAdmin,
   canCreatePlannedActivity,
 } from "@/modules/activity/domain/permissions";
+import {
+  useIsAdminTester,
+  getAutoRedirectInspectPref,
+} from "@/modules/activity/dev-tools";
 
 export function PlannedCreateView() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { isAdminTester } = useIsAdminTester();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
   );
@@ -158,6 +163,14 @@ export function PlannedCreateView() {
   const handleSubmit = async (payload: any) => {
     const res = await createActivityPlanAction(payload);
     if (res.success) {
+      const createdId = (res as any).plan?.id;
+      if (isAdminTester && createdId && getAutoRedirectInspectPref()) {
+        toast.success(
+          "บันทึก Trip Plan เรียบร้อย! กำลังเปิดหน้าแก้ไขเพื่อเช็คข้อมูลในช่อง UI...",
+        );
+        router.push(`/activity-plans/${createdId}/edit?inspect=1`);
+        return { success: true };
+      }
       toast.success("บันทึก Trip Plan เรียบร้อยแล้ว");
       router.push("/activity-plans");
       return { success: true };
