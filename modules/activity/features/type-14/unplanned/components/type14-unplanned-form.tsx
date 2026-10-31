@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  ActivityDatePicker,
   ActivityInput,
   ActivityPhotoUpload,
   ActivityProductSelect,
@@ -22,8 +23,6 @@ import {
 } from "@/modules/activity/ui";
 import { getHattackFollowUpPlansAction } from "@/modules/activity/server/actions";
 import {
-  TRACKING_RESULT_OPTIONS,
-  PRODUCT_RESPONSE_OPTIONS,
   HATTACK_PLOT_STATUS_OPTIONS,
   TYPE14_MAX_IMAGES_PER_VILLAGE,
 } from "../../shared/constants";
@@ -554,7 +553,7 @@ export function Type14UnplannedForm({
                                   {prod.productName}
                                 </span>
                               ) : (
-                                <div className="w-64">
+                                <div className="w-120">
                                   <ActivityProductSelect
                                     products={products as any}
                                     value={prod.productId}
@@ -705,27 +704,22 @@ export function Type14UnplannedForm({
                     </h5>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* วันที่ติดตามผล */}
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        วันที่ติดตามผล <span className="text-rose-500">*</span>
-                      </label>
-                      <ActivityInput
-                        type="date"
-                        value={plot.actualVisitDate || ""}
-                        onChange={(e) =>
-                          updatePlotField(
-                            plotIdx,
-                            "actualVisitDate",
-                            e.target.value,
-                          )
-                        }
-                        disabled={readonly}
-                        required
-                        className="h-9 text-xs"
-                      />
-                    </div>
+                    <ActivityDatePicker
+                      label="วันที่ติดตามผล"
+                      required
+                      value={plot.actualVisitDate || ""}
+                      onChange={(dateStr) =>
+                        updatePlotField(
+                          plotIdx,
+                          "actualVisitDate",
+                          dateStr,
+                        )
+                      }
+                      readonly={readonly}
+                      disabled={readonly}
+                    />
 
                     {/* ระยะเวลาหลังฉีดพ่น (วัน) */}
                     <div className="space-y-1">
@@ -750,36 +744,6 @@ export function Type14UnplannedForm({
                         }
                         disabled={readonly}
                         className="h-9 text-xs"
-                      />
-                    </div>
-
-                    {/* ผลการติดตามแปลง */}
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        ผลการติดตามแปลง <span className="text-rose-500">*</span>
-                      </label>
-                      <ActivitySelect
-                        value={plot.trackingResult || "ได้ผลตามเกณฑ์"}
-                        onChange={(val) =>
-                          updatePlotField(plotIdx, "trackingResult", val)
-                        }
-                        options={[...TRACKING_RESULT_OPTIONS]}
-                        disabled={readonly}
-                      />
-                    </div>
-
-                    {/* การตอบสนองของพืช */}
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        การตอบสนองของพืช
-                      </label>
-                      <ActivitySelect
-                        value={plot.productResponse || "ปกติ"}
-                        onChange={(val) =>
-                          updatePlotField(plotIdx, "productResponse", val)
-                        }
-                        options={[...PRODUCT_RESPONSE_OPTIONS]}
-                        disabled={readonly}
                       />
                     </div>
                   </div>

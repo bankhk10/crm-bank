@@ -80,13 +80,6 @@ export function validateType14Actual(
           error: `กรุณาระบุวันที่ติดตามผลในรอบที่ ${round.roundNumber || i + 1} (TYPE_14)`,
         };
       }
-
-      if (!round.trackingResult?.trim()) {
-        return {
-          isValid: false,
-          error: `กรุณาระบุผลการติดตามในรอบที่ ${round.roundNumber || i + 1} (TYPE_14)`,
-        };
-      }
     }
     return { isValid: true };
   }
@@ -114,8 +107,8 @@ export const type14TrackingRoundSchema = z.object({
   roundNumber: z.number().min(1),
   actualVisitDate: z.string().min(1, "กรุณาระบุวันที่ติดตามผล"),
   daysAfterSpray: z.string().optional(),
-  trackingResult: z.string().min(1, "กรุณาระบุผลการติดตาม"),
-  productResponse: z.string().optional(),
+  trackingResult: z.string().optional().nullable(),
+  productResponse: z.string().optional().nullable(),
   additionalNotes: z.string().optional(),
   products: z.array(type14TrackingProductSchema).optional(),
 });

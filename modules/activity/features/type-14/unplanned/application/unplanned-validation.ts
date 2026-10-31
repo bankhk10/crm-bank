@@ -90,15 +90,6 @@ export function validateType14UnplannedItem(
       };
     }
 
-    // Tracking result
-    const trackingRes = p.trackingResult || item.trackingResult;
-    if (!trackingRes || !String(trackingRes).trim()) {
-      return {
-        isValid: false,
-        error: `${plotLabel}: กรุณาระบุผลการติดตามแปลงแฮตแทค (TYPE_14)`,
-      };
-    }
-
     // Products validation
     if (p.products && p.products.length > 0) {
       for (let j = 0; j < p.products.length; j++) {

@@ -10,8 +10,6 @@ import {
   type ImageFile,
 } from "@/modules/activity/ui";
 import {
-  TRACKING_RESULT_OPTIONS,
-  PRODUCT_RESPONSE_OPTIONS,
   HATTACK_PLOT_STATUS_OPTIONS,
   TYPE14_MAX_IMAGES_PER_VILLAGE,
 } from "../../shared/constants";
@@ -487,7 +485,7 @@ export function Type14ActualForm({
                   </h4>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {/* ระยะเวลาหลังฉีดพ่น (วัน) */}
                   <div className="space-y-1">
                     <label className="block text-xs font-semibold text-slate-700">
@@ -503,36 +501,6 @@ export function Type14ActualForm({
                       }
                       disabled={readonly}
                       className="h-9 text-xs"
-                    />
-                  </div>
-
-                  {/* ผลการติดตามแปลง */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-slate-700">
-                      ผลการติดตามแปลง <span className="text-rose-500">*</span>
-                    </label>
-                    <ActivitySelect
-                      value={plot.trackingResult || "ได้ผลตามเกณฑ์"}
-                      onChange={(val) =>
-                        updatePlotField?.(plotIdx, "trackingResult", val)
-                      }
-                      options={[...TRACKING_RESULT_OPTIONS]}
-                      disabled={readonly}
-                    />
-                  </div>
-
-                  {/* การตอบสนองของพืช */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-slate-700">
-                      การตอบสนองของพืช
-                    </label>
-                    <ActivitySelect
-                      value={plot.productResponse || "ปกติ"}
-                      onChange={(val) =>
-                        updatePlotField?.(plotIdx, "productResponse", val)
-                      }
-                      options={[...PRODUCT_RESPONSE_OPTIONS]}
-                      disabled={readonly}
                     />
                   </div>
                 </div>
