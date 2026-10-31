@@ -78,7 +78,7 @@ export default function ActivityPlanDetailView({
 
   const hasActualResult = Boolean(
     (plan as any).result ||
-      ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
+    ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
   );
 
   return (
@@ -129,7 +129,8 @@ export default function ActivityPlanDetailView({
 
         {/* ─── 6. BOTTOM ACTIONS ─── */}
         <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
-          <Link href={`/activity-plans/${plan.id}/export`}>
+          {/* ปิดไดว้ก่อนเดียวมาเปิดเอง */}
+          {/* <Link href={`/activity-plans/${plan.id}/export`}>
             <Button
               type="button"
               variant="outline"
@@ -138,7 +139,7 @@ export default function ActivityPlanDetailView({
               <Printer className="w-4 h-4 text-blue-600" />
               <span>พิมพ์ / ส่งออก PDF</span>
             </Button>
-          </Link>
+          </Link> */}
           {canRequestCancel && (
             <Button
               type="button"
