@@ -239,7 +239,7 @@ export function getWorkTypeName(codeOrName: any): string {
 
 export const ACTIVITY_RESULT_STATUS_LABELS: Record<string, string> = {
   PARTIAL: "สำเร็จบางส่วน",
-  COMPLETED: "ปฏิบัติงานแล้วเสร็จ",
+  COMPLETED: "ปฏิบัติงานสำเร็จ",
   POSTPONED: "เลื่อนกำหนดการปฏิบัติงาน",
   CANCELLED: "ยกเลิก",
 };

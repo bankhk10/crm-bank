@@ -56,13 +56,16 @@ export function isUserAdmin(user?: ApproverUserContext | null): boolean {
 
 export function isUserSalesAdminManager(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const pos = (user.positionTitle || "").toLowerCase();
-  const dept = (user.departmentCode || "").toUpperCase();
+  const pos = (user.positionTitle || (user as any).position?.name || "").toLowerCase();
+  const dept = (user.departmentCode || (user as any).department?.code || "").toUpperCase();
+  const roles = user.roles || (user.role ? [user.role] : []);
 
   return (
+    roles.includes("activity_sales_admin_manager") ||
+    roles.includes("sales_admin_manager") ||
     pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
     pos.includes("ผจก.แผนกบริหารงานขาย") ||
-    (dept === "SA" && (pos.includes("บริหารงานขาย") || pos.includes("sales admin manager")))
+    (dept === "SA" && (pos.includes("บริหารงานขาย") || pos.includes("sales admin manager") || pos.includes("manager")))
   );
 }
 

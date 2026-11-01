@@ -1,3 +1,4 @@
+import { isUserSalesAdminManager } from "../approval/can-approve";
 /**
  * Domain Authorization Rules: Activity Module Permissions
  *
@@ -180,6 +181,15 @@ export function canRecordActualResult(
     return { allowed: true };
   }
 
+  // Non-administrators cannot record/edit if activity status is COMPLETED
+  const resultStatus = (plan as any).result?.resultStatus;
+  if (resultStatus === "COMPLETED" || (plan.status as string) === "COMPLETED") {
+    return {
+      allowed: false,
+      error: "แผนกิจกรรมนี้มีสถานะปฏิบัติงานสำเร็จแล้ว ไม่สามารถบันทึกหรือแก้ไขผลได้ ยกเว้นผู้ดูแลระบบ (Administrator)",
+    };
+  }
+
   const isCreator =
     (plan.createdById && user.id === plan.createdById) ||
     (user.employeeId && plan.employeeId === user.employeeId);
@@ -207,7 +217,8 @@ export function canApproveActivityPlan(
   if (
     isActivityAdmin(user) ||
     hasActivityPermission(user, "activity.approve") ||
-    hasActivityPermission(user, "activity.manage")
+    hasActivityPermission(user, "activity.manage") ||
+    isUserSalesAdminManager(user as any)
   ) {
     return { allowed: true };
   }

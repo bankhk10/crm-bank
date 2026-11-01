@@ -1560,6 +1560,14 @@ export async function requestCorrectionPlanUseCase(
     if (!approverEmployee && !isAdmin)
       return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
 
+    // Resolve Sales Admin Manager position / department
+    const pos = (approverEmployee?.position?.name || approverEmployee?.positionTitle || "").toLowerCase();
+    const dept = (approverEmployee?.department?.code || "").toUpperCase();
+    const isSalesAdmin =
+      pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
+      pos.includes("ผจก.แผนกบริหารงานขาย") ||
+      (dept === "SA" && (pos.includes("บริหารงานขาย") || pos.includes("sales admin manager") || pos.includes("manager")));
+
     // Verify authority
     let hasAuthority = isAdmin;
     let step: ActivityApprovalStep = ActivityApprovalStep.LINE_APPROVAL;
@@ -1567,13 +1575,13 @@ export async function requestCorrectionPlanUseCase(
     if (plan.status === ActivityStatus.PENDING_LINE_APPROVAL) {
       if (!isAdmin) {
         hasAuthority =
-          plan.currentApproverEmployeeId === approverEmployee?.id &&
-          permissions.has("activity.approve");
+          (plan.currentApproverEmployeeId === approverEmployee?.id &&
+          permissions.has("activity.approve")) || isSalesAdmin;
       }
       step = ActivityApprovalStep.LINE_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_MARKETING_APPROVAL) {
       if (!isAdmin) {
-        hasAuthority = permissions.has("activity.approve.product_withdrawal");
+        hasAuthority = permissions.has("activity.approve.product_withdrawal") || isSalesAdmin;
       }
       step = ActivityApprovalStep.PRODUCT_WITHDRAWAL_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_BUDGET_APPROVAL) {
@@ -1583,14 +1591,16 @@ export async function requestCorrectionPlanUseCase(
           permissions.has("activity.approve.mkt_budget") ||
           permissions.has("activity.approve.total_budget") ||
           permissions.has("activity.approve.sales_helper") ||
-          permissions.has("activity.approve.mkt_helper");
+          permissions.has("activity.approve.mkt_helper") ||
+          isSalesAdmin;
       }
       step = ActivityApprovalStep.BUDGET_APPROVAL;
     } else if (plan.status === ActivityStatus.PENDING_HELPER_APPROVAL) {
       if (!isAdmin) {
         hasAuthority =
           permissions.has("activity.approve.sales_helper") ||
-          permissions.has("activity.approve.mkt_helper");
+          permissions.has("activity.approve.mkt_helper") ||
+          isSalesAdmin;
       }
       step = ActivityApprovalStep.HELPER_APPROVAL;
 
@@ -1637,9 +1647,19 @@ export async function requestCorrectionPlanUseCase(
           Boolean(
             approverEmployee &&
             approverEmployee.id === plan.employee?.managerId,
-          );
+          ) || isSalesAdmin;
       }
       step = ActivityApprovalStep.POST_ACTIVITY_REVIEW;
+    } else if (
+      plan.status === ActivityStatus.APPROVED ||
+      plan.status === ActivityStatus.REVIEWED ||
+      plan.status === ActivityStatus.REJECTED
+    ) {
+      // Sales Admin Manager (ผู้จัดการแผนกบริหารงานขาย) can send back plans from history
+      if (isAdmin || isSalesAdmin) {
+        hasAuthority = true;
+      }
+      step = ActivityApprovalStep.BUDGET_APPROVAL;
     }
 
     if (!hasAuthority)

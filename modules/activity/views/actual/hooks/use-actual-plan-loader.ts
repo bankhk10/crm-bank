@@ -106,6 +106,14 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
           return;
         }
 
+        if (!isSuperAdmin && (p.result?.resultStatus === "COMPLETED" || p.status === "COMPLETED")) {
+          setUnauthorizedError(
+            "แผนกิจกรรมนี้มีสถานะปฏิบัติงานสำเร็จแล้ว ไม่สามารถบันทึกหรือแก้ไขผลได้ ยกเว้นผู้ดูแลระบบ (Administrator)",
+          );
+          setLoadingPlan(false);
+          return;
+        }
+
         if (p.status === "PENDING_CANCELLATION") {
           setUnauthorizedError(
             "แผนงานนี้อยู่ระหว่างรออนุมัติการยกเลิกตามสายงาน ไม่สามารถบันทึกหรือแก้ไขผลการปฏิบัติงานได้",

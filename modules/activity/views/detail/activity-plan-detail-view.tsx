@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
 import {
   Loader2,
   AlertCircle,
@@ -72,12 +74,23 @@ export default function ActivityPlanDetailView({
     );
   }
 
+  const { data: session } = useSession();
+  const isAdmin = isActivityAdmin(session?.user);
+
   // Check whether actual results have been recorded for this plan
   const isActualRecorded = Boolean(
     (plan as any).isActualRecorded ||
       (plan as any).result ||
       ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
   );
+
+  const isCompleted =
+    (plan.status as string) === "COMPLETED" ||
+    (plan as any).result?.resultStatus === "COMPLETED" ||
+    parsedResults.resultStatus === "COMPLETED";
+
+  const canShowRecordActual =
+    plan.status === "APPROVED" && (isAdmin || (!isCompleted && !isActualRecorded));
 
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
@@ -133,7 +146,7 @@ export default function ActivityPlanDetailView({
         {/* ─── 6. BOTTOM ACTIONS ─── */}
         <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
           {/* Action button to record or edit actual results */}
-          {!isActualRecorded && plan.status === "APPROVED" && (
+          {canShowRecordActual && (
             <Link href={`/activity-plans/${plan.id}/actual`}>
               <Button
                 type="button"

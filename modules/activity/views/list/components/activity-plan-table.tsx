@@ -1,5 +1,7 @@
 "use client";
 
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+
 import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -168,6 +170,7 @@ export function ActivityPlanTable({
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
   const currentUserEmployeeId = session?.user?.employeeId;
+  const isAdmin = isActivityAdmin(session?.user);
 
   const selectedSet = React.useMemo(
     () => new Set(selectedPlanIds || []),
@@ -547,14 +550,19 @@ const getRelationRole = React.useCallback(
                 label="ดูรายละเอียด"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
-              {!isUnplanned && isApproved && hasActualWorkType && isCreator && (
-                <ActionButton
-                  href={`/activity-plans/${item.id}/actual`}
-                  icon={ClipboardList}
-                  label="บันทึกผล"
-                  colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
-                />
-              )}
+              {/* Record actual result: hidden if COMPLETED (ปฏิบัติงานสำเร็จ) unless admin */}
+              {(() => {
+                const isCompleted = (item.status as string) === "COMPLETED" || (item as any).result?.resultStatus === "COMPLETED";
+                const canRecordActual = !isUnplanned && isApproved && hasActualWorkType && (isAdmin || (isCreator && !isCompleted));
+                return canRecordActual ? (
+                  <ActionButton
+                    href={`/activity-plans/${item.id}/actual`}
+                    icon={ClipboardList}
+                    label="บันทึกผล"
+                    colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
+                  />
+                ) : null;
+              })()}
 
               {canApprove && isPending && (
                 <ActionButton
@@ -1064,10 +1072,11 @@ const getRelationRole = React.useCallback(
                     ดูรายละเอียด
                   </Button>
                 </Link>
-                {!isUnplanned &&
-                  isApproved &&
-                  hasActualWorkType &&
-                  isCreator && (
+                {/* Record actual result: hidden if COMPLETED (ปฏิบัติงานสำเร็จ) unless admin */}
+                {(() => {
+                  const isCompleted = (item.status as string) === "COMPLETED" || resultStatus === "COMPLETED";
+                  const canRecordActual = !isUnplanned && isApproved && hasActualWorkType && (isAdmin || (isCreator && !isCompleted));
+                  return canRecordActual ? (
                     <Link href={`/activity-plans/${item.id}/actual`}>
                       <Button
                         size="sm"
@@ -1078,7 +1087,8 @@ const getRelationRole = React.useCallback(
                         บันทึกผล
                       </Button>
                     </Link>
-                  )}
+                  ) : null;
+                })()}
                 {canApprove && isPending && (
                   <Link href="/activity-plans/approvals">
                     <Button

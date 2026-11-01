@@ -9,6 +9,7 @@ import {
   reviewSingleActivityHelperAction,
 } from "@/modules/activity/server/actions";
 import { canUserPerformApproval } from "@/modules/activity/ui/activity-status-badge";
+import { isUserSalesAdminManager } from "@/modules/activity/domain/approval/can-approve";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import {
   extractPlanData,
@@ -118,6 +119,16 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
     return canUserPerformApproval(plan, session?.user);
   }, [plan, session?.user]);
 
+  const canSendBackCorrection = useMemo(() => {
+    if (!plan) return false;
+    const isSalesAdmin = isUserSalesAdminManager(session?.user);
+    const isHistoryPlan =
+      plan.status === "APPROVED" ||
+      plan.status === "REVIEWED" ||
+      plan.status === "REJECTED";
+    return (isSalesAdmin || isAdmin) && isHistoryPlan;
+  }, [plan, session?.user, isAdmin]);
+
   const handleOpenActionDialog = (type: ApprovalActionType) => {
     setActionType(type);
     setActionDialogOpen(true);
@@ -207,6 +218,7 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
     type1Targets,
     parsedResults,
     canPerformApproval,
+    canSendBackCorrection,
     actionDialogOpen,
     setActionDialogOpen,
     actionType,

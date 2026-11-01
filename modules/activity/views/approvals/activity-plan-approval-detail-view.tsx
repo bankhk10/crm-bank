@@ -64,6 +64,7 @@ export default function ActivityPlanApprovalDetailView({
     type1Targets,
     parsedResults,
     canPerformApproval,
+    canSendBackCorrection,
     actionDialogOpen,
     setActionDialogOpen,
     actionType,
@@ -596,6 +597,18 @@ export default function ActivityPlanApprovalDetailView({
                   : "อนุมัติแผนงาน"}
               </Button>
             </>
+          )}
+
+          {canSendBackCorrection && !canPerformApproval && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleOpenActionDialog("REQUEST_CORRECTION")}
+              className="text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-10 px-4 font-semibold shadow-2xs cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4 mr-1.5" />
+              ส่งกลับแก้ไข
+            </Button>
           )}
         </DetailViewActions>
       </div>

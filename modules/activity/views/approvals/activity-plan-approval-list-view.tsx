@@ -48,6 +48,10 @@ import {
   type ApproverUserContext,
   type ActionScopeBadge,
 } from "@/modules/activity/ui/activity-status-badge";
+import {
+  isUserSalesAdminManager,
+  isUserAdmin,
+} from "@/modules/activity/domain/approval/can-approve";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   getApprovalQueueDataAction,
@@ -829,6 +833,12 @@ export default function ActivityPlanApprovalListView() {
                       effectiveUser,
                     );
                     const scopes = getPlanActionScopes(plan, effectiveUser);
+                    const isHistoryPlan =
+                      plan.status === "APPROVED" ||
+                      plan.status === "REVIEWED" ||
+                      plan.status === "REJECTED";
+                    const canSendBackCorrection =
+                      (isUserSalesAdminManager(effectiveUser) || isUserAdmin(effectiveUser)) && isHistoryPlan;
 
                     const workTypeNames: string[] = [];
                     if (plan.workTypes && plan.workTypes.length > 0) {
@@ -937,7 +947,7 @@ export default function ActivityPlanApprovalListView() {
                                 ดูข้อมูล
                               </Button>
                             </Link>
-                            {canUserApproveThisPlan && (
+                            {canUserApproveThisPlan ? (
                               <>
                                 {plan.status === "PENDING_CANCELLATION" ? (
                                   <>
@@ -1011,7 +1021,23 @@ export default function ActivityPlanApprovalListView() {
                                   </>
                                 )}
                               </>
-                            )}
+                            ) : canSendBackCorrection ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleOpenActionDialog(
+                                    plan,
+                                    "REQUEST_CORRECTION",
+                                  )
+                                }
+                                className="h-8 px-2.5 text-amber-700 border-amber-300 hover:bg-amber-50 rounded-lg cursor-pointer font-medium text-xs gap-1"
+                                title="ส่งกลับแก้ไข"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+                                ส่งกลับแก้ไข
+                              </Button>
+                            ) : null}
                           </div>
                         </td>
                       </tr>
@@ -1337,6 +1363,12 @@ function PlanCard({
   // Aggregated Approval authority evaluation via Single Source of Truth
   const canApprove = canUserPerformApproval(plan, effectiveUser);
   const actionScopes = getPlanActionScopes(plan, effectiveUser);
+  const isHistoryPlan =
+    plan.status === "APPROVED" ||
+    plan.status === "REVIEWED" ||
+    plan.status === "REJECTED";
+  const canSendBackCorrection =
+    (isUserSalesAdminManager(effectiveUser) || isUserAdmin(effectiveUser)) && isHistoryPlan;
 
   // Work Types
   const workTypeBadges: Array<{ code: string; name: string }> = [];
@@ -1510,7 +1542,7 @@ function PlanCard({
           </Button>
         </Link>
 
-        {canApprove && (
+        {canApprove ? (
           <div className="flex items-center gap-1.5">
             {plan.status === "PENDING_CANCELLATION" ? (
               <>
@@ -1571,7 +1603,18 @@ function PlanCard({
               </>
             )}
           </div>
-        )}
+        ) : canSendBackCorrection ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onAction("REQUEST_CORRECTION")}
+            className="w-full text-xs text-amber-700 border-amber-300 hover:bg-amber-50 rounded-xl h-9 font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+            title="ส่งกลับให้แก้ไข"
+          >
+            <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+            ส่งกลับแก้ไข
+          </Button>
+        ) : null}
       </div>
     </div>
   );
