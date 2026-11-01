@@ -36,11 +36,7 @@ export function Type9ActualForm({
 }: Type9ActualFormProps) {
   const itemsSource = useMemo(() => {
     const rawList =
-      targets && targets.length > 0
-        ? targets
-        : target
-          ? [target]
-          : [];
+      targets && targets.length > 0 ? targets : target ? [target] : [];
 
     return rawList.flatMap((t: any) => {
       if (t.items && t.items.length > 0) return t.items;
@@ -113,7 +109,8 @@ export function Type9ActualForm({
               (p) =>
                 (item.id && p.id === item.id) ||
                 (item.productId &&
-                  (p.productId === item.productId || p.id === item.productId)) ||
+                  (p.productId === item.productId ||
+                    p.id === item.productId)) ||
                 p.productName === item.productName,
             ) || prev[idx];
 
@@ -122,7 +119,8 @@ export function Type9ActualForm({
               (d) =>
                 (item.id && d.id === item.id) ||
                 (item.productId &&
-                  (d.productId === item.productId || d.id === item.productId)) ||
+                  (d.productId === item.productId ||
+                    d.id === item.productId)) ||
                 d.productName === item.productName,
             ) || productSalesDetails?.[idx];
 
@@ -186,21 +184,45 @@ export function Type9ActualForm({
     if ((!actualSales || actualSales === "") && setActualSales) {
       if (targetResult?.actualTotalSales != null) {
         const num = Number(targetResult.actualTotalSales);
-        setActualSales(!isNaN(num) ? num.toLocaleString() : String(targetResult.actualTotalSales));
-      } else if (primaryTarget?.actualSales != null && primaryTarget.actualSales !== "") {
+        setActualSales(
+          !isNaN(num)
+            ? num.toLocaleString()
+            : String(targetResult.actualTotalSales),
+        );
+      } else if (
+        primaryTarget?.actualSales != null &&
+        primaryTarget.actualSales !== ""
+      ) {
         const num = Number(primaryTarget.actualSales);
-        setActualSales(!isNaN(num) ? num.toLocaleString() : String(primaryTarget.actualSales));
+        setActualSales(
+          !isNaN(num)
+            ? num.toLocaleString()
+            : String(primaryTarget.actualSales),
+        );
       }
     }
 
     if ((!actualAttendees || actualAttendees === "") && setActualAttendees) {
-      if (targetResult?.actualAttendeesCount != null && Number(targetResult.actualAttendeesCount) > 0) {
+      if (
+        targetResult?.actualAttendeesCount != null &&
+        Number(targetResult.actualAttendeesCount) > 0
+      ) {
         setActualAttendees(String(targetResult.actualAttendeesCount));
-      } else if (primaryTarget?.actualAttendees != null && primaryTarget.actualAttendees !== "") {
+      } else if (
+        primaryTarget?.actualAttendees != null &&
+        primaryTarget.actualAttendees !== ""
+      ) {
         setActualAttendees(String(primaryTarget.actualAttendees));
       }
     }
-  }, [targets, target, actualSales, actualAttendees, setActualSales, setActualAttendees]);
+  }, [
+    targets,
+    target,
+    actualSales,
+    actualAttendees,
+    setActualSales,
+    setActualAttendees,
+  ]);
 
   if (!isVisible) return null;
 
@@ -250,7 +272,9 @@ export function Type9ActualForm({
     // Auto-calculate total actual sales across all items
     if (setActualSales) {
       const total = updated.reduce((sum, item) => {
-        const valStr = String(item.actualSales || "").replace(/,/g, "").trim();
+        const valStr = String(item.actualSales || "")
+          .replace(/,/g, "")
+          .trim();
         const num = parseFloat(valStr);
         return sum + (isNaN(num) ? 0 : num);
       }, 0);
@@ -276,11 +300,7 @@ export function Type9ActualForm({
           ))}
         </div>
       ) : (
-        <Type9PlanCard
-          target={target}
-          planType={planType}
-          hideItemsTable
-        />
+        <Type9PlanCard target={target} planType={planType} hideItemsTable />
       )}
 
       {/* 2. ACTUAL RESULT CARD */}
@@ -312,7 +332,9 @@ export function Type9ActualForm({
                     <th className="py-2.5 px-3">ชื่อสินค้า</th>
                     <th className="py-2.5 px-3 text-center">เป้าหมาย (ลัง)</th>
                     <th className="py-2.5 px-3 text-center">ราคา/ลัง</th>
-                    <th className="py-2.5 px-3 min-w-[130px]">ขายได้จริง (ลัง)</th>
+                    <th className="py-2.5 px-3 min-w-[130px]">
+                      ขายได้จริง (ลัง)
+                    </th>
                     <th className="py-2.5 px-3 min-w-[140px] text-right">
                       ยอดขายจริง (บาท)
                     </th>
@@ -342,7 +364,11 @@ export function Type9ActualForm({
                           placeholder="0"
                           value={String(item.actualQuantityCases ?? "")}
                           onChange={(e) =>
-                            handleItemChange(idx, "actualQuantityCases", e.target.value)
+                            handleItemChange(
+                              idx,
+                              "actualQuantityCases",
+                              e.target.value,
+                            )
                           }
                           className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
                         />
@@ -350,7 +376,7 @@ export function Type9ActualForm({
                       <td className="py-2 px-3 text-right">
                         <ActivityInput
                           id={`t9-item-sales-${idx}`}
-                          type="text"
+                          type="number"
                           placeholder="0.00"
                           value={String(item.actualSales ?? "")}
                           onChange={(e) =>
@@ -380,10 +406,12 @@ export function Type9ActualForm({
               </span>
               <ActivityInput
                 id="t9-actual-sales-input"
-                type="text"
+                type="number"
                 placeholder="ระบุยอดขายหน้าร้านจริง..."
                 value={actualSales || ""}
-                onChange={(e) => setActualSales && setActualSales(e.target.value)}
+                onChange={(e) =>
+                  setActualSales && setActualSales(e.target.value)
+                }
                 className="h-10 pl-7 text-xs font-bold text-teal-800 focus:ring-teal-500"
                 required
               />
@@ -403,7 +431,9 @@ export function Type9ActualForm({
                 type="number"
                 placeholder="ระบุจำนวนผู้เข้าร่วม..."
                 value={actualAttendees || ""}
-                onChange={(e) => setActualAttendees && setActualAttendees(e.target.value)}
+                onChange={(e) =>
+                  setActualAttendees && setActualAttendees(e.target.value)
+                }
                 className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-teal-500"
               />
             </div>
