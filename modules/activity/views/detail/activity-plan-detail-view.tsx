@@ -33,6 +33,9 @@ export default function ActivityPlanDetailView({
   id,
   onBack,
 }: ActivityPlanDetailViewProps) {
+  const { data: session } = useSession();
+  const isAdmin = isActivityAdmin(session?.user);
+
   const {
     plan,
     loading,
@@ -73,9 +76,6 @@ export default function ActivityPlanDetailView({
       </div>
     );
   }
-
-  const { data: session } = useSession();
-  const isAdmin = isActivityAdmin(session?.user);
 
   // Check whether actual results have been recorded for this plan
   const isActualRecorded = Boolean(
