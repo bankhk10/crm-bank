@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Sprout, Plus, Trash2, MapPin, Users, ShoppingBag, ThumbsUp, Package } from "lucide-react";
+import {
+  Sprout,
+  Plus,
+  Trash2,
+  MapPin,
+  Users,
+  ShoppingBag,
+  ThumbsUp,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -11,7 +20,10 @@ import {
   ActivityCombobox,
 } from "@/modules/activity/ui";
 import { getDemoPlotsAction } from "@/modules/activity/server/actions";
-import { FARMER_FEEDBACK_OPTIONS, type FarmerFeedback } from "../../shared/constants";
+import {
+  FARMER_FEEDBACK_OPTIONS,
+  type FarmerFeedback,
+} from "../../shared/constants";
 import type { Type10DemoPlotOption } from "../../shared/types";
 import type {
   Type10UnplannedFormProps,
@@ -38,7 +50,12 @@ export function Type10UnplannedForm({
     let isMounted = true;
     getDemoPlotsAction()
       .then((res: any) => {
-        if (isMounted && res?.success && res.demoPlots && res.demoPlots.length > 0) {
+        if (
+          isMounted &&
+          res?.success &&
+          res.demoPlots &&
+          res.demoPlots.length > 0
+        ) {
           setDbPlots(res.demoPlots as any);
         }
       })
@@ -128,13 +145,23 @@ export function Type10UnplannedForm({
           );
 
           const handleSelectPlot = (val: string) => {
-            const p = plotList.find((plot) => plot.id === val || plot.name === val);
+            const p = plotList.find(
+              (plot) => plot.id === val || plot.name === val,
+            );
             if (p) {
               updateItem(item.id, "demoPlotId", p.id || null);
               updateItem(item.id, "plotName", p.name || val);
-              updateItem(item.id, "farmerName", p.ownerName || p.farmerName || "");
+              updateItem(
+                item.id,
+                "farmerName",
+                p.ownerName || p.farmerName || "",
+              );
               updateItem(item.id, "cropName", p.cropName || p.targetCrop || "");
-              updateItem(item.id, "showcaseProduct", p.showcase || p.productName || p.primaryProductName || "");
+              updateItem(
+                item.id,
+                "showcaseProduct",
+                p.showcase || p.productName || p.primaryProductName || "",
+              );
               updateItem(item.id, "location", p.location || "");
             } else {
               updateItem(item.id, "demoPlotId", null);
@@ -175,7 +202,8 @@ export function Type10UnplannedForm({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      เลือกแปลงสาธิตที่จัดงาน <span className="text-red-500">*</span>
+                      เลือกแปลงสาธิตที่จัดงาน{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <ActivityCombobox
                       options={plotOptions}
@@ -199,7 +227,9 @@ export function Type10UnplannedForm({
                       <ActivityInput
                         placeholder="ระบุสถานที่ หรือ จุดสังเกต..."
                         value={item.location || ""}
-                        onChange={(e) => updateItem(item.id, "location", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "location", e.target.value)
+                        }
                         disabled={readonly}
                         className="h-10 pl-9 text-xs font-medium text-slate-800 focus:ring-emerald-500"
                       />
@@ -214,7 +244,9 @@ export function Type10UnplannedForm({
                       <ActivityInput
                         placeholder="เช่น ข้าวโพด, ทุเรียน..."
                         value={item.cropName || ""}
-                        onChange={(e) => updateItem(item.id, "cropName", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "cropName", e.target.value)
+                        }
                         disabled={readonly}
                         className="h-9 text-xs font-medium text-slate-800 focus:ring-emerald-500"
                       />
@@ -226,7 +258,9 @@ export function Type10UnplannedForm({
                       <ActivityInput
                         placeholder="เช่น แฮตแทค, ปุ๋ย..."
                         value={item.showcaseProduct || ""}
-                        onChange={(e) => updateItem(item.id, "showcaseProduct", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "showcaseProduct", e.target.value)
+                        }
                         disabled={readonly}
                         className="h-9 text-xs font-medium text-slate-800 focus:ring-emerald-500"
                       />
@@ -238,7 +272,8 @@ export function Type10UnplannedForm({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      จำนวนผู้เข้าร่วมงานจริง (คน) <span className="text-red-500">*</span>
+                      จำนวนผู้เข้าร่วมงานจริง (คน){" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-slate-400">
@@ -249,7 +284,9 @@ export function Type10UnplannedForm({
                         min={0}
                         placeholder="ระบุจำนวนผู้เข้าร่วมงานจริง..."
                         value={item.actualAttendees || ""}
-                        onChange={(e) => updateItem(item.id, "actualAttendees", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "actualAttendees", e.target.value)
+                        }
                         disabled={readonly}
                         className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-emerald-500"
                         required
@@ -266,10 +303,16 @@ export function Type10UnplannedForm({
                         ฿
                       </span>
                       <ActivityInput
-                        type="text"
+                        type="number"
                         placeholder="0.00"
                         value={item.actualSalesOrBooking || ""}
-                        onChange={(e) => updateItem(item.id, "actualSalesOrBooking", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(
+                            item.id,
+                            "actualSalesOrBooking",
+                            e.target.value,
+                          )
+                        }
                         disabled={readonly}
                         className="h-10 pl-7 text-xs font-bold text-emerald-800 focus:ring-emerald-500"
                       />
@@ -289,7 +332,9 @@ export function Type10UnplannedForm({
                             key={opt.value}
                             type="button"
                             disabled={readonly}
-                            onClick={() => updateItem(item.id, "farmerFeedback", opt.value)}
+                            onClick={() =>
+                              updateItem(item.id, "farmerFeedback", opt.value)
+                            }
                             className={cn(
                               "py-1.5 px-2 text-xs font-semibold rounded-lg border transition-all text-center",
                               isSelected
@@ -332,18 +377,28 @@ export function Type10UnplannedForm({
                     <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                       <tr>
                         <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                        <th className="py-2 px-3 min-w-[180px]">รายการสินค้า</th>
+                        <th className="py-2 px-3 min-w-[180px]">
+                          รายการสินค้า
+                        </th>
                         <th className="py-2 px-3 w-28 text-center">จำนวน</th>
-                        <th className="py-2 px-3 w-32 text-center">ราคาต่อหน่วย</th>
+                        <th className="py-2 px-3 w-32 text-center">
+                          ราคาต่อหน่วย
+                        </th>
                         <th className="py-2 px-3 w-32 text-right">รวม (บาท)</th>
-                        {!readonly && <th className="py-2 px-3 text-center w-12">ลบ</th>}
+                        {!readonly && (
+                          <th className="py-2 px-3 text-center w-12">ลบ</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {!item.soldProducts || item.soldProducts.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-3 text-center text-slate-400">
-                            ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้า&quot; เพื่อบันทึกยอดจำหน่าย
+                          <td
+                            colSpan={6}
+                            className="py-3 text-center text-slate-400"
+                          >
+                            ยังไม่มีรายการสินค้า กดปุ่ม &quot;เพิ่มสินค้า&quot;
+                            เพื่อบันทึกยอดจำหน่าย
                           </td>
                         </tr>
                       ) : (
@@ -361,14 +416,19 @@ export function Type10UnplannedForm({
                                 onChange={(val, pFound) => {
                                   if (updateSoldProduct) {
                                     const price =
-                                      pFound?.price != null && !isNaN(Number(pFound.price))
+                                      pFound?.price != null &&
+                                      !isNaN(Number(pFound.price))
                                         ? Number(pFound.price)
                                         : Number(p.unitPrice) || 0;
                                     const qty = Number(p.actualQty) || 1;
                                     updateSoldProduct(item.id, p.id!, {
-                                      productId: pFound?.id || p.productId || "",
+                                      productId:
+                                        pFound?.id || p.productId || "",
                                       productName: pFound?.name || val || "",
-                                      productCode: pFound?.productCode || p.productCode || null,
+                                      productCode:
+                                        pFound?.productCode ||
+                                        p.productCode ||
+                                        null,
                                       unitPrice: price,
                                       actualQty: qty,
                                       actualSales: qty * price,
@@ -392,8 +452,18 @@ export function Type10UnplannedForm({
                                   const qty = Number(e.target.value) || 0;
                                   const price = Number(p.unitPrice) || 0;
                                   if (updateSoldProduct) {
-                                    updateSoldProduct(item.id, p.id!, "actualQty", e.target.value);
-                                    updateSoldProduct(item.id, p.id!, "actualSales", qty * price);
+                                    updateSoldProduct(
+                                      item.id,
+                                      p.id!,
+                                      "actualQty",
+                                      e.target.value,
+                                    );
+                                    updateSoldProduct(
+                                      item.id,
+                                      p.id!,
+                                      "actualSales",
+                                      qty * price,
+                                    );
                                   }
                                 }}
                                 disabled={readonly}
@@ -410,8 +480,18 @@ export function Type10UnplannedForm({
                                   const price = Number(e.target.value) || 0;
                                   const qty = Number(p.actualQty) || 0;
                                   if (updateSoldProduct) {
-                                    updateSoldProduct(item.id, p.id!, "unitPrice", e.target.value);
-                                    updateSoldProduct(item.id, p.id!, "actualSales", qty * price);
+                                    updateSoldProduct(
+                                      item.id,
+                                      p.id!,
+                                      "unitPrice",
+                                      e.target.value,
+                                    );
+                                    updateSoldProduct(
+                                      item.id,
+                                      p.id!,
+                                      "actualSales",
+                                      qty * price,
+                                    );
                                   }
                                 }}
                                 disabled={readonly}
@@ -425,7 +505,9 @@ export function Type10UnplannedForm({
                               <td className="py-1.5 px-3 text-center">
                                 <button
                                   type="button"
-                                  onClick={() => deleteSoldProduct(item.id, p.id!)}
+                                  onClick={() =>
+                                    deleteSoldProduct(item.id, p.id!)
+                                  }
                                   className="text-slate-400 hover:text-red-500 transition-colors p-1"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -446,7 +528,9 @@ export function Type10UnplannedForm({
                   title="ภาพถ่ายบรรยากาศการจัดงาน Field Day"
                   description="อัปโหลดภาพถ่ายกิจกรรม เกษตรกรผู้เข้าร่วมงาน และบรรยากาศในแปลงสาธิต"
                   images={(item.images || []) as any}
-                  onImagesChange={(imgs) => updateItem(item.id, "images", imgs as any)}
+                  onImagesChange={(imgs) =>
+                    updateItem(item.id, "images", imgs as any)
+                  }
                   maxFiles={10}
                   accentColor="emerald"
                 />

@@ -289,7 +289,7 @@ export function Type10ActualForm({
                 ฿
               </span>
               <ActivityInput
-                type="text"
+                type="number"
                 placeholder="0.00"
                 value={actualSalesOrBooking || ""}
                 onChange={(e) => setActualSalesOrBooking(e.target.value)}
