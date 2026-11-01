@@ -41,7 +41,8 @@ export function DetailHeader({
         </div>
       </div>
 
-      <div className="ml-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
+      {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
+      {/* <div className="ml-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
         <Link href={`/activity-plans/${plan.id}/export`}>
           <Button
             type="button"
@@ -84,7 +85,7 @@ export function DetailHeader({
             </span>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }
