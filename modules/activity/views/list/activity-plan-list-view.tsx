@@ -73,7 +73,7 @@ export default function ActivityPlanListView() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(10);
+  const [perPage, setPerPage] = useState<number>(20);
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -670,7 +670,10 @@ export default function ActivityPlanListView() {
           perPage,
           total,
           onPageChange: setPage,
-          onPerPageChange: setPerPage,
+          onPerPageChange: (newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          },
           perPageOptions: [10, 20, 30],
         }}
         searchValue={searchDraft}
