@@ -1,23 +1,33 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Sprout, ShoppingBag, Users, ThumbsUp, DollarSign, ImageIcon, Eye, Camera, Package } from "lucide-react";
+import {
+  Sprout,
+  ShoppingBag,
+  Users,
+  ThumbsUp,
+  DollarSign,
+  ImageIcon,
+  Eye,
+  Camera,
+  Package,
+} from "lucide-react";
 import {
   ImageLightboxModal,
   LightboxImage,
 } from "@/components/custom/image-lightbox-modal";
 import { cn } from "@/lib/utils";
-import type { Type10ImageFile, Type10SoldProductItem } from "../../shared/types";
+import type {
+  Type10ImageFile,
+  Type10SoldProductItem,
+} from "../../shared/types";
 import type {
   DetailType10FieldDayProps,
   Type10DetailViewProps,
 } from "../types/actual.types";
 import { Type10PlanCard } from "./type10-plan-card";
 
-export type {
-  DetailType10FieldDayProps,
-  Type10DetailViewProps,
-};
+export type { DetailType10FieldDayProps, Type10DetailViewProps };
 
 export function Type10DetailView({
   isVisible = true,
@@ -66,7 +76,7 @@ export function Type10DetailView({
 
   if (!isVisible) return null;
 
-    // ปรับการดึงและจัดรูปแบบข้อมูลให้รองรับทั้ง View Model และ Raw Prisma Model (activity_type_10_products)
+  // ปรับการดึงและจัดรูปแบบข้อมูลให้รองรับทั้ง View Model และ Raw Prisma Model (activity_type_10_products)
   const effectiveSoldProducts = useMemo(() => {
     const rawList =
       (soldProducts && soldProducts.length > 0
@@ -133,7 +143,9 @@ export function Type10DetailView({
                 : String(rawQty)
               : "-",
           displayUnitPrice:
-            rawUnitPrice != null && rawUnitPrice !== "" && !isNaN(Number(rawUnitPrice))
+            rawUnitPrice != null &&
+            rawUnitPrice !== "" &&
+            !isNaN(Number(rawUnitPrice))
               ? `฿${Number(rawUnitPrice).toLocaleString()}`
               : "-",
           displaySales:
@@ -176,9 +188,13 @@ export function Type10DetailView({
               <Users className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium">ผู้เข้าร่วมงานจริง</p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                ผู้เข้าร่วมงานจริง
+              </p>
               <p className="text-sm font-bold text-slate-900">
-                {actualAttendees != null && actualAttendees !== "" ? `${Number(actualAttendees).toLocaleString()} คน` : "-"}
+                {actualAttendees != null && actualAttendees !== ""
+                  ? `${Number(actualAttendees).toLocaleString()} คน`
+                  : "-"}
               </p>
             </div>
           </div>
@@ -188,9 +204,13 @@ export function Type10DetailView({
               <DollarSign className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium">ยอดสั่งจอง / สั่งซื้อจริง</p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                ยอดสั่งจอง / สั่งซื้อจริง
+              </p>
               <p className="text-sm font-bold text-emerald-700">
-                {actualSalesOrBooking != null && actualSalesOrBooking !== "" ? `฿${Number(actualSalesOrBooking).toLocaleString()}` : "-"}
+                {actualSalesOrBooking != null && actualSalesOrBooking !== ""
+                  ? `฿${Number(actualSalesOrBooking).toLocaleString()}`
+                  : "-"}
               </p>
             </div>
           </div>
@@ -200,7 +220,9 @@ export function Type10DetailView({
               <ThumbsUp className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-medium">ผลตอบรับจากเกษตรกร</p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                ผลตอบรับจากเกษตรกร
+              </p>
               <p className="text-sm font-bold text-slate-900">
                 {farmerFeedback || "-"}
               </p>
@@ -222,17 +244,25 @@ export function Type10DetailView({
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
                     <th className="py-2 px-3">สินค้า</th>
                     <th className="py-2 px-3 text-center w-24">จำนวน</th>
-                    <th className="py-2 px-3 text-center w-28">ราคาต่อหน่วย</th>
+                    <th className="py-2 px-3 text-center w-28">ราคา</th>
                     <th className="py-2 px-3 text-right w-32">รวม (บาท)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {effectiveSoldProducts.map((prod, idx) => (
                     <tr key={prod.id || idx}>
-                      <td className="py-2 px-3 text-center text-slate-400">{idx + 1}</td>
-                      <td className="py-2 px-3 font-medium text-slate-800">{prod.productName}</td>
-                      <td className="py-2 px-3 text-center">{prod.displayQty}</td>
-                      <td className="py-2 px-3 text-center">{prod.displayUnitPrice}</td>
+                      <td className="py-2 px-3 text-center text-slate-400">
+                        {idx + 1}
+                      </td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        {prod.productName}
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        {prod.displayQty}
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        {prod.displayUnitPrice}
+                      </td>
                       <td className="py-2 px-3 text-right font-bold text-emerald-700">
                         {prod.displaySales}
                       </td>
@@ -255,7 +285,9 @@ export function Type10DetailView({
               {images.map((img, idx) => (
                 <div
                   key={img.id || idx}
-                  onClick={() => openLightbox("ภาพถ่ายบรรยากาศ Field Day", images, idx)}
+                  onClick={() =>
+                    openLightbox("ภาพถ่ายบรรยากาศ Field Day", images, idx)
+                  }
                   className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer shadow-2xs hover:shadow-xs transition-all"
                 >
                   <img
