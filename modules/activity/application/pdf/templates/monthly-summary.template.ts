@@ -353,7 +353,7 @@ export function renderMonthlySummaryTemplate({
       <div class="signature-role">ผู้จัดทำแผนงาน (Prepared By)</div>
       <div class="signature-line"></div>
       <div class="signature-name">${empName && empName !== "-" ? `(${safeHtml(empName)})` : "...................................................."}</div>
-      <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
+      <div class="signature-date">${empPos && empPos !== "-" ? safeHtml(empPos) + "<br/>" : ""}วันที่: ....../....../......</div>
     </div>
     <div class="signature-card">
       <div class="signature-role">ผู้จัดการแผนกบริหารงานขาย</div>

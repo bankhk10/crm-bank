@@ -21,6 +21,7 @@ export function renderApprovalBoxes({
 }: ApprovalBoxesProps): string {
   const creatorInfo = resolvePlanCreatorInfo(plan);
   const creatorName = creatorInfo.name !== "-" ? creatorInfo.name : "";
+  const creatorPos = creatorInfo.position !== "-" ? creatorInfo.position : "";
 
   if (customBoxes && customBoxes.length > 0) {
     const widthPercent = (100 / customBoxes.length).toFixed(2);
@@ -31,12 +32,16 @@ export function renderApprovalBoxes({
           (box, idx) => {
             const resolvedPersonName =
               box.personName || (idx === 0 ? creatorName : "");
+            const resolvedPosition =
+              idx === 0
+                ? (creatorPos || box.position)
+                : box.position;
             return `
         <div class="signature-card" style="width: ${widthPercent}%;">
           <div class="signature-role">${safeHtml(box.roleTitle)}</div>
           <div class="signature-line"></div>
           <div class="signature-name">${resolvedPersonName ? `(${safeHtml(resolvedPersonName)})` : "...................................................."}</div>
-          <div class="signature-date">${box.position ? safeHtml(box.position) + "<br/>" : ""}วันที่: ${safeHtml(box.dateStr || "....../....../......")}</div>
+          <div class="signature-date">${resolvedPosition ? safeHtml(resolvedPosition) + "<br/>" : ""}วันที่: ${safeHtml(box.dateStr || "....../....../......")}</div>
         </div>
       `;
           },
@@ -81,7 +86,7 @@ export function renderApprovalBoxes({
       <div class="signature-role">ผู้จัดทำแผนงาน (Prepared By)</div>
       <div class="signature-line"></div>
       <div class="signature-name">${creatorName ? `(${safeHtml(creatorName)})` : "...................................................."}</div>
-      <div class="signature-date">วันที่: ${createdDateStr || "....../....../......"}</div>
+      <div class="signature-date">${creatorPos ? safeHtml(creatorPos) + "<br/>" : ""}วันที่: ${createdDateStr || "....../....../......"}</div>
     </div>
     <div class="signature-card">
       <div class="signature-role">ผู้จัดการแผนกบริหารงานขาย</div>

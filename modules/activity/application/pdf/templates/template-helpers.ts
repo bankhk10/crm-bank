@@ -614,12 +614,16 @@ export function resolvePlanCreatorInfo(plan: any): PlanCreatorInfo {
   let position = "";
   if (emp?.position?.name && emp.position.name.trim()) {
     position = emp.position.name.trim();
+  } else if (emp?.position?.title && emp.position.title.trim()) {
+    position = emp.position.title.trim();
   } else if (emp?.positionTitle && emp.positionTitle.trim()) {
     position = emp.positionTitle.trim();
   } else if (emp?.roleTitle && emp.roleTitle.trim()) {
     position = emp.roleTitle.trim();
   } else if (user?.position?.name && user.position.name.trim()) {
     position = user.position.name.trim();
+  } else if (user?.position?.title && user.position.title.trim()) {
+    position = user.position.title.trim();
   } else if (user?.position && typeof user.position === "string" && user.position.trim()) {
     position = user.position.trim();
   } else if (user?.roleTitle && user.roleTitle.trim()) {
