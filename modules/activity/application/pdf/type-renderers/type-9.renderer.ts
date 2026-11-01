@@ -5,6 +5,7 @@ import {
   formatMoney,
   formatQty,
 } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType9PlanTargets,
   type Type9TargetItem,
@@ -385,28 +386,23 @@ export class Type9PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Type 9 Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้จัดกิจกรรม / ผู้รับผิดชอบ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ร้านค้าผู้ร่วมจัดกิจกรรม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">เจ้าของร้าน / ตัวแทนจำหน่าย<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการจัดกิจกรรม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายขาย / ส่งเสริมการตลาด<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้จัดกิจกรรม / ผู้รับผิดชอบ",
+            position: "ผู้แทนฝ่ายขาย / ส่งเสริม",
+          },
+          {
+            roleTitle: "ร้านค้าผู้ร่วมจัดกิจกรรม",
+            position: "เจ้าของร้าน / ตัวแทนจำหน่าย",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการจัดกิจกรรม",
+            position: "ผู้จัดการฝ่ายขาย / ส่งเสริมการตลาด",
+          },
+        ],
+      });
     }
 
     return {

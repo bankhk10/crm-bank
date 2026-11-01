@@ -5,6 +5,7 @@ import {
   formatMoney,
   formatQty,
 } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType10PlanTargets,
   type Type10TargetItem,
@@ -313,28 +314,23 @@ export class Type10PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้จัดงาน / ผู้แทนฝ่ายขาย-ส่งเสริม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้รับผิดชอบการจัดงาน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">เกษตรกรเจ้าของแปลงสาธิต</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">เจ้าของสถานที่จัดงาน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการจัดงาน Field Day</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายส่งเสริมการขาย / การตลาด<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้จัดงาน / ผู้แทนฝ่ายขาย-ส่งเสริม",
+            position: "ผู้รับผิดชอบการจัดงาน",
+          },
+          {
+            roleTitle: "เกษตรกรเจ้าของแปลงสาธิต",
+            position: "เจ้าของสถานที่จัดงาน",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการจัดงาน Field Day",
+            position: "ผู้จัดการฝ่ายส่งเสริมการขาย / การตลาด",
+          },
+        ],
+      });
     }
 
     return {

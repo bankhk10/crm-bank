@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty, formatMoney } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType3PlanTargets,
   type Type3TargetItem,
@@ -255,28 +256,23 @@ export class Type3PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้เสนอขาย / ผู้แทนฝ่ายขาย</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขายประจำเขต<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ลูกค้า / ร้านค้าผู้รับข้อเสนอ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้สั่งซื้อ / ตัวแทนร้านค้า<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการเสนอขาย</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายขาย<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้เสนอขาย / ผู้แทนฝ่ายขาย",
+            position: "ผู้แทนฝ่ายขายประจำเขต",
+          },
+          {
+            roleTitle: "ลูกค้า / ร้านค้าผู้รับข้อเสนอ",
+            position: "ผู้สั่งซื้อ / ตัวแทนร้านค้า",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการเสนอขาย",
+            position: "ผู้จัดการฝ่ายขาย",
+          },
+        ],
+      });
     }
 
     return {

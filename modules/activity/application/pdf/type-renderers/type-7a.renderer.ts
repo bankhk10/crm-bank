@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty, formatDateThai } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 
 export class Type7aPdfRenderer implements TypePdfRenderer {
   readonly workTypeCode = "TYPE_7A";
@@ -185,28 +186,23 @@ export class Type7aPdfRenderer implements TypePdfRenderer {
     // Custom signature boxes if user exports specifically this single type
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้ขอเบิก / ผู้รับผิดชอบแปลง</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">เกษตรกรเจ้าของแปลงผู้ร่วมทดสอบ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">เกษตรกรผู้รับรองแปลง<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติจ่ายผลิตภัณฑ์ตัวอย่าง</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายส่งเสริมการขาย / คลัง<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้ขอเบิก / ผู้รับผิดชอบแปลง",
+            position: "ผู้แทนฝ่ายขาย / ส่งเสริม",
+          },
+          {
+            roleTitle: "เกษตรกรเจ้าของแปลงผู้ร่วมทดสอบ",
+            position: "เกษตรกรผู้รับรองแปลง",
+          },
+          {
+            roleTitle: "ผู้อนุมัติจ่ายผลิตภัณฑ์ตัวอย่าง",
+            position: "ผู้จัดการฝ่ายส่งเสริมการขาย / คลัง",
+          },
+        ],
+      });
     }
 
     return {

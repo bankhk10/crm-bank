@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty, formatMoney } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType8PlanTargets,
   type Type8TargetItem,
@@ -225,28 +226,23 @@ export class Type8PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้จัดประชุม / ผู้รับผิดชอบ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ตัวแทนผู้ร่วมประชุม / ร้านค้า</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนผู้เข้าร่วมประชุม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการจัดประชุม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายขาย / ส่งเสริมการตลาด<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้จัดประชุม / ผู้รับผิดชอบ",
+            position: "ผู้แทนฝ่ายขาย / ส่งเสริม",
+          },
+          {
+            roleTitle: "ตัวแทนผู้ร่วมประชุม / ร้านค้า",
+            position: "ผู้แทนผู้เข้าร่วมประชุม",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการจัดประชุม",
+            position: "ผู้จัดการฝ่ายขาย / ส่งเสริมการตลาด",
+          },
+        ],
+      });
     }
 
     return {

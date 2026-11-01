@@ -6,6 +6,7 @@ import {
   formatQty,
   safeHtml,
   extractTargetAddresses,
+  resolvePlanCreatorInfo,
 } from "./template-helpers";
 import { getWorkTypeName, getWorkTypeCode } from "@/modules/activity/constants";
 
@@ -142,34 +143,18 @@ export function renderMonthlySummaryTemplate({
 
   if (plans.length > 0) {
     for (const p of plans) {
-      const e = (p as any).employee;
-      const c = (p as any).createdBy || (p as any).creator;
-      const u = e?.user || c;
+      const info = resolvePlanCreatorInfo(p);
 
-      if (!empName || empName === "-") {
-        const combined = `${e?.firstName || ""} ${e?.lastName || ""}`.trim();
-        const resolvedName = combined || e?.name || c?.name || "";
-        if (resolvedName) empName = resolvedName;
+      if ((!empName || empName === "-") && info.name !== "-") {
+        empName = info.name;
       }
 
-      if (!empPos || empPos === "-") {
-        const resolvedPos =
-          e?.position?.name ||
-          e?.positionTitle ||
-          e?.roleTitle ||
-          u?.position?.name ||
-          u?.roleTitle ||
-          "";
-        if (resolvedPos) empPos = resolvedPos;
+      if ((!empPos || empPos === "-") && info.position !== "-") {
+        empPos = info.position;
       }
 
-      if (!empDept || empDept === "-") {
-        const resolvedDept =
-          e?.department?.name ||
-          e?.departmentName ||
-          u?.department?.name ||
-          "";
-        if (resolvedDept) empDept = resolvedDept;
+      if ((!empDept || empDept === "-") && info.department !== "-") {
+        empDept = info.department;
       }
 
       if (empName && empName !== "-" && empPos && empPos !== "-" && empDept && empDept !== "-") {

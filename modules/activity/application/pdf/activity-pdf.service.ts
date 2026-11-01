@@ -21,7 +21,7 @@ import { renderOverviewSection } from "./templates/overview-section.template";
 import { renderActualResultSection } from "./templates/actual-result-section.template";
 import { renderApprovalBoxes } from "./templates/approval-boxes.template";
 import { renderMonthlySummaryTemplate } from "./templates/monthly-summary.template";
-import { safeHtml } from "./templates/template-helpers";
+import { safeHtml, resolvePlanCreatorInfo } from "./templates/template-helpers";
 
 export class ActivityPdfService {
   /**
@@ -173,7 +173,7 @@ export class ActivityPdfService {
               </div>
               <div class="info-cell" style="width: 35%;">
                 <span class="info-label">ผู้รับผิดชอบ:</span>
-                <span class="info-value">${safeHtml((plan as any).employee?.firstName || (plan as any).createdBy?.name || "-")}</span>
+                <span class="info-value">${safeHtml(resolvePlanCreatorInfo(plan).name)}</span>
               </div>
               <div class="info-cell" style="width: 30%;">
                 <span class="info-label">ช่วงวันที่:</span>

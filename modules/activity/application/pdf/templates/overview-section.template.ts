@@ -1,6 +1,11 @@
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import type { PlanSummaryData } from "@/modules/activity/domain/summary";
-import { formatMoney, safeHtml, extractTargetAddresses } from "./template-helpers";
+import {
+  formatMoney,
+  safeHtml,
+  extractTargetAddresses,
+  resolvePlanCreatorInfo,
+} from "./template-helpers";
 
 interface OverviewSectionProps {
   plan: ActivityPlanWithRelations;
@@ -12,15 +17,12 @@ export function renderOverviewSection({
   planSummary,
 }: OverviewSectionProps): string {
   // Creator info
-  const emp = (plan as any).employee;
-  const creatorUser = (plan as any).creator;
-  const creatorName = emp
-    ? `${emp.firstName || ""} ${emp.lastName || ""}`.trim()
-    : creatorUser?.name || "-";
-  const employeeCode = emp?.employeeCode || "-";
-  const position = emp?.position?.name || emp?.positionTitle || "-";
-  const department = emp?.department?.name || "-";
-  const phone = emp?.phone || creatorUser?.phone || "-";
+  const creatorInfo = resolvePlanCreatorInfo(plan);
+  const creatorName = creatorInfo.name;
+  const employeeCode = creatorInfo.employeeCode !== "-" ? creatorInfo.employeeCode : "";
+  const position = creatorInfo.position;
+  const department = creatorInfo.department;
+  const phone = creatorInfo.phone;
 
   // Resolve target location / store address
   const storeAddrs = extractTargetAddresses(plan);
@@ -74,11 +76,11 @@ export function renderOverviewSection({
         <div class="info-row">
           <div class="info-cell">
             <span class="info-label">ผู้จัดทำแผน:</span>
-            <span class="info-value">${safeHtml(creatorName)} (${safeHtml(employeeCode)})</span>
+            <span class="info-value" style="font-weight: 600;">${safeHtml(creatorName)}${employeeCode ? ` (${safeHtml(employeeCode)})` : ""}</span>
           </div>
           <div class="info-cell">
             <span class="info-label">ตำแหน่ง/ฝ่าย:</span>
-            <span class="info-value">${safeHtml(position)} / ${safeHtml(department)}</span>
+            <span class="info-value">${safeHtml(position)}${department && department !== "-" ? ` / ${safeHtml(department)}` : ""}</span>
           </div>
         </div>
         <div class="info-row">

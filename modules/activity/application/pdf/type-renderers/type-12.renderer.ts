@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType12PlanTargets,
   type Type12TargetItem,
@@ -180,28 +181,23 @@ export class Type12PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้จัดทัวร์ / ผู้แทนฝ่ายขาย</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้ประสานงานดูงาน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ตัวแทนลูกค้า / ร้านค้าผู้ร่วมเดินทาง</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ตัวแทนผู้ร่วมศึกษาดูงาน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการศึกษาดูงาน</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายการตลาด / พัฒนาธุรกิจ<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้จัดทัวร์ / ผู้แทนฝ่ายขาย",
+            position: "ผู้ประสานงานดูงาน",
+          },
+          {
+            roleTitle: "ตัวแทนลูกค้า / ร้านค้าผู้ร่วมเดินทาง",
+            position: "ตัวแทนผู้ร่วมศึกษาดูงาน",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการศึกษาดูงาน",
+            position: "ผู้จัดการฝ่ายการตลาด / พัฒนาธุรกิจ",
+          },
+        ],
+      });
     }
 
     return {

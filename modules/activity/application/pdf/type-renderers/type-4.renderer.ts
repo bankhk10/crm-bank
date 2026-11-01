@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatMoney, formatDateThai } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType4PlanTargets,
   type Type4TargetItem,
@@ -237,28 +238,23 @@ export class Type4PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้แทนฝ่ายขาย / ผู้วางบิล-เก็บเงิน</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้ดำเนินการ<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ลูกค้า / ร้านค้าผู้จ่ายเงิน-รับบิล</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้รับบิล / ผู้ชำระเงิน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">แผนกการเงิน / บัญชีผู้อนุมัติ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">เจ้าหน้าที่การเงิน<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้แทนฝ่ายขาย / ผู้วางบิล-เก็บเงิน",
+            position: "ผู้ดำเนินการ",
+          },
+          {
+            roleTitle: "ลูกค้า / ร้านค้าผู้จ่ายเงิน-รับบิล",
+            position: "ผู้รับบิล / ผู้ชำระเงิน",
+          },
+          {
+            roleTitle: "แผนกการเงิน / บัญชีผู้อนุมัติ",
+            position: "เจ้าหน้าที่การเงิน",
+          },
+        ],
+      });
     }
 
     return {

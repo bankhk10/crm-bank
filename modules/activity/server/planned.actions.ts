@@ -919,7 +919,7 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
         endDate: true,
         status: true,
         employee: {
-          select: { firstName: true, lastName: true },
+          select: { name: true, prefix: true, firstName: true, lastName: true },
         },
         createdBy: {
           select: { name: true },
@@ -929,17 +929,24 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
 
     return serialize({
       success: true,
-      plans: plans.map((p) => ({
-        id: p.id,
-        code: p.code,
-        title: p.title,
-        startDate: p.startDate,
-        endDate: p.endDate,
-        status: p.status,
-        creatorName: p.employee
-          ? `${p.employee.firstName || ""} ${p.employee.lastName || ""}`.trim()
-          : p.createdBy?.name || "-",
-      })),
+      plans: plans.map((p) => {
+        const emp = p.employee;
+        const creatorName =
+          emp?.name?.trim() ||
+          [emp?.prefix, emp?.firstName, emp?.lastName].filter(Boolean).join(" ").trim() ||
+          p.createdBy?.name?.trim() ||
+          "-";
+
+        return {
+          id: p.id,
+          code: p.code,
+          title: p.title,
+          startDate: p.startDate,
+          endDate: p.endDate,
+          status: p.status,
+          creatorName,
+        };
+      }),
     });
   } catch (err: any) {
     return { success: false, error: err.message || "เกิดข้อผิดพลาดในการโหลดรายการแผนงาน" };

@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType2PlanTargets,
   type Type2TargetItem,
@@ -202,28 +203,23 @@ export class Type2PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้แทนฝ่ายขาย / ผู้ติดตามผล</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขายประจำเขต<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">เกษตรกร / ลูกค้าผู้ใช้สินค้า</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้ให้ข้อมูลการใช้งาน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการติดตาม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายส่งเสริมวิชาการ<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้แทนฝ่ายขาย / ผู้ติดตามผล",
+            position: "ผู้แทนฝ่ายขายประจำเขต",
+          },
+          {
+            roleTitle: "เกษตรกร / ลูกค้าผู้ใช้สินค้า",
+            position: "ผู้ให้ข้อมูลการใช้งาน",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการติดตาม",
+            position: "ผู้จัดการฝ่ายส่งเสริมวิชาการ",
+          },
+        ],
+      });
     }
 
     return {

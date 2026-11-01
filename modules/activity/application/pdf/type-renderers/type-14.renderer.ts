@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty, formatDateThai } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType14PlanTargets,
   type Type14PlotItem,
@@ -172,28 +173,23 @@ export class Type14PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้ตรวจติดตามแปลง / เจ้าหน้าที่ส่งเสริม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขาย-ส่งเสริม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">เกษตรกรเจ้าของแปลงผู้รับการติดตาม</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">เกษตรกรผู้รับรองผล<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการประเมินแปลง</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายเทคนิค / ส่งเสริม<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้ตรวจติดตามแปลง / เจ้าหน้าที่ส่งเสริม",
+            position: "ผู้แทนฝ่ายขาย-ส่งเสริม",
+          },
+          {
+            roleTitle: "เกษตรกรเจ้าของแปลงผู้รับการติดตาม",
+            position: "เกษตรกรผู้รับรองผล",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการประเมินแปลง",
+            position: "ผู้จัดการฝ่ายเทคนิค / ส่งเสริม",
+          },
+        ],
+      });
     }
 
     return {

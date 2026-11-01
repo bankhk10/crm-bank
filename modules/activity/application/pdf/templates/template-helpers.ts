@@ -294,3 +294,79 @@ export function extractTargetAddresses(p: ActivityPlanWithRelations): string[] {
 
   return Array.from(addresses);
 }
+
+export interface PlanCreatorInfo {
+  name: string;
+  employeeCode: string;
+  position: string;
+  department: string;
+  phone: string;
+}
+
+/**
+ * Extracts comprehensive plan creator / employee information from ActivityPlan
+ * Supports employee relation, user relation, createdBy relation, and fallback strings.
+ */
+export function resolvePlanCreatorInfo(plan: any): PlanCreatorInfo {
+  if (!plan) {
+    return { name: "-", employeeCode: "-", position: "-", department: "-", phone: "-" };
+  }
+
+  const emp = plan.employee;
+  const createdBy = plan.createdBy || plan.creator;
+  const user = emp?.user || createdBy;
+
+  // 1. Resolve Creator Name
+  let name = "";
+  if (emp?.name && emp.name.trim()) {
+    name = emp.name.trim();
+  } else if (emp?.firstName || emp?.lastName) {
+    name = [emp.prefix, emp.firstName, emp.lastName].filter(Boolean).join(" ").trim();
+  } else if (user?.name && user.name.trim()) {
+    name = user.name.trim();
+  } else if (plan.createdByName && typeof plan.createdByName === "string") {
+    name = plan.createdByName.trim();
+  }
+
+  // 2. Resolve Employee Code
+  const employeeCode = emp?.employeeCode?.trim() || "";
+
+  // 3. Resolve Position
+  let position = "";
+  if (emp?.position?.name && emp.position.name.trim()) {
+    position = emp.position.name.trim();
+  } else if (emp?.positionTitle && emp.positionTitle.trim()) {
+    position = emp.positionTitle.trim();
+  } else if (emp?.roleTitle && emp.roleTitle.trim()) {
+    position = emp.roleTitle.trim();
+  } else if (user?.position?.name && user.position.name.trim()) {
+    position = user.position.name.trim();
+  } else if (user?.position && typeof user.position === "string" && user.position.trim()) {
+    position = user.position.trim();
+  } else if (user?.roleTitle && user.roleTitle.trim()) {
+    position = user.roleTitle.trim();
+  }
+
+  // 4. Resolve Department
+  let department = "";
+  if (emp?.department?.name && emp.department.name.trim()) {
+    department = emp.department.name.trim();
+  } else if (emp?.departmentName && emp.departmentName.trim()) {
+    department = emp.departmentName.trim();
+  } else if (user?.department?.name && user.department.name.trim()) {
+    department = user.department.name.trim();
+  } else if (user?.department && typeof user.department === "string" && user.department.trim()) {
+    department = user.department.trim();
+  }
+
+  // 5. Resolve Phone
+  const phone = emp?.phone?.trim() || user?.phone?.trim() || "";
+
+  return {
+    name: name || "-",
+    employeeCode: employeeCode || "-",
+    position: position || "-",
+    department: department || "-",
+    phone: phone || "-",
+  };
+}

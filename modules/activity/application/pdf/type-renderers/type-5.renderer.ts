@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType5PlanTargets,
   type Type5TargetItem,
@@ -168,28 +169,23 @@ export class Type5PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้สำรวจตลาด / ตัวแทนฝ่ายขาย</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขายประจำเขต<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ร้านค้า / ผู้ให้ข้อมูลตลาด</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้ให้ข้อมูลภาคสนาม<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการสำรวจตลาด</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายการตลาด / พัฒนาธุรกิจ<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้สำรวจตลาด / ตัวแทนฝ่ายขาย",
+            position: "ผู้แทนฝ่ายขายประจำเขต",
+          },
+          {
+            roleTitle: "ร้านค้า / ผู้ให้ข้อมูลตลาด",
+            position: "ผู้ให้ข้อมูลภาคสนาม",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการสำรวจตลาด",
+            position: "ผู้จัดการฝ่ายการตลาด / พัฒนาธุรกิจ",
+          },
+        ],
+      });
     }
 
     return {

@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatDateThai } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import {
   extractType1PlanTargets,
   type Type1TargetItem,
@@ -201,28 +202,23 @@ export class Type1PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้แทนฝ่ายขาย / ผู้เข้าพบ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขายประจำเขต<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ลูกค้า / เกษตรกรผู้ให้เข้าพบ</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้รับการเข้าพบ<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการปฏิบัติงาน</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการเขตการขาย<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้แทนฝ่ายขาย / ผู้เข้าพบ",
+            position: "ผู้แทนฝ่ายขายประจำเขต",
+          },
+          {
+            roleTitle: "ลูกค้า / เกษตรกรผู้ให้เข้าพบ",
+            position: "ผู้รับการเข้าพบ",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการปฏิบัติงาน",
+            position: "ผู้จัดการเขตการขาย",
+          },
+        ],
+      });
     }
 
     return {

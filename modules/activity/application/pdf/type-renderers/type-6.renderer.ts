@@ -1,6 +1,7 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml } from "../templates/template-helpers";
+import { renderApprovalBoxes } from "../templates/approval-boxes.template";
 import { extractType6PlanTargets } from "@/modules/activity/features/type-6";
 import type { Type6TargetItem } from "@/modules/activity/features/type-6/shared/types";
 
@@ -211,28 +212,23 @@ export class Type6PdfRenderer implements TypePdfRenderer {
     // 3. Custom Signature Boxes for Standalone Export
     let signatureBoxesHtml: string | undefined = undefined;
     if (options.typeCode && options.typeCode !== "ALL") {
-      signatureBoxesHtml = `
-        <div class="signatures-grid avoid-break">
-          <div class="signature-card">
-            <div class="signature-role">ผู้รับเรื่องร้องเรียน / ตัวแทนฝ่ายขาย</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แทนฝ่ายขายประจำเขต<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ลูกค้า / ร้านค้าผู้แจ้งเรื่อง</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้แจ้งปัญหา / ผู้ร้องเรียน<br/>วันที่: ....../....../......</div>
-          </div>
-          <div class="signature-card">
-            <div class="signature-role">ผู้อนุมัติผลการแก้ไขปัญหา</div>
-            <div class="signature-line"></div>
-            <div class="signature-name">....................................................</div>
-            <div class="signature-date">ผู้จัดการฝ่ายบริการลูกค้า / QA<br/>วันที่: ....../....../......</div>
-          </div>
-        </div>
-      `;
+      signatureBoxesHtml = renderApprovalBoxes({
+        plan,
+        customBoxes: [
+          {
+            roleTitle: "ผู้รับเรื่องร้องเรียน / ตัวแทนฝ่ายขาย",
+            position: "ผู้แทนฝ่ายขายประจำเขต",
+          },
+          {
+            roleTitle: "ลูกค้า / ร้านค้าผู้แจ้งเรื่อง",
+            position: "ผู้แจ้งปัญหา / ผู้ร้องเรียน",
+          },
+          {
+            roleTitle: "ผู้อนุมัติผลการแก้ไขปัญหา",
+            position: "ผู้จัดการฝ่ายบริการลูกค้า / QA",
+          },
+        ],
+      });
     }
 
     return {

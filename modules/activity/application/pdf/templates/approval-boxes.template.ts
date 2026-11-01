@@ -1,5 +1,9 @@
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
-import { formatDateThai, safeHtml } from "./template-helpers";
+import {
+  formatDateThai,
+  safeHtml,
+  resolvePlanCreatorInfo,
+} from "./template-helpers";
 
 interface ApprovalBoxesProps {
   plan: ActivityPlanWithRelations;
@@ -15,20 +19,27 @@ export function renderApprovalBoxes({
   plan,
   customBoxes,
 }: ApprovalBoxesProps): string {
+  const creatorInfo = resolvePlanCreatorInfo(plan);
+  const creatorName = creatorInfo.name !== "-" ? creatorInfo.name : "";
+
   if (customBoxes && customBoxes.length > 0) {
     const widthPercent = (100 / customBoxes.length).toFixed(2);
     return `
     <div class="signatures-grid avoid-break">
       ${customBoxes
         .map(
-          (box) => `
+          (box, idx) => {
+            const resolvedPersonName =
+              box.personName || (idx === 0 ? creatorName : "");
+            return `
         <div class="signature-card" style="width: ${widthPercent}%;">
           <div class="signature-role">${safeHtml(box.roleTitle)}</div>
           <div class="signature-line"></div>
-          <div class="signature-name">${safeHtml(box.personName || "....................................................")}</div>
+          <div class="signature-name">${resolvedPersonName ? `(${safeHtml(resolvedPersonName)})` : "...................................................."}</div>
           <div class="signature-date">${box.position ? safeHtml(box.position) + "<br/>" : ""}วันที่: ${safeHtml(box.dateStr || "....../....../......")}</div>
         </div>
-      `,
+      `;
+          },
         )
         .join("")}
     </div>
@@ -36,13 +47,26 @@ export function renderApprovalBoxes({
   }
 
   // Standard 3 boxes
-  const emp = (plan as any).employee;
-  const creatorUser = (plan as any).creator;
-  const creatorName = emp
-    ? `${emp.firstName || ""} ${emp.lastName || ""}`.trim()
-    : creatorUser?.name || "";
+  let approverName =
+    (plan as any).approver?.name ||
+    (plan as any).currentApprover?.name ||
+    "";
 
-  const approverName = (plan as any).approver?.name || "";
+  if (
+    !approverName &&
+    Array.isArray((plan as any).approvalLogs) &&
+    (plan as any).approvalLogs.length > 0
+  ) {
+    const approveLog =
+      (plan as any).approvalLogs.find(
+        (log: any) => log.action === "APPROVE" || log.action === "APPROVED",
+      ) || (plan as any).approvalLogs[0];
+    approverName =
+      approveLog?.user?.name ||
+      approveLog?.user?.employeeProfile?.name ||
+      "";
+  }
+
   const approvedDateStr = (plan as any).approvedAt
     ? formatDateThai((plan as any).approvedAt)
     : "";
