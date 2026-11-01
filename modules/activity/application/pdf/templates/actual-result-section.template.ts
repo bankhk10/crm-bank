@@ -51,6 +51,8 @@ export function renderActualResultSection({
   const rawImages: any[] = [];
   if (Array.isArray(parsedResults.images)) rawImages.push(...parsedResults.images);
   if (Array.isArray(parsedResults.t7Images)) rawImages.push(...parsedResults.t7Images);
+  if (Array.isArray(parsedResults.t9Images)) rawImages.push(...parsedResults.t9Images);
+  if (Array.isArray(parsedResults.type9Actual?.images)) rawImages.push(...parsedResults.type9Actual.images);
   if (Array.isArray(parsedResults.t11Images)) rawImages.push(...parsedResults.t11Images);
   if (Array.isArray(parsedResults.t12Images)) rawImages.push(...parsedResults.t12Images);
   if (Array.isArray(parsedResults.t13Images)) rawImages.push(...parsedResults.t13Images);
