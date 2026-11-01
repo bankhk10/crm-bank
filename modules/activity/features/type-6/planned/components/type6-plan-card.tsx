@@ -190,20 +190,6 @@ export function Type6PlanCard({
           </div>
         </div>
       )}
-
-      {/* ───────────────────────────────────────────────────────────── */}
-      {/* SECTION: รายละเอียดเพิ่มเติม (ภาพรวมแผนงาน) */}
-      {/* ───────────────────────────────────────────────────────────── */}
-      {target.detail && !isDetailDuplicate && (
-        <div className="pt-2.5 border-t border-slate-100 space-y-1 text-xs">
-          <span className="text-slate-400 font-medium block text-[11px]">
-            รายละเอียดเพิ่มเติม (ภาพรวมแผนงาน)
-          </span>
-          <div className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-100 text-slate-700 text-xs leading-relaxed whitespace-pre-wrap break-words">
-            {target.detail}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
