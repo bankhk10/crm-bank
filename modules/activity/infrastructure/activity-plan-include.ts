@@ -1051,7 +1051,17 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
   approvalLogs: {
     include: {
       user: {
-        select: { id: true, name: true, email: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          position: true,
+          employeeProfile: {
+            include: {
+              position: true,
+            },
+          },
+        },
       },
     },
     orderBy: { createdAt: "desc" },

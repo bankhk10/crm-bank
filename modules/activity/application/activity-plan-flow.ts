@@ -6,6 +6,7 @@ import {
   ActivityHelperStatus,
   ActivityApprovalAction,
   ActivityApprovalStep,
+  ActivityResultStatus,
 } from "@prisma/client";
 import {
   syncActivityPlanToCalendarUseCase,
@@ -1856,6 +1857,15 @@ export async function requestCancelActivityPlanUseCase(
 
       await cancelActivityPlanCalendarUseCase(planId, tx);
 
+      // Sync activityResult if previously recorded
+      await tx.activityResult.updateMany({
+        where: { activityPlanId: planId },
+        data: {
+          resultStatus: ActivityResultStatus.CANCELLED,
+          cancelReason: plan.cancellationReason || "ยกเลิกแผนงาน",
+        },
+      });
+
       await tx.activityApprovalLog.create({
         data: {
           activityPlanId: planId,
@@ -1869,16 +1879,76 @@ export async function requestCancelActivityPlanUseCase(
       return { success: true };
     }
 
-    // Determine managerial line approver for cancellation
-    let targetLineApproverId: string | null = plan.employee?.managerId || null;
+    // Determine managerial line approver for cancellation:
+    // 1. First, check who previously approved this plan in LINE_APPROVAL step (คนที่อนุมัติมา)
+    let targetLineApproverId: string | null = null;
+
+    const previousLineApprovalLog = await tx.activityApprovalLog.findFirst({
+      where: {
+        activityPlanId: planId,
+        action: ActivityApprovalAction.APPROVE,
+        step: ActivityApprovalStep.LINE_APPROVAL,
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          include: {
+            employeeProfile: {
+              include: { position: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (previousLineApprovalLog?.user?.employeeProfile?.id) {
+      targetLineApproverId = previousLineApprovalLog.user.employeeProfile.id;
+    } else {
+      // Check any other APPROVE log on this plan
+      const anyApprovalLog = await tx.activityApprovalLog.findFirst({
+        where: {
+          activityPlanId: planId,
+          action: ActivityApprovalAction.APPROVE,
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            include: {
+              employeeProfile: {
+                include: { position: true },
+              },
+            },
+          },
+        },
+      });
+
+      if (anyApprovalLog?.user?.employeeProfile?.id) {
+        targetLineApproverId = anyApprovalLog.user.employeeProfile.id;
+      }
+    }
+
+    // 2. If no prior approval log found, check direct manager
+    if (!targetLineApproverId && plan.employee?.managerId) {
+      targetLineApproverId = plan.employee.managerId;
+    }
+
+    // 3. If still null, resolve via dynamic line hierarchy (same as when submitting plan)
+    if (!targetLineApproverId && plan.employeeId) {
+      const fullCreator = await tx.employee.findUnique({
+        where: { id: plan.employeeId },
+        include: { position: true, department: true },
+      });
+      targetLineApproverId = await resolveNextLineApprover(fullCreator, tx);
+    }
+
+    // 4. Ensure if targetLineApproverId is operational, escalate to their supervisor
     if (targetLineApproverId) {
       const directMgr = await tx.employee.findUnique({
         where: { id: targetLineApproverId },
         include: { position: true },
       });
-      // If direct manager is operational, escalate to their supervisor
-      if (directMgr && isOperationalEmployee(directMgr)) {
-        targetLineApproverId = directMgr.managerId || null;
+      if (directMgr && isOperationalEmployee(directMgr) && directMgr.managerId) {
+        targetLineApproverId = directMgr.managerId;
       }
     }
 
@@ -2050,6 +2120,15 @@ export async function approveCancelActivityPlanUseCase(
       });
 
       await cancelActivityPlanCalendarUseCase(planId, tx);
+
+      // Sync activityResult if previously recorded
+      await tx.activityResult.updateMany({
+        where: { activityPlanId: planId },
+        data: {
+          resultStatus: ActivityResultStatus.CANCELLED,
+          cancelReason: plan.cancellationReason || "ยกเลิกแผนงาน",
+        },
+      });
 
       // Notify Creator
       await sendNotificationHelper(

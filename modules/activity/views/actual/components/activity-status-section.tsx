@@ -91,7 +91,14 @@ export function ActivityStatusSection({
               },
               {
                 id: "CANCELLED" as const,
-                label: <span>{ACTIVITY_RESULT_STATUS_LABELS.CANCELLED}</span>,
+                label: (
+                  <div className="text-center leading-tight">
+                    <div>ขอยกเลิกแผน</div>
+                    <div className="text-[10px] opacity-80 font-normal">
+                      (ส่งขออนุมัติ)
+                    </div>
+                  </div>
+                ),
                 icon: <X className="w-4 h-4 text-rose-600" />,
                 activeClass:
                   "bg-rose-50/90 border-rose-500 text-rose-950 ring-1 ring-rose-500/50 shadow-2xs",
@@ -102,7 +109,7 @@ export function ActivityStatusSection({
                 type="button"
                 onClick={() => setActivityResultStatus(st.id)}
                 className={cn(
-                  "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2",
+                  "py-3 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer",
                   activityResultStatus === st.id
                     ? st.activeClass
                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300",
@@ -118,16 +125,21 @@ export function ActivityStatusSection({
         {/* กรณีเลือก ยกเลิก (CANCELLED) */}
         {activityResultStatus === "CANCELLED" && (
           <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 sm:p-4 space-y-2 animate-in fade-in-50">
-            <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
-              <span>⚠️</span> สาเหตุที่ยกเลิก{" "}
-              <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <label className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                <span>⚠️</span> เหตุผลในการขอยกเลิกแผนงาน (ส่งต่อให้หัวหน้าพิจารณาอนุมัติ){" "}
+                <span className="text-rose-500">*</span>
+              </label>
+              <span className="text-[11px] text-rose-600 font-medium">
+                * คำขอนี้จะถูกส่งไปให้ผู้จัดการตามสายงานอนุมัติ
+              </span>
+            </div>
             <Textarea
-              rows={2}
+              rows={3}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="ระบุสาเหตุที่ต้องยกเลิกกิจกรรม..."
-              className="bg-white border-rose-200 text-xs sm:text-sm"
+              placeholder="ระบุเหตุผลและรายละเอียดการขอยกเลิกแผนงาน..."
+              className="bg-white border-rose-200 text-xs sm:text-sm focus-visible:ring-rose-400"
             />
           </div>
         )}

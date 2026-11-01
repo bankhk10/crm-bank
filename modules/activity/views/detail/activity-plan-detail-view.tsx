@@ -17,7 +17,6 @@ import {
   DetailActivityStatusSection,
   DetailAuditLogs,
   DetailViewActions,
-  CancelPlanDialog,
 } from "./components";
 import { useDetailPlanLoader } from "./hooks";
 import { AdminTestToolbar } from "@/modules/activity/dev-tools";
@@ -43,14 +42,6 @@ export default function ActivityPlanDetailView({
     parsedResults,
     mergedLogs,
     isTypeActive,
-    canRequestCancel,
-    cancelDialogOpen,
-    setCancelDialogOpen,
-    cancelReason,
-    setCancelReason,
-    cancelLoading,
-    cancelError,
-    handleCancelSubmit,
     handleBack,
   } = useDetailPlanLoader({ id, onBack });
 
@@ -166,34 +157,9 @@ export default function ActivityPlanDetailView({
               </Button>
             </Link>
           )}
-
-          {canRequestCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCancelDialogOpen(true)}
-              className="px-5 py-2.5 h-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
-            >
-              <AlertCircle className="w-4 h-4" />
-              <span>ขอยกเลิกแผนงาน</span>
-            </Button>
-          )}
         </DetailViewActions>
       </div>
 
-      {/* Cancellation Dialog */}
-      <CancelPlanDialog
-        open={cancelDialogOpen}
-        onOpenChange={setCancelDialogOpen}
-        planCodeOrTitle={
-          plan.code || planSummary.planNo || plan.title || plan.id
-        }
-        cancelReason={cancelReason}
-        onReasonChange={setCancelReason}
-        onSubmit={handleCancelSubmit}
-        loading={cancelLoading}
-        error={cancelError}
-      />
       <div className="h-12 md:hidden" />
     </section>
   );

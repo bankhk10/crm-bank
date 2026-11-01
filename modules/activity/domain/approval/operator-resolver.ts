@@ -175,17 +175,60 @@ export function resolveCancellationApprover(
   const isLineApproved = plan.lineCancellationApproved === true;
   const isMktApproved = plan.mktCancellationApproved === true;
 
+  // 1. Prioritize lineApprover from plan.currentApprover or plan.employee.manager
   const lineApprover =
     plan.currentApprover || plan.employee?.manager || null;
 
-  const rawLinePos =
-    lineApprover?.positionTitle || lineApprover?.position?.name;
+  let rawLinePos =
+    lineApprover?.positionTitle || lineApprover?.position?.name || null;
+  let empRawName = lineApprover?.name || null;
+
+  // 2. If position is missing, look at approvalLogs for the person who previously approved the plan ("คนที่อนุมัติมา")
+  if (!rawLinePos && Array.isArray(plan.approvalLogs) && plan.approvalLogs.length > 0) {
+    const prevApproveLog =
+      plan.approvalLogs.find(
+        (log: any) =>
+          log.action === "APPROVE" &&
+          (log.step === "LINE_APPROVAL" || log.step === "CANCELLATION_APPROVAL"),
+      ) || plan.approvalLogs.find((log: any) => log.action === "APPROVE");
+
+    if (prevApproveLog?.user) {
+      const u = prevApproveLog.user;
+      const emp = u.employeeProfile || u.employee;
+      rawLinePos =
+        emp?.positionTitle ||
+        emp?.position?.name ||
+        u.positionTitle ||
+        u.position?.name ||
+        (typeof u.position === "string" ? u.position : null);
+
+      if (!empRawName) {
+        empRawName = emp?.name || u.name || null;
+      }
+    }
+  }
+
+  // 3. Fallback based on creator's hierarchy (same as how plan approval is resolved)
+  if (!rawLinePos && plan.employee) {
+    const creatorPos =
+      plan.employee.positionTitle ||
+      plan.employee.position?.name ||
+      "";
+    if (creatorPos.includes("ส่งเสริม")) {
+      rawLinePos = "District Manager";
+    } else if (creatorPos.includes("พนักงานขาย") || creatorPos.includes("เซลส์")) {
+      rawLinePos = "District Manager";
+    } else if (creatorPos.includes("ผู้จัดการเขต") || creatorPos.includes("District")) {
+      rawLinePos = "Area Manager";
+    } else if (creatorPos.includes("ผู้จัดการภาค") || creatorPos.includes("Area")) {
+      rawLinePos = "Sales Admin Manager";
+    }
+  }
 
   const formattedLineRole = rawLinePos
     ? formatApproverRole(rawLinePos)
-    : "หัวหน้างานสายตรง";
-  const lineTitleTh = rawLinePos || formattedLineRole || "หัวหน้างานสายตรง";
-  const empRawName = lineApprover?.name || null;
+    : "District Manager";
+  const lineTitleTh = rawLinePos || formattedLineRole;
   const empCleanName = formatEmployeeName(empRawName);
 
   // Case 1: If plan has NO product withdrawal, only Line Approver is needed

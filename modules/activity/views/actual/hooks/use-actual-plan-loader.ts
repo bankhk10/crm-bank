@@ -106,6 +106,22 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
           return;
         }
 
+        if (p.status === "PENDING_CANCELLATION") {
+          setUnauthorizedError(
+            "แผนงานนี้อยู่ระหว่างรออนุมัติการยกเลิกตามสายงาน ไม่สามารถบันทึกหรือแก้ไขผลการปฏิบัติงานได้",
+          );
+          setLoadingPlan(false);
+          return;
+        }
+
+        if (p.status === "CANCELLED") {
+          setUnauthorizedError(
+            "แผนงานนี้ถูกยกเลิกแล้ว ไม่สามารถบันทึกหรือแก้ไขผลการปฏิบัติงานได้",
+          );
+          setLoadingPlan(false);
+          return;
+        }
+
         setPlanStatus(p.status);
 
         const extracted = extractPlanData(p, initialTargets);

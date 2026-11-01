@@ -118,7 +118,10 @@ import {
   type Type14TargetItem,
 } from "@/modules/activity/features/type-14";
 import { FormActionButtons, ValidationAlertDialog } from "@/modules/activity/ui";
-import { recordActivityResultAction } from "@/modules/activity/server/actions";
+import {
+  recordActivityResultAction,
+  requestCancelActivityPlanAction,
+} from "@/modules/activity/server/actions";
 import {
   uploadActivityPlanImageGroup,
   deleteActivityPlanImagePaths,
@@ -565,16 +568,62 @@ export function ActivityPlanActualView({
       Boolean(plan?.type14) ||
       plan?.activityType?.code === "TYPE_14";
 
-    // 1. Validation for CANCELLED
-    if (activityResultStatus === "CANCELLED" && !cancelReason.trim()) {
-      setValidationAlert({
-        isOpen: true,
-        title: "กรุณาระบุเหตุผลการยกเลิก",
-        description:
-          "จำเป็นต้องระบุเหตุผลเพื่อเป็นบันทึกประกอบการยกเลิกแผนงานกิจกรรม",
-        messages: ["เหตุผลการยกเลิกกิจกรรม"],
-      });
-      setFormError("กรุณาระบุเหตุผลการยกเลิก");
+    // 1. Handling for CANCELLED (Request cancellation to manager)
+    if (activityResultStatus === "CANCELLED") {
+      if (!cancelReason.trim()) {
+        setValidationAlert({
+          isOpen: true,
+          title: "กรุณาระบุเหตุผลการยกเลิก",
+          description:
+            "จำเป็นต้องระบุเหตุผลเพื่อส่งคำขอยกเลิกแผนงานไปยังผู้จัดการตามสายงาน",
+          messages: ["เหตุผลการยกเลิกแผนกิจกรรม"],
+        });
+        setFormError("กรุณาระบุเหตุผลการยกเลิก");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setFormError(null);
+      try {
+        const res = await requestCancelActivityPlanAction(
+          id,
+          cancelReason.trim(),
+        );
+        if (res.success) {
+          toast.success(
+            "ส่งคำขอยกเลิกแผนงานเรียบร้อยแล้ว รอการอนุมัติตามสายงาน",
+          );
+          if (onSuccess) onSuccess();
+          else router.push(`/activity-plans/${id}`);
+          router.refresh();
+        } else {
+          const friendlyMsg = formatUserFriendlyError(
+            res.error,
+            "เกิดข้อผิดพลาดในการส่งคำขอยกเลิกแผนงาน",
+          );
+          setFormError(friendlyMsg);
+          setValidationAlert({
+            isOpen: true,
+            title: "ไม่สามารถส่งคำขอยกเลิกได้",
+            description: friendlyMsg,
+            messages: [],
+          });
+        }
+      } catch (err: any) {
+        const friendlyMsg = formatUserFriendlyError(
+          err,
+          "เกิดข้อผิดพลาดไม่คาดคิดในการส่งคำขอยกเลิก",
+        );
+        setFormError(friendlyMsg);
+        setValidationAlert({
+          isOpen: true,
+          title: "เกิดข้อผิดพลาดไม่คาดคิด",
+          description: friendlyMsg,
+          messages: [],
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -780,8 +829,7 @@ export function ActivityPlanActualView({
         actualEndDate: planEnd,
         resultStatus: activityResultStatus,
         resultSummary: `บันทึกผลการปฏิบัติงาน (${activityResultStatus})`,
-        cancelReason:
-          activityResultStatus === "CANCELLED" ? cancelReason.trim() : null,
+        cancelReason: null,
         postponedDate:
           activityResultStatus === "POSTPONED" && postponedDate
             ? parseDateSafe(`${postponedDate}T${postponedTime || "08:30"}:00`)
@@ -1636,10 +1684,10 @@ export function ActivityPlanActualView({
             </div>
             <div className="space-y-1">
               <h3 className="text-base sm:text-lg font-bold text-slate-800">
-                ไม่มีสิทธิ์บันทึกผลการปฏิบัติงาน
+                ไม่สามารถดำเนินการบันทึกผลได้
               </h3>
-              <p className="text-sm text-slate-600">
-                เฉพาะผู้สร้างแผนงานนี้เท่านั้นที่สามารถบันทึกผลการปฏิบัติงานได้
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
+                {unauthorizedError}
               </p>
             </div>
             <div className="pt-2">
@@ -1920,7 +1968,7 @@ export function ActivityPlanActualView({
             />
           )}
 
-          {/* 3. สถานะผลการทำกิจกรรม (สำเร็จ / เลื่อน / ยกเลิก) */}
+          {/* 3. สถานะผลการทำกิจกรรม (สำเร็จ / เลื่อน / ขอยกเลิก) */}
           <ActivityStatusSection
             activityResultStatus={statusState.activityResultStatus}
             setActivityResultStatus={statusState.setActivityResultStatus}
@@ -1936,11 +1984,25 @@ export function ActivityPlanActualView({
             setPostponedNotes={statusState.setPostponedNotes}
           />
 
-          {/* ปุ่มบันทึก */}
+          {/* ปุ่มบันทึก / ส่งคำขอยกเลิก */}
           <FormActionButtons
             onBack={handleBack}
             loading={isSubmitting}
-            submitLabel="บันทึกผลการปฏิบัติงาน"
+            submitLabel={
+              statusState.activityResultStatus === "CANCELLED"
+                ? "ยืนยันส่งคำขอยกเลิกแผนงาน"
+                : "บันทึกผลการปฏิบัติงาน"
+            }
+            loadingLabel={
+              statusState.activityResultStatus === "CANCELLED"
+                ? "กำลังส่งคำขอยกเลิกแผนงาน..."
+                : "กำลังบันทึกผลการปฏิบัติงาน..."
+            }
+            submitButtonClassName={
+              statusState.activityResultStatus === "CANCELLED"
+                ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs focus-visible:ring-rose-500"
+                : undefined
+            }
           />
           <div className="h-12 md:hidden" />
         </form>
