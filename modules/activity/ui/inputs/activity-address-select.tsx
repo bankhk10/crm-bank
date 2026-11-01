@@ -106,7 +106,15 @@ function ActivityCombobox({
   const [open, setOpen] = useState(false);
 
   const selectedOption = useMemo(() => {
-    return options.find((opt) => opt.value === value || opt.label === value);
+    if (!value) return undefined;
+    const cleanVal = String(value).trim();
+    const exact = options.find((opt) => opt.value === cleanVal || opt.label === cleanVal);
+    if (exact) return exact;
+    const strippedVal = cleanVal.replace(/^(จังหวัด|จ\.|อำเภอ|เขต|อ\.|ตำบล|แขวง|ต\.)\s*/, "");
+    return options.find((opt) => {
+      const strippedOpt = opt.label.replace(/^(จังหวัด|จ\.|อำเภอ|เขต|อ\.|ตำบล|แขวง|ต\.)\s*/, "");
+      return strippedOpt === strippedVal;
+    });
   }, [options, value]);
 
   return (
@@ -135,7 +143,7 @@ function ActivityCombobox({
             )}
           >
             <span className="truncate text-left flex-1 min-w-0">
-              {selectedOption ? selectedOption.label : placeholder}
+              {selectedOption ? selectedOption.label : (value || placeholder)}
             </span>
             <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
           </Button>

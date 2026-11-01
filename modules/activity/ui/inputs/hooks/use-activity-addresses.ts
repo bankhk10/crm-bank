@@ -135,7 +135,13 @@ export function useActivityAddresses(): UseActivityAddressesResult {
     (provinceName?: string | null): Array<{ value: string; label: string }> => {
       const cleanProv = provinceName?.trim();
       if (!cleanProv) return [];
-      const matched = provincesData.find((p) => p.name === cleanProv);
+      const strippedProv = cleanProv.replace(/^(จังหวัด|จ\.)\s*/, "");
+      const matched = provincesData.find(
+        (p) =>
+          p.name === cleanProv ||
+          p.name === strippedProv ||
+          p.name.replace(/^(จังหวัด|จ\.)\s*/, "") === strippedProv
+      );
       if (!matched) return [];
       return matched.districts.map((d) => ({
         value: d.name,
@@ -154,10 +160,22 @@ export function useActivityAddresses(): UseActivityAddressesResult {
       const cleanDist = districtName?.trim();
       if (!cleanProv || !cleanDist) return [];
 
-      const matchedProv = provincesData.find((p) => p.name === cleanProv);
+      const strippedProv = cleanProv.replace(/^(จังหวัด|จ\.)\s*/, "");
+      const matchedProv = provincesData.find(
+        (p) =>
+          p.name === cleanProv ||
+          p.name === strippedProv ||
+          p.name.replace(/^(จังหวัด|จ\.)\s*/, "") === strippedProv
+      );
       if (!matchedProv) return [];
 
-      const matchedDist = matchedProv.districts.find((d) => d.name === cleanDist);
+      const strippedDist = cleanDist.replace(/^(อำเภอ|เขต|อ\.)\s*/, "");
+      const matchedDist = matchedProv.districts.find(
+        (d) =>
+          d.name === cleanDist ||
+          d.name === strippedDist ||
+          d.name.replace(/^(อำเภอ|เขต|อ\.)\s*/, "") === strippedDist
+      );
       if (!matchedDist) return [];
 
       return matchedDist.subdistricts.map((s) => ({
@@ -180,9 +198,31 @@ export function useActivityAddresses(): UseActivityAddressesResult {
       const cleanSub = subdistrictName?.trim();
       if (!cleanProv || !cleanDist || !cleanSub) return "";
 
-      const matchedProv = provincesData.find((p) => p.name === cleanProv);
-      const matchedDist = matchedProv?.districts.find((d) => d.name === cleanDist);
-      const matchedSub = matchedDist?.subdistricts.find((s) => s.name === cleanSub);
+      const strippedProv = cleanProv.replace(/^(จังหวัด|จ\.)\s*/, "");
+      const matchedProv = provincesData.find(
+        (p) =>
+          p.name === cleanProv ||
+          p.name === strippedProv ||
+          p.name.replace(/^(จังหวัด|จ\.)\s*/, "") === strippedProv
+      );
+      if (!matchedProv) return "";
+
+      const strippedDist = cleanDist.replace(/^(อำเภอ|เขต|อ\.)\s*/, "");
+      const matchedDist = matchedProv.districts.find(
+        (d) =>
+          d.name === cleanDist ||
+          d.name === strippedDist ||
+          d.name.replace(/^(อำเภอ|เขต|อ\.)\s*/, "") === strippedDist
+      );
+      if (!matchedDist) return "";
+
+      const strippedSub = cleanSub.replace(/^(ตำบล|แขวง|ต\.)\s*/, "");
+      const matchedSub = matchedDist.subdistricts.find(
+        (s) =>
+          s.name === cleanSub ||
+          s.name === strippedSub ||
+          s.name.replace(/^(ตำบล|แขวง|ต\.)\s*/, "") === strippedSub
+      );
 
       return matchedSub?.postalCode || "";
     },

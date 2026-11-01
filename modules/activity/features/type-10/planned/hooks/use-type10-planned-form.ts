@@ -43,6 +43,9 @@ export function useType10PlannedForm({
   const [type10DemoPlot, setType10DemoPlot] = useState<string>(
     initialData.demoPlotId,
   );
+  const [type10PlotName, setType10PlotName] = useState<string>(
+    initialData.plotName || "",
+  );
   const [type10Location, setType10Location] = useState<string>(
     initialData.location,
   );
@@ -63,6 +66,9 @@ export function useType10PlannedForm({
   useEffect(() => {
     if (initialData.demoPlotId !== undefined && initialData.demoPlotId !== "") {
       setType10DemoPlot(initialData.demoPlotId);
+    }
+    if (initialData.plotName !== undefined && initialData.plotName !== "") {
+      setType10PlotName(initialData.plotName);
     }
     if (initialData.location !== undefined && initialData.location !== "") {
       setType10Location(initialData.location);
@@ -117,8 +123,8 @@ export function useType10PlannedForm({
 
       const targetItem = {
         demoPlotId: submittedDemoPlotId,
-        type7aTargetId: p ? p.id : null,
-        plotName: p?.name || (!p && type10DemoPlot ? type10DemoPlot : null),
+        type7aTargetId: p ? p.id : (initialData?.type7aTargetId || null),
+        plotName: p?.name || type10PlotName || (!p && type10DemoPlot ? type10DemoPlot : null),
         farmerName: p?.ownerName || null,
         location: loc,
         province: p?.province || null,
@@ -152,6 +158,8 @@ export function useType10PlannedForm({
   return {
     type10DemoPlot,
     setType10DemoPlot,
+    type10PlotName,
+    setType10PlotName,
     type10Location,
     setType10Location,
     type10TargetCrop,

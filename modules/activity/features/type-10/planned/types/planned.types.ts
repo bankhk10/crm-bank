@@ -69,6 +69,7 @@ export interface Type10PlannedFormProps {
   isEdit?: boolean;
   type10DemoPlot: string;
   setType10DemoPlot: (val: string) => void;
+  type10PlotName?: string;
   type10Location?: string;
   setType10Location?: (val: string) => void;
   type10TargetCrop?: string;
@@ -114,6 +115,8 @@ export interface UseType10PlannedFormOptions {
 export interface UseType10PlannedFormResult {
   type10DemoPlot: string;
   setType10DemoPlot: React.Dispatch<React.SetStateAction<string>>;
+  type10PlotName: string;
+  setType10PlotName: React.Dispatch<React.SetStateAction<string>>;
   type10Location: string;
   setType10Location: React.Dispatch<React.SetStateAction<string>>;
   type10TargetCrop: string;

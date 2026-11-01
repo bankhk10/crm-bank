@@ -225,6 +225,8 @@ export function extractType10PlanTargets(
  */
 export function hydrateType10PlannedData(initialData: any): {
   demoPlotId: string;
+  type7aTargetId?: string;
+  plotName?: string;
   location: string;
   targetCrop: string;
   showcase: string;
@@ -242,29 +244,13 @@ export function hydrateType10PlannedData(initialData: any): {
     };
   }
 
-  // 0. Already hydrated object shape
-  if (
-    initialData.demoPlotId !== undefined ||
-    initialData.targetCrop !== undefined ||
-    initialData.showcase !== undefined ||
-    initialData.attendees !== undefined ||
-    initialData.bookingSales !== undefined
-  ) {
-    return {
-      demoPlotId: initialData.demoPlotId || "",
-      location: initialData.location || "",
-      targetCrop: initialData.targetCrop || "",
-      showcase: initialData.showcase || "",
-      attendees: Number(initialData.attendees || 0),
-      bookingSales: Number(initialData.bookingSales || 0),
-    };
-  }
-
-  // 1. Check dedicated type10Targets
+  // 1. Check dedicated relational storage (type10Targets) FIRST
   const firstTarget =
     initialData.type10Targets?.[0] ||
     initialData.type10Plots?.[0] ||
-    initialData.type10Data?.targets?.[0];
+    initialData.type10Data?.type10Targets?.[0] ||
+    initialData.type10Data?.targets?.[0] ||
+    initialData.type10Data?.plots?.[0];
 
   if (firstTarget) {
     const decoded = decodeType10Notes(firstTarget.notes || initialData.notes);
@@ -275,10 +261,20 @@ export function hydrateType10PlannedData(initialData: any): {
         firstTarget.demoPlotId ||
         firstTarget.type7aTarget?.id ||
         firstTarget.plotName ||
+        initialData.type10DemoPlot ||
         "",
+      type7aTargetId:
+        firstTarget.type7aTargetId ||
+        firstTarget.type7aTarget?.id ||
+        undefined,
+      plotName:
+        firstTarget.plotName ||
+        firstTarget.type7aTarget?.plotName ||
+        undefined,
       location:
         firstTarget.location ||
         firstTarget.demoPlot?.location ||
+        initialData.type10Location ||
         initialData.location ||
         "",
       targetCrop:
@@ -287,6 +283,7 @@ export function hydrateType10PlannedData(initialData: any): {
         firstTarget.crop ||
         decoded.targetCrop ||
         firstTarget.demoPlot?.targetCrop ||
+        initialData.type10TargetCrop ||
         "",
       showcase:
         firstTarget.showcaseProductName ||
@@ -297,27 +294,54 @@ export function hydrateType10PlannedData(initialData: any): {
         firstTarget.showcase ||
         decoded.showcase ||
         firstTarget.demoPlot?.primaryProductName ||
+        initialData.type10Showcase ||
         "",
       attendees:
         firstTarget.targetAttendeesCount != null
           ? Number(firstTarget.targetAttendeesCount)
           : firstTarget.targetAttendees != null
             ? Number(firstTarget.targetAttendees)
-            : initialData.targetAttendeesCount != null
-              ? Number(initialData.targetAttendeesCount)
-              : 0,
+            : initialData.type10Attendees != null
+              ? Number(initialData.type10Attendees)
+              : initialData.targetAttendeesCount != null
+                ? Number(initialData.targetAttendeesCount)
+                : 0,
       bookingSales:
         firstTarget.targetBookingSales != null
           ? Number(firstTarget.targetBookingSales)
           : firstTarget.targetSales != null
             ? Number(firstTarget.targetSales)
-            : initialData.targetBookingSales != null
-              ? Number(initialData.targetBookingSales)
-              : 0,
+            : initialData.type10BookingSales != null
+              ? Number(initialData.type10BookingSales)
+              : initialData.targetBookingSales != null
+                ? Number(initialData.targetBookingSales)
+                : 0,
     };
   }
 
-  // 2. Legacy fallback
+  // 2. Check if already hydrated shape (ONLY if not a full ActivityPlan)
+  const isHydratedShape =
+    (initialData.attendees !== undefined ||
+      initialData.bookingSales !== undefined ||
+      initialData.targetCrop !== undefined ||
+      initialData.showcase !== undefined) &&
+    !initialData.workTypes &&
+    !initialData.planType;
+
+  if (isHydratedShape) {
+    return {
+      demoPlotId: initialData.demoPlotId || initialData.type10DemoPlot || "",
+      type7aTargetId: initialData.type7aTargetId,
+      plotName: initialData.plotName,
+      location: initialData.location || initialData.type10Location || "",
+      targetCrop: initialData.targetCrop || initialData.type10TargetCrop || "",
+      showcase: initialData.showcase || initialData.type10Showcase || "",
+      attendees: Number(initialData.attendees || initialData.type10Attendees || initialData.targetAttendeesCount || 0),
+      bookingSales: Number(initialData.bookingSales || initialData.type10BookingSales || initialData.targetBookingSales || 0),
+    };
+  }
+
+  // 3. Legacy fallback (demoPlotVisits / demoPlot / header fields)
   const visits = initialData.demoPlotVisits || [];
   const matchedVisit = visits.find((v: any) => v.workTypeCode === "TYPE_10");
   const demoPlot = matchedVisit?.demoPlot || initialData.demoPlot;
@@ -331,6 +355,8 @@ export function hydrateType10PlannedData(initialData: any): {
       initialData.type10DemoPlot ||
       demoPlot?.id ||
       "",
+    type7aTargetId: undefined,
+    plotName: demoPlot?.name || undefined,
     location:
       initialData.type10Location ||
       demoPlot?.location ||

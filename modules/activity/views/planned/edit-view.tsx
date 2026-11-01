@@ -455,6 +455,10 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
             type8Data: (plan as any).type8 || null,
             type9: (plan as any).type9 || null,
             type9Data: (plan as any).type9 || null,
+            type9Targets: (plan as any).type9Targets || (plan as any).type9Stores || [],
+            type9Stores: (plan as any).type9Targets || (plan as any).type9Stores || [],
+            type9Products: (plan as any).type9Products || [],
+            type9Results: (plan as any).type9Results || [],
             type10: (plan as any).type10 || null,
             type10Data: (plan as any).type10 || null,
             type10Targets: (plan as any).type10Targets || [],
@@ -466,6 +470,31 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
               (plan as any).type10Targets?.[0]?.type7aTarget?.activityPlanId ||
               (plan as any).type10Targets?.[0]?.plotName ||
               null,
+            type10PlotName: (plan as any).type10Targets?.[0]?.plotName || null,
+            type10Location:
+              (plan as any).type10Targets?.[0]?.location ||
+              (plan as any).location ||
+              "",
+            type10TargetCrop:
+              (plan as any).type10Targets?.[0]?.cropName ||
+              (plan as any).type10Targets?.[0]?.cropCategory ||
+              "",
+            type10Showcase:
+              (plan as any).type10Targets?.[0]?.showcaseProductName ||
+              (plan as any).type10Targets?.[0]?.showcaseProduct?.name ||
+              "",
+            type10Attendees:
+              (plan as any).type10Targets?.[0]?.targetAttendeesCount != null
+                ? Number((plan as any).type10Targets[0].targetAttendeesCount)
+                : plan.targetAttendeesCount != null
+                  ? Number(plan.targetAttendeesCount)
+                  : 0,
+            type10BookingSales:
+              (plan as any).type10Targets?.[0]?.targetBookingSales != null
+                ? Number((plan as any).type10Targets[0].targetBookingSales)
+                : plan.targetBookingSales != null
+                  ? Number(plan.targetBookingSales)
+                  : 0,
             type11: (plan as any).type11 || null,
             type11Data: (plan as any).type11 || null,
             type13Targets: rawType13Targets,

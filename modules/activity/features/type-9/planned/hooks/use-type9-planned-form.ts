@@ -83,9 +83,9 @@ export function useType9PlannedForm({
   // 6. District (for Unregistered or synced from Sub Dealer)
   const [subDealerDistrict, setSubDealerDistrict] = useState<string>(() => {
     if (primaryDedicated?.district) return primaryDedicated.district;
-    if (isMatchedSubdealer) return matchedCustomer.district || "";
-    if ((initial as any)?.district) return (initial as any).district;
     if (initDetails?.district) return initDetails.district;
+    if (isMatchedSubdealer && matchedCustomer.district) return matchedCustomer.district;
+    if ((initial as any)?.district) return (initial as any).district;
     return "";
   });
 
@@ -141,7 +141,7 @@ export function useType9PlannedForm({
     );
     const target = (initial as any)?.type9Targets?.[0];
     const sId = target?.subdealerId || store?.storeId;
-    if (!sId && !target?.subDealerStore && !store?.subDealerStore) return;
+    if (!sId && !target?.subDealerStore && !store?.subDealerStore && !target?.isUnregisteredSubdealer) return;
 
     const matched = customersList.find((c) => c.id === sId);
     if (
@@ -152,8 +152,8 @@ export function useType9PlannedForm({
       setIsUnregisteredSubdealer(false);
       setSubdealerId(matched.id);
       setSubdealerName(matched.name);
-      setSubDealerProvince(matched.province || "");
-      setSubDealerDistrict(matched.district || "");
+      setSubDealerProvince(matched.province || target?.province || store?.province || initDetails?.province || "");
+      setSubDealerDistrict(matched.district || target?.district || store?.district || initDetails?.district || "");
       if (matched.parentDealerId) {
         setParentDealerId(matched.parentDealerId);
         const pDealer = customersList.find(
@@ -161,17 +161,18 @@ export function useType9PlannedForm({
         );
         if (pDealer) setParentDealerName(pDealer.name);
       }
-    } else if (target?.subDealerStore || store?.subDealerStore) {
+    } else if (target?.subDealerStore || store?.subDealerStore || target?.isUnregisteredSubdealer) {
       setIsUnregisteredSubdealer(true);
       setSubDealerStore(target?.subDealerStore || store?.subDealerStore || "");
-      if (target?.province || store?.province) setSubDealerProvince(target?.province || store?.province || "");
-      if ((initial as any)?.district)
-        setSubDealerDistrict((initial as any).district);
+      const prov = target?.province || store?.province || initDetails?.province || (initial as any)?.province || "";
+      if (prov) setSubDealerProvince(prov);
+      const dist = target?.district || store?.district || initDetails?.district || (initial as any)?.district || "";
+      if (dist) setSubDealerDistrict(dist);
       if (target?.dealerId || store?.storeId) setParentDealerId(target?.dealerId || store?.storeId || "");
       if (target?.dealerName || store?.storeName || store?.store?.name)
         setParentDealerName(target?.dealerName || store?.storeName || store?.store?.name || "");
     }
-  }, [customersList, initial]);
+  }, [customersList, initial, initDetails]);
 
   const [type9Sales, setType9Sales] = useState<number>(() => {
     if (primaryDedicated?.targetSales != null) return Number(primaryDedicated.targetSales);

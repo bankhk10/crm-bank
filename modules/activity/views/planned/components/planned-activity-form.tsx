@@ -1553,6 +1553,7 @@ export function PlannedActivityForm({
           isEdit={isEdit}
           type10DemoPlot={type10.type10DemoPlot}
           setType10DemoPlot={type10.setType10DemoPlot}
+          type10PlotName={type10.type10PlotName}
           type10Location={type10.type10Location}
           setType10Location={type10.setType10Location}
           type10TargetCrop={type10.type10TargetCrop}

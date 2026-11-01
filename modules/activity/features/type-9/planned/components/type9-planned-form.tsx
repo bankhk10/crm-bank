@@ -221,13 +221,13 @@ export function Type9PlannedForm({
                       <div>
                         <span className="text-slate-400">จังหวัด:</span>{" "}
                         <span className="font-medium text-slate-700">
-                          {selectedSubdealerCustomer.province || "-"}
+                          {selectedSubdealerCustomer.province || activeProvince || "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-slate-400">อำเภอ:</span>{" "}
                         <span className="font-medium text-slate-700">
-                          {selectedSubdealerCustomer.district || "-"}
+                          {selectedSubdealerCustomer.district || activeDistrict || "-"}
                         </span>
                       </div>
                       {resolvedParentDealerName && (

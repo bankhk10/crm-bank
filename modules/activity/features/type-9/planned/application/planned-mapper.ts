@@ -315,7 +315,7 @@ export function hydrateType9PlannedData(initialData?: any): {
     isUnregisteredSubdealer: isUnreg,
     subDealerStore: primaryStore?.subDealerStore || "",
     province: primaryStore?.province || initialData.province || "",
-    district: initialData.district || "",
+    district: primaryStore?.district || initialData.district || "",
     parentDealerId: isUnreg ? primaryStore?.storeId || "" : "",
     parentDealerName: isUnreg ? primaryStore?.storeName || "" : "",
     type9Sales:

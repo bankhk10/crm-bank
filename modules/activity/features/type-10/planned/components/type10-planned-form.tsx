@@ -57,6 +57,7 @@ export function Type10PlannedForm({
   isEdit = false,
   type10DemoPlot,
   setType10DemoPlot,
+  type10PlotName = "",
   type10Location = "",
   setType10Location,
   type10TargetCrop = "",
@@ -217,8 +218,8 @@ export function Type10PlannedForm({
         planMap.set(type10DemoPlot, {
           planId: type10DemoPlot,
           planCode: undefined,
-          planTitle: `แผนงานแปลงสาธิต (${type10DemoPlot})`,
-          plotName: type10DemoPlot,
+          planTitle: type10PlotName ? `แปลงสาธิต: ${type10PlotName}` : `แผนงานแปลงสาธิต (${type10DemoPlot})`,
+          plotName: type10PlotName || type10DemoPlot,
           cropName: type10TargetCrop,
           showcase: type10Showcase,
           location: type10Location,
