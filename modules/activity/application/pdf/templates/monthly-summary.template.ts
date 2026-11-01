@@ -6,6 +6,7 @@ import {
   formatQty,
   safeHtml,
   extractTargetAddresses,
+  extractTargetNames,
   resolvePlanCreatorInfo,
 } from "./template-helpers";
 import { getWorkTypeName, getWorkTypeCode } from "@/modules/activity/constants";
@@ -33,71 +34,6 @@ const THAI_MONTH_NAMES = [
   "พฤศจิกายน",
   "ธันวาคม",
 ];
-
-/**
- * Extracts all store, customer, and farmer target names from an ActivityPlan
- */
-function extractTargetNames(p: ActivityPlanWithRelations): string[] {
-  const names = new Set<string>();
-
-  // 1. Dedicated Type 1 targets
-  if (Array.isArray((p as any).type1Targets)) {
-    (p as any).type1Targets.forEach((t: any) => {
-      const name = t.storeName || t.name || t.store?.name || t.customerName;
-      if (name) names.add(name);
-    });
-  }
-
-  // 2. Dedicated Type 7A targets (Demo Plots & Farmers)
-  if (Array.isArray((p as any).type7aTargets)) {
-    (p as any).type7aTargets.forEach((t: any) => {
-      const plot = t.plotName || t.name;
-      const farmer = t.farmerName || t.owner || t.ownerName;
-      const store = t.store?.name || t.dealerName;
-      if (farmer) names.add(`คุณ${farmer}${plot ? ` (แปลง ${plot})` : ""}`);
-      else if (plot) names.add(`แปลง ${plot}`);
-      if (store) names.add(`ร้าน ${store}`);
-    });
-  }
-
-  // 3. Dedicated Type 3, 4, 11 targets
-  if (Array.isArray((p as any).type3Targets)) {
-    (p as any).type3Targets.forEach((t: any) => {
-      const name = t.customerName || t.storeName || t.store?.name;
-      if (name) names.add(name);
-    });
-  }
-  if (Array.isArray((p as any).type4Targets)) {
-    (p as any).type4Targets.forEach((t: any) => {
-      const name = t.customerName || t.storeName;
-      if (name) names.add(name);
-    });
-  }
-  if (Array.isArray((p as any).type11Targets)) {
-    (p as any).type11Targets.forEach((t: any) => {
-      const name = t.customerName || t.storeName || t.store?.name;
-      if (name) names.add(name);
-    });
-  }
-
-  // 4. Dedicated Type 13 targets (Spraying)
-  if (Array.isArray((p as any).type13Targets)) {
-    (p as any).type13Targets.forEach((t: any) => {
-      const farmer = t.farmerName || t.customerName || t.owner;
-      if (farmer) names.add(`แปลงคุณ${farmer}`);
-    });
-  }
-
-  // 5. Stores relation
-  if (Array.isArray((p as any).stores)) {
-    (p as any).stores.forEach((s: any) => {
-      const name = s.store?.name || s.name || s.storeName;
-      if (name) names.add(name);
-    });
-  }
-
-  return Array.from(names);
-}
 
 /**
  * Extracts work type labels from an ActivityPlan
