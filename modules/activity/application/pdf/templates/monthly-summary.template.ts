@@ -218,27 +218,19 @@ export function renderMonthlySummaryTemplate({
 
       return `
         <tr>
-          <td class="text-center" style="font-weight: 600; width: 4%;">${idx + 1}</td>
-          <td style="width: 14%; line-height: 1.3;">
+          <td class="text-center" style="font-weight: 600; width: 5%;">${idx + 1}</td>
+          <td style="width: 15%; line-height: 1.3;">
             <div style="font-weight: 700; color: #0f3568;">${safeHtml(dateDisplay)}</div>
-            <div style="font-size: 8px; color: #64748b;">(ระยะเวลา ${daysCount} วัน)</div>
           </td>
-          <td style="width: 21%;">
+          <td style="width: 28%;">
             <div style="font-weight: 700; color: #0f3568; font-size: 9.5px;">${safeHtml(p.title)}</div>
-            <div style="font-size: 8px; color: #64748b;">เลขที่: ${safeHtml(p.code || p.id)}</div>
             ${helpersList ? `<div style="font-size: 8px; color: #475569; margin-top: 2px;">ผู้ร่วมเดินทาง: ${safeHtml(helpersList)}</div>` : ""}
           </td>
-          <td style="width: 19%; font-weight: 500; font-size: 8.5px; line-height: 1.3;">
+          <td style="width: 24%; font-weight: 500; font-size: 8.5px; line-height: 1.3;">
             ${targetAreaHtml}
           </td>
-          <td style="width: 21%; font-size: 8.5px;">
+          <td style="width: 28%; font-size: 8.5px;">
             ${targetsHtml}
-          </td>
-          <td style="width: 12%;">
-            ${workTypesHtml}
-          </td>
-          <td class="text-center" style="width: 9%;">
-            <span class="doc-badge ${badgeClass}" style="font-size: 8px; padding: 2px 5px;">${statusText}</span>
           </td>
         </tr>
       `;
@@ -317,20 +309,18 @@ export function renderMonthlySummaryTemplate({
       <table class="doc-table" style="margin: 0; font-size: 8.5px;">
         <thead>
           <tr>
-            <th class="text-center" style="width: 4%;">ลำดับ</th>
-            <th style="width: 14%;">วันที่ลงพื้นที่</th>
-            <th style="width: 21%;">ชื่อแผนงาน / รหัสแผน</th>
-            <th style="width: 19%;">พื้นที่เป้าหมาย</th>
-            <th style="width: 21%;">ร้านค้า / เกษตรกรเป้าหมาย</th>
-            <th style="width: 12%;">ประเภทงาน</th>
-            <th class="text-center" style="width: 9%;">สถานะ</th>
+            <th class="text-center" style="width: 5%;">ลำดับ</th>
+            <th style="width: 15%;">วันที่ลงพื้นที่</th>
+            <th style="width: 28%;">ชื่อแผนงาน</th>
+            <th style="width: 24%;">พื้นที่เป้าหมาย</th>
+            <th style="width: 28%;">ร้านค้า / เกษตรกรเป้าหมาย</th>
           </tr>
         </thead>
         <tbody>
           ${
             plans.length > 0
               ? tableRowsHtml
-              : `<tr><td colspan="7" class="text-center" style="padding: 16px; color: #94a3b8; font-style: italic;">ไม่พบแผนงานในเดือนที่เลือก</td></tr>`
+              : `<tr><td colspan="5" class="text-center" style="padding: 16px; color: #94a3b8; font-style: italic;">ไม่พบแผนงานในเดือนที่เลือก</td></tr>`
           }
         </tbody>
       </table>
@@ -366,16 +356,16 @@ export function renderMonthlySummaryTemplate({
       <div class="signature-date">ผู้แทนฝ่ายขาย / ส่งเสริม<br/>วันที่: ....../....../......</div>
     </div>
     <div class="signature-card">
-      <div class="signature-role">หัวหน้างาน / ผู้จัดการเขต (Verified By)</div>
+      <div class="signature-role">ผู้จัดการแผนกบริหารงานขาย</div>
       <div class="signature-line"></div>
       <div class="signature-name">....................................................</div>
-      <div class="signature-date">ผู้จัดการเขตการขาย<br/>วันที่: ....../....../......</div>
+      <div class="signature-date">ผู้จัดการแผนกบริหารงานขาย<br/>วันที่: ....../....../......</div>
     </div>
     <div class="signature-card">
-      <div class="signature-role">ผู้อำนวยการฝ่าย (Approved By)</div>
+      <div class="signature-role">ผู้จัดการฝ่ายขาย</div>
       <div class="signature-line"></div>
       <div class="signature-name">....................................................</div>
-      <div class="signature-date">ผู้อำนวยการสายงาน<br/>วันที่: ....../....../......</div>
+      <div class="signature-date">ผู้จัดการฝ่ายขาย<br/>วันที่: ....../....../......</div>
     </div>
   </div>
   `;

@@ -84,13 +84,13 @@ export function renderApprovalBoxes({
       <div class="signature-date">วันที่: ${createdDateStr || "....../....../......"}</div>
     </div>
     <div class="signature-card">
-      <div class="signature-role">หัวหน้างาน / ผู้จัดการเขต (Verified By)</div>
+      <div class="signature-role">ผู้จัดการแผนกบริหารงานขาย</div>
       <div class="signature-line"></div>
       <div class="signature-name">${approverName ? `(${safeHtml(approverName)})` : "...................................................."}</div>
       <div class="signature-date">วันที่: ${approvedDateStr || "....../....../......"}</div>
     </div>
     <div class="signature-card">
-      <div class="signature-role">ผู้อำนวยการฝ่าย (Approved By)</div>
+      <div class="signature-role">ผู้จัดการฝ่ายขาย</div>
       <div class="signature-line"></div>
       <div class="signature-name">....................................................</div>
       <div class="signature-date">วันที่: ....../....../......</div>

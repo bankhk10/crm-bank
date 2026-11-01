@@ -141,14 +141,56 @@ export function formatStoreAddress(store?: {
 }
 
 /**
- * Extracts store / target addresses from all targets of an ActivityPlan
+ * Formats only District and Province (e.g. "อ.เมือง จ.เชียงใหม่" or "เขตบางรัก กรุงเทพมหานคร")
  */
-export function extractTargetAddresses(p: ActivityPlanWithRelations): string[] {
+export function formatDistrictProvince(area?: {
+  district?: string | null;
+  province?: string | null;
+} | null): string | null {
+  if (!area) return null;
+  const parts: string[] = [];
+  const prov = area.province?.trim() || "";
+  const isBkk = prov.includes("กรุงเทพ");
+
+  const district = area.district?.trim();
+  if (district) {
+    if (
+      district.startsWith("อ.") ||
+      district.startsWith("อำเภอ") ||
+      district.startsWith("เขต")
+    ) {
+      parts.push(district);
+    } else {
+      parts.push(isBkk ? `เขต${district}` : `อ.${district}`);
+    }
+  }
+
+  if (prov) {
+    if (prov.startsWith("จ.") || prov.startsWith("จังหวัด") || isBkk) {
+      parts.push(prov);
+    } else {
+      parts.push(`จ.${prov}`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
+/**
+ * Extracts store / target addresses from all targets of an ActivityPlan
+ * Defaults to displaying only District and Province as requested.
+ */
+export function extractTargetAddresses(
+  p: ActivityPlanWithRelations,
+  districtProvinceOnly: boolean = true,
+): string[] {
   const addresses = new Set<string>();
 
   const addStore = (storeObj: any) => {
     if (!storeObj) return;
-    const formatted = formatStoreAddress(storeObj);
+    const formatted = districtProvinceOnly
+      ? formatDistrictProvince(storeObj)
+      : formatStoreAddress(storeObj);
     if (formatted) {
       addresses.add(formatted);
     }
@@ -161,7 +203,9 @@ export function extractTargetAddresses(p: ActivityPlanWithRelations): string[] {
     addressLine?: string | null;
     location?: string | null;
   }) => {
-    const formatted = formatStoreAddress(area);
+    const formatted = districtProvinceOnly
+      ? formatDistrictProvince(area)
+      : formatStoreAddress(area);
     if (formatted) {
       addresses.add(formatted);
     } else if (area.location && area.location.trim()) {
@@ -323,12 +367,12 @@ export function extractTargetAddresses(p: ActivityPlanWithRelations): string[] {
 
   // Fallback to plan header location if no target store address was found
   if (addresses.size === 0) {
-    const areaParts = [
-      p.district && (p.district.startsWith("อ.") || p.district.startsWith("อำเภอ") ? p.district : `อ.${p.district}`),
-      p.province && (p.province.startsWith("จ.") || p.province.startsWith("จังหวัด") || p.province.includes("กรุงเทพ") ? p.province : `จ.${p.province}`),
-    ].filter(Boolean);
+    const fallbackDistrictProv = formatDistrictProvince({
+      district: p.district,
+      province: p.province,
+    });
     const fallback =
-      areaParts.length > 0 ? areaParts.join(" ") : p.location || "-";
+      fallbackDistrictProv || (p.location && p.location !== "-" ? p.location : "-");
     if (fallback && fallback !== "-") {
       addresses.add(fallback);
     }
