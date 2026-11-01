@@ -7,6 +7,20 @@ import type {
 import { findType11ByPlanId } from "./type11.repository";
 import { parseType11ActualResult } from "../application/actual-mapper";
 
+/**
+ * Validates whether an ID is a valid database CUID or UUID,
+ * rejecting null, empty strings, and client-generated temp strings (temp-, t11-).
+ */
+const isValidId = (id: unknown): id is string =>
+  typeof id === "string" &&
+  id.trim().length > 0 &&
+  !id.startsWith("temp-") &&
+  !id.startsWith("t11-") &&
+  (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
+    /^c[a-z0-9]{20,32}$/i.test(id)
+  );
+
 export const type11PlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_11",
 
@@ -98,10 +112,8 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
         let storeId = item.storeId || item.id || null;
         let isUnregisteredStore = Boolean(item.isUnregisteredStore);
 
-        // If storeId is not a valid UUID format (or client generated temp id), treat as unregistered
-        const uuidRegex =
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        if (storeId && !uuidRegex.test(storeId)) {
+        // If storeId is not a valid DB CUID/UUID format (or client generated temp id), treat as unregistered
+        if (storeId && !isValidId(storeId)) {
           storeId = null;
           isUnregisteredStore = true;
         }
@@ -161,7 +173,16 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
 
         // 2.2 Create Product records
         const productsList =
-          item.products || item.stockItems || planData.type11Products || [];
+          item.products ||
+          item.stockItems ||
+          (Array.isArray(planData.type11Products)
+            ? planData.type11Products.filter(
+                (p: any) =>
+                  (item.id && (p.targetId === item.id || p.target?.id === item.id)) ||
+                  (storeId && (p.storeId === storeId || p.target?.storeId === storeId)) ||
+                  (storeName && (p.storeName === storeName || p.target?.storeName === storeName)),
+              )
+            : []);
 
         if (Array.isArray(productsList) && productsList.length > 0) {
           for (const p of productsList) {
@@ -197,7 +218,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
                 : null;
 
             let prodId = p.productId || null;
-            if (prodId && !uuidRegex.test(prodId)) {
+            if (prodId && !isValidId(prodId)) {
               prodId = null;
             }
 
@@ -256,18 +277,28 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
    */
   async saveActual(
     tx: PrismaTransaction,
-    resultId: string,
+    activityPlanIdOrResultId: string,
     actualData: any,
   ): Promise<void> {
-    const resultRecord = await (tx as any).activityResult.findUnique({
-      where: { id: resultId },
-      select: { activityPlanId: true },
-    });
-
-    const activityPlanId =
-      resultRecord?.activityPlanId ||
+    let activityPlanId =
       actualData.activityPlanId ||
       actualData.planId;
+
+    if (!activityPlanId && activityPlanIdOrResultId) {
+      const planCheck = await (tx as any).activityPlan.findUnique({
+        where: { id: activityPlanIdOrResultId },
+        select: { id: true },
+      });
+      if (planCheck) {
+        activityPlanId = planCheck.id;
+      } else {
+        const resultRecord = await (tx as any).activityResult.findUnique({
+          where: { id: activityPlanIdOrResultId },
+          select: { activityPlanId: true },
+        });
+        activityPlanId = resultRecord?.activityPlanId || activityPlanIdOrResultId;
+      }
+    }
 
     if (!activityPlanId) return;
 
@@ -304,8 +335,6 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
     }
 
     const primaryTarget = targets[0];
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
     // 1. Save or update activity_type_11_result
     const overallStatus =
@@ -354,12 +383,22 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
       });
     }
 
-    // 2. Save or update activity_type_11_products
+    // 2. Save, update, and prune activity_type_11_products
     const stockItems =
       actualData.stockResults ||
       actualData.t11StockItems ||
       actualData.stockItems ||
       [];
+
+    const existingProducts = await (tx as any).activityPlanType11Product.findMany({
+      where: { activityPlanId },
+    });
+    const existingMap = new Map<string, any>();
+    existingProducts.forEach((p: any) => {
+      existingMap.set(p.id, p);
+    });
+
+    const keptProductIds = new Set<string>();
 
     if (Array.isArray(stockItems) && stockItems.length > 0) {
       for (const item of stockItems) {
@@ -371,7 +410,9 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             (t: any) =>
               (item.targetId && t.id === item.targetId) ||
               (item.storeId && t.storeId === item.storeId) ||
-              (item.storeName && t.storeName === item.storeName),
+              (item.storeName &&
+                t.storeName &&
+                t.storeName.trim().toLowerCase() === item.storeName.trim().toLowerCase()),
           ) || primaryTarget;
 
         if (!matchedTarget) continue;
@@ -401,25 +442,41 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             : null;
 
         let prodId = item.productId || null;
-        if (prodId && !uuidRegex.test(prodId)) {
+        if (prodId && !isValidId(prodId)) {
           prodId = null;
         }
 
-        // Check if product exists in this target as TARGET
-        const existingProduct = prodId
-          ? await (tx as any).activityPlanType11Product.findFirst({
-              where: {
-                targetId: matchedTarget.id,
-                productId: prodId,
-                productRole: "TARGET",
-              },
-            })
-          : null;
+        // Match existing product:
+        // 1. By item.id if already in DB
+        // 2. Or by targetId + productId (if productId exists)
+        // 3. Or by targetId + productName
+        let existingProduct: any = null;
+        if (item.id && existingMap.has(item.id)) {
+          existingProduct = existingMap.get(item.id);
+        } else if (prodId) {
+          existingProduct = existingProducts.find(
+            (ep: any) =>
+              ep.targetId === matchedTarget.id &&
+              ep.productId === prodId &&
+              !keptProductIds.has(ep.id),
+          );
+        } else if (item.productName) {
+          existingProduct = existingProducts.find(
+            (ep: any) =>
+              ep.targetId === matchedTarget.id &&
+              ep.productName?.trim().toLowerCase() === item.productName.trim().toLowerCase() &&
+              !keptProductIds.has(ep.id),
+          );
+        }
 
         if (existingProduct) {
+          keptProductIds.add(existingProduct.id);
           await (tx as any).activityPlanType11Product.update({
             where: { id: existingProduct.id },
             data: {
+              targetId: matchedTarget.id,
+              productId: prodId || existingProduct.productId,
+              productName: item.productName || existingProduct.productName,
               actualQuantity: actQtyDec,
               stockStatus: item.stockStatus || null,
               reorderOpportunity: item.reorderOpportunity || null,
@@ -429,7 +486,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             },
           });
         } else {
-          await (tx as any).activityPlanType11Product.create({
+          const created = await (tx as any).activityPlanType11Product.create({
             data: {
               activityPlanId,
               targetId: matchedTarget.id,
@@ -446,9 +503,20 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
               nextAction: item.nextAction || null,
             },
           });
+          keptProductIds.add(created.id);
         }
       }
     }
+
+    // 3. Prune deleted products that are no longer present in stockItems
+    await (tx as any).activityPlanType11Product.deleteMany({
+      where: {
+        activityPlanId,
+        id: {
+          notIn: Array.from(keptProductIds),
+        },
+      },
+    });
   },
 
   /**

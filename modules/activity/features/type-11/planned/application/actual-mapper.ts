@@ -52,7 +52,14 @@ export function parseType11ActualResult(
 
   if (directProducts.length > 0) {
     directProducts.forEach((dp: any) => {
-      const alreadyIncluded = rawProducts.some((p) => p.id === dp.id);
+      const alreadyIncluded = rawProducts.some(
+        (p) =>
+          (dp.id && p.id === dp.id) ||
+          (dp.targetId &&
+            p.targetId === dp.targetId &&
+            dp.productId &&
+            p.productId === dp.productId),
+      );
       if (!alreadyIncluded) {
         const matchedTarget = dp.target || targetMap.get(dp.targetId);
         rawProducts.push({

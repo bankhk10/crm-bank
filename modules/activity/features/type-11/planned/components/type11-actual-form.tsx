@@ -94,6 +94,37 @@ export function Type11ActualForm({
     return [];
   }, [products, dbProducts]);
 
+  // Resolve store name helper
+  const resolveItemStoreName = (
+    item: Type11StockItem,
+    primaryStore: string,
+  ): string => {
+    if (item.storeName && item.storeName.trim() && item.storeName !== "ร้านค้า") {
+      return item.storeName.trim();
+    }
+    if (item.targetId && targets && targets.length > 0) {
+      const matched = targets.find(
+        (t: any) => t.id === item.targetId || t.targetId === item.targetId,
+      );
+      const matchedName =
+        matched?.storeName ||
+        (typeof matched?.store === "string"
+          ? matched.store
+          : (matched as any)?.store?.name);
+      if (matchedName && matchedName.trim()) return matchedName.trim();
+    }
+    if (item.storeId && targets && targets.length > 0) {
+      const matched = targets.find((t: any) => t.storeId === item.storeId);
+      const matchedName =
+        matched?.storeName ||
+        (typeof matched?.store === "string"
+          ? matched.store
+          : (matched as any)?.store?.name);
+      if (matchedName && matchedName.trim()) return matchedName.trim();
+    }
+    return item.storeName || primaryStore;
+  };
+
   // Local state for stock items
   const [items, setItems] = useState<Type11StockItem[]>(() => {
     const primaryStore =
@@ -107,7 +138,7 @@ export function Type11ActualForm({
       return stockItems.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
-        storeName: item.storeName || primaryStore,
+        storeName: resolveItemStoreName(item, primaryStore),
         remainingQty: item.remainingQty || "",
         reorderOpportunity: item.reorderOpportunity || "",
         remarks: item.remarks || "",
@@ -145,7 +176,7 @@ export function Type11ActualForm({
 
   // Sync internal items when stockItems prop changes from parent hydration
   useEffect(() => {
-    if (stockItems && stockItems.length > 0) {
+    if (stockItems !== undefined) {
       const primaryStore =
         (target as any)?.storeName ||
         (typeof target?.store === "string"
@@ -157,7 +188,7 @@ export function Type11ActualForm({
         stockItems.map((item) => ({
           ...item,
           id: item.id || crypto.randomUUID(),
-          storeName: item.storeName || primaryStore,
+          storeName: resolveItemStoreName(item, primaryStore),
           remainingQty:
             item.remainingQty != null ? String(item.remainingQty) : "",
           reorderOpportunity: item.reorderOpportunity || "",
@@ -165,7 +196,7 @@ export function Type11ActualForm({
         })),
       );
     }
-  }, [stockItems, target]);
+  }, [stockItems, target, targets]);
 
   // Parse list of planned stores (including targets, target, and stock items)
   const storesList = useMemo(() => {
@@ -252,25 +283,29 @@ export function Type11ActualForm({
     );
     const prodName = matchedOpt?.name || selectedProductId;
 
+    const matchedStore = (targets || target?.items || []).find(
+      (s: any) =>
+        (s.storeName && s.storeName.trim().toLowerCase() === storeName.trim().toLowerCase()) ||
+        (typeof s.store === "string" && s.store.trim().toLowerCase() === storeName.trim().toLowerCase()) ||
+        (s.store?.name && s.store.name.trim().toLowerCase() === storeName.trim().toLowerCase()),
+    );
+
+    const matchedTargetId = matchedStore?.targetId || matchedStore?.id || undefined;
+
     // Prevent duplicate product in the same store
     const isDuplicate = items.some(
       (i) =>
-        i.storeName === storeName &&
+        ((matchedTargetId && i.targetId === matchedTargetId) ||
+          (i.storeName || "").trim().toLowerCase() === storeName.trim().toLowerCase()) &&
         i.productName.toLowerCase() === prodName.trim().toLowerCase(),
     );
     if (isDuplicate) return;
 
-    const matchedStore = (targets || target?.items || []).find(
-      (s: any) =>
-        (s.storeName && s.storeName.trim() === storeName.trim()) ||
-        (typeof s.store === "string" && s.store.trim() === storeName.trim()) ||
-        (s.store?.name && s.store.name.trim() === storeName.trim()),
-    );
-
     const newItem: Type11StockItem = {
       id: crypto.randomUUID(),
+      targetId: matchedTargetId,
       storeId: matchedStore?.storeId || undefined,
-      storeName,
+      storeName: storeName.trim(),
       productId: matchedOpt?.id || undefined,
       productName: prodName,
       productCode: matchedOpt?.productCode || undefined,
@@ -332,7 +367,25 @@ export function Type11ActualForm({
         {/* Per Store Stock List */}
         <div className="space-y-6">
           {storesList.map((storeName, sIdx) => {
-            const storeItems = items.filter((i) => i.storeName === storeName);
+            const matchedTarget = (targets || []).find(
+              (t: any) =>
+                (t.storeName || t.store || t.store?.name || "").trim().toLowerCase() ===
+                storeName.trim().toLowerCase(),
+            );
+
+            const storeItems = items.filter((i) => {
+              if (
+                i.targetId &&
+                matchedTarget &&
+                (matchedTarget.id === i.targetId || matchedTarget.targetId === i.targetId)
+              ) {
+                return true;
+              }
+              return (
+                (i.storeName || "").trim().toLowerCase() ===
+                storeName.trim().toLowerCase()
+              );
+            });
 
             return (
               <div

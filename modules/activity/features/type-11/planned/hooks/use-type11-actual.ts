@@ -49,7 +49,7 @@ export function useType11Actual() {
       actualData.stockResults ??
       parsed.t11StockItems ??
       parsed.stockResults;
-    if (items && Array.isArray(items) && items.length > 0) {
+    if (items && Array.isArray(items)) {
       setT11StockItems(items);
     }
 
