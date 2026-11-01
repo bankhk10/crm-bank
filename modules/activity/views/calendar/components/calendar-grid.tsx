@@ -70,6 +70,28 @@ export function CalendarGrid({
           );
         })}
       </div>
+
+      {/* Calendar Color Legend (คำอธิบายสีแต่ละประเภทในปฏิทิน) */}
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 px-4 py-3 bg-slate-50/90 border-t border-slate-200 text-xs text-slate-600">
+        <span className="font-semibold text-slate-500 shrink-0">คำอธิบายสี:</span>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-medium text-[11px]">
+          <span>มีนัดหมายตามกำหนด</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-[11px]">
+          <span>ดำเนินการเสร็จสิ้น</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 font-medium text-[11px]">
+          <span className="font-bold text-[10px]">[นอกแผน]</span>
+          <span>กิจกรรมนอกแผน</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-300 font-medium text-[11px]">
+          <span className="font-bold text-[10px]">[เลื่อนนัด]</span>
+          <span>เลื่อนนัดหมาย</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200 font-medium text-[11px] line-through">
+          <span>ยกเลิกนัดหมาย</span>
+        </div>
+      </div>
     </Card>
   );
 }
