@@ -1,4 +1,8 @@
-import { isUserSalesAdminManager } from "../approval/can-approve";
+import {
+  isUserSalesAdminManager,
+  isUserMarketingManager,
+  isUserSalesDirector,
+} from "../approval/can-approve";
 /**
  * Domain Authorization Rules: Activity Module Permissions
  *
@@ -364,4 +368,59 @@ export function canDeletePromotionalMaterial(
     allowed: false,
     error: "Forbidden: ไม่มีสิทธิ์ลบสื่อส่งเสริมการขาย",
   };
+}
+
+/**
+ * Check if the user is in one of the managerial positions that should view ALL plans by default:
+ * 1. ผู้จัดการแผนกบริหารงานขาย (Sales Admin Manager)
+ * 2. ผู้จัดฝ่ายขาย / ผู้จัดการฝ่ายขาย (Sales Director)
+ * 3. ผู้จัดการแผนกการตลาด (Marketing Manager)
+ */
+export function isAllViewDefaultManager(
+  user?: ActivityUserContext | null,
+): boolean {
+  if (!user) return false;
+
+  const pos = (
+    user.positionTitle ||
+    (typeof (user as any).position === "string"
+      ? (user as any).position
+      : (user as any).position?.name) ||
+    (user as any).roleTitle ||
+    ""
+  ).toLowerCase();
+
+  // 1. ผู้จัดการแผนกบริหารงานขาย
+  const isSalesAdmin =
+    pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
+    pos.includes("ผจก.แผนกบริหารงานขาย") ||
+    pos.includes("บริหารงานขาย") ||
+    isUserSalesAdminManager(user as any);
+
+  // 2. ผู้จัดฝ่ายขาย / ผู้จัดการฝ่ายขาย
+  const isSalesDirector =
+    pos.includes("ผู้จัดการฝ่ายขาย") ||
+    pos.includes("ผู้จัดฝ่ายขาย") ||
+    pos.includes("ผจก.ฝ่ายขาย") ||
+    pos.includes("sales director") ||
+    isUserSalesDirector(user as any);
+
+  // 3. ผู้จัดการแผนกการตลาด
+  const isMarketing =
+    pos.includes("ผู้จัดการแผนกการตลาด") ||
+    pos.includes("ผจก.แผนกการตลาด") ||
+    (pos.includes("การตลาด") && (pos.includes("ผู้จัดการ") || pos.includes("ผจก") || pos.includes("manager"))) ||
+    isUserMarketingManager(user as any);
+
+  return Boolean(isSalesAdmin || isSalesDirector || isMarketing);
+}
+
+/**
+ * Determine default ActivityPlanViewScope for a user.
+ * Target managerial positions default to "ALL" (ทั้งหมด รวมทุกมุมมอง); others default to "OWN" (แผนงานของฉัน).
+ */
+export function getDefaultActivityPlanViewScope(
+  user?: ActivityUserContext | null,
+): "OWN" | "TEAM" | "HELPER" | "ALL" {
+  return isAllViewDefaultManager(user) ? "ALL" : "OWN";
 }

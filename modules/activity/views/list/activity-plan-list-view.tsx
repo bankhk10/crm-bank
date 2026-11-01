@@ -39,6 +39,7 @@ import {
   isActivityAdmin,
   canCreatePlannedActivity,
   canApproveActivityPlan,
+  getDefaultActivityPlanViewScope,
 } from "@/modules/activity/domain/permissions";
 
 export default function ActivityPlanListView() {
@@ -77,7 +78,22 @@ export default function ActivityPlanListView() {
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
-  const [viewScope, setViewScope] = useState<ActivityPlanViewScope>("OWN");
+  const [viewScope, setViewScope] = useState<ActivityPlanViewScope>(() =>
+    getDefaultActivityPlanViewScope(user),
+  );
+  const initializedScopeUserRef = React.useRef<string | null>(
+    user?.id ?? null,
+  );
+
+  // Sync default view scope once user session resolves
+  useEffect(() => {
+    if (user?.id && initializedScopeUserRef.current !== user.id) {
+      initializedScopeUserRef.current = user.id;
+      const defaultScope = getDefaultActivityPlanViewScope(user);
+      setViewScope(defaultScope);
+    }
+  }, [user]);
+
   const [scopeCounts, setScopeCounts] = useState({
     own: 0,
     team: 0,
