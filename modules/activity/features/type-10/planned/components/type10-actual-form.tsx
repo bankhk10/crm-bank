@@ -373,13 +373,9 @@ export function Type10ActualForm({
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
                   <tr>
                     <th className="py-2 px-3 text-center w-10">ลำดับ</th>
-                    <th className="py-2 px-3 min-w-[180px]">
-                      รายการสินค้า (เฉพาะหน่วยกล่อง)
-                    </th>
-                    <th className="py-2 px-3 w-28 text-center">
-                      จำนวน (กล่อง)
-                    </th>
-                    <th className="py-2 px-3 w-32 text-center">ราคาต่อหน่วย</th>
+                    <th className="py-2 px-3 min-w-[180px]">รายการสินค้า</th>
+                    <th className="py-2 px-3 w-28 text-center">จำนวน (ลัง)</th>
+                    <th className="py-2 px-3 w-32 text-center">ราคา / ลัง</th>
                     <th className="py-2 px-3 w-32 text-right">รวม (บาท)</th>
                     <th className="py-2 px-3 text-center w-12">ลบ</th>
                   </tr>
@@ -422,9 +418,9 @@ export function Type10ActualForm({
                                 handleSelectProduct(idx, val, pFound)
                               }
                               products={masterProductList}
-                              placeholder="เลือกสินค้า (เฉพาะหน่วยกล่อง)..."
+                              placeholder="เลือกสินค้า..."
                               searchPlaceholder="ค้นหาชื่อหรือรหัสสินค้า..."
-                              emptyText="ไม่พบสินค้าหน่วยกล่อง"
+                              emptyText="ไม่พบสินค้า"
                             />
                           </td>
                           <td className="py-1.5 px-3">
