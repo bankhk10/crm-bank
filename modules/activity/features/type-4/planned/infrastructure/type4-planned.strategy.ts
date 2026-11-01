@@ -161,9 +161,16 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
       orderBy: { createdAt: "asc" },
     });
 
-    // 2. Delete existing records for this activityPlanId
+    const targetIds = planTargets.map((pt: any) => pt.id).filter(Boolean);
+
+    // 2. Delete existing records for this activityPlanId and holding any of these targetIds
     await (tx as any).activityResultType4.deleteMany({
-      where: { activityPlanId },
+      where: {
+        OR: [
+          { activityPlanId },
+          ...(targetIds.length > 0 ? [{ targetId: { in: targetIds } }] : []),
+        ],
+      },
     });
 
     const multiItems: any[] =
@@ -188,16 +195,63 @@ export const type4PlannedStrategy: WorkTypeStrategy = {
     const orderNo = t4Data.orderNo || t4Data.t4OrderNo || null;
     let totalReceivedAmt = 0;
 
-    const findMatchingTargetId = (item: any, idx: number) => {
-      if (item.targetId) return item.targetId;
-      const matched = planTargets.find(
-        (pt: any) =>
-          (pt.id && (pt.id === item.id || pt.id === item.targetId)) ||
-          (item.storeId && pt.storeId === item.storeId),
+    // Track assigned targetIds to ensure 1-to-1 uniqueness constraint on target_id
+    const usedTargetIds = new Set<string>();
+
+    const findMatchingTargetId = (item: any, idx: number): string | null => {
+      // 1. Explicit targetId that exists in planTargets and not yet used
+      if (
+        item.targetId &&
+        planTargets.some((pt: any) => pt.id === item.targetId) &&
+        !usedTargetIds.has(item.targetId)
+      ) {
+        usedTargetIds.add(item.targetId);
+        return item.targetId;
+      }
+
+      // 2. item.id matches a plan target
+      if (
+        item.id &&
+        planTargets.some((pt: any) => pt.id === item.id) &&
+        !usedTargetIds.has(item.id)
+      ) {
+        usedTargetIds.add(item.id);
+        return item.id;
+      }
+
+      // 3. Match by storeId (only if target not yet used)
+      if (item.storeId) {
+        const matched = planTargets.find(
+          (pt: any) => pt.storeId === item.storeId && !usedTargetIds.has(pt.id),
+        );
+        if (matched) {
+          usedTargetIds.add(matched.id);
+          return matched.id;
+        }
+      }
+
+      // 4. Match by index if not yet used
+      if (planTargets[idx] && !usedTargetIds.has(planTargets[idx].id)) {
+        usedTargetIds.add(planTargets[idx].id);
+        return planTargets[idx].id;
+      }
+
+      // 5. If only 1 plan target and not yet used
+      if (planTargets.length === 1 && !usedTargetIds.has(planTargets[0].id)) {
+        usedTargetIds.add(planTargets[0].id);
+        return planTargets[0].id;
+      }
+
+      // 6. Any other remaining unused target from planTargets
+      const remainingUnused = planTargets.find(
+        (pt: any) => !usedTargetIds.has(pt.id),
       );
-      if (matched) return matched.id;
-      if (planTargets.length === 1) return planTargets[0].id;
-      if (planTargets[idx]) return planTargets[idx].id;
+      if (remainingUnused) {
+        usedTargetIds.add(remainingUnused.id);
+        return remainingUnused.id;
+      }
+
+      // 7. All targets already mapped! Return null to respect target_id unique constraint
       return null;
     };
 
