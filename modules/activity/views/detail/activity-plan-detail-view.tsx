@@ -21,8 +21,6 @@ import {
   DetailViewActions,
 } from "./components";
 import { useDetailPlanLoader } from "./hooks";
-import { AdminTestToolbar } from "@/modules/activity/dev-tools";
-import { getWorkTypeCode } from "@/modules/activity/constants";
 
 interface ActivityPlanDetailViewProps {
   id: string;
@@ -95,14 +93,6 @@ export default function ActivityPlanDetailView({
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
-        {/* ─── 0. ADMIN TEST TOOLBAR (ADMINISTRATOR ONLY) ─── */}
-        <AdminTestToolbar
-          mode="DETAIL"
-          planId={plan.id}
-          planStatus={plan.status}
-          planType={(plan as any).planType}
-          selectedWorkTypeCodes={resolvedWorkTypes.map(getWorkTypeCode)}
-        />
 
         {/* ─── 1. TOP HEADER (DETAIL VIEW) ─── */}
         <DetailHeader
