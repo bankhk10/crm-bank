@@ -144,19 +144,6 @@ export default function ActivityPlanDetailView({
               </Button>
             </Link>
           )}
-
-          {isActualRecorded && (
-            <Link href={`/activity-plans/${plan.id}/actual`}>
-              <Button
-                type="button"
-                variant="outline"
-                className="px-5 py-2.5 h-10 rounded-xl border-emerald-300 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-2xs"
-              >
-                <ClipboardCheck className="w-4 h-4 text-emerald-600" />
-                <span>แก้ไขผลการปฏิบัติงาน</span>
-              </Button>
-            </Link>
-          )}
         </DetailViewActions>
       </div>
 
