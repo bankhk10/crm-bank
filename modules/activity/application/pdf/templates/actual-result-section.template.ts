@@ -47,17 +47,34 @@ export function renderActualResultSection({
   const problemFound = parsedResults.problemFound || "";
   const nextAction = parsedResults.nextAction || "";
 
-  // Extract photos
+  // Extract photos across all work types & attachments
   const rawImages: any[] = [];
   if (Array.isArray(parsedResults.images)) rawImages.push(...parsedResults.images);
+  if (Array.isArray(parsedResults.t1Images)) rawImages.push(...parsedResults.t1Images);
+  if (Array.isArray(parsedResults.plotImages)) rawImages.push(...parsedResults.plotImages);
+  if (Array.isArray(parsedResults.t2Images)) rawImages.push(...parsedResults.t2Images);
+  if (Array.isArray(parsedResults.t4Images)) rawImages.push(...parsedResults.t4Images);
+  if (Array.isArray(parsedResults.t4PaymentImages)) rawImages.push(...parsedResults.t4PaymentImages);
+  if (Array.isArray(parsedResults.t6Images)) rawImages.push(...parsedResults.t6Images);
   if (Array.isArray(parsedResults.t7Images)) rawImages.push(...parsedResults.t7Images);
+  if (Array.isArray(parsedResults.t7bImages)) rawImages.push(...parsedResults.t7bImages);
+  if (Array.isArray(parsedResults.t8Images)) rawImages.push(...parsedResults.t8Images);
   if (Array.isArray(parsedResults.t9Images)) rawImages.push(...parsedResults.t9Images);
   if (Array.isArray(parsedResults.type9Actual?.images)) rawImages.push(...parsedResults.type9Actual.images);
+  if (Array.isArray(parsedResults.t10Images)) rawImages.push(...parsedResults.t10Images);
+  if (Array.isArray(parsedResults.type10Actual?.images)) rawImages.push(...parsedResults.type10Actual.images);
   if (Array.isArray(parsedResults.t11Images)) rawImages.push(...parsedResults.t11Images);
   if (Array.isArray(parsedResults.t12Images)) rawImages.push(...parsedResults.t12Images);
   if (Array.isArray(parsedResults.t13Images)) rawImages.push(...parsedResults.t13Images);
+  if (Array.isArray(parsedResults.t14Images)) rawImages.push(...parsedResults.t14Images);
   if (Array.isArray((plan as any).result?.images)) {
     rawImages.push(...(plan as any).result.images);
+  }
+  if (Array.isArray((plan as any).attachments)) {
+    (plan as any).attachments.forEach((att: any) => {
+      const url = att?.fileUrl || att?.url;
+      if (url) rawImages.push(url);
+    });
   }
 
   const validPhotos = rawImages
@@ -184,4 +201,3 @@ export function renderActualResultSection({
   </div>
   `;
 }
-

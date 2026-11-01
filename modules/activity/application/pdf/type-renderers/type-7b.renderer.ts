@@ -1,53 +1,138 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
-import { safeHtml, formatDateThai } from "../templates/template-helpers";
+import { safeHtml, formatDateThai, formatQty } from "../templates/template-helpers";
+import {
+  extractType7bPlanTargets,
+  type Type7bTargetItem,
+} from "@/modules/activity/features/type-7b";
 
 export class Type7bPdfRenderer implements TypePdfRenderer {
   readonly workTypeCode = "TYPE_7B";
 
   render(context: TypeRenderContext): TypeRenderResult {
-    const { targets, parsedResults, plan } = context;
-    const t7bTargets: any[] = Array.isArray(targets?.type7b)
-      ? targets.type7b
-      : Array.isArray((plan as any).type7bTargets)
-      ? (plan as any).type7bTargets
-      : [];
+    const { targets, parsedResults, plan, planSummary, options } = context;
+
+    // 1. Resolve Targets List (Supports dedicated type7bTargets or targets.t7bList)
+    let t7bList: Type7bTargetItem[] = [];
+    if (targets?.t7bList && targets.t7bList.length > 0) {
+      t7bList = targets.t7bList;
+    } else if (targets?.t7b && (targets.t7b.plotName || targets.t7b.farmerName || targets.t7b.owner)) {
+      t7bList = [targets.t7b];
+    } else {
+      const extracted = extractType7bPlanTargets(plan);
+      if (extracted.list && extracted.list.length > 0) {
+        t7bList = extracted.list;
+      } else if (extracted.primary && (extracted.primary.plotName || extracted.primary.farmerName)) {
+        t7bList = [extracted.primary];
+      }
+    }
+
+    if (t7bList.length === 0) {
+      t7bList = [
+        {
+          plotName: plan.title || "แปลงสาธิต",
+          farmerName: (plan as any).customer?.name || "-",
+          objective: "-",
+        },
+      ];
+    }
 
     const title = "[TYPE 7B] ติดตามแปลงสาธิต (Demo Plot Follow-up)";
 
-    if (t7bTargets.length === 0) {
-      return {
-        title,
-        workTypeCode: this.workTypeCode,
-        planHtml: `
-          <div class="section-box">
-            <div class="section-header">${title}</div>
-            <div class="section-body">
-              <p style="color: #64748b; font-style: italic; margin: 0;">ไม่มีข้อมูลการติดตามแปลงสาธิตที่ระบุ</p>
-            </div>
-          </div>
-        `,
-      };
-    }
-
-    const rowsHtml = t7bTargets
+    const plotsHtml = t7bList
       .map((item, idx) => {
-        const plotName = item.plotName || item.demoPlotName || `แปลงที่ ${idx + 1}`;
-        const farmer = item.farmerName || item.owner || "-";
-        const round = item.followUpRound || item.stage || item.dayRound ? `รอบ ${item.followUpRound || item.stage || item.dayRound}` : "-";
-        const scheduledDate = item.scheduledDate || item.date ? formatDateThai(item.scheduledDate || item.date) : "-";
-        const objective = item.objective || item.focusPoint || "ติดตามประสิทธิภาพการใช้ยาและอัตราการเติบโต";
+        const plotName = item.plotName || `แปลงสาธิตที่ ${idx + 1}`;
+        const farmer = item.farmerName || item.ownerName || item.owner || "-";
+        const dealer = item.dealerName || "-";
+        const crop = item.cropName || item.crop || item.cropCategory || "-";
+        const areaRai = item.areaRai ? `${formatQty(item.areaRai)} ไร่` : "-";
+        const location =
+          [item.district, item.province].filter(Boolean).join(", ") ||
+          planSummary.locationStr ||
+          "-";
+        const objective = item.objective || item.followUpObjective || item.detail || "ติดตามผลการเจริญเติบโตและประสิทธิภาพเคมีภัณฑ์";
+
+        const withdrawnProducts = item.demoProducts || item.withdrawnProducts || [];
 
         return `
-          <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td style="font-weight: 600; color: #0f3568;">${safeHtml(plotName)}</td>
-            <td>${safeHtml(farmer)}</td>
-            <td class="text-center" style="font-weight: 600;">${safeHtml(round)}</td>
-            <td class="text-center">${safeHtml(scheduledDate)}</td>
-            <td>${safeHtml(objective)}</td>
-          </tr>
-        `;
+        <div style="${idx > 0 ? "margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1;" : ""}">
+          ${
+            t7bList.length > 1
+              ? `<div style="font-weight: 700; font-size: 11px; color: #0f3568; margin-bottom: 4px;">
+                   📍 แปลงที่ ${idx + 1}: ${safeHtml(plotName)}
+                 </div>`
+              : ""
+          }
+          <div class="info-grid">
+            <div class="info-row">
+              <div class="info-cell" style="width: 50%;">
+                <span class="info-label">ชื่อแปลงสาธิต:</span>
+                <span class="info-value" style="font-weight: 700; color: #0f3568;">${safeHtml(plotName)}</span>
+              </div>
+              <div class="info-cell" style="width: 50%;">
+                <span class="info-label">เจ้าของแปลง / เกษตรกร:</span>
+                <span class="info-value" style="font-weight: 600;">${safeHtml(farmer)}</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <span class="info-label">ร้านค้า Dealer ต้นสังกัด:</span>
+                <span class="info-value">${safeHtml(dealer)}</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">ชนิดพืช / ขนาดแปลง:</span>
+                <span class="info-value">${safeHtml(crop)} (${safeHtml(areaRai)})</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <span class="info-label">ที่ตั้งแปลง:</span>
+                <span class="info-value">${safeHtml(location)}</span>
+              </div>
+              <div class="info-cell">
+                <span class="info-label">วัตถุประสงค์การติดตาม:</span>
+                <span class="info-value">${safeHtml(objective)}</span>
+              </div>
+            </div>
+          </div>
+
+          ${
+            withdrawnProducts.length > 0
+              ? `
+          <div style="margin-top: 6px;">
+            <div style="font-size: 9px; font-weight: 700; color: #0f3568; margin-bottom: 2px;">
+              📦 เคมีภัณฑ์ที่ใช้ในแปลงสาธิต:
+            </div>
+            <table class="doc-table">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th class="text-center" style="width: 8%;">ลำดับ</th>
+                  <th style="width: 62%;">ชื่อเคมีภัณฑ์ / ผลิตภัณฑ์</th>
+                  <th class="text-center" style="width: 30%;">จำนวนที่เบิกใช้</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${withdrawnProducts
+                  .map(
+                    (p: any, pIdx: number) => `
+                  <tr>
+                    <td class="text-center">${pIdx + 1}</td>
+                    <td style="font-weight: 500;">${safeHtml(p.productName || p.name || "-")}</td>
+                    <td class="text-center" style="font-weight: 600; color: #0f3568;">
+                      ${formatQty(p.quantity ?? p.targetQuantity ?? 1)} ${safeHtml(p.unit || "หน่วย")}
+                    </td>
+                  </tr>
+                `,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+          `
+              : ""
+          }
+        </div>
+      `;
       })
       .join("");
 
@@ -55,64 +140,108 @@ export class Type7bPdfRenderer implements TypePdfRenderer {
       <div class="section-box avoid-break">
         <div class="section-header">
           <span>${title}</span>
-          <span style="font-size: 9px; color: #64748b; font-weight: normal;">เป้าหมายติดตาม ${t7bTargets.length} แปลง</span>
+          <span style="font-size: 9px; color: #64748b; font-weight: normal;">รวมติดตาม ${t7bList.length} แปลง</span>
         </div>
-        <div class="section-body" style="padding: 0;">
-          <table class="doc-table" style="margin: 0;">
-            <thead>
-              <tr>
-                <th class="text-center" style="width: 5%;">ลำดับ</th>
-                <th style="width: 25%;">ชื่อแปลงสาธิต</th>
-                <th style="width: 20%;">เกษตรกรเจ้าของแปลง</th>
-                <th class="text-center" style="width: 15%;">รอบวันติดตาม</th>
-                <th class="text-center" style="width: 15%;">กำหนดการเข้าตรวจ</th>
-                <th style="width: 20%;">จุดสังเกต / ประเด็นติดตาม</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
+        <div class="section-body">
+          ${plotsHtml}
         </div>
       </div>
     `;
 
-    // Actual observation
+    // 2. Actual Observation Outcome Section
     let actualHtml = "";
-    const t7bActual = parsedResults?.type7bActual || (parsedResults as any);
-    if (t7bActual && (t7bActual.observationNotes || t7bActual.growthRate || t7bActual.efficacyScore)) {
+    const rounds: any[] =
+      parsedResults?.type7bActual?.t7SprayingRounds ||
+      parsedResults?.t7SprayingRounds ||
+      [];
+
+    const generalNotes =
+      parsedResults?.type7bActual?.notes ||
+      parsedResults?.notes ||
+      parsedResults?.problemFound;
+
+    const hasActualData = rounds.length > 0 || generalNotes;
+
+    if (hasActualData) {
+      const roundsHtml =
+        rounds.length > 0
+          ? `
+        <div style="margin-top: 6px;">
+          <div style="font-size: 9.5px; font-weight: 700; color: #166534; margin-bottom: 3px;">
+            🌱 บันทึกรอบการพ่นและติดตามผลจริง (Follow-up Rounds):
+          </div>
+          <table class="doc-table">
+            <thead>
+              <tr style="background: #f0fdf4;">
+                <th class="text-center" style="width: 8%;">รอบที่</th>
+                <th style="width: 28%;">วันที่ลงแปลง</th>
+                <th style="width: 34%;">ระยะการเจริญเติบโต / สภาพแปลง</th>
+                <th style="width: 30%;">ผลการสังเกตการณ์</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rounds
+                .map(
+                  (r, rIdx) => `
+                <tr>
+                  <td class="text-center" style="font-weight: 700; color: #166534;">${r.round || rIdx + 1}</td>
+                  <td>${safeHtml(r.date ? formatDateThai(r.date) : "-")}</td>
+                  <td style="font-weight: 500;">${safeHtml(r.growthStage || r.cropStage || "-")}</td>
+                  <td>${safeHtml(r.observation || r.notes || "-")}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+        `
+          : "";
+
       actualHtml = `
         <div class="section-box avoid-break" style="margin-top: 8px;">
           <div class="section-header" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">
-            <span>บันทึกผลการติดตามแปลงจริง (Type 7B Actual Follow-up Findings)</span>
+            <span>บันทึกผลการติดตามแปลงสาธิตจริง (Type 7B Actual Follow-up Outcome)</span>
           </div>
           <div class="section-body">
-            <div class="info-grid">
-              <div class="info-row">
-                <div class="info-cell" style="width: 33%;">
-                  <span class="info-label">การเจริญเติบโต:</span>
-                  <span class="info-value">${safeHtml(t7bActual.growthRate || "ดีตามเกณฑ์")}</span>
-                </div>
-                <div class="info-cell" style="width: 33%;">
-                  <span class="info-label">คะแนนประสิทธิภาพ:</span>
-                  <span class="info-value" style="font-weight: 700; color: #059669;">${safeHtml(t7bActual.efficacyScore ? `${t7bActual.efficacyScore}/5 คะแนน` : "-")}</span>
-                </div>
-                <div class="info-cell" style="width: 34%;">
-                  <span class="info-label">เปรียบเทียบแปลงควบคุม:</span>
-                  <span class="info-value">${safeHtml(t7bActual.controlComparison || "ดีกว่าแปลงควบคุมชัดเจน")}</span>
-                </div>
-              </div>
-              ${
-                t7bActual.observationNotes
-                  ? `<div class="info-row">
-                      <div class="info-cell" colspan="3">
-                        <span class="info-label">ข้อสังเกตเพิ่มเติม:</span>
-                        <span class="info-value">${safeHtml(t7bActual.observationNotes)}</span>
-                      </div>
-                     </div>`
-                  : ""
-              }
+            ${roundsHtml}
+            ${
+              generalNotes
+                ? `
+            <div style="margin-top: 6px; padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 9px;">
+              <span style="font-weight: 700; color: #0f3568;">📝 ข้อสังเกตและผลการติดตามเพิ่มเติม:</span>
+              <span style="color: #334155;"> ${safeHtml(generalNotes)}</span>
             </div>
+            `
+                : ""
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. Custom Signature Boxes for Standalone Export
+    let signatureBoxesHtml: string | undefined = undefined;
+    if (options.typeCode && options.typeCode !== "ALL") {
+      signatureBoxesHtml = `
+        <div class="signatures-grid avoid-break">
+          <div class="signature-card">
+            <div class="signature-role">ผู้ติดตามแปลง / เจ้าหน้าที่ส่งเสริม</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">ผู้แทนฝ่ายขาย-ส่งเสริม<br/>วันที่: ....../....../......</div>
+          </div>
+          <div class="signature-card">
+            <div class="signature-role">เกษตรกรเจ้าของแปลงสาธิต</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">เกษตรกรผู้ร่วมโครงการ<br/>วันที่: ....../....../......</div>
+          </div>
+          <div class="signature-card">
+            <div class="signature-role">ผู้อนุมัติผลการติดตามแปลง</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">ผู้จัดการฝ่ายส่งเสริมวิชาการ<br/>วันที่: ....../....../......</div>
           </div>
         </div>
       `;
@@ -123,7 +252,7 @@ export class Type7bPdfRenderer implements TypePdfRenderer {
       workTypeCode: this.workTypeCode,
       planHtml,
       actualHtml,
+      signatureBoxesHtml,
     };
   }
 }
-

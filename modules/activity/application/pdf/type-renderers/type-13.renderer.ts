@@ -1,56 +1,79 @@
 import type { TypePdfRenderer } from "./type-renderer.interface";
 import type { TypeRenderContext, TypeRenderResult } from "../activity-pdf.types";
 import { safeHtml, formatQty, formatDateThai } from "../templates/template-helpers";
+import {
+  extractType13PlanTargets,
+  type Type13PlotItem,
+} from "@/modules/activity/features/type-13";
 
 export class Type13PdfRenderer implements TypePdfRenderer {
   readonly workTypeCode = "TYPE_13";
 
   render(context: TypeRenderContext): TypeRenderResult {
-    const { targets, parsedResults, plan } = context;
-    const t13Targets: any[] = Array.isArray(targets?.type13)
-      ? targets.type13
-      : Array.isArray((plan as any).type13Targets)
-      ? (plan as any).type13Targets
-      : [];
+    const { targets, parsedResults, plan, planSummary, options } = context;
+
+    // 1. Resolve Targets List (Supports dedicated type13Targets, targets.t13List, or plan.type13Plots)
+    let t13List: Type13PlotItem[] = [];
+    if (targets?.t13List && targets.t13List.length > 0) {
+      t13List = targets.t13List;
+    } else if (targets?.t13 && (targets.t13.name || targets.t13.ownerName)) {
+      t13List = [targets.t13];
+    } else {
+      const extracted = extractType13PlanTargets(plan);
+      if (extracted.list && extracted.list.length > 0) {
+        t13List = extracted.list;
+      } else if (extracted.primary && (extracted.primary.name || extracted.primary.ownerName)) {
+        t13List = [extracted.primary];
+      }
+    }
+
+    if (t13List.length === 0) {
+      t13List = [
+        {
+          id: "t13-default",
+          name: plan.title || "แปลงฉีดแฮตแทค",
+          storeId: "",
+          province: planSummary.locationStr || "-",
+          district: "",
+          objective: "-",
+        },
+      ];
+    }
 
     const title = "[TYPE 13] ฉีดแปลงแฮตแทค (Hat-Attack Spraying)";
 
-    if (t13Targets.length === 0) {
-      return {
-        title,
-        workTypeCode: this.workTypeCode,
-        planHtml: `
-          <div class="section-box">
-            <div class="section-header">${title}</div>
-            <div class="section-body">
-              <p style="color: #64748b; font-style: italic; margin: 0;">ไม่มีรายการฉีดพ่นแปลงแฮตแทคที่ระบุ</p>
-            </div>
-          </div>
-        `,
-      };
-    }
-
-    const rowsHtml = t13Targets
+    const rowsHtml = t13List
       .map((item, idx) => {
-        const farmer = item.farmerName || item.customerName || item.owner || `แปลงที่ ${idx + 1}`;
-        const phone = item.farmerPhone || item.phone || "-";
-        const crop = item.crop || item.cropName || "-";
-        const area = item.areaRai ? `${formatQty(item.areaRai)} ไร่` : "-";
-        const pest = item.targetPest || item.pest || "หนอนกระทู้ / เพลี้ย";
-        const chemical = item.chemicalName || item.chemical || "แฮตแทค (Hat-Attack)";
-        const method = item.sprayMethod || item.equipment || "โดรนการเกษตร";
+        const plotName = item.name || `แปลงที่ ${idx + 1}`;
+        const owner = item.ownerName || "-";
+        const dealer = item.dealerName || "-";
+        const location =
+          [item.district, item.province].filter(Boolean).join(", ") ||
+          planSummary.locationStr ||
+          "-";
+        const objective = item.objective || "ฉีดพ่นกำจัดหนอนกระทู้ / เพลี้ย";
+        const plotsCount = item.plannedPlotsCount ? `${formatQty(item.plannedPlotsCount)} แปลง` : "1 แปลง";
+
+        const withdrawnList = item.withdrawnProducts || [];
+        const chemStr =
+          withdrawnList.length > 0
+            ? withdrawnList.map((w: any) => `${w.productName} (${w.quantity} ${w.unit || "ขวด"})`).join(", ")
+            : "แฮตแทค (Hat-Attack)";
 
         return `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td style="font-weight: 600; color: #0f3568;">
-              ${safeHtml(farmer)}
-              ${phone !== "-" ? `<br/><span style="font-size: 8.5px; color: #64748b;">โทร: ${safeHtml(phone)}</span>` : ""}
+            <td class="text-center" style="width: 5%;">${idx + 1}</td>
+            <td style="width: 28%; font-weight: 600; color: #0f3568;">
+              ${safeHtml(plotName)}
+              <br/><span style="font-size: 8.5px; color: #64748b;">เจ้าของ: ${safeHtml(owner)}</span>
+              ${dealer !== "-" ? `<br/><span style="font-size: 8.5px; color: #475569;">Dealer: ${safeHtml(dealer)}</span>` : ""}
             </td>
-            <td>${safeHtml(crop)} (${safeHtml(area)})</td>
-            <td style="color: #b91c1c; font-weight: 500;">${safeHtml(pest)}</td>
-            <td style="font-weight: 600;">${safeHtml(chemical)}</td>
-            <td class="text-center">${safeHtml(method)}</td>
+            <td style="width: 22%;">
+              📍 ${safeHtml(location)}
+              <br/><span style="font-size: 8.5px; color: #0f766e; font-weight: 600;">(${safeHtml(plotsCount)})</span>
+            </td>
+            <td style="width: 22%; color: #b91c1c; font-weight: 600;">${safeHtml(objective)}</td>
+            <td style="width: 23%; font-weight: 500;">${safeHtml(chemStr)}</td>
           </tr>
         `;
       })
@@ -60,18 +83,17 @@ export class Type13PdfRenderer implements TypePdfRenderer {
       <div class="section-box avoid-break">
         <div class="section-header">
           <span>${title}</span>
-          <span style="font-size: 9px; color: #64748b; font-weight: normal;">เป้าหมายฉีดพ่น ${t13Targets.length} แปลง</span>
+          <span style="font-size: 9px; color: #64748b; font-weight: normal;">เป้าหมายฉีดพ่น ${t13List.length} แปลง</span>
         </div>
         <div class="section-body" style="padding: 0;">
           <table class="doc-table" style="margin: 0;">
             <thead>
               <tr>
                 <th class="text-center" style="width: 5%;">ลำดับ</th>
-                <th style="width: 25%;">เกษตรกร / เจ้าของแปลง</th>
-                <th style="width: 20%;">พืชเป้าหมาย / พื้นที่</th>
-                <th style="width: 20%;">ศัตรูพืชที่ระบาด</th>
-                <th style="width: 15%;">สารเคมีที่ใช้</th>
-                <th class="text-center" style="width: 15%;">เครื่องมือฉีดพ่น</th>
+                <th style="width: 28%;">ชื่อแปลง / เกษตรกร</th>
+                <th style="width: 22%;">ที่ตั้งแปลง / จำนวน</th>
+                <th style="width: 22%;">วัตถุประสงค์ / ศัตรูพืช</th>
+                <th style="width: 23%;">เคมีภัณฑ์ที่ใช้ฉีดพ่น</th>
               </tr>
             </thead>
             <tbody>
@@ -82,32 +104,103 @@ export class Type13PdfRenderer implements TypePdfRenderer {
       </div>
     `;
 
-    // Actual spray execution
+    // 2. Actual Spraying Outcome Section
     let actualHtml = "";
-    const t13Actual = parsedResults?.type13Actual || (parsedResults as any);
-    if (t13Actual && (t13Actual.sprayDate || t13Actual.actualSprayedRai || t13Actual.chemicalUsed)) {
+    const sprayRounds: any[] =
+      parsedResults?.type13Actual?.sprayRounds ||
+      parsedResults?.t13SprayRounds ||
+      (plan as any).sprayRounds ||
+      [];
+
+    const generalNotes =
+      parsedResults?.type13Actual?.notes ||
+      parsedResults?.t13Notes ||
+      parsedResults?.problemFound;
+
+    const hasActualData = sprayRounds.length > 0 || generalNotes;
+
+    if (hasActualData) {
+      const sprayRowsHtml =
+        sprayRounds.length > 0
+          ? `
+        <div style="margin-top: 6px;">
+          <div style="font-size: 9.5px; font-weight: 700; color: #166534; margin-bottom: 3px;">
+            🚁 บันทึกรอบการฉีดพ่นจริง (Spraying Execution Records):
+          </div>
+          <table class="doc-table">
+            <thead>
+              <tr style="background: #f0fdf4;">
+                <th class="text-center" style="width: 8%;">รอบที่</th>
+                <th style="width: 24%;">วันที่และเวลาฉีดพ่น</th>
+                <th style="width: 24%;">อุปกรณ์ / วิธีการพ่น</th>
+                <th style="width: 22%;">ปริมาณน้ำ / อัตราใช้</th>
+                <th style="width: 22%;">สภาพอากาศ / ข้อสังเกต</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sprayRounds
+                .map(
+                  (sr, sIdx) => `
+                <tr>
+                  <td class="text-center" style="font-weight: 700; color: #166534;">${sr.roundNumber || sIdx + 1}</td>
+                  <td>${safeHtml(sr.sprayDate ? formatDateThai(sr.sprayDate) : "-")} ${sr.sprayTime ? `(${safeHtml(sr.sprayTime)})` : ""}</td>
+                  <td style="font-weight: 600;">${safeHtml(sr.sprayMethod || sr.equipment || "โดรนการเกษตร")}</td>
+                  <td>${safeHtml(sr.waterVolume || sr.dosage || "-")}</td>
+                  <td>${safeHtml(sr.weatherCondition || sr.notes || "-")}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+        `
+          : "";
+
       actualHtml = `
         <div class="section-box avoid-break" style="margin-top: 8px;">
           <div class="section-header" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">
-            <span>บันทึกผลการฉีดพ่นจริง (Type 13 Actual Spraying Log)</span>
+            <span>บันทึกผลการฉีดพ่นจริง (Type 13 Actual Spraying Outcome)</span>
           </div>
           <div class="section-body">
-            <div class="info-grid">
-              <div class="info-row">
-                <div class="info-cell" style="width: 33%;">
-                  <span class="info-label">วันที่ฉีดพ่นจริง:</span>
-                  <span class="info-value">${safeHtml(formatDateThai(t13Actual.sprayDate || t13Actual.actualStartDate))}</span>
-                </div>
-                <div class="info-cell" style="width: 33%;">
-                  <span class="info-label">พื้นที่ฉีดพ่นสำเร็จ:</span>
-                  <span class="info-value" style="font-weight: 700; color: #059669;">${safeHtml(t13Actual.actualSprayedRai ? `${formatQty(t13Actual.actualSprayedRai)} ไร่` : "-")}</span>
-                </div>
-                <div class="info-cell" style="width: 34%;">
-                  <span class="info-label">สภาพลม/อากาศ:</span>
-                  <span class="info-value">${safeHtml(t13Actual.weather || "ลมสงบ เหมาะแก่การพ่น")}</span>
-                </div>
-              </div>
+            ${sprayRowsHtml}
+            ${
+              generalNotes
+                ? `
+            <div style="margin-top: 6px; padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 9px;">
+              <span style="font-weight: 700; color: #0f3568;">📝 บันทึกหน้างานและผลการฉีดพ่นเพิ่มเติม:</span>
+              <span style="color: #334155;"> ${safeHtml(generalNotes)}</span>
             </div>
+            `
+                : ""
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. Custom Signature Boxes for Standalone Export
+    let signatureBoxesHtml: string | undefined = undefined;
+    if (options.typeCode && options.typeCode !== "ALL") {
+      signatureBoxesHtml = `
+        <div class="signatures-grid avoid-break">
+          <div class="signature-card">
+            <div class="signature-role">ผู้ควบคุมการฉีดพ่น / นักบินโดรน</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">ผู้ปฏิบัติงานฉีดพ่น<br/>วันที่: ....../....../......</div>
+          </div>
+          <div class="signature-card">
+            <div class="signature-role">เกษตรกรเจ้าของแปลงผู้รับบริการ</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">เกษตรกรผู้รับรองแปลง<br/>วันที่: ....../....../......</div>
+          </div>
+          <div class="signature-card">
+            <div class="signature-role">ผู้อนุมัติผลการปฏิบัติงาน</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">....................................................</div>
+            <div class="signature-date">ผู้จัดการฝ่ายเทคนิค / ส่งเสริม<br/>วันที่: ....../....../......</div>
           </div>
         </div>
       `;
@@ -118,7 +211,7 @@ export class Type13PdfRenderer implements TypePdfRenderer {
       workTypeCode: this.workTypeCode,
       planHtml,
       actualHtml,
+      signatureBoxesHtml,
     };
   }
 }
-
