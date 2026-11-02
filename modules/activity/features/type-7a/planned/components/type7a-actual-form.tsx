@@ -1004,8 +1004,8 @@ export function Type7aActualForm({
                             handleUpdatePlannedProd(idx, "extraUnit", val)
                           }
                           options={[
-                            { value: "ซีซี", label: "ซีซี (ขวด)" },
-                            { value: "กรัม", label: "กรัม (ซอง)" },
+                            { value: "ซีซี", label: "ซีซี" },
+                            { value: "กรัม", label: "กรัม" },
                           ]}
                           disabled={readonly}
                         />
@@ -1187,8 +1187,8 @@ export function Type7aActualForm({
                             handleUpdateAdditionalProd(idx, "extraUnit", val)
                           }
                           options={[
-                            { value: "ซีซี", label: "ซีซี (ขวด)" },
-                            { value: "กรัม", label: "กรัม (ซอง)" },
+                            { value: "ซีซี", label: "ซีซี" },
+                            { value: "กรัม", label: "กรัม" },
                           ]}
                           disabled={readonly}
                         />

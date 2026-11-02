@@ -674,8 +674,8 @@ export function Type7bActualForm({
                                   )
                                 }
                                 options={[
-                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                  { value: "ซีซี", label: "ซีซี" },
+                                  { value: "กรัม", label: "กรัม" },
                                 ]}
                                 disabled={readonly}
                               />
@@ -883,8 +883,8 @@ export function Type7bActualForm({
                                   )
                                 }
                                 options={[
-                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                  { value: "ซีซี", label: "ซีซี" },
+                                  { value: "กรัม", label: "กรัม" },
                                 ]}
                                 disabled={readonly}
                               />
@@ -1356,7 +1356,9 @@ export function Type7bActualForm({
             <div className="border-b border-emerald-200/60 pb-2">
               <h4 className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-emerald-600" />
-                <span>การประเมินผลการเก็บเกี่ยวและการปิดแปลง (Harvest Evaluation)</span>
+                <span>
+                  การประเมินผลการเก็บเกี่ยวและการปิดแปลง (Harvest Evaluation)
+                </span>
               </h4>
               <p className="text-[11px] text-emerald-800">
                 บันทึกผลผลิต ความพึงพอใจของเกษตรกร และโอกาสต่อยอดเชิงพาณิชย์
@@ -1419,8 +1421,7 @@ export function Type7bActualForm({
                 </label>
                 <ActivitySelect
                   value={
-                    actualState.t7CommercialPotential ||
-                    "สูง (เกษตรกรสนใจมาก)"
+                    actualState.t7CommercialPotential || "สูง (เกษตรกรสนใจมาก)"
                   }
                   onChange={(val) =>
                     onUpdateField?.("t7CommercialPotential", val)

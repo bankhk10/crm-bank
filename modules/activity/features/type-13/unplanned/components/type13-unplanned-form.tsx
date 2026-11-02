@@ -181,8 +181,8 @@ export function Type13UnplannedForm({
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              ระบุข้อมูลตัวแทนจำหน่าย ที่อยู่แปลง จำนวนแปลงที่ฉีดพ่นจริง สินค้าที่ใช้
-              และรูปภาพหลักฐาน (รองรับสูงสุด 10 หมู่บ้าน)
+              ระบุข้อมูลตัวแทนจำหน่าย ที่อยู่แปลง จำนวนแปลงที่ฉีดพ่นจริง
+              สินค้าที่ใช้ และรูปภาพหลักฐาน (รองรับสูงสุด 10 หมู่บ้าน)
             </p>
           </div>
         </div>
@@ -456,8 +456,7 @@ export function Type13UnplannedForm({
                                 productId: val,
                                 productName:
                                   selectedProd?.name || prod.productName || "",
-                                unit:
-                                  selectedProd?.unit || prod.unit || "ขวด",
+                                unit: selectedProd?.unit || prod.unit || "ขวด",
                               });
                             }}
                             products={products as any}
@@ -529,8 +528,8 @@ export function Type13UnplannedForm({
                                   })
                                 }
                                 options={[
-                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                  { value: "ซีซี", label: "ซีซี" },
+                                  { value: "กรัม", label: "กรัม" },
                                   { value: "มล.", label: "มล." },
                                   { value: "ลิตร", label: "ลิตร" },
                                 ]}
@@ -542,7 +541,8 @@ export function Type13UnplannedForm({
                           {/* 3. อัตราการใช้ */}
                           <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700">
-                              อัตราการใช้ <span className="text-rose-500">*</span>
+                              อัตราการใช้{" "}
+                              <span className="text-rose-500">*</span>
                             </label>
                             <ActivityInput
                               value={prod.actualRate || ""}

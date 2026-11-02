@@ -664,8 +664,8 @@ export function Type14UnplannedForm({
                                     )
                                   }
                                   options={[
-                                    { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                    { value: "กรัม", label: "กรัม (ซอง)" },
+                                    { value: "ซีซี", label: "ซีซี" },
+                                    { value: "กรัม", label: "กรัม" },
                                   ]}
                                   disabled={readonly}
                                 />

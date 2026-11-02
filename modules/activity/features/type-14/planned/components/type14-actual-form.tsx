@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Package, Clock, Activity, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Package,
+  Clock,
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   ActivityInput,
@@ -18,7 +24,10 @@ import type {
   Type14ActualProductState,
   ProductOption,
 } from "../../shared/types";
-import type { Type14ActualProps, Type14ActualFormProps } from "../types/actual.types";
+import type {
+  Type14ActualProps,
+  Type14ActualFormProps,
+} from "../types/actual.types";
 
 export type { Type14ActualProps, Type14ActualFormProps };
 
@@ -63,14 +72,17 @@ export function Type14ActualForm({
       additionalNotes: "",
       products: (t.products || []).map((tp: any) => ({
         productId: tp.productId || tp.product?.id || tp.id,
-        productName: tp.productName || tp.product?.name || tp.name || "สินค้าตามแผน",
+        productName:
+          tp.productName || tp.product?.name || tp.name || "สินค้าตามแผน",
         unit: tp.unit || tp.product?.unit || "ขวด",
         withdrawnQuantity: tp.quantity ?? tp.withdrawnQuantity ?? 1,
-        actualQuantity: tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
+        actualQuantity:
+          tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
         extraQuantity: tp.extraQuantity || "",
         extraUnit: tp.extraUnit || "ซีซี",
         actualRate: tp.actualRate || "",
-        quantityUsed: tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
+        quantityUsed:
+          tp.actualQuantity ?? tp.quantity ?? tp.withdrawnQuantity ?? 1,
       })),
       afterSprayImages: [],
     }));
@@ -81,7 +93,11 @@ export function Type14ActualForm({
 
   // Auto-sync fallback plots if state is initially empty
   React.useEffect(() => {
-    if (plotsActual.length === 0 && fallbackPlots.length > 0 && setPlotsActual) {
+    if (
+      plotsActual.length === 0 &&
+      fallbackPlots.length > 0 &&
+      setPlotsActual
+    ) {
       setPlotsActual(fallbackPlots);
     }
   }, [plotsActual.length, fallbackPlots, setPlotsActual]);
@@ -114,7 +130,9 @@ export function Type14ActualForm({
   };
 
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-6 shadow-2xs ${className}`}>
+    <div
+      className={`bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-6 shadow-2xs ${className}`}
+    >
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-2.5">
@@ -129,7 +147,8 @@ export function Type14ActualForm({
               </span>
             </h4>
             <p className="text-xs text-slate-500">
-              บันทึกจำนวนแปลงที่ติดตามจริง, สินค้าที่ใช้ และรูปถ่ายผลงานหลังติดตามแปลง
+              บันทึกจำนวนแปลงที่ติดตามจริง, สินค้าที่ใช้
+              และรูปถ่ายผลงานหลังติดตามแปลง
             </p>
           </div>
         </div>
@@ -239,7 +258,8 @@ export function Type14ActualForm({
                     {plotIdx + 1}
                   </div>
                   <span className="font-bold text-slate-800 text-sm">
-                    แปลงที่ {plotIdx + 1}: {plot.plotName || plot.name || `แปลงแฮตแทค ${plotIdx + 1}`}
+                    แปลงที่ {plotIdx + 1}:{" "}
+                    {plot.plotName || plot.name || `แปลงแฮตแทค ${plotIdx + 1}`}
                   </span>
                   {dealerDisplayName !== "-" && (
                     <span className="text-xs text-slate-500 font-medium hidden sm:inline">
@@ -437,8 +457,8 @@ export function Type14ActualForm({
                                   )
                                 }
                                 options={[
-                                  { value: "ซีซี", label: "ซีซี (ขวด)" },
-                                  { value: "กรัม", label: "กรัม (ซอง)" },
+                                  { value: "ซีซี", label: "ซีซี" },
+                                  { value: "กรัม", label: "กรัม" },
                                 ]}
                                 disabled={readonly}
                               />
@@ -495,9 +515,17 @@ export function Type14ActualForm({
                       type="number"
                       min="0"
                       placeholder="เช่น 7, 14, 21"
-                      value={plot.daysAfterSpray != null ? String(plot.daysAfterSpray) : ""}
+                      value={
+                        plot.daysAfterSpray != null
+                          ? String(plot.daysAfterSpray)
+                          : ""
+                      }
                       onChange={(e) =>
-                        updatePlotField?.(plotIdx, "daysAfterSpray", e.target.value)
+                        updatePlotField?.(
+                          plotIdx,
+                          "daysAfterSpray",
+                          e.target.value,
+                        )
                       }
                       disabled={readonly}
                       className="h-9 text-xs"
@@ -514,7 +542,11 @@ export function Type14ActualForm({
                     placeholder="ระบุข้อสังเกต สภาพพืช อาการ หรือแนวทางแก้ไข..."
                     value={plot.additionalNotes || ""}
                     onChange={(e) =>
-                      updatePlotField?.(plotIdx, "additionalNotes", e.target.value)
+                      updatePlotField?.(
+                        plotIdx,
+                        "additionalNotes",
+                        e.target.value,
+                      )
                     }
                     disabled={readonly}
                     className="h-9 text-xs"
@@ -525,17 +557,25 @@ export function Type14ActualForm({
                 <div className="pt-2 border-t border-slate-100 space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <label className="block text-xs font-semibold text-slate-700">
-                      สถานะของแปลงแฮตแทคหลังการติดตามรอบนี้ <span className="text-rose-500">*</span>
+                      สถานะของแปลงแฮตแทคหลังการติดตามรอบนี้{" "}
+                      <span className="text-rose-500">*</span>
                     </label>
                     <div className="flex items-center gap-2">
                       {HATTACK_PLOT_STATUS_OPTIONS.map((opt) => {
-                        const isSelected = (plot.plotStatus || "IN_PROGRESS") === opt.value;
+                        const isSelected =
+                          (plot.plotStatus || "IN_PROGRESS") === opt.value;
                         return (
                           <button
                             key={opt.value}
                             type="button"
                             disabled={readonly}
-                            onClick={() => updatePlotField?.(plotIdx, "plotStatus", opt.value)}
+                            onClick={() =>
+                              updatePlotField?.(
+                                plotIdx,
+                                "plotStatus",
+                                opt.value,
+                              )
+                            }
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                               isSelected
                                 ? opt.value === "COMPLETED"
@@ -544,7 +584,9 @@ export function Type14ActualForm({
                                 : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             }`}
                           >
-                            {opt.value === "COMPLETED" ? "ปิดแปลงแล้ว (สิ้นสุดการทดลอง)" : "ต้องติดตามต่อ"}
+                            {opt.value === "COMPLETED"
+                              ? "ปิดแปลงแล้ว (สิ้นสุดการทดลอง)"
+                              : "ต้องติดตามต่อ"}
                           </button>
                         );
                       })}
@@ -555,7 +597,10 @@ export function Type14ActualForm({
                     <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80 space-y-2">
                       <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>แปลงนี้จะถูกบันทึกเป็น "ปิดแปลงแล้ว" (ไม่แสดงในรายการสร้างแผนติดตามรอบใหม่)</span>
+                        <span>
+                          แปลงนี้จะถูกบันทึกเป็น "ปิดแปลงแล้ว"
+                          (ไม่แสดงในรายการสร้างแผนติดตามรอบใหม่)
+                        </span>
                       </div>
                       <div className="space-y-1">
                         <label className="block text-[11px] font-semibold text-emerald-900">
@@ -564,7 +609,13 @@ export function Type14ActualForm({
                         <ActivityInput
                           placeholder="เช่น ผลการควบคุมหนอนดีเยี่ยม เกษตรกรพึงพอใจมาก แปลงสมบูรณ์พร้อมเก็บเกี่ยว..."
                           value={plot.closureNotes || ""}
-                          onChange={(e) => updatePlotField?.(plotIdx, "closureNotes", e.target.value)}
+                          onChange={(e) =>
+                            updatePlotField?.(
+                              plotIdx,
+                              "closureNotes",
+                              e.target.value,
+                            )
+                          }
                           disabled={readonly}
                           className="h-9 text-xs bg-white border-emerald-200"
                         />

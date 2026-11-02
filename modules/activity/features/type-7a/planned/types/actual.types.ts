@@ -1,4 +1,8 @@
-import type { CustomerOption, ProductOption, Type7aImageFile } from "../../shared/types";
+import type {
+  CustomerOption,
+  ProductOption,
+  Type7aImageFile,
+} from "../../shared/types";
 import type { Type7aTargetItem } from "./planned.types";
 
 /**
@@ -10,7 +14,7 @@ export interface Type7aPlannedProductActualItem {
   withdrawnQuantity: number; // จำนวนที่เบิกตามแผน
   actualQuantity: number | string; // จำนวนที่ใช้จริง (ขวด)
   extraQuantity: number | string; // ปริมาณที่ใช้เพิ่ม
-  extraUnit: "ซีซี" | "กรัม" | string; // ซีซี (ขวด) หรือ กรัม (ซอง)
+  extraUnit: "ซีซี" | "กรัม" | string; // ซีซี หรือ กรัม
   applicationRate: string; // อัตราการใช้ (ผู้ใช้กรอกเอง)
 }
 
@@ -135,14 +139,18 @@ export interface Type7aActualFormProps {
     field: keyof Type7aPlannedProductActualItem,
     value: any,
   ) => void;
-  onAddAdditionalProduct?: (product?: Partial<Type7aAdditionalProductItem>) => void;
+  onAddAdditionalProduct?: (
+    product?: Partial<Type7aAdditionalProductItem>,
+  ) => void;
   onUpdateAdditionalProduct?: (
     index: number,
     field: keyof Type7aAdditionalProductItem,
     value: any,
   ) => void;
   onRemoveAdditionalProduct?: (index: number) => void;
-  onAddExternalProduct?: (product?: Partial<Type7aExternalChemicalItem>) => void;
+  onAddExternalProduct?: (
+    product?: Partial<Type7aExternalChemicalItem>,
+  ) => void;
   onUpdateExternalProduct?: (
     index: number,
     field: keyof Type7aExternalChemicalItem,

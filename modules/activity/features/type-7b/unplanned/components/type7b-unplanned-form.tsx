@@ -1013,11 +1013,11 @@ export function Type7bUnplannedForm({
                                         options={[
                                           {
                                             value: "ซีซี",
-                                            label: "ซีซี (ขวด)",
+                                            label: "ซีซี",
                                           },
                                           {
                                             value: "กรัม",
-                                            label: "กรัม (ซอง)",
+                                            label: "กรัม",
                                           },
                                         ]}
                                         disabled={readonly}
@@ -1642,11 +1642,7 @@ export function Type7bUnplannedForm({
                           label="วันปิดแปลง / วันเก็บเกี่ยว"
                           value={item.finalHarvestDate || ""}
                           onChange={(dateStr) =>
-                            updateItem(
-                              item.id,
-                              "finalHarvestDate",
-                              dateStr,
-                            )
+                            updateItem(item.id, "finalHarvestDate", dateStr)
                           }
                           placeholder="เลือกวันปิดแปลง / วันเก็บเกี่ยว..."
                           disabled={readonly}
