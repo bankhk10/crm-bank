@@ -42,15 +42,16 @@ export interface ActionScopeBadge {
 
 export function isUserAdmin(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const roles = user.roles || (user.role ? [user.role] : []);
-  const permissions = user.permissions || user.permissionKeys || [];
+  const roles = (user.roles || (user.role ? [user.role] : [])).map((r) =>
+    String(r).toLowerCase(),
+  );
+  const roleStr = String(user.role || "").toLowerCase();
   return (
     roles.includes("administrator") ||
     roles.includes("admin") ||
     roles.includes("ceo") ||
-    user.role === "administrator" ||
-    user.role === "ADMIN" ||
-    permissions.includes("activity.manage")
+    roleStr === "administrator" ||
+    roleStr === "admin"
   );
 }
 
@@ -153,26 +154,44 @@ export function hasPermission(
 }
 
 export function canUserApproveSPBudget(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserSalesAdminManager(user)) return true;
+  if (isUserMarketingManager(user) || isUserSalesDirector(user)) return false;
   return hasPermission(user, "activity.approve.sp_budget");
 }
 
 export function canUserApproveMKTBudget(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserMarketingManager(user)) return true;
+  if (isUserSalesAdminManager(user) || isUserSalesDirector(user)) return false;
   return hasPermission(user, "activity.approve.mkt_budget");
 }
 
 export function canUserApproveTotalBudget(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserSalesDirector(user)) return true;
+  if (isUserMarketingManager(user) || isUserSalesAdminManager(user)) return false;
   return hasPermission(user, "activity.approve.total_budget");
 }
 
 export function canUserApproveProductWithdrawal(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserMarketingManager(user)) return true;
+  if (isUserSalesAdminManager(user) || isUserSalesDirector(user)) return false;
   return hasPermission(user, "activity.approve.product_withdrawal");
 }
 
 export function canUserApproveSalesHelper(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserSalesAdminManager(user)) return true;
+  if (isUserMarketingManager(user) || isUserSalesDirector(user)) return false;
   return hasPermission(user, "activity.approve.sales_helper");
 }
 
 export function canUserApproveMKTHelper(user?: ApproverUserContext | null): boolean {
+  if (!user) return false;
+  if (isUserAdmin(user) || isUserMarketingManager(user)) return true;
+  if (isUserSalesAdminManager(user) || isUserSalesDirector(user)) return false;
   return hasPermission(user, "activity.approve.mkt_helper");
 }
 
@@ -250,12 +269,10 @@ export function canUserPerformApproval(
 ): boolean {
   if (!plan || !plan.status || !user) return false;
 
-  // 1. Admin has universal approval authority
-  if (isUserAdmin(user)) return true;
-
-  // 2. Terminal / Non-pending statuses -> No actions allowed
+  // 1. Terminal / Non-pending statuses -> No approval actions allowed (even for Admin)
   if (
     plan.status === "APPROVED" ||
+    plan.status === "COMPLETED" ||
     plan.status === "REJECTED" ||
     plan.status === "CANCELLED" ||
     plan.status === "DRAFT" ||
@@ -265,6 +282,9 @@ export function canUserPerformApproval(
   ) {
     return false;
   }
+
+  // 2. Admin has universal approval authority on pending statuses
+  if (isUserAdmin(user)) return true;
 
   // 2.5 Unplanned Activity Review (Post-Activity Review)
   if (plan.status === "PENDING_REVIEW") {

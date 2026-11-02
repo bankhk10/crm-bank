@@ -28,7 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
-import { ActivityStatusWithOperator } from "@/modules/activity/ui/activity-status-badge";
+import { ActivityStatusWithOperator, canUserPerformApproval } from "@/modules/activity/ui/activity-status-badge";
 import {
   WORK_TYPE_CONFIG,
   getWorkTypeName,
@@ -506,10 +506,9 @@ const getRelationRole = React.useCallback(
           const deletable = editable || item.status === "CANCELLED";
           const isApproved = item.status === "APPROVED";
 
-          const isPending =
-            item.status === "PENDING_LINE_APPROVAL" ||
-            item.status === "PENDING_BUDGET_APPROVAL" ||
-            item.status === "PENDING_HELPER_APPROVAL";
+          const canApproveThisPlan =
+            canApprove &&
+            canUserPerformApproval(item as any, session?.user as any);
 
           const hasActualWorkType =
             (item as any).workTypes && (item as any).workTypes.length > 0
@@ -564,7 +563,7 @@ const getRelationRole = React.useCallback(
                 ) : null;
               })()}
 
-              {canApprove && isPending && (
+              {canApproveThisPlan && (
                 <ActionButton
                   href="/activity-plans/approvals"
                   icon={ShieldCheck}
@@ -625,6 +624,7 @@ const getRelationRole = React.useCallback(
     canEdit,
     canDelete,
     canApprove,
+    session?.user,
     currentUserId,
     currentUserEmployeeId,
     getRelationRole,
@@ -891,10 +891,9 @@ const getRelationRole = React.useCallback(
             : isDraft || isCorrection;
           const deletable = editable || item.status === "CANCELLED";
           const isApproved = item.status === "APPROVED";
-          const isPending =
-            item.status === "PENDING_LINE_APPROVAL" ||
-            item.status === "PENDING_BUDGET_APPROVAL" ||
-            item.status === "PENDING_HELPER_APPROVAL";
+          const canApproveThisPlan =
+            canApprove &&
+            canUserPerformApproval(item as any, session?.user as any);
 
           const hasActualWorkType =
             (item as any).workTypes && (item as any).workTypes.length > 0
@@ -1089,7 +1088,7 @@ const getRelationRole = React.useCallback(
                     </Link>
                   ) : null;
                 })()}
-                {canApprove && isPending && (
+                {canApproveThisPlan && (
                   <Link href="/activity-plans/approvals">
                     <Button
                       size="sm"

@@ -276,6 +276,7 @@ export async function GET(request: Request) {
           select: {
             id: true,
             name: true,
+            managerId: true,
             positionTitle: true,
             departmentName: true,
             position: { select: { id: true, name: true } },
@@ -293,6 +294,8 @@ export async function GET(request: Request) {
           where: { deletedAt: null },
           select: {
             status: true,
+            approvedById: true,
+            respondedAt: true,
             employee: {
               select: {
                 id: true,
