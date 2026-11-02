@@ -50,6 +50,7 @@ import {
 } from "@/modules/activity/ui/activity-status-badge";
 import {
   isUserSalesAdminManager,
+  isUserMarketingManager,
   isUserAdmin,
 } from "@/modules/activity/domain/approval/can-approve";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
@@ -84,7 +85,9 @@ export default function ActivityPlanApprovalListView() {
     isAdmin ||
     hasPermission("activity.approve") ||
     hasPermission("activity.manage") ||
-    hasPermission("activity.view");
+    hasPermission("activity.view") ||
+    isUserSalesAdminManager(session?.user) ||
+    isUserMarketingManager(session?.user);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -838,7 +841,10 @@ export default function ActivityPlanApprovalListView() {
                       plan.status === "REVIEWED" ||
                       plan.status === "REJECTED";
                     const canSendBackCorrection =
-                      (isUserSalesAdminManager(effectiveUser) || isUserAdmin(effectiveUser)) && isHistoryPlan;
+                      (isUserSalesAdminManager(effectiveUser) ||
+                        isUserMarketingManager(effectiveUser) ||
+                        isUserAdmin(effectiveUser)) &&
+                      isHistoryPlan;
 
                     const workTypeNames: string[] = [];
                     if (plan.workTypes && plan.workTypes.length > 0) {
@@ -1368,7 +1374,10 @@ function PlanCard({
     plan.status === "REVIEWED" ||
     plan.status === "REJECTED";
   const canSendBackCorrection =
-    (isUserSalesAdminManager(effectiveUser) || isUserAdmin(effectiveUser)) && isHistoryPlan;
+    (isUserSalesAdminManager(effectiveUser) ||
+      isUserMarketingManager(effectiveUser) ||
+      isUserAdmin(effectiveUser)) &&
+    isHistoryPlan;
 
   // Work Types
   const workTypeBadges: Array<{ code: string; name: string }> = [];

@@ -222,7 +222,8 @@ export function canApproveActivityPlan(
     isActivityAdmin(user) ||
     hasActivityPermission(user, "activity.approve") ||
     hasActivityPermission(user, "activity.manage") ||
-    isUserSalesAdminManager(user as any)
+    isUserSalesAdminManager(user as any) ||
+    isUserMarketingManager(user as any)
   ) {
     return { allowed: true };
   }
@@ -247,7 +248,9 @@ export function canAccessApprovalQueue(
     isActivityAdmin(user) ||
     hasActivityPermission(user, "activity.approve") ||
     hasActivityPermission(user, "activity.manage") ||
-    hasActivityPermission(user, "menu.activity_plans")
+    hasActivityPermission(user, "menu.activity_plans") ||
+    isUserSalesAdminManager(user as any) ||
+    isUserMarketingManager(user as any)
   ) {
     return { allowed: true };
   }

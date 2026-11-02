@@ -9,7 +9,10 @@ import {
   reviewSingleActivityHelperAction,
 } from "@/modules/activity/server/actions";
 import { canUserPerformApproval } from "@/modules/activity/ui/activity-status-badge";
-import { isUserSalesAdminManager } from "@/modules/activity/domain/approval/can-approve";
+import {
+  isUserSalesAdminManager,
+  isUserMarketingManager,
+} from "@/modules/activity/domain/approval/can-approve";
 import { getWorkTypeCode } from "@/modules/activity/constants";
 import {
   extractPlanData,
@@ -42,7 +45,9 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
   const canManageOrApprove =
     isAdmin ||
     hasPermission("activity.approve") ||
-    hasPermission("activity.manage");
+    hasPermission("activity.manage") ||
+    isUserSalesAdminManager(session?.user) ||
+    isUserMarketingManager(session?.user);
 
   const [plan, setPlan] = useState<ActivityPlanWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,11 +127,12 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
   const canSendBackCorrection = useMemo(() => {
     if (!plan) return false;
     const isSalesAdmin = isUserSalesAdminManager(session?.user);
+    const isMarketing = isUserMarketingManager(session?.user);
     const isHistoryPlan =
       plan.status === "APPROVED" ||
       plan.status === "REVIEWED" ||
       plan.status === "REJECTED";
-    return (isSalesAdmin || isAdmin) && isHistoryPlan;
+    return (isSalesAdmin || isMarketing || isAdmin) && isHistoryPlan;
   }, [plan, session?.user, isAdmin]);
 
   const handleOpenActionDialog = (type: ApprovalActionType) => {

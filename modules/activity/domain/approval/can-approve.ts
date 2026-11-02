@@ -71,8 +71,21 @@ export function isUserSalesAdminManager(user?: ApproverUserContext | null): bool
 
 export function isUserMarketingManager(user?: ApproverUserContext | null): boolean {
   if (!user) return false;
-  const pos = (user.positionTitle || "").toLowerCase();
-  const dept = (user.departmentCode || "").toUpperCase();
+  const pos = (
+    user.positionTitle ||
+    (typeof (user as any).position === "string"
+      ? (user as any).position
+      : (user as any).position?.name) ||
+    (user as any).roleTitle ||
+    ""
+  ).toLowerCase();
+  const dept = (
+    user.departmentCode ||
+    (typeof (user as any).department === "string"
+      ? (user as any).department
+      : (user as any).department?.code) ||
+    ""
+  ).toUpperCase();
   const roles = user.roles || (user.role ? [user.role] : []);
 
   return (
@@ -80,7 +93,8 @@ export function isUserMarketingManager(user?: ApproverUserContext | null): boole
     roles.includes("activity_marketing_manager") ||
     pos.includes("ผู้จัดการแผนกการตลาด") ||
     pos.includes("ผจก.แผนกการตลาด") ||
-    (dept === "MKT" && (pos.includes("แผนกการตลาด") || pos.includes("marketing manager")))
+    (pos.includes("การตลาด") && (pos.includes("ผู้จัดการ") || pos.includes("ผจก") || pos.includes("manager"))) ||
+    ((dept === "MKT" || dept === "MARKETING") && (pos.includes("การตลาด") || pos.includes("marketing manager") || pos.includes("manager")))
   );
 }
 

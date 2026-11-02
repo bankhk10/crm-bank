@@ -1560,13 +1560,18 @@ export async function requestCorrectionPlanUseCase(
     if (!approverEmployee && !isAdmin)
       return { success: false, error: "ไม่พบโปรไฟล์พนักงานของคุณ" };
 
-    // Resolve Sales Admin Manager position / department
+    // Resolve Sales Admin Manager & Marketing Manager positions / departments
     const pos = (approverEmployee?.position?.name || approverEmployee?.positionTitle || "").toLowerCase();
     const dept = (approverEmployee?.department?.code || "").toUpperCase();
     const isSalesAdmin =
       pos.includes("ผู้จัดการแผนกบริหารงานขาย") ||
       pos.includes("ผจก.แผนกบริหารงานขาย") ||
       (dept === "SA" && (pos.includes("บริหารงานขาย") || pos.includes("sales admin manager") || pos.includes("manager")));
+    const isMarketingManager =
+      pos.includes("ผู้จัดการแผนกการตลาด") ||
+      pos.includes("ผจก.แผนกการตลาด") ||
+      (pos.includes("การตลาด") && (pos.includes("ผู้จัดการ") || pos.includes("ผจก") || pos.includes("manager"))) ||
+      ((dept === "MKT" || dept === "MARKETING") && (pos.includes("การตลาด") || pos.includes("marketing manager") || pos.includes("manager")));
 
     // Verify authority
     let hasAuthority = isAdmin;
@@ -1655,8 +1660,8 @@ export async function requestCorrectionPlanUseCase(
       plan.status === ActivityStatus.REVIEWED ||
       plan.status === ActivityStatus.REJECTED
     ) {
-      // Sales Admin Manager (ผู้จัดการแผนกบริหารงานขาย) can send back plans from history
-      if (isAdmin || isSalesAdmin) {
+      // Sales Admin Manager (ผู้จัดการแผนกบริหารงานขาย) & Marketing Manager (ผู้จัดการแผนกการตลาด) can send back plans from history
+      if (isAdmin || isSalesAdmin || isMarketingManager) {
         hasAuthority = true;
       }
       step = ActivityApprovalStep.BUDGET_APPROVAL;
