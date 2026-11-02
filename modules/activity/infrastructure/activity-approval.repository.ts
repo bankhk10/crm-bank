@@ -4,6 +4,7 @@ import {
   ActivityHelperStatus,
   ActivityApprovalAction,
   ActivityApprovalStep,
+  Prisma,
 } from "@prisma/client";
 import { ACTIVITY_PLAN_FULL_INCLUDE } from "./activity-plan-include";
 
@@ -88,10 +89,21 @@ export async function findHelper(activityPlanId: string, employeeId: string) {
   });
 }
 
+export interface ApprovalQueueFilterOptions {
+  isGlobalApprover?: boolean;
+  userId?: string;
+  employeeId?: string | null;
+  subordinateEmployeeIds?: string[];
+}
+
 /**
- * Find all plans currently in approval queues and recent approval history
+ * Find plans currently in approval queues and recent approval history.
+ * When options.isGlobalApprover is false, limits plans to:
+ * - Plans the user has acted upon in approvalLogs
+ * - Plans of subordinates in their hierarchy
+ * - Plans where user is current approver, creator, or assigned helper
  */
-export async function findApprovalQueueData() {
+export async function findApprovalQueueData(options?: ApprovalQueueFilterOptions) {
   const pendingStatuses: ActivityStatus[] = [
     ActivityStatus.PENDING_LINE_APPROVAL,
     ActivityStatus.PENDING_MARKETING_APPROVAL,
@@ -101,31 +113,77 @@ export async function findApprovalQueueData() {
     ActivityStatus.PENDING_REVIEW,
   ];
 
+  const isGlobal = options?.isGlobalApprover ?? true;
+  const userId = options?.userId;
+  const employeeId = options?.employeeId;
+  const subordinateEmployeeIds = options?.subordinateEmployeeIds ?? [];
+
+  let pendingWhere: Prisma.ActivityPlanWhereInput = {
+    deletedAt: null,
+    status: { in: pendingStatuses },
+  };
+
+  let historyWhere: Prisma.ActivityPlanWhereInput = {
+    deletedAt: null,
+    status: {
+      in: [
+        ActivityStatus.APPROVED,
+        ActivityStatus.REJECTED,
+        ActivityStatus.WAITING_FOR_CORRECTION,
+        ActivityStatus.REVIEWED,
+        ActivityStatus.RETURNED,
+      ],
+    },
+  };
+
+  // Fine-grained line-hierarchy & participation scoping for non-global approvers
+  if (!isGlobal && userId) {
+    const historyOrConditions: Prisma.ActivityPlanWhereInput[] = [
+      { approvalLogs: { some: { userId } } },
+      ...(subordinateEmployeeIds.length > 0
+        ? [{ employeeId: { in: subordinateEmployeeIds } }]
+        : []),
+      ...(employeeId ? [{ employeeId }] : []),
+      { createdById: userId },
+      ...(employeeId
+        ? [{ helpers: { some: { employeeId, deletedAt: null } } }]
+        : []),
+    ];
+
+    historyWhere = {
+      ...historyWhere,
+      OR: historyOrConditions,
+    };
+
+    const pendingOrConditions: Prisma.ActivityPlanWhereInput[] = [
+      ...(employeeId ? [{ currentApproverEmployeeId: employeeId }] : []),
+      ...(subordinateEmployeeIds.length > 0
+        ? [{ employeeId: { in: subordinateEmployeeIds } }]
+        : []),
+      ...(employeeId ? [{ employeeId }] : []),
+      { createdById: userId },
+      ...(employeeId
+        ? [{ helpers: { some: { employeeId, deletedAt: null } } }]
+        : []),
+    ];
+
+    pendingWhere = {
+      ...pendingWhere,
+      OR: pendingOrConditions,
+    };
+  }
+
   const [pendingPlans, historyPlans, activityTypes] = await Promise.all([
     db.activityPlan.findMany({
-      where: {
-        deletedAt: null,
-        status: { in: pendingStatuses },
-      },
+      where: pendingWhere,
       include: ACTIVITY_PLAN_FULL_INCLUDE,
       orderBy: { createdAt: "desc" },
     }),
     db.activityPlan.findMany({
-      where: {
-        deletedAt: null,
-        status: {
-          in: [
-            ActivityStatus.APPROVED,
-            ActivityStatus.REJECTED,
-            ActivityStatus.WAITING_FOR_CORRECTION,
-            ActivityStatus.REVIEWED,
-            ActivityStatus.RETURNED,
-          ],
-        },
-      },
+      where: historyWhere,
       include: ACTIVITY_PLAN_FULL_INCLUDE,
       orderBy: { updatedAt: "desc" },
-      take: 50,
+      take: isGlobal ? 50 : 100,
     }),
     db.activityType.findMany({
       where: { isActive: true },

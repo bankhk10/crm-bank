@@ -52,6 +52,7 @@ import {
   isUserSalesAdminManager,
   isUserMarketingManager,
   isUserAdmin,
+  isUserSalesDirector,
 } from "@/modules/activity/domain/approval/can-approve";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
@@ -85,9 +86,9 @@ export default function ActivityPlanApprovalListView() {
     isAdmin ||
     hasPermission("activity.approve") ||
     hasPermission("activity.manage") ||
-    hasPermission("activity.view") ||
     isUserSalesAdminManager(session?.user) ||
-    isUserMarketingManager(session?.user);
+    isUserMarketingManager(session?.user) ||
+    isUserSalesDirector(session?.user);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
