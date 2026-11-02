@@ -99,9 +99,9 @@ bash scripts/deploy-staging.sh
 
 ---
 
-## 4. สถาปัตยกรรม Storage และการ Upload รูปภาพ (Storage Architecture)
+## 4. สถาปัตยกรรม Storage และการ Upload รูปภาพ (Cloudflare R2 + Local Fallback)
 
-การแยกส่วนการจัดเก็บไฟล์รูปภาพระหว่าง Production และ Staging:
+ระบบ Staging รองรับการจัดเก็บไฟล์รูปภาพแบบ **Hybrid (Cloudflare R2 เป็นหลัก และ Local Disk เป็น Fallback สำหรับไฟล์เดิม)** โดยแยกออกจาก Production อย่างสมบูรณ์ด้วย `R2_KEY_PREFIX=staging`:
 
 ```
 [ผู้ใช้เรียกดูรูปภาพ: https://test-csone.cropsciences.co.th/uploads/activity-plans/.../image.jpg]
@@ -117,24 +117,38 @@ bash scripts/deploy-staging.sh
                                       ▼
                       ┌─────────────────────────────────┐
                       │     crm-app-staging (Port 3000) │
-                      │  (Next.js Standalone Runtime)   │
-                      │  Internal: /app/public/uploads  │
-                      └───────────────┬─────────────────┘
-                                      │ (Docker Volume Mount: rw)
-                                      ▼
-                      ┌─────────────────────────────────┐
-                      │            VPS Host             │
-                      │ /home/bank/crm-data-staging/    │
-                      │ uploads/activity-plans/...      │
-                      └─────────────────────────────────┘
+                      │  Route: app/uploads/[...path]   │
+                      └───────┬─────────────────┬───────┘
+                              │                 │
+       (1. เช็กไฟล์ในเครื่องก่อน) │                 │ (2. ถ้าไม่เจอในเครื่อง ดึงจาก R2)
+                              ▼                 ▼
+            ┌──────────────────────────┐  ┌─────────────────────────────┐
+            │         VPS Host         │  │    Cloudflare R2 Bucket     │
+            │ /home/bank/              │  │ Key Prefix: staging/uploads/│
+            │ crm-data-staging/uploads │  │ (แยกจาก Production 100%)    │
+            └──────────────────────────┘  └─────────────────────────────┘
 ```
 
-| รายการ             | Production                         | Staging                                   |
-| :----------------- | :--------------------------------- | :---------------------------------------- |
-| **Host Directory** | `/home/bank/crm-data/uploads`      | `/home/bank/crm-data-staging/uploads`     |
-| **App Mount**      | `/app/public/uploads` (`crm-app`)  | `/app/public/uploads` (`crm-app-staging`) |
-| **Nginx Mount**    | `/usr/share/nginx/uploads:ro`      | **ไม่มี Mount (Decoupled)**               |
-| **Nginx Route**    | `alias /usr/share/nginx/uploads/;` | `proxy_pass $staging_upstream;`           |
+| รายการ             | Production                         | Staging (R2 + Local Fallback)                          |
+| :----------------- | :--------------------------------- | :----------------------------------------------------- |
+| **Primary Storage**| Local Disk (`/home/bank/crm-data/uploads`) | **Cloudflare R2** (`R2_KEY_PREFIX=staging`)    |
+| **Local Fallback** | `/home/bank/crm-data/uploads`      | `/home/bank/crm-data-staging/uploads`                  |
+| **App Mount**      | `/app/public/uploads` (`crm-app`)  | `/app/public/uploads` (`crm-app-staging`)              |
+| **Nginx Mount**    | `/usr/share/nginx/uploads:ro`      | **ไม่มี Mount (Decoupled)**                            |
+| **Nginx Route**    | `alias /usr/share/nginx/uploads/;` | `proxy_pass $staging_upstream;`                        |
+
+### การตั้งค่า Cloudflare R2 ใน `deploy/.env.staging` บน VPS:
+
+```env
+STORAGE_PROVIDER=r2
+R2_ACCOUNT_ID=<ของคุณ>
+R2_ACCESS_KEY_ID=<ของคุณ>
+R2_SECRET_ACCESS_KEY=<ของคุณ>
+R2_BUCKET_NAME=<ของคุณ>
+R2_PUBLIC_URL=
+R2_KEY_PREFIX=staging
+```
+*(หากไม่ได้ใส่ค่า `R2_*` หรือตั้ง `STORAGE_PROVIDER=local` ระบบจะสลับไปบันทึกไฟล์ลง `/home/bank/crm-data-staging/uploads` บน VPS อัตโนมัติ)*
 
 ---
 
