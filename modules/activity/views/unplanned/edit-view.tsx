@@ -12,6 +12,7 @@ import {
   updateActivityPlanAction,
   getDemoPlotsAction,
   getFollowUpPlansAction,
+  getHattackFollowUpPlansAction,
   getProductCategoriesAction,
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
@@ -53,6 +54,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [demoPlots, setDemoPlots] = useState<any[]>([]);
   const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
+  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>([]);
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
     useState<Record<string, any[]> | undefined>(undefined);
   const [initialData, setInitialData] = useState<any>(null);
@@ -70,6 +72,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           prodRes,
           plotRes,
           followUpRes,
+          hattackFollowUpRes,
           catRes,
           mktRes,
           actTypeRes,
@@ -84,6 +87,9 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           })),
           getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
           getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
+          getHattackFollowUpPlansAction().catch(() => ({
+            hattackFollowUpPlans: [],
+          })),
           getProductCategoriesAction().catch(() => ({
             success: false,
             productCategories: [],
@@ -125,6 +131,10 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           setFollowUpPlans(followUpRes.followUpPlans);
         }
 
+        if (hattackFollowUpRes && hattackFollowUpRes.hattackFollowUpPlans) {
+          setHattackFollowUpPlans(hattackFollowUpRes.hattackFollowUpPlans);
+        }
+
         if (mktRes && mktRes.success && mktRes.grouped) {
           setPromotionalMaterialsByCategory(mktRes.grouped);
         }
@@ -136,6 +146,11 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             getFollowUpPlansAction(plan.employeeId).then((res) => {
               if (res?.success && res.followUpPlans) {
                 setFollowUpPlans(res.followUpPlans);
+              }
+            });
+            getHattackFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.hattackFollowUpPlans) {
+                setHattackFollowUpPlans(res.hattackFollowUpPlans);
               }
             });
           }
@@ -341,6 +356,7 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
           promotionalMaterialsByCategory={promotionalMaterialsByCategory}
           demoPlots={demoPlots}
           followUpPlans={followUpPlans}
+          hattackFollowUpPlans={hattackFollowUpPlans}
           onSubmit={handleSubmit}
           onBack={() => router.push("/activity-plans")}
           isEdit

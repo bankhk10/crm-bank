@@ -135,6 +135,7 @@ export interface UnplannedActivityFormProps {
   plotList?: any[];
   demoPlots?: any[];
   followUpPlans?: any[];
+  hattackFollowUpPlans?: any[];
   onSubmit: (payload: any) => Promise<{ success: boolean; error?: string }>;
   onBack?: () => void;
   readonly?: boolean;
@@ -151,6 +152,7 @@ export function UnplannedActivityForm({
   plotList = [],
   demoPlots = [],
   followUpPlans = [],
+  hattackFollowUpPlans = [],
   onSubmit,
   onBack,
   readonly = false,
@@ -2493,7 +2495,7 @@ export function UnplannedActivityForm({
           onChange={type14.updateItem}
           dealers={customers as any}
           products={products as any}
-          hattackFollowUpPlans={followUpPlans as any}
+          hattackFollowUpPlans={hattackFollowUpPlans as any}
           readonly={readonly}
         />
       )}
