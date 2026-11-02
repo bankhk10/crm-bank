@@ -162,7 +162,27 @@ export function parseType14ActualResult(
       })();
 
       // Images for this plot
-      const plotImages = (p.afterSprayImages || matchedRes?.afterSprayImages || matchedRes?.attachments || []).map(
+      const rawPlotImgs =
+        (Array.isArray(p.afterSprayImages) && p.afterSprayImages.length > 0
+          ? p.afterSprayImages
+          : undefined) ||
+        (Array.isArray(p.images) && p.images.length > 0
+          ? p.images
+          : undefined) ||
+        (Array.isArray(matchedRes?.afterSprayImages) &&
+        matchedRes.afterSprayImages.length > 0
+          ? matchedRes.afterSprayImages
+          : undefined) ||
+        (Array.isArray(matchedRes?.attachments) &&
+        matchedRes.attachments.length > 0
+          ? matchedRes.attachments
+          : undefined) ||
+        (Array.isArray(p.results?.[0]?.attachments) &&
+        p.results[0].attachments.length > 0
+          ? p.results[0].attachments
+          : []);
+
+      const plotImages = rawPlotImgs.map(
         (img: any, imgIdx: number) => ({
           id: img.id || `plot-img-${idx}-${imgIdx + 1}`,
           url: img.url || img.fileUrl || "",

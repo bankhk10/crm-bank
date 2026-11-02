@@ -17,23 +17,6 @@ export function hydrateType7bUnplannedData(
 ): Type7bUnplannedItem[] {
   if (!initialData) return [];
 
-  if (
-    Array.isArray(initialData.type7bUnplannedItems) &&
-    initialData.type7bUnplannedItems.length > 0
-  ) {
-    return initialData.type7bUnplannedItems.map((item: any) => ({
-      ...item,
-      visitDate: item.visitDate || new Date().toISOString().split("T")[0],
-      daysAfterSpray: item.daysAfterSpray ?? 0,
-      cropImages: item.cropImages || item.photos || [],
-      sprayingRounds:
-        Array.isArray(item.sprayingRounds) && item.sprayingRounds.length > 0
-          ? item.sprayingRounds
-          : [createDefaultSprayRound(1, item.visitDate)],
-      plotStatus: item.plotStatus || "IN_PROGRESS",
-    }));
-  }
-
   const dedicatedResult =
     initialData.type7bResults?.[0] ||
     initialData.activityPlan?.type7bResults?.[0] ||
@@ -90,6 +73,139 @@ export function hydrateType7bUnplannedData(
     ...t7bActual,
   };
 
+  // 1. Gather all raw attachments across plan, result, and dedicated relations
+  const rawAttachments: any[] = [
+    ...(initialData.attachments || []),
+    ...(initialData.result?.attachments || []),
+    ...(dedicatedResult?.attachments || []),
+    ...(Array.isArray(initialData.type7bResults)
+      ? initialData.type7bResults.flatMap((r: any) => r.attachments || [])
+      : []),
+  ];
+
+  const seenAttKeys = new Set<string>();
+  const deduplicatedAttachments = rawAttachments.filter((att) => {
+    if (!att) return false;
+    const key = att.id || att.fileUrl || att.url;
+    if (!key || seenAttKeys.has(key)) return false;
+    seenAttKeys.add(key);
+    return true;
+  });
+
+  const t7bAttachments = deduplicatedAttachments.filter((att) => {
+    return (
+      att.workTypeCode === "TYPE_7B" ||
+      att.type7bResultId ||
+      att.category === "CROP" ||
+      att.category === "PLOT" ||
+      att.category === "FOLLOW_UP"
+    );
+  });
+
+  const toImageItem = (img: any, fallbackName: string) => ({
+    id: img.id || `img-${Math.random().toString(36).slice(2, 7)}`,
+    url: img.url || img.fileUrl,
+    name: img.name || img.fileName || fallbackName,
+    size: img.size || img.fileSize || 0,
+    type: img.type || img.mimeType || "image/jpeg",
+  });
+
+  // Resolve Crop Condition Images
+  const rawCropImages =
+    mergedActual.t7CropImages && mergedActual.t7CropImages.length > 0
+      ? mergedActual.t7CropImages
+      : t7bAttachments.filter(
+          (att) => att.category === "CROP" || att.category === "FOLLOW_UP",
+        );
+
+  const resolvedCropImages = rawCropImages.map((img: any, idx: number) =>
+    toImageItem(img, `รูปภาพสภาพพืช-${idx + 1}`),
+  );
+
+  // Helper to resolve Round Images for a specific round number
+  const resolveRoundImages = (sr: any, roundNum: number) => {
+    if (Array.isArray(sr?.roundImages) && sr.roundImages.length > 0) {
+      return sr.roundImages.map((img: any, i: number) =>
+        toImageItem(img, `ภาพการฉีดพ่นรอบที่ ${roundNum}-${i + 1}`),
+      );
+    }
+    const matchingRoundAtts = t7bAttachments.filter((att) => {
+      if (att.category === "CROP" || att.category === "FOLLOW_UP") return false;
+      const name = att.fileName || att.name || "";
+      return (
+        name.includes(`รอบที่ ${roundNum}`) ||
+        name.includes(`รอบ ${roundNum}`) ||
+        name.includes(`[รอบที่ ${roundNum}]`) ||
+        name.includes(`รอบที่${roundNum}`) ||
+        name.includes(`รอบ${roundNum}`)
+      );
+    });
+
+    if (matchingRoundAtts.length > 0) {
+      return matchingRoundAtts.map((att, i) =>
+        toImageItem(att, `ภาพการฉีดพ่นรอบที่ ${roundNum}-${i + 1}`),
+      );
+    }
+
+    if (roundNum === 1) {
+      // If round 1, fallback to any non-crop attachment that doesn't explicitly mention other rounds
+      const genericAtts = t7bAttachments.filter((att) => {
+        if (att.category === "CROP" || att.category === "FOLLOW_UP") return false;
+        const name = att.fileName || att.name || "";
+        const mentionsOtherRound = /รอบ(ที่)?\s*[2-9]/i.test(name);
+        return !mentionsOtherRound;
+      });
+      return genericAtts.map((att, i) =>
+        toImageItem(att, `ภาพการฉีดพ่นรอบที่ 1-${i + 1}`),
+      );
+    }
+
+    return [];
+  };
+
+  // If initialData already has explicit type7bUnplannedItems, ensure photos & rounds are resolved
+  if (
+    Array.isArray(initialData.type7bUnplannedItems) &&
+    initialData.type7bUnplannedItems.length > 0
+  ) {
+    return initialData.type7bUnplannedItems.map((item: any) => {
+      const itemCropImages =
+        Array.isArray(item.cropImages) && item.cropImages.length > 0
+          ? item.cropImages.map((img: any, i: number) =>
+              toImageItem(img, `รูปภาพสภาพพืช-${i + 1}`),
+            )
+          : Array.isArray(item.photos) && item.photos.length > 0
+            ? item.photos.map((img: any, i: number) =>
+                toImageItem(img, `รูปภาพสภาพพืช-${i + 1}`),
+              )
+            : resolvedCropImages;
+
+      const itemSprayingRounds =
+        Array.isArray(item.sprayingRounds) && item.sprayingRounds.length > 0
+          ? item.sprayingRounds.map((r: any, rIdx: number) => ({
+              ...r,
+              baselineProducts: [],
+              roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+            }))
+          : [
+              {
+                ...createDefaultSprayRound(1, item.visitDate),
+                roundImages: resolveRoundImages(null, 1),
+              },
+            ];
+
+      return {
+        ...item,
+        visitDate: item.visitDate || new Date().toISOString().split("T")[0],
+        daysAfterSpray: item.daysAfterSpray ?? 0,
+        cropImages: itemCropImages,
+        photos: itemCropImages,
+        sprayingRounds: itemSprayingRounds,
+        plotStatus: item.plotStatus || "IN_PROGRESS",
+      };
+    });
+  }
+
   const withdrawn: Type7bWithdrawnProductLine[] = rawProducts.map((p, idx) => ({
     id: p.id || String(idx + 1),
     productId: p.productId,
@@ -119,7 +235,7 @@ export function hydrateType7bUnplannedData(
     Array.isArray(t7bActual.t7SprayingRounds) &&
     t7bActual.t7SprayingRounds.length > 0
   ) {
-    restoredRounds = t7bActual.t7SprayingRounds.map((r: any) => ({
+    restoredRounds = t7bActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
       ...r,
       // In unplanned, products used are placed in additionalProducts; baselineProducts is []
       baselineProducts: [],
@@ -127,6 +243,7 @@ export function hydrateType7bUnplannedData(
         r.additionalProducts && r.additionalProducts.length > 0
           ? r.additionalProducts
           : r.baselineProducts || [],
+      roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
     }));
   } else if (
     Array.isArray(dedicatedRounds) &&
@@ -168,7 +285,7 @@ export function hydrateType7bUnplannedData(
         applicationRate: p.actualRate || p.applicationRate || "",
         unit: p.unit || "ขวด",
       })),
-      roundImages: [],
+      roundImages: resolveRoundImages(sr, sr.roundNumber || idx + 1),
     }));
   } else if (
     Array.isArray(initialData.sprayRounds) &&
@@ -210,7 +327,7 @@ export function hydrateType7bUnplannedData(
         applicationRate: p.actualRate || p.applicationRate || "",
         unit: p.unit || "ขวด",
       })),
-      roundImages: [],
+      roundImages: resolveRoundImages(sr, sr.roundNumber || idx + 1),
     }));
   }
 
@@ -219,6 +336,7 @@ export function hydrateType7bUnplannedData(
     if (productsFromWithdrawn.length > 0) {
       defaultRound.additionalProducts = productsFromWithdrawn;
     }
+    defaultRound.roundImages = resolveRoundImages(null, 1);
     restoredRounds = [defaultRound];
   }
 
@@ -231,7 +349,7 @@ export function hydrateType7bUnplannedData(
   const daysAfterSpray =
     mergedActual.t7DaysAfterSpray != null ? Number(mergedActual.t7DaysAfterSpray) : 0;
 
-  const cropImages = mergedActual.t7CropImages || actualOutcome.attachments || [];
+  const cropImages = resolvedCropImages;
 
   if (rawPlots.length > 0) {
     return rawPlots.map((plot, idx) => ({
@@ -242,22 +360,65 @@ export function hydrateType7bUnplannedData(
         t7b?.sourceActivityPlanId ||
         plot.sourceActivityPlan?.id ||
         null,
-      plotName: plot.plotName || plot.name || "",
-      farmerName: plot.ownerName || plot.farmerName || "",
-      province: plot.province || "",
-      district: plot.district || "",
-      cropCategory: plot.cropCategory || "",
-      cropName: plot.cropName || "",
-      areaRai: plot.areaRai != null ? Number(plot.areaRai) : null,
-      treeCount: plot.treeCount != null ? Number(plot.treeCount) : null,
-      dealerName: plot.dealerName || "",
+      plotName:
+        plot.plotName ||
+        plot.name ||
+        plot.type7aTarget?.plotName ||
+        plot.demoPlot?.plotName ||
+        "",
+      farmerName:
+        plot.ownerName ||
+        plot.farmerName ||
+        plot.type7aTarget?.farmerName ||
+        plot.demoPlot?.farmerName ||
+        "",
+      province:
+        plot.province ||
+        plot.type7aTarget?.province ||
+        plot.demoPlot?.province ||
+        "",
+      district:
+        plot.district ||
+        plot.type7aTarget?.district ||
+        plot.demoPlot?.district ||
+        "",
+      cropCategory:
+        plot.cropCategory ||
+        plot.type7aTarget?.cropCategory ||
+        plot.demoPlot?.cropCategory ||
+        "",
+      cropName:
+        plot.cropName ||
+        plot.type7aTarget?.cropName ||
+        plot.demoPlot?.cropName ||
+        "",
+      areaRai:
+        plot.areaRai != null
+          ? Number(plot.areaRai)
+          : plot.type7aTarget?.areaRai != null
+            ? Number(plot.type7aTarget.areaRai)
+            : null,
+      treeCount:
+        plot.treeCount != null
+          ? Number(plot.treeCount)
+          : plot.type7aTarget?.treeCount != null
+            ? Number(plot.type7aTarget.treeCount)
+            : null,
+      dealerName:
+        plot.dealerName ||
+        plot.type7aTarget?.dealerName ||
+        plot.demoPlot?.dealerName ||
+        "",
       visitDate,
       daysAfterSpray,
       cropImages,
       sprayingRounds:
         Array.isArray(mergedActual.t7SprayingRounds) &&
         mergedActual.t7SprayingRounds.length > 0
-          ? mergedActual.t7SprayingRounds
+          ? mergedActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
+              ...r,
+              roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+            }))
           : restoredRounds,
       nextSprayDate: mergedActual.t7NextSprayDate || "",
       notes: mergedActual.t7Notes || t7b?.notes || "",
@@ -287,28 +448,67 @@ export function hydrateType7bUnplannedData(
     }));
   }
 
-  if (dedicatedResult || initialData.actualOutcome) {
+  if (
+    dedicatedResult ||
+    initialData.actualOutcome ||
+    t7bAttachments.length > 0 ||
+    initialData.type7b ||
+    initialData.type7bData
+  ) {
     return [
       {
         id: "item-1",
         demoPlotId: dedicatedResult?.type7aTargetId || null,
         sourceActivityPlanId: null,
-        plotName: initialData.title || "แปลงสาธิตติดตาม",
-        farmerName: "",
-        province: "",
-        district: "",
-        cropCategory: "",
-        cropName: "",
-        areaRai: null,
-        treeCount: null,
-        dealerName: "",
+        plotName:
+          dedicatedResult?.type7aTarget?.plotName ||
+          dedicatedResult?.plotName ||
+          initialData.title ||
+          "แปลงสาธิตติดตาม",
+        farmerName:
+          dedicatedResult?.type7aTarget?.farmerName ||
+          dedicatedResult?.farmerName ||
+          "",
+        province:
+          dedicatedResult?.type7aTarget?.province ||
+          dedicatedResult?.province ||
+          initialData.province ||
+          "",
+        district:
+          dedicatedResult?.type7aTarget?.district ||
+          dedicatedResult?.district ||
+          initialData.district ||
+          "",
+        cropCategory:
+          dedicatedResult?.type7aTarget?.cropCategory ||
+          dedicatedResult?.cropCategory ||
+          "",
+        cropName:
+          dedicatedResult?.type7aTarget?.cropName ||
+          dedicatedResult?.cropName ||
+          "",
+        areaRai:
+          dedicatedResult?.type7aTarget?.areaRai != null
+            ? Number(dedicatedResult.type7aTarget.areaRai)
+            : null,
+        treeCount:
+          dedicatedResult?.type7aTarget?.treeCount != null
+            ? Number(dedicatedResult.type7aTarget.treeCount)
+            : null,
+        dealerName:
+          dedicatedResult?.type7aTarget?.dealerName ||
+          dedicatedResult?.dealerName ||
+          "",
         visitDate,
         daysAfterSpray,
         cropImages,
         sprayingRounds:
           Array.isArray(mergedActual.t7SprayingRounds) &&
           mergedActual.t7SprayingRounds.length > 0
-            ? mergedActual.t7SprayingRounds
+            ? mergedActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
+                ...r,
+                roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+              }))
             : restoredRounds,
         nextSprayDate: mergedActual.t7NextSprayDate || "",
         notes: mergedActual.t7Notes || "",
@@ -530,20 +730,42 @@ export function mapType7bUnplannedToPayload(
 
   // Collect all photos: Crop condition images + All round images
   const allCropImages = items.flatMap((i) => i.cropImages || i.photos || []);
-  const allRoundImages = items.flatMap((i) =>
-    (i.sprayingRounds || []).flatMap((r) => r.roundImages || []),
+  const cropOutcomeAtts = allCropImages.map((img: any) => ({
+    id: img.id,
+    fileUrl: img.url || img.fileUrl,
+    fileName: img.name || img.fileName || "ภาพการเจริญเติบโตของพืช",
+    fileSize: img.size || img.fileSize || 0,
+    category: "CROP",
+    workTypeCode: "TYPE_7B",
+  }));
+
+  const roundOutcomeAtts = items.flatMap((i) =>
+    (i.sprayingRounds || []).flatMap((r, rIdx) => {
+      const rNum = r.roundNumber || rIdx + 1;
+      return (r.roundImages || []).map((img: any) => {
+        const origName =
+          img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${rNum}`;
+        const fileNameWithRound =
+          origName.includes(`รอบที่ ${rNum}`) ||
+          origName.includes(`รอบ ${rNum}`)
+            ? origName
+            : `[รอบที่ ${rNum}] ${origName}`;
+        return {
+          id: img.id,
+          fileUrl: img.url || img.fileUrl,
+          fileName: fileNameWithRound,
+          fileSize: img.size || img.fileSize || 0,
+          category: "PLOT",
+          workTypeCode: "TYPE_7B",
+        };
+      });
+    }),
   );
-  const combinedPhotos = [...allCropImages, ...allRoundImages];
 
   const actualOutcome = {
     resultStatus: "COMPLETED",
     resultSummary: summaryLines.join("\n"),
-    attachments: combinedPhotos.map((img: any) => ({
-      id: img.id,
-      fileUrl: img.url || img.fileUrl,
-      fileName: img.name || img.fileName,
-      fileSize: img.size || img.fileSize,
-    })),
+    attachments: [...cropOutcomeAtts, ...roundOutcomeAtts],
     type7bActual: {
       t7PlotName: firstItem.plotName,
       t7FarmerName: firstItem.farmerName,

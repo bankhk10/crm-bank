@@ -459,6 +459,16 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
           : [];
 
     if (rawT14Results.length > 0) {
+      const normalizedT14Plots = rawT14Results.map((r: any) => ({
+        ...r,
+        resultId: r.id || r.resultId,
+        afterSprayImages:
+          Array.isArray(r.afterSprayImages) && r.afterSprayImages.length > 0
+            ? r.afterSprayImages
+            : Array.isArray(r.attachments)
+              ? r.attachments
+              : [],
+      }));
       const rawAtts = [
         ...rawT14Results.flatMap((r: any) => r.attachments || []),
         ...((resData.attachments || resData.activityPlan?.attachments || []).filter(
@@ -473,11 +483,11 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
         return true;
       });
       result.type14Actual = {
-        plots: rawT14Results,
+        plots: normalizedT14Plots,
         attachments: allAtts,
-        totalPlots: rawT14Results.length,
+        totalPlots: normalizedT14Plots.length,
       };
-      result.t14Plots = rawT14Results;
+      result.t14Plots = normalizedT14Plots;
       result.t14Images = allAtts;
     } else if (resData.type14Actual) {
       result.type14Actual = resData.type14Actual;

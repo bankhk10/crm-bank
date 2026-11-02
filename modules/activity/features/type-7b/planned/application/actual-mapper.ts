@@ -174,14 +174,44 @@ export function parseType7bActualResult(
             applicationRate: ext.applicationRate || "",
           })),
           roundImages: (t7bDedicatedResult.attachments || [])
-            .filter(
-              (att: any) =>
-                att.category === "PLOT" || att.workTypeCode === "TYPE_7B",
-            )
+            .filter((att: any) => {
+              if (att.category === "CROP" || att.category === "FOLLOW_UP") {
+                return false;
+              }
+              const roundNum = r.roundNumber || rIdx + 1;
+              const name = att.fileName || att.name || "";
+              const url = att.fileUrl || att.url || "";
+              if (
+                name.includes("ภาพการเจริญเติบโต") ||
+                name.includes("รูปภาพสภาพพืช") ||
+                url.includes("/crop/")
+              ) {
+                return false;
+              }
+              const matchesRound =
+                url.includes(`type7b_round_${roundNum}`) ||
+                url.includes(`/round_${roundNum}/`) ||
+                name.includes(`รอบที่ ${roundNum}`) ||
+                name.includes(`รอบ ${roundNum}`) ||
+                name.includes(`[รอบที่ ${roundNum}]`) ||
+                name.includes(`รอบที่${roundNum}`) ||
+                name.includes(`รอบ${roundNum}`);
+
+              if (matchesRound) return true;
+
+              // Fallback for round 1 if there is only 1 spray round or no other round is mentioned
+              if (
+                roundNum === 1 &&
+                !/รอบ(ที่)?\s*[2-9]/i.test(name)
+              ) {
+                return att.category === "PLOT" || url.includes("/round/");
+              }
+              return false;
+            })
             .map((att: any, attIdx: number) => ({
               id: att.id || `att-${attIdx}`,
               url: att.fileUrl || att.url,
-              name: att.fileName || "รูปภาพการฉีดพ่น",
+              name: att.fileName || `ภาพการฉีดพ่นรอบที่ ${r.roundNumber || rIdx + 1}`,
               size: att.fileSize || 0,
               type: att.mimeType || "image/jpeg",
             })),
@@ -403,9 +433,17 @@ export function parseType7bActualResult(
             Array.isArray(sr.attachments) && sr.attachments.length > 0
               ? sr.attachments
               : allAttachments.filter((a: any) => {
+                  if (a.category === "CROP" || a.category === "FOLLOW_UP") return false;
                   if (a.sprayRoundId && a.sprayRoundId === sr.id) return true;
                   const url = a.fileUrl || a.url || "";
                   const name = a.fileName || a.name || "";
+                  if (
+                    name.includes("ภาพการเจริญเติบโต") ||
+                    name.includes("รูปภาพสภาพพืช") ||
+                    url.includes("/crop/")
+                  ) {
+                    return false;
+                  }
                   if (
                     url.includes(`type7b_round_${roundNumber}`) ||
                     url.includes(`/round_${roundNumber}/`)
@@ -418,7 +456,8 @@ export function parseType7bActualResult(
                     return true;
                   if (
                     dbSprayRounds.length === 1 &&
-                    (a.category === "PLOT" || url.includes("/round/"))
+                    (a.category === "PLOT" || url.includes("/round/")) &&
+                    !/รอบ(ที่)?\s*[2-9]/i.test(name)
                   )
                     return true;
                   return false;
@@ -703,6 +742,27 @@ export function parseType7bActualResult(
       result.t7NextFollowUpDate = nextSprayMatch[1].split("\n")[0].trim();
       result.t7NextSprayDate = result.t7NextFollowUpDate;
     }
+  }
+
+  // Strict Deduplication: Ensure images in Section 1 (t7CropImages) do NOT appear in Section 2 (t7SprayingRounds)
+  if (Array.isArray(result.t7CropImages) && Array.isArray(result.t7SprayingRounds)) {
+    const cropKeys = new Set(
+      result.t7CropImages
+        .map((c: any) => c.url || c.fileUrl || c.id)
+        .filter(Boolean),
+    );
+
+    result.t7SprayingRounds = result.t7SprayingRounds.map((round: any) => {
+      if (!Array.isArray(round.roundImages)) return round;
+      const filteredRoundImages = round.roundImages.filter((rImg: any) => {
+        const key = rImg.url || rImg.fileUrl || rImg.id;
+        return !cropKeys.has(key);
+      });
+      return {
+        ...round,
+        roundImages: filteredRoundImages,
+      };
+    });
   }
 
   return result;

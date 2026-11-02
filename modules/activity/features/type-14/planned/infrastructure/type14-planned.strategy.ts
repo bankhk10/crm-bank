@@ -243,7 +243,15 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
         }
 
         // Attachments for this plot
-        const images: any[] = plot.afterSprayImages || plot.images || [];
+        const images: any[] =
+          Array.isArray(plot.afterSprayImages) &&
+          plot.afterSprayImages.length > 0
+            ? plot.afterSprayImages
+            : Array.isArray(plot.images) && plot.images.length > 0
+              ? plot.images
+              : plots.length === 1 && Array.isArray(actualData.attachments)
+                ? actualData.attachments
+                : [];
         const validImages = images.filter((img) => img && (img.url || img.fileUrl));
         if (validImages.length > 0) {
           await tx.activityAttachment.createMany({

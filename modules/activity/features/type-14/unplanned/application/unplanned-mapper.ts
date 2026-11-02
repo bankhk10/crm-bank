@@ -287,9 +287,24 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
 
           // Map images for this plot
           const rawImgs =
-            t.afterSprayImages ||
-            t.images ||
-            matchedResult?.attachments ||
+            (Array.isArray(t.afterSprayImages) && t.afterSprayImages.length > 0
+              ? t.afterSprayImages
+              : undefined) ||
+            (Array.isArray(t.images) && t.images.length > 0
+              ? t.images
+              : undefined) ||
+            (Array.isArray(matchedResult?.afterSprayImages) &&
+            matchedResult.afterSprayImages.length > 0
+              ? matchedResult.afterSprayImages
+              : undefined) ||
+            (Array.isArray(matchedResult?.attachments) &&
+            matchedResult.attachments.length > 0
+              ? matchedResult.attachments
+              : undefined) ||
+            (Array.isArray(t.results?.[0]?.attachments) &&
+            t.results[0].attachments.length > 0
+              ? t.results[0].attachments
+              : undefined) ||
             (initial.attachments || []).filter((a: any) => {
               if (a.type14ResultId && matchedResult?.id) {
                 return a.type14ResultId === matchedResult.id;

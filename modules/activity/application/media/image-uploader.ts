@@ -435,7 +435,7 @@ export async function uploadActivityPlanImageGroup(
 
                 newlyUploadedUrls.push(target.publicUrl);
                 slot.result = {
-                  id: target.id,
+                  id: slot.tempId || target.id,
                   url: target.publicUrl,
                   name: slot.file.name || target.filename || "รูปภาพ",
                   size: slot.file.size,
@@ -532,7 +532,7 @@ export async function uploadActivityPlanImageGroup(
                 newlyUploadedUrls.push(uUrl);
               }
               slot.result = {
-                id: uploaded.id,
+                id: slot.tempId || uploaded.id,
                 url: uUrl,
                 name:
                   uploaded.filename ||

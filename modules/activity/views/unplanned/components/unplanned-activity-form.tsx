@@ -782,6 +782,9 @@ export function UnplannedActivityForm({
     let planProducts: any[] = [];
     let followupResults: any[] = [];
     let actualData: any = null;
+    let updatedType7bItems: any = null;
+    let updatedType13Items: any = null;
+    let updatedType14Item: any = null;
     const uploadPlanId = initialData?.id || draftPlanId;
 
     try {
@@ -1249,20 +1252,73 @@ export function UnplannedActivityForm({
         return;
       }
 
-      const mapped = mapType7bUnplannedToPayload(type7b.items);
+      // Upload Evidence / Follow-up Images (Both Crop Condition Photos & Spray Round Photos)
+      const allType7bImages = [
+        ...type7b.items.flatMap((item) => item.cropImages || item.photos || []),
+        ...type7b.items.flatMap((item) =>
+          (item.sprayingRounds || []).flatMap((r) => r.roundImages || []),
+        ),
+      ];
+      const seenType7bMap = new Map<string, any>();
+      allType7bImages.forEach((img: any) => {
+        if (!img) return;
+        const key = img.id || img.url || img.name;
+        if (key && !seenType7bMap.has(key)) {
+          seenType7bMap.set(key, img);
+        }
+      });
+      const uniqueType7bImages = Array.from(seenType7bMap.values());
+      let cleanType7bImages = uniqueType7bImages;
+      updatedType7bItems = type7b.items;
 
-      // Upload Evidence / Follow-up Images
-      const allType7bImages = type7b.items.flatMap((item) => item.photos || []);
-      let cleanType7bImages = allType7bImages;
-      if (allType7bImages.length > 0) {
+      if (uniqueType7bImages.length > 0) {
         try {
           const res = await uploadActivityPlanImageGroup(
             uploadPlanId,
-            allType7bImages,
+            uniqueType7bImages,
             "type7b",
             "plot",
           );
           cleanType7bImages = res.updatedImages;
+          const urlMap = new Map<string, string>();
+          cleanType7bImages.forEach((img: any) => {
+            if (img.id && img.url) urlMap.set(img.id, img.url);
+            if (img.name && img.url) urlMap.set(img.name, img.url);
+          });
+
+          // Remap newly uploaded URLs back into updatedType7bItems
+          updatedType7bItems = type7b.items.map((item) => {
+            const remappedCropImages = (
+              item.cropImages ||
+              item.photos ||
+              []
+            ).map((img: any) => {
+              const newUrl =
+                urlMap.get(img.id) || urlMap.get(img.name) || img.url;
+              return { ...img, url: newUrl };
+            });
+
+            const remappedRounds = (item.sprayingRounds || []).map((round) => {
+              const remappedRoundImages = (round.roundImages || []).map(
+                (img: any) => {
+                  const newUrl =
+                    urlMap.get(img.id) || urlMap.get(img.name) || img.url;
+                  return { ...img, url: newUrl };
+                },
+              );
+              return {
+                ...round,
+                roundImages: remappedRoundImages,
+              };
+            });
+
+            return {
+              ...item,
+              cropImages: remappedCropImages,
+              photos: remappedCropImages,
+              sprayingRounds: remappedRounds,
+            };
+          });
         } catch (uploadErr: any) {
           showValidationError(
             "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
@@ -1272,24 +1328,54 @@ export function UnplannedActivityForm({
         }
       }
 
+      const mapped = mapType7bUnplannedToPayload(updatedType7bItems);
+
       if (mapped.planProducts?.length) {
         planProducts = [...planProducts, ...mapped.planProducts];
       }
 
-      const firstItem = type7b.items[0];
+      const firstItem = updatedType7bItems[0] || type7b.items[0];
+
+      const cropAttachments = (updatedType7bItems || type7b.items).flatMap((item: any) =>
+        (item.cropImages || item.photos || []).map((img: any) => ({
+          category: "CROP",
+          fileUrl: img.url,
+          fileName: img.name || "ภาพการเจริญเติบโตของพืช",
+          fileSize: (img as any).size || 0,
+          mimeType: (img as any).type || "image/jpeg",
+          workTypeCode: "TYPE_7B",
+        })),
+      );
+
+      const roundAttachments = (updatedType7bItems || type7b.items).flatMap((item: any) =>
+        (item.sprayingRounds || []).flatMap((r: any, rIdx: number) => {
+          const rNum = r.roundNumber || rIdx + 1;
+          return (r.roundImages || []).map((img: any) => {
+            const origName =
+              img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${rNum}`;
+            const fileNameWithRound =
+              origName.includes(`รอบที่ ${rNum}`) ||
+              origName.includes(`รอบ ${rNum}`)
+                ? origName
+                : `[รอบที่ ${rNum}] ${origName}`;
+            return {
+              category: "PLOT",
+              fileUrl: img.url,
+              fileName: fileNameWithRound,
+              fileSize: (img as any).size || 0,
+              mimeType: (img as any).type || "image/jpeg",
+              workTypeCode: "TYPE_7B",
+            };
+          });
+        }),
+      );
+
       actualData = {
         workTypeCode: "TYPE_7B",
         notes: firstItem?.notes || "",
         actualOutcome: mapped.actualOutcome,
         type7bActual: mapped.actualOutcome?.type7bActual,
-        attachments: cleanType7bImages.map((img) => ({
-          category: "PLOT",
-          fileUrl: img.url,
-          fileName: img.name || "รูปถ่ายติดตามแปลงสาธิต",
-          fileSize: (img as any).size || 0,
-          mimeType: (img as any).type || "image/jpeg",
-          workTypeCode: "TYPE_7B",
-        })),
+        attachments: [...cropAttachments, ...roundAttachments],
       };
     } else if (isType8Active) {
       if (type8.items.length === 0) {
@@ -1656,50 +1742,43 @@ export function UnplannedActivityForm({
         return;
       }
 
-      // Upload After-Spray Images
-      const allType13Images = type13.items
-        ? type13.items.flatMap((it) => it.images || it.afterSprayImages || [])
-        : type13.item.images || [];
-      let cleanType13Images = allType13Images;
-      let updatedItems = type13.items || [type13.item];
+      // Upload After-Spray Images per item to preserve exact item-level mapping
+      let cleanType13Images: any[] = [];
+      updatedType13Items = type13.items || [type13.item];
 
-      if (allType13Images.length > 0) {
-        try {
-          const res = await uploadActivityPlanImageGroup(
-            uploadPlanId,
-            allType13Images,
-            "type13",
-            "after_spray",
-          );
-          cleanType13Images = res.updatedImages;
-          const urlMap = new Map(
-            cleanType13Images.map((img: any) => [img.id || img.name, img.url]),
-          );
-          updatedItems = (type13.items || [type13.item]).map((it) => {
-            const remappedImages = (
-              it.images ||
-              it.afterSprayImages ||
-              []
-            ).map((img: any) => {
-              const newUrl = urlMap.get(img.id || img.name);
-              return newUrl ? { ...img, url: newUrl } : img;
-            });
+      try {
+        updatedType13Items = await Promise.all(
+          updatedType13Items.map(async (it: any) => {
+            const rawImgs =
+              Array.isArray(it.images) && it.images.length > 0
+                ? it.images
+                : Array.isArray(it.afterSprayImages) && it.afterSprayImages.length > 0
+                  ? it.afterSprayImages
+                  : [];
+            if (rawImgs.length === 0) return it;
+            const res = await uploadActivityPlanImageGroup(
+              uploadPlanId,
+              rawImgs,
+              "type13",
+              "after_spray",
+            );
+            cleanType13Images.push(...res.updatedImages);
             return {
               ...it,
-              images: remappedImages,
-              afterSprayImages: remappedImages,
+              images: res.updatedImages,
+              afterSprayImages: res.updatedImages,
             };
-          });
-        } catch (uploadErr: any) {
-          showValidationError(
-            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
-            uploadErr.message || "อัปโหลดรูปภาพการฉีดพ่นไม่สำเร็จ",
-          );
-          return;
-        }
+          }),
+        );
+      } catch (uploadErr: any) {
+        showValidationError(
+          "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+          uploadErr.message || "อัปโหลดรูปภาพการฉีดพ่นไม่สำเร็จ",
+        );
+        return;
       }
 
-      const mapped = mapType13UnplannedToPayload(updatedItems);
+      const mapped = mapType13UnplannedToPayload(updatedType13Items);
 
       if (mapped.planStores?.length) {
         planStores = [...planStores, ...mapped.planStores];
@@ -1708,12 +1787,13 @@ export function UnplannedActivityForm({
       actualData = {
         workTypeCode: "TYPE_13",
         type13Data: mapped.type13Data,
+        type13Plots: mapped.type13Plots,
         type13Actual: mapped.type13Actual,
         attachments: cleanType13Images.map((img) => ({
           category: "AFTER_SPRAY",
           fileUrl: img.url,
           fileName: img.name || "ภาพหลังการฉีดพ่น",
-          fileSize: (img as any).size || 0,
+          fileSize: Math.round(Number((img as any).size || 0)),
           mimeType: (img as any).type || "image/jpeg",
           workTypeCode: "TYPE_13",
         })),
@@ -1728,58 +1808,47 @@ export function UnplannedActivityForm({
         return;
       }
 
-      // Upload Follow-up Images
-      const allType14Images = [
-        ...(type14.item.images || []),
-        ...(type14.item.plots || []).flatMap((p: any) => p.images || p.afterSprayImages || []),
-      ];
-      const seenMap = new Map<string, any>();
-      allType14Images.forEach((img: any) => {
-        const key = img.id || img.name || img.url;
-        if (key && !seenMap.has(key)) {
-          seenMap.set(key, img);
-        }
-      });
-      const uniqueImages = Array.from(seenMap.values());
-      let cleanType14Images = uniqueImages;
+      // Upload Follow-up Images per plot directly to preserve plot-level association
+      let cleanType14Images: any[] = [];
       let updatedPlots = type14.item.plots || [];
-      if (uniqueImages.length > 0) {
-        try {
-          const res = await uploadActivityPlanImageGroup(
-            uploadPlanId,
-            uniqueImages,
-            "type14",
-            "after_spray",
-          );
-          cleanType14Images = res.updatedImages;
-          const urlMap = new Map(
-            cleanType14Images.map((img: any) => [img.id || img.name, img.url]),
-          );
-          updatedPlots = (type14.item.plots || []).map((plot: any) => {
-            const remappedImages = (plot.images || plot.afterSprayImages || []).map((img: any) => {
-              const newUrl = urlMap.get(img.id || img.name);
-              return newUrl ? { ...img, url: newUrl } : img;
-            });
+      try {
+        updatedPlots = await Promise.all(
+          (type14.item.plots || []).map(async (plot: any) => {
+            const rawImgs =
+              Array.isArray(plot.afterSprayImages) && plot.afterSprayImages.length > 0
+                ? plot.afterSprayImages
+                : Array.isArray(plot.images) && plot.images.length > 0
+                  ? plot.images
+                  : [];
+            if (rawImgs.length === 0) return plot;
+            const res = await uploadActivityPlanImageGroup(
+              uploadPlanId,
+              rawImgs,
+              "type14",
+              "after_spray",
+            );
+            cleanType14Images.push(...res.updatedImages);
             return {
               ...plot,
-              images: remappedImages,
-              afterSprayImages: remappedImages,
+              images: res.updatedImages,
+              afterSprayImages: res.updatedImages,
             };
-          });
-        } catch (uploadErr: any) {
-          showValidationError(
-            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
-            uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ",
-          );
-          return;
-        }
+          }),
+        );
+      } catch (uploadErr: any) {
+        showValidationError(
+          "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+          uploadErr.message || "อัปโหลดรูปภาพการติดตามแปลงไม่สำเร็จ",
+        );
+        return;
       }
 
-      const mapped = mapType14UnplannedToPayload({
+      updatedType14Item = {
         ...type14.item,
         plots: updatedPlots,
         images: cleanType14Images,
-      });
+      };
+      const mapped = mapType14UnplannedToPayload(updatedType14Item);
 
       if (mapped.planStores?.length) {
         planStores = [...planStores, ...mapped.planStores];
@@ -1982,7 +2051,7 @@ export function UnplannedActivityForm({
       : null;
 
     const mappedType7b = isType7bActive
-      ? mapType7bUnplannedToPayload(type7b.items)
+      ? mapType7bUnplannedToPayload(updatedType7bItems || type7b.items)
       : null;
 
     const mappedType8 = isType8Active
@@ -2051,10 +2120,10 @@ export function UnplannedActivityForm({
       type7bPlots: mappedType7b?.type7bData?.plots,
       type7bTargets: mappedType7b?.type7bData?.plots,
       actualOutcome: isType7bActive
-        ? mappedType7b?.actualOutcome || actualData?.actualOutcome
+        ? actualData?.actualOutcome || mappedType7b?.actualOutcome
         : undefined,
       type7bActual: isType7bActive
-        ? mappedType7b?.actualOutcome?.type7bActual || actualData?.type7bActual
+        ? actualData?.type7bActual || mappedType7b?.actualOutcome?.type7bActual
         : undefined,
       type8Data: mappedType8?.type8Data,
       type8Meetings: mappedType8?.type8Data?.meetings,
@@ -2086,34 +2155,34 @@ export function UnplannedActivityForm({
         ? mapType12UnplannedToPayload(type12.item).tourData
         : undefined,
       type13Data: isType13Active
-        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Data
+        ? (actualData?.type13Data || mapType13UnplannedToPayload(updatedType13Items || type13.items || [type13.item]).type13Data)
         : undefined,
       type13Plots: isType13Active
-        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Plots
+        ? (actualData?.type13Plots || mapType13UnplannedToPayload(updatedType13Items || type13.items || [type13.item]).type13Plots)
         : undefined,
       type13Targets: isType13Active
-        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Plots
+        ? (actualData?.type13Plots || mapType13UnplannedToPayload(updatedType13Items || type13.items || [type13.item]).type13Plots)
         : undefined,
       type13Actual: isType13Active
-        ? mapType13UnplannedToPayload(type13.items || [type13.item]).type13Actual
+        ? (actualData?.type13Actual || mapType13UnplannedToPayload(updatedType13Items || type13.items || [type13.item]).type13Actual)
         : undefined,
       type14Data: isType14Active
-        ? (actualData?.type14Data || mapType14UnplannedToPayload(type14.item).type14Data)
+        ? (actualData?.type14Data || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Data)
         : undefined,
       type14Plots: isType14Active
-        ? (actualData?.type14Targets || mapType14UnplannedToPayload(type14.item).type14Targets)
+        ? (actualData?.type14Targets || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Targets)
         : undefined,
       type14Targets: isType14Active
-        ? (actualData?.type14Targets || mapType14UnplannedToPayload(type14.item).type14Targets)
+        ? (actualData?.type14Targets || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Targets)
         : undefined,
       type14Products: isType14Active
-        ? (actualData?.type14Products || mapType14UnplannedToPayload(type14.item).type14Products)
+        ? (actualData?.type14Products || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Products)
         : undefined,
       type14Results: isType14Active
-        ? (actualData?.type14Results || mapType14UnplannedToPayload(type14.item).type14Results)
+        ? (actualData?.type14Results || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Results)
         : undefined,
       type14Actual: isType14Active
-        ? (actualData?.type14Actual || mapType14UnplannedToPayload(type14.item).type14Actual)
+        ? (actualData?.type14Actual || mapType14UnplannedToPayload(updatedType14Item || type14.item).type14Actual)
         : undefined,
       actualData,
       attachments: actualData?.attachments || [],
@@ -2121,15 +2190,17 @@ export function UnplannedActivityForm({
       type5UnplannedItems: isType5Active ? type5.items : undefined,
       type6UnplannedItems: isType6Active ? type6.items : undefined,
       type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
-      type7bUnplannedItems: isType7bActive ? type7b.items : undefined,
+      type7bUnplannedItems: isType7bActive
+        ? updatedType7bItems || type7b.items
+        : undefined,
       type8UnplannedItems: isType8Active ? type8.items : undefined,
       type9UnplannedItems: isType9Active ? type9.items : undefined,
       type10UnplannedItems: isType10Active ? type10.items : undefined,
       type11UnplannedItems: isType11Active ? type11.items : undefined,
       type12UnplannedItem: isType12Active ? type12.item : undefined,
-      type13UnplannedItem: isType13Active ? type13.item : undefined,
-      type13UnplannedItems: isType13Active ? (type13.items || [type13.item]) : undefined,
-      type14UnplannedItem: isType14Active ? type14.item : undefined,
+      type13UnplannedItem: isType13Active ? (updatedType13Items?.[0] || type13.item) : undefined,
+      type13UnplannedItems: isType13Active ? (updatedType13Items || type13.items || [type13.item]) : undefined,
+      type14UnplannedItem: isType14Active ? (updatedType14Item || type14.item) : undefined,
       salesRatio: isType9Active ? type9SalesRatio : undefined,
     };
 

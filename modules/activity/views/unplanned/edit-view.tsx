@@ -234,6 +234,30 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
             type7aProducts: (plan as any).type7aProducts || [],
             type7aResults: (plan as any).type7aResults || (plan as any).result?.type7aResults || [],
             type7b: (plan as any).type7b || null,
+            type7bData: (plan as any).type7bData || (plan as any).type7b || null,
+            type7bTargets:
+              (plan as any).type7bTargets ||
+              (plan as any).type7bPlots ||
+              (plan as any).type7b?.plots ||
+              [],
+            type7bPlots:
+              (plan as any).type7bTargets ||
+              (plan as any).type7bPlots ||
+              (plan as any).type7b?.plots ||
+              [],
+            type7bProducts:
+              (plan as any).type7bProducts ||
+              (plan as any).type7b?.products ||
+              [],
+            type7bResults:
+              (plan as any).type7bResults ||
+              (plan as any).result?.type7bResults ||
+              [],
+            type7bActual:
+              (plan as any).type7bActual ||
+              (plan as any).result?.type7bActual ||
+              null,
+            type7bUnplannedItems: (plan as any).type7bUnplannedItems || [],
             type13Targets: (plan as any).type13Targets || [],
             type13Plots: (plan as any).type13?.plots || (plan as any).type13Targets || [],
             type13Products: (plan as any).type13Products || [],
@@ -273,7 +297,21 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
               (plan as any).result?.followupResults ||
               (plan as any).followupResults ||
               [],
-            attachments: plan.attachments || [],
+            attachments: [
+              ...(plan.attachments || []),
+              ...(plan.result?.attachments || []),
+              ...((plan as any).type7bResults || []).flatMap((r: any) => r.attachments || []),
+              ...((plan as any).type13Results || []).flatMap((r: any) => r.attachments || []),
+              ...((plan as any).type14Results || []).flatMap((r: any) => r.attachments || []),
+            ],
+            actualOutcome:
+              (plan as any).actualOutcome ||
+              (plan as any).result?.actualOutcome ||
+              null,
+            actualData:
+              (plan as any).actualData ||
+              (plan as any).result ||
+              null,
             activityResultType1:
               (plan as any).type1Results?.[0] ||
               (plan as any).type1Result ||

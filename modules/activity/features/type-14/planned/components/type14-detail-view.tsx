@@ -45,6 +45,7 @@ export function Type14DetailView({
     actualData?.plots ||
     actualData?.type14Plots ||
     (planSummary as any)?.type14Actual?.plots ||
+    (planSummary as any)?.type14Results ||
     [];
 
   const attachments = actualData?.attachments || [];
@@ -222,28 +223,52 @@ export function Type14DetailView({
             const effectivePlotProducts: any[] =
               actualPlotData.products && actualPlotData.products.length > 0
                 ? actualPlotData.products
-                : plot.products && plot.products.length > 0
-                  ? plot.products
-                  : plannedWithdrawnProducts;
+                : actualPlotData.productsUsed &&
+                    actualPlotData.productsUsed.length > 0
+                  ? actualPlotData.productsUsed
+                  : plot.products && plot.products.length > 0
+                    ? plot.products
+                    : plannedWithdrawnProducts;
+
+            const resolvedResultId =
+              actualPlotData.resultId ||
+              actualPlotData.id ||
+              plot.resultId ||
+              plot.results?.[0]?.id ||
+              null;
 
             const plotImages =
               actualPlotData.afterSprayImages &&
               actualPlotData.afterSprayImages.length > 0
                 ? actualPlotData.afterSprayImages
-                : attachments.filter((att: any) => {
-                    if (att.targetId && plot.id && att.targetId === plot.id) {
-                      return true;
-                    }
-                    if (
-                      att.type14ResultId &&
-                      actualPlotData.resultId &&
-                      att.type14ResultId === actualPlotData.resultId
-                    ) {
-                      return true;
-                    }
-                    if (effectivePlots.length === 1) return true;
-                    return false;
-                  });
+                : actualPlotData.attachments &&
+                    actualPlotData.attachments.length > 0
+                  ? actualPlotData.attachments
+                  : plot.afterSprayImages && plot.afterSprayImages.length > 0
+                    ? plot.afterSprayImages
+                    : plot.images && plot.images.length > 0
+                      ? plot.images
+                      : plot.results?.[0]?.attachments &&
+                          plot.results[0].attachments.length > 0
+                        ? plot.results[0].attachments
+                        : attachments.filter((att: any) => {
+                            if (
+                              att.targetId &&
+                              plot.id &&
+                              att.targetId === plot.id
+                            ) {
+                              return true;
+                            }
+                            if (
+                              att.type14ResultId &&
+                              resolvedResultId &&
+                              att.type14ResultId === resolvedResultId
+                            ) {
+                              return true;
+                            }
+                            if (effectivePlots.length === 1) return true;
+                            return false;
+                          });
 
             return (
               <div
@@ -365,7 +390,7 @@ export function Type14DetailView({
                             className="bg-emerald-50/40 border border-emerald-200/70 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                           >
                             <span className="font-bold text-slate-900">
-                              {pIdx + 1}. {p.productName || "สินค้าตัวอย่าง"}
+                              {pIdx + 1}. {p.productName || p.product?.name || "สินค้าตัวอย่าง"}
                             </span>
                             <div className="flex flex-wrap items-center gap-3 text-slate-600">
                               {p.withdrawnQuantity != null && (
@@ -434,11 +459,11 @@ export function Type14DetailView({
                         สรุปผลการปิดแปลง / ความพึงพอใจ:
                       </span>
                       <span className="font-medium text-emerald-800 italic">
-                        "
+                        &quot;
                         {actualPlotData.closureNotes ||
                           (plot as any).closureNotes ||
                           (plot as any).type13Target?.closureNotes}
-                        "
+                        &quot;
                       </span>
                     </div>
                   )}

@@ -408,32 +408,43 @@ export function Type7bDetailView({
                         </div>
                       )}
 
-                      {/* Round Images */}
-                      {round.roundImages && round.roundImages.length > 0 && (
-                        <div className="space-y-1.5 pt-1 border-t border-slate-200/80">
-                          <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
-                            <Camera className="w-3 h-3 text-emerald-600" />
-                            รูปถ่ายการฉีดพ่นรอบนี้ ({round.roundImages.length} รูป):
-                          </span>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {round.roundImages.map((img: any, i: number) => (
-                              <a
-                                key={img.id || i}
-                                href={img.url || img.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="group block relative aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
-                              >
-                                <img
-                                  src={img.url || img.fileUrl}
-                                  alt={img.name || img.fileName || `round-photo-${i}`}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                />
-                              </a>
-                            ))}
+                      {/* Round Images (Filtered to strictly exclude Crop Images) */}
+                      {(() => {
+                        const cropKeys = new Set(
+                          (actualResult?.t7CropImages || [])
+                            .map((img: any) => img.url || img.fileUrl || img.id)
+                            .filter(Boolean),
+                        );
+                        const displayRoundImages = (round.roundImages || []).filter(
+                          (img: any) => !cropKeys.has(img.url || img.fileUrl || img.id),
+                        );
+                        if (displayRoundImages.length === 0) return null;
+                        return (
+                          <div className="space-y-1.5 pt-1 border-t border-slate-200/80">
+                            <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
+                              <Camera className="w-3 h-3 text-emerald-600" />
+                              รูปถ่ายการฉีดพ่นรอบนี้ ({displayRoundImages.length} รูป):
+                            </span>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {displayRoundImages.map((img: any, i: number) => (
+                                <a
+                                  key={img.id || i}
+                                  href={img.url || img.fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="group block relative aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
+                                >
+                                  <img
+                                    src={img.url || img.fileUrl}
+                                    alt={img.name || img.fileName || `round-photo-${i}`}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                </a>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   );
                 })}
