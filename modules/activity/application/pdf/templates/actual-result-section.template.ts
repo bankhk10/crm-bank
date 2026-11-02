@@ -1,6 +1,6 @@
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import type { ParsedSummaryValues } from "@/modules/activity/domain/summary";
-import { formatDateThai, safeHtml } from "./template-helpers";
+import { formatDateThai, safeHtml, resolvePdfImageSrc } from "./template-helpers";
 
 interface ActualResultSectionProps {
   plan: ActivityPlanWithRelations;
@@ -173,8 +173,10 @@ export function renderActualResultSection({
             ${(() => {
               let html = "";
               for (let i = 0; i < uniquePhotos.length; i += 2) {
-                const img1 = uniquePhotos[i];
-                const img2 = uniquePhotos[i + 1];
+                const img1 = resolvePdfImageSrc(uniquePhotos[i]);
+                const img2 = uniquePhotos[i + 1]
+                  ? resolvePdfImageSrc(uniquePhotos[i + 1])
+                  : "";
                 html += `<div class="gallery-row">
                   <div class="gallery-cell">
                     <img src="${img1}" class="gallery-img" alt="Photo ${i + 1}" />

@@ -653,3 +653,69 @@ export function resolvePlanCreatorInfo(plan: any): PlanCreatorInfo {
     phone: phone || "-",
   };
 }
+
+
+/**
+ * Resolves an image URL or `/uploads/...` path so it can be rendered in both Browser HTML Preview
+ * and headless Puppeteer (`page.setContent`).
+ */
+export function resolvePdfImageSrc(url?: string | null): string {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://")
+  ) {
+    return trimmed;
+  }
+
+  const r2PublicUrl = (
+    process.env.R2_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
+    ""
+  )
+    .trim()
+    .replace(/\/+$/, "");
+
+  const cleanRel = trimmed.replace(/^\/+/, "");
+
+  try {
+    const localFilePath = path.join(process.cwd(), "public", cleanRel);
+    if (fs.existsSync(localFilePath)) {
+      const ext = path.extname(localFilePath).toLowerCase();
+      const mime =
+        ext === ".png"
+          ? "image/png"
+          : ext === ".webp"
+            ? "image/webp"
+            : ext === ".gif"
+              ? "image/gif"
+              : ext === ".svg"
+                ? "image/svg+xml"
+                : "image/jpeg";
+      const buf = fs.readFileSync(localFilePath);
+      return `data:${mime};base64,${buf.toString("base64")}`;
+    }
+  } catch {
+    // Ignore local read error
+  }
+
+  if (r2PublicUrl) {
+    const keyPrefix = (process.env.R2_KEY_PREFIX || "")
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
+    const objectKey = keyPrefix ? `${keyPrefix}/${cleanRel}` : cleanRel;
+    return `${r2PublicUrl}/${objectKey}`;
+  }
+
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXTAUTH_URL ||
+    "http://localhost:3000"
+  )
+    .trim()
+    .replace(/\/+$/, "");
+
+  return `${baseUrl}/${cleanRel}`;
+}

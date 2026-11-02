@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
-import { uploadFile, deleteFile } from "@/lib/file-storage";
+import {
+  uploadFile,
+  deleteFilesBatch,
+  createPresignedUploadUrls,
+  type PresignedUploadRequestItem,
+} from "@/lib/file-storage";
 
 // Context params type in Next.js App Router
 type RouteContext = {
@@ -15,8 +20,18 @@ const ALLOWED_EXTENSIONS = [
   ".heic",
   ".heif",
   ".gif",
+  ".avif",
 ];
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
+function isAllowedImageFile(filename: string, mimeType?: string): boolean {
+  const dotIdx = filename.lastIndexOf(".");
+  const ext = dotIdx >= 0 ? filename.substring(dotIdx).toLowerCase() : "";
+  return (
+    ALLOWED_EXTENSIONS.includes(ext) ||
+    Boolean(mimeType && mimeType.startsWith("image/"))
+  );
+}
 
 export async function POST(request: Request, context: RouteContext) {
   const session = await auth();
@@ -31,12 +46,81 @@ export async function POST(request: Request, context: RouteContext) {
     urlObj.searchParams.get("itemId") ||
     "general";
   const rawCategory = urlObj.searchParams.get("category") || "images";
+  const action = urlObj.searchParams.get("action");
 
   // Sanitize path segments to prevent directory traversal
   const surveyItemId = rawItemId.replace(/[^a-zA-Z0-9_-]/g, "") || "general";
   const category = rawCategory.replace(/[^a-zA-Z0-9_-]/g, "") || "images";
 
+  // Folder structure: activity-plans/{activityPlanId}/{surveyItemId}/{category}
+  const folder = `activity-plans/${activityPlanId}/${surveyItemId}/${category}`;
+
   try {
+    const contentTypeHeader = request.headers.get("content-type") || "";
+
+    // ─── Mode A: Presigned URL Batch Generation (Supports 200+ concurrent images directly to R2) ───
+    if (
+      action === "presign" ||
+      contentTypeHeader.includes("application/json")
+    ) {
+      const body = await request.json().catch(() => ({}));
+      const rawFiles = Array.isArray(body.files) ? body.files : [];
+
+      if (rawFiles.length === 0) {
+        return NextResponse.json(
+          { error: "กรุณาระบุรายการไฟล์รูปภาพที่ต้องการอัปโหลด" },
+          { status: 400 },
+        );
+      }
+
+      if (rawFiles.length > 500) {
+        return NextResponse.json(
+          { error: "รองรับการขอ URL อัปโหลดสูงสุด 500 รูปต่อครั้ง" },
+          { status: 400 },
+        );
+      }
+
+      const presignItems: PresignedUploadRequestItem[] = [];
+      for (const f of rawFiles) {
+        const fname = String(f.filename || f.name || "image.jpg");
+        const ftype = String(f.contentType || f.type || "image/jpeg");
+        const fsize = Number(f.size || 0);
+
+        if (fsize > MAX_FILE_SIZE) {
+          return NextResponse.json(
+            { error: `ไฟล์ "${fname}" มีขนาดเกินขีดจำกัด 20MB` },
+            { status: 400 },
+          );
+        }
+
+        if (!isAllowedImageFile(fname, ftype)) {
+          return NextResponse.json(
+            { error: `ไฟล์ "${fname}" มีประเภทไฟล์ที่ไม่รองรับ (รองรับเฉพาะรูปภาพ)` },
+            { status: 400 },
+          );
+        }
+
+        presignItems.push({ filename: fname, contentType: ftype });
+      }
+
+      const presigned = await createPresignedUploadUrls(folder, presignItems);
+      if (!presigned) {
+        // R2 is not configured; tell client to use multipart server upload
+        return NextResponse.json({
+          success: true,
+          r2Enabled: false,
+          presigned: [],
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        r2Enabled: true,
+        presigned,
+      });
+    }
+
+    // ─── Mode B: Standard Multipart Form Upload (R2 or Local Storage) ───
     const formData = await request.formData();
     const files = formData.getAll("images") as File[];
 
@@ -47,14 +131,8 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // Folder structure: activity-plans/{activityPlanId}/{surveyItemId}/{category}
-    const folder = `activity-plans/${activityPlanId}/${surveyItemId}/${category}`;
-    const created: Array<{ id: string; url: string; filename: string }> = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Validate File Size
+    // Validate all files upfront before uploading
+    for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
         return NextResponse.json(
           {
@@ -64,9 +142,7 @@ export async function POST(request: Request, context: RouteContext) {
         );
       }
 
-      // Validate File Extension & MIME
-      const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-      if (!ALLOWED_EXTENSIONS.includes(ext) && !file.type.startsWith("image/")) {
+      if (!isAllowedImageFile(file.name, file.type)) {
         return NextResponse.json(
           {
             error: `ไฟล์ "${file.name}" มีประเภทไฟล์ที่ไม่รองรับ`,
@@ -74,21 +150,27 @@ export async function POST(request: Request, context: RouteContext) {
           { status: 400 },
         );
       }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const originalName = file.name || `image-${Date.now()}`;
-
-      const uploadResult = await uploadFile(buffer, originalName, {
-        folder,
-      });
-
-      created.push({
-        id: uploadResult.filename.replace(/\.[^/.]+$/, ""), // UUID without ext
-        url: uploadResult.url,
-        filename: originalName,
-      });
     }
+
+    // Upload files in parallel (preserving original order)
+    const created = await Promise.all(
+      files.map(async (file) => {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const originalName = file.name || `image-${Date.now()}.jpg`;
+
+        const uploadResult = await uploadFile(buffer, originalName, {
+          folder,
+          contentType: file.type || undefined,
+        });
+
+        return {
+          id: uploadResult.filename.replace(/\.[^/.]+$/, ""), // UUID without ext
+          url: uploadResult.url,
+          filename: originalName,
+        };
+      }),
+    );
 
     return NextResponse.json({ success: true, created });
   } catch (err: any) {
@@ -111,15 +193,15 @@ export async function DELETE(request: Request) {
     const { publicPaths } = body as { publicPaths?: string[] };
 
     if (publicPaths && Array.isArray(publicPaths)) {
-      for (const filePath of publicPaths) {
-        if (
+      const validPaths = publicPaths.filter(
+        (filePath) =>
           typeof filePath === "string" &&
-          filePath.startsWith("/uploads/activity-plans/") &&
-          !filePath.includes("..") &&
-          !filePath.includes("://")
-        ) {
-          await deleteFile(filePath);
-        }
+          filePath.includes("/uploads/activity-plans/") &&
+          !filePath.includes(".."),
+      );
+
+      if (validPaths.length > 0) {
+        await deleteFilesBatch(validPaths);
       }
     }
 

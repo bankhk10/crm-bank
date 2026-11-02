@@ -54,6 +54,7 @@ export type FileUploadActions = {
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   openFileDialog: () => void;
   updateFile: (id: string, newFile: File) => void;
+  updateFilesBatch: (updates: Array<{ id: string; file: File }>) => void;
   getInputProps: (
     props?: InputHTMLAttributes<HTMLInputElement>
   ) => InputHTMLAttributes<HTMLInputElement> & {
@@ -106,24 +107,14 @@ export const useFileUpload = (
 
   const validateFile = useCallback(
     (file: File | FileMetadata): string | null => {
-      if (file instanceof File) {
-        if (file.size > maxSize) {
-          return `ไฟล์ "${file.name}" มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`;
-        }
-      } else {
-        if (file.size > maxSize) {
-          return `ไฟล์ "${file.name}" มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`;
-        }
+      if (file.size > maxSize) {
+        return `ไฟล์ "${file.name}" มีขนาดเกินกำหนด (สูงสุดไม่เกิน ${formatBytes(maxSize)})`;
       }
 
       if (accept !== "*") {
         const acceptedTypes = accept.split(",").map((type) => type.trim());
         const fileType = file instanceof File ? file.type || "" : file.type;
-        const fileExtension = `.${
-          file instanceof File
-            ? file.name.split(".").pop()
-            : file.name.split(".").pop()
-        }`;
+        const fileExtension = `.${file.name.split(".").pop() || ""}`;
 
         const isAccepted = acceptedTypes.some((type) => {
           if (type.startsWith(".")) {
@@ -137,9 +128,7 @@ export const useFileUpload = (
         });
 
         if (!isAccepted) {
-          return `ไฟล์ "${
-            file instanceof File ? file.name : file.name
-          }" ไม่ใช่ประเภทไฟล์ที่รองรับ`;
+          return `ไฟล์ "${file.name}" ไม่ใช่ประเภทไฟล์ที่รองรับ`;
         }
       }
 
@@ -220,20 +209,19 @@ export const useFileUpload = (
       }
 
       const validFiles: FileWithPreview[] = [];
+      const seenKeys = new Set(
+        state.files.map((existing) => `${existing.file.name}:${existing.file.size}`)
+      );
 
       for (const file of newFilesArray) {
         // Only check for duplicates if multiple files are allowed
         if (multiple) {
-          const isDuplicate = state.files.some(
-            (existingFile) =>
-              existingFile.file.name === file.name &&
-              existingFile.file.size === file.size
-          );
-
-          // Skip duplicate files silently
-          if (isDuplicate) {
-            return;
+          const fileKey = `${file.name}:${file.size}`;
+          if (seenKeys.has(fileKey)) {
+            // Skip duplicate file and continue processing the rest of the batch
+            continue;
           }
+          seenKeys.add(fileKey);
         }
 
         // Check file size
@@ -264,12 +252,12 @@ export const useFileUpload = (
         onFilesAdded?.(validFiles);
 
         setState((prev) => {
-          const newFiles = !multiple
+          const updatedFiles = !multiple
             ? validFiles
             : [...prev.files, ...validFiles];
           return {
             ...prev,
-            files: newFiles,
+            files: updatedFiles,
             errors,
           };
         });
@@ -435,6 +423,40 @@ export const useFileUpload = (
     });
   }, []);
 
+  const updateFilesBatch = useCallback(
+    (updates: Array<{ id: string; file: File }>) => {
+      if (!updates || updates.length === 0) return;
+
+      const updateMap = new Map(updates.map((u) => [u.id, u.file]));
+
+      setState((prev) => {
+        let changed = false;
+        const newFiles = prev.files.map((item) => {
+          const replacement = updateMap.get(item.id);
+          if (!replacement) return item;
+
+          changed = true;
+          if (
+            item.preview &&
+            item.file instanceof File &&
+            item.file.type.startsWith("image/")
+          ) {
+            URL.revokeObjectURL(item.preview);
+          }
+
+          return {
+            file: replacement,
+            id: item.id,
+            preview: URL.createObjectURL(replacement),
+          };
+        });
+
+        return changed ? { ...prev, files: newFiles } : prev;
+      });
+    },
+    []
+  );
+
   return [
     state,
     {
@@ -450,6 +472,7 @@ export const useFileUpload = (
       openFileDialog,
       getInputProps,
       updateFile,
+      updateFilesBatch,
     },
   ];
 };

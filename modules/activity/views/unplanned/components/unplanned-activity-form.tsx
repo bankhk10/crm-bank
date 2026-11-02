@@ -122,7 +122,7 @@ import {
 } from "@/modules/activity/constants";
 import {
   uploadActivityPlanImageGroup,
-  deleteActivityPlanImagePaths,
+  deleteActivityPlanImagePaths, isPermanentActivityUploadUrl,
 } from "@/modules/activity/application/media/image-uploader";
 
 export interface UnplannedActivityFormProps {
@@ -2124,7 +2124,7 @@ export function UnplannedActivityForm({
       .map((a: any) => a.fileUrl || a.url)
       .filter(
         (u: string) =>
-          typeof u === "string" && u.startsWith("/uploads/activity-plans/"),
+          isPermanentActivityUploadUrl(u),
       );
     const currentUrls = new Set(
       (actualData?.attachments || [])

@@ -124,7 +124,7 @@ import {
 } from "@/modules/activity/server/actions";
 import {
   uploadActivityPlanImageGroup,
-  deleteActivityPlanImagePaths,
+  deleteActivityPlanImagePaths, isPermanentActivityUploadUrl,
 } from "@/modules/activity/application/media/image-uploader";
 import { formatUserFriendlyError } from "@/lib/error-utils";
 
@@ -1620,7 +1620,7 @@ export function ActivityPlanActualView({
         .map((a: any) => a.fileUrl || a.url)
         .filter(
           (u: string) =>
-            typeof u === "string" && u.startsWith("/uploads/activity-plans/"),
+            isPermanentActivityUploadUrl(u),
         );
       const currentUrls = new Set(
         (payload.attachments || [])
