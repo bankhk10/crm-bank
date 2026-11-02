@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { MultiSelectOption } from "@/components/custom/multi-select";
 import { getActivityTypesAction } from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { WORK_TYPE_CONFIG } from "@/modules/activity/constants";
+import { getDefaultActivityPlanViewScope } from "@/modules/activity/domain/permissions";
 import {
   CalendarFilter,
   CalendarEvent,
@@ -14,7 +16,22 @@ import {
 export function useCalendarFilters(): CalendarFilterState & {
   syncAttendeeOptions: (events: CalendarEvent[]) => void;
 } {
-  const [filter, setFilter] = useState<CalendarFilter>("OWN");
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  const [filter, setFilter] = useState<CalendarFilter>(() =>
+    getDefaultActivityPlanViewScope(user),
+  );
+  const initializedScopeUserRef = useRef<string | null>(user?.id ?? null);
+
+  // Sync default view scope once user session resolves
+  useEffect(() => {
+    if (user?.id && initializedScopeUserRef.current !== user.id) {
+      initializedScopeUserRef.current = user.id;
+      const defaultScope = getDefaultActivityPlanViewScope(user);
+      setFilter(defaultScope);
+    }
+  }, [user]);
   const [workTypeFilters, setWorkTypeFilters] = useState<string[]>([]);
   const [personFilters, setPersonFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);

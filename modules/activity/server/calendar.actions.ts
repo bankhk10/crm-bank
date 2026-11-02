@@ -4,6 +4,7 @@ import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { getTeamEmployeeIds } from "@/lib/data-scope";
 import type { DataAccessLevel } from "@/lib/db";
 import { findOrCreateEmployeeForUser } from "../infrastructure/employee-lookup.repository";
+import { isAllViewDefaultManager } from "../domain/permissions";
 import {
   listActivityCalendarEventsUseCase,
   ensureCalendarEventsSyncedUseCase,
@@ -65,7 +66,11 @@ export async function getActivityCalendarEventsAction(
     let teamEmployeeIds: string[] | undefined;
     let departmentId: string | undefined;
 
-    if (isSuperAdmin || accessLevel === "VIEW_ALL") {
+    if (
+      isSuperAdmin ||
+      accessLevel === "VIEW_ALL" ||
+      isAllViewDefaultManager(session.user as any)
+    ) {
       viewAll = true;
     } else if (accessLevel === "VIEW_DEPARTMENT" && session.user.departmentId) {
       departmentId = session.user.departmentId;
