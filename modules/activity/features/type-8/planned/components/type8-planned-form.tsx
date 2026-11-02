@@ -738,6 +738,7 @@ export function Type8PlannedForm({
                         id={`target-product-combobox-${item.id}`}
                         value=""
                         valueKey="name"
+                        unitFilter="box"
                         excludeValues={selectedProducts}
                         onChange={(val, prod) => {
                           if (!val) return;
@@ -874,7 +875,7 @@ export function Type8PlannedForm({
 
                 {/* 5. รายละเอียดเพิ่มเติม */}
                 <ActivityTextarea
-                  label="รายละเอียดเพิ่มเติม / กำหนดการ"
+                  label="รายละเอียดเพิ่มเติม"
                   labelClassName="block text-xs font-semibold text-slate-700 mb-1"
                   rows={2}
                   value={item.detail || ""}

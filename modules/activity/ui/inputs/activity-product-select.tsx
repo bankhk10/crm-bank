@@ -119,7 +119,12 @@ export function ActivityProductSelect({
 
     // Filter by unit
     if (unitFilter === "box") {
-      const boxList = list.filter((p) => !p.unit || p.unit.trim() === "กล่อง");
+      const boxList = list.filter(
+        (p) =>
+          !p.unit ||
+          p.unit.trim() === "กล่อง" ||
+          p.unit.trim().toLowerCase() === "box",
+      );
       if (boxList.length > 0) {
         list = boxList;
       }
