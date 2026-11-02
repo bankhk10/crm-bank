@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { HelpCircle, Plus, Trash2, Store, Globe, Barcode, FileText } from "lucide-react";
+import {
+  HelpCircle,
+  Plus,
+  Trash2,
+  Store,
+  Globe,
+  Barcode,
+  FileText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityCustomerSelect,
@@ -108,34 +116,17 @@ export function Type6UnplannedForm({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-amber-50/40 p-3 rounded-lg border border-amber-200/60">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    ชื่อลูกค้า / เกษตรกร <span className="text-rose-500">*</span>
+                    ชื่อลูกค้า / เกษตรกร{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <ActivityInput
                     value={item.manualCustomerName || ""}
-                    onChange={(e) => updateItem(item.id, "manualCustomerName", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(item.id, "manualCustomerName", e.target.value)
+                    }
                     disabled={readonly}
                     placeholder="เช่น คุณสมชาย หมายมั่น"
                     required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    ที่อยู่ / สถานที่
-                  </label>
-                  <ActivityInput
-                    value={item.manualCustomerAddress || ""}
-                    onChange={(e) => updateItem(item.id, "manualCustomerAddress", e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น ม.3 ต.หนองบัว อ.เมือง"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">เบอร์โทรศัพท์</label>
-                  <ActivityInput
-                    value={item.manualCustomerPhone || ""}
-                    onChange={(e) => updateItem(item.id, "manualCustomerPhone", e.target.value)}
-                    disabled={readonly}
-                    placeholder="เช่น 081-234-5678"
                   />
                 </div>
               </div>
@@ -205,29 +196,30 @@ export function Type6UnplannedForm({
             </div>
 
             {/* Dealer selection when purchaseChannel is dealer and customer is manual */}
-            {item.purchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && item.isManualCustomer && (
-              <div className="bg-rose-50/30 border border-rose-100 rounded-xl p-3 space-y-1.5">
-                <ActivityCustomerSelect
-                  id={`dealer-combobox-${item.id}`}
-                  type="STORE"
-                  label="ร้านค้าตัวแทนจำหน่ายที่ซื้อ"
-                  labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
-                  triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                  value={item.storeId || item.storeName || ""}
-                  onChange={(val, cust) => {
-                    updateItem(item.id, "storeName", cust?.name || val);
-                    if (cust?.id) {
-                      updateItem(item.id, "storeId", cust.id);
-                    }
-                  }}
-                  customers={customers as any}
-                  placeholder="เลือกร้านค้าตัวแทนจำหน่าย..."
-                  searchPlaceholder="ค้นหาร้านค้า..."
-                  emptyText="ไม่พบร้านค้า"
-                  disabled={readonly}
-                />
-              </div>
-            )}
+            {item.purchaseChannel === "ร้านค้าตัวแทนจำหน่าย" &&
+              item.isManualCustomer && (
+                <div className="bg-rose-50/30 border border-rose-100 rounded-xl p-3 space-y-1.5">
+                  <ActivityCustomerSelect
+                    id={`dealer-combobox-${item.id}`}
+                    type="STORE"
+                    label="ร้านค้าตัวแทนจำหน่ายที่ซื้อ"
+                    labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
+                    triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
+                    value={item.storeId || item.storeName || ""}
+                    onChange={(val, cust) => {
+                      updateItem(item.id, "storeName", cust?.name || val);
+                      if (cust?.id) {
+                        updateItem(item.id, "storeId", cust.id);
+                      }
+                    }}
+                    customers={customers as any}
+                    placeholder="เลือกร้านค้าตัวแทนจำหน่าย..."
+                    searchPlaceholder="ค้นหาร้านค้า..."
+                    emptyText="ไม่พบร้านค้า"
+                    disabled={readonly}
+                  />
+                </div>
+              )}
 
             {/* Product selection & Lot Number */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -258,7 +250,9 @@ export function Type6UnplannedForm({
                 </label>
                 <ActivityInput
                   value={item.lotNumber || ""}
-                  onChange={(e) => updateItem(item.id, "lotNumber", e.target.value)}
+                  onChange={(e) =>
+                    updateItem(item.id, "lotNumber", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="ระบุเลข Lot บนบรรจุภัณฑ์ (เช่น L680123)..."
                   className="bg-white border-slate-200 focus-visible:ring-rose-500 focus-visible:border-rose-500"
@@ -286,12 +280,17 @@ export function Type6UnplannedForm({
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-rose-600" />
-                  รายละเอียดปัญหา {item.issueType === "อื่นๆ ระบุ" && <span className="text-rose-500">*</span>}
+                  รายละเอียดปัญหา{" "}
+                  {item.issueType === "อื่นๆ ระบุ" && (
+                    <span className="text-rose-500">*</span>
+                  )}
                 </label>
                 <ActivityTextarea
                   rows={2}
                   value={item.detail || ""}
-                  onChange={(e) => updateItem(item.id, "detail", e.target.value)}
+                  onChange={(e) =>
+                    updateItem(item.id, "detail", e.target.value)
+                  }
                   disabled={readonly}
                   placeholder="ระบุรายละเอียดของปัญหาหรือข้อร้องเรียนอย่างชัดเจน..."
                   className="bg-white border-slate-200 text-xs focus-visible:ring-rose-500 focus-visible:border-rose-500"
@@ -322,7 +321,9 @@ export function Type6UnplannedForm({
                       readonly && "cursor-not-allowed opacity-75",
                     )}
                   >
-                    {st === "เสร็จสิ้น" ? "✓ ดำเนินการเสร็จสิ้น" : "⏳ รอติดตามผล"}
+                    {st === "เสร็จสิ้น"
+                      ? "✓ ดำเนินการเสร็จสิ้น"
+                      : "⏳ รอติดตามผล"}
                   </button>
                 ))}
               </div>
