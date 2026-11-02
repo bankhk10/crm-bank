@@ -63,7 +63,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           return;
         }
 
-        router.push(result?.url ?? "/dashboard");
+        router.push(callbackUrl ?? result?.url ?? "/dashboard");
         // Keep loading=true during navigation
       } catch {
         setIsSubmitting(false);
@@ -102,7 +102,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         return;
       }
 
-      router.push(result?.url ?? "/dashboard");
+      router.push(callbackUrl ?? result?.url ?? "/dashboard");
       // Keep loading=true during navigation
     } catch {
       setIsSubmitting(false);

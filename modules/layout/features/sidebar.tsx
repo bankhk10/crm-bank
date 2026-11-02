@@ -122,7 +122,12 @@ export default function Sidebar({
     const items = useMemo(() => {
         const navs = filterNavItems(navigationItems, permissionKeys, roles);
 
-        const dashboardHref = getDefaultRouteForRoles(roles);
+        const dashboardHref =
+            isAdministrator(roles) || roles.some((role) => role === "admin" || role === "ceo")
+                ? "/dashboard/admin"
+                : isManager(roles)
+                    ? "/dashboard/manager"
+                    : "/dashboard/employee";
         const isDashboard = isAdministrator(roles) || isManager(roles);
         const dashboardLabel = isDashboard ? "แดชบอร์ด" : "หน้าแรก";
         const DashboardIcon = isDashboard ? LayoutDashboard : Home;

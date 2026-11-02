@@ -23,9 +23,21 @@ import type {
 export const PUBLIC_PATHS = ["/", "/login", "/api/auth"];
 
 /**
+ * Check whether Activity Plan test mode is enabled
+ */
+export function isActivityPlanTestMode(): boolean {
+  return (
+    process.env["ACTIVITY_PLAN_TEST_MODE"] === "true" ||
+    process.env.NEXT_PUBLIC_ACTIVITY_PLAN_TEST_MODE === "true"
+  );
+}
+
+/**
  * Default redirect path after authentication
  */
-export const DEFAULT_AUTH_REDIRECT = "/dashboard/employee";
+export const DEFAULT_AUTH_REDIRECT = isActivityPlanTestMode()
+  ? "/activity-plans"
+  : "/dashboard/employee";
 
 /**
  * Route permission rules
@@ -245,6 +257,9 @@ export function isCeo(roles: string[]): boolean {
  * Get default route for user roles
  */
 export function getDefaultRouteForRoles(roles: string[]): string {
+  if (isActivityPlanTestMode()) {
+    return "/activity-plans";
+  }
   if (isAdministrator(roles)) {
     return "/dashboard/admin";
   }
