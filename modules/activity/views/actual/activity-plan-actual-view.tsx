@@ -117,7 +117,11 @@ import {
   extractType14PlanTargets,
   type Type14TargetItem,
 } from "@/modules/activity/features/type-14";
-import { FormActionButtons, ValidationAlertDialog } from "@/modules/activity/ui";
+import {
+  FormActionButtons,
+  ValidationAlertDialog,
+  LoadingOverlayDialog,
+} from "@/modules/activity/ui";
 import {
   recordActivityResultAction,
   requestCancelActivityPlanAction,
@@ -1702,16 +1706,13 @@ export function ActivityPlanActualView({
 
   if (loadingPlan || (!isHydrated && id)) {
     return (
-      <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
-        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto text-center">
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-            <p className="text-sm text-slate-500 font-medium">
-              กำลังโหลดข้อมูลแผนงาน...
-            </p>
-          </div>
-        </div>
-      </section>
+      <div className="min-h-[400px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังโหลดข้อมูลแผนงาน..."
+          description="กรุณารอสักครู่ ระบบกำลังดึงข้อมูลสำหรับการบันทึกผลการปฏิบัติงาน"
+        />
+      </div>
     );
   }
 

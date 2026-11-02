@@ -731,6 +731,16 @@ export function UnplannedActivityForm({
   // 7. Notes State
   const [notes, setNotes] = useState<string>(initialData.notes || "");
 
+  // Generate a stable plan ID upfront for new unplanned activities so R2 uploads are isolated by plan ID
+  const [draftPlanId] = useState<string>(() => {
+    if (initialData?.id) return initialData.id;
+    const ts = Date.now().toString(36);
+    const rand = Array.from({ length: 16 }, () =>
+      Math.floor(Math.random() * 36).toString(36),
+    ).join("");
+    return `c${ts}${rand}`.slice(0, 25);
+  });
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -772,7 +782,7 @@ export function UnplannedActivityForm({
     let planProducts: any[] = [];
     let followupResults: any[] = [];
     let actualData: any = null;
-    const uploadPlanId = initialData?.id || "unplanned";
+    const uploadPlanId = initialData?.id || draftPlanId;
 
     try {
       setSubmitting(true);
@@ -1988,6 +1998,7 @@ export function UnplannedActivityForm({
       : null;
 
     const payload = {
+      id: uploadPlanId,
       planType: "UNPLANNED",
       title: title.trim(),
       startDate: startDateTime,

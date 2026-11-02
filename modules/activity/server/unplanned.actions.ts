@@ -77,10 +77,17 @@ export async function createUnplannedActivityAction(
 
     const plan = await db.$transaction(async (tx) => {
       const code = await generateActivityPlanCode(tx, startDate);
+      const requestedId =
+        typeof rawData.id === "string" &&
+        /^[a-zA-Z0-9_-]{10,64}$/.test(rawData.id.trim()) &&
+        rawData.id.trim() !== "unplanned"
+          ? rawData.id.trim()
+          : undefined;
 
       // 1. Create header ActivityPlan with UNPLANNED type
       const createdPlan = await tx.activityPlan.create({
         data: {
+          ...(requestedId ? { id: requestedId } : {}),
           code,
           title: rawData.title,
           startDate,

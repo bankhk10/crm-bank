@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { LoadingOverlayDialog } from "@/modules/activity/ui";
 import { PlannedActivityForm } from "./components/planned-activity-form";
 import {
   createActivityPlanAction,
@@ -166,7 +167,15 @@ export function PlannedCreateView() {
   };
 
   if (isLoading || pageLoading) {
-    return <div className="p-6 text-center">กำลังโหลด...</div>;
+    return (
+      <div className="min-h-[400px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังโหลดข้อมูล..."
+          description="กรุณารอสักครู่ ระบบกำลังเตรียมข้อมูลสำหรับสร้างแผนงาน"
+        />
+      </div>
+    );
   }
 
   if (!canView || !canCreate) {

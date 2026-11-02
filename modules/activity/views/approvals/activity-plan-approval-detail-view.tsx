@@ -27,6 +27,7 @@ import {
   ActivityStatusBadge,
   resolveCurrentOperator,
 } from "@/modules/activity/ui/activity-status-badge";
+import { LoadingOverlayDialog } from "@/modules/activity/ui";
 import {
   BudgetSection,
   PromotionalMaterialsSection,
@@ -91,11 +92,12 @@ export default function ActivityPlanApprovalDetailView({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500 font-medium">
-          กำลังโหลดข้อมูลสำหรับการอนุมัติ...
-        </p>
+      <div className="min-h-[400px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังโหลดข้อมูลสำหรับการอนุมัติ..."
+          description="กรุณารอสักครู่ ระบบกำลังดึงรายละเอียดแผนงานเพื่อพิจารณาอนุมัติ"
+        />
       </div>
     );
   }

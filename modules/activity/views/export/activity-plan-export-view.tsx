@@ -4,6 +4,7 @@ import React from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingOverlayDialog } from "@/modules/activity/ui";
 
 import { useActivityPlanExport } from "./hooks/use-activity-plan-export";
 import { ExportHeaderBar } from "./components/export-header-bar";
@@ -51,11 +52,12 @@ export default function ActivityPlanExportView({
 
   if (loadingPlan && mode === "SINGLE" && !plan) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500 font-medium">
-          กำลังเตรียมห้องพิมพ์เอกสาร (Print Studio)...
-        </p>
+      <div className="min-h-[500px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังเตรียมห้องพิมพ์เอกสาร (Print Studio)..."
+          description="กรุณารอสักครู่ ระบบกำลังดึงข้อมูลแผนงานสำหรับจัดพิมพ์"
+        />
       </div>
     );
   }
