@@ -33,19 +33,30 @@ export class ActivityPdfService {
     let month = options.month || now.getMonth() + 1;
     let employeeId = options.employeeId;
 
-    // If a reference planId is provided without explicit month/year, borrow its period
-    if (options.planId && (!options.year || !options.month)) {
+    // If a reference planId is provided, borrow employeeId or period if not explicitly given
+    if (options.planId) {
       const refPlan = await findActivityPlanById(options.planId);
       if (refPlan) {
-        if (refPlan.startDate) {
-          const d = new Date(refPlan.startDate);
-          year = options.year || d.getFullYear();
-          month = options.month || d.getMonth() + 1;
+        if (!options.year || !options.month) {
+          if (refPlan.startDate) {
+            const d = new Date(refPlan.startDate);
+            year = options.year || d.getFullYear();
+            month = options.month || d.getMonth() + 1;
+          }
         }
         if (!employeeId && refPlan.employeeId) {
           employeeId = refPlan.employeeId;
         }
       }
+    }
+
+    // Resolve target employee details if employeeId is specified and not 'ALL'
+    let targetEmployee: any = null;
+    if (employeeId && employeeId !== "ALL") {
+      targetEmployee = await db.employee.findUnique({
+        where: { id: employeeId },
+        include: { position: true, department: true },
+      });
     }
 
     const startDateFrom = new Date(year, month - 1, 1, 0, 0, 0, 0);
@@ -59,7 +70,7 @@ export class ActivityPdfService {
       ],
     };
 
-    if (employeeId) {
+    if (employeeId && employeeId !== "ALL") {
       whereCondition.employeeId = employeeId;
     }
 
@@ -80,6 +91,9 @@ export class ActivityPdfService {
       plans: plans as any,
       month,
       year,
+      employeeName: targetEmployee?.name,
+      employeePosition: targetEmployee?.position?.name || targetEmployee?.positionTitle,
+      departmentName: targetEmployee?.department?.name || targetEmployee?.departmentName,
     });
 
     return renderBaseLayout(docTitle, bodyHtml, { landscape: false });

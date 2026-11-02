@@ -26,6 +26,13 @@ import {
   rejectCancelActivityPlanUseCase,
 } from "../application/activity-plan-flow";
 import { getActivityCalendarEventsAction } from "./calendar.actions";
+import { getSubordinateEmployeeIds } from "../application/approval-queue";
+import {
+  isUserAdmin,
+  isUserSalesDirector,
+  isUserSalesAdminManager,
+  isUserMarketingManager,
+} from "../domain/approval";
 import {
   findDealerAndSubdealerCustomerOptions,
   findFarmerCustomerOptions,
@@ -888,7 +895,135 @@ export async function toggleHattackPlotStatusAction(params: {
   }
 }
 
-export async function getRecentActivityPlansForExportAction(): Promise<{
+export interface ExportEmployeeOption {
+  id: string;
+  name: string;
+  positionTitle?: string;
+  departmentName?: string;
+  isSelf: boolean;
+}
+
+export async function getExportEmployeeOptionsAction(): Promise<{
+  success: boolean;
+  employees?: ExportEmployeeOption[];
+  currentEmployeeId?: string | null;
+  canViewAll?: boolean;
+  error?: string;
+}> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const userId = session.user.id;
+  const currentEmployeeId = session.user.employeeId;
+  const roles = session.user.roles ?? [];
+  const permissions = session.user.permissionKeys ?? [];
+
+  const approverContext = {
+    id: userId,
+    roles,
+    permissions,
+    positionTitle: (session.user as any)?.positionTitle,
+    departmentCode: (session.user as any)?.departmentCode,
+  };
+
+  const isGlobal =
+    isUserAdmin(approverContext) ||
+    isUserSalesDirector(approverContext) ||
+    isUserSalesAdminManager(approverContext) ||
+    isUserMarketingManager(approverContext) ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("activity.view_all");
+
+  try {
+    if (isGlobal) {
+      // Global approver / executive can view all active employees
+      const allEmps = await db.employee.findMany({
+        where: {
+          deletedAt: null,
+          status: "ACTIVE",
+        },
+        select: {
+          id: true,
+          name: true,
+          positionTitle: true,
+          departmentName: true,
+          position: { select: { name: true } },
+          department: { select: { name: true } },
+        },
+        orderBy: { name: "asc" },
+      });
+
+      return serialize({
+        success: true,
+        canViewAll: true,
+        currentEmployeeId,
+        employees: allEmps.map((e) => ({
+          id: e.id,
+          name: e.name,
+          positionTitle: e.position?.name || e.positionTitle || undefined,
+          departmentName: e.department?.name || e.departmentName || undefined,
+          isSelf: e.id === currentEmployeeId,
+        })),
+      });
+    }
+
+    // Non-global: Find self + direct and indirect subordinates
+    if (!currentEmployeeId) {
+      return serialize({
+        success: true,
+        canViewAll: false,
+        currentEmployeeId: null,
+        employees: [],
+      });
+    }
+
+    const subordinateIds = await getSubordinateEmployeeIds(currentEmployeeId);
+    const targetIds = [currentEmployeeId, ...subordinateIds];
+
+    const scopedEmps = await db.employee.findMany({
+      where: {
+        id: { in: targetIds },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        positionTitle: true,
+        departmentName: true,
+        position: { select: { name: true } },
+        department: { select: { name: true } },
+      },
+    });
+
+    // Sort: Self first, then subordinates alphabetically
+    scopedEmps.sort((a, b) => {
+      if (a.id === currentEmployeeId) return -1;
+      if (b.id === currentEmployeeId) return 1;
+      return a.name.localeCompare(b.name, "th");
+    });
+
+    return serialize({
+      success: true,
+      canViewAll: false,
+      currentEmployeeId,
+      employees: scopedEmps.map((e) => ({
+        id: e.id,
+        name: e.name,
+        positionTitle: e.position?.name || e.positionTitle || undefined,
+        departmentName: e.department?.name || e.departmentName || undefined,
+        isSelf: e.id === currentEmployeeId,
+      })),
+    });
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to load employee options" };
+  }
+}
+
+export async function getRecentActivityPlansForExportAction(
+  targetEmployeeId?: string
+): Promise<{
   success: boolean;
   plans?: Array<{
     id: string;
@@ -898,6 +1033,7 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
     endDate: Date;
     status: string;
     creatorName: string;
+    employeeId: string;
   }>;
   error?: string;
 }> {
@@ -906,9 +1042,55 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
     return { success: false, error: "Unauthorized" };
   }
 
+  const userId = session.user.id;
+  const currentEmployeeId = session.user.employeeId;
+  const roles = session.user.roles ?? [];
+  const permissions = session.user.permissionKeys ?? [];
+
+  const approverContext = {
+    id: userId,
+    roles,
+    permissions,
+    positionTitle: (session.user as any)?.positionTitle,
+    departmentCode: (session.user as any)?.departmentCode,
+  };
+
+  const isGlobal =
+    isUserAdmin(approverContext) ||
+    isUserSalesDirector(approverContext) ||
+    isUserSalesAdminManager(approverContext) ||
+    isUserMarketingManager(approverContext) ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("activity.view_all");
+
   try {
+    let whereClause: Prisma.ActivityPlanWhereInput = { deletedAt: null };
+
+    if (targetEmployeeId && targetEmployeeId !== "ALL") {
+      whereClause = {
+        ...whereClause,
+        employeeId: targetEmployeeId,
+      };
+    } else if (!isGlobal) {
+      if (currentEmployeeId) {
+        const subIds = await getSubordinateEmployeeIds(currentEmployeeId);
+        whereClause = {
+          ...whereClause,
+          OR: [
+            { employeeId: { in: [currentEmployeeId, ...subIds] } },
+            { createdById: userId },
+          ],
+        };
+      } else {
+        whereClause = {
+          ...whereClause,
+          createdById: userId,
+        };
+      }
+    }
+
     const plans = await db.activityPlan.findMany({
-      where: { deletedAt: null },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       take: 60,
       select: {
@@ -918,6 +1100,7 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
         startDate: true,
         endDate: true,
         status: true,
+        employeeId: true,
         employee: {
           select: { name: true, prefix: true, firstName: true, lastName: true },
         },
@@ -945,6 +1128,7 @@ export async function getRecentActivityPlansForExportAction(): Promise<{
           endDate: p.endDate,
           status: p.status,
           creatorName,
+          employeeId: p.employeeId,
         };
       }),
     });

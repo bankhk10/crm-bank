@@ -6,7 +6,9 @@ import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 import {
   getActivityPlanAction,
   getRecentActivityPlansForExportAction,
-} from "@/modules/activity/server/planned.actions";
+  getExportEmployeeOptionsAction,
+  type ExportEmployeeOption,
+} from "@/modules/activity/server/actions";
 import { getWorkTypeName, getWorkTypeCode } from "@/modules/activity/constants";
 
 export interface AvailableWorkTypeOption {
@@ -32,6 +34,12 @@ export function useActivityPlanExport(initialId?: string) {
     initialId || urlId || "",
   );
 
+  // Selected Employee (แยกข้อมูลของใครของมัน)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+  const [availableEmployees, setAvailableEmployees] = useState<ExportEmployeeOption[]>([]);
+  const [canViewAllEmployees, setCanViewAllEmployees] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
+
   const [availablePlans, setAvailablePlans] = useState<PlanListOption[]>([]);
   const [loadingPlansList, setLoadingPlansList] = useState(false);
 
@@ -55,18 +63,52 @@ export function useActivityPlanExport(initialId?: string) {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-  // 1. Fetch available plans for switcher dropdown
+  // 1. Fetch available employees for scoping
+  useEffect(() => {
+    let isMounted = true;
+    async function loadEmployeeOptions() {
+      setLoadingEmployees(true);
+      try {
+        const res = await getExportEmployeeOptionsAction();
+        if (res.success && isMounted) {
+          setAvailableEmployees(res.employees || []);
+          setCanViewAllEmployees(Boolean(res.canViewAll));
+          if (res.currentEmployeeId) {
+            setSelectedEmployeeId(res.currentEmployeeId);
+          } else if (res.employees && res.employees.length > 0) {
+            setSelectedEmployeeId(res.employees[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load employee options for export:", err);
+      } finally {
+        if (isMounted) setLoadingEmployees(false);
+      }
+    }
+
+    loadEmployeeOptions();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 1.1 Fetch available plans scoped by selectedEmployeeId
   useEffect(() => {
     let isMounted = true;
     async function loadPlansList() {
       setLoadingPlansList(true);
       try {
-        const res = await getRecentActivityPlansForExportAction();
+        const res = await getRecentActivityPlansForExportAction(selectedEmployeeId || undefined);
         if (res.success && res.plans && isMounted) {
           setAvailablePlans(res.plans);
-          // If no plan is currently selected, pick the first one
-          if (!selectedPlanId && res.plans.length > 0) {
-            setSelectedPlanId(res.plans[0].id);
+          // If no plan is currently selected or current plan is not in the list, pick the first one
+          if (res.plans.length > 0) {
+            const hasCurrent = res.plans.some((p) => p.id === selectedPlanId);
+            if (!hasCurrent) {
+              setSelectedPlanId(res.plans[0].id);
+            }
+          } else {
+            setSelectedPlanId("");
           }
         }
       } catch (err) {
@@ -80,7 +122,7 @@ export function useActivityPlanExport(initialId?: string) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [selectedEmployeeId]);
 
   // 2. Fetch specific plan details whenever selectedPlanId changes
   useEffect(() => {
@@ -182,6 +224,9 @@ export function useActivityPlanExport(initialId?: string) {
       if (mode === "ALL") {
         params.set("month", String(selectedMonth));
         params.set("year", String(selectedYear));
+        if (selectedEmployeeId) {
+          params.set("employeeId", selectedEmployeeId);
+        }
         if (selectedPlanId) {
           params.set("planId", selectedPlanId);
         }
@@ -254,6 +299,9 @@ export function useActivityPlanExport(initialId?: string) {
       if (mode === "ALL") {
         params.set("month", String(selectedMonth));
         params.set("year", String(selectedYear));
+        if (selectedEmployeeId) {
+          params.set("employeeId", selectedEmployeeId);
+        }
         if (selectedPlanId) {
           params.set("planId", selectedPlanId);
         }
@@ -269,9 +317,12 @@ export function useActivityPlanExport(initialId?: string) {
         ? `/api/activity-plans/${selectedPlanId}/pdf?${params.toString()}`
         : `/api/activity-plans/pdf?${params.toString()}`;
 
+      const selectedEmp = availableEmployees.find((e) => e.id === selectedEmployeeId);
+      const empSuffix = selectedEmp ? `-${selectedEmp.name.replace(/\s+/g, "_")}` : "";
+
       const filename =
         mode === "ALL"
-          ? `รายงานสรุปแผนงานประจำเดือน-${selectedMonth}-${selectedYear + 543}.pdf`
+          ? `รายงานสรุปแผนงานประจำเดือน${empSuffix}-${selectedMonth}-${selectedYear + 543}.pdf`
           : `${plan?.code || "ActivityPlan"}.pdf`;
 
       const link = document.createElement("a");
@@ -307,6 +358,11 @@ export function useActivityPlanExport(initialId?: string) {
   return {
     plan,
     selectedPlanId,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    availableEmployees,
+    canViewAllEmployees,
+    loadingEmployees,
     setSelectedPlanId,
     availablePlans,
     loadingPlansList,

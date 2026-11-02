@@ -14,7 +14,18 @@ export async function GET(request: Request) {
   const mode = (searchParams.get("mode") as "ALL" | "SINGLE") || "ALL";
   const monthParam = searchParams.get("month");
   const yearParam = searchParams.get("year");
-  const employeeId = searchParams.get("employeeId") || undefined;
+  const employeeIdParam = searchParams.get("employeeId");
+  const roles = (session.user as any).roles ?? [];
+  const isSuper =
+    roles.includes("administrator") ||
+    roles.includes("admin") ||
+    roles.includes("ceo");
+  const employeeId =
+    employeeIdParam && employeeIdParam !== "ALL"
+      ? employeeIdParam
+      : !isSuper && employeeIdParam !== "ALL"
+        ? (session.user as any).employeeId || undefined
+        : undefined;
   const typeCode = searchParams.get("type") || "ALL";
   const includeActual = searchParams.get("includeActual") !== "false";
   const includePhotos = searchParams.get("includePhotos") !== "false";

@@ -22,6 +22,10 @@ export default function ActivityPlanExportView({
     selectedPlanId,
     setSelectedPlanId,
     availablePlans,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    availableEmployees,
+    canViewAllEmployees,
     loadingPlan,
     error,
     availableWorkTypes,
@@ -95,6 +99,10 @@ export default function ActivityPlanExportView({
           selectedPlanId={selectedPlanId}
           setSelectedPlanId={setSelectedPlanId}
           availablePlans={availablePlans}
+          selectedEmployeeId={selectedEmployeeId}
+          setSelectedEmployeeId={setSelectedEmployeeId}
+          availableEmployees={availableEmployees}
+          canViewAllEmployees={canViewAllEmployees}
           mode={mode}
           setMode={setMode}
           selectedMonth={selectedMonth}
