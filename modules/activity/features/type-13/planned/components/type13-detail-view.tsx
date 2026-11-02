@@ -119,8 +119,7 @@ function getFollowUpTrackingResultBadge(result?: string | null) {
     result.includes("ซ้ำ") ||
     result.includes("ติดตามต่อ") ||
     result.includes("ปานกลาง");
-  const isDanger =
-    result.includes("ไม่เห็นผล") || result.includes("เสียหาย");
+  const isDanger = result.includes("ไม่เห็นผล") || result.includes("เสียหาย");
 
   const colorClass = isGood
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -620,7 +619,10 @@ export function Type13DetailView({
       seenPlanIds.add(planId);
       list.push({
         ...t14,
-        activityPlan: actPlan || { id: planId, title: "แผนงานติดตามแปลงแฮตแทค (Type 14)" },
+        activityPlan: actPlan || {
+          id: planId,
+          title: "แผนงานติดตามแปลงแฮตแทค (Type 14)",
+        },
       });
     };
 
@@ -634,8 +636,12 @@ export function Type13DetailView({
     if (Array.isArray(sourceFollowUps)) {
       sourceFollowUps.forEach((t14: any) => {
         const matchesPlot =
-          (currentPlotId && (t14.type13TargetId === currentPlotId || t14.id === currentPlotId)) ||
-          (currentPlot.name && (t14.plotName === currentPlot.name || t14.name === currentPlot.name)) ||
+          (currentPlotId &&
+            (t14.type13TargetId === currentPlotId ||
+              t14.id === currentPlotId)) ||
+          (currentPlot.name &&
+            (t14.plotName === currentPlot.name ||
+              t14.name === currentPlot.name)) ||
           effectivePlots.length <= 1;
 
         if (matchesPlot) {
@@ -650,7 +656,8 @@ export function Type13DetailView({
       const matchedT13 = summaryT13Targets.find(
         (t: any) =>
           (currentPlotId && t.id === currentPlotId) ||
-          (currentPlot.name && (t.plotName === currentPlot.name || t.name === currentPlot.name)),
+          (currentPlot.name &&
+            (t.plotName === currentPlot.name || t.name === currentPlot.name)),
       );
       if (matchedT13 && Array.isArray(matchedT13.type14Targets)) {
         matchedT13.type14Targets.forEach(addFollowUp);
@@ -662,8 +669,12 @@ export function Type13DetailView({
     if (Array.isArray(directT14Targets)) {
       directT14Targets.forEach((t14: any) => {
         const matchesPlot =
-          (currentPlotId && (t14.type13TargetId === currentPlotId || t14.id === currentPlotId)) ||
-          (currentPlot.name && (t14.plotName === currentPlot.name || t14.name === currentPlot.name));
+          (currentPlotId &&
+            (t14.type13TargetId === currentPlotId ||
+              t14.id === currentPlotId)) ||
+          (currentPlot.name &&
+            (t14.plotName === currentPlot.name ||
+              t14.name === currentPlot.name));
         if (matchesPlot) {
           addFollowUp(t14);
         }
@@ -732,7 +743,7 @@ export function Type13DetailView({
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
                 <Clock className="w-3.5 h-3.5 text-blue-600" />
-                ต้องติดตามต่อ (IN_PROGRESS)
+                ต้องติดตามต่อ
               </span>
             )}
             {effectiveClosedAt && (
@@ -741,93 +752,6 @@ export function Type13DetailView({
               </span>
             )}
           </div>
-
-          {/* Quick Toggle Action Button */}
-          {targetIdForStatus && (
-            <div>
-              {effectivePlotStatus === "COMPLETED" ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isUpdatingStatus}
-                      className="h-8 text-xs font-semibold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 hover:text-blue-800 cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                      เปิดติดตามต่ออีกครั้ง
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>ยืนยันการเปิดติดตามต่ออีกครั้ง?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        แปลงนี้จะถูกเปลี่ยนสถานะกลับเป็น <strong>"ต้องติดตามต่อ (IN_PROGRESS)"</strong> และจะสามารถเลือกไปวางแผนงานติดตาม (Type 14) ได้อีกครั้ง
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleTogglePlotStatus(targetIdForStatus, "IN_PROGRESS")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        ยืนยันเปิดติดตามต่อ
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ) : (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isUpdatingStatus}
-                      className="h-8 text-xs font-semibold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                      ปิดแปลงสาธิตนี้
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>ยืนยันการปิดแปลงแฮตแทค?</AlertDialogTitle>
-                      <AlertDialogDescription asChild>
-                        <div className="space-y-3 text-sm text-slate-600">
-                          <p>
-                            แปลงนี้จะถูกเปลี่ยนสถานะเป็น <strong>"ปิดแปลงแล้ว (COMPLETED)"</strong> ถือว่าสิ้นสุดการทดลองติดตาม และจะไม่แสดงในรายการสร้างแผนติดตาม (Type 14) ใหม่อีก
-                          </p>
-                          <div className="pt-2 text-left">
-                            <label className="block text-xs font-semibold text-slate-700 mb-1">
-                              สรุปผลการปิดแปลง / ความพึงพอใจของเกษตรกร (ไม่บังคับ)
-                            </label>
-                            <textarea
-                              rows={2}
-                              value={inputClosureNotes}
-                              onChange={(e) => setInputClosureNotes(e.target.value)}
-                              placeholder="เช่น ได้ผลลัพธ์น่าพอใจมาก ยอดแตกสมบูรณ์ หนอนไม่กลับมาระบาด..."
-                              className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                            />
-                          </div>
-                        </div>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() =>
-                          handleTogglePlotStatus(targetIdForStatus, "COMPLETED", inputClosureNotes)
-                        }
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                      >
-                        ยืนยันปิดแปลง
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Closure Notes Display (if closed and notes available) */}
@@ -837,9 +761,7 @@ export function Type13DetailView({
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               สรุปผลการปิดแปลง:
             </span>
-            <p className="text-emerald-800 italic">
-              "{effectiveClosureNotes}"
-            </p>
+            <p className="text-emerald-800 italic">"{effectiveClosureNotes}"</p>
           </div>
         )}
 
@@ -1191,12 +1113,6 @@ export function Type13DetailView({
                               )}
                             </div>
                           )}
-
-                        {latestResult.additionalNotes && (
-                          <div className="text-slate-600 italic">
-                            "{latestResult.additionalNotes}"
-                          </div>
-                        )}
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500">
@@ -1204,14 +1120,6 @@ export function Type13DetailView({
                           <Clock className="w-3.5 h-3.5 text-amber-500" />
                           แผนงานนี้ยังไม่ได้บันทึกผลการตรวจติดตามจริง
                         </span>
-                        {plan.id && (
-                          <Link
-                            href={`/activity-plans/${plan.id}/actual`}
-                            className="text-emerald-700 hover:text-emerald-800 font-semibold underline text-xs"
-                          >
-                            บันทึกผลติดตาม
-                          </Link>
-                        )}
                       </div>
                     )}
                   </div>
