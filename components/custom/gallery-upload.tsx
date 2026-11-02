@@ -80,10 +80,7 @@ export default function GalleryUpload({
 
     if (imageItems.length === 0) return;
 
-    // For large selections, show compression progress and process with bounded concurrency (4 workers)
-    if (imageItems.length > 4) {
-      setCompressingProgress({ done: 0, total: imageItems.length });
-    }
+    setCompressingProgress({ done: 0, total: imageItems.length });
 
     const compressedBatch: Array<{ id: string; file: File }> = [];
     let currentIndex = 0;
@@ -105,12 +102,10 @@ export default function GalleryUpload({
           }
         }
         completedCount++;
-        if (imageItems.length > 4) {
-          setCompressingProgress({
-            done: completedCount,
-            total: imageItems.length,
-          });
-        }
+        setCompressingProgress({
+          done: completedCount,
+          total: imageItems.length,
+        });
       }
     };
 
@@ -455,6 +450,30 @@ export default function GalleryUpload({
               บันทึก
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Compression Loading Popup */}
+      <Dialog open={Boolean(compressingProgress)}>
+        <DialogContent
+          showCloseButton={false}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className="max-w-sm rounded-2xl p-6 bg-white shadow-2xl border border-slate-200 text-center sm:text-center"
+        >
+          <DialogHeader className="items-center text-center sm:text-center space-y-3">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">
+              <Loader2 className="h-7 w-7 animate-spin text-emerald-600" />
+            </div>
+            <DialogTitle className="text-base font-bold text-slate-900 text-center">
+              กำลังเตรียมรูปภาพ...
+            </DialogTitle>
+            {compressingProgress && (
+              <p className="text-xs text-slate-500 text-center">
+                ประมวลผลแล้ว {compressingProgress.done} / {compressingProgress.total} รูป
+              </p>
+            )}
+          </DialogHeader>
         </DialogContent>
       </Dialog>
     </div>

@@ -4,6 +4,7 @@ import React from "react";
 import { ArrowLeft, Save, Loader2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { LoadingOverlayDialog } from "./dialogs/loading-overlay-dialog";
 
 export interface FormActionButtonsProps {
   /** Callback when back button is clicked */
@@ -18,6 +19,10 @@ export interface FormActionButtonsProps {
   submitLabel?: string;
   /** Text label when loading, defaults to "กำลังบันทึก..." */
   loadingLabel?: string;
+  /** Description shown in loading popup modal */
+  loadingDescription?: string;
+  /** Whether to show a popup modal when loading (default: true) */
+  showLoadingPopup?: boolean;
   /** Back button text label, defaults to "ย้อนกลับ" */
   backLabel?: string;
   /** Loading state indicator */
@@ -49,6 +54,8 @@ export function FormActionButtons({
   submitType = "submit",
   submitLabel = "บันทึก",
   loadingLabel = "กำลังบันทึก...",
+  loadingDescription,
+  showLoadingPopup = true,
   backLabel = "ย้อนกลับ",
   loading = false,
   disabled = false,
@@ -105,6 +112,13 @@ export function FormActionButtons({
           )}
           <span>{loading ? loadingLabel : submitLabel}</span>
         </Button>
+      )}
+      {showLoadingPopup && (
+        <LoadingOverlayDialog
+          open={loading}
+          title={loadingLabel}
+          description={loadingDescription}
+        />
       )}
     </div>
   );

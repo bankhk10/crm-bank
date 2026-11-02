@@ -774,7 +774,10 @@ export function UnplannedActivityForm({
     let actualData: any = null;
     const uploadPlanId = initialData?.id || "unplanned";
 
-    // 3. Validation & Mapping by Work Type
+    try {
+      setSubmitting(true);
+
+      // 3. Validation & Mapping by Work Type
     if (isType1Active) {
       if (type1.items.length === 0) {
         showValidationError("ข้อมูลเป้าหมายเข้าพบไม่ครบถ้วน", undefined, [
@@ -2135,8 +2138,6 @@ export function UnplannedActivityForm({
       (u: string) => !currentUrls.has(u),
     );
 
-    try {
-      setSubmitting(true);
       const res = await onSubmit(payload);
       if (res.success) {
         if (

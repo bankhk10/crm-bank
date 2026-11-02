@@ -65,5 +65,9 @@ export {
   type ValidationAlertState,
   type ValidationAlertDialogProps,
 } from "./dialogs/validation-alert-dialog";
+export {
+  LoadingOverlayDialog,
+  type LoadingOverlayDialogProps,
+} from "./dialogs/loading-overlay-dialog";
 
 
