@@ -10,14 +10,15 @@ import type {
 export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
   if (!plan) return [];
 
-  const rawResults: any[] =
-    Array.isArray(plan.type4Results)
-      ? plan.type4Results
-      : Array.isArray(plan.result?.type4Results)
-        ? plan.result.type4Results
-        : plan.type4Result
-          ? [plan.type4Result]
-          : [];
+  const rawResults: any[] = [
+    ...(Array.isArray(plan.type4Results) ? plan.type4Results : []),
+    ...(Array.isArray(plan.result?.type4Results) ? plan.result.type4Results : []),
+    ...(Array.isArray(plan.type4Targets)
+      ? plan.type4Targets.map((pt: any) => pt.result).filter(Boolean)
+      : []),
+    ...(plan.type4Result ? [plan.type4Result] : []),
+    ...(plan.result?.type4Result ? [plan.result.type4Result] : []),
+  ];
   const t4Result = rawResults[0] || plan.type4Result || plan.result?.type4Result;
   const resultItems: any[] =
     rawResults.length > 0 ? rawResults : t4Result?.items || [];
@@ -50,40 +51,52 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
     plan.type4Targets.length > 0
   ) {
     return plan.type4Targets.map((t: any, idx: number) => {
-      const isBilling = t.collectType === "BILLING";
-      const matchedItem =
-        resultItems.find(
+      const matchedResult =
+        t.result ||
+        rawResults.find(
           (ri: any) =>
+            (t.id && (ri.targetId === t.id || ri.id === t.id)) ||
             (t.storeId && ri.storeId === t.storeId) ||
             (t.store?.name && ri.companyName === t.store?.name),
-        ) || resultItems[idx];
+        ) ||
+        resultItems[idx];
+
+      const isBilling =
+        t.collectType === "BILLING" ||
+        matchedResult?.collectType === "BILLING" ||
+        Boolean(matchedResult?.billingStatus);
 
       return {
         id: t.id || String(idx + 1),
-        storeId: t.storeId || undefined,
+        storeId: t.storeId || matchedResult?.storeId || undefined,
         customerName:
           t.store?.name ||
-          matchedItem?.companyName ||
+          matchedResult?.companyName ||
           plan.planStores?.[idx]?.storeName ||
           "",
         collectType: isBilling ? "BILLING" : "COLLECT",
-        invoiceNo: t.invoiceNo || matchedItem?.invoiceNo || "",
-        targetAmount: t.targetAmount != null ? Number(t.targetAmount) : 0,
+        invoiceNo: t.invoiceNo || matchedResult?.orderNo || matchedResult?.invoiceNo || "",
+        targetAmount:
+          t.targetAmount != null
+            ? Number(t.targetAmount)
+            : matchedResult?.targetAmount != null
+              ? Number(matchedResult.targetAmount)
+              : 0,
         receivedAmount:
-          matchedItem?.receivedAmount != null
-            ? Number(matchedItem.receivedAmount)
+          matchedResult?.receivedAmount != null
+            ? Number(matchedResult.receivedAmount)
             : t4Result?.receivedAmount != null
               ? Number(t4Result.receivedAmount)
               : 0,
         billingStatus:
-          matchedItem?.billingStatus ||
+          matchedResult?.billingStatus ||
           t4Result?.billingStatus ||
           (isBilling ? "วางบิลสำเร็จ" : ""),
         billingDetail:
-          matchedItem?.billingDetail || t4Result?.billingDetail || "",
+          matchedResult?.billingDetail || t4Result?.billingDetail || "",
         collectDetail:
-          matchedItem?.collectDetail || t4Result?.collectDetail || "",
-        notes: t.notes || matchedItem?.notes || t4Result?.notes || "",
+          matchedResult?.collectDetail || t4Result?.collectDetail || "",
+        notes: t.notes || matchedResult?.notes || t4Result?.notes || "",
         images: t4Images.filter((img) => !img.storeId || img.storeId === t.storeId),
       };
     });
@@ -100,38 +113,45 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
 
   if (t4Stores.length > 0) {
     return t4Stores.map((s: any, idx: number) => {
+      const matchedResult =
+        rawResults.find(
+          (ri: any) =>
+            (s.id && (ri.targetId === s.id || ri.id === s.id)) ||
+            (s.storeId && ri.storeId === s.storeId) ||
+            (s.storeName && ri.companyName === s.storeName),
+        ) ||
+        resultItems[idx];
+
       const isBilling =
         s.collectType === "BILLING" ||
         s.remarks === "BILLING" ||
-        s.remarks === "วางบิล";
-
-      const matchedItem = resultItems.find(
-        (ri: any) => (s.storeId && ri.storeId === s.storeId) || ri.companyName === s.storeName,
-      );
+        s.remarks === "วางบิล" ||
+        matchedResult?.collectType === "BILLING" ||
+        Boolean(matchedResult?.billingStatus);
 
       return {
         id: s.id || String(idx + 1),
-        storeId: s.storeId || undefined,
-        customerName: s.store?.name || s.storeName || "",
+        storeId: s.storeId || matchedResult?.storeId || undefined,
+        customerName: s.store?.name || s.storeName || matchedResult?.companyName || "",
         collectType: isBilling ? "BILLING" : "COLLECT",
-        invoiceNo: s.invoiceNo || matchedItem?.invoiceNo || "",
+        invoiceNo: s.invoiceNo || matchedResult?.orderNo || matchedResult?.invoiceNo || "",
         targetAmount:
           s.targetAmount != null ? Number(s.targetAmount) : 0,
         receivedAmount:
-          matchedItem?.receivedAmount != null
-            ? Number(matchedItem.receivedAmount)
+          matchedResult?.receivedAmount != null
+            ? Number(matchedResult.receivedAmount)
             : t4Result?.receivedAmount != null
               ? Number(t4Result.receivedAmount)
               : 0,
         billingStatus:
-          matchedItem?.billingStatus ||
+          matchedResult?.billingStatus ||
           t4Result?.billingStatus ||
           (isBilling ? "วางบิลสำเร็จ" : ""),
         billingDetail:
-          matchedItem?.billingDetail || t4Result?.billingDetail || "",
+          matchedResult?.billingDetail || t4Result?.billingDetail || "",
         collectDetail:
-          matchedItem?.collectDetail || t4Result?.collectDetail || "",
-        notes: s.notes || matchedItem?.notes || t4Result?.notes || "",
+          matchedResult?.collectDetail || t4Result?.collectDetail || "",
+        notes: s.notes || matchedResult?.notes || t4Result?.notes || "",
         images: t4Images.filter((img) => !img.storeId || img.storeId === s.storeId),
       };
     });
@@ -140,7 +160,9 @@ export function hydrateType4UnplannedData(plan: any): Type4UnplannedItem[] {
   // 3. From result items (ActivityResultType4) if targets were not populated
   if (resultItems && resultItems.length > 0) {
     return resultItems.map((ri: any, idx: number) => {
-      const isBilling = ri.collectType === "BILLING";
+      const isBilling =
+        ri.collectType === "BILLING" ||
+        Boolean(ri.billingStatus);
       return {
         id: ri.id || String(idx + 1),
         storeId: ri.storeId || undefined,

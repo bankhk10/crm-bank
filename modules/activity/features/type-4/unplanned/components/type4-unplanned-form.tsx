@@ -100,7 +100,9 @@ export function Type4UnplannedForm({
           </div>
         ) : (
           items.map((item, index) => {
-            const isBilling = item.collectType === "BILLING";
+            const isBilling =
+              item.collectType === "BILLING" ||
+              Boolean(item.billingStatus && item.billingStatus.trim() !== "");
             const effectiveBillingStatus =
               item.billingStatus || (isBilling ? "วางบิลสำเร็จ" : "");
 
@@ -167,9 +169,10 @@ export function Type4UnplannedForm({
                         name={`type4-unplanned-collect-type-${item.id}`}
                         value="COLLECT"
                         checked={!isBilling}
-                        onChange={() =>
-                          updateItem(item.id, "collectType", "COLLECT")
-                        }
+                        onChange={() => {
+                          updateItem(item.id, "collectType", "COLLECT");
+                          updateItem(item.id, "billingStatus", "");
+                        }}
                         disabled={readonly}
                         className="w-4 h-4 text-amber-600 border-slate-300 focus:ring-amber-500 cursor-pointer"
                       />

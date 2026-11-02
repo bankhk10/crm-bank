@@ -242,6 +242,17 @@ export function UnplannedEditView({ id }: UnplannedEditViewProps) {
               (plan as any).type3Results ||
               (plan as any).result?.type3Results ||
               [],
+            type4Targets: (plan as any).type4Targets || [],
+            type4Results:
+              (plan as any).type4Results ||
+              (plan as any).result?.type4Results ||
+              (plan as any).type4Targets?.map((t: any) => t.result).filter(Boolean) ||
+              [],
+            type4Result:
+              (plan as any).type4Result ||
+              (plan as any).result?.type4Result ||
+              (plan as any).type4Targets?.[0]?.result ||
+              null,
             followupResults:
               (plan as any).result?.followupResults ||
               (plan as any).followupResults ||

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Type4UnplannedItem } from "../types/unplanned.types";
 import type { StoreOption } from "../../shared/types";
 import {
@@ -40,6 +40,23 @@ export function useType4UnplannedForm({
     }
     return [createDefaultItem()];
   });
+
+  useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      setItems((prev) => {
+        const isPrevDefault =
+          prev.length === 1 &&
+          !prev[0].customerName &&
+          !prev[0].storeId &&
+          !prev[0].receivedAmount &&
+          (!prev[0].billingDetail && !prev[0].collectDetail);
+        if (isPrevDefault) {
+          return initialItems;
+        }
+        return prev;
+      });
+    }
+  }, [initialItems]);
 
   const addItem = useCallback(() => {
     const newId = String(Date.now());
