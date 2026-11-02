@@ -1,8 +1,10 @@
+import { AttachmentCategory } from "@prisma/client";
 import type {
   PrismaTransaction,
   StrategyValidationResult,
   WorkTypeStrategy,
 } from "@/modules/activity/types/strategy.interface";
+import { normalizeAttachmentCategory } from "@/modules/activity/infrastructure/activity-result.repository";
 
 /**
  * Type 2 Strategy (ติดตามผลการใช้สินค้า / Product Follow-up)
@@ -307,16 +309,27 @@ export const type2PlannedStrategy: WorkTypeStrategy = {
         },
       });
 
-      if (Array.isArray(attachments) && attachments.length > 0) {
+      const validT2Attachments = Array.isArray(attachments)
+        ? attachments.filter(
+            (att: any) =>
+              (att?.fileUrl || att?.url) &&
+              (!att.workTypeCode || att.workTypeCode === "TYPE_2"),
+          )
+        : [];
+
+      if (validT2Attachments.length > 0) {
         await tx.activityAttachment.createMany({
-          data: attachments.map((att: any) => ({
+          data: validT2Attachments.map((att: any) => ({
             activityPlanId,
             activityResultId: result?.id || null,
             workTypeCode: "TYPE_2",
-            category: att.category || "PLOT",
+            category: normalizeAttachmentCategory(
+              att.category,
+              AttachmentCategory.PLOT,
+            ),
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปภาพ",
-            fileSize: att.fileSize || att.size || 0,
+            fileSize: Math.round(Number(att.fileSize || att.size || 0)),
             mimeType: att.mimeType || att.type || "image/jpeg",
           })),
         });

@@ -11,20 +11,33 @@ const VALID_ATTACHMENT_CATEGORIES: Record<string, AttachmentCategory> = {
   SHELF: AttachmentCategory.SHELF,
   CROP: AttachmentCategory.CROP,
   PLOT: AttachmentCategory.PLOT,
+  AFTER_SPRAY: AttachmentCategory.PLOT,
+  TRACKING_AFTER_SPRAY: AttachmentCategory.PLOT,
+  DEMO_PLOT_AFTER_SPRAY: AttachmentCategory.PLOT,
+  TYPE13: AttachmentCategory.PLOT,
+  TYPE14: AttachmentCategory.PLOT,
   ATMOSPHERE: AttachmentCategory.ATMOSPHERE,
   MEETING: AttachmentCategory.ATMOSPHERE,
   ISSUE: AttachmentCategory.ISSUE,
   SURVEY_BOTTLE: AttachmentCategory.SURVEY_BOTTLE,
+  PRODUCT: AttachmentCategory.SURVEY_BOTTLE,
+  BOTTLE: AttachmentCategory.SURVEY_BOTTLE,
   SURVEY_PROMO_MATERIAL: AttachmentCategory.SURVEY_PROMO_MATERIAL,
+  MEDIA: AttachmentCategory.SURVEY_PROMO_MATERIAL,
+  PROMOTION: AttachmentCategory.SURVEY_PROMO_MATERIAL,
+  PAYMENT: AttachmentCategory.GENERAL,
   GENERAL: AttachmentCategory.GENERAL,
 };
 
-function normalizeAttachmentCategory(rawCategory: any): AttachmentCategory {
+export function normalizeAttachmentCategory(
+  rawCategory: any,
+  fallback: AttachmentCategory = AttachmentCategory.GENERAL,
+): AttachmentCategory {
   if (!rawCategory || typeof rawCategory !== "string") {
-    return AttachmentCategory.GENERAL;
+    return fallback;
   }
   const upper = rawCategory.trim().toUpperCase();
-  return VALID_ATTACHMENT_CATEGORIES[upper] || AttachmentCategory.GENERAL;
+  return VALID_ATTACHMENT_CATEGORIES[upper] || fallback;
 }
 
 function toDecimalSafe(val: any): Prisma.Decimal | null {

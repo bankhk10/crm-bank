@@ -30,10 +30,15 @@ export const type2UnplannedStrategy: WorkTypeStrategy = {
       planData.t2FollowupResults ||
       [];
 
-    const attachments =
+    const rawAttachments =
       planData.actualData?.attachments ||
       planData.attachments ||
       [];
+    const attachments = Array.isArray(rawAttachments)
+      ? rawAttachments.filter(
+          (att: any) => !att?.workTypeCode || att.workTypeCode === "TYPE_2",
+        )
+      : [];
 
     const hasAttachments =
       planData.actualData?.attachments !== undefined ||

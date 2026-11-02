@@ -1,8 +1,10 @@
+import { ActivityResultStatus, AttachmentCategory } from "@prisma/client";
 import type {
   PrismaTransaction,
   StrategyValidationResult,
   WorkTypeStrategy,
 } from "@/modules/activity/types/strategy.interface";
+import { normalizeAttachmentCategory } from "@/modules/activity/infrastructure/activity-result.repository";
 import { type1PlannedStrategy } from "../../planned/infrastructure/type1-planned.strategy";
 
 /**
@@ -35,6 +37,63 @@ export const type1UnplannedStrategy: WorkTypeStrategy = {
       await type1PlannedStrategy.saveActual!(tx, activityPlanId, {
         targetActualResults: items,
       });
+    }
+
+    // 3. Ensure header ActivityResult & Type 1 Attachments are persisted
+    const startDate = planData.startDate ? new Date(planData.startDate) : new Date();
+    const endDate = planData.endDate ? new Date(planData.endDate) : startDate;
+
+    const result = await tx.activityResult.upsert({
+      where: { activityPlanId },
+      create: {
+        activityPlanId,
+        actualStartDate: startDate,
+        actualEndDate: endDate,
+        resultStatus: ActivityResultStatus.COMPLETED,
+      },
+      update: {
+        actualStartDate: startDate,
+        actualEndDate: endDate,
+        resultStatus: ActivityResultStatus.COMPLETED,
+      },
+    });
+
+    const rawAttachments =
+      planData.actualData?.attachments !== undefined
+        ? planData.actualData.attachments
+        : planData.attachments;
+
+    if (Array.isArray(rawAttachments)) {
+      const t1Attachments = rawAttachments.filter(
+        (att: any) =>
+          (att?.fileUrl || att?.url) &&
+          (!att.workTypeCode || att.workTypeCode === "TYPE_1"),
+      );
+
+      await tx.activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_1",
+        },
+      });
+
+      if (t1Attachments.length > 0) {
+        await tx.activityAttachment.createMany({
+          data: t1Attachments.map((att: any) => ({
+            activityPlanId,
+            activityResultId: result.id,
+            workTypeCode: "TYPE_1",
+            category: normalizeAttachmentCategory(
+              att.category,
+              AttachmentCategory.PLOT,
+            ),
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปภาพ",
+            fileSize: Math.round(Number(att.fileSize || att.size || 0)),
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          })),
+        });
+      }
     }
   },
 

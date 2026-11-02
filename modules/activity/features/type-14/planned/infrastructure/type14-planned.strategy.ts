@@ -243,7 +243,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
         }
 
         // Attachments for this plot
-        const images: any[] = plot.afterSprayImages || [];
+        const images: any[] = plot.afterSprayImages || plot.images || [];
         const validImages = images.filter((img) => img && (img.url || img.fileUrl));
         if (validImages.length > 0) {
           await tx.activityAttachment.createMany({
@@ -257,7 +257,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
                 img.name ||
                 img.fileName ||
                 `ภาพติดตามแปลงแฮตแทค แปลงที่ ${pIdx + 1}`,
-              fileSize: img.size || img.fileSize || 0,
+              fileSize: Math.round(Number(img.size || img.fileSize || 0)),
               mimeType: img.type || img.mimeType || "image/jpeg",
             })),
           });

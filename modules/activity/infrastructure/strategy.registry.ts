@@ -91,7 +91,9 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
         (rawData.type2UnplannedItems &&
           rawData.type2UnplannedItems.length > 0) ||
         (rawData.followupResults && rawData.followupResults.length > 0) ||
-        rawData.t2FollowupResults ||
+        (Array.isArray(rawData.t2FollowupResults)
+          ? rawData.t2FollowupResults.length > 0
+          : Boolean(rawData.t2FollowupResults)) ||
         rawData.type2Actual,
       ),
   },
@@ -541,6 +543,27 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
 }
 
 /**
+ * Check whether a strategy registration should execute for the given plan payload.
+ * When `rawData.workTypeCodes` is explicitly provided and non-empty, only strategies
+ * matching those workTypeCodes are allowed to run.
+ */
+function shouldExecutePlanStrategy(
+  registration: WorkTypeStrategyRegistration,
+  rawData: any,
+): boolean {
+  if (
+    Array.isArray(rawData?.workTypeCodes) &&
+    rawData.workTypeCodes.length > 0
+  ) {
+    const normalizedCodes = rawData.workTypeCodes.map((c: string) =>
+      getWorkTypeCode(c),
+    );
+    return normalizedCodes.includes(registration.code);
+  }
+  return registration.hasData(rawData);
+}
+
+/**
  * Validate all active strategies for a plan before database mutations
  */
 export async function validateStrategiesForPlan(
@@ -549,7 +572,7 @@ export async function validateStrategiesForPlan(
 ): Promise<StrategyValidationResult> {
   const isUnplanned = rawData.planType === "UNPLANNED";
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
-    if (registration.hasData(rawData)) {
+    if (shouldExecutePlanStrategy(registration, rawData)) {
       const strategy = isUnplanned
         ? registration.unplanned
         : registration.planned;
@@ -574,7 +597,7 @@ export async function saveStrategiesForPlan(
 ): Promise<void> {
   const isUnplanned = rawData.planType === "UNPLANNED";
   for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
-    if (registration.hasData(rawData)) {
+    if (shouldExecutePlanStrategy(registration, rawData)) {
       const strategy = isUnplanned
         ? registration.unplanned
         : registration.planned;

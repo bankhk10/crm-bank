@@ -1,10 +1,11 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, AttachmentCategory } from "@prisma/client";
 import { randomUUID } from "crypto";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
   StrategyValidationResult,
 } from "@/modules/activity/types/strategy.interface";
+import { normalizeAttachmentCategory } from "@/modules/activity/infrastructure/activity-result.repository";
 
 function toDecimalSafe(val: any): Prisma.Decimal | null {
   if (val == null) return null;
@@ -323,13 +324,16 @@ export const type5PlannedStrategy: WorkTypeStrategy = {
             activityPlanId,
             activityResultId: resultId,
             workTypeCode: "TYPE_5",
-            category: cat,
+            category: normalizeAttachmentCategory(
+              cat,
+              AttachmentCategory.GENERAL,
+            ),
             storeId: att.storeId || null,
             productId: att.productId || null,
             type5ResultId: att.type5ResultId || itemsToCreate[0]?.id || null,
             fileUrl: att.fileUrl || att.url,
             fileName: att.fileName || att.name || "รูปภาพสำรวจตลาด",
-            fileSize: att.fileSize || att.size || 0,
+            fileSize: Math.round(Number(att.fileSize || att.size || 0)),
             mimeType: att.mimeType || att.type || "image/jpeg",
           });
         }
