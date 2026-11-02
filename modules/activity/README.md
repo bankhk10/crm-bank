@@ -519,7 +519,91 @@ export function ActivityPlanApprovalDetailView({ id }) {
 
 ---
 
-## 6. สถานะการพัฒนา (Roadmap — Completed 100% ✅)
+## 6. ระบบอัปโหลดรูปภาพและไฟล์แนบ (Image & Attachment Upload Architecture)
+
+โมดูล Activity ใช้สถาปัตยกรรมอัปโหลดรูปภาพแบบ **Client-Side WebP Compression + Direct-to-R2 Presigned PUT** (พร้อมระบบ Fallback สู่ Server Multipart Upload อัตโนมัติ) เพื่อรองรับการอัปโหลดรูปภาพจำนวนมากในการลงพื้นที่จริง (สูงสุดถึง 200 รูปต่อชุดข้อมูล) โดยไม่ติดข้อจำกัดขนาด Payload ของ Next.js Server Actions และลดภาระ Bandwidth ของเซิร์ฟเวอร์
+
+### 6.1 โครงสร้างไฟล์ที่เกี่ยวข้อง (Core Upload Files)
+
+| ไฟล์ | หน้าที่และความรับผิดชอบ |
+| :--- | :--- |
+| [`ui/inputs/activity-photo-upload.tsx`](ui/inputs/activity-photo-upload.tsx) | UI Component หลักสำหรับเลือกรูป ถ่ายภาพจากกล้อง แสดง Preview (Grid + Lightbox), ตรวจสอบขนาด/ชนิดไฟล์ และแสดง Popup Loading ขณะประมวลผลไฟล์ |
+| [`application/media/image-uploader.ts`](application/media/image-uploader.ts) | Service กลางฝั่ง Client (`uploadActivityPlanImageGroup`, `deleteActivityPlanImagePaths`) ทำหน้าที่บีบอัดรูปด้วย Canvas (`WebP` / `JPEG`), ขอ Presigned URL, อัปโหลดแบบ Parallel Workers (Concurrency = 6) และทำ Retry Exponential Backoff |
+| [`app/api/activity-plans/[id]/images/route.ts`](../../app/api/activity-plans/[id]/images/route.ts) | API Route สำหรับสร้าง Presigned PUT URLs (`?action=presign`), รับไฟล์แบบ Multipart Fallback (`POST`), และลบไฟล์ออกจาก Storage แบบ Batch (`DELETE`) |
+| [`lib/file-storage.ts`](../../lib/file-storage.ts) & [`lib/r2-client.ts`](../../lib/r2-client.ts) | Storage Abstraction Layer เชื่อมต่อ Cloudflare R2 (S3-Compatible) หรือ Local Storage (`public/uploads`) อัตโนมัติตามค่าคอนฟิกใน `.env` |
+
+---
+
+### 6.2 ขั้นตอนการทำงานของการอัปโหลด (End-to-End Upload Lifecycle)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน (Frontend)
+    participant Form as Activity Form (Unplanned / Actual)
+    participant Uploader as image-uploader.ts
+    participant API as /api/activity-plans/[id]/images
+    participant R2 as Cloudflare R2 Bucket
+    participant Action as Server Action (Prisma Transaction)
+
+    User->>Form: เลือกรูปภาพ (สร้าง Preview ด้วย blob: URL + กำหนด img.id)
+    User->>Form: กดปุ่มบันทึกข้อมูล
+    Form->>Uploader: เรียก uploadActivityPlanImageGroup(planId, images, surveyItemId, category)
+    Uploader->>Uploader: บีบอัดรูปฝั่ง Client (Resize <= 1600px, แปลงเป็น WebP quality 0.80)
+    Uploader->>API: POST ?action=presign (ส่งรายการชื่อไฟล์และ Content-Type)
+    API-->>Uploader: คืนค่า Presigned PUT URLs + publicPath (/uploads/activity-plans/...)
+    par อัปโหลดขึ้น R2 แบบขนาน (Concurrency = 6, Retry สูงสุด 3 ครั้ง)
+        Uploader->>R2: HTTP PUT ไฟล์ที่บีบอัดแล้วไปยัง Presigned URL โดยตรง
+    end
+    Note over Uploader,API: หากติด CORS หรือ Network บล็อก PUT ตรง จะสลับไปใช้ Multipart POST อัตโนมัติ
+    Uploader-->>Form: คืนค่า updatedImages (แทนที่ blob: ด้วย publicPath โดยคงค่า img.id เดิมไว้เสมอ)
+    Form->>Action: ส่ง Payload พร้อม URL ถาวร (/uploads/activity-plans/...) เข้า Server Action
+    Action->>Action: บันทึก ActivityPlan + ActivityResultTypeX + ActivityAttachment ใน 1 Transaction
+```
+
+---
+
+### 6.3 การแยกโฟลเดอร์จัดเก็บรูปตามรหัสกิจกรรม (`planId`)
+
+ทั้ง **กิจกรรมในแผน (Planned Actual)** และ **กิจกรรมนอกแผน (Unplanned)** จัดเก็บรูปแยกตาม `planId` อย่างเป็นระเบียบภายใต้โครงสร้างเดียวกัน:
+
+```text
+{R2_KEY_PREFIX}/uploads/activity-plans/{planId}/{surveyItemId}/{category}/{uuid}.webp
+```
+
+- **กรณี Planned Actual**: มี `plan.id` อยู่แล้วตั้งแต่สร้างแผน จึงส่ง `plan.id` เข้า `uploadActivityPlanImageGroup` ได้ทันที
+- **กรณี Unplanned (สร้างใหม่)**: เนื่องจากเป็นการสร้างแผนพร้อมผลลัพธ์ในขั้นตอนเดียว ระบบจะสร้าง `preGeneratedPlanId` ด้วย `createId()` (`@paralleldrive/cuid2`) ไว้ล่วงหน้าใน [`unplanned-activity-form.tsx`](views/unplanned/components/unplanned-activity-form.tsx) เพื่อใช้เป็นชื่อโฟลเดอร์อัปโหลดรูปขึ้น R2 ก่อน แล้วส่ง `id: uploadPlanId` เดียวกันนั้นไปสร้างเรคคอร์ด `ActivityPlan` ในฐานข้อมูล
+
+**ตัวอย่าง Path ที่บันทึกจริง:**
+- ใน Cloudflare R2 Object Key: `dev/uploads/activity-plans/cmvywsgh4xhlh3c5dh6ebq20p/after_spray/type14/1b5fb3b4-aa80-4da4-8b7d-49f76422b218.webp`
+- ในตาราง `activity_attachments` (`fileUrl`): `/uploads/activity-plans/cmvywsgh4xhlh3c5dh6ebq20p/after_spray/type14/1b5fb3b4-aa80-4da4-8b7d-49f76422b218.webp`
+
+---
+
+### 6.4 กฎเหล็กในการผูกความสัมพันธ์รูปภาพแต่ละประเภทงาน (Attachment Relational Binding Rules)
+
+เพื่อให้รูปภาพแสดงผลตรงตามส่วนงานและแปลงสาธิตทั้งใน **หน้าแก้ไข (Edit View)** และ **หน้ารายละเอียด (Detail View)** โดยไม่เกิดปัญหารูปซ้ำหรือรูปหาย ต้องปฏิบัติตามกฎ 4 ข้อนี้เสมอ:
+
+1. **ห้ามเปลี่ยนค่า `img.id` หลังอัปโหลด (`Preserve Client ID`)**:
+   - ใน [`image-uploader.ts`](application/media/image-uploader.ts) เมื่ออัปโหลดรูปเสร็จ `slot.result.id` ต้องใช้ค่า `slot.tempId || target.id` เสมอ (ห้ามเขียนทับด้วย UUID ใหม่ของฝั่งเซิร์ฟเวอร์) เพราะการบีบอัดภาพจะเปลี่ยนนามสกุลไฟล์ใน `img.name` เป็น `.webp` หาก `img.id` เปลี่ยนไปด้วย โค้ดที่ใช้ `img.id` อ้างอิงจะจับคู่ URL ใหม่ไม่เจอ
+2. **อัปโหลดแยกตามรายการ/แปลง (`Upload Per Item / Plot`) และส่ง State หลังอัปโหลดเข้า Payload**:
+   - สำหรับประเภทงานที่มีหลายแปลงหรือหลายส่วนย่อย เช่น `TYPE_7B` (รูปสภาพพืช `cropImages` vs รูปรอบฉีดพ่น `roundImages`), `TYPE_13`, และ `TYPE_14` ให้อัปโหลดรูปแยกตามแปลง/รอบโดยตรง แล้วเก็บผลลัพธ์ไว้ในตัวแปร `updatedType7bItems`, `updatedType13Items`, `updatedType14Item`
+   - ตอนประกอบ `payload` ส่งเข้า Server Action ต้องใช้ตัวแปร `updatedType*` ที่อัปโหลดเสร็จแล้วเท่านั้น **ห้าม**เรียก `mapTypeXUnplannedToPayload(typeX.items)` ซ้ำกับ State ดิบที่ยังเป็น `blob:` URL
+3. **การแยกหมวดหมู่รูปภาพ (`category`) และ Foreign Key เฉพาะประเภทงาน**:
+   - ตาราง `activity_attachments` มี Foreign Key เฉพาะสำหรับแต่ละประเภทงาน เช่น `type1ResultId`, `type4ResultId`, `type7aResultId`, `type7bResultId`, `type8ResultId`, `type9ResultId`, `type10ResultId`, `type12ResultId`, `type13ResultId`, `type14ResultId`
+   - **กรณี `TYPE_7B`**:
+     - รูปสภาพพืช/แปลง (ส่วนที่ 1): ใช้ `category = "CROP"`
+     - รูปการฉีดพ่นแต่ละรอบ (ส่วนที่ 2): ใช้ `category = "PLOT"` พร้อมติด Prefix ชื่อไฟล์ `[รอบที่ N] ...` เพื่อแยกส่วนที่ 1 และส่วนที่ 2 ออกจากกันอย่างชัดเจน
+   - **กรณี `TYPE_14`**:
+     - ใน Strategy (`type14-planned.strategy.ts` / `type14-unplanned.strategy.ts`) รูปภาพของแต่ละแปลงจะถูกผูก `type14ResultId: createdResult.id`
+     - ในหน้าแสดงผล ([`type14-detail-view.tsx`](features/type-14/planned/components/type14-detail-view.tsx)) และ Mappers ต้องดึงจาก `actualPlotData.attachments` หรือเทียบ `att.type14ResultId === (actualPlotData.resultId || actualPlotData.id)` เสมอ (เนื่องจาก Primary Key ของ `ActivityResultType14` คือ `.id`)
+4. **ระวังกับดัก Empty Array (`[]`) ใน JavaScript (`Truthiness Trap`)**:
+   - ใน JavaScript ค่า `[]` มีสถานะเป็น `truthy` ดังนั้น **ห้าม**เขียน `plot.afterSprayImages || plot.images || matchedResult?.attachments` เพราะถ้า `plot.afterSprayImages` ถูกตั้งค่าเริ่มต้นเป็น `[]` จะทำให้ระบบข้ามรูปจริงที่อยู่ใน `matchedResult.attachments` ทันที
+   - ให้ตรวจสอบด้วย `Array.isArray(arr) && arr.length > 0` เสมอ
+
+---
+
+## 7. สถานะการพัฒนา (Roadmap — Completed 100% ✅)
 
 > รายละเอียดแผนการพัฒนาแต่ละระยะและ Quality Gates ทั้ง 7 ข้อ ดูเพิ่มเติมได้ที่ [`docs/ROADMAP.md`](docs/ROADMAP.md) และ [`docs/TYPE_SLICE_BLUEPRINT.md`](docs/TYPE_SLICE_BLUEPRINT.md)
 
@@ -545,7 +629,21 @@ export function ActivityPlanApprovalDetailView({ id }) {
 
 ---
 
-## 7. ประวัติการปรับปรุง (Change Log)
+## 8. ประวัติการปรับปรุง (Change Log)
+
+### Version 2.3.0 (2026-11-02)
+
+- **Cloudflare R2 Direct Presigned Upload, Client-Side WebP Compression & Per-Plot Attachment Binding**:
+  - **Direct-to-R2 Upload & Client Compression ([`image-uploader.ts`](application/media/image-uploader.ts), [`route.ts`](../../app/api/activity-plans/[id]/images/route.ts))**:
+    - บีบอัดรูปภาพฝั่ง Client เป็น `image/webp` (Resize ไม่เกิน `1600px`, Quality `0.80`) และอัปโหลดขึ้น Cloudflare R2 ผ่าน Presigned PUT URLs แบบ Parallel (Concurrency = 6) พร้อม Retry Exponential Backoff และ Multipart Fallback อัตโนมัติ
+    - คงค่า `img.id` เดิมของฝั่ง Client (`slot.tempId || target.id`) หลังอัปโหลดเสร็จสมบูรณ์ เพื่อให้การจับคู่ URL ใหม่เข้ากับ State ของฟอร์มแม่นยำ 100%
+  - **Pre-Generated CUID2 Plan ID สำหรับ Unplanned Activity ([`unplanned-activity-form.tsx`](views/unplanned/components/unplanned-activity-form.tsx))**:
+    - สร้าง `preGeneratedPlanId` (`createId()`) สำหรับกิจกรรมนอกแผนที่สร้างใหม่ เพื่อให้จัดเก็บรูปลงโฟลเดอร์ `/uploads/activity-plans/{planId}/...` แยกตามรหัสกิจกรรมตั้งแต่วินาทีแรกที่อัปโหลด
+  - **Popup Loading Dialog สำหรับการประมวลผลและอัปโหลดรูปภาพ ([`activity-photo-upload.tsx`](ui/inputs/activity-photo-upload.tsx), [`gallery-upload.tsx`](../../components/ui/gallery-upload.tsx))**:
+    - เพิ่ม Modal Loading Popup แสดงสถานะขณะกำลังประมวลผลรูปภาพจำนวนมาก เพื่อป้องกันผู้ใช้กดซ้ำระหว่างโหลดไฟล์
+  - **แก้ไขการผูกและแสดงผลรูปภาพแยกตามส่วนงาน/แปลงของ `TYPE_7B`, `TYPE_13`, และ `TYPE_14`**:
+    - `TYPE_7B`: แยกการอัปโหลดและแสดงผลระหว่างรูปสภาพพืช (`category: "CROP"`) และรูปการฉีดพ่นแต่ละรอบ (`category: "PLOT"`, `[รอบที่ N]`) ทั้งในหน้าแก้ไขและหน้ารายละเอียด ไม่ให้รูปทั้ง 2 ส่วนแสดงปนกัน
+    - `TYPE_13` & `TYPE_14`: อัปโหลดรูปแยกตามแปลง (`plot`) โดยตรง ส่งข้อมูลหลังอัปโหลด (`updatedType13Items`, `updatedType14Item`) เข้า Payload เสมอ และแก้ไข [`type14-detail-view.tsx`](features/type-14/planned/components/type14-detail-view.tsx) ให้ดึงรูปจาก `actualPlotData.attachments` และจับคู่ `type14ResultId` กับ `actualPlotData.id` รองรับกิจกรรมที่มีหลายแปลงได้อย่างถูกต้อง
 
 ### Version 2.2.0 (2026-10-25)
 
