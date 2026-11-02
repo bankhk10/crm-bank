@@ -16,6 +16,7 @@ export interface Type4CollectItem {
 
 export interface TargetCollectCompanyItem {
   id?: string;
+  targetId?: string;
   customer?: string;
   companyName: string;
   targetCollect?: string;

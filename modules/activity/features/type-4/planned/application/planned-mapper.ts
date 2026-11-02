@@ -33,6 +33,12 @@ export function extractType4PlanTargets(
     Array.isArray(plan.type4Targets) &&
     plan.type4Targets.length > 0
   ) {
+    const rawResults: any[] = [
+      ...(Array.isArray(plan.type4Results) ? plan.type4Results : []),
+      ...(Array.isArray(plan.result?.type4Results) ? plan.result.type4Results : []),
+      ...plan.type4Targets.map((pt: any) => pt.result).filter(Boolean),
+    ];
+
     const list: Type4TargetItem[] = plan.type4Targets.map(
       (t: any, idx: number) => {
         const custDisplay = t.store?.name || "ร้านค้า / ลูกค้า";
@@ -43,14 +49,43 @@ export function extractType4PlanTargets(
           t.collectType === "BILLING" ? "BILLING" : "COLLECT"
         ) as "BILLING" | "COLLECT";
 
+        const targetResult =
+          t.result ||
+          rawResults.find(
+            (r: any) =>
+              (t.id && r.targetId === t.id) ||
+              (t.storeId && r.storeId === t.storeId),
+          ) ||
+          rawResults[idx];
+
+        const recAmtStr =
+          targetResult?.receivedAmount != null
+            ? String(targetResult.receivedAmount)
+            : undefined;
+        const recAmtNum =
+          recAmtStr != null && !isNaN(Number(recAmtStr))
+            ? Number(recAmtStr)
+            : null;
+
         const companyItem: TargetCollectCompanyItem = {
           id: t.id || `t4-item-${idx}`,
+          targetId: t.id || undefined,
           customer: custDisplay,
           companyName: custDisplay,
           storeId: t.storeId || undefined,
           collectType,
           targetCollect: targetCollectStr,
           targetAmountNum: amtNum,
+          receivedAmount: recAmtStr,
+          billingStatus:
+            targetResult?.billingStatus ||
+            (collectType === "BILLING" ? "วางบิลสำเร็จ" : ""),
+          billingDetail:
+            targetResult?.billingDetail ||
+            (collectType === "BILLING" ? t.notes || "" : ""),
+          collectDetail:
+            targetResult?.collectDetail ||
+            (collectType !== "BILLING" ? t.notes || "" : ""),
           detail: t.notes || "",
         };
 
@@ -61,11 +96,21 @@ export function extractType4PlanTargets(
           storeId: t.storeId || undefined,
           storeName: t.store?.name || undefined,
           collectType,
-          orderNo: t.invoiceNo || "",
+          orderNo: targetResult?.orderNo || t.invoiceNo || "",
           targetCollect: targetCollectStr,
           targetAmountNum: amtNum,
           collectAmount: amtNum,
-          actualCollectAmount: null,
+          receivedAmount: recAmtStr,
+          actualCollectAmount: recAmtNum,
+          billingStatus:
+            targetResult?.billingStatus ||
+            (collectType === "BILLING" ? "วางบิลสำเร็จ" : undefined),
+          billingDetail:
+            targetResult?.billingDetail ||
+            (collectType === "BILLING" ? t.notes || "" : undefined),
+          collectDetail:
+            targetResult?.collectDetail ||
+            (collectType !== "BILLING" ? t.notes || "" : undefined),
           detail: t.notes || "",
           notes: t.notes || "",
           items: [companyItem],
@@ -78,6 +123,10 @@ export function extractType4PlanTargets(
       (sum, item) => sum + (item.targetAmountNum || 0),
       0,
     );
+    const totalReceived = list
+      .filter((it) => it.collectType !== "BILLING")
+      .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
+
     const primaryTarget: Type4TargetItem = {
       ...list[0],
       customer: list
@@ -90,6 +139,8 @@ export function extractType4PlanTargets(
           : list[0].targetCollect,
       targetAmountNum: totalAmount > 0 ? totalAmount : list[0].targetAmountNum,
       collectAmount: totalAmount > 0 ? totalAmount : list[0].collectAmount,
+      receivedAmount: totalReceived > 0 ? String(totalReceived) : list[0].receivedAmount,
+      actualCollectAmount: totalReceived > 0 ? totalReceived : list[0].actualCollectAmount,
       items: list.flatMap((l) => l.items || []),
     };
 
@@ -115,6 +166,11 @@ export function extractType4PlanTargets(
     };
   }
 
+  const rawResults: any[] = [
+    ...(Array.isArray(plan.type4Results) ? plan.type4Results : []),
+    ...(Array.isArray(plan.result?.type4Results) ? plan.result.type4Results : []),
+  ];
+
   const list: Type4TargetItem[] = t4Stores.map((s, idx) => {
     const custDisplay =
       s.storeName || (s as any).store?.name || "ร้านค้า / ลูกค้า";
@@ -128,14 +184,43 @@ export function extractType4PlanTargets(
       collectType = "BILLING";
     }
 
+    const targetResult =
+      (s as any).result ||
+      rawResults.find(
+        (r: any) =>
+          (s.id && (r.targetId === s.id || r.planStoreId === s.id)) ||
+          (s.storeId && r.storeId === s.storeId),
+      ) ||
+      rawResults[idx];
+
+    const recAmtStr =
+      targetResult?.receivedAmount != null
+        ? String(targetResult.receivedAmount)
+        : undefined;
+    const recAmtNum =
+      recAmtStr != null && !isNaN(Number(recAmtStr))
+        ? Number(recAmtStr)
+        : null;
+
     const companyItem: TargetCollectCompanyItem = {
       id: s.id || `t4-store-${idx}`,
+      targetId: s.id || undefined,
       customer: custDisplay,
       companyName: custDisplay,
       storeId: s.storeId || undefined,
       collectType,
       targetCollect: targetCollectStr,
       targetAmountNum: amtNum,
+      receivedAmount: recAmtStr,
+      billingStatus:
+        targetResult?.billingStatus ||
+        (collectType === "BILLING" ? "วางบิลสำเร็จ" : ""),
+      billingDetail:
+        targetResult?.billingDetail ||
+        (collectType === "BILLING" ? s.notes || s.detail || "" : ""),
+      collectDetail:
+        targetResult?.collectDetail ||
+        (collectType !== "BILLING" ? s.notes || s.detail || "" : ""),
       detail: s.notes || "",
     };
 
@@ -146,11 +231,21 @@ export function extractType4PlanTargets(
       storeId: s.storeId || undefined,
       storeName: s.storeName || (s as any).store?.name || undefined,
       collectType,
-      orderNo: s.invoiceNo || "",
+      orderNo: targetResult?.orderNo || s.invoiceNo || "",
       targetCollect: targetCollectStr,
       targetAmountNum: amtNum,
       collectAmount: amtNum,
-      actualCollectAmount: null,
+      receivedAmount: recAmtStr,
+      actualCollectAmount: recAmtNum,
+      billingStatus:
+        targetResult?.billingStatus ||
+        (collectType === "BILLING" ? "วางบิลสำเร็จ" : undefined),
+      billingDetail:
+        targetResult?.billingDetail ||
+        (collectType === "BILLING" ? s.notes || s.detail || "" : undefined),
+      collectDetail:
+        targetResult?.collectDetail ||
+        (collectType !== "BILLING" ? s.notes || s.detail || "" : undefined),
       detail: s.notes || "",
       notes: s.notes || "",
       items: [companyItem],
@@ -161,6 +256,10 @@ export function extractType4PlanTargets(
     (sum, item) => sum + (item.targetAmountNum || 0),
     0,
   );
+  const totalReceived = list
+    .filter((it) => it.collectType !== "BILLING")
+    .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
+
   const primaryTarget: Type4TargetItem = {
     ...list[0],
     customer: list
@@ -173,6 +272,8 @@ export function extractType4PlanTargets(
         : list[0].targetCollect,
     targetAmountNum: totalAmount > 0 ? totalAmount : list[0].targetAmountNum,
     collectAmount: totalAmount > 0 ? totalAmount : list[0].collectAmount,
+    receivedAmount: totalReceived > 0 ? String(totalReceived) : list[0].receivedAmount,
+    actualCollectAmount: totalReceived > 0 ? totalReceived : list[0].actualCollectAmount,
     items: list.flatMap((l) => l.items || []),
   };
 

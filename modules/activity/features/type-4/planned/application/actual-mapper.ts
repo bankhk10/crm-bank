@@ -32,17 +32,22 @@ export function parseType4ActualResult(resData: any): {
 
   // 1. Direct from dedicated table ActivityResultType4 if present
   const rawList: any[] =
-    Array.isArray(resData.type4Results)
+    Array.isArray(resData.type4Results) && resData.type4Results.length > 0
       ? resData.type4Results
-      : Array.isArray(resData.activityPlan?.type4Results)
+      : Array.isArray(resData.activityPlan?.type4Results) && resData.activityPlan.type4Results.length > 0
         ? resData.activityPlan.type4Results
-        : Array.isArray(resData)
+        : Array.isArray(resData) && resData.length > 0
           ? resData
-          : [];
+          : Array.isArray(resData.type4Targets) && resData.type4Targets.some((t: any) => t.result)
+            ? resData.type4Targets.map((t: any) => t.result).filter(Boolean)
+            : Array.isArray(resData.activityPlan?.type4Targets) && resData.activityPlan.type4Targets.some((t: any) => t.result)
+              ? resData.activityPlan.type4Targets.map((t: any) => t.result).filter(Boolean)
+              : [];
 
   if (rawList.length > 0) {
     const list: TargetCollectCompanyItem[] = rawList.map((it: any) => ({
       id: it.id,
+      targetId: it.targetId || undefined,
       storeId: it.storeId || undefined,
       customer: it.companyName || it.store?.name || undefined,
       companyName: it.companyName || it.store?.name || "ร้านค้า / ลูกค้า",

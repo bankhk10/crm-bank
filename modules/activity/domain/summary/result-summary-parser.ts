@@ -501,15 +501,20 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
 
     // Type 4 Billing / Collect Results from dedicated table or outcome
     const rawT4List: any[] =
-      Array.isArray(resData.type4Results)
+      Array.isArray(resData.type4Results) && resData.type4Results.length > 0
         ? resData.type4Results
-        : Array.isArray(resData.activityPlan?.type4Results)
+        : Array.isArray(resData.activityPlan?.type4Results) && resData.activityPlan.type4Results.length > 0
           ? resData.activityPlan.type4Results
-          : [];
+          : Array.isArray(resData.type4Targets) && resData.type4Targets.some((t: any) => t.result)
+            ? resData.type4Targets.map((t: any) => t.result).filter(Boolean)
+            : Array.isArray(resData.activityPlan?.type4Targets) && resData.activityPlan.type4Targets.some((t: any) => t.result)
+              ? resData.activityPlan.type4Targets.map((t: any) => t.result).filter(Boolean)
+              : [];
 
     if (rawT4List.length > 0) {
       result.t4Items = rawT4List.map((it: any) => ({
         id: it.id,
+        targetId: it.targetId || undefined,
         storeId: it.storeId,
         customer: it.companyName || it.store?.name || "",
         companyName: it.companyName || it.store?.name || "",

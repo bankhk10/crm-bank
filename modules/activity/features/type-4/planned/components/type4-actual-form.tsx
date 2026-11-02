@@ -179,7 +179,8 @@ export function Type4ActualForm({
             const existingItem =
               items?.find(
                 (it) =>
-                  (it.id && it.id === item.id) ||
+                  (it.targetId && (it.targetId === item.id || it.targetId === item.targetId)) ||
+                  (it.id && (it.id === item.id || it.id === item.targetId)) ||
                   (it.storeId && it.storeId === item.storeId),
               ) || items?.[idx];
 
@@ -238,17 +239,21 @@ export function Type4ActualForm({
             (it.collectDetail && it.collectDetail !== it.detail),
         );
 
-      const isPrevEmpty =
+      const hasResolvedTargetActual = resolvedTarget.items!.some(
+        (it) => it.receivedAmount || it.billingStatus,
+      );
+
+      const prevLacksActual =
         !prev ||
         prev.length === 0 ||
-        prev.every((it) => !it.receivedAmount && !it.billingStatus);
+        prev.some((it) => !it.receivedAmount && it.collectType !== "BILLING");
 
       // 1. Initial hydration, item count change, or newly arrived actual data
       if (
         !prev ||
         prev.length === 0 ||
         prev.length !== resolvedTarget.items!.length ||
-        (hasActualInItems && isPrevEmpty)
+        ((hasActualInItems || hasResolvedTargetActual) && prevLacksActual)
       ) {
         const newItems = resolvedTarget.items!.map(
           (targetItem: TargetCollectCompanyItem, idx: number) => {
@@ -261,7 +266,8 @@ export function Type4ActualForm({
             const existingItem =
               items?.find(
                 (it) =>
-                  (it.id && it.id === targetItem.id) ||
+                  (it.targetId && (it.targetId === targetItem.id || it.targetId === targetItem.targetId)) ||
+                  (it.id && (it.id === targetItem.id || it.id === targetItem.targetId)) ||
                   (it.storeId && it.storeId === targetItem.storeId),
               ) ||
               items?.[idx] ||
@@ -274,9 +280,10 @@ export function Type4ActualForm({
                 resolvedTarget?.collectType ||
                 "COLLECT",
               receivedAmount:
-                existingItem?.receivedAmount || targetItem.receivedAmount || "",
+                existingItem?.receivedAmount || targetItem.receivedAmount || prev?.[idx]?.receivedAmount || "",
               billingStatus: (existingItem?.billingStatus ||
                 targetItem.billingStatus ||
+                prev?.[idx]?.billingStatus ||
                 (isBilling ? "วางบิลสำเร็จ" : "")) as
                 | ""
                 | "วางบิลสำเร็จ"
@@ -284,10 +291,12 @@ export function Type4ActualForm({
               billingDetail:
                 existingItem?.billingDetail ||
                 targetItem.billingDetail ||
+                prev?.[idx]?.billingDetail ||
                 (isBilling ? planNotes : ""),
               collectDetail:
                 existingItem?.collectDetail ||
                 targetItem.collectDetail ||
+                prev?.[idx]?.collectDetail ||
                 (!isBilling ? planNotes : ""),
               detail: targetItem.detail || planNotes,
             };
@@ -302,6 +311,8 @@ export function Type4ActualForm({
           .reduce((sum, item) => sum + (Number(item.receivedAmount) || 0), 0);
         if (totalSum > 0) {
           setReceivedAmount(String(totalSum));
+        } else if (newItems[0]?.receivedAmount) {
+          setReceivedAmount(String(newItems[0].receivedAmount));
         }
 
         // Sync first billing status to parent if available and parent billingStatus is empty
@@ -350,10 +361,12 @@ export function Type4ActualForm({
           if (
             receivedAmount !== undefined &&
             receivedAmount !== "" &&
-            item.receivedAmount !== receivedAmount
+            (!item.receivedAmount || item.receivedAmount !== receivedAmount)
           ) {
             newRec = receivedAmount;
             itemUpdated = true;
+          } else if (item.receivedAmount && (!receivedAmount || receivedAmount === "")) {
+            setReceivedAmount(item.receivedAmount);
           }
         }
 
