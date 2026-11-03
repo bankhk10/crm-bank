@@ -20,11 +20,7 @@ import type {
   Type9StoreProps,
 } from "../types/planned.types";
 
-export type {
-  Type9PlannedFormProps,
-  Type9PlanFormProps,
-  Type9StoreProps,
-};
+export type { Type9PlannedFormProps, Type9PlanFormProps, Type9StoreProps };
 
 export function Type9PlannedForm({
   readonly = false,
@@ -65,22 +61,27 @@ export function Type9PlannedForm({
   const [internalParentDealerId, setInternalParentDealerId] = useState("");
   const [internalParentDealerName, setInternalParentDealerName] = useState("");
 
-  const activeIsUnregistered = isUnregisteredSubdealer ?? internalIsUnregistered;
-  const activeSetIsUnregistered = setIsUnregisteredSubdealer ?? setInternalIsUnregistered;
+  const activeIsUnregistered =
+    isUnregisteredSubdealer ?? internalIsUnregistered;
+  const activeSetIsUnregistered =
+    setIsUnregisteredSubdealer ?? setInternalIsUnregistered;
   const activeSubdealerId = subdealerId ?? internalSubdealerId;
   const activeSetSubdealerId = setSubdealerId ?? setInternalSubdealerId;
   const activeSubdealerName = subdealerName ?? internalSubdealerName;
   const activeSetSubdealerName = setSubdealerName ?? setInternalSubdealerName;
   const activeSubDealerStore = subDealerStore ?? internalSubDealerStore;
-  const activeSetSubDealerStore = setSubDealerStore ?? setInternalSubDealerStore;
+  const activeSetSubDealerStore =
+    setSubDealerStore ?? setInternalSubDealerStore;
   const activeProvince = province ?? internalProvince;
   const activeSetProvince = setProvince ?? setInternalProvince;
   const activeDistrict = district ?? internalDistrict;
   const activeSetDistrict = setDistrict ?? setInternalDistrict;
   const activeParentDealerId = parentDealerId ?? internalParentDealerId;
-  const activeSetParentDealerId = setParentDealerId ?? setInternalParentDealerId;
+  const activeSetParentDealerId =
+    setParentDealerId ?? setInternalParentDealerId;
   const activeParentDealerName = parentDealerName ?? internalParentDealerName;
-  const activeSetParentDealerName = setParentDealerName ?? setInternalParentDealerName;
+  const activeSetParentDealerName =
+    setParentDealerName ?? setInternalParentDealerName;
 
   // Selected registered Subdealer object from customers prop
   const selectedSubdealerCustomer = useMemo(() => {
@@ -162,7 +163,9 @@ export function Type9PlannedForm({
                       activeSetDistrict(cust.district || "");
                       if (cust.parentDealerId) {
                         activeSetParentDealerId(cust.parentDealerId);
-                        const pDealer = customers.find((c) => c.id === cust.parentDealerId);
+                        const pDealer = customers.find(
+                          (c) => c.id === cust.parentDealerId,
+                        );
                         activeSetParentDealerName(pDealer?.name || "");
                       } else {
                         activeSetParentDealerId("");
@@ -210,7 +213,9 @@ export function Type9PlannedForm({
                 {selectedSubdealerCustomer && (
                   <div className="p-3 bg-teal-50/60 rounded-xl border border-teal-100/80 text-xs space-y-1.5 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between text-teal-900 font-semibold">
-                      <span className="truncate">{selectedSubdealerCustomer.name}</span>
+                      <span className="truncate">
+                        {selectedSubdealerCustomer.name}
+                      </span>
                       {selectedSubdealerCustomer.customerCode && (
                         <span className="text-[11px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md font-mono">
                           {selectedSubdealerCustomer.customerCode}
@@ -221,18 +226,24 @@ export function Type9PlannedForm({
                       <div>
                         <span className="text-slate-400">จังหวัด:</span>{" "}
                         <span className="font-medium text-slate-700">
-                          {selectedSubdealerCustomer.province || activeProvince || "-"}
+                          {selectedSubdealerCustomer.province ||
+                            activeProvince ||
+                            "-"}
                         </span>
                       </div>
                       <div>
                         <span className="text-slate-400">อำเภอ:</span>{" "}
                         <span className="font-medium text-slate-700">
-                          {selectedSubdealerCustomer.district || activeDistrict || "-"}
+                          {selectedSubdealerCustomer.district ||
+                            activeDistrict ||
+                            "-"}
                         </span>
                       </div>
                       {resolvedParentDealerName && (
                         <div className="col-span-2">
-                          <span className="text-slate-400">Dealer ต้นสังกัด:</span>{" "}
+                          <span className="text-slate-400">
+                            Dealer ต้นสังกัด:
+                          </span>{" "}
                           <span className="font-medium text-slate-700">
                             {resolvedParentDealerName}
                           </span>
@@ -381,7 +392,7 @@ export function Type9PlannedForm({
                   จำนวน (ลัง) <span className="text-red-500">*</span>
                 </th>
                 <th className="py-2 px-3 w-32 text-center">
-                  ราคา (บาท) <span className="text-red-500">*</span>
+                  ราคา / ลัง <span className="text-red-500">*</span>
                 </th>
                 <th className="py-2 px-3 w-36 text-right">รวม</th>
                 {!readonly && (
@@ -418,7 +429,9 @@ export function Type9PlannedForm({
                           onChange={(val, prod) => {
                             const found =
                               prod ||
-                              products.find((p) => p.name === val || p.id === val);
+                              products.find(
+                                (p) => p.name === val || p.id === val,
+                              );
                             updateType9ProductItem(
                               item.id,
                               "productName",

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Store, Package, ShoppingBag, Users } from "lucide-react";
+import { Store, Package, Users } from "lucide-react";
 import { ActivityPhotoUpload, ActivityInput } from "@/modules/activity/ui";
 import { Type9PlanCard } from "./type9-plan-card";
 import type {
@@ -20,11 +20,17 @@ export type {
   Type9ProductSaleDetail,
 };
 
+function cleanNumberString(val: any): string {
+  if (val == null || val === "") return "";
+  return String(val).replace(/,/g, "").trim();
+}
+
 export function Type9ActualForm({
   isVisible = true,
   planType,
   target,
   targets,
+  products = [],
   actualSales,
   setActualSales,
   productSalesDetails,
@@ -39,42 +45,75 @@ export function Type9ActualForm({
       targets && targets.length > 0 ? targets : target ? [target] : [];
 
     return rawList.flatMap((t: any) => {
-      if (t.items && t.items.length > 0) return t.items;
-      if (t.products && t.products.length > 0) {
-        return t.products.map((p: any) => ({
-          id: p.id,
-          targetId: t.id,
-          productId: p.productId,
-          storeId: t.subdealerId || t.dealerId || null,
-          productName: p.productName || p.product?.name || "",
-          productRole: p.productRole || "TARGET",
-          quantityCases:
-            p.targetQuantity != null
+      const sourceList =
+        t.items && t.items.length > 0
+          ? t.items
+          : t.products && t.products.length > 0
+            ? t.products
+            : [];
+
+      return sourceList.map((p: any) => {
+        const matchedProduct = products?.find(
+          (prod) =>
+            (p.productId && prod.id === p.productId) ||
+            (p.productName && prod.name === p.productName),
+        );
+
+        const qty =
+          p.quantityCases != null
+            ? Number(p.quantityCases)
+            : p.targetQuantity != null
               ? Number(p.targetQuantity)
-              : p.quantityCases != null
-                ? Number(p.quantityCases)
-                : 0,
-          pricePerCase:
-            p.targetUnitPrice != null
+              : 0;
+
+        const price =
+          p.pricePerCase != null && Number(p.pricePerCase) > 0
+            ? Number(p.pricePerCase)
+            : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
               ? Number(p.targetUnitPrice)
-              : p.pricePerCase != null
-                ? Number(p.pricePerCase)
-                : 0,
-          totalAmount:
-            p.targetAmount != null
+              : matchedProduct?.price != null && Number(matchedProduct.price) > 0
+                ? Number(matchedProduct.price)
+                : 0;
+
+        const total =
+          p.totalAmount != null
+            ? Number(p.totalAmount)
+            : p.targetAmount != null
               ? Number(p.targetAmount)
-              : p.totalAmount != null
-                ? Number(p.totalAmount)
-                : 0,
-          actualQuantityCases:
-            p.actualQuantity != null ? String(p.actualQuantity) : "",
-          actualSales: p.actualTotal != null ? String(p.actualTotal) : "",
+              : qty * price;
+
+        const actualQty =
+          p.actualQuantityCases != null
+            ? cleanNumberString(p.actualQuantityCases)
+            : p.actualQuantity != null
+              ? cleanNumberString(p.actualQuantity)
+              : "";
+
+        const actualTotal =
+          p.actualSales != null
+            ? cleanNumberString(p.actualSales)
+            : p.actualTotal != null
+              ? cleanNumberString(p.actualTotal)
+              : "";
+
+        return {
+          id: p.id,
+          targetId: p.targetId || t.id,
+          productId: p.productId || p.id,
+          storeId: p.storeId || t.subdealerId || t.dealerId || null,
+          productName:
+            p.productName || p.product?.name || matchedProduct?.name || "",
+          productRole: p.productRole || "TARGET",
+          quantityCases: qty,
+          pricePerCase: price,
+          totalAmount: total,
+          actualQuantityCases: actualQty,
+          actualSales: actualTotal,
           actualNotes: p.actualNotes || undefined,
-        }));
-      }
-      return [];
+        };
+      });
     });
-  }, [targets, target]);
+  }, [targets, target, products]);
 
   const [localItems, setLocalItems] = useState<Type9TargetProductItem[]>(() => {
     if (itemsSource.length > 0) {
@@ -91,8 +130,11 @@ export function Type9ActualForm({
         return {
           ...item,
           actualQuantityCases:
-            saved?.actualQuantityCases ?? item.actualQuantityCases ?? "",
-          actualSales: saved?.actualSales ?? item.actualSales ?? "",
+            cleanNumberString(saved?.actualQuantityCases) ||
+            cleanNumberString(item.actualQuantityCases),
+          actualSales:
+            cleanNumberString(saved?.actualSales) ||
+            cleanNumberString(item.actualSales),
         };
       });
     }
@@ -127,13 +169,15 @@ export function Type9ActualForm({
           const actualQty =
             existing?.actualQuantityCases !== undefined &&
             existing?.actualQuantityCases !== ""
-              ? existing.actualQuantityCases
-              : (saved?.actualQuantityCases ?? item.actualQuantityCases ?? "");
+              ? cleanNumberString(existing.actualQuantityCases)
+              : cleanNumberString(saved?.actualQuantityCases) ||
+                cleanNumberString(item.actualQuantityCases);
 
           const actualTot =
             existing?.actualSales !== undefined && existing?.actualSales !== ""
-              ? existing.actualSales
-              : (saved?.actualSales ?? item.actualSales ?? "");
+              ? cleanNumberString(existing.actualSales)
+              : cleanNumberString(saved?.actualSales) ||
+                cleanNumberString(item.actualSales);
 
           return {
             ...item,
@@ -183,21 +227,25 @@ export function Type9ActualForm({
 
     if ((!actualSales || actualSales === "") && setActualSales) {
       if (targetResult?.actualTotalSales != null) {
-        const num = Number(targetResult.actualTotalSales);
+        const num = Number(
+          String(targetResult.actualTotalSales).replace(/,/g, ""),
+        );
         setActualSales(
           !isNaN(num)
-            ? num.toLocaleString()
-            : String(targetResult.actualTotalSales),
+            ? String(num)
+            : cleanNumberString(targetResult.actualTotalSales),
         );
       } else if (
         primaryTarget?.actualSales != null &&
         primaryTarget.actualSales !== ""
       ) {
-        const num = Number(primaryTarget.actualSales);
+        const num = Number(
+          String(primaryTarget.actualSales).replace(/,/g, ""),
+        );
         setActualSales(
           !isNaN(num)
-            ? num.toLocaleString()
-            : String(primaryTarget.actualSales),
+            ? String(num)
+            : cleanNumberString(primaryTarget.actualSales),
         );
       }
     }
@@ -212,7 +260,7 @@ export function Type9ActualForm({
         primaryTarget?.actualAttendees != null &&
         primaryTarget.actualAttendees !== ""
       ) {
-        setActualAttendees(String(primaryTarget.actualAttendees));
+        setActualAttendees(cleanNumberString(primaryTarget.actualAttendees));
       }
     }
   }, [
@@ -234,18 +282,23 @@ export function Type9ActualForm({
     value: string,
   ) => {
     const updated = [...localItems];
-    const currentItem = { ...updated[index], [field]: value };
+    const currentItem = { ...updated[index] };
+    const sanitized = cleanNumberString(value);
 
     // Auto-calculate actualSales when actualQuantityCases changes and pricePerCase exists
     if (field === "actualQuantityCases") {
-      const sanitized = value.replace(/,/g, "").trim();
+      currentItem.actualQuantityCases = sanitized;
       const qtyNum = parseFloat(sanitized);
-      const price = currentItem.pricePerCase || 0;
-      if (value === "") {
+      const price = Number(currentItem.pricePerCase) || 0;
+
+      if (sanitized === "") {
         currentItem.actualSales = "";
-      } else if (price > 0 && !isNaN(qtyNum)) {
-        currentItem.actualSales = (qtyNum * price).toLocaleString();
+      } else if (!isNaN(qtyNum)) {
+        // Plain numeric string for input type="number"
+        currentItem.actualSales = String(qtyNum * price);
       }
+    } else if (field === "actualSales") {
+      currentItem.actualSales = sanitized;
     }
 
     updated[index] = currentItem;
@@ -272,18 +325,40 @@ export function Type9ActualForm({
     // Auto-calculate total actual sales across all items
     if (setActualSales) {
       const total = updated.reduce((sum, item) => {
-        const valStr = String(item.actualSales || "")
-          .replace(/,/g, "")
-          .trim();
+        const valStr = cleanNumberString(item.actualSales);
         const num = parseFloat(valStr);
         return sum + (isNaN(num) ? 0 : num);
       }, 0);
 
-      if (total > 0) {
-        setActualSales(total.toLocaleString());
+      const hasAnyActual = updated.some(
+        (it) =>
+          (it.actualQuantityCases != null &&
+            String(it.actualQuantityCases).trim() !== "") ||
+          (it.actualSales != null && String(it.actualSales).trim() !== ""),
+      );
+
+      if (hasAnyActual) {
+        setActualSales(String(total));
+      } else {
+        setActualSales("");
       }
     }
   };
+
+  const totalQuantityCases = useMemo(() => {
+    return localItems.reduce(
+      (sum, it) =>
+        sum + (Number(cleanNumberString(it.actualQuantityCases)) || 0),
+      0,
+    );
+  }, [localItems]);
+
+  const totalItemActualSales = useMemo(() => {
+    return localItems.reduce(
+      (sum, it) => sum + (Number(cleanNumberString(it.actualSales)) || 0),
+      0,
+    );
+  }, [localItems]);
 
   return (
     <div className="space-y-4">
@@ -361,8 +436,9 @@ export function Type9ActualForm({
                         <ActivityInput
                           id={`t9-item-qty-${idx}`}
                           type="number"
+                          min={0}
                           placeholder="0"
-                          value={String(item.actualQuantityCases ?? "")}
+                          value={cleanNumberString(item.actualQuantityCases)}
                           onChange={(e) =>
                             handleItemChange(
                               idx,
@@ -377,17 +453,40 @@ export function Type9ActualForm({
                         <ActivityInput
                           id={`t9-item-sales-${idx}`}
                           type="number"
+                          min={0}
                           placeholder="0.00"
-                          value={String(item.actualSales ?? "")}
+                          value={cleanNumberString(item.actualSales)}
                           onChange={(e) =>
                             handleItemChange(idx, "actualSales", e.target.value)
                           }
                           className="h-9 text-xs text-right font-bold text-emerald-800 focus:ring-emerald-500"
                         />
+                        {item.actualSales &&
+                          !isNaN(Number(cleanNumberString(item.actualSales))) &&
+                          Number(cleanNumberString(item.actualSales)) > 0 && (
+                            <div className="text-[10px] text-emerald-600 font-mono text-right mt-0.5">
+                              ฿{Number(cleanNumberString(item.actualSales)).toLocaleString()}
+                            </div>
+                          )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
+                {localItems.length > 0 && (
+                  <tfoot className="bg-teal-50/60 border-t border-teal-100 font-semibold text-teal-950">
+                    <tr>
+                      <td colSpan={3} className="py-2 px-3 text-right text-xs">
+                        รวมตามรายการสินค้า:
+                      </td>
+                      <td className="py-2 px-3 text-center text-xs text-teal-900 font-bold">
+                        {totalQuantityCases.toLocaleString()} ลัง
+                      </td>
+                      <td className="py-2 px-3 text-right text-xs text-emerald-800 font-bold">
+                        {totalItemActualSales.toLocaleString()} ฿
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>
@@ -407,8 +506,9 @@ export function Type9ActualForm({
               <ActivityInput
                 id="t9-actual-sales-input"
                 type="number"
+                min={0}
                 placeholder="ระบุยอดขายหน้าร้านจริง..."
-                value={actualSales || ""}
+                value={cleanNumberString(actualSales)}
                 onChange={(e) =>
                   setActualSales && setActualSales(e.target.value)
                 }
@@ -416,6 +516,13 @@ export function Type9ActualForm({
                 required
               />
             </div>
+            {actualSales &&
+              !isNaN(Number(cleanNumberString(actualSales))) &&
+              Number(cleanNumberString(actualSales)) > 0 && (
+                <p className="text-[11px] text-teal-700 font-medium mt-1">
+                  ยอดขายรวม: {Number(cleanNumberString(actualSales)).toLocaleString()} บาท
+                </p>
+              )}
           </div>
 
           <div>
@@ -429,8 +536,9 @@ export function Type9ActualForm({
               <ActivityInput
                 id="t9-actual-attendees-input"
                 type="number"
+                min={0}
                 placeholder="ระบุจำนวนผู้เข้าร่วม..."
-                value={actualAttendees || ""}
+                value={cleanNumberString(actualAttendees)}
                 onChange={(e) =>
                   setActualAttendees && setActualAttendees(e.target.value)
                 }
