@@ -332,10 +332,10 @@ export function Type9ActualForm({
                     <th className="py-2.5 px-3">ชื่อสินค้า</th>
                     <th className="py-2.5 px-3 text-center">เป้าหมาย (ลัง)</th>
                     <th className="py-2.5 px-3 text-center">ราคา/ลัง</th>
-                    <th className="py-2.5 px-3 min-w-[130px]">
+                    <th className="py-2.5 px-3 min-w-[130px] text-center">
                       ขายได้จริง (ลัง)
                     </th>
-                    <th className="py-2.5 px-3 min-w-[140px] text-right">
+                    <th className="py-2.5 px-3 min-w-[140px] text-center">
                       ยอดขายจริง (บาท)
                     </th>
                   </tr>
