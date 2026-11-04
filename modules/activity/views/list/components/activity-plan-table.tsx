@@ -1146,6 +1146,17 @@ export function ActivityPlanTable({
                     </Button>
                   </Link>
                 )}
+                {isAdmin && canCreate && onDuplicate && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-[11px] font-semibold text-amber-600 border-amber-100 hover:bg-amber-50 rounded-lg gap-1 px-2.5"
+                    onClick={() => onDuplicate(item)}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    ทำสำเนา
+                  </Button>
+                )}
                 {canDelete && deletable && isCreator && (
                   <Button
                     size="sm"

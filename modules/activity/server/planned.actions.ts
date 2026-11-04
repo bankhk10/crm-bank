@@ -795,6 +795,281 @@ export async function duplicateActivityPlanAction(id: string) {
       return { success: false, error: "ไม่พบ Trip Plan ต้นฉบับที่ต้องการทำสำเนา" };
     }
 
+    const planStores: any[] = [];
+    const planProducts: any[] = [];
+
+    // Type 1: เข้าพบเกษตรกร / ร้านค้า
+    const type1Targets = (originalPlan.type1Targets || []).map((t: any) => ({
+      visitPurpose: t.visitPurpose || "FARMER",
+      storeId: t.storeId || null,
+      province: t.province || "",
+      isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
+      unregisteredFarmerName: t.unregisteredFarmerName || null,
+      unregisteredFarmerPhone: t.unregisteredFarmerPhone || null,
+      topic: t.topic || null,
+      notes: t.notes || null,
+      workTypeCode: "TYPE_1",
+    }));
+    if (type1Targets.length > 0) {
+      planStores.push(...type1Targets);
+    }
+
+    // Type 2: ติดตามผลการใช้สินค้า
+    const type2Targets = (originalPlan.type2Targets || []).map((t: any) => ({
+      visitPurpose: t.visitPurpose || "FARMER",
+      storeId: t.storeId || null,
+      province: t.province || "",
+      isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
+      unregisteredFarmerName: t.unregisteredFarmerName || null,
+      unregisteredFarmerPhone: t.unregisteredFarmerPhone || null,
+      notes: t.notes || null,
+      workTypeCode: "TYPE_2",
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        targetQuantity: p.targetQuantity != null ? Number(p.targetQuantity) : 1,
+        notes: p.notes || null,
+        workTypeCode: "TYPE_2",
+      })),
+    }));
+    if (type2Targets.length > 0) {
+      type2Targets.forEach((t) => {
+        planStores.push({ ...t, workTypeCode: "TYPE_2" });
+        (t.products || []).forEach((p: any) => {
+          planProducts.push({
+            storeId: t.storeId || null,
+            productId: p.productId,
+            productName: p.productName,
+            targetQuantity: p.targetQuantity,
+            notes: p.notes,
+            workTypeCode: "TYPE_2",
+          });
+        });
+      });
+    }
+
+    // Type 3: เสนอขายสินค้า (Product Sales Proposal)
+    const type3Targets = (originalPlan.type3Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      subdealerId: t.subdealerId || null,
+      isSubDealer: Boolean(t.isSubDealer),
+      isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+      subDealerStore: t.subDealerStore || null,
+      notes: t.notes || null,
+      targetAmount: t.targetAmount ? Number(t.targetAmount) : undefined,
+      products: (t.products || []).map((p: any) => {
+        const qty = p.targetQuantity != null ? Number(p.targetQuantity) : 1;
+        const unitPrice = p.unitPrice != null ? Number(p.unitPrice) : 0;
+        const price =
+          p.targetAmount != null
+            ? Number(p.targetAmount)
+            : qty * unitPrice;
+        return {
+          productId: p.productId,
+          productName: p.product?.name || p.productName || null,
+          quantity: qty,
+          unitPrice,
+          price,
+          notes: p.notes || null,
+        };
+      }),
+    }));
+    if (type3Targets.length > 0) {
+      type3Targets.forEach((t) => {
+        planStores.push({
+          workTypeCode: "TYPE_3",
+          storeId: t.storeId || null,
+          storeName: t.subDealerStore || null,
+          isSubDealer: t.isSubDealer,
+          isUnregisteredSubdealer: t.isUnregisteredSubdealer,
+          subdealerId: t.subdealerId,
+          subDealerStore: t.subDealerStore,
+          notes: t.notes,
+        });
+
+        (t.products || []).forEach((p: any) => {
+          planProducts.push({
+            workTypeCode: "TYPE_3",
+            storeId: t.storeId || null,
+            productId: p.productId,
+            productName: p.productName,
+            targetQuantity: p.quantity,
+            quantity: p.quantity,
+            unitPrice: p.unitPrice,
+            targetAmount: p.price,
+            price: p.price,
+            notes: p.notes,
+          });
+        });
+      });
+    }
+
+    // Type 4: วางบิล / เก็บเงิน
+    const type4Targets = (originalPlan.type4Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      collectType: t.collectType || "COLLECT",
+      targetAmount: t.targetAmount ? Number(t.targetAmount) : 0,
+      collectAmount: t.targetAmount ? Number(t.targetAmount) : 0,
+      invoiceNumbers: t.invoiceNumbers || null,
+      remarks: t.remarks || null,
+      notes: t.notes || null,
+      workTypeCode: "TYPE_4",
+    }));
+    if (type4Targets.length > 0) {
+      planStores.push(...type4Targets);
+    }
+
+    // Type 5: เยี่ยมเยียน
+    const type5Targets = (originalPlan.type5Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      purpose: t.purpose || null,
+      remarks: t.remarks || null,
+      notes: t.notes || null,
+      workTypeCode: "TYPE_5",
+    }));
+    if (type5Targets.length > 0) {
+      planStores.push(...type5Targets);
+    }
+
+    // Type 6: สำรวจและแก้ไขปัญหา
+    const type6Targets = (originalPlan.type6Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
+      unregisteredFarmerName: t.unregisteredFarmerName || null,
+      topic: t.topic || null,
+      solution: t.solution || null,
+      notes: t.notes || null,
+      workTypeCode: "TYPE_6",
+    }));
+    if (type6Targets.length > 0) {
+      planStores.push(...type6Targets);
+    }
+
+    // Type 7A: จัดทำแปลงสาธิต
+    const type7aPlots = (originalPlan.type7aTargets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      plotName: t.plotName || null,
+      cropCategory: t.cropCategory || null,
+      cropName: t.cropName || null,
+      customCropName: t.customCropName || null,
+      areaRai: t.areaRai ? Number(t.areaRai) : null,
+      treeCount: t.treeCount ?? null,
+      objective: t.objective || null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        productRole: p.productRole || "SAMPLE",
+        quantity: p.quantity != null ? Number(p.quantity) : 1,
+        unit: p.unit || null,
+      })),
+    }));
+
+    // Type 7B: ติดตามแปลงสาธิต
+    const type7bPlots = (originalPlan.type7bTargets || []).map((t: any) => ({
+      sourcePlanId: t.sourceActivityPlanId || null,
+      selectedPlanId: t.sourceActivityPlanId || null,
+      type7aTargetId: t.type7aTargetId || null,
+      selectedPlotIds: t.type7aTargetId ? [t.type7aTargetId] : [],
+      plotName: t.type7aTarget?.plotName || null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        quantity: p.quantity != null ? Number(p.quantity) : 1,
+        unit: p.unit || null,
+      })),
+    }));
+
+    // Type 8: ประชุมเกษตรกร
+    const type8Meetings = (originalPlan.type8Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      subdealerId: t.subdealerId || null,
+      subdealerName: t.subdealerName || null,
+      isNewSubdealer: Boolean(t.isNewSubdealer),
+      meetingTitle: t.meetingTitle || null,
+      location: t.location || null,
+      targetAttendeesCount: t.targetAttendeesCount ?? null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        productRole: p.productRole || "TARGET",
+      })),
+    }));
+
+    // Type 9: จัดงานอีเวนต์/ออกบูธ
+    const type9Targets = (originalPlan.type9Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      subdealerId: t.subdealerId || null,
+      subdealerName: t.subdealerName || null,
+      isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+      subDealerStore: t.subDealerStore || null,
+      location: t.location || null,
+      targetBookingSales: t.targetBookingSales ? Number(t.targetBookingSales) : null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        quantity: p.quantity != null ? Number(p.quantity) : 1,
+        unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
+        totalPrice: p.totalPrice ? Number(p.totalPrice) : null,
+      })),
+    }));
+
+    // Type 10: จัดงาน Field Day
+    const type10Targets = (originalPlan.type10Targets || []).map((t: any) => ({
+      type7aTargetId: t.type7aTargetId || null,
+      demoPlotId: t.type7aTargetId || null,
+      plotName: t.plotName || null,
+      location: t.location || null,
+      cropName: t.cropName || null,
+      showcaseProductName: t.showcaseProductName || null,
+      targetAttendeesCount: t.targetAttendeesCount ?? null,
+      targetBookingSales: t.targetBookingSales ? Number(t.targetBookingSales) : null,
+      notes: t.notes || null,
+    }));
+
+    // Type 11: ตรวจเช็คสต๊อก
+    const type11Stores = (originalPlan.type11Targets || []).map((t: any) => ({
+      storeId: t.storeId || null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+        productRole: p.productRole || "TARGET",
+      })),
+    }));
+
+    // Type 12: ทริปศึกษาดูงาน
+    const type12Targets = (originalPlan.type12Targets || []).map((t: any) => ({
+      plantName: t.plantName || null,
+      destination: t.destination || null,
+      targetAttendeesCount: t.targetAttendeesCount ?? null,
+      notes: t.notes || null,
+    }));
+
+    // Type 13: จัดแปลงแฮตแทค
+    const type13Plots = (originalPlan.type13Targets || []).map((t: any) => ({
+      farmerId: t.farmerId || null,
+      farmerName: t.farmerName || null,
+      plotName: t.plotName || null,
+      cropType: t.cropType || null,
+      areaRai: t.areaRai ? Number(t.areaRai) : null,
+      location: t.location || null,
+      notes: t.notes || null,
+      products: (t.products || []).map((p: any) => ({
+        productId: p.productId,
+        productName: p.product?.name || p.productName || null,
+      })),
+    }));
+
+    // Type 14: ติดตามแปลงแฮตแทค
+    const type14Plots = (originalPlan.type14Targets || []).map((t: any) => ({
+      sourceTargetId: t.sourceTargetId || null,
+      notes: t.notes || null,
+    }));
+
     const duplicated = await createActivityPlanAction({
       title: `${originalPlan.title} (สำเนา)`,
       startDate: originalPlan.startDate,
@@ -831,6 +1106,47 @@ export async function duplicateActivityPlanAction(id: string) {
         detail: p.detail,
         amount: Number(p.amount),
       })),
+      planStores,
+      planProducts,
+      type1Targets,
+      type1Items: type1Targets,
+      type2Targets,
+      type3Targets,
+      type3Items: type3Targets,
+      type4Targets,
+      type4Items: type4Targets,
+      type5Targets,
+      type5Items: type5Targets,
+      type6Targets,
+      type6Items: type6Targets,
+      type7aPlots,
+      type7aTargets: type7aPlots,
+      type7bData: type7bPlots.length > 0 ? { plots: type7bPlots } : undefined,
+      type7bPlots,
+      type7bTargets: type7bPlots,
+      type8Data: type8Meetings.length > 0 ? { meetings: type8Meetings } : undefined,
+      type8Meetings,
+      type8Items: type8Meetings,
+      type8Targets: type8Meetings,
+      type9Data: type9Targets[0],
+      type9Stores: type9Targets,
+      type9Targets,
+      type10Data: type10Targets[0],
+      type10Plots: type10Targets,
+      type10Targets,
+      type11Data: type11Stores,
+      type11Stores,
+      type11Targets: type11Stores,
+      tourData: type12Targets[0],
+      tour: type12Targets[0],
+      type12Data: type12Targets[0],
+      type12Targets,
+      type13Data: type13Plots[0],
+      type13Plots,
+      type13Targets: type13Plots,
+      type14Data: type14Plots[0],
+      type14Plots,
+      type14Targets: type14Plots,
     });
 
     return serialize(duplicated);
