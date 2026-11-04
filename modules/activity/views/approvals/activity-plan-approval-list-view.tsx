@@ -27,6 +27,10 @@ import {
   FileCheck,
   SlidersHorizontal,
   X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -115,6 +119,10 @@ export default function ActivityPlanApprovalListView() {
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [planTypeFilter, setPlanTypeFilter] = useState<"ALL" | "PLANNED" | "UNPLANNED">("ALL");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   // UI-only state for mobile filter sheet
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -270,6 +278,26 @@ export default function ActivityPlanApprovalListView() {
 
     return source;
   }, [mainTab, plansSubTab, pendingPlans, myPendingPlans, historyPlans, searchQuery, typeFilter, planTypeFilter]);
+
+  // Reset pagination to page 1 on filter or tab change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, typeFilter, planTypeFilter, mainTab, plansSubTab]);
+
+  const totalItems = filteredPlans.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  // Ensure current page does not exceed totalPages if filtered results shrink
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const paginatedPlans = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredPlans.slice(start, start + pageSize);
+  }, [filteredPlans, page, pageSize]);
 
   const handleOpenActionDialog = (
     plan: ActivityPlanWithRelations,
@@ -796,7 +824,7 @@ export default function ActivityPlanApprovalListView() {
         /* Table View — Desktop only, fallback to cards on mobile */
         <>
           <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredPlans.map((plan) => (
+            {paginatedPlans.map((plan) => (
               <PlanCard
                 key={plan.id}
                 plan={plan}
@@ -823,7 +851,7 @@ export default function ActivityPlanApprovalListView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredPlans.map((plan) => {
+                  {paginatedPlans.map((plan) => {
                     const sp = plan.salesPromotionBudgetRequested
                       ? Number(plan.salesPromotionBudgetRequested)
                       : 0;
@@ -1058,7 +1086,7 @@ export default function ActivityPlanApprovalListView() {
       ) : (
         /* Card / Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredPlans.map((plan) => (
+          {paginatedPlans.map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
@@ -1069,11 +1097,93 @@ export default function ActivityPlanApprovalListView() {
         </div>
       )}
 
-      {/* Results count */}
-      {!loading && filteredPlans.length > 0 && (
-        <p className="text-[11px] text-slate-400 text-center pb-2">
-          แสดง {filteredPlans.length} รายการ
-        </p>
+      {/* ─── 6. PAGINATION CONTROLS ─── */}
+      {!loading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+          {/* Left: Summary text & page size selector */}
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <span className="text-slate-500">
+              แสดง{" "}
+              <span className="font-semibold text-slate-800">
+                {(page - 1) * pageSize + 1}
+              </span>
+              -
+              <span className="font-semibold text-slate-800">
+                {Math.min(page * pageSize, totalItems)}
+              </span>{" "}
+              จาก{" "}
+              <span className="font-bold text-slate-900">{totalItems}</span>{" "}
+              รายการ
+            </span>
+
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <span className="hidden sm:inline">| รายการต่อหน้า:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="h-8 px-2 py-0.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={48}>48</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Right: Page navigation buttons */}
+          <div className="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(1)}
+              disabled={page <= 1}
+              className="h-8 w-8 p-0 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+              title="หน้าแรก"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="h-8 px-2.5 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 gap-1 text-xs cursor-pointer"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">ก่อนหน้า</span>
+            </Button>
+
+            <div className="px-3 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-700 whitespace-nowrap">
+              หน้า <span className="text-blue-600 font-bold">{page}</span> / {totalPages}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="h-8 px-2.5 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 gap-1 text-xs cursor-pointer"
+            >
+              <span className="hidden sm:inline">ถัดไป</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(totalPages)}
+              disabled={page >= totalPages}
+              className="h-8 w-8 p-0 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+              title="หน้าสุดท้าย"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       )}
         </>
       )}
