@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Store, Package, Plus, Trash2 } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Store, Package, Plus, Trash2, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityAddressSelect,
@@ -113,6 +113,18 @@ export function Type9PlannedForm({
     (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
     0,
   );
+
+  const totalCases = type9ProductItems.reduce(
+    (sum, item) => sum + (item.quantityCases || 0),
+    0,
+  );
+
+  // sync ยอดที่คำนวณได้กลับไปที่ state เพื่อให้ค่าที่บันทึกตรงกับที่แสดง
+  useEffect(() => {
+    if (!readonly && type9Sales !== calculatedSales) {
+      setType9Sales(calculatedSales);
+    }
+  }, [readonly, calculatedSales, type9Sales, setType9Sales]);
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
@@ -336,22 +348,40 @@ export function Type9PlannedForm({
             )}
           </div>
 
-          {/* Right Column: Target Sales */}
+          {/* Right Column: Target Sales (display only) */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
-              <span className="text-red-500">*</span>
-            </label>
-            <ActivityNumberInput
-              prefix="฿"
-              min={0}
-              value={
-                type9ProductItems.length > 0 ? calculatedSales : type9Sales
-              }
-              onChangeValue={(val) => setType9Sales(Number(val) || 0)}
-              disabled={readonly || type9ProductItems.length > 0}
-              className="font-bold text-teal-700"
-            />
+            <div className="block text-xs font-medium text-slate-700 mb-1.5">
+              เป้ายอดขายรวมจากกิจกรรม
+            </div>
+
+            <div className="rounded-xl border border-teal-100 bg-teal-50/60 p-3.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-teal-700">
+                <Calculator className="h-3.5 w-3.5" />
+                คำนวณอัตโนมัติจากรายการสินค้า
+              </div>
+
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className="text-sm font-semibold text-teal-600">฿</span>
+                <span
+                  className={`text-2xl font-bold tabular-nums ${
+                    calculatedSales > 0 ? "text-teal-700" : "text-slate-300"
+                  }`}
+                >
+                  {calculatedSales.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-teal-100/80 text-[11px] text-slate-500">
+                {type9ProductItems.length > 0 ? (
+                  <>
+                    {type9ProductItems.length} รายการ · รวม{" "}
+                    {totalCases.toLocaleString()} ลัง
+                  </>
+                ) : (
+                  "เพิ่มสินค้าในตารางด้านล่าง ยอดจะคำนวณให้อัตโนมัติ"
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -472,11 +502,7 @@ export function Type9PlannedForm({
                           defaultValueOnBlur={0}
                           value={item.pricePerCase}
                           onChangeValue={(val) =>
-                            updateType9ProductItem(
-                              item.id,
-                              "pricePerCase",
-                              val,
-                            )
+                            updateType9ProductItem(item.id, "pricePerCase", val)
                           }
                           disabled={readonly}
                           className="h-8 px-2 text-xs text-center"
