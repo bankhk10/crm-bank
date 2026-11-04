@@ -4,6 +4,7 @@ import { ShoppingCart, Plus, Trash2, Package, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityCustomerSelect,
   ActivityProductSelect,
   type ActivityProductItem,
@@ -622,20 +623,22 @@ export function Type3PlannedForm({
                               จำนวนเป้าหมาย (ลัง){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
+                            <ActivityNumberInput
                               min={1}
+                              align="center"
+                              allowDecimals={false}
+                              defaultValueOnBlur={1}
                               value={prodLine.quantity}
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   item.id,
                                   prodLine.id,
                                   "quantity",
-                                  parseInt(e.target.value) || 0,
+                                  val,
                                 )
                               }
                               disabled={readonly}
-                              className="text-center font-medium"
+                              className="h-9 min-h-[36px] rounded-lg text-center font-medium"
                               required
                             />
                           </div>
@@ -645,26 +648,19 @@ export function Type3PlannedForm({
                             <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                               ราคา/ลัง (บาท)
                             </label>
-                            <ActivityInput
-                              type="number"
+                            <ActivityNumberInput
                               min={0}
-                              value={
-                                prodLine.unitPrice === 0
-                                  ? ""
-                                  : (prodLine.unitPrice ?? "")
-                              }
-                              onChange={(e) =>
+                              value={prodLine.unitPrice}
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   item.id,
                                   prodLine.id,
                                   "unitPrice",
-                                  e.target.value === ""
-                                    ? 0
-                                    : parseFloat(e.target.value) || 0,
+                                  val,
                                 )
                               }
                               disabled={readonly}
-                              className="text-right font-medium"
+                              className="h-9 min-h-[36px] rounded-lg text-right font-medium"
                               placeholder="0"
                             />
                           </div>
