@@ -28,7 +28,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
-import { ActivityStatusWithOperator, canUserPerformApproval } from "@/modules/activity/ui/activity-status-badge";
+import {
+  ActivityStatusWithOperator,
+  canUserPerformApproval,
+} from "@/modules/activity/ui/activity-status-badge";
 import {
   WORK_TYPE_CONFIG,
   getWorkTypeName,
@@ -192,7 +195,7 @@ export function ActivityPlanTable({
     !isAllSubmittableSelected &&
     submittablePlansInPage.some((item) => selectedSet.has(item.id));
 
-const getRelationRole = React.useCallback(
+  const getRelationRole = React.useCallback(
     (item: ActivityPlanWithRelations) => {
       const isCreator = Boolean(
         (currentUserEmployeeId && item.employeeId === currentUserEmployeeId) ||
@@ -276,7 +279,9 @@ const getRelationRole = React.useCallback(
 
           return (
             <div className="flex items-center justify-center p-1">
-              <span title={submittable.allowed ? undefined : submittable.reason}>
+              <span
+                title={submittable.allowed ? undefined : submittable.reason}
+              >
                 <Checkbox
                   checked={isSelected}
                   disabled={!submittable.allowed}
@@ -551,8 +556,14 @@ const getRelationRole = React.useCallback(
               />
               {/* Record actual result: hidden if COMPLETED (ปฏิบัติงานสำเร็จ) unless admin */}
               {(() => {
-                const isCompleted = (item.status as string) === "COMPLETED" || (item as any).result?.resultStatus === "COMPLETED";
-                const canRecordActual = !isUnplanned && isApproved && hasActualWorkType && (isAdmin || (isCreator && !isCompleted));
+                const isCompleted =
+                  (item.status as string) === "COMPLETED" ||
+                  (item as any).result?.resultStatus === "COMPLETED";
+                const canRecordActual =
+                  !isUnplanned &&
+                  isApproved &&
+                  hasActualWorkType &&
+                  (isAdmin || (isCreator && !isCompleted));
                 return canRecordActual ? (
                   <ActionButton
                     href={`/activity-plans/${item.id}/actual`}
@@ -596,15 +607,14 @@ const getRelationRole = React.useCallback(
                 />
               )}
 
-              {/* ปิดไว้ก่อนเดียวมาเปิดเอง */}
-              {/* {canCreate && onDuplicate && (
+              {isAdmin && canCreate && onDuplicate && (
                 <ActionButton
                   icon={Copy}
                   label="ทำสำเนา"
                   colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
                   onClick={() => onDuplicate(item)}
                 />
-              )} */}
+              )}
 
               {canDelete && deletable && isCreator && (
                 <ActionButton
@@ -790,42 +800,42 @@ const getRelationRole = React.useCallback(
   const renderMobileCards = () => {
     if (loading) {
       return (
-      <div className="space-y-3">
-        {submittablePlansInPage.length > 0 && (
-          <div className="flex items-center justify-between bg-blue-50/70 border border-blue-100 rounded-xl px-3.5 py-2.5 text-xs text-blue-900 shadow-2xs mb-1">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={
-                  isAllSubmittableSelected
-                    ? true
-                    : isSomeSubmittableSelected
-                      ? "indeterminate"
-                      : false
-                }
-                onCheckedChange={(checked) =>
-                  onToggleSelectAll?.(Boolean(checked))
-                }
-                id="mobile-select-all"
-                className="rounded-md border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              />
-              <label
-                htmlFor="mobile-select-all"
-                className="font-bold text-slate-800 cursor-pointer"
-              >
-                เลือกทั้งหมดในหน้านี้ ({submittablePlansInPage.length} แผน)
-              </label>
+        <div className="space-y-3">
+          {submittablePlansInPage.length > 0 && (
+            <div className="flex items-center justify-between bg-blue-50/70 border border-blue-100 rounded-xl px-3.5 py-2.5 text-xs text-blue-900 shadow-2xs mb-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={
+                    isAllSubmittableSelected
+                      ? true
+                      : isSomeSubmittableSelected
+                        ? "indeterminate"
+                        : false
+                  }
+                  onCheckedChange={(checked) =>
+                    onToggleSelectAll?.(Boolean(checked))
+                  }
+                  id="mobile-select-all"
+                  className="rounded-md border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                />
+                <label
+                  htmlFor="mobile-select-all"
+                  className="font-bold text-slate-800 cursor-pointer"
+                >
+                  เลือกทั้งหมดในหน้านี้ ({submittablePlansInPage.length} แผน)
+                </label>
+              </div>
+              {selectedSet.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onToggleSelectAll?.(false)}
+                  className="text-xs text-blue-700 hover:text-blue-900 font-semibold cursor-pointer underline"
+                >
+                  ยกเลิก
+                </button>
+              )}
             </div>
-            {selectedSet.size > 0 && (
-              <button
-                type="button"
-                onClick={() => onToggleSelectAll?.(false)}
-                className="text-xs text-blue-700 hover:text-blue-900 font-semibold cursor-pointer underline"
-              >
-                ยกเลิก
-              </button>
-            )}
-          </div>
-        )}
+          )}
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -1074,8 +1084,14 @@ const getRelationRole = React.useCallback(
                 </Link>
                 {/* Record actual result: hidden if COMPLETED (ปฏิบัติงานสำเร็จ) unless admin */}
                 {(() => {
-                  const isCompleted = (item.status as string) === "COMPLETED" || resultStatus === "COMPLETED";
-                  const canRecordActual = !isUnplanned && isApproved && hasActualWorkType && (isAdmin || (isCreator && !isCompleted));
+                  const isCompleted =
+                    (item.status as string) === "COMPLETED" ||
+                    resultStatus === "COMPLETED";
+                  const canRecordActual =
+                    !isUnplanned &&
+                    isApproved &&
+                    hasActualWorkType &&
+                    (isAdmin || (isCreator && !isCompleted));
                   return canRecordActual ? (
                     <Link href={`/activity-plans/${item.id}/actual`}>
                       <Button
