@@ -624,6 +624,7 @@ const getRelationRole = React.useCallback(
     canEdit,
     canDelete,
     canApprove,
+    isAdmin,
     session?.user,
     currentUserId,
     currentUserEmployeeId,
