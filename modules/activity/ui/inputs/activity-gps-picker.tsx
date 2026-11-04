@@ -215,6 +215,25 @@ export function ActivityGpsPicker({
     onLocationChange?.(latStr, val);
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (isReadonly) return;
+    const text = e.clipboardData?.getData("text");
+    if (!text) return;
+    // Check if pasted text contains two coordinates separated by comma or space (e.g. "13.7563309, 100.5017651")
+    const match = text.trim().match(/^(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)$/);
+    if (match) {
+      e.preventDefault();
+      const parsedLat = match[1];
+      const parsedLng = match[2];
+      onLatitudeChange?.(parsedLat);
+      onLongitudeChange?.(parsedLng);
+      onLocationChange?.(parsedLat, parsedLng);
+    }
+  };
+
+  const isLatOutOfRange = Boolean(latStr.trim() && (isNaN(Number(latStr)) || Math.abs(Number(latStr)) > 90));
+  const isLngOutOfRange = Boolean(lngStr.trim() && (isNaN(Number(lngStr)) || Math.abs(Number(lngStr)) > 180));
+
   const hasCoords = Boolean(latStr.trim() && lngStr.trim());
   const mapUrl = hasCoords
     ? `https://www.google.com/maps?q=${encodeURIComponent(latStr.trim())},${encodeURIComponent(lngStr.trim())}`
@@ -331,16 +350,25 @@ export function ActivityGpsPicker({
           <Input
             type="number"
             step="any"
+            min="-90"
+            max="90"
             value={latStr}
             onChange={(e) => handleLatChange(e.target.value)}
+            onPaste={handlePaste}
             disabled={isReadonly}
             placeholder="เช่น 13.7563309"
             className={cn(
               "h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl font-mono",
               theme.inputFocus,
+              isLatOutOfRange && "border-rose-400 focus:ring-rose-500",
             )}
             required={required}
           />
+          {isLatOutOfRange && (
+            <p className="text-[11px] text-rose-500 font-medium animate-in fade-in">
+              ค่าละติจูดต้องอยู่ระหว่าง -90 ถึง 90
+            </p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -352,16 +380,25 @@ export function ActivityGpsPicker({
           <Input
             type="number"
             step="any"
+            min="-180"
+            max="180"
             value={lngStr}
             onChange={(e) => handleLngChange(e.target.value)}
+            onPaste={handlePaste}
             disabled={isReadonly}
             placeholder="เช่น 100.5017651"
             className={cn(
               "h-10 text-xs sm:text-sm bg-white border-slate-200 rounded-xl font-mono",
               theme.inputFocus,
+              isLngOutOfRange && "border-rose-400 focus:ring-rose-500",
             )}
             required={required}
           />
+          {isLngOutOfRange && (
+            <p className="text-[11px] text-rose-500 font-medium animate-in fade-in">
+              ค่าลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180
+            </p>
+          )}
         </div>
       </div>
     </div>

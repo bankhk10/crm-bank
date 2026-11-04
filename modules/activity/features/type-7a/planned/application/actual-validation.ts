@@ -44,6 +44,25 @@ export function validateType7aActual(
     errors.push("กรุณาระบุวิธีการทดลอง");
   }
 
+  // 4. GPS Coordinates (must be valid geographical numbers and fit DECIMAL(10, 7))
+  if (actual.t7Latitude != null && actual.t7Latitude !== ("" as any)) {
+    const lat = Number(actual.t7Latitude);
+    if (isNaN(lat) || !isFinite(lat) || lat < -90 || lat > 90) {
+      errors.push(
+        "พิกัดละติจูด (Latitude) ไม่ถูกต้อง ต้องอยู่ระหว่าง -90 ถึง 90 องศา (เช่น 13.7563309)",
+      );
+    }
+  }
+
+  if (actual.t7Longitude != null && actual.t7Longitude !== ("" as any)) {
+    const lng = Number(actual.t7Longitude);
+    if (isNaN(lng) || !isFinite(lng) || lng < -180 || lng > 180) {
+      errors.push(
+        "พิกัดลองจิจูด (Longitude) ไม่ถูกต้อง ต้องอยู่ระหว่าง -180 ถึง 180 องศา (เช่น 100.5017651)",
+      );
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     errors,

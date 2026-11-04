@@ -2,16 +2,36 @@ import { db } from "@/lib/db";
 import { Prisma, DemoPlotStatus } from "@prisma/client";
 import type { Type7aPlotInput } from "../../shared/types";
 
-function parseDecimalCoord(
+export function parseDecimalCoord(
   val: string | number | Prisma.Decimal | null | undefined,
+  type: "lat" | "lng" = "lat",
 ): Prisma.Decimal | null {
   if (val == null) return null;
+  let num: number;
   if (val instanceof Prisma.Decimal || Prisma.Decimal.isDecimal(val)) {
-    return val as Prisma.Decimal;
+    num = Number(val.toString());
+  } else {
+    const str = String(val).trim();
+    if (str === "") return null;
+    const parts = str.split(/[,\s]+/).filter(Boolean);
+    const targetStr = parts.length > 1 ? (type === "lat" ? parts[0] : parts[1]) : parts[0];
+    num = Number(targetStr);
   }
-  const str = String(val).trim();
-  if (str === "" || isNaN(Number(str))) return null;
-  return new Prisma.Decimal(str);
+
+  if (isNaN(num) || !isFinite(num)) return null;
+
+  // Maximum valid geographical bounds:
+  // Latitude: [-90, 90]
+  // Longitude: [-180, 180]
+  // PostgreSQL DECIMAL(10, 7) allows at most 3 digits before decimal point (< 1000)
+  const maxBound = type === "lat" ? 90 : 180;
+  if (Math.abs(num) > maxBound) {
+    return null;
+  }
+
+  // Format to 7 decimal places to guarantee fit into DECIMAL(10, 7)
+  const fixed = num.toFixed(7);
+  return new Prisma.Decimal(fixed);
 }
 
 /**
@@ -108,12 +128,15 @@ export async function syncType7aPlots(
         cropName: plot.cropName || "พืชทั่วไป",
         customCropName: plot.customCropName || null,
         areaRai:
-          plot.areaRai != null
-            ? new Prisma.Decimal(plot.areaRai)
+          plot.areaRai != null &&
+          !isNaN(Number(plot.areaRai)) &&
+          Math.abs(Number(plot.areaRai)) < 100000000
+            ? new Prisma.Decimal(Number(plot.areaRai).toFixed(2))
             : null,
         treeCount:
-          plot.treeCount != null
-            ? Number(plot.treeCount)
+          plot.treeCount != null &&
+          !isNaN(Number(plot.treeCount))
+            ? Math.max(0, Math.min(2147483647, Math.round(Number(plot.treeCount))))
             : null,
         objective: plot.objective || null,
         categoryId,
@@ -341,12 +364,17 @@ export async function syncType7aActualData(
         cropName: actualData.t7CropName || "พืชทั่วไป",
         customCropName: actualData.t7CustomCropName || null,
         areaRai:
-          actualData.t7AreaRai != null && actualData.t7AreaRai !== ""
-            ? new Prisma.Decimal(actualData.t7AreaRai)
+          actualData.t7AreaRai != null &&
+          actualData.t7AreaRai !== "" &&
+          !isNaN(Number(actualData.t7AreaRai)) &&
+          Math.abs(Number(actualData.t7AreaRai)) < 100000000
+            ? new Prisma.Decimal(Number(actualData.t7AreaRai).toFixed(2))
             : null,
         treeCount:
-          actualData.t7TreeCount != null && actualData.t7TreeCount !== ""
-            ? Number(actualData.t7TreeCount)
+          actualData.t7TreeCount != null &&
+          actualData.t7TreeCount !== "" &&
+          !isNaN(Number(actualData.t7TreeCount))
+            ? Math.max(0, Math.min(2147483647, Math.round(Number(actualData.t7TreeCount))))
             : null,
         objective: actualData.t7PlotObjective || null,
         notes: actualData.t7Notes || null,
@@ -454,7 +482,7 @@ export async function syncType7aActualData(
     actualData.t7CropAgeValue != null &&
     actualData.t7CropAgeValue !== "" &&
     !isNaN(Number(actualData.t7CropAgeValue))
-      ? Number(actualData.t7CropAgeValue)
+      ? Math.max(0, Math.min(2147483647, Math.round(Number(actualData.t7CropAgeValue))))
       : null;
 
   // 1. Save Dedicated ActivityResultType7a record
@@ -473,8 +501,8 @@ export async function syncType7aActualData(
       province: actualData.t7FarmerProvince || actualData.t7Province || null,
       district: actualData.t7FarmerDistrict || actualData.t7District || null,
       subdistrict: actualData.t7FarmerSubdistrict || null,
-      latitude: parseDecimalCoord(actualData.t7Latitude),
-      longitude: parseDecimalCoord(actualData.t7Longitude),
+      latitude: parseDecimalCoord(actualData.t7Latitude, "lat"),
+      longitude: parseDecimalCoord(actualData.t7Longitude, "lng"),
       mainCropInfo: actualData.t7MainCropInfo || null,
       experimentDetail: actualData.t7ExperimentDetail || null,
       plantingDate: actualData.t7PlantingDate ? new Date(actualData.t7PlantingDate) : null,

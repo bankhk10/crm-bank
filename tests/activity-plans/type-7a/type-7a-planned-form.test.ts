@@ -11,7 +11,11 @@ import {
 } from "@/modules/activity/features/type-7a/planned/application/planned-mapper";
 import { hydrateType7aUnplannedData } from "@/modules/activity/features/type-7a/unplanned/application/unplanned-mapper";
 import { parseType7aActualResult } from "@/modules/activity/features/type-7a/planned/application/actual-mapper";
-import { syncType7aPlots } from "@/modules/activity/features/type-7a/planned/infrastructure/type7a.repository";
+import { validateType7aActual } from "@/modules/activity/features/type-7a/planned/application/actual-validation";
+import {
+  syncType7aPlots,
+  parseDecimalCoord,
+} from "@/modules/activity/features/type-7a/planned/infrastructure/type7a.repository";
 
 async function runTests() {
   console.log("=== Running Type 7A Planned Form & Business Logic Tests ===");
@@ -23,15 +27,46 @@ async function runTests() {
   );
   assert.deepStrictEqual(
     [...CROP_NAMES_BY_CATEGORY["ผักและพืชล้มลุก"]],
-    ["คะน้า", "กะหล่ำปลี", "พริก", "ผักและพืชล้มลุกอื่นๆ"],
+    [
+      "คะน้า",
+      "กะหล่ำปลี",
+      "พริก",
+      "มะเขือเทศ",
+      "แตงกวา",
+      "หอมแดง",
+      "กระเทียม",
+      "แตงโม",
+      "ฟักทอง",
+      "ผักและพืชล้มลุกอื่นๆ",
+    ],
   );
   assert.deepStrictEqual(
     [...CROP_NAMES_BY_CATEGORY["พืชไร่"]],
-    ["ข้าว", "อ้อย", "ยางพารา", "พืชไร่อื่นๆ"],
+    [
+      "ข้าว",
+      "อ้อย",
+      "ยางพารา",
+      "มันสำปะหลัง",
+      "ข้าวโพด",
+      "ปาล์มน้ำมัน",
+      "ถั่วเหลือง",
+      "พืชไร่อื่นๆ",
+    ],
   );
   assert.deepStrictEqual(
     [...CROP_NAMES_BY_CATEGORY["พืชสวน"]],
-    ["ทุเรียน", "ชมพู่", "ยางพารา", "พืชสวนอื่นๆ"],
+    [
+      "ทุเรียน",
+      "ชมพู่",
+      "มังคุด",
+      "เงาะ",
+      "ส้ม",
+      "มะม่วง",
+      "ลำไย",
+      "มะพร้าว",
+      "ลองกอง",
+      "พืชสวนอื่นๆ",
+    ],
   );
   assert.deepStrictEqual(
     [...OTHER_CROP_OPTIONS],
@@ -332,7 +367,7 @@ async function runTests() {
   const target1 = extractedTargets.primary;
   assert.strictEqual(target1.plotName, "แปลงข้าวโพดสาธิต แปลง 1");
   assert.strictEqual(target1.farmerName, "สมชาย รักสงบ");
-  assert.strictEqual(target1.farmerPhone, "0812345678");
+  assert.strictEqual(target1.farmerPhone, "081-234-5678");
   assert.strictEqual(target1.isUnregisteredFarmer, true);
   assert.strictEqual(target1.dealerName, "ร้านรุ่งเรืองการเกษตร");
   assert.strictEqual(target1.latitude, 19.921345);
@@ -474,7 +509,7 @@ async function runTests() {
   // Verify parseType7aActualResult handles dedicated DB structure
   const parsedDedicated = parseType7aActualResult(mockPlanWithDedicatedActual);
   assert.strictEqual(parsedDedicated.t7FarmerName, "นายบุญส่ง มั่งมี");
-  assert.strictEqual(parsedDedicated.t7FarmerPhone, "0898765432");
+  assert.strictEqual(parsedDedicated.t7FarmerPhone, "089-876-5432");
   assert.strictEqual(parsedDedicated.t7FarmerProvince, "ศรีสะเกษ");
   assert.strictEqual(parsedDedicated.t7FarmerDistrict, "กันทรลักษ์");
   assert.strictEqual(parsedDedicated.t7FarmerSubdistrict, "น้ำอ้อม");
@@ -631,6 +666,80 @@ async function runTests() {
 
   console.log(
     "✓ Test 7 passed: Hydration & Extraction from type7aTargets directly verified",
+  );
+
+  // 8. GPS Coordinates & DECIMAL(10, 7) Overflow Prevention Tests
+  // Null, empty, and invalid string handling
+  assert.strictEqual(parseDecimalCoord(null, "lat"), null);
+  assert.strictEqual(parseDecimalCoord(undefined, "lat"), null);
+  assert.strictEqual(parseDecimalCoord("", "lat"), null);
+  assert.strictEqual(parseDecimalCoord("   ", "lat"), null);
+  assert.strictEqual(parseDecimalCoord("not-a-number", "lat"), null);
+
+  // Normal valid coordinates
+  const latDec = parseDecimalCoord(13.75633, "lat");
+  assert.ok(latDec);
+  assert.strictEqual(latDec.toString(), "13.75633");
+
+  const lngDec = parseDecimalCoord("100.5017651", "lng");
+  assert.ok(lngDec);
+  assert.strictEqual(lngDec.toString(), "100.5017651");
+
+  // Pasted lat,lng pair
+  const pastedLat = parseDecimalCoord("13.7563309, 100.5017651", "lat");
+  const pastedLng = parseDecimalCoord("13.7563309, 100.5017651", "lng");
+  assert.ok(pastedLat && pastedLng);
+  assert.strictEqual(pastedLat.toString(), "13.7563309");
+  assert.strictEqual(pastedLng.toString(), "100.5017651");
+
+  // Prevent numeric field overflow (code: P2020) by rejecting coordinates outside bounds:
+  // Latitude must be [-90, 90]
+  assert.strictEqual(parseDecimalCoord(91, "lat"), null);
+  assert.strictEqual(parseDecimalCoord(-90.5, "lat"), null);
+  assert.strictEqual(parseDecimalCoord("1375633", "lat"), null); // Typo without decimal point
+  assert.strictEqual(parseDecimalCoord("1005", "lat"), null); // >= 1000 overflow test
+  assert.strictEqual(parseDecimalCoord("1530100", "lat"), null); // UTM Northing
+
+  // Longitude must be [-180, 180]
+  assert.strictEqual(parseDecimalCoord(181, "lng"), null);
+  assert.strictEqual(parseDecimalCoord(-185, "lng"), null);
+  assert.strictEqual(parseDecimalCoord("1005017", "lng"), null); // Typo without decimal point
+  assert.strictEqual(parseDecimalCoord("675200", "lng"), null); // UTM Easting
+
+  // Excessive decimal precision rounded safely to 7 places
+  const preciseLat = parseDecimalCoord("13.123456789", "lat");
+  assert.ok(preciseLat);
+  assert.strictEqual(preciseLat.toString(), "13.1234568");
+
+  // validateType7aActual GPS checks
+  const validOutcome = validateType7aActual({
+    t7IsUnregisteredFarmer: false,
+    t7FarmerCustomerId: "cust-1",
+    t7MainCropInfo: "ข้าว",
+    t7ExperimentDetail: "ฉีดพ่นทดสอบ",
+    t7Latitude: 13.75633,
+    t7Longitude: 100.50176,
+  });
+  assert.strictEqual(validOutcome.isValid, true);
+
+  const invalidGpsOutcome = validateType7aActual({
+    t7IsUnregisteredFarmer: false,
+    t7FarmerCustomerId: "cust-1",
+    t7MainCropInfo: "ข้าว",
+    t7ExperimentDetail: "ฉีดพ่นทดสอบ",
+    t7Latitude: 1375633, // Out of range
+    t7Longitude: 1005017, // Out of range
+  });
+  assert.strictEqual(invalidGpsOutcome.isValid, false);
+  assert.ok(
+    invalidGpsOutcome.errors.some((e) => e.includes("ละติจูด (Latitude) ไม่ถูกต้อง")),
+  );
+  assert.ok(
+    invalidGpsOutcome.errors.some((e) => e.includes("ลองจิจูด (Longitude) ไม่ถูกต้อง")),
+  );
+
+  console.log(
+    "✓ Test 8 passed: GPS coordinate validation and DECIMAL(10, 7) overflow prevention verified",
   );
 
   console.log("\n🎉 ALL TYPE 7A TESTS PASSED!");
