@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, Clock } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 import { th } from "date-fns/locale";
@@ -124,14 +124,32 @@ export function DateTimePicker({
   const [mobileStep, setMobileStep] = useState<"date" | "time">("date");
 
   // Parse existing date or default to today
-  const selectedDate = (() => {
+  const selectedDate = useMemo(() => {
     if (!dateValue) return new Date();
     const parsed = parseISO(dateValue);
     return isValid(parsed) ? parsed : new Date();
-  })();
+  }, [dateValue]);
 
   const [tempDate, setTempDate] = useState<Date | undefined>(selectedDate);
   const [tempTime, setTempTime] = useState<string>(timeValue || "10:00");
+
+  const tempDateRef = useRef<Date | undefined>(selectedDate);
+  const tempTimeRef = useRef<string>(timeValue || "10:00");
+  const isCancellingRef = useRef(false);
+
+  // Keep refs in sync with latest local state
+  tempDateRef.current = tempDate;
+  tempTimeRef.current = tempTime;
+
+  // Sync temp state with incoming props whenever popover is closed
+  useEffect(() => {
+    if (!open) {
+      setTempDate(selectedDate);
+      tempDateRef.current = selectedDate;
+      setTempTime(timeValue || "10:00");
+      tempTimeRef.current = timeValue || "10:00";
+    }
+  }, [selectedDate, timeValue, open]);
 
   const isBlue = accentColor === "blue";
 
@@ -140,15 +158,29 @@ export function DateTimePicker({
     tempTime || "10:00"
   ).split(":");
 
+  // Helper to commit changes to parent component
+  const commitChanges = (dateToCommit?: Date, timeToCommit?: string) => {
+    if (dateToCommit && isValid(dateToCommit)) {
+      const year = dateToCommit.getFullYear();
+      const month = String(dateToCommit.getMonth() + 1).padStart(2, "0");
+      const day = String(dateToCommit.getDate()).padStart(2, "0");
+      onDateChange(`${year}-${month}-${day}`);
+    }
+    if (timeToCommit) {
+      onTimeChange(timeToCommit);
+    }
+  };
+
   // Formatted date text for trigger and preview
   const formattedPreviewText = (() => {
-    const d = tempDate || selectedDate;
+    const d = open ? (tempDate || selectedDate) : selectedDate;
     if (!d || !isValid(d)) return "เลือกวันที่";
 
     const buddhistYear = d.getFullYear() + 543;
     const dateStr = `${format(d, "d MMM", { locale: th })} ${buddhistYear}`;
+    const t = open ? (tempTime || timeValue || "10:00") : (timeValue || "10:00");
 
-    return `${dateStr} ${tempTime || "10:00"} น.`;
+    return `${dateStr} ${t} น.`;
   })();
 
   // Formatted date only (for time step header)
@@ -161,24 +193,35 @@ export function DateTimePicker({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (readonly) return;
-    setOpen(isOpen);
     if (isOpen) {
+      isCancellingRef.current = false;
       setTempDate(selectedDate);
+      tempDateRef.current = selectedDate;
       setTempTime(timeValue || "10:00");
+      tempTimeRef.current = timeValue || "10:00";
       setMobileStep("date"); // always reset to step 1 when opening
+      setOpen(true);
+    } else {
+      // Closing Popover (e.g. clicking outside / backdrop)
+      if (!isCancellingRef.current) {
+        commitChanges(tempDateRef.current, tempTimeRef.current);
+      }
+      isCancellingRef.current = false;
+      setOpen(false);
     }
   };
 
   const handleConfirm = () => {
-    if (tempDate) {
-      const year = tempDate.getFullYear();
-      const month = String(tempDate.getMonth() + 1).padStart(2, "0");
-      const day = String(tempDate.getDate()).padStart(2, "0");
-      onDateChange(`${year}-${month}-${day}`);
-    }
-    if (tempTime) {
-      onTimeChange(tempTime);
-    }
+    commitChanges(tempDateRef.current, tempTimeRef.current);
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    isCancellingRef.current = true;
+    setTempDate(selectedDate);
+    tempDateRef.current = selectedDate;
+    setTempTime(timeValue || "10:00");
+    tempTimeRef.current = timeValue || "10:00";
     setOpen(false);
   };
 
@@ -250,6 +293,7 @@ export function DateTimePicker({
                     onSelect={(d) => {
                       if (d) {
                         setTempDate(d);
+                        tempDateRef.current = d;
                         // Auto-advance to time step after selecting a date
                         setMobileStep("time");
                       }
@@ -263,7 +307,7 @@ export function DateTimePicker({
                 <div className="p-3 bg-slate-50/60 border-t border-slate-100 flex items-center justify-center">
                   <button
                     type="button"
-                    onClick={() => setOpen(false)}
+                    onClick={handleCancel}
                     className="px-6 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
                   >
                     ยกเลิก
@@ -299,7 +343,10 @@ export function DateTimePicker({
                 <TimePickerPanel
                   currentHour={currentHour}
                   currentMinute={currentMinute}
-                  onSelectTime={setTempTime}
+                  onSelectTime={(time) => {
+                    setTempTime(time);
+                    tempTimeRef.current = time;
+                  }}
                 />
 
                 {/* Footer: Back + Confirm */}
@@ -332,7 +379,10 @@ export function DateTimePicker({
                 mode="single"
                 selected={tempDate}
                 onSelect={(d) => {
-                  if (d) setTempDate(d);
+                  if (d) {
+                    setTempDate(d);
+                    tempDateRef.current = d;
+                  }
                 }}
                 initialFocus
                 className="rounded-xl border-0 p-1"
@@ -346,7 +396,10 @@ export function DateTimePicker({
             <TimePickerPanel
               currentHour={currentHour}
               currentMinute={currentMinute}
-              onSelectTime={setTempTime}
+              onSelectTime={(time) => {
+                setTempTime(time);
+                tempTimeRef.current = time;
+              }}
             />
           </div>
 
@@ -354,7 +407,7 @@ export function DateTimePicker({
           <div className="hidden sm:flex p-3 bg-slate-50/60 border-t border-slate-100 items-center gap-4 justify-center">
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={handleCancel}
               className="px-4 py-1.5 rounded-xl border border-slate-300 bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-2xs transition-all active:scale-95"
             >
               ยกเลิก
