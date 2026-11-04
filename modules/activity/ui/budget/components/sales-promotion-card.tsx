@@ -5,6 +5,7 @@ import { Plus, Trash2, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
+import { ActivityNumberInput } from "@/modules/activity/ui/inputs";
 import type { SalesPromotionItem } from "../types";
 
 export interface SalesPromotionCardProps {
@@ -101,26 +102,17 @@ export function SalesPromotionCard({
                       />
                     </td>
                     <td className="py-2 px-3">
-                      <div className="relative">
-                        <span className="absolute left-2.5 top-2 text-slate-400 text-[11px]">
-                          ฿
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={item.amount}
-                          onChange={(e) =>
-                            updateSalesPromotionRow(
-                              item.id,
-                              "amount",
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          disabled={readonly}
-                          placeholder="0"
-                          className="w-full h-8 pl-6 pr-2 rounded-md border border-slate-200 text-xs text-slate-800 text-right font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                      <ActivityNumberInput
+                        min={0}
+                        prefix="฿"
+                        placeholder="0"
+                        value={item.amount}
+                        onChangeValue={(val) =>
+                          updateSalesPromotionRow(item.id, "amount", val)
+                        }
+                        disabled={readonly}
+                        className="h-8 font-semibold focus:ring-blue-500 focus:border-blue-500"
+                      />
                     </td>
                     <td className="py-2 px-3">
                       <FormCombobox

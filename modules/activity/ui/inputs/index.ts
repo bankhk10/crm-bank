@@ -2,6 +2,7 @@ export * from "./activity-address-select";
 export * from "./activity-customer-select";
 export * from "./activity-product-select";
 export * from "./activity-input";
+export * from "./activity-number-input";
 export * from "./activity-textarea";
 export * from "./activity-combobox";
 export * from "./activity-photo-upload";

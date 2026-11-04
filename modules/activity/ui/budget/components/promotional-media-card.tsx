@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FormCombobox } from "@/components/custom/form-components";
 import { MARKETING_UNITS } from "@/modules/activity/constants";
+import { ActivityNumberInput } from "@/modules/activity/ui/inputs";
 import type {
   MarketingBudgetProductItem,
   PromotionalProductOption,
@@ -71,7 +72,9 @@ export function PromotionalMediaCard({
     marketingProductItems.length > 0
       ? marketingProductItems.reduce(
           (sum, item) =>
-            sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
+            sum +
+            (Number(item.quantityCases) || 0) *
+              (Number(item.pricePerCase) || 0),
           0,
         )
       : marketingBudgetAmount;
@@ -194,7 +197,8 @@ export function PromotionalMediaCard({
               ) : (
                 marketingProductItems.map((item, index) => {
                   const totalItemPrice =
-                    (item.quantityCases || 0) * (item.pricePerCase || 0);
+                    (Number(item.quantityCases) || 0) *
+                    (Number(item.pricePerCase) || 0);
                   const currentCat =
                     item.category ||
                     getCategoryForProduct(
@@ -378,46 +382,43 @@ export function PromotionalMediaCard({
                         )}
                       </td>
                       <td className="py-1.5 px-3">
-                        <div className="relative">
-                          <span className="absolute left-2 top-2 text-slate-400 text-[11px] font-semibold">
-                            ฿
-                          </span>
-                          <input
-                            type="number"
-                            min={0}
-                            value={item.pricePerCase ?? 0}
-                            onChange={(e) =>
-                              updateMarketingProductItem(
-                                item.id,
-                                "pricePerCase",
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
-                            disabled={currentCat !== "อื่นๆ" || readonly}
-                            readOnly={currentCat !== "อื่นๆ" || readonly}
-                            className={cn(
-                              "w-full h-8 pl-5 pr-2 rounded-md border border-slate-200 text-xs text-right font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500",
-                              currentCat === "อื่นๆ" && !readonly
-                                ? "bg-white text-slate-800"
-                                : "bg-slate-100/70 text-slate-500 cursor-not-allowed",
-                            )}
-                          />
-                        </div>
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
+                          value={item.pricePerCase}
+                          onChangeValue={(val) =>
+                            updateMarketingProductItem(
+                              item.id,
+                              "pricePerCase",
+                              val,
+                            )
+                          }
+                          disabled={currentCat !== "อื่นๆ" || readonly}
+                          readOnly={currentCat !== "อื่นๆ" || readonly}
+                          className={cn(
+                            "h-8",
+                            currentCat === "อื่นๆ" && !readonly
+                              ? "bg-white text-slate-800"
+                              : "bg-slate-100/70 text-slate-500 cursor-not-allowed",
+                          )}
+                        />
                       </td>
                       <td className="py-1.5 px-3">
-                        <input
-                          type="number"
+                        <ActivityNumberInput
                           min={1}
-                          value={item.quantityCases ?? 1}
-                          onChange={(e) =>
+                          align="center"
+                          allowDecimals={false}
+                          defaultValueOnBlur={1}
+                          value={item.quantityCases}
+                          onChangeValue={(val) =>
                             updateMarketingProductItem(
                               item.id,
                               "quantityCases",
-                              parseInt(e.target.value) || 0,
+                              val,
                             )
                           }
                           disabled={readonly}
-                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                          className="h-8 font-medium"
                         />
                       </td>
                       <td className="py-1.5 px-3 text-right font-semibold text-emerald-700">
