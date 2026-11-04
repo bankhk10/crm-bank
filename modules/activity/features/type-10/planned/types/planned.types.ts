@@ -70,6 +70,7 @@ export interface Type10PlannedFormProps {
   type10DemoPlot: string;
   setType10DemoPlot: (val: string) => void;
   type10PlotName?: string;
+  setType10PlotName?: (val: string) => void;
   type10Location?: string;
   setType10Location?: (val: string) => void;
   type10TargetCrop?: string;

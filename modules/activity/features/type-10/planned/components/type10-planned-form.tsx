@@ -59,6 +59,7 @@ export function Type10PlannedForm({
   type10DemoPlot,
   setType10DemoPlot,
   type10PlotName = "",
+  setType10PlotName,
   type10Location = "",
   setType10Location,
   type10TargetCrop = "",
@@ -133,31 +134,45 @@ export function Type10PlannedForm({
   const planList = useMemo<Type10PlanOptionItem[]>(() => {
     const planMap = new Map<string, Type10PlanOptionItem>();
 
-    // 1. Ingest from followUpPlans (Type 7A Activity Plans)
+    // 1. Ingest from followUpPlans (Type 7A Activity Plans - scoped to the plan owner/creator)
     const followUpSource =
       followUpPlans.length > 0 ? followUpPlans : dbFollowUpPlans;
 
     followUpSource.forEach((fp: any) => {
       if (!fp.planId) return;
-      const firstPlot = fp.plots?.[0];
-      planMap.set(fp.planId, {
-        planId: fp.planId,
-        planCode: fp.planCode,
-        planTitle: fp.planTitle || fp.title || "แผนงานแปลงสาธิต",
-        planDate: fp.planDate,
-        plotId: firstPlot?.id,
-        plotName: firstPlot?.name || firstPlot?.plotName,
-        ownerName: firstPlot?.ownerName,
-        cropName: firstPlot?.cropName || firstPlot?.cropCategory,
-        showcase: (firstPlot as any)?.showcase || (firstPlot as any)?.productName || "",
-        location: [firstPlot?.district, firstPlot?.province].filter(Boolean).join(", "),
-        areaRai: firstPlot?.areaRai,
-        latitude: firstPlot?.latitude,
-        longitude: firstPlot?.longitude,
+      const plots =
+        Array.isArray(fp.plots) && fp.plots.length > 0
+          ? fp.plots
+          : [undefined];
+
+      plots.forEach((plot: any) => {
+        // If multiple plots exist in the plan, allow selecting each plot individually
+        const key = plots.length > 1 && plot?.id ? plot.id : fp.planId;
+        planMap.set(key, {
+          planId: key,
+          planCode: fp.planCode,
+          planTitle: fp.planTitle || fp.title || "แผนงานแปลงสาธิต",
+          planDate: fp.planDate,
+          plotId: plot?.id,
+          plotName: plot?.name || plot?.plotName,
+          ownerName: plot?.ownerName,
+          cropName: plot?.cropName || plot?.cropCategory,
+          showcase:
+            (plot as any)?.showcase ||
+            (plot as any)?.productName ||
+            "",
+          location: [plot?.district, plot?.province]
+            .filter(Boolean)
+            .join(", "),
+          areaRai: plot?.areaRai,
+          latitude: plot?.latitude,
+          longitude: plot?.longitude,
+        });
       });
     });
 
-    // 2. Ingest / Enrich from master demo plots (Filter out farmer customer farm plots "farmplot-")
+    // 2. Enrich from master demo plots (Filter out farmer customer farm plots "farmplot-")
+    // Strictly restrict to only enriching existing plans/plots owned by the user (do not inject other users' plots)
     const plotsSource = demoPlots.length > 0 ? demoPlots : dbPlots;
     plotsSource.forEach((p: any) => {
       // Exclude raw farm plots of customers ("แปลงที่ 1", "แปลงที่ 2")
@@ -168,7 +183,19 @@ export function Type10PlannedForm({
       const planKey = p.activityPlanId || p.id;
       if (!planKey) return;
 
-      const existing = planMap.get(planKey);
+      let existing = planMap.get(planKey);
+      if (!existing && p.id) {
+        existing = planMap.get(p.id);
+      }
+      if (!existing) {
+        existing = Array.from(planMap.values()).find(
+          (item) =>
+            item.planId === p.activityPlanId ||
+            item.plotId === p.id ||
+            (p.activityCode && item.planCode === p.activityCode),
+        );
+      }
+
       if (existing) {
         // Enrich existing plan with more specific demo plot details
         if (!existing.plotId && p.id) existing.plotId = p.id;
@@ -184,23 +211,6 @@ export function Type10PlannedForm({
         if (existing.areaRai == null && p.areaRai != null) existing.areaRai = p.areaRai;
         if (!existing.latitude && p.latitude) existing.latitude = p.latitude;
         if (!existing.longitude && p.longitude) existing.longitude = p.longitude;
-      } else {
-        // Create new plan option from master demo plot
-        planMap.set(planKey, {
-          planId: planKey,
-          planCode: p.activityCode || p.code,
-          planTitle: p.activityName || p.name || "แผนงานแปลงสาธิต",
-          planDate: p.startDate,
-          plotId: p.id,
-          plotName: p.name,
-          ownerName: p.ownerName,
-          cropName: p.cropName || p.targetCrop,
-          showcase: p.showcase || p.productName || p.primaryProductName || "",
-          location: p.location,
-          areaRai: p.areaRai,
-          latitude: p.latitude,
-          longitude: p.longitude,
-        });
       }
     });
 
@@ -235,6 +245,7 @@ export function Type10PlannedForm({
     demoPlots,
     dbPlots,
     type10DemoPlot,
+    type10PlotName,
     type10TargetCrop,
     type10Showcase,
     type10Location,
@@ -256,6 +267,9 @@ export function Type10PlannedForm({
   // Auto-fill target details when plan is selected or hydrated
   useEffect(() => {
     if (foundPlan) {
+      if (!type10PlotName && foundPlan.plotName) {
+        setType10PlotName?.(foundPlan.plotName);
+      }
       if (!type10TargetCrop && foundPlan.cropName) {
         setType10TargetCrop?.(foundPlan.cropName);
       }
@@ -268,9 +282,11 @@ export function Type10PlannedForm({
     }
   }, [
     foundPlan,
+    type10PlotName,
     type10TargetCrop,
     type10Showcase,
     type10Location,
+    setType10PlotName,
     setType10TargetCrop,
     setType10Showcase,
     setType10Location,
@@ -286,6 +302,7 @@ export function Type10PlannedForm({
         item.plotName === val,
     );
     if (p) {
+      if (p.plotName) setType10PlotName?.(p.plotName);
       if (p.cropName) setType10TargetCrop?.(p.cropName);
       if (p.showcase) setType10Showcase?.(p.showcase);
       if (p.location) setType10Location?.(p.location);

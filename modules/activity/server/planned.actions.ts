@@ -517,7 +517,7 @@ export async function getFollowUpPlansAction(targetEmployeeId?: string) {
 
     const followUpPlans = await findFollowUpActivityPlans({
       employeeId: employeeId ?? undefined,
-      userId: session.user.id,
+      userId: targetEmployeeId ? undefined : session.user.id,
     });
     return serialize({ success: true, followUpPlans });
   } catch (err: any) {
