@@ -19,6 +19,7 @@ import {
   ActivityCustomerSelect,
   ActivityProductSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
   type ActivityProductItem,
@@ -418,12 +419,12 @@ export function Type8UnplannedForm({
                       <span>จำนวนผู้เข้าร่วมประชุมจริง (คน)</span>
                       <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
-                      min="0"
+                    <ActivityNumberInput
+                      min={0}
+                      allowDecimals={false}
                       value={item.actualAttendees ?? ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "actualAttendees", e.target.value)
+                      onChangeValue={(val, raw) =>
+                        updateItem(item.id, "actualAttendees", raw)
                       }
                       placeholder="เช่น 35"
                       disabled={readonly}
@@ -435,12 +436,12 @@ export function Type8UnplannedForm({
                     <label className="text-xs font-bold text-slate-800">
                       จำนวนผู้เข้าร่วมคาดการณ์ (คน)
                     </label>
-                    <ActivityInput
-                      type="number"
-                      min="0"
+                    <ActivityNumberInput
+                      min={0}
+                      allowDecimals={false}
                       value={item.expectedAttendees ?? ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "expectedAttendees", e.target.value)
+                      onChangeValue={(val, raw) =>
+                        updateItem(item.id, "expectedAttendees", raw)
                       }
                       placeholder="เช่น 30"
                       disabled={readonly}
@@ -580,16 +581,17 @@ export function Type8UnplannedForm({
                               />
                             </div>
                             <div className="sm:col-span-3">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
+                                allowDecimals={false}
+                                defaultValueOnBlur={0}
                                 value={sale.actualQty ?? ""}
-                                onChange={(e) =>
+                                onChangeValue={(val, raw) =>
                                   handleUpdateSaleDetail(
                                     item.id,
                                     saleKey,
                                     "actualQty",
-                                    e.target.value,
+                                    raw,
                                   )
                                 }
                                 placeholder="จำนวนที่ขายได้ (ลัง)"

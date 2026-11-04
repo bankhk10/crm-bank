@@ -6,6 +6,7 @@ import {
   ActivityPhotoUpload,
   ActivityProductSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityCombobox,
 } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
@@ -457,18 +458,19 @@ export function Type11ActualForm({
                               จำนวนคงเหลือ{" "}
                               <span className="text-red-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              value={String(item.remainingQty ?? "")}
-                              onChange={(e) =>
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
+                              value={item.remainingQty ?? ""}
+                              onChangeValue={(val) =>
                                 item.id &&
                                 handleItemChange(
                                   item.id,
                                   "remainingQty",
-                                  e.target.value,
+                                  val,
                                 )
                               }
-                              placeholder="เช่น 10 กล่อง, 5 ลิตร"
+                              placeholder="เช่น 10, 5"
                               className="h-9 text-xs"
                             />
                           </div>

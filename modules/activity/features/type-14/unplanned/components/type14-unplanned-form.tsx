@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ActivityDatePicker,
   ActivityInput,
+  ActivityNumberInput,
   ActivityPhotoUpload,
   ActivityProductSelect,
   ActivitySelect,
@@ -480,9 +481,9 @@ export function Type14UnplannedForm({
                       จำนวนแปลงที่ติดตามจริง (แปลง){" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
+                    <ActivityNumberInput
                       min={1}
+                      allowDecimals={false}
                       placeholder={
                         plannedCount
                           ? `ตามแผน: ${plannedCount} แปลง`
@@ -490,14 +491,14 @@ export function Type14UnplannedForm({
                       }
                       value={
                         plot.actualPlotsCount != null
-                          ? String(plot.actualPlotsCount)
+                          ? plot.actualPlotsCount
                           : ""
                       }
-                      onChange={(e) =>
+                      onChangeValue={(val, raw) =>
                         updatePlotField(
                           plotIdx,
                           "actualPlotsCount",
-                          e.target.value === "" ? "" : Number(e.target.value),
+                          raw === "" ? "" : val,
                         )
                       }
                       disabled={readonly}
@@ -604,22 +605,20 @@ export function Type14UnplannedForm({
                                 จำนวนที่ใช้จริง ({prod.unit || "ขวด"}){" "}
                                 <span className="text-rose-500">*</span>
                               </label>
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
+                                allowDecimals={false}
                                 value={
                                   prod.actualQuantity != null
-                                    ? String(prod.actualQuantity)
+                                    ? prod.actualQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val, raw) =>
                                   handleUpdateProductInPlot(
                                     plotIdx,
                                     prodIdx,
                                     "actualQuantity",
-                                    e.target.value === ""
-                                      ? ""
-                                      : Number(e.target.value),
+                                    raw === "" ? "" : val,
                                   )
                                 }
                                 disabled={readonly}
@@ -634,20 +633,19 @@ export function Type14UnplannedForm({
                                 ปริมาณที่ใช้เพิ่ม (กรณีใช้ไม่เต็มขวด)
                               </label>
                               <div className="grid grid-cols-2 gap-2">
-                                <ActivityInput
-                                  type="number"
-                                  min="0"
+                                <ActivityNumberInput
+                                  min={0}
                                   value={
                                     prod.extraQuantity != null
-                                      ? String(prod.extraQuantity)
+                                      ? prod.extraQuantity
                                       : ""
                                   }
-                                  onChange={(e) =>
+                                  onChangeValue={(val, raw) =>
                                     handleUpdateProductInPlot(
                                       plotIdx,
                                       prodIdx,
                                       "extraQuantity",
-                                      e.target.value,
+                                      raw === "" ? "" : val,
                                     )
                                   }
                                   disabled={readonly}
@@ -733,20 +731,20 @@ export function Type14UnplannedForm({
                       <label className="block text-xs font-semibold text-slate-700">
                         ระยะเวลาหลังฉีดพ่น (วัน)
                       </label>
-                      <ActivityInput
-                        type="number"
-                        min="0"
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
                         placeholder="เช่น 7, 14, 21"
                         value={
                           plot.daysAfterSpray != null
-                            ? String(plot.daysAfterSpray)
+                            ? plot.daysAfterSpray
                             : ""
                         }
-                        onChange={(e) =>
+                        onChangeValue={(val, raw) =>
                           updatePlotField(
                             plotIdx,
                             "daysAfterSpray",
-                            e.target.value,
+                            raw,
                           )
                         }
                         disabled={readonly}

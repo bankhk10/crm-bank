@@ -7,6 +7,7 @@ import {
   ActivityCustomerSelect,
   ActivityProductSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
 } from "@/modules/activity/ui";
 import type {
@@ -660,15 +661,16 @@ export function Type8PlannedForm({
                       เป้าหมายผู้เข้าร่วม (คน){" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
+                    <ActivityNumberInput
                       min={1}
+                      allowDecimals={false}
+                      defaultValueOnBlur={1}
                       value={item.attendeesCount ?? 10}
-                      onChange={(e) =>
+                      onChangeValue={(val) =>
                         updateType8Row(
                           item.id,
                           "attendeesCount",
-                          parseInt(e.target.value) || 0,
+                          val,
                         )
                       }
                       disabled={readonly}

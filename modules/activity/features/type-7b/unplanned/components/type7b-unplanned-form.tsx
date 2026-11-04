@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityCombobox,
   ActivitySelect,
@@ -636,14 +637,15 @@ export function Type7bUnplannedForm({
                     <label className="text-xs font-semibold text-slate-700">
                       พื้นที่ (ไร่)
                     </label>
-                    <ActivityInput
-                      type="number"
-                      value={item.areaRai != null ? String(item.areaRai) : ""}
-                      onChange={(e) =>
+                    <ActivityNumberInput
+                      min={0}
+                      suffix="ไร่"
+                      value={item.areaRai != null ? item.areaRai : ""}
+                      onChangeValue={(val, raw) =>
                         updateItem(
                           item.id,
                           "areaRai",
-                          e.target.value ? Number(e.target.value) : null,
+                          raw ? val : null,
                         )
                       }
                       disabled={readonly}
@@ -706,27 +708,22 @@ export function Type7bUnplannedForm({
                       จำนวนวันหลังฉีดพ่น (วัน){" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <div className="relative">
-                      <ActivityInput
-                        type="number"
-                        min={0}
-                        value={item.daysAfterSpray ?? 0}
-                        onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "daysAfterSpray",
-                            e.target.value === "" ? "" : Number(e.target.value),
-                          )
-                        }
-                        disabled={readonly}
-                        className="pr-10"
-                        placeholder="0"
-                        required
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">
-                        วัน
-                      </span>
-                    </div>
+                    <ActivityNumberInput
+                      min={0}
+                      allowDecimals={false}
+                      suffix="วัน"
+                      value={item.daysAfterSpray ?? 0}
+                      onChangeValue={(val, raw) =>
+                        updateItem(
+                          item.id,
+                          "daysAfterSpray",
+                          raw === "" ? "" : val,
+                        )
+                      }
+                      disabled={readonly}
+                      placeholder="0"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -942,30 +939,30 @@ export function Type7bUnplannedForm({
                                       จำนวนที่ใช้จริง (ขวด){" "}
                                       <span className="text-rose-500">*</span>
                                     </label>
-                                    <ActivityInput
-                                      type="number"
-                                      min="0"
+                                    <ActivityNumberInput
+                                      min={0}
+                                      allowDecimals={false}
                                       value={
                                         prod.actualQuantity != null
-                                          ? String(prod.actualQuantity)
+                                          ? prod.actualQuantity
                                           : prod.quantityUsed != null
-                                            ? String(prod.quantityUsed)
+                                            ? prod.quantityUsed
                                             : ""
                                       }
-                                      onChange={(e) => {
+                                      onChangeValue={(val, raw) => {
                                         handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
                                           "actualQuantity",
-                                          e.target.value,
+                                          raw,
                                         );
                                         handleUpdateProduct(
                                           item.id,
                                           rIdx,
                                           pIdx,
                                           "quantityUsed",
-                                          e.target.value,
+                                          raw,
                                         );
                                       }}
                                       disabled={readonly}
@@ -979,21 +976,20 @@ export function Type7bUnplannedForm({
                                       ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
-                                      <ActivityInput
-                                        type="number"
-                                        min="0"
+                                      <ActivityNumberInput
+                                        min={0}
                                         value={
                                           prod.extraQuantity != null
-                                            ? String(prod.extraQuantity)
+                                            ? prod.extraQuantity
                                             : ""
                                         }
-                                        onChange={(e) =>
+                                        onChangeValue={(val, raw) =>
                                           handleUpdateProduct(
                                             item.id,
                                             rIdx,
                                             pIdx,
                                             "extraQuantity",
-                                            e.target.value,
+                                            raw,
                                           )
                                         }
                                         disabled={readonly}
@@ -1565,11 +1561,12 @@ export function Type7bUnplannedForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ผลผลิตแปลงสาธิต (กก.)
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          suffix="กก."
                           value={item.finalYieldKg || ""}
-                          onChange={(e) =>
-                            updateItem(item.id, "finalYieldKg", e.target.value)
+                          onChangeValue={(val, raw) =>
+                            updateItem(item.id, "finalYieldKg", raw)
                           }
                           disabled={readonly}
                           placeholder="เช่น 1500"
@@ -1580,14 +1577,15 @@ export function Type7bUnplannedForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ผลผลิตเปรียบเทียบ (กก.)
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          suffix="กก."
                           value={item.controlYieldKg || ""}
-                          onChange={(e) =>
+                          onChangeValue={(val, raw) =>
                             updateItem(
                               item.id,
                               "controlYieldKg",
-                              e.target.value,
+                              raw,
                             )
                           }
                           disabled={readonly}

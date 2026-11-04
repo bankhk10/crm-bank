@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityCombobox,
   ActivityCustomerSelect,
@@ -585,15 +586,16 @@ export function Type7aActualForm({
                 อายุพืช (วันหลังปลูก)
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <ActivityInput
-                  type="number"
+                <ActivityNumberInput
+                  min={0}
+                  allowDecimals={false}
                   value={
                     actualState.t7CropAgeValue != null
-                      ? String(actualState.t7CropAgeValue)
+                      ? actualState.t7CropAgeValue
                       : ""
                   }
-                  onChange={(e) =>
-                    onUpdateField?.("t7CropAgeValue", e.target.value)
+                  onChangeValue={(val) =>
+                    onUpdateField?.("t7CropAgeValue", val)
                   }
                   disabled={readonly}
                   placeholder="เช่น 15"
@@ -954,19 +956,19 @@ export function Type7aActualForm({
                         จำนวนที่ใช้จริง (ขวด){" "}
                         <span className="text-rose-500">*</span>
                       </label>
-                      <ActivityInput
-                        type="number"
-                        min="0"
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
                         value={
                           prod.actualQuantity != null
-                            ? String(prod.actualQuantity)
+                            ? prod.actualQuantity
                             : ""
                         }
-                        onChange={(e) =>
+                        onChangeValue={(val) =>
                           handleUpdatePlannedProd(
                             idx,
                             "actualQuantity",
-                            e.target.value,
+                            val,
                           )
                         }
                         disabled={readonly}
@@ -980,19 +982,18 @@ export function Type7aActualForm({
                         ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                       </label>
                       <div className="grid grid-cols-2 gap-2">
-                        <ActivityInput
-                          type="number"
-                          min="0"
+                        <ActivityNumberInput
+                          min={0}
                           value={
                             prod.extraQuantity != null
-                              ? String(prod.extraQuantity)
+                              ? prod.extraQuantity
                               : ""
                           }
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             handleUpdatePlannedProd(
                               idx,
                               "extraQuantity",
-                              e.target.value,
+                              val,
                             )
                           }
                           disabled={readonly}
@@ -1137,19 +1138,19 @@ export function Type7aActualForm({
                         จำนวนที่ใช้จริง (ขวด){" "}
                         <span className="text-rose-500">*</span>
                       </label>
-                      <ActivityInput
-                        type="number"
-                        min="0"
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
                         value={
                           prod.actualQuantity != null
-                            ? String(prod.actualQuantity)
+                            ? prod.actualQuantity
                             : ""
                         }
-                        onChange={(e) =>
+                        onChangeValue={(val) =>
                           handleUpdateAdditionalProd(
                             idx,
                             "actualQuantity",
-                            e.target.value,
+                            val,
                           )
                         }
                         disabled={readonly}
@@ -1163,19 +1164,18 @@ export function Type7aActualForm({
                         ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                       </label>
                       <div className="grid grid-cols-2 gap-2">
-                        <ActivityInput
-                          type="number"
-                          min="0"
+                        <ActivityNumberInput
+                          min={0}
                           value={
                             prod.extraQuantity != null
-                              ? String(prod.extraQuantity)
+                              ? prod.extraQuantity
                               : ""
                           }
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             handleUpdateAdditionalProd(
                               idx,
                               "extraQuantity",
-                              e.target.value,
+                              val,
                             )
                           }
                           disabled={readonly}

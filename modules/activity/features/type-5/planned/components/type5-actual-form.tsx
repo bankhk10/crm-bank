@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { BarChart2, Store, Package, Sparkles } from "lucide-react";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
@@ -360,15 +361,16 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา ณ จุดขาย (POS)
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
                           value={
                             record.posPrice != null
-                              ? String(record.posPrice)
+                              ? record.posPrice
                               : ""
                           }
-                          onChange={(e) =>
-                            handleFieldChange(index, "posPrice", e.target.value)
+                          onChangeValue={(val) =>
+                            handleFieldChange(index, "posPrice", val)
                           }
                           placeholder="เช่น 450"
                           className="bg-white border-slate-300 h-9 text-xs font-medium"
@@ -379,18 +381,19 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Dealer
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
                           value={
                             record.dealerPrice != null
-                              ? String(record.dealerPrice)
+                              ? record.dealerPrice
                               : ""
                           }
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             handleFieldChange(
                               index,
                               "dealerPrice",
-                              e.target.value,
+                              val,
                             )
                           }
                           placeholder="เช่น 380"
@@ -402,18 +405,19 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Subdealer
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
                           value={
                             record.subdealerPrice != null
-                              ? String(record.subdealerPrice)
+                              ? record.subdealerPrice
                               : ""
                           }
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             handleFieldChange(
                               index,
                               "subdealerPrice",
-                              e.target.value,
+                              val,
                             )
                           }
                           placeholder="เช่น 410"
@@ -425,18 +429,19 @@ export function Type5ActualForm({
                         <label className="text-xs font-semibold text-slate-700">
                           ราคา Farmers
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
                           value={
                             record.farmerPrice != null
-                              ? String(record.farmerPrice)
+                              ? record.farmerPrice
                               : ""
                           }
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             handleFieldChange(
                               index,
                               "farmerPrice",
-                              e.target.value,
+                              val,
                             )
                           }
                           placeholder="เช่น 450"

@@ -7,6 +7,7 @@ import {
   ActivityCustomerSelect,
   ActivityCombobox,
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
@@ -167,14 +168,15 @@ export function Type5UnplannedForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-700">ราคา ณ จุดขาย (POS)</label>
-                  <ActivityInput
-                    type="number"
-                    value={item.posPrice != null ? String(item.posPrice) : ""}
-                    onChange={(e) =>
+                  <ActivityNumberInput
+                    min={0}
+                    prefix="฿"
+                    value={item.posPrice != null ? item.posPrice : ""}
+                    onChangeValue={(val, raw) =>
                       updateItem(
                         item.id,
                         "posPrice",
-                        e.target.value ? Number(e.target.value) : null,
+                        raw ? val : null,
                       )
                     }
                     disabled={readonly}
@@ -185,14 +187,15 @@ export function Type5UnplannedForm({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-700">ราคา Dealer</label>
-                  <ActivityInput
-                    type="number"
-                    value={item.dealerPrice != null ? String(item.dealerPrice) : ""}
-                    onChange={(e) =>
+                  <ActivityNumberInput
+                    min={0}
+                    prefix="฿"
+                    value={item.dealerPrice != null ? item.dealerPrice : ""}
+                    onChangeValue={(val, raw) =>
                       updateItem(
                         item.id,
                         "dealerPrice",
-                        e.target.value ? Number(e.target.value) : null,
+                        raw ? val : null,
                       )
                     }
                     disabled={readonly}
@@ -203,14 +206,15 @@ export function Type5UnplannedForm({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-700">ราคา Subdealer</label>
-                  <ActivityInput
-                    type="number"
-                    value={item.subdealerPrice != null ? String(item.subdealerPrice) : ""}
-                    onChange={(e) =>
+                  <ActivityNumberInput
+                    min={0}
+                    prefix="฿"
+                    value={item.subdealerPrice != null ? item.subdealerPrice : ""}
+                    onChangeValue={(val, raw) =>
                       updateItem(
                         item.id,
                         "subdealerPrice",
-                        e.target.value ? Number(e.target.value) : null,
+                        raw ? val : null,
                       )
                     }
                     disabled={readonly}
@@ -221,14 +225,15 @@ export function Type5UnplannedForm({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-700">ราคา Farmers</label>
-                  <ActivityInput
-                    type="number"
-                    value={item.farmerPrice != null ? String(item.farmerPrice) : ""}
-                    onChange={(e) =>
+                  <ActivityNumberInput
+                    min={0}
+                    prefix="฿"
+                    value={item.farmerPrice != null ? item.farmerPrice : ""}
+                    onChangeValue={(val, raw) =>
                       updateItem(
                         item.id,
                         "farmerPrice",
-                        e.target.value ? Number(e.target.value) : null,
+                        raw ? val : null,
                       )
                     }
                     disabled={readonly}

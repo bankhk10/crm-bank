@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityProductSelect,
   ActivitySelect,
 } from "@/modules/activity/ui";
@@ -506,15 +507,13 @@ export function Type14PlannedForm(props: any) {
                         {/* จำนวน */}
                         <td className="py-2 px-3 align-middle">
                           <div className="flex items-center gap-1.5 justify-center">
-                            <input
-                              type="number"
+                            <ActivityNumberInput
                               min={1}
-                              value={pLine.quantity ?? ""}
-                              onChange={(e) => {
-                                const val = Math.max(
-                                  1,
-                                  parseInt(e.target.value) || 1,
-                                );
+                              align="center"
+                              allowDecimals={false}
+                              defaultValueOnBlur={1}
+                              value={pLine.quantity}
+                              onChangeValue={(val) => {
                                 updateWithdrawnProductRow(
                                   idx,
                                   "quantity",
@@ -523,7 +522,7 @@ export function Type14PlannedForm(props: any) {
                               }}
                               disabled={readonly}
                               placeholder="จำนวน"
-                              className="w-28 sm:w-32 h-8 px-2 rounded-lg border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-medium"
+                              className="w-28 sm:w-32 h-8 px-2 rounded-lg text-xs text-center font-medium"
                             />
                           </div>
                         </td>

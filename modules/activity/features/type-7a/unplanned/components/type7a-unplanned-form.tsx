@@ -5,6 +5,7 @@ import { Sprout, Plus, Trash2, MapPin, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityCombobox,
   ActivityCustomerSelect,
@@ -157,14 +158,15 @@ export function Type7aUnplannedForm({
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700">พื้นที่แปลง (ไร่)</label>
-                <ActivityInput
-                  type="number"
-                  value={item.areaRai != null ? String(item.areaRai) : ""}
-                  onChange={(e) =>
+                <ActivityNumberInput
+                  min={0}
+                  suffix="ไร่"
+                  value={item.areaRai != null ? item.areaRai : ""}
+                  onChangeValue={(val, raw) =>
                     updateItem(
                       item.id,
                       "areaRai",
-                      e.target.value ? Number(e.target.value) : null,
+                      raw ? val : null,
                     )
                   }
                   disabled={readonly}
@@ -261,22 +263,25 @@ export function Type7aUnplannedForm({
 
                     <div className="sm:col-span-3">
                       <label className="text-[11px] text-slate-600 block mb-0.5">จำนวนที่ใช้</label>
-                      <ActivityInput
-                        type="number"
-                        value={prod.quantity != null ? String(prod.quantity) : ""}
-                        onChange={(e) => {
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
+                        defaultValueOnBlur={0}
+                        value={prod.quantity != null ? prod.quantity : ""}
+                        onChangeValue={(val) => {
+                          const v = val || 0;
                           if (updateProductInItem) {
                             updateProductInItem(
                               item.id,
                               pIdx,
                               "quantity",
-                              e.target.value ? Number(e.target.value) : 0,
+                              v,
                             );
                             updateProductInItem(
                               item.id,
                               pIdx,
                               "targetQuantity",
-                              e.target.value ? Number(e.target.value) : 0,
+                              v,
                             );
                           }
                         }}

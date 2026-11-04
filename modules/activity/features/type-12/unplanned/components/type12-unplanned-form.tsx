@@ -5,6 +5,7 @@ import { Plane, Building2, Globe2, Camera } from "lucide-react";
 import {
   ActivityCustomerSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
@@ -183,15 +184,15 @@ export function Type12UnplannedForm({
             <label className="block text-xs font-semibold text-slate-700">
               จำนวนผู้ร่วมเดินทางจริง (คน)
             </label>
-            <ActivityInput
-              type="number"
+            <ActivityNumberInput
               min={0}
+              allowDecimals={false}
               disabled={readonly}
-              value={item.actualAttendees !== undefined ? String(item.actualAttendees) : ""}
-              onChange={(e) =>
+              value={item.actualAttendees !== undefined ? item.actualAttendees : ""}
+              onChangeValue={(val, raw) =>
                 onChange({
                   ...item,
-                  actualAttendees: e.target.value ? Number(e.target.value) : undefined,
+                  actualAttendees: raw ? val : undefined,
                 })
               }
               placeholder="เช่น 12"

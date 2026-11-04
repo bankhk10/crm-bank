@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Store, Package, Users } from "lucide-react";
-import { ActivityPhotoUpload, ActivityInput } from "@/modules/activity/ui";
+import { ActivityPhotoUpload, ActivityInput, ActivityNumberInput } from "@/modules/activity/ui";
 import { Type9PlanCard } from "./type9-plan-card";
 import type {
   Type9ActualFormProps,
@@ -433,31 +433,32 @@ export function Type9ActualForm({
                           : "-"}
                       </td>
                       <td className="py-2 px-3">
-                        <ActivityInput
+                        <ActivityNumberInput
                           id={`t9-item-qty-${idx}`}
-                          type="number"
                           min={0}
+                          allowDecimals={false}
+                          defaultValueOnBlur={0}
                           placeholder="0"
                           value={cleanNumberString(item.actualQuantityCases)}
-                          onChange={(e) =>
+                          onChangeValue={(val, raw) =>
                             handleItemChange(
                               idx,
                               "actualQuantityCases",
-                              e.target.value,
+                              raw,
                             )
                           }
                           className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
                         />
                       </td>
                       <td className="py-2 px-3 text-right">
-                        <ActivityInput
+                        <ActivityNumberInput
                           id={`t9-item-sales-${idx}`}
-                          type="number"
                           min={0}
+                          defaultValueOnBlur={0}
                           placeholder="0.00"
                           value={cleanNumberString(item.actualSales)}
-                          onChange={(e) =>
-                            handleItemChange(idx, "actualSales", e.target.value)
+                          onChangeValue={(val, raw) =>
+                            handleItemChange(idx, "actualSales", raw)
                           }
                           className="h-9 text-xs text-right font-bold text-emerald-800 focus:ring-emerald-500"
                         />
@@ -499,23 +500,18 @@ export function Type9ActualForm({
               ยอดขายหน้าร้านจริงรวม (บาท){" "}
               <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                ฿
-              </span>
-              <ActivityInput
-                id="t9-actual-sales-input"
-                type="number"
-                min={0}
-                placeholder="ระบุยอดขายหน้าร้านจริง..."
-                value={cleanNumberString(actualSales)}
-                onChange={(e) =>
-                  setActualSales && setActualSales(e.target.value)
-                }
-                className="h-10 pl-7 text-xs font-bold text-teal-800 focus:ring-teal-500"
-                required
-              />
-            </div>
+            <ActivityNumberInput
+              id="t9-actual-sales-input"
+              prefix="฿"
+              min={0}
+              placeholder="ระบุยอดขายหน้าร้านจริง..."
+              value={cleanNumberString(actualSales)}
+              onChangeValue={(val) =>
+                setActualSales && setActualSales(String(val))
+              }
+              className="text-xs font-bold text-teal-800 focus:ring-teal-500"
+              required
+            />
             {actualSales &&
               !isNaN(Number(cleanNumberString(actualSales))) &&
               Number(cleanNumberString(actualSales)) > 0 && (
@@ -529,22 +525,18 @@ export function Type9ActualForm({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               ผู้เข้าร่วมกิจกรรมจริง (คน)
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400">
-                <Users className="w-4 h-4" />
-              </span>
-              <ActivityInput
-                id="t9-actual-attendees-input"
-                type="number"
-                min={0}
-                placeholder="ระบุจำนวนผู้เข้าร่วม..."
-                value={cleanNumberString(actualAttendees)}
-                onChange={(e) =>
-                  setActualAttendees && setActualAttendees(e.target.value)
-                }
-                className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-teal-500"
-              />
-            </div>
+            <ActivityNumberInput
+              id="t9-actual-attendees-input"
+              prefix={<Users className="w-4 h-4 text-slate-400" />}
+              min={0}
+              allowDecimals={false}
+              placeholder="ระบุจำนวนผู้เข้าร่วม..."
+              value={cleanNumberString(actualAttendees)}
+              onChangeValue={(val) =>
+                setActualAttendees && setActualAttendees(String(val))
+              }
+              className="text-xs font-bold text-slate-800 focus:ring-teal-500"
+            />
           </div>
         </div>
 

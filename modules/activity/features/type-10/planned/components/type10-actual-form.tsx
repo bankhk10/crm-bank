@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityPhotoUpload,
   ActivityProductSelect,
   type ActivityProductItem,
@@ -263,20 +264,16 @@ export function Type10ActualForm({
               จำนวนผู้เข้าร่วมงานจริง (คน){" "}
               <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400">
-                <Users className="w-4 h-4" />
-              </span>
-              <ActivityInput
-                type="number"
-                min={0}
-                placeholder="ระบุจำนวนผู้เข้าร่วมงานจริง..."
-                value={actualAttendees || ""}
-                onChange={(e) => setActualAttendees(e.target.value)}
-                className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-emerald-500"
-                required
-              />
-            </div>
+            <ActivityNumberInput
+              min={0}
+              allowDecimals={false}
+              prefix={<Users className="w-4 h-4 text-slate-400" />}
+              placeholder="ระบุจำนวนผู้เข้าร่วมงานจริง..."
+              value={actualAttendees || ""}
+              onChangeValue={(val) => setActualAttendees(String(val))}
+              className="text-xs font-bold text-slate-800 focus:ring-emerald-500"
+              required
+            />
           </div>
 
           {/* Actual Sales or Booking */}
@@ -284,18 +281,14 @@ export function Type10ActualForm({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               ยอดขายหรือยอดจองจริง (บาท)
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                ฿
-              </span>
-              <ActivityInput
-                type="number"
-                placeholder="0.00"
-                value={actualSalesOrBooking || ""}
-                onChange={(e) => setActualSalesOrBooking(e.target.value)}
-                className="h-10 pl-7 text-xs font-bold text-emerald-800 focus:ring-emerald-500"
-              />
-            </div>
+            <ActivityNumberInput
+              min={0}
+              prefix="฿"
+              placeholder="0.00"
+              value={actualSalesOrBooking || ""}
+              onChangeValue={(val) => setActualSalesOrBooking(String(val))}
+              className="text-xs font-bold text-emerald-800 focus:ring-emerald-500"
+            />
           </div>
 
           {/* Farmer Feedback */}
@@ -424,32 +417,33 @@ export function Type10ActualForm({
                             />
                           </td>
                           <td className="py-1.5 px-3">
-                            <ActivityInput
-                              type="number"
+                            <ActivityNumberInput
                               min={0}
+                              allowDecimals={false}
+                              defaultValueOnBlur={0}
                               placeholder="0"
                               value={p.actualQty ?? ""}
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   idx,
                                   "actualQty",
-                                  e.target.value,
+                                  val,
                                 )
                               }
                               className="h-8 text-xs text-center font-bold text-slate-800"
                             />
                           </td>
                           <td className="py-1.5 px-3">
-                            <ActivityInput
-                              type="number"
+                            <ActivityNumberInput
                               min={0}
+                              defaultValueOnBlur={0}
                               placeholder="0.00"
                               value={p.unitPrice ?? ""}
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   idx,
                                   "unitPrice",
-                                  e.target.value,
+                                  val,
                                 )
                               }
                               className="h-8 text-xs text-center font-bold text-slate-800"

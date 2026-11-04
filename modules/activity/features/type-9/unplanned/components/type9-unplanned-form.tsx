@@ -8,6 +8,7 @@ import {
   ActivityProductSelect,
   ActivityAddressSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
 import type { Type9UnplannedFormProps, Type9UnplannedItem } from "../types/unplanned.types";
@@ -337,22 +338,19 @@ export function Type9UnplannedForm({
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       ผู้เข้าร่วมกิจกรรมจริง (คน)
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-400">
-                        <Users className="w-4 h-4" />
-                      </span>
-                      <ActivityInput
-                        id={`type9-unplanned-attendees-${item.id}`}
-                        type="number"
-                        placeholder="ระบุจำนวนผู้เข้าร่วม..."
-                        value={item.actualAttendees || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "actualAttendees", e.target.value)
-                        }
-                        disabled={readonly}
-                        className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-teal-500"
-                      />
-                    </div>
+                    <ActivityNumberInput
+                      id={`type9-unplanned-attendees-${item.id}`}
+                      prefix={<Users className="w-4 h-4 text-slate-400" />}
+                      min={0}
+                      allowDecimals={false}
+                      placeholder="ระบุจำนวนผู้เข้าร่วม..."
+                      value={item.actualAttendees || ""}
+                      onChangeValue={(val, raw) =>
+                        updateItem(item.id, "actualAttendees", raw)
+                      }
+                      disabled={readonly}
+                      className="text-xs font-bold text-slate-800 focus:ring-teal-500"
+                    />
                   </div>
                 </div>
               </div>
@@ -450,39 +448,40 @@ export function Type9UnplannedForm({
                                 />
                               </td>
                               <td className="py-1.5 px-3">
-                                <input
-                                  type="number"
+                                <ActivityNumberInput
                                   min={0}
+                                  allowDecimals={false}
+                                  defaultValueOnBlur={0}
                                   value={prod.quantityCases}
-                                  onChange={(e) =>
+                                  onChangeValue={(val) =>
                                     updateProductItem &&
                                     updateProductItem(
                                       item.id,
                                       prod.id,
                                       "quantityCases",
-                                      parseInt(e.target.value) || 0,
+                                      val,
                                     )
                                   }
                                   disabled={readonly}
-                                  className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                  className="h-8 px-2 text-xs text-center"
                                 />
                               </td>
                               <td className="py-1.5 px-3">
-                                <input
-                                  type="number"
+                                <ActivityNumberInput
                                   min={0}
+                                  defaultValueOnBlur={0}
                                   value={prod.pricePerCase}
-                                  onChange={(e) =>
+                                  onChangeValue={(val) =>
                                     updateProductItem &&
                                     updateProductItem(
                                       item.id,
                                       prod.id,
                                       "pricePerCase",
-                                      parseFloat(e.target.value) || 0,
+                                      val,
                                     )
                                   }
                                   disabled={readonly}
-                                  className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                  className="h-8 px-2 text-xs text-center"
                                 />
                               </td>
                               <td className="py-1.5 px-3 text-right font-semibold text-slate-700">

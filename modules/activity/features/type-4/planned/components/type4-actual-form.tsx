@@ -11,6 +11,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ActivityNumberInput } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import { Type4PlanCard } from "./type4-plan-card";
 import type {
@@ -652,21 +653,16 @@ export function Type4ActualForm({
                           จำนวนเงินที่เก็บได้จริง (บาท){" "}
                           <span className="text-rose-500">*</span>
                         </label>
-                        <div className="relative flex items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            value={item.receivedAmount || ""}
-                            onChange={(e) =>
-                              handleCompanyAmountChange(idx, e.target.value)
-                            }
-                            placeholder="0.00"
-                            className="bg-white border-slate-300 pr-12 text-xs h-9"
-                          />
-                          <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                            บาท
-                          </span>
-                        </div>
+                        <ActivityNumberInput
+                          min={0}
+                          suffix="บาท"
+                          value={item.receivedAmount || ""}
+                          onChangeValue={(val) =>
+                            handleCompanyAmountChange(idx, String(val))
+                          }
+                          placeholder="0.00"
+                          className="bg-white border-slate-300 text-xs h-9"
+                        />
                       </div>
 
                       {/* ยอดคงค้าง */}
@@ -838,19 +834,14 @@ export function Type4ActualForm({
                   จำนวนเงินที่เก็บได้จริง (บาท){" "}
                   <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative flex items-center">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={receivedAmount}
-                    onChange={(e) => setReceivedAmount(e.target.value)}
-                    placeholder="0.00"
-                    className="bg-white border-slate-300 pr-12 text-xs h-9"
-                  />
-                  <span className="absolute right-3 text-xs font-semibold text-slate-500">
-                    บาท
-                  </span>
-                </div>
+                <ActivityNumberInput
+                  min={0}
+                  suffix="บาท"
+                  value={receivedAmount}
+                  onChangeValue={(val) => setReceivedAmount(String(val))}
+                  placeholder="0.00"
+                  className="bg-white border-slate-300 text-xs h-9"
+                />
               </div>
 
               {/* ยอดคงค้าง */}

@@ -5,6 +5,7 @@ import { Sprout, Plus, Trash2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityCombobox,
   ActivityCustomerSelect,
   ActivityProductSelect,
@@ -269,17 +270,15 @@ export function Type7aPlannedForm({
                     <label className="text-xs font-semibold text-slate-700">
                       จำนวนต้น <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
+                    <ActivityNumberInput
                       min={1}
-                      value={
-                        plot.treeCount != null ? String(plot.treeCount) : ""
-                      }
-                      onChange={(e) =>
+                      allowDecimals={false}
+                      value={plot.treeCount}
+                      onChangeValue={(val, raw) =>
                         updateType7aRow(
                           plot.id,
                           "treeCount",
-                          e.target.value ? Number(e.target.value) : null,
+                          raw === "" ? null : val,
                         )
                       }
                       disabled={readonly}
@@ -292,16 +291,15 @@ export function Type7aPlannedForm({
                     <label className="text-xs font-semibold text-slate-700">
                       พื้นที่ (ไร่) <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
+                    <ActivityNumberInput
                       min={0}
                       step="any"
-                      value={plot.areaRai != null ? String(plot.areaRai) : ""}
-                      onChange={(e) =>
+                      value={plot.areaRai}
+                      onChangeValue={(val, raw) =>
                         updateType7aRow(
                           plot.id,
                           "areaRai",
-                          e.target.value ? Number(e.target.value) : null,
+                          raw === "" ? null : val,
                         )
                       }
                       disabled={readonly}
@@ -467,26 +465,23 @@ export function Type7aPlannedForm({
                             <label className="text-[11px] text-slate-600 block mb-0.5">
                               จำนวนที่เบิก
                             </label>
-                            <ActivityInput
-                              type="number"
-                              value={
-                                prod.quantity != null
-                                  ? String(prod.quantity)
-                                  : ""
-                              }
-                              onChange={(e) => {
+                            <ActivityNumberInput
+                              min={0}
+                              step="any"
+                              value={prod.quantity}
+                              onChangeValue={(val) => {
                                 if (updateProductInDemoPlot) {
                                   updateProductInDemoPlot(
                                     plot.id,
                                     pIdx,
                                     "quantity",
-                                    e.target.value ? Number(e.target.value) : 0,
+                                    val,
                                   );
                                   updateProductInDemoPlot(
                                     plot.id,
                                     pIdx,
                                     "targetQuantity",
-                                    e.target.value ? Number(e.target.value) : 0,
+                                    val,
                                   );
                                 }
                               }}

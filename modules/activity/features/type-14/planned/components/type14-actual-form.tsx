@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivitySelect,
   ActivityPhotoUpload,
   type ImageFile,
@@ -320,9 +321,9 @@ export function Type14ActualForm({
                     จำนวนแปลงที่ติดตามจริง (แปลง){" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <ActivityInput
-                    type="number"
+                  <ActivityNumberInput
                     min={1}
+                    allowDecimals={false}
                     placeholder={
                       plannedCount
                         ? `ตามแผน: ${plannedCount} แปลง`
@@ -330,14 +331,14 @@ export function Type14ActualForm({
                     }
                     value={
                       plot.actualPlotsCount != null
-                        ? String(plot.actualPlotsCount)
+                        ? plot.actualPlotsCount
                         : ""
                     }
-                    onChange={(e) =>
+                    onChangeValue={(val, raw) =>
                       updatePlotField?.(
                         plotIdx,
                         "actualPlotsCount",
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        raw === "" ? "" : val,
                       )
                     }
                     disabled={readonly}
@@ -396,20 +397,20 @@ export function Type14ActualForm({
                               จำนวนที่ใช้จริง (ขวด){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              min="0"
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
                               value={
                                 prod.actualQuantity != null
-                                  ? String(prod.actualQuantity)
+                                  ? prod.actualQuantity
                                   : ""
                               }
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   plotIdx,
                                   prodIdx,
                                   "actualQuantity",
-                                  e.target.value,
+                                  val,
                                   effectiveProducts,
                                 )
                               }
@@ -425,20 +426,19 @@ export function Type14ActualForm({
                               ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
                                 value={
                                   prod.extraQuantity != null
-                                    ? String(prod.extraQuantity)
+                                    ? prod.extraQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   handleUpdateProduct(
                                     plotIdx,
                                     prodIdx,
                                     "extraQuantity",
-                                    e.target.value,
+                                    val,
                                     effectiveProducts,
                                   )
                                 }
@@ -511,20 +511,20 @@ export function Type14ActualForm({
                     <label className="block text-xs font-semibold text-slate-700">
                       ระยะเวลาหลังฉีดพ่น (วัน)
                     </label>
-                    <ActivityInput
-                      type="number"
-                      min="0"
+                    <ActivityNumberInput
+                      min={0}
+                      allowDecimals={false}
                       placeholder="เช่น 7, 14, 21"
                       value={
                         plot.daysAfterSpray != null
-                          ? String(plot.daysAfterSpray)
+                          ? plot.daysAfterSpray
                           : ""
                       }
-                      onChange={(e) =>
+                      onChangeValue={(val) =>
                         updatePlotField?.(
                           plotIdx,
                           "daysAfterSpray",
-                          e.target.value,
+                          val,
                         )
                       }
                       disabled={readonly}

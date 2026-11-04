@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivitySelect,
   ActivityPhotoUpload,
   type ImageFile,
@@ -295,9 +296,9 @@ export function Type13ActualForm({
                     จำนวนแปลงที่ฉีดพ่น (แปลง){" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <ActivityInput
-                    type="number"
+                  <ActivityNumberInput
                     min={1}
+                    allowDecimals={false}
                     placeholder={
                       plannedCount
                         ? `ตามแผน: ${plannedCount} แปลง`
@@ -305,14 +306,14 @@ export function Type13ActualForm({
                     }
                     value={
                       plot.actualPlotsCount != null
-                        ? String(plot.actualPlotsCount)
+                        ? plot.actualPlotsCount
                         : ""
                     }
-                    onChange={(e) =>
+                    onChangeValue={(val, raw) =>
                       updatePlotField?.(
                         plotIdx,
                         "actualPlotsCount",
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        raw === "" ? "" : val,
                       )
                     }
                     disabled={readonly}
@@ -371,20 +372,20 @@ export function Type13ActualForm({
                               จำนวนที่ใช้จริง (ขวด){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              min="0"
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
                               value={
                                 prod.actualQuantity != null
-                                  ? String(prod.actualQuantity)
+                                  ? prod.actualQuantity
                                   : ""
                               }
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateProduct(
                                   plotIdx,
                                   prodIdx,
                                   "actualQuantity",
-                                  e.target.value,
+                                  val,
                                   effectiveProducts,
                                 )
                               }
@@ -400,20 +401,19 @@ export function Type13ActualForm({
                               ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
                                 value={
                                   prod.extraQuantity != null
-                                    ? String(prod.extraQuantity)
+                                    ? prod.extraQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   handleUpdateProduct(
                                     plotIdx,
                                     prodIdx,
                                     "extraQuantity",
-                                    e.target.value,
+                                    val,
                                     effectiveProducts,
                                   )
                                 }

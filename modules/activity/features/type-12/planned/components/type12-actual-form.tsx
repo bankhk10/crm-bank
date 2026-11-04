@@ -4,6 +4,7 @@ import React from "react";
 import { Users, FileText, AlertCircle, Camera, Plane } from "lucide-react";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
@@ -63,12 +64,12 @@ export function Type12ActualForm({
             <label className="block text-xs font-semibold text-slate-700">
               จำนวนผู้ร่วมเดินทางจริง (คน)
             </label>
-            <ActivityInput
-              type="number"
+            <ActivityNumberInput
               min={0}
+              allowDecimals={false}
               disabled={readonly}
               value={actualAttendees !== undefined ? String(actualAttendees) : ""}
-              onChange={(e) => setActualAttendees?.(e.target.value)}
+              onChangeValue={(val) => setActualAttendees?.(String(val))}
               placeholder="เช่น 15"
             />
           </div>

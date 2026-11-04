@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
   ActivityProductSelect,
@@ -446,12 +447,13 @@ export function Type8ActualForm({
                       </div>
                     </td>
                     <td className="py-2 px-3 text-center bg-purple-50/20">
-                      <ActivityInput
-                        type="number"
-                        min="0"
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
+                        defaultValueOnBlur={0}
                         value={item.actualQty ?? ""}
-                        onChange={(e) =>
-                          handleTargetChange(idx, "actualQty", e.target.value)
+                        onChangeValue={(val, raw) =>
+                          handleTargetChange(idx, "actualQty", raw)
                         }
                         placeholder="0"
                         className="h-8 text-center bg-white border-purple-200 text-xs w-28 mx-auto font-medium focus-visible:ring-purple-400"
@@ -539,15 +541,16 @@ export function Type8ActualForm({
                       />
                     </td>
                     <td className="py-2 px-3 text-center bg-purple-50/20">
-                      <ActivityInput
-                        type="number"
-                        min="0"
+                      <ActivityNumberInput
+                        min={0}
+                        allowDecimals={false}
+                        defaultValueOnBlur={0}
                         value={item.actualQty ?? ""}
-                        onChange={(e) =>
+                        onChangeValue={(val, raw) =>
                           handleUpdateAdditionalRow(
                             idx,
                             "actualQty",
-                            e.target.value,
+                            raw,
                           )
                         }
                         placeholder="0"
@@ -597,13 +600,14 @@ export function Type8ActualForm({
           <span>จำนวนผู้เข้าร่วมประชุมจริง (คน)</span>
           <span className="text-rose-500">*</span>
         </label>
-        <ActivityInput
-          type="number"
-          min="0"
+        <ActivityNumberInput
+          min={0}
+          allowDecimals={false}
           value={actualAttendees}
-          onChange={(e) => setActualAttendees(e.target.value)}
+          onChangeValue={(val) => setActualAttendees(String(val))}
           placeholder="ระบุจำนวนผู้เข้าร่วมจริง เช่น 25"
           className="bg-white border-slate-300 max-w-xs h-9"
+          required
         />
       </div>
 

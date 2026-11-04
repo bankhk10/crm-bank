@@ -8,6 +8,7 @@ import {
 } from "@/modules/activity/server/actions";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityCombobox,
 } from "@/modules/activity/ui";
 import type { Type10DemoPlotOption } from "../../shared/types";
@@ -401,46 +402,31 @@ export function Type10PlannedForm({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               เป้าหมายจำนวนผู้เข้าร่วมงาน (คน) <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400">
-                <Users className="w-4 h-4" />
-              </span>
-              <ActivityInput
-                type="number"
-                min={0}
-                placeholder="ระบุจำนวนผู้เข้าร่วมงานที่คาดหวัง..."
-                value={type10Attendees || ""}
-                onChange={(e) =>
-                  setType10Attendees(e.target.value === "" ? 0 : Number(e.target.value))
-                }
-                disabled={readonly}
-                className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-emerald-500"
-              />
-            </div>
+            <ActivityNumberInput
+              min={0}
+              allowDecimals={false}
+              prefix={<Users className="w-4 h-4 text-slate-400" />}
+              placeholder="ระบุจำนวนผู้เข้าร่วมงานที่คาดหวัง..."
+              value={type10Attendees}
+              onChangeValue={(val) => setType10Attendees(val)}
+              disabled={readonly}
+              className="h-10 text-xs font-bold text-slate-800 focus:ring-emerald-500"
+            />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               เป้าหมายยอดสั่งจอง / สั่งซื้อ (บาท)
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                ฿
-              </span>
-              <ActivityInput
-                type="number"
-                min={0}
-                placeholder="0.00"
-                value={type10BookingSales || ""}
-                onChange={(e) =>
-                  setType10BookingSales(
-                    e.target.value === "" ? 0 : Number(e.target.value),
-                  )
-                }
-                disabled={readonly}
-                className="h-10 pl-7 text-xs font-bold text-emerald-800 focus:ring-emerald-500"
-              />
-            </div>
+            <ActivityNumberInput
+              min={0}
+              prefix="฿"
+              placeholder="0.00"
+              value={type10BookingSales}
+              onChangeValue={(val) => setType10BookingSales(val)}
+              disabled={readonly}
+              className="h-10 text-xs font-bold text-emerald-800 focus:ring-emerald-500"
+            />
           </div>
         </div>
       </div>

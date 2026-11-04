@@ -3,7 +3,7 @@
 import React from "react";
 import { Receipt, Plus, Trash2, FileText, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput, ActivityCustomerSelect } from "@/modules/activity/ui";
+import { ActivityInput, ActivityNumberInput, ActivityCustomerSelect } from "@/modules/activity/ui";
 import type {
   Type4PlannedFormProps,
   Type4PlanFormProps,
@@ -168,16 +168,15 @@ export function Type4PlannedForm({
                         : "ยอดเงินเป้าหมายที่จะเก็บ (บาท)"}{" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={item.collectAmount || ""}
-                      onChange={(e) =>
+                    <ActivityNumberInput
+                      min={0}
+                      prefix="฿"
+                      value={item.collectAmount}
+                      onChangeValue={(val) =>
                         updateType4Row(
                           item.id,
                           "collectAmount",
-                          parseFloat(e.target.value) || 0,
+                          val,
                         )
                       }
                       disabled={readonly}

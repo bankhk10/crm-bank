@@ -13,7 +13,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput, ActivityCustomerSelect } from "@/modules/activity/ui";
+import { ActivityInput, ActivityNumberInput, ActivityCustomerSelect } from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { Type4UnplannedFormProps } from "../types/unplanned.types";
 import type { StoreOption, Type4ImageFile } from "../../shared/types";
@@ -296,25 +296,20 @@ export function Type4UnplannedForm({
                         จำนวนเงินที่เก็บได้จริง (บาท){" "}
                         <span className="text-rose-500">*</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2 text-slate-400 text-xs font-semibold z-10">
-                          ฿
-                        </span>
-                        <ActivityInput
-                          type="number"
-                          min={0}
-                          value={item.receivedAmount || ""}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            updateItem(item.id, "receivedAmount", val);
-                            updateItem(item.id, "targetAmount", val);
-                          }}
-                          disabled={readonly}
-                          placeholder="0"
-                          className="pl-7 pr-3 text-right font-medium"
-                          required
-                        />
-                      </div>
+                      <ActivityNumberInput
+                        min={0}
+                        prefix="฿"
+                        value={item.receivedAmount || ""}
+                        onChangeValue={(val) => {
+                          const v = val || 0;
+                          updateItem(item.id, "receivedAmount", v);
+                          updateItem(item.id, "targetAmount", v);
+                        }}
+                        disabled={readonly}
+                        placeholder="0"
+                        className="text-right font-medium"
+                        required
+                      />
                     </div>
 
                     <div>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityPhotoUpload,
   ActivityProductSelect,
   ActivityCombobox,
@@ -275,48 +276,40 @@ export function Type10UnplannedForm({
                       จำนวนผู้เข้าร่วมงานจริง (คน){" "}
                       <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-400">
-                        <Users className="w-4 h-4" />
-                      </span>
-                      <ActivityInput
-                        type="number"
-                        min={0}
-                        placeholder="ระบุจำนวนผู้เข้าร่วมงานจริง..."
-                        value={item.actualAttendees || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "actualAttendees", e.target.value)
-                        }
-                        disabled={readonly}
-                        className="h-10 pl-9 text-xs font-bold text-slate-800 focus:ring-emerald-500"
-                        required
-                      />
-                    </div>
+                    <ActivityNumberInput
+                      min={0}
+                      allowDecimals={false}
+                      prefix={<Users className="w-4 h-4 text-slate-400" />}
+                      placeholder="ระบุจำนวนผู้เข้าร่วมงานจริง..."
+                      value={item.actualAttendees || ""}
+                      onChangeValue={(val, raw) =>
+                        updateItem(item.id, "actualAttendees", raw)
+                      }
+                      disabled={readonly}
+                      className="text-xs font-bold text-slate-800 focus:ring-emerald-500"
+                      required
+                    />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       ยอดขายหรือยอดจองจริง (บาท)
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                        ฿
-                      </span>
-                      <ActivityInput
-                        type="number"
-                        placeholder="0.00"
-                        value={item.actualSalesOrBooking || ""}
-                        onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "actualSalesOrBooking",
-                            e.target.value,
-                          )
-                        }
-                        disabled={readonly}
-                        className="h-10 pl-7 text-xs font-bold text-emerald-800 focus:ring-emerald-500"
-                      />
-                    </div>
+                    <ActivityNumberInput
+                      min={0}
+                      prefix="฿"
+                      placeholder="0.00"
+                      value={item.actualSalesOrBooking || ""}
+                      onChangeValue={(val, raw) =>
+                        updateItem(
+                          item.id,
+                          "actualSalesOrBooking",
+                          raw,
+                        )
+                      }
+                      disabled={readonly}
+                      className="text-xs font-bold text-emerald-800 focus:ring-emerald-500"
+                    />
                   </div>
 
                   <div>
@@ -443,20 +436,21 @@ export function Type10UnplannedForm({
                               />
                             </td>
                             <td className="py-1.5 px-3">
-                              <ActivityInput
-                                type="number"
+                              <ActivityNumberInput
                                 min={0}
+                                allowDecimals={false}
+                                defaultValueOnBlur={0}
                                 placeholder="0"
                                 value={p.actualQty ?? ""}
-                                onChange={(e) => {
-                                  const qty = Number(e.target.value) || 0;
+                                onChangeValue={(val, raw) => {
+                                  const qty = val || 0;
                                   const price = Number(p.unitPrice) || 0;
                                   if (updateSoldProduct) {
                                     updateSoldProduct(
                                       item.id,
                                       p.id!,
                                       "actualQty",
-                                      e.target.value,
+                                      raw,
                                     );
                                     updateSoldProduct(
                                       item.id,
@@ -471,20 +465,20 @@ export function Type10UnplannedForm({
                               />
                             </td>
                             <td className="py-1.5 px-3">
-                              <ActivityInput
-                                type="number"
+                              <ActivityNumberInput
                                 min={0}
+                                defaultValueOnBlur={0}
                                 placeholder="0.00"
                                 value={p.unitPrice ?? ""}
-                                onChange={(e) => {
-                                  const price = Number(e.target.value) || 0;
+                                onChangeValue={(val, raw) => {
+                                  const price = val || 0;
                                   const qty = Number(p.actualQty) || 0;
                                   if (updateSoldProduct) {
                                     updateSoldProduct(
                                       item.id,
                                       p.id!,
                                       "unitPrice",
-                                      e.target.value,
+                                      raw,
                                     );
                                     updateSoldProduct(
                                       item.id,

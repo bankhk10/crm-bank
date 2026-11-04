@@ -8,6 +8,7 @@ import {
   ActivityCustomerSelect,
   ActivityProductSelect,
   ActivityInput,
+  ActivityNumberInput,
 } from "@/modules/activity/ui";
 import type {
   Type9ProductItem,
@@ -341,20 +342,16 @@ export function Type9PlannedForm({
               เป้ายอดขายรวมจากกิจกรรม (บาท){" "}
               <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                ฿
-              </span>
-              <input
-                type="number"
-                value={
-                  type9ProductItems.length > 0 ? calculatedSales : type9Sales
-                }
-                onChange={(e) => setType9Sales(parseFloat(e.target.value) || 0)}
-                disabled={readonly || type9ProductItems.length > 0}
-                className="w-full h-10 pl-7 pr-3 rounded-lg border border-slate-200 bg-white text-xs font-bold text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
+            <ActivityNumberInput
+              prefix="฿"
+              min={0}
+              value={
+                type9ProductItems.length > 0 ? calculatedSales : type9Sales
+              }
+              onChangeValue={(val) => setType9Sales(Number(val) || 0)}
+              disabled={readonly || type9ProductItems.length > 0}
+              className="font-bold text-teal-700"
+            />
           </div>
         </div>
       </div>
@@ -453,35 +450,36 @@ export function Type9PlannedForm({
                         />
                       </td>
                       <td className="py-1.5 px-3">
-                        <input
-                          type="number"
+                        <ActivityNumberInput
                           min={0}
+                          allowDecimals={false}
+                          defaultValueOnBlur={0}
                           value={item.quantityCases}
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             updateType9ProductItem(
                               item.id,
                               "quantityCases",
-                              parseInt(e.target.value) || 0,
+                              val,
                             )
                           }
                           disabled={readonly}
-                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="h-8 px-2 text-xs text-center"
                         />
                       </td>
                       <td className="py-1.5 px-3">
-                        <input
-                          type="number"
+                        <ActivityNumberInput
                           min={0}
+                          defaultValueOnBlur={0}
                           value={item.pricePerCase}
-                          onChange={(e) =>
+                          onChangeValue={(val) =>
                             updateType9ProductItem(
                               item.id,
                               "pricePerCase",
-                              parseFloat(e.target.value) || 0,
+                              val,
                             )
                           }
                           disabled={readonly}
-                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-xs text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className="h-8 px-2 text-xs text-center"
                         />
                       </td>
                       <td className="py-1.5 px-3 text-right font-semibold text-slate-700">

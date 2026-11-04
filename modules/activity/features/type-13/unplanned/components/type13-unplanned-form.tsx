@@ -7,6 +7,7 @@ import {
   ActivityCustomerSelect,
   ActivityAddressSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivitySelect,
   ActivityPhotoUpload,
   ActivityProductSelect,
@@ -334,22 +335,20 @@ export function Type13UnplannedForm({
                       จำนวนแปลงที่ฉีดพ่นจริง (แปลง){" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <ActivityInput
-                      type="number"
+                    <ActivityNumberInput
                       min={1}
+                      allowDecimals={false}
                       placeholder="เช่น 3"
                       value={
                         villageItem.actualPlotsCount !== undefined &&
                         villageItem.actualPlotsCount !== null
-                          ? String(villageItem.actualPlotsCount)
+                          ? villageItem.actualPlotsCount
                           : ""
                       }
-                      onChange={(e) =>
+                      onChangeValue={(val, raw) =>
                         handleUpdateItem(itemIdx, {
                           ...villageItem,
-                          actualPlotsCount: e.target.value
-                            ? Number(e.target.value)
-                            : "",
+                          actualPlotsCount: raw ? val : "",
                         })
                       }
                       disabled={readonly}
@@ -475,21 +474,19 @@ export function Type13UnplannedForm({
                               จำนวนที่ใช้จริง ({prod.unit || "ขวด"}){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              min="0"
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
                               value={
                                 prod.actualQuantity != null
-                                  ? String(prod.actualQuantity)
+                                  ? prod.actualQuantity
                                   : prod.quantityUsed != null
-                                    ? String(prod.quantityUsed)
+                                    ? prod.quantityUsed
                                     : ""
                               }
-                              onChange={(e) =>
+                              onChangeValue={(val, raw) =>
                                 handleUpdateProductRow(itemIdx, pIdx, {
-                                  actualQuantity: e.target.value
-                                    ? Number(e.target.value)
-                                    : "",
+                                  actualQuantity: raw ? val : "",
                                 })
                               }
                               disabled={readonly}
@@ -504,17 +501,16 @@ export function Type13UnplannedForm({
                               ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
                                 value={
                                   prod.extraQuantity != null
-                                    ? String(prod.extraQuantity)
+                                    ? prod.extraQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val, raw) =>
                                   handleUpdateProductRow(itemIdx, pIdx, {
-                                    extraQuantity: e.target.value,
+                                    extraQuantity: raw,
                                   })
                                 }
                                 disabled={readonly}

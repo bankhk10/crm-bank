@@ -5,6 +5,7 @@ import { Info, PackageCheck, Plus, Trash2, Sprout, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityCombobox,
   ActivityProductSelect,
@@ -758,15 +759,12 @@ export function Type7bPlannedForm({
                         </td>
                         <td className="py-2 px-3 align-middle">
                           <div className="flex items-center gap-1.5 justify-center">
-                            <ActivityInput
-                              type="number"
+                            <ActivityNumberInput
                               min={1}
+                              allowDecimals={false}
+                              defaultValueOnBlur={1}
                               value={pLine.quantity ?? ""}
-                              onChange={(e) => {
-                                const val = Math.max(
-                                  1,
-                                  parseInt(e.target.value) || 1,
-                                );
+                              onChangeValue={(val) => {
                                 updateWithdrawnProductRow(
                                   pLine.id,
                                   "quantity",

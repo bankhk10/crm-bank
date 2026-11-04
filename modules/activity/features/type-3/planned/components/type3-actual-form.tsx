@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityProductSelect,
   ActivitySelect,
   type ActivityProductItem,
@@ -659,12 +660,13 @@ export function Type3ActualForm({
                           จำนวนที่ขายได้จริง{" "}
                           <span className="text-rose-500">*</span>
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
                           min={0}
+                          allowDecimals={false}
+                          defaultValueOnBlur={0}
                           value={item.actualQty ?? ""}
-                          onChange={(e) =>
-                            updatePlannedItem(idx, "actualQty", e.target.value)
+                          onChangeValue={(val) =>
+                            updatePlannedItem(idx, "actualQty", val)
                           }
                           className="font-bold text-emerald-900 bg-white"
                           placeholder="ระบุจำนวน..."
@@ -677,12 +679,13 @@ export function Type3ActualForm({
                         <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                           ราคา/ลัง (บาท)
                         </label>
-                        <ActivityInput
-                          type="number"
+                        <ActivityNumberInput
                           min={0}
+                          prefix="฿"
+                          defaultValueOnBlur={0}
                           value={item.unitPrice === 0 || item.unitPrice === "0" ? "" : (item.unitPrice ?? "")}
-                          onChange={(e) =>
-                            updatePlannedItem(idx, "unitPrice", e.target.value === "" ? 0 : parseFloat(e.target.value) || 0)
+                          onChangeValue={(val) =>
+                            updatePlannedItem(idx, "unitPrice", val || 0)
                           }
                           className="bg-white font-medium"
                           placeholder="0"
@@ -833,12 +836,13 @@ export function Type3ActualForm({
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                         จำนวนที่ขายได้
                       </label>
-                      <ActivityInput
-                        type="number"
+                      <ActivityNumberInput
                         min={1}
+                        allowDecimals={false}
+                        defaultValueOnBlur={1}
                         value={addItem.actualQty}
-                        onChange={(e) =>
-                          updateAdditionalItem(aIdx, "actualQty", e.target.value)
+                        onChangeValue={(val) =>
+                          updateAdditionalItem(aIdx, "actualQty", val)
                         }
                         className="text-center font-bold text-purple-900 bg-white"
                       />
@@ -848,12 +852,12 @@ export function Type3ActualForm({
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                         ราคา/ลัง (บาท)
                       </label>
-                      <ActivityInput
-                        type="number"
+                      <ActivityNumberInput
                         min={0}
+                        defaultValueOnBlur={0}
                         value={addItem.unitPrice ?? 0}
-                        onChange={(e) =>
-                          updateAdditionalItem(aIdx, "unitPrice", e.target.value)
+                        onChangeValue={(val) =>
+                          updateAdditionalItem(aIdx, "unitPrice", val)
                         }
                         className="bg-white font-medium text-right"
                       />

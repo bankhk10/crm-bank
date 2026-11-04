@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ActivitySelect } from "@/modules/activity/ui";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityCustomerSelect,
   ActivityProductSelect,
 } from "@/modules/activity/ui";
@@ -494,22 +495,21 @@ export function Type3UnplannedForm({
                                 ขายได้จริง{" "}
                                 <span className="text-rose-500">*</span>
                               </label>
-                              <ActivityInput
-                                type="number"
+                              <ActivityNumberInput
                                 min={0}
+                                allowDecimals={false}
+                                defaultValueOnBlur={0}
                                 value={
                                   prod.actualQuantity === 0
                                     ? ""
                                     : prod.actualQuantity
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   updateProduct(
                                     item.id,
                                     prod.id,
                                     "actualQuantity",
-                                    e.target.value === ""
-                                      ? 0
-                                      : parseInt(e.target.value) || 0,
+                                    val || 0,
                                   )
                                 }
                                 disabled={readonly}
@@ -524,20 +524,19 @@ export function Type3UnplannedForm({
                               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                                 ราคา/ลัง (บาท)
                               </label>
-                              <ActivityInput
-                                type="number"
+                              <ActivityNumberInput
                                 min={0}
+                                prefix="฿"
+                                defaultValueOnBlur={0}
                                 value={
                                   prod.unitPrice === 0 ? "" : prod.unitPrice
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   updateProduct(
                                     item.id,
                                     prod.id,
                                     "unitPrice",
-                                    e.target.value === ""
-                                      ? 0
-                                      : parseFloat(e.target.value) || 0,
+                                    val || 0,
                                   )
                                 }
                                 disabled={readonly}

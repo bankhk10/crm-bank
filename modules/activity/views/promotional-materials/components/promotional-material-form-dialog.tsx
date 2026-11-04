@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createPromotionalMaterialAction, updatePromotionalMaterialAction } from "@/modules/activity/server/actions";
 import { MARKETING_UNITS } from "@/modules/activity/constants";
+import { ActivityNumberInput } from "@/modules/activity/ui/inputs";
 import { Loader2, PackagePlus, Pencil } from "lucide-react";
 
 interface PromotionalMaterialItem {
@@ -320,21 +321,16 @@ export function PromotionalMaterialFormDialog({
               <Label className="text-xs font-semibold text-slate-700">
                 ราคาต่อหน่วย (บาท) <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-semibold">
-                  ฿
-                </span>
-                <Input
-                  type="number"
-                  min={0}
-                  step="any"
-                  value={price}
-                  onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  className="h-9 pl-7 text-xs bg-white border-slate-200 text-slate-800 font-bold text-right"
-                  required
-                />
-              </div>
+              <ActivityNumberInput
+                min={0}
+                step="any"
+                prefix="฿"
+                value={price}
+                onChangeValue={(val) => setPrice(val)}
+                placeholder="0"
+                className="h-9 text-xs bg-white border-slate-200 text-slate-800 font-bold text-right"
+                required
+              />
             </div>
           </div>
 

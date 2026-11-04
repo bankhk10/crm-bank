@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ActivityInput,
+  ActivityNumberInput,
   ActivityTextarea,
   ActivityPhotoUpload,
   ActivitySelect,
@@ -459,26 +460,21 @@ export function Type7bActualForm({
             <label className="text-xs font-semibold text-slate-700">
               จำนวนวันหลังฉีดพ่น (วัน) <span className="text-rose-500">*</span>
             </label>
-            <div className="relative">
-              <ActivityInput
-                type="number"
-                min={0}
-                value={actualState.t7DaysAfterSpray ?? 0}
-                onChange={(e) =>
-                  onUpdateField?.(
-                    "t7DaysAfterSpray",
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                disabled={readonly}
-                className="pr-10"
-                placeholder="0"
-                required
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">
-                วัน
-              </span>
-            </div>
+            <ActivityNumberInput
+              min={0}
+              allowDecimals={false}
+              suffix="วัน"
+              value={actualState.t7DaysAfterSpray ?? 0}
+              onChangeValue={(val, raw) =>
+                onUpdateField?.(
+                  "t7DaysAfterSpray",
+                  raw === "" ? "" : val,
+                )
+              }
+              disabled={readonly}
+              placeholder="0"
+              required
+            />
           </div>
         </div>
 
@@ -617,20 +613,20 @@ export function Type7bActualForm({
                               จำนวนที่ใช้จริง (ขวด){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              min="0"
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
                               value={
                                 prod.actualQuantity != null
-                                  ? String(prod.actualQuantity)
+                                  ? prod.actualQuantity
                                   : ""
                               }
-                              onChange={(e) =>
+                              onChangeValue={(val) =>
                                 handleUpdateBaselineProduct(
                                   rIdx,
                                   idx,
                                   "actualQuantity",
-                                  e.target.value,
+                                  val,
                                 )
                               }
                               disabled={readonly}
@@ -644,20 +640,19 @@ export function Type7bActualForm({
                               ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
                                 value={
                                   prod.extraQuantity != null
-                                    ? String(prod.extraQuantity)
+                                    ? prod.extraQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   handleUpdateBaselineProduct(
                                     rIdx,
                                     idx,
                                     "extraQuantity",
-                                    e.target.value,
+                                    val,
                                   )
                                 }
                                 disabled={readonly}
@@ -818,28 +813,28 @@ export function Type7bActualForm({
                               จำนวนที่ใช้จริง (ขวด){" "}
                               <span className="text-rose-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="number"
-                              min="0"
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
                               value={
                                 prod.actualQuantity != null
-                                  ? String(prod.actualQuantity)
+                                  ? prod.actualQuantity
                                   : prod.quantityUsed != null
-                                    ? String(prod.quantityUsed)
+                                    ? prod.quantityUsed
                                     : ""
                               }
-                              onChange={(e) => {
+                              onChangeValue={(val) => {
                                 handleUpdateAdditionalProduct(
                                   rIdx,
                                   idx,
                                   "actualQuantity",
-                                  e.target.value,
+                                  val,
                                 );
                                 handleUpdateAdditionalProduct(
                                   rIdx,
                                   idx,
                                   "quantityUsed",
-                                  e.target.value,
+                                  val,
                                 );
                               }}
                               disabled={readonly}
@@ -853,20 +848,19 @@ export function Type7bActualForm({
                               ปริมาณที่ใช้เพิ่ม (กรณีใช้ไปครึ่งขวด)
                             </label>
                             <div className="grid grid-cols-2 gap-2">
-                              <ActivityInput
-                                type="number"
-                                min="0"
+                              <ActivityNumberInput
+                                min={0}
                                 value={
                                   prod.extraQuantity != null
-                                    ? String(prod.extraQuantity)
+                                    ? prod.extraQuantity
                                     : ""
                                 }
-                                onChange={(e) =>
+                                onChangeValue={(val) =>
                                   handleUpdateAdditionalProduct(
                                     rIdx,
                                     idx,
                                     "extraQuantity",
-                                    e.target.value,
+                                    val,
                                   )
                                 }
                                 disabled={readonly}
@@ -1370,11 +1364,12 @@ export function Type7bActualForm({
                 <label className="text-xs font-semibold text-slate-700">
                   ผลผลิตแปลงสาธิต (กก.)
                 </label>
-                <ActivityInput
-                  type="number"
+                <ActivityNumberInput
+                  min={0}
+                  suffix="กก."
                   value={actualState.t7FinalYieldKg || ""}
-                  onChange={(e) =>
-                    onUpdateField?.("t7FinalYieldKg", e.target.value)
+                  onChangeValue={(val) =>
+                    onUpdateField?.("t7FinalYieldKg", val)
                   }
                   disabled={readonly}
                   placeholder="เช่น 1500"
@@ -1385,11 +1380,12 @@ export function Type7bActualForm({
                 <label className="text-xs font-semibold text-slate-700">
                   ผลผลิตเปรียบเทียบ (กก.)
                 </label>
-                <ActivityInput
-                  type="number"
+                <ActivityNumberInput
+                  min={0}
+                  suffix="กก."
                   value={actualState.t7ControlYieldKg || ""}
-                  onChange={(e) =>
-                    onUpdateField?.("t7ControlYieldKg", e.target.value)
+                  onChangeValue={(val) =>
+                    onUpdateField?.("t7ControlYieldKg", val)
                   }
                   disabled={readonly}
                   placeholder="เช่น 1200"
