@@ -347,40 +347,38 @@ export function Type9PlannedForm({
               </div>
             )}
           </div>
+        </div>
+        {/* Right Column: Target Sales (display only) */}
+        <div>
+          <div className="block text-xs font-bold text-slate-700 mb-1.5">
+            เป้ายอดขายรวมจากกิจกรรม
+          </div>
 
-          {/* Right Column: Target Sales (display only) */}
-          <div>
-            <div className="block text-xs font-medium text-slate-700 mb-1.5">
-              เป้ายอดขายรวมจากกิจกรรม
+          <div className="rounded-xl border border-teal-100 bg-teal-50/60 p-3.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-teal-700">
+              <Calculator className="h-3.5 w-3.5" />
+              คำนวณอัตโนมัติจากรายการสินค้า
+            </div>
+            <div className="mt-1.5 flex items-baseline gap-1">
+              <span className="text-sm font-semibold text-teal-600">฿</span>
+              <span
+                className={`text-2xl font-bold tabular-nums ${
+                  calculatedSales > 0 ? "text-teal-700" : "text-slate-300"
+                }`}
+              >
+                {calculatedSales.toLocaleString()}
+              </span>
             </div>
 
-            <div className="rounded-xl border border-teal-100 bg-teal-50/60 p-3.5">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-teal-700">
-                <Calculator className="h-3.5 w-3.5" />
-                คำนวณอัตโนมัติจากรายการสินค้า
-              </div>
-
-              <div className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-sm font-semibold text-teal-600">฿</span>
-                <span
-                  className={`text-2xl font-bold tabular-nums ${
-                    calculatedSales > 0 ? "text-teal-700" : "text-slate-300"
-                  }`}
-                >
-                  {calculatedSales.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="mt-2 pt-2 border-t border-teal-100/80 text-[11px] text-slate-500">
-                {type9ProductItems.length > 0 ? (
-                  <>
-                    {type9ProductItems.length} รายการ · รวม{" "}
-                    {totalCases.toLocaleString()} ลัง
-                  </>
-                ) : (
-                  "เพิ่มสินค้าในตารางด้านล่าง ยอดจะคำนวณให้อัตโนมัติ"
-                )}
-              </div>
+            <div className="mt-2 pt-2 border-t border-teal-100/80 text-[11px] text-slate-500">
+              {type9ProductItems.length > 0 ? (
+                <>
+                  {type9ProductItems.length} รายการ · รวม{" "}
+                  {totalCases.toLocaleString()} ลัง
+                </>
+              ) : (
+                "เพิ่มสินค้าในตารางด้านล่าง ยอดจะคำนวณให้อัตโนมัติ"
+              )}
             </div>
           </div>
         </div>
