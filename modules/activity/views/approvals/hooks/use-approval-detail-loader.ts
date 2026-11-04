@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { usePermission } from "@/hooks/use-permission";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
@@ -28,9 +28,16 @@ import type { ApprovalActionType } from "../components/approval-action-dialog";
 
 interface UseApprovalDetailLoaderProps {
   id: string;
+  initialPlan?: ActivityPlanWithRelations | null;
+  initialError?: string | null;
 }
 
-export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
+export function useApprovalDetailLoader({
+  id,
+  initialPlan,
+  initialError,
+}: UseApprovalDetailLoaderProps) {
+  const usedInitialRef = useRef(false);
   const { data: session } = useSession();
   const { hasPermission } = usePermission("menu.activity_plans");
 
@@ -73,7 +80,18 @@ export function useApprovalDetailLoader({ id }: UseApprovalDetailLoaderProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await getActivityPlanAction(id);
+      const res =
+        !usedInitialRef.current &&
+        (initialPlan !== undefined || initialError !== undefined)
+          ? (() => {
+              usedInitialRef.current = true;
+              return {
+                success: !!initialPlan && !initialError,
+                plan: initialPlan ?? undefined,
+                error: initialError ?? undefined,
+              };
+            })()
+          : await getActivityPlanAction(id);
       if (res.success && res.plan) {
         const p = res.plan as ActivityPlanWithRelations;
         setPlan(p);

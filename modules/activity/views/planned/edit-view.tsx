@@ -22,12 +22,17 @@ import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+import type { ActivityPlanEditMasterData } from "@/modules/activity/types";
 
 interface PlannedEditViewProps {
   id: string;
+  initialEditData?: ActivityPlanEditMasterData;
 }
 
-export function PlannedEditView({ id }: PlannedEditViewProps) {
+export function PlannedEditView({
+  id,
+  initialEditData,
+}: PlannedEditViewProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
@@ -77,7 +82,36 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
           catRes,
           mktRes,
           actTypeRes,
-        ] = await Promise.all([
+        ] = initialEditData
+          ? [
+              {
+                success: !initialEditData.loadError,
+                employees: initialEditData.employees,
+              },
+              {
+                success: !initialEditData.planError && !!initialEditData.plan,
+                plan: initialEditData.plan,
+                error: initialEditData.planError || undefined,
+              },
+              { customers: initialEditData.customers },
+              { products: initialEditData.products },
+              { demoPlots: initialEditData.demoPlots },
+              { followUpPlans: initialEditData.followUpPlans },
+              { hattackFollowUpPlans: initialEditData.hattackFollowUpPlans },
+              {
+                success: true,
+                productCategories: initialEditData.productCategories,
+              },
+              {
+                success: !!initialEditData.promotionalMaterialsByCategory,
+                grouped: initialEditData.promotionalMaterialsByCategory || {},
+              },
+              {
+                success: true,
+                types: initialEditData.activityTypes,
+              },
+            ]
+          : await Promise.all([
           getAllEmployeesAction(),
           getActivityPlanAction(id),
           getCustomersAction({ perPage: 1000 }).catch(() => ({
@@ -143,7 +177,11 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
         if (planRes.success && planRes.plan) {
           const plan = planRes.plan;
 
-          if (plan.employeeId && plan.employeeId !== user?.employeeId) {
+          if (
+            !initialEditData &&
+            plan.employeeId &&
+            plan.employeeId !== user?.employeeId
+          ) {
             getFollowUpPlansAction(plan.employeeId).then((res) => {
               if (res?.success && res.followUpPlans) {
                 setFollowUpPlans(res.followUpPlans);
@@ -526,7 +564,7 @@ export function PlannedEditView({ id }: PlannedEditViewProps) {
     }
 
     loadData();
-  }, [id]);
+  }, [id, initialEditData]);
 
   const handleSubmit = async (payload: any) => {
     const res = await updateActivityPlanAction(id, payload);

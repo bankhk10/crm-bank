@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ActivityPlanWithRelations } from "@/modules/activity/types";
@@ -22,9 +22,17 @@ import { extractType1PlanTargets } from "@/modules/activity/features/type-1";
 interface UseDetailPlanLoaderProps {
   id: string;
   onBack?: () => void;
+  initialPlan?: ActivityPlanWithRelations | null;
+  initialError?: string | null;
 }
 
-export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
+export function useDetailPlanLoader({
+  id,
+  onBack,
+  initialPlan,
+  initialError,
+}: UseDetailPlanLoaderProps) {
+  const usedInitialRef = useRef(false);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -56,7 +64,18 @@ export function useDetailPlanLoader({ id, onBack }: UseDetailPlanLoaderProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await getActivityPlanAction(id);
+      const res =
+        !usedInitialRef.current &&
+        (initialPlan !== undefined || initialError !== undefined)
+          ? (() => {
+              usedInitialRef.current = true;
+              return {
+                success: !!initialPlan && !initialError,
+                plan: initialPlan ?? undefined,
+                error: initialError ?? undefined,
+              };
+            })()
+          : await getActivityPlanAction(id);
       if (res.success && res.plan) {
         const p = res.plan as ActivityPlanWithRelations;
         setPlan(p);

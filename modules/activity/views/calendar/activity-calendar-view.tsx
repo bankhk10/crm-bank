@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useCalendarFilters, useActivityCalendar } from "./hooks";
+import type { ActivityFilterMasterData } from "@/modules/activity/types";
 import {
   CalendarHeader,
   CalendarFilterBar,
@@ -16,9 +17,15 @@ import {
  * Coordinates calendar state, filtering, grid rendering, and modal details.
  * Modularized according to CRM Coding Standards (Vertical Slice Architecture).
  */
-export function ActivityCalendarView() {
+export interface ActivityCalendarViewProps {
+  initialFilterData?: ActivityFilterMasterData;
+}
+
+export function ActivityCalendarView({
+  initialFilterData,
+}: ActivityCalendarViewProps = {}) {
   // 1. Filter Hook (options, search, multi-selects)
-  const filterState = useCalendarFilters();
+  const filterState = useCalendarFilters(initialFilterData);
 
   // 2. Calendar Core Hook (dates, events, fetch, day calculation, selection, scope counts)
   const {

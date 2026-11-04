@@ -18,6 +18,7 @@ import {
   getActivePromotionalMaterialsGroupedAction,
   getActivityTypesAction,
 } from "@/modules/activity/server/actions";
+import type { ActivityPlanMasterData } from "@/modules/activity/types";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { listProductsAction } from "@/modules/products/server/actions";
@@ -26,7 +27,11 @@ import {
   canCreatePlannedActivity,
 } from "@/modules/activity/domain/permissions";
 
-export function PlannedCreateView() {
+export interface PlannedCreateViewProps {
+  initialMasterData?: ActivityPlanMasterData;
+}
+
+export function PlannedCreateView({ initialMasterData }: PlannedCreateViewProps = {}) {
   const router = useRouter();
   const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
@@ -43,26 +48,53 @@ export function PlannedCreateView() {
     hasPermission("activity.manage") ||
     !isLoading;
 
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [productCategories, setProductCategories] = useState<any[]>([]);
-  const [activityTypes, setActivityTypes] = useState<any[]>([]);
-  const [demoPlots, setDemoPlots] = useState<any[]>([]);
-  const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
-  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>(
+    initialMasterData?.employees ?? [],
+  );
+  const [customers, setCustomers] = useState<any[]>(
+    initialMasterData?.customers ?? [],
+  );
+  const [products, setProducts] = useState<any[]>(
+    initialMasterData?.products ?? [],
+  );
+  const [productCategories, setProductCategories] = useState<any[]>(
+    initialMasterData?.productCategories ?? [],
+  );
+  const [activityTypes, setActivityTypes] = useState<any[]>(
+    initialMasterData?.activityTypes ?? [],
+  );
+  const [demoPlots, setDemoPlots] = useState<any[]>(
+    initialMasterData?.demoPlots ?? [],
+  );
+  const [followUpPlans, setFollowUpPlans] = useState<any[]>(
+    initialMasterData?.followUpPlans ?? [],
+  );
+  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>(
+    initialMasterData?.hattackFollowUpPlans ?? [],
+  );
   const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
-    useState<Record<string, any[]> | undefined>(undefined);
-  const [currentEmployeeName, setCurrentEmployeeName] = useState<string>("");
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [pageLoading, setPageLoading] = useState<boolean>(true);
+    useState<Record<string, any[]> | undefined>(
+      initialMasterData?.promotionalMaterialsByCategory,
+    );
+  const [currentEmployeeName, setCurrentEmployeeName] = useState<string>(
+    initialMasterData?.currentEmployeeName ?? "",
+  );
+  const [loadError, setLoadError] = useState<string | null>(
+    initialMasterData?.loadError ?? null,
+  );
+  const [pageLoading, setPageLoading] = useState<boolean>(!initialMasterData);
 
   const initialData = React.useMemo(
-    () => ({ employeeName: currentEmployeeName }),
-    [currentEmployeeName],
+    () => ({ employeeName: currentEmployeeName || session?.user?.name || "" }),
+    [currentEmployeeName, session?.user?.name],
   );
 
   useEffect(() => {
+    // If master data is already loaded and provided by server component, bypass client-side fetching
+    if (initialMasterData) {
+      return;
+    }
+
     async function loadData() {
       setPageLoading(true);
       try {
@@ -154,7 +186,7 @@ export function PlannedCreateView() {
       }
     }
     loadData();
-  }, []);
+  }, [initialMasterData]);
 
   const handleSubmit = async (payload: any) => {
     const res = await createActivityPlanAction(payload);

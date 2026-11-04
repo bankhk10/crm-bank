@@ -59,7 +59,8 @@ modules/activity/
 │   ├── actual.actions.ts                 # Actions สำหรับบันทึกผลการปฏิบัติงานจริงตามแผน (recordActivityResultAction)
 │   ├── approval.actions.ts               # Actions สำหรับการอนุมัติ/ไม่อนุมัติ/ตรวจสอบโดยผู้ช่วย
 │   ├── promotional.actions.ts            # Actions สำหรับจัดการสื่อส่งเสริมการขาย
-│   ├── types.ts                          # PlanActionResult types
+│   ├── master-data.actions.ts            # Server Loaders สำหรับดึง Master Data และ Plan Data แบบ Parallel บน Server Component (Zero Client POST on Initial Load)
+│   ├── types.ts                          # PlanActionResult, ActivityPlanMasterData, ActivityPlanEditMasterData, ActivityPlanActualInitialData, ActivityFilterMasterData types
 │   ├── index.ts                          # Server Actions Public Barrel (No "use server")
 │   └── actions.ts                        # Backward Compatibility Re-export Barrel (No "use server")
 │
@@ -516,6 +517,14 @@ export function ActivityPlanApprovalDetailView({ id }) {
    - โฟลเดอร์เก่า `modules/activity-plans/` ถูกปลดระวางและลบออกจากระบบถาวรแล้ว (100% Decommissioned)
 3. **Type Safety & Production Build**:
    - ทุกการแก้ไขต้องผ่านการตรวจสอบ `npx tsc --noEmit` (Exit code 0) และ `npm run build` โดยไม่มี Error
+4. **Server Component Master Data Pre-fetching (Zero-POST Initial Load)**:
+   - หน้า Route (`app/(main)/activity-plans/.../page.tsx`) ทำหน้าที่เป็น `async` Server Component (`export const dynamic = "force-dynamic"`) เพื่อดึง Master Data และข้อมูลแผนงานผ่าน Server Loaders ใน [`server/master-data.actions.ts`](server/master-data.actions.ts) ก่อนส่งเข้า Client Views เป็น Initial Props:
+     - `getPlannedActivityMasterData()`: สำหรับหน้าสร้างแผนงาน (`/activity-plans/new`) และสร้างกิจกรรมนอกแผน (`/activity-plans/unplanned/new`)
+     - `getActivityPlanEditData(id)`: สำหรับหน้าแก้ไขแผนงาน (`/activity-plans/[id]/edit`) และแก้ไขกิจกรรมนอกแผน (`/activity-plans/unplanned/[id]/edit`) — รวมการดึง `plan` และ Follow-up Plans ของ `plan.employeeId` ในรอบเดียวบน Server โดยไม่เกิด Request Waterfall
+     - `getActivityPlanActualInitialData(id)`: สำหรับหน้าบันทึกผลการปฏิบัติงานจริง (`/activity-plans/[id]/actual` และ `/activity-plans/actual`)
+     - `getActivityFilterMasterData()`: สำหรับตัวเลือกตัวกรองในหน้ารายการ (`/activity-plans`) และหน้าปฏิทิน (`/activity-plans/calendar`)
+     - `getActivityPlanAction(id)`: สำหรับหน้ารายละเอียด (`/activity-plans/[id]`) และหน้าอนุมัติรายแผน (`/activity-plans/approvals/[id]`)
+   - Client Views ทุกหน้ายังคงมี Fallback ใน `useEffect` กรณีที่ถูกเรียกใช้งานโดยไม่ได้ส่ง Initial Props มา เพื่อรักษา Backward Compatibility 100%
 
 ---
 

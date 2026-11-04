@@ -131,6 +131,7 @@ import {
   deleteActivityPlanImagePaths, isPermanentActivityUploadUrl,
 } from "@/modules/activity/application/media/image-uploader";
 import { formatUserFriendlyError } from "@/lib/error-utils";
+import type { ActivityPlanActualInitialData } from "@/modules/activity/types";
 
 /**
  * Recursively strips in-memory binary objects (File, Blob, rawFile, file) from payload
@@ -157,6 +158,7 @@ function stripBinaryFiles<T = any>(obj: T): T {
 
 interface ActivityPlanActualViewProps {
   id?: string;
+  initialActualData?: ActivityPlanActualInitialData;
   onCancel?: () => void;
   onSuccess?: () => void;
 }
@@ -165,6 +167,7 @@ export function ActivityPlanActualView({
   id,
   onCancel,
   onSuccess,
+  initialActualData,
 }: ActivityPlanActualViewProps) {
   const router = useRouter();
 
@@ -179,7 +182,7 @@ export function ActivityPlanActualView({
     unauthorizedError,
     planStatus,
     isRefreshing,
-  } = useActualPlanLoader({ id });
+  } = useActualPlanLoader({ id, initialActualData });
 
   // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
   const statusState = useActualStatusState();

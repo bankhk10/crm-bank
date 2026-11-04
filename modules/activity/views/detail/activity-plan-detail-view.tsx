@@ -21,15 +21,20 @@ import {
   DetailViewActions,
 } from "./components";
 import { useDetailPlanLoader } from "./hooks";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 
 interface ActivityPlanDetailViewProps {
   id: string;
   onBack?: () => void;
+  initialPlan?: ActivityPlanWithRelations | null;
+  initialError?: string | null;
 }
 
 export default function ActivityPlanDetailView({
   id,
   onBack,
+  initialPlan,
+  initialError,
 }: ActivityPlanDetailViewProps) {
   const { data: session } = useSession();
   const isAdmin = isActivityAdmin(session?.user);
@@ -46,7 +51,7 @@ export default function ActivityPlanDetailView({
     mergedLogs,
     isTypeActive,
     handleBack,
-  } = useDetailPlanLoader({ id, onBack });
+  } = useDetailPlanLoader({ id, onBack, initialPlan, initialError });
 
   if (loading) {
     return (

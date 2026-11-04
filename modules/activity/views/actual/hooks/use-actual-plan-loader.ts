@@ -7,6 +7,7 @@ import { getWorkTypeCode } from "@/modules/activity/constants";
 import { listProductsAction } from "@/modules/products/server/actions";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import type { PlanSummaryData } from "../types";
+import type { ActivityPlanActualInitialData } from "@/modules/activity/types";
 import {
   extractPlanData,
   parseResultSummary,
@@ -16,9 +17,13 @@ import {
 
 interface UseActualPlanLoaderProps {
   id?: string;
+  initialActualData?: ActivityPlanActualInitialData;
 }
 
-export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
+export function useActualPlanLoader({
+  id,
+  initialActualData,
+}: UseActualPlanLoaderProps) {
   const { data: session, status: sessionStatus } = useSession();
   const hasLoadedRef = useRef<string | null>(null);
 
@@ -31,12 +36,18 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
   const [plan, setPlan] = useState<any | null>(null);
   const [planSummary, setPlanSummary] = useState<PlanSummaryData>(initialPlanSummary);
   const [planWorkTypes, setPlanWorkTypes] = useState<string[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>(
+    initialActualData?.products ?? [],
+  );
+  const [customers, setCustomers] = useState<any[]>(
+    initialActualData?.customers ?? [],
+  );
   const [parsedResult, setParsedResult] = useState<ReturnType<typeof parseResultSummary> | null>(null);
 
   // Load products & customers master list once
   useEffect(() => {
+    if (initialActualData) return;
+
     listProductsAction({ status: "ACTIVE", perPage: 1000 })
       .then((res: any) => {
         if (res?.success && res?.data) {
@@ -71,7 +82,13 @@ export function useActualPlanLoader({ id }: UseActualPlanLoaderProps) {
         } else {
           setIsRefreshing(true);
         }
-        const res = await getActivityPlanAction(id!);
+        const res = initialActualData
+          ? {
+              success: !initialActualData.planError && !!initialActualData.plan,
+              plan: initialActualData.plan,
+              error: initialActualData.planError || undefined,
+            }
+          : await getActivityPlanAction(id!);
         if (!res.success || !res.plan) {
           setFormError(res.error || "ไม่สามารถโหลดข้อมูลแผนงานกิจกรรมได้");
           setLoadingPlan(false);

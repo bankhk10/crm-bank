@@ -1,11 +1,20 @@
-import { use } from "react";
 import { ActivityPlanApprovalDetailView } from "@/modules/activity";
+import { getActivityPlanAction } from "@/modules/activity/server";
 
-export default function ActivityPlanApprovalDetailPage({
+export const dynamic = "force-dynamic";
+
+export default async function ActivityPlanApprovalDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
-  return <ActivityPlanApprovalDetailView id={id} />;
+  const { id } = await params;
+  const planRes = await getActivityPlanAction(id);
+  return (
+    <ActivityPlanApprovalDetailView
+      id={id}
+      initialPlan={planRes.success ? (planRes.plan ?? null) : null}
+      initialError={planRes.success ? null : (planRes.error ?? null)}
+    />
+  );
 }

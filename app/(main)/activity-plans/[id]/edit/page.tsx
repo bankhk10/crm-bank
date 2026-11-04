@@ -1,11 +1,14 @@
-import { use } from "react";
 import { PlannedEditView } from "@/modules/activity";
+import { getActivityPlanEditData } from "@/modules/activity/server";
 
-export default function ActivityPlanEditPage({
+export const dynamic = "force-dynamic";
+
+export default async function ActivityPlanEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
-  return <PlannedEditView id={id} />;
+  const { id } = await params;
+  const editData = await getActivityPlanEditData(id);
+  return <PlannedEditView id={id} initialEditData={editData} />;
 }

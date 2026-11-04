@@ -14,3 +14,9 @@ export {
 } from "@prisma/client";
 
 export * from "./strategy.interface";
+export type {
+  ActivityPlanMasterData,
+  ActivityPlanEditMasterData,
+  ActivityPlanActualInitialData,
+  ActivityFilterMasterData,
+} from "../server/types";

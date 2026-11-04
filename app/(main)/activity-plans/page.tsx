@@ -1,5 +1,9 @@
 import { ActivityPlanListView } from "@/modules/activity";
+import { getActivityFilterMasterData } from "@/modules/activity/server";
 
-export default function ActivityPlansPage() {
-  return <ActivityPlanListView />;
+export const dynamic = "force-dynamic";
+
+export default async function ActivityPlansPage() {
+  const filterData = await getActivityFilterMasterData();
+  return <ActivityPlanListView initialFilterData={filterData} />;
 }

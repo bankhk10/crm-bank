@@ -11,7 +11,10 @@ import {
 } from "./components/activity-plan-table";
 import { BatchSubmitBar } from "./components/batch-submit-bar";
 import { BatchSubmitDialog } from "./components/batch-submit-dialog";
-import type { ActivityPlanWithRelations } from "@/modules/activity/types";
+import type {
+  ActivityPlanWithRelations,
+  ActivityFilterMasterData,
+} from "@/modules/activity/types";
 import {
   deleteActivityPlanAction,
   submitActivityPlanAction,
@@ -42,7 +45,13 @@ import {
   getDefaultActivityPlanViewScope,
 } from "@/modules/activity/domain/permissions";
 
-export default function ActivityPlanListView() {
+export interface ActivityPlanListViewProps {
+  initialFilterData?: ActivityFilterMasterData;
+}
+
+export default function ActivityPlanListView({
+  initialFilterData,
+}: ActivityPlanListViewProps = {}) {
   const { data: session } = useSession();
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.activity_plans",
@@ -125,6 +134,39 @@ export default function ActivityPlanListView() {
 
   // Load master options for Work Types and Employees
   useEffect(() => {
+    if (initialFilterData) {
+      if (
+        Array.isArray(initialFilterData.activityTypes) &&
+        initialFilterData.activityTypes.length > 0
+      ) {
+        setWorkTypeOptions(
+          initialFilterData.activityTypes.map((t: any) => ({
+            value: t.code,
+            label: `${t.code?.replace("_", "") || ""} ${t.name || ""}`.trim(),
+          })),
+        );
+      } else {
+        setWorkTypeOptions(
+          Object.values(WORK_TYPE_CONFIG).map((c) => ({
+            value: c.code,
+            label: `${c.code.replace("_", "")} ${c.name}`,
+          })),
+        );
+      }
+
+      if (Array.isArray(initialFilterData.employees)) {
+        setPersonOptions(
+          initialFilterData.employees
+            .filter((e: any) => e.name)
+            .map((e: any) => ({
+              value: e.id,
+              label: e.name,
+            })),
+        );
+      }
+      return;
+    }
+
     let isMounted = true;
 
     getActivityTypesAction()

@@ -41,15 +41,20 @@ import {
   HelperReviewDialog,
 } from "./components";
 import { useApprovalDetailLoader } from "./hooks";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
 
 interface ActivityPlanApprovalDetailViewProps {
   id: string;
   onBack?: () => void;
+  initialPlan?: ActivityPlanWithRelations | null;
+  initialError?: string | null;
 }
 
 export default function ActivityPlanApprovalDetailView({
   id,
   onBack,
+  initialPlan,
+  initialError,
 }: ActivityPlanApprovalDetailViewProps) {
   const router = useRouter();
 
@@ -80,7 +85,7 @@ export default function ActivityPlanApprovalDetailView({
     handleApproveHelper,
     handleRejectHelper,
     isTypeActive,
-  } = useApprovalDetailLoader({ id });
+  } = useApprovalDetailLoader({ id, initialPlan, initialError });
 
   const handleBack = () => {
     if (onBack) {

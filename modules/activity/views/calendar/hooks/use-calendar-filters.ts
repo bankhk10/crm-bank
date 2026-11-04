@@ -7,13 +7,16 @@ import { getActivityTypesAction } from "@/modules/activity/server/actions";
 import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import { WORK_TYPE_CONFIG } from "@/modules/activity/constants";
 import { getDefaultActivityPlanViewScope } from "@/modules/activity/domain/permissions";
+import type { ActivityFilterMasterData } from "@/modules/activity/types";
 import {
   CalendarFilter,
   CalendarEvent,
   CalendarFilterState,
 } from "../types/calendar.types";
 
-export function useCalendarFilters(): CalendarFilterState & {
+export function useCalendarFilters(
+  initialFilterData?: ActivityFilterMasterData,
+): CalendarFilterState & {
   syncAttendeeOptions: (events: CalendarEvent[]) => void;
 } {
   const { data: session } = useSession();
@@ -42,6 +45,39 @@ export function useCalendarFilters(): CalendarFilterState & {
 
   // Load Work Type & Employee options
   useEffect(() => {
+    if (initialFilterData) {
+      if (
+        Array.isArray(initialFilterData.activityTypes) &&
+        initialFilterData.activityTypes.length > 0
+      ) {
+        setWorkTypeOptions(
+          initialFilterData.activityTypes.map((t: any) => ({
+            value: t.code,
+            label: `${t.code?.replace("_", "") || ""} ${t.name || ""}`.trim(),
+          })),
+        );
+      } else {
+        setWorkTypeOptions(
+          Object.values(WORK_TYPE_CONFIG).map((c) => ({
+            value: c.code,
+            label: `${c.code.replace("_", "")} ${c.name}`,
+          })),
+        );
+      }
+
+      if (Array.isArray(initialFilterData.employees)) {
+        setPersonOptions(
+          initialFilterData.employees
+            .filter((e: any) => e.name)
+            .map((e: any) => ({
+              value: e.id,
+              label: e.name,
+            })),
+        );
+      }
+      return;
+    }
+
     let isMounted = true;
 
     getActivityTypesAction()
