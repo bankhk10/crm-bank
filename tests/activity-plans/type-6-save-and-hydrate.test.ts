@@ -146,7 +146,7 @@ async function runTests() {
   assert.strictEqual(createdIssues[0].purchaseChannel, "ร้านค้าตัวแทนจำหน่าย");
   assert.strictEqual(createdAttachments.length, 1);
   assert.strictEqual(createdAttachments[0].category, "ISSUE");
-  assert.strictEqual(createdAttachments[0].issueItemId, createdIssues[0].id);
+  assert.strictEqual(createdAttachments[0].type6ResultId || createdAttachments[0].issueItemId, createdIssues[0].id);
 
   console.log("✓ Test 2 passed: saveActual creates ActivityResult and links attachments.");
 

@@ -782,6 +782,7 @@ export function UnplannedActivityForm({
     let planProducts: any[] = [];
     let followupResults: any[] = [];
     let actualData: any = null;
+    let updatedType6Items: any = null;
     let updatedType7bItems: any = null;
     let updatedType13Items: any = null;
     let updatedType14Item: any = null;
@@ -1120,7 +1121,46 @@ export function UnplannedActivityForm({
         return;
       }
 
-      const mapped = mapType6UnplannedToPayload(type6.items);
+      // Upload Evidence Images first to get permanent server URLs
+      const allType6Images = type6.items.flatMap((item) => item.images || []);
+      let cleanType6Images = allType6Images;
+      updatedType6Items = type6.items;
+      if (allType6Images.length > 0) {
+        try {
+          const res = await uploadActivityPlanImageGroup(
+            uploadPlanId,
+            allType6Images,
+            "type6",
+            "issue",
+          );
+          cleanType6Images = res.updatedImages;
+          const urlMap = new Map<string, string>();
+          cleanType6Images.forEach((img: any) => {
+            if (img.id && img.url) urlMap.set(img.id, img.url);
+            if (img.name && img.url) urlMap.set(img.name, img.url);
+          });
+
+          // Remap newly uploaded URLs back into updatedType6Items
+          updatedType6Items = type6.items.map((item) => {
+            const remappedImages = (item.images || []).map((img: any) => {
+              const newUrl = urlMap.get(img.id) || urlMap.get(img.name) || img.url;
+              return { ...img, url: newUrl };
+            });
+            return {
+              ...item,
+              images: remappedImages,
+            };
+          });
+        } catch (uploadErr: any) {
+          showValidationError(
+            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
+            uploadErr.message || "อัปโหลดรูปภาพหลักฐานไม่สำเร็จ",
+          );
+          return;
+        }
+      }
+
+      const mapped = mapType6UnplannedToPayload(updatedType6Items);
 
       if (mapped.type6Targets?.length) {
         planStores = [
@@ -1135,27 +1175,6 @@ export function UnplannedActivityForm({
               isUnregisteredFarmer: Boolean(t.isManualCustomer),
             })),
         ];
-      }
-
-      // Upload Evidence Images
-      const allType6Images = type6.items.flatMap((item) => item.images || []);
-      let cleanType6Images = allType6Images;
-      if (allType6Images.length > 0) {
-        try {
-          const res = await uploadActivityPlanImageGroup(
-            uploadPlanId,
-            allType6Images,
-            "type6",
-            "issue",
-          );
-          cleanType6Images = res.updatedImages;
-        } catch (uploadErr: any) {
-          showValidationError(
-            "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
-            uploadErr.message || "อัปโหลดรูปภาพหลักฐานไม่สำเร็จ",
-          );
-          return;
-        }
       }
 
       actualData = {
@@ -2043,7 +2062,7 @@ export function UnplannedActivityForm({
       : null;
 
     const mappedType6 = isType6Active
-      ? mapType6UnplannedToPayload(type6.items)
+      ? mapType6UnplannedToPayload(updatedType6Items || type6.items)
       : null;
 
     const mappedType7a = isType7aActive
@@ -2188,7 +2207,9 @@ export function UnplannedActivityForm({
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
       type5UnplannedItems: isType5Active ? type5.items : undefined,
-      type6UnplannedItems: isType6Active ? type6.items : undefined,
+      type6UnplannedItems: isType6Active
+        ? updatedType6Items || type6.items
+        : undefined,
       type7aUnplannedItems: isType7aActive ? type7a.items : undefined,
       type7bUnplannedItems: isType7bActive
         ? updatedType7bItems || type7b.items

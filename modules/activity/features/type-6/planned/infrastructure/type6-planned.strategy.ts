@@ -261,6 +261,8 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       const dbId = itemsToCreate[idx]?.id;
       if (Array.isArray(item.images)) {
         for (const img of item.images) {
+          const fileUrl = img.url || img.fileUrl;
+          if (!fileUrl || fileUrl.startsWith("blob:")) continue;
           issueAttachments.push({
             activityPlanId,
             activityResultId: resultId,
@@ -269,8 +271,7 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             storeId: item.storeId || null,
             productId: item.productId || null,
             type6ResultId: dbId,
-            issueItemId: dbId,
-            fileUrl: img.url || img.fileUrl,
+            fileUrl,
             fileName: img.name || img.fileName || "รูปถ่ายหลักฐานปัญหา",
             fileSize: img.size || img.fileSize || 0,
             mimeType: img.type || img.mimeType || "image/jpeg",
@@ -284,7 +285,9 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       : [];
     for (const att of rawAttachments) {
       if (att.workTypeCode === "TYPE_6" || att.category === "ISSUE") {
-        if (!issueAttachments.some((ia) => ia.fileUrl === (att.fileUrl || att.url))) {
+        const fileUrl = att.fileUrl || att.url;
+        if (!fileUrl || fileUrl.startsWith("blob:")) continue;
+        if (!issueAttachments.some((ia) => ia.fileUrl === fileUrl)) {
           issueAttachments.push({
             activityPlanId,
             activityResultId: resultId,
@@ -294,10 +297,12 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
             productId: att.productId || itemsToCreate[0]?.productId || null,
             type6ResultId:
               (att.type6ResultId && clientIssueMap.get(att.type6ResultId)) ||
+              (att.issueItemId && clientIssueMap.get(att.issueItemId)) ||
               att.type6ResultId ||
+              att.issueItemId ||
               itemsToCreate[0]?.id ||
               null,
-            fileUrl: att.fileUrl || att.url,
+            fileUrl,
             fileName: att.fileName || att.name || "รูปถ่ายหลักฐานปัญหา",
             fileSize: att.fileSize || att.size || 0,
             mimeType: att.mimeType || att.type || "image/jpeg",
@@ -306,13 +311,17 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
+    await (tx as any).activityAttachment.deleteMany({
+      where: {
+        activityPlanId,
+        OR: [
+          { workTypeCode: "TYPE_6" },
+          { type6ResultId: { not: null } },
+        ],
+      },
+    });
+
     if (issueAttachments.length > 0) {
-      await (tx as any).activityAttachment.deleteMany({
-        where: {
-          activityPlanId,
-          workTypeCode: "TYPE_6",
-        },
-      });
       await (tx as any).activityAttachment.createMany({
         data: issueAttachments,
       });
