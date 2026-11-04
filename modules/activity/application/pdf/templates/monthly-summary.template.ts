@@ -104,20 +104,30 @@ export function renderMonthlySummaryTemplate({
   empDept = empDept || "-";
 
   // Calculate Monthly Metrics
-  let totalDays = 0;
+  // Count unique active calendar days in this month (ignoring times, deduplicating overlaps)
+  const activeDaysSet = new Set<number>();
   let totalBudget = 0;
   const allUniqueTargets = new Set<string>();
 
   plans.forEach((p) => {
-    // Days calculation
+    // Unique Calendar Days calculation (normalized to date-only within the selected month & year)
     if (p.startDate && p.endDate) {
       const s = new Date(p.startDate);
       const e = new Date(p.endDate);
-      const ms = Math.max(0, e.getTime() - s.getTime());
-      const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
-      totalDays += days;
-    } else {
-      totalDays += 1;
+      const curr = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+      const last = new Date(e.getFullYear(), e.getMonth(), e.getDate());
+
+      while (curr <= last) {
+        if (curr.getFullYear() === year && curr.getMonth() + 1 === month) {
+          activeDaysSet.add(curr.getDate());
+        }
+        curr.setDate(curr.getDate() + 1);
+      }
+    } else if (p.startDate) {
+      const s = new Date(p.startDate);
+      if (s.getFullYear() === year && s.getMonth() + 1 === month) {
+        activeDaysSet.add(s.getDate());
+      }
     }
 
     // Budget
@@ -131,6 +141,8 @@ export function renderMonthlySummaryTemplate({
     targets.forEach((t) => allUniqueTargets.add(t));
   });
 
+  const totalDays = activeDaysSet.size;
+
   // Table rows
   const tableRowsHtml = plans
     .map((p, idx) => {
@@ -139,15 +151,6 @@ export function renderMonthlySummaryTemplate({
       const endStr = formatDateThai(p.endDate, "d MMM");
       const dateDisplay =
         startStr === endStr ? startStr : `${startStr} - ${endStr}`;
-
-      // Calculate days
-      let daysCount = 1;
-      if (p.startDate && p.endDate) {
-        const s = new Date(p.startDate);
-        const e = new Date(p.endDate);
-        const ms = Math.max(0, e.getTime() - s.getTime());
-        daysCount = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1);
-      }
 
       // Target Area (Store Address)
       const targetAddresses = extractTargetAddresses(p);
