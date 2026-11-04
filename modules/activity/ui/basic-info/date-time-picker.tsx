@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, Clock } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  Clock,
+} from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 import { th } from "date-fns/locale";
 import {
@@ -13,20 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES = [
-  "00",
-  "05",
-  "10",
-  "15",
-  "20",
-  "25",
-  "30",
-  "35",
-  "40",
-  "45",
-  "50",
-  "55",
-];
+const MINUTES = ["00", "10", "20", "30", "40", "50"];
 
 interface TimePickerPanelProps {
   currentHour: string;
@@ -173,12 +165,12 @@ export function DateTimePicker({
 
   // Formatted date text for trigger and preview
   const formattedPreviewText = (() => {
-    const d = open ? (tempDate || selectedDate) : selectedDate;
+    const d = open ? tempDate || selectedDate : selectedDate;
     if (!d || !isValid(d)) return "เลือกวันที่";
 
     const buddhistYear = d.getFullYear() + 543;
     const dateStr = `${format(d, "d MMM", { locale: th })} ${buddhistYear}`;
-    const t = open ? (tempTime || timeValue || "10:00") : (timeValue || "10:00");
+    const t = open ? tempTime || timeValue || "10:00" : timeValue || "10:00";
 
     return `${dateStr} ${t} น.`;
   })();
@@ -283,7 +275,9 @@ export function DateTimePicker({
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                     เลือกวัน
                   </span>
-                  <span className="text-[11px] text-slate-400">ขั้นที่ 1/2</span>
+                  <span className="text-[11px] text-slate-400">
+                    ขั้นที่ 1/2
+                  </span>
                 </div>
 
                 <div className="p-3 pt-1">
@@ -337,7 +331,9 @@ export function DateTimePicker({
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-slate-400">ขั้นที่ 2/2</span>
+                  <span className="text-[11px] text-slate-400">
+                    ขั้นที่ 2/2
+                  </span>
                 </div>
 
                 <TimePickerPanel
