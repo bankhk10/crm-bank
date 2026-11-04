@@ -6,6 +6,14 @@ import { db } from "@/lib/db";
 import { Prisma, ActivityStatus } from "@prisma/client";
 import { createActivityPlanAction } from "@/modules/activity/server/planned.actions";
 import { getWorkTypeCode } from "@/modules/activity/constants";
+import { getSubordinateEmployeeIds } from "@/modules/activity/application/approval-queue";
+import {
+  isUserAdmin,
+  isUserSalesDirector,
+  isUserSalesAdminManager,
+  isUserMarketingManager,
+  type ApproverUserContext,
+} from "@/modules/activity/domain/approval";
 
 const resourcePath = "/api/activity-plans";
 
@@ -163,16 +171,46 @@ export async function GET(request: Request) {
     });
   }
 
-  const baseWhere: Prisma.ActivityPlanWhereInput = {
-    deletedAt: null,
-    ...(andConditions.length > 0 ? { AND: andConditions } : {}),
-  };
-
-  // Apply permission-based data scopes
-  await applyDataScope(baseWhere, session, "activity_plan");
-
   const currentUserId = session.user.id;
   const currentEmployeeId = session.user.employeeId;
+
+  // Resolve user department & position for fine-grained approver evaluation
+  let userDeptCode = "";
+  let userPosTitle = "";
+  if (currentEmployeeId) {
+    const emp = await db.employee.findUnique({
+      where: { id: currentEmployeeId },
+      include: { department: true, position: true },
+    });
+    userDeptCode = (emp?.department?.code || "").toUpperCase();
+    userPosTitle = (emp?.position?.name || emp?.positionTitle || "").toLowerCase();
+  }
+
+  const approverContext: ApproverUserContext = {
+    id: currentUserId,
+    name: session.user.name,
+    email: session.user.email,
+    employeeId: currentEmployeeId,
+    roles,
+    role: (session.user as any)?.role,
+    permissions,
+    departmentCode: userDeptCode,
+    positionTitle: userPosTitle,
+  };
+
+  const isGlobalApprover =
+    isAdmin ||
+    permissions.includes("activity.manage") ||
+    permissions.includes("activity.view_all") ||
+    isUserAdmin(approverContext) ||
+    isUserSalesDirector(approverContext) ||
+    isUserSalesAdminManager(approverContext) ||
+    isUserMarketingManager(approverContext);
+
+  const subordinateEmployeeIds =
+    !isGlobalApprover && currentEmployeeId
+      ? await getSubordinateEmployeeIds(currentEmployeeId)
+      : [];
 
   const ownCondition: Prisma.ActivityPlanWhereInput = currentEmployeeId
     ? {
@@ -197,27 +235,69 @@ export async function GET(request: Request) {
       }
     : { id: "__NONE__" };
 
-  const teamCondition: Prisma.ActivityPlanWhereInput = currentEmployeeId
-    ? {
-        NOT: {
-          OR: [
-            ownCondition,
-            {
-              helpers: {
-                some: {
-                  employeeId: currentEmployeeId,
-                  deletedAt: null,
+  // Team Scope: Aligns with Approval Queue logic
+  // - Global approvers: all plans except own and helper
+  // - Line managers / Supervisors: direct and indirect subordinates, current approver, or acted in approval logs
+  // - Staff without subordinates: empty
+  let teamCondition: Prisma.ActivityPlanWhereInput;
+  if (isGlobalApprover) {
+    teamCondition = {
+      NOT: {
+        OR: [
+          ownCondition,
+          ...(currentEmployeeId
+            ? [
+                {
+                  helpers: {
+                    some: {
+                      employeeId: currentEmployeeId,
+                      deletedAt: null,
+                    },
+                  },
                 },
-              },
-            },
-          ],
-        },
-      }
-    : currentUserId
-      ? {
-          NOT: { createdById: currentUserId },
-        }
-      : {};
+              ]
+            : []),
+        ],
+      },
+    };
+  } else {
+    const teamConditions: Prisma.ActivityPlanWhereInput[] = [];
+
+    if (subordinateEmployeeIds.length > 0) {
+      teamConditions.push({ employeeId: { in: subordinateEmployeeIds } });
+    }
+    if (currentEmployeeId) {
+      teamConditions.push({ currentApproverEmployeeId: currentEmployeeId });
+    }
+    if (currentUserId) {
+      teamConditions.push({ approvalLogs: { some: { userId: currentUserId } } });
+    }
+
+    if (teamConditions.length > 0) {
+      teamCondition = {
+        AND: [
+          { OR: teamConditions },
+          { NOT: ownCondition },
+          ...(currentEmployeeId
+            ? [
+                {
+                  NOT: {
+                    helpers: {
+                      some: {
+                        employeeId: currentEmployeeId,
+                        deletedAt: null,
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      };
+    } else {
+      teamCondition = { id: "__NONE__" };
+    }
+  }
 
   // Hide other people's DRAFT plans:
   // A plan in DRAFT status must ONLY be visible to its creator/owner.
@@ -226,30 +306,47 @@ export async function GET(request: Request) {
     OR: [{ status: { not: ActivityStatus.DRAFT } }, ownCondition],
   };
 
-  if (Array.isArray(baseWhere.AND)) {
-    baseWhere.AND.push(draftVisibilityCondition);
-  } else if (baseWhere.AND) {
-    baseWhere.AND = [baseWhere.AND, draftVisibilityCondition];
-  } else {
-    baseWhere.AND = [draftVisibilityCondition];
-  }
-
-  const combineWhere = (
-    extra?: Prisma.ActivityPlanWhereInput,
-  ): Prisma.ActivityPlanWhereInput => {
-    if (!extra || Object.keys(extra).length === 0) return baseWhere;
-    return {
-      AND: [baseWhere, extra],
-    };
+  const filterWhere: Prisma.ActivityPlanWhereInput = {
+    deletedAt: null,
+    ...(andConditions.length > 0 ? { AND: andConditions } : {}),
   };
 
-  let scopedWhere = baseWhere;
+  // 1. OWN scope
+  const ownWhere: Prisma.ActivityPlanWhereInput = {
+    AND: [filterWhere, ownCondition],
+  };
+
+  // 2. HELPER scope
+  const helperWhere: Prisma.ActivityPlanWhereInput = {
+    AND: [filterWhere, helperCondition, draftVisibilityCondition],
+  };
+
+  // 3. TEAM scope (Subordinates & Approval scope, all statuses except DRAFT)
+  const teamWhere: Prisma.ActivityPlanWhereInput = {
+    AND: [filterWhere, teamCondition, draftVisibilityCondition],
+  };
+
+  // 4. ALL scope (Permission-based data scope)
+  const allWhere: Prisma.ActivityPlanWhereInput = {
+    deletedAt: null,
+    ...(andConditions.length > 0 ? { AND: andConditions } : {}),
+  };
+  await applyDataScope(allWhere, session, "activity_plan");
+  if (Array.isArray(allWhere.AND)) {
+    allWhere.AND.push(draftVisibilityCondition);
+  } else if (allWhere.AND) {
+    allWhere.AND = [allWhere.AND, draftVisibilityCondition];
+  } else {
+    allWhere.AND = [draftVisibilityCondition];
+  }
+
+  let scopedWhere = allWhere;
   if (viewScope === "OWN") {
-    scopedWhere = combineWhere(ownCondition);
+    scopedWhere = ownWhere;
   } else if (viewScope === "TEAM") {
-    scopedWhere = combineWhere(teamCondition);
+    scopedWhere = teamWhere;
   } else if (viewScope === "HELPER") {
-    scopedWhere = combineWhere(helperCondition);
+    scopedWhere = helperWhere;
   }
 
   const [
@@ -312,10 +409,10 @@ export async function GET(request: Request) {
       skip: (page - 1) * perPage,
       take: perPage,
     }),
-    db.activityPlan.count({ where: combineWhere(ownCondition) }),
-    db.activityPlan.count({ where: combineWhere(teamCondition) }),
-    db.activityPlan.count({ where: combineWhere(helperCondition) }),
-    db.activityPlan.count({ where: baseWhere }),
+    db.activityPlan.count({ where: ownWhere }),
+    db.activityPlan.count({ where: teamWhere }),
+    db.activityPlan.count({ where: helperWhere }),
+    db.activityPlan.count({ where: allWhere }),
   ]);
 
   return NextResponse.json({
