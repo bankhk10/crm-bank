@@ -2,12 +2,14 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Search, X, Users, MapPin, UserCircle2, Store } from "lucide-react";
 import { SectionHeader } from "@/components/custom/section-header";
 import { ActivityAddressSelect } from "../inputs/activity-address-select";
+import { toast } from "sonner";
 
 import { getWorkTypeCode } from "@/modules/activity/constants";
 
 export interface Employee {
   id: string;
   name: string;
+  nickname?: string | null;
   positionTitle?: string | null;
   departmentName?: string | null;
   [key: string]: any;
@@ -114,15 +116,38 @@ export function LocationTeamSection({
   ]);
 
   // Helper Section Sub-component
+  const MAX_HELPERS = 10;
+  const isMaxHelpersReached = helperEmployeeIds.length >= MAX_HELPERS;
+
+  const handleSelectHelper = (empId: string) => {
+    if (isMaxHelpersReached) {
+      toast.warning(`เลือกผู้ช่วยงานกิจกรรมได้สูงสุด ${MAX_HELPERS} คน`);
+      setShowHelperDropdown(false);
+      return;
+    }
+    addHelper(empId);
+  };
+
   const renderHelpersCard = () => (
     <div className="space-y-3">
-      <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-        <Users className="h-4 w-4 text-slate-400 shrink-0" />
-        ผู้ช่วยงานกิจกรรม
-        <span className="text-slate-400 text-[11px] font-normal ml-1">
-          (เลือกได้หลายคน)
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+          <Users className="h-4 w-4 text-slate-400 shrink-0" />
+          ผู้ช่วยงานกิจกรรม
+          <span className="text-slate-400 text-[11px] font-normal ml-1">
+            (เลือกได้สูงสุด {MAX_HELPERS} คน)
+          </span>
+        </label>
+        <span
+          className={`text-xs tabular-nums font-medium ${
+            isMaxHelpersReached
+              ? "text-amber-600 font-semibold"
+              : "text-slate-400"
+          }`}
+        >
+          {helperEmployeeIds.length}/{MAX_HELPERS} คน
         </span>
-      </label>
+      </div>
 
       {/* Search box */}
       {!readonly && (
@@ -130,20 +155,35 @@ export function LocationTeamSection({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="ค้นหาชื่อผู้ช่วย..."
+            placeholder={
+              isMaxHelpersReached
+                ? `เลือกผู้ช่วยครบ ${MAX_HELPERS} คนแล้ว`
+                : "ค้นหาชื่อหรือชื่อเล่นผู้ช่วย..."
+            }
             value={helperSearch}
+            disabled={isMaxHelpersReached}
             onChange={(e) => {
               setHelperSearch(e.target.value);
               setShowHelperDropdown(true);
             }}
-            onFocus={() => setShowHelperDropdown(true)}
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-sm
-                       text-slate-800 placeholder:text-slate-300
-                       focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400
-                       transition-all"
+            onFocus={() => {
+              if (!isMaxHelpersReached) setShowHelperDropdown(true);
+            }}
+            className={`w-full h-10 pl-9 pr-3 rounded-xl border text-sm
+                       transition-all focus:outline-none ${
+                         isMaxHelpersReached
+                           ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed placeholder:text-slate-400"
+                           : "border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 focus:ring-2 focus:ring-blue-500/60 focus:border-blue-400"
+                       }`}
           />
 
-          {showHelperDropdown && (
+          {isMaxHelpersReached && (
+            <p className="text-[11px] text-amber-600 mt-1">
+              เลือกผู้ช่วยงานครบจำนวนสูงสุด ({MAX_HELPERS} คน) แล้ว หากต้องการเปลี่ยน กรุณาลบคนเดิมออกก่อน
+            </p>
+          )}
+
+          {!isMaxHelpersReached && showHelperDropdown && (
             <>
               <div
                 className="fixed inset-0 z-40"
@@ -162,7 +202,7 @@ export function LocationTeamSection({
                   filteredEmployees.map((emp) => (
                     <li
                       key={emp.id}
-                      onClick={() => addHelper(emp.id)}
+                      onClick={() => handleSelectHelper(emp.id)}
                       className="cursor-pointer px-3 py-2 hover:bg-blue-50 rounded-lg
                                  flex items-center gap-2.5 text-slate-700 transition-colors group"
                     >
@@ -175,6 +215,11 @@ export function LocationTeamSection({
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">
                           {emp.name}
+                          {emp.nickname ? (
+                            <span className="text-blue-600 font-normal ml-1">
+                              ({emp.nickname})
+                            </span>
+                          ) : null}
                         </p>
                         <p className="text-xs text-slate-400 truncate">
                           {[emp.positionTitle, emp.departmentName]
@@ -196,21 +241,30 @@ export function LocationTeamSection({
         <div className="flex flex-wrap gap-2 pt-1">
           {helperEmployeeIds.map((id) => {
             const emp = employees.find((e) => e.id === id);
+            const nicknameText = emp?.nickname ? ` (${emp.nickname})` : "";
+            const fullNameWithNickname = emp ? `${emp.name}${nicknameText}` : id;
+
             return (
               <span
                 key={id}
                 className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg
                            bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200"
               >
-                <UserCircle2 className="h-3.5 w-3.5 text-slate-400" />
-                <span className="max-w-[150px] truncate">
+                <UserCircle2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span className="max-w-[200px] truncate" title={fullNameWithNickname}>
                   {emp?.name || id}
+                  {emp?.nickname ? (
+                    <span className="text-blue-600 font-normal ml-1">
+                      ({emp.nickname})
+                    </span>
+                  ) : null}
                 </span>
                 {!readonly && (
                   <button
                     type="button"
                     onClick={() => removeHelper(id)}
                     className="p-0.5 hover:bg-slate-200 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                    title="ลบผู้ช่วย"
                   >
                     <X className="h-3 w-3" />
                   </button>

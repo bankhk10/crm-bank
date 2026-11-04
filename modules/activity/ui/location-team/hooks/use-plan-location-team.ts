@@ -5,10 +5,12 @@ import {
   isLocationAndTeamRequired,
   getWorkTypeCode,
 } from "@/modules/activity/constants";
+import { toast } from "sonner";
 
 export interface Employee {
   id: string;
   name: string;
+  nickname?: string | null;
   positionTitle?: string | null;
   departmentName?: string | null;
   [key: string]: any;
@@ -106,6 +108,7 @@ export function usePlanLocationTeam({
       const search = helperSearch.toLowerCase();
       return (
         emp.name.toLowerCase().includes(search) ||
+        (emp.nickname?.toLowerCase() || "").includes(search) ||
         (emp.positionTitle?.toLowerCase() || "").includes(search) ||
         (emp.departmentName?.toLowerCase() || "").includes(search)
       );
@@ -113,7 +116,13 @@ export function usePlanLocationTeam({
   }, [employees, helperEmployeeIds, helperSearch]);
 
   const addHelper = (id: string) => {
-    setHelperEmployeeIds((prev) => [...prev, id]);
+    setHelperEmployeeIds((prev) => {
+      if (prev.length >= 10) {
+        toast.warning("เลือกผู้ช่วยงานกิจกรรมได้สูงสุด 10 คน");
+        return prev;
+      }
+      return [...prev, id];
+    });
     setHelperSearch("");
     setShowHelperDropdown(false);
   };
@@ -123,6 +132,13 @@ export function usePlanLocationTeam({
   };
 
   const validateLocationTeam = () => {
+    if (helperEmployeeIds.length > 10) {
+      return {
+        isValid: false,
+        error: "เลือกผู้ช่วยงานกิจกรรมได้สูงสุดไม่เกิน 10 คน",
+      };
+    }
+
     const isType9Active = selectedWorkTypes.includes("จัดกิจกรรมส่งเสริมการขายหน้าร้าน");
     const isType10Active = selectedWorkTypes.some(
       (wt) => wt.includes("Field Day") || getWorkTypeCode(wt) === "TYPE_10",
