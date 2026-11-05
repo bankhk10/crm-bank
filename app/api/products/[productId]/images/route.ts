@@ -44,6 +44,7 @@ export async function POST(request: Request, { params }: { params: any }) {
         folder: `products/${productId}`,
         maxWidth: 1280,
         quality: 85,
+        contentType: file.type || undefined,
       });
 
       console.log(`[API] Upload success, url: ${uploadResult.url}`);
