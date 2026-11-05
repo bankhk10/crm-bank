@@ -1,0 +1,832 @@
+# Activity Module
+
+> **Module**: `activity`
+> **Purpose**: จัดการวงจรชีวิตของกิจกรรมการลงพื้นที่ทั้งหมด (Trip Plans, Unplanned Visits, Field Results Recording, Approval Workflows) ครอบคลุม 14 ประเภทงาน (Work Types 1 - 14)
+> **Architecture Authority**: [`docs/MODULE_ARCHITECTURE.md`](../../docs/MODULE_ARCHITECTURE.md)
+> **Coding Standards**: [`docs/CODING_STANDARDS.md`](../../docs/CODING_STANDARDS.md)
+> **Type Slice Blueprint**: [`modules/activity/docs/TYPE_SLICE_BLUEPRINT.md`](docs/TYPE_SLICE_BLUEPRINT.md)
+> **Module Roadmap**: [`modules/activity/docs/ROADMAP.md`](docs/ROADMAP.md)
+> **Gold Standard Reference**: `modules/activity/features/type-1` (ต้นแบบ Vertical Slice สำหรับประเภทงานอื่น)
+
+---
+
+## 1. Module Overview & Core Philosophy
+
+Activity Module ได้รับการออกแบบตามสถาปัตยกรรม **Modular Monolith** ร่วมกับแนวคิด **Pure Declarative Orchestrators** และ **Vertical Slice Architecture** เพื่อแก้ไขปัญหาเดิมของระบบเก่าที่เป็น Monolith ขนาดใหญ่ (ไฟล์ 1,000–1,600 บรรทัดที่รวบ `switch-case` ของ 14 ประเภทงานไว้ในที่เดียว)
+
+### เสาหลักของสถาปัตยกรรม (Core Pillars):
+
+1. **Pure Declarative Orchestrators (Views)**: หน้าจอทุกหน้าใน `views/` ทำหน้าที่เป็นเพียง "ผู้กำกับเวที" (Orchestrator) นำชิ้นส่วน UI ส่วนกลาง (`ui/`) และชิ้นส่วนเฉพาะงาน (`features/type-X`) มาวางเรียงกันอย่างอ่านง่าย โดยไม่มี Business Logic หรือการดึงข้อมูลตรงแทรกอยู่ใน JSX
+2. **Gold Standard Vertical Slice (`features/type-1`)**: แต่ละประเภทงานแยกอิสระเป็นโมดูลย่อย มีทั้ง `planned`, `unplanned`, และ `actual` ของตัวเองอย่างชัดเจน พร้อม Strategy บันทึกฐานข้อมูล และ Mapper
+3. **Common Reusable UI Blocks (`ui/`)**: ส่วนประกอบที่เป็นของกลาง เช่น ข้อมูลทั่วไป, วันที่/เวลา, พื้นที่และทีมงานร่วมทาง, งบประมาณ, หมายเหตุ และปุ่ม Action ถูกแยกออกมาเพื่อใช้ร่วมกันข้ามทุกประเภทงาน
+4. **Pure Dedicated Relational Storage (100% Dedicated Tables)**: แต่ละประเภทงานจัดเก็บลงตารางเฉพาะของตัวเอง (`activity_type_{code}_*`) ทั้งฝั่งเป้าหมายแผนงาน (`targets`, `products`) และผลการปฏิบัติงานจริง (`result`) ผ่าน Strategy ภายใน Transaction เดียว โดยตัดขาดจากตาราง Generic เดิม (`ActivityPlanStore`, `ActivityPlanProduct`) และไม่มี Dual-Write/Mirroring ตกค้างในระบบอีกต่อไป — ตาราง Generic เก่าทั้ง 12 ตารางถูก Drop ออกจากฐานข้อมูลอย่างถาวร
+
+---
+
+## 2. Directory Structure
+
+```text
+modules/activity/
+├── docs/                                 # เอกสารสถาปัตยกรรมและแผนการพัฒนาประจำโมดูล
+│   ├── TYPE_SLICE_BLUEPRINT.md           # พิมพ์เขียวมาตรฐาน 24-Artifact สำหรับทุก Activity Type Slice
+│   └── ROADMAP.md                        # แผนการพัฒนา เกณฑ์ตรวจรับงาน (Quality Gates) และสถานะปัจจุบัน
+│
+├── features/                             # Vertical Slices แยกตามประเภทงาน (Work Types 1 - 14 ครบ 15 Slices)
+│   ├── type-1/                           # ⭐ เข้าพบเกษตรกร / ร้านค้า (Farmer & Store Visit) [activity_type_1_targets, activity_type_1_result]
+│   │   ├── planned/                      # กิจกรรม "ในแผน" (Trip Plan & Actual Result)
+│   │   ├── unplanned/                    # กิจกรรม "นอกแผน" (Unplanned 2-in-1: สร้างพร้อมบันทึกผล)
+│   │   ├── shared/                       # สิ่งที่ใช้ร่วมกันภายใน Type 1 (Constants, Types)
+│   │   ├── README.md                     # เอกสารทางเทคนิคเฉพาะ Type 1
+│   │   └── index.ts                      # Client-Safe Unified Public API Contract
+│   ├── type-2/                           # 🌾 เข้าพบตัวแทนจำหน่าย (Dealer Visit) [activity_type_2_targets, activity_type_2_products, activity_type_2_result]
+│   ├── type-3/                           # 🏪 เข้าพบร้านค้าย่อย (Subdealer Visit) [activity_type_3_targets, activity_type_3_products, activity_type_3_result]
+│   ├── type-4/                           # 💰 วางบิล / เก็บเงิน (Billing & Payment Collection) [activity_type_4_targets, activity_type_4_result]
+│   ├── type-5/                           # 🤝 ส่งเสริมการขายร่วมร้านค้า (Joint Field Day / Promotion with Store) [activity_type_5_targets, activity_type_5_products, activity_type_5_result]
+│   ├── type-6/                           # 📊 สรุปผลแปลงสาธิต (Demo Plot Evaluation) [activity_type_6_targets, activity_type_6_result]
+│   ├── type-7a/                          # 🚜 จัดทำแปลงสาธิต / ให้บริการฉีดพ่น (Demo Plot & Spray Service) [activity_type_7a_targets, activity_type_7a_products, activity_type_7a_result]
+│   ├── type-7b/                          # 🔍 ติดตามแปลงสาธิต / สำรวจศัตรูพืช (Multiple Spray Rounds) [activity_type_7b_targets, activity_type_7b_products, activity_type_7b_result]
+│   ├── type-8/                           # 👥 จัดประชุม (Meeting & Seminar) [activity_type_8_targets, activity_type_8_products, activity_type_8_result]
+│   ├── type-9/                           # 🎪 กิจกรรมส่งเสริมการขายหน้าร้าน (Store Event & Sales Promotion) [activity_type_9_targets, activity_type_9_products, activity_type_9_result]
+│   ├── type-10/                          # 🌾 สาธิตแปลง / จัดแปลงสาธิต (Field Demonstration) [activity_type_10_targets, activity_type_10_products, activity_type_10_result]
+│   ├── type-11/                          # 📦 จัดอบรมถ่ายทอดความรู้ (Knowledge Sharing / Training) [activity_type_11_targets, activity_type_11_result]
+│   ├── type-12/                          # 🚌 พาลูกค้าศึกษาดูงาน / ทัวร์ (Tour / Study Trip) [activity_type_12_targets, activity_type_12_result]
+│   ├── type-13/                          # 📈 ติดตามผลการใช้ผลิตภัณฑ์ (Product Follow-up) [activity_type_13_targets, activity_type_13_products, activity_type_13_result]
+│   └── type-14/                          # 🛠️ แก้ไขปัญหาการใช้ผลิตภัณฑ์ (Issue Handling & Complaint) [activity_type_14_targets, activity_type_14_products, activity_type_14_result]
+│
+├── server/                               # Server Actions Gateways (หมวดหมู่แยกหน้าที่ชัดเจน)
+│   ├── planned.actions.ts                # Actions สำหรับแผนงานในแผน (Planned: สร้าง/แก้ไข/ดึง/ลบ/ยกเลิก)
+│   ├── unplanned.actions.ts              # Actions สำหรับกิจกรรมนอกแผน (Unplanned 2-in-1: สร้าง/แก้ไข/ดึง)
+│   ├── actual.actions.ts                 # Actions สำหรับบันทึกผลการปฏิบัติงานจริงตามแผน (recordActivityResultAction)
+│   ├── approval.actions.ts               # Actions สำหรับการอนุมัติ/ไม่อนุมัติ/ตรวจสอบโดยผู้ช่วย
+│   ├── promotional.actions.ts            # Actions สำหรับจัดการสื่อส่งเสริมการขาย
+│   ├── master-data.actions.ts            # Server Loaders สำหรับดึง Master Data และ Plan Data แบบ Parallel บน Server Component (Zero Client POST on Initial Load)
+│   ├── types.ts                          # PlanActionResult, ActivityPlanMasterData, ActivityPlanEditMasterData, ActivityPlanActualInitialData, ActivityFilterMasterData types
+│   ├── index.ts                          # Server Actions Public Barrel (No "use server")
+│   └── actions.ts                        # Backward Compatibility Re-export Barrel (No "use server")
+│
+├── infrastructure/                       # Database Repositories & Execution Registries
+│   ├── strategy.registry.ts              # 🧭 Universal Work Type Strategy Registry (TYPE_1 - TYPE_14, รวม TYPE_7A/7B)
+│   ├── activity-plan.repository.ts       # resolveActivityTypeId, generateActivityPlanCode, computeFiscalFields
+│   ├── activity-plan-include.ts          # ACTIVITY_PLAN_FULL_INCLUDE (รวม Dedicated Relations ของทุก Type)
+│   ├── activity-approval.repository.ts   # Database operations สำหรับการอนุมัติและประวัติ Approval Logs
+│   ├── activity-result.repository.ts     # Database operations สำหรับบันทึกผลการปฏิบัติงานจริง (Actual Results)
+│   ├── customer-lookup.repository.ts     # ค้นหาข้อมูลร้านค้าและเกษตรกรสำหรับระบบแผนงาน
+│   ├── demo-plot.repository.ts           # จัดการข้อมูลแปลงสาธิต (Master DemoPlot & Visits สำหรับ Type 7A/7B/10/13/14)
+│   ├── employee-lookup.repository.ts     # findOrCreateEmployeeForUser, getApproverDirectory
+│   ├── promotional-material.repository.ts# จัดการข้อมูลสื่อส่งเสริมการขายและของเบิก
+│   ├── calendar-integration.ts           # ซิงค์แผนงานและกิจกรรมเข้ากับระบบปฏิทิน
+│   └── index.ts                          # Infrastructure Public Barrel
+│
+├── types/                                # Module-level Types & Strategy Interfaces
+│   ├── strategy.interface.ts             # WorkTypeStrategy, PrismaTransaction, StrategyValidationResult
+│   └── index.ts                          # Types Public Barrel
+│
+├── domain/                               # Domain Layer (Pure Business Rules, Permissions & Workflows)
+│   ├── approval/                         # 🛡️ Activity Approval Workflow Engine ([README](domain/approval/README.md))
+│   │   ├── can-approve.ts                # สิทธิ์การอนุมัติและ Action Scope Badges
+│   │   ├── operator-resolver.ts          # การคำนวณผู้รับผิดชอบปัจจุบัน (Step Resolvers)
+│   │   └── index.ts                      # Approval Domain Public API
+│   │
+│   ├── permissions/                      # 🔐 Centralized Activity Permissions
+│   │   ├── activity-permissions.ts       # กฎการตรวจสอบสิทธิ์การเข้าถึงและแก้ไขกิจกรรม
+│   │   └── index.ts                      # Permissions Public API
+│   │
+│   ├── summary/                          # 📊 Plan Summary & Extensible Targets Registry
+│   │   ├── types.ts                      # PlanSummaryData, ActualTargetsState, ParsedSummaryValues
+│   │   ├── constants.ts                  # initialPlanSummary, initialTargets, NON_STRICT_OUTCOMES
+│   │   ├── plan-summary-extractor.ts     # Core Extractor (วันเวลา, สถานที่, งบประมาณ, ของเบิก, คนช่วยงาน)
+│   │   ├── plan-targets-registry.ts      # Targets Registry Pattern (Type 1 - 14)
+│   │   ├── plan-extractor.ts             # Main Extractor (extractPlanData)
+│   │   ├── result-summary-parser.ts      # Result Parser (parseResultSummary สำหรับ Type 1 - 14)
+│   │   └── index.ts                      # Summary Domain Public API
+│   └── index.ts                          # Domain Public Barrel
+│
+├── application/                          # Application Layer & Services
+│   ├── media/                            # Media & Attachment Services
+│   │   ├── image-uploader.ts             # uploadActivityPlanImageGroup, deleteActivityPlanImagePaths
+│   │   └── index.ts                      # Media Public Barrel
+│   ├── filters/                          # Activity Filter Matchers
+│   │   └── activity-filter-matcher.ts    # ตัวกรองรายการตาม WorkType, Person, Status, Search
+│   ├── activity-plan-flow.ts             # Orchestration flow สำหรับสถานะและลำดับขั้นของแผนงาน
+│   ├── approval-queue.ts                 # การจัดการคิวงานรออนุมัติ
+│   └── index.ts                          # Application Public Barrel
+│
+├── hooks/                                # Module-level Custom Hooks
+│   └── use-approver-directory.ts         # Hook ดึงรายชื่อผู้อนุมัติและผู้ช่วยงาน
+│
+├── ui/                                   # Common UI Components (ส่วนกลางที่ใช้ร่วมกันทุกประเภทงาน)
+│   ├── inputs/                           # 🧩 Unified Activity Form Inputs & Selectors
+│   │   ├── hooks/                        # useActivityAddresses, useActivityCustomers
+│   │   ├── activity-address-select.tsx   # Dropdown เลือกจังหวัด/อำเภอ/ตำบล
+│   │   ├── activity-combobox.tsx         # Combobox มาตรฐานสำหรับค้นหาและเลือกตัวเลือก
+│   │   ├── activity-customer-select.tsx  # Combobox เลือกร้านค้า/เกษตรกร
+│   │   ├── activity-gps-picker.tsx       # เครื่องมือเลือกพิกัด GPS บนแผนที่
+│   │   ├── activity-input.tsx            # Input มาตรฐานสำหรับโมดูล Activity
+│   │   ├── activity-photo-upload.tsx     # อัปโหลดรูปภาพพร้อม Preview และลายน้ำพิกัด
+│   │   ├── activity-product-select.tsx   # Combobox เลือกสินค้า
+│   │   ├── activity-textarea.tsx         # Textarea มาตรฐานพร้อม Label ในตัว
+│   │   └── index.ts                      # Inputs Public Barrel
+│   ├── basic-info/                       # PlanBasicInfoCard, PlanWorkTypeSelector, DateTimePicker
+│   ├── location-team/                    # PlanLocationTeamCard, LocationTeamSection, hooks/usePlanLocationTeam
+│   ├── budget/                           # PlanBudgetSection, types.ts, hooks/usePlanBudget
+│   ├── notes/                            # PlanNotesCard
+│   ├── form-action-buttons.tsx           # FormActionButtons (ปุ่ม ยกเลิก / บันทึกร่าง / ส่งขออนุมัติ)
+│   ├── activity-status-badge.tsx         # ActivityStatusBadge, ActivityStatusWithOperator
+│   └── index.ts                          # UI Public Exports (รวม inputs/*)
+│
+├── views/                                # Pure Declarative Orchestrators (หน้าจอหลักของระบบ)
+│   ├── list/                             # รายการแผนงานและกิจกรรม (/activity-plans)
+│   │   ├── components/                   # activity-plan-table.tsx
+│   │   └── activity-plan-list-view.tsx   # Route: /activity-plans
+│   │
+│   ├── calendar/                         # ปฏิทินแผนงานและกิจกรรม
+│   │   └── activity-calendar-view.tsx    # Route: /activity-plans/calendar
+│   │
+│   ├── promotional-materials/            # จัดการสื่อส่งเสริมการขาย (/activity-plans/promotional-materials)
+│   │   ├── components/                   # delete-material-dialog.tsx, promotional-material-form-dialog.tsx, promotional-materials-table.tsx
+│   │   └── promotional-materials-view.tsx# Route: /activity-plans/promotional-materials
+│   │
+│   ├── planned/                          # สร้างและแก้ไขแผนงาน (Trip Plan)
+│   │   ├── components/                   # planned-activity-form.tsx (Form Orchestrator รองรับ Type 1 - 14)
+│   │   ├── create-view.tsx               # Route: /activity-plans/new
+│   │   ├── edit-view.tsx                 # Route: /activity-plans/[id]/edit
+│   │   └── index.ts
+│   │
+│   ├── unplanned/                        # สร้างและแก้ไขกิจกรรมนอกแผน (Unplanned)
+│   │   ├── components/                   # unplanned-activity-form.tsx (2-in-1 Orchestrator รองรับ Type 1 - 14)
+│   │   ├── create-view.tsx               # Route: /activity-plans/unplanned/new
+│   │   ├── edit-view.tsx                 # Route: /activity-plans/unplanned/[id]/edit
+│   │   └── index.ts
+│   │
+│   ├── actual/                           # บันทึกผลการปฏิบัติงานจริง (Actual Result)
+│   │   ├── components/                   # ActualViewHeader, ActualPlanSummary, ActivityStatusSection, ActivitySummarySection, ActualWorkTypeList, BudgetSection, MarketingExpenseSection, PromotionalMaterialsSection, AdditionalInfoSection
+│   │   ├── hooks/                        # useActualPlanLoader, useActualStatusState
+│   │   ├── types.ts
+│   │   └── activity-plan-actual-view.tsx # Route: /activity-plans/[id]/actual
+│   │
+│   ├── detail/                           # แสดงรายละเอียดแผนงาน (Read-Only Detail)
+│   │   ├── components/                   # DetailHeader, DetailOverview, DetailWorkTypeList, DetailActivityStatusSection, DetailAuditLogs, CancelPlanDialog, DetailViewActions
+│   │   ├── hooks/                        # useDetailPlanLoader
+│   │   └── activity-plan-detail-view.tsx # Route: /activity-plans/[id]
+│   │
+│   ├── approvals/                        # การพิจารณาและอนุมัติแผนงาน (Approvals)
+│   │   ├── components/                   # ApprovalWorkTypeList, ApprovalAuditLogs, HelperReviewDialog, ApprovalActionDialog
+│   │   ├── hooks/                        # useApprovalDetailLoader
+│   │   ├── activity-plan-approval-detail-view.tsx # Route: /activity-plans/approvals/[id]
+│   │   └── activity-plan-approval-list-view.tsx   # Route: /activity-plans/approvals
+│   │
+│   └── index.ts                          # Views Public Barrel
+│
+├── constants.ts                          # WORK_TYPE_CONFIG, getWorkTypeCode, STATUS_OPTIONS
+├── index.ts                              # Public Module Exports
+└── README.md                             # เอกสารคู่มือสถาปัตยกรรม (ไฟล์นี้)
+```
+
+---
+
+## 3. รูปแบบการนำไปใช้งาน (Usage Patterns & Code Examples)
+
+ทุกฟอร์มและหน้าจอแสดงผลถูกออกแบบในลักษณะ **Declarative Composition** ทำให้เข้าใจโครงสร้างหน้าจอได้ทันทีเพียงแค่อ่านส่วนของ JSX
+
+### 3.1 แบบที่ 1: การบันทึกผลการปฏิบัติงานจริง (`Actual Result View`)
+
+นำส่วนประกอบส่วนกลางมาร้อยเรียงเข้ากับฟอร์มบันทึกผลเฉพาะประเภทงานจาก `features/type-1`:
+
+```tsx
+import React from "react";
+import {
+  ActualPlanSummary,
+  ActivityStatusSection,
+  BudgetSection,
+  PromotionalMaterialsSection,
+} from "./components";
+import {
+  Type1ActualForm,
+  useType1Actual,
+} from "@/modules/activity/features/type-1";
+import { FormActionButtons } from "@/modules/activity/ui";
+
+export function ActualFormExample({ plan, statusState, isType1 }) {
+  const type1Actual = useType1Actual();
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 1. ส่วนกลาง: สรุปแผนเดิม */}
+      <ActualPlanSummary plan={plan} />
+
+      {/* 2. ส่วนกลาง: สถานะการลงพื้นที่ (สำเร็จ / เลื่อน / ยกเลิก) */}
+      <ActivityStatusSection
+        status={statusState.activityResultStatus}
+        setStatus={statusState.setActivityResultStatus}
+        cancelReason={statusState.cancelReason}
+        setCancelReason={statusState.setCancelReason}
+        postponedDate={statusState.postponedDate}
+        setPostponedDate={statusState.setPostponedDate}
+      />
+
+      {/* 3. ส่วนเฉพาะ Type 1: ฟอร์มผลการเข้าพบจริง + ถ่ายรูป GPS (ดึงจาก features/type-1) */}
+      {(statusState.activityResultStatus === "COMPLETED" ||
+        statusState.activityResultStatus === "PARTIAL") &&
+        isType1 && (
+          <Type1ActualForm
+            isVisible={true}
+            targets={targets}
+            targetActualResults={type1Actual.t1TargetItems}
+            onUpdateTargetActualResults={type1Actual.syncFromTargetItems}
+            productAdvice={type1Actual.t1ProductAdvice}
+            discussionResult={type1Actual.t1DiscussionResult}
+            salesOpportunity={type1Actual.t1SalesOpportunity}
+            nextAction={type1Actual.t1NextAction}
+            nextMeetingDate={type1Actual.t1NextMeetingDate}
+            plotImages={type1Actual.t1PlotImages}
+            setPlotImages={type1Actual.setT1PlotImages}
+          />
+        )}
+
+      {/* 4. ส่วนกลาง: สรุปค่าใช้จ่ายจริง & สื่อของแถมจริง */}
+      <BudgetSection summary={planSummary} />
+      <PromotionalMaterialsSection {...promotionalProps} />
+
+      {/* ปุ่มบันทึกผลการปฏิบัติงาน */}
+      <FormActionButtons
+        submitLabel="บันทึกผลการปฏิบัติงาน"
+        isSubmitting={isSubmitting}
+        onCancel={handleCancel}
+      />
+    </form>
+  );
+}
+```
+
+---
+
+### 3.2 แบบที่ 2: ฟอร์มสร้างแผนงานตามแผน (`Planned Activity Form`)
+
+ร้อยเรียงชิ้นส่วน Common UI Cards สำหรับสร้างแผนงานล่วงหน้า:
+
+```tsx
+import React from "react";
+import {
+  PlanBasicInfoCard,
+  PlanLocationTeamCard,
+  PlanBudgetSection,
+  PlanNotesCard,
+  FormActionButtons,
+} from "@/modules/activity/ui";
+import {
+  Type1PlannedForm,
+  useType1PlannedForm,
+} from "@/modules/activity/features/type-1";
+
+export function PlannedActivityForm({
+  basicProps,
+  locationProps,
+  budgetProps,
+}) {
+  const type1Form = useType1PlannedForm();
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 1. ส่วนกลาง: ข้อมูลระบบ วันและเวลา */}
+      <PlanBasicInfoCard {...basicProps} />
+
+      {/* 2. ส่วนกลาง: เลือกพื้นที่ & ทีมงานร่วมทาง */}
+      <PlanLocationTeamCard {...locationProps} />
+
+      {/* 3. ส่วนเฉพาะ Type: ดึงมาจาก features/type-1 */}
+      {isType1 && (
+        <Type1PlannedForm
+          items={type1Form.items}
+          onAddItem={type1Form.addItem}
+          onDeleteItem={type1Form.deleteItem}
+          onUpdateItem={type1Form.updateItem}
+        />
+      )}
+
+      {/* 4. ส่วนกลาง: งบประมาณและค่าใช้จ่าย */}
+      <PlanBudgetSection {...budgetProps} />
+
+      {/* 5. ส่วนกลาง: หมายเหตุเพิ่มเติม */}
+      <PlanNotesCard notes={notes} onNotesChange={setNotes} />
+
+      {/* ปุ่ม Action (ยกเลิก / บันทึกร่าง / ส่งขออนุมัติ) */}
+      <FormActionButtons
+        isSubmitting={isSubmitting}
+        onCancel={handleCancel}
+        onSaveDraft={handleDraftSubmit}
+      />
+    </form>
+  );
+}
+```
+
+---
+
+### 3.3 แบบที่ 3: ฟอร์มกิจกรรมนอกแผน (`Unplanned Activity Form`)
+
+รูปแบบ 2-in-1 สำหรับการลงพื้นที่ทันทีโดยไม่ได้วางแผนล่วงหน้า (ระบุเป้าหมายพร้อมบันทึกผลจริงในฟอร์มเดียว):
+
+```tsx
+import React from "react";
+import {
+  PlanBasicInfoCard,
+  PlanLocationTeamCard,
+  PlanBudgetSection,
+  PlanNotesCard,
+  FormActionButtons,
+} from "@/modules/activity/ui";
+import {
+  Type1UnplannedForm,
+  useType1UnplannedForm,
+} from "@/modules/activity/features/type-1";
+
+export function UnplannedActivityForm({
+  basicProps,
+  locationProps,
+  budgetProps,
+}) {
+  const type1Unplanned = useType1UnplannedForm();
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 1. ส่วนกลาง: ข้อมูลระบบ วันและเวลา (ระบุประเภทเป็น UNPLANNED) */}
+      <PlanBasicInfoCard {...basicProps} isUnplanned />
+
+      {/* 2. ส่วนกลาง: เลือกพื้นที่ & เพื่อนร่วมงาน */}
+      <PlanLocationTeamCard {...locationProps} />
+
+      {/* 3. ส่วนเฉพาะ Type 1 นอกแผน (2-in-1: ระบุร้านค้า/เกษตรกร + บันทึกผลพูดคุย + ถ่ายรูป GPS) */}
+      {isType1 && (
+        <Type1UnplannedForm
+          items={type1Unplanned.items}
+          onAddItem={type1Unplanned.addItem}
+          onDeleteItem={type1Unplanned.deleteItem}
+          onUpdateItem={type1Unplanned.updateItem}
+        />
+      )}
+
+      {/* 4. ส่วนกลาง: งบประมาณที่ใช้จริง */}
+      <PlanBudgetSection {...budgetProps} />
+
+      {/* 5. ส่วนกลาง: หมายเหตุ */}
+      <PlanNotesCard notes={notes} onNotesChange={setNotes} />
+
+      {/* ปุ่มบันทึกกิจกรรมนอกแผน */}
+      <FormActionButtons
+        submitLabel="บันทึกกิจกรรมนอกแผน"
+        isSubmitting={isSubmitting}
+        onCancel={handleCancel}
+      />
+    </form>
+  );
+}
+```
+
+---
+
+### 3.4 แบบที่ 4: หน้ารายละเอียดแผนงาน (`Detail View`)
+
+แสดงข้อมูลแบบ Read-only และแยก Accordion ตามประเภทงาน:
+
+```tsx
+import React from "react";
+import {
+  DetailHeader,
+  DetailOverview,
+  DetailWorkTypeList,
+  DetailActivityStatusSection,
+  DetailAuditLogs,
+  CancelPlanDialog,
+  DetailViewActions,
+} from "./components";
+
+export function ActivityPlanDetailView({ id }) {
+  const {
+    plan,
+    targets,
+    type1Targets,
+    parsedResults,
+    mergedLogs,
+    isTypeActive,
+  } = useDetailPlanLoader({ id });
+
+  return (
+    <section className="space-y-6">
+      {/* 1. Header และสถานะ */}
+      <DetailHeader plan={plan} />
+
+      {/* 2. การ์ดข้อมูลทั่วไปและงบประมาณ */}
+      <DetailOverview plan={plan} />
+
+      {/* 3. รายละเอียดตามประเภทงาน (เรียกใช้ <Type1DetailView /> จาก Type 1 Slice ซึ่งแสดงทั้งเป้าหมายและผลงานจริง) */}
+      <DetailWorkTypeList
+        plan={plan}
+        targets={targets}
+        type1Targets={type1Targets}
+        isTypeActive={isTypeActive}
+      />
+
+      {/* 4. สถานะผลการปฏิบัติงานจริง (ถ้ามีบันทึก) */}
+      {plan.result && parsedResults.activityResultStatus && (
+        <DetailActivityStatusSection
+          activityResultStatus={parsedResults.activityResultStatus}
+        />
+      )}
+
+      {/* 5. บันทึกประวัติการดำเนินการ (Audit Logs) */}
+      <DetailAuditLogs logs={mergedLogs} />
+
+      {/* 6. ปุ่ม Action ด้านล่าง (ย้อนกลับ / ขอยกเลิกแผน) */}
+      <DetailViewActions />
+    </section>
+  );
+}
+```
+
+---
+
+### 3.5 แบบที่ 5: หน้าพิจารณาอนุมัติ (`Approval View`)
+
+แสดงข้อมูลสรุปเพื่อการตัดสินใจ พร้อม Action Panel อนุมัติ / ปฏิเสธ / ส่งกลับแก้ไข:
+
+```tsx
+import React from "react";
+import {
+  ApprovalWorkTypeList,
+  ApprovalAuditLogs,
+  HelperReviewDialog,
+  ApprovalActionDialog,
+} from "./components";
+
+export function ActivityPlanApprovalDetailView({ id }) {
+  const { plan, targets, type1Targets, canPerformApproval, isTypeActive } =
+    useApprovalDetailLoader({ id });
+
+  return (
+    <section className="space-y-6">
+      {/* 1. Header และสถานะผู้ดำเนินการปัจจุบัน */}
+      <ApprovalHeader plan={plan} />
+
+      {/* 2. ข้อมูลทั่วไปและคนช่วยงาน */}
+      <ApprovalOverview plan={plan} />
+
+      {/* 3. การ์ดพิจารณาตามประเภทงาน (เรียกใช้ <Type1ApprovalCard /> จาก Type 1 Slice) */}
+      <ApprovalWorkTypeList
+        plan={plan}
+        targets={targets}
+        type1Targets={type1Targets}
+        isTypeActive={isTypeActive}
+      />
+
+      {/* 4. ประวัติการอนุมัติตามลำดับขั้น */}
+      <ApprovalAuditLogs logs={plan.approvalLogs} />
+
+      {/* 5. แถบปุ่มพิจารณาอนุมัติ (อนุมัติ / ปฏิเสธ / ส่งกลับแก้ไข) */}
+      <ApprovalActionPanel canPerformApproval={canPerformApproval} />
+    </section>
+  );
+}
+```
+
+---
+
+## 4. Vertical Slice Architecture: Type 1 Gold Standard
+
+แต่ละประเภทงาน (Work Type) ถูกจัดโครงสร้างแบบ Self-Contained ตามรูปแบบของ `features/type-1`:
+
+| โฟลเดอร์ / ไฟล์           | หน้าที่และความรับผิดชอบ                                                                                                      |
+| :------------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
+| `planned/application/`    | Zod Validation Schema (`type1PlannedSchema`) และ Mappers แปลงข้อมูลไป-กลับระหว่าง Form State กับ Prisma Model                |
+| `planned/components/`     | UI Components ประจำประเภทงาน: `Type1PlannedForm`, `Type1PlanCard`, `Type1DetailView`, `Type1ApprovalCard`, `Type1ActualForm` |
+| `planned/hooks/`          | Custom Hooks สำหรับจัดการ Form State: `useType1PlannedForm`, `useType1Actual`                                                |
+| `planned/infrastructure/` | Database Strategy (`type1PlannedStrategy`) สำหรับทำ Transaction บันทึกร้านค้า/แปลงสาธิตลงฐานข้อมูล                           |
+| `planned/types/`          | TypeScript interfaces ประจำประเภทงาน: `Type1PlannedItem`, `Type1TargetActualItem`, ฯลฯ                                       |
+| `unplanned/`              | โครงสร้างแบบเดียวกันสำหรับกิจกรรมนอกแผน (มี validation, mapper, component, hook, strategy แยกเฉพาะ)                          |
+| `shared/`                 | ค่าคงที่และประเภทข้อมูลร่วมกันในประเภทงาน เช่น `VISIT_TOPICS`, `ProductOption`, `CustomerOption`                             |
+| `index.ts`                | **Public API Contract**: ส่งออกเฉพาะสิ่งที่ภายนอกต้องใช้งาน ห้ามภายนอก Import ข้ามชั้นเข้าไปยังไฟล์ภายในโดยตรง               |
+
+---
+
+## 5. Next.js 16 App Router & Turbopack Rules
+
+1. **Client Directives (`"use client";`) & Client-Safe Barrels**:
+   - ทุก Hook หรือ Component ที่มีการใช้ React Hooks (`useState`, `useEffect`, `useCallback`, `useMemo`) หรือ Client Events ต้องขึ้นต้นบรรทัดที่ 1 ด้วย `"use client";`
+   - ไฟล์ Barrel (`features/type-X/index.ts`) ส่งออกเฉพาะ Client-Safe Types, Hooks, Mappers และ UI Components เท่านั้น ส่วน Server Strategies (`*.strategy.ts`) จะถูก Import โดยตรงที่ `infrastructure/strategy.registry.ts` เพื่อป้องกันการ Bundling Leak ของ Node modules (`pg`, `fs`, `net`, `tls`) เข้าสู่ Client Bundle
+2. **Path Aliasing & Boundary Isolation**:
+   - การ Import ข้ามโมดูลหรือเข้าสู่ Feature ให้ใช้ Absolute Alias `@/modules/activity/...` เสมอ
+   - โฟลเดอร์เก่า `modules/activity-plans/` ถูกปลดระวางและลบออกจากระบบถาวรแล้ว (100% Decommissioned)
+3. **Type Safety & Production Build**:
+   - ทุกการแก้ไขต้องผ่านการตรวจสอบ `npx tsc --noEmit` (Exit code 0) และ `npm run build` โดยไม่มี Error
+4. **Server Component Master Data Pre-fetching (Zero-POST Initial Load)**:
+   - หน้า Route (`app/(main)/activity-plans/.../page.tsx`) ทำหน้าที่เป็น `async` Server Component (`export const dynamic = "force-dynamic"`) เพื่อดึง Master Data และข้อมูลแผนงานผ่าน Server Loaders ใน [`server/master-data.actions.ts`](server/master-data.actions.ts) ก่อนส่งเข้า Client Views เป็น Initial Props:
+     - `getPlannedActivityMasterData()`: สำหรับหน้าสร้างแผนงาน (`/activity-plans/new`) และสร้างกิจกรรมนอกแผน (`/activity-plans/unplanned/new`)
+     - `getActivityPlanEditData(id)`: สำหรับหน้าแก้ไขแผนงาน (`/activity-plans/[id]/edit`) และแก้ไขกิจกรรมนอกแผน (`/activity-plans/unplanned/[id]/edit`) — รวมการดึง `plan` และ Follow-up Plans ของ `plan.employeeId` ในรอบเดียวบน Server โดยไม่เกิด Request Waterfall
+     - `getActivityPlanActualInitialData(id)`: สำหรับหน้าบันทึกผลการปฏิบัติงานจริง (`/activity-plans/[id]/actual` และ `/activity-plans/actual`)
+     - `getActivityFilterMasterData()`: สำหรับตัวเลือกตัวกรองในหน้ารายการ (`/activity-plans`) และหน้าปฏิทิน (`/activity-plans/calendar`)
+     - `getActivityPlanAction(id)`: สำหรับหน้ารายละเอียด (`/activity-plans/[id]`) และหน้าอนุมัติรายแผน (`/activity-plans/approvals/[id]`)
+   - Client Views ทุกหน้ายังคงมี Fallback ใน `useEffect` กรณีที่ถูกเรียกใช้งานโดยไม่ได้ส่ง Initial Props มา เพื่อรักษา Backward Compatibility 100%
+
+---
+
+## 6. ระบบอัปโหลดรูปภาพและไฟล์แนบ (Image & Attachment Upload Architecture)
+
+โมดูล Activity ใช้สถาปัตยกรรมอัปโหลดรูปภาพแบบ **Client-Side WebP Compression + Direct-to-R2 Presigned PUT** (พร้อมระบบ Fallback สู่ Server Multipart Upload อัตโนมัติ) เพื่อรองรับการอัปโหลดรูปภาพจำนวนมากในการลงพื้นที่จริง (สูงสุดถึง 200 รูปต่อชุดข้อมูล) โดยไม่ติดข้อจำกัดขนาด Payload ของ Next.js Server Actions และลดภาระ Bandwidth ของเซิร์ฟเวอร์
+
+### 6.1 โครงสร้างไฟล์ที่เกี่ยวข้อง (Core Upload Files)
+
+| ไฟล์ | หน้าที่และความรับผิดชอบ |
+| :--- | :--- |
+| [`ui/inputs/activity-photo-upload.tsx`](ui/inputs/activity-photo-upload.tsx) | UI Component หลักสำหรับเลือกรูป ถ่ายภาพจากกล้อง แสดง Preview (Grid + Lightbox), ตรวจสอบขนาด/ชนิดไฟล์ และแสดง Popup Loading ขณะประมวลผลไฟล์ |
+| [`application/media/image-uploader.ts`](application/media/image-uploader.ts) | Service กลางฝั่ง Client (`uploadActivityPlanImageGroup`, `deleteActivityPlanImagePaths`) ทำหน้าที่บีบอัดรูปด้วย Canvas (`WebP` / `JPEG`), ขอ Presigned URL, อัปโหลดแบบ Parallel Workers (Concurrency = 6) และทำ Retry Exponential Backoff |
+| [`app/api/activity-plans/[id]/images/route.ts`](../../app/api/activity-plans/[id]/images/route.ts) | API Route สำหรับสร้าง Presigned PUT URLs (`?action=presign`), รับไฟล์แบบ Multipart Fallback (`POST`), และลบไฟล์ออกจาก Storage แบบ Batch (`DELETE`) |
+| [`lib/file-storage.ts`](../../lib/file-storage.ts) & [`lib/r2-client.ts`](../../lib/r2-client.ts) | Storage Abstraction Layer เชื่อมต่อ Cloudflare R2 (S3-Compatible) หรือ Local Storage (`public/uploads`) อัตโนมัติตามค่าคอนฟิกใน `.env` |
+
+---
+
+### 6.2 ขั้นตอนการทำงานของการอัปโหลด (End-to-End Upload Lifecycle)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน (Frontend)
+    participant Form as Activity Form (Unplanned / Actual)
+    participant Uploader as image-uploader.ts
+    participant API as /api/activity-plans/[id]/images
+    participant R2 as Cloudflare R2 Bucket
+    participant Action as Server Action (Prisma Transaction)
+
+    User->>Form: เลือกรูปภาพ (สร้าง Preview ด้วย blob: URL + กำหนด img.id)
+    User->>Form: กดปุ่มบันทึกข้อมูล
+    Form->>Uploader: เรียก uploadActivityPlanImageGroup(planId, images, surveyItemId, category)
+    Uploader->>Uploader: บีบอัดรูปฝั่ง Client (Resize <= 1600px, แปลงเป็น WebP quality 0.80)
+    Uploader->>API: POST ?action=presign (ส่งรายการชื่อไฟล์และ Content-Type)
+    API-->>Uploader: คืนค่า Presigned PUT URLs + publicPath (/uploads/activity-plans/...)
+    par อัปโหลดขึ้น R2 แบบขนาน (Concurrency = 6, Retry สูงสุด 3 ครั้ง)
+        Uploader->>R2: HTTP PUT ไฟล์ที่บีบอัดแล้วไปยัง Presigned URL โดยตรง
+    end
+    Note over Uploader,API: หากติด CORS หรือ Network บล็อก PUT ตรง จะสลับไปใช้ Multipart POST อัตโนมัติ
+    Uploader-->>Form: คืนค่า updatedImages (แทนที่ blob: ด้วย publicPath โดยคงค่า img.id เดิมไว้เสมอ)
+    Form->>Action: ส่ง Payload พร้อม URL ถาวร (/uploads/activity-plans/...) เข้า Server Action
+    Action->>Action: บันทึก ActivityPlan + ActivityResultTypeX + ActivityAttachment ใน 1 Transaction
+```
+
+---
+
+### 6.3 การแยกโฟลเดอร์จัดเก็บรูปตามรหัสกิจกรรม (`planId`)
+
+ทั้ง **กิจกรรมในแผน (Planned Actual)** และ **กิจกรรมนอกแผน (Unplanned)** จัดเก็บรูปแยกตาม `planId` อย่างเป็นระเบียบภายใต้โครงสร้างเดียวกัน:
+
+```text
+{R2_KEY_PREFIX}/uploads/activity-plans/{planId}/{surveyItemId}/{category}/{uuid}.webp
+```
+
+- **กรณี Planned Actual**: มี `plan.id` อยู่แล้วตั้งแต่สร้างแผน จึงส่ง `plan.id` เข้า `uploadActivityPlanImageGroup` ได้ทันที
+- **กรณี Unplanned (สร้างใหม่)**: เนื่องจากเป็นการสร้างแผนพร้อมผลลัพธ์ในขั้นตอนเดียว ระบบจะสร้าง `preGeneratedPlanId` ด้วย `createId()` (`@paralleldrive/cuid2`) ไว้ล่วงหน้าใน [`unplanned-activity-form.tsx`](views/unplanned/components/unplanned-activity-form.tsx) เพื่อใช้เป็นชื่อโฟลเดอร์อัปโหลดรูปขึ้น R2 ก่อน แล้วส่ง `id: uploadPlanId` เดียวกันนั้นไปสร้างเรคคอร์ด `ActivityPlan` ในฐานข้อมูล
+
+**ตัวอย่าง Path ที่บันทึกจริง:**
+- ใน Cloudflare R2 Object Key: `dev/uploads/activity-plans/cmvywsgh4xhlh3c5dh6ebq20p/after_spray/type14/1b5fb3b4-aa80-4da4-8b7d-49f76422b218.webp`
+- ในตาราง `activity_attachments` (`fileUrl`): `/uploads/activity-plans/cmvywsgh4xhlh3c5dh6ebq20p/after_spray/type14/1b5fb3b4-aa80-4da4-8b7d-49f76422b218.webp`
+
+---
+
+### 6.4 กฎเหล็กในการผูกความสัมพันธ์รูปภาพแต่ละประเภทงาน (Attachment Relational Binding Rules)
+
+เพื่อให้รูปภาพแสดงผลตรงตามส่วนงานและแปลงสาธิตทั้งใน **หน้าแก้ไข (Edit View)** และ **หน้ารายละเอียด (Detail View)** โดยไม่เกิดปัญหารูปซ้ำหรือรูปหาย ต้องปฏิบัติตามกฎ 4 ข้อนี้เสมอ:
+
+1. **ห้ามเปลี่ยนค่า `img.id` หลังอัปโหลด (`Preserve Client ID`)**:
+   - ใน [`image-uploader.ts`](application/media/image-uploader.ts) เมื่ออัปโหลดรูปเสร็จ `slot.result.id` ต้องใช้ค่า `slot.tempId || target.id` เสมอ (ห้ามเขียนทับด้วย UUID ใหม่ของฝั่งเซิร์ฟเวอร์) เพราะการบีบอัดภาพจะเปลี่ยนนามสกุลไฟล์ใน `img.name` เป็น `.webp` หาก `img.id` เปลี่ยนไปด้วย โค้ดที่ใช้ `img.id` อ้างอิงจะจับคู่ URL ใหม่ไม่เจอ
+2. **อัปโหลดแยกตามรายการ/แปลง (`Upload Per Item / Plot`) และส่ง State หลังอัปโหลดเข้า Payload**:
+   - สำหรับประเภทงานที่มีหลายแปลงหรือหลายส่วนย่อย เช่น `TYPE_7B` (รูปสภาพพืช `cropImages` vs รูปรอบฉีดพ่น `roundImages`), `TYPE_13`, และ `TYPE_14` ให้อัปโหลดรูปแยกตามแปลง/รอบโดยตรง แล้วเก็บผลลัพธ์ไว้ในตัวแปร `updatedType7bItems`, `updatedType13Items`, `updatedType14Item`
+   - ตอนประกอบ `payload` ส่งเข้า Server Action ต้องใช้ตัวแปร `updatedType*` ที่อัปโหลดเสร็จแล้วเท่านั้น **ห้าม**เรียก `mapTypeXUnplannedToPayload(typeX.items)` ซ้ำกับ State ดิบที่ยังเป็น `blob:` URL
+3. **การแยกหมวดหมู่รูปภาพ (`category`) และ Foreign Key เฉพาะประเภทงาน**:
+   - ตาราง `activity_attachments` มี Foreign Key เฉพาะสำหรับแต่ละประเภทงาน เช่น `type1ResultId`, `type4ResultId`, `type7aResultId`, `type7bResultId`, `type8ResultId`, `type9ResultId`, `type10ResultId`, `type12ResultId`, `type13ResultId`, `type14ResultId`
+   - **กรณี `TYPE_7B`**:
+     - รูปสภาพพืช/แปลง (ส่วนที่ 1): ใช้ `category = "CROP"`
+     - รูปการฉีดพ่นแต่ละรอบ (ส่วนที่ 2): ใช้ `category = "PLOT"` พร้อมติด Prefix ชื่อไฟล์ `[รอบที่ N] ...` เพื่อแยกส่วนที่ 1 และส่วนที่ 2 ออกจากกันอย่างชัดเจน
+   - **กรณี `TYPE_14`**:
+     - ใน Strategy (`type14-planned.strategy.ts` / `type14-unplanned.strategy.ts`) รูปภาพของแต่ละแปลงจะถูกผูก `type14ResultId: createdResult.id`
+     - ในหน้าแสดงผล ([`type14-detail-view.tsx`](features/type-14/planned/components/type14-detail-view.tsx)) และ Mappers ต้องดึงจาก `actualPlotData.attachments` หรือเทียบ `att.type14ResultId === (actualPlotData.resultId || actualPlotData.id)` เสมอ (เนื่องจาก Primary Key ของ `ActivityResultType14` คือ `.id`)
+4. **ระวังกับดัก Empty Array (`[]`) ใน JavaScript (`Truthiness Trap`)**:
+   - ใน JavaScript ค่า `[]` มีสถานะเป็น `truthy` ดังนั้น **ห้าม**เขียน `plot.afterSprayImages || plot.images || matchedResult?.attachments` เพราะถ้า `plot.afterSprayImages` ถูกตั้งค่าเริ่มต้นเป็น `[]` จะทำให้ระบบข้ามรูปจริงที่อยู่ใน `matchedResult.attachments` ทันที
+   - ให้ตรวจสอบด้วย `Array.isArray(arr) && arr.length > 0` เสมอ
+
+---
+
+## 7. สถานะการพัฒนา (Roadmap — Completed 100% ✅)
+
+> รายละเอียดแผนการพัฒนาแต่ละระยะและ Quality Gates ทั้ง 7 ข้อ ดูเพิ่มเติมได้ที่ [`docs/ROADMAP.md`](docs/ROADMAP.md) และ [`docs/TYPE_SLICE_BLUEPRINT.md`](docs/TYPE_SLICE_BLUEPRINT.md)
+
+- [x] ออกแบบและสร้าง `modules/activity/features/type-1` (Gold Standard 24-Artifact Blueprint)
+- [x] พัฒนา Common UI และ Unified Form Inputs ใน `modules/activity/ui` (`ActivityInput`, `ActivityTextarea`, `ActivityCombobox`, `ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`, `ActivityAddressSelect`)
+- [x] สลับเส้นทาง Route ทั้งหมดใน `app/(main)/activity-plans/*` และ `app/api/activity-plans/*` มายัง `modules/activity`
+- [x] Clean Up หน้า `planned`, `unplanned`, `actual`, `detail`, `approvals`, `calendar`, `list`, และ `promotional-materials`
+- [x] สร้าง Modular Server Actions (`server/*.actions.ts`) และ Database Infrastructure (`infrastructure/`) แยกขาดจากโมดูลเก่า 100%
+- [x] **Approval Workflow & Permissions Backbone**: `domain/approval/`, `domain/permissions/activity-permissions.ts`, `operator-resolver`, `hooks/use-approver-directory`
+- [x] **Plan Summary & Targets Registry Engine**: `domain/summary/`, Extensible Targets Registry (`TYPE_1` – `TYPE_14`)
+- [x] **Phase 1 — Type 1 to Type 4 Vertical Slices**: เข้าพบร้านค้า (`type-1`), ติดตามผลการใช้สินค้า (`type-2`), เสนอขายสินค้า (`type-3`), วางบิล/เก็บเงิน (`type-4`)
+- [x] **Phase 2 — Core Field & Demo Plot Slices (Type 5 to Type 7B)**: สำรวจตลาดคู่แข่ง (`type-5`), ตรวจสอบเรื่องร้องเรียน (`type-6`), จัดทำแปลงสาธิต (`type-7a`), ติดตามแปลงสาธิต (`type-7b`)
+- [x] **Phase 3 — Specialized & Academic Slices (Type 8 to Type 14)**: จัดประชุม (`type-8`), กิจกรรมหน้าร้าน (`type-9`), งาน Field Day (`type-10`), เช็คสต๊อกหน้าร้าน (`type-11`), พาลูกค้าทัวร์ (`type-12`), ฉีดแปลงแฮตแทค (`type-13`), ติดตามแปลงแฮตแทค (`type-14`)
+- [x] **Phase 4 — Final Decommission & Production Verification**: ลบโฟลเดอร์เก่า `modules/activity-plans/` (466 ไฟล์) ออกจากระบบ 100%, ปรับปรุง Client-Safe Barrels และผ่าน `npm run build` สมบูรณ์แบบ
+- [x] **Phase 5 — Full Database Modernization & 12 Legacy Tables Drop (Batches A to E Completed 100%)**:
+  - **Batch A**: ยกระดับ Type 1 (เข้าพบร้านค้า/เกษตรกร) และ Type 4 (วางบิล/เก็บเงิน)
+  - **Batch B**: ยกระดับ Type 2 (เข้าพบตัวแทนจำหน่าย) และ Type 3 (เข้าพบร้านค้าย่อย) สู่ Dedicated Relational Tables
+  - **Batch C**: ยกระดับ Type 5 (ส่งเสริมการขายร่วมร้านค้า) และ Type 6 (สรุปผลแปลงสาธิต) สู่ Dedicated Relational Tables
+  - **Batch D**: ยกระดับ Type 7A (จัดทำแปลงสาธิต/ฉีดพ่น), Type 7B (ติดตามแปลงสาธิต / Multiple Spray Rounds), Type 13 (ติดตามผลผลิตภัณฑ์) และ Type 14 (แก้ไขปัญหาผลิตภัณฑ์)
+  - **Batch E**: ยกระดับ Type 8 (จัดประชุม), Type 9 (ส่งเสริมการขายหน้าร้าน) และ Type 12 (ศึกษาดูงาน/ทัวร์)
+  - **12 Legacy Generic Tables Drop**: ลบตาราง generic เก่าทั้ง 12 ตาราง (`activity_plan_stores`, `activity_plan_products`, `activity_plan_tours`, `activity_result_sale_items`, `activity_result_stock_items`, `activity_result_survey_items`, `activity_result_demo_items`, `activity_result_spray_rounds`, `activity_result_spray_products`, `activity_result_spray_externals`, `activity_result_followup_items`, `activity_result_issue_items`) ออกจาก PostgreSQL Schema อย่างถาวร
+  - **Zero Dual-Writes**: ขจัดคำสั่ง mirror write / dual-write ตกค้างทั้งหมดใน Strategy, Repository และ Seed Helpers
+
+---
+
+## 8. ประวัติการปรับปรุง (Change Log)
+
+### Version 2.3.0 (2026-11-02)
+
+- **Cloudflare R2 Direct Presigned Upload, Client-Side WebP Compression & Per-Plot Attachment Binding**:
+  - **Direct-to-R2 Upload & Client Compression ([`image-uploader.ts`](application/media/image-uploader.ts), [`route.ts`](../../app/api/activity-plans/[id]/images/route.ts))**:
+    - บีบอัดรูปภาพฝั่ง Client เป็น `image/webp` (Resize ไม่เกิน `1600px`, Quality `0.80`) และอัปโหลดขึ้น Cloudflare R2 ผ่าน Presigned PUT URLs แบบ Parallel (Concurrency = 6) พร้อม Retry Exponential Backoff และ Multipart Fallback อัตโนมัติ
+    - คงค่า `img.id` เดิมของฝั่ง Client (`slot.tempId || target.id`) หลังอัปโหลดเสร็จสมบูรณ์ เพื่อให้การจับคู่ URL ใหม่เข้ากับ State ของฟอร์มแม่นยำ 100%
+  - **Pre-Generated CUID2 Plan ID สำหรับ Unplanned Activity ([`unplanned-activity-form.tsx`](views/unplanned/components/unplanned-activity-form.tsx))**:
+    - สร้าง `preGeneratedPlanId` (`createId()`) สำหรับกิจกรรมนอกแผนที่สร้างใหม่ เพื่อให้จัดเก็บรูปลงโฟลเดอร์ `/uploads/activity-plans/{planId}/...` แยกตามรหัสกิจกรรมตั้งแต่วินาทีแรกที่อัปโหลด
+  - **Popup Loading Dialog สำหรับการประมวลผลและอัปโหลดรูปภาพ ([`activity-photo-upload.tsx`](ui/inputs/activity-photo-upload.tsx), [`gallery-upload.tsx`](../../components/ui/gallery-upload.tsx))**:
+    - เพิ่ม Modal Loading Popup แสดงสถานะขณะกำลังประมวลผลรูปภาพจำนวนมาก เพื่อป้องกันผู้ใช้กดซ้ำระหว่างโหลดไฟล์
+  - **แก้ไขการผูกและแสดงผลรูปภาพแยกตามส่วนงาน/แปลงของ `TYPE_7B`, `TYPE_13`, และ `TYPE_14`**:
+    - `TYPE_7B`: แยกการอัปโหลดและแสดงผลระหว่างรูปสภาพพืช (`category: "CROP"`) และรูปการฉีดพ่นแต่ละรอบ (`category: "PLOT"`, `[รอบที่ N]`) ทั้งในหน้าแก้ไขและหน้ารายละเอียด ไม่ให้รูปทั้ง 2 ส่วนแสดงปนกัน
+    - `TYPE_13` & `TYPE_14`: อัปโหลดรูปแยกตามแปลง (`plot`) โดยตรง ส่งข้อมูลหลังอัปโหลด (`updatedType13Items`, `updatedType14Item`) เข้า Payload เสมอ และแก้ไข [`type14-detail-view.tsx`](features/type-14/planned/components/type14-detail-view.tsx) ให้ดึงรูปจาก `actualPlotData.attachments` และจับคู่ `type14ResultId` กับ `actualPlotData.id` รองรับกิจกรรมที่มีหลายแปลงได้อย่างถูกต้อง
+
+### Version 2.2.0 (2026-10-25)
+
+- **Complete Database Modernization, Pure Dedicated Relational Storage & 12 Legacy Tables Drop (Batches A, B, C, D, E Complete)**:
+  - **100% Dedicated Relational Architecture (All 15 Activity Types)**:
+    - ปรับปรุงและยกระดับโครงสร้างฐานข้อมูลของทุก Activity Type สู่ Dedicated Tables (`activity_type_{code}_*`) ทั้งฝั่งเป้าหมายแผนงาน (`targets`, `products`) และผลการปฏิบัติงานจริง (`result`)
+    - ยุติการจัดเก็บ JSON string ใน `notes` หรือตาราง generic กลางอย่างถาวร ทุกฟิลด์ถูกแยกเป็น Strongly-typed columns พร้อม Foreign Keys และ Database Indexing อย่างสมบูรณ์
+  - **ถอดถอนและ Drop ตาราง Generic เก่า 12 ตารางอย่างถาวร**:
+    - ลบ 12 โมเดลที่ล้าสมัยออกจาก `prisma/schema.prisma` และฐานข้อมูล PostgreSQL:
+      - `ActivityPlanStore` (`activity_plan_stores`)
+      - `ActivityPlanProduct` (`activity_plan_products`)
+      - `ActivityPlanTour` (`activity_plan_tours`)
+      - `ActivityResultSaleItem` (`activity_result_sale_items`)
+      - `ActivityResultStockItem` (`activity_result_stock_items`)
+      - `ActivityResultSurveyItem` (`activity_result_survey_items`)
+      - `ActivityResultDemoItem` (`activity_result_demo_items`)
+      - `ActivityResultSprayRound` (`activity_result_spray_rounds`)
+      - `ActivityResultSprayProduct` (`activity_result_spray_products`)
+      - `ActivityResultSprayExternal` (`activity_result_spray_externals`)
+      - `ActivityResultFollowupItem` (`activity_result_followup_items`)
+      - `ActivityResultIssueItem` (`activity_result_issue_items`)
+    - ทำความสะอาด Array ความสัมพันธ์บน `Customer`, `Product`, `ActivityPlan`, `ActivityResult`, `DemoPlot` และ `ActivityAttachment`
+  - **ขจัด Dual-Writes / Mirror Writes ทั้งระบบ**:
+    - ยกเลิกการ sync ไปยังตาราง generic ใน Strategies ทุก Type (`type8-planned.strategy.ts`, `type9-planned.strategy.ts`, `type7a-planned.strategy.ts`, `type10-planned.strategy.ts` ฯลฯ)
+    - ปรับปรุง `modules/activity/infrastructure/activity-result.repository.ts` ให้บันทึกผ่าน Dedicated Strategies ของแต่ละ Type 100% โดยไม่มีคำสั่ง sync ย้อนกลับไปยัง generic child tables
+    - ปรับปรุง `prisma/seed/activity/seed-helpers.ts` ให้ปลอดภัย ไม่เรียกโมเดลที่ถูก drop
+  - **Infrastructure & Registry Optimization**:
+    - ปรับปรุง `modules/activity/infrastructure/activity-plan-include.ts` ถอด relations generic เก่าออก และรวม relations เฉพาะ Type ครบถ้วน
+    - ปรับปรุง `modules/activity/application/activity-plan-flow.ts` ถอด fallback check และ `products: true` ทำให้ Prisma inference คืนค่าแบบ relational เต็มรูป
+    - ปรับปรุง `modules/activity/domain/summary/plan-targets-registry.ts` ดึงข้อมูลจาก dedicated tables 100%
+  - **Quality Assurance & Verification**:
+    - ผ่านการตรวจสอบ TypeScript (`npx tsc --noEmit`) **0 errors** ทั่วทั้งโปรเจกต์
+    - ผ่าน Next.js 16 Turbopack Production Build (`npm run build`) **สร้างหน้า Static Pages ครบทั้ง 112/112 routes**
+
+
+### Version 2.1.0 (2026-10-22)
+
+- **Type 4 (วางบิล / เก็บเงิน) — Single Result Table Consolidation & Multi-Store Fixes** ([README](features/type-4/README.md)):
+  - **Database Schema**:
+    - ยุบตาราง `ActivityResultType4Item` (`activity_result_type_4_items`) รวมเข้ากับ `ActivityResultType4` (`activity_result_type_4`) เหลือตารางเดียว — **1 แถวต่อ 1 ร้านค้า** (ฟิลด์ `storeId`, `companyName`, `collectType`, `targetAmount`, `receivedAmount`, `orderNo`, `billingStatus`, `billingDetail`, `collectDetail`, `notes`)
+    - ความสัมพันธ์บน `ActivityPlan` เปลี่ยนจาก 1-to-1 (`type4Result`) เป็น 1-to-many (`type4Results ActivityResultType4[]`)
+  - **Infrastructure & Domain**:
+    - ปรับ `activity-plan-include.ts`, `type4-planned.strategy.ts` (`saveActual` บันทึก 1 แถวต่อร้านค้า + sync `collectResultAmount`), `type4-unplanned.strategy.ts`, `result-summary-parser.ts` และ `views/detail/hooks/use-detail-plan-loader.ts` ให้อ่าน/เขียนจาก `type4Results`
+  - **Planned Actual (`Type4ActualForm`, `Type4DetailView`)**:
+    - แสดงผลครบทุกร้านค้าจาก `ActivityPlanType4Target` (แก้ปัญหาแสดงเพียง 1 ร้าน) และแยกช่อง "รายละเอียดเพิ่มเติม" ตามแต่ละบริษัท/ร้านค้า
+    - แก้ปัญหาข้อมูลว่างเมื่อกลับเข้ามาแก้ไขหลังบันทึก (Hydration จาก `type4Results`)
+    - แก้ Validation `"กรุณาระบุสถานะการวางบิล"`: `validateType4Actual` ตรวจสอบรายร้านค้าผ่าน `items` และ `useType4Actual` fallback สถานะเริ่มต้นเป็น `"วางบิลสำเร็จ"`
+  - **Unplanned (`Type4UnplannedForm`)**:
+    - นำช่อง "เป้ายอดเงินตามบิล (บาท)" และยอดคงค้างออก เหลือเพียง "จำนวนเงินที่เก็บได้จริง (บาท)" (ค่า `targetAmount` ถูก sync จากยอดรับจริง)
+    - ตั้งค่าเริ่มต้นสถานะการวางบิลเป็น `"วางบิลสำเร็จ"` (`BILLING_STATUSES` = `วางบิลสำเร็จ` / `วางบิลไม่สำเร็จ`) และเพิ่มส่วนแนบสลิป/หลักฐานการชำระเงินรายร้านค้า
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0
+
+### Version 2.0.0 (2026-10-20)
+
+- **Complete 15 Vertical Slices (Work Types 1 – 14) & Legacy Module Decommission (Phase 1 – 4 Complete)**:
+  - **ครบทุกประเภทงาน (15 Slices Dual-Mode Planned + Unplanned)**:
+    - พัฒนาและ Migrate `type-5`, `type-6`, `type-7a`, `type-7b`, `type-8`, `type-9`, `type-10`, `type-11`, `type-12`, `type-13`, และ `type-14` ตามมาตรฐาน 24-Artifact Blueprint (`docs/TYPE_SLICE_BLUEPRINT.md`)
+    - ทุก Type Slice รองรับครบทั้งกิจกรรมในแผน (`planned`), บันทึกผลจริง (`actual`), และกิจกรรมนอกแผน 2-in-1 (`unplanned`) พร้อมเอกสาร `README.md` ประจำแต่ละ Slice
+  - **Universal Strategy & Summary Registries (`TYPE_1` – `TYPE_14`)**:
+    - ลงทะเบียนครบทุกประเภทงานใน `infrastructure/strategy.registry.ts`, `domain/summary/plan-targets-registry.ts`, และ `domain/summary/result-summary-parser.ts`
+  - **Centralized Permissions & Complete Infrastructure**:
+    - รวมศูนย์สิทธิ์การเข้าถึงไว้ที่ `domain/permissions/activity-permissions.ts`
+    - เพิ่มเติม Native Repositories & Services ครบวงจร (`activity-approval.repository.ts`, `activity-result.repository.ts`, `customer-lookup.repository.ts`, `demo-plot.repository.ts`, `promotional-material.repository.ts`, `calendar-integration.ts`, `activity-plan-flow.ts`, `approval-queue.ts`)
+  - **Unified Activity UI Inputs**:
+    - เพิ่ม `ActivityCombobox` และ `ActivityTextarea` ใน `ui/inputs/` พร้อมบังคับใช้ Unified Inputs ข้ามทุก Type Slice
+  - **Client-Safe Barrel Optimization & Legacy Decommission**:
+    - แยก Server Strategy Exports ออกจาก Client Barrels ป้องกัน Node module bundling leak
+    - ปลดระวางและลบโฟลเดอร์ `modules/activity-plans/` ออกจากโปรเจกต์ถาวร (0 legacy imports)
+    - ตรวจสอบผ่านทั้ง `npx tsc --noEmit` (0 errors) และ `npm run build` (Production Build 100%)
+
+### Version 1.9.0 (2026-10-20)
+
+- **Core Architecture Refactoring & Shared Components Unification**:
+  - **Deduplicate `can-approve.ts`**: ยุบรวม Authority Logic ไว้ที่ `domain/approval/can-approve.ts` จุดเดียว และลบไฟล์ซ้ำซ้อนใน `ui/can-approve.ts`
+  - **Relocate `image-uploader.ts`**: ย้าย Utility จัดการรูปภาพและไฟล์แนบจาก `ui/utils/` เข้าสู่ `application/media/image-uploader.ts` พร้อมจัดระเบียบ `application/index.ts`
+  - **Unify Shared Inputs (`ui/inputs/`)**: ย้าย Components จาก `components/activity/` เข้ามารวมศูนย์ในโมดูลที่ `modules/activity/ui/inputs/` (`ActivityInput`, `ActivityAddressSelect`, `ActivityCustomerSelect`, `ActivityProductSelect`, `ActivityPhotoUpload`, `ActivityGpsPicker`, `useActivityAddresses`, `useActivityCustomers`) และ Export ออกทาง `@/modules/activity/ui` พร้อมลบโฟลเดอร์เก่าทิ้ง
+  - **Strategy Registry Pattern (`infrastructure/strategy.registry.ts`)**: สร้าง Strategy Registry ศูนย์กลางจับคู่ Work Type Code (`TYPE_1` - `TYPE_4`) กับ Planned และ Unplanned Strategies ทดแทนการเขียน `if-else` กระจายในโค้ด
+  - **Modular Server Actions (`server/*.actions.ts`)**: แยก Server Actions ตามหมวดหมู่ชัดเจน:
+    - `planned.actions.ts`: จัดการแผนงานล่วงหน้า (สร้าง/แก้ไข/ดึงข้อมูล/ลบ/ยกเลิก)
+    - `unplanned.actions.ts`: จัดการกิจกรรมนอกแผน 2-in-1
+    - `actual.actions.ts`: จัดการบันทึกผลการปฏิบัติงานจริงตามแผน
+    - `approval.actions.ts`: จัดการระบบอนุมัติและรายชื่อผู้อนุมัติ
+    - `promotional.actions.ts`: จัดการสื่อส่งเสริมการขาย
+    - คง Barrel Files (`server/index.ts`, `server/actions.ts`) สำหรับ Re-export โดยไม่มี `"use server"` เพื่อความเข้ากันได้ 100% กับ Next.js Action Bundler
+  - **Reorganize View Subcomponents**: จัดโครงสร้างโฟลเดอร์ย่อยใน `views/list/components/activity-plan-table.tsx` และ `views/promotional-materials/components/`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100% Zero Breaking Changes
+
+### Version 1.8.0 (2026-10-20)
+
+- **Type 4 Vertical Slice Complete (วางบิล / เก็บเงิน - Billing & Payment Collection)**:
+  - ย้ายและพัฒนา Type 4 Vertical Slice เต็มรูปแบบใน `modules/activity/features/type-4/` ครบวงจร 100%
+  - **Shared Core & Standards**:
+    - `shared/constants.ts`: กำหนด `COLLECT_TYPES` (วางบิล / เก็บเงิน), `BILLING_STATUSES` (วางบิลสำเร็จ / เลื่อนวางบิล / พบปัญหา) และ Status Badges
+    - `shared/types.ts`: กำหนด `StoreOption` และ `Type4ImageFile`
+  - **Planned Sub-slice (กิจกรรมในแผน Trip Plan)**:
+    - ฟอร์มและ Hook: `Type4PlanForm`, `Type4PlanCard`, `useType4Form` (รองรับหลายร้านค้า Multi-target, สลับประเภทวางบิล/เก็บเงิน, คำนวณยอดเงินรวมเป้าหมายอัตโนมัติ)
+    - Application & Strategy: `planned-validation.ts`, `planned-mapper.ts`, `type4-planned.strategy.ts` พร้อม Dual Persistence บันทึกลง `ActivityPlanType4Target` และ sync ลง `ActivityPlanStore`
+  - **Actual & Review Sub-slice (ผลการปฏิบัติงานตามแผน)**:
+    - ฟอร์มและการ์ด: `Type4ActualForm`, `Type4DetailView`, `Type4ApprovalCard`
+    - Form State Hook: `useType4Actual` (รองรับเลขที่บิล, ยอดเงินจริง, สถานะการวางบิล, และระบบอัปโหลดสลิปหลักฐานการชำระเงิน)
+    - Application & Mappers: `actual-validation.ts`, `actual-mapper.ts`
+  - **Unplanned Sub-slice (กิจกรรมนอกแผน 2-in-1)**:
+    - ฟอร์มและ Hook: `Type4UnplannedForm`, `useType4UnplannedForm` (ระบุร้านค้า ยอดเป้าหมาย ยอดรับจริง และสลิปการชำระเงินเสร็จสิ้นในหน้าเดียว)
+    - Application & Strategy: `unplanned-validation.ts`, `unplanned-mapper.ts`, `type4-unplanned.strategy.ts` บันทึกแผนและผลงานจริงใน 1 Atomic Transaction
+  - **Views & Domain Integration**:
+    - ผูกเข้ากับ `domain/summary/plan-targets-registry.ts` (`extractType4PlanTargets`) และ `result-summary-parser.ts` (`ActivityResultType4` parsing & attachments)
+    - ผูกเข้ากับ View Orchestrators: `PlannedActivityForm`, `UnplannedActivityForm`, `ActualWorkTypeList`, `DetailWorkTypeList`, `ApprovalWorkTypeList` และ `activity-plan-actual-view.tsx`
+    - ผูกเข้ากับ Server Actions: `createActivityPlanAction` และ `updateActivityPlanAction` ใน `modules/activity/server/actions.ts`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
+
+### Version 1.7.0 (2026-10-20)
+
+- **Type 3 Vertical Slice Complete (เสนอขายสินค้า / Product Sales Proposal)**:
+  - พัฒนา Type 3 Vertical Slice ใน `modules/activity/features/type-3/` ตามมาตรฐาน Vertical Slice Architecture อย่างสมบูรณ์ 100%
+  - **Shared Core & Constants**: `NOT_CLOSED_REASONS`, `SALE_STATUSES`, `SALE_STATUS_CONFIG`, `StoreOption`, `ProductOption`
+  - **Planned Sub-slice**:
+    - ฟอร์มและ Hook: `Type3PlanForm`, `Type3PlanCard`, `useType3Form` (รองรับ Dealer/Subdealer, แคตตาล็อกราคา และคำนวณยอดเงินรวมอัตโนมัติ)
+    - Application & Validation: Zod schemas (`type3SalesItemSchema`, `type3ProductLineSchema`), `validateType3FormItems` และ Mappers (`extractType3PlanTargets`, `hydrateType3PlannedData`, `mapType3FormToPayload`)
+    - Strategy: `type3PlannedStrategy` บันทึกลงตารางเฉพาะ `ActivityPlanType3Target` / `ActivityPlanType3Product` พร้อม Dual Persistence Sync สู่ตาราง generic `ActivityPlanStore` / `ActivityPlanProduct`
+  - **Actual & Review Sub-slice**:
+    - ฟอร์มและ Hook: `Type3ActualForm`, `useType3Actual`, `Type3DetailView` (ตารางเปรียบเทียบ Target vs Actual), `Type3ApprovalCard`
+    - Validation & Mappers: `validateType3Actual`, `parseType3ActualResult`, `mapType3ActualFormToDb` บันทึกลง `ActivityResultSaleItem` (`workTypeCode = TYPE_3`)
+  - **Unplanned Sub-slice (กิจกรรมนอกแผน 2-in-1)**:
+    - ฟอร์มและ Hook: `Type3UnplannedForm`, `useType3UnplannedForm` (ระบุร้านค้า สินค้า และบันทึกยอดขายจริงพร้อมเหตุผลปิดดีลในหน้าเดียว)
+    - Application & Strategy: `unplanned-validation.ts`, `unplanned-mapper.ts`, `type3-unplanned.strategy.ts` ทำงานแบบ Atomic 1 Transaction
+  - **Views & Domain Integration**:
+    - ผูกเข้ากับ `domain/summary/plan-targets-registry.ts` และ `result-summary-parser.ts`
+    - ผูกเข้ากับ View Orchestrators: `PlannedActivityForm`, `UnplannedActivityForm`, `ActualWorkTypeList`, `DetailWorkTypeList`, `ApprovalWorkTypeList` และ `activity-plan-actual-view.tsx`
+    - ผูกเข้ากับ Server Actions: `createActivityPlanAction` และ `updateActivityPlanAction` ใน `modules/activity/server/actions.ts`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
+
+### Version 1.6.1 (2026-10-20)
+
+- **Type 2 Image Deduplication & Multi-Tier Data Sanitation**:
+  - แก้ไขปัญหาภาพถ่ายการติดตามผลแสดงซ้ำ 2 รูปใน `Type2DetailView` อันเกิดจากการที่ตาราง `ActivityAttachment` ผูกทั้ง `activityPlanId` และ `activityResultId` ในระเบียนเดียวกัน
+  - เพิ่มการกรองรูปภาพซ้ำหลายชั้น (Multi-tier Deduplication):
+    - **UI Layer (`Type2DetailView`)**: ใช้ `useMemo` (`uniqueImages`) กรองตาม `id` และ `url` ก่อนเรนเดอร์ Gallery และตัวนับรูป
+    - **Domain Layer (`result-summary-parser.ts`)**: Deduplicate `rawAttachments` ก่อนแปลงเข้า `result.t2Images`
+    - **View Orchestrator (`DetailWorkTypeList`)**: Deduplicate `effectiveT2Images` fallback
+    - **Form State Hook (`useType2Actual`)**: กรองรูปภาพก่อนตั้งค่า Form State
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ
+
+### Version 1.6.0 (2026-10-19)
+
+- **Type 2 Vertical Slice Complete (ติดตามผลการใช้สินค้า / Product Follow-up)**:
+  - พัฒนา Type 2 Vertical Slice ใน `modules/activity/features/type-2/` ตามต้นแบบ Gold Standard ครบวงจร
+  - **Planned Sub-slice**: `Type2PlanForm`, `Type2PlanCard`, `useType2Form`, `type2PlannedStrategy`, Zod Validation (`validateType2FormItems`) และ Mappers (`extractType2PlanTargets`, `hydrateType2PlannedData`)
+  - **Actual Sub-slice**: `Type2ActualForm`, `Type2DetailView`, `Type2ApprovalCard`, `useType2Actual`, Zod Validation (`validateType2Actual`) และ Mappers (`parseType2ActualResult`, `mapType2ActualFormToDb`)
+  - **Domain Integration**: ลงทะเบียน `TYPE_2` Extractor ใน `domain/summary/plan-targets-registry.ts`
+  - **Views Orchestrators**: เชื่อมโยงเข้ากับ `DetailWorkTypeList`, `ApprovalWorkTypeList`, `ActualWorkTypeList` และ `activity-plan-actual-view.tsx`
+  - **Server Actions**: ผนวก `type2PlannedStrategy` เข้ากับ `createActivityPlanAction` และ `updateActivityPlanAction`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ 100%
+
+### Version 1.5.1 (2026-10-19)
+
+- **100% Route & Shared Components Migration (Quick Win Complete)**:
+  - สลับ Imports ใน Route Pages ทั้งหมดของ `app/(main)/activity-plans/*` (`unplanned/[id]/edit/page.tsx` และ `actual/page.tsx`) มายัง `@/modules/activity` ครบ 100%
+  - สลับ `components/activity/activity-photo-upload.tsx` ให้ใช้ Utility และ Type จาก `@/modules/activity/ui/utils/image-uploader`
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ
+
+### Version 1.5.0 (2026-10-19)
+
+- **100% Decoupled Backbone (Core Migration Complete)**:
+  - สร้าง `domain/approval/` พร้อมคู่มือฉบับเต็ม (`domain/approval/README.md`) แตก Step Resolvers ย่อย (`resolveLineApprover`, `resolveBudgetApprover`, ฯลฯ)
+  - สร้าง `domain/summary/` ด้วย **Registry Pattern** รองรับการลงทะเบียน Targets ของ Type 1 ถึง 14 โดยไม่ต้องแก้ Monolithic File ขนาด 1,000 บรรทัดอีกต่อไป
+  - แยก `application/filters/activity-filter-matcher.ts` ออกจาก `constants.ts` เพื่อความสะอาดตามมาตรฐาน Clean Architecture
+  - แยก Hook `useApproverDirectory()` ออกจาก UI เข้าสู่ `hooks/use-approver-directory.ts`
+  - ปรับ `ui/activity-status-badge.tsx` ให้เป็น Pure UI Presentation ลดขนาดโค้ดจาก 600+ บรรทัด เหลือเพียง ~150 บรรทัด
+  - สลับ Imports ใน Views ทั้งหมด (`views/approvals`, `views/detail`, `views/actual`, `views/calendar`, `views/list`) ให้ชี้หา `@/modules/activity` ตัวเอง 100%
+  - ตรวจสอบผ่าน `npx tsc --noEmit` Exit code 0 สมบูรณ์แบบ โดยไม่มีการแตะต้อง `modules/activity-plans/`
+
+### Version 1.4.0 (2026-10-19)
+
+- **Autonomous Module Infrastructure**:
+  - ย้ายและปรับปรุง Repositories ประจำโมดูล (`activity-plan.repository.ts`, `employee-lookup.repository.ts`, `activity-plan-include.ts`)
+  - แยกขาด Server Actions Gateway ใน `modules/activity/server/actions.ts`
+  - Clean up Type 1 Mappers ตัด fallback `remarks` เหลือเฉพาะมาตรฐาน `topic` และ `notes`

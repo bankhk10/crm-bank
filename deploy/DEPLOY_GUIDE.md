@@ -79,19 +79,19 @@ docker logs crm-postgres
 ```
 
 ### Step 4: Apply Database Migrations
- 
+
  Since we tracked migration history in git, we use `migrate deploy` to apply migrations safely.
- 
+
  ```bash
  cd /opt/crm-bank/deploy/app
- 
+
  # Build and Run migrate
  docker compose -f docker-compose.app.yml --env-file ../env.production \
    --profile migrate build migrate
- 
+
  docker compose -f docker-compose.app.yml --env-file ../env.production \
    --profile migrate up migrate
- 
+
  # Check logs
  docker logs crm-migrate
  ```
@@ -169,11 +169,11 @@ docker compose -f docker-compose.app.yml --env-file ../env.production up -d --bu
  # Option B: With database schema changes (Migrations)
  # ====================================
  cd deploy/app
- 
+
  # Run migrate to apply new schema changes
  docker compose -f docker-compose.app.yml --env-file ../env.production \
    --profile migrate up migrate
- 
+
  # Then rebuild and restart app
  docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
  ```
@@ -181,21 +181,21 @@ docker compose -f docker-compose.app.yml --env-file ../env.production up -d --bu
 ---
 
 ## 3. Database Management Explained
- 
+
  ### Primary Method: `prisma migrate deploy` (Production Safe)
- 
+
  ```bash
  docker compose -f docker-compose.app.yml --env-file ../env.production \
    --profile migrate up migrate
  ```
- 
+
  **Why use this:**
  - **Safest for Production**: Applies pending migrations from `prisma/migrations` folder.
  - **Version Control**: Tracks schema history via migration files committed in Git.
  - **Strict Validation**: Will fail if the database schema has drifted from migration history, preventing accidental data loss.
- 
+
  ### Alternative: `prisma db push` (Development / Prototyping)
- 
+
  Use this ONLY if you are prototyping and haven't generated migration files yet.
  **Warning:** `db push` may modify/delete data to match schema.prisma and ignores migration history files.
 
@@ -223,7 +223,7 @@ async function main() {
     console.log('Database already seeded, skipping...');
     return;
   }
-  
+
   // ... seed logic
 }
 ```
@@ -399,3 +399,129 @@ cat backup.sql | docker exec -i crm-postgres psql -U crm_admin -d crm_bank
 4. **Container Name Resolution**: ใช้ `crm-postgres` ไม่ใช่ `postgres` ใน DATABASE_URL
 5. **Migrate vs Push**: ใน production ควรใช้ `migrate deploy` เท่านั้น
 6. **Seed Once**: ควร seed ครั้งเดียวและมี logic ป้องกัน duplicate
+
+---
+
+## 9. การจัดการ SSL Certificate และการต่ออายุ (SSL & Certbot)
+
+### รอบการต่ออายุอัตโนมัติ (Auto-Renewal)
+- ใบรับรอง SSL ของ Let's Encrypt มีอายุ **90 วัน**
+- Container `crm-certbot` ตั้งค่าให้รัน `certbot renew` เช็คทุกๆ **12 ชั่วโมง**
+- Certbot จะทำการต่ออายุจริงเมื่อใบรับรองเหลืออายุน้อยกว่า **30 วัน** (หรือต่ออายุใหม่ทุกๆ **~60 วัน**)
+
+### 1. เช็ควันหมดอายุและจำนวนวันที่เหลือของ SSL ทุกโดเมน
+```bash
+# เช็คผ่าน Volume โดยตรง (ใช้ได้แม้ container crm-certbot หยุดทำงานอยู่)
+docker run --rm -v app_certbot_certs:/etc/letsencrypt certbot/certbot certificates
+
+# หรือถ้า crm-certbot รันอยู่ (Up)
+docker exec crm-certbot certbot certificates
+
+# เช็คผ่าน curl จากหน้าเว็บจริง
+curl -vI https://csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+curl -vI https://test-csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+```
+
+### 2. คำสั่งต่ออายุ SSL ด้วยตนเอง (Manual Renew)
+
+**วิธีที่ 1: ต่ออายุผ่าน Webroot (ไม่ต้องหยุด Nginx - แนะนำ)**
+```bash
+# ต่ออายุทุกโดเมนที่ใกล้หมดอายุ (< 30 วัน)
+docker run --rm \
+  -v app_certbot_certs:/etc/letsencrypt \
+  -v app_certbot_data:/var/www/certbot \
+  certbot/certbot renew --webroot -w /var/www/certbot
+
+# หรือระบุต่ออายุเฉพาะโดเมน เช่น test-csone.icgone.com
+docker run --rm \
+  -v app_certbot_certs:/etc/letsencrypt \
+  -v app_certbot_data:/var/www/certbot \
+  certbot/certbot renew --cert-name test-csone.icgone.com --webroot -w /var/www/certbot
+
+# ทดสอบจำลองการต่ออายุ (Dry-run) ว่าผ่านหรือไม่
+docker run --rm \
+  -v app_certbot_certs:/etc/letsencrypt \
+  -v app_certbot_data:/var/www/certbot \
+  certbot/certbot renew --dry-run --webroot -w /var/www/certbot
+
+# หลังต่ออายุสำเร็จ สั่ง Reload Nginx เพื่อรับใบรับรองใหม่ (0-Downtime)
+docker exec crm-nginx nginx -s reload
+```
+
+**วิธีที่ 2: ต่ออายุแบบ Standalone (กรณีใช้ Port 80 โดยตรง ต้องหยุด Nginx ชั่วคราว)**
+```bash
+docker stop crm-nginx
+
+docker run --rm \
+  -v app_certbot_certs:/etc/letsencrypt \
+  -v app_certbot_data:/var/www/certbot \
+  -p 80:80 \
+  certbot/certbot renew
+
+docker start crm-nginx
+```
+
+---
+
+## 10. รวมคำสั่งที่ใช้งานบ่อย (Quick Command Cheat Sheet)
+
+### 🔍 เช็คสถานะระบบและพอร์ต (Status & Port Checks)
+```bash
+# ดู Container ที่กำลังทำงานอยู่ทั้งหมดแบบอ่านง่าย
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# ดู Container ทั้งหมดรวมตัวที่หยุดทำงาน (Exited) เช่น crm-nginx, crm-certbot
+docker ps -a | grep -E "crm-|nginx|certbot"
+
+# เช็คว่าโปรแกรมอะไรกำลังใช้พอร์ต 80 และ 443 อยู่ (กรณีฟ้อง address already in use)
+sudo ss -tulpn | grep -E ':80|:443'
+
+# ดูปริมาณการใช้ CPU / RAM ของแต่ละ Container แบบ Real-time
+docker stats crm-postgres crm-app crm-app-staging crm-nginx
+```
+
+### 🛠️ แก้ปัญหา Nginx ของเครื่อง Ubuntu แย่งพอร์ต 80/443 หลังรีบูต VPS
+```bash
+# 1. หยุดและปิด Auto-start ของ Nginx บน Host
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+
+# 2. เปิด crm-nginx และ crm-certbot ของ Docker ขึ้นมาแทน
+docker start crm-nginx crm-certbot
+
+# 3. ตรวจสอบและ Reload Nginx ใน Docker
+docker exec crm-nginx nginx -t
+docker exec crm-nginx nginx -s reload
+```
+
+### 🚀 คำสั่ง Deploy ด่วน (Production & Staging)
+```bash
+# --- Deploy Production (เฉพาะแก้โค้ด) ---
+cd /opt/crm-bank && git reset --hard && git pull origin Production
+cd deploy/app && docker compose -f docker-compose.app.yml --env-file ../.env.production up -d --build app
+
+# --- Deploy Staging (Test) ---
+cd /opt/crm-bank-staging && git pull origin Test && bash scripts/deploy-staging.sh
+```
+
+### 📜 คำสั่งดู Logs ที่ใช้บ่อย
+```bash
+# ดู Log ของ Production App ล่าสุด 100 บรรทัดพร้อมติดตามแบบ Real-time
+docker logs crm-app -f --tail 100
+
+# ดู Log ของ Staging App ล่าสุด 100 บรรทัด
+docker logs crm-app-staging -f --tail 100
+
+# ดู Log ของ Nginx และ Certbot
+docker logs crm-nginx --tail 50
+docker logs crm-certbot --tail 50
+```
+
+### 💾 คำสั่ง Backup Database ด่วน
+```bash
+# Backup Production Database
+docker exec crm-postgres pg_dump -U crm_admin crm > /opt/crm-bank/backup_prod_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup Staging Database
+docker exec crm-postgres-staging pg_dump -U crm_staging_admin crm_staging > /opt/crm-bank-staging/backup_staging_$(date +%Y%m%d_%H%M%S).sql
+```

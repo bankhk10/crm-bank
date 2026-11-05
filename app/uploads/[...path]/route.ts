@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { getObjectFromR2, resolveContentType } from "@/lib/file-storage";
+import { getR2Config, isR2Enabled } from "@/lib/r2-client";
 
 /**
- * Fallback route to serve uploaded files directly from filesystem
- * This handles cases where Next.js default static file serving (public folder)
- * hasn't picked up new files yet (common in dev mode).
+ * Fallback route to serve uploaded files from local filesystem or Cloudflare R2.
+ * 1. Checks local `public/uploads/...` first (handles seed files and legacy local uploads).
+ * 2. If not found locally and Cloudflare R2 is enabled:
+ *    - If R2_PUBLIC_URL is configured, redirects or fetches from R2.
+ *    - Streams the object from R2 with proper Content-Type and Cache-Control headers.
  */
 export async function GET(
   request: NextRequest,
@@ -15,6 +19,8 @@ export async function GET(
 
   // Security check: Prevent directory traversal
   if (
+    !pathSegments ||
+    pathSegments.length === 0 ||
     pathSegments.some(
       (segment) =>
         segment.includes("..") ||
@@ -25,7 +31,7 @@ export async function GET(
     return new NextResponse("Invalid path", { status: 400 });
   }
 
-  // Construct absolute filesystem path
+  // 1. Try local filesystem first (fast path for seed images & legacy local files)
   const filePath = path.join(
     process.cwd(),
     "public",
@@ -34,50 +40,42 @@ export async function GET(
   );
 
   try {
-    // Check if file exists
     await fs.access(filePath);
-
-    // Read file
     const fileBuffer = await fs.readFile(filePath);
-
-    // Determine content type
-    const ext = path.extname(filePath).toLowerCase();
-    let contentType = "application/octet-stream";
-
-    switch (ext) {
-      case ".jpg":
-      case ".jpeg":
-        contentType = "image/jpeg";
-        break;
-      case ".png":
-        contentType = "image/png";
-        break;
-      case ".gif":
-        contentType = "image/gif";
-        break;
-      case ".webp":
-        contentType = "image/webp";
-        break;
-      case ".svg":
-        contentType = "image/svg+xml";
-        break;
-      case ".pdf":
-        contentType = "application/pdf";
-        break;
-      case ".mp4":
-        contentType = "video/mp4";
-        break;
-    }
+    const contentType = resolveContentType(filePath);
 
     return new NextResponse(fileBuffer, {
       headers: {
         "Content-Type": contentType,
-        // Cache control: 1 hour (less aggressive than static default to allow updates/deletes to propagate reasonably fast)
         "Cache-Control": "public, max-age=3600, must-revalidate",
       },
     });
-  } catch (err) {
-    // File not found or error reading
-    return new NextResponse("File not found", { status: 404 });
+  } catch {
+    // Not found on local disk; proceed to check Cloudflare R2 if enabled
   }
+
+  // 2. Fallback to Cloudflare R2
+  if (isR2Enabled()) {
+    const r2Config = getR2Config();
+    if (r2Config?.publicUrl) {
+      const relativePath = `uploads/${pathSegments.join("/")}`;
+      const objectKey = r2Config.keyPrefix
+        ? `${r2Config.keyPrefix}/${relativePath}`
+        : relativePath;
+      const targetUrl = `${r2Config.publicUrl}/${objectKey}`;
+      return NextResponse.redirect(targetUrl, 307);
+    }
+
+    const r2Object = await getObjectFromR2(pathSegments);
+    if (r2Object) {
+      return new NextResponse(new Uint8Array(r2Object.buffer), {
+        headers: {
+          "Content-Type": r2Object.contentType,
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+  }
+
+  return new NextResponse("File not found", { status: 404 });
 }

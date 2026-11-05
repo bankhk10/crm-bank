@@ -1,0 +1,130 @@
+"use client";
+
+import React from "react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoadingOverlayDialog } from "@/modules/activity/ui";
+
+import { useActivityPlanExport } from "./hooks/use-activity-plan-export";
+import { ExportHeaderBar } from "./components/export-header-bar";
+import { ExportSettingsSidebar } from "./components/export-settings-sidebar";
+import { ExportLivePreview } from "./components/export-live-preview";
+
+interface ActivityPlanExportViewProps {
+  id?: string;
+}
+
+export default function ActivityPlanExportView({
+  id,
+}: ActivityPlanExportViewProps) {
+  const {
+    plan,
+    selectedPlanId,
+    setSelectedPlanId,
+    availablePlans,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
+    availableEmployees,
+    canViewAllEmployees,
+    loadingPlan,
+    error,
+    availableWorkTypes,
+    mode,
+    setMode,
+    selectedMonth,
+    setSelectedMonth,
+    selectedYear,
+    setSelectedYear,
+    includeActual,
+    setIncludeActual,
+    includePhotos,
+    setIncludePhotos,
+    previewHtml,
+    loadingPreview,
+    downloadingPdf,
+    iframeRef,
+    handlePrint,
+    handleDownloadPdf,
+    handleRefreshPreview,
+    handleBack,
+  } = useActivityPlanExport(id);
+
+  if (loadingPlan && mode === "SINGLE" && !plan) {
+    return (
+      <div className="min-h-[500px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังเตรียมห้องพิมพ์เอกสาร (Print Studio)..."
+          description="กรุณารอสักครู่ ระบบกำลังดึงข้อมูลแผนงานสำหรับจัดพิมพ์"
+        />
+      </div>
+    );
+  }
+
+  if (mode === "SINGLE" && (error || !plan)) {
+    return (
+      <div className="container mx-auto p-6 max-w-2xl space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertDescription>
+            {error || "ไม่พบข้อมูลแผนงานที่ต้องการพิมพ์"}
+          </AlertDescription>
+        </Alert>
+        <Button variant="outline" onClick={handleBack} className="text-xs">
+          กลับหน้ารายการแผนงาน
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* ─── 1. TOP HEADER ACTION BAR ─── */}
+      <ExportHeaderBar
+        plan={plan}
+        mode={mode}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        loadingPreview={loadingPreview}
+        downloadingPdf={downloadingPdf}
+        onBack={handleBack}
+        onPrint={handlePrint}
+        onDownloadPdf={handleDownloadPdf}
+        onRefreshPreview={handleRefreshPreview}
+      />
+
+      {/* ─── 2. MAIN WORKSPACE CANVAS (2 COLUMNS) ─── */}
+      <div className="container mx-auto p-4 sm:p-6 flex-1 flex flex-col lg:flex-row items-start gap-6">
+        {/* Left: Print Settings Sidebar */}
+        <ExportSettingsSidebar
+          selectedPlanId={selectedPlanId}
+          setSelectedPlanId={setSelectedPlanId}
+          availablePlans={availablePlans}
+          selectedEmployeeId={selectedEmployeeId}
+          setSelectedEmployeeId={setSelectedEmployeeId}
+          availableEmployees={availableEmployees}
+          canViewAllEmployees={canViewAllEmployees}
+          mode={mode}
+          setMode={setMode}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          availableWorkTypes={availableWorkTypes}
+          includeActual={includeActual}
+          setIncludeActual={setIncludeActual}
+          includePhotos={includePhotos}
+          setIncludePhotos={setIncludePhotos}
+        />
+
+        {/* Right: Live A4 Paper Preview */}
+        <ExportLivePreview
+          previewHtml={previewHtml}
+          loadingPreview={loadingPreview}
+          iframeRef={iframeRef}
+        />
+      </div>
+    </div>
+  );
+}

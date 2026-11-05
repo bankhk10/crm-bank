@@ -30,6 +30,7 @@ interface MultiSelectProps {
   onValueChange: (value: string[]) => void;
   defaultValue?: string[];
   placeholder?: string;
+  searchPlaceholder?: string;
   searchable?: boolean;
   emptyIndicator?: React.ReactNode;
   className?: string;
@@ -46,6 +47,7 @@ export function MultiSelect({
   onValueChange,
   defaultValue = [],
   placeholder = "Select options",
+  searchPlaceholder = "ค้นหา...",
   searchable = true,
   emptyIndicator,
   className,
@@ -61,7 +63,15 @@ export function MultiSelect({
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 
   React.useEffect(() => {
-    setSelectedValues(defaultValue);
+    setSelectedValues((prev) => {
+      if (
+        prev.length === defaultValue.length &&
+        prev.every((val, index) => val === defaultValue[index])
+      ) {
+        return prev;
+      }
+      return defaultValue;
+    });
   }, [defaultValue]);
 
   const handleUnselect = (value: string) => {
@@ -197,7 +207,7 @@ export function MultiSelect({
       >
         <Command>
           {searchable && (
-            <CommandInput placeholder="ค้นหาสถานะ..." className="h-9 text-xs" />
+            <CommandInput placeholder={searchPlaceholder || "ค้นหา..."} className="h-9 text-xs" />
           )}
           <CommandList>
             <CommandEmpty>{emptyIndicator || "ไม่พบข้อมูล"}</CommandEmpty>

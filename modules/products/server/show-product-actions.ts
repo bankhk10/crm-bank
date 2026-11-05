@@ -2,8 +2,7 @@
 
 import { db } from "@/lib/db";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
-import fs from "fs/promises";
-import path from "path";
+import { uploadFile, deleteFile } from "@/lib/file-storage";
 import { revalidatePath } from "next/cache";
 
 export async function getShowProductImages() {
@@ -45,8 +44,6 @@ export async function uploadShowProductImage(formData: FormData) {
     return { success: false, message: "Forbidden: Insufficient permissions" };
   }
 
-  // Permission check could be added here if needed
-
   const file = formData.get("file") as File;
   if (!file) {
     return { success: false, message: "No file provided" };
@@ -56,17 +53,14 @@ export async function uploadShowProductImage(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "show-products");
-    
-    // Create directory if it doesn't exist
-    await fs.mkdir(uploadDir, { recursive: true });
-
     const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const filePath = path.join(uploadDir, filename);
+    const uploadResult = await uploadFile(buffer, file.name || filename, {
+      folder: "show-products",
+      customFilename: filename,
+      contentType: file.type || undefined,
+    });
 
-    await fs.writeFile(filePath, buffer);
-
-    const url = `/uploads/show-products/${filename}`;
+    const url = uploadResult.url;
 
     // Get highest order
     const lastImage = await db.showProductImage.findFirst({
@@ -163,10 +157,9 @@ export async function deleteShowProductImage(id: string) {
       return { success: false, message: "Image not found" };
     }
 
-    // Delete file
-    const filePath = path.join(process.cwd(), "public", "uploads", "show-products", image.filename);
+    // Delete file from storage (R2 and/or local)
     try {
-      await fs.unlink(filePath);
+      await deleteFile(image.url || `/uploads/show-products/${image.filename}`);
     } catch (e) {
       console.warn("Could not delete file, perhaps already deleted:", e);
     }

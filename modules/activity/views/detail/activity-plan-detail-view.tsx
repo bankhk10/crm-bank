@@ -1,0 +1,161 @@
+"use client";
+
+import React from "react";
+import { useSession } from "next-auth/react";
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+import {
+  Loader2,
+  AlertCircle,
+  ClipboardList,
+  ClipboardCheck,
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  DetailHeader,
+  DetailOverview,
+  DetailWorkTypeList,
+  DetailActivityStatusSection,
+  DetailAuditLogs,
+  DetailViewActions,
+} from "./components";
+import { useDetailPlanLoader } from "./hooks";
+import type { ActivityPlanWithRelations } from "@/modules/activity/types";
+
+interface ActivityPlanDetailViewProps {
+  id: string;
+  onBack?: () => void;
+  initialPlan?: ActivityPlanWithRelations | null;
+  initialError?: string | null;
+}
+
+export default function ActivityPlanDetailView({
+  id,
+  onBack,
+  initialPlan,
+  initialError,
+}: ActivityPlanDetailViewProps) {
+  const { data: session } = useSession();
+  const isAdmin = isActivityAdmin(session?.user);
+
+  const {
+    plan,
+    loading,
+    error,
+    planSummary,
+    resolvedWorkTypes,
+    targets,
+    type1Targets,
+    parsedResults,
+    mergedLogs,
+    isTypeActive,
+    handleBack,
+  } = useDetailPlanLoader({ id, onBack, initialPlan, initialError });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <p className="text-xs text-slate-500 font-medium">
+          กำลังโหลดข้อมูลแผนงาน...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !plan) {
+    return (
+      <div className="container mx-auto p-4 max-w-2xl space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertDescription>
+            {error || "ไม่พบข้อมูลแผนงานที่ต้องการแสดง"}
+          </AlertDescription>
+        </Alert>
+        <Button variant="outline" onClick={handleBack} className="text-xs">
+          กลับหน้ารายการแผนงาน
+        </Button>
+      </div>
+    );
+  }
+
+  // Check whether actual results have been recorded for this plan
+  const isActualRecorded = Boolean(
+    (plan as any).isActualRecorded ||
+      (plan as any).result ||
+      ((plan as any).type7aResults && (plan as any).type7aResults.length > 0),
+  );
+
+  const isCompleted =
+    (plan.status as string) === "COMPLETED" ||
+    (plan as any).result?.resultStatus === "COMPLETED" ||
+    parsedResults.resultStatus === "COMPLETED";
+
+  const canShowRecordActual =
+    plan.status === "APPROVED" && (isAdmin || (!isCompleted && !isActualRecorded));
+
+  return (
+    <section className="space-y-6 container mx-auto px-0 sm:px-0">
+      <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
+
+        {/* ─── 1. TOP HEADER (DETAIL VIEW) ─── */}
+        <DetailHeader
+          plan={plan}
+          planSummary={planSummary}
+          isActualRecorded={isActualRecorded}
+        />
+
+        {/* ─── 2. GENERAL PLAN INFORMATION (Overview) ─── */}
+        <DetailOverview
+          plan={plan}
+          planSummary={planSummary}
+          resolvedWorkTypes={resolvedWorkTypes}
+        />
+
+        {/* ─── 3. WORK TYPE SPECIFIC DETAILS ─── */}
+        <DetailWorkTypeList
+          plan={plan}
+          targets={targets}
+          type1Targets={type1Targets}
+          parsedResults={parsedResults}
+          isTypeActive={isTypeActive}
+          isActualRecorded={isActualRecorded}
+        />
+
+        {/* ─── 4. ACTUAL RESULTS STATUS (IF RECORDED) ─── */}
+        {isActualRecorded && parsedResults.activityResultStatus && (
+          <DetailActivityStatusSection
+            activityResultStatus={parsedResults.activityResultStatus}
+            cancelReason={parsedResults.cancelReason}
+            postponedDate={parsedResults.postponedDate}
+            postponedTime={parsedResults.postponedTime}
+            postponedReason={parsedResults.postponedReason}
+            postponedNotes={parsedResults.postponedNotes}
+          />
+        )}
+
+        {/* ─── 5. AUDIT LOGS ─── */}
+        <DetailAuditLogs logs={mergedLogs} />
+
+        {/* ─── 6. BOTTOM ACTIONS ─── */}
+        <DetailViewActions onBack={handleBack} backLabel="กลับหน้ารายการแผนงาน">
+          {/* Action button to record or edit actual results */}
+          {canShowRecordActual && (
+            <Link href={`/activity-plans/${plan.id}/actual`}>
+              <Button
+                type="button"
+                className="px-5 py-2.5 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-xs"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>บันทึกผลการปฏิบัติงาน</span>
+              </Button>
+            </Link>
+          )}
+        </DetailViewActions>
+      </div>
+
+      <div className="h-12 md:hidden" />
+    </section>
+  );
+}
