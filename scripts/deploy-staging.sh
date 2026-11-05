@@ -4,8 +4,9 @@
 # 
 # Purpose:
 # 1. Pre-flight environment & strict branch safety checks (ONLY branch 'Test')
-# 2. Build and deploy Staging Next.js App (service: app-staging only)
-# 3. Verify Cloudflare Tunnel (crm-tunnel) connectivity & health check
+# 2. Run Database Migrations (prisma migrate deploy via profile migrate)
+# 3. Build and deploy Staging Next.js App (service: app-staging only)
+# 4. Verify Cloudflare Tunnel (crm-tunnel) connectivity & health check
 #
 # Usage:
 #   bash scripts/deploy-staging.sh
@@ -63,7 +64,23 @@ else
     warn "Cloudflare Tunnel container 'crm-tunnel' was not detected as running. Please verify 'docker ps | grep crm-tunnel'."
 fi
 
-step "2. Build & Deploy Staging Application (Target: app-staging only)"
+step "2. Run Database Migration (Staging)"
+
+info "Checking and applying database migrations for Staging (prisma migrate deploy)..."
+docker compose \
+  -f "${STAGING_ROOT}/deploy/app/docker-compose.staging.yml" \
+  --env-file "${STAGING_ROOT}/deploy/.env.staging" \
+  --profile migrate up --build migrate
+
+# Clean up stopped migration container
+docker compose \
+  -f "${STAGING_ROOT}/deploy/app/docker-compose.staging.yml" \
+  --env-file "${STAGING_ROOT}/deploy/.env.staging" \
+  rm -f migrate >/dev/null 2>&1 || true
+
+success "Database migrations verified and up to date."
+
+step "3. Build & Deploy Staging Application (Target: app-staging only)"
 
 info "Building and starting ONLY service 'app-staging'..."
 docker compose \
@@ -80,7 +97,7 @@ else
     exit 1
 fi
 
-step "3. Post-Deployment Verification & Health Check"
+step "4. Post-Deployment Verification & Health Check"
 
 info "Testing Staging API Health Endpoint (https://test-csone.icgone.com/api/health)..."
 HTTP_HEALTH="$(curl -s -o /dev/null -w "%{http_code}" https://test-csone.icgone.com/api/health 2>/dev/null || echo "000")"

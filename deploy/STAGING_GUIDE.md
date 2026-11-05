@@ -82,34 +82,23 @@ bash scripts/deploy-staging.sh
 ```
 
 > [!TIP]
-> **ไม่ต้อง copy ไฟล์ `staging.conf` หรือ reload Nginx ด้วยตนเอง:**
-> คำสั่ง `bash scripts/deploy-staging.sh` จะทำการ Build App, Backup Config, Sync Nginx Config, รัน Safety Checks 4 ด่าน และ Reload Nginx แบบ 0-Downtime ให้ครบถ้วนโดยอัตโนมัติ
+> **ระบบอัปเดต Database Schema และ Build ให้อัตโนมัติ:**
+> คำสั่ง `bash scripts/deploy-staging.sh` จะตรวจสอบ Environment/Branch, รัน Database Migration (`prisma migrate deploy`), Build & Deploy Application, และทดสอบ Health Check ให้ครบถ้วนโดยอัตโนมัติ
 
 ---
 
-## 3. สิ่งที่ `scripts/deploy-staging.sh` จัดการให้อัตโนมัติ
+## 3. สิ่งที่ `scripts/deploy-staging.sh` จัดการให้อัตโนมัติ (Cloudflare Tunnel Edition)
 
-เมื่อสั่งรัน `bash scripts/deploy-staging.sh` ระบบจะทำงานตามลำดับ 8 ขั้นตอน:
+เมื่อสั่งรัน `bash scripts/deploy-staging.sh` ระบบจะทำงานตามลำดับ 4 ขั้นตอน:
 
-1. **Pre-flight Environment & Strict Branch Check:**
-   ตรวจสอบไฟล์ `.env.staging`, ตรวจสอบว่า `crm-nginx` ทำงานอยู่ และยืนยันว่ากำลังทำงานอยู่บน **Branch `Test`** เท่านั้น (หากเป็น Branch อื่นจะหยุดทำงานทันที)
-2. **Build & Deploy Service `app-staging`:**
-   สั่ง `docker compose ... up -d --build app-staging` เพื่อสร้างและเปิด Container `crm-app-staging` โดยไม่แตะต้อง Service อื่น
-3. **Backup Active Staging Nginx Configuration:**
-   สร้างไฟล์ Backup ของ `staging.conf` เดิมเก็บไว้ที่ `/opt/crm-bank/nginx/conf.d/.backup/staging.conf.<timestamp>` (เก็บประวัติย้อนหลัง 10 ไฟล์ล่าสุด)
-4. **Sync Staging Nginx Config:**
-   คัดลอกไฟล์ `nginx/conf.d/staging.conf` จาก Staging repository ไปยัง `/opt/crm-bank/nginx/conf.d/staging.conf`
-5. **Nginx Syntax Validation (`nginx -t`):**
-   รัน `docker exec crm-nginx nginx -t` หากมีข้อผิดพลาดจะทำ Auto-Rollback ทันที
-6. **Pre-flight Safety Checks (4 ด่านตรวจความปลอดภัย):**
-   - **Safety Check 1:** ตรวจสอบว่า Production HTTPS (`csone`) ชี้ไปยัง Production upstream (`http://nextjs_app`) และไม่มี Staging targets ปะปน
-   - **Safety Check 2:** ตรวจสอบว่า Staging HTTPS (`test-csone`) ชี้ไปยัง `$staging_upstream` (`http://crm-app-staging:3000`)
-   - **Safety Check 3:** ตรวจสอบว่า Staging `/uploads/` ใช้ `proxy_pass $staging_upstream;` และไม่มี `alias`
-   - **Safety Check 4 (Cross-Routing Isolation):** ยืนยันสองทิศทางว่า Production ไม่ Route ไป Staging และ Staging ไม่ Route ไป Production
-7. **Safe Nginx Reload (0 Downtime):**
-   สั่ง `docker exec crm-nginx nginx -s reload` (ส่งสัญญาณ SIGHUP ปรับคอนฟิกโดยไม่ตัด Connection)
-8. **Health Check & Summary:**
-   ทดสอบการเชื่อมต่อ Endpoint `/api/health` และสรุปผลการ Deploy
+1. **Pre-flight Environment & Strict Branch Safety Checks:**
+   ตรวจสอบไฟล์ `deploy/.env.staging`, ตรวจสอบสถานะ Cloudflare Tunnel (`crm-tunnel`) และยืนยันว่ากำลังทำงานอยู่บน **Branch `Test`** เท่านั้น (หากเป็น Branch อื่นจะหยุดทำงานทันที)
+2. **Database Migration (Prisma Migrate Deploy):**
+   สั่งรัน container `crm-migrate-staging` เพื่อรัน `prisma migrate deploy` อัปเดตตารางฐานข้อมูล `crm_staging` ให้ตรงกับ schema ล่าสุดเสมอ (ป้องกันปัญหา table does not exist) และเคลียร์ container เมื่อเสร็จสิ้น
+3. **Build & Deploy Service `app-staging`:**
+   สั่ง `docker compose ... up -d --build app-staging` เพื่อสร้างและเปิด Container `crm-app-staging` ล่าสุด
+4. **Post-Deployment Verification & Health Check:**
+   ทดสอบการเชื่อมต่อ Endpoint `/api/health` และ URL หน้าเว็บ Staging พร้อมสรุปผลการ Deploy
 
 ---
 
@@ -339,7 +328,28 @@ docker compose -f docker-compose.staging.yml restart app-staging
 
 ## 12. สรุป คำสั่ง
 
+```bash
 cd /opt/crm-bank-staging
 git status
 git pull origin Test
 bash scripts/deploy-staging.sh
+```
+
+> [!NOTE]
+> `bash scripts/deploy-staging.sh` จะทำการตรวจสอบและรัน `prisma migrate deploy` ให้อัตโนมัติทุกครั้งก่อนเริ่มแอป เพื่อให้โครงสร้างตารางตรงกับโค้ดล่าสุดเสมอ
+>
+> หากต้องการสั่งรัน Migration หรือ Seed โดยตรงด้วยตนเอง:
+> - **รัน Migration อย่างเดียว:**
+>   ```bash
+>   cd /opt/crm-bank-stagingcd /opt/crm-bank-staging/deploy/app
+>   docker compose -f docker-compose.staging.yml --env-file ../.env.staging --profile migrate up --build migrate
+>   ```
+> - **หรือรัน Migration แบบด่วนผ่าน App Container ปัจจุบัน:**
+>   ```bash
+>   docker exec -it crm-app-staging node ./node_modules/prisma/build/index.js migrate deploy
+>   ```
+> - **รัน Seed ข้อมูล Master Data:**
+>   ```bash
+>   cd /opt/crm-bank-staging/deploy/app
+>   docker compose -f docker-compose.staging.yml --env-file ../.env.staging --profile seed up --build seed
+>   ```
