@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, AttachmentCategory } from "@prisma/client";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -6,6 +6,7 @@ import type {
 } from "@/modules/activity/types/strategy.interface";
 import { findType11ByPlanId } from "./type11.repository";
 import { parseType11ActualResult } from "../application/actual-mapper";
+import { normalizeAttachmentCategory } from "@/modules/activity/infrastructure/activity-result.repository";
 
 /**
  * Validates whether an ID is a valid database CUID or UUID,
@@ -64,6 +65,8 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
     await (tx as any).activityPlanType11Target.deleteMany({
       where: { activityPlanId },
     });
+
+
 
     await (tx as any).activityPlanType11Product.deleteMany({
       where: { activityPlanId },
@@ -508,7 +511,74 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
-    // 3. Prune deleted products that are no longer present in stockItems
+    // 4. Sync attachments
+    const rawAttachments: any[] = [
+      ...(Array.isArray(actualData.attachments) ? actualData.attachments : []),
+      ...(Array.isArray(actualData.images) ? actualData.images : []),
+      ...(Array.isArray(actualData.t11Images) ? actualData.t11Images : []),
+      ...(Array.isArray(actualData.type11UnplannedItems)
+        ? actualData.type11UnplannedItems.flatMap((item: any) =>
+            (item.images || []).map((img: any) => ({
+              ...img,
+              category: "STOCK",
+              storeId: item.storeId || item.id || null,
+              workTypeCode: "TYPE_11",
+            })),
+          )
+        : []),
+    ];
+
+    const hasAttachmentsInput =
+      actualData.attachments !== undefined ||
+      actualData.images !== undefined ||
+      actualData.t11Images !== undefined ||
+      actualData.type11UnplannedItems !== undefined;
+
+    if (hasAttachmentsInput) {
+      await (tx as any).activityAttachment.deleteMany({
+        where: {
+          activityPlanId,
+          workTypeCode: "TYPE_11",
+        },
+      });
+
+      const seenUrls = new Set<string>();
+      const validT11Attachments: any[] = [];
+      for (const att of rawAttachments) {
+        const u = att?.fileUrl || att?.url;
+        if (u && !seenUrls.has(u)) {
+          seenUrls.add(u);
+          validT11Attachments.push(att);
+        }
+      }
+
+      if (validT11Attachments.length > 0) {
+        const resultRecord = await (tx as any).activityResult.findFirst({
+          where: { activityPlanId },
+          select: { id: true },
+        });
+        const resolvedResultId = resultRecord?.id || actualData.activityResultId || null;
+
+        await (tx as any).activityAttachment.createMany({
+          data: validT11Attachments.map((att: any) => ({
+            activityPlanId,
+            activityResultId: resolvedResultId,
+            workTypeCode: "TYPE_11",
+            storeId: att.storeId || null,
+            category: normalizeAttachmentCategory(
+              att.category,
+              AttachmentCategory.SHELF,
+            ),
+            fileUrl: att.fileUrl || att.url,
+            fileName: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+            fileSize: Math.round(Number(att.fileSize || att.size || 0)),
+            mimeType: att.mimeType || att.type || "image/jpeg",
+          })),
+        });
+      }
+    }
+
+
     await (tx as any).activityPlanType11Product.deleteMany({
       where: {
         activityPlanId,

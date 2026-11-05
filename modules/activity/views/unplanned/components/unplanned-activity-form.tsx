@@ -786,6 +786,7 @@ export function UnplannedActivityForm({
     let updatedType7bItems: any = null;
     let updatedType13Items: any = null;
     let updatedType14Item: any = null;
+    let updatedType11Items: any = null;
     const uploadPlanId = initialData?.id || draftPlanId;
 
     try {
@@ -1648,6 +1649,7 @@ export function UnplannedActivityForm({
       // Upload Stock Photos
       const allType11Images = type11.items.flatMap((item) => item.images || []);
       let cleanType11Images = allType11Images;
+      updatedType11Items = type11.items;
       if (allType11Images.length > 0) {
         try {
           const res = await uploadActivityPlanImageGroup(
@@ -1657,6 +1659,24 @@ export function UnplannedActivityForm({
             "general",
           );
           cleanType11Images = res.updatedImages;
+
+          const urlMap = new Map<string, string>();
+          cleanType11Images.forEach((img: any) => {
+            if (img.id && img.url) urlMap.set(img.id, img.url);
+            if (img.name && img.url) urlMap.set(img.name, img.url);
+          });
+
+          updatedType11Items = type11.items.map((item) => {
+            const remappedImages = (item.images || []).map((img: any) => {
+              const newUrl =
+                urlMap.get(img.id) || urlMap.get(img.name) || img.url;
+              return { ...img, url: newUrl };
+            });
+            return {
+              ...item,
+              images: remappedImages,
+            };
+          });
         } catch (uploadErr: any) {
           showValidationError(
             "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ",
@@ -1666,28 +1686,27 @@ export function UnplannedActivityForm({
         }
       }
 
-      const mapped = mapType11UnplannedToPayload(
-        type11.items.map((item) => ({
-          ...item,
-          images: cleanType11Images,
-        })),
-      );
+      const mapped = mapType11UnplannedToPayload(updatedType11Items);
 
-      const firstItem = type11.items[0];
+      const firstItem = updatedType11Items[0] || type11.items[0];
       actualData = {
         workTypeCode: "TYPE_11",
         notes: firstItem?.remarks || "",
         t11StockItems: mapped.t11StockItems,
         t11NextAction: mapped.t11NextAction,
         type11Targets: mapped.type11Targets,
-        attachments: cleanType11Images.map((img) => ({
-          category: "STOCK",
-          fileUrl: img.url,
-          fileName: img.name || "รูปภาพสต็อกสินค้า",
-          fileSize: (img as any).size || 0,
-          mimeType: (img as any).type || "image/jpeg",
-          workTypeCode: "TYPE_11",
-        })),
+        type11UnplannedItems: updatedType11Items,
+        attachments: updatedType11Items.flatMap((item: any) =>
+          (item.images || []).map((img: any) => ({
+            category: "STOCK",
+            fileUrl: img.url,
+            fileName: img.name || "รูปภาพสต็อกสินค้า",
+            fileSize: (img as any).size || 0,
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_11",
+            storeId: item.storeId || item.id || null,
+          })),
+        ),
       };
     } else if (isType12Active) {
       const type12Validation = type12.validate();
@@ -2153,13 +2172,13 @@ export function UnplannedActivityForm({
       type10Plots: mappedType10?.type10Plots,
       type10Targets: mappedType10?.targets,
       type11Data: isType11Active
-        ? mapType11UnplannedToPayload(type11.items).type11Targets
+        ? mapType11UnplannedToPayload(updatedType11Items || type11.items).type11Targets
         : undefined,
       type11Stores: isType11Active
-        ? mapType11UnplannedToPayload(type11.items).type11Stores
+        ? mapType11UnplannedToPayload(updatedType11Items || type11.items).type11Stores
         : undefined,
       type11Targets: isType11Active
-        ? mapType11UnplannedToPayload(type11.items).type11Targets
+        ? mapType11UnplannedToPayload(updatedType11Items || type11.items).type11Targets
         : undefined,
       tourData: isType12Active
         ? mapType12UnplannedToPayload(type12.item).tourData
@@ -2217,7 +2236,7 @@ export function UnplannedActivityForm({
       type8UnplannedItems: isType8Active ? type8.items : undefined,
       type9UnplannedItems: isType9Active ? type9.items : undefined,
       type10UnplannedItems: isType10Active ? type10.items : undefined,
-      type11UnplannedItems: isType11Active ? type11.items : undefined,
+      type11UnplannedItems: isType11Active ? (updatedType11Items || type11.items) : undefined,
       type12UnplannedItem: isType12Active ? type12.item : undefined,
       type13UnplannedItem: isType13Active ? (updatedType13Items?.[0] || type13.item) : undefined,
       type13UnplannedItems: isType13Active ? (updatedType13Items || type13.items || [type13.item]) : undefined,

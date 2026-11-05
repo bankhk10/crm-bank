@@ -51,11 +51,21 @@ export const type11UnplannedStrategy: WorkTypeStrategy = {
     await type11PlannedStrategy.savePlan(tx, activityPlanId, planData);
 
     // 2. If top-level actual outcome passed (2-in-1 unplanned submission)
-    if (planData.actualOutcome || planData.actualData) {
-      await type11PlannedStrategy.saveActual!(tx, activityPlanId, {
-        ...(planData.actualOutcome || planData.actualData),
-      });
-    }
+    const actualPayload = planData.actualOutcome || planData.actualData || {
+      attachments: planData.attachments,
+      type11UnplannedItems: planData.type11UnplannedItems,
+    };
+
+    await type11PlannedStrategy.saveActual!(tx, activityPlanId, {
+      ...actualPayload,
+      attachments:
+        actualPayload.attachments ||
+        planData.attachments ||
+        planData.actualOutcome?.attachments ||
+        planData.actualData?.attachments,
+      type11UnplannedItems:
+        actualPayload.type11UnplannedItems || planData.type11UnplannedItems,
+    });
   },
 
   /**

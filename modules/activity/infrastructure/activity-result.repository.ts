@@ -9,6 +9,7 @@ import { syncActivityResultToCalendarUseCase } from "./calendar-integration";
 const VALID_ATTACHMENT_CATEGORIES: Record<string, AttachmentCategory> = {
   PRICE_TAG: AttachmentCategory.PRICE_TAG,
   SHELF: AttachmentCategory.SHELF,
+  STOCK: AttachmentCategory.SHELF,
   CROP: AttachmentCategory.CROP,
   PLOT: AttachmentCategory.PLOT,
   AFTER_SPRAY: AttachmentCategory.PLOT,

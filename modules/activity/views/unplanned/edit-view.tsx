@@ -303,6 +303,34 @@ export function UnplannedEditView({
             type13Actual: (plan as any).type13Actual || (plan as any).result?.type13Actual || null,
             type13Data: (plan as any).type13Data || (plan as any).type13 || null,
             type13UnplannedItems: (plan as any).type13UnplannedItems || (plan as any).type13Targets || [],
+            type11Targets: (plan as any).type11Targets || [],
+            type11Stores: (plan as any).type11Targets || (plan as any).type11Stores || [],
+            type11Products: (plan as any).type11Products || [],
+            type11Results: (plan as any).type11Results || [],
+            type11Data: (plan as any).type11Data || null,
+            type11UnplannedItems: (plan as any).type11UnplannedItems || (plan as any).type11Targets || [],
+            t11Images: (
+              (plan.attachments || []).concat(
+                plan.result?.attachments || [],
+              )
+            )
+              .filter(
+                (att: any) =>
+                  att &&
+                  (att.workTypeCode === "TYPE_11" ||
+                    att.workTypeCode === "ตรวจเช็คสต็อกหน้าร้าน" ||
+                    att.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน" ||
+                    att.category === "STOCK" ||
+                    att.category === "SHELF" ||
+                    String(att.fileUrl || att.url || "").includes("/stock/")),
+              )
+              .map((att: any) => ({
+                id: att.id || att.fileUrl || att.url,
+                url: att.fileUrl || att.url,
+                name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+                size: att.fileSize,
+                type: att.mimeType || "image/jpeg",
+              })),
             result: plan.result || (plan as any).activityResult || null,
             activityResult: plan.result || (plan as any).activityResult || null,
             type1Targets: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
