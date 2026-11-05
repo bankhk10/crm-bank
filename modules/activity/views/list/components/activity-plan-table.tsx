@@ -559,6 +559,9 @@ export function ActivityPlanTable({
                 const isCompleted =
                   (item.status as string) === "COMPLETED" ||
                   (item as any).result?.resultStatus === "COMPLETED";
+                const hasRecorded = Boolean(
+                  (item as any).isActualRecorded || (item as any).result,
+                );
                 const canRecordActual =
                   !isUnplanned &&
                   isApproved &&
@@ -568,7 +571,7 @@ export function ActivityPlanTable({
                   <ActionButton
                     href={`/activity-plans/${item.id}/actual`}
                     icon={ClipboardList}
-                    label="บันทึกผล"
+                    label={hasRecorded ? "แก้ไขผล" : "บันทึกผล"}
                     colorClass="text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-md"
                   />
                 ) : null;
@@ -1087,6 +1090,9 @@ export function ActivityPlanTable({
                   const isCompleted =
                     (item.status as string) === "COMPLETED" ||
                     resultStatus === "COMPLETED";
+                  const hasRecorded = Boolean(
+                    (item as any).isActualRecorded || (item as any).result,
+                  );
                   const canRecordActual =
                     !isUnplanned &&
                     isApproved &&
@@ -1100,7 +1106,7 @@ export function ActivityPlanTable({
                         className="h-8 text-[11px] font-semibold text-emerald-600 border-emerald-100 hover:bg-emerald-50 rounded-lg gap-1 px-2.5"
                       >
                         <ClipboardList className="w-3.5 h-3.5" />
-                        บันทึกผล
+                        {hasRecorded ? "แก้ไขผล" : "บันทึกผล"}
                       </Button>
                     </Link>
                   ) : null;

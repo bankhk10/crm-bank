@@ -148,7 +148,11 @@ export default function ActivityPlanDetailView({
                 className="px-5 py-2.5 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-xs"
               >
                 <ClipboardList className="w-4 h-4" />
-                <span>บันทึกผลการปฏิบัติงาน</span>
+                <span>
+                  {isActualRecorded
+                    ? "แก้ไขผลการปฏิบัติงาน"
+                    : "บันทึกผลการปฏิบัติงาน"}
+                </span>
               </Button>
             </Link>
           )}

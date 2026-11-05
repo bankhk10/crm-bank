@@ -5,19 +5,24 @@ import { Info } from "lucide-react";
 
 interface ActualViewHeaderProps {
   planNo?: string;
+  isEdit?: boolean;
 }
 
-export function ActualViewHeader({ planNo }: ActualViewHeaderProps) {
+export function ActualViewHeader({ planNo, isEdit = false }: ActualViewHeaderProps) {
+  const mainTitle = isEdit
+    ? "แก้ไขบันทึกผลการปฏิบัติงาน"
+    : "บันทึกผลการปฏิบัติงาน";
+
   return (
     <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 sm:pb-6 border-b border-slate-100 min-w-0">
       {/* Center: Title (Responsive Flow on Mobile, Absolute Centered on Desktop) */}
       <div className="w-full sm:w-auto text-center sm:text-left sm:absolute sm:left-1/2 sm:-translate-x-1/2 min-w-0">
         <h1 className="font-bold text-lg sm:text-2xl text-slate-800 tracking-tight leading-snug break-words">
           <span className="hidden sm:inline whitespace-nowrap">
-            บันทึกผลการปฏิบัติงาน ( Trip Plan Actual )
+            {mainTitle} ( Trip Plan Actual )
           </span>
           <span className="inline sm:hidden">
-            บันทึกผลการปฏิบัติงาน
+            {mainTitle}
             <br />
             <span className="text-slate-600 text-sm font-semibold">
               ( Trip Plan Actual )

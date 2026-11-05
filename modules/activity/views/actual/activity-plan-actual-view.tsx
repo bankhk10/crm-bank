@@ -187,6 +187,7 @@ export function ActivityPlanActualView({
     unauthorizedError,
     planStatus,
     isRefreshing,
+    parsedResult,
   } = useActualPlanLoader({ id, initialActualData });
 
   // 2. Activity Result Status (COMPLETED / POSTPONED / CANCELLED)
@@ -229,6 +230,15 @@ export function ActivityPlanActualView({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+
+  // Check whether actual result was already recorded (Edit Mode)
+  const isEdit = Boolean(
+    plan?.isActualRecorded ||
+      plan?.result ||
+      plan?.actualResult ||
+      parsedResult?.hasActualRecorded ||
+      (plan?.type15Results && plan.type15Results.length > 0)
+  );
 
   // Validation Alert Popup Modal state
   const [validationAlert, setValidationAlert] = useState<{
@@ -1726,15 +1736,26 @@ export function ActivityPlanActualView({
           await deleteActivityPlanImagePaths(id, oldUrlsToDelete);
         }
         setSubmitSuccess(true);
-        toast.success("บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว");
+        toast.success(
+          isEdit
+            ? "อัปเดตผลการปฏิบัติงานเรียบร้อยแล้ว"
+            : "บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว",
+        );
         if (onSuccess) onSuccess();
         else router.push(`/activity-plans/${id}`);
       } else {
-        const friendlyMsg = formatUserFriendlyError(res.error, "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน");
+        const friendlyMsg = formatUserFriendlyError(
+          res.error,
+          isEdit
+            ? "เกิดข้อผิดพลาดในการอัปเดตผลการปฏิบัติงาน"
+            : "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน",
+        );
         setFormError(friendlyMsg);
         setValidationAlert({
           isOpen: true,
-          title: "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน",
+          title: isEdit
+            ? "เกิดข้อผิดพลาดในการอัปเดตผลการปฏิบัติงาน"
+            : "เกิดข้อผิดพลาดในการบันทึกผลการปฏิบัติงาน",
           description: friendlyMsg,
           messages: [],
         });
@@ -1758,7 +1779,7 @@ export function ActivityPlanActualView({
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
-          <ActualViewHeader planNo={planSummary.planNo} />
+          <ActualViewHeader planNo={planSummary.planNo} isEdit={isEdit} />
 
           <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
@@ -1809,7 +1830,7 @@ export function ActivityPlanActualView({
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
-          <ActualViewHeader planNo={planSummary.planNo} />
+          <ActualViewHeader planNo={planSummary.planNo} isEdit={isEdit} />
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
@@ -1850,7 +1871,7 @@ export function ActivityPlanActualView({
     return (
       <section className="p-4 md:p-6 pb-24 md:pb-8 bg-slate-50/50 min-h-screen">
         <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-8 space-y-6 shadow-xs max-w-4xl mx-auto">
-          <ActualViewHeader planNo={planSummary.planNo} />
+          <ActualViewHeader planNo={planSummary.planNo} isEdit={isEdit} />
 
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 sm:p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
@@ -1883,7 +1904,7 @@ export function ActivityPlanActualView({
   return (
     <section className="space-y-6 container mx-auto px-0 sm:px-0">
       <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-6 shadow-xs">
-        <ActualViewHeader planNo={planSummary.planNo} />
+        <ActualViewHeader planNo={planSummary.planNo} isEdit={isEdit} />
         {isRefreshing && (
           <div className="flex items-center gap-2 text-xs text-slate-500 animate-pulse">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
@@ -1902,7 +1923,11 @@ export function ActivityPlanActualView({
           {submitSuccess && (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
               <Check className="h-4 w-4 flex-shrink-0 text-emerald-600 stroke-[3]" />
-              <span>บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!</span>
+              <span>
+                {isEdit
+                  ? "อัปเดตผลการปฏิบัติงานเรียบร้อยแล้ว!"
+                  : "บันทึกผลการปฏิบัติงานเรียบร้อยแล้ว!"}
+              </span>
             </div>
           )}
 
@@ -1975,12 +2000,16 @@ export function ActivityPlanActualView({
             submitLabel={
               statusState.activityResultStatus === "CANCELLED"
                 ? "ยืนยันส่งคำขอยกเลิกแผนงาน"
-                : "บันทึกผลการปฏิบัติงาน"
+                : isEdit
+                  ? "บันทึกการแก้ไข"
+                  : "บันทึกผลการปฏิบัติงาน"
             }
             loadingLabel={
               statusState.activityResultStatus === "CANCELLED"
                 ? "กำลังส่งคำขอยกเลิกแผนงาน..."
-                : "กำลังบันทึกผลการปฏิบัติงาน..."
+                : isEdit
+                  ? "กำลังบันทึกการแก้ไข..."
+                  : "กำลังบันทึกผลการปฏิบัติงาน..."
             }
             submitButtonClassName={
               statusState.activityResultStatus === "CANCELLED"
