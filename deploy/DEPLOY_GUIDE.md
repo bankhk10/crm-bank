@@ -422,7 +422,29 @@ cat backup.sql | docker exec -i crm-postgres psql -U crm_admin -d crm_bank
 
 ---
 
-## 9. การจัดการ SSL Certificate และการต่ออายุ (SSL & Certbot)
+## 9. การจัดการและตรวจสอบ SSL Certificate (Cloudflare Managed SSL)
+
+> [!TIP]
+> **ไม่ต้องต่ออายุเองอีกต่อไป (100% Auto-Renewed by Cloudflare):**
+> เมื่อเปลี่ยนมาใช้ **Cloudflare Tunnel (`crm-tunnel`)** ทาง Cloudflare จะเป็นผู้ออกและต่ออายุใบรับรอง SSL (Universal Edge Certificate) ให้อัตโนมัติ 100% ตลอดอายุการใช้งาน (ต่ออายุอัตโนมัติล่วงหน้า 30 วันก่อนหมดอายุเสมอ) โดยไม่ต้องรัน `certbot` บน VPS อีกต่อไป
+
+### วิธีเช็ควันหมดอายุของ SSL (3 วิธี)
+
+1. **วิธีที่ 1: เช็คผ่านคำสั่ง `curl` ใน Terminal (เร็วที่สุด)**
+   ```bash
+   curl -vI https://csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+   curl -vI https://test-csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+   ```
+2. **วิธีที่ 2: เช็คผ่านหน้าเว็บ Cloudflare Dashboard**
+   - เข้าไปที่โดเมน `icgone.com` $\rightarrow$ เมนู **SSL/TLS** $\rightarrow$ **Edge Certificates**
+   - ดูที่รายการ `*.icgone.com, icgone.com` จะแสดงสถานะ **Active (สีเขียว)** พร้อมวันหมดอายุ (`Expires on...`)
+3. **วิธีที่ 3: เช็คผ่าน Browser (Chrome / Edge)**
+   - เปิดหน้าเว็บ `https://csone.icgone.com`
+   - คลิกไอคอนด้านซ้ายสุดของช่อง URL $\rightarrow$ **Connection is secure (การเชื่อมต่อปลอดภัย)** $\rightarrow$ **Certificate is valid (ใบรับรองถูกต้อง)**
+
+---
+
+### (Legacy) การจัดการ SSL ด้วย Certbot เดิม (กรณีไม่ได้ใช้ Cloudflare Tunnel)
 
 ### รอบการต่ออายุอัตโนมัติ (Auto-Renewal)
 - ใบรับรอง SSL ของ Let's Encrypt มีอายุ **90 วัน**
