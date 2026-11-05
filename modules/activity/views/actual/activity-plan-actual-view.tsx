@@ -209,7 +209,12 @@ export function ActivityPlanActualView({
   const type12Actual = useType12Actual();
   const type13Actual = useType13Actual();
   const type14Actual = useType14Actual();
-  const type15Actual = useType15Actual();
+  const type15Actual = useType15Actual({
+    initial:
+      (initialActualData?.plan as any)?.type15Actual ||
+      (initialActualData?.plan as any)?.type15Results?.[0] ||
+      (initialActualData?.plan as any),
+  });
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -341,6 +346,21 @@ export function ActivityPlanActualView({
           type13Targets: plan.type13Targets || (res as any)?.type13Targets,
           type13Products: plan.type13Products || (res as any)?.type13Products,
           type13Results: plan.type13Results || (res as any)?.type13Results,
+          type14Targets: plan.type14Targets || (res as any)?.type14Targets,
+          type14Products: plan.type14Products || (res as any)?.type14Products,
+          type14Results: plan.type14Results || (res as any)?.type14Results,
+          type15Targets: plan.type15Targets || (res as any)?.type15Targets,
+          type15Results: plan.type15Results || (res as any)?.type15Results,
+          type15Actual:
+            parsedResult?.type15Actual ||
+            (res as any)?.type15Actual ||
+            (plan as any)?.type15Actual ||
+            (plan.type15Results && plan.type15Results.length > 0
+              ? {
+                  detail: plan.type15Results[0].detail,
+                  attachments: plan.type15Results[0].attachments,
+                }
+              : undefined),
           activityPlan: plan,
           attachments:
             res.attachments && res.attachments.length > 0
@@ -380,7 +400,27 @@ export function ActivityPlanActualView({
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type13Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type14Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
-        type15Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
+        type15Actual.hydrate(
+          {
+            ...payloadToHydrate,
+            type15Results: plan.type15Results || (res as any)?.type15Results,
+            type15Actual:
+              parsedResult?.type15Actual ||
+              (res as any)?.type15Actual ||
+              (plan.type15Results && plan.type15Results.length > 0
+                ? {
+                    detail: plan.type15Results[0].detail,
+                    attachments: plan.type15Results[0].attachments,
+                  }
+                : undefined),
+            detail:
+              plan.type15Results?.[0]?.detail ??
+              parsedResult?.t15Detail ??
+              parsedResult?.type15Actual?.detail ??
+              "",
+          },
+          payloadToHydrate.attachments,
+        );
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
@@ -403,6 +443,7 @@ export function ActivityPlanActualView({
     type12Actual,
     type13Actual,
     type14Actual,
+    type15Actual,
     statusState,
   ]);
 

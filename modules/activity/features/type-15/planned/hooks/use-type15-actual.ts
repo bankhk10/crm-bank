@@ -34,8 +34,10 @@ export function useType15Actual({
       ...resultData,
       attachments: attachmentsData || resultData.attachments,
     });
-    if (initialMapped.detail) setDetail(initialMapped.detail);
-    if (initialMapped.images?.length) setImages(initialMapped.images);
+    if (initialMapped.detail !== undefined) setDetail(initialMapped.detail);
+    if (initialMapped.images && initialMapped.images.length > 0) {
+      setImages(initialMapped.images);
+    }
   }, []);
 
   return {
