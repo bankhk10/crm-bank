@@ -1,7 +1,7 @@
 # CRM-Bank Staging Deployment Guide (คู่มือระบบทดสอบ)
 
-> **Domain ทดสอบ:** `https://test-csone.cropsciences.co.th`  
-> **Domain Production:** `https://csone.cropsciences.co.th`  
+> **Domain ทดสอบ:** `https://test-csone.icgone.com`  
+> **Domain Production:** `https://csone.icgone.com`  
 > **Server Environment:** Single VPS (Ubuntu) — แยก App, Database และ Storage โดยสมบูรณ์
 
 ---
@@ -12,7 +12,7 @@
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                     VPS (Ubuntu)                                       │
 │                                                                                        │
-│   [Domain: csone.cropsciences.co.th]          [Domain: test-csone.cropsciences.co.th]  │
+│   [Domain: csone.icgone.com]          [Domain: test-csone.icgone.com]  │
 │                   │                                            │                       │
 │                   └──────────────────┬─────────────────────────┘                       │
 │                                      ▼                                                 │
@@ -39,8 +39,8 @@
 
 1. **Shared Edge Reverse Proxy (`crm-nginx`):**  
    ใช้ Nginx Container เดียวรับทราฟฟิกพอร์ต 80/443 และ SSL Certificates ของทั้งสองโดเมน โดยแยกการส่งต่อ (Routing) ตาม Domain Name
-   - `csone.cropsciences.co.th` $\rightarrow$ `http://nextjs_app` (Container: `crm-app`)
-   - `test-csone.cropsciences.co.th` $\rightarrow$ `http://crm-app-staging:3000` via `$staging_upstream` (Container: `crm-app-staging`)
+   - `csone.icgone.com` $\rightarrow$ `http://nextjs_app` (Container: `crm-app`)
+   - `test-csone.icgone.com` $\rightarrow$ `http://crm-app-staging:3000` via `$staging_upstream` (Container: `crm-app-staging`)
 2. **Decoupled Upload Storage (การจัดการรูปภาพ):**
    - **Production:** จัดการผ่าน Storage ของ Production (`/home/bank/crm-data/uploads`)
    - **Staging:** ส่งคำขอ `/uploads/*` ตรงไปยัง `$staging_upstream` (`crm-app-staging`) ซึ่ง Mount โฟลเดอร์ `/home/bank/crm-data-staging/uploads` $\rightarrow$ `/app/public/uploads` ไว้อยู่แล้ว **โดย `crm-nginx` ไม่ต้อง Mount Storage ของ Staging เข้าไป**
@@ -104,7 +104,7 @@ bash scripts/deploy-staging.sh
 ระบบ Staging รองรับการจัดเก็บไฟล์รูปภาพแบบ **Hybrid (Cloudflare R2 เป็นหลัก และ Local Disk เป็น Fallback สำหรับไฟล์เดิม)** โดยแยกออกจาก Production อย่างสมบูรณ์ด้วย `R2_KEY_PREFIX=staging`:
 
 ```
-[ผู้ใช้เรียกดูรูปภาพ: https://test-csone.cropsciences.co.th/uploads/activity-plans/.../image.jpg]
+[ผู้ใช้เรียกดูรูปภาพ: https://test-csone.icgone.com/uploads/activity-plans/.../image.jpg]
                                       │
                                       ▼
                       ┌─────────────────────────────────┐
@@ -167,7 +167,7 @@ find /home/bank/crm-data-staging/uploads/activity-plans \
 
 ```bash
 # ตัวอย่าง: ทดสอบรูปภาพที่เพิ่ง Upload
-curl -I https://test-csone.cropsciences.co.th/uploads/activity-plans/<planId>/<itemId>/<category>/<filename>.jpg
+curl -I https://test-csone.icgone.com/uploads/activity-plans/<planId>/<itemId>/<category>/<filename>.jpg
 ```
 
 **ผลลัพธ์ที่ถูกต้อง (Expected Result):**
@@ -190,18 +190,18 @@ cache-control: public, max-age=3600, must-revalidate
 
 ```bash
 docker exec crm-nginx nginx -T 2>&1 | grep -n -E \
-"server_name csone.cropsciences|server_name test-csone.cropsciences|proxy_pass|staging_upstream"
+"server_name csone.icgone|server_name test-csone.icgone|proxy_pass|staging_upstream"
 ```
 
 **ผลลัพธ์ที่ถูกต้อง (Expected Output):**
 
 ```text
 # Production:
-server_name csone.cropsciences.co.th www.csone.cropsciences.co.th;
+server_name csone.icgone.com www.csone.icgone.com;
 proxy_pass http://nextjs_app;
 
 # Staging:
-server_name test-csone.cropsciences.co.th;
+server_name test-csone.icgone.com;
 set $staging_upstream http://crm-app-staging:3000;
 proxy_pass $staging_upstream;
 ```
@@ -214,8 +214,8 @@ proxy_pass $staging_upstream;
 
 - [ ] **Staging App Status:** `crm-app-staging` มีสถานะ `Up (healthy)` (`docker ps`)
 - [ ] **Production Unaffected:** `crm-app` (Production) ทำงานต่อเนื่องและไม่มีการ Restart
-- [ ] **Staging Domain:** เข้าใช้งาน `https://test-csone.cropsciences.co.th` ได้ปกติ
-- [ ] **Production Domain:** เข้าใช้งาน `https://csone.cropsciences.co.th` ได้ปกติ
+- [ ] **Staging Domain:** เข้าใช้งาน `https://test-csone.icgone.com` ได้ปกติ
+- [ ] **Production Domain:** เข้าใช้งาน `https://csone.icgone.com` ได้ปกติ
 - [ ] **Upload Functionality:** สามารถ Upload รูปภาพใน Activity Plan ใหม่ได้สำเร็จ
 - [ ] **Detail View Rendering:** รูปภาพแสดงผลในหน้า Detail คมชัด ไม่มี Broken Icon
 - [ ] **Image HTTP 200:** รัน `curl -I` บน URL รูปภาพจริงได้ `HTTP/2 200` พร้อม `content-type: image/*`

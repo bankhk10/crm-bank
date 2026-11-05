@@ -1,6 +1,6 @@
 # ===========================================
 # CRM-Bank Staging Database Stack
-# Domain: test-csone.cropsciences.co.th
+# Domain: test-csone.icgone.com
 # ===========================================
 # Deploy: docker compose -f docker-compose.staging.yml --env-file ../.env.staging up -d
 

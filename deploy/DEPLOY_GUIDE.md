@@ -136,7 +136,7 @@ docker run --rm -it \
   -v app_certbot_data:/var/www/certbot \
   -p 80:80 \
   certbot/certbot certonly --standalone \
-  -d csone.cropsciences.co.th \
+  -d csone.icgone.com \
   --agree-tos \
   --email your-email@domain.com
 
@@ -418,8 +418,8 @@ docker run --rm -v app_certbot_certs:/etc/letsencrypt certbot/certbot certificat
 docker exec crm-certbot certbot certificates
 
 # เช็คผ่าน curl จากหน้าเว็บจริง
-curl -vI https://csone.cropsciences.co.th 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
-curl -vI https://test-csone.cropsciences.co.th 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+curl -vI https://csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
+curl -vI https://test-csone.icgone.com 2>&1 | grep -E "subject:|start date:|expire date:|issuer:"
 ```
 
 ### 2. คำสั่งต่ออายุ SSL ด้วยตนเอง (Manual Renew)
@@ -432,11 +432,11 @@ docker run --rm \
   -v app_certbot_data:/var/www/certbot \
   certbot/certbot renew --webroot -w /var/www/certbot
 
-# หรือระบุต่ออายุเฉพาะโดเมน เช่น test-csone.cropsciences.co.th
+# หรือระบุต่ออายุเฉพาะโดเมน เช่น test-csone.icgone.com
 docker run --rm \
   -v app_certbot_certs:/etc/letsencrypt \
   -v app_certbot_data:/var/www/certbot \
-  certbot/certbot renew --cert-name test-csone.cropsciences.co.th --webroot -w /var/www/certbot
+  certbot/certbot renew --cert-name test-csone.icgone.com --webroot -w /var/www/certbot
 
 # ทดสอบจำลองการต่ออายุ (Dry-run) ว่าผ่านหรือไม่
 docker run --rm \

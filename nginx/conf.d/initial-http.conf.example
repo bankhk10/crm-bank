@@ -9,7 +9,7 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name csone.cropsciences.co.th www.csone.cropsciences.co.th 27.254.143.48;
+    server_name csone.icgone.com www.csone.icgone.com 27.254.143.48;
 
     # Let's Encrypt ACME Challenge
     location /.well-known/acme-challenge/ {

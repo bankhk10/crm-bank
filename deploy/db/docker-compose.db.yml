@@ -1,6 +1,6 @@
 # ===========================================
 # CRM-Bank Database Stack
-# Domain: csone.cropsciences.co.th
+# Domain: csone.icgone.com
 # ===========================================
 # Deploy first: docker compose -f docker-compose.db.yml up -d
 
