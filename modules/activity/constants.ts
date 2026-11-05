@@ -133,6 +133,14 @@ export const WORK_TYPE_CONFIG: Record<string, WorkTypeConfig> = {
     hasActual: true,
     requiresApproval: true,
   },
+  TYPE_15: {
+    code: "TYPE_15",
+    name: "บูมทีม / คาราวาน",
+    shortName: "BoomTeamCaravan",
+    sortOrder: 16,
+    hasActual: true,
+    requiresApproval: true,
+  },
 };
 
 export const WORK_TYPES = Object.values(WORK_TYPE_CONFIG).map((c) => c.name);
@@ -151,6 +159,7 @@ export const UNPLANNED_EXCLUDED_WORK_TYPE_CODES = [
   "TYPE_9",
   "TYPE_10",
   "TYPE_12",
+  "TYPE_15",
 ] as const;
 
 export function getWorkTypeCode(nameOrCode: any): string {
@@ -192,6 +201,13 @@ export function getWorkTypeCode(nameOrCode: any): string {
     return "TYPE_13";
   if (raw.includes("ติดตามแปลงแฮตแทค") || raw.includes("ฉีดแปลงแฮตแทค"))
     return "TYPE_14";
+  if (
+    raw.includes("บูมทีม") ||
+    raw.includes("คาราวาน") ||
+    upper.includes("BOOM") ||
+    upper.includes("CARAVAN")
+  )
+    return "TYPE_15";
 
   const found = Object.values(WORK_TYPE_CONFIG).find(
     (c) =>
@@ -292,6 +308,7 @@ export const LOCATION_TEAM_WORK_TYPE_CODES = new Set([
   "TYPE_8",
   "TYPE_9",
   "TYPE_10",
+  "TYPE_15",
 ]);
 
 export function isLocationAndTeamRequired(

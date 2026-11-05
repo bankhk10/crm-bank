@@ -129,4 +129,12 @@ export const initialTargets: ActualTargetsState = {
     district: "",
     products: [],
   },
+  t15: {
+    id: "",
+    storeId: "",
+    village: "",
+    objective: "",
+    detail: "",
+  },
+  t15List: [],
 };

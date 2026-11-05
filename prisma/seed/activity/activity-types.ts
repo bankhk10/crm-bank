@@ -121,6 +121,14 @@ const ACTIVITY_TYPES = [
     hasActual: true,
     requiresApproval: true,
   },
+  {
+    code: "TYPE_15",
+    name: "บูมทีม / คาราวาน",
+    shortName: "BoomTeamCaravan",
+    sortOrder: 16,
+    hasActual: true,
+    requiresApproval: true,
+  },
 ];
 
 export async function seedActivityTypes(prisma: PrismaClient) {

@@ -21,6 +21,7 @@ import { Type11DetailView } from "@/modules/activity/features/type-11";
 import { Type12DetailView } from "@/modules/activity/features/type-12";
 import { Type13DetailView } from "@/modules/activity/features/type-13";
 import { Type14DetailView } from "@/modules/activity/features/type-14";
+import { Type15DetailView } from "@/modules/activity/features/type-15";
 
 interface DetailWorkTypeListProps {
   plan?: any;
@@ -211,6 +212,16 @@ export function DetailWorkTypeList({
     Boolean(targets?.t14List?.length) ||
     Boolean(targets?.t14Plots?.length) ||
     plan?.activityType?.code === "TYPE_14";
+
+  const isType15 =
+    isTypeActive("TYPE_15", "บูมทีม / คาราวาน") ||
+    isTypeActive("TYPE_15", "บูมทีม") ||
+    isTypeActive("TYPE_15", "คาราวาน") ||
+    Boolean(plan?.type15Targets?.length) ||
+    Boolean(plan?.type15Items?.length) ||
+    Boolean(plan?.type15Data) ||
+    Boolean(targets?.t15List?.length) ||
+    plan?.activityType?.code === "TYPE_15";
 
   // รวบรวมรูปภาพ (Attachments / Plot Images) สำหรับแสดงผลในการ์ดรายละเอียดงาน
   const effectiveImages = useMemo<Type1ImageFile[]>(() => {
@@ -965,6 +976,17 @@ export function DetailWorkTypeList({
           }
         }
         planSummary={plan}
+      />
+
+      {/* 🟢 TYPE 15: บูมทีม / คาราวาน */}
+      <Type15DetailView
+        isVisible={isType15}
+        targets={plan?.type15Targets || targets?.t15List || []}
+        actual={
+          parsedResults?.type15Actual ||
+          plan?.type15Results?.[0] ||
+          (plan?.type15Actual ? plan.type15Actual : null)
+        }
       />
     </div>
   );

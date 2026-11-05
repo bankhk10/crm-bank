@@ -93,6 +93,10 @@ import {
   hydrateType14PlannedData,
 } from "@/modules/activity/features/type-14";
 import {
+  Type15PlannedForm,
+  useType15PlannedForm,
+} from "@/modules/activity/features/type-15";
+import {
   WORK_TYPE_CONFIG,
   getWorkTypeCode,
   getWorkTypeName,
@@ -371,6 +375,13 @@ export function PlannedActivityForm({
       wt.includes("ติดตามแปลงแฮตแทค") ||
       (wt.includes("ติดตามแปลง") && !wt.includes("สาธิต")),
   );
+  const isType15Active = selectedWorkTypes.some(
+    (wt) =>
+      getWorkTypeCode(wt) === "TYPE_15" ||
+      wt.includes("TYPE_15") ||
+      wt.includes("บูมทีม") ||
+      wt.includes("คาราวาน"),
+  );
 
   // 2. Basic Info State
   const [title, setTitle] = useState<string>(initialData.title || "");
@@ -624,6 +635,12 @@ export function PlannedActivityForm({
     defaultProvince: locationTeam.province,
     defaultDistrict: locationTeam.district,
     availablePlans: hattackFollowUpPlans,
+  });
+
+  // 5.15 Type 15 Planned Hook (บูมทีม / คาราวาน)
+  const type15 = useType15PlannedForm({
+    initial: initialData,
+    customersList: customers as any,
   });
 
   // 6. Budget Hook
@@ -1044,6 +1061,24 @@ export function PlannedActivityForm({
       }
     }
 
+    // 3.14 Validation & Mapping - Type 15 Items (บูมทีม / คาราวาน)
+    let type15Payload: any = null;
+    if (isType15Active) {
+      const type15Validation = type15.validateType15();
+      if (!type15Validation.isValid) {
+        showValidationError("ข้อมูลไม่ถูกต้อง", undefined, [
+          type15Validation.error ||
+            "กรุณาระบุข้อมูลเป้าหมายบูมทีม / คาราวานให้ครบถ้วน (Type 15)",
+        ]);
+        return;
+      }
+      const t15Mapped = type15.mapType15Payload(customers as any);
+      type15Payload = t15Mapped.type15Items;
+      if (t15Mapped.planStores?.length) {
+        planStores = [...planStores, ...t15Mapped.planStores];
+      }
+    }
+
     // 4. Resolve activityTypeId (Exact code match has first priority)
     const primaryCode = getWorkTypeCode(selectedWorkTypes[0] || "TYPE_1");
     const matchedType =
@@ -1188,6 +1223,9 @@ export function PlannedActivityForm({
       type14Data: type14Payload,
       type14Plots: type14PlotsPayload,
       type14Targets: type14PlotsPayload,
+      type15Data: type15Payload,
+      type15Items: type15Payload,
+      type15Targets: type15Payload,
     };
 
     try {
@@ -1297,7 +1335,8 @@ export function PlannedActivityForm({
         !isType11Active &&
         !isType12Active &&
         !isType13Active &&
-        !isType14Active && (
+        !isType14Active &&
+        !isType15Active && (
           <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2 shadow-2xs">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Info className="w-5 h-5 text-slate-400" />
@@ -1557,6 +1596,18 @@ export function PlannedActivityForm({
           dealers={customers as any}
           products={products as any}
           readonly={readonly}
+        />
+      )}
+
+      {/* 3.16 ส่วนเฉพาะ Type 15: บูมทีม / คาราวาน */}
+      {isType15Active && (
+        <Type15PlannedForm
+          readonly={readonly}
+          type15Items={type15.type15Items}
+          addType15Row={type15.addType15Row}
+          updateType15Row={type15.updateType15Row}
+          deleteType15Row={type15.deleteType15Row}
+          customers={customers as any}
         />
       )}
 

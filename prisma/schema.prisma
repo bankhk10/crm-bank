@@ -418,6 +418,8 @@ model Customer {
   activityPlanType11TargetsStore    ActivityPlanType11Target[]   @relation("Type11TargetStore")
   activityPlanType11TargetsDealer   ActivityPlanType11Target[]   @relation("Type11ParentDealer")
   activityPlanType12Targets         ActivityPlanType12Target[]   @relation("Type12TargetStore")
+  activityPlanType15Targets         ActivityPlanType15Target[]   @relation("Type15TargetStore")
+  activityPlanType15TargetsSubdealer ActivityPlanType15Target[] @relation("Type15TargetSubdealer")
 }
 
 model CustomerAddress {
@@ -1801,6 +1803,8 @@ model ActivityPlan {
   type11Results  ActivityResultType11[]
   type12Targets  ActivityPlanType12Target[]
   type12Results  ActivityResultType12[]
+  type15Targets  ActivityPlanType15Target[]
+  type15Results  ActivityResultType15[]
 
   @@index([employeeId])
   @@index([activityTypeId])
@@ -2040,6 +2044,7 @@ model ActivityAttachment {
   type12ResultId   String?            @map("type_12_result_id")
   type13ResultId   String?            @map("type_13_result_id")
   type14ResultId   String?            @map("type_14_result_id")
+  type15ResultId   String?            @map("type_15_result_id")
   category         AttachmentCategory @default(GENERAL)
   fileUrl          String             @map("file_url")
   fileName         String             @map("file_name")
@@ -2058,6 +2063,7 @@ model ActivityAttachment {
   type12Result    ActivityResultType12?     @relation(fields: [type12ResultId], references: [id], onDelete: Cascade)
   type13Result    ActivityResultType13?     @relation(fields: [type13ResultId], references: [id], onDelete: Cascade)
   type14Result    ActivityResultType14?     @relation(fields: [type14ResultId], references: [id], onDelete: Cascade)
+  type15Result    ActivityResultType15?     @relation(fields: [type15ResultId], references: [id], onDelete: Cascade)
 
   @@index([activityPlanId])
   @@index([activityResultId])
@@ -2071,6 +2077,7 @@ model ActivityAttachment {
   @@index([type12ResultId])
   @@index([type13ResultId])
   @@index([type14ResultId])
+  @@index([type15ResultId])
   @@map("activity_attachments")
 }
 
@@ -3543,4 +3550,54 @@ model ActivityResultType12 {
   @@index([activityPlanId])
   @@index([targetId])
   @@map("activity_type_12_result")
+}
+
+// =============================================================================
+// TYPE 15: Dedicated Tables (Boom Team / Caravan - บูมทีม / คาราวาน)
+// =============================================================================
+
+model ActivityPlanType15Target {
+  id                      String   @id @default(cuid())
+  activityPlanId          String   @map("activity_plan_id")
+  storeId                 String?  @map("store_id")
+  subdealerId             String?  @map("subdealer_id")
+  isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  subDealerStore          String?  @map("sub_dealer_store")
+  village                 String?  @map("village")
+  objective               String?  @map("objective") @db.Text
+  detail                  String?  @map("detail") @db.Text
+
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan            ActivityPlan         @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  store                   Customer?            @relation("Type15TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  subdealer               Customer?            @relation("Type15TargetSubdealer", fields: [subdealerId], references: [id], onDelete: SetNull)
+  results                 ActivityResultType15[]
+
+  @@index([activityPlanId])
+  @@index([storeId])
+  @@index([subdealerId])
+  @@map("activity_type_15_targets")
+}
+
+model ActivityResultType15 {
+  id             String                    @id @default(cuid())
+  activityPlanId String                    @map("activity_plan_id")
+  targetId       String?                   @map("target_id")
+  detail         String?                   @map("detail") @db.Text
+
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+
+  // Relations
+  activityPlan   ActivityPlan              @relation(fields: [activityPlanId], references: [id], onDelete: Cascade)
+  target         ActivityPlanType15Target? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  attachments    ActivityAttachment[]
+
+  @@index([activityPlanId])
+  @@index([targetId])
+  @@map("activity_type_15_results")
 }

@@ -118,6 +118,11 @@ import {
   type Type14TargetItem,
 } from "@/modules/activity/features/type-14";
 import {
+  useType15Actual,
+  extractType15PlanTargets,
+  type Type15TargetItem,
+} from "@/modules/activity/features/type-15";
+import {
   FormActionButtons,
   ValidationAlertDialog,
   LoadingOverlayDialog,
@@ -203,6 +208,7 @@ export function ActivityPlanActualView({
   const type12Actual = useType12Actual();
   const type13Actual = useType13Actual();
   const type14Actual = useType14Actual();
+  const type15Actual = useType15Actual();
   const [targets, setTargets] = useState<Type1TargetItem[]>([]);
   const [type2Targets, setType2Targets] = useState<Type2TargetItem[]>([]);
   const [type3Targets, setType3Targets] = useState<Type3TargetItem[]>([]);
@@ -218,6 +224,7 @@ export function ActivityPlanActualView({
   const [type12Targets, setType12Targets] = useState<Type12TargetItem[]>([]);
   const [type13Targets, setType13Targets] = useState<Type13TargetItem[]>([]);
   const [type14Targets, setType14Targets] = useState<Type14TargetItem[]>([]);
+  const [type15Targets, setType15Targets] = useState<Type15TargetItem[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -282,6 +289,9 @@ export function ActivityPlanActualView({
 
       const extractedT14 = extractType14PlanTargets(plan);
       setType14Targets(extractedT14.list);
+
+      const extractedT15 = extractType15PlanTargets(plan);
+      setType15Targets(extractedT15.list);
 
       // Hydrate actual result if already recorded
       const res = plan.result || plan.actualResult || plan;
@@ -360,6 +370,7 @@ export function ActivityPlanActualView({
         type12Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type13Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         type14Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
+        type15Actual.hydrate(payloadToHydrate, payloadToHydrate.attachments);
         statusState.hydrateStatus(res);
       }
       setIsHydrated(true);
@@ -572,6 +583,16 @@ export function ActivityPlanActualView({
       Boolean(plan?.type14Data) ||
       Boolean(plan?.type14) ||
       plan?.activityType?.code === "TYPE_14";
+
+    const isType15Active =
+      planWorkTypes.includes("TYPE_15") ||
+      planWorkTypes.includes("บูมทีม / คาราวาน") ||
+      planWorkTypes.includes("บูมทีม") ||
+      planWorkTypes.includes("คาราวาน") ||
+      Boolean(plan?.type15Targets?.length) ||
+      Boolean(plan?.type15Items?.length) ||
+      Boolean(plan?.type15Data) ||
+      plan?.activityType?.code === "TYPE_15";
 
     // 1. Handling for CANCELLED (Request cancellation to manager)
     if (activityResultStatus === "CANCELLED") {
@@ -801,6 +822,14 @@ export function ActivityPlanActualView({
         );
         if (!t14Validation.isValid && t14Validation.error) {
           missingFields.push(t14Validation.error);
+        }
+      }
+
+      // Delegate Type 15 validation to features/type-15 domain logic
+      if (isType15Active) {
+        const t15Validation = type15Actual.validateActual();
+        if (!t15Validation.isValid && t15Validation.error) {
+          missingFields.push(t15Validation.error);
         }
       }
 
@@ -1620,6 +1649,58 @@ export function ActivityPlanActualView({
             payload.demoPlotsFollowedUp = t14Payload.demoPlotsFollowedUp || plotCount;
           }
         }
+
+        // Collect Type 15 payload if active (บูมทีม / คาราวาน)
+        if (isType15Active) {
+          const boomImgResult = await uploadActivityPlanImageGroup(
+            id,
+            (type15Actual.images || []) as any,
+            "type15_boom",
+            "general",
+          );
+
+          const finalBoomImages = boomImgResult.updatedImages;
+          const t15Payload = {
+            detail: type15Actual.detail,
+            images: finalBoomImages,
+          };
+
+          payload = {
+            ...payload,
+            type15Actual: t15Payload,
+            attachments: [
+              ...(payload.attachments || []),
+              ...finalBoomImages.map((img: any) => ({
+                category: "GENERAL",
+                fileUrl: img.url,
+                fileName: img.name || "ภาพถ่ายกิจกรรมบูมทีม/คาราวาน",
+                fileSize: (img as any).size || 0,
+                mimeType: (img as any).type || "image/jpeg",
+                workTypeCode: "TYPE_15",
+              })),
+            ],
+          };
+
+          if (
+            !isType1Active &&
+            !isType2Active &&
+            !isType3Active &&
+            !isType4Active &&
+            !isType5Active &&
+            !isType6Active &&
+            !isType7aActive &&
+            !isType7bActive &&
+            !isType8Active &&
+            !isType9Active &&
+            !isType10Active &&
+            !isType11Active &&
+            !isType12Active &&
+            !isType13Active &&
+            !isType14Active
+          ) {
+            payload.resultSummary = `บูมทีม / คาราวาน: ${type15Actual.detail ? type15Actual.detail.slice(0, 100) : "บันทึกผลสำเร็จ"}`;
+          }
+        }
       }
 
       // Track old permanent image URLs that were removed by user
@@ -1848,6 +1929,7 @@ export function ActivityPlanActualView({
               type12State={type12Actual}
               type13State={type13Actual}
               type14State={type14Actual}
+              type15State={type15Actual}
               targets={targets}
               type2Targets={type2Targets}
               type3Targets={type3Targets}
@@ -1863,6 +1945,7 @@ export function ActivityPlanActualView({
               type12Targets={type12Targets}
               type13Targets={type13Targets}
               type14Targets={type14Targets}
+              type15Targets={type15Targets}
               plan={plan}
               products={products}
               customers={customers}

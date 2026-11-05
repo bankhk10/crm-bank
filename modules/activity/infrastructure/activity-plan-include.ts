@@ -1001,6 +1001,40 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
     },
     orderBy: { createdAt: "asc" },
   },
+  type15Targets: {
+    include: {
+      store: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
+        },
+      },
+      subdealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          province: true,
+          district: true,
+        },
+      },
+      results: {
+        include: {
+          attachments: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+  type15Results: {
+    include: {
+      attachments: true,
+    },
+    orderBy: { createdAt: "asc" },
+  },
   marketingItems: {
     orderBy: { createdAt: "asc" },
   },

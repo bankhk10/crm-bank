@@ -65,6 +65,10 @@ import {
   Type14ApprovalCard,
   Type14DetailView,
 } from "@/modules/activity/features/type-14";
+import {
+  Type15ApprovalCard,
+  Type15DetailView,
+} from "@/modules/activity/features/type-15";
 
 interface ApprovalWorkTypeListProps {
   plan?: any;
@@ -246,6 +250,16 @@ export function ApprovalWorkTypeList({
     Boolean(targets?.t14List?.length) ||
     Boolean(targets?.t14Plots?.length) ||
     plan?.activityType?.code === "TYPE_14";
+
+  const isType15 =
+    isTypeActive("TYPE_15", "บูมทีม / คาราวาน") ||
+    isTypeActive("TYPE_15", "บูมทีม") ||
+    isTypeActive("TYPE_15", "คาราวาน") ||
+    Boolean(plan?.type15Targets?.length) ||
+    Boolean(plan?.type15Items?.length) ||
+    Boolean(plan?.type15Data) ||
+    Boolean(targets?.t15List?.length) ||
+    plan?.activityType?.code === "TYPE_15";
 
   const isUnplanned = plan?.planType === "UNPLANNED";
 
@@ -534,6 +548,20 @@ export function ApprovalWorkTypeList({
             a.workTypeCode === "TYPE_14" ||
             a.category === "TRACKING_AFTER_SPRAY" ||
             a.category === "type14",
+        )),
+    );
+  }, [isUnplanned, plan, parsedResults]);
+
+  const hasType15ActualResults = useMemo(() => {
+    if (isUnplanned) return true;
+    if (plan?.result?.type15Actual || plan?.type15Actual || plan?.type15Results?.length) return true;
+    return Boolean(
+      parsedResults?.type15Actual ||
+      (plan?.attachments &&
+        plan.attachments.some(
+          (a: any) =>
+            a.workTypeCode === "TYPE_15" ||
+            a.type15ResultId,
         )),
     );
   }, [isUnplanned, plan, parsedResults]);
@@ -1415,6 +1443,24 @@ export function ApprovalWorkTypeList({
               []
             }
             planSummary={plan}
+          />
+        ))}
+
+      {/* 🟢 TYPE 15: บูมทีม / คาราวาน */}
+      {isType15 &&
+        (hasType15ActualResults ? (
+          <Type15DetailView
+            isVisible={true}
+            targets={plan?.type15Targets || targets?.t15List || []}
+            actual={
+              parsedResults?.type15Actual ||
+              plan?.type15Results?.[0] ||
+              (plan?.type15Actual ? plan.type15Actual : null)
+            }
+          />
+        ) : (
+          <Type15ApprovalCard
+            targets={plan?.type15Targets || targets?.t15List || []}
           />
         ))}
     </div>

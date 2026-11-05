@@ -28,6 +28,7 @@ import { type13PlannedStrategy } from "../features/type-13/planned/infrastructur
 import { type13UnplannedStrategy } from "../features/type-13/unplanned/infrastructure/type13-unplanned.strategy";
 import { type14PlannedStrategy } from "../features/type-14/planned/infrastructure/type14-planned.strategy";
 import { type14UnplannedStrategy } from "../features/type-14/unplanned/infrastructure/type14-unplanned.strategy";
+import { type15PlannedStrategy } from "../features/type-15/planned/infrastructure/type15-planned.strategy";
 import type {
   WorkTypeStrategy,
   PrismaTransaction,
@@ -449,6 +450,32 @@ export const WORK_TYPE_STRATEGY_REGISTRY: Record<
         (rawData.t14Images && rawData.t14Images.length > 0),
       ),
   },
+  TYPE_15: {
+    code: "TYPE_15",
+    name: "บูมทีม / คาราวาน",
+    planned: type15PlannedStrategy,
+    unplanned: type15PlannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_15") ||
+            rawData.workTypeCodes.includes("บูมทีม / คาราวาน") ||
+            rawData.workTypeCodes.includes("บูมทีม") ||
+            rawData.workTypeCodes.includes("คาราวาน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_15" ||
+              s.workTypeCode === "บูมทีม / คาราวาน" ||
+              s.workTypeCode === "บูมทีม" ||
+              s.workTypeCode === "คาราวาน",
+          )) ||
+        (rawData.type15Targets && rawData.type15Targets.length > 0) ||
+        (rawData.type15Items && rawData.type15Items.length > 0) ||
+        (rawData.type15Results && rawData.type15Results.length > 0) ||
+        rawData.type15Actual,
+      ),
+  },
 };
 
 /**
@@ -537,6 +564,9 @@ export function resolvePrimaryWorkTypeCode(rawData: any): string {
   }
   if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_14.hasData(rawData)) {
     return "TYPE_14";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_15.hasData(rawData)) {
+    return "TYPE_15";
   }
 
   return "TYPE_1";

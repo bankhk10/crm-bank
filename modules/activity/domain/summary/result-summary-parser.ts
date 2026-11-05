@@ -509,6 +509,39 @@ export function parseResultSummary(resData: any): ParsedSummaryValues {
       result.t14Images = atts;
     }
 
+    // Type 15 Boom Team / Caravan Results from dedicated table or outcome
+    const rawT15Results: any[] =
+      Array.isArray(resData.type15Results) && resData.type15Results.length > 0
+        ? resData.type15Results
+        : Array.isArray(resData.activityPlan?.type15Results) && resData.activityPlan.type15Results.length > 0
+          ? resData.activityPlan.type15Results
+          : resData.type15Actual
+            ? [resData.type15Actual]
+            : [];
+
+    if (rawT15Results.length > 0) {
+      const firstT15 = rawT15Results[0];
+      const rawAtts = [
+        ...(firstT15.attachments || []),
+        ...((resData.attachments || resData.activityPlan?.attachments || []).filter(
+          (a: any) => a.workTypeCode === "TYPE_15" || a.type15ResultId,
+        )),
+      ];
+      const seenAttKeys = new Set<string>();
+      const allAtts = rawAtts.filter((a: any) => {
+        const key = a.id || a.fileUrl || a.url;
+        if (!key || seenAttKeys.has(key)) return false;
+        seenAttKeys.add(key);
+        return true;
+      });
+      result.type15Actual = {
+        detail: firstT15.detail || "",
+        attachments: allAtts,
+      };
+      result.t15Detail = firstT15.detail || "";
+      result.t15Images = allAtts;
+    }
+
     // Type 4 Billing / Collect Results from dedicated table or outcome
     const rawT4List: any[] =
       Array.isArray(resData.type4Results) && resData.type4Results.length > 0

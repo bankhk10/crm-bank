@@ -108,6 +108,7 @@ import type { Type11TargetItem } from "../../features/type-11";
 import type { Type12TargetItem } from "../../features/type-12";
 import type { Type13TargetItem } from "../../features/type-13";
 import type { Type14TargetItem } from "../../features/type-14";
+import type { Type15TargetItem } from "../../features/type-15";
 export type {
   Type3TargetItem,
   Type10TargetItem,
@@ -115,6 +116,7 @@ export type {
   Type12TargetItem,
   Type13TargetItem,
   Type14TargetItem,
+  Type15TargetItem,
 };
 
 export interface ActualTargetsState {
@@ -136,6 +138,8 @@ export interface ActualTargetsState {
   t12?: Type12TargetItem;
   t13?: Type13TargetItem;
   t14?: Type14TargetItem;
+  t15?: Type15TargetItem;
+  t15List?: Type15TargetItem[];
   [key: string]: any;
 }
 

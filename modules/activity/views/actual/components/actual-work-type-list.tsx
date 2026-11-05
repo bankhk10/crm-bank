@@ -76,6 +76,11 @@ import {
   type Type14TargetItem,
   type useType14Actual,
 } from "@/modules/activity/features/type-14";
+import {
+  Type15ActualForm,
+  type Type15TargetItem,
+  type useType15Actual,
+} from "@/modules/activity/features/type-15";
 
 interface ActualWorkTypeListProps {
   planWorkTypes: string[];
@@ -94,6 +99,7 @@ interface ActualWorkTypeListProps {
   type12State?: ReturnType<typeof useType12Actual>;
   type13State?: ReturnType<typeof useType13Actual>;
   type14State?: ReturnType<typeof useType14Actual>;
+  type15State?: ReturnType<typeof useType15Actual>;
   targets: Type1TargetItem[];
   type2Targets?: Type2TargetItem[];
   type3Targets?: Type3TargetItem[];
@@ -109,6 +115,7 @@ interface ActualWorkTypeListProps {
   type12Targets?: Type12TargetItem[];
   type13Targets?: Type13TargetItem[];
   type14Targets?: Type14TargetItem[];
+  type15Targets?: Type15TargetItem[];
   plan?: any;
   products?: any[];
   customers?: any[];
@@ -135,6 +142,7 @@ export function ActualWorkTypeList({
   type12State,
   type13State,
   type14State,
+  type15State,
   targets,
   type2Targets = [],
   type3Targets = [],
@@ -150,6 +158,7 @@ export function ActualWorkTypeList({
   type12Targets = [],
   type13Targets = [],
   type14Targets = [],
+  type15Targets = [],
   plan,
   products = [],
   customers = [],
@@ -325,6 +334,16 @@ export function ActualWorkTypeList({
     Boolean(plan?.type14Data) ||
     Boolean(plan?.type14) ||
     plan?.activityType?.code === "TYPE_14";
+
+  const isType15Active =
+    planWorkTypes.includes("TYPE_15") ||
+    planWorkTypes.includes("บูมทีม / คาราวาน") ||
+    planWorkTypes.includes("บูมทีม") ||
+    planWorkTypes.includes("คาราวาน") ||
+    Boolean(plan?.type15Targets?.length) ||
+    Boolean(plan?.type15Items?.length) ||
+    Boolean(plan?.type15Data) ||
+    plan?.activityType?.code === "TYPE_15";
 
   return (
     <div className="space-y-6 pt-2 border-t border-slate-100">
@@ -714,6 +733,22 @@ export function ActualWorkTypeList({
               ? type14Targets
               : plan?.type14Targets || plan?.type14Plots || plan?.t14Plots || []
           }
+        />
+      )}
+
+      {/* 🟢 TYPE 15: บูมทีม / คาราวาน */}
+      {isType15Active && type15State && (
+        <Type15ActualForm
+          isVisible={true}
+          targets={
+            type15Targets && type15Targets.length > 0
+              ? type15Targets
+              : plan?.type15Targets || []
+          }
+          detail={type15State.detail}
+          setDetail={type15State.setDetail}
+          images={type15State.images}
+          setImages={type15State.setImages}
         />
       )}
     </div>
