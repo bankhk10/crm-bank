@@ -1,5 +1,25 @@
 # CRM-Bank Production Deployment Guide
 
+> **Domain Production:** `https://csone.icgone.com`
+> **Domain Staging (Test):** `https://test-csone.icgone.com`
+> **Edge & SSL:** Cloudflare Tunnel (`crm-tunnel`) — ไม่ต้องใช้ Nginx หรือต่ออายุ SSL Certbot อีกต่อไป
+
+---
+
+## 📌 สรุปคำสั่งเวลา Deploy โค้ดใหม่ในอนาคต (สั้นลงและง่ายขึ้นมาก)
+
+- **เวลาอัปเดต Production (`csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank && git pull origin Production
+  cd deploy/app && docker compose -f docker-compose.app.yml --env-file ../.env.production up -d --build app
+  ```
+- **เวลาอัปเดต Staging (`test-csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank-staging && git pull origin Test && bash scripts/deploy-staging.sh
+  ```
+
+---
+
 ## Architecture Overview
 
 ```

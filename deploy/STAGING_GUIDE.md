@@ -1,8 +1,22 @@
 # CRM-Bank Staging Deployment Guide (คู่มือระบบทดสอบ)
 
-> **Domain ทดสอบ:** `https://test-csone.icgone.com`  
-> **Domain Production:** `https://csone.icgone.com`  
-> **Server Environment:** Single VPS (Ubuntu) — แยก App, Database และ Storage โดยสมบูรณ์
+> **Domain ทดสอบ:** `https://test-csone.icgone.com`
+> **Domain Production:** `https://csone.icgone.com`
+> **Server Environment:** Single VPS (Ubuntu) + Cloudflare Tunnel (`crm-tunnel`) — แยก App, Database และ Storage โดยสมบูรณ์
+
+---
+
+## 📌 สรุปคำสั่งเวลา Deploy โค้ดใหม่ในอนาคต (สั้นลงและง่ายขึ้นมาก)
+
+- **เวลาอัปเดต Production (`csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank && git pull origin Production
+  cd deploy/app && docker compose -f docker-compose.app.yml --env-file ../.env.production up -d --build app
+  ```
+- **เวลาอัปเดต Staging (`test-csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank-staging && git pull origin Test && bash scripts/deploy-staging.sh
+  ```
 
 ---
 
@@ -37,7 +51,7 @@
 
 ### สรุปหลักการของ Architecture:
 
-1. **Shared Edge Reverse Proxy (`crm-nginx`):**  
+1. **Shared Edge Reverse Proxy (`crm-nginx`):**
    ใช้ Nginx Container เดียวรับทราฟฟิกพอร์ต 80/443 และ SSL Certificates ของทั้งสองโดเมน โดยแยกการส่งต่อ (Routing) ตาม Domain Name
    - `csone.icgone.com` $\rightarrow$ `http://nextjs_app` (Container: `crm-app`)
    - `test-csone.icgone.com` $\rightarrow$ `http://crm-app-staging:3000` via `$staging_upstream` (Container: `crm-app-staging`)
@@ -68,7 +82,7 @@ bash scripts/deploy-staging.sh
 ```
 
 > [!TIP]
-> **ไม่ต้อง copy ไฟล์ `staging.conf` หรือ reload Nginx ด้วยตนเอง:**  
+> **ไม่ต้อง copy ไฟล์ `staging.conf` หรือ reload Nginx ด้วยตนเอง:**
 > คำสั่ง `bash scripts/deploy-staging.sh` จะทำการ Build App, Backup Config, Sync Nginx Config, รัน Safety Checks 4 ด่าน และ Reload Nginx แบบ 0-Downtime ให้ครบถ้วนโดยอัตโนมัติ
 
 ---
@@ -77,24 +91,24 @@ bash scripts/deploy-staging.sh
 
 เมื่อสั่งรัน `bash scripts/deploy-staging.sh` ระบบจะทำงานตามลำดับ 8 ขั้นตอน:
 
-1. **Pre-flight Environment & Strict Branch Check:**  
+1. **Pre-flight Environment & Strict Branch Check:**
    ตรวจสอบไฟล์ `.env.staging`, ตรวจสอบว่า `crm-nginx` ทำงานอยู่ และยืนยันว่ากำลังทำงานอยู่บน **Branch `Test`** เท่านั้น (หากเป็น Branch อื่นจะหยุดทำงานทันที)
-2. **Build & Deploy Service `app-staging`:**  
+2. **Build & Deploy Service `app-staging`:**
    สั่ง `docker compose ... up -d --build app-staging` เพื่อสร้างและเปิด Container `crm-app-staging` โดยไม่แตะต้อง Service อื่น
-3. **Backup Active Staging Nginx Configuration:**  
+3. **Backup Active Staging Nginx Configuration:**
    สร้างไฟล์ Backup ของ `staging.conf` เดิมเก็บไว้ที่ `/opt/crm-bank/nginx/conf.d/.backup/staging.conf.<timestamp>` (เก็บประวัติย้อนหลัง 10 ไฟล์ล่าสุด)
-4. **Sync Staging Nginx Config:**  
+4. **Sync Staging Nginx Config:**
    คัดลอกไฟล์ `nginx/conf.d/staging.conf` จาก Staging repository ไปยัง `/opt/crm-bank/nginx/conf.d/staging.conf`
-5. **Nginx Syntax Validation (`nginx -t`):**  
+5. **Nginx Syntax Validation (`nginx -t`):**
    รัน `docker exec crm-nginx nginx -t` หากมีข้อผิดพลาดจะทำ Auto-Rollback ทันที
 6. **Pre-flight Safety Checks (4 ด่านตรวจความปลอดภัย):**
    - **Safety Check 1:** ตรวจสอบว่า Production HTTPS (`csone`) ชี้ไปยัง Production upstream (`http://nextjs_app`) และไม่มี Staging targets ปะปน
    - **Safety Check 2:** ตรวจสอบว่า Staging HTTPS (`test-csone`) ชี้ไปยัง `$staging_upstream` (`http://crm-app-staging:3000`)
    - **Safety Check 3:** ตรวจสอบว่า Staging `/uploads/` ใช้ `proxy_pass $staging_upstream;` และไม่มี `alias`
    - **Safety Check 4 (Cross-Routing Isolation):** ยืนยันสองทิศทางว่า Production ไม่ Route ไป Staging และ Staging ไม่ Route ไป Production
-7. **Safe Nginx Reload (0 Downtime):**  
+7. **Safe Nginx Reload (0 Downtime):**
    สั่ง `docker exec crm-nginx nginx -s reload` (ส่งสัญญาณ SIGHUP ปรับคอนฟิกโดยไม่ตัด Connection)
-8. **Health Check & Summary:**  
+8. **Health Check & Summary:**
    ทดสอบการเชื่อมต่อ Endpoint `/api/health` และสรุปผลการ Deploy
 
 ---
@@ -179,7 +193,7 @@ cache-control: public, max-age=3600, must-revalidate
 ```
 
 > [!NOTE]
-> **ข้อควรระวังเรื่อง HTTP 404:**  
+> **ข้อควรระวังเรื่อง HTTP 404:**
 > หากเข้าหน้า Detail แล้วพบ Broken Image หรือได้ HTTP 404 ให้ตรวจสอบก่อนว่ามีไฟล์รูปนั้นอยู่ในโฟลเดอร์ `/home/bank/crm-data-staging/uploads/` หรือไม่ หากเป็น URL ของรูปเก่าที่เคยสร้างไว้ก่อนติดตั้งระบบ Storage จะได้ 404 ซึ่งไม่ใช่ความผิดพลาดของ Nginx ให้ทดลอง **Upload รูปภาพใหม่ 1 รูป** เพื่อทดสอบ Flow ปัจจุบัน
 
 ---
