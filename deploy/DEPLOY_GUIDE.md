@@ -136,7 +136,7 @@ docker run --rm -it \
   -v app_certbot_data:/var/www/certbot \
   -p 80:80 \
   certbot/certbot certonly --standalone \
-  -d csone.cropsciences.co.th \
+  -d csone.icgone.com \
   --agree-tos \
   --email your-email@domain.com
 

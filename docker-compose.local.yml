@@ -49,7 +49,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-crm_bank}
       AUTH_SECRET: ${AUTH_SECRET:?Auth secret is required}
       AUTH_TRUST_HOST: "true"
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.cropsciences.co.th}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.icgone.com}
       NEXT_PUBLIC_SHOW_RANDOM_FILL: "false"
     depends_on:
       postgres:

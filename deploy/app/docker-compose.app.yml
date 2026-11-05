@@ -1,6 +1,6 @@
 # ===========================================
 # CRM-Bank Application Stack
-# Domain: csone.cropsciences.co.th
+# Domain: csone.icgone.com
 # ===========================================
 # Requires: Database stack running first (crm-postgres healthy)
 # Deploy: docker compose -f docker-compose.app.yml up -d
@@ -22,7 +22,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm}
       AUTH_SECRET: ${AUTH_SECRET:?Auth secret is required}
       AUTH_TRUST_HOST: "true"
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.cropsciences.co.th}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.icgone.com}
       NEXT_PUBLIC_SHOW_RANDOM_FILL: "false"
     networks:
       - crm-network
@@ -53,6 +53,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: crm-nginx
+    profiles: ["legacy-nginx"]
     restart: unless-stopped
     ports:
       - "80:80"
@@ -82,6 +83,7 @@ services:
   certbot:
     image: certbot/certbot:latest
     container_name: crm-certbot
+    profiles: ["legacy-nginx"]
     volumes:
       - certbot_data:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
