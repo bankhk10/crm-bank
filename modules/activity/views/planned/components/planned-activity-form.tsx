@@ -265,6 +265,13 @@ export function PlannedActivityForm({
       return [WORK_TYPE_CONFIG.TYPE_14.name];
     }
     if (
+      (initialData.type15Targets && initialData.type15Targets.length > 0) ||
+      initialData.type15Data ||
+      initialData.type15
+    ) {
+      return [WORK_TYPE_CONFIG.TYPE_15.name];
+    }
+    if (
       ((initialData.type1Targets && initialData.type1Targets.length > 0) ||
         (initialData.type1Stores && initialData.type1Stores.length > 0)) &&
       isEdit
@@ -1139,7 +1146,12 @@ export function PlannedActivityForm({
             (t.code === "TYPE_14" ||
               t.code === "HATTACK_FOLLOW" ||
               t.name?.includes("ติดตามแปลงแฮตแทค") ||
-              (t.name?.includes("ติดตาม") && t.name?.includes("แฮตแทค")))),
+              (t.name?.includes("ติดตาม") && t.name?.includes("แฮตแทค")))) ||
+          (primaryCode === "TYPE_15" &&
+            (t.code === "TYPE_15" ||
+              t.code === "BOOM_TEAM" ||
+              t.name?.includes("บูมทีม") ||
+              t.name?.includes("คาราวาน"))),
       ) ||
       activityTypes[0];
 

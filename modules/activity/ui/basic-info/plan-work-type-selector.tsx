@@ -52,7 +52,7 @@ export function PlanWorkTypeSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Default options if not provided: All 15 supported work types (TYPE_1 - TYPE_14)
+  // Default options if not provided: All 16 supported work types (TYPE_1 - TYPE_15)
   const baseOptions: PlanWorkTypeOption[] =
     activeWorkTypeOptions && activeWorkTypeOptions.length > 0
       ? activeWorkTypeOptions
@@ -131,6 +131,11 @@ export function PlanWorkTypeSelector({
             code: "TYPE_14",
             name: WORK_TYPE_CONFIG.TYPE_14.name,
             displayName: "ติดตามแปลงแฮตแทค (Type 14)",
+          },
+          {
+            code: "TYPE_15",
+            name: WORK_TYPE_CONFIG.TYPE_15.name,
+            displayName: "บูมทีม / คาราวาน (Type 15)",
           },
         ];
 
