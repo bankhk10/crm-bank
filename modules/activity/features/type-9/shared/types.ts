@@ -6,8 +6,11 @@ export interface Type9ProductItem {
   id: string;
   productId?: string;
   productName: string;
+  packageSizePerBox?: number;
   quantityCases: number;
+  pricePerBottle?: number;
   pricePerCase: number;
+  totalAmount?: number;
 }
 
 export interface Type9CustomerOption {
@@ -36,6 +39,8 @@ export interface Type9ProductOption {
   name: string;
   productCode?: string | null;
   price?: number | null;
+  cartonPrice?: number | null;
+  packageSizePerBox?: number | null;
   unit?: string | null;
 }
 
@@ -48,10 +53,13 @@ export interface Type9TargetProductItem {
   storeId?: string | null;
   productName: string;
   productRole?: Type9ProductRole | string;
+  packageSizePerBox?: number;
   quantityCases?: number;
+  pricePerBottle?: number;
   pricePerCase?: number;
   totalAmount?: number;
   actualQuantityCases?: number | string;
+  actualBottleQuantity?: number | string;
   actualSales?: number | string;
   actualNotes?: string;
 }
@@ -63,10 +71,13 @@ export interface Type9ProductSaleDetail {
   storeId?: string | null;
   productName: string;
   productRole?: Type9ProductRole | string;
+  packageSizePerBox?: number;
+  pricePerBottle?: number;
   pricePerCase?: number;
   quantityCases?: number;
   totalAmount?: number;
   actualQuantityCases?: string | number;
+  actualBottleQuantity?: string | number;
   actualSales?: string | number;
   actualNotes?: string;
 }
@@ -104,7 +115,9 @@ export interface Type9DbProduct {
   targetQuantity?: any;
   targetUnitPrice?: any;
   targetAmount?: any;
+  packageSizePerBox?: any;
   actualQuantity?: any;
+  actualBottleQuantity?: any;
   actualUnitPrice?: any;
   actualTotal?: any;
   actualNotes?: string | null;

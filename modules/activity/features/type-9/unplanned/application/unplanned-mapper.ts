@@ -38,24 +38,70 @@ export function hydrateType9UnplannedData(initialData: any): Type9UnplannedItem[
     return initialData.type9Targets.map((t: any, idx: number) => {
       const allProds: any[] = t.products || (initialData.type9Products || []).filter((p: any) => p.targetId === t.id);
 
-      const products: Type9ProductItem[] = allProds.map((p: any) => ({
-        id: p.id,
-        productId: p.productId || "",
-        productName: p.productName || p.product?.name || "",
-        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
-        pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
-      }));
+      const products: Type9ProductItem[] = allProds.map((p: any) => {
+        const qty = p.targetQuantity != null ? Number(p.targetQuantity) : 0;
+        const pkgSize =
+          p.packageSizePerBox != null
+            ? Number(p.packageSizePerBox)
+            : p.product?.packageSizePerBox != null
+              ? Number(p.product.packageSizePerBox)
+              : 1;
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
+            : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
+              ? Number(p.targetUnitPrice)
+              : p.product?.price != null
+                ? Number(p.product.price)
+                : 0;
+        const casePrice =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
+        const total =
+          p.targetAmount != null
+            ? Number(p.targetAmount)
+            : qty * casePrice;
+
+        return {
+          id: p.id,
+          productId: p.productId || "",
+          productName: p.productName || p.product?.name || "",
+          packageSizePerBox: pkgSize,
+          quantityCases: qty,
+          pricePerBottle: bottlePrice,
+          pricePerCase: casePrice,
+          totalAmount: total,
+        };
+      });
 
       const salesDetails: Type9ProductSaleDetail[] = allProds
-        .filter((p: any) => p.actualQuantity != null || p.actualTotal != null)
+        .filter(
+          (p: any) =>
+            p.actualQuantity != null ||
+            p.actualBottleQuantity != null ||
+            p.actualTotal != null,
+        )
         .map((p: any) => ({
           id: p.id,
           targetId: t.id,
           productId: p.productId || "",
           productName: p.productName || p.product?.name || "",
           productRole: p.productRole || "TARGET",
-          actualQuantityCases: p.actualQuantity != null ? Number(p.actualQuantity) : "",
-          pricePerCase: p.actualUnitPrice != null ? Number(p.actualUnitPrice) : (p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0),
+          actualQuantityCases:
+            p.actualQuantity != null ? Number(p.actualQuantity) : "",
+          actualBottleQuantity:
+            p.actualBottleQuantity != null
+              ? Number(p.actualBottleQuantity)
+              : 0,
+          pricePerCase:
+            p.actualUnitPrice != null
+              ? Number(p.actualUnitPrice)
+              : p.targetUnitPrice != null
+                ? Number(p.targetUnitPrice)
+                : 0,
           actualSales: p.actualTotal != null ? Number(p.actualTotal) : "",
           actualNotes: p.actualNotes || undefined,
         }));

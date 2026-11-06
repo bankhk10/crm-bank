@@ -45,14 +45,43 @@ export function parseType9ActualResult(resData: any): Partial<
     const productsWithActuals = dedicatedProducts.filter(
       (p: any) =>
         (p.actualQuantity != null && p.actualQuantity !== "") ||
+        (p.actualBottleQuantity != null && p.actualBottleQuantity !== "") ||
         (p.actualTotal != null && p.actualTotal !== ""),
     );
 
     if (productsWithActuals.length > 0) {
       const details: Type9ProductSaleDetail[] = productsWithActuals.map((p: any) => {
         const qty = Number(p.actualQuantity || 0);
-        const price = Number(p.actualUnitPrice || p.targetUnitPrice || 0);
-        const total = p.actualTotal != null ? Number(p.actualTotal) : qty * price;
+        const bottleQty = Number(p.actualBottleQuantity || 0);
+        const pkgSize =
+          p.packageSizePerBox != null
+            ? Number(p.packageSizePerBox)
+            : p.product?.packageSizePerBox != null
+              ? Number(p.product.packageSizePerBox)
+              : 1;
+
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
+            : p.actualUnitPrice != null && Number(p.actualUnitPrice) > 0
+              ? Number(p.actualUnitPrice)
+              : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
+                ? Number(p.targetUnitPrice)
+                : p.product?.price != null
+                  ? Number(p.product.price)
+                  : 0;
+
+        const price =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
+
+        const total =
+          p.actualTotal != null
+            ? Number(p.actualTotal)
+            : (qty * price) + (bottleQty * bottlePrice);
 
         return {
           id: p.id,
@@ -60,8 +89,11 @@ export function parseType9ActualResult(resData: any): Partial<
           productId: p.productId,
           productName: p.productName || p.product?.name || "",
           productRole: p.productRole || "TARGET",
-          actualQuantityCases: qty,
+          packageSizePerBox: pkgSize,
+          pricePerBottle: bottlePrice,
           pricePerCase: price,
+          actualQuantityCases: qty,
+          actualBottleQuantity: bottleQty,
           actualSales: total,
           actualNotes: p.actualNotes || undefined,
         };

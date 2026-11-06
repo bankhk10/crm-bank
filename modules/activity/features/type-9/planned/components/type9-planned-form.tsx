@@ -109,10 +109,27 @@ export function Type9PlannedForm({
     return "";
   }, [activeParentDealerName, selectedSubdealerCustomer, customers]);
 
-  const calculatedSales = type9ProductItems.reduce(
-    (sum, item) => sum + (item.quantityCases || 0) * (item.pricePerCase || 0),
-    0,
-  );
+  const calculatedSales = type9ProductItems.reduce((sum, item) => {
+    const pkgSize =
+      item.packageSizePerBox != null && Number(item.packageSizePerBox) > 0
+        ? Number(item.packageSizePerBox)
+        : 1;
+    const bottlePrice =
+      item.pricePerBottle != null
+        ? Number(item.pricePerBottle)
+        : item.pricePerCase != null && pkgSize > 0
+          ? Number(item.pricePerCase) / pkgSize
+          : 0;
+    const casePrice =
+      item.pricePerCase != null && Number(item.pricePerCase) > 0
+        ? Number(item.pricePerCase)
+        : bottlePrice * pkgSize;
+    const itemTotal =
+      item.totalAmount != null
+        ? Number(item.totalAmount)
+        : (item.quantityCases || 0) * casePrice;
+    return sum + itemTotal;
+  }, 0);
 
   const totalCases = type9ProductItems.reduce(
     (sum, item) => sum + (item.quantityCases || 0),
@@ -413,29 +430,62 @@ export function Type9PlannedForm({
                 <th className="py-2 px-3 min-w-[180px]">
                   เลือกสินค้า <span className="text-red-500">*</span>
                 </th>
+                <th className="py-2 px-3 w-24 text-center">
+                  บรรจุ/ลัง (ขวด)
+                </th>
                 <th className="py-2 px-3 w-28 text-center">
                   จำนวน (ลัง) <span className="text-red-500">*</span>
                 </th>
-                <th className="py-2 px-3 w-32 text-center">
-                  ราคา / ลัง <span className="text-red-500">*</span>
+                <th className="py-2 px-3 w-28 text-center">
+                  ราคา / ขวด <span className="text-red-500">*</span>
                 </th>
-                <th className="py-2 px-3 w-36 text-right">รวม</th>
+                <th className="py-2 px-3 w-28 text-right">ยอดรวม/ลัง</th>
+                <th className="py-2 px-3 w-32 text-right">รวมเป้าหมาย</th>
                 {!readonly && (
-                  <th className="py-2 px-3 text-center w-14">ลบ</th>
+                  <th className="py-2 px-3 text-center w-12">ลบ</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {type9ProductItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-4 text-center text-slate-400">
+                  <td colSpan={8} className="py-4 text-center text-slate-400">
                     ยังไม่มีรายการสินค้า
                   </td>
                 </tr>
               ) : (
                 type9ProductItems.map((item, index) => {
+                  const matchedProd = products.find(
+                    (p) => p.id === item.productId || p.name === item.productName,
+                  );
+                  const pkgSize =
+                    item.packageSizePerBox != null && Number(item.packageSizePerBox) > 0
+                      ? Number(item.packageSizePerBox)
+                      : matchedProd?.packageSizePerBox != null
+                        ? Number(matchedProd.packageSizePerBox)
+                        : 1;
+
+                  const bottlePrice =
+                    item.pricePerBottle != null
+                      ? Number(item.pricePerBottle)
+                      : matchedProd?.price != null
+                        ? Number(matchedProd.price)
+                        : item.pricePerCase != null && pkgSize > 0
+                          ? Number(item.pricePerCase) / pkgSize
+                          : 0;
+
+                  const casePrice =
+                    item.pricePerCase != null &&
+                    Number(item.pricePerCase) > 0 &&
+                    Number(item.pricePerCase) !== bottlePrice
+                      ? Number(item.pricePerCase)
+                      : bottlePrice * pkgSize;
+
                   const totalItemPrice =
-                    (item.quantityCases || 0) * (item.pricePerCase || 0);
+                    item.totalAmount != null
+                      ? Number(item.totalAmount)
+                      : (item.quantityCases || 0) * casePrice;
+
                   return (
                     <tr
                       key={item.id}
@@ -469,6 +519,32 @@ export function Type9PlannedForm({
                                 found.id,
                               );
                             }
+                            const pSize =
+                              found?.packageSizePerBox != null
+                                ? Number(found.packageSizePerBox)
+                                : 1;
+                            updateType9ProductItem(
+                              item.id,
+                              "packageSizePerBox",
+                              pSize,
+                            );
+                            const bPrice =
+                              found?.price != null ? Number(found.price) : 0;
+                            if (
+                              item.pricePerBottle == null ||
+                              item.pricePerBottle === 0
+                            ) {
+                              updateType9ProductItem(
+                                item.id,
+                                "pricePerBottle",
+                                bPrice,
+                              );
+                              updateType9ProductItem(
+                                item.id,
+                                "pricePerCase",
+                                bPrice * pSize,
+                              );
+                            }
                           }}
                           products={products}
                           placeholder="เลือกสินค้า..."
@@ -476,6 +552,11 @@ export function Type9PlannedForm({
                           emptyText="ไม่พบสินค้า"
                           disabled={readonly}
                         />
+                      </td>
+                      <td className="py-1.5 px-3 text-center font-medium text-slate-600">
+                        <span className="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-mono">
+                          {pkgSize}
+                        </span>
                       </td>
                       <td className="py-1.5 px-3">
                         <ActivityNumberInput
@@ -498,15 +579,22 @@ export function Type9PlannedForm({
                         <ActivityNumberInput
                           min={0}
                           defaultValueOnBlur={0}
-                          value={item.pricePerCase}
+                          value={bottlePrice}
                           onChangeValue={(val) =>
-                            updateType9ProductItem(item.id, "pricePerCase", val)
+                            updateType9ProductItem(
+                              item.id,
+                              "pricePerBottle",
+                              val,
+                            )
                           }
                           disabled={readonly}
                           className="h-8 px-2 text-xs text-center"
                         />
                       </td>
-                      <td className="py-1.5 px-3 text-right font-semibold text-slate-700">
+                      <td className="py-1.5 px-3 text-right font-medium text-slate-700">
+                        {casePrice.toLocaleString()} ฿
+                      </td>
+                      <td className="py-1.5 px-3 text-right font-bold text-teal-800">
                         {totalItemPrice.toLocaleString()} ฿
                       </td>
                       {!readonly && (
@@ -528,7 +616,7 @@ export function Type9PlannedForm({
             {type9ProductItems.length > 0 && (
               <tfoot className="bg-slate-50 border-t border-slate-200 font-semibold text-slate-700">
                 <tr>
-                  <td colSpan={4} className="py-2.5 px-3 text-right">
+                  <td colSpan={6} className="py-2.5 px-3 text-right">
                     รวมทั้งสิ้น:
                   </td>
                   <td className="py-2.5 px-3 text-right font-bold text-teal-700 text-sm">

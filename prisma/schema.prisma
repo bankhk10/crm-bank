@@ -3255,15 +3255,17 @@ model ActivityPlanType9Product {
   productRole     String   @default("TARGET") @map("product_role") // "TARGET" | "ADDITIONAL_SALE"
 
   // Planned fields
-  targetQuantity  Decimal? @map("target_quantity") @db.Decimal(10, 2)
-  targetUnitPrice Decimal? @map("target_unit_price") @db.Decimal(15, 2)
-  targetAmount    Decimal? @map("target_amount") @db.Decimal(15, 2)
+  targetQuantity       Decimal? @map("target_quantity") @db.Decimal(10, 2)
+  targetUnitPrice      Decimal? @map("target_unit_price") @db.Decimal(15, 2)
+  targetAmount         Decimal? @map("target_amount") @db.Decimal(15, 2)
+  packageSizePerBox    Decimal? @map("package_size_per_box") @db.Decimal(15, 3)
 
   // Actual fields
-  actualQuantity  Decimal? @map("actual_quantity") @db.Decimal(10, 2)
-  actualUnitPrice Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
-  actualTotal     Decimal? @map("actual_total") @db.Decimal(15, 2)
-  actualNotes     String?  @map("actual_notes")
+  actualQuantity       Decimal? @map("actual_quantity") @db.Decimal(10, 2)
+  actualBottleQuantity Decimal? @default(0) @map("actual_bottle_quantity") @db.Decimal(10, 2)
+  actualUnitPrice      Decimal? @map("actual_unit_price") @db.Decimal(15, 2)
+  actualTotal          Decimal? @map("actual_total") @db.Decimal(15, 2)
+  actualNotes          String?  @map("actual_notes")
 
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")

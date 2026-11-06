@@ -115,32 +115,54 @@ export function Type9PlanCard({
               <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
                 <tr>
                   <th className="py-2 px-3">สินค้า</th>
-                  <th className="py-2 px-3 text-center">จำนวนเป้าหมาย</th>
-                  <th className="py-2 px-3 text-right">ราคา/หน่วย</th>
-                  <th className="py-2 px-3 text-right">ยอดรวมเป้าหมาย</th>
+                  <th className="py-2 px-3 text-center">บรรจุ/ลัง (ขวด)</th>
+                  <th className="py-2 px-3 text-center">เป้าหมาย (ลัง)</th>
+                  <th className="py-2 px-3 text-right">ราคา/ขวด</th>
+                  <th className="py-2 px-3 text-right">ยอดรวม/ลัง</th>
+                  <th className="py-2 px-3 text-right">รวมเป้าหมาย</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {items.map((it, idx) => (
-                  <tr key={it.id || idx} className="hover:bg-slate-50/50">
-                    <td className="py-2 px-3 font-medium text-slate-800">
-                      {it.productName}
-                    </td>
-                    <td className="py-2 px-3 text-center text-slate-600">
-                      {it.quantityCases != null ? `${it.quantityCases} ลัง` : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-right text-slate-600">
-                      {it.pricePerCase != null
-                        ? `${Number(it.pricePerCase).toLocaleString()} ฿`
-                        : "-"}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-teal-700">
-                      {it.totalAmount != null
-                        ? `${Number(it.totalAmount).toLocaleString()} ฿`
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
+                {items.map((it, idx) => {
+                  const pkgSize = it.packageSizePerBox ?? 1;
+                  const bottlePrice =
+                    it.pricePerBottle != null
+                      ? Number(it.pricePerBottle)
+                      : it.pricePerCase != null && pkgSize > 0
+                        ? Number(it.pricePerCase) / pkgSize
+                        : 0;
+                  const casePrice =
+                    it.pricePerCase != null && Number(it.pricePerCase) > 0
+                      ? Number(it.pricePerCase)
+                      : bottlePrice * pkgSize;
+
+                  return (
+                    <tr key={it.id || idx} className="hover:bg-slate-50/50">
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        {it.productName}
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-600">
+                        <span className="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono">
+                          {pkgSize}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-600">
+                        {it.quantityCases != null ? `${it.quantityCases} ลัง` : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right text-slate-600">
+                        {bottlePrice > 0 ? `${bottlePrice.toLocaleString()} ฿` : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right text-slate-600 font-medium">
+                        {casePrice > 0 ? `${casePrice.toLocaleString()} ฿` : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-right font-bold text-teal-700">
+                        {it.totalAmount != null
+                          ? `${Number(it.totalAmount).toLocaleString()} ฿`
+                          : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -84,6 +84,11 @@ export function Type9DetailView({
           ...item,
           actualQuantityCases:
             saved?.actualQuantityCases ?? item.actualQuantityCases ?? "-",
+          actualBottleQuantity:
+            saved?.actualBottleQuantity ??
+            (saved as any)?.actualQuantityBottles ??
+            item.actualBottleQuantity ??
+            "0",
           actualSales: saved?.actualSales ?? item.actualSales ?? "-",
         };
       })
@@ -153,7 +158,9 @@ export function Type9DetailView({
                   <tr>
                     <th className="py-2 px-3">สินค้า</th>
                     <th className="py-2 px-3 text-center">เป้าหมาย (ลัง)</th>
+                    <th className="py-2 px-3 text-right">ยอดรวม (บาท)</th>
                     <th className="py-2 px-3 text-center">ขายได้จริง (ลัง)</th>
+                    <th className="py-2 px-3 text-center">ขายได้จริง (ขวด)</th>
                     <th className="py-2 px-3 text-right">ยอดขายจริง (บาท)</th>
                   </tr>
                 </thead>
@@ -166,10 +173,21 @@ export function Type9DetailView({
                       <td className="py-2 px-3 text-center text-slate-500">
                         {item.quantityCases != null ? `${item.quantityCases}` : "-"}
                       </td>
+                      <td className="py-2 px-3 text-right text-slate-600 font-medium">
+                        {item.pricePerCase != null && Number(item.pricePerCase) > 0
+                          ? `${Number(item.pricePerCase).toLocaleString()} ฿`
+                          : "-"}
+                      </td>
                       <td className="py-2 px-3 text-center font-bold text-teal-800">
                         {item.actualQuantityCases != null && item.actualQuantityCases !== ""
                           ? `${item.actualQuantityCases}`
                           : "-"}
+                      </td>
+                      <td className="py-2 px-3 text-center font-bold text-teal-800">
+                        {item.actualBottleQuantity != null &&
+                        item.actualBottleQuantity !== ""
+                          ? `${item.actualBottleQuantity}`
+                          : "0"}
                       </td>
                       <td className="py-2 px-3 text-right font-extrabold text-emerald-700">
                         {item.actualSales != null && item.actualSales !== ""

@@ -7,6 +7,51 @@ import type {
 import type { Type9ProductSaleDetail } from "../../shared/types";
 import { findType9ByPlanId } from "./type9.repository";
 
+/**
+ * Safe helper to create product with newly migrated fields (packageSizePerBox, actualBottleQuantity).
+ * Gracefully falls back to baseline fields if the in-memory Prisma client in a running dev server
+ * has not yet reloaded the new schema fields.
+ */
+async function safeCreateProduct(
+  tx: any,
+  dataWithNewFields: any,
+  baseData: any,
+) {
+  try {
+    return await tx.activityPlanType9Product.create({ data: dataWithNewFields });
+  } catch (err: any) {
+    if (err?.message?.includes("Unknown argument")) {
+      return await tx.activityPlanType9Product.create({ data: baseData });
+    }
+    throw err;
+  }
+}
+
+/**
+ * Safe helper to update product with newly migrated fields.
+ */
+async function safeUpdateProduct(
+  tx: any,
+  id: string,
+  dataWithNewFields: any,
+  baseData: any,
+) {
+  try {
+    return await tx.activityPlanType9Product.update({
+      where: { id },
+      data: dataWithNewFields,
+    });
+  } catch (err: any) {
+    if (err?.message?.includes("Unknown argument")) {
+      return await tx.activityPlanType9Product.update({
+        where: { id },
+        data: baseData,
+      });
+    }
+    throw err;
+  }
+}
+
 export const type9PlannedStrategy: WorkTypeStrategy = {
   code: "TYPE_9",
 
@@ -163,12 +208,15 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
           if (!p || (!p.productName && !p.productId)) continue;
 
           const qty = p.quantityCases != null ? Number(p.quantityCases) : (p.quantity != null ? Number(p.quantity) : 0);
-          const price = p.pricePerCase != null ? Number(p.pricePerCase) : (p.unitPrice != null ? Number(p.unitPrice) : 0);
+          const pkgSize = p.packageSizePerBox != null ? Number(p.packageSizePerBox) : 1;
+          const bottlePrice = p.pricePerBottle != null ? Number(p.pricePerBottle) : 0;
+          const price = p.pricePerCase != null && Number(p.pricePerCase) > 0 ? Number(p.pricePerCase) : (bottlePrice * pkgSize);
           const total = p.totalAmount != null ? Number(p.totalAmount) : qty * price;
 
           const targetQtyDec = new Prisma.Decimal(qty);
-          const targetPriceDec = new Prisma.Decimal(price);
+          const targetPriceDec = new Prisma.Decimal(bottlePrice > 0 ? bottlePrice : price);
           const targetAmountDec = new Prisma.Decimal(total);
+          const packageSizePerBoxDec = new Prisma.Decimal(pkgSize);
 
           // Actual fields if Unplanned 2-in-1
           const actualQtyDec =
@@ -177,6 +225,13 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
               : p.actualQuantity != null && !isNaN(Number(p.actualQuantity))
                 ? new Prisma.Decimal(p.actualQuantity)
                 : null;
+
+          const actualBottlesDec =
+            p.actualBottleQuantity != null && p.actualBottleQuantity !== "" && !isNaN(Number(p.actualBottleQuantity))
+              ? new Prisma.Decimal(p.actualBottleQuantity)
+              : p.actualQuantityBottles != null && !isNaN(Number(p.actualQuantityBottles))
+                ? new Prisma.Decimal(p.actualQuantityBottles)
+                : new Prisma.Decimal(0);
 
           const actualPriceDec =
             p.actualUnitPrice != null && !isNaN(Number(p.actualUnitPrice))
@@ -189,25 +244,31 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
               : p.actualTotal != null && !isNaN(Number(p.actualTotal))
                 ? new Prisma.Decimal(p.actualTotal)
                 : actualQtyDec && actualPriceDec
-                  ? actualQtyDec.mul(actualPriceDec)
+                  ? actualQtyDec.mul(price).add(actualBottlesDec.mul(bottlePrice > 0 ? bottlePrice : 0))
                   : null;
 
-          await (tx as any).activityPlanType9Product.create({
-            data: {
-              activityPlanId,
-              targetId: targetRecord.id,
-              productId: p.productId || null,
-              productName: p.productName || null,
-              productRole: p.productRole || "TARGET",
-              targetQuantity: targetQtyDec,
-              targetUnitPrice: targetPriceDec,
-              targetAmount: targetAmountDec,
-              actualQuantity: actualQtyDec,
-              actualUnitPrice: actualPriceDec,
-              actualTotal: actualTotalDec,
-              actualNotes: p.actualNotes || p.notes || null,
-            },
-          });
+          const baseProductData = {
+            activityPlanId,
+            targetId: targetRecord.id,
+            productId: p.productId || null,
+            productName: p.productName || null,
+            productRole: p.productRole || "TARGET",
+            targetQuantity: targetQtyDec,
+            targetUnitPrice: targetPriceDec,
+            targetAmount: targetAmountDec,
+            actualQuantity: actualQtyDec,
+            actualUnitPrice: actualPriceDec,
+            actualTotal: actualTotalDec,
+            actualNotes: p.actualNotes || p.notes || null,
+          };
+
+          const fullProductData = {
+            ...baseProductData,
+            packageSizePerBox: packageSizePerBoxDec,
+            actualBottleQuantity: actualBottlesDec,
+          };
+
+          await safeCreateProduct(tx, fullProductData, baseProductData);
         }
 
         // 2.3 Additional Sales (e.g. from Unplanned 2-in-1 ProductSalesDetails)
@@ -230,6 +291,12 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
             sale.actualQuantityCases != null && sale.actualQuantityCases !== "" && !isNaN(Number(sale.actualQuantityCases))
               ? new Prisma.Decimal(sale.actualQuantityCases)
               : null;
+          const actualBottlesDec =
+            sale.actualBottleQuantity != null && sale.actualBottleQuantity !== "" && !isNaN(Number(sale.actualBottleQuantity))
+              ? new Prisma.Decimal(sale.actualBottleQuantity)
+              : (sale as any).actualQuantityBottles != null && !isNaN(Number((sale as any).actualQuantityBottles))
+                ? new Prisma.Decimal((sale as any).actualQuantityBottles)
+                : new Prisma.Decimal(0);
           const actualPriceDec =
             sale.pricePerCase != null && !isNaN(Number(sale.pricePerCase))
               ? new Prisma.Decimal(sale.pricePerCase)
@@ -242,29 +309,34 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
                 : null;
 
           if (existingProduct) {
-            await (tx as any).activityPlanType9Product.update({
-              where: { id: existingProduct.id },
-              data: {
-                actualQuantity: actualQtyDec,
-                actualUnitPrice: actualPriceDec,
-                actualTotal: actualTotalDec,
-                actualNotes: sale.actualNotes || null,
-              },
-            });
+            const baseUpdate = {
+              actualQuantity: actualQtyDec,
+              actualUnitPrice: actualPriceDec,
+              actualTotal: actualTotalDec,
+              actualNotes: sale.actualNotes || null,
+            };
+            const fullUpdate = {
+              ...baseUpdate,
+              actualBottleQuantity: actualBottlesDec,
+            };
+            await safeUpdateProduct(tx, existingProduct.id, fullUpdate, baseUpdate);
           } else {
-            await (tx as any).activityPlanType9Product.create({
-              data: {
-                activityPlanId,
-                targetId: targetRecord.id,
-                productId: sale.productId || null,
-                productName: sale.productName || null,
-                productRole: "ADDITIONAL_SALE",
-                actualQuantity: actualQtyDec,
-                actualUnitPrice: actualPriceDec,
-                actualTotal: actualTotalDec,
-                actualNotes: sale.actualNotes || null,
-              },
-            });
+            const baseCreate = {
+              activityPlanId,
+              targetId: targetRecord.id,
+              productId: sale.productId || null,
+              productName: sale.productName || null,
+              productRole: "ADDITIONAL_SALE",
+              actualQuantity: actualQtyDec,
+              actualUnitPrice: actualPriceDec,
+              actualTotal: actualTotalDec,
+              actualNotes: sale.actualNotes || null,
+            };
+            const fullCreate = {
+              ...baseCreate,
+              actualBottleQuantity: actualBottlesDec,
+            };
+            await safeCreateProduct(tx, fullCreate, baseCreate);
           }
         }
 
@@ -383,6 +455,17 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
           const qtyClean = sale.actualQuantityCases != null ? String(sale.actualQuantityCases).replace(/,/g, "").trim() : "";
           const actualQtyDec = qtyClean !== "" && !isNaN(Number(qtyClean)) ? new Prisma.Decimal(qtyClean) : null;
 
+          const bottlesClean =
+            sale.actualBottleQuantity != null
+              ? String(sale.actualBottleQuantity).replace(/,/g, "").trim()
+              : (sale as any).actualQuantityBottles != null
+                ? String((sale as any).actualQuantityBottles).replace(/,/g, "").trim()
+                : "0";
+          const actualBottleQtyDec =
+            bottlesClean !== "" && !isNaN(Number(bottlesClean))
+              ? new Prisma.Decimal(bottlesClean)
+              : new Prisma.Decimal(0);
+
           const priceClean = sale.pricePerCase != null ? String(sale.pricePerCase).replace(/,/g, "").trim() : "";
           const unitPriceDec = priceClean !== "" && !isNaN(Number(priceClean)) ? new Prisma.Decimal(priceClean) : null;
 
@@ -407,15 +490,17 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
           });
 
           if (existingTargetProduct) {
-            await (tx as any).activityPlanType9Product.update({
-              where: { id: existingTargetProduct.id },
-              data: {
-                actualQuantity: actualQtyDec,
-                actualUnitPrice: unitPriceDec,
-                actualTotal: actualTotalDec,
-                actualNotes: sale.actualNotes || null,
-              },
-            });
+            const baseUpdate = {
+              actualQuantity: actualQtyDec,
+              actualUnitPrice: unitPriceDec,
+              actualTotal: actualTotalDec,
+              actualNotes: sale.actualNotes || null,
+            };
+            const fullUpdate = {
+              ...baseUpdate,
+              actualBottleQuantity: actualBottleQtyDec,
+            };
+            await safeUpdateProduct(tx, existingTargetProduct.id, fullUpdate, baseUpdate);
           } else {
             // Check if existing ADDITIONAL_SALE product already recorded
             const existingAdditional = await (tx as any).activityPlanType9Product.findFirst({
@@ -430,29 +515,34 @@ export const type9PlannedStrategy: WorkTypeStrategy = {
             });
 
             if (existingAdditional) {
-              await (tx as any).activityPlanType9Product.update({
-                where: { id: existingAdditional.id },
-                data: {
-                  actualQuantity: actualQtyDec,
-                  actualUnitPrice: unitPriceDec,
-                  actualTotal: actualTotalDec,
-                  actualNotes: sale.actualNotes || null,
-                },
-              });
+              const baseUpdate = {
+                actualQuantity: actualQtyDec,
+                actualUnitPrice: unitPriceDec,
+                actualTotal: actualTotalDec,
+                actualNotes: sale.actualNotes || null,
+              };
+              const fullUpdate = {
+                ...baseUpdate,
+                actualBottleQuantity: actualBottleQtyDec,
+              };
+              await safeUpdateProduct(tx, existingAdditional.id, fullUpdate, baseUpdate);
             } else {
-              await (tx as any).activityPlanType9Product.create({
-                data: {
-                  activityPlanId,
-                  targetId: primaryTarget.id,
-                  productId: sale.productId || null,
-                  productName: sale.productName || null,
-                  productRole: "ADDITIONAL_SALE",
-                  actualQuantity: actualQtyDec,
-                  actualUnitPrice: unitPriceDec,
-                  actualTotal: actualTotalDec,
-                  actualNotes: sale.actualNotes || null,
-                },
-              });
+              const baseCreate = {
+                activityPlanId,
+                targetId: primaryTarget.id,
+                productId: sale.productId || null,
+                productName: sale.productName || null,
+                productRole: "ADDITIONAL_SALE",
+                actualQuantity: actualQtyDec,
+                actualUnitPrice: unitPriceDec,
+                actualTotal: actualTotalDec,
+                actualNotes: sale.actualNotes || null,
+              };
+              const fullCreate = {
+                ...baseCreate,
+                actualBottleQuantity: actualBottleQtyDec,
+              };
+              await safeCreateProduct(tx, fullCreate, baseCreate);
             }
           }
         }

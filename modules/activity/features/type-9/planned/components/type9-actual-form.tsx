@@ -66,14 +66,32 @@ export function Type9ActualForm({
               ? Number(p.targetQuantity)
               : 0;
 
-        const price =
-          p.pricePerCase != null && Number(p.pricePerCase) > 0
-            ? Number(p.pricePerCase)
+        const pkgSize =
+          p.packageSizePerBox != null
+            ? Number(p.packageSizePerBox)
+            : p.product?.packageSizePerBox != null
+              ? Number(p.product.packageSizePerBox)
+              : matchedProduct?.packageSizePerBox != null
+                ? Number(matchedProduct.packageSizePerBox)
+                : 1;
+
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
             : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
               ? Number(p.targetUnitPrice)
-              : matchedProduct?.price != null && Number(matchedProduct.price) > 0
-                ? Number(matchedProduct.price)
-                : 0;
+              : p.product?.price != null
+                ? Number(p.product.price)
+                : matchedProduct?.price != null
+                  ? Number(matchedProduct.price)
+                  : 0;
+
+        const price =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
 
         const total =
           p.totalAmount != null
@@ -88,6 +106,13 @@ export function Type9ActualForm({
             : p.actualQuantity != null
               ? cleanNumberString(p.actualQuantity)
               : "";
+
+        const actualBottles =
+          p.actualBottleQuantity != null
+            ? cleanNumberString(p.actualBottleQuantity)
+            : p.actualQuantityBottles != null
+              ? cleanNumberString(p.actualQuantityBottles)
+              : "0";
 
         const actualTotal =
           p.actualSales != null
@@ -104,10 +129,13 @@ export function Type9ActualForm({
           productName:
             p.productName || p.product?.name || matchedProduct?.name || "",
           productRole: p.productRole || "TARGET",
+          packageSizePerBox: pkgSize,
+          pricePerBottle: bottlePrice,
           quantityCases: qty,
           pricePerCase: price,
           totalAmount: total,
           actualQuantityCases: actualQty,
+          actualBottleQuantity: actualBottles,
           actualSales: actualTotal,
           actualNotes: p.actualNotes || undefined,
         };
@@ -132,6 +160,11 @@ export function Type9ActualForm({
           actualQuantityCases:
             cleanNumberString(saved?.actualQuantityCases) ||
             cleanNumberString(item.actualQuantityCases),
+          actualBottleQuantity:
+            cleanNumberString(saved?.actualBottleQuantity) ||
+            cleanNumberString((saved as any)?.actualQuantityBottles) ||
+            cleanNumberString(item.actualBottleQuantity) ||
+            "0",
           actualSales:
             cleanNumberString(saved?.actualSales) ||
             cleanNumberString(item.actualSales),
@@ -173,6 +206,15 @@ export function Type9ActualForm({
               : cleanNumberString(saved?.actualQuantityCases) ||
                 cleanNumberString(item.actualQuantityCases);
 
+          const actualBottles =
+            existing?.actualBottleQuantity !== undefined &&
+            existing?.actualBottleQuantity !== ""
+              ? cleanNumberString(existing.actualBottleQuantity)
+              : cleanNumberString(saved?.actualBottleQuantity) ||
+                cleanNumberString((saved as any)?.actualQuantityBottles) ||
+                cleanNumberString(item.actualBottleQuantity) ||
+                "0";
+
           const actualTot =
             existing?.actualSales !== undefined && existing?.actualSales !== ""
               ? cleanNumberString(existing.actualSales)
@@ -182,6 +224,7 @@ export function Type9ActualForm({
           return {
             ...item,
             actualQuantityCases: actualQty,
+            actualBottleQuantity: actualBottles,
             actualSales: actualTot,
           };
         });
@@ -199,6 +242,9 @@ export function Type9ActualForm({
       const hasActuals = localItems.some(
         (it) =>
           (it.actualQuantityCases != null && it.actualQuantityCases !== "") ||
+          (it.actualBottleQuantity != null &&
+            it.actualBottleQuantity !== "" &&
+            it.actualBottleQuantity !== "0") ||
           (it.actualSales != null && it.actualSales !== ""),
       );
       if (hasActuals) {
@@ -209,10 +255,13 @@ export function Type9ActualForm({
             productId: item.productId || item.id,
             storeId: item.storeId,
             productName: item.productName,
+            packageSizePerBox: item.packageSizePerBox,
+            pricePerBottle: item.pricePerBottle,
             pricePerCase: item.pricePerCase,
             quantityCases: item.quantityCases,
             totalAmount: item.totalAmount,
             actualQuantityCases: item.actualQuantityCases,
+            actualBottleQuantity: item.actualBottleQuantity,
             actualSales: item.actualSales,
           })),
         );
@@ -278,24 +327,67 @@ export function Type9ActualForm({
 
   const handleItemChange = (
     index: number,
-    field: "actualQuantityCases" | "actualSales",
+    field: "actualQuantityCases" | "actualBottleQuantity" | "actualSales",
     value: string,
   ) => {
     const updated = [...localItems];
     const currentItem = { ...updated[index] };
     const sanitized = cleanNumberString(value);
 
-    // Auto-calculate actualSales when actualQuantityCases changes and pricePerCase exists
+    const pkgSize =
+      Number(currentItem.packageSizePerBox) > 0
+        ? Number(currentItem.packageSizePerBox)
+        : 1;
+    const bottlePrice =
+      currentItem.pricePerBottle != null
+        ? Number(currentItem.pricePerBottle)
+        : currentItem.pricePerCase != null && pkgSize > 0
+          ? Number(currentItem.pricePerCase) / pkgSize
+          : 0;
+    const casePrice =
+      currentItem.pricePerCase != null &&
+      Number(currentItem.pricePerCase) > 0 &&
+      Number(currentItem.pricePerCase) !== bottlePrice
+        ? Number(currentItem.pricePerCase)
+        : bottlePrice * pkgSize;
+
+    // Auto-calculate actualSales when actualQuantityCases or actualBottleQuantity changes
     if (field === "actualQuantityCases") {
       currentItem.actualQuantityCases = sanitized;
-      const qtyNum = parseFloat(sanitized);
-      const price = Number(currentItem.pricePerCase) || 0;
+      const casesNum = parseFloat(sanitized);
+      const bottlesNum =
+        parseFloat(cleanNumberString(currentItem.actualBottleQuantity)) || 0;
 
-      if (sanitized === "") {
+      if (
+        sanitized === "" &&
+        (!currentItem.actualBottleQuantity ||
+          currentItem.actualBottleQuantity === "0" ||
+          currentItem.actualBottleQuantity === "")
+      ) {
         currentItem.actualSales = "";
-      } else if (!isNaN(qtyNum)) {
-        // Plain numeric string for input type="number"
-        currentItem.actualSales = String(qtyNum * price);
+      } else {
+        const total =
+          (isNaN(casesNum) ? 0 : casesNum * casePrice) +
+          bottlesNum * bottlePrice;
+        currentItem.actualSales = String(total);
+      }
+    } else if (field === "actualBottleQuantity") {
+      currentItem.actualBottleQuantity = sanitized;
+      const casesNum =
+        parseFloat(cleanNumberString(currentItem.actualQuantityCases)) || 0;
+      const bottlesNum = parseFloat(sanitized);
+
+      if (
+        sanitized === "" &&
+        (!currentItem.actualQuantityCases ||
+          currentItem.actualQuantityCases === "")
+      ) {
+        currentItem.actualSales = "";
+      } else {
+        const total =
+          casesNum * casePrice +
+          (isNaN(bottlesNum) ? 0 : bottlesNum * bottlePrice);
+        currentItem.actualSales = String(total);
       }
     } else if (field === "actualSales") {
       currentItem.actualSales = sanitized;
@@ -313,10 +405,13 @@ export function Type9ActualForm({
           productId: item.productId || item.id,
           storeId: item.storeId,
           productName: item.productName,
+          packageSizePerBox: item.packageSizePerBox,
+          pricePerBottle: item.pricePerBottle,
           pricePerCase: item.pricePerCase,
           quantityCases: item.quantityCases,
           totalAmount: item.totalAmount,
           actualQuantityCases: item.actualQuantityCases,
+          actualBottleQuantity: item.actualBottleQuantity,
           actualSales: item.actualSales,
         })),
       );
@@ -334,6 +429,9 @@ export function Type9ActualForm({
         (it) =>
           (it.actualQuantityCases != null &&
             String(it.actualQuantityCases).trim() !== "") ||
+          (it.actualBottleQuantity != null &&
+            String(it.actualBottleQuantity).trim() !== "" &&
+            String(it.actualBottleQuantity).trim() !== "0") ||
           (it.actualSales != null && String(it.actualSales).trim() !== ""),
       );
 
@@ -349,6 +447,14 @@ export function Type9ActualForm({
     return localItems.reduce(
       (sum, it) =>
         sum + (Number(cleanNumberString(it.actualQuantityCases)) || 0),
+      0,
+    );
+  }, [localItems]);
+
+  const totalQuantityBottles = useMemo(() => {
+    return localItems.reduce(
+      (sum, it) =>
+        sum + (Number(cleanNumberString(it.actualBottleQuantity)) || 0),
       0,
     );
   }, [localItems]);
@@ -406,11 +512,14 @@ export function Type9ActualForm({
                   <tr>
                     <th className="py-2.5 px-3">ชื่อสินค้า</th>
                     <th className="py-2.5 px-3 text-center">เป้าหมาย (ลัง)</th>
-                    <th className="py-2.5 px-3 text-center">ราคา/ลัง</th>
-                    <th className="py-2.5 px-3 min-w-[130px] text-center">
+                    <th className="py-2.5 px-3 text-right">ยอดรวม (บาท)</th>
+                    <th className="py-2.5 px-3 min-w-[120px] text-center">
                       ขายได้จริง (ลัง)
                     </th>
-                    <th className="py-2.5 px-3 min-w-[140px] text-center">
+                    <th className="py-2.5 px-3 min-w-[120px] text-center">
+                      ขายได้จริง (ขวด)
+                    </th>
+                    <th className="py-2.5 px-3 min-w-[140px] text-right">
                       ยอดขายจริง (บาท)
                     </th>
                   </tr>
@@ -427,7 +536,7 @@ export function Type9ActualForm({
                       <td className="py-2.5 px-3 text-center text-slate-500">
                         {item.quantityCases ?? "-"}
                       </td>
-                      <td className="py-2.5 px-3 text-center text-slate-500">
+                      <td className="py-2.5 px-3 text-right font-medium text-slate-700">
                         {item.pricePerCase
                           ? `${Number(item.pricePerCase).toLocaleString()} ฿`
                           : "-"}
@@ -444,6 +553,24 @@ export function Type9ActualForm({
                             handleItemChange(
                               idx,
                               "actualQuantityCases",
+                              raw,
+                            )
+                          }
+                          className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
+                        />
+                      </td>
+                      <td className="py-2 px-3">
+                        <ActivityNumberInput
+                          id={`t9-item-bottles-${idx}`}
+                          min={0}
+                          allowDecimals={false}
+                          defaultValueOnBlur={0}
+                          placeholder="0"
+                          value={cleanNumberString(item.actualBottleQuantity) || "0"}
+                          onChangeValue={(val, raw) =>
+                            handleItemChange(
+                              idx,
+                              "actualBottleQuantity",
                               raw,
                             )
                           }
@@ -481,6 +608,9 @@ export function Type9ActualForm({
                       </td>
                       <td className="py-2 px-3 text-center text-xs text-teal-900 font-bold">
                         {totalQuantityCases.toLocaleString()} ลัง
+                      </td>
+                      <td className="py-2 px-3 text-center text-xs text-teal-900 font-bold">
+                        {totalQuantityBottles.toLocaleString()} ขวด
                       </td>
                       <td className="py-2 px-3 text-right text-xs text-emerald-800 font-bold">
                         {totalItemActualSales.toLocaleString()} ฿

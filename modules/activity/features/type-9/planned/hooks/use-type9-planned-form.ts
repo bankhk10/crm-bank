@@ -196,7 +196,50 @@ export function useType9PlannedForm({
       Array.isArray(initDetails.type9ProductItems) &&
       initDetails.type9ProductItems.length > 0
     ) {
-      return initDetails.type9ProductItems;
+      return initDetails.type9ProductItems.map((p: any, idx: number) => {
+        const matchedProd = productsList.find(
+          (pr) => pr.id === p.productId || pr.name === p.productName,
+        );
+        const pkgSize =
+          p.packageSizePerBox != null && Number(p.packageSizePerBox) > 0
+            ? Number(p.packageSizePerBox)
+            : matchedProd?.packageSizePerBox != null
+              ? Number(matchedProd.packageSizePerBox)
+              : 1;
+
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
+            : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
+              ? Number(p.targetUnitPrice)
+              : p.unitPrice != null && Number(p.unitPrice) > 0
+                ? Number(p.unitPrice)
+                : matchedProd?.price != null
+                  ? Number(matchedProd.price)
+                  : 0;
+
+        const casePrice =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
+
+        const qty = p.quantityCases != null ? Number(p.quantityCases) : 0;
+        const totalAmount =
+          p.totalAmount != null ? Number(p.totalAmount) : qty * casePrice;
+
+        return {
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.productName || matchedProd?.name || "",
+          packageSizePerBox: pkgSize,
+          quantityCases: qty,
+          pricePerBottle: bottlePrice,
+          pricePerCase: casePrice,
+          totalAmount,
+        };
+      });
     }
 
     // From dedicated type9Products
@@ -204,13 +247,52 @@ export function useType9PlannedForm({
     if (dedicatedProds && Array.isArray(dedicatedProds) && dedicatedProds.length > 0) {
       return dedicatedProds
         .filter((p: any) => p.productRole === "TARGET" || !p.productRole)
-        .map((p: any, idx: number) => ({
-          id: p.id || String(idx + 1),
-          productId: p.productId,
-          productName: p.product?.name || p.productName || "",
-          quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
-          pricePerCase: p.targetUnitPrice != null ? Number(p.targetUnitPrice) : 0,
-        }));
+        .map((p: any, idx: number) => {
+          const matchedProd = productsList.find(
+            (pr) => pr.id === p.productId || pr.name === p.productName,
+          );
+          const pkgSize =
+            p.packageSizePerBox != null
+              ? Number(p.packageSizePerBox)
+              : p.product?.packageSizePerBox != null
+                ? Number(p.product.packageSizePerBox)
+                : matchedProd?.packageSizePerBox != null
+                  ? Number(matchedProd.packageSizePerBox)
+                  : 1;
+
+          const bottlePrice =
+            p.pricePerBottle != null
+              ? Number(p.pricePerBottle)
+              : p.targetUnitPrice != null && Number(p.targetUnitPrice) > 0
+                ? Number(p.targetUnitPrice)
+                : p.product?.price != null
+                  ? Number(p.product.price)
+                  : matchedProd?.price != null
+                    ? Number(matchedProd.price)
+                    : 0;
+
+          const casePrice =
+            p.pricePerCase != null &&
+            Number(p.pricePerCase) > 0 &&
+            Number(p.pricePerCase) !== bottlePrice
+              ? Number(p.pricePerCase)
+              : bottlePrice * pkgSize;
+
+          const qty = p.targetQuantity != null ? Number(p.targetQuantity) : 0;
+          const totalAmount =
+            p.targetAmount != null ? Number(p.targetAmount) : qty * casePrice;
+
+          return {
+            id: p.id || String(idx + 1),
+            productId: p.productId,
+            productName: p.product?.name || p.productName || "",
+            packageSizePerBox: pkgSize,
+            quantityCases: qty,
+            pricePerBottle: bottlePrice,
+            pricePerCase: casePrice,
+            totalAmount,
+          };
+        });
     }
 
     const type9Prods = (initial as any)?.products?.filter(
@@ -219,20 +301,62 @@ export function useType9PlannedForm({
         p.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
     );
     if (type9Prods && type9Prods.length > 0) {
-      return type9Prods.map((p: any, idx: number) => ({
-        id: p.id || String(idx + 1),
-        productId: p.productId,
-        productName: p.product?.name || p.productName || "",
-        quantityCases: p.targetQuantity != null ? Number(p.targetQuantity) : 0,
-        pricePerCase: p.unitPrice != null ? Number(p.unitPrice) : 0,
-      }));
+      return type9Prods.map((p: any, idx: number) => {
+        const matchedProd = productsList.find(
+          (pr) => pr.id === p.productId || pr.name === p.productName,
+        );
+        const pkgSize =
+          p.packageSizePerBox != null
+            ? Number(p.packageSizePerBox)
+            : p.product?.packageSizePerBox != null
+              ? Number(p.product.packageSizePerBox)
+              : matchedProd?.packageSizePerBox != null
+                ? Number(matchedProd.packageSizePerBox)
+                : 1;
+
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
+            : p.unitPrice != null
+              ? Number(p.unitPrice)
+              : p.product?.price != null
+                ? Number(p.product.price)
+                : matchedProd?.price != null
+                  ? Number(matchedProd.price)
+                  : 0;
+
+        const casePrice =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
+
+        const qty = p.targetQuantity != null ? Number(p.targetQuantity) : 0;
+        const totalAmount =
+          p.totalAmount != null ? Number(p.totalAmount) : qty * casePrice;
+
+        return {
+          id: p.id || String(idx + 1),
+          productId: p.productId,
+          productName: p.product?.name || p.productName || "",
+          packageSizePerBox: pkgSize,
+          quantityCases: qty,
+          pricePerBottle: bottlePrice,
+          pricePerCase: casePrice,
+          totalAmount,
+        };
+      });
     }
     return [
       {
         id: "1",
         productName: "",
+        packageSizePerBox: 1,
         quantityCases: 0,
+        pricePerBottle: 0,
         pricePerCase: 0,
+        totalAmount: 0,
       },
     ];
   });
@@ -241,8 +365,11 @@ export function useType9PlannedForm({
     const newItem: Type9ProductItem = {
       id: Date.now().toString(),
       productName: "",
+      packageSizePerBox: 1,
       quantityCases: 0,
+      pricePerBottle: 0,
       pricePerCase: 0,
+      totalAmount: 0,
     };
     setType9ProductItems((prev) => [...prev, newItem]);
   };
@@ -255,7 +382,30 @@ export function useType9PlannedForm({
     setType9ProductItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
-        return { ...item, [field]: val };
+        const updated = { ...item, [field]: val };
+
+        const pkgSize =
+          updated.packageSizePerBox != null &&
+          Number(updated.packageSizePerBox) > 0
+            ? Number(updated.packageSizePerBox)
+            : 1;
+        const bottlePrice = Number(updated.pricePerBottle) || 0;
+        const qty = Number(updated.quantityCases) || 0;
+
+        if (field === "pricePerBottle" || field === "packageSizePerBox") {
+          updated.pricePerCase = bottlePrice * pkgSize;
+          updated.totalAmount = qty * updated.pricePerCase;
+        } else if (field === "quantityCases") {
+          const casePrice =
+            updated.pricePerCase != null
+              ? Number(updated.pricePerCase)
+              : bottlePrice * pkgSize;
+          updated.totalAmount = qty * casePrice;
+        } else if (field === "pricePerCase") {
+          updated.totalAmount = qty * (Number(val) || 0);
+        }
+
+        return updated;
       }),
     );
   };
@@ -328,7 +478,10 @@ export function useType9PlannedForm({
 
     const calculatedProductsSum = validProductItems.reduce(
       (sum, item) =>
-        sum + (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0),
+        sum +
+        (item.totalAmount != null
+          ? Number(item.totalAmount)
+          : (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0)),
       0,
     );
     const effectiveTargetSales =
@@ -354,18 +507,76 @@ export function useType9PlannedForm({
       const pId = p.productId || matchedP?.id;
       if (pId) {
         const qty = p.quantityCases != null ? Number(p.quantityCases) : 0;
-        const price = p.pricePerCase != null ? Number(p.pricePerCase) : 0;
+        const pkgSize =
+          p.packageSizePerBox != null
+            ? Number(p.packageSizePerBox)
+            : matchedP?.packageSizePerBox != null
+              ? Number(matchedP.packageSizePerBox)
+              : 1;
+        const bottlePrice =
+          p.pricePerBottle != null
+            ? Number(p.pricePerBottle)
+            : matchedP?.price != null
+              ? Number(matchedP.price)
+              : 0;
+        const casePrice =
+          p.pricePerCase != null &&
+          Number(p.pricePerCase) > 0 &&
+          Number(p.pricePerCase) !== bottlePrice
+            ? Number(p.pricePerCase)
+            : bottlePrice * pkgSize;
+        const totalAmount =
+          p.totalAmount != null ? Number(p.totalAmount) : qty * casePrice;
+
         planProducts.push({
           workTypeCode: "TYPE_9",
           storeId: storeId || null,
           productId: pId,
           productName: matchedP?.name || p.productName || null,
           targetQuantity: qty,
-          unitPrice: price,
-          totalAmount: qty * price,
+          unitPrice: bottlePrice,
+          totalAmount: totalAmount,
           isPriceOverridden: false,
         });
       }
+    });
+
+    const mappedProducts = validProductItems.map((p) => {
+      const matchedP = products.find(
+        (prod) => prod.id === p.productId || prod.name === p.productName,
+      );
+      const pkgSize =
+        p.packageSizePerBox != null
+          ? Number(p.packageSizePerBox)
+          : matchedP?.packageSizePerBox != null
+            ? Number(matchedP.packageSizePerBox)
+            : 1;
+      const bottlePrice =
+        p.pricePerBottle != null
+          ? Number(p.pricePerBottle)
+          : matchedP?.price != null
+            ? Number(matchedP.price)
+            : 0;
+      const casePrice =
+        p.pricePerCase != null &&
+        Number(p.pricePerCase) > 0 &&
+        Number(p.pricePerCase) !== bottlePrice
+          ? Number(p.pricePerCase)
+          : bottlePrice * pkgSize;
+      const totalAmount =
+        p.totalAmount != null
+          ? Number(p.totalAmount)
+          : Number(p.quantityCases || 0) * casePrice;
+
+      return {
+        ...p,
+        productId: p.productId || matchedP?.id,
+        productName: matchedP?.name || p.productName,
+        packageSizePerBox: pkgSize,
+        pricePerBottle: bottlePrice,
+        pricePerCase: casePrice,
+        totalAmount,
+      };
     });
 
     // Dedicated targets payload
@@ -380,7 +591,7 @@ export function useType9PlannedForm({
         dealerId: parentDealerId || null,
         dealerName: parentDealerName || null,
         targetSales: effectiveTargetSales,
-        products: validProductItems,
+        products: mappedProducts,
       },
     ];
 
@@ -390,7 +601,7 @@ export function useType9PlannedForm({
       type9Targets,
       type9Stores: planStores,
       type9Sales: effectiveTargetSales != null ? effectiveTargetSales : type9Sales,
-      type9ProductItems,
+      type9ProductItems: mappedProducts,
     };
   };
 
