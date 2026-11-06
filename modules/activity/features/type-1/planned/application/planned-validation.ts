@@ -23,11 +23,29 @@ export function validateType1PlannedItem({
   const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
 
   if (purpose === "STORE") {
-    const sId =
-      item.storeId ||
-      customersList.find((c) => c.name === item.customerName)?.id;
-    if (!sId) {
-      return { isValid: false, error: "กรุณาเลือกร้านค้า" };
+    if (item.isSubDealer) {
+      if (item.isUnregisteredSubdealer) {
+        if (!item.subDealerStore?.trim()) {
+          return { isValid: false, error: "กรุณาระบุชื่อร้าน Subdealer" };
+        }
+        if (!item.storeId) {
+          return { isValid: false, error: "กรุณาเลือก Dealer ต้นสังกัด" };
+        }
+      } else {
+        if (!item.subdealerId) {
+          return { isValid: false, error: "กรุณาเลือกร้านค้า Subdealer" };
+        }
+        if (!item.storeId) {
+          return { isValid: false, error: "กรุณาเลือก Dealer ต้นสังกัด" };
+        }
+      }
+    } else {
+      const sId =
+        item.storeId ||
+        customersList.find((c) => c.name === item.customerName)?.id;
+      if (!sId) {
+        return { isValid: false, error: "กรุณาเลือกร้านค้า Dealer" };
+      }
     }
   } else {
     // purpose === "FARMER"
@@ -73,6 +91,10 @@ export const type1PlannedSchema = z
     isUnregisteredFarmer: z.boolean().default(false),
     unregisteredFarmerName: z.string().optional().nullable(),
     unregisteredFarmerPhone: z.string().optional().nullable(),
+    isSubDealer: z.boolean().default(false),
+    subdealerId: z.string().optional().nullable(),
+    isUnregisteredSubdealer: z.boolean().default(false),
+    subDealerStore: z.string().optional().nullable(),
     topic: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
   })
@@ -112,19 +134,46 @@ export const type1PlannedSchema = z
         }
       }
     } else if (purpose === "STORE") {
-      if (data.isUnregisteredFarmer) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "เข้าพบร้านค้าไม่อนุญาตให้เลือกไม่มีในระบบ",
-          path: ["isUnregisteredFarmer"],
-        });
-      }
-      if (!data.storeId || !data.storeId.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "กรุณาเลือกร้านค้า",
-          path: ["storeId"],
-        });
+      if (data.isSubDealer) {
+        if (data.isUnregisteredSubdealer) {
+          if (!data.subDealerStore || !data.subDealerStore.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาระบุชื่อร้าน Subdealer",
+              path: ["subDealerStore"],
+            });
+          }
+          if (!data.storeId || !data.storeId.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาเลือก Dealer ต้นสังกัด",
+              path: ["storeId"],
+            });
+          }
+        } else {
+          if (!data.subdealerId || !data.subdealerId.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาเลือกร้านค้า Subdealer",
+              path: ["subdealerId"],
+            });
+          }
+          if (!data.storeId || !data.storeId.trim()) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "กรุณาเลือก Dealer ต้นสังกัด",
+              path: ["storeId"],
+            });
+          }
+        }
+      } else {
+        if (!data.storeId || !data.storeId.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "กรุณาเลือกร้านค้า Dealer",
+            path: ["storeId"],
+          });
+        }
       }
     }
   });

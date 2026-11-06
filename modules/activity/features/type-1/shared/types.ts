@@ -24,6 +24,7 @@ export interface CustomerOption {
   district?: string | null;
   phone?: string | null;
   responsibleEmployeeId?: string | null;
+  parentDealerId?: string | null;
   addressLine?: string | null;
   subdistrict?: string | null;
   postalCode?: string | null;
@@ -56,9 +57,14 @@ export interface Type1TargetEntity {
   isUnregisteredFarmer: boolean;
   unregisteredFarmerName?: string | null;
   unregisteredFarmerPhone?: string | null;
+  isSubDealer?: boolean;
+  subdealerId?: string | null;
+  isUnregisteredSubdealer?: boolean;
+  subDealerStore?: string | null;
   topic?: string | null;
   notes?: string | null;
   store?: any | null;
+  subdealer?: any | null;
   products?: Type1ProductEntity[];
   result?: Type1ResultEntity | null;
   createdAt?: Date | string;

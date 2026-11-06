@@ -12,6 +12,12 @@ export interface Type1PlannedItem {
   isUnregisteredFarmer?: boolean;
   unregisteredFarmerName?: string;
   unregisteredFarmerPhone?: string;
+  isSubDealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
+  isUnregisteredSubdealer?: boolean;
+  subDealerStore?: string;
+  dealerName?: string;
   topic: string;
   notes: string;
 }
@@ -41,6 +47,12 @@ export interface Type1TargetItem {
   nextDate?: string;
   visitPurpose?: "FARMER" | "STORE";
   customerType?: string;
+  isSubDealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
+  isUnregisteredSubdealer?: boolean;
+  subDealerStore?: string;
+  dealerName?: string;
   province?: string;
   isUnregisteredFarmer?: boolean;
   unregisteredFarmerName?: string;

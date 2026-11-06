@@ -19,6 +19,12 @@ export interface Type1UnplannedItem {
   isUnregisteredFarmer?: boolean;
   unregisteredFarmerName?: string;
   unregisteredFarmerPhone?: string;
+  isSubDealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
+  isUnregisteredSubdealer?: boolean;
+  subDealerStore?: string;
+  dealerName?: string;
   topic: string;
   notes: string;
 

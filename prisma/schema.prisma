@@ -400,6 +400,7 @@ model Customer {
   activityPlanType13Targets   ActivityPlanType13Target[]   @relation("Type13TargetStore")
   activityPlanType14Targets   ActivityPlanType14Target[]   @relation("Type14TargetStore")
   activityPlanType1Targets    ActivityPlanType1Target[]    @relation("Type1TargetStore")
+  activityPlanType1TargetsSubdealer ActivityPlanType1Target[] @relation("Type1TargetSubdealer")
   activityPlanType2Targets    ActivityPlanType2Target[]    @relation("Type2TargetStore")
   activityResultType2s        ActivityResultType2[]        @relation("Type2ResultStore")
   activityPlanType3Targets    ActivityPlanType3Target[]    @relation("Type3TargetStore")
@@ -2724,6 +2725,10 @@ model ActivityPlanType1Target {
   isUnregisteredFarmer    Boolean  @default(false) @map("is_unregistered_farmer")
   unregisteredFarmerName  String?  @map("unregistered_farmer_name")
   unregisteredFarmerPhone String?  @map("unregistered_farmer_phone")
+  isSubDealer             Boolean  @default(false) @map("is_sub_dealer")
+  subdealerId             String?  @map("subdealer_id")
+  isUnregisteredSubdealer Boolean  @default(false) @map("is_unregistered_subdealer")
+  subDealerStore          String?  @map("sub_dealer_store")
   topic                   String?  @map("topic") // หัวข้อเรื่องเข้าพบ (ไม่ต้องยืม remarks)
   notes                   String?  @map("notes")
 
@@ -2732,11 +2737,13 @@ model ActivityPlanType1Target {
 
   activityPlan            ActivityPlan               @relation("ActivityPlanType1Targets", fields: [activityPlanId], references: [id], onDelete: Cascade)
   store                   Customer?                  @relation("Type1TargetStore", fields: [storeId], references: [id], onDelete: SetNull)
+  subdealer               Customer?                  @relation("Type1TargetSubdealer", fields: [subdealerId], references: [id], onDelete: SetNull)
   products                ActivityPlanType1Product[] @relation("Type1TargetProducts")
   result                  ActivityResultType1?       @relation("Type1TargetResult")
 
   @@index([activityPlanId])
   @@index([storeId])
+  @@index([subdealerId])
   @@map("activity_type_1_targets")
 }
 

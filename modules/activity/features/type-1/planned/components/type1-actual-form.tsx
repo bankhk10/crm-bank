@@ -83,7 +83,9 @@ function initializeTargetItems(
     const isStore = t.visitPurpose === "STORE";
     const name = t.isUnregisteredFarmer
       ? t.unregisteredFarmerName || t.customer || `เป้าหมายที่ ${idx + 1}`
-      : t.customer || `เป้าหมายที่ ${idx + 1}`;
+      : t.isSubDealer
+        ? (t.isUnregisteredSubdealer ? t.subDealerStore || t.customer : t.subdealerName || t.customer)
+        : t.customer || `เป้าหมายที่ ${idx + 1}`;
 
     const isFirstOrOnlyFarmer =
       !isStore &&
@@ -211,6 +213,12 @@ function initializeTargetItems(
       isUnregisteredFarmer: Boolean(t.isUnregisteredFarmer),
       unregisteredFarmerName: t.unregisteredFarmerName,
       unregisteredFarmerPhone: t.unregisteredFarmerPhone,
+      isSubDealer: Boolean(t.isSubDealer),
+      subdealerId: t.subdealerId,
+      subdealerName: t.subdealerName,
+      isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+      subDealerStore: t.subDealerStore,
+      dealerName: t.dealerName,
 
       discussionResult: t.discussionResult || parsedDiscussion || "",
       productAdvice: t.productAdvice || parsedAdvice || "",
@@ -788,22 +796,33 @@ export function Type1ActualForm(props: Type1ActualFormProps) {
                           {item.topic
                             ? `หัวข้อตามแผน: ${item.topic}`
                             : "ไม่ระบุหัวข้อ"}
+                          {item.dealerName && item.isSubDealer ? ` • Dealer: ${item.dealerName}` : ""}
                           {item.province ? ` • จังหวัด ${item.province}` : ""}
                           {item.notes ? ` (${item.notes})` : ""}
                         </span>
                       </div>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[11px] font-semibold px-2.5 py-0.5 rounded-lg shrink-0",
-                        itemIsStore
-                          ? "bg-sky-50 text-sky-800 border-sky-200"
-                          : "bg-emerald-50 text-emerald-800 border-emerald-200",
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {itemIsStore && item.isSubDealer && (
+                        <Badge
+                          variant="outline"
+                          className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border-amber-200"
+                        >
+                          {item.isUnregisteredSubdealer ? "ร้านค้าย่อย (ระบุเอง)" : "ร้านค้าย่อย (Subdealer)"}
+                        </Badge>
                       )}
-                    >
-                      {itemIsStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
-                    </Badge>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[11px] font-semibold px-2.5 py-0.5 rounded-lg shrink-0",
+                          itemIsStore
+                            ? "bg-sky-50 text-sky-800 border-sky-200"
+                            : "bg-emerald-50 text-emerald-800 border-emerald-200",
+                        )}
+                      >
+                        {itemIsStore ? (item.isSubDealer ? "ร้านค้า" : "ตัวแทนจำหน่าย (Dealer)") : "เข้าพบเกษตรกร"}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Target Specific Fields: FARMER ONLY */}

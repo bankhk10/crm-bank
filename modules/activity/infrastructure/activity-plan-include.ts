@@ -489,6 +489,21 @@ export const ACTIVITY_PLAN_FULL_INCLUDE = {
           longitude: true,
         },
       },
+      subdealer: {
+        select: {
+          id: true,
+          name: true,
+          customerCode: true,
+          customerType: true,
+          province: true,
+          district: true,
+          subdistrict: true,
+          addressLine: true,
+          postalCode: true,
+          latitude: true,
+          longitude: true,
+        },
+      },
       products: {
         include: {
           product: true,

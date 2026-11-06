@@ -21,6 +21,14 @@ export interface Type1TargetActualItem {
   unregisteredFarmerName?: string;
   unregisteredFarmerPhone?: string;
 
+  // Dealer / Subdealer fields for STORE
+  isSubDealer?: boolean;
+  subdealerId?: string;
+  subdealerName?: string;
+  isUnregisteredSubdealer?: boolean;
+  subDealerStore?: string;
+  dealerName?: string;
+
   // Actual recording fields
   discussionResult: string;
   productAdvice?: string;

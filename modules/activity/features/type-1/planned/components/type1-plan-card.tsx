@@ -88,28 +88,48 @@ export function Type1PlanCard({
               {isStore ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    {/* วัตถุประสงค์ของประเภทงาน */}
-                    <div className="bg-slate-50/60 sm:bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
-                      <span className="text-slate-400 font-medium block">
-                        วัตถุประสงค์ของประเภทงาน
-                      </span>
-                      <span className="font-bold text-slate-800 text-sm block">
-                        เข้าพบร้านค้า
-                      </span>
-                    </div>
-
                     {/* ร้านค้า */}
                     <div className="bg-slate-50/60 sm:bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
                       <span className="text-slate-400 font-medium block">
-                        ร้านค้า (Customer Master)
+                        {item?.isSubDealer ? "ร้านค้า (Subdealer)" : "ร้านค้า (Dealer)"}
                       </span>
                       <span
                         className="font-bold text-slate-800 text-sm block truncate"
-                        title={item?.customer || "-"}
+                        title={
+                          item?.isSubDealer
+                            ? (item?.isUnregisteredSubdealer ? `${item?.subDealerStore} (ระบุเอง)` : item?.subdealerName || item?.customer)
+                            : item?.customer || "-"
+                        }
                       >
-                        {item?.customer || "-"}
+                        {item?.isSubDealer
+                          ? (item?.isUnregisteredSubdealer ? `${item?.subDealerStore} (ระบุเอง)` : item?.subdealerName || item?.customer || "-")
+                          : item?.customer || "-"}
                       </span>
                     </div>
+
+                    {/* Dealer ต้นสังกัด (กรณี Subdealer) หรือ วัตถุประสงค์ของประเภทงาน */}
+                    {item?.isSubDealer ? (
+                      <div className="bg-slate-50/60 sm:bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                        <span className="text-slate-400 font-medium block">
+                          Dealer ต้นสังกัด
+                        </span>
+                        <span
+                          className="font-bold text-slate-800 text-sm block truncate"
+                          title={item?.dealerName || "-"}
+                        >
+                          {item?.dealerName || "-"}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50/60 sm:bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
+                        <span className="text-slate-400 font-medium block">
+                          วัตถุประสงค์ของประเภทงาน
+                        </span>
+                        <span className="font-bold text-slate-800 text-sm block">
+                          เข้าพบร้านค้า
+                        </span>
+                      </div>
+                    )}
 
                     {/* ประเภทลูกค้า */}
                     <div className="bg-slate-50/60 sm:bg-white p-3 rounded-lg border border-slate-200/70 shadow-2xs space-y-1">
@@ -119,13 +139,16 @@ export function Type1PlanCard({
                       <div>
                         <Badge
                           variant="outline"
-                          className="bg-emerald-50 text-emerald-800 border-emerald-300 font-bold text-xs"
+                          className={cn(
+                            "font-bold text-xs",
+                            item?.isSubDealer
+                              ? "bg-amber-50 text-amber-800 border-amber-300"
+                              : "bg-emerald-50 text-emerald-800 border-emerald-300",
+                          )}
                         >
-                          {item?.customerType === "DEALER"
-                            ? "ตัวแทนจำหน่าย"
-                            : item?.customerType === "SUBDEALER"
-                              ? "ร้านค้าย่อย"
-                              : item?.customerType || "ร้านค้า"}
+                          {item?.isSubDealer
+                            ? (item?.isUnregisteredSubdealer ? "ร้านค้าย่อย (ระบุเอง)" : "ร้านค้าย่อย (Subdealer)")
+                            : "ตัวแทนจำหน่ายหลัก (Dealer)"}
                         </Badge>
                       </div>
                     </div>

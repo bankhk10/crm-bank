@@ -217,7 +217,9 @@ export function Type1DetailView({
                     ? item.unregisteredFarmerName ||
                       item.customer ||
                       `เป้าหมายที่ ${idx + 1}`
-                    : item.customer || `เป้าหมายที่ ${idx + 1}`;
+                    : item.isSubDealer
+                      ? (item.isUnregisteredSubdealer ? item.subDealerStore || item.customer : item.subdealerName || item.customer)
+                      : item.customer || `เป้าหมายที่ ${idx + 1}`;
 
                   const itemDiscussion =
                     item.discussionResult ||
@@ -309,23 +311,38 @@ export function Type1DetailView({
                           <span className="font-bold text-slate-900 text-sm">
                             เป้าหมายที่ {idx + 1}: {name}
                           </span>
+                          {item.dealerName && item.isSubDealer && (
+                            <span className="text-xs text-slate-500 font-medium">
+                              (Dealer: {item.dealerName})
+                            </span>
+                          )}
                           {item.province && (
                             <span className="text-xs text-slate-500">
                               (จังหวัด {item.province})
                             </span>
                           )}
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] font-semibold px-2 py-0.5 rounded-md",
-                            itemIsStore
-                              ? "bg-sky-50 text-sky-800 border-sky-200"
-                              : "bg-emerald-50 text-emerald-800 border-emerald-200",
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {itemIsStore && item.isSubDealer && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border-amber-200"
+                            >
+                              {item.isUnregisteredSubdealer ? "ร้านค้าย่อย (ระบุเอง)" : "ร้านค้าย่อย (Subdealer)"}
+                            </Badge>
                           )}
-                        >
-                          {itemIsStore ? "เข้าพบร้านค้า" : "เข้าพบเกษตรกร"}
-                        </Badge>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-semibold px-2 py-0.5 rounded-md",
+                              itemIsStore
+                                ? "bg-sky-50 text-sky-800 border-sky-200"
+                                : "bg-emerald-50 text-emerald-800 border-emerald-200",
+                            )}
+                          >
+                            {itemIsStore ? (item.isSubDealer ? "ร้านค้า" : "ตัวแทนจำหน่าย (Dealer)") : "เข้าพบเกษตรกร"}
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* Farmer Details (ที่อยู่, พิกัดแปลง, รูปแปลง) - แสดงเฉพาะเมื่อไม่ใช่ร้านค้า */}

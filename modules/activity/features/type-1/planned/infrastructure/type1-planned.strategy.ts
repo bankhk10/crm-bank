@@ -18,6 +18,10 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       visitPurpose?: "FARMER" | "STORE" | null;
       storeId?: string | null;
       isUnregisteredFarmer?: boolean;
+      isSubDealer?: boolean;
+      subdealerId?: string | null;
+      isUnregisteredSubdealer?: boolean;
+      subDealerStore?: string | null;
     }> = planData.planStores || planData.stores || [];
 
     const type1Stores = stores.filter(
@@ -43,27 +47,36 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
           }
         }
       } else if (purpose === "STORE") {
-        if (s.isUnregisteredFarmer) {
-          return {
-            valid: false,
-            error: "วัตถุประสงค์เข้าพบร้านค้า ไม่อนุญาตให้ระบุว่าไม่มีในระบบ",
-          };
+        if (s.isSubDealer) {
+          if (s.isUnregisteredSubdealer) {
+            if (!s.subDealerStore || !s.subDealerStore.trim()) {
+              return { valid: false, error: "กรุณาระบุชื่อร้าน Subdealer" };
+            }
+            if (!s.storeId) {
+              return { valid: false, error: "กรุณาเลือก Dealer ต้นสังกัด" };
+            }
+          } else {
+            if (!s.subdealerId) {
+              return { valid: false, error: "กรุณาเลือกร้านค้า Subdealer จากระบบ" };
+            }
+            if (!s.storeId) {
+              return { valid: false, error: "กรุณาเลือก Dealer ต้นสังกัด" };
+            }
+          }
+        } else {
+          if (!s.storeId) {
+            return { valid: false, error: "กรุณาเลือกร้านค้า Dealer" };
+          }
         }
-        if (!s.storeId) {
-          return { valid: false, error: "กรุณาเลือกร้านค้า" };
-        }
-        const customer = await db.customer.findUnique({
-          where: { id: s.storeId },
-          select: { id: true, customerType: true },
-        });
-        if (!customer) {
-          return { valid: false, error: "ไม่พบข้อมูลร้านค้าในระบบ" };
-        }
-        if (!["DEALER", "SUBDEALER"].includes(customer.customerType)) {
-          return {
-            valid: false,
-            error: "วัตถุประสงค์เข้าพบร้านค้า อนุญาตเฉพาะลูกค้าร้านค้า (DEALER / SUBDEALER) เท่านั้น",
-          };
+
+        if (s.storeId) {
+          const customer = await db.customer.findUnique({
+            where: { id: s.storeId },
+            select: { id: true, customerType: true },
+          });
+          if (!customer) {
+            return { valid: false, error: "ไม่พบข้อมูลร้านค้า Dealer ในระบบ" };
+          }
         }
       }
     }
@@ -108,6 +121,10 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
           isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
           unregisteredFarmerName: s.unregisteredFarmerName || null,
           unregisteredFarmerPhone: s.unregisteredFarmerPhone || null,
+          isSubDealer: Boolean(s.isSubDealer),
+          subdealerId: s.subdealerId || null,
+          isUnregisteredSubdealer: Boolean(s.isUnregisteredSubdealer),
+          subDealerStore: s.subDealerStore || null,
           topic: s.topic || s.remarks || null,
           notes: s.notes || null,
         })),
@@ -123,6 +140,7 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       where: { activityPlanId },
       include: {
         store: true,
+        subdealer: true,
         products: { include: { product: true } },
         result: true,
       },
@@ -134,11 +152,19 @@ export const type1PlannedStrategy: WorkTypeStrategy = {
       workTypeCode: "TYPE_1",
       visitPurpose: d.visitPurpose,
       storeId: d.storeId,
-      storeName: d.store?.name || d.unregisteredFarmerName || "",
+      storeName: d.isSubDealer
+        ? (d.isUnregisteredSubdealer ? d.subDealerStore || "" : d.subdealer?.name || d.store?.name || "")
+        : d.store?.name || d.unregisteredFarmerName || "",
       province: d.province,
       isUnregisteredFarmer: d.isUnregisteredFarmer,
       unregisteredFarmerName: d.unregisteredFarmerName,
       unregisteredFarmerPhone: d.unregisteredFarmerPhone,
+      isSubDealer: Boolean(d.isSubDealer),
+      subdealerId: d.subdealerId,
+      subdealerName: d.subdealer?.name || "",
+      isUnregisteredSubdealer: Boolean(d.isUnregisteredSubdealer),
+      subDealerStore: d.subDealerStore,
+      dealerName: d.store?.name || "",
       topic: d.topic,
       remarks: d.topic,
       notes: d.notes,

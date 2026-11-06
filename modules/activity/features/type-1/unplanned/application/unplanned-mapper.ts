@@ -78,9 +78,28 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
       ? (rawPurpose as "FARMER" | "STORE")
       : s.isUnregisteredFarmer || s.store?.customerType === "FARMER"
         ? "FARMER"
-        : ["DEALER", "SUBDEALER"].includes(s.store?.customerType)
+        : ["DEALER", "SUBDEALER"].includes(s.store?.customerType) || s.isSubDealer || s.subdealerId
           ? "STORE"
           : "FARMER";
+
+    const isSubDealer = Boolean(s.isSubDealer || s.subdealerId || s.isUnregisteredSubdealer);
+    const isUnregisteredSubdealer = Boolean(s.isUnregisteredSubdealer);
+
+    let customerDisplayName = "";
+    if (inferredPurpose === "FARMER") {
+      customerDisplayName = s.isUnregisteredFarmer
+        ? s.unregisteredFarmerName || s.customerName || s.customer || ""
+        : s.store?.name || s.storeName || s.customerName || s.customer || "";
+    } else {
+      // STORE
+      if (isSubDealer) {
+        customerDisplayName = isUnregisteredSubdealer
+          ? s.subDealerStore || s.customerName || ""
+          : s.subdealer?.name || s.subdealerName || s.customerName || "";
+      } else {
+        customerDisplayName = s.store?.name || s.storeName || s.customerName || "";
+      }
+    }
 
     const targetResult =
       s.result ||
@@ -108,13 +127,17 @@ export function hydrateType1UnplannedData(plan: any): Type1UnplannedItem[] {
       id: s.id || String(idx + 1),
       visitPurpose: inferredPurpose,
       storeId: s.storeId || undefined,
-      customerName: s.isUnregisteredFarmer
-        ? s.unregisteredFarmerName || ""
-        : s.store?.name || s.storeName || "",
+      customerName: customerDisplayName,
       province: s.province || s.store?.province || plan.province || "",
       isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
       unregisteredFarmerName: s.unregisteredFarmerName || "",
       unregisteredFarmerPhone: s.unregisteredFarmerPhone || "",
+      isSubDealer,
+      subdealerId: s.subdealerId || undefined,
+      subdealerName: s.subdealer?.name || s.subdealerName || "",
+      isUnregisteredSubdealer,
+      subDealerStore: s.subDealerStore || "",
+      dealerName: s.store?.name || s.dealerName || "",
       topic: s.topic || s.remarks || "แจ้งข่าวสาร",
       notes: s.notes || "",
       discussionResult: targetResult.discussionResult || "",
@@ -158,18 +181,31 @@ export function mapType1UnplannedItemToStore(
   const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
 
   if (purpose === "STORE") {
+    const isSub = Boolean(item.isSubDealer);
+    const isUnregSub = Boolean(item.isUnregisteredSubdealer);
     const sId =
       item.storeId ||
-      customersList.find((c) => c.name === item.customerName)?.id;
+      customersList.find((c) => c.name === item.dealerName || c.name === item.customerName)?.id;
+
+    const subId =
+      item.subdealerId ||
+      (isSub && !isUnregSub
+        ? customersList.find((c) => c.name === item.subdealerName || c.name === item.customerName)?.id
+        : null);
+
     return {
       workTypeCode: "TYPE_1",
       visitPurpose: "STORE",
       storeId: sId || null,
-      storeName: item.customerName || null,
-      province: null,
+      storeName: item.dealerName || item.customerName || null,
+      province: item.province || null,
       isUnregisteredFarmer: false,
       unregisteredFarmerName: null,
       unregisteredFarmerPhone: null,
+      isSubDealer: isSub,
+      subdealerId: subId || null,
+      isUnregisteredSubdealer: isUnregSub,
+      subDealerStore: isSub && isUnregSub ? item.subDealerStore || null : null,
       topic: item.topic || null,
       notes: item.notes || null,
     };
@@ -185,6 +221,10 @@ export function mapType1UnplannedItemToStore(
       isUnregisteredFarmer: true,
       unregisteredFarmerName: item.unregisteredFarmerName || null,
       unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
+      isSubDealer: false,
+      subdealerId: null,
+      isUnregisteredSubdealer: false,
+      subDealerStore: null,
       topic: item.topic || null,
       notes: item.notes || null,
     };
@@ -203,6 +243,10 @@ export function mapType1UnplannedItemToStore(
     isUnregisteredFarmer: false,
     unregisteredFarmerName: null,
     unregisteredFarmerPhone: null,
+    isSubDealer: false,
+    subdealerId: null,
+    isUnregisteredSubdealer: false,
+    subDealerStore: null,
     topic: item.topic || null,
     notes: item.notes || null,
   };

@@ -30,6 +30,12 @@ export function useType1PlannedForm({
         customerName: "",
         unregisteredFarmerName: "",
         unregisteredFarmerPhone: "",
+        isSubDealer: false,
+        subdealerId: "",
+        subdealerName: "",
+        isUnregisteredSubdealer: false,
+        subDealerStore: "",
+        dealerName: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
       },
@@ -44,6 +50,8 @@ export function useType1PlannedForm({
           it.storeId ||
           it.customerName ||
           it.unregisteredFarmerName ||
+          it.subdealerId ||
+          it.subDealerStore ||
           (it.notes && it.notes.trim() !== ""),
       );
       if (hasRealData) {
@@ -65,6 +73,12 @@ export function useType1PlannedForm({
         customerName: "",
         unregisteredFarmerName: "",
         unregisteredFarmerPhone: "",
+        isSubDealer: false,
+        subdealerId: "",
+        subdealerName: "",
+        isUnregisteredSubdealer: false,
+        subDealerStore: "",
+        dealerName: "",
         topic: "แจ้งข่าวสาร",
         notes: "",
       },

@@ -16,26 +16,43 @@ export function mapType1PlannedItemToDb(
   isUnregisteredFarmer: boolean;
   unregisteredFarmerName: string | null;
   unregisteredFarmerPhone: string | null;
+  isSubDealer: boolean;
+  subdealerId: string | null;
+  isUnregisteredSubdealer: boolean;
+  subDealerStore: string | null;
   topic: string | null;
   notes: string | null;
 } | null {
   const purpose = item.visitPurpose === "STORE" ? "STORE" : "FARMER";
 
   if (purpose === "STORE") {
+    const isSub = Boolean(item.isSubDealer);
+    const isUnregSub = Boolean(item.isUnregisteredSubdealer);
     const sId =
       item.storeId ||
-      customersList.find((c) => c.name === item.customerName)?.id;
-    if (!sId) return null;
+      customersList.find((c) => c.name === item.dealerName || c.name === item.customerName)?.id;
+
+    if (!sId && !isUnregSub) return null;
+
+    const subId =
+      item.subdealerId ||
+      (isSub && !isUnregSub
+        ? customersList.find((c) => c.name === item.subdealerName || c.name === item.customerName)?.id
+        : null);
 
     return {
       workTypeCode: "TYPE_1",
       visitPurpose: "STORE",
-      storeId: sId,
-      storeName: item.customerName || null,
-      province: null,
+      storeId: sId || null,
+      storeName: item.dealerName || item.customerName || null,
+      province: item.province || null,
       isUnregisteredFarmer: false,
       unregisteredFarmerName: null,
       unregisteredFarmerPhone: null,
+      isSubDealer: isSub,
+      subdealerId: subId || null,
+      isUnregisteredSubdealer: isUnregSub,
+      subDealerStore: isSub && isUnregSub ? item.subDealerStore || null : null,
       topic: item.topic || null,
       notes: item.notes || null,
     };
@@ -52,6 +69,10 @@ export function mapType1PlannedItemToDb(
       isUnregisteredFarmer: true,
       unregisteredFarmerName: item.unregisteredFarmerName || null,
       unregisteredFarmerPhone: item.unregisteredFarmerPhone || null,
+      isSubDealer: false,
+      subdealerId: null,
+      isUnregisteredSubdealer: false,
+      subDealerStore: null,
       topic: item.topic || null,
       notes: item.notes || null,
     };
@@ -71,6 +92,10 @@ export function mapType1PlannedItemToDb(
     isUnregisteredFarmer: false,
     unregisteredFarmerName: null,
     unregisteredFarmerPhone: null,
+    isSubDealer: false,
+    subdealerId: null,
+    isUnregisteredSubdealer: false,
+    subDealerStore: null,
     topic: item.topic || null,
     notes: item.notes || null,
   };
@@ -89,23 +114,46 @@ export function mapType1DbStoreToPlannedItem(
     : storeRecord.isUnregisteredFarmer ||
         storeRecord.store?.customerType === "FARMER"
       ? "FARMER"
-      : ["DEALER", "SUBDEALER"].includes(storeRecord.store?.customerType)
+      : ["DEALER", "SUBDEALER"].includes(storeRecord.store?.customerType) || storeRecord.isSubDealer || storeRecord.subdealerId
         ? "STORE"
         : "FARMER";
+
+  const isSubDealer = Boolean(storeRecord.isSubDealer || storeRecord.subdealerId || storeRecord.isUnregisteredSubdealer);
+  const isUnregisteredSubdealer = Boolean(storeRecord.isUnregisteredSubdealer);
+
+  let customerDisplayName = "";
+  if (inferredPurpose === "FARMER") {
+    customerDisplayName = storeRecord.isUnregisteredFarmer
+      ? storeRecord.unregisteredFarmerName || storeRecord.customerName || storeRecord.customer || ""
+      : storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || storeRecord.customer || "";
+  } else {
+    // STORE
+    if (isSubDealer) {
+      customerDisplayName = isUnregisteredSubdealer
+        ? storeRecord.subDealerStore || storeRecord.customerName || ""
+        : storeRecord.subdealer?.name || storeRecord.subdealerName || storeRecord.customerName || "";
+    } else {
+      customerDisplayName = storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || "";
+    }
+  }
 
   return {
     id: storeRecord.id || String(index + 1),
     visitPurpose: inferredPurpose,
     storeId: storeRecord.storeId || undefined,
-    customerName: storeRecord.isUnregisteredFarmer
-      ? storeRecord.unregisteredFarmerName || storeRecord.customerName || storeRecord.customer || ""
-      : storeRecord.store?.name || storeRecord.storeName || storeRecord.customerName || storeRecord.customer || "",
+    customerName: customerDisplayName,
     topic: storeRecord.topic || storeRecord.remarks || "แจ้งข่าวสาร",
     notes: storeRecord.notes || "",
     province: storeRecord.province || storeRecord.store?.province || "",
     isUnregisteredFarmer: Boolean(storeRecord.isUnregisteredFarmer),
     unregisteredFarmerName: storeRecord.unregisteredFarmerName || "",
     unregisteredFarmerPhone: storeRecord.unregisteredFarmerPhone || "",
+    isSubDealer,
+    subdealerId: storeRecord.subdealerId || undefined,
+    subdealerName: storeRecord.subdealer?.name || storeRecord.subdealerName || "",
+    isUnregisteredSubdealer,
+    subDealerStore: storeRecord.subDealerStore || "",
+    dealerName: storeRecord.store?.name || storeRecord.dealerName || "",
   };
 }
 
@@ -254,9 +302,23 @@ export function extractType1PlanTargets(
       }
     }
 
-    const custName = s.isUnregisteredFarmer
-      ? s.unregisteredFarmerName || ""
-      : s.store?.name || s.storeName || "";
+    const isSubDealer = Boolean(s.isSubDealer || s.subdealerId || s.isUnregisteredSubdealer);
+    const isUnregisteredSubdealer = Boolean(s.isUnregisteredSubdealer);
+
+    let custName = "";
+    if (visitPurpose === "FARMER") {
+      custName = s.isUnregisteredFarmer
+        ? s.unregisteredFarmerName || ""
+        : s.store?.name || s.storeName || "";
+    } else {
+      if (isSubDealer) {
+        custName = isUnregisteredSubdealer
+          ? s.subDealerStore || s.storeName || ""
+          : s.subdealer?.name || s.subdealerName || s.store?.name || s.storeName || "";
+      } else {
+        custName = s.store?.name || s.storeName || "";
+      }
+    }
 
     const isFarmer = visitPurpose === "FARMER";
     const storeLat = s.store?.latitude != null ? String(s.store.latitude) : undefined;
@@ -337,7 +399,13 @@ export function extractType1PlanTargets(
         "",
       nextDate: targetDate || prevTarget?.nextDate || "",
       visitPurpose,
-      customerType: s.store?.customerType || undefined,
+      customerType: isSubDealer ? "SUBDEALER" : s.store?.customerType || undefined,
+      isSubDealer,
+      subdealerId: s.subdealerId || undefined,
+      subdealerName: s.subdealer?.name || s.subdealerName || undefined,
+      isUnregisteredSubdealer,
+      subDealerStore: s.subDealerStore || undefined,
+      dealerName: s.store?.name || s.dealerName || undefined,
       province: s.province || s.store?.province || plan.province || undefined,
       isUnregisteredFarmer: Boolean(s.isUnregisteredFarmer),
       unregisteredFarmerName: s.unregisteredFarmerName || undefined,
