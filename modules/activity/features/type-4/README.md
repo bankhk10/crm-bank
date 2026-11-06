@@ -199,7 +199,7 @@ modules/activity/features/type-4/
 
 ### 4.2 Unplanned
 - **`use-type4-unplanned-form.ts`:** จัดการ State กิจกรรมนอกแผน 2-in-1 (ร้านค้า + ผลการวางบิล/เก็บเงิน + สลิป)
-- **`type4-unplanned-form.tsx`:** ฟอร์ม 2-in-1 สำหรับวางบิล/เก็บเงินนอกแผน สามารถเพิ่มได้หลายร้านค้า พร้อมคำนวณยอดเงินรวมและสถิติการวางบิลสำเร็จ
+- **`type4-unplanned-form.tsx`:** ฟอร์ม 2-in-1 สำหรับวางบิล/เก็บเงินนอกแผน สามารถเพิ่มได้หลายร้านค้า รองรับการระบุเลขที่บิล/ใบเสร็จ (`invoiceNo`), ยอดเงินตามบิล/ยอดหนี้เป้าหมาย (`targetAmount`), ยอดเก็บเงินจริง (`receivedAmount`), แนบสลิป/หลักฐานผ่าน `ActivityPhotoUpload` พร้อมคำนวณยอดเงินรวมและสถิติการวางบิลสำเร็จ
 - **`unplanned-mapper.ts`:** จัดการ Hydrate ข้อมูลเดิมเมื่อเปิดแก้ไข (`hydrateType4UnplannedData`) และแปลง State ฟอร์มเป็น Payload บันทึก DB (`mapType4UnplannedToPayload`)
 - **`type4-unplanned.strategy.ts`:** บันทึกทั้งเป้าหมายและผลการดำเนินงานจริงใน 1 Transaction เดียวกัน
 

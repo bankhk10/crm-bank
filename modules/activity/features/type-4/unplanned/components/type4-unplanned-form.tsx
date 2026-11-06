@@ -9,14 +9,17 @@ import {
   Coins,
   CheckCircle2,
   AlertCircle,
-  Upload,
-  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ActivityInput, ActivityNumberInput, ActivityCustomerSelect } from "@/modules/activity/ui";
+import {
+  ActivityInput,
+  ActivityNumberInput,
+  ActivityCustomerSelect,
+  ActivityPhotoUpload,
+} from "@/modules/activity/ui";
 import { cn } from "@/lib/utils";
 import type { Type4UnplannedFormProps } from "../types/unplanned.types";
-import type { StoreOption, Type4ImageFile } from "../../shared/types";
+import type { StoreOption } from "../../shared/types";
 
 export type { Type4UnplannedFormProps };
 
@@ -38,37 +41,10 @@ export function Type4UnplannedForm({
     (it) => (it.billingStatus || "วางบิลสำเร็จ") === "วางบิลสำเร็จ",
   ).length;
 
-  const handleImageUpload = (
-    itemId: string,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const newImages: Type4ImageFile[] = Array.from(files).map((file) => ({
-      id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      url: URL.createObjectURL(file),
-      previewUrl: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      rawFile: file,
-      file,
-      workTypeCode: "TYPE_4",
-    }));
-
-    const currentItem = items.find((it) => it.id === itemId);
-    const updatedImages = [...(currentItem?.images || []), ...newImages];
-    updateItem(itemId, "images", updatedImages);
-  };
-
-  const handleRemoveImage = (itemId: string, imageId: string) => {
-    const currentItem = items.find((it) => it.id === itemId);
-    const updatedImages = (currentItem?.images || []).filter(
-      (img) => img.id !== imageId,
-    );
-    updateItem(itemId, "images", updatedImages);
-  };
+  const totalBillingAmount = billingItems.reduce(
+    (sum, it) => sum + (Number(it.targetAmount) || 0),
+    0,
+  );
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
@@ -207,6 +183,21 @@ export function Type4UnplannedForm({
                     disabled={readonly}
                     required
                   />
+
+                  <div className="md:col-span-3">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      เลขที่บิล / ใบเสร็จ
+                    </label>
+                    <ActivityInput
+                      type="text"
+                      value={item.invoiceNo || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "invoiceNo", e.target.value)
+                      }
+                      disabled={readonly}
+                      placeholder="เช่น INV-001..."
+                    />
+                  </div>
                 </div>
 
                 {/* Flow Specific Inputs */}
@@ -273,43 +264,86 @@ export function Type4UnplannedForm({
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        รายละเอียดการวางบิล
-                      </label>
-                      <ActivityInput
-                        type="text"
-                        value={item.billingDetail || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "billingDetail", e.target.value)
-                        }
-                        disabled={readonly}
-                        placeholder="ระบุรายละเอียด เช่น กำหนดรับเช็ค, เอกสารที่ส่งมอบ..."
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          ยอดเงินตามบิล (บาท)
+                        </label>
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
+                          value={item.targetAmount}
+                          onChangeValue={(val) =>
+                            updateItem(item.id, "targetAmount", val || 0)
+                          }
+                          disabled={readonly}
+                          placeholder="0.00"
+                          className="text-right font-medium"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          รายละเอียดการวางบิล
+                        </label>
+                        <ActivityInput
+                          type="text"
+                          value={item.billingDetail || ""}
+                          onChange={(e) =>
+                            updateItem(item.id, "billingDetail", e.target.value)
+                          }
+                          disabled={readonly}
+                          placeholder="ระบุรายละเอียด เช่น กำหนดรับเช็ค, เอกสารที่ส่งมอบ..."
+                        />
+                      </div>
                     </div>
                   </div>
                 ) : (
                   /* COLLECT FLOW */
                   <div className="space-y-3 p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        จำนวนเงินที่เก็บได้จริง (บาท){" "}
-                        <span className="text-rose-500">*</span>
-                      </label>
-                      <ActivityNumberInput
-                        min={0}
-                        prefix="฿"
-                        value={item.receivedAmount || ""}
-                        onChangeValue={(val) => {
-                          const v = val || 0;
-                          updateItem(item.id, "receivedAmount", v);
-                          updateItem(item.id, "targetAmount", v);
-                        }}
-                        disabled={readonly}
-                        placeholder="0"
-                        className="text-right font-medium"
-                        required
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          จำนวนเงินที่เก็บได้จริง (บาท){" "}
+                          <span className="text-rose-500">*</span>
+                        </label>
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
+                          value={item.receivedAmount || ""}
+                          onChangeValue={(val) => {
+                            const v = val || 0;
+                            updateItem(item.id, "receivedAmount", v);
+                            if (
+                              !item.targetAmount ||
+                              item.targetAmount === item.receivedAmount
+                            ) {
+                              updateItem(item.id, "targetAmount", v);
+                            }
+                          }}
+                          disabled={readonly}
+                          placeholder="0"
+                          className="text-right font-medium"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          ยอดเงินเป้าหมายตามหนี้ (บาท)
+                        </label>
+                        <ActivityNumberInput
+                          min={0}
+                          prefix="฿"
+                          value={item.targetAmount}
+                          onChangeValue={(val) =>
+                            updateItem(item.id, "targetAmount", val || 0)
+                          }
+                          disabled={readonly}
+                          placeholder="0.00"
+                          className="text-right font-medium"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -328,6 +362,19 @@ export function Type4UnplannedForm({
                     </div>
                   </div>
                 )}
+
+                {/* Photo & Slip Upload */}
+                <div className="pt-1 border-t border-slate-100">
+                  <ActivityPhotoUpload
+                    title="สลิปโอนเงิน / หลักฐานการวางบิล"
+                    description="แนบรูปถ่ายสลิปการโอนเงิน ใบเสร็จรับเงิน หรือใบวางบิลที่มีลายเซ็นกำกับ (ไม่เกิน 5 รูป)"
+                    images={item.images || []}
+                    onImagesChange={(imgs) => updateItem(item.id, "images", imgs)}
+                    maxFiles={5}
+                    accentColor="amber"
+                    disabled={readonly}
+                  />
+                </div>
               </div>
             );
           })
@@ -335,7 +382,7 @@ export function Type4UnplannedForm({
       </div>
 
       {/* Summary Footer */}
-      {(totalReceived > 0 || billingItems.length > 0) && (
+      {(totalReceived > 0 || totalBillingAmount > 0 || billingItems.length > 0) && (
         <div className="bg-amber-100/70 border border-amber-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs text-xs font-bold text-amber-950">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-amber-700" />
@@ -347,6 +394,14 @@ export function Type4UnplannedForm({
                 ยอดเก็บเงินจริงรวม:{" "}
                 <span className="text-amber-800 font-extrabold text-sm ml-1">
                   ฿ {totalReceived.toLocaleString()}
+                </span>
+              </span>
+            )}
+            {totalBillingAmount > 0 && (
+              <span className="bg-white px-3 py-1 rounded-lg border border-amber-200">
+                ยอดวางบิลรวม:{" "}
+                <span className="text-blue-800 font-extrabold text-sm ml-1">
+                  ฿ {totalBillingAmount.toLocaleString()}
                 </span>
               </span>
             )}
