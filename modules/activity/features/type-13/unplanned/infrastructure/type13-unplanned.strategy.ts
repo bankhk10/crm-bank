@@ -96,12 +96,7 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
       }
     }
 
-    // 3. Save Actual Outcome (ActivityResultType13, SprayRounds, SprayProducts, Attachments)
-    if (actualPayload && typeof type13PlannedStrategy.saveActual === "function") {
-      await type13PlannedStrategy.saveActual(tx, activityPlanId, actualPayload);
-    }
-
-    // 4. Ensure header ActivityResult exists and record demoPlotsCreated
+    // 3. Ensure header ActivityResult exists first so attachments & foreign keys can link to it
     const effectivePlots = actualPayload?.plots || t13Payload?.plots || plots || [];
     const totalActualPlots = effectivePlots.reduce(
       (sum: number, p: any) => sum + (Number(p.actualPlotsCount) || 1),
@@ -126,6 +121,11 @@ export const type13UnplannedStrategy: WorkTypeStrategy = {
         demoPlotsCreated: totalActualPlots || 1,
       },
     });
+
+    // 4. Save Actual Outcome (ActivityResultType13, SprayRounds, SprayProducts, Attachments)
+    if (actualPayload && typeof type13PlannedStrategy.saveActual === "function") {
+      await type13PlannedStrategy.saveActual(tx, activityPlanId, actualPayload);
+    }
   },
 
   /**

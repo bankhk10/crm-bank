@@ -1910,7 +1910,7 @@ export function UnplannedActivityForm({
         type13Plots: mapped.type13Plots,
         type13Actual: mapped.type13Actual,
         attachments: cleanType13Images.map((img) => ({
-          category: "AFTER_SPRAY",
+          category: "PLOT",
           fileUrl: img.url,
           fileName: img.name || "ภาพหลังการฉีดพ่น",
           fileSize: Math.round(Number((img as any).size || 0)),

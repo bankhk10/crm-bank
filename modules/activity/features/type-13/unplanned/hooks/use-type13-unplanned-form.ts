@@ -43,6 +43,7 @@ export function useType13UnplannedForm(
       Boolean(options.initial.type13Plots?.length) ||
       Boolean(options.initial.type13Data?.plots?.length) ||
       Boolean(options.initial.type13?.plots?.length) ||
+      Boolean(options.initial.plots?.length) ||
       Boolean(options.initial.type13Products?.length) ||
       Boolean(options.initial.storeId) ||
       Boolean(options.initial.id && options.initial.id !== "unplanned");

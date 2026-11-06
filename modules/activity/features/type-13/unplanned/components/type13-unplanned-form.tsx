@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Package, Plus, Trash2, Store, Layers } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   ActivityCustomerSelect,
@@ -263,8 +264,8 @@ export function Type13UnplannedForm({
                       onChange={(val, cust) => {
                         handleUpdateItem(itemIdx, {
                           ...villageItem,
-                          storeId: val,
-                          dealerName: cust?.name || "",
+                          storeId: cust?.id || val || "",
+                          dealerName: cust?.name || val || "",
                           province: cust?.province || villageItem.province,
                           district: cust?.district || villageItem.district,
                           subdistrict:
@@ -451,6 +452,15 @@ export function Type13UnplannedForm({
                             value={prod.productId || ""}
                             valueKey="id"
                             onChange={(val, selectedProd) => {
+                              if (val) {
+                                const isDuplicate = villageItem.products?.some(
+                                  (p, i) => i !== pIdx && p.productId === val,
+                                );
+                                if (isDuplicate) {
+                                  toast.error("สินค้านี้ถูกเลือกในแปลงนี้แล้ว");
+                                  return;
+                                }
+                              }
                               handleUpdateProductRow(itemIdx, pIdx, {
                                 productId: val,
                                 productName:

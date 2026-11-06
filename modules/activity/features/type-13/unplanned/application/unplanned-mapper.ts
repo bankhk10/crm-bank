@@ -25,6 +25,9 @@ export function hydrateType13UnplannedItems(initial?: any): Type13UnplannedItem[
     (Array.isArray(initial.type13?.plots) && initial.type13.plots.length > 0
       ? initial.type13.plots
       : undefined) ||
+    (Array.isArray(initial.plots) && initial.plots.length > 0
+      ? initial.plots
+      : undefined) ||
     (initial.storeId || initial.village || initial.products?.length
       ? [initial]
       : []);
@@ -41,7 +44,10 @@ export function hydrateType13UnplannedItems(initial?: any): Type13UnplannedItem[
       t.results?.[0] ||
       (Array.isArray(initial.type13Results) &&
         initial.type13Results.find((r: any) => r.targetId === t.id)) ||
+      (Array.isArray(initial.results) &&
+        initial.results.find((r: any) => r.targetId === t.id)) ||
       (Array.isArray(initial.type13Results) && initial.type13Results[idx]) ||
+      (Array.isArray(initial.results) && initial.results[idx]) ||
       t.result ||
       null;
 
@@ -238,6 +244,7 @@ export function mapType13UnplannedToPayload(
         productId: p.productId,
         productName: p.productName || "",
         actualRate: p.actualRate || "",
+        quantity: qty,
         quantityUsed: qty,
         actualQuantity: qty,
         unit: p.unit || "ขวด",
@@ -300,16 +307,17 @@ export function mapType13UnplannedToPayload(
   const allSprayRounds = mappedActualPlots.flatMap((p) => p.sprayRounds || []);
 
   // Collect unique stores across all village items
-  const seenStoreIds = new Set<string>();
+  const seenStoreKeys = new Set<string>();
   const planStores: any[] = [];
   items.forEach((item, idx) => {
-    if (item.storeId && !seenStoreIds.has(item.storeId)) {
-      seenStoreIds.add(item.storeId);
+    const storeKey = item.storeId || item.dealerName;
+    if (storeKey && !seenStoreKeys.has(storeKey)) {
+      seenStoreKeys.add(storeKey);
       const plotName = mappedPlots[idx]?.plotName || `แปลงที่ ${idx + 1}`;
       planStores.push({
         workTypeCode: "TYPE_13",
         visitPurpose: "STORE",
-        storeId: item.storeId,
+        storeId: item.storeId || null,
         storeName: item.dealerName || "ร้านค้า Dealer",
         province: item.province || null,
         remarks: `Dealer ฉีดแปลงแฮตแทค (${plotName})`,

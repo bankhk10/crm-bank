@@ -49,6 +49,16 @@ export interface Type13DataInput {
   withdrawnProducts?: Type13WithdrawnProductInput[];
 }
 
+const isValidId = (id: unknown): id is string =>
+  typeof id === "string" &&
+  id.trim().length > 0 &&
+  !id.startsWith("temp-") &&
+  !id.startsWith("unplanned-") &&
+  (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
+    /^c[a-z0-9]{20,32}$/i.test(id)
+  );
+
 /**
  * Generate Type 13 Target Code (format: DPYYMMXXXX) with advisory lock
  */
@@ -132,7 +142,7 @@ export async function createType13Data(
           status: DemoPlotStatus.IN_PROGRESS,
           plotIndex: plotItem.plotIndex || i + 1,
           plotName: plotItem.name || plotItem.plotName || `แปลงแฮตแทค ${i + 1}`,
-          storeId: plotItem.storeId || null,
+          storeId: isValidId(plotItem.storeId) ? plotItem.storeId : null,
           dealerName: plotItem.dealerName || null,
           ownerName: plotItem.ownerName || null,
           province: plotItem.province || "",
@@ -173,7 +183,11 @@ export async function createType13Data(
           targetId: createdTarget.id,
           productId: prod.productId,
           productName: prod.productName,
-          quantity: prod.quantity,
+          quantity:
+            prod.quantity ??
+            (prod as any).actualQuantity ??
+            (prod as any).quantityUsed ??
+            1,
           unit: prod.unit,
           sortOrder: pIdx,
         });

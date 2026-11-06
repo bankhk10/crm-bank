@@ -13,7 +13,7 @@ export function validateType13UnplannedItem(
     return { isValid: false, error: "กรุณาระบุข้อมูลการฉีดแปลงแฮตแทค" };
   }
 
-  if (!item.storeId?.trim()) {
+  if (!item.storeId?.trim() && !item.dealerName?.trim()) {
     return { isValid: false, error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค" };
   }
 

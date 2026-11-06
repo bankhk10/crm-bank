@@ -7,6 +7,16 @@ import type {
 import { syncType13Data, findType13ByPlanId } from "./type13.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
+const isValidId = (id: unknown): id is string =>
+  typeof id === "string" &&
+  id.trim().length > 0 &&
+  !id.startsWith("temp-") &&
+  !id.startsWith("unplanned-") &&
+  (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
+    /^c[a-z0-9]{20,32}$/i.test(id)
+  );
+
 export const type13PlannedStrategy: WorkTypeStrategy = {
   code: WORK_TYPE_CODE,
 
@@ -29,7 +39,7 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
 
     for (let i = 0; i < plots.length; i++) {
       const p = plots[i];
-      if (!p.storeId) {
+      if (!p.storeId && !p.dealerName) {
         return {
           valid: false,
           error: `แปลงที่ ${i + 1}: กรุณาเลือกร้านค้าตัวแทนจำหน่าย`,
@@ -91,10 +101,15 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
     // 1. Fetch existing targets for this plan to map targetId
     const targets = await tx.activityPlanType13Target.findMany({
       where: { activityPlanId },
-      select: { id: true, plotIndex: true, plotName: true },
+      select: { id: true, plotIndex: true, plotName: true, storeId: true },
     });
     const targetByIndex = new Map(targets.map((t) => [t.plotIndex, t]));
     const targetById = new Map(targets.map((t) => [t.id, t]));
+
+    const headerResult = await tx.activityResult.findFirst({
+      where: { activityPlanId },
+      select: { id: true },
+    });
 
     // 2. Delete existing actual results for this plan (cascade deletes sprayRounds, products, externals)
     await tx.activityResultType13.deleteMany({
@@ -117,6 +132,11 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
           : undefined) ||
         targetByIndex.get(plotIndex) ||
         targets[i];
+      const matchedStoreId = isValidId(matchedTarget?.storeId)
+        ? matchedTarget.storeId
+        : isValidId(plot.storeId)
+          ? plot.storeId
+          : null;
 
       const createdResult = await tx.activityResultType13.create({
         data: {
@@ -210,17 +230,21 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
                 productId: dbP.id,
                 productName: p.productName || dbP.name || null,
                 quantityUsed:
-                  p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
+                  p.quantityUsed != null &&
+                  String(p.quantityUsed).trim() !== "" &&
+                  !isNaN(Number(p.quantityUsed))
                     ? new Prisma.Decimal(Number(p.quantityUsed))
                     : p.actualQuantity != null &&
-                        String(p.actualQuantity).trim() !== ""
+                        String(p.actualQuantity).trim() !== "" &&
+                        !isNaN(Number(p.actualQuantity))
                       ? new Prisma.Decimal(Number(p.actualQuantity))
                       : new Prisma.Decimal(1),
                 actualRate: p.actualRate || p.applicationRate || "-",
                 unit: p.unit || dbP.unit || null,
                 extraQuantity:
                   p.extraQuantity != null &&
-                  String(p.extraQuantity).trim() !== ""
+                  String(p.extraQuantity).trim() !== "" &&
+                  !isNaN(Number(p.extraQuantity))
                     ? new Prisma.Decimal(Number(p.extraQuantity))
                     : null,
                 extraUnit: p.extraUnit || null,
@@ -271,6 +295,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
           await tx.activityAttachment.createMany({
             data: validRoundImages.map((img) => ({
               activityPlanId,
+              activityResultId: headerResult?.id || null,
+              storeId: matchedStoreId,
               type13ResultId: createdResult.id,
               workTypeCode: WORK_TYPE_CODE,
               category: "PLOT",
@@ -295,6 +321,8 @@ export const type13PlannedStrategy: WorkTypeStrategy = {
         await tx.activityAttachment.createMany({
           data: validAfterImages.map((img) => ({
             activityPlanId,
+            activityResultId: headerResult?.id || null,
+            storeId: matchedStoreId,
             type13ResultId: createdResult.id,
             workTypeCode: WORK_TYPE_CODE,
             category: "PLOT",
