@@ -109,3 +109,8 @@ export function getRegionByProvince(
 export function getAllRegions(): string[] {
   return Object.keys(regionMapping);
 }
+
+export const ALL_THAI_PROVINCES: string[] = Object.values(regionMapping)
+  .flat()
+  .sort((a, b) => a.localeCompare(b, "th"));
+

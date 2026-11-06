@@ -27,7 +27,7 @@ interface ComboboxOption {
 
 interface FormComboboxProps {
   id?: string;
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   options: ComboboxOption[];
@@ -43,10 +43,12 @@ interface FormComboboxProps {
   triggerClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
+  showSubLabelInTrigger?: boolean;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
-const defaultTriggerClass = "mt-1 min-h-[44px] h-auto py-2 text-base w-full justify-between";
+const defaultTriggerClass =
+  "min-h-[44px] h-auto py-2 text-base w-full justify-between";
 
 export function FormCombobox({
   id,
@@ -66,17 +68,22 @@ export function FormCombobox({
   triggerClassName,
   labelClassName,
   containerClassName,
+  showSubLabelInTrigger = false,
 }: FormComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOption = options.find(
+    (option) => option.value === value || option.label === value,
+  );
 
   return (
     <div className={cn(containerClassName)}>
-      <Label className={cn(defaultLabelClass, labelClassName)}>
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </Label>
+      {label && (
+        <Label className={cn(defaultLabelClass, labelClassName)}>
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
+      )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -91,19 +98,17 @@ export function FormCombobox({
               className,
               !value && "text-gray-500",
               "font-normal",
-              error && "border-red-500 focus:ring-red-500 bg-red-50/10"
+              error && "border-red-500 focus:ring-red-500 bg-red-50/10",
             )}
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
               <span className="truncate">
-                {selectedOption
-                  ? selectedOption.label
-                  : loading
-                    ? loadingText
-                    : placeholder}
+                {selectedOption ? selectedOption.label : value || placeholder}
               </span>
-              {selectedOption?.subLabel && (
-                <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
+              {showSubLabelInTrigger && selectedOption?.subLabel && (
+                <span className="text-xs text-gray-500 truncate">
+                  {selectedOption.subLabel}
+                </span>
               )}
             </span>
             {loading ? (
@@ -121,46 +126,41 @@ export function FormCombobox({
           <Command>
             <CommandInput placeholder={searchPlaceholder} className="h-11" />
             <CommandList className="max-h-[300px]">
-              {loading ? (
-                <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>{loadingText}</span>
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty>{emptyText}</CommandEmpty>
-                  <CommandGroup>
-                    {options.map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        value={option.value}
-                        keywords={[
-                          option.label, 
-                          option.label.replace(/\s+/g, ""),
-                          ...(option.subLabel ? [option.subLabel, option.subLabel.replace(/\s+/g, "")] : [])
-                        ]}
-                        onSelect={(currentValue) => {
-                          onChange(currentValue === value ? "" : currentValue);
-                          setOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4 shrink-0",
-                            value === option.value ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span className="truncate">{option.label}</span>
-                          {option.subLabel && (
-                            <span className="text-xs text-gray-500 truncate">{option.subLabel}</span>
-                          )}
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </>
-              )}
+              <CommandEmpty>{emptyText}</CommandEmpty>
+              <CommandGroup>
+                {options.map((option, index) => (
+                  <CommandItem
+                    key={`${option.value}-${index}`}
+                    value={option.value}
+                    keywords={[
+                      option.label,
+                      option.label.replace(/\s+/g, ""),
+                      ...(option.subLabel
+                        ? [option.subLabel, option.subLabel.replace(/\s+/g, "")]
+                        : []),
+                    ]}
+                    onSelect={(currentValue) => {
+                      onChange(currentValue === value ? "" : currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4 shrink-0",
+                        value === option.value ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="truncate">{option.label}</span>
+                      {option.subLabel && (
+                        <span className="text-xs text-gray-500 truncate">
+                          {option.subLabel}
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>

@@ -1,0 +1,205 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import type {
+  Type10ImageFile,
+  Type10SoldProductItem,
+  FarmerFeedback,
+} from "../../shared/types";
+import {
+  collectPermanentUrls,
+  uploadActivityPlanImageGroup,
+} from "@/modules/activity/application/media/image-uploader";
+import { validateType10Actual } from "../application/actual-validation";
+import { parseType10ActualResult } from "../application/actual-mapper";
+
+export { validateType10Actual };
+
+export function useType10Actual() {
+  const [targetId, setTargetId] = useState<string | undefined>(undefined);
+  const [actualAttendees, setActualAttendees] = useState("");
+  const [actualSalesOrBooking, setActualSalesOrBooking] = useState("");
+  const [farmerFeedback, setFarmerFeedback] = useState<FarmerFeedback | "">("");
+  const [targetFarmersList, setTargetFarmersList] = useState("");
+  const [summary, setSummary] = useState("");
+  const [hasSales, setHasSales] = useState(false);
+  const [soldProducts, setSoldProducts] = useState<Type10SoldProductItem[]>([]);
+  const [images, setImages] = useState<Type10ImageFile[]>([]);
+  const initialImagesRef = useRef<Type10ImageFile[]>([]);
+
+  const hydrate = useCallback((parsed: any) => {
+    if (!parsed) return;
+
+    // If raw plan or object with dedicated relations passed, run parseType10ActualResult
+    const dataToHydrate =
+      parsed.type10Results ||
+      parsed.type10Targets ||
+      parsed.type10Products ||
+      parsed.activityPlan
+        ? parseType10ActualResult(parsed.resultSummary || parsed.summary, parsed)
+        : parsed;
+
+    const actualData = dataToHydrate.type10Actual || dataToHydrate;
+
+    if (actualData.targetId || parsed.targetId) {
+      setTargetId(actualData.targetId || parsed.targetId);
+    }
+
+    const attendees =
+      actualData.actualAttendees ??
+      actualData.t10ActualAttendees ??
+      actualData.actualAttendeesCount ??
+      dataToHydrate.actualAttendees ??
+      dataToHydrate.actualAttendeesCount ??
+      parsed.actualAttendees ??
+      parsed.actualAttendeesCount;
+    if (attendees != null && attendees !== "") {
+      setActualAttendees(String(attendees));
+    }
+
+    const sales =
+      actualData.actualSalesOrBooking ??
+      actualData.t10ActualSalesOrBooking ??
+      actualData.actualTotalSales ??
+      actualData.salesResultAmount ??
+      actualData.salesResult ??
+      dataToHydrate.actualSalesOrBooking ??
+      dataToHydrate.actualTotalSales ??
+      dataToHydrate.salesResultAmount ??
+      parsed.actualSalesOrBooking ??
+      parsed.actualTotalSales ??
+      parsed.salesResultAmount;
+    if (sales != null && sales !== "") {
+      setActualSalesOrBooking(String(sales));
+    }
+
+    const feedback =
+      actualData.farmerFeedback ??
+      dataToHydrate.farmerFeedback ??
+      parsed.farmerFeedback;
+    if (feedback) setFarmerFeedback(feedback);
+
+    const farmers =
+      actualData.targetFarmersList ??
+      dataToHydrate.targetFarmersList ??
+      parsed.targetFarmersList;
+    if (farmers) setTargetFarmersList(farmers);
+
+    const sum =
+      actualData.summary ??
+      dataToHydrate.summary ??
+      parsed.summary ??
+      parsed.resultSummary;
+    if (sum) setSummary(sum);
+
+    const prods =
+      actualData.soldProducts ??
+      actualData.productSalesDetails ??
+      dataToHydrate.soldProducts ??
+      dataToHydrate.productSalesDetails ??
+      parsed.soldProducts ??
+      parsed.productSalesDetails;
+    if (prods && Array.isArray(prods) && prods.length > 0) {
+      setSoldProducts(prods);
+      setHasSales(true);
+    }
+
+    const imgs =
+      actualData.images ??
+      actualData.t10Images ??
+      dataToHydrate.images ??
+      dataToHydrate.t10Images ??
+      parsed.images ??
+      parsed.t10Images;
+    if (imgs && Array.isArray(imgs) && imgs.length > 0) {
+      setImages(imgs);
+      initialImagesRef.current = JSON.parse(JSON.stringify(imgs));
+    }
+  }, []);
+
+  const uploadImages = useCallback(
+    async (planId: string, newlyUploadedUrls: string[]): Promise<Type10ImageFile[]> => {
+      let cleanImages = images;
+      if (images && images.length > 0) {
+        const res = await uploadActivityPlanImageGroup(
+          planId,
+          images,
+          "type10",
+          "atmosphere",
+        );
+        cleanImages = res.updatedImages;
+        newlyUploadedUrls.push(...res.newlyUploadedUrls);
+        setImages(cleanImages);
+      }
+      return cleanImages;
+    },
+    [images],
+  );
+
+  const collectOldImageUrlsToDelete = useCallback(
+    (currentImages: Type10ImageFile[] = images): string[] => {
+      const initialUrls = collectPermanentUrls(initialImagesRef.current);
+      const currentUrls = new Set(collectPermanentUrls(currentImages));
+      return initialUrls.filter((u) => !currentUrls.has(u));
+    },
+    [images],
+  );
+
+  const commitSavedImages = useCallback((savedImages: Type10ImageFile[] = images) => {
+    initialImagesRef.current = JSON.parse(JSON.stringify(savedImages));
+  }, [images]);
+
+  const collectPayload = useCallback(
+    (cleanImages: Type10ImageFile[] = images) => {
+      return {
+        t10ActualAttendees: actualAttendees,
+        t10ActualSalesOrBooking: actualSalesOrBooking,
+        t10FarmerFeedback: farmerFeedback,
+        t10SoldProducts: soldProducts,
+        t10Images: cleanImages,
+        type10Actual: {
+          targetId,
+          actualAttendees,
+          actualSalesOrBooking,
+          farmerFeedback,
+          targetFarmersList,
+          summary,
+          soldProducts,
+          images: cleanImages,
+        },
+      };
+    },
+    [targetId, actualAttendees, actualSalesOrBooking, farmerFeedback, targetFarmersList, summary, soldProducts, images],
+  );
+
+  return {
+    targetId,
+    setTargetId,
+    actualAttendees,
+    setActualAttendees,
+    t10ActualAttendees: actualAttendees,
+    actualSalesOrBooking,
+    setActualSalesOrBooking,
+    t10ActualSalesOrBooking: actualSalesOrBooking,
+    farmerFeedback,
+    setFarmerFeedback,
+    t10FarmerFeedback: farmerFeedback,
+    targetFarmersList,
+    setTargetFarmersList,
+    summary,
+    setSummary,
+    hasSales,
+    setHasSales,
+    soldProducts,
+    setSoldProducts,
+    productSalesDetails: soldProducts,
+    images,
+    setImages,
+    t10Images: images,
+    hydrate,
+    uploadImages,
+    collectOldImageUrlsToDelete,
+    commitSavedImages,
+    collectPayload,
+  };
+}

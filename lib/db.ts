@@ -28,11 +28,10 @@ function createPrismaClient() {
 /**
  * Shared Prisma instance
  */
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+export const prisma =
+  process.env.NODE_ENV !== "production"
+    ? (globalForPrisma.prisma = createPrismaClient())
+    : (globalForPrisma.prisma ?? createPrismaClient());
 
 /**
  * Re-export as 'db' for cleaner usage
@@ -63,6 +62,10 @@ export {
   CompanyStatus,
   ShippingCompanyStatus,
   PromotionalBudgetType,
+  ActivityStatus,
+  ActivityHelperStatus,
+  ActivityApprovalAction,
+  ActivityApprovalStep,
 } from "@prisma/client";
 
 /**

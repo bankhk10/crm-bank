@@ -157,6 +157,15 @@ export function ProductsTable(props: ProductsTableProps) {
     onApproveRequest,
   );
 
+  const uniqueUnits = React.useMemo(() => {
+    const seen = new Set<string>();
+    return units.filter((unit) => {
+      if (!unit.value || seen.has(unit.value)) return false;
+      seen.add(unit.value);
+      return true;
+    });
+  }, [units]);
+
   // ───────── Toolbar ──────────
   const toolbar = (
     <div className="space-y-4 mb-6">
@@ -211,7 +220,7 @@ export function ProductsTable(props: ProductsTableProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
-                    {units.map((unit) => (
+                    {uniqueUnits.map((unit) => (
                       <SelectItem key={unit.value} value={unit.value}>
                         {unit.label}
                       </SelectItem>

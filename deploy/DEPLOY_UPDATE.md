@@ -1,8 +1,22 @@
 # CRM-Bank: ขั้นตอนการ Update ระบบ (Deployment Update Guide)
 
-> **Last Updated:** 2026-02-16  
-> **Version:** 1.0  
+> **Last Updated:** 2026-02-16
+> **Version:** 1.0
 > **สำหรับ:** ทีม DevOps / Developer ที่ดูแลการ deploy CRM-Bank
+
+---
+
+## 📌 สรุปคำสั่งเวลา Deploy โค้ดใหม่ในอนาคต (Cloudflare Tunnel Edition)
+
+- **เวลาอัปเดต Production (`csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank && git pull origin Production
+  cd deploy/app && docker compose -f docker-compose.app.yml --env-file ../.env.production up -d --build app
+  ```
+- **เวลาอัปเดต Staging (`test-csone.icgone.com`):**
+  ```bash
+  cd /opt/crm-bank-staging && git pull origin Test && bash scripts/deploy-staging.sh
+  ```
 
 ---
 

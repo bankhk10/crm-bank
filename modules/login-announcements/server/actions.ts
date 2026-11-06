@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import fs from "fs/promises";
-import path from "path";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { deleteFile } from "@/lib/file-storage";
 import {
   listAnnouncementsUseCase,
   getAnnouncementsForUserUseCase,
@@ -66,9 +65,8 @@ export async function updateAnnouncementAction(
 
     // If image was changed, delete the old file
     if (oldItem && oldItem.imageUrl && input.imageUrl && oldItem.imageUrl !== input.imageUrl) {
-      const filePath = path.join(process.cwd(), "public", oldItem.imageUrl.replace(/^\//, ""));
       try {
-        await fs.unlink(filePath);
+        await deleteFile(oldItem.imageUrl);
       } catch (e) {
         console.warn("Could not delete old file:", e);
       }
@@ -92,10 +90,8 @@ export async function deleteAnnouncementAction(id: string) {
     
     // Physically delete the image file to save space
     if (deleted && deleted.imageUrl) {
-      // The imageUrl is something like '/uploads/1783395816660-n30bc.jpg'
-      const filePath = path.join(process.cwd(), "public", deleted.imageUrl.replace(/^\//, ""));
       try {
-        await fs.unlink(filePath);
+        await deleteFile(deleted.imageUrl);
       } catch (e) {
         console.warn("Could not delete file, perhaps already deleted:", e);
       }

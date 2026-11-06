@@ -16,7 +16,7 @@ export const createImage = (url: string): Promise<HTMLImageElement> =>
 export function getRotatedRectToBeh(
   width: number,
   height: number,
-  rotation: number
+  rotation: number,
 ) {
   const rad = (rotation * Math.PI) / 180;
   return {
@@ -35,7 +35,7 @@ export async function getCroppedImg(
   flip = { horizontal: false, vertical: false },
   targetWidth?: number,
   targetHeight?: number,
-  quality = 0.8
+  quality = 0.8,
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -51,7 +51,7 @@ export async function getCroppedImg(
   const { w: bBoxWidth, h: bBoxHeight } = getRotatedRectToBeh(
     image.width,
     image.height,
-    rotation
+    rotation,
   );
 
   // set canvas size to match the bounding box
@@ -73,7 +73,7 @@ export async function getCroppedImg(
     pixelCrop.x,
     pixelCrop.y,
     pixelCrop.width,
-    pixelCrop.height
+    pixelCrop.height,
   );
 
   // If target dimensions are provided, we need to scale the result
@@ -108,7 +108,7 @@ export async function getCroppedImg(
       0,
       0,
       targetWidth,
-      targetHeight
+      targetHeight,
     );
   } else {
     // No resizing needed
@@ -125,13 +125,15 @@ export async function getCroppedImg(
         else reject(new Error("Canvas is empty"));
       },
       "image/webp",
-      quality
+      quality,
     );
   });
 }
 
 /**
  * Compresses an image file by resizing it and reducing quality.
+ * Properly releases Object URLs and ImageBitmaps to prevent browser memory leaks
+ * when processing up to 200+ images in a batch.
  */
 export async function compressImage(
   file: File,
@@ -140,8 +142,13 @@ export async function compressImage(
     maxHeight?: number;
     quality?: number;
     type?: string;
-  } = {}
+  } = {},
 ): Promise<File> {
+  // Skip if already compressed in this session
+  if ((file as any).__compressed) {
+    return file;
+  }
+
   const {
     maxWidth = 1920,
     maxHeight = 1920,
@@ -149,48 +156,111 @@ export async function compressImage(
     type = "image/webp", // Use webp to preserve transparency and compress well
   } = options;
 
-  // If not an image, return as is
-  if (!file.type.startsWith("image/")) {
+  // If not an image or animated GIF/SVG, return as is
+  if (
+    !file.type.startsWith("image/") ||
+    file.type === "image/gif" ||
+    file.type === "image/svg+xml"
+  ) {
     return file;
   }
 
-  const image = await createImage(URL.createObjectURL(file));
-  let { width, height } = image;
-
-  // Calculate new dimensions
-  if (width > maxWidth || height > maxHeight) {
-    const ratio = Math.min(maxWidth / width, maxHeight / height);
-    width = Math.round(width * ratio);
-    height = Math.round(height * ratio);
+  // Skip small files (<= 300 KB)
+  if (file.size <= 300 * 1024) {
+    (file as any).__compressed = true;
+    return file;
   }
 
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  let objectUrl: string | null = null;
+  let imageSource: ImageBitmap | HTMLImageElement | null = null;
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("No 2d context");
+  try {
+    let width = 0;
+    let height = 0;
 
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(image, 0, 0, width, height);
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(file);
+        width = bitmap.width;
+        height = bitmap.height;
+        imageSource = bitmap;
+      } catch {
+        imageSource = null;
+      }
+    }
 
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(
-            new File([blob], file.name, {
-              type,
-              lastModified: Date.now(),
-            })
-          );
-        } else {
-          reject(new Error("Canvas is empty"));
-        }
-      },
+    if (!imageSource) {
+      objectUrl = URL.createObjectURL(file);
+      const image = await createImage(objectUrl);
+      width = image.width;
+      height = image.height;
+      imageSource = image;
+    }
+
+    if (!width || !height) {
+      return file;
+    }
+
+    // Calculate new dimensions
+    if (width > maxWidth || height > maxHeight) {
+      const ratio = Math.min(maxWidth / width, maxHeight / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return file;
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(imageSource, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, type, quality);
+    });
+
+    // Release canvas backing store immediately
+    canvas.width = 0;
+    canvas.height = 0;
+
+    if (!blob || blob.size >= file.size) {
+      (file as any).__compressed = true;
+      return file;
+    }
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    const ext =
+      type === "image/webp"
+        ? ".webp"
+        : type === "image/png"
+          ? ".png"
+          : ".jpg";
+    const newFile = new File([blob], `${baseName}${ext}`, {
       type,
-      quality
-    );
-  });
+      lastModified: Date.now(),
+    });
+    (newFile as any).__compressed = true;
+    return newFile;
+  } finally {
+    if (
+      imageSource &&
+      "close" in imageSource &&
+      typeof (imageSource as any).close === "function"
+    ) {
+      try {
+        (imageSource as any).close();
+      } catch {
+        // Ignore close error
+      }
+    }
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
 }

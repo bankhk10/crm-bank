@@ -1,0 +1,483 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { usePermission } from "@/hooks/use-permission";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { LoadingOverlayDialog } from "@/modules/activity/ui";
+import { UnplannedActivityForm } from "./components/unplanned-activity-form";
+import {
+  getActivityPlanAction,
+  updateActivityPlanAction,
+  getDemoPlotsAction,
+  getFollowUpPlansAction,
+  getHattackFollowUpPlansAction,
+  getProductCategoriesAction,
+  getActivePromotionalMaterialsGroupedAction,
+  getActivityTypesAction,
+} from "@/modules/activity/server/actions";
+import { getAllEmployeesAction } from "@/modules/employee/server/actions";
+import { getCustomersAction } from "@/modules/customers/server/actions";
+import { listProductsAction } from "@/modules/products/server/actions";
+import { isActivityAdmin } from "@/modules/activity/domain/permissions";
+import type { ActivityPlanEditMasterData } from "@/modules/activity/types";
+
+interface UnplannedEditViewProps {
+  id: string;
+  initialEditData?: ActivityPlanEditMasterData;
+}
+
+export function UnplannedEditView({
+  id,
+  initialEditData,
+}: UnplannedEditViewProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { hasPermission, allowed, isLoading } = usePermission(
+    "menu.activity_plans",
+  );
+
+  const user = session?.user;
+  const isAdmin = isActivityAdmin(user);
+
+  const canEdit =
+    isAdmin ||
+    hasPermission("activity.edit") ||
+    hasPermission("activity.manage");
+  const canView =
+    isAdmin ||
+    allowed ||
+    hasPermission("activity.view") ||
+    hasPermission("activity.manage") ||
+    !isLoading;
+
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [productCategories, setProductCategories] = useState<any[]>([]);
+  const [activityTypes, setActivityTypes] = useState<any[]>([]);
+  const [demoPlots, setDemoPlots] = useState<any[]>([]);
+  const [followUpPlans, setFollowUpPlans] = useState<any[]>([]);
+  const [hattackFollowUpPlans, setHattackFollowUpPlans] = useState<any[]>([]);
+  const [promotionalMaterialsByCategory, setPromotionalMaterialsByCategory] =
+    useState<Record<string, any[]> | undefined>(undefined);
+  const [initialData, setInitialData] = useState<any>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setPageLoading(true);
+      try {
+        const [
+          empRes,
+          planRes,
+          custRes,
+          prodRes,
+          plotRes,
+          followUpRes,
+          hattackFollowUpRes,
+          catRes,
+          mktRes,
+          actTypeRes,
+        ] = initialEditData
+          ? [
+              {
+                success: !initialEditData.loadError,
+                employees: initialEditData.employees,
+              },
+              {
+                success: !initialEditData.planError && !!initialEditData.plan,
+                plan: initialEditData.plan,
+                error: initialEditData.planError || undefined,
+              },
+              { customers: initialEditData.customers },
+              { products: initialEditData.products },
+              { demoPlots: initialEditData.demoPlots },
+              { followUpPlans: initialEditData.followUpPlans },
+              { hattackFollowUpPlans: initialEditData.hattackFollowUpPlans },
+              {
+                success: true,
+                productCategories: initialEditData.productCategories,
+              },
+              {
+                success: !!initialEditData.promotionalMaterialsByCategory,
+                grouped: initialEditData.promotionalMaterialsByCategory || {},
+              },
+              {
+                success: true,
+                types: initialEditData.activityTypes,
+              },
+            ]
+          : await Promise.all([
+          getAllEmployeesAction(),
+          getActivityPlanAction(id),
+          getCustomersAction({ perPage: 1000 }).catch(() => ({
+            customers: [],
+          })),
+          listProductsAction({ status: "ACTIVE", perPage: 1000 }).catch(() => ({
+            products: [],
+          })),
+          getDemoPlotsAction().catch(() => ({ demoPlots: [] })),
+          getFollowUpPlansAction().catch(() => ({ followUpPlans: [] })),
+          getHattackFollowUpPlansAction().catch(() => ({
+            hattackFollowUpPlans: [],
+          })),
+          getProductCategoriesAction().catch(() => ({
+            success: false,
+            productCategories: [],
+          })),
+          getActivePromotionalMaterialsGroupedAction().catch(() => ({
+            success: false,
+            grouped: {},
+          })),
+          getActivityTypesAction().catch(() => ({ success: false, types: [] })),
+        ]);
+
+        if (actTypeRes && actTypeRes.success && actTypeRes.types) {
+          setActivityTypes(actTypeRes.types);
+        }
+
+        if (catRes && catRes.success && catRes.productCategories) {
+          setProductCategories(catRes.productCategories);
+        }
+
+        if (empRes.success && empRes.employees) {
+          setEmployees(empRes.employees);
+        } else if (!empRes.success) {
+          setLoadError("ไม่สามารถดึงรายชื่อพนักงานได้");
+        }
+
+        if (custRes && custRes.customers) {
+          setCustomers(custRes.customers);
+        }
+
+        if (prodRes && prodRes.products) {
+          setProducts(prodRes.products);
+        }
+
+        if (plotRes && plotRes.demoPlots) {
+          setDemoPlots(plotRes.demoPlots);
+        }
+
+        if (followUpRes && followUpRes.followUpPlans) {
+          setFollowUpPlans(followUpRes.followUpPlans);
+        }
+
+        if (hattackFollowUpRes && hattackFollowUpRes.hattackFollowUpPlans) {
+          setHattackFollowUpPlans(hattackFollowUpRes.hattackFollowUpPlans);
+        }
+
+        if (mktRes && mktRes.success && mktRes.grouped) {
+          setPromotionalMaterialsByCategory(mktRes.grouped);
+        }
+
+        if (planRes.success && planRes.plan) {
+          const plan = planRes.plan;
+
+          if (
+            !initialEditData &&
+            plan.employeeId &&
+            plan.employeeId !== user?.employeeId
+          ) {
+            getFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.followUpPlans) {
+                setFollowUpPlans(res.followUpPlans);
+              }
+            });
+            getHattackFollowUpPlansAction(plan.employeeId).then((res) => {
+              if (res?.success && res.hattackFollowUpPlans) {
+                setHattackFollowUpPlans(res.hattackFollowUpPlans);
+              }
+            });
+          }
+
+          const helperEmployeeIds = plan.helpers
+            ? plan.helpers.map((h: any) => h.employeeId)
+            : [];
+
+          setInitialData({
+            ...plan,
+            id: plan.id,
+            status: plan.status,
+            approvalLogs: plan.approvalLogs || [],
+            title: plan.title,
+            activityTypeId:
+              plan.activityTypeId ||
+              (typeof plan.activityType === "object"
+                ? plan.activityType?.id
+                : ""),
+            activityType:
+              typeof plan.activityType === "object"
+                ? plan.activityType?.name
+                : plan.activityType,
+            workTypes: plan.workTypes || [],
+            startDate: plan.startDate,
+            endDate: plan.endDate,
+            province: plan.province || "",
+            district: plan.district || "",
+            location: plan.location,
+            objective: plan.objective,
+            description: plan.description,
+            salesPromotionBudgetRequested: plan.salesPromotionBudgetRequested
+              ? Number(plan.salesPromotionBudgetRequested)
+              : 0,
+            marketingBudgetRequested: plan.marketingBudgetRequested
+              ? Number(plan.marketingBudgetRequested)
+              : 0,
+            notes: plan.notes || "",
+            stores: plan.stores || [],
+            products: plan.products || [],
+            marketingItems: plan.marketingItems || [],
+            promotionItems: plan.promotionItems || [],
+            tour: plan.tour || null,
+            demoPlotVisits: plan.demoPlotVisits || [],
+            demoPlotId:
+              (plan as any).demoPlotVisits?.[0]?.demoPlotId ||
+              (plan as any).demoPlotId ||
+              null,
+            demoPlot: (plan as any).demoPlotVisits?.[0]?.demoPlot || null,
+            targetAttendeesCount: plan.targetAttendeesCount ?? null,
+            targetBookingSales: plan.targetBookingSales
+              ? Number(plan.targetBookingSales)
+              : null,
+            helperEmployeeIds,
+            planCode: plan.code || plan.id,
+            employeeName: plan.employee?.name,
+            planType: plan.planType || "UNPLANNED",
+            type10: (plan as any).type10 || null,
+            type10Data: (plan as any).type10Data || (plan as any).type10 || null,
+            type10Targets: (plan as any).type10Targets || [],
+            type10Plots: (plan as any).type10Targets || [],
+            type10Products: (plan as any).type10Products || [],
+            type10Results: (plan as any).type10Results || [],
+            type10UnplannedItems:
+              (plan as any).type10UnplannedItems ||
+              (plan as any).type10Targets ||
+              [],
+            type13: (plan as any).type13 || null,
+            type14: (plan as any).type14 || null,
+            type14Targets: (plan as any).type14Targets || [],
+            type14Plots: (plan as any).type14?.plots || (plan as any).type14Targets || [],
+            type14Products: (plan as any).type14Products || [],
+            type14Results: (plan as any).type14Results || (plan as any).result?.type14Results || [],
+            type14Actual: (plan as any).type14Actual || (plan as any).result?.type14Actual || null,
+            type14Data: (plan as any).type14Data || (plan as any).type14 || null,
+            type14UnplannedItem: (plan as any).type14UnplannedItem || null,
+            type14UnplannedItems: (plan as any).type14UnplannedItems || (plan as any).type14Targets || [],
+            type7aTargets: (plan as any).type7aTargets || (plan as any).type7aPlots || [],
+            type7aPlots: (plan as any).type7aTargets || (plan as any).type7aPlots || [],
+            type7aProducts: (plan as any).type7aProducts || [],
+            type7aResults: (plan as any).type7aResults || (plan as any).result?.type7aResults || [],
+            type7b: (plan as any).type7b || null,
+            type7bData: (plan as any).type7bData || (plan as any).type7b || null,
+            type7bTargets:
+              (plan as any).type7bTargets ||
+              (plan as any).type7bPlots ||
+              (plan as any).type7b?.plots ||
+              [],
+            type7bPlots:
+              (plan as any).type7bTargets ||
+              (plan as any).type7bPlots ||
+              (plan as any).type7b?.plots ||
+              [],
+            type7bProducts:
+              (plan as any).type7bProducts ||
+              (plan as any).type7b?.products ||
+              [],
+            type7bResults:
+              (plan as any).type7bResults ||
+              (plan as any).result?.type7bResults ||
+              [],
+            type7bActual:
+              (plan as any).type7bActual ||
+              (plan as any).result?.type7bActual ||
+              null,
+            type7bUnplannedItems: (plan as any).type7bUnplannedItems || [],
+            type13Targets: (plan as any).type13Targets || [],
+            type13Plots: (plan as any).type13?.plots || (plan as any).type13Targets || [],
+            type13Products: (plan as any).type13Products || [],
+            type13Results: (plan as any).type13Results || [],
+            type13Actual: (plan as any).type13Actual || (plan as any).result?.type13Actual || null,
+            type13Data: (plan as any).type13Data || (plan as any).type13 || null,
+            type13UnplannedItems: (plan as any).type13UnplannedItems || (plan as any).type13Targets || [],
+            type11Targets: (plan as any).type11Targets || [],
+            type11Stores: (plan as any).type11Targets || (plan as any).type11Stores || [],
+            type11Products: (plan as any).type11Products || [],
+            type11Results: (plan as any).type11Results || [],
+            type11Data: (plan as any).type11Data || null,
+            type11UnplannedItems: (plan as any).type11UnplannedItems || (plan as any).type11Targets || [],
+            t11Images: (
+              (plan.attachments || []).concat(
+                plan.result?.attachments || [],
+              )
+            )
+              .filter(
+                (att: any) =>
+                  att &&
+                  (att.workTypeCode === "TYPE_11" ||
+                    att.workTypeCode === "ตรวจเช็คสต็อกหน้าร้าน" ||
+                    att.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน" ||
+                    att.category === "STOCK" ||
+                    att.category === "SHELF" ||
+                    String(att.fileUrl || att.url || "").includes("/stock/")),
+              )
+              .map((att: any) => ({
+                id: att.id || att.fileUrl || att.url,
+                url: att.fileUrl || att.url,
+                name: att.fileName || att.name || "รูปภาพสต็อกสินค้า",
+                size: att.fileSize,
+                type: att.mimeType || "image/jpeg",
+              })),
+            result: plan.result || (plan as any).activityResult || null,
+            activityResult: plan.result || (plan as any).activityResult || null,
+            type1Targets: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
+            type1Stores: (plan as any).type1Targets || (plan as any).type1Stores || plan.stores || [],
+            type1Results: (plan as any).type1Results || [],
+            type1Result:
+              (plan as any).type1Results?.[0] ||
+              (plan as any).type1Result ||
+              null,
+            type1Products: (plan as any).type1Products || [],
+            type2Targets: (plan as any).type2Targets || [],
+            type2Products: (plan as any).type2Products || [],
+            type3Targets: (plan as any).type3Targets || [],
+            type3Results:
+              (plan as any).type3Results ||
+              (plan as any).result?.type3Results ||
+              [],
+            type4Targets: (plan as any).type4Targets || [],
+            type4Results:
+              (plan as any).type4Results ||
+              (plan as any).result?.type4Results ||
+              (plan as any).type4Targets?.map((t: any) => t.result).filter(Boolean) ||
+              [],
+            type4Result:
+              (plan as any).type4Result ||
+              (plan as any).result?.type4Result ||
+              (plan as any).type4Targets?.[0]?.result ||
+              null,
+            followupResults:
+              (plan as any).result?.followupResults ||
+              (plan as any).followupResults ||
+              [],
+            attachments: [
+              ...(plan.attachments || []),
+              ...(plan.result?.attachments || []),
+              ...((plan as any).type7bResults || []).flatMap((r: any) => r.attachments || []),
+              ...((plan as any).type13Results || []).flatMap((r: any) => r.attachments || []),
+              ...((plan as any).type14Results || []).flatMap((r: any) => r.attachments || []),
+            ],
+            actualOutcome:
+              (plan as any).actualOutcome ||
+              (plan as any).result?.actualOutcome ||
+              null,
+            actualData:
+              (plan as any).actualData ||
+              (plan as any).result ||
+              null,
+            activityResultType1:
+              (plan as any).type1Results?.[0] ||
+              (plan as any).type1Result ||
+              (plan as any).activityResultType1 ||
+              null,
+            type5Targets: (plan as any).type5Targets || [],
+            type5SurveyRecords:
+              (plan as any).result?.surveyResults ||
+              (plan as any).surveyResults ||
+              [],
+            surveyResults:
+              (plan as any).result?.surveyResults ||
+              (plan as any).surveyResults ||
+              [],
+            t5SurveyDetails:
+              (plan as any).result?.surveyResults ||
+              (plan as any).surveyResults ||
+              [],
+            type5UnplannedItems: (plan as any).type5UnplannedItems || [],
+            type6Targets: (plan as any).type6Targets || [],
+            issueResults:
+              (plan as any).result?.issueResults ||
+              (plan as any).issueResults ||
+              [],
+            type6ActualIssues:
+              (plan as any).result?.issueResults ||
+              (plan as any).issueResults ||
+              [],
+            type6UnplannedItems: (plan as any).type6UnplannedItems || [],
+          });
+        } else {
+          setLoadError(planRes.error || "ไม่สามารถดึงข้อมูลกิจกรรมนอกแผนได้");
+        }
+      } catch {
+        setLoadError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      } finally {
+        setPageLoading(false);
+      }
+    }
+
+    loadData();
+  }, [id, initialEditData]);
+
+  const handleSubmit = async (payload: any) => {
+    const res = await updateActivityPlanAction(id, payload);
+    if (res.success) {
+      toast.success("อัปเดตกิจกรรมนอกแผนเรียบร้อยแล้ว");
+      router.push("/activity-plans");
+      router.refresh();
+      return { success: true };
+    }
+    return { success: false, error: res.error };
+  };
+
+  if (isLoading || pageLoading) {
+    return (
+      <div className="min-h-[400px]">
+        <LoadingOverlayDialog
+          open={true}
+          title="กำลังโหลดข้อมูลกิจกรรม..."
+          description="กรุณารอสักครู่ ระบบกำลังดึงข้อมูลกิจกรรมนอกแผนเพื่อแก้ไข"
+        />
+      </div>
+    );
+  }
+
+  if (!canView || !canEdit) {
+    return (
+      <Alert variant="destructive" className="m-6">
+        <AlertDescription>คุณไม่มีสิทธิ์แก้ไขกิจกรรมนอกแผนนี้</AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <section className="p-4 md:p-6 pb-24 md:pb-8 bg-white min-h-screen rounded-2xl">
+      {loadError && (
+        <Alert variant="destructive" className="mb-4 max-w-5xl mx-auto">
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      )}
+
+      {initialData && (
+        <UnplannedActivityForm
+          initialData={initialData}
+          employees={employees}
+          customers={customers}
+          products={products}
+          activityTypes={activityTypes}
+          promotionalMaterialsByCategory={promotionalMaterialsByCategory}
+          demoPlots={demoPlots}
+          followUpPlans={followUpPlans}
+          hattackFollowUpPlans={hattackFollowUpPlans}
+          onSubmit={handleSubmit}
+          onBack={() => router.push("/activity-plans")}
+          isEdit
+        />
+      )}
+    </section>
+  );
+}
+
+export default UnplannedEditView;
