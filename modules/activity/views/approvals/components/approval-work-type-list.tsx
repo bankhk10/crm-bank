@@ -1457,6 +1457,7 @@ export function ApprovalWorkTypeList({
               plan?.type15Results?.[0] ||
               (plan?.type15Actual ? plan.type15Actual : null)
             }
+            isActualRecorded={true}
           />
         ) : (
           <Type15ApprovalCard

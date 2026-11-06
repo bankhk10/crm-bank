@@ -12,7 +12,10 @@ export {
 
 export { Type15ActualForm } from "./planned/components/type15-actual-form";
 export { Type15PlanCard } from "./planned/components/type15-plan-card";
-export { Type15DetailView } from "./planned/components/type15-detail-view";
+export {
+  Type15DetailView,
+  DetailType15Boom,
+} from "./planned/components/type15-detail-view";
 export { Type15ApprovalCard } from "./planned/components/type15-approval-card";
 
 // Hooks

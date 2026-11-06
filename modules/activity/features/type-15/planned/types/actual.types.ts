@@ -3,7 +3,7 @@
  */
 
 import type { ImageFile } from "@/modules/activity/application/media/image-uploader";
-import type { Type15TargetItem, Type15BoomItem } from "../../shared/types";
+import type { Type15TargetItem, Type15BoomItem, Type15ImageFile } from "../../shared/types";
 
 export interface Type15ActualFormProps {
   isVisible?: boolean;
@@ -26,11 +26,16 @@ export interface Type15DetailViewProps {
   targets?: Type15TargetItem[];
   actual?: {
     detail?: string | null;
-    attachments?: Array<{ id: string; fileUrl: string; fileName: string; [key: string]: any }>;
+    attachments?: Array<{ id?: string; fileUrl?: string; url?: string; fileName?: string; name?: string; [key: string]: any }>;
+    images?: Array<{ id?: string; fileUrl?: string; url?: string; fileName?: string; name?: string; [key: string]: any }>;
     [key: string]: any;
   } | null;
+  images?: Type15ImageFile[];
+  isActualRecorded?: boolean;
   readonly?: boolean;
 }
+
+export type DetailType15BoomProps = Type15DetailViewProps;
 
 export interface Type15PlanCardProps {
   target?: Type15TargetItem;

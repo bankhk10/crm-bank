@@ -603,6 +603,43 @@ export function DetailWorkTypeList({
     deduplicatedAttachments,
   ]);
 
+  // รวบรวมรูปภาพ Type 15 (Attachments / Boom Team & Caravan)
+  const effectiveT15Images = useMemo(() => {
+    if (parsedResults?.t15Images && parsedResults.t15Images.length > 0) {
+      return parsedResults.t15Images;
+    }
+    if (
+      parsedResults?.type15Actual?.attachments &&
+      parsedResults.type15Actual.attachments.length > 0
+    ) {
+      return parsedResults.type15Actual.attachments;
+    }
+    if (
+      parsedResults?.type15Actual?.images &&
+      parsedResults.type15Actual.images.length > 0
+    ) {
+      return parsedResults.type15Actual.images;
+    }
+    return deduplicatedAttachments
+      .filter(
+        (att) =>
+          att?.workTypeCode === "TYPE_15" ||
+          att?.type15ResultId ||
+          att?.category === "GENERAL" ||
+          att?.category === "BOOM",
+      )
+      .map((att) => ({
+        id: att.id,
+        url: att.fileUrl || att.url,
+        name: att.fileName || att.name || "รูปภาพการปฏิบัติงาน",
+      }));
+  }, [
+    parsedResults?.t15Images,
+    parsedResults?.type15Actual?.attachments,
+    parsedResults?.type15Actual?.images,
+    deduplicatedAttachments,
+  ]);
+
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -987,6 +1024,8 @@ export function DetailWorkTypeList({
           plan?.type15Results?.[0] ||
           (plan?.type15Actual ? plan.type15Actual : null)
         }
+        images={effectiveT15Images}
+        isActualRecorded={effectiveIsActualRecorded}
       />
     </div>
   );
