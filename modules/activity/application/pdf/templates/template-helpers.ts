@@ -358,7 +358,18 @@ export function extractTargetAddresses(
     });
   }
 
-  // 16. Stores relation (if any)
+  // 16. Dedicated Type 15 targets (Boom Team / Caravan)
+  if (Array.isArray((p as any).type15Targets)) {
+    (p as any).type15Targets.forEach((t: any) => {
+      addStore(t.store);
+      addStore(t.subdealer);
+      if (t.village) {
+        addArea({ location: t.village });
+      }
+    });
+  }
+
+  // 17. Stores relation (if any)
   if (Array.isArray((p as any).stores)) {
     (p as any).stores.forEach((s: any) => {
       addStore(s.store || s);
@@ -563,7 +574,54 @@ export function extractTargetNames(p: ActivityPlanWithRelations): string[] {
     });
   }
 
-  // 16. Stores relation (Generic)
+  // 16. Dedicated Type 15 targets (Boom Team / Caravan)
+  if (Array.isArray((p as any).type15Targets)) {
+    (p as any).type15Targets.forEach((t: any) => {
+      const isSub = Boolean(t.isSubDealer);
+      const subdealer = t.isUnregisteredSubdealer
+        ? t.subDealerStore
+        : t.subdealer?.name || t.subdealerName || t.subDealerStore;
+      const dealer = t.store?.name || t.dealerName || t.storeName;
+
+      let label = "";
+      if (isSub) {
+        if (subdealer) label = subdealer;
+        if (dealer) label += ` (ร้านหลัก: ${dealer})`;
+      } else if (dealer) {
+        label = dealer;
+      }
+
+      if (t.village) {
+        label = label ? `${label} (ม.${t.village})` : `หมู่บ้าน ${t.village}`;
+      }
+
+      if (label) names.add(label);
+    });
+  }
+
+  if (Array.isArray((p as any).type15Items)) {
+    (p as any).type15Items.forEach((t: any) => {
+      const isSub = Boolean(t.isSubDealer);
+      const subdealer = t.isUnregisteredSubdealer
+        ? t.subDealerStore
+        : t.subdealerName || t.subDealerStore;
+      const dealer = t.dealerName || t.customerName;
+
+      let label = "";
+      if (isSub) {
+        if (subdealer) label = subdealer;
+        if (dealer) label += ` (ร้านหลัก: ${dealer})`;
+      } else if (dealer) {
+        label = dealer;
+      }
+      if (t.village) {
+        label = label ? `${label} (ม.${t.village})` : `หมู่บ้าน ${t.village}`;
+      }
+      if (label) names.add(label);
+    });
+  }
+
+  // 17. Stores relation (Generic)
   if (Array.isArray((p as any).stores)) {
     (p as any).stores.forEach((s: any) => {
       const name = s.store?.name || s.name || s.storeName;

@@ -15,5 +15,6 @@ export * from "./type-11.renderer";
 export * from "./type-12.renderer";
 export * from "./type-13.renderer";
 export * from "./type-14.renderer";
+export * from "./type-15.renderer";
 export * from "./default.renderer";
 

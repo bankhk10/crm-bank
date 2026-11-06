@@ -67,6 +67,9 @@ export function renderActualResultSection({
   if (Array.isArray(parsedResults.t12Images)) rawImages.push(...parsedResults.t12Images);
   if (Array.isArray(parsedResults.t13Images)) rawImages.push(...parsedResults.t13Images);
   if (Array.isArray(parsedResults.t14Images)) rawImages.push(...parsedResults.t14Images);
+  if (Array.isArray(parsedResults.t15Images)) rawImages.push(...parsedResults.t15Images);
+  if (Array.isArray(parsedResults.type15Actual?.attachments)) rawImages.push(...parsedResults.type15Actual.attachments);
+  if (Array.isArray(parsedResults.type15Actual?.images)) rawImages.push(...parsedResults.type15Actual.images);
   if (Array.isArray((plan as any).result?.images)) {
     rawImages.push(...(plan as any).result.images);
   }

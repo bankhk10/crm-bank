@@ -114,29 +114,40 @@ export function extractType15PlanTargets(
     [];
 
   const list = Array.isArray(rawTargets) && rawTargets.length > 0
-    ? rawTargets.map((t: any, idx: number) => ({
-        id: t.id || String(idx + 1),
-        storeId: t.storeId,
-        storeName: t.store?.name || t.dealerName || t.customerName || "",
-        customerName: t.store?.name || t.dealerName || t.customerName || "",
-        dealerName: t.store?.name || t.dealerName || t.customerName || "",
-        isSubDealer: Boolean(t.isSubDealer),
-        subdealerId: t.subdealerId,
-        subdealerName: t.subdealer?.name || t.subdealerName || "",
-        isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
-        subDealerStore: t.subDealerStore || "",
-        village: t.village || "",
-        objective: t.objective || "",
-        detail: t.detail || "",
-        store: t.store,
-        subdealer: t.subdealer,
-        results: t.results,
-      }))
+    ? rawTargets.map((t: any, idx: number) => {
+        const isSub = Boolean(t.isSubDealer);
+        const resolvedName = isSub
+          ? (t.isUnregisteredSubdealer ? t.subDealerStore : t.subdealer?.name || t.subdealerName || t.subDealerStore) || t.store?.name || ""
+          : t.store?.name || t.dealerName || t.customerName || "";
+
+        return {
+          id: t.id || String(idx + 1),
+          storeId: t.storeId,
+          storeName: t.store?.name || t.dealerName || t.customerName || "",
+          customerName: t.store?.name || t.dealerName || t.customerName || "",
+          dealerName: t.store?.name || t.dealerName || t.customerName || "",
+          name: resolvedName,
+          customer: resolvedName,
+          isSubDealer: isSub,
+          subdealerId: t.subdealerId,
+          subdealerName: t.subdealer?.name || t.subdealerName || "",
+          isUnregisteredSubdealer: Boolean(t.isUnregisteredSubdealer),
+          subDealerStore: t.subDealerStore || "",
+          village: t.village || "",
+          objective: t.objective || "",
+          detail: t.detail || "",
+          store: t.store,
+          subdealer: t.subdealer,
+          results: t.results,
+        };
+      })
     : [];
 
   const primary = list[0] || {
     id: "1",
     isSubDealer: false,
+    name: "",
+    customer: "",
     village: "",
     objective: "",
     detail: "",

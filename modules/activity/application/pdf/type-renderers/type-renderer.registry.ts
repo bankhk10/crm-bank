@@ -16,6 +16,7 @@ import { Type11PdfRenderer } from "./type-11.renderer";
 import { Type12PdfRenderer } from "./type-12.renderer";
 import { Type13PdfRenderer } from "./type-13.renderer";
 import { Type14PdfRenderer } from "./type-14.renderer";
+import { Type15PdfRenderer } from "./type-15.renderer";
 import { DefaultTypePdfRenderer } from "./default.renderer";
 
 export class TypeRendererRegistry {
@@ -42,6 +43,7 @@ export class TypeRendererRegistry {
     this.register(new Type12PdfRenderer());
     this.register(new Type13PdfRenderer());
     this.register(new Type14PdfRenderer());
+    this.register(new Type15PdfRenderer());
   }
 
   public static getInstance(): TypeRendererRegistry {

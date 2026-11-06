@@ -50,6 +50,10 @@ export interface Type15TargetItem {
   id: string;
   storeId?: string | null;
   storeName?: string | null;
+  customerName?: string | null;
+  dealerName?: string | null;
+  name?: string | null;
+  customer?: string | null;
   subdealerId?: string | null;
   subdealerName?: string | null;
   isSubDealer?: boolean;
