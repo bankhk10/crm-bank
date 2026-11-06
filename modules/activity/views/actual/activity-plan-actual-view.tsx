@@ -2065,9 +2065,10 @@ export function ActivityPlanActualView({
       {/* Popup Modal แจ้งเตือนเมื่อข้อมูลไม่ครบถ้วน */}
       <ValidationAlertDialog
         alert={validationAlert}
-        onClose={() =>
-          setValidationAlert((prev) => ({ ...prev, isOpen: false }))
-        }
+        onClose={() => {
+          setValidationAlert((prev) => ({ ...prev, isOpen: false }));
+          setIsSubmitting(false);
+        }}
       />
     </section>
   );

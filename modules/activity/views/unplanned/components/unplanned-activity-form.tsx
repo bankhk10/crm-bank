@@ -170,6 +170,7 @@ export function UnplannedActivityForm({
     description?: string,
     messages: string[] = [],
   ) => {
+    setSubmitting(false);
     setValidationAlert({
       isOpen: true,
       title,
@@ -2659,9 +2660,10 @@ export function UnplannedActivityForm({
       {/* Popup Modal แจ้งเตือนเมื่อข้อมูลไม่ถูกต้องหรือไม่ครบถ้วน */}
       <ValidationAlertDialog
         alert={validationAlert}
-        onClose={() =>
-          setValidationAlert((prev) => ({ ...prev, isOpen: false }))
-        }
+        onClose={() => {
+          setValidationAlert((prev) => ({ ...prev, isOpen: false }));
+          setSubmitting(false);
+        }}
       />
     </form>
   );
