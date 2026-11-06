@@ -1420,7 +1420,7 @@ export function UnplannedActivityForm({
         }
       }
 
-      const mapped = mapType7bUnplannedToPayload(updatedType7bItems);
+      const mapped = mapType7bUnplannedToPayload(updatedType7bItems, products);
 
       if (mapped.planProducts?.length) {
         planProducts = [...planProducts, ...mapped.planProducts];
@@ -2161,7 +2161,7 @@ export function UnplannedActivityForm({
       : null;
 
     const mappedType7b = isType7bActive
-      ? mapType7bUnplannedToPayload(updatedType7bItems || type7b.items)
+      ? mapType7bUnplannedToPayload(updatedType7bItems || type7b.items, products)
       : null;
 
     const mappedType8 = isType8Active

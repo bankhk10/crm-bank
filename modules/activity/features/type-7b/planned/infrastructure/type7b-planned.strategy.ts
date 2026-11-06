@@ -150,6 +150,30 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
 
     // 3. Save into dedicated ActivityResultType7b table
     let createdResult: any = null;
+    const demoYieldNum =
+      t7b.t7FinalYieldKg != null && t7b.t7FinalYieldKg !== ""
+        ? Number(t7b.t7FinalYieldKg)
+        : null;
+    const controlYieldNum =
+      t7b.t7ControlYieldKg != null && t7b.t7ControlYieldKg !== ""
+        ? Number(t7b.t7ControlYieldKg)
+        : null;
+    let calcYieldPercent: Prisma.Decimal | null = null;
+    if (
+      t7b.t7YieldIncreasePercent != null &&
+      t7b.t7YieldIncreasePercent !== "" &&
+      !isNaN(Number(t7b.t7YieldIncreasePercent))
+    ) {
+      calcYieldPercent = new Prisma.Decimal(String(t7b.t7YieldIncreasePercent));
+    } else if (
+      demoYieldNum != null &&
+      controlYieldNum != null &&
+      controlYieldNum > 0
+    ) {
+      const pct = ((demoYieldNum - controlYieldNum) / controlYieldNum) * 100;
+      calcYieldPercent = new Prisma.Decimal(pct.toFixed(2));
+    }
+
     if ((tx as any).activityResultType7b) {
       await (tx as any).activityResultType7b.deleteMany({
         where: { activityPlanId },
@@ -178,12 +202,15 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
           finalHarvestDate: t7b.t7FinalHarvestDate
             ? new Date(t7b.t7FinalHarvestDate)
             : null,
-          demoYieldKg: t7b.t7FinalYieldKg
-            ? new Prisma.Decimal(String(t7b.t7FinalYieldKg))
-            : null,
-          controlYieldKg: t7b.t7ControlYieldKg
-            ? new Prisma.Decimal(String(t7b.t7ControlYieldKg))
-            : null,
+          demoYieldKg:
+            demoYieldNum != null
+              ? new Prisma.Decimal(String(demoYieldNum))
+              : null,
+          controlYieldKg:
+            controlYieldNum != null
+              ? new Prisma.Decimal(String(controlYieldNum))
+              : null,
+          yieldIncreasePercent: calcYieldPercent,
           farmerSatisfaction: t7b.t7FarmerSatisfaction
             ? Number(t7b.t7FarmerSatisfaction)
             : null,
@@ -327,8 +354,10 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
                   ? new Prisma.Decimal(String(p.withdrawnQuantity))
                   : new Prisma.Decimal(String(qty));
               const extraQty =
-                p.extraQuantity != null && p.extraQuantity !== ""
-                  ? String(p.extraQuantity)
+                p.extraQuantity != null &&
+                p.extraQuantity !== "" &&
+                !isNaN(Number(p.extraQuantity))
+                  ? new Prisma.Decimal(String(p.extraQuantity))
                   : null;
 
               return {
@@ -427,6 +456,31 @@ export const type7bPlannedStrategy: WorkTypeStrategy = {
    */
   async loadPlan(_db: any, activityPlanId: string): Promise<any> {
     return findType7bByPlanId(activityPlanId);
+  },
+
+  /**
+   * Load Type 7B Actual Data
+   */
+  async loadActual(tx: any, activityPlanId: string): Promise<any | null> {
+    const result = await (tx as any).activityResultType7b?.findFirst({
+      where: { activityPlanId },
+      include: {
+        sprayRounds: {
+          include: {
+            sprayProducts: {
+              include: { product: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            sprayExternals: {
+              orderBy: { sortOrder: "asc" },
+            },
+          },
+          orderBy: { roundNumber: "asc" },
+        },
+        attachments: true,
+      },
+    });
+    return result || null;
   },
 };
 

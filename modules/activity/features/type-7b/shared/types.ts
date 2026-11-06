@@ -46,9 +46,12 @@ export interface Type7bDataInput {
   sourceActivityPlanId?: string | null;
   type7aTargetId?: string | null;
   demoPlotId?: string | null;
+  plotName?: string | null;
   storeId?: string | null;
   dealerName?: string | null;
+  dealerStoreName?: string | null;
   farmerName?: string | null;
+  ownerName?: string | null;
   farmerPhone?: string | null;
   province?: string | null;
   district?: string | null;

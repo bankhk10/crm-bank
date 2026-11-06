@@ -6,6 +6,7 @@ import {
 } from "@prisma/client";
 import type {
   Type7bDataInput,
+  Type7bPlotInput,
   Type7bFollowUpPlanOption,
 } from "../../shared/types";
 
@@ -37,8 +38,40 @@ export async function createType7bData(
     }
   }
 
-  const rawPlots = type7bData.plots || (type7bData.type7aTargetId || type7bData.demoPlotId ? [{ type7aTargetId: type7bData.type7aTargetId || type7bData.demoPlotId }] : []);
-  const validPlots = rawPlots.filter((p) => Boolean(p.type7aTargetId || p.demoPlotId));
+  const rawPlots: Type7bPlotInput[] =
+    type7bData.plots ||
+    (type7bData.type7aTargetId ||
+    type7bData.demoPlotId ||
+    type7bData.plotName ||
+    type7bData.farmerName
+      ? [
+          {
+            type7aTargetId:
+              type7bData.type7aTargetId || type7bData.demoPlotId,
+            demoPlotId: type7bData.demoPlotId,
+            plotName: type7bData.plotName,
+            cropName: type7bData.cropName,
+            farmerName: type7bData.farmerName || type7bData.ownerName,
+            ownerName: type7bData.ownerName || type7bData.farmerName,
+            province: type7bData.province,
+            district: type7bData.district,
+            areaRai: type7bData.areaRai,
+            treeCount: type7bData.treeCount,
+            dealerName: type7bData.dealerName || type7bData.dealerStoreName,
+            dealerStoreName: type7bData.dealerStoreName || type7bData.dealerName,
+          },
+        ]
+      : []);
+  const validPlots = rawPlots.filter((p) =>
+    Boolean(
+      p.type7aTargetId ||
+        p.demoPlotId ||
+        p.plotName ||
+        p.farmerName ||
+        p.ownerName ||
+        p.cropName,
+    ),
+  );
   let createdTargetId: string | null = null;
 
   if (validPlots.length > 0) {

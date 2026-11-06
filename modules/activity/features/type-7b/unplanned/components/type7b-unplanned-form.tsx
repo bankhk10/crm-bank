@@ -661,11 +661,18 @@ export function Type7bUnplannedForm({
                       value={[item.province, item.district]
                         .filter(Boolean)
                         .join(" / ")}
-                      onChange={(e) =>
-                        updateItem(item.id, "province", e.target.value)
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val.includes("/")) {
+                          const [p, d] = val.split("/").map((s) => s.trim());
+                          updateItem(item.id, "province", p || "");
+                          updateItem(item.id, "district", d || "");
+                        } else {
+                          updateItem(item.id, "province", val);
+                        }
+                      }}
                       disabled={readonly}
-                      placeholder="ระบุจังหวัด/อำเภอ..."
+                      placeholder="ระบุจังหวัด / อำเภอ เช่น ขอนแก่น / เมือง..."
                     />
                   </div>
                 </div>
@@ -790,7 +797,10 @@ export function Type7bUnplannedForm({
 
                 {/* Dynamic Round Cards */}
                 {rounds.map((round, rIdx) => {
-                  const prods = round.additionalProducts || [];
+                  const prods =
+                    round.additionalProducts && round.additionalProducts.length > 0
+                      ? round.additionalProducts
+                      : round.baselineProducts || [];
                   const roundNum = round.roundNumber || rIdx + 1;
 
                   return (
@@ -865,7 +875,7 @@ export function Type7bUnplannedForm({
                           <div className="space-y-3">
                             {prods.map((prod, pIdx) => (
                               <div
-                                key={prod.id || pIdx}
+                                key={(prod as any).id || prod.productId || pIdx}
                                 className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 space-y-3"
                               >
                                 <div className="flex items-center justify-between">
