@@ -466,6 +466,16 @@ export function Type9ActualForm({
     );
   }, [localItems]);
 
+  const totalTargetAmount = useMemo(() => {
+    return localItems.reduce((sum, it) => {
+      const rowTarget =
+        it.totalAmount != null
+          ? Number(it.totalAmount)
+          : (Number(it.quantityCases) || 0) * (Number(it.pricePerCase) || 0);
+      return sum + (isNaN(rowTarget) ? 0 : rowTarget);
+    }, 0);
+  }, [localItems]);
+
   return (
     <div className="space-y-4">
       {/* 1. PLANNED TARGET CARD */}
@@ -512,7 +522,8 @@ export function Type9ActualForm({
                   <tr>
                     <th className="py-2.5 px-3">ชื่อสินค้า</th>
                     <th className="py-2.5 px-3 text-center">เป้าหมาย (ลัง)</th>
-                    <th className="py-2.5 px-3 text-right">ยอดรวม (บาท)</th>
+                    <th className="py-2.5 px-3 text-right">ยอดรวม / ลัง</th>
+                    <th className="py-2.5 px-3 text-right">รวมเป้าหมาย</th>
                     <th className="py-2.5 px-3 min-w-[120px] text-center">
                       ขายได้จริง (ลัง)
                     </th>
@@ -525,86 +536,103 @@ export function Type9ActualForm({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-teal-50">
-                  {localItems.map((item, idx) => (
-                    <tr
-                      key={item.id || idx}
-                      className="hover:bg-teal-50/20 transition-colors"
-                    >
-                      <td className="py-2.5 px-3 font-medium text-slate-800">
-                        {item.productName}
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-slate-500">
-                        {item.quantityCases ?? "-"}
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-medium text-slate-700">
-                        {item.pricePerCase
-                          ? `${Number(item.pricePerCase).toLocaleString()} ฿`
-                          : "-"}
-                      </td>
-                      <td className="py-2 px-3">
-                        <ActivityNumberInput
-                          id={`t9-item-qty-${idx}`}
-                          min={0}
-                          allowDecimals={false}
-                          defaultValueOnBlur={0}
-                          placeholder="0"
-                          value={cleanNumberString(item.actualQuantityCases)}
-                          onChangeValue={(val, raw) =>
-                            handleItemChange(
-                              idx,
-                              "actualQuantityCases",
-                              raw,
-                            )
-                          }
-                          className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
-                        />
-                      </td>
-                      <td className="py-2 px-3">
-                        <ActivityNumberInput
-                          id={`t9-item-bottles-${idx}`}
-                          min={0}
-                          allowDecimals={false}
-                          defaultValueOnBlur={0}
-                          placeholder="0"
-                          value={cleanNumberString(item.actualBottleQuantity) || "0"}
-                          onChangeValue={(val, raw) =>
-                            handleItemChange(
-                              idx,
-                              "actualBottleQuantity",
-                              raw,
-                            )
-                          }
-                          className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        <ActivityNumberInput
-                          id={`t9-item-sales-${idx}`}
-                          min={0}
-                          defaultValueOnBlur={0}
-                          placeholder="0.00"
-                          value={cleanNumberString(item.actualSales)}
-                          onChangeValue={(val, raw) =>
-                            handleItemChange(idx, "actualSales", raw)
-                          }
-                          className="h-9 text-xs text-right font-bold text-emerald-800 focus:ring-emerald-500"
-                        />
-                        {item.actualSales &&
-                          !isNaN(Number(cleanNumberString(item.actualSales))) &&
-                          Number(cleanNumberString(item.actualSales)) > 0 && (
-                            <div className="text-[10px] text-emerald-600 font-mono text-right mt-0.5">
-                              ฿{Number(cleanNumberString(item.actualSales)).toLocaleString()}
-                            </div>
-                          )}
-                      </td>
-                    </tr>
-                  ))}
+                  {localItems.map((item, idx) => {
+                    const rowTargetTotal =
+                      item.totalAmount != null
+                        ? Number(item.totalAmount)
+                        : (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0);
+
+                    return (
+                      <tr
+                        key={item.id || idx}
+                        className="hover:bg-teal-50/20 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-medium text-slate-800">
+                          {item.productName}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-slate-500">
+                          {item.quantityCases ?? "-"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-medium text-slate-700">
+                          {item.pricePerCase
+                            ? `${Number(item.pricePerCase).toLocaleString()} ฿`
+                            : "-"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-semibold text-teal-800">
+                          {rowTargetTotal > 0
+                            ? `${rowTargetTotal.toLocaleString()} ฿`
+                            : "-"}
+                        </td>
+                        <td className="py-2 px-3">
+                          <ActivityNumberInput
+                            id={`t9-item-qty-${idx}`}
+                            min={0}
+                            allowDecimals={false}
+                            defaultValueOnBlur={0}
+                            placeholder="0"
+                            value={cleanNumberString(item.actualQuantityCases)}
+                            onChangeValue={(val, raw) =>
+                              handleItemChange(
+                                idx,
+                                "actualQuantityCases",
+                                raw,
+                              )
+                            }
+                            className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
+                          />
+                        </td>
+                        <td className="py-2 px-3">
+                          <ActivityNumberInput
+                            id={`t9-item-bottles-${idx}`}
+                            min={0}
+                            allowDecimals={false}
+                            defaultValueOnBlur={0}
+                            placeholder="0"
+                            value={cleanNumberString(item.actualBottleQuantity) || "0"}
+                            onChangeValue={(val, raw) =>
+                              handleItemChange(
+                                idx,
+                                "actualBottleQuantity",
+                                raw,
+                              )
+                            }
+                            className="h-9 text-xs text-center font-bold text-teal-900 focus:ring-teal-500"
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-right">
+                          <ActivityNumberInput
+                            id={`t9-item-sales-${idx}`}
+                            min={0}
+                            defaultValueOnBlur={0}
+                            placeholder="0.00"
+                            value={cleanNumberString(item.actualSales)}
+                            onChangeValue={(val, raw) =>
+                              handleItemChange(idx, "actualSales", raw)
+                            }
+                            className="h-9 text-xs text-right font-bold text-emerald-800 focus:ring-emerald-500"
+                          />
+                          {item.actualSales &&
+                            !isNaN(Number(cleanNumberString(item.actualSales))) &&
+                            Number(cleanNumberString(item.actualSales)) > 0 && (
+                              <div className="text-[10px] text-emerald-600 font-mono text-right mt-0.5">
+                                ฿{Number(cleanNumberString(item.actualSales)).toLocaleString()}
+                              </div>
+                            )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
                 {localItems.length > 0 && (
                   <tfoot className="bg-teal-50/60 border-t border-teal-100 font-semibold text-teal-950">
                     <tr>
                       <td colSpan={3} className="py-2 px-3 text-right text-xs">
                         รวมตามรายการสินค้า:
+                      </td>
+                      <td className="py-2 px-3 text-right text-xs text-teal-900 font-bold">
+                        {totalTargetAmount > 0
+                          ? `${totalTargetAmount.toLocaleString()} ฿`
+                          : "-"}
                       </td>
                       <td className="py-2 px-3 text-center text-xs text-teal-900 font-bold">
                         {totalQuantityCases.toLocaleString()} ลัง

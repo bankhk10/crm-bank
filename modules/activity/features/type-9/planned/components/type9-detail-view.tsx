@@ -158,44 +158,57 @@ export function Type9DetailView({
                   <tr>
                     <th className="py-2 px-3">สินค้า</th>
                     <th className="py-2 px-3 text-center">เป้าหมาย (ลัง)</th>
-                    <th className="py-2 px-3 text-right">ยอดรวม (บาท)</th>
+                    <th className="py-2 px-3 text-right">ยอดรวม / ลัง</th>
+                    <th className="py-2 px-3 text-right">รวมเป้าหมาย</th>
                     <th className="py-2 px-3 text-center">ขายได้จริง (ลัง)</th>
                     <th className="py-2 px-3 text-center">ขายได้จริง (ขวด)</th>
                     <th className="py-2 px-3 text-right">ยอดขายจริง (บาท)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {effectiveSalesList.map((item, idx) => (
-                    <tr key={item.id || idx} className="hover:bg-slate-50/50">
-                      <td className="py-2 px-3 font-medium text-slate-800">
-                        {item.productName}
-                      </td>
-                      <td className="py-2 px-3 text-center text-slate-500">
-                        {item.quantityCases != null ? `${item.quantityCases}` : "-"}
-                      </td>
-                      <td className="py-2 px-3 text-right text-slate-600 font-medium">
-                        {item.pricePerCase != null && Number(item.pricePerCase) > 0
-                          ? `${Number(item.pricePerCase).toLocaleString()} ฿`
-                          : "-"}
-                      </td>
-                      <td className="py-2 px-3 text-center font-bold text-teal-800">
-                        {item.actualQuantityCases != null && item.actualQuantityCases !== ""
-                          ? `${item.actualQuantityCases}`
-                          : "-"}
-                      </td>
-                      <td className="py-2 px-3 text-center font-bold text-teal-800">
-                        {item.actualBottleQuantity != null &&
-                        item.actualBottleQuantity !== ""
-                          ? `${item.actualBottleQuantity}`
-                          : "0"}
-                      </td>
-                      <td className="py-2 px-3 text-right font-extrabold text-emerald-700">
-                        {item.actualSales != null && item.actualSales !== ""
-                          ? `${Number(String(item.actualSales).replace(/,/g, "")).toLocaleString()} ฿`
-                          : "-"}
-                      </td>
-                    </tr>
-                  ))}
+                  {effectiveSalesList.map((item, idx) => {
+                    const rowTargetTotal =
+                      item.totalAmount != null
+                        ? Number(item.totalAmount)
+                        : (Number(item.quantityCases) || 0) * (Number(item.pricePerCase) || 0);
+
+                    return (
+                      <tr key={item.id || idx} className="hover:bg-slate-50/50">
+                        <td className="py-2 px-3 font-medium text-slate-800">
+                          {item.productName}
+                        </td>
+                        <td className="py-2 px-3 text-center text-slate-500">
+                          {item.quantityCases != null ? `${item.quantityCases}` : "-"}
+                        </td>
+                        <td className="py-2 px-3 text-right text-slate-600 font-medium">
+                          {item.pricePerCase != null && Number(item.pricePerCase) > 0
+                            ? `${Number(item.pricePerCase).toLocaleString()} ฿`
+                            : "-"}
+                        </td>
+                        <td className="py-2 px-3 text-right font-semibold text-teal-800">
+                          {rowTargetTotal > 0
+                            ? `${rowTargetTotal.toLocaleString()} ฿`
+                            : "-"}
+                        </td>
+                        <td className="py-2 px-3 text-center font-bold text-teal-800">
+                          {item.actualQuantityCases != null && item.actualQuantityCases !== ""
+                            ? `${item.actualQuantityCases}`
+                            : "-"}
+                        </td>
+                        <td className="py-2 px-3 text-center font-bold text-teal-800">
+                          {item.actualBottleQuantity != null &&
+                          item.actualBottleQuantity !== ""
+                            ? `${item.actualBottleQuantity}`
+                            : "0"}
+                        </td>
+                        <td className="py-2 px-3 text-right font-extrabold text-emerald-700">
+                          {item.actualSales != null && item.actualSales !== ""
+                            ? `${Number(String(item.actualSales).replace(/,/g, "")).toLocaleString()} ฿`
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
