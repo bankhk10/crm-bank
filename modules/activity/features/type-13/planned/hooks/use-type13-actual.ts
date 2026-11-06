@@ -1,0 +1,864 @@
+"use client";
+
+import { useState, useCallback, useRef } from "react";
+import type {
+  Type13PlotActualState,
+  Type13ActualProductState,
+} from "../types/actual.types";
+import type {
+  Type13ImageFile,
+  Type13SprayingRound,
+  Type13ExternalProduct,
+} from "../../shared/types";
+import {
+  uploadActivityPlanImageGroup,
+  collectPermanentUrls,
+} from "@/modules/activity/application/media/image-uploader";
+import { validateType13Actual } from "../application/actual-validation";
+
+export type { Type13ActualProductState, Type13PlotActualState };
+export { validateType13Actual };
+
+const createDefaultInitialPlot = (): Type13PlotActualState => {
+  const tempId = `temp-draft-${Date.now()}`;
+  return {
+    clientPlotId: tempId,
+    demoPlotId: null,
+    plotName: "",
+    storeId: "",
+    dealerName: "",
+    province: "",
+    district: "",
+    subdistrict: "",
+    village: "",
+    plannedPlotsCount: "",
+    actualPlotsCount: "",
+    applicationRate: "",
+    isNew: true,
+    latitude: "",
+    longitude: "",
+    afterSprayImages: [],
+    sprayRounds: [],
+  };
+};
+
+export function useType13Actual() {
+  const [plotsActual, setPlotsActual] = useState<Type13PlotActualState[]>([
+    createDefaultInitialPlot(),
+  ]);
+  const initialPlotsRef = useRef<Type13PlotActualState[]>([]);
+  const planRef = useRef<any>(null);
+
+  // Hydrate state from plan and existing actual result
+  const hydrate = useCallback((plan: any, parsedResult?: any, _targets?: any) => {
+    if (!plan) return;
+    planRef.current = plan;
+
+    const rawVisits = plan.demoPlotVisits || [];
+    const hattackVisits = rawVisits.filter(
+      (v: any) => v.demoPlot?.plotType === "HATTACK" || v.workTypeCode === "TYPE_13",
+    );
+
+    const seenPlotIds = new Set<string>();
+    const uniqueHattackVisits = hattackVisits.filter((v: any) => {
+      const pId = v.demoPlot?.id || v.demoPlotId;
+      if (!pId) return true;
+      if (seenPlotIds.has(pId)) return false;
+      seenPlotIds.add(pId);
+      return true;
+    });
+
+    let basePlots: Type13PlotActualState[] = [];
+
+    const rawPlots =
+      (plan.type13?.plots && Array.isArray(plan.type13.plots) && plan.type13.plots.length > 0 && plan.type13.plots) ||
+      (plan.type13Plots && Array.isArray(plan.type13Plots) && plan.type13Plots.length > 0 && plan.type13Plots) ||
+      (plan.type13Targets && Array.isArray(plan.type13Targets) && plan.type13Targets.length > 0 && plan.type13Targets) ||
+      null;
+
+    if (rawPlots) {
+      basePlots = rawPlots.map((p: any, idx: number) => {
+        const plotId = p.demoPlotId || p.demoPlot?.id || p.id || `plot-${idx}`;
+        const plotName =
+          p.plotName || p.name || p.demoPlot?.name || `แปลงที่ ${idx + 1}`;
+        const matchedStore =
+          p.store ||
+          p.demoPlot?.customer ||
+          (p.storeId && plan.stores?.find((s: any) => s.storeId === p.storeId)?.store) ||
+          (p.demoPlot?.customerId && plan.stores?.find((s: any) => s.storeId === p.demoPlot.customerId)?.store);
+
+        const targetResult =
+          (p.results && p.results[0]) ||
+          (Array.isArray(plan.type13Results) &&
+            plan.type13Results.find((r: any) => r.targetId === p.id)) ||
+          (Array.isArray(plan.type13Results) && plan.type13Results[idx]) ||
+          p.result;
+
+        return {
+          demoPlotId: plotId,
+          plotName,
+          dealerName:
+            p.dealerName ||
+            matchedStore?.name ||
+            p.demoPlot?.customer?.name ||
+            undefined,
+          storeId:
+            p.storeId ||
+            matchedStore?.id ||
+            p.demoPlot?.customerId ||
+            undefined,
+          province:
+            p.province ||
+            p.demoPlot?.province ||
+            matchedStore?.province ||
+            undefined,
+          district:
+            p.district ||
+            p.demoPlot?.district ||
+            matchedStore?.district ||
+            undefined,
+          subdistrict: p.subdistrict || undefined,
+          village: p.village || targetResult?.notes || undefined,
+          objective: p.objective || undefined,
+          plannedPlotsCount: p.plannedPlotsCount ?? undefined,
+          actualPlotsCount: targetResult?.actualPlotsCount ?? p.actualPlotsCount ?? undefined,
+          applicationRate: p.applicationRate || undefined,
+          latitude:
+            targetResult?.actualLatitude != null
+              ? String(targetResult.actualLatitude)
+              : p.latitude != null
+                ? String(p.latitude)
+                : p.demoPlot?.latitude != null
+                  ? String(p.demoPlot.latitude)
+                  : "",
+          longitude:
+            targetResult?.actualLongitude != null
+              ? String(targetResult.actualLongitude)
+              : p.longitude != null
+                ? String(p.longitude)
+                : p.demoPlot?.longitude != null
+                  ? String(p.demoPlot.longitude)
+                  : "",
+          isNew: false,
+          afterSprayImages: [],
+          sprayRounds: [],
+          products: (() => {
+            const rawTargetProducts: any[] =
+              (p.withdrawnProducts && p.withdrawnProducts.length > 0 && p.withdrawnProducts) ||
+              (p.products && p.products.length > 0 && p.products) ||
+              (plan.type13Products && plan.type13Products.length > 0 && plan.type13Products) ||
+              [];
+
+            const existingSprayProds: any[] =
+              targetResult?.sprayRounds?.[0]?.sprayProducts ||
+              (Array.isArray(plan.type13Results) &&
+                plan.type13Results.find((r: any) => r.targetId === p.id)?.sprayRounds?.[0]?.sprayProducts) ||
+              [];
+
+            const list: Type13ActualProductState[] = rawTargetProducts.map((tp: any, pIdx: number) => {
+              const pId = tp.productId || tp.product?.id || tp.id;
+              const pName = tp.productName || tp.product?.name || tp.name || "สินค้าตามแผน";
+              const unit = tp.unit || tp.product?.unit || "ขวด";
+              const withdrawnQty = tp.quantity ?? tp.withdrawnQuantity ?? tp.targetQuantity ?? 1;
+              const matchedActual = existingSprayProds.find((sp: any) => sp.productId === pId) || existingSprayProds[pIdx];
+
+              return {
+                productId: pId,
+                productName: pName,
+                unit,
+                withdrawnQuantity: withdrawnQty,
+                actualQuantity: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
+                extraQuantity:
+                  matchedActual?.extraQuantity != null && String(matchedActual.extraQuantity).trim() !== ""
+                    ? String(matchedActual.extraQuantity)
+                    : tp.extraQuantity || (matchedActual?.detail?.match(/\+(\d+(?:\.\d+)?)/)?.[1] ?? ""),
+                extraUnit:
+                  matchedActual?.extraUnit ||
+                  tp.extraUnit ||
+                  (matchedActual?.detail?.match(/\d+\s*(ซีซี|กรัม|มล\.|ลิตร)/)?.[1] ?? "ซีซี"),
+                actualRate: matchedActual?.actualRate || tp.actualRate || tp.applicationRate || "",
+                quantityUsed: matchedActual?.quantityUsed != null ? Number(matchedActual.quantityUsed) : (tp.actualQuantity ?? withdrawnQty),
+              };
+            });
+
+            if (list.length === 0 && existingSprayProds.length > 0) {
+              existingSprayProds.forEach((sp: any) => {
+                list.push({
+                  productId: sp.productId,
+                  productName: sp.productName || sp.product?.name || "สินค้าตัวอย่าง",
+                  unit: sp.unit || sp.product?.unit || "ขวด",
+                  withdrawnQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                  actualQuantity: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                  extraQuantity:
+                    sp.extraQuantity != null && String(sp.extraQuantity).trim() !== ""
+                      ? String(sp.extraQuantity)
+                      : (sp.detail?.match(/\+(\d+(?:\.\d+)?)/)?.[1] ?? ""),
+                  extraUnit:
+                    sp.extraUnit ||
+                    (sp.detail?.match(/\d+\s*(ซีซี|กรัม|มล\.|ลิตร)/)?.[1] ?? "ซีซี"),
+                  actualRate: sp.actualRate || "",
+                  quantityUsed: sp.quantityUsed != null ? Number(sp.quantityUsed) : 1,
+                });
+              });
+            }
+
+            return list;
+          })(),
+        };
+      });
+    } else if (uniqueHattackVisits.length > 0) {
+      basePlots = uniqueHattackVisits.map((v: any, idx: number) => {
+        const demo = v.demoPlot || {};
+        return {
+          demoPlotId: demo.id || v.demoPlotId || `plot-${idx}`,
+          plotName: demo.name || `แปลงที่ ${idx + 1}`,
+          dealerName: demo.customer?.name || undefined,
+          storeId: demo.customerId || undefined,
+          province: demo.province || undefined,
+          district: demo.district || undefined,
+          subdistrict: undefined,
+          village: undefined,
+          plannedPlotsCount: undefined,
+          actualPlotsCount: undefined,
+          applicationRate: undefined,
+          latitude: demo.latitude != null ? String(demo.latitude) : "",
+          longitude: demo.longitude != null ? String(demo.longitude) : "",
+          isNew: false,
+          afterSprayImages: [],
+          sprayRounds: [],
+        };
+      });
+    }
+
+    if (basePlots.length === 0) {
+      basePlots = [createDefaultInitialPlot()];
+    }
+
+    // 1. Collect all candidate spray rounds
+    const existingSprayRounds: any[] = [
+      ...(Array.isArray(plan.type13Results)
+        ? plan.type13Results.flatMap((r: any) => r.sprayRounds || [])
+        : []),
+      ...(plan.type13Actual?.sprayRounds || []),
+      ...(plan.result?.sprayRounds || []),
+      ...(parsedResult?.sprayRounds || []),
+      ...(parsedResult?.type13Actual?.sprayRounds || []),
+    ];
+
+    // 2. Collect and deduplicate all candidate attachments across plan and results
+    const rawCandidateAttachments: any[] = [
+      ...(Array.isArray(plan.type13Results)
+        ? plan.type13Results.flatMap((r: any) => r.attachments || [])
+        : []),
+      ...(plan.type13Actual?.attachments || []),
+      ...(plan.attachments || []),
+      ...(plan.result?.attachments || []),
+      ...(Array.isArray(parsedResult) ? parsedResult : []),
+    ];
+
+    const uniqueAttachmentsMap = new Map<string, any>();
+    rawCandidateAttachments.forEach((att: any) => {
+      const key = att.id || att.fileUrl || att.url;
+      if (key && !uniqueAttachmentsMap.has(key)) {
+        uniqueAttachmentsMap.set(key, att);
+      }
+    });
+    const allAttachments = Array.from(uniqueAttachmentsMap.values());
+
+    basePlots = basePlots.map((plot, plotIdx) => {
+      const pId = plot.demoPlotId || (plot as any).id;
+
+      // Find matched target result for this plot
+      const targetResult =
+        (Array.isArray(plan.type13Results) &&
+          plan.type13Results.find(
+            (r: any) =>
+              (pId && r.targetId === pId) ||
+              (r.id && r.id === (plot as any).resultId),
+          )) ||
+        (Array.isArray(plan.type13Results) && plan.type13Results[plotIdx]) ||
+        (plot as any).targetResult ||
+        plan.result;
+
+      // Match spray rounds
+      const matchedRounds =
+        targetResult?.sprayRounds &&
+        Array.isArray(targetResult.sprayRounds) &&
+        targetResult.sprayRounds.length > 0
+          ? targetResult.sprayRounds
+          : existingSprayRounds.filter(
+              (r: any) =>
+                (targetResult?.id && r.resultId === targetResult.id) ||
+                (pId && (r.demoPlotId === pId || r.targetId === pId)) ||
+                (plot.clientPlotId && r.clientPlotId === plot.clientPlotId) ||
+                basePlots.length <= 1,
+            );
+
+      // Match after-spray images
+      const matchedAtts: any[] = [];
+      const seenUrls = new Set<string>();
+
+      const addAttachment = (a: any) => {
+        const url = a.fileUrl || a.url;
+        if (url && !seenUrls.has(url)) {
+          seenUrls.add(url);
+          matchedAtts.push(a);
+        }
+      };
+
+      // 1. Direct attachments from targetResult
+      if (
+        targetResult?.attachments &&
+        Array.isArray(targetResult.attachments) &&
+        targetResult.attachments.length > 0
+      ) {
+        targetResult.attachments.forEach(addAttachment);
+      }
+
+      // 2. Direct afterSprayImages from plot state (if already present)
+      if (
+        plot.afterSprayImages &&
+        Array.isArray(plot.afterSprayImages) &&
+        plot.afterSprayImages.length > 0
+      ) {
+        plot.afterSprayImages.forEach(addAttachment);
+      }
+
+      // 3. Scan allAttachments with comprehensive matching
+      allAttachments.forEach((a: any) => {
+        const isT13Attachment =
+          a.workTypeCode === "TYPE_13" ||
+          a.category === "AFTER_SPRAY" ||
+          a.category === "demo_plot_after_spray" ||
+          a.category === "PLOT" ||
+          (typeof a.fileUrl === "string" &&
+            (a.fileUrl.includes("/type13/") ||
+              a.fileUrl.includes("after_spray")));
+
+        if (!isT13Attachment) return;
+
+        const matchesThisPlot =
+          (targetResult?.id && a.type13ResultId === targetResult.id) ||
+          (pId && (a.targetId === pId || a.demoPlotId === pId)) ||
+          (plot.clientPlotId && a.clientPlotId === plot.clientPlotId) ||
+          basePlots.length <= 1 ||
+          (a.fileName &&
+            (a.fileName.includes(`แปลงแฮตแทค ${plotIdx + 1}`) ||
+              a.fileName.includes(`plot_${plotIdx + 1}`)));
+
+        if (matchesThisPlot) {
+          addAttachment(a);
+        }
+      });
+
+      const finalAfterSprayImages: Type13ImageFile[] = matchedAtts.map(
+        (a: any) => ({
+          id: a.id || `att-${Math.random()}`,
+          url: a.fileUrl || a.url,
+          name: a.fileName || a.name || `ภาพหลังฉีดพ่น แปลงที่ ${plotIdx + 1}`,
+          size: a.fileSize || a.size || 0,
+          type: a.mimeType || a.type || "image/jpeg",
+        }),
+      );
+
+      return {
+        ...plot,
+        afterSprayImages:
+          finalAfterSprayImages.length > 0
+            ? finalAfterSprayImages
+            : plot.afterSprayImages,
+        sprayRounds:
+          matchedRounds.length > 0 ? matchedRounds : plot.sprayRounds,
+      };
+    });
+
+    setPlotsActual(basePlots);
+    initialPlotsRef.current = JSON.parse(JSON.stringify(basePlots));
+  }, []);
+
+  const addPlot = useCallback(() => {
+    setPlotsActual((prev) => [...prev, createDefaultInitialPlot()]);
+  }, []);
+
+  const removePlot = useCallback((index: number) => {
+    setPlotsActual((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
+  const updatePlotField = useCallback(
+    (index: number, field: keyof Type13PlotActualState, value: any) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => (i === index ? { ...plot, [field]: value } : plot)),
+      );
+    },
+    [],
+  );
+
+  const addSprayRound = useCallback((plotIndex: number) => {
+    setPlotsActual((prev) =>
+      prev.map((plot, i) => {
+        if (i !== plotIndex) return plot;
+        const newRoundNumber = (plot.sprayRounds?.length || 0) + 1;
+        const newRound: any = {
+          roundNumber: newRoundNumber,
+          sprayDate: new Date().toISOString().split("T")[0],
+          sprayMethod: "SINGLE",
+          sprayEquipment: "เครื่องยนต์พ่นยา",
+          productResponse: "ปกติ",
+          problemDetail: "",
+          products: [],
+          externalProducts: [],
+          attachments: [],
+        };
+        return {
+          ...plot,
+          sprayRounds: [...(plot.sprayRounds || []), newRound],
+        };
+      }),
+    );
+  }, []);
+
+  const removeSprayRound = useCallback(
+    (plotIndex: number, roundIndex: number) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const filtered = (plot.sprayRounds || []).filter(
+            (_, rIdx) => rIdx !== roundIndex,
+          );
+          const renumbered = filtered.map((r, idx) => ({
+            ...r,
+            roundNumber: idx + 1,
+          }));
+          return { ...plot, sprayRounds: renumbered };
+        }),
+      );
+    },
+    [],
+  );
+
+  const updateSprayRound = useCallback(
+    (plotIndex: number, roundIndex: number, field: string, value: any) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex]) {
+            rounds[roundIndex] = { ...rounds[roundIndex], [field]: value };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const addProductToRound = useCallback(
+    (plotIndex: number, roundIndex: number, product: Type13ActualProductState) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex]) {
+            rounds[roundIndex] = {
+              ...rounds[roundIndex],
+              products: [...(rounds[roundIndex].products || []), product],
+            };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const removeProductFromRound = useCallback(
+    (plotIndex: number, roundIndex: number, productIndex: number) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex]) {
+            rounds[roundIndex] = {
+              ...rounds[roundIndex],
+              products: (rounds[roundIndex].products || []).filter(
+                (_, pIdx) => pIdx !== productIndex,
+              ),
+            };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const updatePlotProduct = useCallback(
+    (
+      plotIndex: number,
+      productIndex: number,
+      field: keyof Type13ActualProductState,
+      value: any,
+    ) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const prods = [...(plot.products || [])];
+          if (prods[productIndex]) {
+            prods[productIndex] = { ...prods[productIndex], [field]: value };
+            if (field === "actualQuantity") {
+              prods[productIndex].quantityUsed = value;
+            }
+          }
+          return { ...plot, products: prods };
+        }),
+      );
+    },
+    [],
+  );
+
+  const updateProductInRound = useCallback(
+    (
+      plotIndex: number,
+      roundIndex: number,
+      productIndex: number,
+      field: keyof Type13ActualProductState,
+      value: any,
+    ) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex] && rounds[roundIndex].products?.[productIndex]) {
+            const prods = [...rounds[roundIndex].products];
+            prods[productIndex] = { ...prods[productIndex], [field]: value };
+            rounds[roundIndex] = { ...rounds[roundIndex], products: prods };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const addExternalProductToRound = useCallback(
+    (plotIndex: number, roundIndex: number, extProduct: Type13ExternalProduct) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex]) {
+            rounds[roundIndex] = {
+              ...rounds[roundIndex],
+              externalProducts: [
+                ...(rounds[roundIndex].externalProducts || []),
+                extProduct,
+              ],
+            };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const removeExternalProductFromRound = useCallback(
+    (plotIndex: number, roundIndex: number, extProductIndex: number) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (rounds[roundIndex]) {
+            rounds[roundIndex] = {
+              ...rounds[roundIndex],
+              externalProducts: (rounds[roundIndex].externalProducts || []).filter(
+                (_, epIdx) => epIdx !== extProductIndex,
+              ),
+            };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const updateExternalProductInRound = useCallback(
+    (
+      plotIndex: number,
+      roundIndex: number,
+      extProductIndex: number,
+      field: keyof Type13ExternalProduct,
+      value: any,
+    ) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          const rounds = [...(plot.sprayRounds || [])];
+          if (
+            rounds[roundIndex] &&
+            rounds[roundIndex].externalProducts?.[extProductIndex]
+          ) {
+            const extProds = [...rounds[roundIndex].externalProducts];
+            extProds[extProductIndex] = {
+              ...extProds[extProductIndex],
+              [field]: value,
+            };
+            rounds[roundIndex] = {
+              ...rounds[roundIndex],
+              externalProducts: extProds,
+            };
+          }
+          return { ...plot, sprayRounds: rounds };
+        }),
+      );
+    },
+    [],
+  );
+
+  const addPlotAfterSprayImages = useCallback(
+    (plotIndex: number, newFiles: File[]) => {
+      if (!newFiles || newFiles.length === 0) return;
+      const newImages: Type13ImageFile[] = newFiles.map((file, idx) => ({
+        id: `local-after-spray-${Date.now()}-${idx}`,
+        url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        rawFile: file,
+        file,
+      }));
+
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          return {
+            ...plot,
+            afterSprayImages: [...(plot.afterSprayImages || []), ...newImages],
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  const removePlotAfterSprayImage = useCallback(
+    (plotIndex: number, imageIndex: number) => {
+      setPlotsActual((prev) =>
+        prev.map((plot, i) => {
+          if (i !== plotIndex) return plot;
+          return {
+            ...plot,
+            afterSprayImages: (plot.afterSprayImages || []).filter(
+              (_, imgIdx) => imgIdx !== imageIndex,
+            ),
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  const uploadImages = useCallback(
+    async (
+      planId: string,
+      newlyUploadedUrls: string[],
+    ): Promise<Type13PlotActualState[]> => {
+      const updatedPlots: Type13PlotActualState[] = [];
+
+      for (let i = 0; i < plotsActual.length; i++) {
+        const plot = plotsActual[i];
+        let cleanImages = plot.afterSprayImages || [];
+
+        if (cleanImages.length > 0) {
+          const res = await uploadActivityPlanImageGroup(
+            planId,
+            cleanImages,
+            "type13",
+            "after_spray",
+          );
+          cleanImages = res.updatedImages;
+          newlyUploadedUrls.push(...res.newlyUploadedUrls);
+        }
+
+        updatedPlots.push({
+          ...plot,
+          afterSprayImages: cleanImages,
+        });
+      }
+
+      setPlotsActual(updatedPlots);
+      return updatedPlots;
+    },
+    [plotsActual],
+  );
+
+  const collectPayload = useCallback(
+    (plotsToCollect: Type13PlotActualState[] = plotsActual) => {
+      const normalizedPlots = plotsToCollect.map((p) => {
+        const prods = p.products || [];
+        const hasExistingRounds = p.sprayRounds && p.sprayRounds.length > 0;
+        const sprayRounds = hasExistingRounds
+          ? p.sprayRounds.map((r, rIdx) => {
+              if (rIdx === 0 && (!r.products || r.products.length === 0)) {
+                return {
+                  ...r,
+                  products: prods.map((prod) => ({
+                    productId: prod.productId,
+                    productName: prod.productName,
+                    actualRate: prod.actualRate || "",
+                    quantityUsed:
+                      prod.actualQuantity != null && String(prod.actualQuantity).trim() !== ""
+                        ? Number(prod.actualQuantity)
+                        : 1,
+                    unit: prod.unit || "ขวด",
+                    extraQuantity:
+                      prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                        ? Number(prod.extraQuantity)
+                        : null,
+                    extraUnit: prod.extraUnit || "ซีซี",
+                    detail: prod.extraQuantity
+                      ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
+                      : prod.detail || undefined,
+                  })),
+                };
+              }
+              return r;
+            })
+          : [
+              {
+                roundNumber: 1,
+                sprayDate: new Date().toISOString().split("T")[0],
+                sprayMethod: "SINGLE" as const,
+                sprayEquipment: "เครื่องยนต์พ่นยา",
+                productResponse: "ปกติ",
+                products: prods.map((prod) => ({
+                  productId: prod.productId,
+                  productName: prod.productName,
+                  actualRate: prod.actualRate || "",
+                  quantityUsed:
+                    prod.actualQuantity != null && String(prod.actualQuantity).trim() !== ""
+                      ? Number(prod.actualQuantity)
+                      : 1,
+                  unit: prod.unit || "ขวด",
+                  extraQuantity:
+                    prod.extraQuantity != null && String(prod.extraQuantity).trim() !== ""
+                      ? Number(prod.extraQuantity)
+                      : null,
+                  extraUnit: prod.extraUnit || "ซีซี",
+                  detail: prod.extraQuantity
+                    ? `+${prod.extraQuantity} ${prod.extraUnit || "ซีซี"}`
+                    : prod.detail || undefined,
+                })),
+                externalProducts: [],
+                attachments: [],
+              },
+            ];
+
+        return {
+          ...p,
+          sprayRounds,
+        };
+      });
+
+      const allRounds = normalizedPlots.flatMap((p) => p.sprayRounds || []);
+      const totalPlots = normalizedPlots.length;
+
+      return {
+        plots: normalizedPlots,
+        type13Plots: normalizedPlots,
+        type13Actual: {
+          plots: normalizedPlots,
+          sprayRounds: allRounds,
+          totalPlots,
+        },
+      };
+    },
+    [plotsActual],
+  );
+
+  const validate = useCallback(() => {
+    return validateType13Actual(plotsActual);
+  }, [plotsActual]);
+
+  return {
+    plotsActual,
+    setPlotsActual,
+    hydrate,
+    addPlot,
+    removePlot,
+    updatePlotField,
+    updatePlotProduct,
+    addSprayRound,
+    removeSprayRound,
+    updateSprayRound,
+    addProductToRound,
+    removeProductFromRound,
+    updateProductInRound,
+    addExternalProductToRound,
+    removeExternalProductFromRound,
+    updateExternalProductInRound,
+    updatePlotInfo: (index: number, field: keyof Type13PlotActualState, value: any) =>
+      updatePlotField(index, field, value),
+    updatePlotDealer: (
+      index: number,
+      storeId: string,
+      dealerName?: string,
+      province?: string,
+      district?: string,
+      subdistrict?: string,
+    ) => {
+      updatePlotField(index, "storeId", storeId);
+      if (dealerName) updatePlotField(index, "dealerName", dealerName);
+      if (province) updatePlotField(index, "province", province);
+      if (district) updatePlotField(index, "district", district);
+      if (subdistrict) updatePlotField(index, "subdistrict", subdistrict);
+    },
+    updatePlotCoordinates: (index: number, lat: string, lng: string) => {
+      updatePlotField(index, "latitude", lat);
+      updatePlotField(index, "longitude", lng);
+    },
+    addSprayingRound: addSprayRound,
+    removeSprayingRound: removeSprayRound,
+    updateRoundField: (plotIdx: number, rIdx: number, field: string, val: any) =>
+      updateSprayRound(plotIdx, rIdx, field, val),
+    updateRoundProduct: (
+      plotIdx: number,
+      rIdx: number,
+      pIdx: number,
+      field: keyof Type13ActualProductState,
+      val: any,
+    ) => updateProductInRound(plotIdx, rIdx, pIdx, field, val),
+    addRoundProduct: (
+      plotIdx: number,
+      rIdx: number,
+      prod: Type13ActualProductState,
+    ) => addProductToRound(plotIdx, rIdx, prod),
+    removeRoundProduct: (plotIdx: number, rIdx: number, pIdx: number) =>
+      removeProductFromRound(plotIdx, rIdx, pIdx),
+    addExternalProduct: (
+      plotIdx: number,
+      rIdx: number,
+      ext: Type13ExternalProduct,
+    ) => addExternalProductToRound(plotIdx, rIdx, ext),
+    removeExternalProduct: (plotIdx: number, rIdx: number, epIdx: number) =>
+      removeExternalProductFromRound(plotIdx, rIdx, epIdx),
+    updateExternalProduct: (
+      plotIdx: number,
+      rIdx: number,
+      epIdx: number,
+      field: keyof Type13ExternalProduct,
+      val: any,
+    ) => updateExternalProductInRound(plotIdx, rIdx, epIdx, field, val),
+    addPlotAfterSprayImages,
+    removePlotAfterSprayImage,
+    uploadImages,
+    collectPayload,
+    validate,
+  };
+}
+
+export const useType13ActualState = useType13Actual;

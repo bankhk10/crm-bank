@@ -79,4 +79,7 @@ export const PERMISSION_GROUP_OVERRIDES: Record<string, string> = {
   dashboard: "แดชบอร์ด",
   export: "การส่งออกข้อมูล",
   exports: "การส่งออกข้อมูล",
+  activity_plan: "แผนงานกิจกรรม",
+  activity_plans: "แผนงานกิจกรรม",
+  activity: "แผนงานกิจกรรม",
 };

@@ -7,6 +7,7 @@ import {
   createEmployee,
 } from "../infrastructure/employee.repository";
 import { handleSignatureUpload } from "./signature-utils";
+import { db } from "@/lib/db";
 
 /**
  * Use case: Create a new employee (and optionally a linked User account).
@@ -103,6 +104,23 @@ export async function createEmployeeUseCase(rawData: unknown) {
       password: hashed,
       roleId: data.roleDefinitionId,
     };
+  }
+
+  // Sync positionTitle and departmentName from the chosen relations
+  if (data.position) {
+    const pos = await db.position.findUnique({
+      where: { id: data.position },
+      select: { name: true },
+    });
+    if (pos) employeeData.positionTitle = pos.name;
+  }
+
+  if (data.department) {
+    const dept = await db.department.findUnique({
+      where: { id: data.department },
+      select: { name: true },
+    });
+    if (dept) employeeData.departmentName = dept.name;
   }
 
   // 6. Persist

@@ -1,0 +1,814 @@
+import type { Type7bUnplannedItem } from "../types/unplanned.types";
+import type { Type7bWithdrawnProductLine } from "../../shared/types";
+import type {
+  Type7bSprayRoundState,
+  Type7bAdditionalProductItem,
+} from "../../planned/types/actual.types";
+import {
+  createDefaultSprayRound,
+  createDefaultType7bUnplannedItem,
+} from "../hooks/use-type7b-unplanned-form";
+
+/**
+ * Hydrates Type 7B Unplanned Form Items from initial data
+ */
+export function hydrateType7bUnplannedData(
+  initialData: any,
+): Type7bUnplannedItem[] {
+  if (!initialData) return [];
+
+  const dedicatedResult =
+    initialData.type7bResults?.[0] ||
+    initialData.activityPlan?.type7bResults?.[0] ||
+    initialData.plan?.type7bResults?.[0] ||
+    initialData.results?.[0];
+
+  const t7b =
+    initialData.type7bTargets && initialData.type7bTargets.length > 0
+      ? {
+          sourceActivityPlanId:
+            initialData.type7bTargets[0].sourceActivityPlanId ||
+            initialData.type7bTargets[0].sourceActivityPlan?.id ||
+            null,
+          plots: initialData.type7bTargets,
+          products: initialData.type7bProducts || [],
+        }
+      : initialData.type7b || initialData.type7bData;
+
+  const rawPlots: any[] = t7b?.plots || [];
+  const rawProducts: any[] = t7b?.products || [];
+
+  const actualOutcome =
+    initialData.actualOutcome || initialData.actualData || {};
+  const t7bActual =
+    actualOutcome.type7bActual || actualOutcome.type7b || actualOutcome;
+
+  const mergedActual: any = {
+    ...(dedicatedResult
+      ? {
+          t7PlotStatus: dedicatedResult.plotStatus,
+          t7VisitDate: dedicatedResult.visitDate
+            ? new Date(dedicatedResult.visitDate).toISOString().split("T")[0]
+            : undefined,
+          t7DaysAfterSpray: dedicatedResult.daysSinceStart,
+          t7CropCondition: dedicatedResult.cropCondition,
+          t7GrowthStage: dedicatedResult.growthStage,
+          t7CropProblemDescription: dedicatedResult.cropProblemDesc,
+          t7ProductResponse: dedicatedResult.productResponse,
+          t7ProblemDescription: dedicatedResult.productProblemDesc,
+          t7NextSprayDate: dedicatedResult.nextSprayDate
+            ? new Date(dedicatedResult.nextSprayDate).toISOString().split("T")[0]
+            : undefined,
+          t7FinalHarvestDate: dedicatedResult.finalHarvestDate
+            ? new Date(dedicatedResult.finalHarvestDate).toISOString().split("T")[0]
+            : undefined,
+          t7FinalYieldKg: dedicatedResult.demoYieldKg,
+          t7ControlYieldKg: dedicatedResult.controlYieldKg,
+          t7FarmerSatisfaction: dedicatedResult.farmerSatisfaction,
+          t7CommercialPotential: dedicatedResult.commercialPotential,
+          t7FinalSummaryNotes: dedicatedResult.finalSummaryNotes,
+          t7Notes: dedicatedResult.notes,
+        }
+      : {}),
+    ...t7bActual,
+  };
+
+  // 1. Gather all raw attachments across plan, result, and dedicated relations
+  const rawAttachments: any[] = [
+    ...(initialData.attachments || []),
+    ...(initialData.result?.attachments || []),
+    ...(dedicatedResult?.attachments || []),
+    ...(Array.isArray(initialData.type7bResults)
+      ? initialData.type7bResults.flatMap((r: any) => r.attachments || [])
+      : []),
+  ];
+
+  const seenAttKeys = new Set<string>();
+  const deduplicatedAttachments = rawAttachments.filter((att) => {
+    if (!att) return false;
+    const key = att.id || att.fileUrl || att.url;
+    if (!key || seenAttKeys.has(key)) return false;
+    seenAttKeys.add(key);
+    return true;
+  });
+
+  const t7bAttachments = deduplicatedAttachments.filter((att) => {
+    return (
+      att.workTypeCode === "TYPE_7B" ||
+      att.type7bResultId ||
+      att.category === "CROP" ||
+      att.category === "PLOT" ||
+      att.category === "FOLLOW_UP"
+    );
+  });
+
+  const toImageItem = (img: any, fallbackName: string) => ({
+    id: img.id || `img-${Math.random().toString(36).slice(2, 7)}`,
+    url: img.url || img.fileUrl,
+    name: img.name || img.fileName || fallbackName,
+    size: img.size || img.fileSize || 0,
+    type: img.type || img.mimeType || "image/jpeg",
+  });
+
+  // Resolve Crop Condition Images
+  const rawCropImages =
+    mergedActual.t7CropImages && mergedActual.t7CropImages.length > 0
+      ? mergedActual.t7CropImages
+      : t7bAttachments.filter(
+          (att) => att.category === "CROP" || att.category === "FOLLOW_UP",
+        );
+
+  const resolvedCropImages = rawCropImages.map((img: any, idx: number) =>
+    toImageItem(img, `รูปภาพสภาพพืช-${idx + 1}`),
+  );
+
+  // Helper to resolve Round Images for a specific round number
+  const resolveRoundImages = (sr: any, roundNum: number) => {
+    if (Array.isArray(sr?.roundImages) && sr.roundImages.length > 0) {
+      return sr.roundImages.map((img: any, i: number) =>
+        toImageItem(img, `ภาพการฉีดพ่นรอบที่ ${roundNum}-${i + 1}`),
+      );
+    }
+    const matchingRoundAtts = t7bAttachments.filter((att) => {
+      if (att.category === "CROP" || att.category === "FOLLOW_UP") return false;
+      const name = att.fileName || att.name || "";
+      return (
+        name.includes(`รอบที่ ${roundNum}`) ||
+        name.includes(`รอบ ${roundNum}`) ||
+        name.includes(`[รอบที่ ${roundNum}]`) ||
+        name.includes(`รอบที่${roundNum}`) ||
+        name.includes(`รอบ${roundNum}`)
+      );
+    });
+
+    if (matchingRoundAtts.length > 0) {
+      return matchingRoundAtts.map((att, i) =>
+        toImageItem(att, `ภาพการฉีดพ่นรอบที่ ${roundNum}-${i + 1}`),
+      );
+    }
+
+    if (roundNum === 1) {
+      // If round 1, fallback to any non-crop attachment that doesn't explicitly mention other rounds
+      const genericAtts = t7bAttachments.filter((att) => {
+        if (att.category === "CROP" || att.category === "FOLLOW_UP") return false;
+        const name = att.fileName || att.name || "";
+        const mentionsOtherRound = /รอบ(ที่)?\s*[2-9]/i.test(name);
+        return !mentionsOtherRound;
+      });
+      return genericAtts.map((att, i) =>
+        toImageItem(att, `ภาพการฉีดพ่นรอบที่ 1-${i + 1}`),
+      );
+    }
+
+    return [];
+  };
+
+  // If initialData already has explicit type7bUnplannedItems, ensure photos & rounds are resolved
+  if (
+    Array.isArray(initialData.type7bUnplannedItems) &&
+    initialData.type7bUnplannedItems.length > 0
+  ) {
+    return initialData.type7bUnplannedItems.map((item: any) => {
+      const itemCropImages =
+        Array.isArray(item.cropImages) && item.cropImages.length > 0
+          ? item.cropImages.map((img: any, i: number) =>
+              toImageItem(img, `รูปภาพสภาพพืช-${i + 1}`),
+            )
+          : Array.isArray(item.photos) && item.photos.length > 0
+            ? item.photos.map((img: any, i: number) =>
+                toImageItem(img, `รูปภาพสภาพพืช-${i + 1}`),
+              )
+            : resolvedCropImages;
+
+      const itemSprayingRounds =
+        Array.isArray(item.sprayingRounds) && item.sprayingRounds.length > 0
+          ? item.sprayingRounds.map((r: any, rIdx: number) => ({
+              ...r,
+              baselineProducts: [],
+              roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+            }))
+          : [
+              {
+                ...createDefaultSprayRound(1, item.visitDate),
+                roundImages: resolveRoundImages(null, 1),
+              },
+            ];
+
+      return {
+        ...item,
+        visitDate: item.visitDate || new Date().toISOString().split("T")[0],
+        daysAfterSpray: item.daysAfterSpray ?? 0,
+        cropImages: itemCropImages,
+        photos: itemCropImages,
+        sprayingRounds: itemSprayingRounds,
+        plotStatus: item.plotStatus || "IN_PROGRESS",
+      };
+    });
+  }
+
+  const withdrawn: Type7bWithdrawnProductLine[] = rawProducts.map((p, idx) => ({
+    id: p.id || String(idx + 1),
+    productId: p.productId,
+    productName: p.productName || p.product?.name || "",
+    quantity: Number(p.quantity) || 1,
+    unit: p.unit || p.product?.unit || "",
+  }));
+
+  const productsFromWithdrawn: Type7bAdditionalProductItem[] = withdrawn.map(
+    (p, idx) => ({
+      id: p.id || `prod-withdrawn-${idx + 1}`,
+      productId: p.productId,
+      productName: p.productName,
+      actualQuantity: p.quantity,
+      quantityUsed: p.quantity,
+      extraQuantity: "",
+      extraUnit: p.unit?.includes("ซอง") ? "กรัม" : "ซีซี",
+      applicationRate: "-",
+      unit: p.unit || "ขวด",
+    }),
+  );
+
+  // Restore spray rounds from actual outcome or dedicatedResult if available
+  let restoredRounds: Type7bSprayRoundState[] = [];
+  const dedicatedRounds = dedicatedResult?.sprayRounds;
+  if (
+    Array.isArray(t7bActual.t7SprayingRounds) &&
+    t7bActual.t7SprayingRounds.length > 0
+  ) {
+    restoredRounds = t7bActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
+      ...r,
+      // In unplanned, products used are placed in additionalProducts; baselineProducts is []
+      baselineProducts: [],
+      additionalProducts:
+        r.additionalProducts && r.additionalProducts.length > 0
+          ? r.additionalProducts
+          : r.baselineProducts || [],
+      roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+    }));
+  } else if (
+    Array.isArray(dedicatedRounds) &&
+    dedicatedRounds.length > 0
+  ) {
+    restoredRounds = dedicatedRounds.map((sr: any, idx: number) => ({
+      id: sr.id || `round-${idx + 1}`,
+      roundNumber: sr.roundNumber || idx + 1,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      sprayMethod: sr.sprayMethod || "SINGLE",
+      sprayEquipment: sr.sprayEquipment || "เป้สะพายหลัง",
+      otherEquipment: sr.otherEquipment || "",
+      productResponse: sr.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      problemDetail: sr.problemDetail || "",
+      hasExternalChemicals: Boolean(
+        sr.hasExternalChemicals ||
+        (sr.sprayExternals && sr.sprayExternals.length > 0),
+      ),
+      externalProducts: (sr.sprayExternals || []).map((ext: any) => ({
+        id: ext.id,
+        company: ext.company || "",
+        productName: ext.productName || "",
+        activeIngredient: ext.activeIngredient || "",
+        formula: ext.formula || "SL",
+        customFormula: ext.customFormula || "",
+        applicationRate: ext.applicationRate || "",
+      })),
+      baselineProducts: [],
+      additionalProducts: (sr.sprayProducts || []).map((p: any) => ({
+        id: p.id || `prod-${Math.random().toString(36).substring(2, 7)}`,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        actualQuantity: p.quantityUsed || p.actualQuantity || 1,
+        quantityUsed: p.quantityUsed || p.actualQuantity || 1,
+        extraQuantity: p.extraQuantity || "",
+        extraUnit: p.extraUnit || "ซีซี",
+        applicationRate: p.actualRate || p.applicationRate || "",
+        unit: p.unit || "ขวด",
+      })),
+      roundImages: resolveRoundImages(sr, sr.roundNumber || idx + 1),
+    }));
+  } else if (
+    Array.isArray(initialData.sprayRounds) &&
+    initialData.sprayRounds.length > 0
+  ) {
+    restoredRounds = initialData.sprayRounds.map((sr: any, idx: number) => ({
+      id: sr.id || `round-${idx + 1}`,
+      roundNumber: sr.roundNumber || idx + 1,
+      sprayDate: sr.sprayDate
+        ? new Date(sr.sprayDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      sprayMethod: sr.sprayMethod || "SINGLE",
+      sprayEquipment: sr.sprayEquipment || "เป้สะพายหลัง",
+      otherEquipment: sr.otherEquipment || "",
+      productResponse: sr.productResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      problemDetail: sr.problemDetail || "",
+      hasExternalChemicals: Boolean(
+        sr.hasExternalChemicals ||
+        (sr.externalProducts && sr.externalProducts.length > 0),
+      ),
+      externalProducts: (sr.externalProducts || []).map((ext: any) => ({
+        id: ext.id,
+        company: ext.company || "",
+        productName: ext.productName || "",
+        activeIngredient: ext.activeIngredient || "",
+        formula: ext.formula || "SL",
+        customFormula: ext.customFormula || "",
+        applicationRate: ext.applicationRate || "",
+      })),
+      baselineProducts: [],
+      additionalProducts: (sr.products || []).map((p: any) => ({
+        id: p.id || `prod-${Math.random().toString(36).substring(2, 7)}`,
+        productId: p.productId,
+        productName: p.productName || p.product?.name || "",
+        actualQuantity: p.actualQuantity || p.quantityUsed || 1,
+        quantityUsed: p.quantityUsed || p.actualQuantity || 1,
+        extraQuantity: p.extraQuantity || "",
+        extraUnit: p.extraUnit || "ซีซี",
+        applicationRate: p.actualRate || p.applicationRate || "",
+        unit: p.unit || "ขวด",
+      })),
+      roundImages: resolveRoundImages(sr, sr.roundNumber || idx + 1),
+    }));
+  }
+
+  if (restoredRounds.length === 0) {
+    const defaultRound = createDefaultSprayRound(1);
+    if (productsFromWithdrawn.length > 0) {
+      defaultRound.additionalProducts = productsFromWithdrawn;
+    }
+    defaultRound.roundImages = resolveRoundImages(null, 1);
+    restoredRounds = [defaultRound];
+  }
+
+  const visitDate =
+    mergedActual.t7VisitDate ||
+    (initialData.startDate
+      ? new Date(initialData.startDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0]);
+
+  const daysAfterSpray =
+    mergedActual.t7DaysAfterSpray != null ? Number(mergedActual.t7DaysAfterSpray) : 0;
+
+  const cropImages = resolvedCropImages;
+
+  if (rawPlots.length > 0) {
+    return rawPlots.map((plot, idx) => ({
+      id: plot.id || String(idx + 1),
+      demoPlotId: plot.type7aTargetId || plot.demoPlotId || null,
+      sourceActivityPlanId:
+        plot.sourceActivityPlanId ||
+        t7b?.sourceActivityPlanId ||
+        plot.sourceActivityPlan?.id ||
+        null,
+      plotName:
+        plot.plotName ||
+        plot.name ||
+        plot.type7aTarget?.plotName ||
+        plot.demoPlot?.plotName ||
+        "",
+      farmerName:
+        plot.ownerName ||
+        plot.farmerName ||
+        plot.type7aTarget?.farmerName ||
+        plot.demoPlot?.farmerName ||
+        "",
+      province:
+        plot.province ||
+        plot.type7aTarget?.province ||
+        plot.demoPlot?.province ||
+        "",
+      district:
+        plot.district ||
+        plot.type7aTarget?.district ||
+        plot.demoPlot?.district ||
+        "",
+      cropCategory:
+        plot.cropCategory ||
+        plot.type7aTarget?.cropCategory ||
+        plot.demoPlot?.cropCategory ||
+        "",
+      cropName:
+        plot.cropName ||
+        plot.type7aTarget?.cropName ||
+        plot.demoPlot?.cropName ||
+        "",
+      areaRai:
+        plot.areaRai != null
+          ? Number(plot.areaRai)
+          : plot.type7aTarget?.areaRai != null
+            ? Number(plot.type7aTarget.areaRai)
+            : null,
+      treeCount:
+        plot.treeCount != null
+          ? Number(plot.treeCount)
+          : plot.type7aTarget?.treeCount != null
+            ? Number(plot.type7aTarget.treeCount)
+            : null,
+      dealerName:
+        plot.dealerName ||
+        plot.type7aTarget?.dealerName ||
+        plot.demoPlot?.dealerName ||
+        "",
+      visitDate,
+      daysAfterSpray,
+      cropImages,
+      sprayingRounds:
+        Array.isArray(mergedActual.t7SprayingRounds) &&
+        mergedActual.t7SprayingRounds.length > 0
+          ? mergedActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
+              ...r,
+              roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+            }))
+          : restoredRounds,
+      nextSprayDate: mergedActual.t7NextSprayDate || "",
+      notes: mergedActual.t7Notes || t7b?.notes || "",
+      plotStatus: mergedActual.t7PlotStatus || "IN_PROGRESS",
+      finalYieldKg:
+        mergedActual.t7FinalYieldKg != null
+          ? String(mergedActual.t7FinalYieldKg)
+          : "",
+      controlYieldKg:
+        mergedActual.t7ControlYieldKg != null
+          ? String(mergedActual.t7ControlYieldKg)
+          : "",
+      farmerSatisfaction:
+        mergedActual.t7FarmerSatisfaction != null
+          ? Number(mergedActual.t7FarmerSatisfaction)
+          : undefined,
+      commercialPotential: mergedActual.t7CommercialPotential || "",
+      finalSummaryNotes: mergedActual.t7FinalSummaryNotes || "",
+      finalHarvestDate: mergedActual.t7FinalHarvestDate || "",
+      cropCondition: mergedActual.t7CropCondition || "สมบูรณ์",
+      growthStage: mergedActual.t7GrowthStage || "",
+      productResponse:
+        mergedActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      hasProductWithdrawal: withdrawn.length > 0,
+      withdrawnProducts: withdrawn,
+      photos: cropImages,
+    }));
+  }
+
+  if (
+    dedicatedResult ||
+    initialData.actualOutcome ||
+    t7bAttachments.length > 0 ||
+    initialData.type7b ||
+    initialData.type7bData
+  ) {
+    return [
+      {
+        id: "item-1",
+        demoPlotId: dedicatedResult?.type7aTargetId || null,
+        sourceActivityPlanId: null,
+        plotName:
+          dedicatedResult?.type7aTarget?.plotName ||
+          dedicatedResult?.plotName ||
+          initialData.title ||
+          "แปลงสาธิตติดตาม",
+        farmerName:
+          dedicatedResult?.type7aTarget?.farmerName ||
+          dedicatedResult?.farmerName ||
+          "",
+        province:
+          dedicatedResult?.type7aTarget?.province ||
+          dedicatedResult?.province ||
+          initialData.province ||
+          "",
+        district:
+          dedicatedResult?.type7aTarget?.district ||
+          dedicatedResult?.district ||
+          initialData.district ||
+          "",
+        cropCategory:
+          dedicatedResult?.type7aTarget?.cropCategory ||
+          dedicatedResult?.cropCategory ||
+          "",
+        cropName:
+          dedicatedResult?.type7aTarget?.cropName ||
+          dedicatedResult?.cropName ||
+          "",
+        areaRai:
+          dedicatedResult?.type7aTarget?.areaRai != null
+            ? Number(dedicatedResult.type7aTarget.areaRai)
+            : null,
+        treeCount:
+          dedicatedResult?.type7aTarget?.treeCount != null
+            ? Number(dedicatedResult.type7aTarget.treeCount)
+            : null,
+        dealerName:
+          dedicatedResult?.type7aTarget?.dealerName ||
+          dedicatedResult?.dealerName ||
+          "",
+        visitDate,
+        daysAfterSpray,
+        cropImages,
+        sprayingRounds:
+          Array.isArray(mergedActual.t7SprayingRounds) &&
+          mergedActual.t7SprayingRounds.length > 0
+            ? mergedActual.t7SprayingRounds.map((r: any, rIdx: number) => ({
+                ...r,
+                roundImages: resolveRoundImages(r, r.roundNumber || rIdx + 1),
+              }))
+            : restoredRounds,
+        nextSprayDate: mergedActual.t7NextSprayDate || "",
+        notes: mergedActual.t7Notes || "",
+        plotStatus: mergedActual.t7PlotStatus || "IN_PROGRESS",
+        finalYieldKg:
+          mergedActual.t7FinalYieldKg != null
+            ? String(mergedActual.t7FinalYieldKg)
+            : "",
+        controlYieldKg:
+          mergedActual.t7ControlYieldKg != null
+            ? String(mergedActual.t7ControlYieldKg)
+            : "",
+        farmerSatisfaction:
+          mergedActual.t7FarmerSatisfaction != null
+            ? Number(mergedActual.t7FarmerSatisfaction)
+            : undefined,
+        commercialPotential: mergedActual.t7CommercialPotential || "",
+        finalSummaryNotes: mergedActual.t7FinalSummaryNotes || "",
+        finalHarvestDate: mergedActual.t7FinalHarvestDate || "",
+        cropCondition: mergedActual.t7CropCondition || "สมบูรณ์",
+        growthStage: mergedActual.t7GrowthStage || "",
+        productResponse:
+          mergedActual.t7ProductResponse || "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+        hasProductWithdrawal: withdrawn.length > 0,
+        withdrawnProducts: withdrawn,
+        photos: cropImages,
+      },
+    ];
+  }
+
+  return [];
+}
+
+/**
+ * Maps Type 7B Unplanned Items to payload for saving plan & actual outcome together
+ */
+export function mapType7bUnplannedToPayload(
+  items: Type7bUnplannedItem[],
+  allProducts: any[] = [],
+) {
+  if (!items || items.length === 0) {
+    return {
+      type7bData: null,
+      actualOutcome: null,
+      planProducts: [],
+    };
+  }
+
+  const firstItem = items[0];
+  const allPlotIds = items.map((i) => i.demoPlotId).filter(Boolean);
+
+  const plots = items.map((item) => ({
+    demoPlotId: item.demoPlotId || null,
+    type7aTargetId: item.demoPlotId || null,
+    sourceActivityPlanId: item.sourceActivityPlanId || null,
+    plotName: item.plotName || "แปลงสาธิตติดตาม",
+    farmerName: item.farmerName || null,
+    ownerName: item.farmerName || null,
+    province: item.province || null,
+    district: item.district || null,
+    cropCategory: item.cropCategory || null,
+    cropName: item.cropName || null,
+    areaRai: item.areaRai != null ? Number(item.areaRai) : null,
+    treeCount: item.treeCount != null ? Number(item.treeCount) : null,
+    dealerName: item.dealerName || null,
+  }));
+
+  // Aggregate all products used across all rounds of all plots
+  const productLinesMap = new Map<
+    string,
+    { productId: string; productName?: string; quantity: number; unit?: string }
+  >();
+
+  for (const item of items) {
+    // 1. From rounds (baselineProducts & additionalProducts)
+    for (const round of item.sprayingRounds || []) {
+      for (const bp of round.baselineProducts || []) {
+        if (bp.productId) {
+          const qty =
+            Number(
+              bp.actualQuantity ?? bp.quantityUsed ?? bp.withdrawnQuantity ?? 1,
+            ) || 1;
+          const existing = productLinesMap.get(bp.productId);
+          if (existing) {
+            existing.quantity += qty;
+          } else {
+            productLinesMap.set(bp.productId, {
+              productId: bp.productId,
+              productName: bp.productName,
+              quantity: qty,
+              unit: bp.unit || "ขวด",
+            });
+          }
+        }
+      }
+
+      for (const ap of round.additionalProducts || []) {
+        if (ap.productId) {
+          const qty = Number(ap.actualQuantity ?? ap.quantityUsed ?? 1) || 1;
+          const existing = productLinesMap.get(ap.productId);
+          if (existing) {
+            existing.quantity += qty;
+          } else {
+            productLinesMap.set(ap.productId, {
+              productId: ap.productId,
+              productName: ap.productName,
+              quantity: qty,
+              unit: ap.unit || "ขวด",
+            });
+          }
+        }
+      }
+    }
+
+    // 2. From legacy withdrawnProducts if any
+    if (item.hasProductWithdrawal && item.withdrawnProducts) {
+      for (const wp of item.withdrawnProducts) {
+        if (wp.productId && !productLinesMap.has(wp.productId)) {
+          productLinesMap.set(wp.productId, {
+            productId: wp.productId,
+            productName: wp.productName,
+            quantity: Number(wp.quantity) || 1,
+            unit: wp.unit || "ขวด",
+          });
+        }
+      }
+    }
+  }
+
+  const aggregatedProducts = Array.from(productLinesMap.values());
+
+  const planProducts = aggregatedProducts.map((p) => {
+    const match = allProducts.find(
+      (prod) => prod.id === p.productId || prod.name === p.productId,
+    );
+    return {
+      workTypeCode: "TYPE_7B",
+      productId: match?.id || p.productId,
+      productName: p.productName || match?.name || null,
+      targetQuantity: Number(p.quantity) || 1,
+      isPriceOverridden: false,
+    };
+  });
+
+  const type7bData = {
+    sourceActivityPlanId: firstItem.sourceActivityPlanId || null,
+    type7aTargetId: firstItem.demoPlotId || null,
+    demoPlotId: firstItem.demoPlotId || allPlotIds[0] || null,
+    notes: firstItem.notes || firstItem.objective || null,
+    objective: firstItem.objective || firstItem.notes || null,
+    plots,
+    products: aggregatedProducts.map((p) => {
+      const match = allProducts.find(
+        (prod) => prod.id === p.productId || prod.name === p.productId,
+      );
+      return {
+        productId: match?.id || p.productId,
+        productName: p.productName || match?.name || null,
+        quantity: Number(p.quantity) || 1,
+        unit: p.unit || match?.unit || null,
+      };
+    }),
+  };
+
+  // Build Actual Summary Text
+  const summaryLines: string[] = [
+    `บันทึกผลการติดตามแปลงสาธิต (นอกแผน)`,
+    `แปลงสาธิต: ${items.map((i) => i.plotName).join(", ")}`,
+    `เกษตรกร: ${items.map((i) => i.farmerName).join(", ")}`,
+    `วันที่ติดตามจริง: ${firstItem.visitDate || new Date().toISOString().split("T")[0]}`,
+    `จำนวนวันหลังฉีดพ่น: ${firstItem.daysAfterSpray ?? 0} วัน`,
+    `จำนวนรอบการฉีดพ่น: ${(firstItem.sprayingRounds || []).length} รอบ`,
+  ];
+
+  const firstRound = firstItem.sprayingRounds?.[0];
+  if (firstRound) {
+    summaryLines.push(
+      `วิธีการฉีดพ่น (รอบ 1): ${firstRound.sprayMethod === "TANK_MIXED" ? "ผสมถัง (Tank-mixed)" : "ฉีดเดี่ยว (Single)"}`,
+    );
+    summaryLines.push(
+      `อุปกรณ์ที่ใช้ฉีดพ่น (รอบ 1): ${firstRound.sprayEquipment || "-"}`,
+    );
+    summaryLines.push(
+      `ผลหลังการฉีดพ่น (รอบ 1): ${firstRound.productResponse || "-"}`,
+    );
+    if (firstRound.problemDetail) {
+      summaryLines.push(`ปัญหาที่พบ: ${firstRound.problemDetail}`);
+    }
+  }
+
+  if (firstItem.nextSprayDate) {
+    summaryLines.push(`กำหนดฉีดพ่นครั้งถัดไป: ${firstItem.nextSprayDate}`);
+  }
+  if (firstItem.notes) {
+    summaryLines.push(`ข้อสังเกตเพิ่มเติม: ${firstItem.notes}`);
+  }
+  if (firstItem.plotStatus) {
+    summaryLines.push(`สถานะแปลงสาธิต: ${firstItem.plotStatus}`);
+  }
+  if (firstItem.finalYieldKg) {
+    summaryLines.push(`ผลผลิตแปลงสาธิต: ${firstItem.finalYieldKg} กก.`);
+  }
+  if (firstItem.controlYieldKg) {
+    summaryLines.push(`ผลผลิตแปลงเปรียบเทียบ: ${firstItem.controlYieldKg} กก.`);
+  }
+  if (firstItem.farmerSatisfaction) {
+    summaryLines.push(
+      `ความพึงพอใจของเกษตรกร: ${firstItem.farmerSatisfaction} ดาว`,
+    );
+  }
+  if (firstItem.commercialPotential) {
+    summaryLines.push(
+      `โอกาสขยายผลเชิงพาณิชย์: ${firstItem.commercialPotential}`,
+    );
+  }
+  if (firstItem.finalSummaryNotes) {
+    summaryLines.push(`สรุปผลภาพรวม: ${firstItem.finalSummaryNotes}`);
+  }
+
+  // Collect all photos: Crop condition images + All round images
+  const allCropImages = items.flatMap((i) => i.cropImages || i.photos || []);
+  const cropOutcomeAtts = allCropImages.map((img: any) => ({
+    id: img.id,
+    fileUrl: img.url || img.fileUrl,
+    fileName: img.name || img.fileName || "ภาพการเจริญเติบโตของพืช",
+    fileSize: img.size || img.fileSize || 0,
+    category: "CROP",
+    workTypeCode: "TYPE_7B",
+  }));
+
+  const roundOutcomeAtts = items.flatMap((i) =>
+    (i.sprayingRounds || []).flatMap((r, rIdx) => {
+      const rNum = r.roundNumber || rIdx + 1;
+      return (r.roundImages || []).map((img: any) => {
+        const origName =
+          img.name || img.fileName || `ภาพการฉีดพ่นรอบที่ ${rNum}`;
+        const fileNameWithRound =
+          origName.includes(`รอบที่ ${rNum}`) ||
+          origName.includes(`รอบ ${rNum}`)
+            ? origName
+            : `[รอบที่ ${rNum}] ${origName}`;
+        return {
+          id: img.id,
+          fileUrl: img.url || img.fileUrl,
+          fileName: fileNameWithRound,
+          fileSize: img.size || img.fileSize || 0,
+          category: "PLOT",
+          workTypeCode: "TYPE_7B",
+        };
+      });
+    }),
+  );
+
+  const actualOutcome = {
+    resultStatus: "COMPLETED",
+    resultSummary: summaryLines.join("\n"),
+    attachments: [...cropOutcomeAtts, ...roundOutcomeAtts],
+    type7bActual: {
+      t7PlotName: firstItem.plotName,
+      t7FarmerName: firstItem.farmerName,
+      t7VisitDate:
+        firstItem.visitDate || new Date().toISOString().split("T")[0],
+      t7DaysAfterSpray: Number(firstItem.daysAfterSpray) || 0,
+      t7CropImages: firstItem.cropImages || [],
+      t7SprayingRounds: firstItem.sprayingRounds || [],
+      t7NextSprayDate: firstItem.nextSprayDate || null,
+      t7Notes: firstItem.notes || null,
+      t7PlotStatus: firstItem.plotStatus || "IN_PROGRESS",
+      t7FinalYieldKg: firstItem.finalYieldKg || null,
+      t7ControlYieldKg: firstItem.controlYieldKg || null,
+      t7FarmerSatisfaction:
+        firstItem.farmerSatisfaction != null
+          ? Number(firstItem.farmerSatisfaction)
+          : null,
+      t7CommercialPotential: firstItem.commercialPotential || null,
+      t7FinalSummaryNotes: firstItem.finalSummaryNotes || null,
+      t7FinalHarvestDate: firstItem.finalHarvestDate || null,
+      t7CropCondition: firstItem.cropCondition || "สมบูรณ์",
+      t7GrowthStage: firstItem.growthStage || "-",
+      t7ProductResponse:
+        firstRound?.productResponse ||
+        firstItem.productResponse ||
+        "พืชตอบสนองดี (เห็นผลตามเป้าหมาย)",
+      t7CropProblemDescription:
+        firstRound?.problemDetail || firstItem.cropProblemDescription || null,
+      t7SprayMethod:
+        firstRound?.sprayMethod || firstItem.sprayMethod || "SINGLE",
+      t7SprayEquipment:
+        firstRound?.sprayEquipment ||
+        firstItem.sprayEquipment ||
+        "เป้สะพายหลัง",
+      t7OtherEquipment: firstRound?.otherEquipment || null,
+      demoPlotId: firstItem.demoPlotId || null,
+      t7DemoPlotId: firstItem.demoPlotId || null,
+    },
+  };
+
+  return {
+    type7bData,
+    actualOutcome,
+    planProducts,
+  };
+}

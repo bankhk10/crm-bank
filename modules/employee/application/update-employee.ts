@@ -6,6 +6,7 @@ import {
   updateEmployee,
 } from "../infrastructure/employee.repository";
 import { handleSignatureUpload } from "./signature-utils";
+import { db } from "@/lib/db";
 
 
 /**
@@ -70,6 +71,31 @@ export async function updateEmployeeUseCase(id: string, rawData: unknown) {
   employeeData.departmentId = data.department === "" ? null : data.department;
   employeeData.companyId = data.company === "" ? null : data.company;
   employeeData.managerId = data.managerId === "" ? null : data.managerId;
+
+  // Sync positionTitle and departmentName from the chosen relations
+  if (data.position) {
+    const pos = await db.position.findUnique({
+      where: { id: data.position },
+      select: { name: true },
+    });
+    if (pos) {
+      employeeData.positionTitle = pos.name;
+    }
+  } else if (data.position === "") {
+    employeeData.positionTitle = null;
+  }
+
+  if (data.department) {
+    const dept = await db.department.findUnique({
+      where: { id: data.department },
+      select: { name: true },
+    });
+    if (dept) {
+      employeeData.departmentName = dept.name;
+    }
+  } else if (data.department === "") {
+    employeeData.departmentName = null;
+  }
 
   // 5. Optionally build user update data
   let userData:

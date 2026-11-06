@@ -1,0 +1,677 @@
+import { type1PlannedStrategy } from "../features/type-1/planned/infrastructure/type1-planned.strategy";
+import { type1UnplannedStrategy } from "../features/type-1/unplanned/infrastructure/type1-unplanned.strategy";
+import { type2PlannedStrategy } from "../features/type-2/planned/infrastructure/type2-planned.strategy";
+import { type2UnplannedStrategy } from "../features/type-2/unplanned/infrastructure/type2-unplanned.strategy";
+import { type3PlannedStrategy } from "../features/type-3/planned/infrastructure/type3-planned.strategy";
+import { type3UnplannedStrategy } from "../features/type-3/unplanned/infrastructure/type3-unplanned.strategy";
+import { type4PlannedStrategy } from "../features/type-4/planned/infrastructure/type4-planned.strategy";
+import { type4UnplannedStrategy } from "../features/type-4/unplanned/infrastructure/type4-unplanned.strategy";
+import { type5PlannedStrategy } from "../features/type-5/planned/infrastructure/type5-planned.strategy";
+import { type5UnplannedStrategy } from "../features/type-5/unplanned/infrastructure/type5-unplanned.strategy";
+import { type6PlannedStrategy } from "../features/type-6/planned/infrastructure/type6-planned.strategy";
+import { type6UnplannedStrategy } from "../features/type-6/unplanned/infrastructure/type6-unplanned.strategy";
+import { type7aPlannedStrategy } from "../features/type-7a/planned/infrastructure/type7a-planned.strategy";
+import { type7aUnplannedStrategy } from "../features/type-7a/unplanned/infrastructure/type7a-unplanned.strategy";
+import { type7bPlannedStrategy } from "../features/type-7b/planned/infrastructure/type7b-planned.strategy";
+import { type7bUnplannedStrategy } from "../features/type-7b/unplanned/infrastructure/type7b-unplanned.strategy";
+import { type8PlannedStrategy } from "../features/type-8/planned/infrastructure/type8-planned.strategy";
+import { type8UnplannedStrategy } from "../features/type-8/unplanned/infrastructure/type8-unplanned.strategy";
+import { type9PlannedStrategy } from "../features/type-9/planned/infrastructure/type9-planned.strategy";
+import { type9UnplannedStrategy } from "../features/type-9/unplanned/infrastructure/type9-unplanned.strategy";
+import { type10PlannedStrategy } from "../features/type-10/planned/infrastructure/type10-planned.strategy";
+import { type10UnplannedStrategy } from "../features/type-10/unplanned/infrastructure/type10-unplanned.strategy";
+import { type11PlannedStrategy } from "../features/type-11/planned/infrastructure/type11-planned.strategy";
+import { type11UnplannedStrategy } from "../features/type-11/unplanned/infrastructure/type11-unplanned.strategy";
+import { type12PlannedStrategy } from "../features/type-12/planned/infrastructure/type12-planned.strategy";
+import { type12UnplannedStrategy } from "../features/type-12/unplanned/infrastructure/type12-unplanned.strategy";
+import { type13PlannedStrategy } from "../features/type-13/planned/infrastructure/type13-planned.strategy";
+import { type13UnplannedStrategy } from "../features/type-13/unplanned/infrastructure/type13-unplanned.strategy";
+import { type14PlannedStrategy } from "../features/type-14/planned/infrastructure/type14-planned.strategy";
+import { type14UnplannedStrategy } from "../features/type-14/unplanned/infrastructure/type14-unplanned.strategy";
+import { type15PlannedStrategy } from "../features/type-15/planned/infrastructure/type15-planned.strategy";
+import type {
+  WorkTypeStrategy,
+  PrismaTransaction,
+  StrategyValidationResult,
+} from "../types/strategy.interface";
+import { getWorkTypeCode } from "../constants";
+
+export interface WorkTypeStrategyRegistration {
+  code: string;
+  name?: string;
+  planned: WorkTypeStrategy;
+  unplanned: WorkTypeStrategy;
+  hasData: (rawData: any) => boolean;
+}
+
+/**
+ * Central Strategy Registry mapping Work Type Codes (TYPE_1 - TYPE_6)
+ * to Planned and Unplanned execution strategies.
+ */
+export const WORK_TYPE_STRATEGY_REGISTRY: Record<
+  string,
+  WorkTypeStrategyRegistration
+> = {
+  TYPE_1: {
+    code: "TYPE_1",
+    name: "เข้าพบร้านค้า / Key Farmer",
+    planned: type1PlannedStrategy,
+    unplanned: type1UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_1") ||
+            rawData.workTypeCodes.includes("เข้าพบร้านค้า / Key Farmer"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) => !s.workTypeCode || s.workTypeCode === "TYPE_1",
+          )) ||
+        (rawData.type1Stores && rawData.type1Stores.length > 0) ||
+        (rawData.type1UnplannedItems &&
+          rawData.type1UnplannedItems.length > 0) ||
+        rawData.targetActualResults ||
+        rawData.type1Actual ||
+        rawData.discussionResult ||
+        rawData.productAdvice ||
+        rawData.salesOpportunity,
+      ),
+  },
+  TYPE_2: {
+    code: "TYPE_2",
+    name: "ติดตามผลการใช้สินค้า",
+    planned: type2PlannedStrategy,
+    unplanned: type2UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_2") ||
+            rawData.workTypeCodes.includes("ติดตามผลการใช้สินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_2")) ||
+        (rawData.type2Targets && rawData.type2Targets.length > 0) ||
+        (rawData.type2UnplannedItems &&
+          rawData.type2UnplannedItems.length > 0) ||
+        (rawData.followupResults && rawData.followupResults.length > 0) ||
+        (Array.isArray(rawData.t2FollowupResults)
+          ? rawData.t2FollowupResults.length > 0
+          : Boolean(rawData.t2FollowupResults)) ||
+        rawData.type2Actual,
+      ),
+  },
+  TYPE_3: {
+    code: "TYPE_3",
+    name: "เสนอขายสินค้า",
+    planned: type3PlannedStrategy,
+    unplanned: type3UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_3") ||
+            rawData.workTypeCodes.includes("เสนอขายสินค้า"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_3")) ||
+        (rawData.type3Targets && rawData.type3Targets.length > 0) ||
+        (rawData.type3Items && rawData.type3Items.length > 0) ||
+        (rawData.productSalesDetails && rawData.productSalesDetails.length > 0),
+      ),
+  },
+  TYPE_4: {
+    code: "TYPE_4",
+    name: "วางบิล / เก็บเงิน",
+    planned: type4PlannedStrategy,
+    unplanned: type4UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_4") ||
+            rawData.workTypeCodes.includes("วางบิล / เก็บเงิน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_4")) ||
+        (rawData.type4Targets && rawData.type4Targets.length > 0) ||
+        (rawData.type4Items && rawData.type4Items.length > 0) ||
+        rawData.billingStatus ||
+        rawData.billingDetail ||
+        rawData.collectDetail ||
+        rawData.t4OrderNo ||
+        rawData.orderNo,
+      ),
+  },
+  TYPE_5: {
+    code: "TYPE_5",
+    name: "สำรวจตลาดของคู่แข่ง",
+    planned: type5PlannedStrategy,
+    unplanned: type5UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_5") ||
+            rawData.workTypeCodes.includes("สำรวจตลาดของคู่แข่ง"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_5")) ||
+        (rawData.type5Targets && rawData.type5Targets.length > 0) ||
+        (rawData.type5Items && rawData.type5Items.length > 0) ||
+        (rawData.type5UnplannedItems &&
+          rawData.type5UnplannedItems.length > 0) ||
+        (rawData.type5SurveyRecords && rawData.type5SurveyRecords.length > 0) ||
+        (rawData.surveyResults && rawData.surveyResults.length > 0) ||
+        (rawData.t5SurveyDetails && rawData.t5SurveyDetails.length > 0) ||
+        rawData.competitorBrand ||
+        rawData.t5CompetitorBrand,
+      ),
+  },
+  TYPE_6: {
+    code: "TYPE_6",
+    name: "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+    planned: type6PlannedStrategy,
+    unplanned: type6UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_6") ||
+            rawData.workTypeCodes.includes(
+              "ตรวจสอบเรื่องร้องเรียน / แก้ปัญหา",
+            ))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_6")) ||
+        (rawData.type6Targets && rawData.type6Targets.length > 0) ||
+        (rawData.type6Items && rawData.type6Items.length > 0) ||
+        (rawData.type6UnplannedItems &&
+          rawData.type6UnplannedItems.length > 0) ||
+        (rawData.type6ActualIssues && rawData.type6ActualIssues.length > 0) ||
+        (rawData.issueResults && rawData.issueResults.length > 0) ||
+        (rawData.t6IssueDetails && rawData.t6IssueDetails.length > 0) ||
+        rawData.t6IssueRecord ||
+        rawData.t6ProblemDetail,
+      ),
+  },
+  TYPE_7A: {
+    code: "TYPE_7A",
+    name: "จัดทำแปลงสาธิต",
+    planned: type7aPlannedStrategy,
+    unplanned: type7aUnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_7A") ||
+            rawData.workTypeCodes.includes("จัดทำแปลงสาธิต") ||
+            rawData.workTypeCodes.includes("ทำแปลงสาธิต"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_7A" || s.workTypeCode === "TYPE_7",
+          )) ||
+        (rawData.type7aTargets && rawData.type7aTargets.length > 0) ||
+        (rawData.type7aPlots && rawData.type7aPlots.length > 0) ||
+        (rawData.type7aResults && rawData.type7aResults.length > 0) ||
+        (rawData.type7aProducts && rawData.type7aProducts.length > 0) ||
+        (rawData.type7aUnplannedItems &&
+          rawData.type7aUnplannedItems.length > 0) ||
+        rawData.demoPlotData ||
+        rawData.t7PlotName,
+      ),
+  },
+  TYPE_7B: {
+    code: "TYPE_7B",
+    name: "ติดตามแปลงสาธิต",
+    planned: type7bPlannedStrategy,
+    unplanned: type7bUnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_7B") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงสาธิต"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_7B")) ||
+        (rawData.type7bTargets && rawData.type7bTargets.length > 0) ||
+        (rawData.type7bProducts && rawData.type7bProducts.length > 0) ||
+        (rawData.type7bResults && rawData.type7bResults.length > 0) ||
+        (rawData.type7bPlots && rawData.type7bPlots.length > 0) ||
+        (rawData.type7bUnplannedItems &&
+          rawData.type7bUnplannedItems.length > 0) ||
+        rawData.type7bData ||
+        rawData.type7b ||
+        rawData.type7bActual ||
+        (Array.isArray(rawData.t7SprayingRounds) &&
+          rawData.t7SprayingRounds.length > 0),
+      ),
+  },
+  TYPE_8: {
+    code: "TYPE_8",
+    name: "จัดประชุม",
+    planned: type8PlannedStrategy,
+    unplanned: type8UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_8") ||
+            rawData.workTypeCodes.includes("จัดประชุม"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some((s: any) => s.workTypeCode === "TYPE_8")) ||
+        (rawData.type8Targets && rawData.type8Targets.length > 0) ||
+        (rawData.type8Products && rawData.type8Products.length > 0) ||
+        (rawData.type8Results && rawData.type8Results.length > 0) ||
+        (rawData.type8Meetings && rawData.type8Meetings.length > 0) ||
+        (rawData.type8UnplannedItems &&
+          rawData.type8UnplannedItems.length > 0) ||
+        (rawData.type8Items && rawData.type8Items.length > 0) ||
+        rawData.type8Data ||
+        rawData.type8 ||
+        rawData.type8Actual ||
+        rawData.t8Topic ||
+        rawData.t8MeetingTarget,
+      ),
+  },
+  TYPE_9: {
+    code: "TYPE_9",
+    name: "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+    planned: type9PlannedStrategy,
+    unplanned: type9UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_9") ||
+            rawData.workTypeCodes.includes(
+              "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+            ))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_9" ||
+              s.workTypeCode === "จัดกิจกรรมส่งเสริมการขายหน้าร้าน",
+          )) ||
+        (rawData.type9Targets && rawData.type9Targets.length > 0) ||
+        (rawData.type9Products && rawData.type9Products.length > 0) ||
+        (rawData.type9Results && rawData.type9Results.length > 0) ||
+        (rawData.type9Stores && rawData.type9Stores.length > 0) ||
+        (rawData.type9UnplannedItems &&
+          rawData.type9UnplannedItems.length > 0) ||
+        rawData.type9Data ||
+        rawData.type9 ||
+        rawData.type9Actual ||
+        rawData.t9ActualSales,
+      ),
+  },
+  TYPE_10: {
+    code: "TYPE_10",
+    name: "จัดงาน Field Day",
+    planned: type10PlannedStrategy,
+    unplanned: type10UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_10") ||
+            rawData.workTypeCodes.includes("จัดงาน Field Day") ||
+            rawData.workTypeCodes.includes("Field Day"))) ||
+        (rawData.workTypes &&
+          rawData.workTypes.some(
+            (wt: any) =>
+              wt === "TYPE_10" ||
+              wt === "จัดงาน Field Day" ||
+              wt === "Field Day" ||
+              wt?.activityType?.code === "TYPE_10" ||
+              wt?.activityType?.name === "จัดงาน Field Day" ||
+              wt?.workTypeCode === "TYPE_10" ||
+              wt?.workTypeCode === "จัดงาน Field Day",
+          )) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_10" ||
+              s.workTypeCode === "จัดงาน Field Day" ||
+              s.workTypeCode === "Field Day",
+          )) ||
+        (rawData.type10Targets && rawData.type10Targets.length > 0) ||
+        (rawData.type10Plots && rawData.type10Plots.length > 0) ||
+        (rawData.type10Products && rawData.type10Products.length > 0) ||
+        (rawData.type10Results && rawData.type10Results.length > 0) ||
+        (rawData.type10UnplannedItems &&
+          rawData.type10UnplannedItems.length > 0) ||
+        (rawData.demoPlotVisits &&
+          rawData.demoPlotVisits.some(
+            (v: any) =>
+              v.workTypeCode === "TYPE_10" ||
+              v.workTypeCode === "จัดงาน Field Day",
+          )) ||
+        rawData.type10Data ||
+        rawData.type10 ||
+        rawData.type10Actual ||
+        rawData.t10TargetAttendees ||
+        rawData.t10ActualAttendees ||
+        rawData.t10SalesResult,
+      ),
+  },
+  TYPE_11: {
+    code: "TYPE_11",
+    name: "ตรวจเช็คสต๊อกหน้าร้าน",
+    planned: type11PlannedStrategy,
+    unplanned: type11UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_11") ||
+            rawData.workTypeCodes.includes("ตรวจเช็คสต๊อกหน้าร้าน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_11" ||
+              s.workTypeCode === "ตรวจเช็คสต๊อกหน้าร้าน",
+          )) ||
+        (rawData.type11Targets && rawData.type11Targets.length > 0) ||
+        (rawData.type11Products && rawData.type11Products.length > 0) ||
+        (rawData.type11Results && rawData.type11Results.length > 0) ||
+        (rawData.type11Stores && rawData.type11Stores.length > 0) ||
+        (rawData.type11UnplannedItems &&
+          rawData.type11UnplannedItems.length > 0) ||
+        rawData.type11Data ||
+        rawData.type11 ||
+        rawData.type11Actual ||
+        (rawData.t11StockItems && rawData.t11StockItems.length > 0) ||
+        (rawData.stockResults && rawData.stockResults.length > 0) ||
+        rawData.t11ProductList ||
+        rawData.t11RemainingQty,
+      ),
+  },
+  TYPE_12: {
+    code: "TYPE_12",
+    name: "ทัวร์",
+    planned: type12PlannedStrategy,
+    unplanned: type12UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_12") ||
+            rawData.workTypeCodes.includes("ทัวร์") ||
+            rawData.workTypeCodes.includes("ทัวร์"))) ||
+        rawData.tour ||
+        rawData.tourData ||
+        rawData.type12Actual ||
+        rawData.t12Actual ||
+        (rawData.t12Images && rawData.t12Images.length > 0),
+      ),
+  },
+  TYPE_13: {
+    code: "TYPE_13",
+    name: "ฉีดแปลงแฮตแทค",
+    planned: type13PlannedStrategy,
+    unplanned: type13UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_13") ||
+            rawData.workTypeCodes.includes("ฉีดแปลงแฮตแทค") ||
+            rawData.workTypeCodes.includes("ฉีดแปลงแฮตแทค"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_13" ||
+              s.workTypeCode === "ฉีดแปลงแฮตแทค" ||
+              s.workTypeCode === "ฉีดแปลงแฮตแทค",
+          )) ||
+        (rawData.type13Plots && rawData.type13Plots.length > 0) ||
+        (rawData.type13UnplannedItems &&
+          rawData.type13UnplannedItems.length > 0) ||
+        (rawData.t13Plots && rawData.t13Plots.length > 0) ||
+        rawData.type13Data ||
+        rawData.type13 ||
+        rawData.type13Actual ||
+        rawData.t13SprayRounds ||
+        (rawData.t13Images && rawData.t13Images.length > 0),
+      ),
+  },
+  TYPE_14: {
+    code: "TYPE_14",
+    name: "ติดตามแปลงแฮตแทค",
+    planned: type14PlannedStrategy,
+    unplanned: type14UnplannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_14") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงแฮตแทค") ||
+            rawData.workTypeCodes.includes("ติดตามแปลงแฮตแทค") ||
+            rawData.workTypeCodes.includes("ติดตามแปลง"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_14" ||
+              s.workTypeCode === "ติดตามแปลงแฮตแทค" ||
+              s.workTypeCode === "ติดตามแปลงแฮตแทค",
+          )) ||
+        (rawData.type14Plots && rawData.type14Plots.length > 0) ||
+        (rawData.type14Targets && rawData.type14Targets.length > 0) ||
+        (rawData.type14UnplannedItems &&
+          rawData.type14UnplannedItems.length > 0) ||
+        rawData.type14UnplannedItem ||
+        (rawData.t14Plots && rawData.t14Plots.length > 0) ||
+        rawData.type14Data ||
+        rawData.type14 ||
+        rawData.type14Actual ||
+        rawData.t14FollowUpRounds ||
+        (rawData.t14Images && rawData.t14Images.length > 0),
+      ),
+  },
+  TYPE_15: {
+    code: "TYPE_15",
+    name: "บูมทีม / คาราวาน",
+    planned: type15PlannedStrategy,
+    unplanned: type15PlannedStrategy,
+    hasData: (rawData: any): boolean =>
+      Boolean(
+        (rawData.workTypeCodes &&
+          (rawData.workTypeCodes.includes("TYPE_15") ||
+            rawData.workTypeCodes.includes("บูมทีม / คาราวาน") ||
+            rawData.workTypeCodes.includes("บูมทีม") ||
+            rawData.workTypeCodes.includes("คาราวาน"))) ||
+        (rawData.planStores &&
+          rawData.planStores.some(
+            (s: any) =>
+              s.workTypeCode === "TYPE_15" ||
+              s.workTypeCode === "บูมทีม / คาราวาน" ||
+              s.workTypeCode === "บูมทีม" ||
+              s.workTypeCode === "คาราวาน",
+          )) ||
+        (rawData.type15Targets && rawData.type15Targets.length > 0) ||
+        (rawData.type15Items && rawData.type15Items.length > 0) ||
+        (rawData.type15Results && rawData.type15Results.length > 0) ||
+        rawData.type15Actual,
+      ),
+  },
+};
+
+/**
+ * Get strategy for a work type code and plan type
+ */
+export function getStrategyForWorkType(
+  workTypeCodeOrName: string,
+  planType: "PLANNED" | "UNPLANNED" | string = "PLANNED",
+): WorkTypeStrategy | undefined {
+  const code = getWorkTypeCode(workTypeCodeOrName);
+  const registration = WORK_TYPE_STRATEGY_REGISTRY[code];
+  if (!registration) return undefined;
+  return planType === "UNPLANNED"
+    ? registration.unplanned
+    : registration.planned;
+}
+
+/**
+ * Resolve primary work type code from rawData using registered strategies
+ */
+export function resolvePrimaryWorkTypeCode(rawData: any): string {
+  if (
+    Array.isArray(rawData.workTypeCodes) &&
+    rawData.workTypeCodes.length > 0
+  ) {
+    return getWorkTypeCode(rawData.workTypeCodes[0]);
+  }
+  if (Array.isArray(rawData.workTypes) && rawData.workTypes.length > 0) {
+    return getWorkTypeCode(rawData.workTypes[0]);
+  }
+  if (rawData.activityTypeId) {
+    return getWorkTypeCode(rawData.activityTypeId);
+  }
+
+  // Fallback: inspect registered strategies
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData)
+  ) {
+    return "TYPE_2";
+  }
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData)
+  ) {
+    return "TYPE_3";
+  }
+  if (
+    WORK_TYPE_STRATEGY_REGISTRY.TYPE_4.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_1.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_2.hasData(rawData) &&
+    !WORK_TYPE_STRATEGY_REGISTRY.TYPE_3.hasData(rawData)
+  ) {
+    return "TYPE_4";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_5.hasData(rawData)) {
+    return "TYPE_5";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_6.hasData(rawData)) {
+    return "TYPE_6";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_7A.hasData(rawData)) {
+    return "TYPE_7A";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_7B.hasData(rawData)) {
+    return "TYPE_7B";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_8.hasData(rawData)) {
+    return "TYPE_8";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_9.hasData(rawData)) {
+    return "TYPE_9";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_10.hasData(rawData)) {
+    return "TYPE_10";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_11.hasData(rawData)) {
+    return "TYPE_11";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_12.hasData(rawData)) {
+    return "TYPE_12";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_13.hasData(rawData)) {
+    return "TYPE_13";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_14.hasData(rawData)) {
+    return "TYPE_14";
+  }
+  if (WORK_TYPE_STRATEGY_REGISTRY.TYPE_15.hasData(rawData)) {
+    return "TYPE_15";
+  }
+
+  return "TYPE_1";
+}
+
+/**
+ * Check whether a strategy registration should execute for the given plan payload.
+ * When `rawData.workTypeCodes` is explicitly provided and non-empty, only strategies
+ * matching those workTypeCodes are allowed to run.
+ */
+function shouldExecutePlanStrategy(
+  registration: WorkTypeStrategyRegistration,
+  rawData: any,
+): boolean {
+  if (
+    Array.isArray(rawData?.workTypeCodes) &&
+    rawData.workTypeCodes.length > 0
+  ) {
+    const normalizedCodes = rawData.workTypeCodes.map((c: string) =>
+      getWorkTypeCode(c),
+    );
+    return normalizedCodes.includes(registration.code);
+  }
+  return registration.hasData(rawData);
+}
+
+/**
+ * Validate all active strategies for a plan before database mutations
+ */
+export async function validateStrategiesForPlan(
+  db: any,
+  rawData: any,
+): Promise<StrategyValidationResult> {
+  const isUnplanned = rawData.planType === "UNPLANNED";
+  for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
+    if (shouldExecutePlanStrategy(registration, rawData)) {
+      const strategy = isUnplanned
+        ? registration.unplanned
+        : registration.planned;
+      if (typeof strategy.validatePlan === "function") {
+        const result = await strategy.validatePlan(rawData, db);
+        if (result && !result.valid) {
+          return result;
+        }
+      }
+    }
+  }
+  return { valid: true };
+}
+
+/**
+ * Execute savePlan for all active strategies inside an atomic Prisma transaction
+ */
+export async function saveStrategiesForPlan(
+  tx: PrismaTransaction,
+  planId: string,
+  rawData: any,
+): Promise<void> {
+  const isUnplanned = rawData.planType === "UNPLANNED";
+  for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
+    if (shouldExecutePlanStrategy(registration, rawData)) {
+      const strategy = isUnplanned
+        ? registration.unplanned
+        : registration.planned;
+      await strategy.savePlan(tx, planId, rawData);
+    }
+  }
+}
+
+/**
+ * Execute saveActual for all active strategies inside an atomic Prisma transaction
+ */
+export async function saveStrategiesForActual(
+  tx: PrismaTransaction,
+  planId: string,
+  actualData: any,
+  planWorkTypeCodes: string[] = [],
+): Promise<void> {
+  const hasPlanCodes = planWorkTypeCodes.length > 0;
+  for (const registration of Object.values(WORK_TYPE_STRATEGY_REGISTRY)) {
+    const isPlanWorkType = hasPlanCodes
+      ? planWorkTypeCodes.some(
+          (code) => getWorkTypeCode(code) === registration.code,
+        )
+      : false;
+
+    // Only allow strategy execution if it's explicitly part of the plan,
+    // or if no planWorkTypeCodes exist and hasData matches,
+    // or if the actualData explicitly requested this work type code
+    const isExplicitlyRequested =
+      Array.isArray(actualData.workTypeCodes) &&
+      actualData.workTypeCodes.some(
+        (code: string) => getWorkTypeCode(code) === registration.code,
+      );
+
+    const shouldRun =
+      isPlanWorkType ||
+      isExplicitlyRequested ||
+      (!hasPlanCodes && registration.hasData(actualData));
+
+    if (shouldRun) {
+      const strategy = registration.planned;
+      if (typeof strategy.saveActual === "function") {
+        await strategy.saveActual(tx, planId, actualData);
+      }
+    }
+  }
+}

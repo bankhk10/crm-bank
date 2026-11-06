@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import LoginForm from "@/modules/auth/features/login/components/login-form";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
-import { getDefaultRouteForRoles } from "@/modules/rbac/application/authorization";
+import {
+  getDefaultRouteForRoles,
+  isActivityPlanTestMode,
+} from "@/modules/rbac/application/authorization";
 import { safeRedirect } from "@/lib/safe-redirect";
 
 interface LoginPageProps {
@@ -25,6 +28,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(callbackUrl ?? getDefaultRouteForRoles(session.user.roles ?? []));
   }
 
+  const defaultCallback = isActivityPlanTestMode() ? "/activity-plans" : undefined;
+
   // Render the LoginForm directly so it can control full-viewport layout
-  return <LoginForm callbackUrl={callbackUrl} />;
+  return <LoginForm callbackUrl={callbackUrl ?? defaultCallback} />;
 }
