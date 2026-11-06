@@ -589,3 +589,4 @@ model ActivityResultType11 {
 | **2026-10-20** | 1.4.0 | ปรับปรุง `Type11DetailView` ให้จัดกลุ่มตารางแสดงผลแยกตามร้านค้าพร้อมระบบ Lightbox | Antigravity AI |
 | **2026-10-21** | 1.5.0 | อัปเดตกิจกรรมนอกแผน `Type11UnplannedForm` ให้รองรับการตรวจนับสต็อกแบบ 2-in-1 หลายร้านค้า | Antigravity AI |
 | **2026-10-22** | 1.6.0 | ปรับปรุงเอกสาร `README.md` ฉบับสมบูรณ์ครบทั้ง 13 หัวข้อตามมาตรฐาน Gold Standard ของ Type 1 ครบถ้วนทุกมิติ | Antigravity AI |
+| **2026-11-06** | 1.7.0 | Audit & Align Unplanned กับ Planned: แก้ไข Foreign Key storeId ใน ActivityAttachment, ป้องกันการ Overwrite ผลลัพธ์ ActivityResultType11 และลบ Products ผิดพลาดใน saveActual, ปรับช่อง remainingQty ใน UnplannedForm เป็น ActivityNumberInput, ป้องกันการเพิ่มสินค้าซ้ำในร้านเดียวกัน (Duplicate check), เติม Metadata ร้านค้า (storeCode, province, district, dealer) และเชื่อมโยง planStores ครบถ้วน | Antigravity AI |

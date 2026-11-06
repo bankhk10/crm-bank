@@ -1760,6 +1760,16 @@ export function UnplannedActivityForm({
 
       const mapped = mapType11UnplannedToPayload(updatedType11Items);
 
+      if (mapped.type11Stores?.length) {
+        planStores = [
+          ...planStores,
+          ...mapped.type11Stores.map((s: any) => ({
+            ...s,
+            workTypeCode: "TYPE_11",
+          })),
+        ];
+      }
+
       const firstItem = updatedType11Items[0] || type11.items[0];
       actualData = {
         workTypeCode: "TYPE_11",
@@ -1776,7 +1786,7 @@ export function UnplannedActivityForm({
             fileSize: (img as any).size || 0,
             mimeType: (img as any).type || "image/jpeg",
             workTypeCode: "TYPE_11",
-            storeId: item.storeId || item.id || null,
+            storeId: item.storeId || undefined,
           })),
         ),
       };

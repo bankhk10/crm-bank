@@ -6,6 +6,7 @@ import {
   ActivityCustomerSelect,
   ActivityProductSelect,
   ActivityInput,
+  ActivityNumberInput,
   ActivityCombobox,
   ActivityPhotoUpload,
 } from "@/modules/activity/ui";
@@ -128,21 +129,50 @@ export function Type11UnplannedForm({
                 <ActivityCustomerSelect
                   id={`unplanned-store-${item.id}`}
                   type="STORE"
-                  value={item.storeId || ""}
+                  value={item.storeId || item.storeName || ""}
                   valueKey="id"
                   onChange={(selectedId, foundCustomer) => {
-                    const cName =
-                      foundCustomer?.name ||
-                      customers?.find((c) => c.id === selectedId)?.name ||
-                      "";
-                    updateItem(item.id, "storeId", selectedId);
-                    updateItem(item.id, "storeName", cName);
+                    const cust =
+                      foundCustomer ||
+                      customers?.find((c) => c.id === selectedId);
+                    const storeName = cust?.name || selectedId || "";
+                    updateItem(item.id, "storeId", cust?.id || selectedId || null);
+                    updateItem(item.id, "storeName", storeName);
+                    if (cust) {
+                      updateItem(item.id, "storeCode", cust.customerCode || null);
+                      updateItem(item.id, "province", cust.province || null);
+                      updateItem(item.id, "district", cust.district || null);
+                      updateItem(item.id, "dealerId", (cust as any).parentDealerId || null);
+                      updateItem(item.id, "dealerName", (cust as any).parentDealer?.name || null);
+                      updateItem(item.id, "isUnregisteredStore", false);
+                    } else {
+                      updateItem(item.id, "isUnregisteredStore", true);
+                    }
                   }}
                   customers={customers as any}
                   placeholder="ค้นหาและเลือกร้านค้า..."
                   disabled={readonly}
                   triggerClassName="h-10 text-xs bg-white"
                 />
+                {(item.storeCode || item.province || item.dealerName) && (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5 px-0.5">
+                    {item.storeCode && (
+                      <span>
+                        รหัส: <span className="font-semibold text-slate-700">{item.storeCode}</span>
+                      </span>
+                    )}
+                    {item.province && (
+                      <span>
+                        พื้นที่: <span className="font-semibold text-slate-700">{[item.district, item.province].filter(Boolean).join(" จ.")}</span>
+                      </span>
+                    )}
+                    {item.dealerName && (
+                      <span>
+                        ดีลเลอร์หลัก: <span className="font-semibold text-slate-700">{item.dealerName}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Stock Items Sub-section */}
@@ -204,20 +234,21 @@ export function Type11UnplannedForm({
                               จำนวนคงเหลือ{" "}
                               <span className="text-red-500">*</span>
                             </label>
-                            <ActivityInput
-                              type="text"
-                              value={String(si.remainingQty ?? "")}
-                              onChange={(e) =>
+                            <ActivityNumberInput
+                              min={0}
+                              allowDecimals={false}
+                              value={si.remainingQty ?? ""}
+                              onChangeValue={(val) =>
                                 updateStockItem &&
                                 si.id &&
                                 updateStockItem(
                                   item.id,
                                   si.id,
                                   "remainingQty",
-                                  e.target.value,
+                                  val,
                                 )
                               }
-                              placeholder="เช่น 15 กล่อง"
+                              placeholder="เช่น 10, 5"
                               disabled={readonly}
                               className="h-9 text-xs"
                             />

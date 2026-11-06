@@ -365,25 +365,83 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
       actualData.remarks ||
       null;
 
-    if (primaryTarget) {
-      await (tx as any).activityResultType11.deleteMany({
-        where: {
-          activityPlanId,
-          targetId: primaryTarget.id,
-        },
-      });
+    // 1.1 Handle target-level results if provided (Unplanned or multi-target actual)
+    const targetResults =
+      actualData.type11Targets ||
+      actualData.type11UnplannedItems ||
+      [];
 
-      await (tx as any).activityResultType11.create({
-        data: {
-          activityPlanId,
-          targetId: primaryTarget.id,
-          overallStockStatus: overallStatus,
-          overallReorderOpportunity: overallOpportunity,
-          feedback,
-          nextAction,
-          summary,
-        },
-      });
+    if (Array.isArray(targetResults) && targetResults.length > 0) {
+      for (const tr of targetResults) {
+        const matched = targets.find(
+          (t: any) =>
+            (tr.id && (t.id === tr.id || t.id === tr.targetId)) ||
+            (tr.targetId && (t.id === tr.targetId || t.targetId === tr.targetId)) ||
+            (tr.storeId && t.storeId === tr.storeId) ||
+            (tr.storeName &&
+              t.storeName &&
+              t.storeName.trim().toLowerCase() === tr.storeName.trim().toLowerCase()),
+        );
+        if (matched) {
+          const tStatus = tr.overallStockStatus || tr.stockStatus || null;
+          const tOpp = tr.overallReorderOpportunity || tr.reorderOpportunity || null;
+          const tFb = tr.feedback || null;
+          const tNext = tr.nextAction || null;
+          const tSum = tr.summary || tr.remarks || null;
+
+          if (tStatus || tOpp || tFb || tNext || tSum) {
+            await (tx as any).activityResultType11.upsert({
+              where: { targetId: matched.id },
+              update: {
+                ...(tStatus ? { overallStockStatus: tStatus } : {}),
+                ...(tOpp ? { overallReorderOpportunity: tOpp } : {}),
+                ...(tFb ? { feedback: tFb } : {}),
+                ...(tNext ? { nextAction: tNext } : {}),
+                ...(tSum ? { summary: tSum } : {}),
+              },
+              create: {
+                activityPlanId,
+                targetId: matched.id,
+                overallStockStatus: tStatus,
+                overallReorderOpportunity: tOpp,
+                feedback: tFb,
+                nextAction: tNext,
+                summary: tSum,
+              },
+            });
+          }
+        }
+      }
+    } else if (primaryTarget) {
+      // 1.2 Top-level fallback for single target
+      const hasAnyTopLevel =
+        overallStatus != null ||
+        overallOpportunity != null ||
+        feedback != null ||
+        nextAction != null ||
+        summary != null;
+
+      if (hasAnyTopLevel) {
+        await (tx as any).activityResultType11.upsert({
+          where: { targetId: primaryTarget.id },
+          update: {
+            overallStockStatus: overallStatus,
+            overallReorderOpportunity: overallOpportunity,
+            feedback,
+            nextAction,
+            summary,
+          },
+          create: {
+            activityPlanId,
+            targetId: primaryTarget.id,
+            overallStockStatus: overallStatus,
+            overallReorderOpportunity: overallOpportunity,
+            feedback,
+            nextAction,
+            summary,
+          },
+        });
+      }
     }
 
     // 2. Save, update, and prune activity_type_11_products
@@ -521,7 +579,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             (item.images || []).map((img: any) => ({
               ...img,
               category: "STOCK",
-              storeId: item.storeId || item.id || null,
+              storeId: isValidId(item.storeId) ? item.storeId : null,
               workTypeCode: "TYPE_11",
             })),
           )
@@ -564,7 +622,7 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
             activityPlanId,
             activityResultId: resolvedResultId,
             workTypeCode: "TYPE_11",
-            storeId: att.storeId || null,
+            storeId: isValidId(att.storeId) ? att.storeId : null,
             category: normalizeAttachmentCategory(
               att.category,
               AttachmentCategory.SHELF,
@@ -578,15 +636,16 @@ export const type11PlannedStrategy: WorkTypeStrategy = {
       }
     }
 
-
-    await (tx as any).activityPlanType11Product.deleteMany({
-      where: {
-        activityPlanId,
-        id: {
-          notIn: Array.from(keptProductIds),
+    if (Array.isArray(stockItems) && stockItems.length > 0) {
+      await (tx as any).activityPlanType11Product.deleteMany({
+        where: {
+          activityPlanId,
+          id: {
+            notIn: Array.from(keptProductIds),
+          },
         },
-      },
-    });
+      });
+    }
   },
 
   /**

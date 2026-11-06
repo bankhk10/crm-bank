@@ -176,6 +176,8 @@ export function parseType11ActualResult(
           att.workTypeCode === "TYPE_11" ||
           att.category === "stock" ||
           att.category === "STOCK" ||
+          att.category === "shelf" ||
+          att.category === "SHELF" ||
           att.category === "t11",
       )
       .map((att: any) => ({

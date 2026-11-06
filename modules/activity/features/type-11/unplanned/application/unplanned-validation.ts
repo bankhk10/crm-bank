@@ -40,6 +40,13 @@ export function validateType11UnplannedItems(
           String(si.remainingQty).trim() === ""
         ) {
           errors.push(`${storeLabel} - ${prodName}: กรุณาระบุจำนวนคงเหลือ`);
+        } else if (
+          isNaN(Number(String(si.remainingQty).replace(/,/g, "").trim())) ||
+          Number(String(si.remainingQty).replace(/,/g, "").trim()) < 0
+        ) {
+          errors.push(
+            `${storeLabel} - ${prodName}: กรุณาระบุจำนวนคงเหลือเป็นตัวเลขที่ถูกต้อง`,
+          );
         }
         if (!si.reorderOpportunity || !String(si.reorderOpportunity).trim()) {
           errors.push(

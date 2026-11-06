@@ -91,12 +91,22 @@ export function useType11UnplannedForm({
           ? productsList.find((p) => p.id === selectedProductId || p.name === selectedProductId)
           : undefined;
 
+        const prodName = matchedProd?.name || selectedProductId || "";
+
+        // Prevent duplicate product in the same store
+        const isDuplicate = (item.stockItems || []).some(
+          (si) =>
+            (matchedProd?.id && si.productId === matchedProd.id) ||
+            (prodName && si.productName?.trim().toLowerCase() === prodName.trim().toLowerCase()),
+        );
+        if (isDuplicate) return item;
+
         const newStockItem: Type11StockItem = {
           id: crypto.randomUUID(),
           storeId: item.storeId,
           storeName: item.storeName,
           productId: matchedProd?.id || selectedProductId || undefined,
-          productName: matchedProd?.name || selectedProductId || "",
+          productName: prodName,
           productCode: matchedProd?.productCode || undefined,
           remainingQty: "",
           stockStatus: "ปกติ",

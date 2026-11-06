@@ -205,14 +205,21 @@ export function mapType11UnplannedToPayload(items: Type11UnplannedItem[]) {
     overallReorderOpportunity: item.overallReorderOpportunity,
     feedback: item.feedback,
     nextAction: item.nextAction,
-    summary: item.summary,
+    summary: item.summary || item.remarks,
   }));
 
   return {
     type11Targets,
     type11Stores: items.map((i) => ({
-      storeId: i.storeId || i.id,
+      storeId: i.storeId || null,
       storeName: i.storeName,
+      storeCode: i.storeCode || null,
+      province: i.province || null,
+      district: i.district || null,
+      dealerId: i.dealerId || null,
+      dealerName: i.dealerName || null,
+      isUnregisteredStore: Boolean(i.isUnregisteredStore),
+      workTypeCode: "TYPE_11",
     })),
     t11StockItems: allStockItems,
     t11NextAction: nextAction,
