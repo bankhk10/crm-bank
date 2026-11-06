@@ -235,7 +235,10 @@ export const type6PlannedStrategy: WorkTypeStrategy = {
         productName: item.productName ?? null,
         lotNumber: item.lotNumber ?? null,
         purchaseChannel: item.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย",
-        storeId: isManual ? null : item.storeId ?? null,
+        storeId:
+          item.purchaseChannel === "ออนไลน์" || item.purchaseChannel === "ช่องทางออนไลน์"
+            ? null
+            : item.storeId ?? null,
         storeName: item.storeName ?? null,
         customerName: custName,
         isManualCustomer: isManual,

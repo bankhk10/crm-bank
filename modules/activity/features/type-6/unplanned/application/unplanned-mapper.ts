@@ -252,16 +252,25 @@ export function mapType6UnplannedToPayload(items: Type6UnplannedItem[]) {
 
   const actualIssues = items.map((item) => ({
     id: item.id,
+    isManualCustomer: Boolean(item.isManualCustomer),
+    customerName: item.isManualCustomer
+      ? item.manualCustomerName || item.customerName || ""
+      : item.customerName || "",
     purchaseChannel:
       item.purchaseChannel === "ช่องทางออนไลน์"
         ? "ออนไลน์"
         : item.purchaseChannel || "ร้านค้าตัวแทนจำหน่าย",
-    storeId: item.isManualCustomer ? null : item.storeId || null,
+    storeId:
+      item.purchaseChannel === "ออนไลน์" || item.purchaseChannel === "ช่องทางออนไลน์"
+        ? null
+        : item.storeId || null,
     storeName:
-      item.storeName ||
-      (item.isManualCustomer
-        ? item.manualCustomerName || ""
-        : item.customerName || ""),
+      item.purchaseChannel === "ออนไลน์" || item.purchaseChannel === "ช่องทางออนไลน์"
+        ? null
+        : item.storeName ||
+          (item.isManualCustomer
+            ? null
+            : item.customerName || ""),
     productId: item.productId || null,
     productName: item.productName || "",
     lotNumber: item.lotNumber || "",

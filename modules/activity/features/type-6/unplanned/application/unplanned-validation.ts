@@ -43,7 +43,16 @@ export function validateType6UnplannedItems(
       errors.push(`รายการที่ ${idx}: กรุณาระบุรายละเอียดเพิ่มเติมสำหรับประเภทปัญหา "อื่นๆ ระบุ"`);
     }
 
-    // 3. Actual Investigation Fields
+    // 3. Product & Dealer Validation
+    if (!item.productId && !item.productName) {
+      errors.push(`รายการที่ ${idx}: กรุณาเลือกชื่อสินค้าสำหรับตรวจสอบเรื่องร้องเรียน`);
+    }
+
+    if (item.purchaseChannel === "ร้านค้าตัวแทนจำหน่าย" && item.isManualCustomer && !item.storeId) {
+      errors.push(`รายการที่ ${idx}: กรุณาเลือกร้านค้าตัวแทนจำหน่ายที่ซื้อสินค้า`);
+    }
+
+    // 4. Actual Investigation Fields
     if (!item.lotNumber || !item.lotNumber.trim()) {
       errors.push(`รายการที่ ${idx}: กรุณาระบุเลข Lot บนบรรจุภัณฑ์`);
     }

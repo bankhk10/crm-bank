@@ -121,9 +121,10 @@ export function Type6UnplannedForm({
                   </label>
                   <ActivityInput
                     value={item.manualCustomerName || ""}
-                    onChange={(e) =>
-                      updateItem(item.id, "manualCustomerName", e.target.value)
-                    }
+                    onChange={(e) => {
+                      updateItem(item.id, "manualCustomerName", e.target.value);
+                      updateItem(item.id, "customerName", e.target.value);
+                    }}
                     disabled={readonly}
                     placeholder="เช่น คุณสมชาย หมายมั่น"
                     required
@@ -139,6 +140,7 @@ export function Type6UnplannedForm({
                 value={item.storeId || item.customerName || ""}
                 onChange={(val, cust) => {
                   updateItem(item.id, "customerName", cust?.name || val);
+                  updateItem(item.id, "storeName", cust?.name || val);
                   if (cust?.id) {
                     updateItem(item.id, "storeId", cust.id);
                   }
@@ -228,7 +230,7 @@ export function Type6UnplannedForm({
                 label="ชื่อสินค้า"
                 labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                 triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500"
-                value={item.productId || ""}
+                value={item.productId || item.productName || ""}
                 valueKey="id"
                 products={products as any}
                 onChange={(val, prod) => {

@@ -1234,20 +1234,36 @@ export function UnplannedActivityForm({
         ];
       }
 
+      const firstItem = updatedType6Items[0] || type6.items[0];
+      const summaryProblem =
+        firstItem?.detail || firstItem?.issueType || "ตรวจสอบเรื่องร้องเรียน";
+
+      const attachments: any[] = [];
+      updatedType6Items.forEach((item: any) => {
+        (item.images || []).forEach((img: any) => {
+          attachments.push({
+            category: "ISSUE",
+            fileUrl: img.url,
+            fileName: img.name || "รูปถ่ายหลักฐานปัญหา",
+            fileSize: Math.round(Number((img as any).size || 0)),
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_6",
+            storeId: item.storeId || undefined,
+            productId: item.productId || undefined,
+            type6ResultId: item.id,
+            issueItemId: item.id,
+          });
+        });
+      });
+
       actualData = {
         workTypeCode: "TYPE_6",
         type6Results: mapped.type6Results || mapped.type6ActualIssues,
         issueResults: mapped.type6ActualIssues,
         type6ActualIssues: mapped.type6ActualIssues,
         targetActualResults: mapped.type6ActualIssues,
-        attachments: cleanType6Images.map((img) => ({
-          category: "ISSUE",
-          fileUrl: img.url,
-          fileName: img.name || "รูปถ่ายหลักฐานปัญหา",
-          fileSize: (img as any).size || 0,
-          mimeType: (img as any).type || "image/jpeg",
-          workTypeCode: "TYPE_6",
-        })),
+        resultSummary: `ตรวจสอบเรื่องร้องเรียน: ${summaryProblem}`,
+        attachments,
       };
     } else if (isType7aActive) {
       if (type7a.items.length === 0) {
