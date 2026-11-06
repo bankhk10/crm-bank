@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { Suspense, useCallback } from "react";
 import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,7 +19,7 @@ import { PageHeader } from "@/components/custom/page-header";
 import type { SaleRecord } from "@/modules/sales/types";
 import { useSalesList } from "./use-sales-list";
 
-export default function SalesListView() {
+function SalesListContent() {
   const {
     hasPermission,
     allowed,
@@ -161,7 +161,6 @@ export default function SalesListView() {
             customerId={customerId}
             onCustomerIdChange={(val) => {
               setCustomerId(Array.isArray(val) ? val : val ? [val] : []);
-              setPage(1);
             }}
             customers={filterCustomers}
           />
@@ -199,5 +198,22 @@ export default function SalesListView() {
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+export default function SalesListView() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+          </div>
+        </div>
+      }
+    >
+      <SalesListContent />
+    </Suspense>
   );
 }

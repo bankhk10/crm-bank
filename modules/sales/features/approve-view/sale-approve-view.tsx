@@ -53,6 +53,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { DetailItem } from "@/components/custom/detail-item";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailHero } from "@/components/custom/detail-hero";
+import { useSalesBackUrl } from "../list-view/use-sales-list";
 
 interface SaleApproveViewProps {
   id: string;
@@ -104,6 +105,7 @@ const AppSectionHeader = ({
 
 export function SaleApproveView({ id }: SaleApproveViewProps) {
   const router = useRouter();
+  const backUrl = useSalesBackUrl();
   const { allowed, isLoading: permLoading } = usePermission("sale.approve");
 
   const [data, setData] = useState<SaleDetailResponse | null>(null);
@@ -131,7 +133,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
     setActionLoading(true);
     const res = await approveSaleAction(id, approveNotes);
     if (res.success) {
-      router.push(`/sales`);
+      router.push(backUrl);
     } else {
       setError(res.error ?? "Failed to approve");
       setActionLoading(false);
@@ -143,7 +145,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
     setActionLoading(true);
     const res = await rejectSaleAction(id, rejectReason);
     if (res.success) {
-      router.push(`/sales`);
+      router.push(backUrl);
     } else {
       setError(res.error ?? "Failed to reject");
       setActionLoading(false);
@@ -223,7 +225,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
     <div className="min-h-screen">
       {/* ── Hero Header ──────────────────────────────────────────────── */}
       <DetailHero
-        backUrl="/sales"
+        backUrl={backUrl}
         backLabel="หน้ารายการขาย"
         title="พิจารณาอนุมัติรายการขาย"
         icon={<FileText className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}

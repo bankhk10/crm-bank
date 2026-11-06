@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SaleForm } from "@/modules/sales/features/form/sale-form";
 import { updateSaleAction, getSaleAction } from "@/modules/sales/server/actions";
+import { getSalesListReturnUrl } from "@/modules/sales/features/list-view/use-sales-list";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/modules/sales/types";
@@ -124,7 +125,7 @@ export default function SaleEditView({ id }: SaleEditViewProps) {
     }
 
     toast.success("บันทึกการแก้ไขสำเร็จ");
-    router.push(`/sales`);
+    router.push(getSalesListReturnUrl());
   };
 
   if (permLoading || loading) {

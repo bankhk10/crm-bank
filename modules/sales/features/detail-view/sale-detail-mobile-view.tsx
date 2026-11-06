@@ -45,6 +45,7 @@ import { DetailItem } from "@/components/custom/detail-item";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { getSaleAction, exportSaleDetailAction } from "../../server/actions";
+import { useSalesBackUrl } from "../list-view/use-sales-list";
 import { formatAddress } from "@/lib/address-utils";
 import { downloadBase64File } from "@/lib/export-utils";
 
@@ -98,6 +99,7 @@ const AppSectionHeader = ({
 
 export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
   const router = useRouter();
+  const backUrl = useSalesBackUrl();
   const { hasPermission } = usePermission();
   const canExport = hasPermission("menu.exports");
   const canViewPdf = hasPermission("menu.fulfillment");
@@ -230,7 +232,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
     <div className="min-h-screen">
       {/* ── Hero Header ──────────────────────────────────────────────── */}
       <DetailHero
-        backUrl="/sales"
+        backUrl={backUrl}
         backLabel="หน้ารายการขาย"
         title="รายละเอียดรายการขาย"
         icon={<FileText className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
@@ -977,7 +979,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
             className="w-full sm:w-auto h-11 border-gray-200 text-gray-700 font-medium px-6 hover:bg-gray-50"
             asChild
           >
-            <Link href="/sales">
+            <Link href={backUrl}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               กลับหน้าข้อมูลการขาย
             </Link>
