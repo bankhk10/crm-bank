@@ -20,6 +20,7 @@ interface SaleFormData {
   products: SaleFormProduct[];
   companies: SaleFormCompany[];
   loading: boolean;
+  customersLoading: boolean;
   error: string | null;
 }
 
@@ -32,27 +33,29 @@ export function useSaleFormData(): SaleFormData {
   const [products, setProducts] = useState<SaleFormProduct[]>([]);
   const [companies, setCompanies] = useState<SaleFormCompany[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customersLoading, setCustomersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setCustomersLoading(true);
     setError(null);
 
-    Promise.all([
-      fetch("/api/customers?type=DEALER&perPage=1000").then((r) => r.json()),
-      import("@/modules/employee/server/actions").then(
-        async ({ getEmployeesAction }) => {
-          const res = await getEmployeesAction({ perPage: 1000 });
-          return { employees: res.employees || [] };
-        },
-      ),
-      fetch("/api/products?status=ACTIVE&perPage=1000").then((r) => r.json()),
-      getCompaniesAction().then((res) => {
-        return { companies: res.companies || [] };
-      }),
-    ])
-      .then(([customersData, employeesData, productsData, companiesData]) => {
+    const customersPromise = fetch("/api/customers?type=DEALER&perPage=1000")
+      .then((r) => r.json())
+      .then((customersData) => {
         setCustomers(customersData.customers || []);
+      })
+      .finally(() => {
+        setCustomersLoading(false);
+      });
+
+    const employeesPromise = import("@/modules/employee/server/actions")
+      .then(async ({ getEmployeesAction }) => {
+        const res = await getEmployeesAction({ perPage: 1000 });
+        return { employees: res.employees || [] };
+      })
+      .then((employeesData) => {
         setEmployees(
           (employeesData.employees || []).map((e: any) => ({
             id: e.id,
@@ -60,6 +63,11 @@ export function useSaleFormData(): SaleFormData {
             employeeCode: e.employeeCode || undefined,
           })),
         );
+      });
+
+    const productsPromise = fetch("/api/products?status=ACTIVE&perPage=1000")
+      .then((r) => r.json())
+      .then((productsData) => {
         setProducts(
           (productsData.products || []).map((p: any) => ({
             ...p,
@@ -67,18 +75,28 @@ export function useSaleFormData(): SaleFormData {
               p.promotionBudget != null ? Number(p.promotionBudget) : null,
           })),
         );
-        setCompanies(
-          (companiesData.companies || []).map((c: any) => ({
-            id: c.id,
-            name: c.name,
-            addressLine: c.addressLine || undefined,
-            province: c.province || undefined,
-            district: c.district || undefined,
-            subdistrict: c.subdistrict || undefined,
-            postalCode: c.postalCode || undefined,
-          })),
-        );
-      })
+      });
+
+    const companiesPromise = getCompaniesAction().then((res) => {
+      setCompanies(
+        (res.companies || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          addressLine: c.addressLine || undefined,
+          province: c.province || undefined,
+          district: c.district || undefined,
+          subdistrict: c.subdistrict || undefined,
+          postalCode: c.postalCode || undefined,
+        })),
+      );
+    });
+
+    Promise.all([
+      customersPromise,
+      employeesPromise,
+      productsPromise,
+      companiesPromise,
+    ])
       .catch((err) => {
         console.error("Error loading data:", err);
         setError("ไม่สามารถโหลดข้อมูลได้");
@@ -94,6 +112,7 @@ export function useSaleFormData(): SaleFormData {
     products,
     companies,
     loading,
+    customersLoading,
     error,
   };
 }

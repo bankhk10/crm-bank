@@ -71,7 +71,14 @@ export function SaleForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Load data using hook
-  const { customers, employees, products, companies } = useSaleFormData();
+  const {
+    customers,
+    employees,
+    products,
+    companies,
+    loading: isDataLoading,
+    customersLoading,
+  } = useSaleFormData();
 
   // Validation hook
   const { validateForm } = useSaleFormValidation();
@@ -636,6 +643,8 @@ export function SaleForm({
           placeholder="เลือกลูกค้า"
           searchPlaceholder="ค้นหาลูกค้า..."
           emptyText="ไม่พบลูกค้า"
+          loading={customersLoading}
+          loadingText="กำลังโหลดข้อมูลลูกค้า..."
           required
           error={fieldErrors.customerId}
         />
@@ -656,6 +665,8 @@ export function SaleForm({
           placeholder="เลือกพนักงานขาย"
           searchPlaceholder="ค้นหาพนักงานขาย..."
           emptyText="ไม่พบพนักงานขาย"
+          loading={isDataLoading}
+          loadingText="กำลังโหลดข้อมูลพนักงาน..."
           disabled={!canSelectOtherEmployees}
           required
           error={fieldErrors.employeeId}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,8 @@ interface FormComboboxProps {
   placeholder?: string;
   searchPlaceholder?: string;
   emptyText?: string;
+  loading?: boolean;
+  loadingText?: string;
   disabled?: boolean;
   required?: boolean;
   error?: string;
@@ -55,6 +57,8 @@ export function FormCombobox({
   placeholder = "เลือก",
   searchPlaceholder = "ค้นหา...",
   emptyText = "ไม่พบข้อมูล",
+  loading = false,
+  loadingText = "กำลังโหลดข้อมูล...",
   disabled = false,
   required = false,
   error,
@@ -91,12 +95,22 @@ export function FormCombobox({
             )}
           >
             <span className="text-left flex-1 flex flex-col justify-center min-w-0">
-              <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+              <span className="truncate">
+                {selectedOption
+                  ? selectedOption.label
+                  : loading
+                    ? loadingText
+                    : placeholder}
+              </span>
               {selectedOption?.subLabel && (
                 <span className="text-xs text-gray-500 truncate">{selectedOption.subLabel}</span>
               )}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            {loading ? (
+              <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin opacity-50" />
+            ) : (
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -107,37 +121,46 @@ export function FormCombobox({
           <Command>
             <CommandInput placeholder={searchPlaceholder} className="h-11" />
             <CommandList className="max-h-[300px]">
-              <CommandEmpty>{emptyText}</CommandEmpty>
-              <CommandGroup>
-                {options.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    keywords={[
-                      option.label, 
-                      option.label.replace(/\s+/g, ""),
-                      ...(option.subLabel ? [option.subLabel, option.subLabel.replace(/\s+/g, "")] : [])
-                    ]}
-                    onSelect={(currentValue) => {
-                      onChange(currentValue === value ? "" : currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4 shrink-0",
-                        value === option.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="truncate">{option.label}</span>
-                      {option.subLabel && (
-                        <span className="text-xs text-gray-500 truncate">{option.subLabel}</span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              {loading ? (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{loadingText}</span>
+                </div>
+              ) : (
+                <>
+                  <CommandEmpty>{emptyText}</CommandEmpty>
+                  <CommandGroup>
+                    {options.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        keywords={[
+                          option.label, 
+                          option.label.replace(/\s+/g, ""),
+                          ...(option.subLabel ? [option.subLabel, option.subLabel.replace(/\s+/g, "")] : [])
+                        ]}
+                        onSelect={(currentValue) => {
+                          onChange(currentValue === value ? "" : currentValue);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4 shrink-0",
+                            value === option.value ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="truncate">{option.label}</span>
+                          {option.subLabel && (
+                            <span className="text-xs text-gray-500 truncate">{option.subLabel}</span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>
