@@ -783,6 +783,7 @@ export function UnplannedActivityForm({
     let planProducts: any[] = [];
     let followupResults: any[] = [];
     let actualData: any = null;
+    let updatedType5Items: any = null;
     let updatedType6Items: any = null;
     let updatedType7bItems: any = null;
     let updatedType13Items: any = null;
@@ -1008,33 +1009,6 @@ export function UnplannedActivityForm({
         return;
       }
 
-      const mapped = mapType5UnplannedToPayload(type5.items);
-
-      if (mapped.type5Targets?.length) {
-        planStores = [
-          ...planStores,
-          ...mapped.type5Targets
-            .filter((t) => t.storeId)
-            .map((t) => ({
-              workTypeCode: "TYPE_5",
-              storeId: t.storeId,
-              storeName: t.storeName,
-              notes: t.notes,
-            })),
-        ];
-        planProducts = [
-          ...planProducts,
-          ...mapped.type5Targets
-            .filter((t) => t.productId)
-            .map((t) => ({
-              workTypeCode: "TYPE_5",
-              productId: t.productId,
-              productName: t.productName,
-              notes: t.notes,
-            })),
-        ];
-      }
-
       // Upload Bottle Images and Promotional Images
       const allBottleImages = type5.items.flatMap(
         (item) => item.bottleImages || [],
@@ -1044,6 +1018,7 @@ export function UnplannedActivityForm({
       );
       let cleanBottleImages = allBottleImages;
       let cleanPromoImages = allPromoImages;
+      updatedType5Items = type5.items;
 
       if (allBottleImages.length > 0) {
         try {
@@ -1081,6 +1056,102 @@ export function UnplannedActivityForm({
         }
       }
 
+      // Remap newly uploaded permanent URLs back into updatedType5Items
+      const bottleUrlMap = new Map<string, string>();
+      cleanBottleImages.forEach((img: any) => {
+        if (img.id && img.url) bottleUrlMap.set(img.id, img.url);
+        if (img.name && img.url) bottleUrlMap.set(img.name, img.url);
+      });
+      const promoUrlMap = new Map<string, string>();
+      cleanPromoImages.forEach((img: any) => {
+        if (img.id && img.url) promoUrlMap.set(img.id, img.url);
+        if (img.name && img.url) promoUrlMap.set(img.name, img.url);
+      });
+
+      updatedType5Items = type5.items.map((item) => {
+        const remappedBottleImages = (item.bottleImages || []).map((img: any) => {
+          const newUrl =
+            bottleUrlMap.get(img.id) || bottleUrlMap.get(img.name) || img.url;
+          return { ...img, url: newUrl };
+        });
+        const remappedPromoImages = (item.promotionalImages || []).map((img: any) => {
+          const newUrl =
+            promoUrlMap.get(img.id) || promoUrlMap.get(img.name) || img.url;
+          return { ...img, url: newUrl };
+        });
+        return {
+          ...item,
+          bottleImages: remappedBottleImages,
+          promotionalImages: remappedPromoImages,
+        };
+      });
+
+      const mapped = mapType5UnplannedToPayload(updatedType5Items);
+
+      if (mapped.type5Targets?.length) {
+        planStores = [
+          ...planStores,
+          ...mapped.type5Targets
+            .filter((t) => t.storeId)
+            .map((t) => ({
+              workTypeCode: "TYPE_5",
+              storeId: t.storeId,
+              storeName: t.storeName,
+              notes: t.notes,
+            })),
+        ];
+        planProducts = [
+          ...planProducts,
+          ...mapped.type5Targets
+            .filter((t) => t.productId)
+            .map((t) => ({
+              workTypeCode: "TYPE_5",
+              storeId: t.storeId || null,
+              productId: t.productId,
+              productName: t.productName,
+              notes: t.notes,
+            })),
+        ];
+      }
+
+      const firstItem = updatedType5Items[0] || type5.items[0];
+      const summaryBrand = firstItem?.competitorBrand || "-";
+      const summaryProduct = firstItem?.competitorProduct
+        ? ` (${firstItem.competitorProduct})`
+        : "";
+
+      const attachments: any[] = [];
+      updatedType5Items.forEach((item: any) => {
+        (item.bottleImages || []).forEach((img: any) => {
+          attachments.push({
+            category: "SURVEY_BOTTLE",
+            fileUrl: img.url,
+            fileName: img.name || "รูปถ่ายขวดผลิตภัณฑ์",
+            fileSize: Math.round(Number((img as any).size || 0)),
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_5",
+            storeId: item.storeId || undefined,
+            productId: item.productId || undefined,
+            type5ResultId: item.id,
+            surveyItemId: item.id,
+          });
+        });
+        (item.promotionalImages || []).forEach((img: any) => {
+          attachments.push({
+            category: "SURVEY_PROMO_MATERIAL",
+            fileUrl: img.url,
+            fileName: img.name || "รูปภาพสื่อโปรโมท",
+            fileSize: Math.round(Number((img as any).size || 0)),
+            mimeType: (img as any).type || "image/jpeg",
+            workTypeCode: "TYPE_5",
+            storeId: item.storeId || undefined,
+            productId: item.productId || undefined,
+            type5ResultId: item.id,
+            surveyItemId: item.id,
+          });
+        });
+      });
+
       actualData = {
         workTypeCode: "TYPE_5",
         type5Results: mapped.type5Results || mapped.type5SurveyRecords,
@@ -1088,24 +1159,8 @@ export function UnplannedActivityForm({
         surveyResults: mapped.type5SurveyRecords,
         t5SurveyDetails: mapped.type5SurveyRecords,
         targetActualResults: mapped.type5SurveyRecords,
-        attachments: [
-          ...cleanBottleImages.map((img) => ({
-            category: "SURVEY_BOTTLE",
-            fileUrl: img.url,
-            fileName: img.name || "รูปถ่ายขวดผลิตภัณฑ์",
-            fileSize: (img as any).size || 0,
-            mimeType: (img as any).type || "image/jpeg",
-            workTypeCode: "TYPE_5",
-          })),
-          ...cleanPromoImages.map((img) => ({
-            category: "SURVEY_PROMO_MATERIAL",
-            fileUrl: img.url,
-            fileName: img.name || "รูปภาพสื่อโปรโมท",
-            fileSize: (img as any).size || 0,
-            mimeType: (img as any).type || "image/jpeg",
-            workTypeCode: "TYPE_5",
-          })),
-        ],
+        resultSummary: `สำรวจตลาด: ${summaryBrand}${summaryProduct}`,
+        attachments,
       };
     } else if (isType6Active) {
       if (type6.items.length === 0) {
@@ -2078,7 +2133,7 @@ export function UnplannedActivityForm({
       : null;
 
     const mappedType5 = isType5Active
-      ? mapType5UnplannedToPayload(type5.items)
+      ? mapType5UnplannedToPayload(updatedType5Items || type5.items)
       : null;
 
     const mappedType6 = isType6Active
@@ -2226,7 +2281,9 @@ export function UnplannedActivityForm({
       actualData,
       attachments: actualData?.attachments || [],
       type1UnplannedItems: isType1Active ? type1.items : undefined,
-      type5UnplannedItems: isType5Active ? type5.items : undefined,
+      type5UnplannedItems: isType5Active
+        ? updatedType5Items || type5.items
+        : undefined,
       type6UnplannedItems: isType6Active
         ? updatedType6Items || type6.items
         : undefined,

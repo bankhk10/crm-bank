@@ -5,7 +5,7 @@ import { BarChart2, Plus, Trash2, Sparkles, Store, Package } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import {
   ActivityCustomerSelect,
-  ActivityCombobox,
+  ActivityProductSelect,
   ActivityInput,
   ActivityNumberInput,
   ActivityTextarea,
@@ -22,17 +22,6 @@ export function Type5UnplannedForm({
   updateItem,
   deleteItem,
 }: Type5UnplannedFormProps) {
-  const boxProducts = products.filter(
-    (p) => !p.unit || p.unit.trim() === "กล่อง",
-  );
-
-  const productOptions = (
-    boxProducts.length > 0 ? boxProducts : products || []
-  ).map((p) => ({
-    value: p.name,
-    label: p.name,
-    subLabel: p.productCode || undefined,
-  }));
 
   return (
     <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 md:p-5 space-y-4">
@@ -104,23 +93,50 @@ export function Type5UnplannedForm({
                 required
               />
 
-              <ActivityCombobox
+              <ActivityProductSelect
+                id={`compared-product-${item.id}`}
                 label="สินค้าที่นำไปเปรียบเทียบ"
                 labelClassName="block text-xs font-semibold text-slate-700 mb-1 mx-0"
                 triggerClassName="h-9 min-h-[36px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-purple-500"
-                options={productOptions}
-                value={item.comparedProduct}
-                onChange={(val) => {
-                  updateItem(item.id, "comparedProduct", val);
-                  const foundP = products.find((p) => p.name === val);
-                  if (foundP) {
-                    updateItem(item.id, "productId", foundP.id);
+                value={item.comparedProduct || ""}
+                valueKey="name"
+                unitFilter="box"
+                products={products as any}
+                onChange={(val, prod) => {
+                  updateItem(
+                    item.id,
+                    "comparedProduct",
+                    prod?.name || val,
+                  );
+                  const prodId =
+                    prod?.id ||
+                    products.find((p) => p.name === val || p.id === val)?.id;
+                  if (prodId) {
+                    updateItem(item.id, "productId", prodId);
                   }
                 }}
                 placeholder="เลือกสินค้าเปรียบเทียบ..."
                 searchPlaceholder="ค้นหาสินค้าเปรียบเทียบ..."
+                emptyText="ไม่พบสินค้า"
                 disabled={readonly}
                 required
+              />
+            </div>
+
+            {/* Additional Detail */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">
+                รายละเอียดเพิ่มเติม
+              </label>
+              <ActivityInput
+                type="text"
+                value={item.detail || ""}
+                onChange={(e) =>
+                  updateItem(item.id, "detail", e.target.value)
+                }
+                disabled={readonly}
+                placeholder="ระบุรายละเอียดการสำรวจตลาด เช่น สินค้าของคู่แข่งที่ต้องการดู..."
+                className="bg-white border-slate-200 h-9 text-xs"
               />
             </div>
 
