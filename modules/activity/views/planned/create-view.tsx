@@ -193,6 +193,7 @@ export function PlannedCreateView({ initialMasterData }: PlannedCreateViewProps 
     if (res.success) {
       toast.success("บันทึก Trip Plan เรียบร้อยแล้ว");
       router.push("/activity-plans");
+      router.refresh();
       return { success: true };
     }
     return { success: false, error: res.error };

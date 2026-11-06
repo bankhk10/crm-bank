@@ -2274,13 +2274,13 @@ export function UnplannedActivityForm({
           "เกิดข้อผิดพลาดในการบันทึก",
           res.error || "เกิดข้อผิดพลาดในการบันทึก",
         );
+        setSubmitting(false);
       }
     } catch (err: any) {
       showValidationError(
         "เกิดข้อผิดพลาดไม่คาดคิด",
         err.message || "เกิดข้อผิดพลาดไม่คาดคิด",
       );
-    } finally {
       setSubmitting(false);
     }
   };

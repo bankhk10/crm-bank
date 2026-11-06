@@ -193,6 +193,7 @@ export function UnplannedCreateView({ initialMasterData }: UnplannedCreateViewPr
     if (res.success) {
       toast.success("บันทึกกิจกรรมเรียบร้อยแล้ว");
       router.push("/activity-plans");
+      router.refresh();
       return { success: true };
     }
     return { success: false, error: res.error };
