@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import {
   Layers,
   Package,
@@ -80,19 +81,29 @@ export function Type14UnplannedForm({
     hattackFollowUpPlans.length > 0 ? hattackFollowUpPlans : dbPlans;
 
   const planOptions = useMemo(() => {
-    return activeFollowUpPlans.map((plan) => ({
+    const list = activeFollowUpPlans.map((plan) => ({
       value: plan.planId,
       label: `${plan.planCode ? `[${plan.planCode}] ` : ""}${plan.planTitle}${
         plan.planDate ? ` (${plan.planDate})` : ""
       } - จำนวน ${plan.plots?.length || 0} แปลง`,
     }));
-  }, [activeFollowUpPlans]);
 
-  // Only take plots if a plan is selected
+    if (
+      item.selectedPlanId &&
+      !list.some((o) => o.value === item.selectedPlanId)
+    ) {
+      list.unshift({
+        value: item.selectedPlanId,
+        label: `[แผนงานเดิมที่เลือก] (จำนวน ${item.plots?.length || 1} แปลง)`,
+      });
+    }
+
+    return list;
+  }, [activeFollowUpPlans, item.selectedPlanId, item.plots?.length]);
+
+  // Plots list (supports both newly selected plan and edit mode hydration)
   const plotsList: Type14PlotActualState[] =
-    item.selectedPlanId && item.plots && item.plots.length > 0
-      ? item.plots
-      : [];
+    item.plots && item.plots.length > 0 ? item.plots : [];
 
   // -------------------------------------------------------------
   // Existing Plan Selection Handler
@@ -257,6 +268,15 @@ export function Type14UnplannedForm({
     if (!prods[prodIdx]) return;
 
     if (field === "productId") {
+      if (value) {
+        const isDuplicate = prods.some(
+          (p, i) => i !== prodIdx && p.productId === value,
+        );
+        if (isDuplicate) {
+          toast.error("สินค้านี้ถูกเลือกในแปลงนี้แล้ว");
+          return;
+        }
+      }
       const matched =
         selectedProd || products.find((prod) => prod.id === value);
       prods[prodIdx] = {
@@ -355,7 +375,7 @@ export function Type14UnplannedForm({
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 2. Actual Execution Breakdown: Stacked Cards รายแปลง */}
       {/* ──────────────────────────────────────────────────────────── */}
-      {!item.selectedPlanId ? (
+      {!item.selectedPlanId && plotsList.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 p-8 sm:p-10 text-center bg-slate-50/60 space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-100">
             <Layers className="w-6 h-6" />

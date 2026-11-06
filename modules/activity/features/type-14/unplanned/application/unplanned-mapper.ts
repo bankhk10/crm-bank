@@ -106,6 +106,9 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
     (Array.isArray(initial.type14?.plots) && initial.type14.plots.length > 0
       ? initial.type14.plots
       : undefined) ||
+    (Array.isArray(initial.plots) && initial.plots.length > 0
+      ? initial.plots
+      : undefined) ||
     (Array.isArray(initial.type14UnplannedItem?.plots) &&
     initial.type14UnplannedItem.plots.length > 0
       ? initial.type14UnplannedItem.plots
@@ -117,6 +120,7 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
   // 2. Resolve raw actual results
   const rawResults: any[] = [
     ...(Array.isArray(initial.type14Results) ? initial.type14Results : []),
+    ...(Array.isArray(initial.results) ? initial.results : []),
     ...(Array.isArray(initial.result?.type14Results)
       ? initial.result.type14Results
       : []),
@@ -133,6 +137,9 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
   const rawWithdrawnList: any[] =
     (Array.isArray(initial.type14Products) && initial.type14Products.length > 0
       ? initial.type14Products
+      : undefined) ||
+    (Array.isArray(initial.products) && initial.products.length > 0
+      ? initial.products
       : undefined) ||
     (Array.isArray(initial.type14Data?.withdrawnProducts) &&
     initial.type14Data.withdrawnProducts.length > 0
@@ -175,6 +182,7 @@ export function hydrateType14UnplannedData(initial?: any): Type14UnplannedItem {
   // 5. Resolve source plan ID
   const selectedPlanId =
     initial.selectedPlanId ||
+    initial.sourceActivityPlanId ||
     initial.type14Data?.selectedPlanId ||
     initial.type14Targets?.[0]?.sourceActivityPlanId ||
     rawTargetList[0]?.sourceActivityPlanId ||

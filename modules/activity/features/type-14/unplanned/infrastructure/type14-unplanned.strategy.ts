@@ -58,7 +58,7 @@ export const type14UnplannedStrategy: WorkTypeStrategy = {
       }
 
       const firstPlot = plots[0];
-      if (!firstPlot.storeId) {
+      if (!firstPlot.storeId && !firstPlot.dealerName) {
         return {
           valid: false,
           error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค (TYPE_14)",
@@ -205,12 +205,7 @@ export const type14UnplannedStrategy: WorkTypeStrategy = {
         totalPlots: plots.length,
       };
 
-    // 3. Save Actual Outcome (ActivityResultType14, ProductsUsed, Attachments)
-    if (typeof type14PlannedStrategy.saveActual === "function") {
-      await type14PlannedStrategy.saveActual(tx, activityPlanId, actualPayload);
-    }
-
-    // 4. Ensure header ActivityResult exists and record demoPlotsFollowedUp
+    // 3. Ensure header ActivityResult exists first so attachments and relations can link to it
     const totalActualPlots = plots.reduce(
       (sum: number, p: any) => sum + (Number(p.actualPlotsCount) || 1),
       0,
@@ -234,6 +229,11 @@ export const type14UnplannedStrategy: WorkTypeStrategy = {
         demoPlotsFollowedUp: totalActualPlots || 1,
       },
     });
+
+    // 4. Save Actual Outcome (ActivityResultType14, ProductsUsed, Attachments)
+    if (typeof type14PlannedStrategy.saveActual === "function") {
+      await type14PlannedStrategy.saveActual(tx, activityPlanId, actualPayload);
+    }
   },
 
   /**

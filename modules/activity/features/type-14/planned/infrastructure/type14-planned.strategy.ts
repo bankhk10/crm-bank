@@ -10,6 +10,17 @@ import {
 } from "./type14.repository";
 import { WORK_TYPE_CODE } from "../../shared/constants";
 
+const isValidId = (id: unknown): id is string =>
+  typeof id === "string" &&
+  id.trim().length > 0 &&
+  !id.startsWith("temp-") &&
+  !id.startsWith("unplanned-") &&
+  !id.startsWith("local-") &&
+  (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
+    /^c[a-z0-9]{20,32}$/i.test(id)
+  );
+
 export const type14PlannedStrategy: WorkTypeStrategy = {
   code: WORK_TYPE_CODE,
 
@@ -113,16 +124,33 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
       return;
     }
 
-    // 1. Fetch targets for this plan
+    // 1. Fetch targets and header result for this plan
     const targets = await tx.activityPlanType14Target.findMany({
       where: { activityPlanId },
-      select: { id: true, type13TargetId: true, notes: true, plotName: true },
+      select: {
+        id: true,
+        type13TargetId: true,
+        notes: true,
+        plotName: true,
+        storeId: true,
+      },
     });
     const primaryTarget = targets[0] || null;
 
-    // 2. Delete existing actual results for this plan (cascade deletes productsUsed)
+    const headerResult = await tx.activityResult.findFirst({
+      where: { activityPlanId },
+      select: { id: true },
+    });
+
+    // 2. Delete existing actual results & attachments for this plan
     await tx.activityResultType14.deleteMany({
       where: { activityPlanId },
+    });
+    await tx.activityAttachment.deleteMany({
+      where: {
+        activityPlanId,
+        workTypeCode: WORK_TYPE_CODE,
+      },
     });
 
     let totalActualPlots = 0;
@@ -142,9 +170,21 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               (plot.demoPlotId && t.id === plot.demoPlotId),
           ) || targets[pIdx];
 
+        const matchedStoreId =
+          (matchedTarget?.storeId && isValidId(matchedTarget.storeId)
+            ? matchedTarget.storeId
+            : null) ||
+          (plot.storeId && isValidId(plot.storeId) ? plot.storeId : null);
+
         const daysSinceStart = plot.daysAfterSpray
           ? parseInt(String(plot.daysAfterSpray), 10)
           : 0;
+
+        const visitDate = plot.actualVisitDate
+          ? new Date(plot.actualVisitDate)
+          : plot.visitDate
+            ? new Date(plot.visitDate)
+            : new Date();
 
         const createdResult = await tx.activityResultType14.create({
           data: {
@@ -153,7 +193,7 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
             type13TargetId:
               matchedTarget?.type13TargetId || plot.type13TargetId || null,
             roundNumber: pIdx + 1,
-            actualVisitDate: new Date(),
+            actualVisitDate: visitDate,
             actualPlotsCount: actualCount,
             daysAfterSpray: isNaN(daysSinceStart) ? 0 : daysSinceStart,
             trackingResult: plot.trackingResult || "ได้ผลตามเกณฑ์",
@@ -161,11 +201,15 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
             plotStatus: plot.plotStatus || "IN_PROGRESS",
             closureNotes: plot.closureNotes?.trim() || null,
             actualLatitude:
-              plot.latitude != null && String(plot.latitude).trim() !== ""
+              plot.latitude != null &&
+              String(plot.latitude).trim() !== "" &&
+              !isNaN(Number(plot.latitude))
                 ? new Prisma.Decimal(Number(plot.latitude))
                 : null,
             actualLongitude:
-              plot.longitude != null && String(plot.longitude).trim() !== ""
+              plot.longitude != null &&
+              String(plot.longitude).trim() !== "" &&
+              !isNaN(Number(plot.longitude))
                 ? new Prisma.Decimal(Number(plot.longitude))
                 : null,
             additionalNotes: plot.additionalNotes?.trim() || null,
@@ -211,7 +255,9 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               if (!dbP) return null;
 
               const extraQuantityVal =
-                p.extraQuantity != null && String(p.extraQuantity).trim() !== ""
+                p.extraQuantity != null &&
+                String(p.extraQuantity).trim() !== "" &&
+                !isNaN(Number(p.extraQuantity))
                   ? new Prisma.Decimal(Number(p.extraQuantity))
                   : null;
 
@@ -220,9 +266,13 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
                 productId: dbP.id,
                 productName: p.productName || dbP.name || null,
                 quantityUsed:
-                  p.actualQuantity != null && String(p.actualQuantity).trim() !== ""
+                  p.actualQuantity != null &&
+                  String(p.actualQuantity).trim() !== "" &&
+                  !isNaN(Number(p.actualQuantity))
                     ? new Prisma.Decimal(Number(p.actualQuantity))
-                    : p.quantityUsed != null && String(p.quantityUsed).trim() !== ""
+                    : p.quantityUsed != null &&
+                        String(p.quantityUsed).trim() !== "" &&
+                        !isNaN(Number(p.quantityUsed))
                       ? new Prisma.Decimal(Number(p.quantityUsed))
                       : new Prisma.Decimal(1),
                 actualRate: p.actualRate || null,
@@ -257,6 +307,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
           await tx.activityAttachment.createMany({
             data: validImages.map((img) => ({
               activityPlanId,
+              activityResultId: headerResult?.id || null,
+              storeId: matchedStoreId,
               type14ResultId: createdResult.id,
               workTypeCode: WORK_TYPE_CODE,
               category: "PLOT",
@@ -279,6 +331,11 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
         actualData.type13TargetId ||
         actualData.demoPlotId ||
         null;
+
+      const fallbackStoreId =
+        primaryTarget?.storeId && isValidId(primaryTarget.storeId)
+          ? primaryTarget.storeId
+          : null;
 
       for (let i = 0; i < rounds.length; i++) {
         const round = rounds[i];
@@ -306,12 +363,14 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
               round.productResponse || round.trackingResult || "ปกติ",
             actualLatitude:
               round.actualLatitude != null &&
-              String(round.actualLatitude).trim() !== ""
+              String(round.actualLatitude).trim() !== "" &&
+              !isNaN(Number(round.actualLatitude))
                 ? new Prisma.Decimal(Number(round.actualLatitude))
                 : null,
             actualLongitude:
               round.actualLongitude != null &&
-              String(round.actualLongitude).trim() !== ""
+              String(round.actualLongitude).trim() !== "" &&
+              !isNaN(Number(round.actualLongitude))
                 ? new Prisma.Decimal(Number(round.actualLongitude))
                 : null,
             additionalNotes: round.additionalNotes || round.notes || null,
@@ -339,7 +398,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
                 productName: p.productName || dbP.name || null,
                 quantityUsed:
                   p.quantityUsed != null &&
-                  String(p.quantityUsed).trim() !== ""
+                  String(p.quantityUsed).trim() !== "" &&
+                  !isNaN(Number(p.quantityUsed))
                     ? new Prisma.Decimal(Number(p.quantityUsed))
                     : new Prisma.Decimal(1),
                 actualRate: p.actualRate || null,
@@ -366,6 +426,8 @@ export const type14PlannedStrategy: WorkTypeStrategy = {
           await tx.activityAttachment.createMany({
             data: validImages.map((img) => ({
               activityPlanId,
+              activityResultId: headerResult?.id || null,
+              storeId: fallbackStoreId,
               type14ResultId: createdResult.id,
               workTypeCode: WORK_TYPE_CODE,
               category: "PLOT",

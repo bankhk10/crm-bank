@@ -48,7 +48,7 @@ export function validateType14UnplannedItem(
       return { isValid: false, error: "กรุณาระบุชื่อแปลงแฮตแทค (TYPE_14)" };
     }
 
-    if (!primaryPlot.storeId?.trim()) {
+    if (!primaryPlot.storeId?.trim() && !primaryPlot.dealerName?.trim()) {
       return {
         isValid: false,
         error: "กรุณาเลือกร้านค้า Dealer สำหรับแปลงแฮตแทค (TYPE_14)",

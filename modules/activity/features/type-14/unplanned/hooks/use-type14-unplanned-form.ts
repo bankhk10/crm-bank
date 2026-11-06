@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { Type14UnplannedItem } from "../types/unplanned.types";
 import { validateType14UnplannedItem } from "../application/unplanned-validation";
 import {
@@ -27,6 +27,33 @@ export function useType14UnplannedForm(
   const [item, setItem] = useState<Type14UnplannedItem>(() =>
     hydrateType14UnplannedData(options.initial),
   );
+
+  const initialPayloadRef = useRef<any>(options.initial);
+  const isHydratedRef = useRef(false);
+
+  // Sync hydration when initialData loads asynchronously (e.g. Unplanned Edit mode)
+  useEffect(() => {
+    if (!options.initial) return;
+
+    const hasSignificantData =
+      Boolean(options.initial.type14Targets?.length) ||
+      Boolean(options.initial.type14Plots?.length) ||
+      Boolean(options.initial.type14Data?.plots?.length) ||
+      Boolean(options.initial.type14?.plots?.length) ||
+      Boolean(options.initial.plots?.length) ||
+      Boolean(options.initial.type14Products?.length) ||
+      Boolean(options.initial.selectedPlanId) ||
+      Boolean(options.initial.sourceActivityPlanId) ||
+      Boolean(options.initial.storeId) ||
+      Boolean(options.initial.id && options.initial.id !== "unplanned");
+
+    if (hasSignificantData || !isHydratedRef.current) {
+      initialPayloadRef.current = options.initial;
+      const hydrated = hydrateType14UnplannedData(options.initial);
+      setItem(hydrated);
+      isHydratedRef.current = true;
+    }
+  }, [options.initial]);
 
   const updateItem = useCallback((updated: Type14UnplannedItem) => {
     setItem(updated);

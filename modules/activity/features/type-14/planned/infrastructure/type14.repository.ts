@@ -7,6 +7,17 @@ import {
 import type { Type14PlanInput } from "../types/planned.types";
 import type { FollowUpPlanOption } from "../../shared/types";
 
+const isValidId = (id: unknown): id is string =>
+  typeof id === "string" &&
+  id.trim().length > 0 &&
+  !id.startsWith("temp-") &&
+  !id.startsWith("unplanned-") &&
+  !id.startsWith("local-") &&
+  (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ||
+    /^c[a-z0-9]{20,32}$/i.test(id)
+  );
+
 /**
  * Fetch active TYPE_13 Activity Plans and their Hattack plots
  * Strictly for TYPE_14 ("ติดตามแปลงแฮตแทค")
@@ -209,9 +220,15 @@ export async function createType14Data(
             type14Data.name ||
             `แปลงแฮตแทค ${i + 1}`,
           storeId:
-            target13?.storeId ||
-            plotItem?.storeId ||
-            type14Data.storeId ||
+            (target13?.storeId && isValidId(target13.storeId)
+              ? target13.storeId
+              : null) ||
+            (plotItem?.storeId && isValidId(plotItem.storeId)
+              ? plotItem.storeId
+              : null) ||
+            (type14Data.storeId && isValidId(type14Data.storeId)
+              ? type14Data.storeId
+              : null) ||
             null,
           dealerName:
             target13?.dealerName ||
@@ -238,16 +255,24 @@ export async function createType14Data(
             "",
           latitude:
             target13?.latitude ??
-            (plotItem?.latitude != null
+            (plotItem?.latitude != null &&
+            String(plotItem.latitude).trim() !== "" &&
+            !isNaN(Number(plotItem.latitude))
               ? new Prisma.Decimal(Number(plotItem.latitude))
-              : type14Data.latitude
+              : type14Data.latitude &&
+                  String(type14Data.latitude).trim() !== "" &&
+                  !isNaN(Number(type14Data.latitude))
                 ? new Prisma.Decimal(Number(type14Data.latitude))
                 : null),
           longitude:
             target13?.longitude ??
-            (plotItem?.longitude != null
+            (plotItem?.longitude != null &&
+            String(plotItem.longitude).trim() !== "" &&
+            !isNaN(Number(plotItem.longitude))
               ? new Prisma.Decimal(Number(plotItem.longitude))
-              : type14Data.longitude
+              : type14Data.longitude &&
+                  String(type14Data.longitude).trim() !== "" &&
+                  !isNaN(Number(type14Data.longitude))
                 ? new Prisma.Decimal(Number(type14Data.longitude))
                 : null),
           notes: type14Data.notes || plotItem?.notes || null,
@@ -268,15 +293,30 @@ export async function createType14Data(
           sourceActivityPlanId: validSourcePlanId,
           type13TargetId: p.type13TargetId || null,
           plotName: p.plotName || p.name || type14Data.name || `แปลงแฮตแทค ${i + 1}`,
-          storeId: p.storeId || type14Data.storeId || null,
+          storeId:
+            (p.storeId && isValidId(p.storeId) ? p.storeId : null) ||
+            (type14Data.storeId && isValidId(type14Data.storeId)
+              ? type14Data.storeId
+              : null) ||
+            null,
           dealerName: p.dealerName || type14Data.dealerName || null,
           ownerName: p.ownerName || type14Data.ownerName || null,
           cropCategory: p.cropCategory || type14Data.cropCategory || null,
           cropName: p.cropName || type14Data.cropName || null,
           province: p.province || type14Data.province || "",
           district: p.district || type14Data.district || "",
-          latitude: p.latitude != null ? new Prisma.Decimal(Number(p.latitude)) : null,
-          longitude: p.longitude != null ? new Prisma.Decimal(Number(p.longitude)) : null,
+          latitude:
+            p.latitude != null &&
+            String(p.latitude).trim() !== "" &&
+            !isNaN(Number(p.latitude))
+              ? new Prisma.Decimal(Number(p.latitude))
+              : null,
+          longitude:
+            p.longitude != null &&
+            String(p.longitude).trim() !== "" &&
+            !isNaN(Number(p.longitude))
+              ? new Prisma.Decimal(Number(p.longitude))
+              : null,
           notes: p.notes || type14Data.notes || null,
         },
       });
@@ -290,19 +330,28 @@ export async function createType14Data(
         sourceActivityPlanId: validSourcePlanId,
         type13TargetId: null,
         plotName: type14Data.name,
-        storeId: type14Data.storeId || null,
+        storeId:
+          type14Data.storeId && isValidId(type14Data.storeId)
+            ? type14Data.storeId
+            : null,
         dealerName: type14Data.dealerName || null,
         ownerName: type14Data.ownerName || null,
         cropCategory: type14Data.cropCategory || null,
         cropName: type14Data.cropName || null,
         province: type14Data.province || "",
         district: type14Data.district || "",
-        latitude: type14Data.latitude
-          ? new Prisma.Decimal(Number(type14Data.latitude))
-          : null,
-        longitude: type14Data.longitude
-          ? new Prisma.Decimal(Number(type14Data.longitude))
-          : null,
+        latitude:
+          type14Data.latitude != null &&
+          String(type14Data.latitude).trim() !== "" &&
+          !isNaN(Number(type14Data.latitude))
+            ? new Prisma.Decimal(Number(type14Data.latitude))
+            : null,
+        longitude:
+          type14Data.longitude != null &&
+          String(type14Data.longitude).trim() !== "" &&
+          !isNaN(Number(type14Data.longitude))
+            ? new Prisma.Decimal(Number(type14Data.longitude))
+            : null,
         notes: type14Data.notes || null,
       },
     });
@@ -328,7 +377,12 @@ export async function createType14Data(
             targetId: primaryTargetId,
             productId: p.productId,
             productName: p.productName || dbP?.name || null,
-            quantity: new Prisma.Decimal(p.quantity || 1),
+            quantity:
+              p.quantity != null &&
+              String(p.quantity).trim() !== "" &&
+              !isNaN(Number(p.quantity))
+                ? new Prisma.Decimal(Number(p.quantity))
+                : new Prisma.Decimal(1),
             unit: p.unit || dbP?.unit || "ขวด",
             sortOrder: idx + 1,
           };
