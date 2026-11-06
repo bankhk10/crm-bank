@@ -1,9 +1,8 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import { Bell, LogOut, Menu, User, KeyRound } from "lucide-react";
+import { LogOut, Menu, User, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,23 +13,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { NotificationBell } from "@/modules/notifications";
 import type { NavbarProps } from "../types";
-
-const NotificationBell = dynamic(
-    () => import("@/modules/notifications").then((mod) => mod.NotificationBell),
-    {
-        ssr: false,
-        loading: () => (
-            <Button
-                variant="ghost"
-                className="p-2 rounded hover:bg-white/10"
-                aria-label="Notifications"
-            >
-                <Bell className="h-5 w-5 text-white" />
-            </Button>
-        ),
-    },
-);
 
 export default function Navbar({ user, onMenuClick }: NavbarProps) {
     const displayName = user?.name ?? user?.email ?? "Guest";
