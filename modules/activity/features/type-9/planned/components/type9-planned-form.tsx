@@ -169,7 +169,7 @@ export function Type9PlannedForm({
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 {activeIsUnregistered
                   ? "ชื่อร้านค้า Sub Dealer"
-                  : "ร้านค้า Sub Dealer (จาก Customer Master)"}{" "}
+                  : "ร้านค้า (จาก Customer Master)"}{" "}
                 <span className="text-red-500">*</span>
               </label>
             </div>
@@ -179,7 +179,6 @@ export function Type9PlannedForm({
               <div className="space-y-2.5">
                 <ActivityCustomerSelect
                   id="type9-subdealer-combobox"
-                  type="SUBDEALER"
                   label=""
                   labelClassName="hidden"
                   triggerClassName="h-10 min-h-[40px] py-1 text-xs bg-white border-slate-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500"
@@ -430,9 +429,7 @@ export function Type9PlannedForm({
                 <th className="py-2 px-3 min-w-[180px]">
                   เลือกสินค้า <span className="text-red-500">*</span>
                 </th>
-                <th className="py-2 px-3 w-24 text-center">
-                  บรรจุ/ลัง (ขวด)
-                </th>
+                <th className="py-2 px-3 w-24 text-center">บรรจุ/ลัง (ขวด)</th>
                 <th className="py-2 px-3 w-28 text-center">
                   จำนวน (ลัง) <span className="text-red-500">*</span>
                 </th>
@@ -456,10 +453,12 @@ export function Type9PlannedForm({
               ) : (
                 type9ProductItems.map((item, index) => {
                   const matchedProd = products.find(
-                    (p) => p.id === item.productId || p.name === item.productName,
+                    (p) =>
+                      p.id === item.productId || p.name === item.productName,
                   );
                   const pkgSize =
-                    item.packageSizePerBox != null && Number(item.packageSizePerBox) > 0
+                    item.packageSizePerBox != null &&
+                    Number(item.packageSizePerBox) > 0
                       ? Number(item.packageSizePerBox)
                       : matchedProd?.packageSizePerBox != null
                         ? Number(matchedProd.packageSizePerBox)
