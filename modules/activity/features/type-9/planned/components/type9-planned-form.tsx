@@ -429,7 +429,7 @@ export function Type9PlannedForm({
                 <th className="py-2 px-3 min-w-[180px]">
                   เลือกสินค้า <span className="text-red-500">*</span>
                 </th>
-                <th className="py-2 px-3 w-24 text-center">บรรจุ/ลัง (ขวด)</th>
+                <th className="py-2 px-3 w-24 text-center">บรรจุ/ลัง</th>
                 <th className="py-2 px-3 w-28 text-center">
                   จำนวน (ลัง) <span className="text-red-500">*</span>
                 </th>

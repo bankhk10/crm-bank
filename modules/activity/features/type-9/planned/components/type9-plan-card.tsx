@@ -3,7 +3,10 @@
 import React from "react";
 import { Store, ShoppingBag, Target, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Type9PlanCardProps, Type9PlanTarget } from "../types/planned.types";
+import type {
+  Type9PlanCardProps,
+  Type9PlanTarget,
+} from "../types/planned.types";
 
 export type { Type9PlanTarget, Type9PlanCardProps };
 
@@ -115,7 +118,7 @@ export function Type9PlanCard({
               <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
                 <tr>
                   <th className="py-2 px-3">สินค้า</th>
-                  <th className="py-2 px-3 text-center">บรรจุ/ลัง (ขวด)</th>
+                  <th className="py-2 px-3 text-center">บรรจุ/ลัง</th>
                   <th className="py-2 px-3 text-center">เป้าหมาย (ลัง)</th>
                   <th className="py-2 px-3 text-right">ราคา/ขวด</th>
                   <th className="py-2 px-3 text-right">ยอดรวม/ลัง</th>
@@ -147,13 +150,19 @@ export function Type9PlanCard({
                         </span>
                       </td>
                       <td className="py-2 px-3 text-center text-slate-600">
-                        {it.quantityCases != null ? `${it.quantityCases} ลัง` : "-"}
+                        {it.quantityCases != null
+                          ? `${it.quantityCases} ลัง`
+                          : "-"}
                       </td>
                       <td className="py-2 px-3 text-right text-slate-600">
-                        {bottlePrice > 0 ? `${bottlePrice.toLocaleString()} ฿` : "-"}
+                        {bottlePrice > 0
+                          ? `${bottlePrice.toLocaleString()} ฿`
+                          : "-"}
                       </td>
                       <td className="py-2 px-3 text-right text-slate-600 font-medium">
-                        {casePrice > 0 ? `${casePrice.toLocaleString()} ฿` : "-"}
+                        {casePrice > 0
+                          ? `${casePrice.toLocaleString()} ฿`
+                          : "-"}
                       </td>
                       <td className="py-2 px-3 text-right font-bold text-teal-700">
                         {it.totalAmount != null
